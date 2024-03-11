@@ -13,6 +13,7 @@ from typing import Any, Iterable, Tuple, overload
 
 from hypothesis.errors import InvalidArgument
 from hypothesis.internal.conjecture import utils as cu
+from hypothesis.internal.conjecture.engine import BUFFER_SIZE
 from hypothesis.internal.conjecture.junkdrawer import LazySequenceCopy
 from hypothesis.internal.conjecture.utils import combine_labels
 from hypothesis.internal.filtering import get_integer_predicate_bounds
@@ -142,6 +143,10 @@ class ListStrategy(SearchStrategy):
         self.min_size = min_size or 0
         self.max_size = max_size if max_size is not None else float("inf")
         assert 0 <= self.min_size <= self.max_size
+        if min_size > BUFFER_SIZE:
+            raise InvalidArgument(
+                f"min_size={min_size:_d} is larger than Hypothesis is designed to handle"
+            )
         self.average_size = min(
             max(self.min_size * 2, self.min_size + 5),
             0.5 * (self.min_size + self.max_size),

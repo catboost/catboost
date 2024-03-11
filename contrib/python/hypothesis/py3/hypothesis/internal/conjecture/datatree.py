@@ -10,7 +10,7 @@
 
 import itertools
 import math
-from typing import TYPE_CHECKING, List, Literal, Optional, Union
+from typing import List, Optional, Union
 
 import attr
 
@@ -24,22 +24,13 @@ from hypothesis.internal.conjecture.data import (
     DataObserver,
     FloatKWargs,
     IntegerKWargs,
+    IRKWargsType,
+    IRType,
+    IRTypeName,
     Status,
     StringKWargs,
 )
 from hypothesis.internal.floats import count_between_floats, float_to_int, int_to_float
-
-if TYPE_CHECKING:
-    from typing import TypeAlias
-else:
-    TypeAlias = object
-
-IRType: TypeAlias = Union[int, str, bool, float, bytes]
-IRKWargsType: TypeAlias = Union[
-    IntegerKWargs, FloatKWargs, StringKWargs, BytesKWargs, BooleanKWargs
-]
-# this would be "IRTypeType", but that's just confusing.
-IRLiteralType: TypeAlias = Literal["integer", "string", "boolean", "float", "bytes"]
 
 
 class PreviouslyUnseenBehaviour(HypothesisException):
@@ -336,7 +327,7 @@ class TreeNode:
     # have the same length. The values at index i belong to node i.
     kwargs: List[IRKWargsType] = attr.ib(factory=list)
     values: List[IRType] = attr.ib(factory=list)
-    ir_types: List[IRLiteralType] = attr.ib(factory=list)
+    ir_types: List[IRTypeName] = attr.ib(factory=list)
 
     # The indices of nodes which had forced values.
     #
@@ -885,7 +876,7 @@ class TreeRecordingObserver(DataObserver):
 
     def draw_value(
         self,
-        ir_type: IRLiteralType,
+        ir_type: IRTypeName,
         value: IRType,
         *,
         was_forced: bool,

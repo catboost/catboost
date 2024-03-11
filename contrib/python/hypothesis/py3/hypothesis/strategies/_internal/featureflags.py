@@ -31,7 +31,7 @@ class FeatureFlags:
     required disabled features.
     """
 
-    def __init__(self, data=None, enabled=(), disabled=()):
+    def __init__(self, data=None, enabled=(), disabled=(), at_least_one_of=()):
         self.__data = data
         self.__is_disabled = {}
 
@@ -52,12 +52,17 @@ class FeatureFlags:
         # features will be enabled. This is so that we shrink in the direction
         # of more features being enabled.
         if self.__data is not None:
-            self.__p_disabled = data.draw_integer(0, 255) / 255.0
+            self.__p_disabled = data.draw_integer(0, 254) / 255
         else:
             # If data is None we're in example mode so all that matters is the
             # enabled/disabled lists above. We set this up so that everything
             # else is enabled by default.
             self.__p_disabled = 0.0
+
+        # The naive approach can lead to disabling e.g. every single rule on a
+        # RuleBasedStateMachine, which aborts the test as unable to make progress.
+        # Track the set of possible names, and ensure that at least one is enabled.
+        self.__at_least_one_of = set(at_least_one_of)
 
     def is_enabled(self, name):
         """Tests whether the feature named ``name`` should be enabled on this
@@ -81,10 +86,19 @@ class FeatureFlags:
         # of the test case where we originally decided, the next point at
         # which we make this decision just makes the decision it previously
         # made.
+        oneof = self.__at_least_one_of
         is_disabled = self.__data.draw_boolean(
-            self.__p_disabled, forced=self.__is_disabled.get(name)
+            self.__p_disabled,
+            forced=(
+                False
+                if len(oneof) == 1 and name in oneof
+                else self.__is_disabled.get(name)
+            ),
         )
         self.__is_disabled[name] = is_disabled
+        if name in oneof and not is_disabled:
+            oneof.clear()
+        oneof.discard(name)
         data.stop_example()
         return not is_disabled
 
@@ -100,5 +114,9 @@ class FeatureFlags:
 
 
 class FeatureStrategy(SearchStrategy):
+    def __init__(self, at_least_one_of=()):
+        super().__init__()
+        self._at_least_one_of = frozenset(at_least_one_of)
+
     def do_draw(self, data):
-        return FeatureFlags(data)
+        return FeatureFlags(data, at_least_one_of=self._at_least_one_of)
