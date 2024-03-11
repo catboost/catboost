@@ -641,7 +641,8 @@ class Pool(_PoolBase):
         label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series, optional (default=None)
             Label of the training data.
             If not None, giving 1 or 2 dimensional array like data with floats.
-            If data is a file, then label must be in the file, that is label must be equals to None
+            If `data` parameter points to a file, Label data is loaded from it as well. This parameter must
+              be None in this case.
 
         cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ features indices or names.
