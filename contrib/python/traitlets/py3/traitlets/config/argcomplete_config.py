@@ -2,7 +2,7 @@
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-
+from __future__ import annotations
 
 import argparse
 import os
@@ -45,7 +45,7 @@ def get_argcomplete_cwords() -> t.Optional[t.List[str]]:
             cword_suffix,
             comp_words,
             last_wordbreak_pos,
-        ) = argcomplete.split_line(comp_line, comp_point)  # type:ignore[attr-defined]
+        ) = argcomplete.split_line(comp_line, comp_point)  # type:ignore[attr-defined,no-untyped-call]
     except ModuleNotFoundError:
         return None
 
@@ -58,7 +58,7 @@ def get_argcomplete_cwords() -> t.Optional[t.List[str]]:
     comp_words = comp_words[start:]
 
     # argcomplete.debug("prequote=", cword_prequote, "prefix=", cword_prefix, "suffix=", cword_suffix, "words=", comp_words, "last=", last_wordbreak_pos)
-    return comp_words
+    return comp_words  # noqa: RET504
 
 
 def increment_argcomplete_index() -> None:
@@ -73,7 +73,7 @@ def increment_argcomplete_index() -> None:
         os.environ["_ARGCOMPLETE"] = str(int(os.environ["_ARGCOMPLETE"]) + 1)
     except Exception:
         try:
-            argcomplete.debug("Unable to increment $_ARGCOMPLETE", os.environ["_ARGCOMPLETE"])  # type:ignore[attr-defined]
+            argcomplete.debug("Unable to increment $_ARGCOMPLETE", os.environ["_ARGCOMPLETE"])  # type:ignore[attr-defined,no-untyped-call]
         except (KeyError, ModuleNotFoundError):
             pass
 
@@ -196,7 +196,7 @@ class ExtendedCompletionFinder(CompletionFinder):
         # Instead, check if comp_words only consists of the script,
         # if so check if any subcommands start with cword_prefix.
         if self.subcommands and len(comp_words) == 1:
-            argcomplete.debug("Adding subcommands for", cword_prefix)  # type:ignore[attr-defined]
+            argcomplete.debug("Adding subcommands for", cword_prefix)  # type:ignore[attr-defined,no-untyped-call]
             completions.extend(subc for subc in self.subcommands if subc.startswith(cword_prefix))
 
         return completions

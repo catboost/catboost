@@ -21,9 +21,12 @@ See https://github.com/HypothesisWorks/hypothesis/issues/3140 for details.
 
 import base64
 import json
+import os
 import sys
+import warnings
 from inspect import signature
 
+import _hypothesis_globals
 import pytest
 
 try:
@@ -94,6 +97,18 @@ if tuple(map(int, pytest.__version__.split(".")[:2])) < (4, 6):  # pragma: no co
     warnings.warn(PYTEST_TOO_OLD_MESSAGE % (pytest.__version__,), stacklevel=1)
 
 else:
+    # Restart side-effect detection as early as possible, to maximize coverage. We
+    # need balanced increment/decrement in configure/sessionstart to support nested
+    # pytest (e.g. runpytest_inprocess), so this early increment in effect replaces
+    # the first one in pytest_configure.
+    if not os.environ.get("HYPOTHESIS_EXTEND_INITIALIZATION"):
+        _hypothesis_globals.in_initialization += 1
+        if "hypothesis" in sys.modules:
+            # Some other plugin has imported hypothesis, so we'll check if there
+            # have been undetected side-effects and warn if so.
+            from hypothesis.configuration import notice_initialization_restarted
+
+            notice_initialization_restarted()
 
     def pytest_addoption(parser):
         group = parser.getgroup("hypothesis", "Hypothesis")
@@ -373,6 +388,13 @@ else:
                 if fex:
                     failing_examples.append(json.loads(fex))
 
+        from hypothesis.internal.observability import _WROTE_TO
+
+        if _WROTE_TO:
+            terminalreporter.section("Hypothesis")
+            for fname in sorted(_WROTE_TO):
+                terminalreporter.write_line(f"observations written to {fname}")
+
         if failing_examples:
             # This must have been imported already to write the failing examples
             from hypothesis.extra._patching import gc_patches, make_patch, save_patch
@@ -384,7 +406,8 @@ else:
             except Exception:
                 # fail gracefully if we hit any filesystem or permissions problems
                 return
-            terminalreporter.section("Hypothesis")
+            if not _WROTE_TO:
+                terminalreporter.section("Hypothesis")
             terminalreporter.write_line(
                 f"`git apply {fname}` to add failing examples to your code."
             )
@@ -398,6 +421,10 @@ else:
         for item in items:
             if isinstance(item, pytest.Function) and is_hypothesis_test(item.obj):
                 item.add_marker("hypothesis")
+
+    def pytest_sessionstart(session):
+        # Note: may be called multiple times, so we can go negative
+        _hypothesis_globals.in_initialization -= 1
 
     # Monkeypatch some internals to prevent applying @pytest.fixture() to a
     # function which has already been decorated with @hypothesis.given().

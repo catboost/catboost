@@ -20,15 +20,16 @@ namespace NCB {
 
     struct TDsvFormatOptions {
     public:
-        bool HasHeader;
-        char Delimiter;
-        char NumVectorDelimiter;
-        bool IgnoreCsvQuoting;
+        bool HasHeader = false;
+        char Delimiter = '\t';
+        char NumVectorDelimiter = ';';
+        bool IgnoreCsvQuoting = false;
 
     public:
+        explicit TDsvFormatOptions() = default;
         explicit TDsvFormatOptions(
-            bool hasHeader = false,
-            char delimiter = '\t',
+            bool hasHeader,
+            char delimiter,
             char numVectorDelimiter = ';',
             bool ignoreCsvQuoting = false
         )

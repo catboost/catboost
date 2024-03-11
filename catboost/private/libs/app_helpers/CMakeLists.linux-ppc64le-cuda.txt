@@ -43,15 +43,15 @@ target_link_libraries(private-libs-app_helpers PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(private-libs-app_helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/bind_options.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_calc_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_fit_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_fstr_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_normalize_model_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/bind_options.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_calc_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_fit_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_fstr_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_normalize_model_helpers.cpp
 )
 generate_enum_serilization(private-libs-app_helpers
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/implementation_type_enum.h
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/implementation_type_enum.h
   INCLUDE_HEADERS
   catboost/private/libs/app_helpers/implementation_type_enum.h
 )

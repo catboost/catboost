@@ -1,18 +1,20 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
-| The full license is in the file COPYING.txt, distributed with this software.
+| The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
 #include <map>
 #include <string>
-#include <Python.h>
+#include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
-#include "pythonhelpers.h"
 #include "types.h"
 
+
+namespace kiwisolver
+{
 
 inline bool
 convert_to_double( PyObject* obj, double& out )
@@ -22,13 +24,6 @@ convert_to_double( PyObject* obj, double& out )
         out = PyFloat_AS_DOUBLE( obj );
         return true;
     }
-#if PY_MAJOR_VERSION < 3
-    if( PyInt_Check( obj ) )
-    {
-        out = double( PyInt_AsLong( obj ) );
-        return true;
-    }
-#endif
     if( PyLong_Check( obj ) )
     {
         out = PyLong_AsDouble( obj );
@@ -36,7 +31,7 @@ convert_to_double( PyObject* obj, double& out )
             return false;
         return true;
     }
-    PythonHelpers::py_expected_type_fail( obj, "float, int, or long" );
+    cppy::type_error( obj, "float, int, or long" );
     return false;
 }
 
@@ -44,19 +39,7 @@ convert_to_double( PyObject* obj, double& out )
 inline bool
 convert_pystr_to_str( PyObject* value, std::string& out )
 {
-#if PY_MAJOR_VERSION >= 3
     out = PyUnicode_AsUTF8( value );
-#else
-    if( PyUnicode_Check( value ) )
-    {
-        PythonHelpers::PyObjectPtr py_str( PyUnicode_AsUTF8String( value ) );
-        if( !py_str )
-             return false;  // LCOV_EXCL_LINE
-        out = PyString_AS_STRING( py_str.get() );
-    }
-    else
-        out = PyString_AS_STRING( value );
-#endif
     return true;
 }
 
@@ -64,13 +47,8 @@ convert_pystr_to_str( PyObject* value, std::string& out )
 inline bool
 convert_to_strength( PyObject* value, double& out )
 {
-#if PY_MAJOR_VERSION >= 3
     if( PyUnicode_Check( value ) )
     {
-#else
-    if( PyString_Check( value ) | PyUnicode_Check( value ))
-    {
-#endif
         std::string str;
         if( !convert_pystr_to_str( value, str ) )
             return false;
@@ -103,19 +81,11 @@ convert_to_strength( PyObject* value, double& out )
 inline bool
 convert_to_relational_op( PyObject* value, kiwi::RelationalOperator& out )
 {
-#if PY_MAJOR_VERSION >= 3
     if( !PyUnicode_Check( value ) )
     {
-        PythonHelpers::py_expected_type_fail( value, "unicode" );
+        cppy::type_error( value, "str" );
         return false;
     }
-#else
-    if( !(PyString_Check( value ) | PyUnicode_Check( value ) ) )
-    {
-        PythonHelpers::py_expected_type_fail( value, "str or unicode" );
-        return false;
-    }
-#endif
     std::string str;
     if( !convert_pystr_to_str( value, str ) )
         return false;
@@ -142,7 +112,7 @@ inline PyObject*
 make_terms( const std::map<PyObject*, double>& coeffs )
 {
     typedef std::map<PyObject*, double>::const_iterator iter_t;
-    PythonHelpers::PyObjectPtr terms( PyTuple_New( coeffs.size() ) );
+    cppy::ptr terms( PyTuple_New( coeffs.size() ) );
     if( !terms )
         return 0;
     Py_ssize_t size = PyTuple_GET_SIZE( terms.get() );
@@ -153,11 +123,11 @@ make_terms( const std::map<PyObject*, double>& coeffs )
     iter_t end = coeffs.end();
     for( ; it != end; ++it, ++i )
     {
-        PyObject* pyterm = PyType_GenericNew( &Term_Type, 0, 0 );
+        PyObject* pyterm = PyType_GenericNew( Term::TypeObject, 0, 0 );
         if( !pyterm )
             return 0;
         Term* term = reinterpret_cast<Term*>( pyterm );
-        term->variable = PythonHelpers::newref( it->first );
+        term->variable = cppy::incref( it->first );
         term->coefficient = it->second;
         PyTuple_SET_ITEM( terms.get(), i, pyterm );
     }
@@ -177,10 +147,10 @@ reduce_expression( PyObject* pyexpr )  // pyexpr must be an Expression
         Term* term = reinterpret_cast<Term*>( item );
         coeffs[ term->variable ] += term->coefficient;
     }
-    PythonHelpers::PyObjectPtr terms( make_terms( coeffs ) );
+    cppy::ptr terms( make_terms( coeffs ) );
     if( !terms )
         return 0;
-    PyObject* pynewexpr = PyType_GenericNew( &Expression_Type, 0, 0 );
+    PyObject* pynewexpr = PyType_GenericNew( Expression::TypeObject, 0, 0 );
     if( !pynewexpr )
         return 0;
     Expression* newexpr = reinterpret_cast<Expression*>( pynewexpr );
@@ -228,3 +198,6 @@ pyop_str( int op )
             return "";
     }
 }
+
+
+}  // namespace kiwisolver

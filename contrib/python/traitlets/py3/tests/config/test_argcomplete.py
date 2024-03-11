@@ -4,6 +4,7 @@ Tests for argcomplete handling by traitlets.config.application.Application
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
+from __future__ import annotations
 
 import io
 import os
@@ -71,7 +72,7 @@ class TestArgcomplete:
     IFS = "\013"
     COMP_WORDBREAKS = " \t\n\"'><=;|&(:"
 
-    @pytest.fixture
+    @pytest.fixture()
     def argcomplete_on(self, mocker):
         """Mostly borrowed from argcomplete's unit test fixtures
 
@@ -119,7 +120,7 @@ class TestArgcomplete:
         os.environ["COMP_LINE"] = command
         os.environ["COMP_POINT"] = str(point)
 
-        with pytest.raises(CustomError) as cm:
+        with pytest.raises(CustomError) as cm:  # noqa: PT012
             app.argcomplete_kwargs = dict(
                 output_stream=strio, exit_method=CustomError.exit, **kwargs
             )
@@ -216,4 +217,5 @@ class TestArgcomplete:
         app = MainApp()
         completions = set(self.run_completer(app, "app --"))
         assert completions > {"--Application.", "--MainApp."}
-        assert "--SubApp1." not in completions and "--SubApp2." not in completions
+        assert "--SubApp1." not in completions
+        assert "--SubApp2." not in completions

@@ -46,8 +46,14 @@ from hypothesis.internal.conjecture import utils as cu
 from hypothesis.internal.coverage import check_function
 from hypothesis.internal.reflection import proxies
 from hypothesis.internal.validation import check_type
+from hypothesis.strategies._internal.lazy import unwrap_strategies
 from hypothesis.strategies._internal.numbers import Real
-from hypothesis.strategies._internal.strategies import Ex, T, check_strategy
+from hypothesis.strategies._internal.strategies import (
+    Ex,
+    MappedStrategy,
+    T,
+    check_strategy,
+)
 from hypothesis.strategies._internal.utils import defines_strategy
 
 
@@ -330,7 +336,7 @@ class ArrayStrategy(st.SearchStrategy):
             seen = set()
 
             while elements.more():
-                i = cu.integer_range(data, 0, self.array_size - 1)
+                i = data.draw_integer(0, self.array_size - 1)
                 if not needs_fill[i]:
                     elements.reject()
                     continue
@@ -393,7 +399,6 @@ class ArrayStrategy(st.SearchStrategy):
         return result
 
 
-@check_function
 def fill_for(elements, unique, fill, name=""):
     if fill is None:
         if unique or not elements.has_reusable_values:
@@ -508,6 +513,11 @@ def arrays(
             )
         elements = from_dtype(dtype, **(elements or {}))
     check_strategy(elements, "elements")
+    # If there's a redundant cast to the requested dtype, remove it.  This unlocks
+    # optimizations such as fast unique sampled_from, and saves some time directly too.
+    unwrapped = unwrap_strategies(elements)
+    if isinstance(unwrapped, MappedStrategy) and unwrapped.pack == dtype.type:
+        elements = unwrapped.mapped_strategy
     if isinstance(shape, int):
         shape = (shape,)
     shape = tuple(shape)
@@ -756,7 +766,7 @@ def array_dtypes(
         field_names,
         st.tuples(field_names, field_names).filter(lambda ns: ns[0] != ns[1]),
     )
-    elements = st.tuples(name_titles, subtype_strategy)
+    elements: st.SearchStrategy[tuple] = st.tuples(name_titles, subtype_strategy)
     if allow_subarrays:
         elements |= st.tuples(
             name_titles, subtype_strategy, array_shapes(max_dims=2, max_side=2)

@@ -6,16 +6,16 @@ import asyncio
 import atexit
 import errno
 import inspect
-import os
 import sys
 import threading
 import warnings
+from contextvars import ContextVar
 from pathlib import Path
 from types import FrameType
 from typing import Any, Awaitable, Callable, TypeVar, cast
 
 
-def ensure_dir_exists(path: str, mode: int = 0o777) -> None:
+def ensure_dir_exists(path: str | Path, mode: int = 0o777) -> None:
     """Ensure that a directory exists
 
     If it doesn't exist, try to create it, protecting against a race condition
@@ -23,11 +23,11 @@ def ensure_dir_exists(path: str, mode: int = 0o777) -> None:
     The default permissions are determined by the current umask.
     """
     try:
-        os.makedirs(path, mode=mode)
+        Path(path).mkdir(parents=True, mode=mode)
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
-    if not os.path.isdir(path):
+    if not Path(path).is_dir():
         raise OSError("%r exists but is not a directory" % path)
 
 
@@ -108,7 +108,7 @@ class _TaskRunner:
 
     def _runner(self) -> None:
         loop = self.__io_loop
-        assert loop is not None  # noqa
+        assert loop is not None
         try:
             loop.run_forever()
         finally:
@@ -127,6 +127,7 @@ class _TaskRunner:
 
 
 _runner_map: dict[str, _TaskRunner] = {}
+_loop: ContextVar[asyncio.AbstractEventLoop | None] = ContextVar("_loop", default=None)
 
 
 def run_sync(coro: Callable[..., Awaitable[T]]) -> Callable[..., T]:
@@ -160,20 +161,28 @@ def run_sync(coro: Callable[..., Awaitable[T]]) -> Callable[..., T]:
             pass
 
         # Run the loop for this thread.
-        # In Python 3.12, a deprecation warning is raised, which
-        # may later turn into a RuntimeError.  We handle both
-        # cases.
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            return loop.run_until_complete(inner)
+        loop = ensure_event_loop()
+        return loop.run_until_complete(inner)
 
     wrapped.__doc__ = coro.__doc__
     return wrapped
+
+
+def ensure_event_loop(prefer_selector_loop: bool = False) -> asyncio.AbstractEventLoop:
+    # Get the loop for this thread, or create a new one.
+    loop = _loop.get()
+    if loop is not None and not loop.is_closed():
+        return loop
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        if sys.platform == "win32" and prefer_selector_loop:
+            loop = asyncio.WindowsSelectorEventLoopPolicy().new_event_loop()
+        else:
+            loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    _loop.set(loop)
+    return loop
 
 
 async def ensure_async(obj: Awaitable[T] | T) -> T:

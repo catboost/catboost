@@ -227,16 +227,16 @@ private:
 struct TFloatTargetStatistic : TFloatFeatureStatistics {
 };
 
-struct TStringTargetStatistic : public IStatistics {
-    TStringTargetStatistic() = default;
+struct TDiscreteTargetStatistic : public IStatistics {
+    TDiscreteTargetStatistic() = default;
 
-    TStringTargetStatistic(const TStringTargetStatistic& a)
+    TDiscreteTargetStatistic(const TDiscreteTargetStatistic& a)
         : StringTargets(a.StringTargets)
         , IntegerTargets(a.IntegerTargets)
         , TargetType(a.TargetType)
     {}
 
-    bool operator==(const TStringTargetStatistic& a) const {
+    bool operator==(const TDiscreteTargetStatistic& a) const {
         return (
             std::tie(TargetType, StringTargets, IntegerTargets) ==
             std::tie(a.TargetType, a.StringTargets, a.IntegerTargets)
@@ -249,7 +249,7 @@ struct TStringTargetStatistic : public IStatistics {
 
     NJson::TJsonValue ToJson() const override;
 
-    void Update(const TStringTargetStatistic& update);
+    void Update(const TDiscreteTargetStatistic& update);
 
     Y_SAVELOAD_DEFINE(StringTargets, IntegerTargets, TargetType);
 
@@ -284,30 +284,31 @@ public:
     NJson::TJsonValue ToJson() const override;
 
     void Update(ui32 flatTargetIdx, TStringBuf value);
-
+    void Update(ui32 flatTargetIdx, ui32 value);    // use for boolean as well
     void Update(ui32 flatTargetIdx, float value);
 
     void Update(const TTargetsStatistics& update) {
         CB_ENSURE(FloatTargetStatistics.size() == update.FloatTargetStatistics.size());
-        CB_ENSURE(StringTargetStatistics.size() == update.StringTargetStatistics.size());
+        CB_ENSURE(DiscreteTargetStatistics.size() == update.DiscreteTargetStatistics.size());
         for (size_t i = 0; i < FloatTargetStatistics.size(); ++i) {
             FloatTargetStatistics[i].Update(update.FloatTargetStatistics[i]);
         }
-        for (size_t i = 0; i < StringTargetStatistics.size(); ++i) {
-            StringTargetStatistics[i].Update(update.StringTargetStatistics[i]);
+        for (size_t i = 0; i < DiscreteTargetStatistics.size(); ++i) {
+            DiscreteTargetStatistics[i].Update(update.DiscreteTargetStatistics[i]);
         }
     }
 
     ui64 GetObjectCount() const {
-        if (FloatTargetStatistics.empty() && StringTargetStatistics.empty()) {
+        if (FloatTargetStatistics.empty() && DiscreteTargetStatistics.empty()) {
             return 0;
         }
         switch (TargetType) {
             case ERawTargetType::Float:
                 return FloatTargetStatistics[0].GetObjectCount();
+            case ERawTargetType::Boolean:
             case ERawTargetType::Integer:
             case ERawTargetType::String:
-                return StringTargetStatistics[0].GetObjectCount();
+                return DiscreteTargetStatistics[0].GetObjectCount();
             default:
                 break;
         }
@@ -317,21 +318,21 @@ public:
 
     Y_SAVELOAD_DEFINE(
         FloatTargetStatistics,
-        StringTargetStatistics,
+        DiscreteTargetStatistics,
         TargetType,
         TargetCount
     );
 
     SAVELOAD(
         FloatTargetStatistics,
-        StringTargetStatistics,
+        DiscreteTargetStatistics,
         TargetType,
         TargetCount
     );
 
 public:
     TVector<TFloatTargetStatistic> FloatTargetStatistics;
-    TVector<TStringTargetStatistic> StringTargetStatistics;
+    TVector<TDiscreteTargetStatistic> DiscreteTargetStatistics;
     ERawTargetType TargetType;
     ui32 TargetCount;
 };
@@ -436,7 +437,8 @@ public:
             SampleIdStatistics,
             GroupwiseStats,
             TargetHistogram,
-            ClassNames
+            ClassNames,
+            ObjectsCount
         )
         == std::tie(
             a.FeatureStatistics,
@@ -444,7 +446,8 @@ public:
             a.SampleIdStatistics,
             a.GroupwiseStats,
             a.TargetHistogram,
-            a.ClassNames
+            a.ClassNames,
+            a.ObjectsCount
         );
     }
 
@@ -454,7 +457,8 @@ public:
         SampleIdStatistics,
         GroupwiseStats,
         TargetHistogram,
-        ClassNames
+        ClassNames,
+        ObjectsCount
     );
 
     SAVELOAD(
@@ -463,7 +467,8 @@ public:
         SampleIdStatistics,
         GroupwiseStats,
         TargetHistogram,
-        ClassNames
+        ClassNames,
+        ObjectsCount
     );
 
     TFeatureStatistics FeatureStatistics;
@@ -473,6 +478,7 @@ public:
 
     TMaybe<TVector<TFloatFeatureHistogram>> TargetHistogram;
     TVector<TString> ClassNames;
+    ui64 ObjectsCount = 0;
 
     void Init(
         const TDataMetaInfo& metaInfo,
@@ -484,6 +490,7 @@ public:
         if (metaInfo.HasGroupId) {
             GroupwiseStats = MakeMaybe(TGroupwiseStats());
         }
+        ObjectsCount = 0;
     }
 
     void SetTargetHistogram(const TVector<TFloatFeatureHistogram>& targetHistogram) {
@@ -494,7 +501,7 @@ public:
 
     void Update(const TDatasetStatistics& update);
     ui64 GetObjectCount() const {
-        return TargetsStatistics.GetObjectCount();
+        return ObjectsCount;
     }
 };
 }

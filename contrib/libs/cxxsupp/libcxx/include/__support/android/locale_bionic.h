@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP_SUPPORT_ANDROID_LOCALE_BIONIC_H
-#define _LIBCPP_SUPPORT_ANDROID_LOCALE_BIONIC_H
+#ifndef _LIBCPP___SUPPORT_ANDROID_LOCALE_BIONIC_H
+#define _LIBCPP___SUPPORT_ANDROID_LOCALE_BIONIC_H
 
 #if defined(__BIONIC__)
 
@@ -34,9 +34,7 @@ extern "C" {
 // build, which will always be at least as new as the ToT NDK, in which case we
 // don't need any of the inlines below since libc provides them.
 #if __has_include(<android/ndk-version.h>)
-#if defined(__has_include) && __has_include(<android/ndk-version.h>)
-#   include <android/ndk-version.h>
-#endif
+#include <android/ndk-version.h>
 // In NDK versions later than 16, locale-aware functions are provided by
 // legacy_stdlib_inlines.h
 #if __NDK_MAJOR__ <= 16
@@ -48,18 +46,15 @@ extern "C" {
 extern "C" {
 #endif
 
-inline _LIBCPP_INLINE_VISIBILITY float strtof_l(const char* __nptr, char** __endptr,
-                                                locale_t) {
+inline _LIBCPP_HIDE_FROM_ABI_C float strtof_l(const char* __nptr, char** __endptr, locale_t) {
   return ::strtof(__nptr, __endptr);
 }
 
-inline _LIBCPP_INLINE_VISIBILITY double strtod_l(const char* __nptr,
-                                                 char** __endptr, locale_t) {
+inline _LIBCPP_HIDE_FROM_ABI_C double strtod_l(const char* __nptr, char** __endptr, locale_t) {
   return ::strtod(__nptr, __endptr);
 }
 
-inline _LIBCPP_INLINE_VISIBILITY long strtol_l(const char* __nptr, char** __endptr,
-                                               int __base, locale_t) {
+inline _LIBCPP_HIDE_FROM_ABI_C long strtol_l(const char* __nptr, char** __endptr, int __base, locale_t) {
   return ::strtol(__nptr, __endptr, __base);
 }
 
@@ -74,4 +69,4 @@ inline _LIBCPP_INLINE_VISIBILITY long strtol_l(const char* __nptr, char** __endp
 #endif // defined(__ANDROID__)
 
 #endif // defined(__BIONIC__)
-#endif // _LIBCPP_SUPPORT_ANDROID_LOCALE_BIONIC_H
+#endif // _LIBCPP___SUPPORT_ANDROID_LOCALE_BIONIC_H

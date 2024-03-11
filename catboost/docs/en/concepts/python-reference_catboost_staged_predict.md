@@ -8,9 +8,9 @@
 ```python
 staged_predict(data,
     prediction_type=None,
-    ntree_start={{ fit--ntree_start }}, 
-    ntree_end=0, 
-    eval_period=1, 
+    ntree_start={{ fit--ntree_start }},
+    ntree_end=0,
+    eval_period=1,
     thread_count=-1,
     verbose=None)
 ```
@@ -28,7 +28,7 @@ The format depends on the number of input objects:
 - Multiple — Matrix-like data of shape `(object_count, feature_count)`
 - Single — An array
 
-**Possible types** 
+**Possible types**
 
 For multiple objects:
 
@@ -40,14 +40,14 @@ For multiple objects:
 - {{ python-type--pandasSeries }}
 - [{{ python-type__FeaturesData }}](../concepts/python-features-data__desc.md)
 - {% include [libsvm-scipy-except-dia](../_includes/work_src/reusage-formats/scipy-except-dia.md) %}
-    
+
 
 For a single object:
 
 - {{ python-type--list }} of feature values
 - one-dimensional {{ python-type__np_ndarray }} with feature values
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -64,11 +64,11 @@ Supported prediction types:
 - Exponent
 - LogProbability
 
-**Possible types** 
+**Possible types**
 
 string
 
-**Default value** 
+**Default value**
 
 None (Exponent for Poisson and Tweedie, RawFormulaVal for all other loss functions)
 
@@ -80,11 +80,11 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 This parameter defines the index of the first tree to be used when applying the model or calculating the metrics (the inclusive left border of the range). Indices are zero-based.
 
-**Possible types** 
+**Possible types**
 
 int
 
-**Default value** 
+**Default value**
 
 0
 
@@ -96,11 +96,11 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 This parameter defines the index of the first tree to be used when applying the model or calculating the metrics (the inclusive left border of the range). Indices are zero-based.
 
-**Possible types** 
+**Possible types**
 
 int
 
-**Default value** 
+**Default value**
 
 0 (the index of the last tree to use equals to the number of trees in the model minus one)
 
@@ -118,10 +118,10 @@ This parameter defines the step to iterate over the range `[ntree_start; ntree_e
 
 In this case, the results are returned for the following tree ranges: `[0, 2), [0, 4), ... , [0, N)`.
 
-**Possible types** 
+**Possible types**
 
 int
-**Default value** 
+**Default value**
 
 1 (the trees are applied sequentially: the first tree, then the first two trees, etc.)
 
@@ -130,15 +130,15 @@ int
 
 #### Description
 
-The number of threads to use during the training.
+The number of threads to calculate predictions.
 
 Optimizes the speed of execution. This parameter doesn't affect results.
 
-**Possible types** 
+**Possible types**
 
 int
 
-**Default value** 
+**Default value**
 
 -1 (the number of threads is equal to the number of processor cores)
 
@@ -148,11 +148,11 @@ int
 
 Output the measured evaluation metric to stderr.
 
-**Possible types** 
+**Possible types**
 
 bool
 
-**Default value** 
+**Default value**
 
 None
 

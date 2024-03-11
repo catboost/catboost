@@ -3,7 +3,7 @@
 |
 | Distributed under the terms of the Modified BSD License.
 |
-| The full license is in the file COPYING.txt, distributed with this software.
+| The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
 
@@ -19,7 +19,7 @@ class Symbol
 
 public:
 
-	typedef unsigned long long Id;
+	using Id = unsigned long long;
 
 	enum Type
 	{
@@ -34,7 +34,7 @@ public:
 
 	Symbol( Type type, Id id ) : m_id( id ), m_type( type ) {}
 
-	~Symbol() {}
+	~Symbol() = default;
 
 	Id id() const
 	{

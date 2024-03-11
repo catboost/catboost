@@ -14,5 +14,5 @@ target_link_libraries(cpp-float16-float16_dummy_impl PUBLIC
   yutil
 )
 target_sources(cpp-float16-float16_dummy_impl PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/float16/float16_dummy_impl/float16_dummy.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/float16/float16_dummy_impl/float16_dummy.cpp
 )

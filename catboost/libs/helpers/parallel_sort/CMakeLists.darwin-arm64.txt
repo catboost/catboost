@@ -16,5 +16,5 @@ target_link_libraries(libs-helpers-parallel_sort PUBLIC
   cpp-threading-local_executor
 )
 target_sources(libs-helpers-parallel_sort PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/parallel_sort/parallel_sort.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/parallel_sort/parallel_sort.cpp
 )

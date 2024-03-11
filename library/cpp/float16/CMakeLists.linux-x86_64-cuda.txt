@@ -16,5 +16,5 @@ target_link_libraries(library-cpp-float16 PUBLIC
   cpp-float16-float16_avx_impl
 )
 target_sources(library-cpp-float16 PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/float16/float16.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/float16/float16.cpp
 )

@@ -103,7 +103,7 @@ Y_FORCE_INLINE void DestroyRefCountedImpl(T* obj)
 ////////////////////////////////////////////////////////////////////////////////
 
 // Specialization for final classes.
-template <class T, bool = std::is_base_of_v<TRefCountedBase, T>>
+template <class T, bool = std::derived_from<T, TRefCountedBase>>
 struct TRefCountedTraits
 {
     static_assert(

@@ -35,10 +35,8 @@ int toupper(int c);
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(ctype.h)
-#else
-#include_next <ctype.h>
+#if __has_include_next(<ctype.h>)
+#  include_next <ctype.h>
 #endif
 
 #ifdef __cplusplus

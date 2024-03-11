@@ -90,9 +90,7 @@ class InProcessKernelClient(KernelClient):
     @property
     def control_channel(self):
         if self._control_channel is None:
-            self._control_channel = self.control_channel_class(
-                self
-            )  # type:ignore[abstract,call-arg]
+            self._control_channel = self.control_channel_class(self)  # type:ignore[abstract,call-arg]
         return self._control_channel
 
     @property

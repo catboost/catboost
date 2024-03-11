@@ -18,23 +18,24 @@ target_link_libraries(cpp-netliba-v6 PUBLIC
   cpp-threading-mux_event
 )
 target_sources(cpp-netliba-v6 PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/stdafx.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_address.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_client_server.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_http.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/net_acks.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_test.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/block_chain.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/net_test.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_debug.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_socket.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_low.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_buffers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_mem.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_cs.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_test.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/cpu_affinity.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/net_request.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_collective.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_memstream.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/net_queue_stat.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/stdafx.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/udp_address.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/udp_client_server.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/udp_http.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/net_acks.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/udp_test.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/block_chain.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/net_test.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/udp_debug.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/udp_socket.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/ib_low.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/ib_buffers.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/ib_mem.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/ib_cs.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/ib_test.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/cpu_affinity.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/net_request.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/ib_collective.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/ib_memstream.cpp
 )

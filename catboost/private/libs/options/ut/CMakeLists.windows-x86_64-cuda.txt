@@ -16,10 +16,10 @@ target_link_libraries(json_options_ut PUBLIC
   private-libs-options
 )
 target_sources(json_options_ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/ut/json_helper_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/ut/options_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/ut/text_options_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/options/ut/all_losses_described.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/json_helper_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/options_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/text_options_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/all_losses_described.cpp
 )
 set_property(
   TARGET
@@ -53,6 +53,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  json_options_ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(json_options_ut
   system_allocator

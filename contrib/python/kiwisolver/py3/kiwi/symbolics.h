@@ -3,7 +3,7 @@
 |
 | Distributed under the terms of the Modified BSD License.
 |
-| The full license is in the file COPYING.txt, distributed with this software.
+| The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
 #include <vector>
@@ -69,12 +69,11 @@ Expression operator*( const Expression& expression, double coefficient )
 {
 	std::vector<Term> terms;
 	terms.reserve( expression.terms().size() );
-	typedef std::vector<Term>::const_iterator iter_t;
-	iter_t begin = expression.terms().begin();
-	iter_t end = expression.terms().end();
-	for( iter_t it = begin; it != end; ++it )
-		terms.push_back( ( *it ) * coefficient );
-	return Expression( terms, expression.constant() * coefficient );
+
+	for (const Term &term : expression.terms())
+		terms.push_back(term * coefficient);
+
+	return Expression( std::move(terms), expression.constant() * coefficient );
 }
 
 
@@ -124,7 +123,7 @@ Expression operator+( const Expression& first, const Expression& second )
 	terms.reserve( first.terms().size() + second.terms().size() );
 	terms.insert( terms.begin(), first.terms().begin(), first.terms().end() );
 	terms.insert( terms.end(), second.terms().begin(), second.terms().end() );
-	return Expression( terms, first.constant() + second.constant() );
+	return Expression( std::move(terms), first.constant() + second.constant() );
 }
 
 
@@ -135,7 +134,7 @@ Expression operator+( const Expression& first, const Term& second )
 	terms.reserve( first.terms().size() + 1 );
 	terms.insert( terms.begin(), first.terms().begin(), first.terms().end() );
 	terms.push_back( second );
-	return Expression( terms, first.constant() );
+	return Expression( std::move(terms), first.constant() );
 }
 
 
@@ -193,11 +192,7 @@ Expression operator+( const Term& term, const Expression& expression )
 inline
 Expression operator+( const Term& first, const Term& second )
 {
-	std::vector<Term> terms;
-	terms.reserve( 2 );
-	terms.push_back( first );
-	terms.push_back( second );
-	return Expression( terms );
+	return Expression( { first, second } );
 }
 
 

@@ -76,10 +76,8 @@ Macros:
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(float.h)
-#else
-#include_next <float.h>
+#if __has_include_next(<float.h>)
+#  include_next <float.h>
 #endif
 
 #ifdef __cplusplus

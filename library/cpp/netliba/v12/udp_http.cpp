@@ -1169,9 +1169,9 @@ namespace NNetliba_v12 {
 
             char buf[1000];
             TRequesterUserQueueSizes* qs = QueueSizes.Get();
-            sprintf(buf, "\nRequest queue %d (%d bytes)\n", (int)AtomicGet(qs->ReqCount), (int)AtomicGet(qs->ReqQueueSize));
+            snprintf(buf, sizeof(buf), "\nRequest queue %d (%d bytes)\n", (int)AtomicGet(qs->ReqCount), (int)AtomicGet(qs->ReqQueueSize));
             res += buf;
-            sprintf(buf, "Response queue %d (%d bytes)\n", (int)AtomicGet(qs->RespCount), (int)AtomicGet(qs->RespQueueSize));
+            snprintf(buf, sizeof(buf), "Response queue %d (%d bytes)\n", (int)AtomicGet(qs->RespCount), (int)AtomicGet(qs->RespQueueSize));
             res += buf;
 
             const char* outReqStateNames[] = {
@@ -1189,7 +1189,7 @@ namespace NNetliba_v12 {
                 const TGUID& gg = i->first;
                 const TOutRequestState& s = i->second;
                 bool isSync = SyncRequests.find(gg) != SyncRequests.end();
-                sprintf(buf, "%s\t%s  %s  TimePassed: %g  %s\n",
+                snprintf(buf, sizeof(buf), "%s\t%s  %s  TimePassed: %g  %s\n",
                         GetAddressAsString(s.Connection->GetAddress()).c_str(), GetGuidAsString(gg).c_str(), outReqStateNames[s.State],
                         s.TimePassed * 1000,
                         isSync ? "isSync" : "");
@@ -1199,7 +1199,7 @@ namespace NNetliba_v12 {
             for (TInRequestHash::const_iterator i = InRequests.begin(); i != InRequests.end(); ++i) {
                 const TGUID& gg = i->first;
                 const TInRequestState& s = i->second;
-                sprintf(buf, "%s\t%s  %s\n",
+                snprintf(buf, sizeof(buf), "%s\t%s  %s\n",
                         GetAddressAsString(s.Connection->GetAddress()).c_str(), GetGuidAsString(gg).c_str(), inReqStateNames[s.State]);
                 res += buf;
             }

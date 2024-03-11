@@ -8,8 +8,8 @@ def main():
     h_file = None
     try:
         index = cmd.index('-o')
-        h_file = cmd[index+1]
-        cmd[index+1] = os.path.dirname(h_file)
+        h_file = cmd[index + 1]
+        cmd[index + 1] = os.path.dirname(h_file)
     except (ValueError, IndexError):
         pass
     p = subprocess.run(cmd, capture_output=True, text=True)

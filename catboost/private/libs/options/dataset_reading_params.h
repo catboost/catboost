@@ -14,7 +14,7 @@ namespace NLastGetopt {
 }
 
 namespace NCatboostOptions {
-    class TDatasetReadingParams {
+    class TDatasetReadingBaseParams {
     public:
         void BindParserOpts(NLastGetopt::TOpts* parser);
         void ValidatePoolParams() const;
@@ -24,14 +24,22 @@ namespace NCatboostOptions {
 
         NCB::TPathWithScheme PoolPath;
 
+        NCB::TPathWithScheme FeatureNamesPath;
+        NCB::TPathWithScheme PoolMetaInfoPath;
+    };
+
+    class TDatasetReadingParams : public TDatasetReadingBaseParams {
+    public:
+        void BindParserOpts(NLastGetopt::TOpts* parser);
+        void ValidatePoolParams() const;
+
+    public:
         TVector<NJson::TJsonValue> ClassLabels;
 
         NCB::TPathWithScheme PairsFilePath;
-        NCB::TPathWithScheme FeatureNamesPath;
-        NCB::TPathWithScheme PoolMetaInfoPath;
 
         bool LoadSampleIds = false;
-        bool ForceUnitAutoPairWeights;
+        bool ForceUnitAutoPairWeights = false;
 
         TVector<ui32> IgnoredFeatures;
     };

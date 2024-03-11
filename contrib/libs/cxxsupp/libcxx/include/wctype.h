@@ -54,10 +54,6 @@ wctrans_t wctrans(const char* property);
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#   include Y_UCRT_INCLUDE_NEXT(wctype.h)
-#   define _LIBCPP_INCLUDED_C_LIBRARY_WCTYPE_H
-#else
 // TODO:
 // In the future, we should unconditionally include_next <wctype.h> here and instead
 // have a mode under which the library does not need libc++'s <wctype.h> or <cwctype>
@@ -70,7 +66,6 @@ wctrans_t wctrans(const char* property);
 #if __has_include_next(<wctype.h>)
 #   include_next <wctype.h>
 #   define _LIBCPP_INCLUDED_C_LIBRARY_WCTYPE_H
-#endif
 #endif
 
 #ifdef __cplusplus

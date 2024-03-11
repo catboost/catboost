@@ -25,5 +25,5 @@ target_link_libraries(blockcodecs-codecs-bzip.global PUBLIC
   cpp-blockcodecs-core
 )
 target_sources(blockcodecs-codecs-bzip.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/codecs/bzip/bzip.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/bzip/bzip.cpp
 )

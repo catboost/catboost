@@ -77,7 +77,7 @@ static long main_thread;
 #if defined(PYOS_OS2)
 #define INCL_DOS
 #define INCL_ERRORS
-#include <os2.h>
+#error #include <os2.h>
 #endif
 
 #if defined(PYCC_VACPP)
@@ -87,8 +87,8 @@ static long main_thread;
 #ifdef __BEOS__
 #include <time.h>
 /* For bigtime_t, snooze(). - [cjh] */
-#include <support/SupportDefs.h>
-#include <kernel/OS.h>
+#error #include <support/SupportDefs.h>
+#error #include <kernel/OS.h>
 #endif
 
 #ifdef RISCOS

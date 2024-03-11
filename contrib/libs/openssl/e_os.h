@@ -324,12 +324,12 @@ extern FILE *_imp___iob;
 
 /* vxworks */
 # if defined(OPENSSL_SYS_VXWORKS)
-#  include <ioLib.h>
-#  include <tickLib.h>
-#  include <sysLib.h>
-#  include <vxWorks.h>
-#  include <sockLib.h>
-#  include <taskLib.h>
+#  error #include <ioLib.h>
+#  error #include <tickLib.h>
+#  error #include <sysLib.h>
+#  error #include <vxWorks.h>
+#  error #include <sockLib.h>
+#  error #include <taskLib.h>
 
 #  define TTY_STRUCT int
 #  define sleep(a) taskDelay((a) * sysClkRateGet())

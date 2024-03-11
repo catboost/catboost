@@ -7,7 +7,7 @@ extern "C" {
 
 #include <math.h>
 #ifdef __SUNPRO_CC
-#include <sunmath.h>
+#error #include <sunmath.h>
 #endif
 #ifdef HAVE_NPY_CONFIG_H
 #include <npy_config.h>

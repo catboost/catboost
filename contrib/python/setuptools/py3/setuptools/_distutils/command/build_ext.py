@@ -19,7 +19,7 @@ from ..errors import (
 )
 from ..sysconfig import customize_compiler, get_python_version
 from ..sysconfig import get_config_h_filename
-from ..dep_util import newer_group
+from .._modified import newer_group
 from ..extension import Extension
 from ..util import get_platform
 from distutils._log import log

@@ -15,5 +15,5 @@ target_link_libraries(cpp-malloc-tcmalloc PUBLIC
   libs-tcmalloc-malloc_extension
 )
 target_sources(cpp-malloc-tcmalloc PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/malloc/tcmalloc/malloc-info.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/malloc/tcmalloc/malloc-info.cpp
 )

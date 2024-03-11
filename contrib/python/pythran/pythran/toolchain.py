@@ -22,13 +22,17 @@ from pythran.version import __version__
 from pythran.utils import cxxid
 import pythran.frontend as frontend
 
-from distutils.errors import CompileError
-from distutils import sysconfig
+try:
+    from distutils.errors import CompileError
+    from distutils import sysconfig
+except ImportError:
+    from setuptools.errors import CompileError
+    from setuptools._distutils import sysconfig
 try:
     # `numpy.distutils is deprecated, may not be present, or broken
     from numpy.distutils.core import setup
 except Exception:
-    from distutils.core import setup
+    from setuptools import setup
 
 from tempfile import mkdtemp, NamedTemporaryFile
 import gast as ast

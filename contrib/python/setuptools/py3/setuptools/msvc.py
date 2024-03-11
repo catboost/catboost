@@ -12,7 +12,6 @@ This may also support compilers shipped with compatible Visual Studio versions.
 """
 
 import json
-from io import open
 from os import listdir, pathsep
 from os.path import join, isfile, isdir, dirname
 from subprocess import CalledProcessError
@@ -93,21 +92,17 @@ def _msvc14_find_vc2017():
         # Workaround for `-requiresAny` (only available on VS 2017 > 15.6)
         with contextlib.suppress(CalledProcessError, OSError, UnicodeDecodeError):
             path = (
-                subprocess.check_output(
-                    [
-                        join(
-                            root, "Microsoft Visual Studio", "Installer", "vswhere.exe"
-                        ),
-                        "-latest",
-                        "-prerelease",
-                        "-requires",
-                        component,
-                        "-property",
-                        "installationPath",
-                        "-products",
-                        "*",
-                    ]
-                )
+                subprocess.check_output([
+                    join(root, "Microsoft Visual Studio", "Installer", "vswhere.exe"),
+                    "-latest",
+                    "-prerelease",
+                    "-requires",
+                    component,
+                    "-property",
+                    "installationPath",
+                    "-products",
+                    "*",
+                ])
                 .decode(encoding="mbcs", errors="strict")
                 .strip()
             )
@@ -567,21 +562,22 @@ class RegistryInfo:
             bkey = None
             try:
                 bkey = openkey(hkey, ms(key), 0, key_read)
-            except (OSError, IOError):
+            except OSError:
                 if not self.pi.current_is_x86():
                     try:
                         bkey = openkey(hkey, ms(key, True), 0, key_read)
-                    except (OSError, IOError):
+                    except OSError:
                         continue
                 else:
                     continue
             try:
                 return winreg.QueryValueEx(bkey, name)[0]
-            except (OSError, IOError):
+            except OSError:
                 pass
             finally:
                 if bkey:
                     closekey(bkey)
+        return None
 
 
 class SystemInfo:
@@ -646,7 +642,7 @@ class SystemInfo:
         for hkey, key in itertools.product(self.ri.HKEYS, vckeys):
             try:
                 bkey = winreg.OpenKey(hkey, ms(key), 0, winreg.KEY_READ)
-            except (OSError, IOError):
+            except OSError:
                 continue
             with bkey:
                 subkeys, values, _ = winreg.QueryInfoKey(bkey)
@@ -678,7 +674,7 @@ class SystemInfo:
         try:
             hashed_names = listdir(instances_dir)
 
-        except (OSError, IOError):
+        except OSError:
             # Directory not exists with all Visual Studio versions
             return vs_versions
 
@@ -694,11 +690,11 @@ class SystemInfo:
                 listdir(join(vs_path, r'VC\Tools\MSVC'))
 
                 # Store version and path
-                vs_versions[
-                    self._as_float_version(state['installationVersion'])
-                ] = vs_path
+                vs_versions[self._as_float_version(state['installationVersion'])] = (
+                    vs_path
+                )
 
-            except (OSError, IOError, KeyError):
+            except (OSError, KeyError):
                 # Skip if "state.json" file is missing or bad format
                 continue
 
@@ -784,7 +780,7 @@ class SystemInfo:
             vc_ver = listdir(guess_vc)[-1]
             self.vc_ver = self._as_float_version(vc_ver)
             return join(guess_vc, vc_ver)
-        except (OSError, IOError, IndexError):
+        except (OSError, IndexError):
             return ''
 
     def _guess_vc_legacy(self):
@@ -828,6 +824,7 @@ class SystemInfo:
             return '8.1', '8.1a'
         elif self.vs_ver >= 14.0:
             return '10.0', '8.1'
+        return None
 
     @property
     def WindowsSdkLastVersion(self):
@@ -919,6 +916,8 @@ class SystemInfo:
             if execpath:
                 return execpath
 
+        return None
+
     @property
     def FSharpInstallDir(self):
         """
@@ -950,6 +949,8 @@ class SystemInfo:
             sdkdir = self.ri.lookup(self.ri.windows_kits_roots, 'kitsroot%s' % ver)
             if sdkdir:
                 return sdkdir or ''
+
+        return None
 
     @property
     def UniversalCRTSdkLastVersion(self):

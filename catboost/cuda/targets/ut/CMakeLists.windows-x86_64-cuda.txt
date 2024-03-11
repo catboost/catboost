@@ -23,12 +23,12 @@ target_link_libraries(catboost-cuda-targets-ut PUBLIC
   library-cpp-float16
 )
 target_sources(catboost-cuda-targets-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_auc.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_multi_logit.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_query_cross_entropy.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_combination.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_tweedie.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/targets/ut/test_huber.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_auc.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_multi_logit.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_query_cross_entropy.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_combination.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_tweedie.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_huber.cpp
 )
 set_property(
   TARGET
@@ -62,6 +62,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-cuda-targets-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-cuda-targets-ut
   system_allocator

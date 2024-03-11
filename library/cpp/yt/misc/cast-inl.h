@@ -9,7 +9,6 @@
 #include <util/string/cast.h>
 #include <util/string/printf.h>
 
-#include <concepts>
 #include <type_traits>
 
 namespace NYT {
@@ -78,6 +77,8 @@ inline TString FormatInvalidCastValue(char8_t value)
 
 } // namespace NDetail
 
+////////////////////////////////////////////////////////////////////////////////
+
 template <class T, class S>
 bool TryIntegralCast(S value, T* result)
 {
@@ -93,8 +94,12 @@ T CheckedIntegralCast(S value)
 {
     T result;
     if (!TryIntegralCast<T>(value, &result)) {
-        throw TSimpleException(Sprintf("Argument value %s is out of expected range",
-            NYT::NDetail::FormatInvalidCastValue(value).c_str()));
+        throw TSimpleException(Sprintf("Error casting %s value \"%s\" to %s: value is out of expected range [%s; %s]",
+            TypeName<S>().c_str(),
+            NYT::NDetail::FormatInvalidCastValue(value).c_str(),
+            TypeName<T>().c_str(),
+            ::ToString(std::numeric_limits<T>::min()).c_str(),
+            ::ToString(std::numeric_limits<T>::max()).c_str()));
     }
     return result;
 }
@@ -119,7 +124,8 @@ T CheckedEnumCast(S value)
 {
     T result;
     if (!TryEnumCast<T>(value, &result)) {
-        throw TSimpleException(Sprintf("Invalid value %d of enum type %s",
+        throw TSimpleException(Sprintf("Error casting %s value \"%d\" to enum %s",
+            TypeName<S>().c_str(),
             static_cast<int>(value),
             TEnumTraits<T>::GetTypeName().data()));
     }

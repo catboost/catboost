@@ -3,7 +3,7 @@
 |
 | Distributed under the terms of the Modified BSD License.
 |
-| The full license is in the file COPYING.txt, distributed with this software.
+| The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
 #pragma once
 #include <algorithm>
@@ -44,13 +44,13 @@ class SolverImpl
 		double constant;
 	};
 
-	typedef MapType<Variable, Symbol>::Type VarMap;
+	using VarMap = MapType<Variable, Symbol>;
 
-	typedef MapType<Symbol, Row*>::Type RowMap;
+	using RowMap = MapType<Symbol, Row*>;
 
-	typedef MapType<Constraint, Tag>::Type CnMap;
+	using CnMap = MapType<Constraint, Tag>;
 
-	typedef MapType<Variable, EditInfo>::Type EditMap;
+	using EditMap = MapType<Variable, EditInfo>;
 
 	struct DualOptimizeGuard
 	{
@@ -62,6 +62,10 @@ class SolverImpl
 public:
 
 	SolverImpl() : m_objective( new Row() ), m_id_tick( 1 ) {}
+
+	SolverImpl( const SolverImpl& ) = delete;
+
+	SolverImpl( SolverImpl&& ) = delete;
 
 	~SolverImpl() { clearRows(); }
 
@@ -88,7 +92,7 @@ public:
 		// constraints and since exceptional conditions are uncommon,
 		// i'm not too worried about aggressive cleanup of the var map.
 		Tag tag;
-		std::auto_ptr<Row> rowptr( createRow( constraint, tag ) );
+		std::unique_ptr<Row> rowptr( createRow( constraint, tag ) );
 		Symbol subject( chooseSubject( *rowptr, tag ) );
 
 		// If chooseSubject could not find a valid entering symbol, one
@@ -138,7 +142,7 @@ public:
 	*/
 	void removeConstraint( const Constraint& constraint )
 	{
-		CnMap::iterator cn_it = m_cns.find( constraint );
+		auto cn_it = m_cns.find( constraint );
 		if( cn_it == m_cns.end() )
 			throw UnknownConstraint( constraint );
 
@@ -152,10 +156,10 @@ public:
 
 		// If the marker is basic, simply drop the row. Otherwise,
 		// pivot the marker into the basis and then drop the row.
-		RowMap::iterator row_it = m_rows.find( tag.marker );
+		auto row_it = m_rows.find( tag.marker );
 		if( row_it != m_rows.end() )
 		{
-			std::auto_ptr<Row> rowptr( row_it->second );
+			std::unique_ptr<Row> rowptr( row_it->second );
 			m_rows.erase( row_it );
 		}
 		else
@@ -164,7 +168,7 @@ public:
 			if( row_it == m_rows.end() )
 				throw InternalSolverError( "failed to find leaving row" );
 			Symbol leaving( row_it->first );
-			std::auto_ptr<Row> rowptr( row_it->second );
+			std::unique_ptr<Row> rowptr( row_it->second );
 			m_rows.erase( row_it );
 			rowptr->solveFor( leaving, tag.marker );
 			substitute( tag.marker, *rowptr );
@@ -224,7 +228,7 @@ public:
 	*/
 	void removeEditVariable( const Variable& variable )
 	{
-		EditMap::iterator it = m_edits.find( variable );
+		auto it = m_edits.find( variable );
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 		removeConstraint( it->second.constraint );
@@ -252,7 +256,7 @@ public:
 	*/
 	void suggestValue( const Variable& variable, double value )
 	{
-		EditMap::iterator it = m_edits.find( variable );
+		auto it = m_edits.find( variable );
 		if( it == m_edits.end() )
 			throw UnknownEditVariable( variable );
 
@@ -262,7 +266,7 @@ public:
 		info.constant = value;
 
 		// Check first if the positive error variable is basic.
-		RowMap::iterator row_it = m_rows.find( info.tag.marker );
+		auto row_it = m_rows.find( info.tag.marker );
 		if( row_it != m_rows.end() )
 		{
 			if( row_it->second->add( -delta ) < 0.0 )
@@ -280,14 +284,13 @@ public:
 		}
 
 		// Otherwise update each row where the error variables exist.
-		RowMap::iterator end = m_rows.end();
-		for( row_it = m_rows.begin(); row_it != end; ++row_it )
+		for (const auto & rowPair : m_rows)
 		{
-			double coeff = row_it->second->coefficientFor( info.tag.marker );
+			double coeff = rowPair.second->coefficientFor( info.tag.marker );
 			if( coeff != 0.0 &&
-				row_it->second->add( delta * coeff ) < 0.0 &&
-				row_it->first.type() != Symbol::External )
-				m_infeasible_rows.push_back( row_it->first );
+				rowPair.second->add( delta * coeff ) < 0.0 &&
+				rowPair.first.type() != Symbol::External )
+				m_infeasible_rows.push_back( rowPair.first );
 		}
 	}
 
@@ -296,14 +299,12 @@ public:
 	*/
 	void updateVariables()
 	{
-		typedef RowMap::iterator row_iter_t;
-		typedef VarMap::iterator var_iter_t;
-		row_iter_t row_end = m_rows.end();
-		var_iter_t var_end = m_vars.end();
-		for( var_iter_t var_it = m_vars.begin(); var_it != var_end; ++var_it )
+		auto row_end = m_rows.end();
+
+		for (auto &varPair : m_vars)
 		{
-			Variable& var( const_cast<Variable&>( var_it->first ) );
-			row_iter_t row_it = m_rows.find( var_it->second );
+			Variable& var = varPair.first;
+			auto row_it = m_rows.find( varPair.second );
 			if( row_it == row_end )
 				var.setValue( 0.0 );
 			else
@@ -332,11 +333,11 @@ public:
 		m_id_tick = 1;
 	}
 
+	SolverImpl& operator=( const SolverImpl& ) = delete;
+
+	SolverImpl& operator=( SolverImpl&& ) = delete;
+
 private:
-
-	SolverImpl( const SolverImpl& );
-
-	SolverImpl& operator=( const SolverImpl& );
 
 	struct RowDeleter
 	{
@@ -357,7 +358,7 @@ private:
 	*/
 	Symbol getVarSymbol( const Variable& variable )
 	{
-		VarMap::iterator it = m_vars.find( variable );
+		auto it = m_vars.find( variable );
 		if( it != m_vars.end() )
 			return it->second;
 		Symbol symbol( Symbol::External, m_id_tick++ );
@@ -382,24 +383,22 @@ private:
 	for tracking the movement of the constraint in the tableau.
 
 	*/
-	Row* createRow( const Constraint& constraint, Tag& tag )
+	std::unique_ptr<Row> createRow( const Constraint& constraint, Tag& tag )
 	{
-		typedef std::vector<Term>::const_iterator iter_t;
 		const Expression& expr( constraint.expression() );
-		Row* row = new Row( expr.constant() );
+		std::unique_ptr<Row> row( new Row( expr.constant() ) );
 
 		// Substitute the current basic variables into the row.
-		iter_t end = expr.terms().end();
-		for( iter_t it = expr.terms().begin(); it != end; ++it )
+		for (const auto &term : expr.terms())
 		{
-			if( !nearZero( it->coefficient() ) )
+			if( !nearZero( term.coefficient() ) )
 			{
-				Symbol symbol( getVarSymbol( it->variable() ) );
-				RowMap::const_iterator row_it = m_rows.find( symbol );
+				Symbol symbol( getVarSymbol( term.variable() ) );
+				auto row_it = m_rows.find( symbol );
 				if( row_it != m_rows.end() )
-					row->insert( *row_it->second, it->coefficient() );
+					row->insert( *row_it->second, term.coefficient() );
 				else
-					row->insert( symbol, it->coefficient() );
+					row->insert( symbol, term.coefficient() );
 			}
 		}
 
@@ -466,14 +465,12 @@ private:
 	If a subject cannot be found, an invalid symbol will be returned.
 
 	*/
-	Symbol chooseSubject( const Row& row, const Tag& tag )
+	Symbol chooseSubject( const Row& row, const Tag& tag ) const
 	{
-		typedef Row::CellMap::const_iterator iter_t;
-		iter_t end = row.cells().end();
-		for( iter_t it = row.cells().begin(); it != end; ++it )
+		for (const auto &cellPair : row.cells())
 		{
-			if( it->first.type() == Symbol::External )
-				return it->first;
+			if( cellPair.first.type() == Symbol::External )
+				return cellPair.first;
 		}
 		if( tag.marker.type() == Symbol::Slack || tag.marker.type() == Symbol::Error )
 		{
@@ -508,10 +505,10 @@ private:
 
 		// If the artificial variable is not basic, pivot the row so that
 		// it becomes basic. If the row is constant, exit early.
-		RowMap::iterator it = m_rows.find( art );
+		auto it = m_rows.find( art );
 		if( it != m_rows.end() )
 		{
-			std::auto_ptr<Row> rowptr( it->second );
+			std::unique_ptr<Row> rowptr( it->second );
 			m_rows.erase( it );
 			if( rowptr->cells().empty() )
 				return success;
@@ -524,9 +521,9 @@ private:
 		}
 
 		// Remove the artificial variable from the tableau.
-		RowMap::iterator end = m_rows.end();
-		for( it = m_rows.begin(); it != end; ++it )
-			it->second->remove( art );
+		for (auto &rowPair : m_rows)
+			rowPair.second->remove(art);
+
 		m_objective->remove( art );
 		return success;
  	}
@@ -539,14 +536,12 @@ private:
 	*/
 	void substitute( const Symbol& symbol, const Row& row )
 	{
-		typedef RowMap::iterator iter_t;
-		iter_t end = m_rows.end();
-		for( iter_t it = m_rows.begin(); it != end; ++it )
+		for( auto& rowPair : m_rows )
 		{
-			it->second->substitute( symbol, row );
-			if( it->first.type() != Symbol::External &&
-				it->second->constant() < 0.0 )
-				m_infeasible_rows.push_back( it->first );
+			rowPair.second->substitute( symbol, row );
+			if( rowPair.first.type() != Symbol::External &&
+				rowPair.second->constant() < 0.0 )
+				m_infeasible_rows.push_back( rowPair.first );
 		}
 		m_objective->substitute( symbol, row );
 		if( m_artificial.get() )
@@ -571,7 +566,7 @@ private:
 			Symbol entering( getEnteringSymbol( objective ) );
 			if( entering.type() == Symbol::Invalid )
 				return;
-			RowMap::iterator it = getLeavingRow( entering );
+			auto it = getLeavingRow( entering );
 			if( it == m_rows.end() )
 				throw InternalSolverError( "The objective is unbounded." );
 			// pivot the entering symbol into the basis
@@ -604,7 +599,7 @@ private:
 
 			Symbol leaving( m_infeasible_rows.back() );
 			m_infeasible_rows.pop_back();
-			RowMap::iterator it = m_rows.find( leaving );
+			auto it = m_rows.find( leaving );
 			if( it != m_rows.end() && !nearZero( it->second->constant() ) &&
 				it->second->constant() < 0.0 )
 			{
@@ -629,14 +624,12 @@ private:
 	invalid symbol is returned.
 
 	*/
-	Symbol getEnteringSymbol( const Row& objective )
+	Symbol getEnteringSymbol( const Row& objective ) const
 	{
-		typedef Row::CellMap::const_iterator iter_t;
-		iter_t end = objective.cells().end();
-		for( iter_t it = objective.cells().begin(); it != end; ++it )
+		for (const auto &cellPair : objective.cells())
 		{
-			if( it->first.type() != Symbol::Dummy && it->second < 0.0 )
-				return it->first;
+			if( cellPair.first.type() != Symbol::Dummy && cellPair.second < 0.0 )
+				return cellPair.first;
 		}
 		return Symbol();
 	}
@@ -650,22 +643,20 @@ private:
 	is returned.
 
 	*/
-	Symbol getDualEnteringSymbol( const Row& row )
+	Symbol getDualEnteringSymbol( const Row& row ) const
 	{
-		typedef Row::CellMap::const_iterator iter_t;
 		Symbol entering;
 		double ratio = std::numeric_limits<double>::max();
-		iter_t end = row.cells().end();
-		for( iter_t it = row.cells().begin(); it != end; ++it )
+		for (const auto &cellPair : row.cells())
 		{
-			if( it->second > 0.0 && it->first.type() != Symbol::Dummy )
+			if( cellPair.second > 0.0 && cellPair.first.type() != Symbol::Dummy )
 			{
-				double coeff = m_objective->coefficientFor( it->first );
-				double r = coeff / it->second;
+				double coeff = m_objective->coefficientFor( cellPair.first );
+				double r = coeff / cellPair.second;
 				if( r < ratio )
 				{
 					ratio = r;
-					entering = it->first;
+					entering = cellPair.first;
 				}
 			}
 		}
@@ -677,13 +668,11 @@ private:
 	If no such symbol is present, and Invalid symbol will be returned.
 
 	*/
-	Symbol anyPivotableSymbol( const Row& row )
+	Symbol anyPivotableSymbol( const Row& row ) const
 	{
-		typedef Row::CellMap::const_iterator iter_t;
-		iter_t end = row.cells().end();
-		for( iter_t it = row.cells().begin(); it != end; ++it )
+		for (const auto &cellPair : row.cells())
 		{
-			const Symbol& sym( it->first );
+			const Symbol& sym( cellPair.first );
 			if( sym.type() == Symbol::Slack || sym.type() == Symbol::Error )
 				return sym;
 		}
@@ -700,11 +689,10 @@ private:
 	*/
 	RowMap::iterator getLeavingRow( const Symbol& entering )
 	{
-		typedef RowMap::iterator iter_t;
 		double ratio = std::numeric_limits<double>::max();
-		iter_t end = m_rows.end();
-		iter_t found = m_rows.end();
-		for( iter_t it = m_rows.begin(); it != end; ++it )
+		auto end = m_rows.end();
+		auto found = m_rows.end();
+		for( auto it = m_rows.begin(); it != end; ++it )
 		{
 			if( it->first.type() != Symbol::External )
 			{
@@ -745,14 +733,13 @@ private:
 	RowMap::iterator getMarkerLeavingRow( const Symbol& marker )
 	{
 		const double dmax = std::numeric_limits<double>::max();
-		typedef RowMap::iterator iter_t;
 		double r1 = dmax;
 		double r2 = dmax;
-		iter_t end = m_rows.end();
-		iter_t first = end;
-		iter_t second = end;
-		iter_t third = end;
-		for( iter_t it = m_rows.begin(); it != end; ++it )
+		auto end = m_rows.end();
+		auto first = end;
+		auto second = end;
+		auto third = end;
+		for( auto it = m_rows.begin(); it != end; ++it )
 		{
 			double c = it->second->coefficientFor( marker );
 			if( c == 0.0 )
@@ -803,7 +790,7 @@ private:
 	*/
 	void removeMarkerEffects( const Symbol& marker, double strength )
 	{
-		RowMap::iterator row_it = m_rows.find( marker );
+		auto row_it = m_rows.find( marker );
 		if( row_it != m_rows.end() )
 			m_objective->insert( *row_it->second, -strength );
 		else
@@ -813,13 +800,11 @@ private:
 	/* Test whether a row is composed of all dummy variables.
 
 	*/
-	bool allDummies( const Row& row )
+	bool allDummies( const Row& row ) const
 	{
-		typedef Row::CellMap::const_iterator iter_t;
-		iter_t end = row.cells().end();
-		for( iter_t it = row.cells().begin(); it != end; ++it )
+		for (const auto &rowPair : row.cells())
 		{
-			if( it->first.type() != Symbol::Dummy )
+			if( rowPair.first.type() != Symbol::Dummy )
 				return false;
 		}
 		return true;
@@ -830,8 +815,8 @@ private:
 	VarMap m_vars;
 	EditMap m_edits;
 	std::vector<Symbol> m_infeasible_rows;
-	std::auto_ptr<Row> m_objective;
-	std::auto_ptr<Row> m_artificial;
+	std::unique_ptr<Row> m_objective;
+	std::unique_ptr<Row> m_artificial;
 	Symbol::Id m_id_tick;
 };
 

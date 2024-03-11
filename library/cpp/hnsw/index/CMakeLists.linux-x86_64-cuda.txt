@@ -18,6 +18,6 @@ target_link_libraries(cpp-hnsw-index PUBLIC
   library-cpp-l2_distance
 )
 target_sources(cpp-hnsw-index PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/hnsw/index/all.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/hnsw/index/index_reader.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/hnsw/index/all.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/hnsw/index/index_reader.cpp
 )

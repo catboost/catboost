@@ -401,10 +401,11 @@ struct _LIBCPP_TEMPLATE_VIS iterator_traits
 };
 #endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
 
-template<class _Tp>
+
 #if !defined(_LIBCPP_HAS_NO_CONCEPTS)
+
+template<class _Tp>
 requires is_object_v<_Tp>
-#endif
 struct _LIBCPP_TEMPLATE_VIS iterator_traits<_Tp*>
 {
     typedef ptrdiff_t difference_type;
@@ -416,6 +417,30 @@ struct _LIBCPP_TEMPLATE_VIS iterator_traits<_Tp*>
     typedef contiguous_iterator_tag    iterator_concept;
 #endif
 };
+
+#else // !defined(_LIBCPP_HAS_NO_CONCEPTS)
+
+template <class _Tp, bool is_pointer_to_object>
+struct _LIBCPP_TEMPLATE_VIS __iterator_traits_pointer
+{
+    typedef ptrdiff_t difference_type;
+    typedef typename remove_cv<_Tp>::type value_type;
+    typedef _Tp* pointer;
+    typedef _Tp& reference;
+    typedef random_access_iterator_tag iterator_category;
+#if _LIBCPP_STD_VER > 17
+    typedef contiguous_iterator_tag    iterator_concept;
+#endif
+};
+
+template <class _Tp>
+struct _LIBCPP_TEMPLATE_VIS __iterator_traits_pointer<_Tp, false> {};
+
+template <class _Tp>
+struct _LIBCPP_TEMPLATE_VIS iterator_traits<_Tp*> : public __iterator_traits_pointer<_Tp, is_object<_Tp>::value> {};
+
+#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
+
 
 template <class _Tp, class _Up, bool = __has_iterator_category<iterator_traits<_Tp> >::value>
 struct __has_iterator_category_convertible_to

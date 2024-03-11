@@ -12,3 +12,6 @@ target_link_libraries(libs-gpu_config-interface INTERFACE
   contrib-libs-cxxsupp
   yutil
 )
+target_sources(libs-gpu_config-interface INTERFACE
+  ${PROJECT_SOURCE_DIR}/catboost/libs/gpu_config/interface/get_gpu_device_count.h
+)

@@ -1,3 +1,56 @@
+# Release 1.2.3
+
+## Python package
+* Support Python 3.12. #2510
+* \[Performance\]: Fix ineffective loops in Cython. Significant speedups (up to 3x) on dataset construction from data in C-order can be expected.
+* \[Performance\]: Make features data initialization from C-order `numpy.ndarray`s with `float32` data type multithreaded. Significant speedups of 5x up to 10x (on CPUs with many cores) can be expected. #385, #2542
+* Save training metrics into the model metadata. So `best_score_`, `evals_result_`, `best_iteration_` model attributes now work after model saving and loading. Can be removed by model metadata manipulation if needed. #1166
+* \[Breaking change\]. Support a separate boolean target type, now `Class` predictions for models that have been trained with boolean targets will also be boolean instead of `True`, `False` strings as before. Such models will be incompatible with the previous versions of CatBoost appliers. If you want the old behavior convert your target to `False`, `True` strings before training. #1954
+* Restrict `jupyterlab` version for setup to 3.x for now. Fixes #2530
+* `utils.read_cd`: Support CD files with non-increasing column indices.
+* Make `log_cout`, `log_cerr` specification consistent, avoid reset in recursive calls.
+* Late-initialize default values for `log_cout`, `log_cerr`. #2195
+* Add missing generated metrics: `Cox`, `PairLogitPairwise`, `UserPerObjMetric`, `SurvivalAft`.
+
+## New features
+* Support boolean target/labels type during training in Python and Spark (in the latter case only when using `fit` with `Pool` arguments) and `Class` prediction in Python. #1954
+* \[Spark\]: Support Spark 3.5.x.
+* \[C/C++ applier\]. Add functions for getting indices of features of different types to C and C++ API. #2568. Thanks to @nimusp.
+* \[C/C++ applier\]. Add staged prediction functions to C API. #2584. Thanks to @Mb-NextTime.
+* \[JVM applier\]. Add loading CatBoostModel from a byte array to API. #2539
+* \[Linux\] Support CgroupsV2 when computing default number of threads used in parallel computations. #2519. Thanks to @elukey.
+* \[CLI\] Support printing `Auxiliary` columns by name in evaluation result output. #1659
+* Save training metrics into the model metadata. Can be removed by model metadata manipulation if needed. #1166
+
+## Build & testing
+* \[Windows\]: Use `clang-cl` from Visual Studio 2022 for the build without CUDA (build with CUDA still uses standard Microsoft toolchain from Visual Studio 2019).
+* \[macOS\]: Pass `os.version` to `conan` host settings to ensure version consistency.
+* \[Linux aarch64\]: Set `-mno-outline-atomics` for modern versions of CLang and GCC to avoid unresolved symbols linking errors. #2527
+* Added missing `CMakeLists` for unit tests for `util`. #2525
+
+## Bugfixes
+* \[Performance\]: Fix performance regression that could slow down training on GPU by 50% on some datasets that had been introduced in release 1.2. Thanks to @JeanPaulShapo.
+* \[Python-package\]: Fix segfault on Pool(data=None). #2522
+* \[Python-package\]: Fix Python exception in `Pool()` when `pairs_weight` is a numpy array. #1913
+* \[Python-package\]: Fix segfault and other strange errors when specifying custom logger with `__call__` method. #2277
+* \[Python-package\]: Fix returning complex params in hyperparameter search. #1741, #1833
+* \[Python-package\]: Fix ignored exceptions for missed metrics descriptions on startup. This has not been visible to users but has been making debugging more difficult.
+* \[Python-package\]: Fix misleading `Targets are required for YetiRank loss function.` error in Cross validation. #2083
+* \[Python-package\]: Fix `Pool.get_label()` returns constant `True` for boolean labels. #2133
+* \[Python-package\]: Copying models does not lose `best_score_`, `evals_result_`, `best_iteration_` attributes values anymore. #1793
+* \[Spark\]: Fix hangs at the end of the training. #2151
+* `Precision` metric default value in the absense of positive samples is changed to 0 and a warning is added
+ (similar to the behavior of `scikit-learn` implementation). #2422
+* Fix ignoring embedding features
+* Try to avoid hash collisions when computing group ids with datasets with a lot of groups (may occur in datasets with around a 10^9 samples).
+* Fix Multiclass models export to C++ and Python code. #2549
+* Fix dataset_statistics mode when no `Target` data is available.
+* Fix `Error: can't proceed some features` error on GPU. #1024
+* Fix `allow_const_label=True` for classification. #1933
+* Add checking of approx and target dimensions for `SurvivalAft` objective/metric.
+* Fix Focal loss derivatives sign. #2563
+
+
 # Release 1.2.2
 
 ## Bugfixes

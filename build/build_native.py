@@ -248,7 +248,7 @@ def get_default_cross_build_toolchain(source_root_dir, opts):
 
     if build_system_name == 'darwin':
         if target_system_name != 'darwin':
-            raise RuntimeError('Cross-compilation to darwin from non-darwin is not supported')
+            raise RuntimeError('Cross-compilation from macOS to non-macOS is not supported')
         return os.path.join(
             default_toolchains_dir,
             f'cross-build.host.darwin.target.{target_system_arch}-darwin-default.clang.toolchain'
@@ -341,8 +341,12 @@ def cross_build(opts: Opts, cmd_runner=None):
         '--no-imports',
         f'-pr:h={conan_host_profile}',
         '-pr:b=default',
-        os.path.join(source_root_dir, 'conanfile.txt')
     ]
+    if opts.target_platform.startswith('darwin-'):
+        conan_libs_cmd += ['-s:h', f'os.version={opts.macosx_version_min}']
+
+    conan_libs_cmd += [os.path.join(source_root_dir, 'conanfile.txt')]
+
     logging.info(f"Run conan to build libs for target platform {opts.target_platform}")
     cmd_runner.run(conan_libs_cmd)
 
@@ -362,7 +366,7 @@ def get_require_pic(targets):
 
     return False
 
-def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_runner, dry_run):
+def get_msvs_dir(msvs_installation_path, msvs_version):
     if msvs_installation_path is None:
         program_files = 'Program Files' if msvs_version == '2022' else 'Program Files (x86)'
         msvs_base_dir = f'c:\\{program_files}\\Microsoft Visual Studio\\{msvs_version}'
@@ -375,6 +379,12 @@ def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_run
         msvs_dir = f'{msvs_base_dir}\\Enterprise'
     else:
         raise RuntimeError(f'Microsoft Visual Studio {msvs_version} installation not found')
+
+    return msvs_dir
+
+
+def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_runner, dry_run):
+    msvs_dir = get_msvs_dir(msvs_installation_path, msvs_version)
 
     env_vars = {}
 
@@ -496,6 +506,16 @@ def build(
         f'-DCMAKE_BUILD_TYPE={opts.build_type}',
         f'-DCMAKE_TOOLCHAIN_FILE={cmake_target_toolchain}',
     ]
+    if (platform.system().lower() == 'windows') and (not opts.have_cuda):
+        msvs_dir = get_msvs_dir(opts.msvs_installation_path, opts.msvs_version)
+
+        # Use clang-cl for the build without CUDA and standard Microsoft toolchain for the build with CUDA
+        # (as clang-cl is not supported by CUDA yet)
+        cmake_cmd += [
+            f'-DCMAKE_CXX_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
+            f'-DCMAKE_C_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
+            f'-DCMAKE_RC_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\llvm-rc.exe'
+        ]
     if opts.verbose:
         cmake_cmd += ['--log-level=VERBOSE']
     if require_pic:

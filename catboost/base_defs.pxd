@@ -100,7 +100,7 @@ cdef extern from "catboost/libs/model/scale_and_bias.h":
         double Scale
         TVector[double] Bias
 
-        TVector[double]& GetBiasRef()  except +ProcessException
+        TVector[double]& GetBiasRef()
 
 
 cdef extern from "catboost/private/libs/options/enums.h":
@@ -154,4 +154,4 @@ cdef extern from "catboost/private/libs/data_types/pair.h":
         ui32 WinnerId
         ui32 LoserId
         float Weight
-        TPair(ui32 winnerId, ui32 loserId, float weight) nogil except +ProcessException
+        TPair(ui32 winnerId, ui32 loserId, float weight)

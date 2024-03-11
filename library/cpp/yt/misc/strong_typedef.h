@@ -2,6 +2,8 @@
 
 #include <utility>
 
+#include <util/generic/string.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,7 +32,23 @@ public:
     constexpr explicit operator const T&() const;
     constexpr explicit operator T&();
 
-    constexpr auto operator<=>(const TStrongTypedef& rhs) const = default;
+    #define XX(op) \
+        constexpr auto operator op(const TStrongTypedef& rhs) const \
+            noexcept(noexcept(Underlying_ op rhs.Underlying_)) \
+                requires requires(T lhs, T rhs) {lhs op rhs; };
+
+    XX(<)
+    XX(>)
+    XX(<=)
+    XX(>=)
+    XX(==)
+    XX(!=)
+    XX(<=>)
+
+    #undef XX
+
+    explicit operator bool() const
+        noexcept(noexcept(static_cast<bool>(Underlying_)));
 
     constexpr T& Underlying() &;
     constexpr const T& Underlying() const &;
@@ -38,12 +56,25 @@ public:
 
 private:
     T Underlying_;
+
+    //! NB: Hidden friend definition to make this name accessible only via ADL.
+    friend TString ToString(const TStrongTypedef& value)
+        requires requires (T value) { { ToString(value) } -> std::same_as<TString>; }
+    {
+        return ToString(value.Underlying_);
+    }
 };
 
 #define YT_DEFINE_STRONG_TYPEDEF(T, TUnderlying) \
     struct T ## Tag \
     { }; \
     using T = ::NYT::TStrongTypedef<TUnderlying, T##Tag>; \
+
+template <class T>
+struct TStrongTypedefTraits;
+
+template <class T>
+concept CStrongTypedef = TStrongTypedefTraits<T>::IsStrongTypedef;
 
 ////////////////////////////////////////////////////////////////////////////////
 

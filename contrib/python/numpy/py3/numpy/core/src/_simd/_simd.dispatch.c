@@ -21996,7 +21996,9 @@ NPY_CPU_DISPATCH_CURFX(simd_create_module)(void)
 {
     static struct PyModuleDef defs = {
         .m_base = PyModuleDef_HEAD_INIT,
-    #ifdef NPY__CPU_TARGET_CURRENT
+    #if defined(NPY_MTARGETS_CURRENT) // meson build
+        .m_name = "numpy.core._simd." NPY_TOSTRING(NPY_MTARGETS_CURRENT),
+    #elif defined(NPY__CPU_TARGET_CURRENT)
         .m_name = "numpy.core._simd." NPY_TOSTRING(NPY__CPU_TARGET_CURRENT),
     #else
         .m_name = "numpy.core._simd.baseline",
@@ -22034,52 +22036,52 @@ NPY_CPU_DISPATCH_CURFX(simd_create_module)(void)
     if (PySIMDVectorType_Init(m)) {
         goto err;
     }
-    #line 963
+    #line 965
     if (PyModule_AddIntConstant(m, "nlanes_u8", npyv_nlanes_u8)) {
         goto err;
     }
     
-#line 963
+#line 965
     if (PyModule_AddIntConstant(m, "nlanes_s8", npyv_nlanes_s8)) {
         goto err;
     }
     
-#line 963
+#line 965
     if (PyModule_AddIntConstant(m, "nlanes_u16", npyv_nlanes_u16)) {
         goto err;
     }
     
-#line 963
+#line 965
     if (PyModule_AddIntConstant(m, "nlanes_s16", npyv_nlanes_s16)) {
         goto err;
     }
     
-#line 963
+#line 965
     if (PyModule_AddIntConstant(m, "nlanes_u32", npyv_nlanes_u32)) {
         goto err;
     }
     
-#line 963
+#line 965
     if (PyModule_AddIntConstant(m, "nlanes_s32", npyv_nlanes_s32)) {
         goto err;
     }
     
-#line 963
+#line 965
     if (PyModule_AddIntConstant(m, "nlanes_u64", npyv_nlanes_u64)) {
         goto err;
     }
     
-#line 963
+#line 965
     if (PyModule_AddIntConstant(m, "nlanes_s64", npyv_nlanes_s64)) {
         goto err;
     }
     
-#line 963
+#line 965
     if (PyModule_AddIntConstant(m, "nlanes_f32", npyv_nlanes_f32)) {
         goto err;
     }
     
-#line 963
+#line 965
     if (PyModule_AddIntConstant(m, "nlanes_f64", npyv_nlanes_f64)) {
         goto err;
     }

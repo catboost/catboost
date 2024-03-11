@@ -27,9 +27,6 @@ TObjectRef<TIntentionallyLeakedRefPolicy, jclass>::~TObjectRef() {
 template <typename TRefPolicy, typename TObject>
 TObjectRef<TRefPolicy, TObject>::~TObjectRef() {
     try {
-        if (!Object)
-            return;
-
         auto* env = Env()->GetJniEnv();
         TRefPolicy::Unref(Object, env);
         Object = nullptr;
@@ -39,6 +36,8 @@ TObjectRef<TRefPolicy, TObject>::~TObjectRef() {
 
 template <typename TRefPolicy, typename TObject>
 TObjectRef<TRefPolicy, TObject>& TObjectRef<TRefPolicy, TObject>::operator= (TObjectRef&& rhs) noexcept {
+    auto* env = Env()->GetJniEnv();
+    TRefPolicy::Unref(Object, env);
     Object = rhs.Object;
     rhs.Object = nullptr;
     return *this;

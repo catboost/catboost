@@ -1,5 +1,7 @@
 #include "thread_name.h"
 
+#include <library/cpp/yt/misc/tls.h>
+
 #include <util/generic/string.h>
 #include <util/system/thread.h>
 
@@ -29,7 +31,9 @@ TThreadName::TThreadName(const TString& name)
 // This function uses cached TThread::CurrentThreadName() result
 TThreadName GetCurrentThreadName()
 {
-    static thread_local TThreadName threadName;
+    static YT_THREAD_LOCAL(TThreadName) ThreadName;
+    auto& threadName = GetTlsRef(ThreadName);
+
     if (threadName.Length == 0) {
         if (auto name = TThread::CurrentThreadName()) {
             auto length = std::min<int>(TThreadName::BufferCapacity - 1, name.length());

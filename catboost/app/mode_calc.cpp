@@ -27,4 +27,4 @@ namespace {
     };
 }
 
-NCB::TModeCalcImplementationFactory::TRegistrator<TOpenSourceModeCalcImplementation> YandexSpecificModeCalcImplementationRegistrator(NCB::EImplementationType::OpenSource);
+NCB::TModeCalcImplementationFactory::TRegistrator<TOpenSourceModeCalcImplementation> OpenSourceModeCalcImplementationRegistrator(NCB::EImplementationType::OpenSource);

@@ -102,9 +102,9 @@ def mypy_list_typing() -> None:
     t = T()
     reveal_type(List(["foo"]))  # R: traitlets.traitlets.List[builtins.str]
     reveal_type(List([""]).tag(sync=True))  # R: traitlets.traitlets.List[builtins.str]
-    reveal_type(List(None, allow_none=True))  # R: traitlets.traitlets.List[<nothing>]
+    reveal_type(List(None, allow_none=True))  # R: traitlets.traitlets.List[Never]
     reveal_type(
-        List(None, allow_none=True).tag(sync=True)  # R: traitlets.traitlets.List[<nothing>]
+        List(None, allow_none=True).tag(sync=True)  # R: traitlets.traitlets.List[Never]
     )
     reveal_type(T.latex_command)  # R: traitlets.traitlets.List[builtins.str]
     reveal_type(t.latex_command)  # R: builtins.list[builtins.str]

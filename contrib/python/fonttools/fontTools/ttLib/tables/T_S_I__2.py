@@ -5,6 +5,7 @@ TSI2 is the index table containing the lengths and offsets for the glyph
 programs that are contained in the TSI3 table. It uses the same format as
 the TSI0 table.
 """
+
 from fontTools import ttLib
 
 superclass = ttLib.getTableClass("TSI0")

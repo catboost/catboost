@@ -91,7 +91,6 @@ GLIFFormatVersion.__str__ = _VersionTupleEnumMixin.__str__
 
 
 class Glyph:
-
     """
     Minimal glyph object. It has no glyph attributes until either
     the draw() or the drawPoints() method has been called.
@@ -123,7 +122,6 @@ class Glyph:
 
 
 class GlyphSet(_UFOBaseIO):
-
     """
     GlyphSet manages a set of .glif files inside one directory.
 
@@ -1228,9 +1226,9 @@ def _readGlyphFromTreeFormat2(
     unicodes = []
     guidelines = []
     anchors = []
-    haveSeenAdvance = (
-        haveSeenImage
-    ) = haveSeenOutline = haveSeenLib = haveSeenNote = False
+    haveSeenAdvance = haveSeenImage = haveSeenOutline = haveSeenLib = haveSeenNote = (
+        False
+    )
     identifiers = set()
     for element in tree:
         if element.tag == "outline":
@@ -1883,7 +1881,6 @@ _transformationInfo = [
 
 
 class GLIFPointPen(AbstractPointPen):
-
     """
     Helper class using the PointPen protocol to write the <outline>
     part of .glif files.

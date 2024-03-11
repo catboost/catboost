@@ -3,7 +3,83 @@
 
 include "_ufuncs_extra_code_common.pxi"
 include "_ufuncs_extra_code.pxi"
-__all__ = ['agm', 'airy', 'airye', 'bdtr', 'bdtrc', 'bdtri', 'bdtrik', 'bdtrin', 'bei', 'beip', 'ber', 'berp', 'besselpoly', 'beta', 'betainc', 'betaincinv', 'betaln', 'binom', 'boxcox', 'boxcox1p', 'btdtr', 'btdtri', 'btdtria', 'btdtrib', 'cbrt', 'chdtr', 'chdtrc', 'chdtri', 'chdtriv', 'chndtr', 'chndtridf', 'chndtrinc', 'chndtrix', 'cosdg', 'cosm1', 'cotdg', 'dawsn', 'ellipe', 'ellipeinc', 'ellipj', 'ellipk', 'ellipkinc', 'ellipkm1', 'entr', 'erf', 'erfc', 'erfcinv', 'erfcx', 'erfi', 'erfinv', 'eval_chebyc', 'eval_chebys', 'eval_chebyt', 'eval_chebyu', 'eval_gegenbauer', 'eval_genlaguerre', 'eval_hermite', 'eval_hermitenorm', 'eval_jacobi', 'eval_laguerre', 'eval_legendre', 'eval_sh_chebyt', 'eval_sh_chebyu', 'eval_sh_jacobi', 'eval_sh_legendre', 'exp1', 'exp10', 'exp2', 'expi', 'expit', 'expm1', 'expn', 'exprel', 'fdtr', 'fdtrc', 'fdtri', 'fdtridfd', 'fresnel', 'gamma', 'gammainc', 'gammaincc', 'gammainccinv', 'gammaincinv', 'gammaln', 'gammasgn', 'gdtr', 'gdtrc', 'gdtria', 'gdtrib', 'gdtrix', 'hankel1', 'hankel1e', 'hankel2', 'hankel2e', 'huber', 'hyp0f1', 'hyp1f1', 'hyp2f1', 'hyperu', 'i0', 'i0e', 'i1', 'i1e', 'inv_boxcox', 'inv_boxcox1p', 'it2i0k0', 'it2j0y0', 'it2struve0', 'itairy', 'iti0k0', 'itj0y0', 'itmodstruve0', 'itstruve0', 'iv', 'ive', 'j0', 'j1', 'jv', 'jve', 'k0', 'k0e', 'k1', 'k1e', 'kei', 'keip', 'kelvin', 'ker', 'kerp', 'kl_div', 'kn', 'kolmogi', 'kolmogorov', 'kv', 'kve', 'log1p', 'log_ndtr', 'loggamma', 'logit', 'lpmv', 'mathieu_a', 'mathieu_b', 'mathieu_cem', 'mathieu_modcem1', 'mathieu_modcem2', 'mathieu_modsem1', 'mathieu_modsem2', 'mathieu_sem', 'modfresnelm', 'modfresnelp', 'modstruve', 'nbdtr', 'nbdtrc', 'nbdtri', 'nbdtrik', 'nbdtrin', 'ncfdtr', 'ncfdtri', 'ncfdtridfd', 'ncfdtridfn', 'ncfdtrinc', 'nctdtr', 'nctdtridf', 'nctdtrinc', 'nctdtrit', 'ndtr', 'ndtri', 'ndtri_exp', 'nrdtrimn', 'nrdtrisd', 'obl_ang1', 'obl_ang1_cv', 'obl_cv', 'obl_rad1', 'obl_rad1_cv', 'obl_rad2', 'obl_rad2_cv', 'owens_t', 'pbdv', 'pbvv', 'pbwa', 'pdtr', 'pdtrc', 'pdtri', 'pdtrik', 'poch', 'pro_ang1', 'pro_ang1_cv', 'pro_cv', 'pro_rad1', 'pro_rad1_cv', 'pro_rad2', 'pro_rad2_cv', 'pseudo_huber', 'psi', 'radian', 'rel_entr', 'rgamma', 'round', 'shichi', 'sici', 'sindg', 'smirnov', 'smirnovi', 'spence', 'sph_harm', 'stdtr', 'stdtridf', 'stdtrit', 'struve', 'tandg', 'tklmbda', 'voigt_profile', 'wofz', 'wright_bessel', 'wrightomega', 'xlog1py', 'xlogy', 'y0', 'y1', 'yn', 'yv', 'yve', 'zetac', 'geterr', 'seterr', 'errstate', 'jn']
+__all__ = ['agm', 'airy', 'airye', 'bdtr', 'bdtrc', 'bdtri', 'bdtrik', 'bdtrin', 'bei', 'beip', 'ber', 'berp', 'besselpoly', 'beta', 'betainc', 'betaincinv', 'betaln', 'binom', 'boxcox', 'boxcox1p', 'btdtr', 'btdtri', 'btdtria', 'btdtrib', 'cbrt', 'chdtr', 'chdtrc', 'chdtri', 'chdtriv', 'chndtr', 'chndtridf', 'chndtrinc', 'chndtrix', 'cosdg', 'cosm1', 'cotdg', 'dawsn', 'ellipe', 'ellipeinc', 'ellipj', 'ellipk', 'ellipkinc', 'ellipkm1', 'elliprc', 'elliprd', 'elliprf', 'elliprg', 'elliprj', 'entr', 'erf', 'erfc', 'erfcinv', 'erfcx', 'erfi', 'erfinv', 'eval_chebyc', 'eval_chebys', 'eval_chebyt', 'eval_chebyu', 'eval_gegenbauer', 'eval_genlaguerre', 'eval_hermite', 'eval_hermitenorm', 'eval_jacobi', 'eval_laguerre', 'eval_legendre', 'eval_sh_chebyt', 'eval_sh_chebyu', 'eval_sh_jacobi', 'eval_sh_legendre', 'exp1', 'exp10', 'exp2', 'expi', 'expit', 'expm1', 'expn', 'exprel', 'fdtr', 'fdtrc', 'fdtri', 'fdtridfd', 'fresnel', 'gamma', 'gammainc', 'gammaincc', 'gammainccinv', 'gammaincinv', 'gammaln', 'gammasgn', 'gdtr', 'gdtrc', 'gdtria', 'gdtrib', 'gdtrix', 'hankel1', 'hankel1e', 'hankel2', 'hankel2e', 'huber', 'hyp0f1', 'hyp1f1', 'hyp2f1', 'hyperu', 'i0', 'i0e', 'i1', 'i1e', 'inv_boxcox', 'inv_boxcox1p', 'it2i0k0', 'it2j0y0', 'it2struve0', 'itairy', 'iti0k0', 'itj0y0', 'itmodstruve0', 'itstruve0', 'iv', 'ive', 'j0', 'j1', 'jv', 'jve', 'k0', 'k0e', 'k1', 'k1e', 'kei', 'keip', 'kelvin', 'ker', 'kerp', 'kl_div', 'kn', 'kolmogi', 'kolmogorov', 'kv', 'kve', 'log1p', 'log_expit', 'log_ndtr', 'loggamma', 'logit', 'lpmv', 'mathieu_a', 'mathieu_b', 'mathieu_cem', 'mathieu_modcem1', 'mathieu_modcem2', 'mathieu_modsem1', 'mathieu_modsem2', 'mathieu_sem', 'modfresnelm', 'modfresnelp', 'modstruve', 'nbdtr', 'nbdtrc', 'nbdtri', 'nbdtrik', 'nbdtrin', 'ncfdtr', 'ncfdtri', 'ncfdtridfd', 'ncfdtridfn', 'ncfdtrinc', 'nctdtr', 'nctdtridf', 'nctdtrinc', 'nctdtrit', 'ndtr', 'ndtri', 'ndtri_exp', 'nrdtrimn', 'nrdtrisd', 'obl_ang1', 'obl_ang1_cv', 'obl_cv', 'obl_rad1', 'obl_rad1_cv', 'obl_rad2', 'obl_rad2_cv', 'owens_t', 'pbdv', 'pbvv', 'pbwa', 'pdtr', 'pdtrc', 'pdtri', 'pdtrik', 'poch', 'pro_ang1', 'pro_ang1_cv', 'pro_cv', 'pro_rad1', 'pro_rad1_cv', 'pro_rad2', 'pro_rad2_cv', 'pseudo_huber', 'psi', 'radian', 'rel_entr', 'rgamma', 'round', 'shichi', 'sici', 'sindg', 'smirnov', 'smirnovi', 'spence', 'sph_harm', 'stdtr', 'stdtridf', 'stdtrit', 'struve', 'tandg', 'tklmbda', 'voigt_profile', 'wofz', 'wright_bessel', 'wrightomega', 'xlog1py', 'xlogy', 'y0', 'y1', 'yn', 'yv', 'yve', 'zetac', 'geterr', 'seterr', 'errstate', 'jn']
+cdef void loop_D_DDDD__As_DDDD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+    cdef np.npy_intp i, n = dims[0]
+    cdef void *func = (<void**>data)[0]
+    cdef char *func_name = <char*>(<void**>data)[1]
+    cdef char *ip0 = args[0]
+    cdef char *ip1 = args[1]
+    cdef char *ip2 = args[2]
+    cdef char *ip3 = args[3]
+    cdef char *op0 = args[4]
+    cdef double complex ov0
+    for i in range(n):
+        ov0 = (<double complex(*)(double complex, double complex, double complex, double complex) nogil>func)(<double complex>(<double complex*>ip0)[0], <double complex>(<double complex*>ip1)[0], <double complex>(<double complex*>ip2)[0], <double complex>(<double complex*>ip3)[0])
+        (<double complex *>op0)[0] = <double complex>ov0
+        ip0 += steps[0]
+        ip1 += steps[1]
+        ip2 += steps[2]
+        ip3 += steps[3]
+        op0 += steps[4]
+    sf_error.check_fpe(func_name)
+
+cdef void loop_D_DDDD__As_FFFF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+    cdef np.npy_intp i, n = dims[0]
+    cdef void *func = (<void**>data)[0]
+    cdef char *func_name = <char*>(<void**>data)[1]
+    cdef char *ip0 = args[0]
+    cdef char *ip1 = args[1]
+    cdef char *ip2 = args[2]
+    cdef char *ip3 = args[3]
+    cdef char *op0 = args[4]
+    cdef double complex ov0
+    for i in range(n):
+        ov0 = (<double complex(*)(double complex, double complex, double complex, double complex) nogil>func)(<double complex>(<float complex*>ip0)[0], <double complex>(<float complex*>ip1)[0], <double complex>(<float complex*>ip2)[0], <double complex>(<float complex*>ip3)[0])
+        (<float complex *>op0)[0] = <float complex>ov0
+        ip0 += steps[0]
+        ip1 += steps[1]
+        ip2 += steps[2]
+        ip3 += steps[3]
+        op0 += steps[4]
+    sf_error.check_fpe(func_name)
+
+cdef void loop_D_DDD__As_DDD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+    cdef np.npy_intp i, n = dims[0]
+    cdef void *func = (<void**>data)[0]
+    cdef char *func_name = <char*>(<void**>data)[1]
+    cdef char *ip0 = args[0]
+    cdef char *ip1 = args[1]
+    cdef char *ip2 = args[2]
+    cdef char *op0 = args[3]
+    cdef double complex ov0
+    for i in range(n):
+        ov0 = (<double complex(*)(double complex, double complex, double complex) nogil>func)(<double complex>(<double complex*>ip0)[0], <double complex>(<double complex*>ip1)[0], <double complex>(<double complex*>ip2)[0])
+        (<double complex *>op0)[0] = <double complex>ov0
+        ip0 += steps[0]
+        ip1 += steps[1]
+        ip2 += steps[2]
+        op0 += steps[3]
+    sf_error.check_fpe(func_name)
+
+cdef void loop_D_DDD__As_FFF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+    cdef np.npy_intp i, n = dims[0]
+    cdef void *func = (<void**>data)[0]
+    cdef char *func_name = <char*>(<void**>data)[1]
+    cdef char *ip0 = args[0]
+    cdef char *ip1 = args[1]
+    cdef char *ip2 = args[2]
+    cdef char *op0 = args[3]
+    cdef double complex ov0
+    for i in range(n):
+        ov0 = (<double complex(*)(double complex, double complex, double complex) nogil>func)(<double complex>(<float complex*>ip0)[0], <double complex>(<float complex*>ip1)[0], <double complex>(<float complex*>ip2)[0])
+        (<float complex *>op0)[0] = <float complex>ov0
+        ip0 += steps[0]
+        ip1 += steps[1]
+        ip2 += steps[2]
+        op0 += steps[3]
+    sf_error.check_fpe(func_name)
+
 cdef void loop_D_DD__As_DD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
@@ -1623,8 +1699,9 @@ cdef extern from "_ufuncs_defs.h":
     cdef double complex _func_chyp1f1_wrap "chyp1f1_wrap"(double, double, double complex) nogil
 cdef extern from "_ufuncs_defs.h":
     cdef double _func_hyp2f1 "hyp2f1"(double, double, double, double) nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef double complex _func_chyp2f1_wrap "chyp2f1_wrap"(double, double, double, double complex) nogil
+from ._hyp2f1 cimport hyp2f1_complex as _func_hyp2f1_complex
+ctypedef double complex _proto_hyp2f1_complex_t(double, double, double, double complex) nogil
+cdef _proto_hyp2f1_complex_t *_proto_hyp2f1_complex_t_var = &_func_hyp2f1_complex
 from ._hypergeometric cimport hyperu as _func_hyperu
 ctypedef double _proto_hyperu_t(double, double, double) nogil
 cdef _proto_hyperu_t *_proto_hyperu_t_var = &_func_hyperu
@@ -4998,12 +5075,19 @@ cdef char *ufunc_ellipe_doc = (
     ":math:`\\sin^2(\\alpha) = m`, or modulus :math:`k^2 = m` are also\n"
     "used, so be careful that you choose the correct parameter.\n"
     "\n"
+    "The Legendre E integral is related to Carlson's symmetric R_D or R_G\n"
+    "functions in multiple ways [3]_. For example,\n"
+    "\n"
+    ".. math:: E(m) = 2 R_G(0, 1-k^2, 1) .\n"
+    "\n"
     "See Also\n"
     "--------\n"
     "ellipkm1 : Complete elliptic integral of the first kind, near `m` = 1\n"
     "ellipk : Complete elliptic integral of the first kind\n"
     "ellipkinc : Incomplete elliptic integral of the first kind\n"
     "ellipeinc : Incomplete elliptic integral of the second kind\n"
+    "elliprd : Symmetric elliptic integral of the second kind.\n"
+    "elliprg : Completely-symmetric elliptic integral of the second kind.\n"
     "\n"
     "References\n"
     "----------\n"
@@ -5012,6 +5096,9 @@ cdef char *ufunc_ellipe_doc = (
     ".. [2] Milton Abramowitz and Irene A. Stegun, eds.\n"
     "       Handbook of Mathematical Functions with Formulas,\n"
     "       Graphs, and Mathematical Tables. New York: Dover, 1972.\n"
+    ".. [3] NIST Digital Library of Mathematical\n"
+    "       Functions. http://dlmf.nist.gov/, Release 1.0.28 of\n"
+    "       2020-09-15. See Sec. 19.25(i) https://dlmf.nist.gov/19.25#i\n"
     "\n"
     "Examples\n"
     "--------\n"
@@ -5089,12 +5176,23 @@ cdef char *ufunc_ellipeinc_doc = (
     ":math:`\\sin^2(\\alpha) = m`, or modulus :math:`k^2 = m` are also\n"
     "used, so be careful that you choose the correct parameter.\n"
     "\n"
+    "The Legendre E incomplete integral can be related to combinations\n"
+    "of Carlson's symmetric integrals R_D, R_F, and R_G in multiple\n"
+    "ways [3]_. For example, with :math:`c = \\csc^2\\phi`,\n"
+    "\n"
+    ".. math::\n"
+    "  E(\\phi, m) = R_F(c-1, c-k^2, c)\n"
+    "    - \\frac{1}{3} k^2 R_D(c-1, c-k^2, c) .\n"
+    "\n"
     "See Also\n"
     "--------\n"
     "ellipkm1 : Complete elliptic integral of the first kind, near `m` = 1\n"
     "ellipk : Complete elliptic integral of the first kind\n"
     "ellipkinc : Incomplete elliptic integral of the first kind\n"
     "ellipe : Complete elliptic integral of the second kind\n"
+    "elliprd : Symmetric elliptic integral of the second kind.\n"
+    "elliprf : Completely-symmetric elliptic integral of the first kind.\n"
+    "elliprg : Completely-symmetric elliptic integral of the second kind.\n"
     "\n"
     "References\n"
     "----------\n"
@@ -5102,7 +5200,10 @@ cdef char *ufunc_ellipeinc_doc = (
     "       http://www.netlib.org/cephes/\n"
     ".. [2] Milton Abramowitz and Irene A. Stegun, eds.\n"
     "       Handbook of Mathematical Functions with Formulas,\n"
-    "       Graphs, and Mathematical Tables. New York: Dover, 1972.")
+    "       Graphs, and Mathematical Tables. New York: Dover, 1972.\n"
+    ".. [3] NIST Digital Library of Mathematical\n"
+    "       Functions. http://dlmf.nist.gov/, Release 1.0.28 of\n"
+    "       2020-09-15. See Sec. 19.25(i) https://dlmf.nist.gov/19.25#i")
 ufunc_ellipeinc_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_ellipeinc_loops[1] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
 ufunc_ellipeinc_types[0] = <char>NPY_FLOAT
@@ -5228,18 +5329,27 @@ cdef char *ufunc_ellipk_doc = (
     ":math:`\\sin^2(\\alpha) = m`, or modulus :math:`k^2 = m` are also\n"
     "used, so be careful that you choose the correct parameter.\n"
     "\n"
+    "The Legendre K integral is related to Carlson's symmetric R_F\n"
+    "function by [2]_:\n"
+    "\n"
+    ".. math:: K(m) = R_F(0, 1-k^2, 1) .\n"
+    "\n"
     "See Also\n"
     "--------\n"
     "ellipkm1 : Complete elliptic integral of the first kind around m = 1\n"
     "ellipkinc : Incomplete elliptic integral of the first kind\n"
     "ellipe : Complete elliptic integral of the second kind\n"
     "ellipeinc : Incomplete elliptic integral of the second kind\n"
+    "elliprf : Completely-symmetric elliptic integral of the first kind.\n"
     "\n"
     "References\n"
     "----------\n"
     ".. [1] Milton Abramowitz and Irene A. Stegun, eds.\n"
     "       Handbook of Mathematical Functions with Formulas,\n"
-    "       Graphs, and Mathematical Tables. New York: Dover, 1972.")
+    "       Graphs, and Mathematical Tables. New York: Dover, 1972.\n"
+    ".. [2] NIST Digital Library of Mathematical\n"
+    "       Functions. http://dlmf.nist.gov/, Release 1.0.28 of\n"
+    "       2020-09-15. See Sec. 19.25(i) https://dlmf.nist.gov/19.25#i")
 ufunc_ellipk_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
 ufunc_ellipk_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
 ufunc_ellipk_types[0] = <char>NPY_FLOAT
@@ -5267,7 +5377,7 @@ cdef char *ufunc_ellipkinc_doc = (
     "\n"
     ".. math:: K(\\phi, m) = \\int_0^{\\phi} [1 - m \\sin(t)^2]^{-1/2} dt\n"
     "\n"
-    "This function is also called `F(phi, m)`.\n"
+    "This function is also called :math:`F(\\phi, m)`.\n"
     "\n"
     "Parameters\n"
     "----------\n"
@@ -5293,12 +5403,19 @@ cdef char *ufunc_ellipkinc_doc = (
     ":math:`\\sin^2(\\alpha) = m`, or modulus :math:`k^2 = m` are also\n"
     "used, so be careful that you choose the correct parameter.\n"
     "\n"
+    "The Legendre K incomplete integral (or F integral) is related to\n"
+    "Carlson's symmetric R_F function [3]_.\n"
+    "Setting :math:`c = \\csc^2\\phi`,\n"
+    "\n"
+    ".. math:: F(\\phi, m) = R_F(c-1, c-k^2, c) .\n"
+    "\n"
     "See Also\n"
     "--------\n"
     "ellipkm1 : Complete elliptic integral of the first kind, near `m` = 1\n"
     "ellipk : Complete elliptic integral of the first kind\n"
     "ellipe : Complete elliptic integral of the second kind\n"
     "ellipeinc : Incomplete elliptic integral of the second kind\n"
+    "elliprf : Completely-symmetric elliptic integral of the first kind.\n"
     "\n"
     "References\n"
     "----------\n"
@@ -5306,7 +5423,10 @@ cdef char *ufunc_ellipkinc_doc = (
     "       http://www.netlib.org/cephes/\n"
     ".. [2] Milton Abramowitz and Irene A. Stegun, eds.\n"
     "       Handbook of Mathematical Functions with Formulas,\n"
-    "       Graphs, and Mathematical Tables. New York: Dover, 1972.")
+    "       Graphs, and Mathematical Tables. New York: Dover, 1972.\n"
+    ".. [3] NIST Digital Library of Mathematical\n"
+    "       Functions. http://dlmf.nist.gov/, Release 1.0.28 of\n"
+    "       2020-09-15. See Sec. 19.25(i) https://dlmf.nist.gov/19.25#i")
 ufunc_ellipkinc_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_ellipkinc_loops[1] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
 ufunc_ellipkinc_types[0] = <char>NPY_FLOAT
@@ -5371,6 +5491,7 @@ cdef char *ufunc_ellipkm1_doc = (
     "ellipkinc : Incomplete elliptic integral of the first kind\n"
     "ellipe : Complete elliptic integral of the second kind\n"
     "ellipeinc : Incomplete elliptic integral of the second kind\n"
+    "elliprf : Completely-symmetric elliptic integral of the first kind.\n"
     "\n"
     "References\n"
     "----------\n"
@@ -5389,6 +5510,518 @@ ufunc_ellipkm1_ptr[2*1+1] = <void*>(<char*>"ellipkm1")
 ufunc_ellipkm1_data[0] = &ufunc_ellipkm1_ptr[2*0]
 ufunc_ellipkm1_data[1] = &ufunc_ellipkm1_ptr[2*1]
 ellipkm1 = np.PyUFunc_FromFuncAndData(ufunc_ellipkm1_loops, ufunc_ellipkm1_data, ufunc_ellipkm1_types, 2, 1, 1, 0, "ellipkm1", ufunc_ellipkm1_doc, 0)
+
+cdef np.PyUFuncGenericFunction ufunc_elliprc_loops[4]
+cdef void *ufunc_elliprc_ptr[8]
+cdef void *ufunc_elliprc_data[4]
+cdef char ufunc_elliprc_types[12]
+cdef char *ufunc_elliprc_doc = (
+    "elliprc(x, y)\n"
+    "\n"
+    "Degenerate symmetric elliptic integral.\n"
+    "\n"
+    "The function RC is defined as [1]_\n"
+    "\n"
+    ".. math::\n"
+    "\n"
+    "    R_{\\mathrm{C}}(x, y) =\n"
+    "       \\frac{1}{2} \\int_0^{+\\infty} (t + x)^{-1/2} (t + y)^{-1} dt\n"
+    "       = R_{\\mathrm{F}}(x, y, y)\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "x, y : array_like\n"
+    "    Real or complex input parameters. `x` can be any number in the\n"
+    "    complex plane cut along the negative real axis. `y` must be non-zero.\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "R : ndarray\n"
+    "    Value of the integral. If `y` is real and negative, the Cauchy\n"
+    "    principal value is returned. If both of `x` and `y` are real, the\n"
+    "    return value is real. Otherwise, the return value is complex.\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "RC is a degenerate case of the symmetric integral RF: ``elliprc(x, y) ==\n"
+    "elliprf(x, y, y)``. It is an elementary function rather than an elliptic\n"
+    "integral.\n"
+    "\n"
+    "The code implements Carlson's algorithm based on the duplication theorems\n"
+    "and series expansion up to the 7th order. [2]_\n"
+    "\n"
+    ".. versionadded:: 1.8.0\n"
+    "\n"
+    "See Also\n"
+    "--------\n"
+    "elliprf : Completely-symmetric elliptic integral of the first kind.\n"
+    "elliprd : Symmetric elliptic integral of the second kind.\n"
+    "elliprg : Completely-symmetric elliptic integral of the second kind.\n"
+    "elliprj : Symmetric elliptic integral of the third kind.\n"
+    "\n"
+    "References\n"
+    "----------\n"
+    ".. [1] B. C. Carlson, ed., Chapter 19 in \"Digital Library of Mathematical\n"
+    "       Functions,\" NIST, US Dept. of Commerce.\n"
+    "       https://dlmf.nist.gov/19.16.E6\n"
+    ".. [2] B. C. Carlson, \"Numerical computation of real or complex elliptic\n"
+    "       integrals,\" Numer. Algorithm, vol. 10, no. 1, pp. 13-26, 1995.\n"
+    "       https://arxiv.org/abs/math/9409227\n"
+    "       https://doi.org/10.1007/BF02198293")
+ufunc_elliprc_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
+ufunc_elliprc_loops[1] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
+ufunc_elliprc_loops[2] = <np.PyUFuncGenericFunction>loop_D_DD__As_FF_F
+ufunc_elliprc_loops[3] = <np.PyUFuncGenericFunction>loop_D_DD__As_DD_D
+ufunc_elliprc_types[0] = <char>NPY_FLOAT
+ufunc_elliprc_types[1] = <char>NPY_FLOAT
+ufunc_elliprc_types[2] = <char>NPY_FLOAT
+ufunc_elliprc_types[3] = <char>NPY_DOUBLE
+ufunc_elliprc_types[4] = <char>NPY_DOUBLE
+ufunc_elliprc_types[5] = <char>NPY_DOUBLE
+ufunc_elliprc_types[6] = <char>NPY_CFLOAT
+ufunc_elliprc_types[7] = <char>NPY_CFLOAT
+ufunc_elliprc_types[8] = <char>NPY_CFLOAT
+ufunc_elliprc_types[9] = <char>NPY_CDOUBLE
+ufunc_elliprc_types[10] = <char>NPY_CDOUBLE
+ufunc_elliprc_types[11] = <char>NPY_CDOUBLE
+ufunc_elliprc_ptr[2*0] = <void*>scipy.special._ufuncs_cxx._export_fellint_RC
+ufunc_elliprc_ptr[2*0+1] = <void*>(<char*>"elliprc")
+ufunc_elliprc_ptr[2*1] = <void*>scipy.special._ufuncs_cxx._export_fellint_RC
+ufunc_elliprc_ptr[2*1+1] = <void*>(<char*>"elliprc")
+ufunc_elliprc_ptr[2*2] = <void*>scipy.special._ufuncs_cxx._export_cellint_RC
+ufunc_elliprc_ptr[2*2+1] = <void*>(<char*>"elliprc")
+ufunc_elliprc_ptr[2*3] = <void*>scipy.special._ufuncs_cxx._export_cellint_RC
+ufunc_elliprc_ptr[2*3+1] = <void*>(<char*>"elliprc")
+ufunc_elliprc_data[0] = &ufunc_elliprc_ptr[2*0]
+ufunc_elliprc_data[1] = &ufunc_elliprc_ptr[2*1]
+ufunc_elliprc_data[2] = &ufunc_elliprc_ptr[2*2]
+ufunc_elliprc_data[3] = &ufunc_elliprc_ptr[2*3]
+elliprc = np.PyUFunc_FromFuncAndData(ufunc_elliprc_loops, ufunc_elliprc_data, ufunc_elliprc_types, 4, 2, 1, 0, "elliprc", ufunc_elliprc_doc, 0)
+
+cdef np.PyUFuncGenericFunction ufunc_elliprd_loops[4]
+cdef void *ufunc_elliprd_ptr[8]
+cdef void *ufunc_elliprd_data[4]
+cdef char ufunc_elliprd_types[16]
+cdef char *ufunc_elliprd_doc = (
+    "elliprd(x, y, z)\n"
+    "\n"
+    "Symmetric elliptic integral of the second kind.\n"
+    "\n"
+    "The function RD is defined as [1]_\n"
+    "\n"
+    ".. math::\n"
+    "\n"
+    "    R_{\\mathrm{D}}(x, y, z) =\n"
+    "       \\frac{3}{2} \\int_0^{+\\infty} [(t + x) (t + y)]^{-1/2} (t + z)^{-3/2}\n"
+    "       dt\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "x, y, z : array_like\n"
+    "    Real or complex input parameters. `x` or `y` can be any number in the\n"
+    "    complex plane cut along the negative real axis, but at most one of them\n"
+    "    can be zero, while `z` must be non-zero.\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "R : ndarray\n"
+    "    Value of the integral. If all of `x`, `y`, and `z` are real, the\n"
+    "    return value is real. Otherwise, the return value is complex.\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "RD is a degenerate case of the elliptic integral RJ: ``elliprd(x, y, z) ==\n"
+    "elliprj(x, y, z, z)``.\n"
+    "\n"
+    "The code implements Carlson's algorithm based on the duplication theorems\n"
+    "and series expansion up to the 7th order. [2]_\n"
+    "\n"
+    ".. versionadded:: 1.8.0\n"
+    "\n"
+    "See Also\n"
+    "--------\n"
+    "elliprc : Degenerate symmetric elliptic integral.\n"
+    "elliprf : Completely-symmetric elliptic integral of the first kind.\n"
+    "elliprg : Completely-symmetric elliptic integral of the second kind.\n"
+    "elliprj : Symmetric elliptic integral of the third kind.\n"
+    "\n"
+    "References\n"
+    "----------\n"
+    ".. [1] B. C. Carlson, ed., Chapter 19 in \"Digital Library of Mathematical\n"
+    "       Functions,\" NIST, US Dept. of Commerce.\n"
+    "       https://dlmf.nist.gov/19.16.E5\n"
+    ".. [2] B. C. Carlson, \"Numerical computation of real or complex elliptic\n"
+    "       integrals,\" Numer. Algorithm, vol. 10, no. 1, pp. 13-26, 1995.\n"
+    "       https://arxiv.org/abs/math/9409227\n"
+    "       https://doi.org/10.1007/BF02198293")
+ufunc_elliprd_loops[0] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
+ufunc_elliprd_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
+ufunc_elliprd_loops[2] = <np.PyUFuncGenericFunction>loop_D_DDD__As_FFF_F
+ufunc_elliprd_loops[3] = <np.PyUFuncGenericFunction>loop_D_DDD__As_DDD_D
+ufunc_elliprd_types[0] = <char>NPY_FLOAT
+ufunc_elliprd_types[1] = <char>NPY_FLOAT
+ufunc_elliprd_types[2] = <char>NPY_FLOAT
+ufunc_elliprd_types[3] = <char>NPY_FLOAT
+ufunc_elliprd_types[4] = <char>NPY_DOUBLE
+ufunc_elliprd_types[5] = <char>NPY_DOUBLE
+ufunc_elliprd_types[6] = <char>NPY_DOUBLE
+ufunc_elliprd_types[7] = <char>NPY_DOUBLE
+ufunc_elliprd_types[8] = <char>NPY_CFLOAT
+ufunc_elliprd_types[9] = <char>NPY_CFLOAT
+ufunc_elliprd_types[10] = <char>NPY_CFLOAT
+ufunc_elliprd_types[11] = <char>NPY_CFLOAT
+ufunc_elliprd_types[12] = <char>NPY_CDOUBLE
+ufunc_elliprd_types[13] = <char>NPY_CDOUBLE
+ufunc_elliprd_types[14] = <char>NPY_CDOUBLE
+ufunc_elliprd_types[15] = <char>NPY_CDOUBLE
+ufunc_elliprd_ptr[2*0] = <void*>scipy.special._ufuncs_cxx._export_fellint_RD
+ufunc_elliprd_ptr[2*0+1] = <void*>(<char*>"elliprd")
+ufunc_elliprd_ptr[2*1] = <void*>scipy.special._ufuncs_cxx._export_fellint_RD
+ufunc_elliprd_ptr[2*1+1] = <void*>(<char*>"elliprd")
+ufunc_elliprd_ptr[2*2] = <void*>scipy.special._ufuncs_cxx._export_cellint_RD
+ufunc_elliprd_ptr[2*2+1] = <void*>(<char*>"elliprd")
+ufunc_elliprd_ptr[2*3] = <void*>scipy.special._ufuncs_cxx._export_cellint_RD
+ufunc_elliprd_ptr[2*3+1] = <void*>(<char*>"elliprd")
+ufunc_elliprd_data[0] = &ufunc_elliprd_ptr[2*0]
+ufunc_elliprd_data[1] = &ufunc_elliprd_ptr[2*1]
+ufunc_elliprd_data[2] = &ufunc_elliprd_ptr[2*2]
+ufunc_elliprd_data[3] = &ufunc_elliprd_ptr[2*3]
+elliprd = np.PyUFunc_FromFuncAndData(ufunc_elliprd_loops, ufunc_elliprd_data, ufunc_elliprd_types, 4, 3, 1, 0, "elliprd", ufunc_elliprd_doc, 0)
+
+cdef np.PyUFuncGenericFunction ufunc_elliprf_loops[4]
+cdef void *ufunc_elliprf_ptr[8]
+cdef void *ufunc_elliprf_data[4]
+cdef char ufunc_elliprf_types[16]
+cdef char *ufunc_elliprf_doc = (
+    "elliprf(x, y, z)\n"
+    "\n"
+    "Completely-symmetric elliptic integral of the first kind.\n"
+    "\n"
+    "The function RF is defined as [1]_\n"
+    "\n"
+    ".. math::\n"
+    "\n"
+    "    R_{\\mathrm{F}}(x, y, z) =\n"
+    "       \\frac{1}{2} \\int_0^{+\\infty} [(t + x) (t + y) (t + z)]^{-1/2} dt\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "x, y, z : array_like\n"
+    "    Real or complex input parameters. `x`, `y`, or `z` can be any number in\n"
+    "    the complex plane cut along the negative real axis, but at most one of\n"
+    "    them can be zero.\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "R : ndarray\n"
+    "    Value of the integral. If all of `x`, `y`, and `z` are real, the return\n"
+    "    value is real. Otherwise, the return value is complex.\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "The code implements Carlson's algorithm based on the duplication theorems\n"
+    "and series expansion up to the 7th order (cf.:\n"
+    "https://dlmf.nist.gov/19.36.i) and the AGM algorithm for the complete\n"
+    "integral. [2]_\n"
+    "\n"
+    ".. versionadded:: 1.8.0\n"
+    "\n"
+    "See Also\n"
+    "--------\n"
+    "elliprc : Degenerate symmetric integral.\n"
+    "elliprd : Symmetric elliptic integral of the second kind.\n"
+    "elliprg : Completely-symmetric elliptic integral of the second kind.\n"
+    "elliprj : Symmetric elliptic integral of the third kind.\n"
+    "\n"
+    "References\n"
+    "----------\n"
+    ".. [1] B. C. Carlson, ed., Chapter 19 in \"Digital Library of Mathematical\n"
+    "       Functions,\" NIST, US Dept. of Commerce.\n"
+    "       https://dlmf.nist.gov/19.16.E1\n"
+    ".. [2] B. C. Carlson, \"Numerical computation of real or complex elliptic\n"
+    "       integrals,\" Numer. Algorithm, vol. 10, no. 1, pp. 13-26, 1995.\n"
+    "       https://arxiv.org/abs/math/9409227\n"
+    "       https://doi.org/10.1007/BF02198293")
+ufunc_elliprf_loops[0] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
+ufunc_elliprf_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
+ufunc_elliprf_loops[2] = <np.PyUFuncGenericFunction>loop_D_DDD__As_FFF_F
+ufunc_elliprf_loops[3] = <np.PyUFuncGenericFunction>loop_D_DDD__As_DDD_D
+ufunc_elliprf_types[0] = <char>NPY_FLOAT
+ufunc_elliprf_types[1] = <char>NPY_FLOAT
+ufunc_elliprf_types[2] = <char>NPY_FLOAT
+ufunc_elliprf_types[3] = <char>NPY_FLOAT
+ufunc_elliprf_types[4] = <char>NPY_DOUBLE
+ufunc_elliprf_types[5] = <char>NPY_DOUBLE
+ufunc_elliprf_types[6] = <char>NPY_DOUBLE
+ufunc_elliprf_types[7] = <char>NPY_DOUBLE
+ufunc_elliprf_types[8] = <char>NPY_CFLOAT
+ufunc_elliprf_types[9] = <char>NPY_CFLOAT
+ufunc_elliprf_types[10] = <char>NPY_CFLOAT
+ufunc_elliprf_types[11] = <char>NPY_CFLOAT
+ufunc_elliprf_types[12] = <char>NPY_CDOUBLE
+ufunc_elliprf_types[13] = <char>NPY_CDOUBLE
+ufunc_elliprf_types[14] = <char>NPY_CDOUBLE
+ufunc_elliprf_types[15] = <char>NPY_CDOUBLE
+ufunc_elliprf_ptr[2*0] = <void*>scipy.special._ufuncs_cxx._export_fellint_RF
+ufunc_elliprf_ptr[2*0+1] = <void*>(<char*>"elliprf")
+ufunc_elliprf_ptr[2*1] = <void*>scipy.special._ufuncs_cxx._export_fellint_RF
+ufunc_elliprf_ptr[2*1+1] = <void*>(<char*>"elliprf")
+ufunc_elliprf_ptr[2*2] = <void*>scipy.special._ufuncs_cxx._export_cellint_RF
+ufunc_elliprf_ptr[2*2+1] = <void*>(<char*>"elliprf")
+ufunc_elliprf_ptr[2*3] = <void*>scipy.special._ufuncs_cxx._export_cellint_RF
+ufunc_elliprf_ptr[2*3+1] = <void*>(<char*>"elliprf")
+ufunc_elliprf_data[0] = &ufunc_elliprf_ptr[2*0]
+ufunc_elliprf_data[1] = &ufunc_elliprf_ptr[2*1]
+ufunc_elliprf_data[2] = &ufunc_elliprf_ptr[2*2]
+ufunc_elliprf_data[3] = &ufunc_elliprf_ptr[2*3]
+elliprf = np.PyUFunc_FromFuncAndData(ufunc_elliprf_loops, ufunc_elliprf_data, ufunc_elliprf_types, 4, 3, 1, 0, "elliprf", ufunc_elliprf_doc, 0)
+
+cdef np.PyUFuncGenericFunction ufunc_elliprg_loops[4]
+cdef void *ufunc_elliprg_ptr[8]
+cdef void *ufunc_elliprg_data[4]
+cdef char ufunc_elliprg_types[16]
+cdef char *ufunc_elliprg_doc = (
+    "elliprg(x, y, z)\n"
+    "\n"
+    "Completely-symmetric elliptic integral of the second kind.\n"
+    "\n"
+    "The function RG is defined as [1]_\n"
+    "\n"
+    ".. math::\n"
+    "\n"
+    "    R_{\\mathrm{G}}(x, y, z) =\n"
+    "       \\frac{1}{4} \\int_0^{+\\infty} [(t + x) (t + y) (t + z)]^{-1/2}\n"
+    "       \\left(\\frac{x}{t + x} + \\frac{y}{t + y} + \\frac{z}{t + z}\\right) t\n"
+    "       dt\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "x, y, z : array_like\n"
+    "    Real or complex input parameters. `x`, `y`, or `z` can be any number in\n"
+    "    the complex plane cut along the negative real axis.\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "R : ndarray\n"
+    "    Value of the integral. If all of `x`, `y`, and `z` are real, the return\n"
+    "    value is real. Otherwise, the return value is complex.\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "The implementation uses the relation [1]_\n"
+    "\n"
+    ".. math::\n"
+    "\n"
+    "    2 R_{\\mathrm{G}}(x, y, z) =\n"
+    "       z R_{\\mathrm{F}}(x, y, z) -\n"
+    "       \\frac{1}{3} (x - z) (y - z) R_{\\mathrm{D}}(x, y, z) +\n"
+    "       \\sqrt{\\frac{x y}{z}}\n"
+    "\n"
+    "and the symmetry of `x`, `y`, `z` when at least one non-zero parameter can\n"
+    "be chosen as the pivot. When one of the arguments is close to zero, the AGM\n"
+    "method is applied instead. Other special cases are computed following Ref.\n"
+    "[2]_\n"
+    "\n"
+    ".. versionadded:: 1.8.0\n"
+    "\n"
+    "See Also\n"
+    "--------\n"
+    "elliprc : Degenerate symmetric integral.\n"
+    "elliprd : Symmetric elliptic integral of the second kind.\n"
+    "elliprf : Completely-symmetric elliptic integral of the first kind.\n"
+    "elliprj : Symmetric elliptic integral of the third kind.\n"
+    "\n"
+    "References\n"
+    "----------\n"
+    ".. [1] B. C. Carlson, \"Numerical computation of real or complex elliptic\n"
+    "       integrals,\" Numer. Algorithm, vol. 10, no. 1, pp. 13-26, 1995.\n"
+    "       https://arxiv.org/abs/math/9409227\n"
+    "       https://doi.org/10.1007/BF02198293\n"
+    ".. [2] B. C. Carlson, ed., Chapter 19 in \"Digital Library of Mathematical\n"
+    "       Functions,\" NIST, US Dept. of Commerce.\n"
+    "       https://dlmf.nist.gov/19.16.E1\n"
+    "       https://dlmf.nist.gov/19.20.ii\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "The surface area of a triaxial ellipsoid with semiaxes ``a``, ``b``, and\n"
+    "``c`` is given by\n"
+    "\n"
+    ".. math::\n"
+    "\n"
+    "    S = 4 \\pi a b c R_{\\mathrm{G}}(1 / a^2, 1 / b^2, 1 / c^2).\n"
+    "\n"
+    ">>> from scipy.special import elliprg\n"
+    ">>> def ellipsoid_area(a, b, c):\n"
+    "...     r = 4.0 * np.pi * a * b * c\n"
+    "...     return r * elliprg(1.0 / (a * a), 1.0 / (b * b), 1.0 / (c * c))\n"
+    ">>> print(ellipsoid_area(1, 3, 5))\n"
+    "108.62688289491807")
+ufunc_elliprg_loops[0] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
+ufunc_elliprg_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
+ufunc_elliprg_loops[2] = <np.PyUFuncGenericFunction>loop_D_DDD__As_FFF_F
+ufunc_elliprg_loops[3] = <np.PyUFuncGenericFunction>loop_D_DDD__As_DDD_D
+ufunc_elliprg_types[0] = <char>NPY_FLOAT
+ufunc_elliprg_types[1] = <char>NPY_FLOAT
+ufunc_elliprg_types[2] = <char>NPY_FLOAT
+ufunc_elliprg_types[3] = <char>NPY_FLOAT
+ufunc_elliprg_types[4] = <char>NPY_DOUBLE
+ufunc_elliprg_types[5] = <char>NPY_DOUBLE
+ufunc_elliprg_types[6] = <char>NPY_DOUBLE
+ufunc_elliprg_types[7] = <char>NPY_DOUBLE
+ufunc_elliprg_types[8] = <char>NPY_CFLOAT
+ufunc_elliprg_types[9] = <char>NPY_CFLOAT
+ufunc_elliprg_types[10] = <char>NPY_CFLOAT
+ufunc_elliprg_types[11] = <char>NPY_CFLOAT
+ufunc_elliprg_types[12] = <char>NPY_CDOUBLE
+ufunc_elliprg_types[13] = <char>NPY_CDOUBLE
+ufunc_elliprg_types[14] = <char>NPY_CDOUBLE
+ufunc_elliprg_types[15] = <char>NPY_CDOUBLE
+ufunc_elliprg_ptr[2*0] = <void*>scipy.special._ufuncs_cxx._export_fellint_RG
+ufunc_elliprg_ptr[2*0+1] = <void*>(<char*>"elliprg")
+ufunc_elliprg_ptr[2*1] = <void*>scipy.special._ufuncs_cxx._export_fellint_RG
+ufunc_elliprg_ptr[2*1+1] = <void*>(<char*>"elliprg")
+ufunc_elliprg_ptr[2*2] = <void*>scipy.special._ufuncs_cxx._export_cellint_RG
+ufunc_elliprg_ptr[2*2+1] = <void*>(<char*>"elliprg")
+ufunc_elliprg_ptr[2*3] = <void*>scipy.special._ufuncs_cxx._export_cellint_RG
+ufunc_elliprg_ptr[2*3+1] = <void*>(<char*>"elliprg")
+ufunc_elliprg_data[0] = &ufunc_elliprg_ptr[2*0]
+ufunc_elliprg_data[1] = &ufunc_elliprg_ptr[2*1]
+ufunc_elliprg_data[2] = &ufunc_elliprg_ptr[2*2]
+ufunc_elliprg_data[3] = &ufunc_elliprg_ptr[2*3]
+elliprg = np.PyUFunc_FromFuncAndData(ufunc_elliprg_loops, ufunc_elliprg_data, ufunc_elliprg_types, 4, 3, 1, 0, "elliprg", ufunc_elliprg_doc, 0)
+
+cdef np.PyUFuncGenericFunction ufunc_elliprj_loops[4]
+cdef void *ufunc_elliprj_ptr[8]
+cdef void *ufunc_elliprj_data[4]
+cdef char ufunc_elliprj_types[20]
+cdef char *ufunc_elliprj_doc = (
+    "elliprj(x, y, z, p)\n"
+    "\n"
+    "Symmetric elliptic integral of the third kind.\n"
+    "\n"
+    "The function RJ is defined as [1]_\n"
+    "\n"
+    ".. math::\n"
+    "\n"
+    "    R_{\\mathrm{J}}(x, y, z, p) =\n"
+    "       \\frac{3}{2} \\int_0^{+\\infty} [(t + x) (t + y) (t + z)]^{-1/2}\n"
+    "       (t + p)^{-1} dt\n"
+    "\n"
+    ".. warning::\n"
+    "    This function should be considered experimental when the inputs are\n"
+    "    unbalanced.  Check correctness with another independent implementation.\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "x, y, z, p : array_like\n"
+    "    Real or complex input parameters. `x`, `y`, or `z` are numbers in\n"
+    "    the complex plane cut along the negative real axis (subject to further\n"
+    "    constraints, see Notes), and at most one of them can be zero. `p` must\n"
+    "    be non-zero.\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "R : ndarray\n"
+    "    Value of the integral. If all of `x`, `y`, `z`, and `p` are real, the\n"
+    "    return value is real. Otherwise, the return value is complex.\n"
+    "\n"
+    "    If `p` is real and negative, while `x`, `y`, and `z` are real,\n"
+    "    non-negative, and at most one of them is zero, the Cauchy principal\n"
+    "    value is returned. [1]_ [2]_\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "The code implements Carlson's algorithm based on the duplication theorems\n"
+    "and series expansion up to the 7th order. [3]_ The algorithm is slightly\n"
+    "different from its earlier incarnation as it appears in [1]_, in that the\n"
+    "call to `elliprc` (or ``atan``/``atanh``, see [4]_) is no longer needed in\n"
+    "the inner loop. Asymptotic approximations are used where arguments differ\n"
+    "widely in the order of magnitude. [5]_\n"
+    "\n"
+    "The input values are subject to certain sufficient but not necessary\n"
+    "constaints when input arguments are complex. Notably, ``x``, ``y``, and\n"
+    "``z`` must have non-negative real parts, unless two of them are\n"
+    "non-negative and complex-conjugates to each other while the other is a real\n"
+    "non-negative number. [1]_ If the inputs do not satisfy the sufficient\n"
+    "condition described in Ref. [1]_ they are rejected outright with the output\n"
+    "set to NaN.\n"
+    "\n"
+    "In the case where one of ``x``, ``y``, and ``z`` is equal to ``p``, the\n"
+    "function ``elliprd`` should be preferred because of its less restrictive\n"
+    "domain.\n"
+    "\n"
+    ".. versionadded:: 1.8.0\n"
+    "\n"
+    "See Also\n"
+    "--------\n"
+    "elliprc : Degenerate symmetric integral.\n"
+    "elliprd : Symmetric elliptic integral of the second kind.\n"
+    "elliprf : Completely-symmetric elliptic integral of the first kind.\n"
+    "elliprg : Completely-symmetric elliptic integral of the second kind.\n"
+    "\n"
+    "References\n"
+    "----------\n"
+    ".. [1] B. C. Carlson, \"Numerical computation of real or complex elliptic\n"
+    "       integrals,\" Numer. Algorithm, vol. 10, no. 1, pp. 13-26, 1995.\n"
+    "       https://arxiv.org/abs/math/9409227\n"
+    "       https://doi.org/10.1007/BF02198293\n"
+    ".. [2] B. C. Carlson, ed., Chapter 19 in \"Digital Library of Mathematical\n"
+    "       Functions,\" NIST, US Dept. of Commerce.\n"
+    "       https://dlmf.nist.gov/19.20.iii\n"
+    ".. [3] B. C. Carlson, J. FitzSimmons, \"Reduction Theorems for Elliptic\n"
+    "       Integrands with the Square Root of Two Quadratic Factors,\" J.\n"
+    "       Comput. Appl. Math., vol. 118, nos. 1-2, pp. 71-85, 2000.\n"
+    "       https://doi.org/10.1016/S0377-0427(00)00282-X\n"
+    ".. [4] F. Johansson, \"Numerical Evaluation of Elliptic Functions, Elliptic\n"
+    "       Integrals and Modular Forms,\" in J. Blumlein, C. Schneider, P.\n"
+    "       Paule, eds., \"Elliptic Integrals, Elliptic Functions and Modular\n"
+    "       Forms in Quantum Field Theory,\" pp. 269-293, 2019 (Cham,\n"
+    "       Switzerland: Springer Nature Switzerland)\n"
+    "       https://arxiv.org/abs/1806.06725\n"
+    "       https://doi.org/10.1007/978-3-030-04480-0\n"
+    ".. [5] B. C. Carlson, J. L. Gustafson, \"Asymptotic Approximations for\n"
+    "       Symmetric Elliptic Integrals,\" SIAM J. Math. Anls., vol. 25, no. 2,\n"
+    "       pp. 288-303, 1994.\n"
+    "       https://arxiv.org/abs/math/9310223\n"
+    "       https://doi.org/10.1137/S0036141092228477")
+ufunc_elliprj_loops[0] = <np.PyUFuncGenericFunction>loop_d_dddd__As_ffff_f
+ufunc_elliprj_loops[1] = <np.PyUFuncGenericFunction>loop_d_dddd__As_dddd_d
+ufunc_elliprj_loops[2] = <np.PyUFuncGenericFunction>loop_D_DDDD__As_FFFF_F
+ufunc_elliprj_loops[3] = <np.PyUFuncGenericFunction>loop_D_DDDD__As_DDDD_D
+ufunc_elliprj_types[0] = <char>NPY_FLOAT
+ufunc_elliprj_types[1] = <char>NPY_FLOAT
+ufunc_elliprj_types[2] = <char>NPY_FLOAT
+ufunc_elliprj_types[3] = <char>NPY_FLOAT
+ufunc_elliprj_types[4] = <char>NPY_FLOAT
+ufunc_elliprj_types[5] = <char>NPY_DOUBLE
+ufunc_elliprj_types[6] = <char>NPY_DOUBLE
+ufunc_elliprj_types[7] = <char>NPY_DOUBLE
+ufunc_elliprj_types[8] = <char>NPY_DOUBLE
+ufunc_elliprj_types[9] = <char>NPY_DOUBLE
+ufunc_elliprj_types[10] = <char>NPY_CFLOAT
+ufunc_elliprj_types[11] = <char>NPY_CFLOAT
+ufunc_elliprj_types[12] = <char>NPY_CFLOAT
+ufunc_elliprj_types[13] = <char>NPY_CFLOAT
+ufunc_elliprj_types[14] = <char>NPY_CFLOAT
+ufunc_elliprj_types[15] = <char>NPY_CDOUBLE
+ufunc_elliprj_types[16] = <char>NPY_CDOUBLE
+ufunc_elliprj_types[17] = <char>NPY_CDOUBLE
+ufunc_elliprj_types[18] = <char>NPY_CDOUBLE
+ufunc_elliprj_types[19] = <char>NPY_CDOUBLE
+ufunc_elliprj_ptr[2*0] = <void*>scipy.special._ufuncs_cxx._export_fellint_RJ
+ufunc_elliprj_ptr[2*0+1] = <void*>(<char*>"elliprj")
+ufunc_elliprj_ptr[2*1] = <void*>scipy.special._ufuncs_cxx._export_fellint_RJ
+ufunc_elliprj_ptr[2*1+1] = <void*>(<char*>"elliprj")
+ufunc_elliprj_ptr[2*2] = <void*>scipy.special._ufuncs_cxx._export_cellint_RJ
+ufunc_elliprj_ptr[2*2+1] = <void*>(<char*>"elliprj")
+ufunc_elliprj_ptr[2*3] = <void*>scipy.special._ufuncs_cxx._export_cellint_RJ
+ufunc_elliprj_ptr[2*3+1] = <void*>(<char*>"elliprj")
+ufunc_elliprj_data[0] = &ufunc_elliprj_ptr[2*0]
+ufunc_elliprj_data[1] = &ufunc_elliprj_ptr[2*1]
+ufunc_elliprj_data[2] = &ufunc_elliprj_ptr[2*2]
+ufunc_elliprj_data[3] = &ufunc_elliprj_ptr[2*3]
+elliprj = np.PyUFunc_FromFuncAndData(ufunc_elliprj_loops, ufunc_elliprj_data, ufunc_elliprj_types, 4, 4, 1, 0, "elliprj", ufunc_elliprj_doc, 0)
 
 cdef np.PyUFuncGenericFunction ufunc_entr_loops[2]
 cdef void *ufunc_entr_ptr[4]
@@ -8193,10 +8826,8 @@ cdef char *ufunc_gammainc_doc = (
     "See also\n"
     "--------\n"
     "gammaincc : regularized upper incomplete gamma function\n"
-    "gammaincinv : inverse of the regularized lower incomplete gamma\n"
-    "    function with respect to `x`\n"
-    "gammainccinv : inverse of the regularized upper incomplete gamma\n"
-    "    function with respect to `x`\n"
+    "gammaincinv : inverse of the regularized lower incomplete gamma function\n"
+    "gammainccinv : inverse of the regularized upper incomplete gamma function\n"
     "\n"
     "References\n"
     "----------\n"
@@ -8278,10 +8909,8 @@ cdef char *ufunc_gammaincc_doc = (
     "See also\n"
     "--------\n"
     "gammainc : regularized lower incomplete gamma function\n"
-    "gammaincinv : inverse of the regularized lower incomplete gamma\n"
-    "    function with respect to `x`\n"
-    "gammainccinv : inverse to of the regularized upper incomplete\n"
-    "    gamma function with respect to `x`\n"
+    "gammaincinv : inverse of the regularized lower incomplete gamma function\n"
+    "gammainccinv : inverse of the regularized upper incomplete gamma function\n"
     "\n"
     "References\n"
     "----------\n"
@@ -8331,13 +8960,13 @@ cdef char ufunc_gammainccinv_types[6]
 cdef char *ufunc_gammainccinv_doc = (
     "gammainccinv(a, y)\n"
     "\n"
-    "Inverse of the upper incomplete gamma function with respect to `x`\n"
+    "Inverse of the regularized upper incomplete gamma function.\n"
     "\n"
     "Given an input :math:`y` between 0 and 1, returns :math:`x` such\n"
-    "that :math:`y = Q(a, x)`. Here :math:`Q` is the upper incomplete\n"
-    "gamma function; see `gammaincc`. This is well-defined because the\n"
-    "upper incomplete gamma function is monotonic as can be seen from\n"
-    "its definition in [dlmf]_.\n"
+    "that :math:`y = Q(a, x)`. Here :math:`Q` is the regularized upper\n"
+    "incomplete gamma function; see `gammaincc`. This is well-defined\n"
+    "because the upper incomplete gamma function is monotonic as can\n"
+    "be seen from its definition in [dlmf]_.\n"
     "\n"
     "Parameters\n"
     "----------\n"
@@ -8355,8 +8984,7 @@ cdef char *ufunc_gammainccinv_doc = (
     "--------\n"
     "gammaincc : regularized upper incomplete gamma function\n"
     "gammainc : regularized lower incomplete gamma function\n"
-    "gammaincinv : inverse of the regularized lower incomplete gamma\n"
-    "    function with respect to `x`\n"
+    "gammaincinv : inverse of the regularized lower incomplete gamma function\n"
     "\n"
     "References\n"
     "----------\n"
@@ -8404,7 +9032,7 @@ cdef char ufunc_gammaincinv_types[6]
 cdef char *ufunc_gammaincinv_doc = (
     "gammaincinv(a, y)\n"
     "\n"
-    "Inverse to the lower incomplete gamma function with respect to `x`.\n"
+    "Inverse to the regularized lower incomplete gamma function.\n"
     "\n"
     "Given an input :math:`y` between 0 and 1, returns :math:`x` such\n"
     "that :math:`y = P(a, x)`. Here :math:`P` is the regularized lower\n"
@@ -8428,8 +9056,7 @@ cdef char *ufunc_gammaincinv_doc = (
     "--------\n"
     "gammainc : regularized lower incomplete gamma function\n"
     "gammaincc : regularized upper incomplete gamma function\n"
-    "gammainccinv : inverse of the regualizred upper incomplete gamma\n"
-    "    function with respect to `x`\n"
+    "gammainccinv : inverse of the regularized upper incomplete gamma function\n"
     "\n"
     "References\n"
     "----------\n"
@@ -9564,7 +10191,16 @@ cdef char *ufunc_hyp2f1_doc = (
     "Here :math:`(\\cdot)_n` is the Pochhammer symbol; see `poch`. When\n"
     ":math:`n` is an integer the result is a polynomial of degree :math:`n`.\n"
     "\n"
-    "The implementation for complex values of ``z`` is described in [2]_.\n"
+    "The implementation for complex values of ``z`` is described in [2]_,\n"
+    "except for ``z`` in the region defined by\n"
+    "\n"
+    ".. math::\n"
+    "\n"
+    "     0.9 <= \\left|z\\right| < 1.1,\n"
+    "     \\left|1 - z\\right| >= 0.9,\n"
+    "     \\mathrm{real}(z) >= 0\n"
+    "\n"
+    "in which the implementation follows [4]_.\n"
     "\n"
     "References\n"
     "----------\n"
@@ -9573,6 +10209,9 @@ cdef char *ufunc_hyp2f1_doc = (
     ".. [2] S. Zhang and J.M. Jin, \"Computation of Special Functions\", Wiley 1996\n"
     ".. [3] Cephes Mathematical Functions Library,\n"
     "       http://www.netlib.org/cephes/\n"
+    ".. [4] J.L. Lopez and N.M. Temme, \"New series expansions of the Gauss\n"
+    "       hypergeometric function\", Adv Comput Math 39, 349-365 (2013).\n"
+    "       https://doi.org/10.1007/s10444-012-9283-y\n"
     "\n"
     "Examples\n"
     "--------\n"
@@ -9644,11 +10283,11 @@ ufunc_hyp2f1_types[18] = <char>NPY_CDOUBLE
 ufunc_hyp2f1_types[19] = <char>NPY_CDOUBLE
 ufunc_hyp2f1_ptr[2*0] = <void*>_func_hyp2f1
 ufunc_hyp2f1_ptr[2*0+1] = <void*>(<char*>"hyp2f1")
-ufunc_hyp2f1_ptr[2*1] = <void*>_func_chyp2f1_wrap
+ufunc_hyp2f1_ptr[2*1] = <void*>_func_hyp2f1_complex
 ufunc_hyp2f1_ptr[2*1+1] = <void*>(<char*>"hyp2f1")
 ufunc_hyp2f1_ptr[2*2] = <void*>_func_hyp2f1
 ufunc_hyp2f1_ptr[2*2+1] = <void*>(<char*>"hyp2f1")
-ufunc_hyp2f1_ptr[2*3] = <void*>_func_chyp2f1_wrap
+ufunc_hyp2f1_ptr[2*3] = <void*>_func_hyp2f1_complex
 ufunc_hyp2f1_ptr[2*3+1] = <void*>(<char*>"hyp2f1")
 ufunc_hyp2f1_data[0] = &ufunc_hyp2f1_ptr[2*0]
 ufunc_hyp2f1_data[1] = &ufunc_hyp2f1_ptr[2*1]
@@ -11928,6 +12567,91 @@ ufunc_log1p_data[1] = &ufunc_log1p_ptr[2*1]
 ufunc_log1p_data[2] = &ufunc_log1p_ptr[2*2]
 ufunc_log1p_data[3] = &ufunc_log1p_ptr[2*3]
 log1p = np.PyUFunc_FromFuncAndData(ufunc_log1p_loops, ufunc_log1p_data, ufunc_log1p_types, 4, 1, 1, 0, "log1p", ufunc_log1p_doc, 0)
+
+cdef np.PyUFuncGenericFunction ufunc_log_expit_loops[3]
+cdef void *ufunc_log_expit_ptr[6]
+cdef void *ufunc_log_expit_data[3]
+cdef char ufunc_log_expit_types[6]
+cdef char *ufunc_log_expit_doc = (
+    "log_expit(x)\n"
+    "\n"
+    "Logarithm of the logistic sigmoid function.\n"
+    "\n"
+    "The SciPy implementation of the logistic sigmoid function is\n"
+    "`scipy.special.expit`, so this function is called ``log_expit``.\n"
+    "\n"
+    "The function is mathematically equivalent to ``log(expit(x))``, but\n"
+    "is formulated to avoid loss of precision for inputs with large\n"
+    "(positive or negative) magnitude.\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "x : array_like\n"
+    "    The values to apply ``log_expit`` to element-wise.\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "out : ndarray\n"
+    "    The computed values, an ndarray of the same shape as ``x``.\n"
+    "\n"
+    "See Also\n"
+    "--------\n"
+    "expit\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "As a ufunc, ``log_expit`` takes a number of optional keyword arguments.\n"
+    "For more information see\n"
+    "`ufuncs <https://docs.scipy.org/doc/numpy/reference/ufuncs.html>`_\n"
+    "\n"
+    ".. versionadded:: 1.8.0\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    ">>> from scipy.special import log_expit, expit\n"
+    "\n"
+    ">>> log_expit([-3.0, 0.25, 2.5, 5.0])\n"
+    "array([-3.04858735, -0.57593942, -0.07888973, -0.00671535])\n"
+    "\n"
+    "Large negative values:\n"
+    "\n"
+    ">>> log_expit([-100, -500, -1000])\n"
+    "array([ -100.,  -500., -1000.])\n"
+    "\n"
+    "Note that ``expit(-1000)`` returns 0, so the naive implementation\n"
+    "``log(expit(-1000))`` return ``-inf``.\n"
+    "\n"
+    "Large positive values:\n"
+    "\n"
+    ">>> log_expit([29, 120, 400])\n"
+    "array([-2.54366565e-013, -7.66764807e-053, -1.91516960e-174])\n"
+    "\n"
+    "Compare that to the naive implementation:\n"
+    "\n"
+    ">>> np.log(expit([29, 120, 400]))\n"
+    "array([-2.54463117e-13,  0.00000000e+00,  0.00000000e+00])\n"
+    "\n"
+    "The first value is accurate to only 3 digits, and the larger inputs\n"
+    "lose all precision and return 0.")
+ufunc_log_expit_loops[0] = <np.PyUFuncGenericFunction>loop_f_f__As_f_f
+ufunc_log_expit_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
+ufunc_log_expit_loops[2] = <np.PyUFuncGenericFunction>loop_g_g__As_g_g
+ufunc_log_expit_types[0] = <char>NPY_FLOAT
+ufunc_log_expit_types[1] = <char>NPY_FLOAT
+ufunc_log_expit_types[2] = <char>NPY_DOUBLE
+ufunc_log_expit_types[3] = <char>NPY_DOUBLE
+ufunc_log_expit_types[4] = <char>NPY_LONGDOUBLE
+ufunc_log_expit_types[5] = <char>NPY_LONGDOUBLE
+ufunc_log_expit_ptr[2*0] = <void*>scipy.special._ufuncs_cxx._export_log_expitf
+ufunc_log_expit_ptr[2*0+1] = <void*>(<char*>"log_expit")
+ufunc_log_expit_ptr[2*1] = <void*>scipy.special._ufuncs_cxx._export_log_expit
+ufunc_log_expit_ptr[2*1+1] = <void*>(<char*>"log_expit")
+ufunc_log_expit_ptr[2*2] = <void*>scipy.special._ufuncs_cxx._export_log_expitl
+ufunc_log_expit_ptr[2*2+1] = <void*>(<char*>"log_expit")
+ufunc_log_expit_data[0] = &ufunc_log_expit_ptr[2*0]
+ufunc_log_expit_data[1] = &ufunc_log_expit_ptr[2*1]
+ufunc_log_expit_data[2] = &ufunc_log_expit_ptr[2*2]
+log_expit = np.PyUFunc_FromFuncAndData(ufunc_log_expit_loops, ufunc_log_expit_data, ufunc_log_expit_types, 3, 1, 1, 0, "log_expit", ufunc_log_expit_doc, 0)
 
 cdef np.PyUFuncGenericFunction ufunc_log_ndtr_loops[4]
 cdef void *ufunc_log_ndtr_ptr[8]
@@ -14340,7 +15064,7 @@ cdef char *ufunc_pdtr_doc = (
     "\n"
     ".. math::\n"
     "\n"
-    "   \\exp(-m) \\sum_{j = 0}^{\\lfloor{k}\\rfloor} \\frac{m^j}{m!}.\n"
+    "   \\exp(-m) \\sum_{j = 0}^{\\lfloor{k}\\rfloor} \\frac{m^j}{j!}.\n"
     "\n"
     "Parameters\n"
     "----------\n"

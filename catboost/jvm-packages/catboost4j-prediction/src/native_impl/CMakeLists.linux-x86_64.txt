@@ -30,6 +30,6 @@ target_link_options(catboost4j-prediction PRIVATE
   -ldl
 )
 target_sources(catboost4j-prediction PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/jvm-packages/catboost4j-prediction/src/native_impl/ai_catboost_CatBoostJNIImpl.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/jvm-packages/catboost4j-prediction/src/native_impl/ai_catboost_CatBoostJNIImpl.cpp
 )
 vcs_info(catboost4j-prediction)

@@ -8,6 +8,8 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+from typing import Union
+
 
 class IntervalSet:
     @classmethod
@@ -26,6 +28,8 @@ class IntervalSet:
         for u, v in self.intervals:
             self.offsets.append(self.offsets[-1] + v - u + 1)
         self.size = self.offsets.pop()
+        self._idx_of_zero = self.index_above(ord("0"))
+        self._idx_of_Z = min(self.index_above(ord("Z")), len(self) - 1)
 
     def __len__(self):
         return self.size
@@ -59,17 +63,16 @@ class IntervalSet:
         assert r <= v
         return r
 
-    def __contains__(self, elem):
+    def __contains__(self, elem: Union[str, int]) -> bool:
         if isinstance(elem, str):
             elem = ord(elem)
-        assert isinstance(elem, int)
         assert 0 <= elem <= 0x10FFFF
         return any(start <= elem <= end for start, end in self.intervals)
 
     def __repr__(self):
         return f"IntervalSet({self.intervals!r})"
 
-    def index(self, value):
+    def index(self, value: int) -> int:
         for offset, (u, v) in zip(self.offsets, self.intervals):
             if u == value:
                 return offset
@@ -79,7 +82,7 @@ class IntervalSet:
                 return offset + (value - u)
         raise ValueError(f"{value} is not in list")
 
-    def index_above(self, value):
+    def index_above(self, value: int) -> int:
         for offset, (u, v) in zip(self.offsets, self.intervals):
             if u >= value:
                 return offset
@@ -95,6 +98,9 @@ class IntervalSet:
 
     def __and__(self, other):
         return self.intersection(other)
+
+    def __eq__(self, other):
+        return isinstance(other, IntervalSet) and (other.intervals == self.intervals)
 
     def union(self, other):
         """Merge two sequences of intervals into a single tuple of intervals.
@@ -228,3 +234,48 @@ class IntervalSet:
                 else:
                     j += 1
         return IntervalSet(intervals)
+
+    def char_in_shrink_order(self, i: int) -> str:
+        # We would like it so that, where possible, shrinking replaces
+        # characters with simple ascii characters, so we rejig this
+        # bit so that the smallest values are 0, 1, 2, ..., Z.
+        #
+        # Imagine that numbers are laid out as abc0yyyZ...
+        # this rearranges them so that they are laid out as
+        # 0yyyZcba..., which gives a better shrinking order.
+        if i <= self._idx_of_Z:
+            # We want to rewrite the integers [0, n] inclusive
+            # to [zero_point, Z_point].
+            n = self._idx_of_Z - self._idx_of_zero
+            if i <= n:
+                i += self._idx_of_zero
+            else:
+                # We want to rewrite the integers [n + 1, Z_point] to
+                # [zero_point, 0] (reversing the order so that codepoints below
+                # zero_point shrink upwards).
+                i = self._idx_of_zero - (i - n)
+                assert i < self._idx_of_zero
+            assert 0 <= i <= self._idx_of_Z
+
+        return chr(self[i])
+
+    def index_from_char_in_shrink_order(self, c: str) -> int:
+        """
+        Inverse of char_in_shrink_order.
+        """
+        assert len(c) == 1
+        i = self.index(ord(c))
+
+        if i <= self._idx_of_Z:
+            n = self._idx_of_Z - self._idx_of_zero
+            # Rewrite [zero_point, Z_point] to [0, n].
+            if self._idx_of_zero <= i <= self._idx_of_Z:
+                i -= self._idx_of_zero
+                assert 0 <= i <= n
+            # Rewrite [zero_point, 0] to [n + 1, Z_point].
+            else:
+                i = self._idx_of_zero - i + n
+                assert n + 1 <= i <= self._idx_of_Z
+            assert 0 <= i <= self._idx_of_Z
+
+        return i

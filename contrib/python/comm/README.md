@@ -14,7 +14,6 @@ import comm
 
 
 class MyCustomComm(comm.base_comm.BaseComm):
-
     def publish_msg(self, msg_type, data=None, metadata=None, buffers=None, **keys):
         # TODO implement the logic for sending comm messages through the iopub channel
         pass

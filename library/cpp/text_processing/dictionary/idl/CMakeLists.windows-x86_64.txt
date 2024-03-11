@@ -20,13 +20,16 @@ target_link_libraries(text_processing-dictionary-idl PUBLIC
   contrib-libs-flatbuffers
 )
 target_sources(text_processing-dictionary-idl PRIVATE
-  ${CMAKE_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.cpp
+  ${PROJECT_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.h
+  ${PROJECT_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.iter.fbs.h
+  ${PROJECT_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.bfbs
+  ${PROJECT_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.cpp
 )
 target_fbs_source(text_processing-dictionary-idl
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs
+  ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs
   -I
-  ${CMAKE_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}
   -I
-  ${CMAKE_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}
 )

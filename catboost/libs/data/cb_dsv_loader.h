@@ -82,10 +82,15 @@ namespace NCB {
         TMaybe<ui32> ObjectCount;
     };
 
-    int GetDsvColumnCount(
+    size_t GetDsvColumnCount(
         const TPathWithScheme& pathWithScheme,
-        const TDsvFormatOptions& format = TDsvFormatOptions(),
-        bool ignoreCsvQuoting = false
+        const TDsvFormatOptions& format = TDsvFormatOptions()
     );
 
+    TVector<TColumn> CreateDsvColumnsDescription(
+        const TPathWithScheme& datasetPathWithScheme,
+        const TPathWithScheme& cdPathWithScheme = TPathWithScheme(),
+        const TPathWithScheme& featureNamesPathWithScheme = TPathWithScheme(),
+        const TDsvFormatOptions& format = TDsvFormatOptions()
+    );
 }

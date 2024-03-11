@@ -68,6 +68,7 @@ import sys
 import warnings
 
 # local
+from .table_vs16 import VS16_NARROW_TO_WIDE
 from .table_wide import WIDE_EASTASIAN
 from .table_zero import ZERO_WIDTH
 from .unicode_versions import list_versions
@@ -161,8 +162,11 @@ def wcswidth(pwcs, n=None, unicode_version='auto'):
     Given a unicode string, return its printable length on a terminal.
 
     :param str pwcs: Measure width of given unicode string.
-    :param int n: When ``n`` is None (default), return the length of the
-        entire string, otherwise width the first ``n`` characters specified.
+    :param int n: When ``n`` is None (default), return the length of the entire
+        string, otherwise only the first ``n`` characters are measured. This
+        argument exists only for compatibility with the C POSIX function
+        signature. It is suggested instead to use python's string slicing
+        capability, ``wcswidth(pwcs[:n])``
     :param str unicode_version: An explicit definition of the unicode version
         level to use for determination, may be ``auto`` (default), which uses
         the Environment Variable, ``UNICODE_VERSION`` if defined, or the latest
@@ -175,20 +179,37 @@ def wcswidth(pwcs, n=None, unicode_version='auto'):
     See :ref:`Specification` for details of cell measurement.
     """
     # this 'n' argument is a holdover for POSIX function
+    _unicode_version = None
     end = len(pwcs) if n is None else n
     width = 0
     idx = 0
+    last_measured_char = None
     while idx < end:
         char = pwcs[idx]
         if char == u'\u200D':
             # Zero Width Joiner, do not measure this or next character
             idx += 2
             continue
+        if char == u'\uFE0F' and last_measured_char:
+            # on variation selector 16 (VS16) following another character,
+            # conditionally add '1' to the measured width if that character is
+            # known to be converted from narrow to wide by the VS16 character.
+            if _unicode_version is None:
+                _unicode_version = _wcversion_value(_wcmatch_version(unicode_version))
+            if _unicode_version >= (9, 0, 0):
+                width += _bisearch(ord(last_measured_char), VS16_NARROW_TO_WIDE["9.0.0"])
+                last_measured_char = None
+            idx += 1
+            continue
         # measure character at current index
         wcw = wcwidth(char, unicode_version)
         if wcw < 0:
             # early return -1 on C0 and C1 control characters
             return wcw
+        if wcw > 0:
+            # track last character measured to contain a cell, so that
+            # subsequent VS-16 modifiers may be understood
+            last_measured_char = char
         width += wcw
         idx += 1
     return width

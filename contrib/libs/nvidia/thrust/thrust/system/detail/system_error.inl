@@ -76,14 +76,14 @@ system_error
 
 
 const error_code &system_error
-  ::code(void) const throw()
+  ::code(void) const noexcept
 {
   return m_error_code;
 } // end system_error::code()
 
 
 const char *system_error
-  ::what(void) const throw()
+  ::what(void) const noexcept
 {
   if(m_what.empty())
   {

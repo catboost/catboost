@@ -86,6 +86,7 @@ namespace NPrivate {
         }                                                                                            \
     } while (false)
 
+#define Y_ABORT_IF(expr, ...) Y_ABORT_UNLESS(!(expr), __VA_ARGS__)
 #define Y_ABORT(...) Y_ABORT_UNLESS(false, __VA_ARGS__)
 
 #ifndef NDEBUG

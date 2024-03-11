@@ -16,5 +16,5 @@ target_link_libraries(cpp-digest-md5 PUBLIC
   cpp-string_utils-base64
 )
 target_sources(cpp-digest-md5 PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/digest/md5/md5.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/digest/md5/md5.cpp
 )

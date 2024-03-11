@@ -55,6 +55,7 @@ struct TEnumTraits
     static constexpr bool IsEnum = false;
     static constexpr bool IsBitEnum = false;
     static constexpr bool IsStringSerializableEnum = false;
+    static constexpr bool IsMonotonic = false;
 };
 
 template <class T>
@@ -83,6 +84,7 @@ struct TEnumTraits<T, true>
     static constexpr bool IsEnum = true;
     static constexpr bool IsBitEnum = TEnumTraitsImpl<T>::IsBitEnum;
     static constexpr bool IsStringSerializableEnum = TEnumTraitsImpl<T>::IsStringSerializableEnum;
+    static constexpr bool IsMonotonic = TEnumTraitsImpl<T>::IsMonotonic;
 
     static TStringBuf GetTypeName();
 
@@ -180,51 +182,6 @@ struct TEnumTraits<T, true>
 //! Defines a smart enumeration with the default |int| underlying type and IsStringSerializable attribute.
 #define DEFINE_STRING_SERIALIZABLE_ENUM(enumType, seq) \
     DEFINE_STRING_SERIALIZABLE_ENUM_WITH_UNDERLYING_TYPE(enumType, int, seq)
-
-////////////////////////////////////////////////////////////////////////////////
-
-//! A statically sized vector with elements of type |T| indexed by
-//! the items of enumeration type |E|.
-/*!
- *  Items are value-initialized on construction.
- */
-template <
-    class E,
-    class T,
-    E Min = TEnumTraits<E>::GetMinValue(),
-    E Max = TEnumTraits<E>::GetMaxValue()
->
-class TEnumIndexedVector
-{
-public:
-    using TIndex = E;
-    using TValue = T;
-
-    constexpr TEnumIndexedVector();
-    constexpr TEnumIndexedVector(std::initializer_list<T> elements);
-
-    constexpr TEnumIndexedVector(const TEnumIndexedVector&) = default;
-    constexpr TEnumIndexedVector(TEnumIndexedVector&&) noexcept = default;
-
-    constexpr TEnumIndexedVector& operator=(const TEnumIndexedVector&) = default;
-    constexpr TEnumIndexedVector& operator=(TEnumIndexedVector&&) noexcept = default;
-
-    T& operator[] (E index);
-    const T& operator[] (E index) const;
-
-    // STL interop.
-    T* begin();
-    const T* begin() const;
-    T* end();
-    const T* end() const;
-
-    static bool IsDomainValue(E value);
-
-private:
-    using TUnderlying = std::underlying_type_t<E>;
-    static constexpr int N = static_cast<TUnderlying>(Max) - static_cast<TUnderlying>(Min) + 1;
-    std::array<T, N> Items_;
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -100,7 +100,7 @@ psutil_per_cpu_times(PyObject *self, PyObject *args) {
         goto error;
     }
 
-    // gets cpu time informations
+    // gets cpu time information
     status = NtQuerySystemInformation(
         SystemProcessorPerformanceInformation,
         sppi,
@@ -172,16 +172,15 @@ psutil_cpu_count_logical(PyObject *self, PyObject *args) {
     if (ncpus != 0)
         return Py_BuildValue("I", ncpus);
     else
-        Py_RETURN_NONE;  // mimick os.cpu_count()
+        Py_RETURN_NONE;  // mimic os.cpu_count()
 }
 
 
 /*
- * Return the number of physical CPU cores (hyper-thread CPUs count
- * is excluded).
+ * Return the number of CPU cores (non hyper-threading).
  */
 PyObject *
-psutil_cpu_count_phys(PyObject *self, PyObject *args) {
+psutil_cpu_count_cores(PyObject *self, PyObject *args) {
     DWORD rc;
     PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX buffer = NULL;
     PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX ptr = NULL;
@@ -196,7 +195,7 @@ psutil_cpu_count_phys(PyObject *self, PyObject *args) {
     // than 64 CPUs. See:
     // https://bugs.python.org/issue33166
     if (GetLogicalProcessorInformationEx == NULL) {
-        psutil_debug("Win < 7; cpu_count_phys() forced to None");
+        psutil_debug("Win < 7; cpu_count_cores() forced to None");
         Py_RETURN_NONE;
     }
 
@@ -216,7 +215,7 @@ psutil_cpu_count_phys(PyObject *self, PyObject *args) {
                 }
             }
             else {
-                psutil_debug("GetLogicalProcessorInformationEx() returned ",
+                psutil_debug("GetLogicalProcessorInformationEx() returned %u",
                              GetLastError());
                 goto return_none;
             }
@@ -249,7 +248,7 @@ psutil_cpu_count_phys(PyObject *self, PyObject *args) {
     }
     else {
         psutil_debug("GetLogicalProcessorInformationEx() count was 0");
-        Py_RETURN_NONE;  // mimick os.cpu_count()
+        Py_RETURN_NONE;  // mimic os.cpu_count()
     }
 
 return_none:

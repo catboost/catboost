@@ -1,11 +1,13 @@
 from collections import namedtuple, OrderedDict
 import os
 from fontTools.misc.fixedTools import fixedToFloat
+from fontTools.misc.roundTools import otRound
 from fontTools import ttLib
 from fontTools.ttLib.tables import otTables as ot
 from fontTools.ttLib.tables.otBase import (
     ValueRecord,
     valueRecordFormatDict,
+    OTLOffsetOverflowError,
     OTTableWriter,
     CountReference,
 )
@@ -350,16 +352,14 @@ class ChainContextualBuilder(LookupBuilder):
         return [x for x in ruleset if len(x.rules) > 0]
 
     def getCompiledSize_(self, subtables):
-        size = 0
-        for st in subtables:
-            w = OTTableWriter()
-            w["LookupType"] = CountReference(
-                {"LookupType": st.LookupType}, "LookupType"
-            )
-            # We need to make a copy here because compiling
-            # modifies the subtable (finalizing formats etc.)
-            copy.deepcopy(st).compile(w, self.font)
-            size += len(w.getAllData())
+        if not subtables:
+            return 0
+        # We need to make a copy here because compiling
+        # modifies the subtable (finalizing formats etc.)
+        table = self.buildLookup_(copy.deepcopy(subtables))
+        w = OTTableWriter()
+        table.compile(w, self.font)
+        size = len(w.getAllData())
         return size
 
     def build(self):
@@ -410,22 +410,23 @@ class ChainContextualBuilder(LookupBuilder):
             if not ruleset.hasAnyGlyphClasses:
                 candidates[1] = [self.buildFormat1Subtable(ruleset, chaining)]
 
+            candidates_by_size = []
             for i in [1, 2, 3]:
                 if candidates[i]:
                     try:
-                        self.getCompiledSize_(candidates[i])
-                    except Exception as e:
+                        size = self.getCompiledSize_(candidates[i])
+                    except OTLOffsetOverflowError as e:
                         log.warning(
                             "Contextual format %i at %s overflowed (%s)"
                             % (i, str(self.location), e)
                         )
-                        candidates[i] = None
+                    else:
+                        candidates_by_size.append((size, candidates[i]))
 
-            candidates = [x for x in candidates if x is not None]
-            if not candidates:
+            if not candidates_by_size:
                 raise OpenTypeLibError("All candidates overflowed", self.location)
 
-            winner = min(candidates, key=self.getCompiledSize_)
+            _min_size, winner = min(candidates_by_size, key=lambda x: x[0])
             subtables.extend(winner)
 
         # If we are not chaining, lookup type will be automatically fixed by
@@ -774,7 +775,10 @@ class ChainContextSubstBuilder(ChainContextualBuilder):
                     if lookup is not None:
                         alts = lookup.getAlternateGlyphs()
                         for glyph, replacements in alts.items():
-                            result.setdefault(glyph, set()).update(replacements)
+                            alts_for_glyph = result.setdefault(glyph, [])
+                            alts_for_glyph.extend(
+                                g for g in replacements if g not in alts_for_glyph
+                            )
         return result
 
     def find_chainable_single_subst(self, mapping):
@@ -1238,7 +1242,7 @@ class SingleSubstBuilder(LookupBuilder):
         return self.buildLookup_(subtables)
 
     def getAlternateGlyphs(self):
-        return {glyph: set([repl]) for glyph, repl in self.mapping.items()}
+        return {glyph: [repl] for glyph, repl in self.mapping.items()}
 
     def add_subtable_break(self, location):
         self.mapping[(self.SUBTABLE_BREAK_, location)] = self.SUBTABLE_BREAK_
@@ -1567,19 +1571,6 @@ def buildAlternateSubstSubtable(mapping):
     return self
 
 
-def _getLigatureKey(components):
-    # Computes a key for ordering ligatures in a GSUB Type-4 lookup.
-
-    # When building the OpenType lookup, we need to make sure that
-    # the longest sequence of components is listed first, so we
-    # use the negative length as the primary key for sorting.
-    # To make buildLigatureSubstSubtable() deterministic, we use the
-    # component sequence as the secondary key.
-
-    # For example, this will sort (f,f,f) < (f,f,i) < (f,f) < (f,i) < (f,l).
-    return (-len(components), components)
-
-
 def buildLigatureSubstSubtable(mapping):
     """Builds a ligature substitution (GSUB4) subtable.
 
@@ -1613,7 +1604,7 @@ def buildLigatureSubstSubtable(mapping):
     # with fontTools >= 3.1:
     # self.ligatures = dict(mapping)
     self.ligatures = {}
-    for components in sorted(mapping.keys(), key=_getLigatureKey):
+    for components in sorted(mapping.keys(), key=self._getLigatureSortKey):
         ligature = ot.Ligature()
         ligature.Component = components[1:]
         ligature.CompCount = len(ligature.Component) + 1
@@ -2781,14 +2772,13 @@ def buildStatTable(
     """
     ttFont["STAT"] = ttLib.newTable("STAT")
     statTable = ttFont["STAT"].table = ot.STAT()
-    nameTable = ttFont["name"]
     statTable.ElidedFallbackNameID = _addName(
-        nameTable, elidedFallbackName, windows=windowsNames, mac=macNames
+        ttFont, elidedFallbackName, windows=windowsNames, mac=macNames
     )
 
     # 'locations' contains data for AxisValue Format 4
     axisRecords, axisValues = _buildAxisRecords(
-        axes, nameTable, windowsNames=windowsNames, macNames=macNames
+        axes, ttFont, windowsNames=windowsNames, macNames=macNames
     )
     if not locations:
         statTable.Version = 0x00010001
@@ -2797,10 +2787,10 @@ def buildStatTable(
         # requires a higher table version
         statTable.Version = 0x00010002
         multiAxisValues = _buildAxisValuesFormat4(
-            locations, axes, nameTable, windowsNames=windowsNames, macNames=macNames
+            locations, axes, ttFont, windowsNames=windowsNames, macNames=macNames
         )
         axisValues = multiAxisValues + axisValues
-    nameTable.names.sort()
+    ttFont["name"].names.sort()
 
     # Store AxisRecords
     axisRecordArray = ot.AxisRecordArray()
@@ -2820,14 +2810,14 @@ def buildStatTable(
         statTable.AxisValueCount = len(axisValues)
 
 
-def _buildAxisRecords(axes, nameTable, windowsNames=True, macNames=True):
+def _buildAxisRecords(axes, ttFont, windowsNames=True, macNames=True):
     axisRecords = []
     axisValues = []
     for axisRecordIndex, axisDict in enumerate(axes):
         axis = ot.AxisRecord()
         axis.AxisTag = axisDict["tag"]
         axis.AxisNameID = _addName(
-            nameTable, axisDict["name"], 256, windows=windowsNames, mac=macNames
+            ttFont, axisDict["name"], 256, windows=windowsNames, mac=macNames
         )
         axis.AxisOrdering = axisDict.get("ordering", axisRecordIndex)
         axisRecords.append(axis)
@@ -2837,7 +2827,7 @@ def _buildAxisRecords(axes, nameTable, windowsNames=True, macNames=True):
             axisValRec.AxisIndex = axisRecordIndex
             axisValRec.Flags = axisVal.get("flags", 0)
             axisValRec.ValueNameID = _addName(
-                nameTable, axisVal["name"], windows=windowsNames, mac=macNames
+                ttFont, axisVal["name"], windows=windowsNames, mac=macNames
             )
 
             if "value" in axisVal:
@@ -2863,9 +2853,7 @@ def _buildAxisRecords(axes, nameTable, windowsNames=True, macNames=True):
     return axisRecords, axisValues
 
 
-def _buildAxisValuesFormat4(
-    locations, axes, nameTable, windowsNames=True, macNames=True
-):
+def _buildAxisValuesFormat4(locations, axes, ttFont, windowsNames=True, macNames=True):
     axisTagToIndex = {}
     for axisRecordIndex, axisDict in enumerate(axes):
         axisTagToIndex[axisDict["tag"]] = axisRecordIndex
@@ -2875,7 +2863,7 @@ def _buildAxisValuesFormat4(
         axisValRec = ot.AxisValue()
         axisValRec.Format = 4
         axisValRec.ValueNameID = _addName(
-            nameTable, axisLocationDict["name"], windows=windowsNames, mac=macNames
+            ttFont, axisLocationDict["name"], windows=windowsNames, mac=macNames
         )
         axisValRec.Flags = axisLocationDict.get("flags", 0)
         axisValueRecords = []
@@ -2891,7 +2879,8 @@ def _buildAxisValuesFormat4(
     return axisValues
 
 
-def _addName(nameTable, value, minNameID=0, windows=True, mac=True):
+def _addName(ttFont, value, minNameID=0, windows=True, mac=True):
+    nameTable = ttFont["name"]
     if isinstance(value, int):
         # Already a nameID
         return value
@@ -2916,5 +2905,296 @@ def _addName(nameTable, value, minNameID=0, windows=True, mac=True):
     else:
         raise TypeError("value must be int, str, dict or list")
     return nameTable.addMultilingualName(
-        names, windows=windows, mac=mac, minNameID=minNameID
+        names, ttFont=ttFont, windows=windows, mac=mac, minNameID=minNameID
     )
+
+
+def buildMathTable(
+    ttFont,
+    constants=None,
+    italicsCorrections=None,
+    topAccentAttachments=None,
+    extendedShapes=None,
+    mathKerns=None,
+    minConnectorOverlap=0,
+    vertGlyphVariants=None,
+    horizGlyphVariants=None,
+    vertGlyphAssembly=None,
+    horizGlyphAssembly=None,
+):
+    """
+    Add a 'MATH' table to 'ttFont'.
+
+    'constants' is a dictionary of math constants. The keys are the constant
+    names from the MATH table specification (with capital first letter), and the
+    values are the constant values as numbers.
+
+    'italicsCorrections' is a dictionary of italic corrections. The keys are the
+    glyph names, and the values are the italic corrections as numbers.
+
+    'topAccentAttachments' is a dictionary of top accent attachments. The keys
+    are the glyph names, and the values are the top accent horizontal positions
+    as numbers.
+
+    'extendedShapes' is a set of extended shape glyphs.
+
+    'mathKerns' is a dictionary of math kerns. The keys are the glyph names, and
+    the values are dictionaries. The keys of these dictionaries are the side
+    names ('TopRight', 'TopLeft', 'BottomRight', 'BottomLeft'), and the values
+    are tuples of two lists. The first list contains the correction heights as
+    numbers, and the second list contains the kern values as numbers.
+
+    'minConnectorOverlap' is the minimum connector overlap as a number.
+
+    'vertGlyphVariants' is a dictionary of vertical glyph variants. The keys are
+    the glyph names, and the values are tuples of glyph name and full advance height.
+
+    'horizGlyphVariants' is a dictionary of horizontal glyph variants. The keys
+    are the glyph names, and the values are tuples of glyph name and full
+    advance width.
+
+    'vertGlyphAssembly' is a dictionary of vertical glyph assemblies. The keys
+    are the glyph names, and the values are tuples of assembly parts and italics
+    correction. The assembly parts are tuples of glyph name, flags, start
+    connector length, end connector length, and full advance height.
+
+    'horizGlyphAssembly' is a dictionary of horizontal glyph assemblies. The
+    keys are the glyph names, and the values are tuples of assembly parts
+    and italics correction. The assembly parts are tuples of glyph name, flags,
+    start connector length, end connector length, and full advance width.
+
+    Where a number is expected, an integer or a float can be used. The floats
+    will be rounded.
+
+    Example::
+
+        constants = {
+            "ScriptPercentScaleDown": 70,
+            "ScriptScriptPercentScaleDown": 50,
+            "DelimitedSubFormulaMinHeight": 24,
+            "DisplayOperatorMinHeight": 60,
+            ...
+        }
+        italicsCorrections = {
+            "fitalic-math": 100,
+            "fbolditalic-math": 120,
+            ...
+        }
+        topAccentAttachments = {
+            "circumflexcomb": 500,
+            "acutecomb": 400,
+            "A": 300,
+            "B": 340,
+            ...
+        }
+        extendedShapes = {"parenleft", "parenright", ...}
+        mathKerns = {
+            "A": {
+                "TopRight": ([-50, -100], [10, 20, 30]),
+                "TopLeft": ([50, 100], [10, 20, 30]),
+                ...
+            },
+            ...
+        }
+        vertGlyphVariants = {
+            "parenleft": [("parenleft", 700), ("parenleft.size1", 1000), ...],
+            "parenright": [("parenright", 700), ("parenright.size1", 1000), ...],
+            ...
+        }
+        vertGlyphAssembly = {
+            "braceleft": [
+                (
+                    ("braceleft.bottom", 0, 0, 200, 500),
+                    ("braceleft.extender", 1, 200, 200, 200)),
+                    ("braceleft.middle", 0, 100, 100, 700),
+                    ("braceleft.extender", 1, 200, 200, 200),
+                    ("braceleft.top", 0, 200, 0, 500),
+                ),
+                100,
+            ],
+            ...
+        }
+    """
+    glyphMap = ttFont.getReverseGlyphMap()
+
+    ttFont["MATH"] = math = ttLib.newTable("MATH")
+    math.table = table = ot.MATH()
+    table.Version = 0x00010000
+    table.populateDefaults()
+
+    table.MathConstants = _buildMathConstants(constants)
+    table.MathGlyphInfo = _buildMathGlyphInfo(
+        glyphMap,
+        italicsCorrections,
+        topAccentAttachments,
+        extendedShapes,
+        mathKerns,
+    )
+    table.MathVariants = _buildMathVariants(
+        glyphMap,
+        minConnectorOverlap,
+        vertGlyphVariants,
+        horizGlyphVariants,
+        vertGlyphAssembly,
+        horizGlyphAssembly,
+    )
+
+
+def _buildMathConstants(constants):
+    if not constants:
+        return None
+
+    mathConstants = ot.MathConstants()
+    for conv in mathConstants.getConverters():
+        value = otRound(constants.get(conv.name, 0))
+        if conv.tableClass:
+            assert issubclass(conv.tableClass, ot.MathValueRecord)
+            value = _mathValueRecord(value)
+        setattr(mathConstants, conv.name, value)
+    return mathConstants
+
+
+def _buildMathGlyphInfo(
+    glyphMap,
+    italicsCorrections,
+    topAccentAttachments,
+    extendedShapes,
+    mathKerns,
+):
+    if not any([extendedShapes, italicsCorrections, topAccentAttachments, mathKerns]):
+        return None
+
+    info = ot.MathGlyphInfo()
+    info.populateDefaults()
+
+    if italicsCorrections:
+        coverage = buildCoverage(italicsCorrections.keys(), glyphMap)
+        info.MathItalicsCorrectionInfo = ot.MathItalicsCorrectionInfo()
+        info.MathItalicsCorrectionInfo.Coverage = coverage
+        info.MathItalicsCorrectionInfo.ItalicsCorrectionCount = len(coverage.glyphs)
+        info.MathItalicsCorrectionInfo.ItalicsCorrection = [
+            _mathValueRecord(italicsCorrections[n]) for n in coverage.glyphs
+        ]
+
+    if topAccentAttachments:
+        coverage = buildCoverage(topAccentAttachments.keys(), glyphMap)
+        info.MathTopAccentAttachment = ot.MathTopAccentAttachment()
+        info.MathTopAccentAttachment.TopAccentCoverage = coverage
+        info.MathTopAccentAttachment.TopAccentAttachmentCount = len(coverage.glyphs)
+        info.MathTopAccentAttachment.TopAccentAttachment = [
+            _mathValueRecord(topAccentAttachments[n]) for n in coverage.glyphs
+        ]
+
+    if extendedShapes:
+        info.ExtendedShapeCoverage = buildCoverage(extendedShapes, glyphMap)
+
+    if mathKerns:
+        coverage = buildCoverage(mathKerns.keys(), glyphMap)
+        info.MathKernInfo = ot.MathKernInfo()
+        info.MathKernInfo.MathKernCoverage = coverage
+        info.MathKernInfo.MathKernCount = len(coverage.glyphs)
+        info.MathKernInfo.MathKernInfoRecords = []
+        for glyph in coverage.glyphs:
+            record = ot.MathKernInfoRecord()
+            for side in {"TopRight", "TopLeft", "BottomRight", "BottomLeft"}:
+                if side in mathKerns[glyph]:
+                    correctionHeights, kernValues = mathKerns[glyph][side]
+                    assert len(correctionHeights) == len(kernValues) - 1
+                    kern = ot.MathKern()
+                    kern.HeightCount = len(correctionHeights)
+                    kern.CorrectionHeight = [
+                        _mathValueRecord(h) for h in correctionHeights
+                    ]
+                    kern.KernValue = [_mathValueRecord(v) for v in kernValues]
+                    setattr(record, f"{side}MathKern", kern)
+            info.MathKernInfo.MathKernInfoRecords.append(record)
+
+    return info
+
+
+def _buildMathVariants(
+    glyphMap,
+    minConnectorOverlap,
+    vertGlyphVariants,
+    horizGlyphVariants,
+    vertGlyphAssembly,
+    horizGlyphAssembly,
+):
+    if not any(
+        [vertGlyphVariants, horizGlyphVariants, vertGlyphAssembly, horizGlyphAssembly]
+    ):
+        return None
+
+    variants = ot.MathVariants()
+    variants.populateDefaults()
+
+    variants.MinConnectorOverlap = minConnectorOverlap
+
+    if vertGlyphVariants or vertGlyphAssembly:
+        variants.VertGlyphCoverage, variants.VertGlyphConstruction = (
+            _buildMathGlyphConstruction(
+                glyphMap,
+                vertGlyphVariants,
+                vertGlyphAssembly,
+            )
+        )
+
+    if horizGlyphVariants or horizGlyphAssembly:
+        variants.HorizGlyphCoverage, variants.HorizGlyphConstruction = (
+            _buildMathGlyphConstruction(
+                glyphMap,
+                horizGlyphVariants,
+                horizGlyphAssembly,
+            )
+        )
+
+    return variants
+
+
+def _buildMathGlyphConstruction(glyphMap, variants, assemblies):
+    glyphs = set()
+    if variants:
+        glyphs.update(variants.keys())
+    if assemblies:
+        glyphs.update(assemblies.keys())
+    coverage = buildCoverage(glyphs, glyphMap)
+    constructions = []
+
+    for glyphName in coverage.glyphs:
+        construction = ot.MathGlyphConstruction()
+        construction.populateDefaults()
+
+        if variants and glyphName in variants:
+            construction.VariantCount = len(variants[glyphName])
+            construction.MathGlyphVariantRecord = []
+            for variantName, advance in variants[glyphName]:
+                record = ot.MathGlyphVariantRecord()
+                record.VariantGlyph = variantName
+                record.AdvanceMeasurement = otRound(advance)
+                construction.MathGlyphVariantRecord.append(record)
+
+        if assemblies and glyphName in assemblies:
+            parts, ic = assemblies[glyphName]
+            construction.GlyphAssembly = ot.GlyphAssembly()
+            construction.GlyphAssembly.ItalicsCorrection = _mathValueRecord(ic)
+            construction.GlyphAssembly.PartCount = len(parts)
+            construction.GlyphAssembly.PartRecords = []
+            for part in parts:
+                part_name, flags, start, end, advance = part
+                record = ot.GlyphPartRecord()
+                record.glyph = part_name
+                record.PartFlags = int(flags)
+                record.StartConnectorLength = otRound(start)
+                record.EndConnectorLength = otRound(end)
+                record.FullAdvance = otRound(advance)
+                construction.GlyphAssembly.PartRecords.append(record)
+
+        constructions.append(construction)
+
+    return coverage, constructions
+
+
+def _mathValueRecord(value):
+    value_record = ot.MathValueRecord()
+    value_record.Value = otRound(value)
+    return value_record

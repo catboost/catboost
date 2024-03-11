@@ -18,6 +18,8 @@ __all__ = [
     "HookspecMarker",
     "HookimplMarker",
     "Result",
+    "PluggyWarning",
+    "PluggyTeardownRaisedWarning",
 ]
 
 from ._manager import PluginManager, PluginValidationError
@@ -30,4 +32,8 @@ from ._hooks import (
     HookspecOpts,
     HookimplOpts,
     HookImpl,
+)
+from ._warnings import (
+    PluggyWarning,
+    PluggyTeardownRaisedWarning,
 )

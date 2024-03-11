@@ -15,6 +15,10 @@
 #endif
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include <__memory/aligned_alloc.h>
+#endif
+
 #include <stdlib.h> // for malloc, calloc, free
 #include <string.h> // for memset
 #include <new> // for std::__libcpp_aligned_{alloc,free}

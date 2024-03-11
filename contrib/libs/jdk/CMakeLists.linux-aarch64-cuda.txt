@@ -9,7 +9,7 @@
 
 add_library(contrib-libs-jdk INTERFACE)
 target_include_directories(contrib-libs-jdk INTERFACE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/jdk/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/jdk/include
 )
 target_link_libraries(contrib-libs-jdk INTERFACE
   contrib-libs-linux-headers

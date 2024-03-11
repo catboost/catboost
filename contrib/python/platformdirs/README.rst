@@ -132,7 +132,7 @@ On Linux:
     >>> user_cache_dir(appname, appauthor)
     '/home/trentm/.cache/SuperApp'
     >>> user_log_dir(appname, appauthor)
-    '/home/trentm/.cache/SuperApp/log'
+    '/home/trentm/.local/state/SuperApp/log'
     >>> user_config_dir(appname)
     '/home/trentm/.config/SuperApp'
     >>> user_documents_dir()

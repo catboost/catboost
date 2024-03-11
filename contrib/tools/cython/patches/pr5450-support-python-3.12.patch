@@ -1,0 +1,43 @@
+From 03c498d3142ccee2da258c540e96f12c863159fc Mon Sep 17 00:00:00 2001
+From: Stefan Behnel <stefan_ml@behnel.de>
+Date: Mon, 29 May 2023 22:08:50 +0200
+Subject: [PATCH] Avoid using the thread state attribute "use_tracing" in
+ Python 3.12 where it was removed from the struct.
+
+See PEP-669 (https://peps.python.org/pep-0669/) and the implementation in https://github.com/python/cpython/pull/103083.
+There is more to be done to properly support PEP-669, but this makes it compile.
+
+See https://github.com/cython/cython/issues/5450
+---
+ Cython/Utility/Profile.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/Cython/Utility/Profile.c b/Cython/Utility/Profile.c
+index 20b599e7979..2b8564b226f 100644
+--- a/Cython/Utility/Profile.c
++++ b/Cython/Utility/Profile.c
+@@ -61,15 +61,21 @@
+   #define __Pyx_TraceFrameInit(codeobj)                                   \
+       if (codeobj) $frame_code_cname = (PyCodeObject*) codeobj;
+ 
++
+ #if PY_VERSION_HEX >= 0x030b00a2
++  #if PY_VERSION_HEX >= 0x030c00b1
++  #define __Pyx_IsTracing(tstate, check_tracing, check_funcs) \
++     ((!(check_tracing) || !(tstate)->tracing) && \
++         (!(check_funcs) || (tstate)->c_profilefunc || (CYTHON_TRACE && (tstate)->c_tracefunc)))
++  #else
+   #define __Pyx_IsTracing(tstate, check_tracing, check_funcs) \
+      (unlikely((tstate)->cframe->use_tracing) && \
+          (!(check_tracing) || !(tstate)->tracing) && \
+          (!(check_funcs) || (tstate)->c_profilefunc || (CYTHON_TRACE && (tstate)->c_tracefunc)))
++  #endif
+ 
+-  #define __Pyx_EnterTracing(tstate) PyThreadState_EnterTracing(tstate)
+-
+-  #define __Pyx_LeaveTracing(tstate) PyThreadState_LeaveTracing(tstate)
++  #define __Pyx_EnterTracing(tstate)  PyThreadState_EnterTracing(tstate)
++  #define __Pyx_LeaveTracing(tstate)  PyThreadState_LeaveTracing(tstate)
+ 
+ #elif PY_VERSION_HEX >= 0x030a00b1
+   #define __Pyx_IsTracing(tstate, check_tracing, check_funcs) \

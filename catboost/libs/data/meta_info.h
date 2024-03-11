@@ -15,6 +15,8 @@
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
+#include <limits>
+
 
 namespace NCB {
 
@@ -28,15 +30,37 @@ namespace NCB {
 
         SAVELOAD(Columns);
 
+        operator NJson::TJsonValue() const;
+
         ui32 CountColumns(const EColumn columnType) const;
-        TVector<int> GetCategFeatures() const;
         void Validate() const;
         TVector<TString> GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const;
     };
 
     struct TTargetStats {
-        float MinValue = 0;
-        float MaxValue = 0;
+        float MinValue = std::numeric_limits<float>::max();
+        float MaxValue = std::numeric_limits<float>::lowest();
+
+    public:
+        operator NJson::TJsonValue() const;
+
+        void Update(float value) {
+            if (value < MinValue) {
+                MinValue = value;
+            }
+            if (value > MaxValue) {
+                MaxValue = value;
+            }
+        }
+
+        void Update(const TTargetStats& update) {
+            if (update.MinValue < MinValue) {
+                MinValue = update.MinValue;
+            }
+            if (update.MaxValue > MaxValue) {
+                MaxValue = update.MaxValue;
+            }
+        }
     };
 
     struct TDataMetaInfo {
@@ -95,7 +119,9 @@ namespace NCB {
 
         void Validate() const;
 
-        ui32 GetFeatureCount() const {
+        operator NJson::TJsonValue() const;
+
+        ui32 GetFeatureCount() const noexcept {
             return FeaturesLayout ? FeaturesLayout->GetExternalFeatureCount() : 0;
         }
     };

@@ -63,7 +63,7 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
         bool_t IsAvailable
 
     cdef cppclass TFeaturesLayout:
-        TFeaturesLayout() except +ProcessException
+        TFeaturesLayout()
         TFeaturesLayout(const ui32 featureCount) except +ProcessException
         TFeaturesLayout(
             const ui32 featureCount,
@@ -75,17 +75,17 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
             bool_t allFeaturesAreSparse
         ) except +ProcessException
 
-        TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
+        TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo()
         TVector[TString] GetExternalFeatureIds() except +ProcessException
         void SetExternalFeatureIds(TConstArrayRef[TString] featureIds) except +ProcessException
         EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) except +ProcessException
-        ui32 GetFloatFeatureCount() except +ProcessException
-        ui32 GetCatFeatureCount() except +ProcessException
-        ui32 GetEmbeddingFeatureCount() except +ProcessException
-        ui32 GetExternalFeatureCount() except +ProcessException
-        TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() except +ProcessException
-        TConstArrayRef[ui32] GetTextFeatureInternalIdxToExternalIdx() except +ProcessException
-        TConstArrayRef[ui32] GetEmbeddingFeatureInternalIdxToExternalIdx() except +ProcessException
+        ui32 GetFloatFeatureCount()
+        ui32 GetCatFeatureCount()
+        ui32 GetEmbeddingFeatureCount()
+        ui32 GetExternalFeatureCount()
+        TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx()
+        TConstArrayRef[ui32] GetTextFeatureInternalIdxToExternalIdx()
+        TConstArrayRef[ui32] GetEmbeddingFeatureInternalIdxToExternalIdx()
 
     ctypedef TIntrusivePtr[TFeaturesLayout] TFeaturesLayoutPtr
 
@@ -114,7 +114,7 @@ cdef extern from "catboost/libs/data/meta_info.h" namespace "NCB":
 
         # ColumnsInfo is not here because it is not used for now
 
-        ui32 GetFeatureCount() except +ProcessException
+        ui32 GetFeatureCount()
 
 cdef extern from "catboost/libs/data/order.h" namespace "NCB":
     cdef cppclass EObjectsOrder:
@@ -199,7 +199,7 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
             ui32 objectCount,
             EObjectsOrder objectsOrder,
             TVector[TIntrusivePtr[IResourceHolder]] resourceHolders
-        )
+        ) except +ProcessException
 
         void AddGroupId(ui32 objectIdx, TGroupId value) except +ProcessException
         void AddSubgroupId(ui32 objectIdx, TSubgroupId value) except +ProcessException
@@ -248,8 +248,8 @@ cdef extern from *:
 cdef extern from "catboost/libs/data/weights.h" namespace "NCB":
     cdef cppclass TWeights[T]:
         T operator[](ui32 idx) except +ProcessException
-        ui32 GetSize() except +ProcessException
-        bool_t IsTrivial() except +ProcessException
+        ui32 GetSize()
+        bool_t IsTrivial()
         TConstArrayRef[T] GetNonTrivialData() except +ProcessException
 
 
@@ -289,13 +289,13 @@ cdef extern from "catboost/libs/data/objects.h":
 
 cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
     cdef cppclass TObjectsDataProvider:
-        ui32 GetObjectCount() except +ProcessException
+        ui32 GetObjectCount()
         bool_t EqualTo(const TObjectsDataProvider& rhs, bool_t ignoreSparsity) except +ProcessException
         TMaybeData[TConstArrayRef[TGroupId]] GetGroupIds() except +ProcessException
         TMaybeData[TConstArrayRef[TSubgroupId]] GetSubgroupIds() except +ProcessException
-        TMaybeData[TConstArrayRef[ui64]] GetTimestamp() except +ProcessException
+        TMaybeData[TConstArrayRef[ui64]] GetTimestamp()
         const THashMap[ui32, TString]& GetCatFeaturesHashToString(ui32 catFeatureIdx) except +ProcessException
-        TFeaturesLayoutPtr GetFeaturesLayout() except +ProcessException
+        TFeaturesLayoutPtr GetFeaturesLayout()
 
     cdef cppclass TRawObjectsDataProvider(TObjectsDataProvider):
         void SetGroupIds(TConstArrayRef[TStringBuf] groupStringIds) except +ProcessException
@@ -376,13 +376,13 @@ cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
 
 cdef extern from "catboost/libs/data/target.h" namespace "NCB":
     cdef cppclass TRawTargetDataProvider:
-        ERawTargetType GetTargetType() except +ProcessException
+        ERawTargetType GetTargetType()
         void GetNumericTarget(TArrayRef[TArrayRef[float]] dst) except +ProcessException
         void GetStringTargetRef(TVector[TConstArrayRef[TString]]* dst) except +ProcessException
-        TMaybeData[TBaselineArrayRef] GetBaseline() except +ProcessException
-        const TWeights[float]& GetWeights() except +ProcessException
-        const TWeights[float]& GetGroupWeights() except +ProcessException
-        TConstArrayRef[TPair] GetPairs() except +ProcessException
+        TMaybeData[TBaselineArrayRef] GetBaseline()
+        const TWeights[float]& GetWeights()
+        const TWeights[float]& GetGroupWeights()
+        TConstArrayRef[TPair] GetPairs()
 
     cdef cppclass ETargetType:
         pass

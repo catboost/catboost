@@ -211,6 +211,11 @@ private[spark] object DatasetRowsReaderIterator {
 
       result.callbacks += {
         intermediateDataMetaInfo.getTargetType match {
+          case ERawTargetType.Boolean => {
+              datasetRow => {
+                result.currentOutRow(fieldIdx) = (datasetRow.getFloatTarget == 1.0)
+              }
+            }
           case ERawTargetType.Integer => {
               datasetRow => {
                 result.currentOutRow(fieldIdx) = datasetRow.getFloatTarget.toInt
@@ -384,6 +389,7 @@ private[spark] object CatBoostTextFileFormat {
     }
     if (targetCount == 1) {
       val dataType = intermediateDataMetaInfo.getTargetType match {
+        case ERawTargetType.Boolean => DataTypes.BooleanType
         case ERawTargetType.Integer => DataTypes.IntegerType
         case ERawTargetType.Float => DataTypes.FloatType
         case ERawTargetType.String => DataTypes.StringType

@@ -20,7 +20,7 @@ Prebuilt shared library artifacts are available.
 |macOS|`libcatboostmodel-darwin-universal2-{release_version}.dylib`|
 |Windows|`catboostmodel-windows-{cpu_arch}-{release_version}.lib` and `catboostmodel-windows-{cpu_arch}-{release_version}.dll`|
 
-Applying on GPU requires NVIDIA Driver of version 418.xx or higher.
+Applying on GPU requires NVIDIA Driver of version 450.80.02 or higher.
 
 {% note info %}
 

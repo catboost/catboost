@@ -21,5 +21,5 @@ target_link_libraries(catboost-cuda-cpu_compatibility_helpers PUBLIC
   private-libs-target
 )
 target_sources(catboost-cuda-cpu_compatibility_helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cpu_compatibility_helpers/model_converter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cpu_compatibility_helpers/model_converter.cpp
 )

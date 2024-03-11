@@ -87,7 +87,7 @@ namespace NKernel {
         __device__ __forceinline__ float Der2(float target, float prediction) const {
             const float diff = target - prediction;
             if (fabs(diff) < Delta) {
-                return HUBER_DER2;
+                return -HUBER_DER2;
             } else {
                 return 0.0;
             }

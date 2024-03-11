@@ -14,5 +14,5 @@ target_link_libraries(cpp-digest-murmur PUBLIC
   yutil
 )
 target_sources(cpp-digest-murmur PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/digest/murmur/murmur.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/digest/murmur/murmur.cpp
 )

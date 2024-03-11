@@ -13,7 +13,7 @@ target_compile_options(libs-brotli-enc PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(libs-brotli-enc PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/include
 )
 target_link_libraries(libs-brotli-enc PUBLIC
   contrib-libs-linux-headers
@@ -22,22 +22,22 @@ target_link_libraries(libs-brotli-enc PUBLIC
   libs-brotli-dec
 )
 target_sources(libs-brotli-enc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/backward_references.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/backward_references_hq.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/bit_cost.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/block_splitter.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/brotli_bit_stream.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/cluster.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/compress_fragment.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/compress_fragment_two_pass.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/dictionary_hash.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/encode.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/encoder_dict.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/entropy_encode.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/histogram.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/literal_cost.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/memory.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/metablock.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/static_dict.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/enc/utf8_util.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/backward_references.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/backward_references_hq.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/bit_cost.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/block_splitter.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/brotli_bit_stream.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/cluster.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/compress_fragment.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/compress_fragment_two_pass.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/dictionary_hash.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/encode.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/encoder_dict.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/entropy_encode.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/histogram.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/literal_cost.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/memory.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/metablock.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/static_dict.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/enc/utf8_util.c
 )

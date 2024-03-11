@@ -60,7 +60,7 @@ inline T make_big_value(largest_float, const char* s, std::false_type const&, st
 }
 #else
 template <typename T>
-inline T make_big_value(largest_float, const char* s, std::false_type const&, std::false_type const&)
+inline T make_big_value(largest_float, const char*, std::false_type const&, std::false_type const&)
 {
    static_assert(sizeof(T) == 0, "Type is unsupported in standalone mode. Please disable and try again.");
 }

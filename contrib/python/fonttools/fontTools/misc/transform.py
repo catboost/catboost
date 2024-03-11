@@ -76,7 +76,6 @@ def _normSinCos(v):
 
 
 class Transform(NamedTuple):
-
     """2x2 transformation matrix plus offset, a.k.a. Affine transform.
     Transform instances are immutable: all transforming methods, eg.
     rotate(), return a new Transform instance.

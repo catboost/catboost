@@ -19,8 +19,8 @@ To install the {{ r-package }} directly from the {{ product }} repository:
 1. Run the following commands:
 
     ```
-    install.packages('devtools')
-    devtools::install_github('catboost/catboost', subdir = 'catboost/R-package')
+    install.packages('remotes')
+    remotes::install_github('catboost/catboost', subdir = 'catboost/R-package')
     ```
 
 {% include [r__troubleshooting](../_includes/work_src/reusage-installation/r__troubleshooting.md) %}

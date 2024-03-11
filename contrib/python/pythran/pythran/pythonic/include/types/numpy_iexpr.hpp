@@ -306,6 +306,11 @@ namespace types
       return {*this};
     }
 
+    intptr_t baseid() const
+    {
+      return arg.baseid();
+    }
+
     template <typename Tp>
     auto recast() -> decltype(arg.template recast<Tp>().fast(0))
     {

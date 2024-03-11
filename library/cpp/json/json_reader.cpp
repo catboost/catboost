@@ -154,6 +154,10 @@ namespace NJson {
     }
 
     namespace {
+        struct TJsonValueBuilderConfig {
+            ui64 MaxDepth = 0;
+        };
+
         struct TJsonValueBuilder {
 #ifdef NDEBUG
             using TItem = TJsonValue*;
@@ -182,8 +186,17 @@ namespace NJson {
 
             TStack<TItem> S;
 
+            TJsonValueBuilderConfig Config;
+
             TJsonValueBuilder(NJson::TJsonValue& v)
                 : V(v)
+            {
+                S.emplace(&V);
+            }
+
+            TJsonValueBuilder(NJson::TJsonValue& v, const TJsonValueBuilderConfig& config)
+                : V(v)
+                , Config(config)
             {
                 S.emplace(&V);
             }
@@ -258,6 +271,9 @@ namespace NJson {
             bool StartObject() {
                 if (Access(S.top()).IsArray()) {
                     S.emplace(&Access(S.top()).AppendValue(NJson::JSON_MAP));
+                    if (!IsWithinStackBounds()) {
+                        return false;
+                    }
                 } else {
                     Access(S.top()).SetType(NJson::JSON_MAP);
                 }
@@ -294,6 +310,9 @@ namespace NJson {
             bool StartArray() {
                 if (Access(S.top()).IsArray()) {
                     S.emplace(&Access(S.top()).AppendValue(NJson::JSON_ARRAY));
+                    if (!IsWithinStackBounds()) {
+                        return false;
+                    }
                 } else {
                     Access(S.top()).SetType(NJson::JSON_ARRAY);
                 }
@@ -305,7 +324,59 @@ namespace NJson {
                 S.pop();
                 return true;
             }
+
+            bool IsWithinStackBounds() {
+                return Config.MaxDepth == 0 || (S.size() <= Config.MaxDepth);
+            }
         };
+
+        constexpr ui32 ConvertToRapidJsonFlags(ui8 flags) {
+            ui32 rapidjsonFlags = rapidjson::kParseNoFlags;
+
+            if (flags & ReaderConfigFlags::ITERATIVE) {
+                rapidjsonFlags |= rapidjson::kParseIterativeFlag;
+            }
+
+            if (flags & ReaderConfigFlags::COMMENTS) {
+                rapidjsonFlags |= rapidjson::kParseCommentsFlag;
+            }
+
+            if (flags & ReaderConfigFlags::VALIDATE) {
+                rapidjsonFlags |= rapidjson::kParseValidateEncodingFlag;
+            }
+
+            if (flags & ReaderConfigFlags::ESCAPE) {
+                rapidjsonFlags |= rapidjson::kParseEscapedApostropheFlag;
+            }
+
+            return rapidjsonFlags;
+        }
+
+        template <class TRapidJsonCompliantInputStream, class THandler, ui8 currentFlags = 0>
+        auto ReadWithRuntimeFlags(ui8 runtimeFlags,
+                                  rapidjson::Reader& reader,
+                                  TRapidJsonCompliantInputStream& is,
+                                  THandler& handler) {
+            if (runtimeFlags == 0) {
+                return reader.Parse<ConvertToRapidJsonFlags(currentFlags)>(is, handler);
+            }
+
+#define TRY_EXTRACT_FLAG(flag) \
+    if (runtimeFlags & flag) { \
+        return ReadWithRuntimeFlags<TRapidJsonCompliantInputStream, THandler, currentFlags | flag>( \
+            runtimeFlags ^ flag, reader, is, handler \
+        ); \
+    }
+
+            TRY_EXTRACT_FLAG(ReaderConfigFlags::ITERATIVE);
+            TRY_EXTRACT_FLAG(ReaderConfigFlags::COMMENTS);
+            TRY_EXTRACT_FLAG(ReaderConfigFlags::VALIDATE);
+            TRY_EXTRACT_FLAG(ReaderConfigFlags::ESCAPE);
+
+#undef TRY_EXTRACT_FLAG
+
+            return reader.Parse<ConvertToRapidJsonFlags(currentFlags)>(is, handler);
+        }
 
         template <class TRapidJsonCompliantInputStream, class THandler>
         auto Read(const TJsonReaderConfig& config,
@@ -313,7 +384,12 @@ namespace NJson {
                   TRapidJsonCompliantInputStream& is,
                   THandler& handler) {
 
-            ui8 flags = ReaderConfigToRapidJsonFlags::NOCOMMENTS_VALID_NOESCAPE;
+            // validate by default
+            ui8 flags = ReaderConfigFlags::VALIDATE;
+
+            if (config.UseIterativeParser) {
+                flags |= ReaderConfigFlags::ITERATIVE;
+            }
 
             if (config.AllowComments) {
                 flags |= ReaderConfigFlags::COMMENTS;
@@ -327,24 +403,7 @@ namespace NJson {
                 flags |= ReaderConfigFlags::ESCAPE;
             }
 
-            switch (flags) {
-                case ReaderConfigToRapidJsonFlags::COMMENTS_NOVALID_NOESCAPE:
-                    return reader.Parse<rapidjson::kParseCommentsFlag>(is, handler);
-                case ReaderConfigToRapidJsonFlags::COMMENTS_VALID_NOESCAPE:
-                    return reader.Parse<rapidjson::kParseCommentsFlag | rapidjson::kParseValidateEncodingFlag>(is, handler);
-                case ReaderConfigToRapidJsonFlags::COMMENTS_VALID_ESCAPE:
-                    return reader.Parse<rapidjson::kParseCommentsFlag | rapidjson::kParseValidateEncodingFlag | rapidjson::kParseEscapedApostropheFlag>(is, handler);
-                case ReaderConfigToRapidJsonFlags::COMMENTS_NOVALID_ESCAPE:
-                    return reader.Parse<rapidjson::kParseCommentsFlag | rapidjson::kParseEscapedApostropheFlag>(is, handler);
-                case ReaderConfigToRapidJsonFlags::NOCOMMENTS_VALID_NOESCAPE:
-                    return reader.Parse<rapidjson::kParseValidateEncodingFlag>(is, handler);
-                case ReaderConfigToRapidJsonFlags::NOCOMMENTS_VALID_ESCAPE:
-                    return reader.Parse<rapidjson::kParseValidateEncodingFlag | rapidjson::kParseEscapedApostropheFlag>(is, handler);
-                case  ReaderConfigToRapidJsonFlags::NOCOMMENTS_NOVALID_ESCAPE:
-                    return reader.Parse<rapidjson::kParseEscapedApostropheFlag>(is, handler);
-                default:
-                    return reader.Parse<rapidjson::kParseNoFlags>(is, handler);
-            }
+            return ReadWithRuntimeFlags(flags, reader, is, handler);
         }
 
         template <class TRapidJsonCompliantInputStream, class THandler>
@@ -368,7 +427,7 @@ namespace NJson {
         bool ReadJsonTree(TRapidJsonCompliantInputStream& is, const TJsonReaderConfig* config, TJsonValue* out, bool throwOnError) {
             out->SetType(NJson::JSON_NULL);
 
-            TJsonValueBuilder handler(*out);
+            TJsonValueBuilder handler(*out, { .MaxDepth = config->MaxDepth });
 
             return ReadJson(is, config, handler, throwOnError);
         }

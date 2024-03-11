@@ -103,6 +103,44 @@ def testSimpleBinaryClassification():
                 print('\nrawPrediction=%s, probability=%s, prediction=%s' % (rawPrediction, probability, prediction))
                 predictions.show(truncate=False)
 
+def testSimpleBinaryClassificationWithBooleanTarget():
+    spark = test_helpers.getOrCreateSparkSession(test_helpers.getCurrentMethodName())
+    import catboost_spark
+
+    featureNames = ["f1", "f2", "f3"]
+    srcSchemaData = [
+        ("features", VectorUDT()),
+        ("label", BooleanType())
+    ]
+
+    srcData = [
+        Row(Vectors.dense(0.1, 0.2, 0.11), False),
+        Row(Vectors.dense(0.97, 0.82, 0.33), True),
+        Row(Vectors.dense(0.13, 0.22, 0.23), True),
+        Row(Vectors.dense(0.14, 0.18, 0.1), False),
+        Row(Vectors.dense(0.9, 0.67, 0.17), True),
+        Row(Vectors.dense(0.66, 0.1, 0.31), False)
+    ]
+    pool = pool_test_helpers.createRawPool(
+        test_helpers.getCurrentMethodName,
+        pool_test_helpers.createSchema(
+          srcSchemaData,
+          featureNames,
+          addFeatureNamesMetadata=True
+        ),
+        srcData,
+        {}
+    )
+
+    classifier = (catboost_spark.CatBoostClassifier()
+      .setIterations(20)
+      .setTrainDir(tempfile.mkdtemp(prefix=test_helpers.getCurrentMethodName())))
+    model = classifier.fit(pool)
+    predictions = model.transform(pool.data)
+
+    print ("predictions")
+    predictions.show(truncate=False)
+
 
 def testBinaryClassificationWithClassNamesAsIntSet():
     spark = test_helpers.getOrCreateSparkSession(test_helpers.getCurrentMethodName())

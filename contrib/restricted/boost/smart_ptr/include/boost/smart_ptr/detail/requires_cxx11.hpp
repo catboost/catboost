@@ -16,7 +16,7 @@
     defined(BOOST_NO_CXX11_NULLPTR) || \
     defined(BOOST_NO_CXX11_SMART_PTR)
 
-BOOST_PRAGMA_MESSAGE("C++03 support was deprecated in Boost.SmartPtr 1.82 and will be removed in Boost.SmartPtr 1.84. Please open an issue in https://github.com/boostorg/smart_ptr if you want it retained.")
+BOOST_PRAGMA_MESSAGE("C++03 support was deprecated in Boost.SmartPtr 1.82 and will be removed in Boost.SmartPtr 1.85.")
 
 #endif
 

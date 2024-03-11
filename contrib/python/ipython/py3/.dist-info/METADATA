@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.17.2
+Version: 8.21.0
 Summary: IPython: Productive Interactive Computing
 Home-page: https://ipython.org
 Author: The IPython Development Team
@@ -23,20 +23,19 @@ Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Topic :: System :: Shells
-Requires-Python: >=3.9
+Requires-Python: >=3.10
 Description-Content-Type: text/x-rst
 License-File: LICENSE
 Requires-Dist: decorator
 Requires-Dist: jedi >=0.13
 Requires-Dist: matplotlib-inline
-Requires-Dist: prompt-toolkit !=3.0.37,<3.1.0,>=3.0.30
+Requires-Dist: prompt-toolkit <3.1.0,>=3.0.41
 Requires-Dist: pygments >=2.4.0
 Requires-Dist: stack-data
 Requires-Dist: traitlets >=5
 Requires-Dist: typing-extensions ; python_version < "3.10"
 Requires-Dist: exceptiongroup ; python_version < "3.11"
 Requires-Dist: pexpect >4.3 ; sys_platform != "win32"
-Requires-Dist: appnope ; sys_platform == "darwin"
 Requires-Dist: colorama ; sys_platform == "win32"
 Provides-Extra: all
 Requires-Dist: black ; extra == 'all'
@@ -47,10 +46,9 @@ Requires-Dist: sphinx-rtd-theme ; extra == 'all'
 Requires-Dist: docrepr ; extra == 'all'
 Requires-Dist: matplotlib ; extra == 'all'
 Requires-Dist: stack-data ; extra == 'all'
-Requires-Dist: pytest <7 ; extra == 'all'
 Requires-Dist: typing-extensions ; extra == 'all'
 Requires-Dist: exceptiongroup ; extra == 'all'
-Requires-Dist: pytest <7.1 ; extra == 'all'
+Requires-Dist: pytest <8 ; extra == 'all'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'all'
 Requires-Dist: testpath ; extra == 'all'
 Requires-Dist: pickleshare ; extra == 'all'
@@ -62,7 +60,7 @@ Requires-Dist: ipyparallel ; extra == 'all'
 Requires-Dist: qtconsole ; extra == 'all'
 Requires-Dist: curio ; extra == 'all'
 Requires-Dist: matplotlib !=3.2.0 ; extra == 'all'
-Requires-Dist: numpy >=1.22 ; extra == 'all'
+Requires-Dist: numpy >=1.23 ; extra == 'all'
 Requires-Dist: pandas ; extra == 'all'
 Requires-Dist: trio ; extra == 'all'
 Provides-Extra: black
@@ -75,10 +73,9 @@ Requires-Dist: sphinx-rtd-theme ; extra == 'doc'
 Requires-Dist: docrepr ; extra == 'doc'
 Requires-Dist: matplotlib ; extra == 'doc'
 Requires-Dist: stack-data ; extra == 'doc'
-Requires-Dist: pytest <7 ; extra == 'doc'
 Requires-Dist: typing-extensions ; extra == 'doc'
 Requires-Dist: exceptiongroup ; extra == 'doc'
-Requires-Dist: pytest <7.1 ; extra == 'doc'
+Requires-Dist: pytest <8 ; extra == 'doc'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'doc'
 Requires-Dist: testpath ; extra == 'doc'
 Requires-Dist: pickleshare ; extra == 'doc'
@@ -97,19 +94,19 @@ Provides-Extra: qtconsole
 Requires-Dist: qtconsole ; extra == 'qtconsole'
 Provides-Extra: terminal
 Provides-Extra: test
-Requires-Dist: pytest <7.1 ; extra == 'test'
+Requires-Dist: pytest <8 ; extra == 'test'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'test'
 Requires-Dist: testpath ; extra == 'test'
 Requires-Dist: pickleshare ; extra == 'test'
 Provides-Extra: test_extra
-Requires-Dist: pytest <7.1 ; extra == 'test_extra'
+Requires-Dist: pytest <8 ; extra == 'test_extra'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'test_extra'
 Requires-Dist: testpath ; extra == 'test_extra'
 Requires-Dist: pickleshare ; extra == 'test_extra'
 Requires-Dist: curio ; extra == 'test_extra'
 Requires-Dist: matplotlib !=3.2.0 ; extra == 'test_extra'
 Requires-Dist: nbformat ; extra == 'test_extra'
-Requires-Dist: numpy >=1.22 ; extra == 'test_extra'
+Requires-Dist: numpy >=1.23 ; extra == 'test_extra'
 Requires-Dist: pandas ; extra == 'test_extra'
 Requires-Dist: trio ; extra == 'test_extra'
 

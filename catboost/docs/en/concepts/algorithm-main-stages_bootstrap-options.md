@@ -20,8 +20,8 @@ Depending on the value of the `bootstrap_type` parameter, these ideas are implem
 
 * [{{ fit__bootstrap-type__Bayesian }}](#bayesian)
 * [{{ fit__bootstrap-type__Bernoulli }}](#bernoulli)
-* [{{ fit__bootstrap-type__MVS }}](#mvs) (supported only on {{ calcer_type__gpu }})
-* [{{ fit__bootstrap-type__Poisson }}](#poisson)
+* [{{ fit__bootstrap-type__MVS }}](#mvs)
+* [{{ fit__bootstrap-type__Poisson }}](#poisson) (supported only on {{ calcer_type__gpu }})
 * [{{ fit__bootstrap-type__No }}](#no)
 
 ## Bootstrap types {#bootstrap-types}
@@ -81,8 +81,6 @@ _{{ title__implementation__cli }}:_ `--sampling-unit`
 {% endcut %}
 
 ### {{ fit__bootstrap-type__MVS }} {#mvs}
-
-Supported only on {{ calcer_type__cpu }}.
 
 Implements the importance sampling algorithm called Minimum Variance Sampling (MVS).
 

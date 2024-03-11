@@ -19,7 +19,7 @@ target_link_libraries(catboostmodel_static PUBLIC
   model_interface-static-lib
 )
 target_sources(catboostmodel_static PRIVATE
-  ${CMAKE_SOURCE_DIR}/build/scripts/_fake_src.cpp
+  ${PROJECT_SOURCE_DIR}/build/scripts/_fake_src.cpp
 )
 
 endif()

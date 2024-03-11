@@ -16,7 +16,7 @@ target_link_libraries(enum_parser PUBLIC
   tools-enum_parser-parse_enum
 )
 target_sources(enum_parser PRIVATE
-  ${CMAKE_SOURCE_DIR}/tools/enum_parser/enum_parser/main.cpp
+  ${PROJECT_SOURCE_DIR}/tools/enum_parser/enum_parser/main.cpp
 )
 target_allocator(enum_parser
   system_allocator

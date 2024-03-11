@@ -105,7 +105,7 @@ template <
     typename    PrivatizedDecodeOpT,            ///< The transform operator type for determining privatized counter indices from samples, one for each channel
     typename    OutputDecodeOpT,                ///< The transform operator type for determining output bin-ids from privatized counter indices, one for each channel
     typename    OffsetT,                        ///< Signed integer type for global offsets
-    int         PTX_ARCH = CUB_PTX_ARCH>        ///< PTX compute capability
+    int         LEGACY_PTX_ARCH = 0>            ///< PTX compute capability (unused)
 struct AgentHistogram
 {
     //---------------------------------------------------------------------
@@ -564,15 +564,10 @@ struct AgentHistogram
             is_valid[PIXEL] = IS_FULL_TILE || (((threadIdx.x * PIXELS_PER_THREAD + PIXEL) * NUM_CHANNELS) < valid_samples);
 
         // Accumulate samples
-#if CUB_PTX_ARCH >= 120
         if (prefer_smem)
             AccumulateSmemPixels(samples, is_valid);
         else
             AccumulateGmemPixels(samples, is_valid);
-#else
-        AccumulateGmemPixels(samples, is_valid);
-#endif
-
     }
 
 
@@ -702,12 +697,12 @@ struct AgentHistogram
     :
         temp_storage(temp_storage.Alias()),
         d_wrapped_samples(d_samples),
+        d_native_samples(NativePointer(d_wrapped_samples)),
         num_output_bins(num_output_bins),
         num_privatized_bins(num_privatized_bins),
         d_output_histograms(d_output_histograms),
-        privatized_decode_op(privatized_decode_op),
         output_decode_op(output_decode_op),
-        d_native_samples(NativePointer(d_wrapped_samples)),
+        privatized_decode_op(privatized_decode_op),
         prefer_smem((MEM_PREFERENCE == SMEM) ?
             true :                              // prefer smem privatized histograms
             (MEM_PREFERENCE == GMEM) ?

@@ -1,9 +1,9 @@
 Metadata-Version: 2.1
 Name: pathspec
-Version: 0.11.2
+Version: 0.12.1
 Summary: Utility library for gitignore style pattern matching of file paths.
 Author-email: "Caleb P. Burns" <cpburnz@gmail.com>
-Requires-Python: >=3.7
+Requires-Python: >=3.8
 Description-Content-Type: text/x-rst
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Developers
@@ -11,11 +11,11 @@ Classifier: License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
@@ -194,6 +194,52 @@ a `Ruby gem`_.
 
 Change History
 ==============
+
+
+0.12.1 (2023-12-10)
+-------------------
+
+Bug fixes:
+
+- `Issue #84`_: PathSpec.match_file() returns None since 0.12.0.
+
+
+.. _`Issue #84`: https://github.com/cpburnz/python-pathspec/issues/84
+
+
+0.12.0 (2023-12-09)
+-------------------
+
+Major changes:
+
+- Dropped support of EOL Python 3.7. See `Pull #82`_.
+
+
+API changes:
+
+- Signature of protected method `pathspec.pathspec.PathSpec._match_file()` (with a leading underscore) has been changed from `def _match_file(patterns: Iterable[Pattern], file: str) -> bool` to `def _match_file(patterns: Iterable[Tuple[int, Pattern]], file: str) -> Tuple[Optional[bool], Optional[int]]`.
+
+New features:
+
+- Added `pathspec.pathspec.PathSpec.check_*()` methods. These methods behave similarly to `.match_*()` but return additional information in the `pathspec.util.CheckResult` objects (e.g., `CheckResult.index` indicates the index of the last pattern that matched the file).
+- Added `pathspec.pattern.RegexPattern.pattern` attribute which stores the original, uncompiled pattern.
+
+Bug fixes:
+
+- `Issue #81`_: GitIgnoreSpec behaviors differ from git.
+- `Pull #83`_: Fix ReadTheDocs builds.
+
+Improvements:
+
+- Mark Python 3.12 as supported. See `Pull #82`_.
+- Improve test debugging.
+- Improve type hint on *on_error* parameter on `pathspec.pathspec.PathSpec.match_tree_entries()`.
+- Improve type hint on *on_error* parameter on `pathspec.util.iter_tree_entries()`.
+
+
+.. _`Issue #81`: https://github.com/cpburnz/python-pathspec/issues/81
+.. _`Pull #82`: https://github.com/cpburnz/python-pathspec/pull/82
+.. _`Pull #83`: https://github.com/cpburnz/python-pathspec/pull/83
 
 
 0.11.2 (2023-07-28)

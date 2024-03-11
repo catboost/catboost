@@ -2,14 +2,11 @@
 
 #include <catboost/private/libs/options/enums.h>
 
+#include <library/cpp/json/json_value.h>
+
 #include <util/generic/fwd.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/string.h>
-
-
-namespace NJson {
-    class TJsonValue;
-}
 
 
 namespace NCB {
@@ -19,4 +16,9 @@ namespace NCB {
 
     TVector<TString> ClassLabelsToStrings(TConstArrayRef<NJson::TJsonValue> classLabels);
 
+    // For AllowConstLabel: Training won't work properly with single-dimensional approx for multiclass, so make a
+    // 'phantom' second dimension.
+    void MaybeAddPhantomSecondClass(TVector<NJson::TJsonValue>* classLabels);
+
+    void CheckBooleanClassLabels(TConstArrayRef<NJson::TJsonValue> booleanClassLabels);
 }

@@ -25,7 +25,7 @@ target_link_libraries(private-libs-distributed PUBLIC
   library-cpp-par
 )
 target_sources(private-libs-distributed PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/distributed/mappers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/distributed/master.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/distributed/worker.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/distributed/mappers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/distributed/master.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/distributed/worker.cpp
 )

@@ -12,7 +12,7 @@ target_compile_options(abseil-cpp-absl-container PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(abseil-cpp-absl-container PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
 target_link_libraries(abseil-cpp-absl-container PUBLIC
   contrib-libs-linux-headers
@@ -30,7 +30,7 @@ target_link_libraries(abseil-cpp-absl-container PUBLIC
   cpp-sanitizer-include
 )
 target_sources(abseil-cpp-absl-container PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler_force_weak_definition.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/raw_hash_set.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler_force_weak_definition.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/raw_hash_set.cc
 )

@@ -504,29 +504,17 @@ do {                                                            \
 #if !defined(__cplusplus) && defined(_MSC_VER) && !defined(__INTEL_COMPILER)
 typedef union {
         npy_cdouble npy_z;
-#ifdef __cplusplus
-        std::complex<double> c99z;
-#else
         _Dcomplex c99_z;
-#endif
 } __npy_cdouble_to_c99_cast;
 
 typedef union {
         npy_cfloat npy_z;
-#ifdef __cplusplus
-        std::complex<float> c99z;
-#else
         _Fcomplex c99_z;
-#endif
 } __npy_cfloat_to_c99_cast;
 
 typedef union {
         npy_clongdouble npy_z;
-#ifdef __cplusplus
-        std::complex<long double> c99_z;
-#else
         _Lcomplex c99_z;
-#endif
 } __npy_clongdouble_to_c99_cast;
 #else /* !_MSC_VER */
 typedef union {

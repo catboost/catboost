@@ -11,6 +11,9 @@ class Options(object):
         self.verbose = False
         self.timing = False
         self.drop_tables = []
+        self.input_file = None
+        self.output_file = "merged.ttf"
+        self.import_file = None
 
         self.set(**kwargs)
 

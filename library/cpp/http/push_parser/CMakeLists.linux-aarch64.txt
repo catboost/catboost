@@ -17,5 +17,5 @@ target_link_libraries(cpp-http-push_parser PUBLIC
   cpp-streams-brotli
 )
 target_sources(cpp-http-push_parser PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/http/push_parser/http_parser.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/http/push_parser/http_parser.cpp
 )

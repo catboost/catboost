@@ -713,23 +713,45 @@ namespace xsimd
          * Permutation *
          ***************/
 
-        // swizzle
-        template <class A, class T, class I, I... idx>
-        inline batch<T, A> swizzle(batch<T, A> const& arg, batch_constant<batch<I, A>, idx...>, requires_arch<sve>) noexcept
+        //  rotate_right
+        template <size_t N, class A, class T, detail::sve_enable_all_t<T> = 0>
+        inline batch<T, A> rotate_right(batch<T, A> const& a, requires_arch<sve>) noexcept
         {
-            static_assert(batch<T, A>::size == sizeof...(idx), "invalid swizzle indices");
-            const batch<I, A> indices { idx... };
+            return svext(a, a, N);
+        }
+
+        // swizzle (dynamic)
+        template <class A, class T, class I>
+        inline batch<T, A> swizzle(batch<T, A> const& arg, batch<I, A> indices, requires_arch<sve>) noexcept
+        {
             return svtbl(arg, indices);
         }
 
-        template <class A, class T, class I, I... idx>
+        template <class A, class T, class I>
         inline batch<std::complex<T>, A> swizzle(batch<std::complex<T>, A> const& self,
-                                                 batch_constant<batch<I, A>, idx...>,
+                                                 batch<I, A> indices,
                                                  requires_arch<sve>) noexcept
         {
-            const auto real = swizzle(self.real(), batch_constant<batch<I, A>, idx...> {}, sve {});
-            const auto imag = swizzle(self.imag(), batch_constant<batch<I, A>, idx...> {}, sve {});
+            const auto real = swizzle(self.real(), indices, sve {});
+            const auto imag = swizzle(self.imag(), indices, sve {});
             return batch<std::complex<T>>(real, imag);
+        }
+
+        // swizzle (static)
+        template <class A, class T, class I, I... idx>
+        inline batch<T, A> swizzle(batch<T, A> const& arg, batch_constant<batch<I, A>, idx...> indices, requires_arch<sve>) noexcept
+        {
+            static_assert(batch<T, A>::size == sizeof...(idx), "invalid swizzle indices");
+            return swizzle(arg, (batch<I, A>)indices, sve {});
+        }
+
+        template <class A, class T, class I, I... idx>
+        inline batch<std::complex<T>, A> swizzle(batch<std::complex<T>, A> const& arg,
+                                                 batch_constant<batch<I, A>, idx...> indices,
+                                                 requires_arch<sve>) noexcept
+        {
+            static_assert(batch<std::complex<T>, A>::size == sizeof...(idx), "invalid swizzle indices");
+            return swizzle(arg, (batch<I, A>)indices, sve {});
         }
 
         /*************
@@ -1102,14 +1124,14 @@ namespace xsimd
         template <class A>
         inline batch<int32_t, A> nearbyint_as_int(batch<float, A> const& arg, requires_arch<sve>) noexcept
         {
-            const auto nearest = svrinta_x(detail::sve_ptrue<float>(), arg);
+            const auto nearest = svrintx_x(detail::sve_ptrue<float>(), arg);
             return svcvt_s32_x(detail::sve_ptrue<float>(), nearest);
         }
 
         template <class A>
         inline batch<int64_t, A> nearbyint_as_int(batch<double, A> const& arg, requires_arch<sve>) noexcept
         {
-            const auto nearest = svrinta_x(detail::sve_ptrue<double>(), arg);
+            const auto nearest = svrintx_x(detail::sve_ptrue<double>(), arg);
             return svcvt_s64_x(detail::sve_ptrue<double>(), nearest);
         }
 

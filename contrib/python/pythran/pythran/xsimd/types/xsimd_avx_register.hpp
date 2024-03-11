@@ -42,7 +42,6 @@ namespace xsimd
     namespace types
     {
 
-        XSIMD_DECLARE_SIMD_REGISTER(bool, avx, __m256i);
         XSIMD_DECLARE_SIMD_REGISTER(signed char, avx, __m256i);
         XSIMD_DECLARE_SIMD_REGISTER(unsigned char, avx, __m256i);
         XSIMD_DECLARE_SIMD_REGISTER(char, avx, __m256i);

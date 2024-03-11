@@ -15,5 +15,5 @@ target_link_libraries(cpp-threading-hot_swap PUBLIC
   cpp-deprecated-atomic
 )
 target_sources(cpp-threading-hot_swap PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/hot_swap/hot_swap.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/hot_swap/hot_swap.cpp
 )

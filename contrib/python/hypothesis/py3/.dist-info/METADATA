@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: hypothesis
-Version: 6.88.1
+Version: 6.98.12
 Summary: A library for property-based testing
 Home-page: https://hypothesis.works
 Author: David R. MacIver and Zac Hatfield-Dodds
@@ -26,6 +26,7 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Topic :: Education :: Testing
@@ -34,7 +35,7 @@ Classifier: Typing :: Typed
 Requires-Python: >=3.8
 Description-Content-Type: text/x-rst
 License-File: LICENSE.txt
-Requires-Dist: attrs >=19.2.0
+Requires-Dist: attrs >=22.2.0
 Requires-Dist: sortedcontainers <3.0.0,>=2.1.0
 Requires-Dist: exceptiongroup >=1.0.0 ; python_version < "3.11"
 Provides-Extra: all
@@ -52,7 +53,7 @@ Requires-Dist: pytz >=2014.1 ; extra == 'all'
 Requires-Dist: redis >=3.0.0 ; extra == 'all'
 Requires-Dist: rich >=9.0.0 ; extra == 'all'
 Requires-Dist: backports.zoneinfo >=0.2.1 ; (python_version < "3.9") and extra == 'all'
-Requires-Dist: tzdata >=2023.3 ; (sys_platform == "win32") and extra == 'all'
+Requires-Dist: tzdata >=2024.1 ; (sys_platform == "win32" or sys_platform == "emscripten") and extra == 'all'
 Provides-Extra: cli
 Requires-Dist: click >=7.0 ; extra == 'cli'
 Requires-Dist: black >=19.10b0 ; extra == 'cli'
@@ -81,7 +82,7 @@ Provides-Extra: redis
 Requires-Dist: redis >=3.0.0 ; extra == 'redis'
 Provides-Extra: zoneinfo
 Requires-Dist: backports.zoneinfo >=0.2.1 ; (python_version < "3.9") and extra == 'zoneinfo'
-Requires-Dist: tzdata >=2023.3 ; (sys_platform == "win32") and extra == 'zoneinfo'
+Requires-Dist: tzdata >=2024.1 ; (sys_platform == "win32" or sys_platform == "emscripten") and extra == 'zoneinfo'
 
 ==========
 Hypothesis

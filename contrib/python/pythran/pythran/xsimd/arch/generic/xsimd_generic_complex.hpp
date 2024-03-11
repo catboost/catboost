@@ -90,6 +90,18 @@ namespace xsimd
         {
             return batch_bool<T, A>(isnan(self.real()) || isnan(self.imag()));
         }
+
+        template <class A, class T>
+        inline batch_bool<T, A> isinf(batch<std::complex<T>, A> const& self, requires_arch<generic>) noexcept
+        {
+            return batch_bool<T, A>(isinf(self.real()) || isinf(self.imag()));
+        }
+
+        template <class A, class T>
+        inline batch_bool<T, A> isfinite(batch<std::complex<T>, A> const& self, requires_arch<generic>) noexcept
+        {
+            return batch_bool<T, A>(isfinite(self.real()) && isfinite(self.imag()));
+        }
     }
 }
 

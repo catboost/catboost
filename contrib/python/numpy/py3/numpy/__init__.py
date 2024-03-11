@@ -66,7 +66,7 @@ testing
     NumPy testing tools
 distutils
     Enhancements to distutils with support for
-    Fortran compilers support and more.
+    Fortran compilers support and more  (for Python <= 3.11).
 
 Utilities
 ---------
@@ -107,6 +107,11 @@ from ._globals import _NoValue, _CopyMode
 from .exceptions import (
     ComplexWarning, ModuleDeprecationWarning, VisibleDeprecationWarning,
     TooHardError, AxisError)
+
+
+# If a version with git hash was stored, use that instead
+from . import version
+from .version import __version__
 
 # We first need to detect if we're being called as part of the numpy setup
 # procedure itself in a reliable manner.
@@ -383,20 +388,25 @@ else:
             pass
 
     if sys.platform == "darwin":
+        from . import exceptions
         with warnings.catch_warnings(record=True) as w:
             #_mac_os_check()
             # Throw runtime error, if the test failed Check for warning and error_message
-            error_message = ""
             if len(w) > 0:
-                error_message = "{}: {}".format(w[-1].category.__name__, str(w[-1].message))
-                msg = (
-                    "Polyfit sanity test emitted a warning, most likely due "
-                    "to using a buggy Accelerate backend."
-                    "\nIf you compiled yourself, more information is available at:"
-                    "\nhttps://numpy.org/doc/stable/user/building.html#accelerated-blas-lapack-libraries"
-                    "\nOtherwise report this to the vendor "
-                    "that provided NumPy.\n{}\n".format(error_message))
-                raise RuntimeError(msg)
+                for _wn in w:
+                    if _wn.category is exceptions.RankWarning:
+                        # Ignore other warnings, they may not be relevant (see gh-25433).
+                        error_message = f"{_wn.category.__name__}: {str(_wn.message)}"
+                        msg = (
+                            "Polyfit sanity test emitted a warning, most likely due "
+                            "to using a buggy Accelerate backend."
+                            "\nIf you compiled yourself, more information is available at:"
+                            "\nhttps://numpy.org/devdocs/building/index.html"
+                            "\nOtherwise report this to the vendor "
+                            "that provided NumPy.\n\n{}\n".format(error_message))
+                        raise RuntimeError(msg)
+                del _wn
+            del w
     del _mac_os_check
 
     # We usually use madvise hugepages support, but on some old kernels it
@@ -446,9 +456,6 @@ else:
     # Remove symbols imported for internal use
     del os
 
-
-# get the version using versioneer
-from .version import __version__, git_revision as __git_version__
 
 # Remove symbols imported for internal use
 del sys, warnings

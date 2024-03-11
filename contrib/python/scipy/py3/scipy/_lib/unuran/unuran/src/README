@@ -1,0 +1,93 @@
+Naming conventions:
+
+*.c             ... C source files
+*.ch            ... C source files #include'd in a *.c file
+*.h             ... header file
+*_source.h      ... header file only used for compiling library
+*_struct.h      ... header file for structure defintions (only used for compiling library)
+ 
+unur_*.h        ... header files that are protected against multiple inclusion
+unuran*.h       ... header files to be installed
+
+--------------------------------------------------
+./:
+
+README          ... this file
+unuran.h        ... main header file for UNU.RAN
+unuran.h.in     ... same as unuran.h but #include's are not expanded
+unuran_config.h ... configuration file for library
+unur_source.h   ... main header file for compiling library (included in all sources!)
+unur_cookies.h  ... definition of magic cookies
+unur_typedefs.h ... declaration of all objects used by UNU.RAN
+
+methods/        ... sources of methods
+distr/          ... sources for generic distributions
+distributions/  ... sources for standard distributions and special generators
+utils/          ... sources for utilities
+tests/          ... sources for various tests
+uniform/        ... sources for simple uniform RNGs and wrapper for external RNGs
+urng/           ... sources for interface to uniform RNGs
+
+--------------------------------------------------
+./utils/:
+
+debug.c         ... debuging routines
+debug.h
+debug_source.h
+
+error.c         ... warnings and error messages
+error.h
+error_source.h
+unur_errno.h
+
+stream.c        ... output streams
+stream.h
+stream_source.h
+
+slist.c         ... handle simple lists
+slist.h
+slist_struct.h
+
+umalloc.c       ... allocate memory
+umalloc_source.h
+
+umath.c         ... mathematics
+umath.h
+umath_source.h
+unur_math_source.h
+
+unur_fp_source.h    floating point arithmetic
+unur_fp_const_source.h
+
+
+--------------------------------------------------
+./methods/:
+
+unur_methods_source.h  ... id's for methods
+
+x_gen.c         ... handle generator objects
+
+--------------------------------------------------
+./distr/:
+
+--------------------------------------------------
+./distributions/:
+
+unur_distributions.h ... header file for standard distribution
+unur_stddistr.h      ... id's for standard distributions
+
+--------------------------------------------------
+./tests/:
+
+unuran_tests.h  ... header file for test routines
+
+chi2test.c      ... chi^2 test for goodness of fit
+counturn.c      ... count used uniform random numbers
+printsample.c   ... print a small sample into logfile
+timing.c        ... measure setup time and marginal generation time
+
+tests.c         ... interface to start these tests
+
+--------------------------------------------------
+./uniform/:
+

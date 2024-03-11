@@ -31,6 +31,16 @@ static void CheckTarget(const TVector<TSharedVector<float>>& target, ui32 object
     }
 }
 
+static void CheckContainsOnly01s(const ITypedSequence<float>& typedSequence) {
+    typedSequence.ForEach(
+        [] (float value) {
+            CB_ENSURE_INTERNAL(
+                (value == 0.0f) || (value == 1.0f),
+                "targetType is Boolean but target values contain non-{0,1} data"
+            );
+        }
+    );
+}
 
 static void CheckContainsOnlyIntegers(const ITypedSequence<float>& typedSequence) {
     typedSequence.ForEach(
@@ -54,7 +64,9 @@ static void CheckRawTarget(ERawTargetType targetType, const TVector<TRawTarget>&
     for (auto i : xrange(target.size())) {
         if (const ITypedSequencePtr<float>* typedSequence = std::get_if<ITypedSequencePtr<float>>(&target[i])) {
             CB_ENSURE_INTERNAL(
-                (targetType == ERawTargetType::Float) || (targetType == ERawTargetType::Integer),
+                (targetType == ERawTargetType::Boolean) ||
+                (targetType == ERawTargetType::Float) ||
+                (targetType == ERawTargetType::Integer),
                 "target data contains float values but targetType is " << targetType
             );
             CheckDataSize(
@@ -63,7 +75,9 @@ static void CheckRawTarget(ERawTargetType targetType, const TVector<TRawTarget>&
                 "Target[" + ToString(i) + "]",
                 false
             );
-            if (targetType == ERawTargetType::Integer) {
+            if (targetType == ERawTargetType::Boolean) {
+                CheckContainsOnly01s(**typedSequence);
+            } else if (targetType == ERawTargetType::Integer) {
                 CheckContainsOnlyIntegers(**typedSequence);
             }
         } else {
@@ -413,7 +427,7 @@ void TRawTargetData::PrepareForInitialization(
 }
 
 
-ERawTargetType TRawTargetDataProvider::GetTargetType() const {
+ERawTargetType TRawTargetDataProvider::GetTargetType() const noexcept {
     return Data.TargetType;
 }
 

@@ -456,7 +456,7 @@ enum BlockStoreAlgorithm
  * \tparam ALGORITHM            <b>[optional]</b> cub::BlockStoreAlgorithm tuning policy enumeration.  default: cub::BLOCK_STORE_DIRECT.
  * \tparam BLOCK_DIM_Y          <b>[optional]</b> The thread block length in threads along the Y dimension (default: 1)
  * \tparam BLOCK_DIM_Z          <b>[optional]</b> The thread block length in threads along the Z dimension (default: 1)
- * \tparam PTX_ARCH             <b>[optional]</b> \ptxversion
+ * \tparam LEGACY_PTX_ARCH      <b>[optional]</b> Unused.
  *
  * \par Overview
  * - The BlockStore class provides a single data movement abstraction that can be specialized
@@ -530,7 +530,7 @@ template <
     BlockStoreAlgorithm     ALGORITHM           = BLOCK_STORE_DIRECT,
     int                     BLOCK_DIM_Y         = 1,
     int                     BLOCK_DIM_Z         = 1,
-    int                     PTX_ARCH            = CUB_PTX_ARCH>
+    int                     LEGACY_PTX_ARCH     = 0>
 class BlockStore
 {
 private:
@@ -693,7 +693,7 @@ private:
     struct StoreInternal<BLOCK_STORE_TRANSPOSE, DUMMY>
     {
         // BlockExchange utility type for keys
-        typedef BlockExchange<T, BLOCK_DIM_X, ITEMS_PER_THREAD, false, BLOCK_DIM_Y, BLOCK_DIM_Z, PTX_ARCH> BlockExchange;
+        typedef BlockExchange<T, BLOCK_DIM_X, ITEMS_PER_THREAD, false, BLOCK_DIM_Y, BLOCK_DIM_Z> BlockExchange;
 
         /// Shared memory storage layout type
         struct _TempStorage : BlockExchange::TempStorage
@@ -754,14 +754,14 @@ private:
     {
         enum
         {
-            WARP_THREADS = CUB_WARP_THREADS(PTX_ARCH)
+            WARP_THREADS = CUB_WARP_THREADS(0)
         };
 
         // Assert BLOCK_THREADS must be a multiple of WARP_THREADS
         CUB_STATIC_ASSERT((int(BLOCK_THREADS) % int(WARP_THREADS) == 0), "BLOCK_THREADS must be a multiple of WARP_THREADS");
 
         // BlockExchange utility type for keys
-        typedef BlockExchange<T, BLOCK_DIM_X, ITEMS_PER_THREAD, false, BLOCK_DIM_Y, BLOCK_DIM_Z, PTX_ARCH> BlockExchange;
+        typedef BlockExchange<T, BLOCK_DIM_X, ITEMS_PER_THREAD, false, BLOCK_DIM_Y, BLOCK_DIM_Z> BlockExchange;
 
         /// Shared memory storage layout type
         struct _TempStorage : BlockExchange::TempStorage
@@ -822,14 +822,14 @@ private:
     {
         enum
         {
-            WARP_THREADS = CUB_WARP_THREADS(PTX_ARCH)
+            WARP_THREADS = CUB_WARP_THREADS(0)
         };
 
         // Assert BLOCK_THREADS must be a multiple of WARP_THREADS
         CUB_STATIC_ASSERT((int(BLOCK_THREADS) % int(WARP_THREADS) == 0), "BLOCK_THREADS must be a multiple of WARP_THREADS");
 
         // BlockExchange utility type for keys
-        typedef BlockExchange<T, BLOCK_DIM_X, ITEMS_PER_THREAD, true, BLOCK_DIM_Y, BLOCK_DIM_Z, PTX_ARCH> BlockExchange;
+        typedef BlockExchange<T, BLOCK_DIM_X, ITEMS_PER_THREAD, true, BLOCK_DIM_Y, BLOCK_DIM_Z> BlockExchange;
 
         /// Shared memory storage layout type
         struct _TempStorage : BlockExchange::TempStorage

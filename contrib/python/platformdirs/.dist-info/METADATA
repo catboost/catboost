@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: platformdirs
-Version: 3.11.0
+Version: 4.2.0
 Summary: A small Python package for determining appropriate platform-specific dirs, e.g. a "user data dir".
 Project-URL: Documentation, https://platformdirs.readthedocs.io
 Project-URL: Homepage, https://github.com/platformdirs/platformdirs
@@ -16,7 +16,6 @@ Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
@@ -25,19 +24,18 @@ Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
-Requires-Python: >=3.7
-Requires-Dist: typing-extensions>=4.7.1; python_version < '3.8'
+Requires-Python: >=3.8
 Provides-Extra: docs
-Requires-Dist: furo>=2023.7.26; extra == 'docs'
+Requires-Dist: furo>=2023.9.10; extra == 'docs'
 Requires-Dist: proselint>=0.13; extra == 'docs'
-Requires-Dist: sphinx-autodoc-typehints>=1.24; extra == 'docs'
-Requires-Dist: sphinx>=7.1.1; extra == 'docs'
+Requires-Dist: sphinx-autodoc-typehints>=1.25.2; extra == 'docs'
+Requires-Dist: sphinx>=7.2.6; extra == 'docs'
 Provides-Extra: test
 Requires-Dist: appdirs==1.4.4; extra == 'test'
 Requires-Dist: covdefaults>=2.3; extra == 'test'
 Requires-Dist: pytest-cov>=4.1; extra == 'test'
-Requires-Dist: pytest-mock>=3.11.1; extra == 'test'
-Requires-Dist: pytest>=7.4; extra == 'test'
+Requires-Dist: pytest-mock>=3.12; extra == 'test'
+Requires-Dist: pytest>=7.4.3; extra == 'test'
 Description-Content-Type: text/x-rst
 
 The problem
@@ -174,7 +172,7 @@ On Linux:
     >>> user_cache_dir(appname, appauthor)
     '/home/trentm/.cache/SuperApp'
     >>> user_log_dir(appname, appauthor)
-    '/home/trentm/.cache/SuperApp/log'
+    '/home/trentm/.local/state/SuperApp/log'
     >>> user_config_dir(appname)
     '/home/trentm/.config/SuperApp'
     >>> user_documents_dir()

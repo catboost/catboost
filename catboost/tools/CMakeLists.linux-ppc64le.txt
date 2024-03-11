@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(for_testing)
 add_subdirectory(limited_precision_dsv_diff)
 add_subdirectory(limited_precision_json_diff)
 add_subdirectory(model_comparator)

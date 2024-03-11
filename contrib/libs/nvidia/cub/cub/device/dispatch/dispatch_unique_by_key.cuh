@@ -32,6 +32,7 @@
 
 #include <cub/agent/agent_unique_by_key.cuh>
 #include <cub/device/dispatch/dispatch_scan.cuh>
+#include <cub/util_deprecated.cuh>
 #include <cub/util_macro.cuh>
 #include <cub/util_math.cuh>
 
@@ -181,7 +182,6 @@ struct DispatchUniqueByKey: SelectedPolicy
     EqualityOpT             equality_op;                ///< [in] Equality operator
     OffsetT                 num_items;                  ///< [in] Total number of input items (i.e., length of \p d_keys_in or \p d_values_in)
     cudaStream_t            stream;                     ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-    bool                    debug_synchronous;
 
     CUB_RUNTIME_FUNCTION __forceinline__
     DispatchUniqueByKey(
@@ -194,7 +194,33 @@ struct DispatchUniqueByKey: SelectedPolicy
         NumSelectedIteratorT    d_num_selected_out,     ///< [out] Pointer to the total number of items selected (i.e., length of \p d_keys_out or \p d_values_out)
         EqualityOpT             equality_op,            ///< [in] Equality operator
         OffsetT                 num_items,              ///< [in] Total number of input items (i.e., length of \p d_keys_in or \p d_values_in)
-        cudaStream_t            stream,                 ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+        cudaStream_t            stream                  ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
+    ):
+        d_temp_storage(d_temp_storage),
+        temp_storage_bytes(temp_storage_bytes),
+        d_keys_in(d_keys_in),
+        d_values_in(d_values_in),
+        d_keys_out(d_keys_out),
+        d_values_out(d_values_out),
+        d_num_selected_out(d_num_selected_out),
+        equality_op(equality_op),
+        num_items(num_items),
+        stream(stream)
+    {}
+
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+    CUB_RUNTIME_FUNCTION __forceinline__
+    DispatchUniqueByKey(
+        void*                   d_temp_storage,     
+        size_t&                 temp_storage_bytes,  
+        KeyInputIteratorT       d_keys_in,            
+        ValueInputIteratorT     d_values_in,           
+        KeyOutputIteratorT      d_keys_out,             
+        ValueOutputIteratorT    d_values_out,         
+        NumSelectedIteratorT    d_num_selected_out,    
+        EqualityOpT             equality_op,            
+        OffsetT                 num_items,           
+        cudaStream_t            stream,               
         bool                    debug_synchronous
     ):
         d_temp_storage(d_temp_storage),
@@ -206,9 +232,10 @@ struct DispatchUniqueByKey: SelectedPolicy
         d_num_selected_out(d_num_selected_out),
         equality_op(equality_op),
         num_items(num_items),
-        stream(stream),
-        debug_synchronous(debug_synchronous)
-    {}
+        stream(stream)
+    {
+      CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+    }
 
 
     /******************************************************************************
@@ -219,16 +246,6 @@ struct DispatchUniqueByKey: SelectedPolicy
     CUB_RUNTIME_FUNCTION __host__  __forceinline__
     cudaError_t Invoke(InitKernel init_kernel, ScanKernel scan_kernel)
     {
-#ifndef CUB_RUNTIME_ENABLED
-
-        (void)init_kernel;
-        (void)scan_kernel;
-
-        // Kernel launch not supported from this device
-        return CubDebug(cudaErrorNotSupported);
-
-#else
-
         using Policy = typename ActivePolicyT::UniqueByKeyPolicyT;
         using UniqueByKeyAgentT = AgentUniqueByKey<Policy,
                                                    KeyInputIteratorT,
@@ -280,7 +297,10 @@ struct DispatchUniqueByKey: SelectedPolicy
             // Log init_kernel configuration
             num_tiles = CUB_MAX(1, num_tiles);
             int init_grid_size = cub::DivideAndRoundUp(num_tiles, INIT_KERNEL_THREADS);
-            if (debug_synchronous) _CubLog("Invoking init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
+
+            #ifdef CUB_DETAIL_DEBUG_ENABLE_LOG
+            _CubLog("Invoking init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
+            #endif
 
             // Invoke init_kernel to initialize tile descriptors
             THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
@@ -291,7 +311,11 @@ struct DispatchUniqueByKey: SelectedPolicy
             if (CubDebug(error = cudaPeekAtLastError())) break;
 
             // Sync the stream if specified to flush runtime errors
-            if (debug_synchronous && (CubDebug(error = SyncStream(stream)))) break;
+            error = detail::DebugSyncStream(stream);
+            if (CubDebug(error))
+            {
+              break;
+            }
 
             // Return if empty problem
             if (num_items == 0) break;
@@ -307,7 +331,7 @@ struct DispatchUniqueByKey: SelectedPolicy
             scan_grid_size.x = CUB_MIN(num_tiles, max_dim_x);
 
             // Log select_if_kernel configuration
-            if (debug_synchronous)
+            #ifdef CUB_DETAIL_DEBUG_ENABLE_LOG
             {
               // Get SM occupancy for unique_by_key_kernel
               int scan_sm_occupancy;
@@ -328,9 +352,10 @@ struct DispatchUniqueByKey: SelectedPolicy
                       Policy::ITEMS_PER_THREAD,
                       scan_sm_occupancy);
             }
+            #endif
 
             // Invoke select_if_kernel
-            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
+            error = THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 scan_grid_size, Policy::BLOCK_THREADS, 0, stream
             ).doit(scan_kernel,
                    d_keys_in,
@@ -344,16 +369,21 @@ struct DispatchUniqueByKey: SelectedPolicy
                    num_tiles);
 
             // Check for failure to launch
-            if (CubDebug(error = cudaPeekAtLastError())) break;
+            if (CubDebug(error))
+            {
+              break;
+            }
 
             // Sync the stream if specified to flush runtime errors
-            if (debug_synchronous && (CubDebug(error = SyncStream(stream)))) break;
+            error = detail::DebugSyncStream(stream);
+            if (CubDebug(error))
+            {
+              break;
+            }
         }
         while(0);
 
         return error;
-
-#endif  // CUB_RUNTIME_ENABLED
     }
 
     template <typename ActivePolicyT>
@@ -391,8 +421,7 @@ struct DispatchUniqueByKey: SelectedPolicy
         NumSelectedIteratorT    d_num_selected_out,     ///< [out] Pointer to the total number of items selected (i.e., length of \p d_keys_out or \p d_values_out)
         EqualityOpT             equality_op,            ///< [in] Equality operator
         OffsetT                 num_items,              ///< [in] Total number of input items (i.e., the length of \p d_in)
-        cudaStream_t            stream,                 ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
-        bool                    debug_synchronous)      ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
+        cudaStream_t            stream)                 ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
     {
         using MaxPolicyT = typename DispatchUniqueByKey::MaxPolicy;
 
@@ -414,9 +443,7 @@ struct DispatchUniqueByKey: SelectedPolicy
                 d_num_selected_out,
                 equality_op,
                 num_items,
-                stream,
-                debug_synchronous
-            );
+                stream);
 
             // Dispatch to chained policy
             if (CubDebug(error = MaxPolicyT::Invoke(ptx_version, dispatch))) break;
@@ -424,6 +451,35 @@ struct DispatchUniqueByKey: SelectedPolicy
         while (0);
 
         return error;
+    }
+
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+    CUB_RUNTIME_FUNCTION __forceinline__
+    static cudaError_t Dispatch(
+        void*                   d_temp_storage,         
+        size_t                  &temp_storage_bytes,    
+        KeyInputIteratorT       d_keys_in,             
+        ValueInputIteratorT     d_values_in,            
+        KeyOutputIteratorT      d_keys_out,            
+        ValueOutputIteratorT    d_values_out,         
+        NumSelectedIteratorT    d_num_selected_out,  
+        EqualityOpT             equality_op,        
+        OffsetT                 num_items,              
+        cudaStream_t            stream,                
+        bool                    debug_synchronous)    
+    {
+      CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+      return Dispatch(d_temp_storage,
+                      temp_storage_bytes,
+                      d_keys_in,
+                      d_values_in,
+                      d_keys_out,
+                      d_values_out,
+                      d_num_selected_out,
+                      equality_op,
+                      num_items,
+                      stream);
     }
 };
 

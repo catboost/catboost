@@ -8,7 +8,7 @@
 
 #include <library/cpp/json/json_value.h>
 
-#include <util/generic/hash.h>
+#include <util/generic/fwd.h>
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
@@ -32,13 +32,12 @@ namespace NCB {
     struct TBestOptionValuesWithCvResult {
     public:
         TVector<TCVResult> CvResult;
-        THashMap<TString, bool> BoolOptions;
-        THashMap<TString, int> IntOptions;
-        THashMap<TString, ui32> UIntOptions;
-        THashMap<TString, double> DoubleOptions;
-        THashMap<TString, TString> StringOptions;
-        THashMap<TString, TVector<double>> ListOfDoublesOptions;
+        NJson::TJsonValue BestParams;
     public:
+        TBestOptionValuesWithCvResult()
+            : BestParams(NJson::JSON_MAP)
+        {}
+
         void SetOptionsFromJson(
             const THashMap<TString, NJson::TJsonValue>& options,
             const TVector<TString>& optionsNames);

@@ -21,6 +21,9 @@ namespace NCB {
     public:
         virtual void OutputColumnByType(IOutputStream* outstream, ui64 docId, EColumn columnType) = 0;
         virtual void OutputFeatureColumnByIndex(IOutputStream* outstream, ui64 docId, ui32 featureId) = 0;
+        virtual void OutputAuxiliaryColumn(IOutputStream* outstream, ui64 docId, ui32 auxiliaryColumnId, const TString& columnName) = 0;
+        virtual bool ValidAuxiliaryColumn(const TString& columnName) = 0;
+        virtual ui32 GetAuxiliaryColumnId(const TString& columnName) = 0;
         virtual void UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& /*columnsMetaInfo*/) {}
         virtual ~IPoolColumnsPrinter() = default;
         virtual std::type_index GetOutputFeatureType(ui32 featureId) = 0;
@@ -48,6 +51,9 @@ namespace NCB {
         TDSVPoolColumnsPrinter(TLineDataPoolColumnsPrinterPushArgs&& args);
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
         void OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) override;
+        void OutputAuxiliaryColumn(IOutputStream* outStream, ui64 docId, ui32 auxiliaryColumnId, const TString& columnName) override;
+        bool ValidAuxiliaryColumn(const TString& columnName) override;
+        ui32 GetAuxiliaryColumnId(const TString& columnName) override;
         void UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) override;
         std::type_index GetOutputFeatureType(ui32 featureId) override;
 
@@ -60,6 +66,7 @@ namespace NCB {
         TVector<TString> Columns;
         THashMap<EColumn, ui32> FromColumnTypeToColumnId;
         TVector<ui32> FromExternalIdToColumnId;
+        THashMap<TString, ui32> AuxiliaryColumnNameToId;
         TMaybe<TDataColumnsMetaInfo> ColumnsMetaInfo;
     };
 
@@ -68,6 +75,9 @@ namespace NCB {
         TQuantizedPoolColumnsPrinter(TPoolColumnsPrinterPullArgs&& args);
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
         void OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) override;
+        void OutputAuxiliaryColumn(IOutputStream* outStream, ui64 docId, ui32 auxiliaryColumnId, const TString& columnName) override;
+        bool ValidAuxiliaryColumn(const TString& columnName) override;
+        ui32 GetAuxiliaryColumnId(const TString& columnName) override;
         std::type_index GetOutputFeatureType(ui32 featureId) override;
 
     private:

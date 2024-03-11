@@ -12,6 +12,7 @@
 #endif
 
 #include <boost/math/tools/config.hpp>
+#include <boost/math/ccmath/detail/config.hpp>
 #include <boost/math/policies/error_handling.hpp>
 #include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -19,11 +20,9 @@
 #include <limits>
 #include <cmath>
 
-#ifndef BOOST_NO_CXX17_IF_CONSTEXPR
+#if !defined(BOOST_MATH_NO_CCMATH) && !defined(BOOST_MATH_NO_CONSTEXPR_DETECTION)
 #include <boost/math/ccmath/ldexp.hpp>
-#  if !defined(BOOST_MATH_NO_CONSTEXPR_DETECTION)
 #    define BOOST_MATH_HAS_CONSTEXPR_LDEXP
-#  endif
 #endif
 
 namespace boost{ namespace math{

@@ -36,6 +36,7 @@
 
 
 #include "../thread/thread_operators.cuh"
+#include "../detail/type_traits.cuh"
 #include "../config.cuh"
 
 CUB_NAMESPACE_BEGIN
@@ -49,14 +50,16 @@ namespace internal {
 template <
     int         LENGTH,
     typename    T,
-    typename    ReductionOp>
-__device__ __forceinline__ T ThreadReduce(
+    typename    ReductionOp,
+    typename    PrefixT,
+    typename    AccumT = detail::accumulator_t<ReductionOp, PrefixT, T>> 
+__device__ __forceinline__ AccumT ThreadReduce(
     T*                  input,                  ///< [in] Input array
     ReductionOp         reduction_op,           ///< [in] Binary reduction operator
-    T                   prefix,                 ///< [in] Prefix to seed reduction with
+    PrefixT             prefix,                 ///< [in] Prefix to seed reduction with
     Int2Type<LENGTH>    /*length*/)
 {
-    T retval = prefix;
+    AccumT retval = prefix;
 
     #pragma unroll
     for (int i = 0; i < LENGTH; ++i)
@@ -76,11 +79,13 @@ __device__ __forceinline__ T ThreadReduce(
 template <
     int         LENGTH,
     typename    T,
-    typename    ReductionOp>
-__device__ __forceinline__ T ThreadReduce(
+    typename    ReductionOp,
+    typename    PrefixT,
+    typename    AccumT = detail::accumulator_t<ReductionOp, PrefixT, T>> 
+__device__ __forceinline__ AccumT ThreadReduce(
     T*          input,                  ///< [in] Input array
     ReductionOp reduction_op,           ///< [in] Binary reduction operator
-    T           prefix)                 ///< [in] Prefix to seed reduction with
+    PrefixT     prefix)                 ///< [in] Prefix to seed reduction with
 {
     return ThreadReduce(input, reduction_op, prefix, Int2Type<LENGTH>());
 }
@@ -116,11 +121,13 @@ __device__ __forceinline__ T ThreadReduce(
 template <
     int         LENGTH,
     typename    T,
-    typename    ReductionOp>
-__device__ __forceinline__ T ThreadReduce(
+    typename    ReductionOp,
+    typename    PrefixT,
+    typename    AccumT = detail::accumulator_t<ReductionOp, PrefixT, T>> 
+__device__ __forceinline__ AccumT ThreadReduce(
     T           (&input)[LENGTH],       ///< [in] Input array
     ReductionOp reduction_op,           ///< [in] Binary reduction operator
-    T           prefix)                 ///< [in] Prefix to seed reduction with
+    PrefixT     prefix)                 ///< [in] Prefix to seed reduction with
 {
     return ThreadReduce(input, reduction_op, prefix, Int2Type<LENGTH>());
 }

@@ -10,7 +10,7 @@ add_subdirectory(lib)
 
 add_executable(catboost-libs-data-ut)
 target_include_directories(catboost-libs-data-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data
 )
 target_link_libraries(catboost-libs-data-ut PUBLIC
   contrib-libs-linux-headers
@@ -37,25 +37,25 @@ target_link_options(catboost-libs-data-ut PRIVATE
   -ldl
 )
 target_sources(catboost-libs-data-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/borders_io_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/columns_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/ctrs_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/data_provider_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/external_columns_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/features_layout_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/load_data_from_dsv_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/load_data_from_libsvm_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/meta_info_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/model_dataset_compatibility_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/objects_grouping_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/objects_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/order_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/process_data_blocks_from_dsv_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/quantization_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/target_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/unaligned_mem_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/util.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/weights_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/borders_io_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/columns_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/ctrs_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/data_provider_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/external_columns_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/features_layout_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/load_data_from_dsv_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/load_data_from_libsvm_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/meta_info_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/model_dataset_compatibility_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/objects_grouping_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/objects_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/order_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/process_data_blocks_from_dsv_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/quantization_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/target_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/unaligned_mem_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/util.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/weights_ut.cpp
 )
 set_property(
   TARGET
@@ -89,6 +89,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-libs-data-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-libs-data-ut
   cpp-malloc-tcmalloc

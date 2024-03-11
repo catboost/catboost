@@ -754,7 +754,24 @@ int NUnitTest::RunMain(int argc, char** argv) {
             processor.FilterFromFile(filterFn);
         }
 
-
+        auto processJunitOption = [&](const TStringBuf& v) {
+            if (!hasJUnitProcessor) {
+                hasJUnitProcessor = true;
+                bool xmlFormat = false;
+                constexpr TStringBuf xmlPrefix = "xml:";
+                constexpr TStringBuf jsonPrefix = "json:";
+                if ((xmlFormat = v.StartsWith(xmlPrefix)) || v.StartsWith(jsonPrefix)) {
+                    TStringBuf fileName = v;
+                    const TStringBuf prefix = xmlFormat ? xmlPrefix : jsonPrefix;
+                    fileName = fileName.SubString(prefix.size(), TStringBuf::npos);
+                    const TJUnitProcessor::EOutputFormat format = xmlFormat ? TJUnitProcessor::EOutputFormat::Xml : TJUnitProcessor::EOutputFormat::Json;
+                    NUnitTest::ShouldColorizeDiff = false;
+                    traceProcessors.push_back(std::make_shared<TJUnitProcessor>(TString(fileName),
+                                                                                std::filesystem::path(argv[0]).stem().string(),
+                                                                                format));
+                }
+            }
+        };
 
         for (size_t i = 1; i < (size_t)argc; ++i) {
             const char* name = argv[i];
@@ -814,14 +831,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                 } else if (strcmp(name, "--output") == 0) {
                     ++i;
                     Y_ENSURE((int)i < argc);
-                    TString param(argv[i]);
-                    if (param.StartsWith("xml:") && !hasJUnitProcessor) {
-                        TStringBuf fileName = param;
-                        fileName = fileName.SubString(4, TStringBuf::npos);
-                        NUnitTest::ShouldColorizeDiff = false;
-                        traceProcessors.push_back(std::make_shared<TJUnitProcessor>(TString(fileName), argv[0]));
-                    }
-                    hasJUnitProcessor = true;
+                    processJunitOption(argv[i]);
                 } else if (strcmp(name, "--filter-file") == 0) {
                     ++i;
                     TString filename(argv[i]);
@@ -842,13 +852,8 @@ int NUnitTest::RunMain(int argc, char** argv) {
         }
 
         if (!hasJUnitProcessor) {
-            TString oo(GetEnv(Y_UNITTEST_OUTPUT_CMDLINE_OPTION));
-            if (oo.StartsWith("xml:")) {
-                TStringBuf fileName = oo;
-                fileName = fileName.SubString(4, TStringBuf::npos);
-                NUnitTest::ShouldColorizeDiff = false;
-                traceProcessors.push_back(std::make_shared<TJUnitProcessor>(TString(fileName),
-                                                                            std::filesystem::path(argv[0]).stem().string()));
+            if (TString oo = GetEnv(Y_UNITTEST_OUTPUT_CMDLINE_OPTION)) {
+                processJunitOption(oo);
             }
         }
 

@@ -1,6 +1,7 @@
 #include "baseline.h"
 #include "cb_dsv_loader.h"
 #include "load_data.h"
+#include "loader.h"
 #include "sampler.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
@@ -15,6 +16,7 @@
 #include <library/cpp/string_utils/csv/csv.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
@@ -399,11 +401,7 @@ namespace NCB {
         }
     }
 
-    int GetDsvColumnCount(
-        const TPathWithScheme& pathWithScheme,
-        const TDsvFormatOptions& format,
-        bool ignoreCsvQuoting
-    ) {
+    size_t GetDsvColumnCount(const TPathWithScheme& pathWithScheme, const TDsvFormatOptions& format) {
         CB_ENSURE_INTERNAL(pathWithScheme.Scheme == "dsv", "Unsupported scheme " << pathWithScheme.Scheme);
         TString firstLine;
         CB_ENSURE(
@@ -411,8 +409,79 @@ namespace NCB {
             "TCBDsvDataLoader: no data rows in pool"
         );
         return TVector<TString>(
-            NCsvFormat::CsvSplitter(firstLine, format.Delimiter, ignoreCsvQuoting ? '\0' : '"')
+            NCsvFormat::CsvSplitter(firstLine, format.Delimiter, format.IgnoreCsvQuoting ? '\0' : '"')
         ).size();
+    }
+
+    static void AugmentWithExternalFeatureNames(
+        TConstArrayRef<TString> featureNames,
+        TArrayRef<TColumn>* columnsDescription
+    ) {
+        size_t featureIdx = 0;
+        for (auto& column : *columnsDescription) {
+            if (IsFactorColumn(column.Type)) {
+                if (featureIdx == featureNames.size()) {
+                    break;
+                }
+                if (column.Id.empty()) {
+                    column.Id = featureNames[featureIdx];
+                } else {
+                    CB_ENSURE(
+                        column.Id == featureNames[featureIdx],
+                        "Feature #" << featureIdx << ": name from columns specification (\""
+                        << column.Id
+                        << "\") is not equal to external feature name (\""
+                        << featureNames[featureIdx] << "\")"
+                    );
+                }
+                ++featureIdx;
+            } else {
+                CB_ENSURE(column.SubColumns.empty(), "SubColumns not supported");
+            }
+        }
+    }
+
+    TVector<TColumn> CreateDsvColumnsDescription(
+        const TPathWithScheme& datasetPathWithScheme,
+        const TPathWithScheme& cdPathWithScheme,
+        const TPathWithScheme& featureNamesPathWithScheme,
+        const TDsvFormatOptions& format
+    ) {
+        auto lineDataReader = GetLineDataReader(datasetPathWithScheme, format);
+
+        auto csvSplitterQuote = format.IgnoreCsvQuoting ? '\0' : '"';
+
+        TMaybe<TString> header = lineDataReader->GetHeader();
+        TMaybe<TVector<TString>> headerColumns;
+        int columnCount = 0;
+        if (header) {
+            headerColumns = TVector<TString>(
+                NCsvFormat::CsvSplitter(*header, format.Delimiter, csvSplitterQuote)
+            );
+            columnCount = SafeIntegerCast<int>(headerColumns->size());
+        } else {
+            TString firstLine;
+            CB_ENSURE(lineDataReader->ReadLine(&firstLine), "no data rows in pool");
+            columnCount = SafeIntegerCast<int>(
+                TVector<TString>(
+                    NCsvFormat::CsvSplitter(firstLine, format.Delimiter, csvSplitterQuote)
+                ).size()
+            );
+        }
+
+        auto dataColumnsMetaInfo = TDataColumnsMetaInfo{
+            cdPathWithScheme.Inited() ?
+                ReadCD(cdPathWithScheme, TCdParserDefaults(EColumn::Num, columnCount))
+                : MakeDefaultColumnsDescription(columnCount)
+        };
+
+        auto featureNames = GetFeatureNames(dataColumnsMetaInfo, headerColumns, featureNamesPathWithScheme);
+        auto columnsDescription = std::move(dataColumnsMetaInfo.Columns);
+
+        TArrayRef<TColumn> columnsDescriptionRef(columnsDescription);
+        AugmentWithExternalFeatureNames(featureNames, &columnsDescriptionRef);
+
+        return columnsDescription;
     }
 
     namespace {

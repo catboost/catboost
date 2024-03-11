@@ -9,7 +9,7 @@
 
 add_executable(catboost-libs-train_lib-ut)
 target_include_directories(catboost-libs-train_lib-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib
 )
 target_link_libraries(catboost-libs-train_lib-ut PUBLIC
   contrib-libs-linux-headers
@@ -33,7 +33,7 @@ target_link_options(catboost-libs-train_lib-ut PRIVATE
   -lcudart_static
 )
 target_sources(catboost-libs-train_lib-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib/ut/train_model_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/ut/train_model_ut.cpp
 )
 set_property(
   TARGET
@@ -67,6 +67,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-libs-train_lib-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-libs-train_lib-ut
   cpp-malloc-jemalloc

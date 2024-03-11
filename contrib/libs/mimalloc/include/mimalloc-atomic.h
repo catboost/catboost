@@ -312,7 +312,7 @@ static inline void mi_atomic_yield(void) {
 #endif
 #elif defined(__sun)
 // Fallback for other archs
-#include <synch.h>
+#error #include <synch.h>
 static inline void mi_atomic_yield(void) {
   smt_pause();
 }

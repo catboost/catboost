@@ -8,6 +8,7 @@ instance:
     names = getStatNames(doc, instance.getFullUserLocation(doc))
     print(names.styleNames)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

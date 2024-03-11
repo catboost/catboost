@@ -53,7 +53,6 @@ namespace xsimd
             using type = simd_avx512_bool_register<T>;
         };
 
-        XSIMD_DECLARE_SIMD_REGISTER(bool, avx512f, __m512i);
         XSIMD_DECLARE_SIMD_REGISTER(signed char, avx512f, __m512i);
         XSIMD_DECLARE_SIMD_REGISTER(unsigned char, avx512f, __m512i);
         XSIMD_DECLARE_SIMD_REGISTER(char, avx512f, __m512i);

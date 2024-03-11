@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: freezegun
-Version: 1.2.2
+Version: 1.4.0
 Summary: Let your Python tests travel through time
 Home-page: https://github.com/spulec/freezegun
 Author: Steve Pulec
@@ -15,12 +15,15 @@ Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
-Requires-Python: >=3.6
+Requires-Python: >=3.7
 License-File: LICENSE
 License-File: AUTHORS.rst
-Requires-Dist: python-dateutil (>=2.7)
+Requires-Dist: python-dateutil >=2.7
 
 FreezeGun: Let your Python tests travel through time
 ====================================================

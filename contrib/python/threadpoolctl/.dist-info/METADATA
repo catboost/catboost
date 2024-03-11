@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: threadpoolctl
-Version: 3.2.0
+Version: 3.3.0
 Summary: threadpoolctl
 Home-page: https://github.com/joblib/threadpoolctl
 License: BSD-3-Clause
@@ -15,6 +15,7 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 
 # Thread-pool Controls [![Build Status](https://dev.azure.com/joblib/threadpoolctl/_apis/build/status/joblib.threadpoolctl?branchName=master)](https://dev.azure.com/joblib/threadpoolctl/_build/latest?definitionId=1&branchName=master) [![codecov](https://codecov.io/gh/joblib/threadpoolctl/branch/master/graph/badge.svg)](https://codecov.io/gh/joblib/threadpoolctl)
@@ -211,6 +212,92 @@ decorators are accessible through their `wrap` method:
 ...
 ```
 
+### Switching the FlexiBLAS backend
+
+`FlexiBLAS` is a BLAS wrapper for which the BLAS backend can be switched at runtime.
+`threadpoolctl` exposes python bindings for this feature. Here's an example but note
+that this part of the API is experimental and subject to change without deprecation:
+
+```python
+>>> from threadpoolctl import ThreadpoolController
+>>> import numpy as np
+>>> controller = ThreadpoolController()
+
+>>> controller.info()
+[{'user_api': 'blas',
+  'internal_api': 'flexiblas',
+  'num_threads': 1,
+  'prefix': 'libflexiblas',
+  'filepath': '/usr/local/lib/libflexiblas.so.3.3',
+  'version': '3.3.1',
+  'available_backends': ['NETLIB', 'OPENBLASPTHREAD', 'ATLAS'],
+  'loaded_backends': ['NETLIB'],
+  'current_backend': 'NETLIB'}]
+
+# Retrieve the flexiblas controller
+>>> flexiblas_ct = controller.select(internal_api="flexiblas").lib_controllers[0]
+
+# Switch the backend with one predefined at build time (listed in "available_backends")
+>>> flexiblas_ct.switch_backend("OPENBLASPTHREAD")
+>>> controller.info()
+[{'user_api': 'blas',
+  'internal_api': 'flexiblas',
+  'num_threads': 4,
+  'prefix': 'libflexiblas',
+  'filepath': '/usr/local/lib/libflexiblas.so.3.3',
+  'version': '3.3.1',
+  'available_backends': ['NETLIB', 'OPENBLASPTHREAD', 'ATLAS'],
+  'loaded_backends': ['NETLIB', 'OPENBLASPTHREAD'],
+  'current_backend': 'OPENBLASPTHREAD'},
+ {'user_api': 'blas',
+  'internal_api': 'openblas',
+  'num_threads': 4,
+  'prefix': 'libopenblas',
+  'filepath': '/usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.8.so',
+  'version': '0.3.8',
+  'threading_layer': 'pthreads',
+  'architecture': 'Haswell'}]
+
+# It's also possible to directly give the path to a shared library
+>>> flexiblas_controller.switch_backend("/home/jeremie/miniforge/envs/flexiblas_threadpoolctl/lib/libmkl_rt.so")
+>>> controller.info()
+[{'user_api': 'blas',
+  'internal_api': 'flexiblas',
+  'num_threads': 2,
+  'prefix': 'libflexiblas',
+  'filepath': '/usr/local/lib/libflexiblas.so.3.3',
+  'version': '3.3.1',
+  'available_backends': ['NETLIB', 'OPENBLASPTHREAD', 'ATLAS'],
+  'loaded_backends': ['NETLIB',
+   'OPENBLASPTHREAD',
+   '/home/jeremie/miniforge/envs/flexiblas_threadpoolctl/lib/libmkl_rt.so'],
+  'current_backend': '/home/jeremie/miniforge/envs/flexiblas_threadpoolctl/lib/libmkl_rt.so'},
+ {'user_api': 'openmp',
+  'internal_api': 'openmp',
+  'num_threads': 4,
+  'prefix': 'libomp',
+  'filepath': '/home/jeremie/miniforge/envs/flexiblas_threadpoolctl/lib/libomp.so',
+  'version': None},
+ {'user_api': 'blas',
+  'internal_api': 'openblas',
+  'num_threads': 4,
+  'prefix': 'libopenblas',
+  'filepath': '/usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.8.so',
+  'version': '0.3.8',
+  'threading_layer': 'pthreads',
+  'architecture': 'Haswell'},
+ {'user_api': 'blas',
+  'internal_api': 'mkl',
+  'num_threads': 2,
+  'prefix': 'libmkl_rt',
+  'filepath': '/home/jeremie/miniforge/envs/flexiblas_threadpoolctl/lib/libmkl_rt.so.2',
+  'version': '2024.0-Product',
+  'threading_layer': 'gnu'}]
+```
+
+You can observe that the previously linked OpenBLAS shared object stays loaded by
+the Python program indefinitely, but FlexiBLAS itself no longer delegates BLAS calls
+to OpenBLAS as indicated by the `current_backend` attribute.
 ### Writing a custom library controller
 
 Currently, `threadpoolctl` has support for `OpenMP` and the main `BLAS` libraries.

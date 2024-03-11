@@ -44,6 +44,7 @@
 - {{ error-function__ZeroOneLoss }}
 - {{ error-function__MSLE }}
 - {{ error-function__MedianAbsoluteError }}
+- {{ error-function__Cox }}
 - {{ error-function__Huber }}
 - {{ error-function__Expectile }}
 - {{ error-function__MultiRMSE }}

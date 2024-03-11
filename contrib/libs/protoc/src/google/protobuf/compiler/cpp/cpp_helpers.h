@@ -478,11 +478,12 @@ bool IsAnyMessage(const Descriptor* descriptor, const Options& options);
 bool IsWellKnownMessage(const FileDescriptor* descriptor);
 
 inline TProtoStringType IncludeGuard(const FileDescriptor* file, bool pb_h,
+                                bool deps,
                                 const Options& options) {
   // If we are generating a .pb.h file and the proto_h option is enabled, then
   // the .pb.h gets an extra suffix.
   TProtoStringType filename_identifier = FilenameIdentifier(
-      file->name() + (pb_h && options.proto_h ? ".pb.h" : ""));
+      file->name() + (deps ? ".deps": "") + (pb_h && options.proto_h ? ".pb.h" : ""));
 
   if (IsWellKnownMessage(file)) {
     // For well-known messages we need third_party/protobuf and net/proto2 to

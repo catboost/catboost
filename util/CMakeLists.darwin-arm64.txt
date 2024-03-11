@@ -7,7 +7,19 @@
 
 
 add_subdirectory(charset)
+add_subdirectory(datetime)
+add_subdirectory(digest)
 add_subdirectory(draft)
+add_subdirectory(folder)
+add_subdirectory(generic)
+add_subdirectory(memory)
+add_subdirectory(network)
+add_subdirectory(random)
+add_subdirectory(stream)
+add_subdirectory(string)
+add_subdirectory(system)
+add_subdirectory(thread)
+add_subdirectory(ut)
 
 add_library(yutil)
 target_compile_options(yutil PRIVATE
@@ -21,281 +33,281 @@ target_link_libraries(yutil PUBLIC
   contrib-libs-libc_compat
 )
 target_sources(yutil PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/system/compiler.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/city.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/random.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/cast.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/context_aarch64.S
+  ${PROJECT_SOURCE_DIR}/util/system/compiler.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/city.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/random.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/cast.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/context_aarch64.S
 )
 target_joined_source(yutil
   all_datetime.cpp
-  ${CMAKE_SOURCE_DIR}/util/datetime/base.cpp
-  ${CMAKE_SOURCE_DIR}/util/datetime/constants.cpp
-  ${CMAKE_SOURCE_DIR}/util/datetime/cputimer.cpp
-  ${CMAKE_SOURCE_DIR}/util/datetime/systime.cpp
-  ${CMAKE_SOURCE_DIR}/util/datetime/uptime.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/base.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/constants.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/cputimer.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/systime.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/uptime.cpp
 )
 target_joined_source(yutil
   all_digest.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/fnv.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/multi.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/murmur.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/numeric.cpp
-  ${CMAKE_SOURCE_DIR}/util/digest/sequence.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/fnv.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/multi.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/murmur.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/numeric.cpp
+  ${PROJECT_SOURCE_DIR}/util/digest/sequence.cpp
 )
 target_joined_source(yutil
   all_util.cpp
-  ${CMAKE_SOURCE_DIR}/util/ysafeptr.cpp
-  ${CMAKE_SOURCE_DIR}/util/ysaveload.cpp
-  ${CMAKE_SOURCE_DIR}/util/str_stl.cpp
+  ${PROJECT_SOURCE_DIR}/util/ysafeptr.cpp
+  ${PROJECT_SOURCE_DIR}/util/ysaveload.cpp
+  ${PROJECT_SOURCE_DIR}/util/str_stl.cpp
 )
 target_joined_source(yutil
   all_folder.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/dirut.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/filelist.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/fts.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/fwd.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/iterator.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/path.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/pathsplit.cpp
-  ${CMAKE_SOURCE_DIR}/util/folder/tempdir.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/dirut.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/filelist.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/fts.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/fwd.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/iterator.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/path.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/pathsplit.cpp
+  ${PROJECT_SOURCE_DIR}/util/folder/tempdir.cpp
 )
 target_joined_source(yutil
   all_generic.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/adaptor.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/algorithm.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/array_ref.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/array_size.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/bitmap.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/bitops.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/bt_exception.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/buffer.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/cast.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/deque.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/explicit_type.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/fastqueue.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/flags.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/function.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/function_ref.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/fwd.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/guid.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/hash.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/hash_multi_map.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/hash_table.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/hash_primes.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/hash_set.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/hide_ptr.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/intrlist.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/is_in.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/iterator.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/iterator_range.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/lazy_value.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/list.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/map.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/mapfindptr.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/maybe.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/mem_copy.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/noncopyable.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/object_counter.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/overloaded.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/ptr.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/queue.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/refcount.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/scope.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/serialized_enum.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/set.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/singleton.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/size_literals.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/stack.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/store_policy.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/strbuf.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/strfcpy.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/string.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/typelist.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/typetraits.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/utility.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/va_args.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/variant.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/vector.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/xrange.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/yexception.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/ylimits.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/ymath.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/adaptor.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/algorithm.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/array_ref.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/array_size.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/bitmap.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/bitops.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/bt_exception.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/buffer.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/cast.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/deque.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/explicit_type.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/fastqueue.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/flags.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/function.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/function_ref.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/fwd.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/guid.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/hash.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/hash_multi_map.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/hash_table.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/hash_primes.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/hash_set.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/hide_ptr.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/intrlist.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/is_in.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/iterator.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/iterator_range.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/lazy_value.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/list.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/map.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/mapfindptr.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/maybe.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/mem_copy.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/noncopyable.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/object_counter.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/overloaded.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/ptr.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/queue.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/refcount.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/scope.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/serialized_enum.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/set.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/singleton.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/size_literals.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/stack.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/store_policy.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/strbuf.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/strfcpy.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/string.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/typelist.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/typetraits.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/utility.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/va_args.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/variant.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/vector.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/xrange.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/yexception.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/ylimits.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/ymath.cpp
 )
 target_joined_source(yutil
   all_memory.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/addstorage.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/alloc.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/blob.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/mmapalloc.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/pool.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/segmented_string_pool.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/segpool_alloc.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/smallobj.cpp
-  ${CMAKE_SOURCE_DIR}/util/memory/tempbuf.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/addstorage.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/alloc.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/blob.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/mmapalloc.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/pool.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/segmented_string_pool.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/segpool_alloc.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/smallobj.cpp
+  ${PROJECT_SOURCE_DIR}/util/memory/tempbuf.cpp
 )
 target_joined_source(yutil
   all_network.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/address.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/endpoint.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/hostip.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/init.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/interface.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/iovec.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/ip.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/nonblock.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/pair.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/poller.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/pollerimpl.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/sock.cpp
-  ${CMAKE_SOURCE_DIR}/util/network/socket.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/address.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/endpoint.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/hostip.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/init.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/interface.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/iovec.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/ip.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/nonblock.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/pair.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/poller.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/pollerimpl.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/sock.cpp
+  ${PROJECT_SOURCE_DIR}/util/network/socket.cpp
 )
 target_joined_source(yutil
   all_random.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/common_ops.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/easy.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/entropy.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/fast.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/lcg_engine.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/mersenne32.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/mersenne64.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/mersenne.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/normal.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/shuffle.cpp
-  ${CMAKE_SOURCE_DIR}/util/random/init_atfork.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/common_ops.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/easy.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/entropy.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/fast.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/lcg_engine.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/mersenne32.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/mersenne64.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/mersenne.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/normal.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/shuffle.cpp
+  ${PROJECT_SOURCE_DIR}/util/random/init_atfork.cpp
 )
 target_joined_source(yutil
   all_stream.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/aligned.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/buffer.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/buffered.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/debug.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/direct_io.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/file.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/format.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/fwd.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/hex.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/holder.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/input.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/labeled.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/length.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/mem.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/multi.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/null.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/output.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/pipe.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/printf.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/str.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/tee.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/tempbuf.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/tokenizer.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/trace.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/walk.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/zerocopy.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/zerocopy_output.cpp
-  ${CMAKE_SOURCE_DIR}/util/stream/zlib.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/aligned.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/buffer.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/buffered.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/debug.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/direct_io.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/file.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/format.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/fwd.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/hex.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/holder.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/input.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/labeled.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/length.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/mem.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/multi.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/null.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/output.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/pipe.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/printf.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/str.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/tee.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/tempbuf.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/tokenizer.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/trace.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/walk.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/zerocopy.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/zerocopy_output.cpp
+  ${PROJECT_SOURCE_DIR}/util/stream/zlib.cpp
 )
 target_joined_source(yutil
   all_string.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/ascii.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/builder.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/cstriter.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/escape.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/hex.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/join.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/printf.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/reverse.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/split.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/strip.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/strspn.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/subst.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/type.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/util.cpp
-  ${CMAKE_SOURCE_DIR}/util/string/vector.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/ascii.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/builder.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/cstriter.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/escape.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/hex.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/join.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/printf.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/reverse.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/split.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/strip.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/strspn.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/subst.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/type.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/util.cpp
+  ${PROJECT_SOURCE_DIR}/util/string/vector.cpp
 )
 target_joined_source(yutil
   all_system_1.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/atexit.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/backtrace.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/compat.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/condvar.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/context.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/daemon.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/datetime.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/defaults.c
-  ${CMAKE_SOURCE_DIR}/util/system/direct_io.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/dynlib.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/env.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/error.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/event.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/execpath.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/fasttime.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/file.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/file_lock.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/filemap.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/flock.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/fs.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/fstat.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/getpid.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/hi_lo.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/hostname.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/hp_timer.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/info.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/atexit.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/backtrace.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/compat.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/condvar.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/context.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/daemon.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/datetime.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/defaults.c
+  ${PROJECT_SOURCE_DIR}/util/system/direct_io.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/dynlib.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/env.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/error.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/event.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/execpath.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/fasttime.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/file.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/file_lock.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/filemap.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/flock.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/fs.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/fstat.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/getpid.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/hi_lo.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/hostname.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/hp_timer.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/info.cpp
 )
 target_joined_source(yutil
   all_system_2.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/align.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/byteorder.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/cpu_id.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/fhandle.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/guard.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/interrupt_signals.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/madvise.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/maxlen.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/mem_info.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/mincore.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/mktemp.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/mlock.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/mutex.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/nice.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/pipe.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/platform.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/progname.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/protect.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/rusage.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/rwlock.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/sanitizers.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/sem.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/shellcommand.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/shmat.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/sigset.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/spinlock.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/spin_wait.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/src_location.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/sys_alloc.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/sysstat.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/tempfile.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/thread.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/tls.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/types.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/type_name.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/unaligned_mem.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/user.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/utime.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/yassert.cpp
-  ${CMAKE_SOURCE_DIR}/util/system/yield.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/align.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/byteorder.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/cpu_id.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/fhandle.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/guard.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/interrupt_signals.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/madvise.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/maxlen.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/mem_info.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/mincore.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/mktemp.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/mlock.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/mutex.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/nice.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/pipe.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/platform.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/progname.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/protect.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/rusage.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/rwlock.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/sanitizers.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/sem.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/shellcommand.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/shmat.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/sigset.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/spinlock.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/spin_wait.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/src_location.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/sys_alloc.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/sysstat.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/tempfile.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/thread.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/tls.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/types.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/type_name.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/unaligned_mem.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/user.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/utime.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/yassert.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/yield.cpp
 )
 target_joined_source(yutil
   all_thread.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/factory.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/fwd.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/lfqueue.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/lfstack.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/pool.cpp
-  ${CMAKE_SOURCE_DIR}/util/thread/singleton.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/factory.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/fwd.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/lfqueue.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/lfstack.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/pool.cpp
+  ${PROJECT_SOURCE_DIR}/util/thread/singleton.cpp
 )
 target_ragel_lexers(yutil
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/datetime/parser.rl6
+  ${PROJECT_SOURCE_DIR}/util/datetime/parser.rl6
   -CG2
 )

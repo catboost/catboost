@@ -23,6 +23,9 @@ class UnsatisfiedAssumption(HypothesisException):
     If you're seeing this error something has gone wrong.
     """
 
+    def __init__(self, reason=None):
+        self.reason = reason
+
 
 class NoSuchExample(HypothesisException):
     """The condition we have been asked to satisfy appears to be always false.
@@ -111,6 +114,13 @@ class HypothesisDeprecationWarning(HypothesisWarning, FutureWarning):
     You can configure the Python :mod:`python:warnings` to handle these
     warnings differently to others, either turning them into errors or
     suppressing them entirely.  Obviously we would prefer the former!
+    """
+
+
+class HypothesisSideeffectWarning(HypothesisWarning):
+    """A warning issued by Hypothesis when it sees actions that are
+    discouraged at import or initialization time because they are
+    slow or have user-visible side effects.
     """
 
 

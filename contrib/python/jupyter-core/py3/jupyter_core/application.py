@@ -13,6 +13,7 @@ import os
 import sys
 import typing as t
 from copy import deepcopy
+from pathlib import Path
 from shutil import which
 
 from traitlets import Bool, List, Unicode, observe
@@ -28,7 +29,7 @@ from .paths import (
     jupyter_path,
     jupyter_runtime_dir,
 )
-from .utils import ensure_dir_exists
+from .utils import ensure_dir_exists, ensure_event_loop
 
 # mypy: disable-error-code="no-untyped-call"
 
@@ -62,7 +63,7 @@ _jupyter_flags: dict[str, t.Any] = {
 base_flags.update(_jupyter_flags)
 
 
-class NoStart(Exception):  # noqa
+class NoStart(Exception):
     """Exception to raise when an application shouldn't start"""
 
 
@@ -135,9 +136,9 @@ class JupyterApp(Application):
         if self.config_file:
             config_file = self.config_file
         else:
-            config_file = os.path.join(self.config_dir, self.config_file_name + ".py")
+            config_file = str(Path(self.config_dir, self.config_file_name + ".py"))
 
-        if os.path.exists(config_file) and not self.answer_yes:
+        if Path(config_file).exists() and not self.answer_yes:
             answer = ""
 
             def ask() -> str:
@@ -157,19 +158,19 @@ class JupyterApp(Application):
 
         config_text = self.generate_config_file()
         print("Writing default config to: %s" % config_file)
-        ensure_dir_exists(os.path.abspath(os.path.dirname(config_file)), 0o700)
-        with open(config_file, mode="w", encoding="utf-8") as f:
+        ensure_dir_exists(Path(config_file).parent.resolve(), 0o700)
+        with Path.open(Path(config_file), mode="w", encoding="utf-8") as f:
             f.write(config_text)
 
     def migrate_config(self) -> None:
         """Migrate config/data from IPython 3"""
         try:  # let's see if we can open the marker file
             # for reading and updating (writing)
-            f_marker = open(os.path.join(self.config_dir, "migrated"), "r+")  # noqa
-        except PermissionError:  # not readable and/or writable
-            return  # so let's give up migration in such an environment
+            f_marker = Path.open(Path(self.config_dir, "migrated"), "r+")
         except FileNotFoundError:  # cannot find the marker file
             pass  # that means we have not migrated yet, so continue
+        except OSError:  # not readable and/or writable
+            return  # so let's give up migration in such an environment
         else:  # if we got here without raising anything,
             # that means the file exists
             f_marker.close()
@@ -178,7 +179,7 @@ class JupyterApp(Application):
         from .migrate import get_ipython_dir, migrate
 
         # No IPython dir, nothing to migrate
-        if not os.path.exists(get_ipython_dir()):
+        if not Path(get_ipython_dir()).exists():
             return
 
         migrate()
@@ -262,7 +263,7 @@ class JupyterApp(Application):
     def start(self) -> None:
         """Start the whole thing"""
         if self.subcommand:
-            os.execv(self.subcommand, [self.subcommand] + self.argv[1:])  # noqa
+            os.execv(self.subcommand, [self.subcommand] + self.argv[1:])  # noqa: S606
             raise NoStart()
 
         if self.subapp:
@@ -276,10 +277,44 @@ class JupyterApp(Application):
     @classmethod
     def launch_instance(cls, argv: t.Any = None, **kwargs: t.Any) -> None:
         """Launch an instance of a Jupyter Application"""
+        # Ensure an event loop is set before any other code runs.
+        loop = ensure_event_loop()
         try:
             super().launch_instance(argv=argv, **kwargs)
         except NoStart:
             return
+        loop.close()
+
+
+class JupyterAsyncApp(JupyterApp):
+    """A Jupyter application that runs on an asyncio loop."""
+
+    name = "jupyter_async"  # override in subclasses
+    description = "An Async Jupyter Application"
+
+    # Set to True for tornado-based apps.
+    _prefer_selector_loop = False
+
+    async def initialize_async(self, argv: t.Any = None) -> None:
+        """Initialize the application asynchronoously."""
+
+    async def start_async(self) -> None:
+        """Run the application in an event loop."""
+
+    @classmethod
+    async def _launch_instance(cls, argv: t.Any = None, **kwargs: t.Any) -> None:
+        app = cls.instance(**kwargs)
+        app.initialize(argv)
+        await app.initialize_async(argv)
+        await app.start_async()
+
+    @classmethod
+    def launch_instance(cls, argv: t.Any = None, **kwargs: t.Any) -> None:
+        """Launch an instance of an async Jupyter Application"""
+        loop = ensure_event_loop(cls._prefer_selector_loop)
+        coro = cls._launch_instance(argv, **kwargs)
+        loop.run_until_complete(coro)
+        loop.close()
 
 
 if __name__ == "__main__":

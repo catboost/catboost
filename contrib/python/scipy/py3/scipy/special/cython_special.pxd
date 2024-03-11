@@ -67,6 +67,11 @@ cdef void ellipj(double x0, double x1, double *y0, double *y1, double *y2, doubl
 cpdef double ellipkinc(double x0, double x1) nogil
 cpdef double ellipkm1(double x0) nogil
 cpdef double ellipk(double x0) nogil
+cpdef Dd_number_t elliprc(Dd_number_t x0, Dd_number_t x1) nogil
+cpdef Dd_number_t elliprd(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil
+cpdef Dd_number_t elliprf(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil
+cpdef Dd_number_t elliprg(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil
+cpdef Dd_number_t elliprj(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2, Dd_number_t x3) nogil
 cpdef double entr(double x0) nogil
 cpdef Dd_number_t erf(Dd_number_t x0) nogil
 cpdef Dd_number_t erfc(Dd_number_t x0) nogil
@@ -159,6 +164,7 @@ cpdef double kolmogorov(double x0) nogil
 cpdef Dd_number_t kv(double x0, Dd_number_t x1) nogil
 cpdef Dd_number_t kve(double x0, Dd_number_t x1) nogil
 cpdef Dd_number_t log1p(Dd_number_t x0) nogil
+cpdef dfg_number_t log_expit(dfg_number_t x0) nogil
 cpdef Dd_number_t log_ndtr(Dd_number_t x0) nogil
 cpdef Dd_number_t loggamma(Dd_number_t x0) nogil
 cpdef dfg_number_t logit(dfg_number_t x0) nogil

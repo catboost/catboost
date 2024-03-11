@@ -3,6 +3,8 @@
 #include "json_helper.h"
 #include "restrictions.h"
 
+#include <catboost/libs/helpers/json_helpers.h>
+
 #include <library/cpp/json/json_reader.h>
 
 #include <util/generic/algorithm.h>
@@ -788,7 +790,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
     if (subsample.IsSet()) {
-        CB_ENSURE(bootstrapType != EBootstrapType::Bayesian, "Error: default bootstrap type (bayesian) doesn't support taken fraction option");
+        CB_ENSURE(bootstrapType != EBootstrapType::Bayesian, "Error: default bootstrap type (bayesian) doesn't support 'subsample' option");
     } else {
         if (bootstrapType == EBootstrapType::MVS) {
             subsample.SetDefault(0.8);
@@ -1054,11 +1056,11 @@ static TVector<ui32> GetIndices(const NJson::TJsonValue& catBoostJsonOptions, co
         if (value.IsArray()) {
             try {
                 TVector<ui32> result;
-                NCatboostOptions::TJsonFieldHelper<TVector<ui32>>::Read(value, &result);
+                TJsonFieldHelper<TVector<ui32>>::Read(value, &result);
                 return result;
             } catch (NJson::TJsonException) {
                 TVector<TVector<ui32>> indexSets;
-                NCatboostOptions::TJsonFieldHelper<TVector<TVector<ui32>>>::Read(value, &indexSets);
+                TJsonFieldHelper<TVector<TVector<ui32>>>::Read(value, &indexSets);
                 TVector<ui32> result;
                 for (const auto& indexSet : indexSets) {
                     result.insert(result.end(), indexSet.begin(), indexSet.end());
@@ -1107,7 +1109,7 @@ static bool IsFullBaseline(const NJson::TJsonValue& source) {
         "use_evaluated_features_in_baseline_model",
         false
     );
-    NCatboostOptions::TJsonFieldHelper<decltype(isFullBaseline)>::Read(
+    TJsonFieldHelper<decltype(isFullBaseline)>::Read(
         source["model_based_eval_options"],
         &isFullBaseline
     );

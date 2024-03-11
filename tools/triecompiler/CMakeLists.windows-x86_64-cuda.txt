@@ -16,7 +16,7 @@ target_link_libraries(triecompiler PUBLIC
   tools-triecompiler-lib
 )
 target_sources(triecompiler PRIVATE
-  ${CMAKE_SOURCE_DIR}/tools/triecompiler/main.cpp
+  ${PROJECT_SOURCE_DIR}/tools/triecompiler/main.cpp
 )
 target_allocator(triecompiler
   system_allocator

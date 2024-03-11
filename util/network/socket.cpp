@@ -307,17 +307,13 @@ void SetInputBuffer(SOCKET s, unsigned value) {
     CheckedSetSockOpt(s, SOL_SOCKET, SO_RCVBUF, value, "input buffer");
 }
 
-#if defined(_linux_) && !defined(SO_REUSEPORT)
-    #define SO_REUSEPORT 15
-#endif
-
 void SetReusePort(SOCKET s, bool value) {
-#if defined(SO_REUSEPORT)
+#if defined(_unix_)
     CheckedSetSockOpt(s, SOL_SOCKET, SO_REUSEPORT, (int)value, "reuse port");
 #else
     Y_UNUSED(s);
     Y_UNUSED(value);
-    ythrow TSystemError(ENOSYS) << "SO_REUSEPORT is not defined";
+    ythrow TSystemError(ENOSYS) << "SO_REUSEPORT is not available on Windows";
 #endif
 }
 
@@ -1254,44 +1250,4 @@ void ShutDown(SOCKET s, int mode) {
     if (shutdown(s, mode)) {
         ythrow TSystemError() << "shutdown socket error";
     }
-}
-
-extern "C" bool IsReusePortAvailable() {
-// SO_REUSEPORT is always defined for linux builds, see SetReusePort() implementation above
-#if defined(SO_REUSEPORT)
-
-    class TCtx {
-    public:
-        TCtx() {
-            TSocketHolder sock(::socket(AF_INET, SOCK_STREAM, 0));
-            const int e1 = errno;
-            if (sock == INVALID_SOCKET) {
-                ythrow TSystemError(e1) << "Cannot create AF_INET socket";
-            }
-            int val;
-            const int ret = GetSockOpt(sock, SOL_SOCKET, SO_REUSEPORT, val);
-            const int e2 = errno;
-            if (ret == 0) {
-                Flag_ = true;
-            } else {
-                if (e2 == ENOPROTOOPT) {
-                    Flag_ = false;
-                } else {
-                    ythrow TSystemError(e2) << "Unexpected error in getsockopt";
-                }
-            }
-        }
-
-        static inline const TCtx* Instance() noexcept {
-            return Singleton<TCtx>();
-        }
-
-    public:
-        bool Flag_;
-    };
-
-    return TCtx::Instance()->Flag_;
-#else
-    return false;
-#endif
 }

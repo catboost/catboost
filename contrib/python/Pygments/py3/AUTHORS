@@ -140,6 +140,7 @@ Other contributors, listed alphabetically, are:
 * Sylvestre Ledru -- Scilab lexer
 * Chee Sing Lee -- Flatline lexer
 * Mark Lee -- Vala lexer
+* Thomas Linder Puls -- Visual Prolog lexer
 * Pete Lomax -- Phix lexer
 * Valentin Lorentz -- C++ lexer improvements
 * Ben Mabey -- Gherkin lexer
@@ -270,6 +271,7 @@ Other contributors, listed alphabetically, are:
 * Marc Auberer -- Spice lexer
 * Amr Hesham -- Carbon lexer
 * diskdance -- Wikitext lexer
+* vanillajonathan -- PRQL lexer
 * Nikolay Antipov -- OpenSCAD lexer
 * Markus Meyer, Nextron Systems -- YARA lexer
 

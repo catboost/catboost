@@ -41,7 +41,7 @@
 #include <netdb.h>
 #endif
 #if defined(BENCHMARK_OS_QNX)
-#include <sys/syspage.h>
+#error #include <sys/syspage.h>
 #endif
 #if defined(BENCHMARK_OS_QURT)
 #error #include <qurt.h>

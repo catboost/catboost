@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: traitlets
-Version: 5.13.0
+Version: 5.14.1
 Summary: Traitlets Python configuration system
 Project-URL: Homepage, https://github.com/ipython/traitlets
 Project-URL: Documentation, https://traitlets.readthedocs.io
@@ -56,7 +56,7 @@ Requires-Dist: pydata-sphinx-theme; extra == 'docs'
 Requires-Dist: sphinx; extra == 'docs'
 Provides-Extra: test
 Requires-Dist: argcomplete>=3.0.3; extra == 'test'
-Requires-Dist: mypy>=1.6.0; extra == 'test'
+Requires-Dist: mypy>=1.7.0; extra == 'test'
 Requires-Dist: pre-commit; extra == 'test'
 Requires-Dist: pytest-mock; extra == 'test'
 Requires-Dist: pytest-mypy-testing; extra == 'test'

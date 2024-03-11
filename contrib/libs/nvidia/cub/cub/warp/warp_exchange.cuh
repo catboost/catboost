@@ -60,8 +60,8 @@ CUB_NAMESPACE_BEGIN
  *   targeted CUDA compute-capability (e.g., 32 threads for SM86). Must be a
  *   power of two.
  *
- * @tparam PTX_ARCH
- *   <b>[optional]</b> \ptxversion
+ * @tparam LEGACY_PTX_ARCH
+ *   Unused.
  *
  * @par Overview
  * - It is commonplace for a warp of threads to rearrange data items between
@@ -116,7 +116,7 @@ CUB_NAMESPACE_BEGIN
 template <typename InputT,
           int ITEMS_PER_THREAD,
           int LOGICAL_WARP_THREADS  = CUB_PTX_WARP_THREADS,
-          int PTX_ARCH              = CUB_PTX_ARCH>
+          int LEGACY_PTX_ARCH       = 0>
 class WarpExchange
 {
   static_assert(PowerOfTwo<LOGICAL_WARP_THREADS>::VALUE,
@@ -125,10 +125,9 @@ class WarpExchange
   constexpr static int ITEMS_PER_TILE =
     ITEMS_PER_THREAD * LOGICAL_WARP_THREADS + 1;
 
-  constexpr static bool IS_ARCH_WARP = LOGICAL_WARP_THREADS ==
-                                       CUB_WARP_THREADS(PTX_ARCH);
+  constexpr static bool IS_ARCH_WARP = LOGICAL_WARP_THREADS == CUB_WARP_THREADS(0);
 
-  constexpr static int LOG_SMEM_BANKS = CUB_LOG_SMEM_BANKS(PTX_ARCH);
+  constexpr static int LOG_SMEM_BANKS = CUB_LOG_SMEM_BANKS(0);
 
   // Insert padding if the number of items per thread is a power of two
   // and > 4 (otherwise we can typically use 128b loads)

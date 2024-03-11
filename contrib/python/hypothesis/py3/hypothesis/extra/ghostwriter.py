@@ -122,7 +122,7 @@ from hypothesis.strategies._internal.flatmapped import FlatMapStrategy
 from hypothesis.strategies._internal.lazy import LazyStrategy, unwrap_strategies
 from hypothesis.strategies._internal.strategies import (
     FilteredStrategy,
-    MappedSearchStrategy,
+    MappedStrategy,
     OneOfStrategy,
     SampledFromStrategy,
 )
@@ -482,7 +482,6 @@ def _get_params(func: Callable) -> Dict[str, inspect.Parameter]:
                     kind = inspect.Parameter.KEYWORD_ONLY
                     continue  # we omit *varargs, if there are any
                 if _iskeyword(arg.lstrip("*")) or not arg.lstrip("*").isidentifier():
-                    print(repr(args))
                     break  # skip all subsequent params if this name is invalid
                 params.append(inspect.Parameter(name=arg, kind=kind))
 
@@ -588,6 +587,8 @@ def _imports_for_object(obj):
     """Return the imports for `obj`, which may be empty for e.g. lambdas"""
     if isinstance(obj, (re.Pattern, re.Match)):
         return {"re"}
+    if isinstance(obj, st.SearchStrategy):
+        return _imports_for_strategy(obj)
     try:
         if is_generic_type(obj):
             if isinstance(obj, TypeVar):
@@ -606,19 +607,19 @@ def _imports_for_strategy(strategy):
     # If we have a lazy from_type strategy, because unwrapping it gives us an
     # error or invalid syntax, import that type and we're done.
     if isinstance(strategy, LazyStrategy):
-        if strategy.function.__name__ in (
-            st.from_type.__name__,
-            st.from_regex.__name__,
-        ):
-            return {
-                imp
-                for arg in set(strategy._LazyStrategy__args)
-                | set(strategy._LazyStrategy__kwargs.values())
-                for imp in _imports_for_object(arg)
-            }
+        imports = {
+            imp
+            for arg in set(strategy._LazyStrategy__args)
+            | set(strategy._LazyStrategy__kwargs.values())
+            for imp in _imports_for_object(_strip_typevars(arg))
+        }
+        if re.match(r"from_(type|regex)\(", repr(strategy)):
+            if repr(strategy).startswith("from_type("):
+                return {module for module, _ in imports}
+            return imports
         elif _get_module(strategy.function).startswith("hypothesis.extra."):
             module = _get_module(strategy.function).replace("._array_helpers", ".numpy")
-            return {(module, strategy.function.__name__)}
+            return {(module, strategy.function.__name__)} | imports
 
     imports = set()
     with warnings.catch_warnings():
@@ -626,7 +627,7 @@ def _imports_for_strategy(strategy):
         strategy = unwrap_strategies(strategy)
 
     # Get imports for s.map(f), s.filter(f), s.flatmap(f), including both s and f
-    if isinstance(strategy, MappedSearchStrategy):
+    if isinstance(strategy, MappedStrategy):
         imports |= _imports_for_strategy(strategy.mapped_strategy)
         imports |= _imports_for_object(strategy.pack)
     if isinstance(strategy, FilteredStrategy):
@@ -672,6 +673,9 @@ def _valid_syntax_repr(strategy):
         if isinstance(strategy, OneOfStrategy):
             seen = set()
             elems = []
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", SmallSearchSpaceWarning)
+                strategy.element_strategies  # might warn on first access
             for s in strategy.element_strategies:
                 if isinstance(s, SampledFromStrategy) and s.elements == (os.environ,):
                     continue
@@ -694,7 +698,11 @@ def _valid_syntax_repr(strategy):
         # Return a syntactically-valid strategy repr, including fixing some
         # strategy reprs and replacing invalid syntax reprs with `"nothing()"`.
         # String-replace to hide the special case in from_type() for Decimal('snan')
-        r = repr(strategy).replace(".filter(_can_hash)", "")
+        r = (
+            repr(strategy)
+            .replace(".filter(_can_hash)", "")
+            .replace("hypothesis.strategies.", "")
+        )
         # Replace <unknown> with ... in confusing lambdas
         r = re.sub(r"(lambda.*?: )(<unknown>)([,)])", r"\1...\3", r)
         compile(r, "<string>", "eval")
@@ -724,9 +732,10 @@ def _get_module_helper(obj):
 
     dots = [i for i, c in enumerate(module_name) if c == "."] + [None]
     for idx in dots:
-        if getattr(sys.modules.get(module_name[:idx]), obj.__name__, None) is obj:
-            KNOWN_FUNCTION_LOCATIONS[obj] = module_name[:idx]
-            return module_name[:idx]
+        for candidate in (module_name[:idx].lstrip("_"), module_name[:idx]):
+            if getattr(sys.modules.get(candidate), obj.__name__, None) is obj:
+                KNOWN_FUNCTION_LOCATIONS[obj] = candidate
+                return candidate
     return module_name
 
 
@@ -755,7 +764,7 @@ def _get_qualname(obj, *, include_module=False):
 
 
 def _write_call(
-    func: Callable, *pass_variables: str, except_: Except, assign: str = ""
+    func: Callable, *pass_variables: str, except_: Except = Exception, assign: str = ""
 ) -> str:
     """Write a call to `func` with explicit and implicit arguments.
 
@@ -770,9 +779,11 @@ def _write_call(
     subtypes of `except_`, which will be handled in an outer try-except block.
     """
     args = ", ".join(
-        (v or p.name)
-        if p.kind is inspect.Parameter.POSITIONAL_ONLY
-        else f"{p.name}={v or p.name}"
+        (
+            (v or p.name)
+            if p.kind is inspect.Parameter.POSITIONAL_ONLY
+            else f"{p.name}={v or p.name}"
+        )
         for v, p in zip_longest(pass_variables, _get_params(func).values())
     )
     call = f"{_get_qualname(func, include_module=True)}({args})"
@@ -998,6 +1009,9 @@ def _parameter_to_annotation(parameter: Any) -> Optional[_AnnotationData]:
         else:
             type_name = str(parameter)
 
+    if type_name.startswith("hypothesis.strategies."):
+        return _AnnotationData(type_name.replace("hypothesis.strategies", "st"), set())
+
     origin_type = get_origin(parameter)
 
     # if not generic or no generic arguments
@@ -1043,9 +1057,6 @@ def _make_test(imports: ImportSet, body: str) -> str:
     # Discarding "builtins." and "__main__" probably isn't particularly useful
     # for user code, but important for making a good impression in demos.
     body = body.replace("builtins.", "").replace("__main__.", "")
-    body = body.replace("hypothesis.strategies.", "st.")
-    if "st.from_type(typing." in body:
-        imports.add("typing")
     imports |= {("hypothesis", "given"), ("hypothesis", "strategies as st")}
     if "        reject()\n" in body:
         imports.add(("hypothesis", "reject"))
@@ -1258,11 +1269,29 @@ def magic(
         hints = get_type_hints(func)
         hints.pop("return", None)
         params = _get_params(func)
-        if len(hints) == len(params) == 2:
-            a, b = hints.values()
+        if (len(hints) == len(params) == 2) or (
+            _get_module(func) == "operator"
+            and "item" not in func.__name__
+            and tuple(params) in [("a", "b"), ("x", "y")]
+        ):
+            a, b = hints.values() or [Any, Any]
             arg1, arg2 = params
             if a == b and len(arg1) == len(arg2) <= 3:
-                make_(_make_binop_body, func, annotate=annotate)
+                # https://en.wikipedia.org/wiki/Distributive_property#Other_examples
+                known = {
+                    "mul": "add",
+                    "matmul": "add",
+                    "or_": "and_",
+                    "and_": "or_",
+                }.get(func.__name__, "")
+                distributes_over = getattr(sys.modules[_get_module(func)], known, None)
+                make_(
+                    _make_binop_body,
+                    func,
+                    commutative=func.__name__ != "matmul",
+                    distributes_over=distributes_over,
+                    annotate=annotate,
+                )
                 del by_name[name]
 
     # Look for Numpy ufuncs or gufuncs, and write array-oriented tests for them.
@@ -1467,10 +1496,17 @@ def roundtrip(
     return _make_test(*_make_roundtrip_body(funcs, except_, style, annotate))
 
 
-def _make_equiv_body(funcs, except_, style, annotate):
+def _get_varnames(funcs):
     var_names = [f"result_{f.__name__}" for f in funcs]
     if len(set(var_names)) < len(var_names):
-        var_names = [f"result_{i}_{ f.__name__}" for i, f in enumerate(funcs)]
+        var_names = [f"result_{f.__name__}_{_get_module(f)}" for f in funcs]
+    if len(set(var_names)) < len(var_names):
+        var_names = [f"result_{i}_{f.__name__}" for i, f in enumerate(funcs)]
+    return var_names
+
+
+def _make_equiv_body(funcs, except_, style, annotate):
+    var_names = _get_varnames(funcs)
     test_lines = [
         _write_call(f, assign=vname, except_=except_)
         for vname, f in zip(var_names, funcs)
@@ -1510,10 +1546,7 @@ else:
 
 
 def _make_equiv_errors_body(funcs, except_, style, annotate):
-    var_names = [f"result_{f.__name__}" for f in funcs]
-    if len(set(var_names)) < len(var_names):
-        var_names = [f"result_{i}_{ f.__name__}" for i, f in enumerate(funcs)]
-
+    var_names = _get_varnames(funcs)
     first, *rest = funcs
     first_call = _write_call(first, assign=var_names[0], except_=except_)
     extra_imports, suppress = _exception_string(except_)
@@ -1610,7 +1643,7 @@ def binary_operation(
 
     While :wikipedia:`binary operations <Binary_operation>` are not particularly
     common, they have such nice properties to test that it seems a shame not to
-    demonstrate them with a ghostwriter.  For an operator `f`, test that:
+    demonstrate them with a ghostwriter.  For an operator ``f``, test that:
 
     - if :wikipedia:`associative <Associative_property>`,
       ``f(a, f(b, c)) == f(f(a, b), c)``
@@ -1713,18 +1746,11 @@ def _make_binop_body(
         maker(
             "associative",
             "abc",
+            _write_call(func, "a", _write_call(func, "b", "c"), assign="left"),
             _write_call(
                 func,
-                "a",
-                _write_call(func, "b", "c", except_=Exception),
-                except_=Exception,
-                assign="left",
-            ),
-            _write_call(
-                func,
-                _write_call(func, "a", "b", except_=Exception),
+                _write_call(func, "a", "b"),
                 "c",
-                except_=Exception,
                 assign="right",
             ),
         )
@@ -1732,8 +1758,8 @@ def _make_binop_body(
         maker(
             "commutative",
             "ab",
-            _write_call(func, "a", "b", except_=Exception, assign="left"),
-            _write_call(func, "b", "a", except_=Exception, assign="right"),
+            _write_call(func, "a", "b", assign="left"),
+            _write_call(func, "b", "a", assign="right"),
         )
     if identity is not None:
         # Guess that the identity element is the minimal example from our operands
@@ -1755,34 +1781,42 @@ def _make_binop_body(
             compile(repr(identity), "<string>", "exec")
         except SyntaxError:
             identity = repr(identity)  # type: ignore
-        maker(
-            "identity",
-            "a",
+        identity_parts = [
+            f"{identity = }",
             _assert_eq(
                 style,
                 "a",
-                _write_call(func, "a", repr(identity), except_=Exception),
+                _write_call(func, "a", "identity"),
             ),
-        )
-    if distributes_over:
-        maker(
-            distributes_over.__name__ + "_distributes_over",
-            "abc",
-            _write_call(
-                distributes_over,
-                _write_call(func, "a", "b", except_=Exception),
-                _write_call(func, "a", "c", except_=Exception),
-                except_=Exception,
-                assign="left",
-            ),
-            _write_call(
-                func,
+            _assert_eq(
+                style,
                 "a",
-                _write_call(distributes_over, "b", "c", except_=Exception),
-                except_=Exception,
-                assign="right",
+                _write_call(func, "identity", "a"),
             ),
-        )
+        ]
+        maker("identity", "a", "\n".join(identity_parts))
+    if distributes_over:
+        do = distributes_over
+        dist_parts = [
+            _write_call(func, "a", _write_call(do, "b", "c"), assign="left"),
+            _write_call(
+                do,
+                _write_call(func, "a", "b"),
+                _write_call(func, "a", "c"),
+                assign="ldist",
+            ),
+            _assert_eq(style, "ldist", "left"),
+            "\n",
+            _write_call(func, _write_call(do, "a", "b"), "c", assign="right"),
+            _write_call(
+                do,
+                _write_call(func, "a", "c"),
+                _write_call(func, "b", "c"),
+                assign="rdist",
+            ),
+            _assert_eq(style, "rdist", "right"),
+        ]
+        maker(do.__name__ + "_distributes_over", "abc", "\n".join(dist_parts))
 
     _, operands_repr = _valid_syntax_repr(operands)
     operands_repr = _st_strategy_names(operands_repr)

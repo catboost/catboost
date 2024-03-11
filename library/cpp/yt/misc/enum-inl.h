@@ -49,9 +49,6 @@ constexpr bool CheckValuesMonotonic(const TValues& values)
 template <typename TValues>
 constexpr bool CheckValuesUnique(const TValues& values)
 {
-    if (CheckValuesMonotonic(values)) {
-        return true;
-    }
     for (size_t i = 0; i < std::size(values); ++i) {
         for (size_t j = i + 1; j < std::size(values); ++j) {
             if (values[i] == values[j]) {
@@ -105,6 +102,9 @@ constexpr bool CheckDomainNames(const TNames& names)
         static constexpr std::array<T, DomainSize> Values{{ \
             PP_FOR_EACH(ENUM__GET_DOMAIN_VALUES_ITEM, seq) \
         }}; \
+        \
+        [[maybe_unused]] static constexpr bool IsMonotonic = \
+            ::NYT::NDetail::CheckValuesMonotonic(Values); \
         \
         static TStringBuf GetTypeName() \
         { \
@@ -185,7 +185,7 @@ constexpr bool CheckDomainNames(const TNames& names)
     TStringBuf(PP_STRINGIZE(item)),
 
 #define ENUM__VALIDATE_UNIQUE(enumType) \
-    static_assert(::NYT::NDetail::CheckValuesUnique(Values), \
+    static_assert(IsMonotonic || ::NYT::NDetail::CheckValuesUnique(Values), \
         "Enumeration " #enumType " contains duplicate values");
 
 #define ENUM__END_TRAITS(enumType) \
@@ -298,67 +298,6 @@ T TEnumTraits<T, true>::FromString(TStringBuf literal)
             TString(literal).Quote().c_str()).c_str());
     }
     return *optionalValue;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-template <class E, class T, E Min, E Max>
-constexpr TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector()
-    : Items_{}
-{ }
-
-template <class E, class T, E Min, E Max>
-constexpr TEnumIndexedVector<E, T, Min, Max>::TEnumIndexedVector(std::initializer_list<T> elements)
-    : Items_{}
-{
-    Y_ASSERT(std::distance(elements.begin(), elements.end()) <= N);
-    size_t index = 0;
-    for (const auto& element : elements) {
-        Items_[index++] = element;
-    }
-}
-
-template <class E, class T, E Min, E Max>
-T& TEnumIndexedVector<E, T, Min, Max>::operator[] (E index)
-{
-    Y_ASSERT(index >= Min && index <= Max);
-    return Items_[ToUnderlying(index) - ToUnderlying(Min)];
-}
-
-template <class E, class T, E Min, E Max>
-const T& TEnumIndexedVector<E, T, Min, Max>::operator[] (E index) const
-{
-    return const_cast<TEnumIndexedVector&>(*this)[index];
-}
-
-template <class E, class T, E Min, E Max>
-T* TEnumIndexedVector<E, T, Min, Max>::begin()
-{
-    return Items_.data();
-}
-
-template <class E, class T, E Min, E Max>
-const T* TEnumIndexedVector<E, T, Min, Max>::begin() const
-{
-    return Items_.data();
-}
-
-template <class E, class T, E Min, E Max>
-T* TEnumIndexedVector<E, T, Min, Max>::end()
-{
-    return begin() + N;
-}
-
-template <class E, class T, E Min, E Max>
-const T* TEnumIndexedVector<E, T, Min, Max>::end() const
-{
-    return begin() + N;
-}
-
-template <class E, class T, E Min, E Max>
-bool TEnumIndexedVector<E, T, Min, Max>::IsDomainValue(E value)
-{
-    return value >= Min && value <= Max;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

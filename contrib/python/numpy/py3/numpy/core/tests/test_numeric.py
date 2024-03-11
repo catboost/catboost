@@ -477,7 +477,14 @@ class TestBoolCmp:
         self.signd[self.ed] *= -1.
         self.signf[1::6][self.ef[1::6]] = -np.inf
         self.signd[1::6][self.ed[1::6]] = -np.inf
-        self.signf[3::6][self.ef[3::6]] = -np.nan
+        # On RISC-V, many operations that produce NaNs, such as converting
+        # a -NaN from f64 to f32, return a canonical NaN.  The canonical
+        # NaNs are always positive.  See section 11.3 NaN Generation and
+        # Propagation of the RISC-V Unprivileged ISA for more details.
+        # We disable the float32 sign test on riscv64 for -np.nan as the sign
+        # of the NaN will be lost when it's converted to a float32.
+        if platform.processor() != 'riscv64':
+            self.signf[3::6][self.ef[3::6]] = -np.nan
         self.signd[3::6][self.ed[3::6]] = -np.nan
         self.signf[4::6][self.ef[4::6]] = -0.
         self.signd[4::6][self.ed[4::6]] = -0.
@@ -645,6 +652,11 @@ class TestFloatExceptions:
     @pytest.mark.skipif(IS_WASM, reason="no wasm fp exception support")
     @pytest.mark.parametrize("typecode", np.typecodes["AllFloat"])
     def test_floating_exceptions(self, typecode):
+        if 'bsd' in sys.platform and typecode in 'gG':
+            pytest.skip(reason="Fallback impl for (c)longdouble may not raise "
+                               "FPE errors as expected on BSD OSes, "
+                               "see gh-24876, gh-23379")
+
         # Test basic arithmetic function errors
         with np.errstate(all='raise'):
             ftype = np.obj2sctype(typecode)

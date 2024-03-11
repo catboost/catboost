@@ -416,12 +416,32 @@ public:
         return ::GetFloatFeaturesCount(CalcerHolder.get());
     }
 
+    std::vector<size_t> GetFloatFeatureIndices() const {
+        return GetFeaturesIndicesImpl(::GetFloatFeatureIndices);
+    }
+
     size_t GetCatFeaturesCount() const {
         return ::GetCatFeaturesCount(CalcerHolder.get());
     }
 
+    std::vector<size_t> GetCatFeatureIndices() const {
+        return GetFeaturesIndicesImpl(::GetCatFeatureIndices);
+    }
+
     size_t GetTextFeaturesCount() const {
         return ::GetTextFeaturesCount(CalcerHolder.get());
+    }
+
+    std::vector<size_t> GetTextFeatureIndices() const {
+        return GetFeaturesIndicesImpl(::GetTextFeatureIndices);
+    }
+
+    size_t GetEmbeddingFeaturesCount() const {
+        return ::GetEmbeddingFeaturesCount(CalcerHolder.get());
+    }
+
+    std::vector<size_t> GetEmbeddingFeatureIndices() const {
+        return GetFeaturesIndicesImpl(::GetEmbeddingFeatureIndices);
     }
 
     bool CheckMetadataHasKey(const std::string& key) const {
@@ -534,6 +554,27 @@ private:
             }
             (*embeddingFeaturesPerSamplePtrs)[sampleIdx] = embeddingFeaturesPtrs->data() + sampleIdx * embeddingFeatureCountLocal;
         }
+    }
+
+    std::vector<size_t> GetFeaturesIndicesImpl(
+        std::function<bool (ModelCalcerHandle*, size_t**, size_t*)>&& cApiCall
+    ) const {
+        size_t* featureIndices = nullptr;
+        size_t featureCount = 0;
+        if (!cApiCall(CalcerHolder.get(), &featureIndices, &featureCount)) {
+            throw std::runtime_error(GetErrorString());
+        }
+
+        std::vector<size_t> result;
+        try {
+            result.assign(featureIndices, featureIndices + featureCount);
+        } catch (...) {
+            std::free(featureIndices);
+            throw;
+        }
+        std::free(featureIndices);
+
+        return result;
     }
 
     using CalcerHolderType = std::unique_ptr<ModelCalcerHandle, std::function<void(ModelCalcerHandle*)>>;

@@ -26,7 +26,7 @@ target_link_options(rescompiler PRIVATE
   -ldl
 )
 target_sources(rescompiler PRIVATE
-  ${CMAKE_SOURCE_DIR}/tools/rescompiler/main.cpp
+  ${PROJECT_SOURCE_DIR}/tools/rescompiler/main.cpp
 )
 target_allocator(rescompiler
   cpp-malloc-tcmalloc

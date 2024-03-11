@@ -1,6 +1,7 @@
 #pragma once
 
 #include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/ysaveload.h>
 #include <util/generic/string.h>
@@ -60,8 +61,8 @@ TStringBuf ToCanonicalColumnName(TStringBuf columnName);
 void ParseOutputColumnByIndex(const TString& outputColumn, ui32* columnNumber, TString* name);
 
 struct TColumn {
-    EColumn Type;
-    TString Id;
+    EColumn Type = EColumn::Num;
+    TString Id = TString();
     TVector<TColumn> SubColumns; // only used for 'Features' column type now
 
 public:
@@ -80,4 +81,6 @@ public:
 
     Y_SAVELOAD_DEFINE(Type, Id, SubColumns);
     SAVELOAD(Type, Id, SubColumns);
+
+    operator NJson::TJsonValue() const;
 };

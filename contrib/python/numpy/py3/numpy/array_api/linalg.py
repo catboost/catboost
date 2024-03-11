@@ -9,6 +9,7 @@ from ._dtypes import (
     complex128
 )
 from ._manipulation_functions import reshape
+from ._elementwise_functions import conj
 from ._array_object import Array
 
 from ..core.numeric import normalize_axis_tuple
@@ -53,7 +54,10 @@ def cholesky(x: Array, /, *, upper: bool = False) -> Array:
         raise TypeError('Only floating-point dtypes are allowed in cholesky')
     L = np.linalg.cholesky(x._array)
     if upper:
-        return Array._new(L).mT
+        U = Array._new(L).mT
+        if U.dtype in [complex64, complex128]:
+            U = conj(U)
+        return U
     return Array._new(L)
 
 # Note: cross is the numpy top-level namespace, not np.linalg
@@ -318,8 +322,9 @@ def _solve(a, b):
     # This does nothing currently but is left in because it will be relevant
     # when complex dtype support is added to the spec in 2022.
     signature = 'DD->D' if isComplexType(t) else 'dd->d'
-    extobj = get_linalg_error_extobj(_raise_linalgerror_singular)
-    r = gufunc(a, b, signature=signature, extobj=extobj)
+    with np.errstate(call=_raise_linalgerror_singular, invalid='call',
+                     over='ignore', divide='ignore', under='ignore'):
+        r = gufunc(a, b, signature=signature)
 
     return wrap(r.astype(result_t, copy=False))
 

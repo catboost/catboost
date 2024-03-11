@@ -290,8 +290,11 @@ TVector<TParamSet> TCrossEntropyMetric::ValidParamSets() {
     return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
 };
 
-void TCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 /* CtrFactor */
@@ -356,7 +359,9 @@ TMetricHolder TCtrFactorMetric::EvalSingleThread(
 
 void TCtrFactorMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::FixedValue;
-    *bestValue = 1;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TCtrFactorMetric::ValidParamSets() {
@@ -371,6 +376,7 @@ namespace {
             }
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
 
         TMetricHolder EvalSingleThread(
             TConstArrayRef<TConstArrayRef<double>> approx,
@@ -389,6 +395,12 @@ TVector<THolder<IMetric>> TSurvivalAftMetric::Create(const TMetricConfig& config
     config.ValidParams->insert("scale");
     config.ValidParams->insert("dist");
     return AsVector(MakeHolder<TSurvivalAftMetric>(config.Params));
+}
+
+TVector<TParamSet> TSurvivalAftMetric::ValidParamSets() {
+    // TODO(akhropov): SurvivalAft has 'scale' and 'dist' when it is used as an objective but no such params
+    // when used as a metric, it's better to have objectives as separate entities
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
 }
 
 TMetricHolder TSurvivalAftMetric::EvalSingleThread(
@@ -422,8 +434,11 @@ double TSurvivalAftMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] == 0 ? 0 : error.Stats[0] / error.Stats[1];
 }
 
-void TSurvivalAftMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+void TSurvivalAftMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 /* MultiRMSE */
@@ -486,8 +501,11 @@ double TMultiRMSEMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] == 0 ? 0 : sqrt(error.Stats[0] / error.Stats[1]);
 }
 
-void TMultiRMSEMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+void TMultiRMSEMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TMultiRMSEMetric::ValidParamSets() {
@@ -564,8 +582,11 @@ double TMultiRMSEWithMissingValues::GetFinalError(const TMetricHolder& error) co
     return sqrt(finalError);
 }
 
-void TMultiRMSEWithMissingValues::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+void TMultiRMSEWithMissingValues::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TMultiRMSEWithMissingValues::ValidParamSets() {
@@ -650,8 +671,11 @@ double TRMSEWithUncertaintyMetric::GetFinalError(const TMetricHolder& error) con
     return error.Stats[1] == 0 ? 0 : error.Stats[0] / error.Stats[1];
 }
 
-void TRMSEWithUncertaintyMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+void TRMSEWithUncertaintyMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TRMSEWithUncertaintyMetric::ValidParamSets() {
@@ -721,8 +745,11 @@ double TRMSEMetric::GetFinalError(const TMetricHolder& error) const {
     return sqrt(error.Stats[0] / (error.Stats[1] + 1e-38));
 }
 
-void TRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TRMSEMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TRMSEMetric::ValidParamSets() {
@@ -796,8 +823,11 @@ double TLogCoshMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[0] / (error.Stats[1] + 1e-38);
 }
 
-void TLogCoshMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TLogCoshMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TLogCoshMetric::ValidParamSets() {
@@ -818,6 +848,7 @@ namespace {
         {}
 
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
 
         TMetricHolder Eval(
             TConstArrayRef<TConstArrayRef<double>> approx,
@@ -840,9 +871,13 @@ TVector<THolder<IMetric>> TCoxMetric::Create(const TMetricConfig& config) {
     return AsVector(MakeHolder<TCoxMetric>(config.Params));
 }
 
+TVector<TParamSet> TCoxMetric::ValidParamSets() {
+    return {TParamSet{{}, ""}};
+};
+
 TMetricHolder TCoxMetric::Eval(
     TConstArrayRef<TConstArrayRef<double>> approx,
-    TConstArrayRef<TConstArrayRef<double>> /*approxDelta*/,
+    TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> targets,
     TConstArrayRef<float> /*weight*/,
@@ -856,46 +891,49 @@ TMetricHolder TCoxMetric::Eval(
     TMetricHolder error(2);
     error.Stats[1] = 1;
 
-    TVector<size_t> labelOrder(targets.ysize());
+    const auto ndata = targets.ysize();
+    TVector<int> labelOrder(ndata);
     std::iota(labelOrder.begin(), labelOrder.end(), 0);
-    std::sort(labelOrder.begin(), labelOrder.end(), [&]
-        (size_t lhs, size_t rhs){
+    std::sort(
+        labelOrder.begin(),
+        labelOrder.end(),
+        [=] (int lhs, int rhs) {
             return std::abs(targets[lhs]) < std::abs(targets[rhs]);
         }
     );
 
-    const yssize_t ndata = targets.ysize();
+    const auto approxRef = approx[0];
+    const auto approxDeltaRef = GetRowRef(approxDelta, /*row idx*/ 0);
+    const auto getApprox = [=] (int i) {
+        return approxRef[i] + (approxDelta.empty() ? 0 : approxDeltaRef[i]);
+    };
+
     double expPSum = 0;
-    for (yssize_t i = 0; i < ndata; ++i) {
-        expPSum += std::exp(approx[0][i]);
+    for (auto i = 0; i < ndata; ++i) {
+        expPSum += std::exp(getApprox(i));
     }
 
     double lastExpP = 0.0;
-    double lastAbsY = 0.0;
     double accumulatedSum = 0;
-    for (yssize_t i = 0; i < ndata; ++i) {
-        const size_t ind = labelOrder[i];
+    for (auto i : xrange(ndata)) {
+        const int ind = labelOrder[i];
 
         const double y = targets[ind];
-        const double absY = std::abs(y);
 
-        const double p = approx[0][ind];
+        const double p = getApprox(ind);
         const double expP = std::exp(p);
 
         accumulatedSum += lastExpP;
-        if (lastAbsY < absY) {
-            expPSum -= accumulatedSum;
-            accumulatedSum = 0;
-        }
 
         if (y > 0) {
-            error.Stats[0] += p - std::log(expPSum);
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
+            error.Stats[0] += p - std::log(std::max(expPSum, 1e-20));
         }
 
-        lastAbsY = absY;
         lastExpP = expP;
     }
-    error.Stats[0] = - error.Stats[0];
+    error.Stats[0] = error.Stats[0];
 
     return error;
 }
@@ -904,8 +942,11 @@ double TCoxMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[0];
 }
 
-void TCoxMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TCoxMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 /* Lq */
@@ -987,8 +1028,11 @@ TMetricHolder TLqMetric::EvalSingleThread(
     return DispatchGenericLambda(impl, !approxDeltaRef.empty(), !weight.empty());
 }
 
-void TLqMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TLqMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 /* Quantile */
@@ -1117,8 +1161,11 @@ TString TQuantileMetric::GetDescription() const {
     }
 }
 
-void TQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TQuantileMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TQuantileMetric::ValidParamSets() {
@@ -1208,8 +1255,11 @@ TMetricHolder TExpectileMetric::EvalSingleThread(
     return DispatchGenericLambda(impl, !approxDeltaRef.empty(), !weight.empty());
 }
 
-void TExpectileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TExpectileMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TExpectileMetric::ValidParamSets() {
@@ -1305,8 +1355,11 @@ TMetricHolder TLogLinQuantileMetric::EvalSingleThread(
     return DispatchGenericLambda(impl, isExpApprox, !approxDeltaRef.empty(), !weight.empty());
 }
 
-void TLogLinQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TLogLinQuantileMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TLogLinQuantileMetric::ValidParamSets() {
@@ -1377,8 +1430,11 @@ TMetricHolder TMAPEMetric::EvalSingleThread(
     return DispatchGenericLambda(impl, !approxDeltaRef.empty(), !weight.empty());
 }
 
-void TMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMAPEMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TMAPEMetric::ValidParamSets() {
@@ -1448,8 +1504,11 @@ TMetricHolder TNumErrorsMetric::EvalSingleThread(
     return error;
 }
 
-void TNumErrorsMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TNumErrorsMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TNumErrorsMetric::ValidParamSets() {
@@ -1535,8 +1594,11 @@ TMetricHolder TPoissonMetric::EvalSingleThread(
     return DispatchGenericLambda(impl, isExpApprox, !approxDeltaRef.empty(), !weight.empty());
 }
 
-void TPoissonMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TPoissonMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TPoissonMetric::ValidParamSets() {
@@ -1612,8 +1674,11 @@ TMetricHolder TTweedieMetric::EvalSingleThread(
     return DispatchGenericLambda(impl, !approxDeltaRef.empty(), !weight.empty());
 }
 
-void TTweedieMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TTweedieMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TTweedieMetric::ValidParamSets() {
@@ -1707,8 +1772,11 @@ TMetricHolder TFocalMetric::EvalSingleThread(
     return DispatchGenericLambda(impl, !approxDeltaRef.empty(), !weight.empty());
 }
 
-void TFocalMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TFocalMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TFocalMetric::ValidParamSets() {
@@ -1784,8 +1852,11 @@ double TMSLEMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[0] / (error.Stats[1] + 1e-38);
 }
 
-void TMSLEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMSLEMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TMSLEMetric::ValidParamSets() {
@@ -1863,8 +1934,11 @@ TMetricHolder TMedianAbsoluteErrorMetric::Eval(
     return error;
 }
 
-void TMedianAbsoluteErrorMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMedianAbsoluteErrorMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TMedianAbsoluteErrorMetric::ValidParamSets() {
@@ -1933,8 +2007,11 @@ double TSMAPEMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[0] / (error.Stats[1] + 1e-38);
 }
 
-void TSMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TSMAPEMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TSMAPEMetric::ValidParamSets() {
@@ -1993,8 +2070,11 @@ double TLLPMetric::GetFinalError(const TMetricHolder& error) const {
     return CalcLlp(error);
 }
 
-void TLLPMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TLLPMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TString> TLLPMetric::GetStatDescriptions() const {
@@ -2098,8 +2178,11 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
     return error;
 }
 
-void TMultiClassMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMultiClassMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TMultiClassMetric::ValidParamSets() {
@@ -2174,8 +2257,11 @@ TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
     return error;
 }
 
-void TMultiClassOneVsAllMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMultiClassOneVsAllMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TMultiClassOneVsAllMetric::ValidParamSets() {
@@ -2282,8 +2368,11 @@ TString TMultiQuantileMetric::GetDescription() const {
     return BuildDescription(ELossFunction::MultiQuantile, UseWeights, "%.3g", alpha, "%g", delta);
 }
 
-void TMultiQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMultiQuantileMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TMultiQuantileMetric::ValidParamSets() {
@@ -2395,8 +2484,11 @@ EErrorType TPairLogitMetric::GetErrorType() const {
     return EErrorType::PairwiseError;
 }
 
-void TPairLogitMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TPairLogitMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TPairLogitMetric::ValidParamSets() {
@@ -2518,8 +2610,11 @@ double TQueryRMSEMetric::GetFinalError(const TMetricHolder& error) const {
     return sqrt(error.Stats[0] / (error.Stats[1] + 1e-38));
 }
 
-void TQueryRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TQueryRMSEMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TQueryRMSEMetric::ValidParamSets() {
@@ -2617,8 +2712,11 @@ double TPFoundMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 0;
 }
 
-void TPFoundMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TPFoundMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TPFoundMetric::ValidParamSets() {
@@ -2789,8 +2887,11 @@ double TDcgMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 0;
 }
 
-void TDcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TDcgMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = std::numeric_limits<double>::infinity();
+    }
 }
 
 /* QuerySoftMax */
@@ -2936,8 +3037,11 @@ TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(
     return DispatchGenericLambda(impl, !approxDeltaRef.empty(), !weights.empty());
 }
 
-void TQuerySoftMaxMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TQuerySoftMaxMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TQuerySoftMaxMetric::ValidParamSets() {
@@ -3108,8 +3212,11 @@ double TR2Metric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? 1 - error.Stats[0] / error.Stats[1] : 1;
 }
 
-void TR2Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TR2Metric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TR2Metric::ValidParamSets() {
@@ -3387,8 +3494,11 @@ TString TAUCMetric::GetDescription() const {
     }
 }
 
-void TAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TAUCMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 /* Normalized Gini metric */
@@ -3488,8 +3598,11 @@ TString TNormalizedGini::GetDescription() const {
     }
 }
 
-void TNormalizedGini::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TNormalizedGini::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TNormalizedGini::ValidParamSets() {
@@ -3573,8 +3686,11 @@ TMetricHolder TFairLossMetric::EvalSingleThread(
     return error;
 }
 
-void TFairLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TFairLossMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TFairLossMetric::ValidParamSets() {
@@ -3646,8 +3762,11 @@ TMetricHolder TBalancedAccuracyMetric::EvalSingleThread(
     return CalcBalancedAccuracyMetric(approx, target, weight, begin, end, PositiveClass, TargetBorder, PredictionBorder);
 }
 
-void TBalancedAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TBalancedAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 double TBalancedAccuracyMetric::GetFinalError(const TMetricHolder& error) const {
@@ -3723,8 +3842,11 @@ TMetricHolder TBalancedErrorRate::EvalSingleThread(
     return CalcBalancedAccuracyMetric(approx, target, weight, begin, end, PositiveClass, TargetBorder, PredictionBorder);
 }
 
-void TBalancedErrorRate::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TBalancedErrorRate::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 double TBalancedErrorRate::GetFinalError(const TMetricHolder& error) const {
@@ -3785,8 +3907,11 @@ TMetricHolder TBrierScoreMetric::EvalSingleThread(
     return ComputeBrierScoreMetric(approx.front(), target, weight, begin, end);
 }
 
-void TBrierScoreMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TBrierScoreMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 double TBrierScoreMetric::GetFinalError(const TMetricHolder& error) const {
@@ -3846,8 +3971,11 @@ TMetricHolder THingeLossMetric::EvalSingleThread(
     return ComputeHingeLossMetric(approx, target, weight, begin, end, TargetBorder);
 }
 
-void THingeLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void THingeLossMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 double THingeLossMetric::GetFinalError(const TMetricHolder& error) const {
@@ -3931,8 +4059,11 @@ EErrorType TPairAccuracyMetric::GetErrorType() const {
     return EErrorType::PairwiseError;
 }
 
-void TPairAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TPairAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TPairAccuracyMetric::ValidParamSets() {
@@ -4020,8 +4151,11 @@ double TPrecisionAtKMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
 }
 
-void TPrecisionAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TPrecisionAtKMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TPrecisionAtKMetric::ValidParamSets() {
@@ -4114,8 +4248,11 @@ double TRecallAtKMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
 }
 
-void TRecallAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TRecallAtKMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TRecallAtKMetric::ValidParamSets() {
@@ -4210,8 +4347,11 @@ double TMAPKMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 0;
 }
 
-void TMAPKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMAPKMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TMAPKMetric::ValidParamSets() {
@@ -4412,8 +4552,11 @@ TMetricHolder TPRAUCMetric::Eval(
     return error;
 }
 
-void TPRAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TPRAUCMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TPRAUCMetric::ValidParamSets() {
@@ -4502,9 +4645,12 @@ TString TCustomMetric::GetDescription() const {
     return BuildDescription(description, UseWeights);
 }
 
-void TCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TCustomMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     bool isMaxOptimal = Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
     *valueType = isMaxOptimal ? EMetricBestValue::Max : EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = isMaxOptimal ? std::numeric_limits<double>::infinity() : -std::numeric_limits<double>::infinity();
+    }
 }
 
 double TCustomMetric::GetFinalError(const TMetricHolder& error) const {
@@ -4569,9 +4715,12 @@ TString TMultiTargetCustomMetric::GetDescription() const {
     return BuildDescription(description, UseWeights);
 }
 
-void TMultiTargetCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMultiTargetCustomMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     bool isMaxOptimal = Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
     *valueType = isMaxOptimal ? EMetricBestValue::Max : EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = isMaxOptimal ? std::numeric_limits<double>::infinity() : -std::numeric_limits<double>::infinity();
+    }
 }
 
 double TMultiTargetCustomMetric::GetFinalError(const TMetricHolder& error) const {
@@ -4594,6 +4743,7 @@ namespace {
     public:
         explicit TUserDefinedPerObjectMetric(const TLossParams& params);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
         TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
             TConstArrayRef<float> target,
@@ -4642,6 +4792,18 @@ TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TLossParams& para
     UseWeights.MakeIgnored();
 }
 
+TVector<TParamSet> TUserDefinedPerObjectMetric::ValidParamSets() {
+    return {
+        TParamSet{
+            {
+                TParamInfo{"use_weights", false, true},
+                TParamInfo{"alpha", false, DefaultAlpha}
+            },
+            ""
+        }
+    };
+};
+
 TMetricHolder TUserDefinedPerObjectMetric::Eval(
     const TVector<TVector<double>>& /*approx*/,
     TConstArrayRef<float> /*target*/,
@@ -4656,8 +4818,11 @@ TMetricHolder TUserDefinedPerObjectMetric::Eval(
     return metric;
 }
 
-void TUserDefinedPerObjectMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TUserDefinedPerObjectMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 /* UserDefinedQuerywiseMetric */
@@ -4720,8 +4885,11 @@ EErrorType TUserDefinedQuerywiseMetric::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TUserDefinedQuerywiseMetric::ValidParamSets() {
@@ -4809,8 +4977,11 @@ TMetricHolder THuberLossMetric::EvalSingleThread(
     return error;
 }
 
-void THuberLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void THuberLossMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> THuberLossMetric::ValidParamSets() {
@@ -4951,8 +5122,11 @@ EErrorType TFilteredDcgMetric::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-void TFilteredDcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TFilteredDcgMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = std::numeric_limits<double>::infinity();
+    }
 }
 
 TVector<TParamSet> TFilteredDcgMetric::ValidParamSets() {
@@ -5061,8 +5235,11 @@ EErrorType TAverageGain::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TAverageGain::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TAverageGain::ValidParamSets() {
@@ -5264,8 +5441,11 @@ EErrorType TQueryAUCMetric::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-void TQueryAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TQueryAUCMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TQueryAUCMetric::ValidParamSets() {
@@ -5360,8 +5540,11 @@ TString TCombinationLoss::GetDescription() const {
     return description;
 }
 
-void TCombinationLoss::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TCombinationLoss::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 double TCombinationLoss::GetFinalError(const TMetricHolder& error) const {
@@ -5529,8 +5712,11 @@ TQueryCrossEntropyMetric::TQueryCrossEntropyMetric(const TLossParams& params,
     UseWeights.SetDefaultValue(true);
 }
 
-void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TQueryCrossEntropyMetric::ValidParamSets() {
@@ -5658,8 +5844,11 @@ TMRRMetric::TMRRMetric(const TLossParams& params, int topSize, float targetBorde
     UseWeights.SetDefaultValue(true);
 }
 
-void TMRRMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMRRMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 
@@ -5759,8 +5948,11 @@ TERRMetric::TERRMetric(const TLossParams& params, int topSize)
     UseWeights.SetDefaultValue(true);
 }
 
-void TERRMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TERRMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Max;
+    if (bestValue) {
+        *bestValue = 1;
+    }
 }
 
 TVector<TParamSet> TERRMetric::ValidParamSets() {
@@ -5850,8 +6042,11 @@ TMetricHolder TMultiCrossEntropyMetric::EvalSingleThread(
     return error;
 }
 
-void TMultiCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+void TMultiCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
 }
 
 TVector<TParamSet> TMultiCrossEntropyMetric::ValidParamSets() {
@@ -6190,6 +6385,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TPoissonMetric::ValidParamSets();
         case ELossFunction::Tweedie:
             return TTweedieMetric::ValidParamSets();
+        case ELossFunction::Cox:
+            return TCoxMetric::ValidParamSets();
         case ELossFunction::Focal:
             return TFocalMetric::ValidParamSets();
         case ELossFunction::LogCosh:
@@ -6210,6 +6407,7 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
         case ELossFunction::MultiCrossEntropy:
             return TMultiCrossEntropyMetric::ValidParamSets();
         case ELossFunction::PairLogit:
+        case ELossFunction::PairLogitPairwise:
             return TPairLogitMetric::ValidParamSets();
         case ELossFunction::QueryRMSE:
             return TQueryRMSEMetric::ValidParamSets();
@@ -6244,6 +6442,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TRecallAtKMetric::ValidParamSets();
         case ELossFunction::MAP:
             return TMAPKMetric::ValidParamSets();
+        case ELossFunction::UserPerObjMetric:
+            return TUserDefinedPerObjectMetric::ValidParamSets();
         case ELossFunction::UserQuerywiseMetric:
             return TUserDefinedQuerywiseMetric::ValidParamSets();
         case ELossFunction::QueryCrossEntropy:
@@ -6252,6 +6452,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TMRRMetric::ValidParamSets();
         case ELossFunction::ERR:
             return TERRMetric::ValidParamSets();
+        case ELossFunction::SurvivalAft:
+            return TSurvivalAftMetric::ValidParamSets();
         case ELossFunction::Huber:
             return THuberLossMetric::ValidParamSets();
         case ELossFunction::FilteredDCG:
@@ -6268,30 +6470,50 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TCtrFactorMetric::ValidParamSets();
         default:
             return CachingMetricValidParamSets(metric);
-            // includes ELossFunction::UserPerObjMetric
     }
 }
+
+
+static bool IsSkipInMetricsParamsExport(ELossFunction lossFunction) {
+    switch (lossFunction) {
+        case ELossFunction::YetiRank:
+        case ELossFunction::YetiRankPairwise:
+        case ELossFunction::StochasticFilter:
+        case ELossFunction::LambdaMart:
+        case ELossFunction::StochasticRank:
+            // objectives, cannot be used as metrics
+            return true;
+        case ELossFunction::PythonUserDefinedPerObject:
+        case ELossFunction::PythonUserDefinedMultiTarget:
+            // user-defined metrics and objectives in Python
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 
 NJson::TJsonValue ExportAllMetricsParamsToJson() {
     NJson::TJsonValue exportJson;
     for (const ELossFunction& loss : GetEnumAllValues<ELossFunction>()) {
-        try {
-            NJson::TJsonValue paramSets;
-            for (const auto& paramSet : ValidParamSets(loss)) {
-                NJson::TJsonValue metricJson;
-                metricJson.InsertValue("_name_suffix", paramSet.NameSuffix);
-                for (const auto& paramInfo : paramSet.ValidParams) {
-                    NJson::TJsonValue paramJson;
-                    paramJson.InsertValue("is_mandatory", paramInfo.IsMandatory);
-                    paramJson.InsertValue("default_value", paramInfo.DefaultValue);
-                    metricJson.InsertValue(paramInfo.Name, paramJson);
-                }
-                paramSets.AppendValue(metricJson);
-            }
-            exportJson.InsertValue(ToString(loss), paramSets);
-        } catch (...) {
+        if (IsSkipInMetricsParamsExport(loss)) {
             continue;
         }
+
+        NJson::TJsonValue paramSets;
+        for (const auto& paramSet : ValidParamSets(loss)) {
+            NJson::TJsonValue metricJson;
+            metricJson.InsertValue("_name_suffix", paramSet.NameSuffix);
+            for (const auto& paramInfo : paramSet.ValidParams) {
+                NJson::TJsonValue paramJson;
+                paramJson.InsertValue("is_mandatory", paramInfo.IsMandatory);
+                paramJson.InsertValue("default_value", paramInfo.DefaultValue);
+                metricJson.InsertValue(paramInfo.Name, paramJson);
+            }
+            paramSets.AppendValue(metricJson);
+        }
+        exportJson.InsertValue(ToString(loss), paramSets);
     }
     return exportJson;
 }

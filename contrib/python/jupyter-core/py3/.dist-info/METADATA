@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: jupyter_core
-Version: 5.5.0
+Version: 5.7.1
 Summary: Jupyter core package. A base package on which Jupyter projects rely.
 Project-URL: Homepage, https://jupyter.org
 Project-URL: Documentation, https://jupyter-core.readthedocs.io/

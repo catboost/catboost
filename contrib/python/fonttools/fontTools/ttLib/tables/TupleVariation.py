@@ -517,22 +517,22 @@ class TupleVariation(object):
             return  # no change
         coordWidth = self.getCoordWidth()
         self.coordinates = [
-            None
-            if d is None
-            else d * scalar
-            if coordWidth == 1
-            else (d[0] * scalar, d[1] * scalar)
+            (
+                None
+                if d is None
+                else d * scalar if coordWidth == 1 else (d[0] * scalar, d[1] * scalar)
+            )
             for d in self.coordinates
         ]
 
     def roundDeltas(self):
         coordWidth = self.getCoordWidth()
         self.coordinates = [
-            None
-            if d is None
-            else otRound(d)
-            if coordWidth == 1
-            else (otRound(d[0]), otRound(d[1]))
+            (
+                None
+                if d is None
+                else otRound(d) if coordWidth == 1 else (otRound(d[0]), otRound(d[1]))
+            )
             for d in self.coordinates
         ]
 

@@ -197,7 +197,7 @@ typedef struct {
 /// (default is uint32_t).
 ///
 /// Stringifying a filter is done by processing a given number of options
-/// in oder from the beginning of an option_map array. The integer is
+/// in order from the beginning of an option_map array. The integer is
 /// read from filter_options at .offset using the type from .type.
 ///
 /// If the integer is zero and .flags has OPTMAP_NO_STRFY_ZERO then the
@@ -316,7 +316,7 @@ parse_lzma12_preset(const char **const str, const char *str_end,
 	assert(*str < str_end);
 	*preset = (uint32_t)(**str - '0');
 
-	// NOTE: Remember to update LZMA_PRESET_STR if this is modified!
+	// NOTE: Remember to update LZMA12_PRESET_STR if this is modified!
 	while (++*str < str_end) {
 		switch (**str) {
 		case 'e':
@@ -466,9 +466,9 @@ static const struct {
 	/// If the flag LZMA_STR_ENCODER is used then the first
 	/// strfy_encoder elements of optmap are stringified.
 	/// With LZMA_STR_DECODER strfy_decoder is used.
-	/// Currently encoders use all flags that decoders do but if
+	/// Currently encoders use all options that decoders do but if
 	/// that changes then this needs to be changed too, for example,
-	/// add a new OPTMAP flag to skip printing some decoder-only flags.
+	/// add a new OPTMAP flag to skip printing some decoder-only options.
 	const option_map *optmap;
 	uint8_t strfy_encoder;
 	uint8_t strfy_decoder;
@@ -538,7 +538,7 @@ static const struct {
 ///
 /// The input string starts at *str and the address in str_end is the first
 /// char that is not part of the string anymore. So no '\0' terminator is
-/// used. *str is advanced everytime something has been decoded successfully.
+/// used. *str is advanced every time something has been decoded successfully.
 static const char *
 parse_options(const char **const str, const char *str_end,
 		void *filter_options,
@@ -667,7 +667,7 @@ parse_options(const char **const str, const char *str_end,
 					&& *p >= '0' && *p <= '9');
 
 			if (p < name_eq_value_end) {
-				// Remember this position so that it an be
+				// Remember this position so that it can be
 				// used for error messages that are
 				// specifically about the suffix. (Out of
 				// range values are about the whole value
@@ -844,7 +844,7 @@ parse_filter(const char **const str, const char *str_end, lzma_filter *filter,
 
 /// Converts the string to a filter chain (array of lzma_filter structures).
 ///
-/// *str is advanced everytime something has been decoded successfully.
+/// *str is advanced every time something has been decoded successfully.
 /// This way the caller knows where in the string a possible error occurred.
 static const char *
 str_to_filters(const char **const str, lzma_filter *filters, uint32_t flags,
@@ -1131,6 +1131,13 @@ lzma_str_from_filters(char **output_str, const lzma_filter *filters,
 	const char *opt_delim = (flags & LZMA_STR_GETOPT_LONG) ? "=" : ":";
 
 	for (size_t i = 0; filters[i].id != LZMA_VLI_UNKNOWN; ++i) {
+		// If we reach LZMA_FILTERS_MAX, then the filters array
+		// is too large since the ID cannot be LZMA_VLI_UNKNOWN here.
+		if (i == LZMA_FILTERS_MAX) {
+			str_free(&dest, allocator);
+			return LZMA_OPTIONS_ERROR;
+		}
+
 		// Don't add a space between filters if the caller
 		// doesn't want them.
 		if (i > 0 && !(flags & LZMA_STR_NO_SPACES))

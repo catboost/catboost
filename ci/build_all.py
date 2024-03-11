@@ -38,7 +38,7 @@ else:
         CUDA_ROOT = None
 
 
-def need_to_build_cuda(platform_name: str):
+def need_to_build_with_cuda_for_main_targets(platform_name: str):
     system, _ = platform_name.split('-')
     return system in ['linux', 'windows']
 
@@ -156,7 +156,14 @@ def get_python_plat_name(platform_name: str):
         return 'manylinux2014_' + arch
 
 
-def build_r_package(src_root_dir: str, build_native_root_dir: str, platform_name: str, dry_run: bool, verbose: bool):
+def build_r_package(
+    src_root_dir: str,
+    build_native_root_dir: str,
+    with_cuda: bool,
+    platform_name: str,
+    dry_run: bool,
+    verbose: bool
+):
     system, _ = platform_name.split('-')
 
     def get_catboostr_artifact_src_and_dst_name(system: str):
@@ -194,7 +201,15 @@ def build_r_package(src_root_dir: str, build_native_root_dir: str, platform_name
         os.makedirs(binary_dst_dir, exist_ok=True)
 
     src, dst = get_catboostr_artifact_src_and_dst_name(system)
-    full_src = os.path.join(build_native_root_dir, 'catboost', 'R-package', 'src', src)
+    full_src = os.path.join(
+        build_native_root_dir,
+        'have_cuda' if with_cuda else 'no_cuda',
+        platform_name,
+        'catboost',
+        'R-package',
+        'src',
+        src
+    )
     full_dst = os.path.join(binary_dst_dir, dst)
     if dry_run:
         logging.info(f'copying {full_src} -> {full_dst}')
@@ -221,18 +236,22 @@ def build_r_package(src_root_dir: str, build_native_root_dir: str, platform_name
 def build_jvm_artifacts(
     src_root_dir: str,
     build_native_root_dir: str,
-    target_platform: str,
+    platform_name: str,
     macos_universal_binaries:bool,
-    have_cuda: str,
+    build_with_cuda_for_main_targets: str,
     dry_run: bool,
     verbose: bool):
 
     os.chdir(src_root_dir)
 
-    for base_dir, lib_name in [
-        (os.path.join('catboost', 'jvm-packages', 'catboost4j-prediction'), 'catboost4j-prediction'),
-        (os.path.join('catboost', 'spark', 'catboost4j-spark', 'core'), 'catboost4j-spark-impl'),
-        ]:
+    parts = [
+        (os.path.join('catboost', 'jvm-packages', 'catboost4j-prediction'), 'catboost4j-prediction', build_with_cuda_for_main_targets),
+        (os.path.join('catboost', 'spark', 'catboost4j-spark', 'core'), 'catboost4j-spark-impl', False)
+    ]
+
+    for base_dir, lib_name, with_cuda in parts:
+        cuda_status_prefix = 'have_cuda' if with_cuda else 'no_cuda'
+        build_dir = os.path.join(build_native_root_dir, cuda_status_prefix, platform_name)
 
         cmd = [
             'python3',
@@ -240,16 +259,16 @@ def build_jvm_artifacts(
             '--only-postprocessing',
             '--base-dir', base_dir,
             '--lib-name', lib_name,
-            '--build-output-root-dir', build_native_root_dir,
+            '--build-output-root-dir', build_dir,
         ]
         if verbose:
             cmd += ['--verbose']
-        if have_cuda:
+        if with_cuda:
             cmd += ['--have-cuda', f'--cuda-root-dir="{CUDA_ROOT}"']
         if macos_universal_binaries:
             cmd += ['--macos-universal-binaries']
         else:
-            cmd += ['--target-platform', target_platform]
+            cmd += ['--target-platform', platform_name]
 
         if verbose:
             logging.info(' '.join(cmd))
@@ -272,10 +291,29 @@ def get_shared_lib_files(system:str, name:str) -> List[str]:
         suffix = '.so' if system == 'linux' else '.dylib'
         return ['lib' + name + suffix]
 
-def copy_built_artifacts_to_canonical_place(system: str, real_build_dir:str, build_native_platform_dir:str, dry_run:bool, verbose: bool):
+def copy_built_artifacts_to_canonical_place(
+    platform_name: str,
+    with_cuda:bool,
+    build_native_root_dir:str,
+    built_output_root_dir:str,
+    dry_run:bool,
+    verbose: bool
+):
     """
     Copy only artifacts that are not copied already by postprocessing in building JVM, R and Python packages
     """
+    if build_native_root_dir == built_output_root_dir:
+        if verbose:
+            print(
+                f'copy_built_artifacts_to_canonical_place: build_native_root_dir =='
+                + f'built_output_root_dir =\n{build_native_root_dir}\n'
+                +  'Do not copy to itself'
+            )
+            return
+
+    system = platform_name.split('-')[0]
+    cuda_status_prefix = 'have_cuda' if with_cuda else 'no_cuda'
+
     artifacts = [
         (os.path.join('catboost', 'app'), get_exe_files(system, 'catboost')),
         (os.path.join('catboost', 'libs', 'model_interface'), get_shared_lib_files(system, 'catboostmodel')),
@@ -285,20 +323,19 @@ def copy_built_artifacts_to_canonical_place(system: str, real_build_dir:str, bui
 
     for sub_path, files in artifacts:
         for f in files:
-            src = os.path.join(real_build_dir, sub_path, f)
-            dst = os.path.join(build_native_platform_dir, sub_path, f)
+            src = os.path.join(build_native_root_dir, cuda_status_prefix, platform_name, sub_path, f)
+            dst = os.path.join(built_output_root_dir, cuda_status_prefix, platform_name, sub_path, f)
             if dry_run:
                 logging.info(f'copying {src} -> {dst}')
             else:
                 distutils.dir_util.mkpath(os.path.dirname(dst), verbose=verbose, dry_run=dry_run)
                 distutils.file_util.copy_file(src, dst, verbose=verbose, dry_run=dry_run)
 
-def get_real_build_root_dir(src_root_dir:str, platform_name:str, built_output_root_dir:str):
+def get_real_build_root_dir(src_root_dir:str, built_output_root_dir:str):
     if os.environ.get('CMAKE_BUILD_CACHE_DIR'):
         build_native_root_dir = os.path.join(
             os.environ['CMAKE_BUILD_CACHE_DIR'],
-            hashlib.md5(os.path.abspath(src_root_dir).encode('utf-8')).hexdigest()[:10],
-            platform_name
+            hashlib.md5(os.path.abspath(src_root_dir).encode('utf-8')).hexdigest()[:10]
         )
         os.makedirs(build_native_root_dir, exist_ok=True)
         return build_native_root_dir
@@ -308,7 +345,7 @@ def get_real_build_root_dir(src_root_dir:str, platform_name:str, built_output_ro
 
 def build_all_for_one_platform(
     src_root_dir:str,
-    built_output_root_dir:str,
+    built_output_root_dir:str,  # will contain 'no_cuda/{platform_name}' and 'have_cuda/{platform_name}' subdirs
     platform_name:str,  # either "{system}-{arch}' of 'darwin-universal2'
     native_built_tools_root_dir:str=None,
     cmake_target_toolchain:str=None,
@@ -317,19 +354,25 @@ def build_all_for_one_platform(
     dry_run:bool=False,
     verbose:bool=False):
 
-    build_native_root_dir = get_real_build_root_dir(src_root_dir, platform_name, built_output_root_dir)
+    build_native_root_dir = get_real_build_root_dir(src_root_dir, built_output_root_dir)
+
+    for prefix in ['no_cuda', 'have_cuda']:
+        build_dir = os.path.join(build_native_root_dir, prefix, platform_name)
+        if not dry_run:
+            os.makedirs(build_dir, exist_ok=True)
 
     sys.path = [os.path.join(src_root_dir, 'build')] + sys.path
     import build_native
 
     # exclude python-dependent targets that will be built for concrete python
-    # and Java compilation of SWIG-generated sources (performed in build_jvm_artifacts)
-    all_targets=[
+    # and SWIG (which is always w/o CUDA) and includes JVM-only 'catboost4j-spark-impl'
+    all_targets_except_python_and_spark=[
         target for target in build_native.Targets.catboost.keys()
-        if target not in ['_hnsw', '_catboost', 'catboost4j-spark-impl']
+        if target not in ['_hnsw', '_catboost', 'catboost4j-spark-impl', 'catboost4j-spark-impl-cpp']
     ]
 
-    have_cuda = need_to_build_cuda(platform_name)
+
+    build_with_cuda_for_main_targets = need_to_build_with_cuda_for_main_targets(platform_name)
 
     default_cmake_extra_args = [f'-DJAVA_HOME={JAVA_HOME}']
     if cmake_extra_args is not None:
@@ -348,17 +391,40 @@ def build_all_for_one_platform(
         macos_universal_binaries = False
         default_cmake_extra_args += [f'-DCMAKE_FIND_ROOT_PATH={os.path.join(CMAKE_BUILD_ENV_ROOT, platform_name)}']
 
-    def call_build_native(targets, cmake_extra_args=[], cmake_platform_to_python_dev_paths=None):
+    def call_build_native(
+        targets,
+        have_cuda,
+        macos_universal_binaries=macos_universal_binaries,
+        build_root_dir=None,
+        native_built_tools_root_dir=None,
+        cmake_extra_args=[],
+        cmake_platform_to_python_dev_paths=None
+    ):
+        if build_root_dir is None:
+            build_root_dir = os.path.join(
+                build_native_root_dir,
+                'have_cuda' if have_cuda else 'no_cuda',
+                platform_name
+            )
+        if have_cuda:
+            msvs_version = '2019'
+            msvc_toolset = '14.28.29333'
+        else:
+            msvs_version = '2022'
+            msvc_toolset = '14.39.33519'
+
         build_native.build(
             dry_run=dry_run,
             verbose=verbose,
-            build_root_dir=build_native_root_dir,
+            build_root_dir=build_root_dir,
             targets=targets,
             cmake_target_toolchain=cmake_target_toolchain,
             conan_host_profile=conan_host_profile,
             have_cuda=have_cuda,
             cuda_root_dir=CUDA_ROOT if have_cuda else None,
             target_platform=target_platform,
+            msvs_version=msvs_version,
+            msvc_toolset=msvc_toolset,
             macos_universal_binaries=macos_universal_binaries,
             native_built_tools_root_dir=native_built_tools_root_dir,
             cmake_extra_args=default_cmake_extra_args + cmake_extra_args,
@@ -366,26 +432,70 @@ def build_all_for_one_platform(
             cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
         )
 
+    if not native_built_tools_root_dir:
+        # build all tools w/o CUDA (will need them for Spark anyway)
+        if macos_universal_binaries:
+            native_built_tools_root_dir = os.path.join(
+                build_native_root_dir,
+                'no_cuda',
+                platform_name,
+                get_native_platform_name()
+            )
+        else:
+            native_built_tools_root_dir = os.path.join(
+                build_native_root_dir,
+                'no_cuda',
+                platform_name
+            )
+        if not dry_run:
+            os.makedirs(native_built_tools_root_dir, exist_ok=True)
+
+        call_build_native(
+            targets=build_native.Targets.tools,
+            have_cuda=False,
+            build_root_dir=native_built_tools_root_dir,
+            macos_universal_binaries=False
+        )
+
+    # build Spark native part w/o CUDA
+    call_build_native(
+        targets=['catboost4j-spark-impl-cpp'],
+        have_cuda=False,
+        native_built_tools_root_dir=native_built_tools_root_dir
+    )
+
     # build all non python-version specific variants
-    call_build_native(targets=all_targets)
+    call_build_native(
+        targets=all_targets_except_python_and_spark,
+        have_cuda=build_with_cuda_for_main_targets,
+        native_built_tools_root_dir=native_built_tools_root_dir
+    )
 
     if os.environ.get('CMAKE_BUILD_CACHE_DIR'):
         copy_built_artifacts_to_canonical_place(
-            platform_name.split('-')[0],
+            platform_name,
+            build_with_cuda_for_main_targets,
             build_native_root_dir,
             built_output_root_dir,
             dry_run=dry_run,
             verbose=verbose
         )
 
-    build_r_package(src_root_dir, build_native_root_dir, platform_name, dry_run, verbose)
+    build_r_package(
+        src_root_dir,
+        build_native_root_dir,
+        build_with_cuda_for_main_targets,
+        platform_name,
+        dry_run,
+        verbose
+    )
 
     build_jvm_artifacts(
         src_root_dir,
         build_native_root_dir,
-        target_platform,
+        platform_name,
         macos_universal_binaries,
-        have_cuda,
+        build_with_cuda_for_main_targets,
         dry_run,
         verbose
     )
@@ -416,7 +526,15 @@ def build_all_for_one_platform(
         call_build_native(
             targets=['_hnsw', '_catboost'],
             cmake_extra_args=cmake_extra_args,
+            have_cuda=build_with_cuda_for_main_targets,
+            native_built_tools_root_dir=native_built_tools_root_dir,
             cmake_platform_to_python_dev_paths=cmake_platform_to_python_dev_paths
+        )
+
+        build_native_sub_dir = os.path.join(
+            build_native_root_dir,
+            'have_cuda' if build_with_cuda_for_main_targets else 'no_cuda',
+            platform_name
         )
 
         # don't pass CUDA_ROOT here because it does not matter when prebuilt extension libraries are used
@@ -426,7 +544,7 @@ def build_all_for_one_platform(
             '--plat-name', get_python_plat_name(platform_name),
             '--with-hnsw',
             '--prebuilt-widget',
-            f'--prebuilt-extensions-build-root-dir={build_native_root_dir}'
+            f'--prebuilt-extensions-build-root-dir={build_native_sub_dir}'
         ]
 
         run_with_native_python_with_version_in_python_package_dir(
@@ -452,10 +570,16 @@ def build_all(src_root_dir: str, dry_run:bool = False, verbose:bool = False):
 
     platform_name = get_primary_platform_name()
 
+    if platform_name.startswith('linux'):
+        cmake_target_toolchain=os.path.join(src_root_dir, 'ci', 'toolchains', 'clangs.toolchain')
+    else:
+        cmake_target_toolchain=None
+
     build_all_for_one_platform(
         src_root_dir=src_root_dir,
-        built_output_root_dir=os.path.join(build_native_root_dir, platform_name),
+        built_output_root_dir=build_native_root_dir,
         platform_name=platform_name,
+        cmake_target_toolchain=cmake_target_toolchain,
         dry_run=dry_run,
         verbose=verbose
     )
@@ -466,13 +590,17 @@ def build_all(src_root_dir: str, dry_run:bool = False, verbose:bool = False):
         # build for aarch64 as well
         build_all_for_one_platform(
             src_root_dir=src_root_dir,
-            built_output_root_dir=os.path.join(build_native_root_dir, 'linux-aarch64'),
+            built_output_root_dir=build_native_root_dir,
             platform_name='linux-aarch64',
-            cmake_target_toolchain=os.path.join(src_root_dir, 'ci', 'toolchains', 'dockcross.manylinux2014_aarch64.clang.toolchain'),
+            cmake_target_toolchain=os.path.join(src_root_dir, 'ci', 'toolchains', 'dockcross.manylinux2014_aarch64.clangs.toolchain'),
             conan_host_profile=os.path.join(src_root_dir, 'ci', 'conan-profiles', 'dockcross.manylinux2014_aarch64.profile'),
             dry_run=dry_run,
             verbose=verbose,
-            native_built_tools_root_dir=get_real_build_root_dir(src_root_dir, 'linux-x86_64', os.path.join(build_native_root_dir, 'linux-x86_64')),
+            native_built_tools_root_dir=os.path.join(
+                get_real_build_root_dir(src_root_dir, build_native_root_dir),
+                'no_cuda',
+                'linux-x86_64'
+            ),
 
             # for some reason CMake can't find JDK libraries in Adoptium's standard path so we have to specify them explicitly
             cmake_extra_args=[

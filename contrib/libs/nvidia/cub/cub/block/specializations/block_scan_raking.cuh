@@ -55,7 +55,7 @@ template <
     int         BLOCK_DIM_Y,    ///< The thread block length in threads along the Y dimension
     int         BLOCK_DIM_Z,    ///< The thread block length in threads along the Z dimension
     bool        MEMOIZE,        ///< Whether or not to buffer outer raking scan partials to incur fewer shared memory reads at the expense of higher register pressure
-    int         PTX_ARCH>       ///< The PTX compute capability for which to to specialize this collective
+    int         LEGACY_PTX_ARCH = 0> ///< The PTX compute capability for which to to specialize this collective
 struct BlockScanRaking
 {
     //---------------------------------------------------------------------
@@ -70,7 +70,7 @@ struct BlockScanRaking
     };
 
     /// Layout type for padded thread block raking grid
-    typedef BlockRakingLayout<T, BLOCK_THREADS, PTX_ARCH> BlockRakingLayout;
+    typedef BlockRakingLayout<T, BLOCK_THREADS> BlockRakingLayout;
 
     /// Constants
     enum
@@ -86,7 +86,7 @@ struct BlockScanRaking
     };
 
     ///  WarpScan utility type
-    typedef WarpScan<T, RAKING_THREADS, PTX_ARCH> WarpScan;
+    typedef WarpScan<T, RAKING_THREADS> WarpScan;
 
     /// Shared memory storage layout type
     struct _TempStorage

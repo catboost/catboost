@@ -195,6 +195,7 @@ CLASSES = {
         "count": ConstMethodIntr(signature=Fun[[List[T0], T0], int]),
         "remove": MethodIntr(signature=Fun[[List[T0], T0], None]),
         "insert": MethodIntr(signature=Fun[[List[T0], int, T0], None]),
+        "clear": MethodIntr(signature=Fun[[List[T0]], None]),
     },
     "slice": {
         "start": AttributeIntr(signature=Fun[[T0], int]),

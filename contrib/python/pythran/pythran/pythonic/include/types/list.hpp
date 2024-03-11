@@ -341,6 +341,7 @@ namespace types
     iterator erase(size_t n);
 
     T pop(long x = -1);
+    void clear();
 
     // TODO: have to raise a valueError
     none_type remove(T const &x);

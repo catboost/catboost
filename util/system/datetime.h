@@ -34,6 +34,12 @@ ui64 ThreadCPUTime() noexcept;
 
 void NanoSleep(ui64 ns) noexcept;
 
+#if defined(_x86_)
+namespace NPrivate {
+    bool HaveRdtscpImpl();
+}
+#endif
+
 // GetCycleCount guarantees to return synchronous values on different cores
 // and provide constant rate only on modern Intel and AMD processors
 // NOTE: rdtscp is used to prevent out of order execution
@@ -45,20 +51,20 @@ Y_FORCE_INLINE ui64 GetCycleCount() noexcept {
 #if defined(_MSC_VER)
     // Generates the rdtscp instruction, which returns the processor time stamp.
     // The processor time stamp records the number of clock cycles since the last reset.
-    extern const bool HaveRdtscp;
+    static const bool haveRdtscp = ::NPrivate::HaveRdtscpImpl();
 
-    if (HaveRdtscp) {
+    if (haveRdtscp) {
         unsigned int aux;
         return __rdtscp(&aux);
     } else {
         return __rdtsc();
     }
 #elif defined(_x86_64_)
-    extern const bool HaveRdtscp;
+    static const bool haveRdtscp = ::NPrivate::HaveRdtscpImpl();
 
     unsigned hi, lo;
 
-    if (HaveRdtscp) {
+    if (haveRdtscp) {
         __asm__ __volatile__("rdtscp"
                              : "=a"(lo), "=d"(hi)::"%rcx");
     } else {
@@ -68,10 +74,10 @@ Y_FORCE_INLINE ui64 GetCycleCount() noexcept {
 
     return ((unsigned long long)lo) | (((unsigned long long)hi) << 32);
 #elif defined(_i386_)
-    extern const bool HaveRdtscp;
+    static const bool haveRdtscp = ::NPrivate::HaveRdtscpImpl();
 
     ui64 x;
-    if (HaveRdtscp) {
+    if (haveRdtscp) {
         __asm__ volatile("rdtscp\n\t"
                          : "=A"(x)::"%ecx");
     } else {

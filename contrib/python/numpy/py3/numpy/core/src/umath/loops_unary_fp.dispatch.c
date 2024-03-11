@@ -103,62 +103,10 @@ NPY_FINLINE double c_square_f64(double a)
 #define CONTIG  0
 #define NCONTIG 1
 
-/*
- * clang has a bug that's present at -O1 or greater.  When partially loading a
- * vector register for a reciprocal operation, the remaining elements are set
- * to 1 to avoid divide-by-zero.  The partial load is paired with a partial
- * store after the reciprocal operation.  clang notices that the entire register
- * is not needed for the store and optimizes out the fill of 1 to the remaining
- * elements.  This causes either a divide-by-zero or 0/0 with invalid exception
- * that we were trying to avoid by filling.
- *
- * Using a dummy variable marked 'volatile' convinces clang not to ignore
- * the explicit fill of remaining elements.  If `-ftrapping-math` is
- * supported, then it'll also avoid the bug.  `-ftrapping-math` is supported
- * on Apple clang v12+ for x86_64.  It is not currently supported for arm64.
- * `-ftrapping-math` is set by default of Numpy builds in
- * numpy/distutils/ccompiler.py.
- *
- * Note: Apple clang and clang upstream have different versions that overlap
- */
-#if defined(__clang__)
-    #if defined(__apple_build_version__)
-    // Apple Clang
-        #if __apple_build_version__ < 12000000
-        // Apple Clang before v12
-        #define WORKAROUND_CLANG_RECIPROCAL_BUG 1
-        #elif defined(NPY_CPU_X86) || defined(NPY_CPU_AMD64)
-        // Apple Clang after v12, targeting i386 or x86_64
-        #define WORKAROUND_CLANG_RECIPROCAL_BUG 0
-        #else
-        // Apple Clang after v12, not targeting i386 or x86_64
-        #define WORKAROUND_CLANG_RECIPROCAL_BUG 1
-        #endif
-    #else
-    // Clang, not Apple Clang
-        #if __clang_major__ < 10
-        // Clang before v10
-        #define WORKAROUND_CLANG_RECIPROCAL_BUG 1
-        #elif defined(_MSC_VER)
-        // clang-cl has the same bug
-        #define WORKAROUND_CLANG_RECIPROCAL_BUG 1
-        #elif defined(NPY_CPU_X86) || defined(NPY_CPU_AMD64)
-        // Clang v10+, targeting i386 or x86_64
-        #define WORKAROUND_CLANG_RECIPROCAL_BUG 0
-        #else
-        // Clang v10+, not targeting i386 or x86_64
-        #define WORKAROUND_CLANG_RECIPROCAL_BUG 1
-        #endif
-    #endif
-#else
-// Not a Clang compiler
-#define WORKAROUND_CLANG_RECIPROCAL_BUG 0
-#endif
-
-#line 153
+#line 101
 #if NPY_SIMD_F32
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_FLOAT_rint_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -170,7 +118,7 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -180,7 +128,7 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_rint_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -190,7 +138,7 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_rint_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -200,7 +148,7 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_rint_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -210,7 +158,7 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_rint_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -219,7 +167,7 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -228,7 +176,7 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -237,7 +185,7 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -278,15 +226,6 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_rint_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -298,7 +237,7 @@ static void simd_FLOAT_rint_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_rint_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -310,7 +249,7 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -320,7 +259,7 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_rint_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -330,7 +269,7 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_rint_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -340,7 +279,7 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_rint_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -350,7 +289,7 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_rint_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -359,7 +298,7 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -368,7 +307,7 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -377,7 +316,7 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -418,15 +357,6 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_rint_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -438,7 +368,7 @@ static void simd_FLOAT_rint_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_rint_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -450,7 +380,7 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -460,7 +390,7 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_rint_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -470,7 +400,7 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_rint_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -480,7 +410,7 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_rint_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -490,7 +420,7 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_rint_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -499,7 +429,7 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -508,7 +438,7 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -517,7 +447,7 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -558,15 +488,6 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_rint_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -578,7 +499,7 @@ static void simd_FLOAT_rint_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_rint_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -590,7 +511,7 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -600,7 +521,7 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_rint_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -610,7 +531,7 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_rint_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -620,7 +541,7 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_rint_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -630,7 +551,7 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_rint_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -639,7 +560,7 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -648,7 +569,7 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -657,7 +578,7 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -698,15 +619,6 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_rint_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -719,8 +631,8 @@ static void simd_FLOAT_rint_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_FLOAT_floor_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -732,7 +644,7 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -742,7 +654,7 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_floor_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -752,7 +664,7 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_floor_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -762,7 +674,7 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_floor_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -772,7 +684,7 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_floor_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -781,7 +693,7 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -790,7 +702,7 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -799,7 +711,7 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -840,15 +752,6 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_floor_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -860,7 +763,7 @@ static void simd_FLOAT_floor_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_floor_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -872,7 +775,7 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -882,7 +785,7 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_floor_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -892,7 +795,7 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_floor_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -902,7 +805,7 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_floor_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -912,7 +815,7 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_floor_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -921,7 +824,7 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -930,7 +833,7 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -939,7 +842,7 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -980,15 +883,6 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_floor_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -1000,7 +894,7 @@ static void simd_FLOAT_floor_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_floor_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -1012,7 +906,7 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -1022,7 +916,7 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_floor_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -1032,7 +926,7 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_floor_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -1042,7 +936,7 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_floor_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -1052,7 +946,7 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_floor_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -1061,7 +955,7 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -1070,7 +964,7 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -1079,7 +973,7 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -1120,15 +1014,6 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_floor_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -1140,7 +1025,7 @@ static void simd_FLOAT_floor_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_floor_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -1152,7 +1037,7 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -1162,7 +1047,7 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_floor_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -1172,7 +1057,7 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_floor_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -1182,7 +1067,7 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_floor_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -1192,7 +1077,7 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_floor_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -1201,7 +1086,7 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -1210,7 +1095,7 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -1219,7 +1104,7 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -1260,15 +1145,6 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_floor_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -1281,8 +1157,8 @@ static void simd_FLOAT_floor_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_FLOAT_ceil_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -1294,7 +1170,7 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -1304,7 +1180,7 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_ceil_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -1314,7 +1190,7 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_ceil_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -1324,7 +1200,7 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_ceil_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -1334,7 +1210,7 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_ceil_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -1343,7 +1219,7 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -1352,7 +1228,7 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -1361,7 +1237,7 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -1402,15 +1278,6 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_ceil_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -1422,7 +1289,7 @@ static void simd_FLOAT_ceil_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_ceil_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -1434,7 +1301,7 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -1444,7 +1311,7 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_ceil_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -1454,7 +1321,7 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_ceil_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -1464,7 +1331,7 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_ceil_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -1474,7 +1341,7 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_ceil_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -1483,7 +1350,7 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -1492,7 +1359,7 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -1501,7 +1368,7 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -1542,15 +1409,6 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_ceil_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -1562,7 +1420,7 @@ static void simd_FLOAT_ceil_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_ceil_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -1574,7 +1432,7 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -1584,7 +1442,7 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_ceil_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -1594,7 +1452,7 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_ceil_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -1604,7 +1462,7 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_ceil_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -1614,7 +1472,7 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_ceil_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -1623,7 +1481,7 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -1632,7 +1490,7 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -1641,7 +1499,7 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -1682,15 +1540,6 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_ceil_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -1702,7 +1551,7 @@ static void simd_FLOAT_ceil_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_ceil_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -1714,7 +1563,7 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -1724,7 +1573,7 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_ceil_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -1734,7 +1583,7 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_ceil_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -1744,7 +1593,7 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_ceil_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -1754,7 +1603,7 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_ceil_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -1763,7 +1612,7 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -1772,7 +1621,7 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -1781,7 +1630,7 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -1822,15 +1671,6 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_ceil_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -1843,8 +1683,8 @@ static void simd_FLOAT_ceil_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_FLOAT_trunc_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -1856,7 +1696,7 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -1866,7 +1706,7 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_trunc_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -1876,7 +1716,7 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_trunc_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -1886,7 +1726,7 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_trunc_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -1896,7 +1736,7 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_trunc_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -1905,7 +1745,7 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -1914,7 +1754,7 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -1923,7 +1763,7 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -1964,15 +1804,6 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_trunc_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -1984,7 +1815,7 @@ static void simd_FLOAT_trunc_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_trunc_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -1996,7 +1827,7 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -2006,7 +1837,7 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_trunc_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -2016,7 +1847,7 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_trunc_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -2026,7 +1857,7 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_trunc_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -2036,7 +1867,7 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_trunc_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -2045,7 +1876,7 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -2054,7 +1885,7 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -2063,7 +1894,7 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -2104,15 +1935,6 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_trunc_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -2124,7 +1946,7 @@ static void simd_FLOAT_trunc_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_trunc_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -2136,7 +1958,7 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -2146,7 +1968,7 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_trunc_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -2156,7 +1978,7 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_trunc_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -2166,7 +1988,7 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_trunc_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -2176,7 +1998,7 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_trunc_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -2185,7 +2007,7 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -2194,7 +2016,7 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -2203,7 +2025,7 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -2244,15 +2066,6 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_trunc_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -2264,7 +2077,7 @@ static void simd_FLOAT_trunc_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_trunc_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -2276,7 +2089,7 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -2286,7 +2099,7 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_trunc_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -2296,7 +2109,7 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_trunc_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -2306,7 +2119,7 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_trunc_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -2316,7 +2129,7 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_trunc_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -2325,7 +2138,7 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -2334,7 +2147,7 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -2343,7 +2156,7 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -2384,15 +2197,6 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_trunc_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -2405,8 +2209,8 @@ static void simd_FLOAT_trunc_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_FLOAT_sqrt_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -2418,7 +2222,7 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -2428,7 +2232,7 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_sqrt_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -2438,7 +2242,7 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_sqrt_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -2448,7 +2252,7 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_sqrt_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -2458,7 +2262,7 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_sqrt_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -2467,7 +2271,7 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -2476,7 +2280,7 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -2485,7 +2289,7 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -2526,15 +2330,6 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_sqrt_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -2546,7 +2341,7 @@ static void simd_FLOAT_sqrt_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_sqrt_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -2558,7 +2353,7 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -2568,7 +2363,7 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_sqrt_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -2578,7 +2373,7 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_sqrt_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -2588,7 +2383,7 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_sqrt_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -2598,7 +2393,7 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_sqrt_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -2607,7 +2402,7 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -2616,7 +2411,7 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -2625,7 +2420,7 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -2666,15 +2461,6 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_sqrt_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -2686,7 +2472,7 @@ static void simd_FLOAT_sqrt_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_sqrt_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -2698,7 +2484,7 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -2708,7 +2494,7 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_sqrt_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -2718,7 +2504,7 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_sqrt_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -2728,7 +2514,7 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_sqrt_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -2738,7 +2524,7 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_sqrt_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -2747,7 +2533,7 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -2756,7 +2542,7 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -2765,7 +2551,7 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -2806,15 +2592,6 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_sqrt_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -2826,7 +2603,7 @@ static void simd_FLOAT_sqrt_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -2838,7 +2615,7 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -2848,7 +2625,7 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_sqrt_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -2858,7 +2635,7 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_sqrt_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -2868,7 +2645,7 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_sqrt_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -2878,7 +2655,7 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_sqrt_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -2887,7 +2664,7 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -2896,7 +2673,7 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -2905,7 +2682,7 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -2946,15 +2723,6 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_sqrt_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -2967,8 +2735,8 @@ static void simd_FLOAT_sqrt_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_FLOAT_absolute_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -2980,7 +2748,7 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -2990,7 +2758,7 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_abs_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -3000,7 +2768,7 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_abs_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -3010,7 +2778,7 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_abs_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -3020,7 +2788,7 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_abs_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -3029,7 +2797,7 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -3038,7 +2806,7 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -3047,7 +2815,7 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -3088,15 +2856,6 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_abs_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -3108,7 +2867,7 @@ static void simd_FLOAT_absolute_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_absolute_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -3120,7 +2879,7 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -3130,7 +2889,7 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_abs_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -3140,7 +2899,7 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_abs_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -3150,7 +2909,7 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_abs_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -3160,7 +2919,7 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_abs_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -3169,7 +2928,7 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -3178,7 +2937,7 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -3187,7 +2946,7 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -3228,15 +2987,6 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_abs_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -3248,7 +2998,7 @@ static void simd_FLOAT_absolute_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_absolute_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -3260,7 +3010,7 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -3270,7 +3020,7 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_abs_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -3280,7 +3030,7 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_abs_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -3290,7 +3040,7 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_abs_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -3300,7 +3050,7 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_abs_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -3309,7 +3059,7 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -3318,7 +3068,7 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -3327,7 +3077,7 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -3368,15 +3118,6 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_abs_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -3388,7 +3129,7 @@ static void simd_FLOAT_absolute_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_absolute_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -3400,7 +3141,7 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -3410,7 +3151,7 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_abs_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -3420,7 +3161,7 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_abs_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -3430,7 +3171,7 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_abs_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -3440,7 +3181,7 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_abs_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -3449,7 +3190,7 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -3458,7 +3199,7 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -3467,7 +3208,7 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -3508,15 +3249,6 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_abs_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -3529,8 +3261,8 @@ static void simd_FLOAT_absolute_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_FLOAT_square_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -3542,7 +3274,7 @@ static void simd_FLOAT_square_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -3552,7 +3284,7 @@ static void simd_FLOAT_square_CONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_square_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -3562,7 +3294,7 @@ static void simd_FLOAT_square_CONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_square_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -3572,7 +3304,7 @@ static void simd_FLOAT_square_CONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_square_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -3582,7 +3314,7 @@ static void simd_FLOAT_square_CONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_square_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -3591,7 +3323,7 @@ static void simd_FLOAT_square_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -3600,7 +3332,7 @@ static void simd_FLOAT_square_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -3609,7 +3341,7 @@ static void simd_FLOAT_square_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -3650,15 +3382,6 @@ static void simd_FLOAT_square_CONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_square_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -3670,7 +3393,7 @@ static void simd_FLOAT_square_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_square_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -3682,7 +3405,7 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -3692,7 +3415,7 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_square_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -3702,7 +3425,7 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_square_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -3712,7 +3435,7 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_square_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -3722,7 +3445,7 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_square_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -3731,7 +3454,7 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -3740,7 +3463,7 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -3749,7 +3472,7 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -3790,15 +3513,6 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_square_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -3810,7 +3524,7 @@ static void simd_FLOAT_square_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_square_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -3822,7 +3536,7 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -3832,7 +3546,7 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_square_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -3842,7 +3556,7 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_square_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -3852,7 +3566,7 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_square_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -3862,7 +3576,7 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_square_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -3871,7 +3585,7 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -3880,7 +3594,7 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -3889,7 +3603,7 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -3930,15 +3644,6 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_square_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -3950,7 +3655,7 @@ static void simd_FLOAT_square_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_square_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -3962,7 +3667,7 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -3972,7 +3677,7 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_square_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -3982,7 +3687,7 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_square_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -3992,7 +3697,7 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_square_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -4002,7 +3707,7 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_square_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -4011,7 +3716,7 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -4020,7 +3725,7 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -4029,7 +3734,7 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -4070,15 +3775,6 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f32 v_unary0 = npyv_square_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -4091,8 +3787,8 @@ static void simd_FLOAT_square_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_FLOAT_reciprocal_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -4104,7 +3800,7 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -4114,7 +3810,7 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_recip_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -4124,7 +3820,7 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_recip_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -4134,7 +3830,7 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_recip_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -4144,7 +3840,7 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_recip_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -4153,7 +3849,7 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -4162,7 +3858,7 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -4171,7 +3867,7 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -4212,15 +3908,6 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if WORKAROUND_CLANG_RECIPROCAL_BUG
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // WORKAROUND_CLANG_RECIPROCAL_BUG
         npyv_f32 v_unary0 = npyv_recip_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -4232,7 +3919,7 @@ static void simd_FLOAT_reciprocal_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -4244,7 +3931,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -4254,7 +3941,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
             npyv_f32 v_unary0 = npyv_recip_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -4264,7 +3951,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
             npyv_f32 v_unary1 = npyv_recip_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -4274,7 +3961,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
             npyv_f32 v_unary2 = npyv_recip_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -4284,7 +3971,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
             npyv_f32 v_unary3 = npyv_recip_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -4293,7 +3980,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -4302,7 +3989,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -4311,7 +3998,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -4352,15 +4039,6 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if WORKAROUND_CLANG_RECIPROCAL_BUG
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // WORKAROUND_CLANG_RECIPROCAL_BUG
         npyv_f32 v_unary0 = npyv_recip_f32(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -4372,7 +4050,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -4384,7 +4062,7 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -4394,7 +4072,7 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_recip_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -4404,7 +4082,7 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_recip_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -4414,7 +4092,7 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_recip_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -4424,7 +4102,7 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_recip_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -4433,7 +4111,7 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -4442,7 +4120,7 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -4451,7 +4129,7 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -4492,15 +4170,6 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if WORKAROUND_CLANG_RECIPROCAL_BUG
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // WORKAROUND_CLANG_RECIPROCAL_BUG
         npyv_f32 v_unary0 = npyv_recip_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -4512,7 +4181,7 @@ static void simd_FLOAT_reciprocal_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -4524,7 +4193,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f32 v_src0 = npyv_load_f32(src + vstep*0);
@@ -4534,7 +4203,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
             npyv_f32 v_unary0 = npyv_recip_f32(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f32 v_src1 = npyv_load_f32(src + vstep*1);
@@ -4544,7 +4213,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
             npyv_f32 v_unary1 = npyv_recip_f32(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f32 v_src2 = npyv_load_f32(src + vstep*2);
@@ -4554,7 +4223,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
             npyv_f32 v_unary2 = npyv_recip_f32(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f32 v_src3 = npyv_load_f32(src + vstep*3);
@@ -4564,7 +4233,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
             npyv_f32 v_unary3 = npyv_recip_f32(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*0, v_unary0);
@@ -4573,7 +4242,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*1, v_unary1);
@@ -4582,7 +4251,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*2, v_unary2);
@@ -4591,7 +4260,7 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f32(dst + vstep*3, v_unary3);
@@ -4632,15 +4301,6 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
             npyv_f32 v_src0 = npyv_loadn_tillz_f32(src, ssrc, len);
         #endif
     #endif
-        #if WORKAROUND_CLANG_RECIPROCAL_BUG
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f32 unused_but_workaround_bug = v_src0;
-        #endif // WORKAROUND_CLANG_RECIPROCAL_BUG
         npyv_f32 v_unary0 = npyv_recip_f32(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f32(dst, len, v_unary0);
@@ -4655,10 +4315,10 @@ static void simd_FLOAT_reciprocal_NCONTIG_NCONTIG
 
 #endif // NPY_SIMD_F32
 
-#line 153
+#line 101
 #if NPY_SIMD_F64
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_DOUBLE_rint_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -4670,7 +4330,7 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -4680,7 +4340,7 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_rint_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -4690,7 +4350,7 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_rint_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -4700,7 +4360,7 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_rint_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -4710,7 +4370,7 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_rint_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -4719,7 +4379,7 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -4728,7 +4388,7 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -4737,7 +4397,7 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -4778,15 +4438,6 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_rint_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -4798,7 +4449,7 @@ static void simd_DOUBLE_rint_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_rint_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -4810,7 +4461,7 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -4820,7 +4471,7 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_rint_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -4830,7 +4481,7 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_rint_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -4840,7 +4491,7 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_rint_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -4850,7 +4501,7 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_rint_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -4859,7 +4510,7 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -4868,7 +4519,7 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -4877,7 +4528,7 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -4918,15 +4569,6 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_rint_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -4938,7 +4580,7 @@ static void simd_DOUBLE_rint_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_rint_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -4950,7 +4592,7 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -4960,7 +4602,7 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_rint_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -4970,7 +4612,7 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_rint_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -4980,7 +4622,7 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_rint_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -4990,7 +4632,7 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_rint_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -4999,7 +4641,7 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -5008,7 +4650,7 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -5017,7 +4659,7 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -5058,15 +4700,6 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_rint_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -5078,7 +4711,7 @@ static void simd_DOUBLE_rint_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_rint_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -5090,7 +4723,7 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -5100,7 +4733,7 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_rint_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -5110,7 +4743,7 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_rint_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -5120,7 +4753,7 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_rint_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -5130,7 +4763,7 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_rint_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -5139,7 +4772,7 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -5148,7 +4781,7 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -5157,7 +4790,7 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -5198,15 +4831,6 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_rint_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -5219,8 +4843,8 @@ static void simd_DOUBLE_rint_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_DOUBLE_floor_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -5232,7 +4856,7 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -5242,7 +4866,7 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_floor_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -5252,7 +4876,7 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_floor_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -5262,7 +4886,7 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_floor_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -5272,7 +4896,7 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_floor_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -5281,7 +4905,7 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -5290,7 +4914,7 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -5299,7 +4923,7 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -5340,15 +4964,6 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_floor_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -5360,7 +4975,7 @@ static void simd_DOUBLE_floor_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_floor_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -5372,7 +4987,7 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -5382,7 +4997,7 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_floor_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -5392,7 +5007,7 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_floor_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -5402,7 +5017,7 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_floor_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -5412,7 +5027,7 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_floor_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -5421,7 +5036,7 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -5430,7 +5045,7 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -5439,7 +5054,7 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -5480,15 +5095,6 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_floor_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -5500,7 +5106,7 @@ static void simd_DOUBLE_floor_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_floor_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -5512,7 +5118,7 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -5522,7 +5128,7 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_floor_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -5532,7 +5138,7 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_floor_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -5542,7 +5148,7 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_floor_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -5552,7 +5158,7 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_floor_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -5561,7 +5167,7 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -5570,7 +5176,7 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -5579,7 +5185,7 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -5620,15 +5226,6 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_floor_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -5640,7 +5237,7 @@ static void simd_DOUBLE_floor_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_floor_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -5652,7 +5249,7 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -5662,7 +5259,7 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_floor_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -5672,7 +5269,7 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_floor_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -5682,7 +5279,7 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_floor_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -5692,7 +5289,7 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_floor_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -5701,7 +5298,7 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -5710,7 +5307,7 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -5719,7 +5316,7 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -5760,15 +5357,6 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_floor_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -5781,8 +5369,8 @@ static void simd_DOUBLE_floor_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_DOUBLE_ceil_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -5794,7 +5382,7 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -5804,7 +5392,7 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_ceil_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -5814,7 +5402,7 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_ceil_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -5824,7 +5412,7 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_ceil_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -5834,7 +5422,7 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_ceil_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -5843,7 +5431,7 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -5852,7 +5440,7 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -5861,7 +5449,7 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -5902,15 +5490,6 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_ceil_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -5922,7 +5501,7 @@ static void simd_DOUBLE_ceil_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_ceil_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -5934,7 +5513,7 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -5944,7 +5523,7 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_ceil_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -5954,7 +5533,7 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_ceil_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -5964,7 +5543,7 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_ceil_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -5974,7 +5553,7 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_ceil_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -5983,7 +5562,7 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -5992,7 +5571,7 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -6001,7 +5580,7 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -6042,15 +5621,6 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_ceil_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -6062,7 +5632,7 @@ static void simd_DOUBLE_ceil_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_ceil_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -6074,7 +5644,7 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -6084,7 +5654,7 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_ceil_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -6094,7 +5664,7 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_ceil_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -6104,7 +5674,7 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_ceil_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -6114,7 +5684,7 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_ceil_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -6123,7 +5693,7 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -6132,7 +5702,7 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -6141,7 +5711,7 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -6182,15 +5752,6 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_ceil_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -6202,7 +5763,7 @@ static void simd_DOUBLE_ceil_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -6214,7 +5775,7 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -6224,7 +5785,7 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_ceil_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -6234,7 +5795,7 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_ceil_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -6244,7 +5805,7 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_ceil_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -6254,7 +5815,7 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_ceil_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -6263,7 +5824,7 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -6272,7 +5833,7 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -6281,7 +5842,7 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -6322,15 +5883,6 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_ceil_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -6343,8 +5895,8 @@ static void simd_DOUBLE_ceil_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_DOUBLE_trunc_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -6356,7 +5908,7 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -6366,7 +5918,7 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_trunc_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -6376,7 +5928,7 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_trunc_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -6386,7 +5938,7 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_trunc_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -6396,7 +5948,7 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_trunc_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -6405,7 +5957,7 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -6414,7 +5966,7 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -6423,7 +5975,7 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -6464,15 +6016,6 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_trunc_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -6484,7 +6027,7 @@ static void simd_DOUBLE_trunc_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_trunc_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -6496,7 +6039,7 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -6506,7 +6049,7 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_trunc_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -6516,7 +6059,7 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_trunc_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -6526,7 +6069,7 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_trunc_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -6536,7 +6079,7 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_trunc_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -6545,7 +6088,7 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -6554,7 +6097,7 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -6563,7 +6106,7 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -6604,15 +6147,6 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_trunc_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -6624,7 +6158,7 @@ static void simd_DOUBLE_trunc_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_trunc_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -6636,7 +6170,7 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -6646,7 +6180,7 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_trunc_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -6656,7 +6190,7 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_trunc_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -6666,7 +6200,7 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_trunc_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -6676,7 +6210,7 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_trunc_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -6685,7 +6219,7 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -6694,7 +6228,7 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -6703,7 +6237,7 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -6744,15 +6278,6 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_trunc_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -6764,7 +6289,7 @@ static void simd_DOUBLE_trunc_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -6776,7 +6301,7 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -6786,7 +6311,7 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_trunc_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -6796,7 +6321,7 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_trunc_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -6806,7 +6331,7 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_trunc_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -6816,7 +6341,7 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_trunc_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -6825,7 +6350,7 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -6834,7 +6359,7 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -6843,7 +6368,7 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -6884,15 +6409,6 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_trunc_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -6905,8 +6421,8 @@ static void simd_DOUBLE_trunc_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_DOUBLE_sqrt_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -6918,7 +6434,7 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -6928,7 +6444,7 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_sqrt_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -6938,7 +6454,7 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_sqrt_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -6948,7 +6464,7 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_sqrt_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -6958,7 +6474,7 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_sqrt_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -6967,7 +6483,7 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -6976,7 +6492,7 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -6985,7 +6501,7 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -7026,15 +6542,6 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_sqrt_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -7046,7 +6553,7 @@ static void simd_DOUBLE_sqrt_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -7058,7 +6565,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -7068,7 +6575,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_sqrt_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -7078,7 +6585,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_sqrt_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -7088,7 +6595,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_sqrt_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -7098,7 +6605,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_sqrt_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -7107,7 +6614,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -7116,7 +6623,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -7125,7 +6632,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -7166,15 +6673,6 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_sqrt_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -7186,7 +6684,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -7198,7 +6696,7 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -7208,7 +6706,7 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_sqrt_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -7218,7 +6716,7 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_sqrt_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -7228,7 +6726,7 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_sqrt_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -7238,7 +6736,7 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_sqrt_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -7247,7 +6745,7 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -7256,7 +6754,7 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -7265,7 +6763,7 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -7306,15 +6804,6 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_sqrt_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -7326,7 +6815,7 @@ static void simd_DOUBLE_sqrt_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -7338,7 +6827,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -7348,7 +6837,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_sqrt_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -7358,7 +6847,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_sqrt_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -7368,7 +6857,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_sqrt_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -7378,7 +6867,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_sqrt_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -7387,7 +6876,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -7396,7 +6885,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -7405,7 +6894,7 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -7446,15 +6935,6 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_sqrt_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -7467,8 +6947,8 @@ static void simd_DOUBLE_sqrt_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_DOUBLE_absolute_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -7480,7 +6960,7 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -7490,7 +6970,7 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_abs_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -7500,7 +6980,7 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_abs_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -7510,7 +6990,7 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_abs_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -7520,7 +7000,7 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_abs_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -7529,7 +7009,7 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -7538,7 +7018,7 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -7547,7 +7027,7 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -7588,15 +7068,6 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_abs_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -7608,7 +7079,7 @@ static void simd_DOUBLE_absolute_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_absolute_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -7620,7 +7091,7 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -7630,7 +7101,7 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_abs_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -7640,7 +7111,7 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_abs_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -7650,7 +7121,7 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_abs_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -7660,7 +7131,7 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_abs_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -7669,7 +7140,7 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -7678,7 +7149,7 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -7687,7 +7158,7 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -7728,15 +7199,6 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_abs_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -7748,7 +7210,7 @@ static void simd_DOUBLE_absolute_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_absolute_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -7760,7 +7222,7 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -7770,7 +7232,7 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_abs_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -7780,7 +7242,7 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_abs_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -7790,7 +7252,7 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_abs_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -7800,7 +7262,7 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_abs_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -7809,7 +7271,7 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -7818,7 +7280,7 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -7827,7 +7289,7 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -7868,15 +7330,6 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_abs_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -7888,7 +7341,7 @@ static void simd_DOUBLE_absolute_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -7900,7 +7353,7 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -7910,7 +7363,7 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_abs_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -7920,7 +7373,7 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_abs_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -7930,7 +7383,7 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_abs_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -7940,7 +7393,7 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_abs_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -7949,7 +7402,7 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -7958,7 +7411,7 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -7967,7 +7420,7 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -8008,15 +7461,6 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_abs_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -8029,8 +7473,8 @@ static void simd_DOUBLE_absolute_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_DOUBLE_square_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -8042,7 +7486,7 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -8052,7 +7496,7 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_square_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -8062,7 +7506,7 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_square_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -8072,7 +7516,7 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_square_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -8082,7 +7526,7 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_square_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -8091,7 +7535,7 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -8100,7 +7544,7 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -8109,7 +7553,7 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -8150,15 +7594,6 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_square_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -8170,7 +7605,7 @@ static void simd_DOUBLE_square_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_square_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -8182,7 +7617,7 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -8192,7 +7627,7 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_square_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -8202,7 +7637,7 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_square_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -8212,7 +7647,7 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_square_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -8222,7 +7657,7 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_square_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -8231,7 +7666,7 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -8240,7 +7675,7 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -8249,7 +7684,7 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -8290,15 +7725,6 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_square_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -8310,7 +7736,7 @@ static void simd_DOUBLE_square_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_square_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -8322,7 +7748,7 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -8332,7 +7758,7 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_square_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -8342,7 +7768,7 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_square_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -8352,7 +7778,7 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_square_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -8362,7 +7788,7 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_square_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -8371,7 +7797,7 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -8380,7 +7806,7 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -8389,7 +7815,7 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -8430,15 +7856,6 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_square_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -8450,7 +7867,7 @@ static void simd_DOUBLE_square_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_square_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -8462,7 +7879,7 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -8472,7 +7889,7 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_square_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -8482,7 +7899,7 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_square_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -8492,7 +7909,7 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_square_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -8502,7 +7919,7 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_square_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -8511,7 +7928,7 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -8520,7 +7937,7 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -8529,7 +7946,7 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -8570,15 +7987,6 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if 0
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // 0
         npyv_f64 v_unary0 = npyv_square_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -8591,8 +7999,8 @@ static void simd_DOUBLE_square_NCONTIG_NCONTIG
 }
 
 
-#line 160
-#line 165
+#line 107
+#line 112
 static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -8604,7 +8012,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -8614,7 +8022,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_recip_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -8624,7 +8032,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_recip_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -8634,7 +8042,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_recip_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -8644,7 +8052,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_recip_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -8653,7 +8061,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -8662,7 +8070,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -8671,7 +8079,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -8712,15 +8120,6 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if WORKAROUND_CLANG_RECIPROCAL_BUG
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // WORKAROUND_CLANG_RECIPROCAL_BUG
         npyv_f64 v_unary0 = npyv_recip_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -8732,7 +8131,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -8744,7 +8143,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 4 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -8754,7 +8153,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
             npyv_f64 v_unary0 = npyv_recip_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 4 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -8764,7 +8163,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
             npyv_f64 v_unary1 = npyv_recip_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 4 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -8774,7 +8173,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
             npyv_f64 v_unary2 = npyv_recip_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 4 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -8784,7 +8183,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
             npyv_f64 v_unary3 = npyv_recip_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 4 > 0
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -8793,7 +8192,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 1
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -8802,7 +8201,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 2
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -8811,7 +8210,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 4 > 3
             #if CONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -8852,15 +8251,6 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if WORKAROUND_CLANG_RECIPROCAL_BUG
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // WORKAROUND_CLANG_RECIPROCAL_BUG
         npyv_f64 v_unary0 = npyv_recip_f64(v_src0);
     #if CONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -8872,7 +8262,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_CONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -8884,7 +8274,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if CONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -8894,7 +8284,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_recip_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if CONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -8904,7 +8294,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_recip_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if CONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -8914,7 +8304,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_recip_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if CONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -8924,7 +8314,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_recip_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -8933,7 +8323,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -8942,7 +8332,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -8951,7 +8341,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -8992,15 +8382,6 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if WORKAROUND_CLANG_RECIPROCAL_BUG
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // WORKAROUND_CLANG_RECIPROCAL_BUG
         npyv_f64 v_unary0 = npyv_recip_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -9012,7 +8393,7 @@ static void simd_DOUBLE_reciprocal_CONTIG_NCONTIG
     npyv_cleanup();
 }
 
-#line 165
+#line 112
 static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
 (const void *_src, npy_intp ssrc, void *_dst, npy_intp sdst, npy_intp len)
 {
@@ -9024,7 +8405,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
 
     // unrolled iterations
     for (; len >= wstep; len -= wstep, src += ssrc*wstep, dst += sdst*wstep) {
-        #line 179
+        #line 126
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_f64 v_src0 = npyv_load_f64(src + vstep*0);
@@ -9034,7 +8415,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
             npyv_f64 v_unary0 = npyv_recip_f64(v_src0);
         #endif
         
-#line 179
+#line 126
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_f64 v_src1 = npyv_load_f64(src + vstep*1);
@@ -9044,7 +8425,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
             npyv_f64 v_unary1 = npyv_recip_f64(v_src1);
         #endif
         
-#line 179
+#line 126
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_f64 v_src2 = npyv_load_f64(src + vstep*2);
@@ -9054,7 +8435,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
             npyv_f64 v_unary2 = npyv_recip_f64(v_src2);
         #endif
         
-#line 179
+#line 126
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_f64 v_src3 = npyv_load_f64(src + vstep*3);
@@ -9064,7 +8445,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
             npyv_f64 v_unary3 = npyv_recip_f64(v_src3);
         #endif
         
-        #line 191
+        #line 138
         #if 2 > 0
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*0, v_unary0);
@@ -9073,7 +8454,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 1
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*1, v_unary1);
@@ -9082,7 +8463,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 2
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*2, v_unary2);
@@ -9091,7 +8472,7 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
             #endif
         #endif
         
-#line 191
+#line 138
         #if 2 > 3
             #if NCONTIG == CONTIG
                 npyv_store_f64(dst + vstep*3, v_unary3);
@@ -9132,15 +8513,6 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
             npyv_f64 v_src0 = npyv_loadn_tillz_f64(src, ssrc, len);
         #endif
     #endif
-        #if WORKAROUND_CLANG_RECIPROCAL_BUG
-            /*
-             * Workaround clang bug.  We use a dummy variable marked 'volatile'
-             * to convince clang that the entire vector is needed.  We only
-             * want to do this for the last iteration / partial load-store of
-             * the loop since 'volatile' forces a refresh of the contents.
-             */
-             volatile npyv_f64 unused_but_workaround_bug = v_src0;
-        #endif // WORKAROUND_CLANG_RECIPROCAL_BUG
         npyv_f64 v_unary0 = npyv_recip_f64(v_src0);
     #if NCONTIG == CONTIG
         npyv_store_till_f64(dst, len, v_unary0);
@@ -9156,13 +8528,11 @@ static void simd_DOUBLE_reciprocal_NCONTIG_NCONTIG
 #endif // NPY_SIMD_F64
 
 
-#undef WORKAROUND_CLANG_RECIPROCAL_BUG
-
 /********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-#line 265
-#line 270
+#line 201
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_rint)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9212,7 +8582,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_floor)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9262,7 +8632,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_ceil)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9312,7 +8682,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_trunc)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9362,7 +8732,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_sqrt)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9412,7 +8782,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_absolute)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9462,7 +8832,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_square)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9512,7 +8882,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_reciprocal)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9563,8 +8933,8 @@ clear:;
 }
 
 
-#line 265
-#line 270
+#line 201
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_rint)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9614,7 +8984,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_floor)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9664,7 +9034,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_ceil)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9714,7 +9084,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_trunc)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9764,7 +9134,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_sqrt)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9814,7 +9184,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_absolute)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9864,7 +9234,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_square)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -9914,7 +9284,7 @@ clear:;
 #endif
 }
 
-#line 270
+#line 206
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_reciprocal)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {

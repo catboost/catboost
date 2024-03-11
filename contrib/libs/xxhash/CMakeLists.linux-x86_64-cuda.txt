@@ -15,5 +15,5 @@ target_link_libraries(contrib-libs-xxhash PUBLIC
   contrib-libs-linux-headers
 )
 target_sources(contrib-libs-xxhash PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/xxhash/xxhash.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/xxhash/xxhash.c
 )

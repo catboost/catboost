@@ -350,7 +350,7 @@ struct zmm_vector<uint16_t> {
 };
 
 template <>
-bool comparison_func<zmm_vector<float16>>(const uint16_t &a, const uint16_t &b)
+inline bool comparison_func<zmm_vector<float16>>(const uint16_t &a, const uint16_t &b)
 {
     uint16_t signa = a & 0x8000, signb = b & 0x8000;
     uint16_t expa = a & 0x7c00, expb = b & 0x7c00;
@@ -406,7 +406,7 @@ replace_inf_with_nan(uint16_t *arr, int64_t arrsize, int64_t nan_count)
 }
 
 template <>
-void avx512_qselect(int16_t *arr, int64_t k, int64_t arrsize)
+inline void avx512_qselect(int16_t *arr, int64_t k, int64_t arrsize)
 {
     if (arrsize > 1) {
         qselect_16bit_<zmm_vector<int16_t>, int16_t>(
@@ -415,7 +415,7 @@ void avx512_qselect(int16_t *arr, int64_t k, int64_t arrsize)
 }
 
 template <>
-void avx512_qselect(uint16_t *arr, int64_t k, int64_t arrsize)
+inline void avx512_qselect(uint16_t *arr, int64_t k, int64_t arrsize)
 {
     if (arrsize > 1) {
         qselect_16bit_<zmm_vector<uint16_t>, uint16_t>(
@@ -423,7 +423,7 @@ void avx512_qselect(uint16_t *arr, int64_t k, int64_t arrsize)
     }
 }
 
-void avx512_qselect_fp16(uint16_t *arr, int64_t k, int64_t arrsize)
+inline void avx512_qselect_fp16(uint16_t *arr, int64_t k, int64_t arrsize)
 {
     if (arrsize > 1) {
         int64_t nan_count = replace_nan_with_inf(arr, arrsize);
@@ -434,7 +434,7 @@ void avx512_qselect_fp16(uint16_t *arr, int64_t k, int64_t arrsize)
 }
 
 template <>
-void avx512_qsort(int16_t *arr, int64_t arrsize)
+inline void avx512_qsort(int16_t *arr, int64_t arrsize)
 {
     if (arrsize > 1) {
         qsort_16bit_<zmm_vector<int16_t>, int16_t>(
@@ -443,7 +443,7 @@ void avx512_qsort(int16_t *arr, int64_t arrsize)
 }
 
 template <>
-void avx512_qsort(uint16_t *arr, int64_t arrsize)
+inline void avx512_qsort(uint16_t *arr, int64_t arrsize)
 {
     if (arrsize > 1) {
         qsort_16bit_<zmm_vector<uint16_t>, uint16_t>(
@@ -451,7 +451,7 @@ void avx512_qsort(uint16_t *arr, int64_t arrsize)
     }
 }
 
-void avx512_qsort_fp16(uint16_t *arr, int64_t arrsize)
+inline void avx512_qsort_fp16(uint16_t *arr, int64_t arrsize)
 {
     if (arrsize > 1) {
         int64_t nan_count = replace_nan_with_inf(arr, arrsize);

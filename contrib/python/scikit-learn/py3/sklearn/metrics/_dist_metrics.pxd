@@ -75,9 +75,9 @@ cdef class DistanceMetric64(DistanceMetric):
     cdef float64_t dist_csr(
         self,
         const float64_t* x1_data,
-        const int32_t[:] x1_indices,
+        const int32_t* x1_indices,
         const float64_t* x2_data,
-        const int32_t[:] x2_indices,
+        const int32_t* x2_indices,
         const int32_t x1_start,
         const int32_t x1_end,
         const int32_t x2_start,
@@ -88,9 +88,9 @@ cdef class DistanceMetric64(DistanceMetric):
     cdef float64_t rdist_csr(
         self,
         const float64_t* x1_data,
-        const int32_t[:] x1_indices,
+        const int32_t* x1_indices,
         const float64_t* x2_data,
-        const int32_t[:] x2_indices,
+        const int32_t* x2_indices,
         const int32_t x1_start,
         const int32_t x1_end,
         const int32_t x2_start,
@@ -114,8 +114,8 @@ cdef class DistanceMetric64(DistanceMetric):
     cdef int pdist_csr(
         self,
         const float64_t* x1_data,
-        const int32_t[:] x1_indices,
-        const int32_t[:] x1_indptr,
+        const int32_t[::1] x1_indices,
+        const int32_t[::1] x1_indptr,
         const intp_t size,
         float64_t[:, ::1] D,
     ) except -1 nogil
@@ -123,11 +123,11 @@ cdef class DistanceMetric64(DistanceMetric):
     cdef int cdist_csr(
         self,
         const float64_t* x1_data,
-        const int32_t[:] x1_indices,
-        const int32_t[:] x1_indptr,
+        const int32_t[::1] x1_indices,
+        const int32_t[::1] x1_indptr,
         const float64_t* x2_data,
-        const int32_t[:] x2_indices,
-        const int32_t[:] x2_indptr,
+        const int32_t[::1] x2_indices,
+        const int32_t[::1] x2_indptr,
         const intp_t size,
         float64_t[:, ::1] D,
     ) except -1 nogil
@@ -189,26 +189,26 @@ cdef class DistanceMetric32(DistanceMetric):
     cdef object func
     cdef object kwargs
 
-    cdef float64_t dist(
+    cdef float32_t dist(
         self,
         const float32_t* x1,
         const float32_t* x2,
         intp_t size,
     ) except -1 nogil
 
-    cdef float64_t rdist(
+    cdef float32_t rdist(
         self,
         const float32_t* x1,
         const float32_t* x2,
         intp_t size,
     ) except -1 nogil
 
-    cdef float64_t dist_csr(
+    cdef float32_t dist_csr(
         self,
         const float32_t* x1_data,
-        const int32_t[:] x1_indices,
+        const int32_t* x1_indices,
         const float32_t* x2_data,
-        const int32_t[:] x2_indices,
+        const int32_t* x2_indices,
         const int32_t x1_start,
         const int32_t x1_end,
         const int32_t x2_start,
@@ -216,12 +216,12 @@ cdef class DistanceMetric32(DistanceMetric):
         const intp_t size,
     ) except -1 nogil
 
-    cdef float64_t rdist_csr(
+    cdef float32_t rdist_csr(
         self,
         const float32_t* x1_data,
-        const int32_t[:] x1_indices,
+        const int32_t* x1_indices,
         const float32_t* x2_data,
-        const int32_t[:] x2_indices,
+        const int32_t* x2_indices,
         const int32_t x1_start,
         const int32_t x1_end,
         const int32_t x2_start,
@@ -232,37 +232,37 @@ cdef class DistanceMetric32(DistanceMetric):
     cdef int pdist(
         self,
         const float32_t[:, ::1] X,
-        float64_t[:, ::1] D,
+        float32_t[:, ::1] D,
     ) except -1
 
     cdef int cdist(
         self,
         const float32_t[:, ::1] X,
         const float32_t[:, ::1] Y,
-        float64_t[:, ::1] D,
+        float32_t[:, ::1] D,
     ) except -1
 
     cdef int pdist_csr(
         self,
         const float32_t* x1_data,
-        const int32_t[:] x1_indices,
-        const int32_t[:] x1_indptr,
+        const int32_t[::1] x1_indices,
+        const int32_t[::1] x1_indptr,
         const intp_t size,
-        float64_t[:, ::1] D,
+        float32_t[:, ::1] D,
     ) except -1 nogil
 
     cdef int cdist_csr(
         self,
         const float32_t* x1_data,
-        const int32_t[:] x1_indices,
-        const int32_t[:] x1_indptr,
+        const int32_t[::1] x1_indices,
+        const int32_t[::1] x1_indptr,
         const float32_t* x2_data,
-        const int32_t[:] x2_indices,
-        const int32_t[:] x2_indptr,
+        const int32_t[::1] x2_indices,
+        const int32_t[::1] x2_indptr,
         const intp_t size,
-        float64_t[:, ::1] D,
+        float32_t[:, ::1] D,
     ) except -1 nogil
 
-    cdef float64_t _rdist_to_dist(self, float32_t rdist) except -1 nogil
+    cdef float32_t _rdist_to_dist(self, float32_t rdist) except -1 nogil
 
-    cdef float64_t _dist_to_rdist(self, float32_t dist) except -1 nogil
+    cdef float32_t _dist_to_rdist(self, float32_t dist) except -1 nogil

@@ -31,6 +31,20 @@ class HashPointPen(AbstractPointPen):
     >    # The hash values are identical, the outline has not changed.
     >    # Compile the hinting code ...
     >    pass
+
+    If you want to compare a glyph from a source format which supports floating point
+    coordinates and transformations against a glyph from a format which has restrictions
+    on the precision of floats, e.g. UFO vs. TTF, you must use an appropriate rounding
+    function to make the values comparable. For TTF fonts with composites, this
+    construct can be used to make the transform values conform to F2Dot14:
+
+    > ttf_hash_pen = HashPointPen(ttf_glyph_width, ttFont.getGlyphSet())
+    > ttf_round_pen = RoundingPointPen(ttf_hash_pen, transformRoundFunc=partial(floatToFixedToFloat, precisionBits=14))
+    > ufo_hash_pen = HashPointPen(ufo_glyph.width, ufo)
+    > ttf_glyph.drawPoints(ttf_round_pen, ttFont["glyf"])
+    > ufo_round_pen = RoundingPointPen(ufo_hash_pen, transformRoundFunc=partial(floatToFixedToFloat, precisionBits=14))
+    > ufo_glyph.drawPoints(ufo_round_pen)
+    > assert ttf_hash_pen.hash == ufo_hash_pen.hash
     """
 
     def __init__(self, glyphWidth=0, glyphSet=None):

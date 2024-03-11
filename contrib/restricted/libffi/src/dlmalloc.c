@@ -466,7 +466,7 @@ DEFAULT_MMAP_THRESHOLD       default: 256K
 
 #ifdef __OS2__
 #define INCL_DOS
-#include <os2.h>
+#error #include <os2.h>
 #define HAVE_MMAP 1
 #define HAVE_MORECORE 0
 #define LACKS_SYS_MMAN_H

@@ -108,7 +108,7 @@ def copy_file(  # noqa: C901
     # changing it (ie. it's not already a hard/soft link to src OR
     # (not update) and (src newer than dst).
 
-    from distutils.dep_util import newer
+    from distutils._modified import newer
     from stat import ST_ATIME, ST_MTIME, ST_MODE, S_IMODE
 
     if not os.path.isfile(src):

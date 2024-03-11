@@ -32,7 +32,7 @@ Example
    >>>  text = u'コンニチハ'
 
 Python **incorrectly** uses the *string length* of 5 codepoints rather than the
-*printible length* of 10 cells, so that when using the `rjust` function, the
+*printable length* of 10 cells, so that when using the `rjust` function, the
 output length is wrong::
 
     >>> print(len('コンニチハ'))
@@ -216,14 +216,29 @@ Other Languages
 =======
 History
 =======
+
+0.2.13 *2024-01-06*
+  * **Bugfix** zero-width support for Hangul Jamo (Korean)
+
+0.2.12 *2023-11-21*
+  * re-release to remove .pyi file misplaced in wheel files `Issue #101`_.
+
+0.2.11 *2023-11-20*
+  * Include tests files in the source distribution (`PR #98`_, `PR #100`_).
+
+0.2.10 *2023-11-13*
+  * **Bugfix** accounting of some kinds of emoji sequences using U+FE0F
+    Variation Selector 16 (`PR #97`_).
+  * **Updated** `Specification <Specification_from_pypi_>`_.
+
 0.2.9 *2023-10-30*
   * **Bugfix** zero-width characters used in Emoji ZWJ sequences, Balinese,
     Jamo, Devanagari, Tamil, Kannada and others (`PR #91`_).
-  * **Updated** to include `Specification <Specification_from_pypi>`_ of
+  * **Updated** to include `Specification <Specification_from_pypi_>`_ of
     character measurements.
 
 0.2.8 *2023-09-30*
-  * Include requirements files in the source distibution (`PR #82`_).
+  * Include requirements files in the source distribution (`PR #82`_).
 
 0.2.7 *2023-09-28*
   * **Updated** tables to include Unicode Specification 15.1.0.
@@ -319,6 +334,10 @@ https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c::
 .. _`PR #35`: https://github.com/jquast/wcwidth/pull/35
 .. _`PR #82`: https://github.com/jquast/wcwidth/pull/82
 .. _`PR #91`: https://github.com/jquast/wcwidth/pull/91
+.. _`PR #97`: https://github.com/jquast/wcwidth/pull/97
+.. _`PR #98`: https://github.com/jquast/wcwidth/pull/98
+.. _`PR #100`: https://github.com/jquast/wcwidth/pull/100
+.. _`Issue #101`: https://github.com/jquast/wcwidth/issues/101
 .. _`jquast/blessed`: https://github.com/jquast/blessed
 .. _`selectel/pyte`: https://github.com/selectel/pyte
 .. _`thomasballinger/curtsies`: https://github.com/thomasballinger/curtsies

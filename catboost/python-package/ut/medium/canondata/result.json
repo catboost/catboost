@@ -138,6 +138,70 @@
     "test.test_ctr_target_border_count[CPU]": {
         "uri": "file://test.test_ctr_target_border_count_CPU_/model.bin"
     },
+    "test.test_custom_class_labels[CPU-label_type=boolean-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=boolean-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=boolean-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=boolean-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=boolean-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=boolean-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=int-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=int-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=int-class_count=5-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=5-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=int-class_count=5-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=string-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=string-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[CPU-label_type=string-class_count=5-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=5-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_CPU-label_type=string-class_count=5-loss_function=MultiClass_/score.txt"
+        }
+    ],
     "test.test_cv[CPU]": {
         "uri": "file://test.test_cv_CPU_/catboost_training.json"
     },
@@ -162,8 +226,11 @@
     "test.test_cv_pairs_generated[CPU]": {
         "uri": "file://test.test_cv_pairs_generated_CPU_/catboost_training.json"
     },
-    "test.test_cv_query[CPU]": {
-        "uri": "file://test.test_cv_query_CPU_/catboost_training.json"
+    "test.test_cv_query[CPU-loss_function=QueryRMSE]": {
+        "uri": "file://test.test_cv_query_CPU-loss_function=QueryRMSE_/catboost_training.json"
+    },
+    "test.test_cv_query[CPU-loss_function=YetiRank]": {
+        "uri": "file://test.test_cv_query_CPU-loss_function=YetiRank_/catboost_training.json"
     },
     "test.test_cv_skip_train[CPU]": {
         "uri": "file://test.test_cv_skip_train_CPU_/catboost_training.json"
@@ -639,12 +706,6 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/model.bin"
         }
     ],
-    "test.test_multiclass_custom_class_labels[CPU-int]": {
-        "uri": "file://test.test_multiclass_custom_class_labels_CPU-int_/predictions.txt"
-    },
-    "test.test_multiclass_custom_class_labels[CPU-string]": {
-        "uri": "file://test.test_multiclass_custom_class_labels_CPU-string_/predictions.txt"
-    },
     "test.test_multiclass_custom_class_labels_from_files[CPU]": {
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_CPU_/predictions.txt"
     },

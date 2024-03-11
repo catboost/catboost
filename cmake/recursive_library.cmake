@@ -10,7 +10,7 @@ function(add_recursive_library Target)
   find_package(Python3 REQUIRED)
 
   # this is not really an executable but we will use it to make CMake collect all dependencies to pass to the custom linking command (because there's no proper way to do it otherwise)
-  add_executable(${Target} EXCLUDE_FROM_ALL)
+  add_executable(${Target})
   if (NOT (DEFINED CMAKE_POSITION_INDEPENDENT_CODE))
     # default should be the same as for usual static libraries - https://cmake.org/cmake/help/latest/prop_tgt/POSITION_INDEPENDENT_CODE.html
     set_property(TARGET ${Target} PROPERTY POSITION_INDEPENDENT_CODE Off)
@@ -29,8 +29,8 @@ function(add_recursive_library Target)
       target_link_options(${Target} PRIVATE "/MANIFEST:NO")
   endif()
   string(CONCAT CXX_LINKER_LAUNCHER_CMD "${Python3_EXECUTABLE}"
-    ";${CMAKE_SOURCE_DIR}/build/scripts/create_recursive_library_for_cmake.py"
-    ";--cmake-binary-dir;${CMAKE_BINARY_DIR}"
+    ";${PROJECT_SOURCE_DIR}/build/scripts/create_recursive_library_for_cmake.py"
+    ";--project-binary-dir;${PROJECT_BINARY_DIR}"
     ";--cmake-ar;${CMAKE_AR}"
     ";--cmake-ranlib;${CMAKE_RANLIB}"
     ";--cmake-host-system-name;${CMAKE_HOST_SYSTEM_NAME}"
@@ -44,7 +44,7 @@ function(add_recursive_library Target)
 
   set_property(TARGET ${Target} PROPERTY CXX_LINKER_LAUNCHER ${CXX_LINKER_LAUNCHER_CMD})
   set_property(TARGET ${Target} PROPERTY LINK_DEPENDS
-    "${CMAKE_SOURCE_DIR}/build/scripts/create_recursive_library_for_cmake.py"
-    ";${CMAKE_SOURCE_DIR}/build/scripts/link_lib.py"
+    "${PROJECT_SOURCE_DIR}/build/scripts/create_recursive_library_for_cmake.py"
+    ";${PROJECT_SOURCE_DIR}/build/scripts/link_lib.py"
   )
 endfunction()

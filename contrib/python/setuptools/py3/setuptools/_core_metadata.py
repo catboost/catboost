@@ -3,6 +3,7 @@ Handling of Core Metadata for Python packages (including reading and writing).
 
 See: https://packaging.python.org/en/latest/specifications/core-metadata/
 """
+
 import os
 import stat
 import textwrap

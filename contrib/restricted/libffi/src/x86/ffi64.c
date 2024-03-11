@@ -45,7 +45,7 @@
 #define UINT128 __m128
 #else
 #if defined(__SUNPRO_C)
-#include <sunmedia_types.h>
+#error #include <sunmedia_types.h>
 #define UINT128 __m128i
 #else
 #define UINT128 __int128_t

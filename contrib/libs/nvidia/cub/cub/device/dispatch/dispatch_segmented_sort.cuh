@@ -30,23 +30,27 @@
 
 
 #include <cub/agent/agent_segmented_radix_sort.cuh>
-#include <cub/detail/temporary_storage.cuh>
-#include <cub/detail/device_double_buffer.cuh>
 #include <cub/agent/agent_sub_warp_merge_sort.cuh>
 #include <cub/block/block_load.cuh>
 #include <cub/block/block_merge_sort.cuh>
 #include <cub/block/block_radix_rank.cuh>
 #include <cub/block/block_scan.cuh>
+#include <cub/detail/device_double_buffer.cuh>
+#include <cub/detail/temporary_storage.cuh>
 #include <cub/device/device_partition.cuh>
 #include <cub/thread/thread_sort.cuh>
+#include <cub/util_debug.cuh>
+#include <cub/util_deprecated.cuh>
 #include <cub/util_device.cuh>
 #include <cub/util_math.cuh>
 #include <cub/util_namespace.cuh>
 #include <cub/warp/warp_merge_sort.cuh>
 
-#include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/reverse_iterator.h>
+#include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
+
+#include <nv/target>
 
 #include <type_traits>
 
@@ -561,8 +565,7 @@ DeviceSegmentedSortContinuation(
     unsigned int *group_sizes,
     unsigned int *large_and_medium_segments_indices,
     unsigned int *small_segments_indices,
-    cudaStream_t stream,
-    bool debug_synchronous)
+    cudaStream_t stream)
 {
   cudaError error = cudaSuccess;
 
@@ -573,14 +576,13 @@ DeviceSegmentedSortContinuation(
     // One CTA per segment
     const unsigned int blocks_in_grid = large_segments;
 
-    if (debug_synchronous)
-    {
-      _CubLog("Invoking "
-              "DeviceSegmentedSortKernelLarge<<<%d, %d, 0, %lld>>>()\n",
-              static_cast<int>(blocks_in_grid),
-              LargeSegmentPolicyT::BLOCK_THREADS,
-              (long long)stream);
-    }
+    #ifdef CUB_DETAIL_DEBUG_ENABLE_LOG
+    _CubLog("Invoking "
+            "DeviceSegmentedSortKernelLarge<<<%d, %d, 0, %lld>>>()\n",
+            static_cast<int>(blocks_in_grid),
+            LargeSegmentPolicyT::BLOCK_THREADS,
+            (long long)stream);
+    #endif
 
     THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
       blocks_in_grid,
@@ -605,14 +607,10 @@ DeviceSegmentedSortContinuation(
     }
 
     // Sync the stream if specified to flush runtime errors
-    if (CUB_IS_HOST_CODE && debug_synchronous)
+    error = detail::DebugSyncStream(stream);
+    if (CubDebug(error))
     {
-      #if CUB_INCLUDE_HOST_CODE
-      if (CubDebug(error = SyncStream(stream)))
-      {
-        return error;
-      }
-      #endif
+      return error;
     }
   }
 
@@ -634,14 +632,13 @@ DeviceSegmentedSortContinuation(
 
   if (small_and_medium_blocks_in_grid)
   {
-    if (debug_synchronous)
-    {
-      _CubLog("Invoking "
-              "DeviceSegmentedSortKernelSmall<<<%d, %d, 0, %lld>>>()\n",
-              static_cast<int>(small_and_medium_blocks_in_grid),
-              SmallAndMediumPolicyT::BLOCK_THREADS,
-              (long long)stream);
-    }
+    #ifdef CUB_DETAIL_DEBUG_ENABLE_LOG
+    _CubLog("Invoking "
+            "DeviceSegmentedSortKernelSmall<<<%d, %d, 0, %lld>>>()\n",
+            static_cast<int>(small_and_medium_blocks_in_grid),
+            SmallAndMediumPolicyT::BLOCK_THREADS,
+            (long long)stream);
+    #endif
 
     THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
       small_and_medium_blocks_in_grid,
@@ -668,20 +665,17 @@ DeviceSegmentedSortContinuation(
     }
 
     // Sync the stream if specified to flush runtime errors
-    if (CUB_IS_HOST_CODE && debug_synchronous)
+    error = detail::DebugSyncStream(stream);
+    if (CubDebug(error))
     {
-      #if CUB_INCLUDE_HOST_CODE
-      if (CubDebug(error = SyncStream(stream)))
-      {
-        return error;
-      }
-      #endif
+      return error;
     }
   }
 
   return error;
 }
 
+#ifdef CUB_RDC_ENABLED
 /*
  * Continuation kernel is used only in the CDP mode. It's used to
  * launch DeviceSegmentedSortContinuation as a separate kernel.
@@ -708,8 +702,7 @@ DeviceSegmentedSortContinuationKernel(
   EndOffsetIteratorT d_end_offsets,
   unsigned int *group_sizes,
   unsigned int *large_and_medium_segments_indices,
-  unsigned int *small_segments_indices,
-  bool debug_synchronous)
+  unsigned int *small_segments_indices)
 {
   using ActivePolicyT = typename ChainedPolicyT::ActivePolicy;
   using LargeSegmentPolicyT = typename ActivePolicyT::LargeSegmentPolicy;
@@ -725,7 +718,6 @@ DeviceSegmentedSortContinuationKernel(
   //
   // Due to (4, 5), we can't pass the user-provided stream in the continuation.
   // Due to (1, 2, 3) it's safe to pass the main stream.
-  #ifdef CUB_RUNTIME_ENABLED
   cudaError_t error =
     DeviceSegmentedSortContinuation<LargeSegmentPolicyT, SmallAndMediumPolicyT>(
       large_kernel,
@@ -742,15 +734,11 @@ DeviceSegmentedSortContinuationKernel(
       group_sizes,
       large_and_medium_segments_indices,
       small_segments_indices,
-      0, // always launching on the main stream (see motivation above)
-      debug_synchronous);
+      0); // always launching on the main stream (see motivation above)
 
   CubDebug(error);
-  #else
-  // Kernel launch not supported from this device
-  CubDebug(cudaErrorNotSupported);
-  #endif
 }
+#endif // CUB_RDC_ENABLED
 
 template <typename KeyT,
           typename ValueT>
@@ -1201,12 +1189,30 @@ struct DispatchSegmentedSort : SelectedPolicy
   /// CUDA stream to launch kernels within.
   cudaStream_t stream;
 
-  /**
-   * Whether or not to synchronize the stream after every kernel launch to check
-   * for errors. Also causes launch configurations to be printed to the console.
-   */
-  bool debug_synchronous;
+  CUB_RUNTIME_FUNCTION __forceinline__
+  DispatchSegmentedSort(void *d_temp_storage,
+                        std::size_t &temp_storage_bytes,
+                        DoubleBuffer<KeyT> &d_keys,
+                        DoubleBuffer<ValueT> &d_values,
+                        OffsetT num_items,
+                        int num_segments,
+                        BeginOffsetIteratorT d_begin_offsets,
+                        EndOffsetIteratorT d_end_offsets,
+                        bool is_overwrite_okay,
+                        cudaStream_t stream)
+      : d_temp_storage(d_temp_storage)
+      , temp_storage_bytes(temp_storage_bytes)
+      , d_keys(d_keys)
+      , d_values(d_values)
+      , num_items(num_items)
+      , num_segments(num_segments)
+      , d_begin_offsets(d_begin_offsets)
+      , d_end_offsets(d_end_offsets)
+      , is_overwrite_okay(is_overwrite_okay)
+      , stream(stream)
+  {}
 
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
   CUB_RUNTIME_FUNCTION __forceinline__
   DispatchSegmentedSort(void *d_temp_storage,
                         std::size_t &temp_storage_bytes,
@@ -1229,8 +1235,9 @@ struct DispatchSegmentedSort : SelectedPolicy
       , d_end_offsets(d_end_offsets)
       , is_overwrite_okay(is_overwrite_okay)
       , stream(stream)
-      , debug_synchronous(debug_synchronous)
-  {}
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+  }
 
   template <typename ActivePolicyT>
   CUB_RUNTIME_FUNCTION __forceinline__ cudaError_t Invoke()
@@ -1332,8 +1339,7 @@ struct DispatchSegmentedSort : SelectedPolicy
           num_segments,
           large_segments_selector,
           small_segments_selector,
-          stream,
-          debug_synchronous);
+          stream);
 
         device_partition_temp_storage.grow(
           three_way_partition_temp_storage_bytes);
@@ -1486,8 +1492,7 @@ struct DispatchSegmentedSort : SelectedPolicy
            BeginOffsetIteratorT d_begin_offsets,
            EndOffsetIteratorT d_end_offsets,
            bool is_overwrite_okay,
-           cudaStream_t stream,
-           bool debug_synchronous)
+           cudaStream_t stream)
   {
     using MaxPolicyT = typename DispatchSegmentedSort::MaxPolicy;
 
@@ -1512,8 +1517,7 @@ struct DispatchSegmentedSort : SelectedPolicy
                                      d_begin_offsets,
                                      d_end_offsets,
                                      is_overwrite_okay,
-                                     stream,
-                                     debug_synchronous);
+                                     stream);
 
       // Dispatch to chained policy
       if (CubDebug(error = MaxPolicyT::Invoke(ptx_version, dispatch)))
@@ -1523,6 +1527,34 @@ struct DispatchSegmentedSort : SelectedPolicy
     } while (false);
 
     return error;
+  }
+
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+  CUB_RUNTIME_FUNCTION __forceinline__ static cudaError_t
+  Dispatch(void *d_temp_storage,
+           std::size_t &temp_storage_bytes,
+           DoubleBuffer<KeyT> &d_keys,
+           DoubleBuffer<ValueT> &d_values,
+           OffsetT num_items,
+           int num_segments,
+           BeginOffsetIteratorT d_begin_offsets,
+           EndOffsetIteratorT d_end_offsets,
+           bool is_overwrite_okay,
+           cudaStream_t stream,
+           bool debug_synchronous)
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+    return Dispatch(d_temp_storage,
+                    temp_storage_bytes,
+                    d_keys,
+                    d_values,
+                    num_items,
+                    num_segments,
+                    d_begin_offsets,
+                    d_end_offsets,
+                    is_overwrite_okay,
+                    stream);
   }
 
 private:
@@ -1580,7 +1612,7 @@ private:
       THRUST_NS_QUALIFIER::make_reverse_iterator(
         large_and_medium_segments_indices.get() + num_segments);
 
-    if (CubDebug(error = cub::DevicePartition::If(
+    error = cub::DevicePartition::If(
       device_partition_temp_storage.get(),
       three_way_partition_temp_storage_bytes,
       THRUST_NS_QUALIFIER::counting_iterator<OffsetT>(0),
@@ -1591,90 +1623,104 @@ private:
       num_segments,
       large_segments_selector,
       small_segments_selector,
-      stream,
-      debug_synchronous)))
+      stream);
+    if (CubDebug(error))
     {
       return error;
     }
 
-    if (CUB_IS_HOST_CODE)
-    {
-      #if CUB_INCLUDE_HOST_CODE
-      unsigned int h_group_sizes[num_selected_groups];
+    // The device path is only used (and only compiles) when CDP is enabled.
+    // It's defined in a macro since we can't put `#ifdef`s inside of
+    // `NV_IF_TARGET`.
+#ifndef CUB_RDC_ENABLED
 
-      if (CubDebug(
-            error = cudaMemcpyAsync(h_group_sizes,
-                                    group_sizes.get(),
-                                    num_selected_groups * sizeof(unsigned int),
-                                    cudaMemcpyDeviceToHost,
-                                    stream)))
-      {
-        return error;
-      }
+#define CUB_TEMP_DEVICE_CODE
 
-      if (CubDebug(error = SyncStream(stream)))
-      {
-        return error;
-      }
+#else // CUB_RDC_ENABLED
 
-      error = DeviceSegmentedSortContinuation<LargeSegmentPolicyT,
-                                              SmallAndMediumPolicyT>(
-        large_kernel,
-        small_kernel,
-        num_segments,
-        d_keys.Current(),
-        GetFinalOutput<KeyT>(LargeSegmentPolicyT::RADIX_BITS, d_keys),
-        d_keys_double_buffer,
-        d_values.Current(),
-        GetFinalOutput<ValueT>(LargeSegmentPolicyT::RADIX_BITS, d_values),
-        d_values_double_buffer,
-        d_begin_offsets,
-        d_end_offsets,
-        h_group_sizes,
-        large_and_medium_segments_indices.get(),
-        small_segments_indices.get(),
-        stream,
-        debug_synchronous);
-      #endif
-    }
-    else
-    {
-      #if CUB_INCLUDE_DEVICE_CODE
-      #ifdef CUB_RUNTIME_ENABLED
-      using MaxPolicyT = typename DispatchSegmentedSort::MaxPolicy;
-      THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(1, 1, 0, stream)
-        .doit(DeviceSegmentedSortContinuationKernel<MaxPolicyT,
-                                                    LargeKernelT,
-                                                    SmallKernelT,
-                                                    KeyT,
-                                                    ValueT,
-                                                    BeginOffsetIteratorT,
-                                                    EndOffsetIteratorT>,
-              large_kernel,
-              small_kernel,
-              num_segments,
-              d_keys.Current(),
-              GetFinalOutput<KeyT>(LargeSegmentPolicyT::RADIX_BITS, d_keys),
-              d_keys_double_buffer,
-              d_values.Current(),
-              GetFinalOutput<ValueT>(LargeSegmentPolicyT::RADIX_BITS, d_values),
-              d_values_double_buffer,
-              d_begin_offsets,
-              d_end_offsets,
-              group_sizes.get(),
-              large_and_medium_segments_indices.get(),
-              small_segments_indices.get(),
-              debug_synchronous);
+#define CUB_TEMP_DEVICE_CODE                                                   \
+  using MaxPolicyT = typename DispatchSegmentedSort::MaxPolicy;                \
+  error =                                                                      \
+    THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(1, 1, 0, stream)   \
+      .doit(DeviceSegmentedSortContinuationKernel<MaxPolicyT,                  \
+                                                  LargeKernelT,                \
+                                                  SmallKernelT,                \
+                                                  KeyT,                        \
+                                                  ValueT,                      \
+                                                  BeginOffsetIteratorT,        \
+                                                  EndOffsetIteratorT>,         \
+            large_kernel,                                                      \
+            small_kernel,                                                      \
+            num_segments,                                                      \
+            d_keys.Current(),                                                  \
+            GetFinalOutput<KeyT>(LargeSegmentPolicyT::RADIX_BITS, d_keys),     \
+            d_keys_double_buffer,                                              \
+            d_values.Current(),                                                \
+            GetFinalOutput<ValueT>(LargeSegmentPolicyT::RADIX_BITS, d_values), \
+            d_values_double_buffer,                                            \
+            d_begin_offsets,                                                   \
+            d_end_offsets,                                                     \
+            group_sizes.get(),                                                 \
+            large_and_medium_segments_indices.get(),                           \
+            small_segments_indices.get());                                     \
+                                                                               \
+  if (CubDebug(error))                                                         \
+  {                                                                            \
+    return error;                                                              \
+  }                                                                            \
+                                                                               \
+  error = detail::DebugSyncStream(stream);                                     \
+  if (CubDebug(error))                                                         \
+  {                                                                            \
+    return error;                                                              \
+  }
 
-      if (CubDebug(error = cudaPeekAtLastError()))
-      {
-        return error;
-      }
-      #else
-      error = CubDebug(cudaErrorNotSupported);
-      #endif
-      #endif
-    }
+#endif // CUB_RDC_ENABLED
+
+    // Clang format mangles some of this NV_IF_TARGET block
+    // clang-format off
+    NV_IF_TARGET(
+      NV_IS_HOST,
+      (
+        unsigned int h_group_sizes[num_selected_groups];
+
+        if (CubDebug(error = cudaMemcpyAsync(h_group_sizes,
+                                             group_sizes.get(),
+                                             num_selected_groups *
+                                               sizeof(unsigned int),
+                                             cudaMemcpyDeviceToHost,
+                                             stream)))
+        {
+            return error;
+        }
+
+        if (CubDebug(error = SyncStream(stream)))
+        {
+          return error;
+        }
+
+        error = DeviceSegmentedSortContinuation<LargeSegmentPolicyT,
+                                                SmallAndMediumPolicyT>(
+          large_kernel,
+          small_kernel,
+          num_segments,
+          d_keys.Current(),
+          GetFinalOutput<KeyT>(LargeSegmentPolicyT::RADIX_BITS, d_keys),
+          d_keys_double_buffer,
+          d_values.Current(),
+          GetFinalOutput<ValueT>(LargeSegmentPolicyT::RADIX_BITS, d_values),
+          d_values_double_buffer,
+          d_begin_offsets,
+          d_end_offsets,
+          h_group_sizes,
+          large_and_medium_segments_indices.get(),
+          small_segments_indices.get(),
+          stream);),
+      // NV_IS_DEVICE:
+      (CUB_TEMP_DEVICE_CODE));
+    // clang-format on
+
+#undef CUB_TEMP_DEVICE_CODE
 
     return error;
   }
@@ -1693,16 +1739,15 @@ private:
       static_cast<unsigned int>(LargeSegmentPolicyT::BLOCK_THREADS);
 
     // Log kernel configuration
-    if (debug_synchronous)
-    {
-      _CubLog("Invoking DeviceSegmentedSortFallbackKernel<<<%d, %d, "
-              "0, %lld>>>(), %d items per thread, bit_grain %d\n",
-              blocks_in_grid,
-              threads_in_block,
-              (long long)stream,
-              LargeSegmentPolicyT::ITEMS_PER_THREAD,
-              LargeSegmentPolicyT::RADIX_BITS);
-    }
+    #ifdef CUB_DETAIL_DEBUG_ENABLE_LOG
+    _CubLog("Invoking DeviceSegmentedSortFallbackKernel<<<%d, %d, "
+            "0, %lld>>>(), %d items per thread, bit_grain %d\n",
+            blocks_in_grid,
+            threads_in_block,
+            (long long)stream,
+            LargeSegmentPolicyT::ITEMS_PER_THREAD,
+            LargeSegmentPolicyT::RADIX_BITS);
+    #endif
 
     // Invoke fallback kernel
     THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(blocks_in_grid,
@@ -1726,14 +1771,10 @@ private:
     }
 
     // Sync the stream if specified to flush runtime errors
-    if (CUB_IS_HOST_CODE && debug_synchronous)
+    error = detail::DebugSyncStream(stream);
+    if (CubDebug(error))
     {
-      #if CUB_INCLUDE_HOST_CODE
-      if (CubDebug(error = SyncStream(stream)))
-      {
-        return error;
-      }
-      #endif
+      return error;
     }
 
     return error;

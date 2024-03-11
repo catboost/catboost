@@ -137,9 +137,9 @@ object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
         new CatBoostRegressionModel(uid, nativeModel, 1)
       }
   }
-  
+
   def loadNativeModel(
-    fileName: String, 
+    fileName: String,
     format: EModelType = native_impl.EModelType.CatboostBinary
   ): CatBoostRegressionModel = {
     new CatBoostRegressionModel(native_impl.native_impl.ReadModel(fileName, format))
@@ -151,7 +151,7 @@ object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
     ctrMergePolicy: ECtrTableMergePolicy = native_impl.ECtrTableMergePolicy.IntersectingCountersAverage
   ): CatBoostRegressionModel = {
     new CatBoostRegressionModel(CatBoostModel.sum(models.toArray[CatBoostModelTrait[CatBoostRegressionModel]], weights, ctrMergePolicy))
-  } 
+  }
 }
 
 

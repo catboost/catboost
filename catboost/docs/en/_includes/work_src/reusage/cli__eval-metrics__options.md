@@ -76,7 +76,7 @@ The path to the output file with [calculated metrics](../../../concepts/output-d
 
 #### Description
 
-The number of threads to use during the training.
+The number of threads to calculate metrics.
 
 Optimizes the speed of execution. This parameter doesn't affect results.
 

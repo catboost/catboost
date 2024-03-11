@@ -31,16 +31,16 @@ target_link_options(catboost-cuda-cuda_lib-ut PRIVATE
   -lcudart_static
 )
 target_sources(catboost-cuda-cuda_lib-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/performance_tests.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_all_reduce.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_batch_reduce.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cache.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_buffer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_manager.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_memory_pool.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_reduce.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_reduce_ring.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_serialization.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/performance_tests.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_all_reduce.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_batch_reduce.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cache.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_buffer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_cuda_manager.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_memory_pool.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_reduce.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_reduce_ring.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_serialization.cpp
 )
 set_property(
   TARGET
@@ -74,6 +74,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-cuda-cuda_lib-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-cuda-cuda_lib-ut
   cpp-malloc-jemalloc

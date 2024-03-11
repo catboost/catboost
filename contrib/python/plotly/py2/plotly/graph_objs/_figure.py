@@ -1,54 +1,4 @@
 from plotly.basedatatypes import BaseFigure
-from plotly.graph_objs import (
-    Area,
-    Bar,
-    Barpolar,
-    Box,
-    Candlestick,
-    Carpet,
-    Choropleth,
-    Choroplethmapbox,
-    Cone,
-    Contour,
-    Contourcarpet,
-    Densitymapbox,
-    Funnel,
-    Funnelarea,
-    Heatmap,
-    Heatmapgl,
-    Histogram,
-    Histogram2d,
-    Histogram2dContour,
-    Image,
-    Indicator,
-    Isosurface,
-    Mesh3d,
-    Ohlc,
-    Parcats,
-    Parcoords,
-    Pie,
-    Pointcloud,
-    Sankey,
-    Scatter,
-    Scatter3d,
-    Scattercarpet,
-    Scattergeo,
-    Scattergl,
-    Scattermapbox,
-    Scatterpolar,
-    Scatterpolargl,
-    Scatterternary,
-    Splom,
-    Streamtube,
-    Sunburst,
-    Surface,
-    Table,
-    Treemap,
-    Violin,
-    Volume,
-    Waterfall,
-    layout as _layout,
-)
 
 
 class Figure(BaseFigure):
@@ -57,7 +7,7 @@ class Figure(BaseFigure):
     ):
         """
         Create a new :class:Figure instance
-        
+
         Parameters
         ----------
         data
@@ -89,7 +39,7 @@ class Figure(BaseFigure):
                   the specified trace type
         
                 (e.g. [{'type': 'scatter', ...}, {'type': 'bar, ...}])
-            
+
         layout
             The 'layout' property is an instance of Layout
             that may be specified as:
@@ -99,6 +49,9 @@ class Figure(BaseFigure):
         
                 Supported dict properties:
                     
+                    activeshape
+                        :class:`plotly.graph_objects.layout.Activeshape
+                        ` instance or dict with compatible properties
                     angularaxis
                         :class:`plotly.graph_objects.layout.AngularAxis
                         ` instance or dict with compatible properties
@@ -118,6 +71,14 @@ class Figure(BaseFigure):
                         regardless of this attribute, an undefined
                         layout width or height is always initialized on
                         the first call to plot.
+                    autotypenumbers
+                        Using "strict" a numeric string in trace data
+                        is not converted to a number. Using *convert
+                        types* a numeric string in trace data may be
+                        treated as a number during automatic axis
+                        `type` detection. This is the default value;
+                        however it could be overridden for individual
+                        axes.
                     bargap
                         Sets the gap (in plot fraction) between bars of
                         adjacent location coordinates.
@@ -190,6 +151,10 @@ class Figure(BaseFigure):
                         instance or dict with compatible properties
                     colorway
                         Sets the default trace colors.
+                    computed
+                        Placeholder for exporting automargin-impacting
+                        values namely `margin.t`, `margin.b`,
+                        `margin.l` and `margin.r` in "full-json" mode.
                     datarevision
                         If provided, a changed value tells
                         `Plotly.react` that one or more data arrays has
@@ -379,6 +344,9 @@ class Figure(BaseFigure):
                     modebar
                         :class:`plotly.graph_objects.layout.Modebar`
                         instance or dict with compatible properties
+                    newshape
+                        :class:`plotly.graph_objects.layout.Newshape`
+                        instance or dict with compatible properties
                     orientation
                         Legacy polar charts are deprecated! Please
                         switch to "polar" subplots. Rotates the entire
@@ -406,7 +374,7 @@ class Figure(BaseFigure):
                         :class:`plotly.graph_objects.layout.Scene`
                         instance or dict with compatible properties
                     selectdirection
-                        When "dragmode" is set to "select", this limits
+                        When `dragmode` is set to "select", this limits
                         the selection of the drag to horizontal,
                         vertical or diagonal. "h" only allows
                         horizontal selection, "v" only vertical, "d"
@@ -580,7 +548,7 @@ class Figure(BaseFigure):
                     yaxis
                         :class:`plotly.graph_objects.layout.YAxis`
                         instance or dict with compatible properties
-            
+
         frames
             The 'frames' property is a tuple of instances of
             Frame that may be specified as:
@@ -613,7 +581,7 @@ class Figure(BaseFigure):
                     traces
                         A list of trace indices that identify the
                         respective traces in the data attribute
-            
+
         skip_invalid: bool
             If True, invalid properties in the figure specification will be
             skipped silently. If False (default) invalid properties in the
@@ -761,19 +729,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Area
+
         new_trace = Area(
             customdata=customdata,
             customdatasrc=customdatasrc,
@@ -862,11 +834,17 @@ class Figure(BaseFigure):
         x0=None,
         xaxis=None,
         xcalendar=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         y=None,
         y0=None,
         yaxis=None,
         ycalendar=None,
+        yperiod=None,
+        yperiod0=None,
+        yperiodalignment=None,
         ysrc=None,
         row=None,
         col=None,
@@ -944,8 +922,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -1097,8 +1074,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `value` and
@@ -1157,6 +1133,22 @@ class Figure(BaseFigure):
             coordinates refer to `layout.xaxis2`, and so on.
         xcalendar
             Sets the calendar system to use with `x` date data.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -1173,17 +1165,35 @@ class Figure(BaseFigure):
             coordinates refer to `layout.yaxis2`, and so on.
         ycalendar
             Sets the calendar system to use with `y` date data.
+        yperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the y
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        yperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the y0 axis. When `y0period` is round number
+            of weeks, the `y0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        yperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the y axis.
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -1199,6 +1209,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Bar
+
         new_trace = Bar(
             alignmentgroup=alignmentgroup,
             base=base,
@@ -1259,11 +1271,17 @@ class Figure(BaseFigure):
             x0=x0,
             xaxis=xaxis,
             xcalendar=xcalendar,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             y=y,
             y0=y0,
             yaxis=yaxis,
             ycalendar=ycalendar,
+            yperiod=yperiod,
+            yperiod0=yperiod0,
+            yperiodalignment=yperiodalignment,
             ysrc=ysrc,
             **kwargs
         )
@@ -1369,8 +1387,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -1515,19 +1532,23 @@ class Figure(BaseFigure):
         widthsrc
             Sets the source reference on Chart Studio Cloud for
             width .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Barpolar
+
         new_trace = Barpolar(
             base=base,
             basesrc=basesrc,
@@ -1642,11 +1663,17 @@ class Figure(BaseFigure):
         x0=None,
         xaxis=None,
         xcalendar=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         y=None,
         y0=None,
         yaxis=None,
         ycalendar=None,
+        yperiod=None,
+        yperiod0=None,
+        yperiodalignment=None,
         ysrc=None,
         row=None,
         col=None,
@@ -1748,8 +1775,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -2003,6 +2029,22 @@ class Figure(BaseFigure):
             coordinates refer to `layout.xaxis2`, and so on.
         xcalendar
             Sets the calendar system to use with `x` date data.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -2020,17 +2062,35 @@ class Figure(BaseFigure):
             coordinates refer to `layout.yaxis2`, and so on.
         ycalendar
             Sets the calendar system to use with `y` date data.
+        yperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the y
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        yperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the y0 axis. When `y0period` is round number
+            of weeks, the `y0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        yperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the y axis.
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -2046,6 +2106,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Box
+
         new_trace = Box(
             alignmentgroup=alignmentgroup,
             boxmean=boxmean,
@@ -2111,11 +2173,17 @@ class Figure(BaseFigure):
             x0=x0,
             xaxis=xaxis,
             xcalendar=xcalendar,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             y=y,
             y0=y0,
             yaxis=yaxis,
             ycalendar=ycalendar,
+            yperiod=yperiod,
+            yperiod0=yperiod0,
+            yperiodalignment=yperiodalignment,
             ysrc=ysrc,
             **kwargs
         )
@@ -2160,6 +2228,9 @@ class Figure(BaseFigure):
         x=None,
         xaxis=None,
         xcalendar=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         yaxis=None,
         row=None,
@@ -2328,6 +2399,22 @@ class Figure(BaseFigure):
             coordinates refer to `layout.xaxis2`, and so on.
         xcalendar
             Sets the calendar system to use with `x` date data.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -2336,14 +2423,16 @@ class Figure(BaseFigure):
             a 2D cartesian y axis. If "y" (the default value), the
             y coordinates refer to `layout.yaxis`. If "y2", the y
             coordinates refer to `layout.yaxis2`, and so on.
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -2359,6 +2448,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Candlestick
+
         new_trace = Candlestick(
             close=close,
             closesrc=closesrc,
@@ -2397,6 +2488,9 @@ class Figure(BaseFigure):
             x=x,
             xaxis=xaxis,
             xcalendar=xcalendar,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             yaxis=yaxis,
             **kwargs
@@ -2486,7 +2580,7 @@ class Figure(BaseFigure):
         cheaterslope
             The shift applied to each successive row of data in
             creating a cheater plot. Only used if `x` is been
-            ommitted.
+            omitted.
         color
             Sets default for all colors associated with this axis
             all at once: line, font, tick, and grid colors. Grid
@@ -2567,7 +2661,7 @@ class Figure(BaseFigure):
             visible).
         x
             A two dimensional array of x coordinates at each carpet
-            point. If ommitted, the plot is a cheater plot and the
+            point. If omitted, the plot is a cheater plot and the
             xaxis is hidden by default.
         xaxis
             Sets a reference between this trace's x coordinates and
@@ -2588,14 +2682,16 @@ class Figure(BaseFigure):
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -2611,6 +2707,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Carpet
+
         new_trace = Carpet(
             a=a,
             a0=a0,
@@ -2784,8 +2882,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -2931,19 +3028,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Choropleth
+
         new_trace = Choropleth(
             autocolorscale=autocolorscale,
             coloraxis=coloraxis,
@@ -3127,8 +3228,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -3273,19 +3373,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Choroplethmapbox
+
         new_trace = Choroplethmapbox(
             autocolorscale=autocolorscale,
             below=below,
@@ -3483,8 +3587,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -3652,19 +3755,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Cone
+
         new_trace = Cone(
             anchor=anchor,
             autocolorscale=autocolorscale,
@@ -3766,12 +3873,18 @@ class Figure(BaseFigure):
         x0=None,
         xaxis=None,
         xcalendar=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         xtype=None,
         y=None,
         y0=None,
         yaxis=None,
         ycalendar=None,
+        yperiod=None,
+        yperiod0=None,
+        yperiodalignment=None,
         ysrc=None,
         ytype=None,
         z=None,
@@ -3884,8 +3997,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -4005,6 +4117,22 @@ class Figure(BaseFigure):
             coordinates refer to `layout.xaxis2`, and so on.
         xcalendar
             Sets the calendar system to use with `x` date data.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -4027,6 +4155,22 @@ class Figure(BaseFigure):
             coordinates refer to `layout.yaxis2`, and so on.
         ycalendar
             Sets the calendar system to use with `y` date data.
+        yperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the y
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        yperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the y0 axis. When `y0period` is round number
+            of weeks, the `y0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        yperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the y axis.
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
@@ -4064,14 +4208,16 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -4087,6 +4233,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Contour
+
         new_trace = Contour(
             autocolorscale=autocolorscale,
             autocontour=autocontour,
@@ -4131,12 +4279,18 @@ class Figure(BaseFigure):
             x0=x0,
             xaxis=xaxis,
             xcalendar=xcalendar,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             xtype=xtype,
             y=y,
             y0=y0,
             yaxis=yaxis,
             ycalendar=ycalendar,
+            yperiod=yperiod,
+            yperiod0=yperiod0,
+            yperiodalignment=yperiodalignment,
             ysrc=ysrc,
             ytype=ytype,
             z=z,
@@ -4428,14 +4582,16 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -4451,6 +4607,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Contourcarpet
+
         new_trace = Contourcarpet(
             a=a,
             a0=a0,
@@ -4628,8 +4786,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -4783,19 +4940,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Densitymapbox
+
         new_trace = Densitymapbox(
             autocolorscale=autocolorscale,
             below=below,
@@ -4894,10 +5055,16 @@ class Figure(BaseFigure):
         x=None,
         x0=None,
         xaxis=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         y=None,
         y0=None,
         yaxis=None,
+        yperiod=None,
+        yperiod0=None,
+        yperiodalignment=None,
         ysrc=None,
         row=None,
         col=None,
@@ -4966,8 +5133,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -5111,8 +5277,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables
@@ -5161,6 +5326,22 @@ class Figure(BaseFigure):
             a 2D cartesian x axis. If "x" (the default value), the
             x coordinates refer to `layout.xaxis`. If "x2", the x
             coordinates refer to `layout.xaxis2`, and so on.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -5175,17 +5356,35 @@ class Figure(BaseFigure):
             a 2D cartesian y axis. If "y" (the default value), the
             y coordinates refer to `layout.yaxis`. If "y2", the y
             coordinates refer to `layout.yaxis2`, and so on.
+        yperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the y
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        yperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the y0 axis. When `y0period` is round number
+            of weeks, the `y0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        yperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the y axis.
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -5201,6 +5400,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Funnel
+
         new_trace = Funnel(
             alignmentgroup=alignmentgroup,
             cliponaxis=cliponaxis,
@@ -5250,10 +5451,16 @@ class Figure(BaseFigure):
             x=x,
             x0=x0,
             xaxis=xaxis,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             y=y,
             y0=y0,
             yaxis=yaxis,
+            yperiod=yperiod,
+            yperiod0=yperiod0,
+            yperiodalignment=yperiodalignment,
             ysrc=ysrc,
             **kwargs
         )
@@ -5358,8 +5565,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -5475,8 +5681,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `label`,
@@ -5520,19 +5725,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Funnelarea
+
         new_trace = Funnelarea(
             aspectratio=aspectratio,
             baseratio=baseratio,
@@ -5621,6 +5830,9 @@ class Figure(BaseFigure):
         xaxis=None,
         xcalendar=None,
         xgap=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         xtype=None,
         y=None,
@@ -5628,6 +5840,9 @@ class Figure(BaseFigure):
         yaxis=None,
         ycalendar=None,
         ygap=None,
+        yperiod=None,
+        yperiod0=None,
+        yperiodalignment=None,
         ysrc=None,
         ytype=None,
         z=None,
@@ -5738,8 +5953,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -5852,6 +6066,22 @@ class Figure(BaseFigure):
             Sets the calendar system to use with `x` date data.
         xgap
             Sets the horizontal gap (in pixels) between bricks.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -5876,6 +6106,22 @@ class Figure(BaseFigure):
             Sets the calendar system to use with `y` date data.
         ygap
             Sets the vertical gap (in pixels) between bricks.
+        yperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the y
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        yperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the y0 axis. When `y0period` is round number
+            of weeks, the `y0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        yperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the y axis.
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
@@ -5915,14 +6161,16 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -5938,6 +6186,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Heatmap
+
         new_trace = Heatmap(
             autocolorscale=autocolorscale,
             coloraxis=coloraxis,
@@ -5978,6 +6228,9 @@ class Figure(BaseFigure):
             xaxis=xaxis,
             xcalendar=xcalendar,
             xgap=xgap,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             xtype=xtype,
             y=y,
@@ -5985,6 +6238,9 @@ class Figure(BaseFigure):
             yaxis=yaxis,
             ycalendar=ycalendar,
             ygap=ygap,
+            yperiod=yperiod,
+            yperiod0=yperiod0,
+            yperiodalignment=yperiodalignment,
             ysrc=ysrc,
             ytype=ytype,
             z=z,
@@ -6042,6 +6298,7 @@ class Figure(BaseFigure):
         zmax=None,
         zmid=None,
         zmin=None,
+        zsmooth=None,
         zsrc=None,
         row=None,
         col=None,
@@ -6239,17 +6496,21 @@ class Figure(BaseFigure):
             Sets the lower bound of the color domain. Value should
             have the same units as in `z` and if set, `zmax` must
             be set as well.
+        zsmooth
+            Picks a smoothing algorithm use to smooth `z` data.
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -6265,6 +6526,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Heatmapgl
+
         new_trace = Heatmapgl(
             autocolorscale=autocolorscale,
             coloraxis=coloraxis,
@@ -6307,6 +6570,7 @@ class Figure(BaseFigure):
             zmax=zmax,
             zmid=zmid,
             zmin=zmin,
+            zsmooth=zsmooth,
             zsrc=zsrc,
             **kwargs
         )
@@ -6470,8 +6734,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -6630,14 +6893,16 @@ class Figure(BaseFigure):
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -6653,6 +6918,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Histogram
+
         new_trace = Histogram(
             alignmentgroup=alignmentgroup,
             autobinx=autobinx,
@@ -6883,8 +7150,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -7064,14 +7330,16 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -7087,6 +7355,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Histogram2d
+
         new_trace = Histogram2d(
             autobinx=autobinx,
             autobiny=autobiny,
@@ -7331,8 +7601,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -7515,14 +7784,16 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -7538,6 +7809,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Histogram2dContour
+
         new_trace = Histogram2dContour(
             autobinx=autobinx,
             autobiny=autobiny,
@@ -7619,6 +7892,7 @@ class Figure(BaseFigure):
         metasrc=None,
         name=None,
         opacity=None,
+        source=None,
         stream=None,
         text=None,
         textsrc=None,
@@ -7652,7 +7926,9 @@ class Figure(BaseFigure):
         ----------
         colormodel
             Color model used to map the numerical color components
-            described in `z` into colors.
+            described in `z` into colors. If `source` is specified,
+            this attribute will be set to `rgba256` otherwise it
+            defaults to `rgb`.
         customdata
             Assigns extra data each datum. This may be useful when
             listening to hover, click and selection events. Note
@@ -7687,8 +7963,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -7736,6 +8011,10 @@ class Figure(BaseFigure):
             legend item and on hover.
         opacity
             Sets the opacity of the trace.
+        source
+            Specifies the data URI of the image to be visualized.
+            The URI consists of "data:image/[<media
+            subtype>][;base64],<data>"
         stream
             :class:`plotly.graph_objects.image.Stream` instance or
             dict with compatible properties
@@ -7793,7 +8072,8 @@ class Figure(BaseFigure):
             component. Note that the default value will depend on
             the colormodel. For the `rgb` colormodel, it is [255,
             255, 255]. For the `rgba` colormodel, it is [255, 255,
-            255, 1]. For the `hsl` colormodel, it is [360, 100,
+            255, 1]. For the `rgba256` colormodel, it is [255, 255,
+            255, 255]. For the `hsl` colormodel, it is [360, 100,
             100]. For the `hsla` colormodel, it is [360, 100, 100,
             1].
         zmin
@@ -7801,19 +8081,22 @@ class Figure(BaseFigure):
             component. Note that the default value will depend on
             the colormodel. For the `rgb` colormodel, it is [0, 0,
             0]. For the `rgba` colormodel, it is [0, 0, 0, 0]. For
-            the `hsl` colormodel, it is [0, 0, 0]. For the `hsla`
+            the `rgba256` colormodel, it is [0, 0, 0, 0]. For the
+            `hsl` colormodel, it is [0, 0, 0]. For the `hsla`
             colormodel, it is [0, 0, 0, 0].
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -7829,6 +8112,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Image
+
         new_trace = Image(
             colormodel=colormodel,
             customdata=customdata,
@@ -7848,6 +8133,7 @@ class Figure(BaseFigure):
             metasrc=metasrc,
             name=name,
             opacity=opacity,
+            source=source,
             stream=stream,
             text=text,
             textsrc=textsrc,
@@ -7994,19 +8280,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Indicator
+
         new_trace = Indicator(
             align=align,
             customdata=customdata,
@@ -8188,8 +8478,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -8339,19 +8628,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Isosurface
+
         new_trace = Isosurface(
             autocolorscale=autocolorscale,
             caps=caps,
@@ -8605,8 +8898,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -8804,19 +9096,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Mesh3d
+
         new_trace = Mesh3d(
             alphahull=alphahull,
             autocolorscale=autocolorscale,
@@ -8924,6 +9220,9 @@ class Figure(BaseFigure):
         x=None,
         xaxis=None,
         xcalendar=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         yaxis=None,
         row=None,
@@ -9091,6 +9390,22 @@ class Figure(BaseFigure):
             coordinates refer to `layout.xaxis2`, and so on.
         xcalendar
             Sets the calendar system to use with `x` date data.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -9099,14 +9414,16 @@ class Figure(BaseFigure):
             a 2D cartesian y axis. If "y" (the default value), the
             y coordinates refer to `layout.yaxis`. If "y2", the y
             coordinates refer to `layout.yaxis2`, and so on.
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -9122,6 +9439,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Ohlc
+
         new_trace = Ohlc(
             close=close,
             closesrc=closesrc,
@@ -9160,6 +9479,9 @@ class Figure(BaseFigure):
             x=x,
             xaxis=xaxis,
             xcalendar=xcalendar,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             yaxis=yaxis,
             **kwargs
@@ -9252,8 +9574,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -9327,19 +9648,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Parcats
+
         new_trace = Parcats(
             arrangement=arrangement,
             bundlecolors=bundlecolors,
@@ -9497,19 +9822,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Parcoords
+
         new_trace = Parcoords(
             customdata=customdata,
             customdatasrc=customdatasrc,
@@ -9645,8 +9974,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -9789,8 +10117,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `label`,
@@ -9843,19 +10170,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Pie
+
         new_trace = Pie(
             automargin=automargin,
             customdata=customdata,
@@ -10115,14 +10446,16 @@ class Figure(BaseFigure):
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -10138,6 +10471,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Pointcloud
+
         new_trace = Pointcloud(
             customdata=customdata,
             customdatasrc=customdatasrc,
@@ -10324,19 +10659,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Sankey
+
         new_trace = Sankey(
             arrangement=arrangement,
             customdata=customdata,
@@ -10421,11 +10760,17 @@ class Figure(BaseFigure):
         x0=None,
         xaxis=None,
         xcalendar=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         y=None,
         y0=None,
         yaxis=None,
         ycalendar=None,
+        yperiod=None,
+        yperiod0=None,
+        yperiodalignment=None,
         ysrc=None,
         row=None,
         col=None,
@@ -10537,8 +10882,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -10695,8 +11039,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available.
@@ -10749,6 +11092,22 @@ class Figure(BaseFigure):
             coordinates refer to `layout.xaxis2`, and so on.
         xcalendar
             Sets the calendar system to use with `x` date data.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -10765,17 +11124,35 @@ class Figure(BaseFigure):
             coordinates refer to `layout.yaxis2`, and so on.
         ycalendar
             Sets the calendar system to use with `y` date data.
+        yperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the y
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        yperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the y0 axis. When `y0period` is round number
+            of weeks, the `y0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        yperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the y axis.
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -10791,6 +11168,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Scatter
+
         new_trace = Scatter(
             cliponaxis=cliponaxis,
             connectgaps=connectgaps,
@@ -10847,11 +11226,17 @@ class Figure(BaseFigure):
             x0=x0,
             xaxis=xaxis,
             xcalendar=xcalendar,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             y=y,
             y0=y0,
             yaxis=yaxis,
             ycalendar=ycalendar,
+            yperiod=yperiod,
+            yperiod0=yperiod0,
+            yperiodalignment=yperiodalignment,
             ysrc=ysrc,
             **kwargs
         )
@@ -10965,8 +11350,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -11087,8 +11471,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available.
@@ -11143,19 +11526,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Scatter3d
+
         new_trace = Scatter3d(
             connectgaps=connectgaps,
             customdata=customdata,
@@ -11337,8 +11724,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -11452,8 +11838,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `a`, `b` and
@@ -11501,14 +11886,16 @@ class Figure(BaseFigure):
             a 2D cartesian y axis. If "y" (the default value), the
             y coordinates refer to `layout.yaxis`. If "y2", the y
             coordinates refer to `layout.yaxis2`, and so on.
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -11524,6 +11911,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Scattercarpet
+
         new_trace = Scattercarpet(
             a=a,
             asrc=asrc,
@@ -11698,8 +12087,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -11839,8 +12227,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `lat`, `lon`,
@@ -11878,19 +12265,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Scattergeo
+
         new_trace = Scattergeo(
             connectgaps=connectgaps,
             customdata=customdata,
@@ -11990,11 +12381,17 @@ class Figure(BaseFigure):
         x0=None,
         xaxis=None,
         xcalendar=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         y=None,
         y0=None,
         yaxis=None,
         ycalendar=None,
+        yperiod=None,
+        yperiod0=None,
+        yperiodalignment=None,
         ysrc=None,
         row=None,
         col=None,
@@ -12081,8 +12478,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -12192,8 +12588,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available.
@@ -12243,6 +12638,22 @@ class Figure(BaseFigure):
             coordinates refer to `layout.xaxis2`, and so on.
         xcalendar
             Sets the calendar system to use with `x` date data.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -12259,17 +12670,35 @@ class Figure(BaseFigure):
             coordinates refer to `layout.yaxis2`, and so on.
         ycalendar
             Sets the calendar system to use with `y` date data.
+        yperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the y
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        yperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the y0 axis. When `y0period` is round number
+            of weeks, the `y0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        yperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the y axis.
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -12285,6 +12714,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Scattergl
+
         new_trace = Scattergl(
             connectgaps=connectgaps,
             customdata=customdata,
@@ -12331,11 +12762,17 @@ class Figure(BaseFigure):
             x0=x0,
             xaxis=xaxis,
             xcalendar=xcalendar,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             y=y,
             y0=y0,
             yaxis=yaxis,
             ycalendar=ycalendar,
+            yperiod=yperiod,
+            yperiod0=yperiod0,
+            yperiodalignment=yperiodalignment,
             ysrc=ysrc,
             **kwargs
         )
@@ -12446,8 +12883,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -12574,8 +13010,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `lat`, `lon`
@@ -12613,19 +13048,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Scattermapbox
+
         new_trace = Scattermapbox(
             below=below,
             connectgaps=connectgaps,
@@ -12807,8 +13246,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -12937,8 +13375,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `r`, `theta`
@@ -12988,19 +13425,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Scatterpolar
+
         new_trace = Scatterpolar(
             cliponaxis=cliponaxis,
             connectgaps=connectgaps,
@@ -13186,8 +13627,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -13316,8 +13756,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `r`, `theta`
@@ -13367,19 +13806,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Scatterpolargl
+
         new_trace = Scatterpolargl(
             connectgaps=connectgaps,
             customdata=customdata,
@@ -13581,8 +14024,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -13709,8 +14151,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `a`, `b`, `c`
@@ -13748,19 +14189,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Scatterternary
+
         new_trace = Scatterternary(
             a=a,
             asrc=asrc,
@@ -13908,8 +14353,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -14040,19 +14484,23 @@ class Figure(BaseFigure):
             is false and `showupperhalf` or `showlowerhalf` is
             false, this splom trace will generate one less x-axis
             and one less y-axis.
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Splom
+
         new_trace = Splom(
             customdata=customdata,
             customdatasrc=customdatasrc,
@@ -14239,8 +14687,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -14393,19 +14840,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Streamtube
+
         new_trace = Streamtube(
             autocolorscale=autocolorscale,
             cauto=cauto,
@@ -14491,6 +14942,9 @@ class Figure(BaseFigure):
         outsidetextfont=None,
         parents=None,
         parentssrc=None,
+        root=None,
+        rotation=None,
+        sort=None,
         stream=None,
         text=None,
         textfont=None,
@@ -14560,8 +15014,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -14665,6 +15118,15 @@ class Figure(BaseFigure):
         parentssrc
             Sets the source reference on Chart Studio Cloud for
             parents .
+        root
+            :class:`plotly.graph_objects.sunburst.Root` instance or
+            dict with compatible properties
+        rotation
+            Rotates the whole diagram counterclockwise by some
+            angle. By default the first slice starts at 3 o'clock.
+        sort
+            Determines whether or not the sectors are reordered
+            from largest to smallest.
         stream
             :class:`plotly.graph_objects.sunburst.Stream` instance
             or dict with compatible properties
@@ -14692,8 +15154,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables
@@ -14736,19 +15197,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Sunburst
+
         new_trace = Sunburst(
             branchvalues=branchvalues,
             count=count,
@@ -14779,6 +15244,9 @@ class Figure(BaseFigure):
             outsidetextfont=outsidetextfont,
             parents=parents,
             parentssrc=parentssrc,
+            root=root,
+            rotation=rotation,
+            sort=sort,
             stream=stream,
             text=text,
             textfont=textfont,
@@ -14955,8 +15423,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -15111,19 +15578,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Surface
+
         new_trace = Surface(
             autocolorscale=autocolorscale,
             cauto=cauto,
@@ -15317,19 +15788,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Table
+
         new_trace = Table(
             cells=cells,
             columnorder=columnorder,
@@ -15386,6 +15861,8 @@ class Figure(BaseFigure):
         parents=None,
         parentssrc=None,
         pathbar=None,
+        root=None,
+        sort=None,
         stream=None,
         text=None,
         textfont=None,
@@ -15458,8 +15935,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -15553,6 +16029,12 @@ class Figure(BaseFigure):
         pathbar
             :class:`plotly.graph_objects.treemap.Pathbar` instance
             or dict with compatible properties
+        root
+            :class:`plotly.graph_objects.treemap.Root` instance or
+            dict with compatible properties
+        sort
+            Determines whether or not the sectors are reordered
+            from largest to smallest.
         stream
             :class:`plotly.graph_objects.treemap.Stream` instance
             or dict with compatible properties
@@ -15582,8 +16064,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables
@@ -15629,19 +16110,23 @@ class Figure(BaseFigure):
             "legendonly", the trace is not drawn, but can appear as
             a legend item (provided that the legend itself is
             visible).
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Treemap
+
         new_trace = Treemap(
             branchvalues=branchvalues,
             count=count,
@@ -15671,6 +16156,8 @@ class Figure(BaseFigure):
             parents=parents,
             parentssrc=parentssrc,
             pathbar=pathbar,
+            root=root,
+            sort=sort,
             stream=stream,
             text=text,
             textfont=textfont,
@@ -15811,8 +16298,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -16030,14 +16516,16 @@ class Figure(BaseFigure):
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -16053,6 +16541,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Violin
+
         new_trace = Violin(
             alignmentgroup=alignmentgroup,
             bandwidth=bandwidth,
@@ -16269,8 +16759,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -16431,19 +16920,23 @@ class Figure(BaseFigure):
         zsrc
             Sets the source reference on Chart Studio Cloud for  z
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import Volume
+
         new_trace = Volume(
             autocolorscale=autocolorscale,
             caps=caps,
@@ -16559,10 +17052,16 @@ class Figure(BaseFigure):
         x=None,
         x0=None,
         xaxis=None,
+        xperiod=None,
+        xperiod0=None,
+        xperiodalignment=None,
         xsrc=None,
         y=None,
         y0=None,
         yaxis=None,
+        yperiod=None,
+        yperiod0=None,
+        yperiodalignment=None,
         ysrc=None,
         row=None,
         col=None,
@@ -16637,8 +17136,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. The variables
             available in `hovertemplate` are the ones emitted as
             event data described at this link
@@ -16789,8 +17287,7 @@ class Figure(BaseFigure):
             details on the formatting syntax. Dates are formatted
             using d3-time-format's syntax %{variable|d3-time-
             format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-3.x-api-
-            reference/blob/master/Time-Formatting.md#format for
+            https://github.com/d3/d3-time-format#locale_format for
             details on the date formatting syntax. Every attributes
             that can be specified per-point (the ones that are
             `arrayOk: true`) are available. variables `initial`,
@@ -16844,6 +17341,22 @@ class Figure(BaseFigure):
             a 2D cartesian x axis. If "x" (the default value), the
             x coordinates refer to `layout.xaxis`. If "x2", the x
             coordinates refer to `layout.xaxis2`, and so on.
+        xperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the x
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        xperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the x0 axis. When `x0period` is round number
+            of weeks, the `x0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        xperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the x axis.
         xsrc
             Sets the source reference on Chart Studio Cloud for  x
             .
@@ -16858,17 +17371,35 @@ class Figure(BaseFigure):
             a 2D cartesian y axis. If "y" (the default value), the
             y coordinates refer to `layout.yaxis`. If "y2", the y
             coordinates refer to `layout.yaxis2`, and so on.
+        yperiod
+            Only relevant when the axis `type` is "date". Sets the
+            period positioning in milliseconds or "M<n>" on the y
+            axis. Special values in the form of "M<n>" could be
+            used to declare the number of months. In this case `n`
+            must be a positive integer.
+        yperiod0
+            Only relevant when the axis `type` is "date". Sets the
+            base for period positioning in milliseconds or date
+            string on the y0 axis. When `y0period` is round number
+            of weeks, the `y0period0` by default would be on a
+            Sunday i.e. 2000-01-02, otherwise it would be at
+            2000-01-01.
+        yperiodalignment
+            Only relevant when the axis `type` is "date". Sets the
+            alignment of data points on the y axis.
         ysrc
             Sets the source reference on Chart Studio Cloud for  y
             .
-        row : int or None (default)
+        row : 'all', int or None (default)
             Subplot row index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
-        col : int or None (default)
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            rows in the specified column(s).
+        col : 'all', int or None (default)
             Subplot col index (starting from 1) for the trace to be
             added. Only valid if figure was created using
-            `plotly.tools.make_subplots`
+            `plotly.tools.make_subplots`.If 'all', addresses all
+            columns in the specified row(s).
         secondary_y: boolean or None (default None)
             If True, associate this trace with the secondary y-axis of the
             subplot at the specified row and col. Only valid if all of the
@@ -16884,6 +17415,8 @@ class Figure(BaseFigure):
         -------
         Figure
         """
+        from plotly.graph_objs import Waterfall
+
         new_trace = Waterfall(
             alignmentgroup=alignmentgroup,
             base=base,
@@ -16940,10 +17473,16 @@ class Figure(BaseFigure):
             x=x,
             x0=x0,
             xaxis=xaxis,
+            xperiod=xperiod,
+            xperiod0=xperiod0,
+            xperiodalignment=xperiodalignment,
             xsrc=xsrc,
             y=y,
             y0=y0,
             yaxis=yaxis,
+            yperiod=yperiod,
+            yperiod0=yperiod0,
+            yperiodalignment=yperiodalignment,
             ysrc=ysrc,
             **kwargs
         )
@@ -16957,12 +17496,16 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             coloraxis objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all coloraxis objects are selected.
+            (the default), all coloraxis objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            coloraxis and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of coloraxis objects to select.
             To select coloraxis objects by row and column, the Figure
@@ -16981,17 +17524,21 @@ class Figure(BaseFigure):
         """
         Apply a function to all coloraxis objects that satisfy the
         specified selection criteria
-        
+
         Parameters
         ----------
         fn:
             Function that inputs a single coloraxis object.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             coloraxis objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all coloraxis objects are selected.
+            (the default), all coloraxis objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            coloraxis and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of coloraxis objects to select.
             To select coloraxis objects by row and column, the Figure
@@ -17013,18 +17560,22 @@ class Figure(BaseFigure):
         """
         Perform a property update operation on all coloraxis objects
         that satisfy the specified selection criteria
-        
+
         Parameters
         ----------
         patch: dict
             Dictionary of property updates to be applied to all
             coloraxis objects that satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             coloraxis objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all coloraxis objects are selected.
+            (the default), all coloraxis objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            coloraxis and those for which the function returned True will
+            be in the selection.
         overwrite: bool
             If True, overwrite existing properties. If False, apply updates
             to existing properties recursively, preserving existing
@@ -17057,12 +17608,16 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             geo objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all geo objects are selected.
+            (the default), all geo objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            geo and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of geo objects to select.
             To select geo objects by row and column, the Figure
@@ -17081,17 +17636,21 @@ class Figure(BaseFigure):
         """
         Apply a function to all geo objects that satisfy the
         specified selection criteria
-        
+
         Parameters
         ----------
         fn:
             Function that inputs a single geo object.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             geo objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all geo objects are selected.
+            (the default), all geo objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            geo and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of geo objects to select.
             To select geo objects by row and column, the Figure
@@ -17113,18 +17672,22 @@ class Figure(BaseFigure):
         """
         Perform a property update operation on all geo objects
         that satisfy the specified selection criteria
-        
+
         Parameters
         ----------
         patch: dict
             Dictionary of property updates to be applied to all
             geo objects that satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             geo objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all geo objects are selected.
+            (the default), all geo objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            geo and those for which the function returned True will
+            be in the selection.
         overwrite: bool
             If True, overwrite existing properties. If False, apply updates
             to existing properties recursively, preserving existing
@@ -17157,12 +17720,16 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             mapbox objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all mapbox objects are selected.
+            (the default), all mapbox objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            mapbox and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of mapbox objects to select.
             To select mapbox objects by row and column, the Figure
@@ -17181,17 +17748,21 @@ class Figure(BaseFigure):
         """
         Apply a function to all mapbox objects that satisfy the
         specified selection criteria
-        
+
         Parameters
         ----------
         fn:
             Function that inputs a single mapbox object.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             mapbox objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all mapbox objects are selected.
+            (the default), all mapbox objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            mapbox and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of mapbox objects to select.
             To select mapbox objects by row and column, the Figure
@@ -17213,18 +17784,22 @@ class Figure(BaseFigure):
         """
         Perform a property update operation on all mapbox objects
         that satisfy the specified selection criteria
-        
+
         Parameters
         ----------
         patch: dict
             Dictionary of property updates to be applied to all
             mapbox objects that satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             mapbox objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all mapbox objects are selected.
+            (the default), all mapbox objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            mapbox and those for which the function returned True will
+            be in the selection.
         overwrite: bool
             If True, overwrite existing properties. If False, apply updates
             to existing properties recursively, preserving existing
@@ -17257,12 +17832,16 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             polar objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all polar objects are selected.
+            (the default), all polar objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            polar and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of polar objects to select.
             To select polar objects by row and column, the Figure
@@ -17281,17 +17860,21 @@ class Figure(BaseFigure):
         """
         Apply a function to all polar objects that satisfy the
         specified selection criteria
-        
+
         Parameters
         ----------
         fn:
             Function that inputs a single polar object.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             polar objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all polar objects are selected.
+            (the default), all polar objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            polar and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of polar objects to select.
             To select polar objects by row and column, the Figure
@@ -17313,18 +17896,22 @@ class Figure(BaseFigure):
         """
         Perform a property update operation on all polar objects
         that satisfy the specified selection criteria
-        
+
         Parameters
         ----------
         patch: dict
             Dictionary of property updates to be applied to all
             polar objects that satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             polar objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all polar objects are selected.
+            (the default), all polar objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            polar and those for which the function returned True will
+            be in the selection.
         overwrite: bool
             If True, overwrite existing properties. If False, apply updates
             to existing properties recursively, preserving existing
@@ -17357,12 +17944,16 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             scene objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all scene objects are selected.
+            (the default), all scene objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            scene and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of scene objects to select.
             To select scene objects by row and column, the Figure
@@ -17381,17 +17972,21 @@ class Figure(BaseFigure):
         """
         Apply a function to all scene objects that satisfy the
         specified selection criteria
-        
+
         Parameters
         ----------
         fn:
             Function that inputs a single scene object.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             scene objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all scene objects are selected.
+            (the default), all scene objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            scene and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of scene objects to select.
             To select scene objects by row and column, the Figure
@@ -17413,18 +18008,22 @@ class Figure(BaseFigure):
         """
         Perform a property update operation on all scene objects
         that satisfy the specified selection criteria
-        
+
         Parameters
         ----------
         patch: dict
             Dictionary of property updates to be applied to all
             scene objects that satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             scene objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all scene objects are selected.
+            (the default), all scene objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            scene and those for which the function returned True will
+            be in the selection.
         overwrite: bool
             If True, overwrite existing properties. If False, apply updates
             to existing properties recursively, preserving existing
@@ -17457,12 +18056,16 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             ternary objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all ternary objects are selected.
+            (the default), all ternary objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            ternary and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of ternary objects to select.
             To select ternary objects by row and column, the Figure
@@ -17481,17 +18084,21 @@ class Figure(BaseFigure):
         """
         Apply a function to all ternary objects that satisfy the
         specified selection criteria
-        
+
         Parameters
         ----------
         fn:
             Function that inputs a single ternary object.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             ternary objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all ternary objects are selected.
+            (the default), all ternary objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            ternary and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of ternary objects to select.
             To select ternary objects by row and column, the Figure
@@ -17513,18 +18120,22 @@ class Figure(BaseFigure):
         """
         Perform a property update operation on all ternary objects
         that satisfy the specified selection criteria
-        
+
         Parameters
         ----------
         patch: dict
             Dictionary of property updates to be applied to all
             ternary objects that satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             ternary objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all ternary objects are selected.
+            (the default), all ternary objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            ternary and those for which the function returned True will
+            be in the selection.
         overwrite: bool
             If True, overwrite existing properties. If False, apply updates
             to existing properties recursively, preserving existing
@@ -17557,12 +18168,16 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             xaxis objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all xaxis objects are selected.
+            (the default), all xaxis objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            xaxis and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of xaxis objects to select.
             To select xaxis objects by row and column, the Figure
@@ -17581,17 +18196,21 @@ class Figure(BaseFigure):
         """
         Apply a function to all xaxis objects that satisfy the
         specified selection criteria
-        
+
         Parameters
         ----------
         fn:
             Function that inputs a single xaxis object.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             xaxis objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all xaxis objects are selected.
+            (the default), all xaxis objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            xaxis and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of xaxis objects to select.
             To select xaxis objects by row and column, the Figure
@@ -17613,18 +18232,22 @@ class Figure(BaseFigure):
         """
         Perform a property update operation on all xaxis objects
         that satisfy the specified selection criteria
-        
+
         Parameters
         ----------
         patch: dict
             Dictionary of property updates to be applied to all
             xaxis objects that satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             xaxis objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all xaxis objects are selected.
+            (the default), all xaxis objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            xaxis and those for which the function returned True will
+            be in the selection.
         overwrite: bool
             If True, overwrite existing properties. If False, apply updates
             to existing properties recursively, preserving existing
@@ -17657,12 +18280,16 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             yaxis objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all yaxis objects are selected.
+            (the default), all yaxis objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            yaxis and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of yaxis objects to select.
             To select yaxis objects by row and column, the Figure
@@ -17674,8 +18301,8 @@ class Figure(BaseFigure):
             * If False, only select yaxis objects associated with the primary
               y-axis of the subplot.
             * If None (the default), do not filter yaxis objects based on
-              a secondary y-axis condition. 
-            
+              a secondary y-axis condition.
+
             To select yaxis objects by secondary y-axis, the Figure must
             have been created using plotly.subplots.make_subplots. See
             the docstring for the specs argument to make_subplots for more
@@ -17695,17 +18322,21 @@ class Figure(BaseFigure):
         """
         Apply a function to all yaxis objects that satisfy the
         specified selection criteria
-        
+
         Parameters
         ----------
         fn:
             Function that inputs a single yaxis object.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             yaxis objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all yaxis objects are selected.
+            (the default), all yaxis objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            yaxis and those for which the function returned True will
+            be in the selection.
         row, col: int or None (default None)
             Subplot row and column index of yaxis objects to select.
             To select yaxis objects by row and column, the Figure
@@ -17717,8 +18348,8 @@ class Figure(BaseFigure):
             * If False, only select yaxis objects associated with the primary
               y-axis of the subplot.
             * If None (the default), do not filter yaxis objects based on
-              a secondary y-axis condition. 
-            
+              a secondary y-axis condition.
+
             To select yaxis objects by secondary y-axis, the Figure must
             have been created using plotly.subplots.make_subplots. See
             the docstring for the specs argument to make_subplots for more
@@ -17748,18 +18379,22 @@ class Figure(BaseFigure):
         """
         Perform a property update operation on all yaxis objects
         that satisfy the specified selection criteria
-        
+
         Parameters
         ----------
         patch: dict
             Dictionary of property updates to be applied to all
             yaxis objects that satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, or None (default None)
             Dict to use as selection criteria.
             yaxis objects will be selected if they contain
             properties corresponding to all of the dictionary's keys, with
             values that exactly match the supplied values. If None
-            (the default), all yaxis objects are selected.
+            (the default), all yaxis objects are selected. If a
+            function, it must be a function accepting a single argument and
+            returning a boolean. The function will be called on each
+            yaxis and those for which the function returned True will
+            be in the selection.
         overwrite: bool
             If True, overwrite existing properties. If False, apply updates
             to existing properties recursively, preserving existing
@@ -17775,8 +18410,8 @@ class Figure(BaseFigure):
             * If False, only select yaxis objects associated with the primary
               y-axis of the subplot.
             * If None (the default), do not filter yaxis objects based on
-              a secondary y-axis condition. 
-            
+              a secondary y-axis condition.
+
             To select yaxis objects by secondary y-axis, the Figure must
             have been created using plotly.subplots.make_subplots. See
             the docstring for the specs argument to make_subplots for more
@@ -17805,12 +18440,17 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, int, str, or None (default None)
             Dict to use as selection criteria.
             Annotations will be selected if they contain properties corresponding
             to all of the dictionary's keys, with values that exactly match
             the supplied values. If None (the default), all annotations are
-            selected.
+            selected. If a function, it must be a function accepting a single
+            argument and returning a boolean. The function will be called on
+            each annotation and those for which the function returned True
+            will be in the selection. If an int N, the Nth annotation matching row
+            and col will be selected (N can be negative). If a string S, the selector
+            is equivalent to dict(type=S).
         row, col: int or None (default None)
             Subplot row and column index of annotations to select.
             To select annotations by row and column, the Figure must have been
@@ -17850,12 +18490,17 @@ class Figure(BaseFigure):
         ----------
         fn:
             Function that inputs a single annotation object.
-        selector: dict or None (default None)
+        selector: dict, function, int, str or None (default None)
             Dict to use as selection criteria.
             Traces will be selected if they contain properties corresponding
             to all of the dictionary's keys, with values that exactly match
             the supplied values. If None (the default), all annotations are
-            selected.
+            selected. If a function, it must be a function accepting a single
+            argument and returning a boolean. The function will be called on
+            each annotation and those for which the function returned True
+            will be in the selection. If an int N, the Nth annotation matching row
+            and col will be selected (N can be negative). If a string S, the selector
+            is equivalent to dict(type=S).
         row, col: int or None (default None)
             Subplot row and column index of annotations to select.
             To select annotations by row and column, the Figure must have been
@@ -17902,12 +18547,17 @@ class Figure(BaseFigure):
         patch: dict or None (default None)
             Dictionary of property updates to be applied to all annotations that
             satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, int, str or None (default None)
             Dict to use as selection criteria.
             Traces will be selected if they contain properties corresponding
             to all of the dictionary's keys, with values that exactly match
             the supplied values. If None (the default), all annotations are
-            selected.
+            selected. If a function, it must be a function accepting a single
+            argument and returning a boolean. The function will be called on
+            each annotation and those for which the function returned True
+            will be in the selection. If an int N, the Nth annotation matching row
+            and col will be selected (N can be negative). If a string S, the selector
+            is equivalent to dict(type=S).
         row, col: int or None (default None)
             Subplot row and column index of annotations to select.
             To select annotations by row and column, the Figure must have been
@@ -17996,6 +18646,7 @@ class Figure(BaseFigure):
         row=None,
         col=None,
         secondary_y=None,
+        exclude_empty_subplots=None,
         **kwargs
     ):
         """
@@ -18028,32 +18679,68 @@ class Figure(BaseFigure):
             Sets the x component of the arrow tail about the arrow
             head. If `axref` is `pixel`, a positive (negative)
             component corresponds to an arrow pointing from right
-            to left (left to right). If `axref` is an axis, this is
-            an absolute value on that axis, like `x`, NOT a
-            relative value.
+            to left (left to right). If `axref` is not `pixel` and
+            is exactly the same as `xref`, this is an absolute
+            value on that axis, like `x`, specified in the same
+            coordinates as `xref`.
         axref
-            Indicates in what terms the tail of the annotation
-            (ax,ay)  is specified. If `pixel`, `ax` is a relative
-            offset in pixels  from `x`. If set to an x axis id
-            (e.g. "x" or "x2"), `ax` is  specified in the same
-            terms as that axis. This is useful  for trendline
-            annotations which should continue to indicate  the
-            correct trend when zoomed.
+            Indicates in what coordinates the tail of the
+            annotation (ax,ay) is specified. If set to a ax axis id
+            (e.g. "ax" or "ax2"), the `ax` position refers to a ax
+            coordinate. If set to "paper", the `ax` position refers
+            to the distance from the left of the plotting area in
+            normalized coordinates where 0 (1) corresponds to the
+            left (right). If set to a ax axis ID followed by
+            "domain" (separated by a space), the position behaves
+            like for "paper", but refers to the distance in
+            fractions of the domain length from the left of the
+            domain of that axis: e.g., *ax2 domain* refers to the
+            domain of the second ax  axis and a ax position of 0.5
+            refers to the point between the left and the right of
+            the domain of the second ax axis. In order for absolute
+            positioning of the arrow to work, "axref" must be
+            exactly the same as "xref", otherwise "axref" will
+            revert to "pixel" (explained next). For relative
+            positioning, "axref" can be set to "pixel", in which
+            case the "ax" value is specified in pixels relative to
+            "x". Absolute positioning is useful for trendline
+            annotations which should continue to indicate the
+            correct trend when zoomed. Relative positioning is
+            useful for specifying the text offset for an annotated
+            point.
         ay
             Sets the y component of the arrow tail about the arrow
             head. If `ayref` is `pixel`, a positive (negative)
             component corresponds to an arrow pointing from bottom
-            to top (top to bottom). If `ayref` is an axis, this is
-            an absolute value on that axis, like `y`, NOT a
-            relative value.
+            to top (top to bottom). If `ayref` is not `pixel` and
+            is exactly the same as `yref`, this is an absolute
+            value on that axis, like `y`, specified in the same
+            coordinates as `yref`.
         ayref
-            Indicates in what terms the tail of the annotation
-            (ax,ay)  is specified. If `pixel`, `ay` is a relative
-            offset in pixels  from `y`. If set to a y axis id (e.g.
-            "y" or "y2"), `ay` is  specified in the same terms as
-            that axis. This is useful  for trendline annotations
-            which should continue to indicate  the correct trend
-            when zoomed.
+            Indicates in what coordinates the tail of the
+            annotation (ax,ay) is specified. If set to a ay axis id
+            (e.g. "ay" or "ay2"), the `ay` position refers to a ay
+            coordinate. If set to "paper", the `ay` position refers
+            to the distance from the bottom of the plotting area in
+            normalized coordinates where 0 (1) corresponds to the
+            bottom (top). If set to a ay axis ID followed by
+            "domain" (separated by a space), the position behaves
+            like for "paper", but refers to the distance in
+            fractions of the domain length from the bottom of the
+            domain of that axis: e.g., *ay2 domain* refers to the
+            domain of the second ay  axis and a ay position of 0.5
+            refers to the point between the bottom and the top of
+            the domain of the second ay axis. In order for absolute
+            positioning of the arrow to work, "ayref" must be
+            exactly the same as "yref", otherwise "ayref" will
+            revert to "pixel" (explained next). For relative
+            positioning, "ayref" can be set to "pixel", in which
+            case the "ay" value is specified in pixels relative to
+            "y". Absolute positioning is useful for trendline
+            annotations which should continue to indicate the
+            correct trend when zoomed. Relative positioning is
+            useful for specifying the text offset for an annotated
+            point.
         bgcolor
             Sets the background color of the annotation.
         bordercolor
@@ -18190,12 +18877,19 @@ class Figure(BaseFigure):
             `x` value is `xclick` rather than the annotation's `x`
             value.
         xref
-            Sets the annotation's x coordinate axis. If set to an x
+            Sets the annotation's x coordinate axis. If set to a x
             axis id (e.g. "x" or "x2"), the `x` position refers to
-            an x coordinate If set to "paper", the `x` position
-            refers to the distance from the left side of the
-            plotting area in normalized coordinates where 0 (1)
-            corresponds to the left (right) side.
+            a x coordinate. If set to "paper", the `x` position
+            refers to the distance from the left of the plotting
+            area in normalized coordinates where 0 (1) corresponds
+            to the left (right). If set to a x axis ID followed by
+            "domain" (separated by a space), the position behaves
+            like for "paper", but refers to the distance in
+            fractions of the domain length from the left of the
+            domain of that axis: e.g., *x2 domain* refers to the
+            domain of the second x  axis and a x position of 0.5
+            refers to the point between the left and the right of
+            the domain of the second x axis.
         xshift
             Shifts the position of the whole annotation and arrow
             to the right (positive) or left (negative) by this many
@@ -18225,26 +18919,40 @@ class Figure(BaseFigure):
             `y` value is `yclick` rather than the annotation's `y`
             value.
         yref
-            Sets the annotation's y coordinate axis. If set to an y
+            Sets the annotation's y coordinate axis. If set to a y
             axis id (e.g. "y" or "y2"), the `y` position refers to
-            an y coordinate If set to "paper", the `y` position
+            a y coordinate. If set to "paper", the `y` position
             refers to the distance from the bottom of the plotting
             area in normalized coordinates where 0 (1) corresponds
-            to the bottom (top).
+            to the bottom (top). If set to a y axis ID followed by
+            "domain" (separated by a space), the position behaves
+            like for "paper", but refers to the distance in
+            fractions of the domain length from the bottom of the
+            domain of that axis: e.g., *y2 domain* refers to the
+            domain of the second y  axis and a y position of 0.5
+            refers to the point between the bottom and the top of
+            the domain of the second y axis.
         yshift
             Shifts the position of the whole annotation and arrow
             up (positive) or down (negative) by this many pixels.
         row
-            Subplot row for annotation
+            Subplot row for annotation. If 'all', addresses all
+            rows in the specified column(s).
         col
-            Subplot column for annotation
+            Subplot column for annotation. If 'all', addresses all
+            columns in the specified row(s).
         secondary_y
             Whether to add annotation to secondary y-axis
+        exclude_empty_subplots
+            If True, annotation will not be added to subplots
+            without traces.
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import layout as _layout
+
         new_obj = _layout.Annotation(
             arg,
             align=align,
@@ -18299,6 +19007,7 @@ class Figure(BaseFigure):
             row=row,
             col=col,
             secondary_y=secondary_y,
+            exclude_empty_subplots=exclude_empty_subplots,
         )
 
     def select_layout_images(self, selector=None, row=None, col=None, secondary_y=None):
@@ -18308,12 +19017,17 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, int, str, or None (default None)
             Dict to use as selection criteria.
             Annotations will be selected if they contain properties corresponding
             to all of the dictionary's keys, with values that exactly match
             the supplied values. If None (the default), all images are
-            selected.
+            selected. If a function, it must be a function accepting a single
+            argument and returning a boolean. The function will be called on
+            each image and those for which the function returned True
+            will be in the selection. If an int N, the Nth image matching row
+            and col will be selected (N can be negative). If a string S, the selector
+            is equivalent to dict(type=S).
         row, col: int or None (default None)
             Subplot row and column index of images to select.
             To select images by row and column, the Figure must have been
@@ -18353,12 +19067,17 @@ class Figure(BaseFigure):
         ----------
         fn:
             Function that inputs a single image object.
-        selector: dict or None (default None)
+        selector: dict, function, int, str or None (default None)
             Dict to use as selection criteria.
             Traces will be selected if they contain properties corresponding
             to all of the dictionary's keys, with values that exactly match
             the supplied values. If None (the default), all images are
-            selected.
+            selected. If a function, it must be a function accepting a single
+            argument and returning a boolean. The function will be called on
+            each image and those for which the function returned True
+            will be in the selection. If an int N, the Nth image matching row
+            and col will be selected (N can be negative). If a string S, the selector
+            is equivalent to dict(type=S).
         row, col: int or None (default None)
             Subplot row and column index of images to select.
             To select images by row and column, the Figure must have been
@@ -18401,12 +19120,17 @@ class Figure(BaseFigure):
         patch: dict or None (default None)
             Dictionary of property updates to be applied to all images that
             satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, int, str or None (default None)
             Dict to use as selection criteria.
             Traces will be selected if they contain properties corresponding
             to all of the dictionary's keys, with values that exactly match
             the supplied values. If None (the default), all images are
-            selected.
+            selected. If a function, it must be a function accepting a single
+            argument and returning a boolean. The function will be called on
+            each image and those for which the function returned True
+            will be in the selection. If an int N, the Nth image matching row
+            and col will be selected (N can be negative). If a string S, the selector
+            is equivalent to dict(type=S).
         row, col: int or None (default None)
             Subplot row and column index of images to select.
             To select images by row and column, the Figure must have been
@@ -18463,6 +19187,7 @@ class Figure(BaseFigure):
         row=None,
         col=None,
         secondary_y=None,
+        exclude_empty_subplots=None,
         **kwargs
     ):
         """
@@ -18491,12 +19216,14 @@ class Figure(BaseFigure):
             Sets the image container size horizontally. The image
             will be sized based on the `position` value. When
             `xref` is set to `paper`, units are sized relative to
-            the plot width.
+            the plot width. When `xref` ends with ` domain`, units
+            are sized relative to the axis width.
         sizey
             Sets the image container size vertically. The image
             will be sized based on the `position` value. When
             `yref` is set to `paper`, units are sized relative to
-            the plot height.
+            the plot height. When `yref` ends with ` domain`, units
+            are sized relative to the axis height.
         sizing
             Specifies which dimension of the image to constrain.
         source
@@ -18523,11 +19250,18 @@ class Figure(BaseFigure):
             Sets the anchor for the x position
         xref
             Sets the images's x coordinate axis. If set to a x axis
-            id (e.g. "x" or "x2"), the `x` position refers to an x
-            data coordinate If set to "paper", the `x` position
-            refers to the distance from the left of plot in
+            id (e.g. "x" or "x2"), the `x` position refers to a x
+            coordinate. If set to "paper", the `x` position refers
+            to the distance from the left of the plotting area in
             normalized coordinates where 0 (1) corresponds to the
-            left (right).
+            left (right). If set to a x axis ID followed by
+            "domain" (separated by a space), the position behaves
+            like for "paper", but refers to the distance in
+            fractions of the domain length from the left of the
+            domain of that axis: e.g., *x2 domain* refers to the
+            domain of the second x  axis and a x position of 0.5
+            refers to the point between the left and the right of
+            the domain of the second x axis.
         y
             Sets the image's y position. When `yref` is set to
             `paper`, units are sized relative to the plot height.
@@ -18537,21 +19271,35 @@ class Figure(BaseFigure):
         yref
             Sets the images's y coordinate axis. If set to a y axis
             id (e.g. "y" or "y2"), the `y` position refers to a y
-            data coordinate. If set to "paper", the `y` position
-            refers to the distance from the bottom of the plot in
+            coordinate. If set to "paper", the `y` position refers
+            to the distance from the bottom of the plotting area in
             normalized coordinates where 0 (1) corresponds to the
-            bottom (top).
+            bottom (top). If set to a y axis ID followed by
+            "domain" (separated by a space), the position behaves
+            like for "paper", but refers to the distance in
+            fractions of the domain length from the bottom of the
+            domain of that axis: e.g., *y2 domain* refers to the
+            domain of the second y  axis and a y position of 0.5
+            refers to the point between the bottom and the top of
+            the domain of the second y axis.
         row
-            Subplot row for image
+            Subplot row for image. If 'all', addresses all rows in
+            the specified column(s).
         col
-            Subplot column for image
+            Subplot column for image. If 'all', addresses all
+            columns in the specified row(s).
         secondary_y
             Whether to add image to secondary y-axis
+        exclude_empty_subplots
+            If True, image will not be added to subplots without
+            traces.
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import layout as _layout
+
         new_obj = _layout.Image(
             arg,
             layer=layer,
@@ -18572,7 +19320,13 @@ class Figure(BaseFigure):
             **kwargs
         )
         return self._add_annotation_like(
-            "image", "images", new_obj, row=row, col=col, secondary_y=secondary_y,
+            "image",
+            "images",
+            new_obj,
+            row=row,
+            col=col,
+            secondary_y=secondary_y,
+            exclude_empty_subplots=exclude_empty_subplots,
         )
 
     def select_shapes(self, selector=None, row=None, col=None, secondary_y=None):
@@ -18582,12 +19336,17 @@ class Figure(BaseFigure):
 
         Parameters
         ----------
-        selector: dict or None (default None)
+        selector: dict, function, int, str, or None (default None)
             Dict to use as selection criteria.
             Annotations will be selected if they contain properties corresponding
             to all of the dictionary's keys, with values that exactly match
             the supplied values. If None (the default), all shapes are
-            selected.
+            selected. If a function, it must be a function accepting a single
+            argument and returning a boolean. The function will be called on
+            each shape and those for which the function returned True
+            will be in the selection. If an int N, the Nth shape matching row
+            and col will be selected (N can be negative). If a string S, the selector
+            is equivalent to dict(type=S).
         row, col: int or None (default None)
             Subplot row and column index of shapes to select.
             To select shapes by row and column, the Figure must have been
@@ -18625,12 +19384,17 @@ class Figure(BaseFigure):
         ----------
         fn:
             Function that inputs a single shape object.
-        selector: dict or None (default None)
+        selector: dict, function, int, str or None (default None)
             Dict to use as selection criteria.
             Traces will be selected if they contain properties corresponding
             to all of the dictionary's keys, with values that exactly match
             the supplied values. If None (the default), all shapes are
-            selected.
+            selected. If a function, it must be a function accepting a single
+            argument and returning a boolean. The function will be called on
+            each shape and those for which the function returned True
+            will be in the selection. If an int N, the Nth shape matching row
+            and col will be selected (N can be negative). If a string S, the selector
+            is equivalent to dict(type=S).
         row, col: int or None (default None)
             Subplot row and column index of shapes to select.
             To select shapes by row and column, the Figure must have been
@@ -18673,12 +19437,17 @@ class Figure(BaseFigure):
         patch: dict or None (default None)
             Dictionary of property updates to be applied to all shapes that
             satisfy the selection criteria.
-        selector: dict or None (default None)
+        selector: dict, function, int, str or None (default None)
             Dict to use as selection criteria.
             Traces will be selected if they contain properties corresponding
             to all of the dictionary's keys, with values that exactly match
             the supplied values. If None (the default), all shapes are
-            selected.
+            selected. If a function, it must be a function accepting a single
+            argument and returning a boolean. The function will be called on
+            each shape and those for which the function returned True
+            will be in the selection. If an int N, the Nth shape matching row
+            and col will be selected (N can be negative). If a string S, the selector
+            is equivalent to dict(type=S).
         row, col: int or None (default None)
             Subplot row and column index of shapes to select.
             To select shapes by row and column, the Figure must have been
@@ -18717,7 +19486,9 @@ class Figure(BaseFigure):
     def add_shape(
         self,
         arg=None,
+        editable=None,
         fillcolor=None,
+        fillrule=None,
         layer=None,
         line=None,
         name=None,
@@ -18739,6 +19510,7 @@ class Figure(BaseFigure):
         row=None,
         col=None,
         secondary_y=None,
+        exclude_empty_subplots=None,
         **kwargs
     ):
         """
@@ -18748,8 +19520,19 @@ class Figure(BaseFigure):
         ----------
         arg
             instance of Shape or dict with compatible properties
+        editable
+            Determines whether the shape could be activated for
+            edit or not. Has no effect when the older editable
+            shapes mode is enabled via `config.editable` or
+            `config.edits.shapePosition`.
         fillcolor
-            Sets the color filling the shape's interior.
+            Sets the color filling the shape's interior. Only
+            applies to closed shapes.
+        fillrule
+            Determines which regions of complex paths constitute
+            the interior. For more info please visit
+            https://developer.mozilla.org/en-
+            US/docs/Web/SVG/Attribute/fill-rule
         layer
             Specifies whether shapes are drawn below or above
             traces.
@@ -18828,15 +19611,22 @@ class Figure(BaseFigure):
             to a certain data value. No effect when `xsizemode` not
             set to "pixel".
         xref
-            Sets the shape's x coordinate axis. If set to an x axis
-            id (e.g. "x" or "x2"), the `x` position refers to an x
+            Sets the shape's x coordinate axis. If set to a x axis
+            id (e.g. "x" or "x2"), the `x` position refers to a x
             coordinate. If set to "paper", the `x` position refers
-            to the distance from the left side of the plotting area
-            in normalized coordinates where 0 (1) corresponds to
-            the left (right) side. If the axis `type` is "log",
-            then you must take the log of your desired range. If
-            the axis `type` is "date", then you must convert the
-            date to unix time in milliseconds.
+            to the distance from the left of the plotting area in
+            normalized coordinates where 0 (1) corresponds to the
+            left (right). If set to a x axis ID followed by
+            "domain" (separated by a space), the position behaves
+            like for "paper", but refers to the distance in
+            fractions of the domain length from the left of the
+            domain of that axis: e.g., *x2 domain* refers to the
+            domain of the second x  axis and a x position of 0.5
+            refers to the point between the left and the right of
+            the domain of the second x axis. If the axis `type` is
+            "log", then you must take the log of your desired
+            range. If the axis `type` is "date", then you must
+            convert the date to unix time in milliseconds.
         xsizemode
             Sets the shapes's sizing mode along the x axis. If set
             to "scaled", `x0`, `x1` and x coordinates within `path`
@@ -18861,12 +19651,19 @@ class Figure(BaseFigure):
             to a certain data value. No effect when `ysizemode` not
             set to "pixel".
         yref
-            Sets the annotation's y coordinate axis. If set to an y
+            Sets the annotation's y coordinate axis. If set to a y
             axis id (e.g. "y" or "y2"), the `y` position refers to
-            an y coordinate If set to "paper", the `y` position
+            a y coordinate. If set to "paper", the `y` position
             refers to the distance from the bottom of the plotting
             area in normalized coordinates where 0 (1) corresponds
-            to the bottom (top).
+            to the bottom (top). If set to a y axis ID followed by
+            "domain" (separated by a space), the position behaves
+            like for "paper", but refers to the distance in
+            fractions of the domain length from the bottom of the
+            domain of that axis: e.g., *y2 domain* refers to the
+            domain of the second y  axis and a y position of 0.5
+            refers to the point between the bottom and the top of
+            the domain of the second y axis.
         ysizemode
             Sets the shapes's sizing mode along the y axis. If set
             to "scaled", `y0`, `y1` and y coordinates within `path`
@@ -18879,19 +19676,28 @@ class Figure(BaseFigure):
             maintaining a position relative to data or plot
             fraction.
         row
-            Subplot row for shape
+            Subplot row for shape. If 'all', addresses all rows in
+            the specified column(s).
         col
-            Subplot column for shape
+            Subplot column for shape. If 'all', addresses all
+            columns in the specified row(s).
         secondary_y
             Whether to add shape to secondary y-axis
+        exclude_empty_subplots
+            If True, shape will not be added to subplots without
+            traces.
 
         Returns
         -------
         Figure
         """
+        from plotly.graph_objs import layout as _layout
+
         new_obj = _layout.Shape(
             arg,
+            editable=editable,
             fillcolor=fillcolor,
+            fillrule=fillrule,
             layer=layer,
             line=line,
             name=name,
@@ -18913,5 +19719,11 @@ class Figure(BaseFigure):
             **kwargs
         )
         return self._add_annotation_like(
-            "shape", "shapes", new_obj, row=row, col=col, secondary_y=secondary_y,
+            "shape",
+            "shapes",
+            new_obj,
+            row=row,
+            col=col,
+            secondary_y=secondary_y,
+            exclude_empty_subplots=exclude_empty_subplots,
         )

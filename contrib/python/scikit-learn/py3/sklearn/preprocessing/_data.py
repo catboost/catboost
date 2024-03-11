@@ -22,7 +22,8 @@ from ..base import (
     TransformerMixin,
     _fit_context,
 )
-from ..utils import check_array
+from ..utils import _array_api, check_array
+from ..utils._array_api import get_namespace
 from ..utils._param_validation import Interval, Options, StrOptions, validate_params
 from ..utils.extmath import _incremental_mean_and_var, row_norms
 from ..utils.sparsefuncs import (
@@ -103,16 +104,18 @@ def _handle_zeros_in_scale(scale, copy=True, constant_mask=None):
         if scale == 0.0:
             scale = 1.0
         return scale
-    elif isinstance(scale, np.ndarray):
+    # scale is an array
+    else:
+        xp, _ = get_namespace(scale)
         if constant_mask is None:
             # Detect near constant values to avoid dividing by a very small
             # value that could lead to surprising results and numerical
             # stability issues.
-            constant_mask = scale < 10 * np.finfo(scale.dtype).eps
+            constant_mask = scale < 10 * xp.finfo(scale.dtype).eps
 
         if copy:
             # New array to avoid side-effects
-            scale = scale.copy()
+            scale = xp.asarray(scale, copy=True)
         scale[constant_mask] = 1.0
         return scale
 
@@ -152,9 +155,10 @@ def scale(X, *, axis=0, with_mean=True, with_std=True, copy=True):
         unit standard deviation).
 
     copy : bool, default=True
-        Set to False to perform inplace row normalization and avoid a
-        copy (if the input is already a numpy array or a scipy.sparse
-        CSC matrix and if axis is 1).
+        If False, try to avoid a copy and scale in place.
+        This is not guaranteed to always work in place; e.g. if the data is
+        a numpy array with an int dtype, a copy will be returned even with
+        copy=False.
 
     Returns
     -------
@@ -201,7 +205,18 @@ def scale(X, *, axis=0, with_mean=True, with_std=True, copy=True):
         :class:`~sklearn.preprocessing.StandardScaler` within a
         :ref:`Pipeline <pipeline>` in order to prevent most risks of data
         leaking: `pipe = make_pipeline(StandardScaler(), LogisticRegression())`.
-    """  # noqa
+
+    Examples
+    --------
+    >>> from sklearn.preprocessing import scale
+    >>> X = [[-2, 1, 2], [-1, 0, 1]]
+    >>> scale(X, axis=0)  # scaling each column independently
+    array([[-1.,  1.,  1.],
+           [ 1., -1., -1.]])
+    >>> scale(X, axis=1)  # scaling each row independently
+    array([[-1.37...,  0.39...,  0.98...],
+           [-1.22...,  0.     ,  1.22...]])
+    """
     X = check_array(
         X,
         accept_sparse="csc",
@@ -290,8 +305,8 @@ class MinMaxScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
     This transformation is often used as an alternative to zero mean,
     unit variance scaling.
 
-    `MinMaxScaler` doesn't reduce the effect of outliers, but it linearily
-    scales them down into a fixed range, where the largest occuring data point
+    `MinMaxScaler` doesn't reduce the effect of outliers, but it linearly
+    scales them down into a fixed range, where the largest occurring data point
     corresponds to the maximum value and the smallest one corresponds to the
     minimum value. For an example visualization, refer to :ref:`Compare
     MinMaxScaler with other scalers <plot_all_scaling_minmax_scaler_section>`.
@@ -469,22 +484,24 @@ class MinMaxScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
                 "Consider using MaxAbsScaler instead."
             )
 
+        xp, _ = get_namespace(X)
+
         first_pass = not hasattr(self, "n_samples_seen_")
         X = self._validate_data(
             X,
             reset=first_pass,
-            dtype=FLOAT_DTYPES,
+            dtype=_array_api.supported_float_dtypes(xp),
             force_all_finite="allow-nan",
         )
 
-        data_min = np.nanmin(X, axis=0)
-        data_max = np.nanmax(X, axis=0)
+        data_min = _array_api._nanmin(X, axis=0)
+        data_max = _array_api._nanmax(X, axis=0)
 
         if first_pass:
             self.n_samples_seen_ = X.shape[0]
         else:
-            data_min = np.minimum(self.data_min_, data_min)
-            data_max = np.maximum(self.data_max_, data_max)
+            data_min = xp.minimum(self.data_min_, data_min)
+            data_max = xp.maximum(self.data_max_, data_max)
             self.n_samples_seen_ += X.shape[0]
 
         data_range = data_max - data_min
@@ -512,10 +529,12 @@ class MinMaxScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
         """
         check_is_fitted(self)
 
+        xp, _ = get_namespace(X)
+
         X = self._validate_data(
             X,
             copy=self.copy,
-            dtype=FLOAT_DTYPES,
+            dtype=_array_api.supported_float_dtypes(xp),
             force_all_finite="allow-nan",
             reset=False,
         )
@@ -523,7 +542,7 @@ class MinMaxScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
         X *= self.scale_
         X += self.min_
         if self.clip:
-            np.clip(X, self.feature_range[0], self.feature_range[1], out=X)
+            xp.clip(X, self.feature_range[0], self.feature_range[1], out=X)
         return X
 
     def inverse_transform(self, X):
@@ -541,8 +560,13 @@ class MinMaxScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
         """
         check_is_fitted(self)
 
+        xp, _ = get_namespace(X)
+
         X = check_array(
-            X, copy=self.copy, dtype=FLOAT_DTYPES, force_all_finite="allow-nan"
+            X,
+            copy=self.copy,
+            dtype=_array_api.supported_float_dtypes(xp),
+            force_all_finite="allow-nan",
         )
 
         X -= self.min_
@@ -601,8 +625,10 @@ def minmax_scale(X, feature_range=(0, 1), *, axis=0, copy=True):
         otherwise (if 1) scale each sample.
 
     copy : bool, default=True
-        Set to False to perform inplace scaling and avoid a copy (if the input
-        is already a numpy array).
+        If False, try to avoid a copy and scale in place.
+        This is not guaranteed to always work in place; e.g. if the data is
+        a numpy array with an int dtype, a copy will be returned even with
+        copy=False.
 
     Returns
     -------
@@ -631,6 +657,17 @@ def minmax_scale(X, feature_range=(0, 1), *, axis=0, copy=True):
     -----
     For a comparison of the different scalers, transformers, and normalizers,
     see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
+
+    Examples
+    --------
+    >>> from sklearn.preprocessing import minmax_scale
+    >>> X = [[-2, 1, 2], [-1, 0, 1]]
+    >>> minmax_scale(X, axis=0)  # scale each column independently
+    array([[0., 1., 1.],
+           [1., 0., 0.]])
+    >>> minmax_scale(X, axis=1)  # scale each row independently
+    array([[0.  , 0.75, 1.  ],
+           [0.  , 0.5 , 1.  ]])
     """
     # Unlike the scaler object, this function allows 1d input.
     # If copy is required, it will be done inside the scaler object.
@@ -1082,7 +1119,7 @@ class MaxAbsScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
 
     This scaler can also be applied to sparse CSR or CSC matrices.
 
-    `MaxAbsScaler` doesn't reduce the effect of outliers; it only linearily
+    `MaxAbsScaler` doesn't reduce the effect of outliers; it only linearly
     scales them down. For an example visualization, refer to :ref:`Compare
     MaxAbsScaler with other scalers <plot_all_scaling_max_abs_scaler_section>`.
 
@@ -1204,12 +1241,14 @@ class MaxAbsScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
         self : object
             Fitted scaler.
         """
+        xp, _ = get_namespace(X)
+
         first_pass = not hasattr(self, "n_samples_seen_")
         X = self._validate_data(
             X,
             reset=first_pass,
             accept_sparse=("csr", "csc"),
-            dtype=FLOAT_DTYPES,
+            dtype=_array_api.supported_float_dtypes(xp),
             force_all_finite="allow-nan",
         )
 
@@ -1217,12 +1256,12 @@ class MaxAbsScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
             mins, maxs = min_max_axis(X, axis=0, ignore_nan=True)
             max_abs = np.maximum(np.abs(mins), np.abs(maxs))
         else:
-            max_abs = np.nanmax(np.abs(X), axis=0)
+            max_abs = _array_api._nanmax(xp.abs(X), axis=0)
 
         if first_pass:
             self.n_samples_seen_ = X.shape[0]
         else:
-            max_abs = np.maximum(self.max_abs_, max_abs)
+            max_abs = xp.maximum(self.max_abs_, max_abs)
             self.n_samples_seen_ += X.shape[0]
 
         self.max_abs_ = max_abs
@@ -1243,12 +1282,15 @@ class MaxAbsScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
             Transformed array.
         """
         check_is_fitted(self)
+
+        xp, _ = get_namespace(X)
+
         X = self._validate_data(
             X,
             accept_sparse=("csr", "csc"),
             copy=self.copy,
             reset=False,
-            dtype=FLOAT_DTYPES,
+            dtype=_array_api.supported_float_dtypes(xp),
             force_all_finite="allow-nan",
         )
 
@@ -1272,11 +1314,14 @@ class MaxAbsScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
             Transformed array.
         """
         check_is_fitted(self)
+
+        xp, _ = get_namespace(X)
+
         X = check_array(
             X,
             accept_sparse=("csr", "csc"),
             copy=self.copy,
-            dtype=FLOAT_DTYPES,
+            dtype=_array_api.supported_float_dtypes(xp),
             force_all_finite="allow-nan",
         )
 
@@ -1316,8 +1361,10 @@ def maxabs_scale(X, *, axis=0, copy=True):
         otherwise (if 1) scale each sample.
 
     copy : bool, default=True
-        Set to False to perform inplace scaling and avoid a copy (if the input
-        is already a numpy array).
+        If False, try to avoid a copy and scale in place.
+        This is not guaranteed to always work in place; e.g. if the data is
+        a numpy array with an int dtype, a copy will be returned even with
+        copy=False.
 
     Returns
     -------
@@ -1349,6 +1396,17 @@ def maxabs_scale(X, *, axis=0, copy=True):
 
     For a comparison of the different scalers, transformers, and normalizers,
     see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
+
+    Examples
+    --------
+    >>> from sklearn.preprocessing import maxabs_scale
+    >>> X = [[-2, 1, 2], [-1, 0, 1]]
+    >>> maxabs_scale(X, axis=0)  # scale each column independently
+    array([[-1. ,  1. ,  1. ],
+           [-0.5,  0. ,  0.5]])
+    >>> maxabs_scale(X, axis=1)  # scale each row independently
+    array([[-1. ,  0.5,  1. ],
+           [-1. ,  0. ,  1. ]])
     """
     # Unlike the scaler object, this function allows 1d input.
 
@@ -1693,9 +1751,10 @@ def robust_scale(
         .. versionadded:: 0.18
 
     copy : bool, default=True
-        Set to `False` to perform inplace row normalization and avoid a
-        copy (if the input is already a numpy array or a scipy.sparse
-        CSR matrix and if axis is 1).
+        If False, try to avoid a copy and scale in place.
+        This is not guaranteed to always work in place; e.g. if the data is
+        a numpy array with an int dtype, a copy will be returned even with
+        copy=False.
 
     unit_variance : bool, default=False
         If `True`, scale data so that normally distributed features have a
@@ -1743,6 +1802,17 @@ def robust_scale(
         :class:`~sklearn.preprocessing.RobustScaler` within a
         :ref:`Pipeline <pipeline>` in order to prevent most risks of data
         leaking: `pipe = make_pipeline(RobustScaler(), LogisticRegression())`.
+
+    Examples
+    --------
+    >>> from sklearn.preprocessing import robust_scale
+    >>> X = [[-2, 1, 2], [-1, 0, 1]]
+    >>> robust_scale(X, axis=0)  # scale each column independently
+    array([[-1.,  1.,  1.],
+           [ 1., -1., -1.]])
+    >>> robust_scale(X, axis=1)  # scale each row independently
+    array([[-1.5,  0. ,  0.5],
+           [-1. ,  0. ,  1. ]])
     """
     X = check_array(
         X,
@@ -1806,9 +1876,10 @@ def normalize(X, norm="l2", *, axis=1, copy=True, return_norm=False):
         normalize each sample, otherwise (if 0) normalize each feature.
 
     copy : bool, default=True
-        Set to False to perform inplace row normalization and avoid a
-        copy (if the input is already a numpy array or a scipy.sparse
-        CSR matrix and if axis is 1).
+        If False, try to avoid a copy and normalize in place.
+        This is not guaranteed to always work in place; e.g. if the data is
+        a numpy array with an int dtype, a copy will be returned even with
+        copy=False.
 
     return_norm : bool, default=False
         Whether to return the computed norms.
@@ -1832,18 +1903,31 @@ def normalize(X, norm="l2", *, axis=1, copy=True, return_norm=False):
     -----
     For a comparison of the different scalers, transformers, and normalizers,
     see: :ref:`sphx_glr_auto_examples_preprocessing_plot_all_scaling.py`.
+
+    Examples
+    --------
+    >>> from sklearn.preprocessing import normalize
+    >>> X = [[-2, 1, 2], [-1, 0, 1]]
+    >>> normalize(X, norm="l1")  # L1 normalization each row independently
+    array([[-0.4,  0.2,  0.4],
+           [-0.5,  0. ,  0.5]])
+    >>> normalize(X, norm="l2")  # L2 normalization each row independently
+    array([[-0.66...,  0.33...,  0.66...],
+           [-0.70...,  0.     ,  0.70...]])
     """
     if axis == 0:
         sparse_format = "csc"
     else:  # axis == 1:
         sparse_format = "csr"
 
+    xp, _ = get_namespace(X)
+
     X = check_array(
         X,
         accept_sparse=sparse_format,
         copy=copy,
         estimator="the normalize function",
-        dtype=FLOAT_DTYPES,
+        dtype=_array_api.supported_float_dtypes(xp),
     )
     if axis == 0:
         X = X.T
@@ -1867,13 +1951,13 @@ def normalize(X, norm="l2", *, axis=1, copy=True, return_norm=False):
             X.data[mask] /= norms_elementwise[mask]
     else:
         if norm == "l1":
-            norms = np.abs(X).sum(axis=1)
+            norms = xp.sum(xp.abs(X), axis=1)
         elif norm == "l2":
             norms = row_norms(X)
         elif norm == "max":
-            norms = np.max(abs(X), axis=1)
+            norms = xp.max(xp.abs(X), axis=1)
         norms = _handle_zeros_in_scale(norms, copy=False)
-        X /= norms[:, np.newaxis]
+        X /= norms[:, None]
 
     if axis == 0:
         X = X.T
@@ -2011,7 +2095,7 @@ class Normalizer(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
         return normalize(X, norm=self.norm, axis=1, copy=copy)
 
     def _more_tags(self):
-        return {"stateless": True}
+        return {"stateless": True, "array_api_support": True}
 
 
 @validate_params(
@@ -2039,9 +2123,10 @@ def binarize(X, *, threshold=0.0, copy=True):
         Threshold may not be less than 0 for operations on sparse matrices.
 
     copy : bool, default=True
-        Set to False to perform inplace binarization and avoid a copy
-        (if the input is already a numpy array or a scipy.sparse CSR / CSC
-        matrix and if axis is 1).
+        If False, try to avoid a copy and binarize in place.
+        This is not guaranteed to always work in place; e.g. if the data is
+        a numpy array with an object dtype, a copy will be returned even with
+        copy=False.
 
     Returns
     -------
@@ -2052,6 +2137,14 @@ def binarize(X, *, threshold=0.0, copy=True):
     --------
     Binarizer : Performs binarization using the Transformer API
         (e.g. as part of a preprocessing :class:`~sklearn.pipeline.Pipeline`).
+
+    Examples
+    --------
+    >>> from sklearn.preprocessing import binarize
+    >>> X = [[0.4, 0.6, 0.5], [0.6, 0.1, 0.2]]
+    >>> binarize(X, threshold=0.5)
+    array([[0., 1., 0.],
+           [1., 0., 0.]])
     """
     X = check_array(X, accept_sparse=["csr", "csc"], copy=copy)
     if sparse.issparse(X):
@@ -2299,7 +2392,9 @@ class KernelCenterer(ClassNamePrefixFeaturesOutMixin, TransformerMixin, BaseEsti
         self : object
             Returns the instance itself.
         """
-        K = self._validate_data(K, dtype=FLOAT_DTYPES)
+        xp, _ = get_namespace(K)
+
+        K = self._validate_data(K, dtype=_array_api.supported_float_dtypes(xp))
 
         if K.shape[0] != K.shape[1]:
             raise ValueError(
@@ -2308,8 +2403,8 @@ class KernelCenterer(ClassNamePrefixFeaturesOutMixin, TransformerMixin, BaseEsti
             )
 
         n_samples = K.shape[0]
-        self.K_fit_rows_ = np.sum(K, axis=0) / n_samples
-        self.K_fit_all_ = self.K_fit_rows_.sum() / n_samples
+        self.K_fit_rows_ = xp.sum(K, axis=0) / n_samples
+        self.K_fit_all_ = xp.sum(self.K_fit_rows_) / n_samples
         return self
 
     def transform(self, K, copy=True):
@@ -2330,9 +2425,13 @@ class KernelCenterer(ClassNamePrefixFeaturesOutMixin, TransformerMixin, BaseEsti
         """
         check_is_fitted(self)
 
-        K = self._validate_data(K, copy=copy, dtype=FLOAT_DTYPES, reset=False)
+        xp, _ = get_namespace(K)
 
-        K_pred_cols = (np.sum(K, axis=1) / self.K_fit_rows_.shape[0])[:, np.newaxis]
+        K = self._validate_data(
+            K, copy=copy, dtype=_array_api.supported_float_dtypes(xp), reset=False
+        )
+
+        K_pred_cols = (xp.sum(K, axis=1) / self.K_fit_rows_.shape[0])[:, None]
 
         K -= self.K_fit_rows_
         K -= K_pred_cols
@@ -2350,7 +2449,7 @@ class KernelCenterer(ClassNamePrefixFeaturesOutMixin, TransformerMixin, BaseEsti
         return self.n_features_in_
 
     def _more_tags(self):
-        return {"pairwise": True}
+        return {"pairwise": True, "array_api_support": True}
 
 
 @validate_params(
@@ -2919,9 +3018,10 @@ def quantile_transform(
         See :term:`Glossary <random_state>`.
 
     copy : bool, default=True
-        Set to False to perform inplace transformation and avoid a copy (if the
-        input is already a numpy array). If True, a copy of `X` is transformed,
-        leaving the original `X` unchanged.
+        If False, try to avoid a copy and transform in place.
+        This is not guaranteed to always work in place; e.g. if the data is
+        a numpy array with an int dtype, a copy will be returned even with
+        copy=False.
 
         .. versionchanged:: 0.23
             The default value of `copy` changed from False to True in 0.23.
@@ -3455,7 +3555,10 @@ def power_transform(X, method="yeo-johnson", *, standardize=True, copy=True):
         transformed output.
 
     copy : bool, default=True
-        Set to False to perform inplace computation during transformation.
+        If False, try to avoid a copy and transform in place.
+        This is not guaranteed to always work in place; e.g. if the data is
+        a numpy array with an int dtype, a copy will be returned even with
+        copy=False.
 
     Returns
     -------

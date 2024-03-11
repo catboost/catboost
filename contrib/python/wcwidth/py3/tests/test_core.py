@@ -10,23 +10,12 @@ except ImportError:
 # local
 import wcwidth
 
-# 3rd party
-import pytest
-
-# some tests cannot be done on some builds of python, where the internal
-# unicode structure is limited to 0x10000 for memory conservation,
-# "ValueError: unichr() arg not in range(0x10000) (narrow Python build)"
 try:
     # python 2
     _ = unichr
 except NameError:
     # python 3
     unichr = chr
-try:
-    unichr(0x2fffe)
-    NARROW_ONLY = False
-except ValueError:
-    NARROW_ONLY = True
 
 
 def test_package_version():
@@ -233,108 +222,47 @@ def test_balinese_script():
     assert length_phrase == expect_length_phrase
 
 
+def test_kr_jamo():
+    """
+    Test basic combining of HANGUL CHOSEONG and JUNGSEONG
+
+    Example and from Raymond Chen's blog post,
+    https://devblogs.microsoft.com/oldnewthing/20201009-00/?p=104351
+    """
+    # This is an example where both characters are "wide" when displayed alone.
+    #
+    # But JUNGSEONG (vowel) is designed for combination with a CHOSEONG (consonant).
+    #
+    # This wcwidth library understands their width only when combination,
+    # and not by independent display, like other zero-width characters that may
+    # only combine with an appropriate preceding character.
+    phrase = (
+        u"\u1100"  # ᄀ HANGUL CHOSEONG KIYEOK (consonant)
+        u"\u1161"  # ᅡ HANGUL JUNGSEONG A (vowel)
+    )
+    expect_length_each = (2, 0)
+    expect_length_phrase = 2
+
+    # exercise,
+    length_each = tuple(map(wcwidth.wcwidth, phrase))
+    length_phrase = wcwidth.wcswidth(phrase)
+
+    # verify.
+    assert length_each == expect_length_each
+    assert length_phrase == expect_length_phrase
+
+
 def test_kr_jamo_filler():
     u"""
     Jamo filler is 0 width.
 
-    According to https://www.unicode.org/L2/L2006/06310-hangul-decompose9.pdf this character and others
-    like it, ``\uffa0``, ``\u1160``, ``\u115f``, ``\u1160``, are not commonly viewed with a terminal,
-    seems it doesn't matter whether it is implemented or not, they are not typically used !
+    Example from https://www.unicode.org/L2/L2006/06310-hangul-decompose9.pdf
     """
-    phrase = u"\u1100\u1160"
-    expect_length_each = (2, 1)
-    expect_length_phrase = 3
-
-    # exercise,
-    length_each = tuple(map(wcwidth.wcwidth, phrase))
-    length_phrase = wcwidth.wcswidth(phrase)
-
-    # verify.
-    assert length_each == expect_length_each
-    assert length_phrase == expect_length_phrase
-
-
-@pytest.mark.skipif(NARROW_ONLY, reason="Test cannot verify on python 'narrow' builds")
-def emoji_zwj_sequence():
-    u"""
-    Emoji zwj sequence of four codepoints is just 2 cells.
-    """
-    phrase = (u"\U0001f469"   # Base, Category So, East Asian Width property 'W' -- WOMAN
-              u"\U0001f3fb"   # Modifier, Category Sk, East Asian Width property 'W' -- EMOJI MODIFIER FITZPATRICK TYPE-1-2
-              u"\u200d"       # Joiner, Category Cf, East Asian Width property 'N'  -- ZERO WIDTH JOINER
-              u"\U0001f4bb")  # Fused, Category So, East Asian Width peroperty 'W' -- PERSONAL COMPUTER
-    # This test adapted from https://www.unicode.org/L2/L2023/23107-terminal-suppt.pdf
-    expect_length_each = (2, 0, 0, 2)
-    expect_length_phrase = 2
-
-    # exercise,
-    length_each = tuple(map(wcwidth.wcwidth, phrase))
-    length_phrase = wcwidth.wcswidth(phrase)
-
-    # verify.
-    assert length_each == expect_length_each
-    assert length_phrase == expect_length_phrase
-
-
-@pytest.mark.skipif(NARROW_ONLY, reason="Test cannot verify on python 'narrow' builds")
-def test_unfinished_zwj_sequence():
-    u"""
-    Ensure index-out-of-bounds does not occur for zero-width joiner without any following character
-    """
-    phrase = (u"\U0001f469"   # Base, Category So, East Asian Width property 'W' -- WOMAN
-              u"\U0001f3fb"   # Modifier, Category Sk, East Asian Width property 'W' -- EMOJI MODIFIER FITZPATRICK TYPE-1-2
-              u"\u200d")      # Joiner, Category Cf, East Asian Width property 'N'  -- ZERO WIDTH JOINER
-    expect_length_each = (2, 0, 0)
-    expect_length_phrase = 2
-
-    # exercise,
-    length_each = tuple(map(wcwidth.wcwidth, phrase))
-    length_phrase = wcwidth.wcswidth(phrase)
-
-    # verify.
-    assert length_each == expect_length_each
-    assert length_phrase == expect_length_phrase
-
-
-@pytest.mark.skipif(NARROW_ONLY, reason="Test cannot verify on python 'narrow' builds")
-def test_non_recommended_zwj_sequence():
-    """
-    Verify ZWJ is measured as though successful with characters that cannot be joined, wcwidth does not verify
-    """
-    phrase = (u"\U0001f469"   # Base, Category So, East Asian Width property 'W' -- WOMAN
-              u"\U0001f3fb"   # Modifier, Category Sk, East Asian Width property 'W' -- EMOJI MODIFIER FITZPATRICK TYPE-1-2
-              u"\u200d")      # Joiner, Category Cf, East Asian Width property 'N'  -- ZERO WIDTH JOINER
-    expect_length_each = (2, 0, 0)
-    expect_length_phrase = 2
-
-    # exercise,
-    length_each = tuple(map(wcwidth.wcwidth, phrase))
-    length_phrase = wcwidth.wcswidth(phrase)
-
-    # verify.
-    assert length_each == expect_length_each
-    assert length_phrase == expect_length_phrase
-
-
-@pytest.mark.skipif(NARROW_ONLY, reason="Test cannot verify on python 'narrow' builds")
-def test_longer_emoji_zwj_sequence():
-    """
-    A much longer emoji ZWJ sequence of 10 total codepoints is just 2 cells!
-    """
-    # 'Category Code', 'East Asian Width property' -- 'description'
-    phrase = (u"\U0001F9D1"   # 'So', 'W' -- ADULT
-              u"\U0001F3FB"   # 'Sk', 'W' -- EMOJI MODIFIER FITZPATRICK TYPE-1-2
-              u"\u200d"       # 'Cf', 'N' -- ZERO WIDTH JOINER
-              u"\u2764"       # 'So', 'N' -- HEAVY BLACK HEART
-              u"\uFE0F"       # 'Mn', 'A' -- VARIATION SELECTOR-16
-              u"\u200d"       # 'Cf', 'N' -- ZERO WIDTH JOINER
-              u"\U0001F48B"   # 'So', 'W' -- KISS MARK
-              u"\u200d"       # 'Cf', 'N' -- ZERO WIDTH JOINER
-              u"\U0001F9D1"   # 'So', 'W' -- ADULT
-              u"\U0001F3FD")  # 'Sk', 'W' -- EMOJI MODIFIER FITZPATRICK TYPE-4
-
-    # This test adapted from https://www.unicode.org/L2/L2023/23107-terminal-suppt.pdf
-    expect_length_each = (2, 0, 0, 1, 0, 0, 2, 0, 2, 0)
+    phrase = (
+        u"\u1100"  # HANGUL CHOSEONG KIYEOK (consonant)
+        u"\u1160"  # HANGUL JUNGSEONG FILLER (vowel)
+    )
+    expect_length_each = (2, 0)
     expect_length_phrase = 2
 
     # exercise,
@@ -458,3 +386,17 @@ def test_kannada_script_2():
     # verify.
     assert length_each == expect_length_each
     assert length_phrase == expect_length_phrase
+
+
+def test_zero_wide_conflict():
+    # Test characters considered both "wide" and "zero" width
+    # -  (0x03000, 0x0303e,),  # Ideographic Space       ..Ideographic Variation In
+    # +  (0x03000, 0x03029,),  # Ideographic Space       ..Hangzhou Numeral Nine
+    assert wcwidth.wcwidth(unichr(0x03029), unicode_version='4.1.0') == 2
+    assert wcwidth.wcwidth(unichr(0x0302a), unicode_version='4.1.0') == 0
+
+    # - (0x03099, 0x030ff,),  # Combining Katakana-hirag..Katakana Digraph Koto
+    # + (0x0309b, 0x030ff,),  # Katakana-hiragana Voiced..Katakana Digraph Koto
+    assert wcwidth.wcwidth(unichr(0x03099), unicode_version='4.1.0') == 0
+    assert wcwidth.wcwidth(unichr(0x0309a), unicode_version='4.1.0') == 0
+    assert wcwidth.wcwidth(unichr(0x0309b), unicode_version='4.1.0') == 2

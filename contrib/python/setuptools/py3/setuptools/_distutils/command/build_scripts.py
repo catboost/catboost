@@ -7,7 +7,7 @@ import re
 from stat import ST_MODE
 from distutils import sysconfig
 from ..core import Command
-from ..dep_util import newer
+from .._modified import newer
 from ..util import convert_path
 from distutils._log import log
 import tokenize

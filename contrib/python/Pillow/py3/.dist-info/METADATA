@@ -1,22 +1,20 @@
 Metadata-Version: 2.1
-Name: Pillow
-Version: 10.1.0
+Name: pillow
+Version: 10.2.0
 Summary: Python Imaging Library (Fork)
-Home-page: https://python-pillow.org
-Author: Jeffrey A. Clark (Alex)
-Author-email: aclark@aclark.net
+Author-email: "Jeffrey A. Clark (Alex)" <aclark@aclark.net>
 License: HPND
-Project-URL: Documentation, https://pillow.readthedocs.io
-Project-URL: Source, https://github.com/python-pillow/Pillow
-Project-URL: Funding, https://tidelift.com/subscription/pkg/pypi-pillow?utm_source=pypi-pillow&utm_medium=pypi
-Project-URL: Release notes, https://pillow.readthedocs.io/en/stable/releasenotes/index.html
 Project-URL: Changelog, https://github.com/python-pillow/Pillow/blob/main/CHANGES.rst
-Project-URL: Twitter, https://twitter.com/PythonPillow
+Project-URL: Documentation, https://pillow.readthedocs.io
+Project-URL: Funding, https://tidelift.com/subscription/pkg/pypi-pillow?utm_source=pypi-pillow&utm_medium=pypi
+Project-URL: Homepage, https://python-pillow.org
 Project-URL: Mastodon, https://fosstodon.org/@pillow
+Project-URL: Release notes, https://pillow.readthedocs.io/en/stable/releasenotes/index.html
+Project-URL: Source, https://github.com/python-pillow/Pillow
+Project-URL: Twitter, https://twitter.com/PythonPillow
 Keywords: Imaging
 Classifier: Development Status :: 6 - Mature
 Classifier: License :: OSI Approved :: Historical Permission Notice and Disclaimer (HPND)
-Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
@@ -41,6 +39,10 @@ Requires-Dist: sphinx-copybutton ; extra == 'docs'
 Requires-Dist: sphinx-inline-tabs ; extra == 'docs'
 Requires-Dist: sphinx-removed-in ; extra == 'docs'
 Requires-Dist: sphinxext-opengraph ; extra == 'docs'
+Provides-Extra: fpx
+Requires-Dist: olefile ; extra == 'fpx'
+Provides-Extra: mic
+Requires-Dist: olefile ; extra == 'mic'
 Provides-Extra: tests
 Requires-Dist: check-manifest ; extra == 'tests'
 Requires-Dist: coverage ; extra == 'tests'
@@ -52,6 +54,10 @@ Requires-Dist: pyroma ; extra == 'tests'
 Requires-Dist: pytest ; extra == 'tests'
 Requires-Dist: pytest-cov ; extra == 'tests'
 Requires-Dist: pytest-timeout ; extra == 'tests'
+Provides-Extra: typing
+Requires-Dist: typing-extensions ; (python_version < "3.10") and extra == 'typing'
+Provides-Extra: xmp
+Requires-Dist: defusedxml ; extra == 'xmp'
 
 <p align="center">
     <img width="248" height="250" src="https://raw.githubusercontent.com/python-pillow/pillow-logo/main/pillow-logo-248x250.png" alt="Pillow logo">

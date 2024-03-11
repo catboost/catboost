@@ -1,3 +1,2 @@
 omp
 pythran
-pythran/pythonic

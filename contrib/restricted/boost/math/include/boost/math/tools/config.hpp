@@ -146,34 +146,17 @@
 #  define BOOST_MATH_EXEC_COMPATIBLE
 #endif
 
-// Attributes from C++14 and newer
-#ifdef __has_cpp_attribute
-
-// C++17
-#if (__cplusplus >= 201703L || _MSVC_LANG >= 201703L)
-#  if __has_cpp_attribute(maybe_unused)
-#    define BOOST_MATH_MAYBE_UNUSED [[maybe_unused]]
-#  endif
-#endif
-
-#endif // Standalone config
-
-// If attributes are not defined make sure we don't have compiler errors
-#ifndef BOOST_MATH_MAYBE_UNUSED
-#  define BOOST_MATH_MAYBE_UNUSED 
-#endif
-
 // C++23
 #if __cplusplus > 202002L || _MSVC_LANG > 202002L
 #  if __GNUC__ >= 13
      // libstdc++3 only defines to/from_chars for std::float128_t when one of these defines are set
      // otherwise we're right out of luck...
 #    if defined(_GLIBCXX_LDOUBLE_IS_IEEE_BINARY128) || defined(_GLIBCXX_HAVE_FLOAT128_MATH)
-#    include <cstring> // std::strlen is used with from_chars
-#    include <charconv>
-#    error #include <stdfloat>
-#    define BOOST_MATH_USE_CHARCONV_FOR_CONVERSION
-#endif
+#      include <cstring> // std::strlen is used with from_chars
+#      include <charconv>
+#      error #include <stdfloat>
+#      define BOOST_MATH_USE_CHARCONV_FOR_CONVERSION
+#    endif
 #  endif
 #endif
 

@@ -56,7 +56,7 @@ class IOLoopKernelManager(KernelManager):
         """Start the restarter."""
         if self.autorestart and self.has_kernel:
             if self._restarter is None:
-                self._restarter = self.restarter_class(  # type:ignore[operator]
+                self._restarter = self.restarter_class(
                     kernel_manager=self, loop=self.loop, parent=self, log=self.log
                 )
             self._restarter.start()
@@ -99,7 +99,7 @@ class AsyncIOLoopKernelManager(AsyncKernelManager):
         """Start the restarter."""
         if self.autorestart and self.has_kernel:
             if self._restarter is None:
-                self._restarter = self.restarter_class(  # type:ignore[operator]
+                self._restarter = self.restarter_class(
                     kernel_manager=self, loop=self.loop, parent=self, log=self.log
                 )
             self._restarter.start()

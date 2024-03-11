@@ -16,5 +16,5 @@ target_link_libraries(library-cpp-diff PUBLIC
   cpp-containers-stack_array
 )
 target_sources(library-cpp-diff PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/diff/diff.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/diff/diff.cpp
 )

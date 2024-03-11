@@ -3,7 +3,7 @@
 ## Requirements
 
 * Linux or macOS with a CPU architecture `x86_64` or `aarch64`/`arm64`. Windows support in progress.
-* Apache Spark 2.3 - 3.4
+* Apache Spark 2.3 - 3.5
 * Scala 2.11, 2.12 or 2.13 (corresponding to versions supported by the particular Spark version)
 
 ## Choose installation method

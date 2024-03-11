@@ -24,7 +24,7 @@ def replaceLine(l, varDict, define):
                 val = '0'
             sPos = l.find(cmakeDef01)
             ePos = l.find(var) + len(var)
-            l = l[:sPos] + define + ' ' + var + ' ' + val + l[ePos + 1:] + '\n'
+            l = l[:sPos] + define + ' ' + var + ' ' + val + l[ePos + 1 :] + '\n'
 
     finder = re.compile(".*?(@[a-zA-Z0-9_]+@).*")
     while True:
@@ -32,7 +32,7 @@ def replaceLine(l, varDict, define):
         if not re_result:
             return l
         key = re_result.group(1)[1:-1]
-        l = l[:re_result.start(1)] + varDict.get(key, '') + l[re_result.end(1):]
+        l = l[: re_result.start(1)] + varDict.get(key, '') + l[re_result.end(1) :]
 
 
 def main(inputPath, outputPath, varDict):

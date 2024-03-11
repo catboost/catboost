@@ -489,7 +489,7 @@ static void mi_stat_process_info(mi_msecs_t* elapsed, mi_msecs_t* utime, mi_msec
 #endif
 
 #if defined(__HAIKU__)
-#include <kernel/OS.h>
+#error #include <kernel/OS.h>
 #endif
 
 static mi_msecs_t timeval_secs(const struct timeval* tv) {

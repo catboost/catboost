@@ -35,14 +35,16 @@
 #pragma clang system_header
 
 
+#include <cub/config.cuh>
+#include <cub/thread/thread_load.cuh>
+#include <cub/thread/thread_store.cuh>
+#include <cub/util_debug.cuh>
+#include <cub/util_device.cuh>
+
+#include <nv/target>
+
 #include <iterator>
 #include <iostream>
-
-#include "../thread/thread_load.cuh"
-#include "../thread/thread_store.cuh"
-#include "../util_device.cuh"
-#include "../util_debug.cuh"
-#include "../config.cuh"
 
 #if (THRUST_VERSION >= 100700)
     // This iterator is compatible with Thrust API 1.7 and newer
@@ -202,37 +204,9 @@ public:
     /// Indirection
     __host__ __device__ __forceinline__ reference operator*() const
     {
-        if (CUB_IS_HOST_CODE) {
-            #if CUB_INCLUDE_HOST_CODE
-                // Simply dereference the pointer on the host
-                return ptr[tex_offset];
-            #else
-                // Never executed, just need a return value for this codepath.
-                // The `reference` type is actually just T, so we can fake this
-                // easily.
-                return reference{};
-            #endif
-        } else {
-            #if CUB_INCLUDE_DEVICE_CODE
-                // Move array of uninitialized words, then alias and assign to return value
-                TextureWord words[TEXTURE_MULTIPLE];
-
-                #pragma unroll
-                for (int i = 0; i < TEXTURE_MULTIPLE; ++i)
-                {
-                    words[i] = tex1Dfetch<TextureWord>(
-                        tex_obj,
-                        (tex_offset * TEXTURE_MULTIPLE) + i);
-                }
-
-                // Load from words
-                return *reinterpret_cast<T*>(words);
-            #else
-                // This is dead code which will never be executed.  It is here
-                // only to avoid warnings about missing return statements.
-                return ptr[tex_offset];
-            #endif
-        }
+        NV_IF_TARGET(NV_IS_HOST,
+                     (return ptr[tex_offset];),
+                     (return this->device_deref();));
     }
 
     /// Addition
@@ -314,6 +288,26 @@ public:
         return os;
     }
 
+private:
+    // This is hoisted out of operator* because #pragma can't be used inside of
+    // NV_IF_TARGET
+    __device__ __forceinline__ reference device_deref() const
+    {
+        // Move array of uninitialized words, then alias and assign to return
+        // value
+        TextureWord words[TEXTURE_MULTIPLE];
+
+        const auto tex_idx_base = tex_offset * TEXTURE_MULTIPLE;
+
+        #pragma unroll
+        for (int i = 0; i < TEXTURE_MULTIPLE; ++i)
+        {
+          words[i] = tex1Dfetch<TextureWord>(tex_obj, tex_idx_base + i);
+        }
+
+        // Load from words
+        return *reinterpret_cast<T *>(words);
+    }
 };
 
 

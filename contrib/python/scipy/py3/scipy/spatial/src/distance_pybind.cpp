@@ -233,7 +233,10 @@ ArrayDescriptor get_descriptor(const py::array& arr) {
         }
 
         if (desc.strides[i] % desc.element_size != 0) {
-            throw std::runtime_error("Arrays must be aligned");
+            std::stringstream msg;
+            msg << "Arrays must be aligned to element size, but found stride of ";
+            msg << desc.strides[i] << " bytes for elements of size " << desc.element_size;
+            throw std::runtime_error(msg.str());
         }
         desc.strides[i] /= desc.element_size;
     }

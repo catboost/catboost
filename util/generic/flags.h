@@ -217,16 +217,16 @@ private:
 };
 
 template <class T>
-struct TPodTraits<TFlags<T>> {
+struct TPodTraits<::TFlags<T>> {
     enum {
         IsPod = TTypeTraits<T>::IsPod
     };
 };
 
 template <class Enum>
-struct THash<TFlags<Enum>> {
+struct THash<::TFlags<Enum>> {
     size_t operator()(const TFlags<Enum>& flags) const noexcept {
-        return THash<typename TFlags<Enum>::TInt>()(flags);
+        return THash<typename ::TFlags<Enum>::TInt>()(flags);
     }
 };
 
@@ -237,7 +237,7 @@ struct THash<TFlags<Enum>> {
  * @param ENUM                          Name of the base enum type to use.
  */
 #define Y_DECLARE_FLAGS(FLAGS, ENUM) \
-    using FLAGS = TFlags<ENUM>
+    using FLAGS = ::TFlags<ENUM>
 
 /**
  * This macro declares global operator functions for enum base of `FLAGS` type.

@@ -509,16 +509,16 @@ std::vector<double> ApplyCatboostModelMulti(
 
     /* Extract and sum values from trees */
     std::vector<double> results(model.Dimension, 0.0);
-    const unsigned int* treeSplitsPtr = model.TreeSplits;
     const auto* leafValuesPtr = model.LeafValues;
-    size_t treePtr = 0;
+    size_t treeSplitsIdx = 0;
+
     for (unsigned int treeId = 0; treeId < model.TreeCount; ++treeId) {
         const unsigned int currentTreeDepth = model.TreeDepth[treeId];
         unsigned int index = 0;
         for (unsigned int depth = 0; depth < currentTreeDepth; ++depth) {
-            const unsigned char borderVal = model.TreeSplitIdxs[treePtr + depth];
-            const unsigned int featureIndex = model.TreeSplitFeatureIndex[treePtr + depth];
-            const unsigned char xorMask = model.TreeSplitXorMask[treePtr + depth];
+            const unsigned char borderVal = model.TreeSplitIdxs[treeSplitsIdx + depth];
+            const unsigned int featureIndex = model.TreeSplitFeatureIndex[treeSplitsIdx + depth];
+            const unsigned char xorMask = model.TreeSplitXorMask[treeSplitsIdx + depth];
             index |= ((binaryFeatures[featureIndex] ^ xorMask) >= borderVal) << depth;
         }
 
@@ -526,9 +526,8 @@ std::vector<double> ApplyCatboostModelMulti(
             results[resultIndex] += leafValuesPtr[index][resultIndex];
         }
 
-        treeSplitsPtr += currentTreeDepth;
         leafValuesPtr += 1 << currentTreeDepth;
-        treePtr += currentTreeDepth;
+        treeSplitsIdx += currentTreeDepth;
     }
 
     std::vector<double> finalResults(model.Dimension);

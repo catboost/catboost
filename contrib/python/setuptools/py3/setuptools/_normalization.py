@@ -2,19 +2,20 @@
 Helpers for normalization as expected in wheel/sdist/module file names
 and core metadata
 """
+
 import re
 from pathlib import Path
 from typing import Union
 
 from .extern import packaging
-from .warnings import SetuptoolsDeprecationWarning
 
 _Path = Union[str, Path]
 
 # https://packaging.python.org/en/latest/specifications/core-metadata/#name
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
-_UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9.]+", re.I)
+_UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9._-]+", re.I)
 _NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.I)
+_PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
 
 
 def safe_identifier(name: str) -> str:
@@ -35,6 +36,8 @@ def safe_name(component: str) -> str:
     'hello-world'
     >>> safe_name("hello?world")
     'hello-world'
+    >>> safe_name("hello_world")
+    'hello_world'
     """
     # See pkg_resources.safe_name
     return _UNSAFE_NAME_CHARS.sub("-", component)
@@ -42,6 +45,8 @@ def safe_name(component: str) -> str:
 
 def safe_version(version: str) -> str:
     """Convert an arbitrary string into a valid version string.
+    Can still raise an ``InvalidVersion`` exception.
+    To avoid exceptions use ``best_effort_version``.
     >>> safe_version("1988 12 25")
     '1988.12.25'
     >>> safe_version("v0.2.1")
@@ -65,32 +70,35 @@ def safe_version(version: str) -> str:
 
 def best_effort_version(version: str) -> str:
     """Convert an arbitrary string into a version-like string.
+    Fallback when ``safe_version`` is not safe enough.
     >>> best_effort_version("v0.2 beta")
     '0.2b0'
-
-    >>> import warnings
-    >>> warnings.simplefilter("ignore", category=SetuptoolsDeprecationWarning)
     >>> best_effort_version("ubuntu lts")
-    'ubuntu.lts'
+    '0.dev0+sanitized.ubuntu.lts'
+    >>> best_effort_version("0.23ubuntu1")
+    '0.23.dev0+sanitized.ubuntu1'
+    >>> best_effort_version("0.23-")
+    '0.23.dev0+sanitized'
+    >>> best_effort_version("0.-_")
+    '0.dev0+sanitized'
+    >>> best_effort_version("42.+?1")
+    '42.dev0+sanitized.1'
     """
-    # See pkg_resources.safe_version
+    # See pkg_resources._forgiving_version
     try:
         return safe_version(version)
     except packaging.version.InvalidVersion:
-        SetuptoolsDeprecationWarning.emit(
-            f"Invalid version: {version!r}.",
-            f"""
-            Version {version!r} is not valid according to PEP 440.
-
-            Please make sure to specify a valid version for your package.
-            Also note that future releases of setuptools may halt the build process
-            if an invalid version is given.
-            """,
-            see_url="https://peps.python.org/pep-0440/",
-            due_date=(2023, 9, 26),  # See setuptools/dist _validate_version
-        )
         v = version.replace(' ', '.')
-        return safe_name(v)
+        match = _PEP440_FALLBACK.search(v)
+        if match:
+            safe = match["safe"]
+            rest = v[len(safe) :]
+        else:
+            safe = "0"
+            rest = version
+        safe_rest = _NON_ALPHANUMERIC.sub(".", rest).strip(".")
+        local = f"sanitized.{safe_rest}".strip(".")
+        return safe_version(f"{safe}.dev0+{local}")
 
 
 def safe_extra(extra: str) -> str:
@@ -110,6 +118,21 @@ def filename_component(value: str) -> str:
     'my_pkg'
     """
     return value.replace("-", "_").strip("_")
+
+
+def filename_component_broken(value: str) -> str:
+    """
+    Produce the incorrect filename component for compatibility.
+
+    See pypa/setuptools#4167 for detailed analysis.
+
+    TODO: replace this with filename_component after pip 24 is
+    nearly-ubiquitous.
+
+    >>> filename_component_broken('foo_bar-baz')
+    'foo-bar-baz'
+    """
+    return value.replace('_', '-')
 
 
 def safer_name(value: str) -> str:

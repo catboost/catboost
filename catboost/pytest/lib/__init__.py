@@ -9,27 +9,38 @@ import zipfile
 
 from testpath.tempdir import TemporaryDirectory
 
+
+_use_cmake_paths = False
 try:
     import yatest.common
 except ImportError:
+    _use_cmake_paths = True
     sys.path += [
         os.environ['CMAKE_SOURCE_DIR'],
         os.path.join(os.environ['CMAKE_SOURCE_DIR'], 'library', 'python', 'testing', 'yatest_common')
     ]
     import yatest.common
 
-import yatest.common.network
-
-
-binary_path = yatest.common.binary_path
+import yatest.common.network  # noqa
 
 
 def get_catboost_binary_path():
-    return yatest.common.binary_path("catboost/app/catboost")
+    if _use_cmake_paths:
+        return os.path.join(
+            'CMAKE_BINARY_DIR',
+            'catboost',
+            'app',
+            'catboost' + ('.exe' if sys.platform == 'win32' else '')
+        )
+    else:
+        return yatest.common.binary_path("catboost/app/catboost")
 
 
 def data_file(*path):
-    return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path))
+    if _use_cmake_paths:
+        return os.path.join("CMAKE_SOURCE_DIR", "catboost", "pytest", "data", *path)
+    else:
+        return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path))
 
 
 @yatest.common.misc.lazy
@@ -130,7 +141,7 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
     yatest.common.execute(calc_cmd)
 
 
-def calc_loss_function_change(model_file, pool_path, pairs, cd_path, fstr_path, distributed_evaluation, args=None):
+def calc_loss_function_change(model_file, pool_path, pairs, cd_path, fstr_path, args=None):
     cmd = (
         get_catboost_binary_path(),
         'fstr',
@@ -161,7 +172,7 @@ def execute_catboost_dist(mode, cmd):
             hosts.write('localhost:' + str(port0) + '\n')
             hosts.write('localhost:' + str(port1) + '\n')
 
-        catboost_path = yatest.common.binary_path("catboost/app/catboost")
+        catboost_path = get_catboost_binary_path()
         worker0 = yatest.common.execute((catboost_path, 'run-worker', '--node-port', str(port0),), wait=False)
         worker1 = yatest.common.execute((catboost_path, 'run-worker', '--node-port', str(port1),), wait=False)
         while pm.is_port_free(port0) or pm.is_port_free(port1):

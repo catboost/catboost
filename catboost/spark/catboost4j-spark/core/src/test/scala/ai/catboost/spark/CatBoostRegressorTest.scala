@@ -606,7 +606,7 @@ class CatBoostRegressorTest {
 
     val trainPool = Pool.load(
       spark,
-      dataPathWithScheme = dataDir.resolve("train").toString,
+      dataPathWithScheme = dataDir.resolve("train.with_groups_sorted_by_group_id_hash").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
     val evalPool = Pool.load(
@@ -674,7 +674,7 @@ class CatBoostRegressorTest {
 
     val trainPool = Pool.load(
       spark,
-      dataPathWithScheme = dataDir.resolve("train").toString,
+      dataPathWithScheme = dataDir.resolve("train.with_groups_sorted_by_group_id_hash").toString,
       columnDescription = dataDir.resolve("train.cd")
     )
     val evalPool = Pool.load(
@@ -1360,6 +1360,9 @@ class CatBoostRegressorTest {
   @Test
   @throws(classOf[Exception])
   def testWithPairs() {
+    val topKinMAP = 3
+    val evalMetric = s"MAP:top=$topKinMAP"
+
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
 
     val dataDir = Paths.get(System.getProperty("catboost.test.data.path"), "querywise")
@@ -1372,47 +1375,32 @@ class CatBoostRegressorTest {
       pairsDataPathWithScheme = "dsv-grouped://" + dataDir.resolve("train.grouped_pairs").toString
     )
 
-    val expectedPredictionsFile = canonicalDataDir.resolve("regression_with_pairs.json")
+    val expectedMetricsFile = canonicalDataDir.resolve("regression_with_pairs.json")
 
-    val expectedPredictionsJson = parse(Source.fromFile(expectedPredictionsFile.toString).getLines.mkString)
-    val expectedPrediction = expectedPredictionsJson
-      .asInstanceOf[JObject].values("prediction")
-      .asInstanceOf[scala.collection.immutable.$colon$colon[Double]]
-      .toSeq
+    val expectedMetricsJson = parse(Source.fromFile(expectedMetricsFile.toString).getLines.mkString)
 
-    val expectedPredictionsData = mutable.Seq.concat(pool.data.toLocalIterator.asScala.toTraversable)
-    for (i <- 0 until expectedPredictionsData.length) {
-      expectedPredictionsData(i) = TestHelpers.appendToRow(
-        expectedPredictionsData(i),
-        expectedPrediction(i)
-      )
-    }
-    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
-      pool.data.schema.fields.map(f => (f.name, f.dataType)) :+ ("prediction", DoubleType),
-      pool.getFeatureNames,
-      /*addFeatureNamesMetadata*/ true,
-      /*nullableFields*/ pool.data.schema.fieldNames :+ ("prediction")
-    )
-    val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
-      StructType(expectedPredictionsSchema)
-    )
+    implicit val format = DefaultFormats
+    val expectedMAPtopK = (((expectedMetricsJson \ "metrics") \ "learn") \ evalMetric).extract[Double]
+
 
     val regressor = new CatBoostRegressor()
-      .setIterations(20)
+      .setIterations(25)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
       .setLossFunction("PairLogit")
+      .setEvalMetric(evalMetric)
       .setHasTime(true)
 
     val model = regressor.fit(pool)
-    val predictions = model.transform(pool.data)
 
-    TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions, Seq("groupId", "sampleId"))
+    TestMetrics.assertMeanAveragePrecisionIsEqual(expectedMAPtopK, pool, model, topKinMAP)
   }
 
   @Test
   @throws(classOf[Exception])
   def testWithPairsWithEvalSet() {
+    val topKinMAP = 2
+    val evalMetric = s"MAP:top=$topKinMAP"
+
     val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
 
     val dataDir = Paths.get(System.getProperty("catboost.test.data.path"), "querywise")
@@ -1431,42 +1419,28 @@ class CatBoostRegressorTest {
       pairsDataPathWithScheme = "dsv-grouped://" + dataDir.resolve("test.grouped_pairs").toString
     )
 
-    val expectedPredictionsFile = canonicalDataDir.resolve("regression_with_pairs_with_eval_set.json")
+    val expectedMetricsFile = canonicalDataDir.resolve("regression_with_pairs_with_eval_set.json")
 
-    val expectedPredictionsJson = parse(Source.fromFile(expectedPredictionsFile.toString).getLines.mkString)
-    val expectedPrediction = expectedPredictionsJson
-      .asInstanceOf[JObject].values("prediction")
-      .asInstanceOf[scala.collection.immutable.$colon$colon[Double]]
-      .toSeq
+    val expectedMetricsJson = parse(Source.fromFile(expectedMetricsFile.toString).getLines.mkString)
 
-    val expectedPredictionsData = mutable.Seq.concat(evalPool.data.toLocalIterator.asScala.toTraversable)
-    for (i <- 0 until expectedPredictionsData.length) {
-      expectedPredictionsData(i) = TestHelpers.appendToRow(
-        expectedPredictionsData(i),
-        expectedPrediction(i)
-      )
-    }
-    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
-      evalPool.data.schema.fields.map(f => (f.name, f.dataType)) :+ ("prediction", DoubleType),
-      evalPool.getFeatureNames,
-      /*addFeatureNamesMetadata*/ true,
-      /*nullableFields*/ evalPool.data.schema.fieldNames :+ ("prediction")
-    )
-    val expectedPredictions = spark.createDataFrame(
-      spark.sparkContext.parallelize(expectedPredictionsData.toSeq),
-      StructType(expectedPredictionsSchema)
-    )
+    implicit val format = DefaultFormats
+    val expectedMAPtopKOnLearn
+      = (((expectedMetricsJson \ "metrics") \ "learn") \ evalMetric).extract[Double]
+    val expectedMAPtopKOnEval
+      = (((expectedMetricsJson \ "metrics") \ "eval") \ evalMetric).extract[Double]
+
 
     val regressor = new CatBoostRegressor()
-      .setIterations(20)
+      .setIterations(25)
       .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
       .setLossFunction("PairLogit")
+      .setEvalMetric(evalMetric)
       .setHasTime(true)
 
     val model = regressor.fit(trainPool, Array[Pool](evalPool))
-    val predictions = model.transform(evalPool.data)
 
-    TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions, Seq("groupId", "sampleId"))
+    TestMetrics.assertMeanAveragePrecisionIsEqual(expectedMAPtopKOnLearn, trainPool, model, topKinMAP)
+    TestMetrics.assertMeanAveragePrecisionIsEqual(expectedMAPtopKOnEval, evalPool, model, topKinMAP)
   }
 
   @Test

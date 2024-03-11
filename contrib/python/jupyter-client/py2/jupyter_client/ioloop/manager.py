@@ -56,6 +56,7 @@ class IOLoopKernelManager(KernelManager):
                 self._restarter.stop()
 
     connect_shell = as_zmqstream(KernelManager.connect_shell)
+    connect_control = as_zmqstream(KernelManager.connect_control)
     connect_iopub = as_zmqstream(KernelManager.connect_iopub)
     connect_stdin = as_zmqstream(KernelManager.connect_stdin)
     connect_hb = as_zmqstream(KernelManager.connect_hb)

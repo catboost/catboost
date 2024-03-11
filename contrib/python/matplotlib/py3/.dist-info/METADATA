@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: matplotlib
-Version: 3.8.0
+Version: 3.8.2
 Summary: Python plotting package
 Home-page: https://matplotlib.org
 Download-URL: https://matplotlib.org/stable/users/installing/index.html
@@ -42,10 +42,10 @@ License-File: LICENSE/LICENSE_YORICK
 Requires-Dist: contourpy >=1.0.1
 Requires-Dist: cycler >=0.10
 Requires-Dist: fonttools >=4.22.0
-Requires-Dist: kiwisolver >=1.0.1
+Requires-Dist: kiwisolver >=1.3.1
 Requires-Dist: numpy <2,>=1.21
 Requires-Dist: packaging >=20.0
-Requires-Dist: pillow >=6.2.0
+Requires-Dist: pillow >=8
 Requires-Dist: pyparsing >=2.3.1
 Requires-Dist: python-dateutil >=2.7
 Requires-Dist: importlib-resources >=3.2.0 ; python_version<"3.10"

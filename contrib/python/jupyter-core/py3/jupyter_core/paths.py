@@ -6,7 +6,7 @@
 # Derived from IPython.utils.path, which is
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
-
+from __future__ import annotations
 
 import errno
 import os
@@ -17,7 +17,7 @@ import tempfile
 import warnings
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Iterator, Optional
 
 import platformdirs
 
@@ -63,14 +63,13 @@ def use_platform_dirs() -> bool:
 
 def get_home_dir() -> str:
     """Get the real path of the home directory"""
-    homedir = os.path.expanduser("~")
+    homedir = Path("~").expanduser()
     # Next line will make things work even when /home/ is a symlink to
     # /usr/home as it is on FreeBSD, for example
-    homedir = str(Path(homedir).resolve())
-    return homedir
+    return str(Path(homedir).resolve())
 
 
-_dtemps: Dict[str, str] = {}
+_dtemps: dict[str, str] = {}
 
 
 def _do_i_own(path: str) -> bool:
@@ -85,7 +84,7 @@ def _do_i_own(path: str) -> bool:
     # not always implemented or available
     try:
         return p.owner() == os.getlogin()
-    except Exception:  # noqa
+    except Exception:  # noqa: S110
         pass
 
     if hasattr(os, "geteuid"):
@@ -174,19 +173,17 @@ def jupyter_data_dir() -> str:
     home = get_home_dir()
 
     if sys.platform == "darwin":
-        return os.path.join(home, "Library", "Jupyter")
-    elif os.name == "nt":
+        return str(Path(home, "Library", "Jupyter"))
+    if sys.platform == "win32":
         appdata = os.environ.get("APPDATA", None)
         if appdata:
             return str(Path(appdata, "jupyter").resolve())
-        else:
-            return pjoin(jupyter_config_dir(), "data")
-    else:
-        # Linux, non-OS X Unix, AIX, etc.
-        xdg = env.get("XDG_DATA_HOME", None)
-        if not xdg:
-            xdg = pjoin(home, ".local", "share")
-        return pjoin(xdg, "jupyter")
+        return pjoin(jupyter_config_dir(), "data")
+    # Linux, non-OS X Unix, AIX, etc.
+    xdg = env.get("XDG_DATA_HOME", None)
+    if not xdg:
+        xdg = pjoin(home, ".local", "share")
+    return pjoin(xdg, "jupyter")
 
 
 def jupyter_runtime_dir() -> str:
@@ -222,17 +219,17 @@ else:
         if programdata:
             SYSTEM_JUPYTER_PATH = [pjoin(programdata, "jupyter")]
         else:  # PROGRAMDATA is not defined by default on XP.
-            SYSTEM_JUPYTER_PATH = [os.path.join(sys.prefix, "share", "jupyter")]
+            SYSTEM_JUPYTER_PATH = [str(Path(sys.prefix, "share", "jupyter"))]
     else:
         SYSTEM_JUPYTER_PATH = [
             "/usr/local/share/jupyter",
             "/usr/share/jupyter",
         ]
 
-ENV_JUPYTER_PATH: List[str] = [os.path.join(sys.prefix, "share", "jupyter")]
+ENV_JUPYTER_PATH: list[str] = [str(Path(sys.prefix, "share", "jupyter"))]
 
 
-def jupyter_path(*subdirs: str) -> List[str]:
+def jupyter_path(*subdirs: str) -> list[str]:
     """Return a list of directories to search for data files
 
     JUPYTER_PATH environment variable has highest priority.
@@ -254,7 +251,7 @@ def jupyter_path(*subdirs: str) -> List[str]:
     ['~/.local/jupyter/kernels', '/usr/local/share/jupyter/kernels']
     """
 
-    paths: List[str] = []
+    paths: list[str] = []
 
     # highest priority is explicit environment variable
     if os.environ.get("JUPYTER_PATH"):
@@ -269,7 +266,7 @@ def jupyter_path(*subdirs: str) -> List[str]:
         userbase = site.getuserbase() if hasattr(site, "getuserbase") else site.USER_BASE
 
         if userbase:
-            userdir = os.path.join(userbase, "share", "jupyter")
+            userdir = str(Path(userbase, "share", "jupyter"))
             if userdir not in user:
                 user.append(userdir)
 
@@ -295,11 +292,11 @@ if use_platform_dirs():
     SYSTEM_CONFIG_PATH = platformdirs.site_config_dir(
         APPNAME, appauthor=False, multipath=True
     ).split(os.pathsep)
-else:  # noqa: PLR5501
+else:
     if os.name == "nt":
         programdata = os.environ.get("PROGRAMDATA", None)
-        if programdata:  # noqa
-            SYSTEM_CONFIG_PATH = [os.path.join(programdata, "jupyter")]
+        if programdata:  # noqa: SIM108
+            SYSTEM_CONFIG_PATH = [str(Path(programdata, "jupyter"))]
         else:  # PROGRAMDATA is not defined by default on XP.
             SYSTEM_CONFIG_PATH = []
     else:
@@ -307,10 +304,10 @@ else:  # noqa: PLR5501
             "/usr/local/etc/jupyter",
             "/etc/jupyter",
         ]
-ENV_CONFIG_PATH: List[str] = [os.path.join(sys.prefix, "etc", "jupyter")]
+ENV_CONFIG_PATH: list[str] = [str(Path(sys.prefix, "etc", "jupyter"))]
 
 
-def jupyter_config_path() -> List[str]:
+def jupyter_config_path() -> list[str]:
     """Return the search path for Jupyter config files as a list.
 
     If the JUPYTER_PREFER_ENV_PATH environment variable is set, the
@@ -324,7 +321,7 @@ def jupyter_config_path() -> List[str]:
         # jupyter_config_dir makes a blank config when JUPYTER_NO_CONFIG is set.
         return [jupyter_config_dir()]
 
-    paths: List[str] = []
+    paths: list[str] = []
 
     # highest priority is explicit environment variable
     if os.environ.get("JUPYTER_CONFIG_PATH"):
@@ -339,7 +336,7 @@ def jupyter_config_path() -> List[str]:
         userbase = site.getuserbase() if hasattr(site, "getuserbase") else site.USER_BASE
 
         if userbase:
-            userdir = os.path.join(userbase, "etc", "jupyter")
+            userdir = str(Path(userbase, "etc", "jupyter"))
             if userdir not in user:
                 user.append(userdir)
 
@@ -384,12 +381,12 @@ def is_file_hidden_win(abs_path: str, stat_res: Optional[Any] = None) -> bool:
         The result of calling stat() on abs_path. If not passed, this function
         will call stat() internally.
     """
-    if os.path.basename(abs_path).startswith("."):
+    if Path(abs_path).name.startswith("."):
         return True
 
     if stat_res is None:
         try:
-            stat_res = os.stat(abs_path)
+            stat_res = Path(abs_path).stat()
         except OSError as e:
             if e.errno == errno.ENOENT:
                 return False
@@ -409,7 +406,6 @@ def is_file_hidden_win(abs_path: str, stat_res: Optional[Any] = None) -> bool:
             "hidden files are not detectable on this system, so no file will be marked as hidden.",
             stacklevel=2,
         )
-        pass
 
     return False
 
@@ -430,19 +426,19 @@ def is_file_hidden_posix(abs_path: str, stat_res: Optional[Any] = None) -> bool:
         The result of calling stat() on abs_path. If not passed, this function
         will call stat() internally.
     """
-    if os.path.basename(abs_path).startswith("."):
+    if Path(abs_path).name.startswith("."):
         return True
 
     if stat_res is None or stat.S_ISLNK(stat_res.st_mode):
         try:
-            stat_res = os.stat(abs_path)
+            stat_res = Path(abs_path).stat()
         except OSError as e:
             if e.errno == errno.ENOENT:
                 return False
             raise
 
     # check that dirs can be listed
-    if stat.S_ISDIR(stat_res.st_mode):  # type:ignore[misc]  # noqa
+    if stat.S_ISDIR(stat_res.st_mode):  # noqa: SIM102
         # use x-access, not actual listing, in case of slow/large listings
         if not os.access(abs_path, os.X_OK | os.R_OK):
             return True
@@ -492,15 +488,15 @@ def is_hidden(abs_path: str, abs_root: str = "") -> bool:
     if not abs_root:
         abs_root = abs_path.split(os.sep, 1)[0] + os.sep
     inside_root = abs_path[len(abs_root) :]
-    if any(part.startswith(".") for part in inside_root.split(os.sep)):
+    if any(part.startswith(".") for part in Path(inside_root).parts):
         return True
 
     # check UF_HIDDEN on any location up to root.
     # is_file_hidden() already checked the file, so start from its parent dir
-    path = os.path.dirname(abs_path)
+    path = str(Path(abs_path).parent)
     while path and path.startswith(abs_root) and path != abs_root:
-        if not exists(path):
-            path = os.path.dirname(path)
+        if not Path(path).exists():
+            path = str(Path(path).parent)
             continue
         try:
             # may fail on Windows junctions
@@ -509,7 +505,7 @@ def is_hidden(abs_path: str, abs_root: str = "") -> bool:
             return True
         if getattr(st, "st_flags", 0) & UF_HIDDEN:
             return True
-        path = os.path.dirname(path)
+        path = str(Path(path).parent)
 
     return False
 
@@ -555,9 +551,10 @@ def win32_restrict_file_to_user(fname: str) -> None:
 
     sd.SetSecurityDescriptorDacl(1, dacl, 0)
     win32security.SetFileSecurity(fname, win32security.DACL_SECURITY_INFORMATION, sd)
+    return None
 
 
-def _win32_restrict_file_to_user_ctypes(fname: str) -> None:  # noqa
+def _win32_restrict_file_to_user_ctypes(fname: str) -> None:
     """Secure a windows file to read-only access for the user.
 
     Follows guidance from win32 library creator:
@@ -611,7 +608,7 @@ def _win32_restrict_file_to_user_ctypes(fname: str) -> None:  # noqa
     )
 
     class ACL(ctypes.Structure):
-        _fields_ = [  # noqa
+        _fields_ = [
             ("AclRevision", wintypes.BYTE),
             ("Sbz1", wintypes.BYTE),
             ("AclSize", wintypes.WORD),
@@ -623,7 +620,7 @@ def _win32_restrict_file_to_user_ctypes(fname: str) -> None:  # noqa
     PACL = ctypes.POINTER(ACL)
     PSECURITY_DESCRIPTOR = ctypes.POINTER(wintypes.BYTE)
 
-    def _nonzero_success(result: int, func: Any, args: Any) -> Any:
+    def _nonzero_success(result: int, func: Any, args: Any) -> Any:  # noqa: ARG001
         if not result:
             raise ctypes.WinError(ctypes.get_last_error())  # type:ignore[attr-defined]
         return args
@@ -950,7 +947,7 @@ def get_file_mode(fname: str) -> int:
     # the missing least significant bit on the third octal digit. In addition, we also tolerate
     # the sticky bit being set, so the lsb from the fourth octal digit is also removed.
     return (
-        stat.S_IMODE(os.stat(fname).st_mode) & 0o6677
+        stat.S_IMODE(Path(fname).stat().st_mode) & 0o6677
     )  # Use 4 octal digits since S_IMODE does the same
 
 
@@ -976,7 +973,7 @@ def secure_write(fname: str, binary: bool = False) -> Iterator[Any]:
     encoding = None if binary else "utf-8"
     open_flag = os.O_CREAT | os.O_WRONLY | os.O_TRUNC
     try:
-        os.remove(fname)
+        Path(fname).unlink()
     except OSError:
         # Skip any issues with the file not existing
         pass
@@ -999,7 +996,7 @@ def secure_write(fname: str, binary: bool = False) -> Iterator[Any]:
         if os.name != "nt":
             # Enforce that the file got the requested permissions before writing
             file_mode = get_file_mode(fname)
-            if file_mode != 0o0600:  # noqa
+            if file_mode != 0o0600:
                 if allow_insecure_writes:
                     issue_insecure_write_warning()
                 else:
@@ -1014,7 +1011,7 @@ def secure_write(fname: str, binary: bool = False) -> Iterator[Any]:
 def issue_insecure_write_warning() -> None:
     """Issue an insecure write warning."""
 
-    def format_warning(msg: str, *args: Any, **kwargs: Any) -> str:
+    def format_warning(msg: str, *args: Any, **kwargs: Any) -> str:  # noqa: ARG001
         return str(msg) + "\n"
 
     warnings.formatwarning = format_warning  # type:ignore[assignment]

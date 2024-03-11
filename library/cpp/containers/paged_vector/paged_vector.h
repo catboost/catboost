@@ -115,17 +115,17 @@ namespace NPagedVector {
                 return it;
             }
 
-            TSelf operator+(ptrdiff_t off) {
+            TSelf operator+(ptrdiff_t off) const {
                 TSelf res = *this;
                 res += off;
                 return res;
             }
 
-            TSelf operator-(ptrdiff_t off) {
+            TSelf operator-(ptrdiff_t off) const {
                 return this->operator+(-off);
             }
 
-            size_t GetOffset() {
+            size_t GetOffset() const {
                 return Offset;
             }
         };

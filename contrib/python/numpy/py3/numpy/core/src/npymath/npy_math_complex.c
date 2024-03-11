@@ -158,7 +158,9 @@ npy_cargf(npy_cfloat z)
 #define SCALED_CEXP_LOWERL 11357.216553474703895L
 #define SCALED_CEXP_UPPERL 22756.021937783004509L
 
-#if !defined(HAVE_CEXPF)
+#if !defined(HAVE_CSINHF) || \
+    !defined(HAVE_CCOSHF) || \
+    !defined(HAVE_CEXPF)
 
 static
 npy_cfloat
@@ -1835,7 +1837,9 @@ npy_carg(npy_cdouble z)
 #define SCALED_CEXP_LOWERL 11357.216553474703895L
 #define SCALED_CEXP_UPPERL 22756.021937783004509L
 
-#if !defined(HAVE_CEXP)
+#if !defined(HAVE_CSINH) || \
+    !defined(HAVE_CCOSH) || \
+    !defined(HAVE_CEXP)
 
 static
 npy_cdouble
@@ -3512,7 +3516,9 @@ npy_cargl(npy_clongdouble z)
 #define SCALED_CEXP_LOWERL 11357.216553474703895L
 #define SCALED_CEXP_UPPERL 22756.021937783004509L
 
-#if !defined(HAVE_CEXPL)
+#if !defined(HAVE_CSINHL) || \
+    !defined(HAVE_CCOSHL) || \
+    !defined(HAVE_CEXPL)
 
 static
 npy_clongdouble
@@ -5095,9 +5101,9 @@ npy_catanhl(npy_clongdouble z)
  * Decorate all the functions which are available natively
  *=========================================================*/
 
-#line 1750
+#line 1752
 
-#line 1755
+#line 1757
 #ifdef HAVE_CABSF
 npy_float
 npy_cabsf(npy_cfloat z)
@@ -5108,7 +5114,7 @@ npy_cabsf(npy_cfloat z)
 }
 #endif
 
-#line 1755
+#line 1757
 #ifdef HAVE_CARGF
 npy_float
 npy_cargf(npy_cfloat z)
@@ -5120,7 +5126,7 @@ npy_cargf(npy_cfloat z)
 #endif
 
 
-#line 1772
+#line 1774
 #ifdef HAVE_CEXPF
 npy_cfloat
 npy_cexpf(npy_cfloat z)
@@ -5133,7 +5139,7 @@ npy_cexpf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CLOGF
 npy_cfloat
 npy_clogf(npy_cfloat z)
@@ -5146,7 +5152,7 @@ npy_clogf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CSQRTF
 npy_cfloat
 npy_csqrtf(npy_cfloat z)
@@ -5159,7 +5165,7 @@ npy_csqrtf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CCOSF
 npy_cfloat
 npy_ccosf(npy_cfloat z)
@@ -5172,7 +5178,7 @@ npy_ccosf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CSINF
 npy_cfloat
 npy_csinf(npy_cfloat z)
@@ -5185,7 +5191,7 @@ npy_csinf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CTANF
 npy_cfloat
 npy_ctanf(npy_cfloat z)
@@ -5198,7 +5204,7 @@ npy_ctanf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CCOSHF
 npy_cfloat
 npy_ccoshf(npy_cfloat z)
@@ -5211,7 +5217,7 @@ npy_ccoshf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CSINHF
 npy_cfloat
 npy_csinhf(npy_cfloat z)
@@ -5224,7 +5230,7 @@ npy_csinhf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CTANHF
 npy_cfloat
 npy_ctanhf(npy_cfloat z)
@@ -5237,7 +5243,7 @@ npy_ctanhf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CACOSF
 npy_cfloat
 npy_cacosf(npy_cfloat z)
@@ -5250,7 +5256,7 @@ npy_cacosf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CASINF
 npy_cfloat
 npy_casinf(npy_cfloat z)
@@ -5263,7 +5269,7 @@ npy_casinf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CATANF
 npy_cfloat
 npy_catanf(npy_cfloat z)
@@ -5276,7 +5282,7 @@ npy_catanf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CACOSHF
 npy_cfloat
 npy_cacoshf(npy_cfloat z)
@@ -5289,7 +5295,7 @@ npy_cacoshf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CASINHF
 npy_cfloat
 npy_casinhf(npy_cfloat z)
@@ -5302,7 +5308,7 @@ npy_casinhf(npy_cfloat z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CATANHF
 npy_cfloat
 npy_catanhf(npy_cfloat z)
@@ -5318,9 +5324,9 @@ npy_catanhf(npy_cfloat z)
 
 
 
-#line 1750
+#line 1752
 
-#line 1755
+#line 1757
 #ifdef HAVE_CABS
 npy_double
 npy_cabs(npy_cdouble z)
@@ -5331,7 +5337,7 @@ npy_cabs(npy_cdouble z)
 }
 #endif
 
-#line 1755
+#line 1757
 #ifdef HAVE_CARG
 npy_double
 npy_carg(npy_cdouble z)
@@ -5343,7 +5349,7 @@ npy_carg(npy_cdouble z)
 #endif
 
 
-#line 1772
+#line 1774
 #ifdef HAVE_CEXP
 npy_cdouble
 npy_cexp(npy_cdouble z)
@@ -5356,7 +5362,7 @@ npy_cexp(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CLOG
 npy_cdouble
 npy_clog(npy_cdouble z)
@@ -5369,7 +5375,7 @@ npy_clog(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CSQRT
 npy_cdouble
 npy_csqrt(npy_cdouble z)
@@ -5382,7 +5388,7 @@ npy_csqrt(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CCOS
 npy_cdouble
 npy_ccos(npy_cdouble z)
@@ -5395,7 +5401,7 @@ npy_ccos(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CSIN
 npy_cdouble
 npy_csin(npy_cdouble z)
@@ -5408,7 +5414,7 @@ npy_csin(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CTAN
 npy_cdouble
 npy_ctan(npy_cdouble z)
@@ -5421,7 +5427,7 @@ npy_ctan(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CCOSH
 npy_cdouble
 npy_ccosh(npy_cdouble z)
@@ -5434,7 +5440,7 @@ npy_ccosh(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CSINH
 npy_cdouble
 npy_csinh(npy_cdouble z)
@@ -5447,7 +5453,7 @@ npy_csinh(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CTANH
 npy_cdouble
 npy_ctanh(npy_cdouble z)
@@ -5460,7 +5466,7 @@ npy_ctanh(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CACOS
 npy_cdouble
 npy_cacos(npy_cdouble z)
@@ -5473,7 +5479,7 @@ npy_cacos(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CASIN
 npy_cdouble
 npy_casin(npy_cdouble z)
@@ -5486,7 +5492,7 @@ npy_casin(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CATAN
 npy_cdouble
 npy_catan(npy_cdouble z)
@@ -5499,7 +5505,7 @@ npy_catan(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CACOSH
 npy_cdouble
 npy_cacosh(npy_cdouble z)
@@ -5512,7 +5518,7 @@ npy_cacosh(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CASINH
 npy_cdouble
 npy_casinh(npy_cdouble z)
@@ -5525,7 +5531,7 @@ npy_casinh(npy_cdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CATANH
 npy_cdouble
 npy_catanh(npy_cdouble z)
@@ -5541,9 +5547,9 @@ npy_catanh(npy_cdouble z)
 
 
 
-#line 1750
+#line 1752
 
-#line 1755
+#line 1757
 #ifdef HAVE_CABSL
 npy_longdouble
 npy_cabsl(npy_clongdouble z)
@@ -5554,7 +5560,7 @@ npy_cabsl(npy_clongdouble z)
 }
 #endif
 
-#line 1755
+#line 1757
 #ifdef HAVE_CARGL
 npy_longdouble
 npy_cargl(npy_clongdouble z)
@@ -5566,7 +5572,7 @@ npy_cargl(npy_clongdouble z)
 #endif
 
 
-#line 1772
+#line 1774
 #ifdef HAVE_CEXPL
 npy_clongdouble
 npy_cexpl(npy_clongdouble z)
@@ -5579,7 +5585,7 @@ npy_cexpl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CLOGL
 npy_clongdouble
 npy_clogl(npy_clongdouble z)
@@ -5592,7 +5598,7 @@ npy_clogl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CSQRTL
 npy_clongdouble
 npy_csqrtl(npy_clongdouble z)
@@ -5605,7 +5611,7 @@ npy_csqrtl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CCOSL
 npy_clongdouble
 npy_ccosl(npy_clongdouble z)
@@ -5618,7 +5624,7 @@ npy_ccosl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CSINL
 npy_clongdouble
 npy_csinl(npy_clongdouble z)
@@ -5631,7 +5637,7 @@ npy_csinl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CTANL
 npy_clongdouble
 npy_ctanl(npy_clongdouble z)
@@ -5644,7 +5650,7 @@ npy_ctanl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CCOSHL
 npy_clongdouble
 npy_ccoshl(npy_clongdouble z)
@@ -5657,7 +5663,7 @@ npy_ccoshl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CSINHL
 npy_clongdouble
 npy_csinhl(npy_clongdouble z)
@@ -5670,7 +5676,7 @@ npy_csinhl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CTANHL
 npy_clongdouble
 npy_ctanhl(npy_clongdouble z)
@@ -5683,7 +5689,7 @@ npy_ctanhl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CACOSL
 npy_clongdouble
 npy_cacosl(npy_clongdouble z)
@@ -5696,7 +5702,7 @@ npy_cacosl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CASINL
 npy_clongdouble
 npy_casinl(npy_clongdouble z)
@@ -5709,7 +5715,7 @@ npy_casinl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CATANL
 npy_clongdouble
 npy_catanl(npy_clongdouble z)
@@ -5722,7 +5728,7 @@ npy_catanl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CACOSHL
 npy_clongdouble
 npy_cacoshl(npy_clongdouble z)
@@ -5735,7 +5741,7 @@ npy_cacoshl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CASINHL
 npy_clongdouble
 npy_casinhl(npy_clongdouble z)
@@ -5748,7 +5754,7 @@ npy_casinhl(npy_clongdouble z)
 }
 #endif
 
-#line 1772
+#line 1774
 #ifdef HAVE_CATANHL
 npy_clongdouble
 npy_catanhl(npy_clongdouble z)

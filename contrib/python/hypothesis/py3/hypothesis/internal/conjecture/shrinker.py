@@ -9,7 +9,7 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Callable, Dict, Optional
 
 import attr
 
@@ -19,12 +19,14 @@ from hypothesis.internal.conjecture.choicetree import (
     prefix_selection_order,
     random_selection_order,
 )
-from hypothesis.internal.conjecture.data import ConjectureData, ConjectureResult, Status
-from hypothesis.internal.conjecture.floats import (
+from hypothesis.internal.conjecture.data import (
     DRAW_FLOAT_LABEL,
-    float_to_lex,
-    lex_to_float,
+    ConjectureData,
+    ConjectureResult,
+    Status,
 )
+from hypothesis.internal.conjecture.dfa import ConcreteDFA
+from hypothesis.internal.conjecture.floats import float_to_lex, lex_to_float
 from hypothesis.internal.conjecture.junkdrawer import (
     binary_search,
     find_integer,
@@ -261,7 +263,16 @@ class Shrinker:
         accept.__name__ = fn.__name__
         return property(accept)
 
-    def __init__(self, engine, initial, predicate, allow_transition, explain):
+    def __init__(
+        self,
+        engine: "ConjectureRunner",
+        initial: ConjectureData,
+        predicate: Optional[Callable[..., bool]],
+        *,
+        allow_transition: bool,
+        explain: bool,
+        in_target_phase: bool = False,
+    ):
         """Create a shrinker for a particular engine, with a given starting
         point and predicate. When shrink() is called it will attempt to find an
         example for which predicate is True and which is strictly smaller than
@@ -271,17 +282,17 @@ class Shrinker:
         takes ConjectureData objects.
         """
         assert predicate is not None or allow_transition is not None
-        self.engine: "ConjectureRunner" = engine
+        self.engine = engine
         self.__predicate = predicate or (lambda data: True)
         self.__allow_transition = allow_transition or (lambda source, destination: True)
-        self.__derived_values = {}
+        self.__derived_values: dict = {}
         self.__pending_shrink_explanation = None
 
         self.initial_size = len(initial.buffer)
 
         # We keep track of the current best example on the shrink_target
         # attribute.
-        self.shrink_target: ConjectureData = initial
+        self.shrink_target = initial
         self.clear_change_tracking()
         self.shrinks = 0
 
@@ -293,13 +304,20 @@ class Shrinker:
         self.initial_calls = self.engine.call_count
         self.calls_at_last_shrink = self.initial_calls
 
-        self.passes_by_name = {}
-        self.passes = []
+        self.passes_by_name: Dict[str, ShrinkPass] = {}
 
         # Extra DFAs that may be installed. This is used solely for
         # testing and learning purposes.
-        self.extra_dfas = {}
+        self.extra_dfas: Dict[str, ConcreteDFA] = {}
 
+        # Because the shrinker is also used to `pareto_optimise` in the target phase,
+        # we sometimes want to allow extending buffers instead of aborting at the end.
+        if in_target_phase:
+            from hypothesis.internal.conjecture.engine import BUFFER_SIZE
+
+            self.__extend = BUFFER_SIZE
+        else:
+            self.__extend = 0
         self.should_explain = explain
 
     @derived_value  # type: ignore
@@ -324,9 +342,8 @@ class Shrinker:
         p = ShrinkPass(
             run_with_chooser=definition.run_with_chooser,
             shrinker=self,
-            index=len(self.passes),
+            index=len(self.passes_by_name),
         )
-        self.passes.append(p)
         self.passes_by_name[p.name] = p
         return p
 
@@ -409,7 +426,7 @@ class Shrinker:
         with status >= INVALID that would result from running this buffer."""
 
         buffer = bytes(buffer)
-        result = self.engine.cached_test_function(buffer)
+        result = self.engine.cached_test_function(buffer, extend=self.__extend)
         self.incorporate_test_data(result)
         if self.calls - self.calls_at_last_shrink >= self.max_stall:
             raise StopShrinking
@@ -473,7 +490,8 @@ class Shrinker:
                         self.debug("Useless passes:")
                     self.debug("")
                     for p in sorted(
-                        self.passes, key=lambda t: (-t.calls, t.deletions, t.shrinks)
+                        self.passes_by_name.values(),
+                        key=lambda t: (-t.calls, t.deletions, t.shrinks),
                     ):
                         if p.calls == 0:
                             continue
@@ -609,16 +627,16 @@ class Shrinker:
             # This *can't* be a shrink because none of the components were.
             assert shrink_target is self.shrink_target
             if result.status == Status.VALID:
-                self.shrink_target.slice_comments[
-                    (0, 0)
-                ] = "The test sometimes passed when commented parts were varied together."
+                self.shrink_target.slice_comments[(0, 0)] = (
+                    "The test sometimes passed when commented parts were varied together."
+                )
                 break  # Test passed, this param can't vary freely.
             elif self.__predicate(result):  # pragma: no branch
                 n_same_failures_together += 1
                 if n_same_failures_together >= 100:
-                    self.shrink_target.slice_comments[
-                        (0, 0)
-                    ] = "The test always failed when commented parts were varied together."
+                    self.shrink_target.slice_comments[(0, 0)] = (
+                        "The test always failed when commented parts were varied together."
+                    )
                     break
 
     def greedy_shrink(self):

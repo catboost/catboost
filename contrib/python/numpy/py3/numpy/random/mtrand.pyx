@@ -1,5 +1,5 @@
 #!python
-#cython: wraparound=False, nonecheck=False, boundscheck=False, cdivision=True, language_level=3
+#cython: wraparound=False, nonecheck=False, boundscheck=False, cdivision=True, language_level=3, binding=False
 import operator
 import warnings
 from collections.abc import Sequence
@@ -367,15 +367,16 @@ cdef class RandomState:
         else:
             if not isinstance(state, (tuple, list)):
                 raise TypeError('state must be a dict or a tuple.')
-            if state[0] != 'MT19937':
-                raise ValueError('set_state can only be used with legacy MT19937'
-                                 'state instances.')
-            st = {'bit_generator': state[0],
-                  'state': {'key': state[1], 'pos': state[2]}}
-            if len(state) > 3:
-                st['has_gauss'] = state[3]
-                st['gauss'] = state[4]
-                value = st
+            with cython.boundscheck(True):
+                if state[0] != 'MT19937':
+                    raise ValueError('set_state can only be used with legacy '
+                                     'MT19937 state instances.')
+                st = {'bit_generator': state[0],
+                      'state': {'key': state[1], 'pos': state[2]}}
+                if len(state) > 3:
+                    st['has_gauss'] = state[3]
+                    st['gauss'] = state[4]
+                    value = st
 
         self._aug_state.gauss = st.get('gauss', 0.0)
         self._aug_state.has_gauss = st.get('has_gauss', 0)
@@ -4253,7 +4254,7 @@ cdef class RandomState:
         x.shape = tuple(final_shape)
         return x
 
-    def multinomial(self, np.npy_intp n, object pvals, size=None):
+    def multinomial(self, long n, object pvals, size=None):
         """
         multinomial(n, pvals, size=None)
 

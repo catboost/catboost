@@ -216,14 +216,14 @@ public:
     /**
      * TDuration is compatible with std::chrono::duration:
      *   it can be constructed and compared with std::chrono::duration.
-     * But there is two significant and dangerous differencies between them:
+     * But there are two significant and dangerous differences between them:
      *   1) TDuration is never negative and use saturation between 0 and maximum value.
      *      std::chrono::duration can be negative and can overflow.
      *   2) TDuration uses integer number of microseconds.
      *      std::chrono::duration is flexible, can be integer of floating point,
      *      can have different precisions.
      * So when casted from std::chrono::duration to TDuration value is clamped and rounded.
-     * In arithmethic operations std::chrono::duration argument is only rounded,
+     * In arithmetic operations std::chrono::duration argument is only rounded,
      *   result is TDuration and it clamped and rounded.
      * In comparisons std::chrono::duration argument is rounded.
      */

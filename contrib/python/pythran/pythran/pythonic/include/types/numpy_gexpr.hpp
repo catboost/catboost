@@ -921,6 +921,11 @@ namespace types
       return {*this};
     }
 
+    intptr_t baseid() const
+    {
+      return arg.baseid();
+    }
+
     template <class Tp, size_t... Is>
     auto recast(utils::index_sequence<Is...>) -> decltype(make_gexpr(
         arg.template recast<Tp>(),

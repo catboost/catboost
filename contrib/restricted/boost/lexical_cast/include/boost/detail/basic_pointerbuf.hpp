@@ -42,13 +42,8 @@ public:
    basic_pointerbuf() : base_type() { this_type::setbuf(0, 0); }
    const charT* getnext() { return this->gptr(); }
 
-#ifndef BOOST_NO_USING_TEMPLATE
     using base_type::pptr;
     using base_type::pbase;
-#else
-    charT* pptr() const { return base_type::pptr(); }
-    charT* pbase() const { return base_type::pbase(); }
-#endif
 
 protected:
    // VC mistakenly assumes that `setbuf` and other functions are not referenced.

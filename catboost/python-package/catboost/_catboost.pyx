@@ -1,6 +1,6 @@
 # distutils: language = c++
 # coding: utf-8
-# cython: wraparound=False
+# cython: wraparound=False, boundscheck=False, initializedcheck=False
 
 from catboost.base_defs cimport *
 from catboost.libs.model.cython cimport *
@@ -12,7 +12,9 @@ from six import iteritems, string_types
 from cpython.version cimport PY_MAJOR_VERSION
 import warnings
 
-from six.moves import range
+# TODO(akhropov): don't use range because Cython in python 2 mode is unable to optimize it in cdef functions!
+# from six.moves import range
+
 from json import dumps, loads, JSONEncoder
 from copy import deepcopy
 from collections import defaultdict
@@ -87,7 +89,19 @@ ctypedef fused numpy_indices_dtype:
     np.uint64_t
 
 
-ctypedef fused numpy_num_dtype:
+ctypedef fused categories_codes_dtype:
+    np.int8_t
+    np.int16_t
+    np.int32_t
+    np.int64_t
+    np.uint8_t
+    np.uint16_t
+    np.uint32_t
+    np.uint64_t
+
+
+ctypedef fused numpy_num_or_bool_dtype:
+    # np.npy_bool   - can't add it - Cython confuses it with np.uint8_t
     np.int8_t
     np.int16_t
     np.int32_t
@@ -100,7 +114,8 @@ ctypedef fused numpy_num_dtype:
     np.float64_t
 
 
-numpy_num_dtype_list = [
+numpy_num_or_bool_dtype_list = [
+    np.bool_,
     np.int8,
     np.int16,
     np.int32,
@@ -226,16 +241,23 @@ class MultiTargetCustomObjective:
 cdef extern from "Python.h":
     char* PyUnicode_AsUTF8AndSize(object s, Py_ssize_t* l)
 
+
+cdef extern from "<future>" namespace "std":
+    cdef cppclass future[T]:
+        bool_t valid()
+        void get() except +ProcessException
+
+
 cdef extern from "catboost/libs/logging/logging.h":
     ctypedef void(*TCustomLoggingFunctionPtr)(const char *, size_t len, void *) except * with gil
-    cdef void SetCustomLoggingFunction(TCustomLoggingFunctionPtr, TCustomLoggingFunctionPtr, void*, void*)
-    cdef void RestoreOriginalLogger()
-    cdef void ResetTraceBackend(const TString&)
+    cdef void SetCustomLoggingFunction(TCustomLoggingFunctionPtr, TCustomLoggingFunctionPtr, void*, void*) except +ProcessException
+    cdef void RestoreOriginalLogger() except +ProcessException
+    cdef void ResetTraceBackend(const TString&) except +ProcessException
 
 
 cdef extern from "catboost/libs/cat_feature/cat_feature.h":
-    cdef ui32 CalcCatFeatureHash(TStringBuf feature) except +ProcessException
-    cdef float ConvertCatFeatureHashToFloat(ui32 hashVal) except +ProcessException
+    cdef ui32 CalcCatFeatureHash(TStringBuf feature)
+    cdef float ConvertCatFeatureHashToFloat(ui32 hashVal)
 
 
 cdef class Py_FloatSequencePtr:
@@ -271,17 +293,15 @@ cdef class Py_EmbeddingSequencePtr:
         pass
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_dtype, ndim=1] array):
+def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_or_bool_dtype, ndim=1] array):
 
     """
         older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
 
-    cdef const numpy_num_dtype* array_begin = <const numpy_num_dtype*>nullptr
-    cdef const numpy_num_dtype* array_end = <const numpy_num_dtype*>nullptr
+    cdef const numpy_num_or_bool_dtype* array_begin = <const numpy_num_or_bool_dtype*>nullptr
+    cdef const numpy_num_or_bool_dtype* array_end = <const numpy_num_or_bool_dtype*>nullptr
 
     if array.shape[0] != 0:
         array_begin = &array[0]
@@ -290,25 +310,25 @@ def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_dtype, ndim=1] a
     cdef Py_FloatSequencePtr py_result = Py_FloatSequencePtr()
     cdef ITypedSequencePtr[np.float32_t] result
 
-    if numpy_num_dtype is np.int8_t:
+    if numpy_num_or_bool_dtype is np.int8_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.int8_t](array_begin, array_end)
-    if numpy_num_dtype is np.int16_t:
+    if numpy_num_or_bool_dtype is np.int16_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.int16_t](array_begin, array_end)
-    if numpy_num_dtype is np.int32_t:
+    if numpy_num_or_bool_dtype is np.int32_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.int32_t](array_begin, array_end)
-    if numpy_num_dtype is np.int64_t:
+    if numpy_num_or_bool_dtype is np.int64_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.int64_t](array_begin, array_end)
-    if numpy_num_dtype is np.uint8_t:
+    if numpy_num_or_bool_dtype is np.uint8_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.uint8_t](array_begin, array_end)
-    if numpy_num_dtype is np.uint16_t:
+    if numpy_num_or_bool_dtype is np.uint16_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.uint16_t](array_begin, array_end)
-    if numpy_num_dtype is np.uint32_t:
+    if numpy_num_or_bool_dtype is np.uint32_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.uint32_t](array_begin, array_end)
-    if numpy_num_dtype is np.uint64_t:
+    if numpy_num_or_bool_dtype is np.uint64_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.uint64_t](array_begin, array_end)
-    if numpy_num_dtype is np.float32_t:
+    if numpy_num_or_bool_dtype is np.float32_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.float32_t](array_begin, array_end)
-    if numpy_num_dtype is np.float64_t:
+    if numpy_num_or_bool_dtype is np.float64_t:
         result = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.float64_t](array_begin, array_end)
 
     py_result.set_result(result)
@@ -317,22 +337,20 @@ def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_dtype, ndim=1] a
 
 
 # returns (Py_EmbeddingSequencePtr, new data holders array)
-@cython.boundscheck(False)
-@cython.wraparound(False)
 def make_embedding_type_cast_array_holder(
     size_t flat_feature_idx,
-    np.ndarray[numpy_num_dtype, ndim=1] first_element,
-    np.ndarray elements): #
+    np.ndarray[numpy_num_or_bool_dtype, ndim=1] first_element,
+    np.ndarray elements):
 
-    cdef np.ndarray[numpy_num_dtype, ndim=1] element
-    cdef TVector[TMaybeOwningConstArrayHolder[numpy_num_dtype]] data
+    cdef np.ndarray[numpy_num_or_bool_dtype, ndim=1] element
+    cdef TVector[TMaybeOwningConstArrayHolder[numpy_num_or_bool_dtype]] data
     cdef size_t embedding_dimension = len(first_element)
     cdef size_t object_count = len(elements)
     cdef size_t object_idx
 
     data_holders = []
 
-    for object_idx in range(object_count):
+    for object_idx in xrange(object_count):
         element = elements[object_idx]
         if len(element) != embedding_dimension:
             raise CatBoostError(
@@ -352,9 +370,9 @@ def make_embedding_type_cast_array_holder(
             data_holders.append(element)
 
         data.push_back(
-            TMaybeOwningConstArrayHolder[numpy_num_dtype].CreateNonOwning(
-                TConstArrayRef[numpy_num_dtype](
-                    <numpy_num_dtype*>&element[0],
+            TMaybeOwningConstArrayHolder[numpy_num_or_bool_dtype].CreateNonOwning(
+                TConstArrayRef[numpy_num_or_bool_dtype](
+                    <numpy_num_or_bool_dtype*>&element[0],
                     embedding_dimension
                 )
             )
@@ -365,25 +383,25 @@ def make_embedding_type_cast_array_holder(
 
     cdef ITypedSequencePtr[TMaybeOwningConstArrayHolder[np.float32_t]] result
 
-    if numpy_num_dtype is np.int8_t:
+    if numpy_num_or_bool_dtype is np.int8_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.int8_t](data)
-    if numpy_num_dtype is np.int16_t:
+    if numpy_num_or_bool_dtype is np.int16_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.int16_t](data)
-    if numpy_num_dtype is np.int32_t:
+    if numpy_num_or_bool_dtype is np.int32_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.int32_t](data)
-    if numpy_num_dtype is np.int64_t:
+    if numpy_num_or_bool_dtype is np.int64_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.int64_t](data)
-    if numpy_num_dtype is np.uint8_t:
+    if numpy_num_or_bool_dtype is np.uint8_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.uint8_t](data)
-    if numpy_num_dtype is np.uint16_t:
+    if numpy_num_or_bool_dtype is np.uint16_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.uint16_t](data)
-    if numpy_num_dtype is np.uint32_t:
+    if numpy_num_or_bool_dtype is np.uint32_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.uint32_t](data)
-    if numpy_num_dtype is np.uint64_t:
+    if numpy_num_or_bool_dtype is np.uint64_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.uint64_t](data)
-    if numpy_num_dtype is np.float32_t:
+    if numpy_num_or_bool_dtype is np.float32_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.float32_t](data)
-    if numpy_num_dtype is np.float64_t:
+    if numpy_num_or_bool_dtype is np.float64_t:
         result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.float64_t](data)
 
     cdef Py_EmbeddingSequencePtr py_result = Py_EmbeddingSequencePtr()
@@ -543,7 +561,7 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
 
     cdef TString ConvertTreeToOnnxProto(
         const TFullModel& model,
-        const TString& userParametersJson)
+        const TString& userParametersJson) nogil except +ProcessException
 
 cdef extern from "catboost/libs/model/utils.h":
     cdef TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model) nogil except +ProcessException
@@ -973,6 +991,17 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
     cdef void ThrowCppExceptionWithMessage(const TString&) nogil
+    cdef void AsyncSetDataFromCythonMemoryViewCOrder[TFloatOrInteger](
+        ui32 objCount,
+        TFloatOrInteger* data,
+        size_t objStride,    # dim 0
+        size_t elementStride,   # dim 1
+        bool_t hasSeparateEmbeddingFeaturesData,
+        TConstArrayRef[ui32] mainDataFeatureIdxToDstFeatureIdx,
+        TConstArrayRef[bool_t] isCatFeature,  # can be empty, it means no categorical data
+        IRawObjectsOrderDataVisitor* builderVisitor,
+        ILocalExecutor* localExecutor,
+        future[void]* result) nogil except +ProcessException
     cdef void SetDataFromScipyCsrSparse[TFloatOrUi64](
         TConstArrayRef[ui32] rowMarkup,
         TConstArrayRef[TFloatOrUi64] values,
@@ -982,7 +1011,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TConstArrayRef[bool_t] catFeaturesMask,
         IRawObjectsOrderDataVisitor* builderVisitor,
         ILocalExecutor* localExecutor) nogil except +ProcessException
-    cdef size_t GetNumPairs(const TDataProvider& dataProvider) except +ProcessException
+    cdef size_t GetNumPairs(const TDataProvider& dataProvider)
     cdef TConstArrayRef[TPair] GetUngroupedPairs(const TDataProvider& dataProvider) except +ProcessException
     cdef void TrainEvalSplit(
         const TDataProvider& srcDataProvider,
@@ -993,7 +1022,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         int threadCount,
         ui64 cpuUsedRamLimit
     ) except +ProcessException
-    cdef TAtomicSharedPtr[TTbbLocalExecutor] GetCachedLocalExecutor(int threadsCount)
+    cdef TAtomicSharedPtr[TTbbLocalExecutor] GetCachedLocalExecutor(int threadsCount) except +ProcessException
     cdef size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) except +ProcessException
     cdef void GetNumFeatureValuesSample(
         const TFullModel& model,
@@ -1003,6 +1032,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TVector[TString]& sampleIdsVector,
         TVector[TArrayRef[float]]* numFeaturesColumns
     ) except +ProcessException
+    TMetricsAndTimeLeftHistory GetTrainingMetrics(const TFullModel& model) except +ProcessException
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -1039,7 +1069,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TMetricsPlotCalcerPythonWrapper(TVector[TString]& metrics, TFullModel& model, int ntree_start, int ntree_end,
                                         int eval_period, int thread_count, TString& tmpDir,
                                         bool_t flag) except +ProcessException
-        TVector[const IMetric*] GetMetricRawPtrs() const
+        TVector[const IMetric*] GetMetricRawPtrs() except +ProcessException  # in fact it is const, but Cython is unable to parse 'const except'
         TVector[TVector[double]] ComputeScores() except +ProcessException
         void AddPool(const TDataProvider& srcData) except +ProcessException
 
@@ -1095,12 +1125,7 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
 
     cdef cppclass TBestOptionValuesWithCvResult:
         TVector[TCVResult] CvResult
-        THashMap[TString, bool_t] BoolOptions
-        THashMap[TString, int] IntOptions
-        THashMap[TString, ui32] UIntOptions
-        THashMap[TString, double] DoubleOptions
-        THashMap[TString, TString] StringOptions
-        THashMap[TString, TVector[double]] ListOfDoublesOptions
+        TJsonValue BestParams
 
     cdef void GridSearch(
         const TJsonValue& grid,
@@ -1220,106 +1245,135 @@ cdef bool_t _CallbackAfterIteration(
         with nogil:
             ThrowCppExceptionWithMessage(errorMessage)
 
-cdef _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
-    result = np.empty(arr.size(), dtype=_npfloat64)
+cdef np.ndarray _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
+    cdef np.ndarray[np.float64_t, ndim=1] result = np.empty(arr.size(), dtype=_npfloat64)
+    cdef np.float64_t[::1] result_view = result
     for i in xrange(arr.size()):
-        result[i] = arr[i]
+        result_view[i] = arr[i]
     return result
 
 
-cdef _vector_of_double_to_np_array(const TVector[double]& vec):
-    result = np.empty(vec.size(), dtype=_npfloat64)
-    for i in xrange(vec.size()):
-        result[i] = vec[i]
-    return result
+cdef np.ndarray _vector_of_double_to_np_array(const TVector[double]& vec):
+    return _constarrayref_of_double_to_np_array(<TConstArrayRef[double]>vec)
 
 
-cdef _2d_vector_of_double_to_np_array(const TVector[TVector[double]]& vectors):
+cdef np.ndarray _2d_vector_of_double_to_np_array(const TVector[TVector[double]]& vectors):
     cdef size_t subvec_size = vectors[0].size() if not vectors.empty() else 0
-    result = np.empty([vectors.size(), subvec_size], dtype=_npfloat64)
+
+    cdef np.ndarray[np.float64_t, ndim=2] result = np.empty([vectors.size(), subvec_size], dtype=_npfloat64)
+    cdef np.float64_t[:,::1] result_view = result
+
     for i in xrange(vectors.size()):
         assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
         for j in xrange(subvec_size):
-            result[i][j] = vectors[i][j]
+            result_view[i, j] = vectors[i][j]
     return result
 
 
-cdef _3d_vector_of_double_to_np_array(const TVector[TVector[TVector[double]]]& vectors):
+cdef np.ndarray _3d_vector_of_double_to_np_array(const TVector[TVector[TVector[double]]]& vectors):
     cdef size_t subvec_size = vectors[0].size() if not vectors.empty() else 0
     cdef size_t sub_subvec_size = vectors[0][0].size() if subvec_size != 0 else 0
-    result = np.empty([vectors.size(), subvec_size, sub_subvec_size], dtype=_npfloat64)
+
+    cdef np.ndarray[np.float64_t, ndim=3] result = np.empty(
+        [vectors.size(), subvec_size, sub_subvec_size],
+        dtype=_npfloat64
+    )
+    cdef np.float64_t[:,:,::1] result_view = result
+
     for i in xrange(vectors.size()):
         assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
         for j in xrange(subvec_size):
             assert vectors[i][j].size() == sub_subvec_size, "All subvectors should have the same length"
             for k in xrange(sub_subvec_size):
-                result[i][j][k] = vectors[i][j][k]
+                result_view[i, j, k] = vectors[i][j][k]
     return result
 
-cdef _reorder_axes_for_python_3d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
+cdef np.ndarray _reorder_axes_for_python_3d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
     cdef size_t featuresCount = vectors.size() if not vectors.empty() else 0
     assert featuresCount == vectors[0].size()
     cdef size_t approx_dimension = vectors[0][0].size() if featuresCount != 0 else 0
     assert approx_dimension == 1
     cdef size_t doc_size = vectors[0][0][0].size() if approx_dimension != 0 else 0
-    result = np.empty([doc_size, featuresCount, featuresCount], dtype=_npfloat64)
+
+    cdef np.ndarray[np.float64_t, ndim=3] result = np.empty(
+        [doc_size, featuresCount, featuresCount],
+        dtype=_npfloat64
+    )
+    cdef np.float64_t[:,:,::1] result_view = result
+
     cdef size_t doc, feature1, feature2
     for doc in xrange(doc_size):
         for feature1 in xrange(featuresCount):
             for feature2 in xrange(featuresCount):
-                result[doc][feature1][feature2] = vectors[feature1][feature2][0][doc]
+                result_view[doc, feature1, feature2] = vectors[feature1][feature2][0][doc]
     return result
 
-cdef _reorder_axes_for_python_4d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
+cdef np.ndarray _reorder_axes_for_python_4d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
     cdef size_t featuresCount = vectors.size() if not vectors.empty() else 0
     assert featuresCount == vectors[0].size()
     cdef size_t approx_dimension = vectors[0][0].size() if featuresCount != 0 else 0
     assert approx_dimension > 1
     cdef size_t doc_size = vectors[0][0][0].size() if approx_dimension != 0 else 0
-    result = np.empty([doc_size, approx_dimension, featuresCount, featuresCount], dtype=_npfloat64)
+    cdef np.ndarray[np.float64_t, ndim=4] result = np.empty(
+        [doc_size, approx_dimension, featuresCount, featuresCount],
+        dtype=_npfloat64
+    )
+    cdef np.float64_t[:,:,:,::1] result_view = result
+
     cdef size_t doc, dim, feature1, feature2
     for doc in xrange(doc_size):
         for dim in xrange(approx_dimension):
             for feature1 in xrange(featuresCount):
                 for feature2 in xrange(featuresCount):
-                    result[doc][dim][feature1][feature2] = vectors[feature1][feature2][dim][doc]
+                    result_view[doc, dim, feature1, feature2] = vectors[feature1][feature2][dim][doc]
     return result
 
 
-cdef _vector_of_uints_to_np_array(const TVector[ui32]& vec):
-    result = np.empty(vec.size(), dtype=np.uint32)
+cdef np.ndarray _vector_of_uints_to_np_array(const TVector[ui32]& vec):
+    cdef np.ndarray[np.uint32_t, ndim=1] result = np.empty(vec.size(), dtype=np.uint32)
+    cdef np.uint32_t[::1] result_view = result
+
     for i in xrange(vec.size()):
-        result[i] = vec[i]
+        result_view[i] = vec[i]
     return result
 
 
-cdef _vector_of_ints_to_np_array(const TVector[int]& vec):
-    result = np.empty(vec.size(), dtype=int)
+cdef np.ndarray _vector_of_ints_to_np_array(const TVector[int]& vec):
+    cdef np.ndarray[np.int_t, ndim=1] result = np.empty(vec.size(), dtype=np.int_)
+    cdef np.int_t[::1] result_view = result
+
     for i in xrange(vec.size()):
-        result[i] = vec[i]
+        result_view[i] = vec[i]
     return result
 
 
-cdef _vector_of_uints_to_2d_np_array(const TVector[ui32]& vec, int row_count, int column_count):
+cdef np.ndarray _vector_of_uints_to_2d_np_array(const TVector[ui32]& vec, int row_count, int column_count):
     assert vec.size() == row_count * column_count
-    result = np.empty((row_count, column_count), dtype=np.uint32)
+
+    cdef np.ndarray[np.uint32_t, ndim=2] result = np.empty((row_count, column_count), dtype=np.uint32)
+    cdef np.uint32_t[:,::1] result_view = result
+
     for row_num in xrange(row_count):
         for col_num in xrange(column_count):
-            result[row_num][col_num] = vec[row_num * column_count + col_num]
+            result[row_num, col_num] = vec[row_num * column_count + col_num]
     return result
 
 
-cdef _vector_of_floats_to_np_array(const TVector[float]& vec):
-    result = np.empty(vec.size(), dtype=_npfloat32)
+cdef np.ndarray _vector_of_floats_to_np_array(const TVector[float]& vec):
+    cdef np.ndarray[np.float32_t, ndim=1] result = np.empty(vec.size(), dtype=_npfloat32)
+    cdef np.float32_t[::1] result_view = result
+
     for i in xrange(vec.size()):
-        result[i] = vec[i]
+        result_view[i] = vec[i]
     return result
 
 
-cdef _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
-    result = np.empty(vec.size(), dtype=np.uint32)
+cdef np.ndarray _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
+    cdef np.ndarray[np.uint32_t, ndim=1] result = np.empty(vec.size(), dtype=np.uint32)
+    cdef np.uint32_t[::1] result_view = result
+
     for i in xrange(vec.size()):
-        result[i] = vec[i]
+        result_view[i] = vec[i]
     return result
 
 
@@ -1463,12 +1517,12 @@ cdef void _ObjectiveCalcDersRange(
           result.dtype in [np.float32, np.float64]):
         if result.dtype == np.float32:
             pairs_np_float = result
-            for index in range(len(pairs_np_float)):
+            for index in xrange(len(pairs_np_float)):
                 ders[index].Der1 = pairs_np_float[index, 0]
                 ders[index].Der2 = pairs_np_float[index, 1]
         elif result.dtype == np.float64:
             pairs_np_double = result
-            for index in range(len(pairs_np_double)):
+            for index in xrange(len(pairs_np_double)):
                 ders[index].Der1 = pairs_np_double[index, 0]
                 ders[index].Der2 = pairs_np_double[index, 1]
     else:
@@ -1660,7 +1714,7 @@ cdef EPredictionType string_to_prediction_type(prediction_type_str) except *:
     return prediction_type
 
 cdef transform_predictions(const TVector[TVector[double]]& predictions, EPredictionType predictionType, int thread_count, TFullModel* model):
-    approx_dimension = model.GetDimensionsCount()
+    cdef size_t approx_dimension = model.GetDimensionsCount()
 
     if approx_dimension == 1:
         if predictionType == EPredictionType_Class:
@@ -1795,7 +1849,7 @@ cdef class _PreprocessGrids:
                     self.custom_rnd_dist_gens[to_arcadia_string(rnd_name)] = _BuildCustomRandomDistributionGenerator(values)
                     self.rdg_enumeration += 1
                 else:
-                    raise CatBoostError("Error: not iterable and not random distribytion generator object at grid")
+                    raise CatBoostError("Error: not iterable and not random distribution generator object at grid")
 
         return params_to_json
 
@@ -1807,7 +1861,7 @@ cdef class _PreprocessGrids:
         dumps_grid = dumps(prepared_grids, cls=_NumpyAwareEncoder)
         self.tree = ReadTJsonValue(to_arcadia_string(dumps_grid))
 
-cdef TString to_arcadia_string(s) except *:
+cdef inline TString to_arcadia_string(s) except *:
     cdef const unsigned char[:] bytes_s
     cdef const char* utf8_str_pointer
     cdef Py_ssize_t utf8_str_size
@@ -1834,7 +1888,7 @@ cdef TString to_arcadia_string(s) except *:
         bytes_s = s
     return TString(<const char*>&bytes_s[0], len(bytes_s))
 
-cdef to_native_str(binary):
+cdef inline to_native_str(binary):
     if PY_MAJOR_VERSION >= 3 and hasattr(binary, 'decode'):
         return binary.decode()
     return binary
@@ -2065,7 +2119,7 @@ cdef TFeaturesLayout* _init_features_layout(
     embedding_features,
     feature_names,
     feature_tags
-) except*:
+) except *:
     cdef TVector[ui32] cat_features_vector
     cdef TVector[ui32] text_features_vector
     cdef TVector[ui32] embedding_features_vector
@@ -2075,7 +2129,7 @@ cdef TFeaturesLayout* _init_features_layout(
 
     if isinstance(data, FeaturesData):
         feature_count = data.get_feature_count()
-        cat_features = [i for i in range(data.get_num_feature_count(), feature_count)]
+        cat_features = [i for i in xrange(data.get_num_feature_count(), feature_count)]
         feature_names = data.get_feature_names()
     else:
         feature_count = np.shape(data)[1]
@@ -2112,28 +2166,28 @@ cdef TFeaturesLayout* _init_features_layout(
         feature_tags_map,
         all_features_are_sparse)
 
-cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLayout, EFeatureType featureType) except *:
+cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLayout, EFeatureType featureType) except +:
     cdef TVector[bool_t] mask
     mask.resize(featuresLayout.GetExternalFeatureCount(), False)
 
     cdef ui32 idx
-    for idx in range(featuresLayout.GetExternalFeatureCount()):
+    for idx in xrange(featuresLayout.GetExternalFeatureCount()):
         if featuresLayout[0].GetExternalFeatureType(idx) == featureType:
             mask[idx] = True
 
     return mask
 
-cdef TVector[ui32] _get_main_data_feature_idx_to_dst_feature_idx(const TFeaturesLayout* featuresLayout, bool_t hasSeparateEmbeddingFeaturesData):
+cdef TVector[ui32] _get_main_data_feature_idx_to_dst_feature_idx(const TFeaturesLayout* featuresLayout, bool_t hasSeparateEmbeddingFeaturesData) except +:
     cdef TVector[ui32] result
 
     if hasSeparateEmbeddingFeaturesData:
         result.reserve(featuresLayout.GetExternalFeatureCount() - featuresLayout.GetEmbeddingFeatureCount())
-        for idx in range(featuresLayout.GetExternalFeatureCount()):
+        for idx in xrange(featuresLayout.GetExternalFeatureCount()):
             if not (featuresLayout[0].GetExternalFeatureType(idx) == EFeatureType_Embedding):
                 result.push_back(idx)
     else:
         result.reserve(featuresLayout.GetExternalFeatureCount())
-        for idx in range(featuresLayout.GetExternalFeatureCount()):
+        for idx in xrange(featuresLayout.GetExternalFeatureCount()):
             result.push_back(idx)
 
     return result
@@ -2145,10 +2199,8 @@ cdef _get_object_count(data):
     else:
         return np.shape(data)[0]
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 def _set_features_order_data_features_data(
-    np.ndarray[numpy_num_dtype, ndim=2] num_feature_values,
+    np.ndarray[numpy_num_or_bool_dtype, ndim=2] num_feature_values,
     np.ndarray[object, ndim=2] cat_feature_values,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
@@ -2186,24 +2238,22 @@ def _set_features_order_data_features_data(
     dst_feature_idx = <ui32>0
 
     dst_feature_idx = 0
-    for num_feature_idx in range(num_feature_count):
+    for num_feature_idx in xrange(num_feature_count):
         py_num_factor_data = make_non_owning_type_cast_array_holder(num_feature_values[:,num_feature_idx])
         py_num_factor_data.get_result(&num_factor_data)
         builder_visitor[0].AddFloatFeature(dst_feature_idx, num_factor_data)
 
         dst_feature_idx += 1
-    for cat_feature_idx in range(cat_feature_count):
+    for cat_feature_idx in xrange(cat_feature_count):
         cat_factor_data.clear()
-        for doc_idx in range(doc_count):
+        for doc_idx in xrange(doc_count):
             factor_string = to_arcadia_string(cat_feature_values[doc_idx, cat_feature_idx])
             cat_factor_data.push_back(factor_string)
         builder_visitor[0].AddCatFeature(dst_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
         dst_feature_idx += 1
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 def _set_features_order_data_ndarray(
-    np.ndarray[numpy_num_dtype, ndim=2] feature_values,
+    np.ndarray[numpy_num_or_bool_dtype, ndim=2] feature_values,
     ui32 [:] src_feature_idx_to_dst_feature_idx,
     bool_t [:] is_cat_feature_mask,
     bool_t [:] is_text_feature_mask,
@@ -2233,11 +2283,11 @@ def _set_features_order_data_ndarray(
 
     string_factor_data.reserve(doc_count)
 
-    for src_flat_feature_idx in range(src_feature_count):
+    for src_flat_feature_idx in xrange(src_feature_count):
         flat_feature_idx = src_feature_idx_to_dst_feature_idx[src_flat_feature_idx]
         if is_cat_feature_mask[flat_feature_idx] or is_text_feature_mask[flat_feature_idx]:
             string_factor_data.clear()
-            for doc_idx in range(doc_count):
+            for doc_idx in xrange(doc_count):
                 string_factor_data.push_back(ToString(feature_values[doc_idx, src_flat_feature_idx]))
             if is_cat_feature_mask[flat_feature_idx]:
                 builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
@@ -2268,13 +2318,14 @@ cdef object _set_features_order_embedding_features_data(
     cdef ui32 flat_feature_idx = 0
     cdef ui32 embedding_feature_idx = 0
     cdef ITypedSequencePtr[TEmbeddingData] embedding_factor_data
+    cdef TConstArrayRef[ui32] flat_feature_indices = features_layout[0].GetEmbeddingFeatureInternalIdxToExternalIdx()
 
     cdef bool_t src_is_dict = isinstance(embedding_features_data, dict)
     if src_is_dict and (feature_names is None):
-        feature_names = [i for i in range(features_layout[0].GetExternalFeatureCount())]
+        feature_names = [i for i in xrange(features_layout[0].GetExternalFeatureCount())]
 
     new_data_holders = []
-    for flat_feature_idx in features_layout[0].GetEmbeddingFeatureInternalIdxToExternalIdx():
+    for flat_feature_idx in flat_feature_indices:
         new_data_holders += create_embedding_factor_data(
             flat_feature_idx,
             embedding_features_data[feature_names[flat_feature_idx] if src_is_dict else embedding_feature_idx],
@@ -2297,21 +2348,23 @@ cdef object _set_objects_order_embedding_features_data(
     cdef ui32 flat_feature_idx = 0
     cdef ui32 embedding_feature_idx = 0
     cdef TEmbeddingData object_embedding_data
+    cdef TConstArrayRef[ui32] flat_feature_indices
 
     cdef bool_t src_is_dict = isinstance(embedding_features_data, dict)
 
     if src_is_dict and (feature_names is None):
-        feature_names = [i for i in range(features_layout[0].GetExternalFeatureCount())]
+        feature_names = [i for i in xrange(features_layout[0].GetExternalFeatureCount())]
 
     new_data_holders = []
 
     if len(embedding_features_data) > 0:
         object_count = len(next(iter(embedding_features_data.values())) if src_is_dict else embedding_features_data[0])
         if object_count > 0:
-            for flat_feature_idx in features_layout[0].GetEmbeddingFeatureInternalIdxToExternalIdx():
+            flat_feature_indices = features_layout[0].GetEmbeddingFeatureInternalIdxToExternalIdx()
+            for flat_feature_idx in flat_feature_indices:
                 embedding_feature_data = embedding_features_data[feature_names[flat_feature_idx] if src_is_dict else embedding_feature_idx]
                 embedding_dimension = len(embedding_feature_data[0])
-                for object_idx in range(object_count):
+                for object_idx in xrange(object_count):
                     new_data_holders += get_embedding_array_data(
                         object_idx,
                         flat_feature_idx,
@@ -2325,7 +2378,7 @@ cdef object _set_objects_order_embedding_features_data(
     return new_data_holders
 
 
-cdef float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, src_value) except*:
+cdef inline float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, src_value) except*:
     try:
         return _FloatOrNan(src_value)
     except TypeError as e:
@@ -2349,16 +2402,18 @@ cdef create_num_factor_data(
     cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
 
     cdef Py_FloatSequencePtr py_num_factor_data
+    cdef TArrayRef[float] data_buffer
 
+    cdef ui32 doc_count = len(column_values)
     cdef ui32 doc_idx
 
-    if len(column_values) == 0:
+    if doc_count == 0:
         result[0] = MakeNonOwningTypeCastArrayHolder[np.float32_t, np.float32_t](
             <const np.float32_t*>nullptr,
             <const np.float32_t*>nullptr
         )
         return []
-    elif column_values.dtype in numpy_num_dtype_list: # Cython cannot use fused type lists in normal code
+    elif column_values.dtype in numpy_num_or_bool_dtype_list: # Cython cannot use fused type lists in normal code
         if not column_values.flags.c_contiguous:
             column_values = np.ascontiguousarray(column_values, dtype=np.float32)
         py_num_factor_data = make_non_owning_type_cast_array_holder(column_values)
@@ -2366,9 +2421,10 @@ cdef create_num_factor_data(
         return [column_values]
     else:
         num_factor_data = new TVectorHolder[float]()
-        num_factor_data.Get()[0].Data.resize(len(column_values))
-        for doc_idx in range(len(column_values)):
-            num_factor_data.Get()[0].Data[doc_idx] = get_float_feature(
+        num_factor_data.Get()[0].Data.resize(doc_count)
+        data_buffer = TArrayRef[float](num_factor_data.Get()[0].Data.data(), doc_count)
+        for doc_idx in xrange(doc_count):
+            data_buffer[doc_idx] = get_float_feature(
                 doc_idx,
                 flat_feature_idx,
                 column_values[doc_idx]
@@ -2383,7 +2439,7 @@ cdef create_num_factor_data(
 
         return []
 
-cdef get_cat_factor_bytes_representation(
+cdef inline get_cat_factor_bytes_representation(
     int non_default_doc_idx, # can be -1 - that means default value for sparse data
     ui32 feature_idx,
     object factor,
@@ -2403,7 +2459,7 @@ cdef get_cat_factor_bytes_representation(
             ' should be converted to string.'.format(doc_description, feature_idx, factor)
         )
 
-cdef get_text_factor_bytes_representation(
+cdef inline get_text_factor_bytes_representation(
     int non_default_doc_idx, # can be -1 - that means default value for sparse data
     ui32 feature_idx,
     object factor,
@@ -2424,12 +2480,12 @@ cdef get_text_factor_bytes_representation(
         )
 
 
-cdef TVector[np.float32_t] get_embedding_array_as_vector(
+cdef inline TVector[np.float32_t] get_embedding_array_as_vector(
     ui32 object_idx,
     ui32 flat_feature_idx,
     size_t embedding_dimension,
     src_array
-):
+) except *:
     cdef TVector[np.float32_t] object_embedding_data
     if len(src_array) != embedding_dimension:
         raise CatBoostError(
@@ -2446,7 +2502,7 @@ cdef TVector[np.float32_t] get_embedding_array_as_vector(
 
     # TODO(akhropov): make yresize accessible in Cython
     object_embedding_data.resize(embedding_dimension)
-    for element_idx in range(embedding_dimension):
+    for element_idx in xrange(embedding_dimension):
         try:
             object_embedding_data[element_idx] = _FloatOrNan(src_array[element_idx])
         except TypeError as e:
@@ -2463,7 +2519,7 @@ cdef TVector[np.float32_t] get_embedding_array_as_vector(
 
 
 # returns new data holders array
-cdef get_embedding_array_data(
+cdef inline get_embedding_array_data(
     ui32 object_idx,
     ui32 flat_feature_idx,
     size_t embedding_dimension,
@@ -2525,7 +2581,7 @@ cdef create_embedding_factor_data(
             <const TEmbeddingData*>nullptr
         )
         return []
-    elif isinstance(column_values[0], np.ndarray) and (column_values[0].dtype in numpy_num_dtype_list):
+    elif isinstance(column_values[0], np.ndarray) and (column_values[0].dtype in numpy_num_or_bool_dtype_list):
         py_embedding_factor_data, data_holders = make_embedding_type_cast_array_holder(
             flat_feature_idx,
             column_values[0],
@@ -2535,7 +2591,7 @@ cdef create_embedding_factor_data(
         return data_holders
     else:
         data.reserve(object_count)
-        for object_idx in range(object_count):
+        for object_idx in xrange(object_count):
             object_embedding_data = get_embedding_array_as_vector(
                 object_idx,
                 flat_feature_idx,
@@ -2626,7 +2682,7 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
 
     if is_cat_feature:
         cat_factor_data[0].clear()
-        for non_default_idx in range(non_default_values.shape[0]):
+        for non_default_idx in xrange(non_default_values.shape[0]):
             get_cat_factor_bytes_representation(
                 non_default_idx,
                 flat_feature_idx,
@@ -2673,6 +2729,30 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
     return new_data_holders
 
 
+cdef _set_hashed_cat_values(
+    ui32 flat_feature_idx,
+    const categories_codes_dtype[:] categories_codes,
+    TConstArrayRef[ui32] categories_as_hashed_cat_values_ref,
+    TArrayRef[ui32] hashed_cat_values_ref
+):
+    cdef ui32 doc_count = categories_codes.shape[0]
+
+    cdef categories_codes_dtype category_code
+    cdef ui32 doc_idx
+
+
+    for doc_idx in xrange(doc_count):
+        category_code = categories_codes[doc_idx]
+        if category_code == -1:
+            raise CatBoostError(
+                'Invalid type for cat_feature[object_idx={},feature_idx={}]=NaN :'
+                ' cat_features must be integer or string, real number values and NaN values'
+                ' should be converted to string.'.format(doc_idx, flat_feature_idx)
+            )
+
+        hashed_cat_values_ref[doc_idx] = categories_as_hashed_cat_values_ref[category_code]
+
+
 cdef _set_features_order_data_pd_data_frame_categorical_column(
     ui32 flat_feature_idx,
     object column_values, # pd.Categorical, but Cython requires cimport to provide type here
@@ -2684,23 +2764,20 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
     IRawFeaturesOrderDataVisitor* builder_visitor
 ):
     cdef ui32 categories_size = len(column_values.categories)
-
-    cdef np.ndarray categories_codes = column_values.codes
-    cdef ui32 doc_count = categories_codes.shape[0]
+    cdef ui32 doc_count = len(column_values.codes)
 
     # access through TArrayRef is faster
     cdef TArrayRef[ui32] categories_as_hashed_cat_values_ref
+
     cdef TVector[ui32] hashed_cat_values
+    cdef TArrayRef[ui32] hashed_cat_values_ref
 
     cdef ui32 category_idx
-    cdef ui32 doc_idx
-    cdef i32 category_code
-
 
     # TODO(akhropov): make yresize accessible in Cython
     categories_as_hashed_cat_values[0].resize(categories_size)
     categories_as_hashed_cat_values_ref = <TArrayRef[ui32]>categories_as_hashed_cat_values[0]
-    for category_idx in range(categories_size):
+    for category_idx in xrange(categories_size):
         try:
             get_id_object_bytes_string_representation(column_values.categories[category_idx], factor_string)
         except CatBoostError:
@@ -2717,16 +2794,73 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
 
     # TODO(akhropov): make yresize accessible in Cython
     hashed_cat_values.resize(doc_count)
-    for doc_idx in range(doc_count):
-        category_code = categories_codes[doc_idx]
-        if category_code == -1:
-            raise CatBoostError(
-                'Invalid type for cat_feature[object_idx={},feature_idx={}]=NaN :'
-                ' cat_features must be integer or string, real number values and NaN values'
-                ' should be converted to string.'.format(doc_idx, flat_feature_idx)
-            )
+    hashed_cat_values_ref = <TArrayRef[ui32]>hashed_cat_values
 
-        hashed_cat_values[doc_idx] = categories_as_hashed_cat_values_ref[category_code]
+    categories_codes_dtype = column_values.codes.dtype
+
+    if categories_codes_dtype == np.int8:
+        _set_hashed_cat_values[np.int8_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.int16:
+        _set_hashed_cat_values[np.int16_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.int32:
+        _set_hashed_cat_values[np.int32_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.int64:
+        _set_hashed_cat_values[np.int64_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.uint8:
+        _set_hashed_cat_values[np.uint8_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.uint16:
+        _set_hashed_cat_values[np.uint16_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.uint32:
+        _set_hashed_cat_values[np.uint32_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    elif categories_codes_dtype == np.uint64:
+        _set_hashed_cat_values[np.uint64_t](
+            flat_feature_idx,
+            column_values.codes,
+            <TConstArrayRef[ui32]>categories_as_hashed_cat_values_ref,
+            hashed_cat_values_ref
+        )
+    else:
+        raise TypeError(
+            "Unexpected dtype of pandas.Categorical.codes for feature_idx={}: {} ".format(
+                flat_feature_idx,
+                categories_codes_dtype
+            )
+        )
 
     builder_visitor[0].AddCatFeature(
         flat_feature_idx,
@@ -2798,7 +2932,7 @@ cdef object _set_features_order_data_pd_data_frame(
             column_values = column_data.to_numpy()
             if is_cat_feature_mask[flat_feature_idx]:
                 string_factor_data.clear()
-                for doc_idx in range(doc_count):
+                for doc_idx in xrange(doc_count):
                     get_cat_factor_bytes_representation(
                         doc_idx,
                         flat_feature_idx,
@@ -2809,7 +2943,7 @@ cdef object _set_features_order_data_pd_data_frame(
                 builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
             elif is_text_feature_mask[flat_feature_idx]:
                 string_factor_data.clear()
-                for doc_idx in range(doc_count):
+                for doc_idx in xrange(doc_count):
                     get_text_factor_bytes_representation(
                         doc_idx,
                         flat_feature_idx,
@@ -2840,8 +2974,7 @@ cdef _set_data_np(
     const float [:,:] num_feature_values,
     object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
     bool_t has_separate_embedding_features_data,
-    const TFeaturesLayout* features_layout,
-    IRawObjectsOrderDataVisitor* builder_visitor
+    Py_ObjectsOrderBuilderVisitor py_builder_visitor
 ):
     if (num_feature_values is None) and (cat_feature_values is None):
         raise CatBoostError('both num_feature_values and cat_feature_values are empty')
@@ -2849,32 +2982,61 @@ cdef _set_data_np(
     cdef ui32 doc_count = <ui32>(
         num_feature_values.shape[0] if num_feature_values is not None else cat_feature_values.shape[0]
     )
+    if doc_count == 0:
+        return
+
+    cdef IRawObjectsOrderDataVisitor* builder_visitor
+    py_builder_visitor.get_raw_objects_order_data_visitor(&builder_visitor)
+
+    cdef const TFeaturesLayout* features_layout
+    py_builder_visitor.get_features_layout(&features_layout)
 
     cdef TVector[ui32] main_data_feature_idx_to_dst_feature_idx = _get_main_data_feature_idx_to_dst_feature_idx(features_layout, has_separate_embedding_features_data)
+    cdef TConstArrayRef[ui32] main_data_feature_idx_to_dst_feature_idx_ref = <TConstArrayRef[ui32]>main_data_feature_idx_to_dst_feature_idx
+
     cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
     cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
+
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
+    cdef TConstArrayRef[bool_t] is_cat_feature_ref = <TConstArrayRef[bool_t]>is_cat_feature_mask
+    cdef TConstArrayRef[bool_t] empty_mask
 
     cdef ui32 doc_idx
     cdef ui32 num_feature_idx
     cdef ui32 cat_feature_idx
 
+    cdef future[void] num_features_future
+
+    if num_feature_count > 0:
+        AsyncSetDataFromCythonMemoryViewCOrder[np.float32_t](
+            doc_count,
+            &num_feature_values[0, 0],
+            num_feature_values.strides[0] / sizeof(np.float32_t),
+            num_feature_values.strides[1] / sizeof(np.float32_t),
+            has_separate_embedding_features_data,
+            TConstArrayRef[ui32](&main_data_feature_idx_to_dst_feature_idx_ref[0], num_feature_count),
+            empty_mask,
+            builder_visitor,
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get(),
+            &num_features_future
+        )
+
     cdef ui32 src_feature_idx
-    for doc_idx in range(doc_count):
-        src_feature_idx = <ui32>0
-        for num_feature_idx in range(num_feature_count):
-            builder_visitor[0].AddFloatFeature(
-                doc_idx,
-                main_data_feature_idx_to_dst_feature_idx[src_feature_idx],
-                num_feature_values[doc_idx, num_feature_idx]
-            )
-            src_feature_idx += 1
-        for cat_feature_idx in range(cat_feature_count):
-            builder_visitor[0].AddCatFeature(
-                doc_idx,
-                main_data_feature_idx_to_dst_feature_idx[src_feature_idx],
-                <TStringBuf>to_arcadia_string(cat_feature_values[doc_idx, cat_feature_idx])
-            )
-            src_feature_idx += 1
+
+    if cat_feature_values is not None:
+        for doc_idx in xrange(doc_count):
+            src_feature_idx = num_feature_count
+            for cat_feature_idx in xrange(cat_feature_count):
+                builder_visitor[0].AddCatFeature(
+                    doc_idx,
+                    main_data_feature_idx_to_dst_feature_idx[src_feature_idx],
+                    <TStringBuf>to_arcadia_string(cat_feature_values[doc_idx, cat_feature_idx])
+                )
+                src_feature_idx += 1
+
+    if num_features_future.valid():
+        num_features_future.get()
+
 
 # scipy.sparse matrixes always have default value 0
 cdef _set_cat_features_default_values_for_scipy_sparse(
@@ -2902,7 +3064,7 @@ cdef _get_categorical_feature_value_from_scipy_sparse(
     else:
         factor_string_buf[0] = ToString[i64](<i64>value)
 
-cdef _add_single_feature_value_from_scipy_sparse(
+cdef inline _add_single_feature_value_from_scipy_sparse(
     int doc_idx,
     ui32 feature_idx,
     value,
@@ -2957,7 +3119,7 @@ cdef _set_data_from_scipy_bsr_sparse(
         doc_block_start_idx = doc_block_idx * doc_block_size
         indptr_begin = data.indptr[doc_block_idx]
         indptr_end = data.indptr[doc_block_idx + 1]
-        for indptr in range(indptr_begin, indptr_end, 1):
+        for indptr in xrange(indptr_begin, indptr_end, 1):
             feature_block_idx = data.indices[indptr]
             feature_block_start_idx = feature_block_idx * feature_block_size
             values_block = data.data[indptr]
@@ -3005,9 +3167,8 @@ cdef _set_data_from_scipy_coo_sparse(
         )
 
 
-@cython.boundscheck(False)
 def _set_data_from_scipy_csr_sparse(
-    numpy_num_dtype[:] data,
+    numpy_num_or_bool_dtype[:] data,
     numpy_indices_dtype[:] indices,
     numpy_indices_dtype[:] indptr,
     bool_t has_separate_embedding_features_data,
@@ -3040,9 +3201,9 @@ def _set_data_from_scipy_csr_sparse(
     cdef TConstArrayRef[ui32] indptr_i32_ref = TConstArrayRef[ui32](<ui32*>&indptr_i32[0], len(indptr_i32))
     cdef TConstArrayRef[ui32] indices_i32_ref = TConstArrayRef[ui32](<ui32*>&indices_i32[0], len(indices_i32))
 
-    cdef np.ndarray[numpy_num_dtype, ndim=1] data_np
+    cdef np.ndarray[numpy_num_or_bool_dtype, ndim=1] data_np
 
-    if numpy_num_dtype == np.float32_t:
+    if numpy_num_or_bool_dtype == np.float32_t:
         data_np = cast_to_nparray(data, np.float32)
         return SetDataFromScipyCsrSparse[np.float32_t](
             indptr_i32_ref,
@@ -3054,7 +3215,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
-    elif numpy_num_dtype == np.float64_t:
+    elif numpy_num_or_bool_dtype == np.float64_t:
         data_np = cast_to_nparray(data, np.float64)
         return SetDataFromScipyCsrSparse[np.float64_t](
             indptr_i32_ref,
@@ -3066,7 +3227,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
-    elif numpy_num_dtype == np.int8_t:
+    elif numpy_num_or_bool_dtype == np.int8_t:
         data_np = cast_to_nparray(data, np.int8)
         return SetDataFromScipyCsrSparse[np.int8_t](
             indptr_i32_ref,
@@ -3078,7 +3239,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
-    elif numpy_num_dtype == np.uint8_t:
+    elif numpy_num_or_bool_dtype == np.uint8_t:
         data_np = cast_to_nparray(data, np.uint8)
         return SetDataFromScipyCsrSparse[np.uint8_t](
             indptr_i32_ref,
@@ -3090,7 +3251,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
-    elif numpy_num_dtype == np.int16_t:
+    elif numpy_num_or_bool_dtype == np.int16_t:
         data_np = cast_to_nparray(data, np.int16)
         return SetDataFromScipyCsrSparse[np.int16_t](
             indptr_i32_ref,
@@ -3102,7 +3263,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
-    elif numpy_num_dtype == np.uint16_t:
+    elif numpy_num_or_bool_dtype == np.uint16_t:
         data_np = cast_to_nparray(data, np.uint16)
         return SetDataFromScipyCsrSparse[np.uint16_t](
             indptr_i32_ref,
@@ -3114,7 +3275,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
-    elif numpy_num_dtype == np.int32_t:
+    elif numpy_num_or_bool_dtype == np.int32_t:
         data_np = cast_to_nparray(data, np.int32)
         return SetDataFromScipyCsrSparse[np.int32_t](
             indptr_i32_ref,
@@ -3126,7 +3287,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
-    elif numpy_num_dtype == np.uint32_t:
+    elif numpy_num_or_bool_dtype == np.uint32_t:
         data_np = cast_to_nparray(data, np.uint32)
         return SetDataFromScipyCsrSparse[np.uint32_t](
             indptr_i32_ref,
@@ -3138,7 +3299,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
-    elif numpy_num_dtype == np.int64_t:
+    elif numpy_num_or_bool_dtype == np.int64_t:
         data_np = cast_to_nparray(data, np.int64)
         return SetDataFromScipyCsrSparse[np.int64_t](
             indptr_i32_ref,
@@ -3150,7 +3311,7 @@ def _set_data_from_scipy_csr_sparse(
             builder_visitor,
             <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
-    elif numpy_num_dtype == np.uint64_t:
+    elif numpy_num_or_bool_dtype == np.uint64_t:
         data_np = cast_to_nparray(data, np.uint64)
         return SetDataFromScipyCsrSparse[np.uint64_t](
             indptr_i32_ref,
@@ -3267,7 +3428,7 @@ cdef _set_objects_order_data_scipy_sparse_matrix(
 # returns new data holders array
 def _set_features_order_data_scipy_sparse_csc_matrix(
     ui32 doc_count,
-    numpy_num_dtype [:] data,
+    numpy_num_or_bool_dtype [:] data,
     numpy_indices_dtype [:] indices,
     numpy_indices_dtype [:] indptr,
     bool_t has_sorted_indices,
@@ -3305,7 +3466,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
     cdef int indptr_begin
     cdef int indptr_end
 
-    if (numpy_num_dtype is np.float32_t) or (numpy_num_dtype is np.float64_t):
+    if (numpy_num_or_bool_dtype is np.float32_t) or (numpy_num_or_bool_dtype is np.float64_t):
         is_float_value = True
 
     new_data_holders = []
@@ -3322,7 +3483,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
             cat_feature_values.clear()
             indptr_begin = indptr[src_feature_idx]
             indptr_end = indptr[src_feature_idx + 1]
-            for data_idx in range(indptr_begin, indptr_end, 1):
+            for data_idx in xrange(indptr_begin, indptr_end):
                 value = data[data_idx]
                 _get_categorical_feature_value_from_scipy_sparse(
                     indices[data_idx],
@@ -3467,9 +3628,9 @@ cdef _set_data(data, embedding_features_data, feature_names, const TFeaturesLayo
     new_data_holders = []
 
     if isinstance(data, FeaturesData):
-        _set_data_np(data.num_feature_data, data.cat_feature_data, embedding_features_data is not None, features_layout, py_builder_visitor.builder_visitor)
+        _set_data_np(data.num_feature_data, data.cat_feature_data, embedding_features_data is not None, py_builder_visitor)
     elif isinstance(data, np.ndarray) and data.dtype == np.float32:
-        _set_data_np(data, None, embedding_features_data is not None, features_layout, py_builder_visitor.builder_visitor)
+        _set_data_np(data, None, embedding_features_data is not None, py_builder_visitor)
     elif isinstance(data, SPARSE_MATRIX_TYPES):
         _set_objects_order_data_scipy_sparse_matrix(data, embedding_features_data is not None, features_layout, py_builder_visitor)
     else:
@@ -3486,7 +3647,7 @@ cdef _set_data(data, embedding_features_data, feature_names, const TFeaturesLayo
     return new_data_holders
 
 
-cdef TString obj_to_arcadia_string(obj) except *:
+cdef inline TString obj_to_arcadia_string(obj) except *:
     INT64_MIN = -9223372036854775808
     INT64_MAX =  9223372036854775807
     cdef type obj_type = type(obj)
@@ -3509,7 +3670,7 @@ ctypedef fused IBuilderVisitor:
 
 
 cdef TVector[TPair] _make_pairs_vector(pairs, pairs_weight=None) except *:
-    if pairs_weight:
+    if pairs_weight is not None:
         if len(pairs) != len(pairs_weight):
             raise CatBoostError(
                 'len(pairs_weight) = {} is not equal to len(pairs) = {} '.format(
@@ -3523,7 +3684,7 @@ cdef TVector[TPair] _make_pairs_vector(pairs, pairs_weight=None) except *:
     for pair_idx, pair in enumerate(pairs):
         pairs_vector[pair_idx].WinnerId = <ui32>pair[0]
         pairs_vector[pair_idx].LoserId = <ui32>pair[1]
-        pairs_vector[pair_idx].Weight = <float>(pairs_weight[pair_idx] if pairs_weight else 1.0)
+        pairs_vector[pair_idx].Weight = <float>(pairs_weight[pair_idx] if pairs_weight is not None else 1.0)
     return pairs_vector
 
 
@@ -3545,7 +3706,7 @@ cdef _set_weight_features_order(weight, IRawFeaturesOrderDataVisitor* builder_vi
         weightVector.push_back(float(weight[i]))
     builder_visitor[0].AddWeights(<TConstArrayRef[float]>weightVector)
 
-cdef TGroupId _calc_group_id_for(i, py_group_ids) except *:
+cdef inline TGroupId _calc_group_id_for(i, py_group_ids) except *:
     cdef TString id_as_strbuf
 
     try:
@@ -3579,7 +3740,7 @@ cdef _set_group_weight_features_order(group_weight, IRawFeaturesOrderDataVisitor
         groupWeightVector.push_back(float(group_weight[i]))
     builder_visitor[0].AddGroupWeights(<TConstArrayRef[float]>groupWeightVector)
 
-cdef TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids) except *:
+cdef inline TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids) except *:
     cdef TString id_as_strbuf
 
     try:
@@ -3601,7 +3762,7 @@ cdef _set_subgroup_id(subgroup_id, IBuilderVisitor* builder_visitor):
 cdef _set_baseline(baseline, IRawObjectsOrderDataVisitor* builder_visitor):
     cdef ui32 baseline_len = len(baseline)
     cdef int i
-    for i in range(baseline_len):
+    for i in xrange(baseline_len):
         for j, value in enumerate(baseline[i]):
             builder_visitor[0].AddBaseline(i, j, float(value))
 
@@ -3612,7 +3773,7 @@ cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builde
     for baseline_idx in xrange(baseline_count):
         one_dim_baseline.clear()
         one_dim_baseline.reserve(len(baseline))
-        for i in range(len(baseline)):
+        for i in xrange(len(baseline)):
             one_dim_baseline.push_back(float(baseline[i][baseline_idx]))
         builder_visitor[0].AddBaseline(baseline_idx, <TConstArrayRef[float]>one_dim_baseline)
 
@@ -3623,10 +3784,8 @@ cdef _set_timestamp(timestamp, IBuilderVisitor* builder_visitor):
         builder_visitor[0].AddTimestamp(i, <ui64>timestamp[i])
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
 def _set_label_from_num_nparray_objects_order(
-    np.ndarray[numpy_num_dtype, ndim=2] label,
+    np.ndarray[numpy_num_or_bool_dtype, ndim=2] label,
     Py_ObjectsOrderBuilderVisitor py_builder_visitor
 ):
 
@@ -3641,12 +3800,14 @@ def _set_label_from_num_nparray_objects_order(
     cdef ui32 target_idx
     cdef ui32 object_idx
 
-    for target_idx in range(target_count):
-        for object_idx in range(object_count):
+    for target_idx in xrange(target_count):
+        for object_idx in xrange(object_count):
             builder_visitor[0].AddTarget(target_idx, object_idx, <float>label[object_idx][target_idx])
 
-cdef ERawTargetType _py_target_type_to_raw_target_data(py_label_type) except *:
-    if np.issubdtype(py_label_type, np.floating):
+cdef ERawTargetType _py_target_type_to_raw_target_data(py_label_type) noexcept:
+    if py_label_type in (bool, np.bool_):
+        return ERawTargetType_Boolean
+    elif np.issubdtype(py_label_type, np.floating):
         return ERawTargetType_Float
     elif np.issubdtype(py_label_type, np.integer):
         return ERawTargetType_Integer
@@ -3689,20 +3850,20 @@ cdef class _PoolBase:
 
         self.target_type = type(label[0][0])
         raw_target_type = _py_target_type_to_raw_target_data(self.target_type)
-        if (raw_target_type == ERawTargetType_Integer) or (raw_target_type == ERawTargetType_Float):
-            if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):
+        if raw_target_type in (ERawTargetType_Boolean, ERawTargetType_Integer, ERawTargetType_Float):
+            if isinstance(label, np.ndarray) and (self.target_type in numpy_num_or_bool_dtype_list):
                 _set_label_from_num_nparray_objects_order(label, py_builder_visitor)
             else:
-                for target_idx in range(target_count):
-                    for object_idx in range(object_count):
+                for target_idx in xrange(target_count):
+                    for object_idx in xrange(object_count):
                         builder_visitor[0].AddTarget(
                             target_idx,
                             object_idx,
                             <float>(label[object_idx][target_idx])
                         )
         else:
-            for target_idx in range(target_count):
-                for object_idx in range(object_count):
+            for target_idx in xrange(target_count):
+                for object_idx in xrange(object_count):
                     builder_visitor[0].AddTarget(
                         target_idx,
                         object_idx,
@@ -3721,14 +3882,14 @@ cdef class _PoolBase:
 
         self.target_type = type(label[0][0])
         raw_target_type = _py_target_type_to_raw_target_data(self.target_type)
-        if (raw_target_type == ERawTargetType_Integer) or (raw_target_type == ERawTargetType_Float):
+        if raw_target_type in (ERawTargetType_Boolean, ERawTargetType_Integer, ERawTargetType_Float):
             self.__target_data_holders = []
-            for target_idx in range(target_count):
-                if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):
+            for target_idx in xrange(target_count):
+                if isinstance(label, np.ndarray) and (self.target_type in numpy_num_or_bool_dtype_list):
                     target_array = np.ascontiguousarray(label[:, target_idx])
                 else:
                     target_array = np.empty(object_count, dtype=np.float32)
-                    for object_idx in range(object_count):
+                    for object_idx in xrange(object_count):
                         target_array[object_idx] = label[object_idx][target_idx]
 
                 self.__target_data_holders.append(target_array)
@@ -3737,9 +3898,9 @@ cdef class _PoolBase:
                 builder_visitor[0].AddTarget(target_idx, num_target_data)
         else:
             string_target_data.reserve(object_count)
-            for target_idx in range(target_count):
+            for target_idx in xrange(target_count):
                 string_target_data.clear()
-                for object_idx in range(object_count):
+                for object_idx in xrange(object_count):
                     string_target_data.push_back(obj_to_arcadia_string(label[object_idx][target_idx]))
                 builder_visitor[0].AddTarget(target_idx, <TConstArrayRef[TString]>string_target_data)
 
@@ -4040,7 +4201,7 @@ cdef class _PoolBase:
         elif isinstance(data, scipy.sparse.csc_matrix):
             do_use_raw_data_in_features_order = True
         else:
-            if isinstance(data, np.ndarray) and (data.dtype in numpy_num_dtype_list):
+            if isinstance(data, np.ndarray) and (data.dtype in numpy_num_or_bool_dtype_list):
                 if data.flags.aligned and data.flags.f_contiguous and (len(data) != 0):
                     do_use_raw_data_in_features_order = True
 
@@ -4101,7 +4262,7 @@ cdef class _PoolBase:
         cdef TVector[TGroupId] group_id_vector
         group_id_vector.reserve(rows)
 
-        for i in range(rows):
+        for i in xrange(rows):
             group_id_vector.push_back(_calc_group_id_for(i, group_id))
 
         self.__pool.Get()[0].SetGroupIds(
@@ -4121,7 +4282,7 @@ cdef class _PoolBase:
         cdef TVector[TSubgroupId] subgroup_id_vector
         subgroup_id_vector.reserve(rows)
 
-        for i in range(rows):
+        for i in xrange(rows):
             subgroup_id_vector.push_back(_calc_subgroup_id_for(i, subgroup_id))
 
         self.__pool.Get()[0].SetSubgroupIds(
@@ -4131,7 +4292,7 @@ cdef class _PoolBase:
     cpdef _set_pairs_weight(self, pairs_weight):
         cdef TConstArrayRef[TPair] old_pairs = GetUngroupedPairs(self.__pool.Get()[0])
         cdef TVector[TPair] new_pairs
-        for i in range(old_pairs.size()):
+        for i in xrange(old_pairs.size()):
             new_pairs.push_back(TPair(old_pairs[i].WinnerId, old_pairs[i].LoserId, pairs_weight[i]))
         self.__pool.Get()[0].SetPairs(TConstArrayRef[TPair](new_pairs.data(), new_pairs.size()))
 
@@ -4143,14 +4304,14 @@ cdef class _PoolBase:
         cdef TVector[TConstArrayRef[float]] baseline_matrix_view # [approxIdx][objectIdx]
         baseline_matrix.resize(approx_dimension)
         baseline_matrix_view.resize(approx_dimension)
-        for j in range(approx_dimension):
+        for j in xrange(approx_dimension):
             baseline_matrix[j].resize(rows)
             baseline_matrix_view[j] = TConstArrayRef[float](
                 baseline_matrix[j].data(),
                 baseline_matrix[j].size()
             )
 
-        for i in range(rows):
+        for i in xrange(rows):
             for j, value in enumerate(baseline[i]):
                 baseline_matrix[j][i] = float(value)
 
@@ -4267,10 +4428,10 @@ cdef class _PoolBase:
 
         if maybe_factor_data.Defined():
             factor_data = maybe_factor_data.GetRef()[0].ExtractValues(local_executor)
-            for doc in range(self.num_row()):
+            for doc in xrange(self.num_row()):
                 dst_data[doc, factor_idx] = factor_data[doc]
         else:
-            for doc in range(self.num_row()):
+            for doc in xrange(self.num_row()):
                 dst_data[doc, factor_idx] = np.float32(0)
 
 
@@ -4295,7 +4456,7 @@ cdef class _PoolBase:
 
         data = np.empty(self.shape, dtype=np.float32)
 
-        for factor in range(self.num_col()):
+        for factor in xrange(self.num_col()):
             self._get_feature(raw_objects_data_provider, factor, <ILocalExecutor*>local_executor.Get(), data)
 
         return data
@@ -4333,7 +4494,7 @@ cdef class _PoolBase:
                 return np.array(self.__target_data_holders).T
         else:
             raw_target_type = self.__pool.Get()[0].RawTargetData.GetTargetType()
-            if (raw_target_type == ERawTargetType_Integer) or (raw_target_type == ERawTargetType_Float):
+            if raw_target_type in (ERawTargetType_Boolean, ERawTargetType_Integer, ERawTargetType_Float):
                 num_target_references.resize(target_count)
                 if target_count == 1:
                     num_target_1d = np.empty(object_count, dtype=np.float32)
@@ -4344,7 +4505,7 @@ cdef class _PoolBase:
                     return num_target_1d.astype(self.target_type)
                 else:
                     num_target_2d = np.empty((object_count, target_count), dtype=np.float32, order='F')
-                    for target_idx in range(target_count):
+                    for target_idx in xrange(target_count):
                         num_target_references[target_idx] = TArrayRef[float](
                             &num_target_2d[0, target_idx],
                             object_count
@@ -4380,7 +4541,8 @@ cdef class _PoolBase:
         cat_feature_indices : list
         """
         cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
-        return [int(i) for i in featuresLayout[0].GetCatFeatureInternalIdxToExternalIdx()]
+        cdef TConstArrayRef[ui32] cat_feature_indices = featuresLayout[0].GetCatFeatureInternalIdxToExternalIdx()
+        return [int(i) for i in cat_feature_indices]
 
     cpdef get_text_feature_indices(self):
         """
@@ -4391,7 +4553,8 @@ cdef class _PoolBase:
         text_feature_indices : list
         """
         cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
-        return [int(i) for i in featuresLayout[0].GetTextFeatureInternalIdxToExternalIdx()]
+        cdef TConstArrayRef[ui32] text_feature_indices = featuresLayout[0].GetTextFeatureInternalIdxToExternalIdx()
+        return [int(i) for i in text_feature_indices]
 
     cpdef get_embedding_feature_indices(self):
         """
@@ -4402,7 +4565,8 @@ cdef class _PoolBase:
         embedding_feature_indices : list
         """
         cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
-        return [int(i) for i in featuresLayout[0].GetEmbeddingFeatureInternalIdxToExternalIdx()]
+        cdef TConstArrayRef[ui32] embedding_feature_indices = featuresLayout[0].GetEmbeddingFeatureInternalIdxToExternalIdx()
+        return [int(i) for i in embedding_feature_indices]
 
     cpdef get_weight(self):
         """
@@ -4453,8 +4617,8 @@ cdef class _PoolBase:
         if maybe_baseline.Defined():
             baseline = maybe_baseline.GetRef()
             result = np.empty((self.num_row(), baseline.size()), dtype=np.float32)
-            for baseline_idx in range(baseline.size()):
-                for object_idx in range(self.num_row()):
+            for baseline_idx in xrange(baseline.size()):
+                for object_idx in xrange(self.num_row()):
                     result[object_idx, baseline_idx] = baseline[baseline_idx][object_idx]
             return result
         else:
@@ -4555,7 +4719,7 @@ cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2, bool_t ignore_spars
     )
 
 
-cdef pair[int, int] _check_and_get_interaction_indices(_PoolBase pool, interaction_indices):
+cdef pair[int, int] _check_and_get_interaction_indices(_PoolBase pool, interaction_indices) except *:
     cdef pair[int, int] pair_of_features
     if not isinstance(interaction_indices, list):
         raise CatBoostError(
@@ -4568,7 +4732,7 @@ cdef pair[int, int] _check_and_get_interaction_indices(_PoolBase pool, interacti
         if not isinstance(interaction_indices[1], str):
             raise CatBoostError(
                 "interaction_indices must have one type")
-        for idx in range(0, len(feature_names)):
+        for idx in xrange(0, len(feature_names)):
             if interaction_indices[0] == feature_names[idx]:
                 pair_of_features.first = idx
             if interaction_indices[1] == feature_names[idx]:
@@ -4607,17 +4771,19 @@ cdef _get_model_class_labels(const TFullModel& model):
     cdef EJsonValueType labelType = jsonLabels[0].GetType()
     cdef size_t classIdx
 
-    if labelType == JSON_INTEGER:
+    if labelType == JSON_BOOLEAN:
+        labels = np.array([False, True])
+    elif labelType == JSON_INTEGER:
         labels = np.empty(classCount, np.int64)
-        for classIdx in range(classCount):
+        for classIdx in xrange(classCount):
             labels[classIdx] = jsonLabels[classIdx].GetInteger()
     elif labelType == JSON_DOUBLE:
         labels = np.empty(classCount, np.float64)
-        for classIdx in range(classCount):
+        for classIdx in xrange(classCount):
             labels[classIdx] = jsonLabels[classIdx].GetDouble()
     elif labelType == JSON_STRING:
         labels = np.empty(classCount, object)
-        for classIdx in range(classCount):
+        for classIdx in xrange(classCount):
             labels[classIdx] = to_native_str(bytes(jsonLabels[classIdx].GetString()))
     else:
         raise CatBoostError('[Internal error] unexpected model class labels type')
@@ -4656,12 +4822,12 @@ cdef class _CatBoost:
 
     cpdef _reserve_test_evals(self, num_tests):
         self.__test_evals.resize(num_tests)
-        for i in range(num_tests):
+        for i in xrange(num_tests):
             if self.__test_evals[i] == NULL:
                 self.__test_evals[i] = new TEvalResult()
 
     cpdef _clear_test_evals(self):
-        for i in range(self.__test_evals.size()):
+        for i in xrange(self.__test_evals.size()):
             dereference(self.__test_evals[i]).ClearRawValues()
 
     cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool, maybe_init_model):
@@ -4736,7 +4902,7 @@ cdef class _CatBoost:
         num_tests = len(test_evals)
         self._reserve_test_evals(num_tests)
         self._clear_test_evals()
-        for test_no in range(num_tests):
+        for test_no in xrange(num_tests):
             for row in test_evals[test_no]:
                 for value in row:
                     vector.push_back(float(value))
@@ -4746,9 +4912,9 @@ cdef class _CatBoost:
     cpdef _get_test_evals(self):
         test_evals = []
         num_tests = self.__test_evals.size()
-        for test_no in range(num_tests):
+        for test_no in xrange(num_tests):
             test_eval = []
-            for i in range(self.__test_evals[test_no].GetRawValuesRef()[0].size()):
+            for i in xrange(self.__test_evals[test_no].GetRawValuesRef()[0].size()):
                 test_eval.append([value for value in dereference(self.__test_evals[test_no]).GetRawValuesRef()[0][i]])
             test_evals.append(test_eval)
         return test_evals
@@ -4763,7 +4929,7 @@ cdef class _CatBoost:
         best_scores["learn"] = {}
         for metric, best_error in self.__metrics_history.LearnBestError:
             best_scores["learn"][to_native_str(metric)] = best_error
-        for testIdx in range(self.__metrics_history.TestBestError.size()):
+        for testIdx in xrange(self.__metrics_history.TestBestError.size()):
             eval_set_name = "validation"
             if self.__metrics_history.TestBestError.size() > 1:
                 eval_set_name += "_" + str(testIdx)
@@ -4820,20 +4986,20 @@ cdef class _CatBoost:
         return transform_predictions(pred, predictionType, thread_count, self.__model)
 
     cpdef _base_virtual_ensembles_predict(self, _PoolBase pool, str prediction_type, int ntree_end, int virtual_ensembles_count, int thread_count, bool_t verbose):
-            cdef TVector[TVector[double]] pred
-            cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
-            thread_count = UpdateThreadCount(thread_count);
-            with nogil:
-                pred = ApplyUncertaintyPredictions(
-                    dereference(self.__model),
-                    dereference(pool.__pool.Get()),
-                    verbose,
-                    predictionType,
-                    ntree_end,
-                    virtual_ensembles_count,
-                    thread_count
-                )
-            return np.transpose(_2d_vector_of_double_to_np_array(pred))
+        cdef TVector[TVector[double]] pred
+        cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
+        thread_count = UpdateThreadCount(thread_count);
+        with nogil:
+            pred = ApplyUncertaintyPredictions(
+                dereference(self.__model),
+                dereference(pool.__pool.Get()),
+                verbose,
+                predictionType,
+                ntree_end,
+                virtual_ensembles_count,
+                thread_count
+            )
+        return np.transpose(_2d_vector_of_double_to_np_array(pred))
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         thread_count = UpdateThreadCount(thread_count);
@@ -4996,8 +5162,8 @@ cdef class _CatBoost:
             thread_count,
             verbose
         )
-        indices = [[int(value) for value in ostr.Indices[i]] for i in range(ostr.Indices.size())]
-        scores = [[float(value) for value in ostr.Scores[i]] for i in range(ostr.Scores.size())]
+        indices = [[int(value) for value in ostr.Indices[i]] for i in xrange(ostr.Indices.size())]
+        scores = [[float(value) for value in ostr.Scores[i]] for i in xrange(ostr.Scores.size())]
         if to_arcadia_string(ostr_type) == to_arcadia_string('Average'):
             indices = indices[0]
             scores = scores[0]
@@ -5031,6 +5197,7 @@ cdef class _CatBoost:
         tmp_model.Load(wrapper.Get())
         self.model_blob = None
         self.__model.Swap(tmp_model)
+        self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
@@ -5038,6 +5205,7 @@ cdef class _CatBoost:
         tmp_model = ReadModel(to_arcadia_string(fspath(model_file)), modelType)
         self.model_blob = None
         self.__model.Swap(tmp_model)
+        self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
         cdef EModelType modelType = string_to_model_type(format)
@@ -5071,6 +5239,7 @@ cdef class _CatBoost:
         self.model_blob = serialized_model_str
         cdef TFullModel tmp_model = ReadZeroCopyModel(<char*>serialized_model_str, len(serialized_model_str))
         self.__model.Swap(tmp_model)
+        self.__metrics_history = GetTrainingMetrics(self.__model[0])
 
     cpdef _get_params(self):
         try:
@@ -5130,7 +5299,7 @@ cdef class _CatBoost:
         if not TryFromString[ECtrTableMergePolicy](to_arcadia_string(ctr_merge_policy), merge_policy):
             raise CatBoostError("Unknown ctr table merge policy {}".format(ctr_merge_policy))
         assert(len(models) == len(weights))
-        for model_id in range(len(models)):
+        for model_id in xrange(len(models)):
             models_vector.push_back((<_CatBoost>models[model_id]).__model)
             weights_vector.push_back(weights[model_id])
         cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, model_prefix_vector, merge_policy)
@@ -5259,19 +5428,7 @@ cdef class _CatBoost:
             )
             result_metrics.add(name)
 
-        best_params = {}
-        for key, value in results.BoolOptions:
-            best_params[to_native_str(key)] = value
-        for key, value in results.IntOptions:
-            best_params[to_native_str(key)] = value
-        for key, value in results.UIntOptions:
-            best_params[to_native_str(key)] = value
-        for key, value in results.DoubleOptions:
-            best_params[to_native_str(key)] = value
-        for key, value in results.StringOptions:
-            best_params[to_native_str(key)] = to_native_str(value)
-        for key, value in results.ListOfDoublesOptions:
-            best_params[to_native_str(key)] = [float(elem) for elem in value]
+        best_params = loads(to_native_str(WriteTJsonValue(results.BestParams)))
         search_result = {}
         search_result["params"] = best_params
         if return_cv_results:
@@ -5383,10 +5540,10 @@ cdef class _CatBoost:
         self.__model.ModelTrees.GetMutable().GetModelTreeData().Get().SetLeafValues(model_leafs)
 
     cpdef _set_feature_names(self, feature_names):
-            cdef TVector[TString] feature_names_vector
-            for value in feature_names:
-                feature_names_vector.push_back(to_arcadia_string(str(value)))
-            SetModelExternalFeatureNames(feature_names_vector, self.__model)
+        cdef TVector[TString] feature_names_vector
+        for value in feature_names:
+            feature_names_vector.push_back(to_arcadia_string(str(value)))
+        SetModelExternalFeatureNames(feature_names_vector, self.__model)
 
     cpdef _convert_oblivious_to_asymmetric(self):
         self.__model.ModelTrees.GetMutable().ConvertObliviousToAsymmetric()
@@ -5500,7 +5657,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
     else:
         current_num = 0
         group_id_ptr = arr_group_ids.GetRef().data()
-        for idx in range(arr_group_ids.GetRef().size()):
+        for idx in xrange(arr_group_ids.GetRef().size()):
             if idx == 0 or group_id_ptr[idx] != group_id_ptr[idx - 1]:
                 map_group_id_to_group_number[group_id_ptr[idx]] = current_num
                 current_num = current_num + 1
@@ -5512,7 +5669,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
 
             custom_train_subsets.emplace_back()
 
-            for idx in range(len(train)):
+            for idx in xrange(len(train)):
                 current_group = group_id_ptr[train[idx]]
                 if idx == 0 or current_group != group_id_ptr[train[idx - 1]]:
                     custom_train_subsets.back().push_back(map_group_id_to_group_number[current_group])
@@ -5520,7 +5677,7 @@ cdef TCustomTrainTestSubsets _make_train_test_subsets(_PoolBase pool, folds) exc
 
             custom_test_subsets.emplace_back()
 
-            for idx in range(len(test)):
+            for idx in xrange(len(test)):
                 current_group = group_id_ptr[test[idx]]
 
                 if train_group_ids.contains(map_group_id_to_group_number[current_group]):
@@ -5602,7 +5759,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     if return_models:
         cv_models = []
         cvFullModels = results.front().CVFullModels
-        for i in range(<int>cvFullModels.size()):
+        for i in xrange(<int>cvFullModels.size()):
             catboost_model = _CatBoost()
             catboost_model.__model.Swap(cvFullModels[i])
             cv_models.append(catboost_model)
@@ -5610,15 +5767,16 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     return results_output
 
 
-cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
+cdef _convert_to_visible_labels(EPredictionType predictionType, const TVector[TVector[double]]& raws, int thread_count, TFullModel* model):
     cdef size_t objectCount
     cdef size_t objectIdx
     cdef size_t dim
     cdef size_t dimIdx
+    cdef TString loss_function
     cdef TConstArrayRef[double] raws1d
 
-    if predictionType == string_to_prediction_type('Class'):
-        loss_function = _get_loss_function_name(model[0])
+    if predictionType == EPredictionType_Class:
+        loss_function = model.GetLossFunctionName()
         if loss_function in ('MultiLogloss', 'MultiCrossEntropy'):
             return _2d_vector_of_double_to_np_array(raws).astype(int)
 
@@ -5630,7 +5788,7 @@ cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[
 
         class_label_type = type(model_class_labels[0])
         result = np.empty((1, objectCount), object if class_label_type == str else class_label_type)
-        for objectIdx in range(objectCount):
+        for objectIdx in xrange(objectCount):
             result[0][objectIdx] = model_class_labels[<ui32>raws1d[objectIdx]]
         return result
 
@@ -5641,16 +5799,16 @@ cdef _get_metrics_evals_pydict(TMetricsAndTimeLeftHistory history):
     metrics_evals = defaultdict(functools.partial(defaultdict, list))
 
     iteration_count = history.LearnMetricsHistory.size()
-    for iteration_num in range(iteration_count):
+    for iteration_num in xrange(iteration_count):
         for metric, value in history.LearnMetricsHistory[iteration_num]:
             metrics_evals["learn"][to_native_str(metric)].append(value)
 
     if not history.TestMetricsHistory.empty():
         test_count = 0
-        for i in range(iteration_count):
+        for i in xrange(iteration_count):
             test_count = max(test_count, history.TestMetricsHistory[i].size())
-        for iteration_num in range(iteration_count):
-            for test_index in range(history.TestMetricsHistory[iteration_num].size()):
+        for iteration_num in xrange(iteration_count):
+            for test_index in xrange(history.TestMetricsHistory[iteration_num].size()):
                 eval_set_name = "validation"
                 if test_count > 1:
                     eval_set_name += "_" + str(test_index)
@@ -5672,6 +5830,8 @@ cdef class _StagedPredictIterator:
     cdef bool_t verbose
 
     def __cinit__(self, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
+        if eval_period < 1:
+            raise CatBoostError('eval_period for staged_predict must be >= 1')
         self.predictionType = string_to_prediction_type(prediction_type)
         self.ntree_start = ntree_start
         self.ntree_end = ntree_end
@@ -5691,8 +5851,8 @@ cdef class _StagedPredictIterator:
         cdef TBaselineArrayRef baseline
         if maybe_baseline.Defined():
             baseline = maybe_baseline.GetRef()
-            for baseline_idx in range(baseline.size()):
-                for object_idx in range(pool.num_row()):
+            for baseline_idx in xrange(baseline.size()):
+                for object_idx in xrange(pool.num_row()):
                     self.__approx[object_idx][baseline_idx] = baseline[baseline_idx][object_idx]
 
     def __dealloc__(self):
@@ -5716,8 +5876,8 @@ cdef class _StagedPredictIterator:
         if self.__approx.empty():
             self.__approx.swap(self.__pred)
         else:
-            for i in range(self.__approx.size()):
-                for j in range(self.__approx[0].size()):
+            for i in xrange(self.__approx.size()):
+                for j in xrange(self.__approx[0].size()):
                     self.__approx[i][j] += self.__pred[i][j]
 
         self.ntree_start += self.eval_period
@@ -5861,7 +6021,12 @@ cdef class _MetricCalcerBase:
         raise CatBoostError('Can\'t deepcopy _MetricCalcerBase object')
 
 
-cdef to_tvector(np.ndarray[double, ndim=1, mode="c"] x):
+cdef TVector[float] to_tvector_float(np.ndarray[float, ndim=1, mode="c"] x) except +:
+    cdef TVector[float] result
+    result.assign(<float *>x.data, <float *>x.data + x.shape[0])
+    return result
+
+cdef TVector[double] to_tvector_double(np.ndarray[double, ndim=1, mode="c"] x) except +:
     cdef TVector[double] result
     result.assign(<double *>x.data, <double *>x.data + x.shape[0])
     return result
@@ -5876,18 +6041,18 @@ cpdef _eval_metric_util(
     doc_count = len(label_param[0]);
 
     cdef TVector[TVector[float]] label
-    for labelIdx in range(len(label_param)):
-        label.push_back(to_tvector(np.array(label_param[labelIdx], dtype='double').ravel()))
+    for labelIdx in xrange(len(label_param)):
+        label.push_back(to_tvector_float(np.array(label_param[labelIdx], dtype=np.float32).ravel()))
 
     cdef TVector[TVector[double]] approx
-    for i in range(len(approx_param)):
-        approx.push_back(to_tvector(np.array(approx_param[i], dtype='double').ravel()))
+    for i in xrange(len(approx_param)):
+        approx.push_back(to_tvector_double(np.array(approx_param[i], dtype=np.float64).ravel()))
 
     cdef TVector[float] weight
     if weight_param is not None:
         if (len(weight_param) != doc_count):
             raise CatBoostError('Label and weight should have same sizes.')
-        weight = to_tvector(np.array(weight_param, dtype='double').ravel())
+        weight = to_tvector_float(np.array(weight_param, dtype=np.float32).ravel())
 
     cdef TString group_id_strbuf
 
@@ -5896,7 +6061,7 @@ cpdef _eval_metric_util(
         if (len(group_id_param) != doc_count):
             raise CatBoostError('Label and group_id should have same sizes.')
         group_id.resize(doc_count)
-        for i in range(doc_count):
+        for i in xrange(doc_count):
             get_id_object_bytes_string_representation(group_id_param[i], &group_id_strbuf)
             group_id[i] = CalcGroupIdFor(<TStringBuf>group_id_strbuf)
 
@@ -5904,7 +6069,7 @@ cpdef _eval_metric_util(
     if group_weight_param is not None:
         if (len(group_weight_param) != doc_count):
             raise CatBoostError('Label and group weight should have same sizes.')
-        group_weight = to_tvector(np.array(group_weight_param, dtype='double').ravel())
+        group_weight = to_tvector_float(np.array(group_weight_param, dtype=np.float32).ravel())
 
     cdef TString subgroup_id_strbuf
 
@@ -5913,14 +6078,14 @@ cpdef _eval_metric_util(
         if (len(subgroup_id_param) != doc_count):
             raise CatBoostError('Label and subgroup_id should have same sizes.')
         subgroup_id.resize(doc_count)
-        for i in range(doc_count):
+        for i in xrange(doc_count):
             get_id_object_bytes_string_representation(subgroup_id_param[i], &subgroup_id_strbuf)
             subgroup_id[i] = CalcSubgroupIdFor(<TStringBuf>subgroup_id_strbuf)
 
     cdef TVector[TPair] pairs;
     if pairs_param is not None:
         pairs.resize(len(pairs_param))
-        for i in range(len(pairs_param)):
+        for i in xrange(len(pairs_param)):
             pairs[i] = TPair(pairs_param[i][0], pairs_param[i][1], 1)
 
     thread_count = UpdateThreadCount(thread_count);
@@ -5977,7 +6142,7 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
         rocCurve = TRocCurve(dereference((<_CatBoost>model).__model), pools, thread_count)
     else:
         size = len(curve[2])
-        for i in range(size):
+        for i in xrange(size):
             points.push_back(TRocPoint(curve[2][i], 1 - curve[1][i], curve[0][i]))
         rocCurve = TRocCurve(points)
 
@@ -6124,8 +6289,8 @@ cpdef convert_features_to_indices(indices_or_names, cd_path, pool_metainfo_path)
     return loads(to_native_str(WriteTJsonValue(indices_or_names_as_json)))
 
 
-cdef TArrayRef[float] get_array_ref(np.ndarray[np.float32_t, ndim=1] src):
-    return TArrayRef[float](<float*>src.data, <size_t>src.shape[0])
+cdef inline TArrayRef[float] get_array_ref(np.float32_t[::1] src) noexcept:
+    return TArrayRef[float](&src[0], <size_t>src.shape[0])
 
 
 cpdef get_num_feature_values_sample(
@@ -6217,22 +6382,25 @@ cpdef get_num_feature_values_sample(
 
 
 cpdef _check_train_params(dict params):
-    params_to_check = params.copy()
-    if 'cat_features' in params_to_check:
-        del params_to_check['cat_features']
-    if 'input_borders' in params_to_check:
-        del params_to_check['input_borders']
-    if 'ignored_features' in params_to_check:
-        del params_to_check['ignored_features']
-    if 'monotone_constraints' in params_to_check:
-        del params_to_check['monotone_constraints']
-    if 'feature_weights' in params_to_check:
-        del params_to_check['feature_weights']
-    if 'first_feature_use_penalties' in params_to_check:
-        del params_to_check['first_feature_use_penalties']
-    if 'per_object_feature_penalties' in params_to_check:
-        del params_to_check['per_object_feature_penalties']
+    skip_params = [
+        'cat_features',
+        'text_features',
+        'embedding_features',
+        'input_borders',
+        'ignored_features',
+        'monotone_constraints',
+        'feature_weights',
+        'first_feature_use_penalties',
+        'per_object_feature_penalties',
+        'per_float_feature_quantization',
+        'per_feature_ctr',
+        'fixed_binary_splits'
+    ]
 
+    params_to_check = {}
+    for key, value in iteritems(params):
+        if key not in skip_params:
+            params_to_check[key] = value
 
     prep_params = _PreprocessParams(params_to_check)
     CheckFitParams(

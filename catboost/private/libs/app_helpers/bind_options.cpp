@@ -1222,7 +1222,7 @@ void BindQuantizerDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJs
             }
             CB_ENSURE(!(*plainJsonPtr)["class_names"].GetArray().empty(), "Empty class names list" << namesLine);
         })
-        .Help("Takes effect only with MultiClass/LogLoss loss functions. Wihout this parameter classes are 0, 1, ..., classes-count - 1");
+        .Help("Takes effect only with classification. Without this parameter classes are 0, 1, ..., classes-count - 1");
 }
 
 void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
@@ -1251,7 +1251,7 @@ void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* 
         .Handler1T<int>([plainJsonPtr](const int classesCount) {
             (*plainJsonPtr).InsertValue("classes_count", classesCount);
         })
-        .Help("Takes effect only with MultiClass loss function. If classes-count is given (and class-names is not given), then each class label should be less than that number.");
+        .Help("Takes effect only with multiclassification. If classes-count is given (and class-names is not given), then each class label should be less than that number.");
 
     parser.AddLongOption("class-weights", "Weights for classes.")
         .RequiredArgument("comma separated list of weights")
@@ -1261,10 +1261,10 @@ void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* 
             }
             CB_ENSURE(!(*plainJsonPtr)["class_weights"].GetArray().empty(), "Empty class weights list " << weightsLine);
         })
-        .Help("Takes effect only with MultiClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
+        .Help("Takes effect only with classification. Number of classes indicated by classes-count, class-names and class-weights should be the same");
 
     const auto autoClassWeightsHelp = TString::Join(
-        "Takes effect only with MultiClass/LogLoss loss functions. Must be one of: ",
+        "Takes effect only with classification. Must be one of: ",
         GetEnumAllNames<EAutoClassWeightsType>(),
         ". Default: ",
         ToString(EAutoClassWeightsType::None));

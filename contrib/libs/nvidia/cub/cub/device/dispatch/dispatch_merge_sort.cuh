@@ -29,10 +29,11 @@
 #pragma clang system_header
 
 
-#include <cub/util_math.cuh>
-#include <cub/util_device.cuh>
-#include <cub/util_namespace.cuh>
 #include <cub/agent/agent_merge_sort.cuh>
+#include <cub/util_deprecated.cuh>
+#include <cub/util_device.cuh>
+#include <cub/util_math.cuh>
+#include <cub/util_namespace.cuh>
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 #include <thrust/detail/integer_math.h>
@@ -484,13 +485,33 @@ struct DispatchMergeSort : SelectedPolicy
   /// CUDA stream to launch kernels within. Default is stream<sub>0</sub>.
   cudaStream_t stream;
 
-  /// Whether or not to synchronize the stream after every kernel launch to
-  /// check for errors. Also causes launch configurations to be printed to the
-  /// console. Default is \p false.
-  bool debug_synchronous;
   int ptx_version;
 
   // Constructor
+  CUB_RUNTIME_FUNCTION __forceinline__
+  DispatchMergeSort(void *d_temp_storage,
+                    std::size_t &temp_storage_bytes,
+                    KeyInputIteratorT d_input_keys,
+                    ValueInputIteratorT d_input_items,
+                    KeyIteratorT d_output_keys,
+                    ValueIteratorT d_output_items,
+                    OffsetT num_items,
+                    CompareOpT compare_op,
+                    cudaStream_t stream,
+                    int ptx_version)
+      : d_temp_storage(d_temp_storage)
+      , temp_storage_bytes(temp_storage_bytes)
+      , d_input_keys(d_input_keys)
+      , d_input_items(d_input_items)
+      , d_output_keys(d_output_keys)
+      , d_output_items(d_output_items)
+      , num_items(num_items)
+      , compare_op(compare_op)
+      , stream(stream)
+      , ptx_version(ptx_version)
+  {}
+
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
   CUB_RUNTIME_FUNCTION __forceinline__
   DispatchMergeSort(void *d_temp_storage,
                     std::size_t &temp_storage_bytes,
@@ -512,9 +533,10 @@ struct DispatchMergeSort : SelectedPolicy
       , num_items(num_items)
       , compare_op(compare_op)
       , stream(stream)
-      , debug_synchronous(debug_synchronous)
       , ptx_version(ptx_version)
-  {}
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+  }
 
   // Invocation
   template <typename ActivePolicyT>
@@ -706,12 +728,10 @@ struct DispatchMergeSort : SelectedPolicy
 
       block_sort_launcher.launch();
 
-      if (debug_synchronous)
+      error = detail::DebugSyncStream(stream);
+      if (CubDebug(error))
       {
-        if (CubDebug(error = SyncStream(stream)))
-        {
-          break;
-        }
+        break;
       }
 
       // Check for failure to launch
@@ -771,12 +791,10 @@ struct DispatchMergeSort : SelectedPolicy
                 target_merged_tiles_number,
                 tile_size);
 
-        if (debug_synchronous)
+        error = detail::DebugSyncStream(stream);
+        if (CubDebug(error))
         {
-          if (CubDebug(error = SyncStream(stream)))
-          {
-            break;
-          }
+          break;
         }
 
         // Check for failure to launch
@@ -788,12 +806,10 @@ struct DispatchMergeSort : SelectedPolicy
         // Merge
         merge_launcher.launch(ping, target_merged_tiles_number);
 
-        if (debug_synchronous)
+        error = detail::DebugSyncStream(stream);
+        if (CubDebug(error))
         {
-          if (CubDebug(error = SyncStream(stream)))
-          {
-            break;
-          }
+          break;
         }
 
         // Check for failure to launch
@@ -817,8 +833,7 @@ struct DispatchMergeSort : SelectedPolicy
            ValueIteratorT d_output_items,
            OffsetT num_items,
            CompareOpT compare_op,
-           cudaStream_t stream,
-           bool debug_synchronous)
+           cudaStream_t stream)
   {
     using MaxPolicyT = typename DispatchMergeSort::MaxPolicy;
 
@@ -842,7 +857,6 @@ struct DispatchMergeSort : SelectedPolicy
                                  num_items,
                                  compare_op,
                                  stream,
-                                 debug_synchronous,
                                  ptx_version);
 
       // Dispatch to chained policy
@@ -853,6 +867,32 @@ struct DispatchMergeSort : SelectedPolicy
     } while (0);
 
     return error;
+  }
+
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+  CUB_RUNTIME_FUNCTION __forceinline__ static cudaError_t
+  Dispatch(void *d_temp_storage,
+           std::size_t &temp_storage_bytes,
+           KeyInputIteratorT d_input_keys,
+           ValueInputIteratorT d_input_items,
+           KeyIteratorT d_output_keys,
+           ValueIteratorT d_output_items,
+           OffsetT num_items,
+           CompareOpT compare_op,
+           cudaStream_t stream,
+           bool debug_synchronous)
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+    return Dispatch(d_temp_storage,
+                    temp_storage_bytes,
+                    d_input_keys,
+                    d_input_items,
+                    d_output_keys,
+                    d_output_items,
+                    num_items,
+                    compare_op,
+                    stream);
   }
 };
 

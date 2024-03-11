@@ -11,6 +11,7 @@
 import sys
 import warnings
 from collections import abc, defaultdict
+from functools import lru_cache
 from random import shuffle
 from typing import (
     Any,
@@ -43,7 +44,6 @@ from hypothesis.internal.conjecture.utils import (
     combine_labels,
 )
 from hypothesis.internal.coverage import check_function
-from hypothesis.internal.lazyformat import lazyformat
 from hypothesis.internal.reflection import (
     get_pretty_function_description,
     is_identity_function,
@@ -61,7 +61,7 @@ T5 = TypeVar("T5")
 calculating = UniqueIdentifier("calculating")
 
 MAPPED_SEARCH_STRATEGY_DO_DRAW_LABEL = calc_label_from_name(
-    "another attempted draw in MappedSearchStrategy"
+    "another attempted draw in MappedStrategy"
 )
 
 FILTERED_SEARCH_STRATEGY_DO_DRAW_LABEL = calc_label_from_name(
@@ -347,7 +347,7 @@ class SearchStrategy(Generic[Ex]):
         """
         if is_identity_function(pack):
             return self  # type: ignore  # Mypy has no way to know that `Ex == T`
-        return MappedSearchStrategy(pack=pack, strategy=self)
+        return MappedStrategy(self, pack=pack)
 
     def flatmap(
         self, expand: Callable[[Ex], "SearchStrategy[T]"]
@@ -469,10 +469,9 @@ class SampledFromStrategy(SearchStrategy):
     """A strategy which samples from a set of elements. This is essentially
     equivalent to using a OneOfStrategy over Just strategies but may be more
     efficient and convenient.
-
-    The conditional distribution chooses uniformly at random from some
-    non-empty subset of the elements.
     """
+
+    _MAX_FILTER_CALLS = 10_000
 
     def __init__(self, elements, repr_=None, transformations=()):
         super().__init__()
@@ -520,7 +519,10 @@ class SampledFromStrategy(SearchStrategy):
         # Used in UniqueSampledListStrategy
         for name, f in self._transformations:
             if name == "map":
-                element = f(element)
+                result = f(element)
+                if build_context := _current_build_context.value:
+                    build_context.record_call(result, f, [element], {})
+                element = result
             else:
                 assert name == "filter"
                 if not f(element):
@@ -529,6 +531,14 @@ class SampledFromStrategy(SearchStrategy):
 
     def do_draw(self, data):
         result = self.do_filtered_draw(data)
+        if isinstance(result, SearchStrategy) and all(
+            isinstance(x, SearchStrategy) for x in self.elements
+        ):
+            data._sampled_from_all_strategies_elements_message = (
+                "sample_from was given a collection of strategies: "
+                "{!r}. Was one_of intended?",
+                self.elements,
+            )
         if result is filter_not_satisfied:
             data.mark_invalid(f"Aborted test because unable to satisfy {self!r}")
         return result
@@ -544,13 +554,13 @@ class SampledFromStrategy(SearchStrategy):
         # Start with ordinary rejection sampling. It's fast if it works, and
         # if it doesn't work then it was only a small amount of overhead.
         for _ in range(3):
-            i = cu.integer_range(data, 0, len(self.elements) - 1)
+            i = data.draw_integer(0, len(self.elements) - 1)
             if i not in known_bad_indices:
                 element = self.get_element(i)
                 if element is not filter_not_satisfied:
                     return element
                 if not known_bad_indices:
-                    FilteredStrategy.note_retried(self, data)
+                    data.events[f"Retried draw from {self!r} to satisfy filter"] = ""
                 known_bad_indices.add(i)
 
         # If we've tried all the possible elements, give up now.
@@ -558,26 +568,21 @@ class SampledFromStrategy(SearchStrategy):
         if not max_good_indices:
             return filter_not_satisfied
 
-        # Figure out the bit-length of the index that we will write back after
-        # choosing an allowed element.
-        write_length = len(self.elements).bit_length()
-
         # Impose an arbitrary cutoff to prevent us from wasting too much time
         # on very large element lists.
-        cutoff = 10000
-        max_good_indices = min(max_good_indices, cutoff)
+        max_good_indices = min(max_good_indices, self._MAX_FILTER_CALLS - 3)
 
         # Before building the list of allowed indices, speculatively choose
         # one of them. We don't yet know how many allowed indices there will be,
         # so this choice might be out-of-bounds, but that's OK.
-        speculative_index = cu.integer_range(data, 0, max_good_indices - 1)
+        speculative_index = data.draw_integer(0, max_good_indices - 1)
 
         # Calculate the indices of allowed values, so that we can choose one
         # of them at random. But if we encounter the speculatively-chosen one,
         # just use that and return immediately.  Note that we also track the
         # allowed elements, in case of .map(some_stateful_function)
         allowed = []
-        for i in range(min(len(self.elements), cutoff)):
+        for i in range(min(len(self.elements), self._MAX_FILTER_CALLS - 3)):
             if i not in known_bad_indices:
                 element = self.get_element(i)
                 if element is not filter_not_satisfied:
@@ -585,14 +590,14 @@ class SampledFromStrategy(SearchStrategy):
                     if len(allowed) > speculative_index:
                         # Early-exit case: We reached the speculative index, so
                         # we just return the corresponding element.
-                        data.draw_bits(write_length, forced=i)
+                        data.draw_integer(0, len(self.elements) - 1, forced=i)
                         return element
 
         # The speculative index didn't work out, but at this point we've built
         # and can choose from the complete list of allowed indices and elements.
         if allowed:
-            i, element = cu.choice(data, allowed)
-            data.draw_bits(write_length, forced=i)
+            i, element = data.choice(allowed)
+            data.draw_integer(0, len(self.elements) - 1, forced=i)
             return element
         # If there are no allowed indices, the filter couldn't be satisfied.
         return filter_not_satisfied
@@ -790,18 +795,17 @@ def one_of(
     return OneOfStrategy(args)
 
 
-class MappedSearchStrategy(SearchStrategy[Ex]):
+class MappedStrategy(SearchStrategy[Ex]):
     """A strategy which is defined purely by conversion to and from another
     strategy.
 
     Its parameter and distribution come from that other strategy.
     """
 
-    def __init__(self, strategy, pack=None):
+    def __init__(self, strategy, pack):
         super().__init__()
         self.mapped_strategy = strategy
-        if pack is not None:
-            self.pack = pack
+        self.pack = pack
 
     def calc_is_empty(self, recur):
         return recur(self.mapped_strategy)
@@ -816,11 +820,6 @@ class MappedSearchStrategy(SearchStrategy[Ex]):
 
     def do_validate(self):
         self.mapped_strategy.validate()
-
-    def pack(self, x):
-        """Take a value produced by the underlying mapped_strategy and turn it
-        into a value suitable for outputting from this strategy."""
-        raise NotImplementedError(f"{self.__class__.__name__}.pack()")
 
     def do_draw(self, data: ConjectureData) -> Any:
         with warnings.catch_warnings():
@@ -843,9 +842,66 @@ class MappedSearchStrategy(SearchStrategy[Ex]):
     @property
     def branches(self) -> List[SearchStrategy[Ex]]:
         return [
-            MappedSearchStrategy(pack=self.pack, strategy=strategy)
+            MappedStrategy(strategy, pack=self.pack)
             for strategy in self.mapped_strategy.branches
         ]
+
+    def filter(self, condition: Callable[[Ex], Any]) -> "SearchStrategy[Ex]":
+        # Includes a special case so that we can rewrite filters on collection
+        # lengths, when most collections are `st.lists(...).map(the_type)`.
+        ListStrategy = _list_strategy_type()
+        if not isinstance(self.mapped_strategy, ListStrategy) or not (
+            (isinstance(self.pack, type) and issubclass(self.pack, abc.Collection))
+            or self.pack in _collection_ish_functions()
+        ):
+            return super().filter(condition)
+
+        # Check whether our inner list strategy can rewrite this filter condition.
+        # If not, discard the result and _only_ apply a new outer filter.
+        new = ListStrategy.filter(self.mapped_strategy, condition)
+        if getattr(new, "filtered_strategy", None) is self.mapped_strategy:
+            return super().filter(condition)  # didn't rewrite
+
+        # Apply a new outer filter even though we rewrote the inner strategy,
+        # because some collections can change the list length (dict, set, etc).
+        return FilteredStrategy(type(self)(new, self.pack), conditions=(condition,))
+
+
+@lru_cache
+def _list_strategy_type():
+    from hypothesis.strategies._internal.collections import ListStrategy
+
+    return ListStrategy
+
+
+def _collection_ish_functions():
+    funcs = [sorted]
+    if np := sys.modules.get("numpy"):
+        # c.f. https://numpy.org/doc/stable/reference/routines.array-creation.html
+        # Probably only `np.array` and `np.asarray` will be used in practice,
+        # but why should that stop us when we've already gone this far?
+        funcs += [
+            np.empty_like,
+            np.eye,
+            np.identity,
+            np.ones_like,
+            np.zeros_like,
+            np.array,
+            np.asarray,
+            np.asanyarray,
+            np.ascontiguousarray,
+            np.asmatrix,
+            np.copy,
+            np.rec.array,
+            np.rec.fromarrays,
+            np.rec.fromrecords,
+            np.diag,
+            # bonus undocumented functions from tab-completion:
+            np.asarray_chkfinite,
+            np.asfarray,
+            np.asfortranarray,
+        ]
+    return funcs
 
 
 filter_not_satisfied = UniqueIdentifier("filter not satisfied")
@@ -944,9 +1000,6 @@ class FilteredStrategy(SearchStrategy[Ex]):
         data.mark_invalid(f"Aborted test because unable to satisfy {self!r}")
         raise NotImplementedError("Unreachable, for Mypy")
 
-    def note_retried(self, data):
-        data.note_event(lazyformat("Retried draw from %r to satisfy filter", self))
-
     def do_filtered_draw(self, data):
         for i in range(3):
             start_index = data.index
@@ -958,7 +1011,7 @@ class FilteredStrategy(SearchStrategy[Ex]):
             else:
                 data.stop_example(discard=True)
                 if i == 0:
-                    self.note_retried(data)
+                    data.events[f"Retried draw from {self!r} to satisfy filter"] = ""
                 # This is to guard against the case where we consume no data.
                 # As long as we consume data, we'll eventually pass or raise.
                 # But if we don't this could be an infinite loop.

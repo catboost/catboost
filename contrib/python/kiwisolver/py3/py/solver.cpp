@@ -1,25 +1,27 @@
 /*-----------------------------------------------------------------------------
-| Copyright (c) 2013-2017, Nucleic Development Team.
+| Copyright (c) 2013-2019, Nucleic Development Team.
 |
 | Distributed under the terms of the Modified BSD License.
 |
-| The full license is in the file COPYING.txt, distributed with this software.
+| The full license is in the file LICENSE, distributed with this software.
 |----------------------------------------------------------------------------*/
-#include <Python.h>
+#include <cppy/cppy.h>
 #include <kiwi/kiwi.h>
-#include "pythonhelpers.h"
 #include "types.h"
 #include "util.h"
 
 
-using namespace PythonHelpers;
+namespace kiwisolver
+{
 
+namespace
+{
 
-static PyObject*
+PyObject*
 Solver_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 {
 	if( PyTuple_GET_SIZE( args ) != 0 || ( kwargs && PyDict_Size( kwargs ) != 0 ) )
-		return py_type_fail( "Solver.__new__ takes no arguments" );
+		return cppy::type_error( "Solver.__new__ takes no arguments" );
 	PyObject* pysolver = PyType_GenericNew( type, args, kwargs );
 	if( !pysolver )
 		return 0;
@@ -29,7 +31,7 @@ Solver_new( PyTypeObject* type, PyObject* args, PyObject* kwargs )
 }
 
 
-static void
+void
 Solver_dealloc( Solver* self )
 {
 	self->solver.~Solver();
@@ -37,11 +39,11 @@ Solver_dealloc( Solver* self )
 }
 
 
-static PyObject*
+PyObject*
 Solver_addConstraint( Solver* self, PyObject* other )
 {
 	if( !Constraint::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Constraint" );
+		return cppy::type_error( other, "Constraint" );
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
 	try
 	{
@@ -61,11 +63,11 @@ Solver_addConstraint( Solver* self, PyObject* other )
 }
 
 
-static PyObject*
+PyObject*
 Solver_removeConstraint( Solver* self, PyObject* other )
 {
 	if( !Constraint::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Constraint" );
+		return cppy::type_error( other, "Constraint" );
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
 	try
 	{
@@ -80,17 +82,17 @@ Solver_removeConstraint( Solver* self, PyObject* other )
 }
 
 
-static PyObject*
+PyObject*
 Solver_hasConstraint( Solver* self, PyObject* other )
 {
 	if( !Constraint::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Constraint" );
+		return cppy::type_error( other, "Constraint" );
 	Constraint* cn = reinterpret_cast<Constraint*>( other );
-	return newref( self->solver.hasConstraint( cn->constraint ) ? Py_True : Py_False );
+	return cppy::incref( self->solver.hasConstraint( cn->constraint ) ? Py_True : Py_False );
 }
 
 
-static PyObject*
+PyObject*
 Solver_addEditVariable( Solver* self, PyObject* args )
 {
 	PyObject* pyvar;
@@ -98,7 +100,7 @@ Solver_addEditVariable( Solver* self, PyObject* args )
 	if( !PyArg_ParseTuple( args, "OO", &pyvar, &pystrength ) )
 		return 0;
 	if( !Variable::TypeCheck( pyvar ) )
-		return py_expected_type_fail( pyvar, "Variable" );
+		return cppy::type_error( pyvar, "Variable" );
 	double strength;
 	if( !convert_to_strength( pystrength, strength ) )
 		return 0;
@@ -121,11 +123,11 @@ Solver_addEditVariable( Solver* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Solver_removeEditVariable( Solver* self, PyObject* other )
 {
 	if( !Variable::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Variable" );
+		return cppy::type_error( other, "Variable" );
 	Variable* var = reinterpret_cast<Variable*>( other );
 	try
 	{
@@ -140,17 +142,17 @@ Solver_removeEditVariable( Solver* self, PyObject* other )
 }
 
 
-static PyObject*
+PyObject*
 Solver_hasEditVariable( Solver* self, PyObject* other )
 {
 	if( !Variable::TypeCheck( other ) )
-		return py_expected_type_fail( other, "Variable" );
+		return cppy::type_error( other, "Variable" );
 	Variable* var = reinterpret_cast<Variable*>( other );
-	return newref( self->solver.hasEditVariable( var->variable ) ? Py_True : Py_False );
+	return cppy::incref( self->solver.hasEditVariable( var->variable ) ? Py_True : Py_False );
 }
 
 
-static PyObject*
+PyObject*
 Solver_suggestValue( Solver* self, PyObject* args )
 {
 	PyObject* pyvar;
@@ -158,7 +160,7 @@ Solver_suggestValue( Solver* self, PyObject* args )
 	if( !PyArg_ParseTuple( args, "OO", &pyvar, &pyvalue ) )
 		return 0;
 	if( !Variable::TypeCheck( pyvar ) )
-		return py_expected_type_fail( pyvar, "Variable" );
+		return cppy::type_error( pyvar, "Variable" );
 	double value;
 	if( !convert_to_double( pyvalue, value ) )
 		return 0;
@@ -176,7 +178,7 @@ Solver_suggestValue( Solver* self, PyObject* args )
 }
 
 
-static PyObject*
+PyObject*
 Solver_updateVariables( Solver* self )
 {
 	self->solver.updateVariables();
@@ -184,7 +186,7 @@ Solver_updateVariables( Solver* self )
 }
 
 
-static PyObject*
+PyObject*
 Solver_reset( Solver* self )
 {
 	self->solver.reset();
@@ -192,15 +194,15 @@ Solver_reset( Solver* self )
 }
 
 
-static PyObject*
+PyObject*
 Solver_dump( Solver* self )
 {
-	PyObjectPtr dump_str( PyUnicode_FromString( self->solver.dumps().c_str() ) );
+	cppy::ptr dump_str( PyUnicode_FromString( self->solver.dumps().c_str() ) );
 	PyObject_Print( dump_str.get(), stdout, 0 );
 	Py_RETURN_NONE;
 }
 
-static PyObject*
+PyObject*
 Solver_dumps( Solver* self )
 {
 	return PyUnicode_FromString( self->solver.dumps().c_str() );
@@ -234,60 +236,43 @@ Solver_methods[] = {
 };
 
 
-PyTypeObject Solver_Type = {
-	PyVarObject_HEAD_INIT( &PyType_Type, 0 )
-	"kiwisolver.Solver",                    /* tp_name */
-	sizeof( Solver ),                       /* tp_basicsize */
-	0,                                      /* tp_itemsize */
-	(destructor)Solver_dealloc,             /* tp_dealloc */
-	(printfunc)0,                           /* tp_print */
-	(getattrfunc)0,                         /* tp_getattr */
-	(setattrfunc)0,                         /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03050000
-	( PyAsyncMethods* )0,                   /* tp_as_async */
-#elif PY_VERSION_HEX >= 0x03000000
-	( void* ) 0,                            /* tp_reserved */
-#else
-	( cmpfunc )0,                           /* tp_compare */
-#endif
-	(reprfunc)0,                            /* tp_repr */
-	(PyNumberMethods*)0,                    /* tp_as_number */
-	(PySequenceMethods*)0,                  /* tp_as_sequence */
-	(PyMappingMethods*)0,                   /* tp_as_mapping */
-	(hashfunc)0,                            /* tp_hash */
-	(ternaryfunc)0,                         /* tp_call */
-	(reprfunc)0,                            /* tp_str */
-	(getattrofunc)0,                        /* tp_getattro */
-	(setattrofunc)0,                        /* tp_setattro */
-	(PyBufferProcs*)0,                      /* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE, /* tp_flags */
-	0,                                      /* Documentation string */
-	(traverseproc)0,                        /* tp_traverse */
-	(inquiry)0,                             /* tp_clear */
-	(richcmpfunc)0,                         /* tp_richcompare */
-	0,                                      /* tp_weaklistoffset */
-	(getiterfunc)0,                         /* tp_iter */
-	(iternextfunc)0,                        /* tp_iternext */
-	(struct PyMethodDef*)Solver_methods,    /* tp_methods */
-	(struct PyMemberDef*)0,                 /* tp_members */
-	0,                                      /* tp_getset */
-	0,                                      /* tp_base */
-	0,                                      /* tp_dict */
-	(descrgetfunc)0,                        /* tp_descr_get */
-	(descrsetfunc)0,                        /* tp_descr_set */
-	0,                                      /* tp_dictoffset */
-	(initproc)0,                            /* tp_init */
-	(allocfunc)PyType_GenericAlloc,         /* tp_alloc */
-	(newfunc)Solver_new,                    /* tp_new */
-	(freefunc)PyObject_Del,                 /* tp_free */
-	(inquiry)0,                             /* tp_is_gc */
-	0,                                      /* tp_bases */
-	0,                                      /* tp_mro */
-	0,                                      /* tp_cache */
-	0,                                      /* tp_subclasses */
-	0,                                      /* tp_weaklist */
-	(destructor)0                           /* tp_del */
+static PyType_Slot Solver_Type_slots[] = {
+    { Py_tp_dealloc, void_cast( Solver_dealloc ) },      /* tp_dealloc */
+    { Py_tp_methods, void_cast( Solver_methods ) },      /* tp_methods */
+    { Py_tp_new, void_cast( Solver_new ) },              /* tp_new */
+    { Py_tp_alloc, void_cast( PyType_GenericAlloc ) },   /* tp_alloc */
+    { Py_tp_free, void_cast( PyObject_Del ) },           /* tp_free */
+    { 0, 0 },
 };
+
+
+} // namespace
+
+
+// Initialize static variables (otherwise the compiler eliminates them)
+PyTypeObject* Solver::TypeObject = NULL;
+
+
+PyType_Spec Solver::TypeObject_Spec = {
+	"kiwisolver.Solver",             /* tp_name */
+	sizeof( Solver ),                /* tp_basicsize */
+	0,                                   /* tp_itemsize */
+	Py_TPFLAGS_DEFAULT|
+    Py_TPFLAGS_BASETYPE,                 /* tp_flags */
+    Solver_Type_slots                /* slots */
+};
+
+
+bool Solver::Ready()
+{
+    // The reference will be handled by the module to which we will add the type
+	TypeObject = pytype_cast( PyType_FromSpec( &TypeObject_Spec ) );
+    if( !TypeObject )
+    {
+        return false;
+    }
+    return true;
+}
 
 
 PyObject* DuplicateConstraint;
@@ -303,31 +288,51 @@ PyObject* UnknownEditVariable;
 PyObject* BadRequiredStrength;
 
 
-int import_solver()
+bool init_exceptions()
 {
  	DuplicateConstraint = PyErr_NewException(
  		const_cast<char*>( "kiwisolver.DuplicateConstraint" ), 0, 0 );
  	if( !DuplicateConstraint )
- 		return -1;
+    {
+        return false;
+    }
+
   	UnsatisfiableConstraint = PyErr_NewException(
   		const_cast<char*>( "kiwisolver.UnsatisfiableConstraint" ), 0, 0 );
  	if( !UnsatisfiableConstraint )
- 		return -1;
+ 	{
+        return false;
+    }
+
   	UnknownConstraint = PyErr_NewException(
   		const_cast<char*>( "kiwisolver.UnknownConstraint" ), 0, 0 );
  	if( !UnknownConstraint )
- 		return -1;
+ 	{
+        return false;
+    }
+
   	DuplicateEditVariable = PyErr_NewException(
   		const_cast<char*>( "kiwisolver.DuplicateEditVariable" ), 0, 0 );
  	if( !DuplicateEditVariable )
- 		return -1;
+ 	{
+        return false;
+    }
+
   	UnknownEditVariable = PyErr_NewException(
   		const_cast<char*>( "kiwisolver.UnknownEditVariable" ), 0, 0 );
  	if( !UnknownEditVariable )
- 		return -1;
+ 	{
+        return false;
+    }
+
   	BadRequiredStrength = PyErr_NewException(
   		const_cast<char*>( "kiwisolver.BadRequiredStrength" ), 0, 0 );
  	if( !BadRequiredStrength )
- 		return -1;
-	return PyType_Ready( &Solver_Type );
+ 	{
+        return false;
+    }
+
+	return true;
 }
+
+}  // namespace

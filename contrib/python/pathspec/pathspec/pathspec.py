@@ -8,24 +8,25 @@ from itertools import (
 	zip_longest)
 from typing import (
 	AnyStr,
-	Callable,
-	Collection,
-	Iterable,
-	Iterator,
-	Optional,
-	Type,
+	Callable,  # Replaced by `collections.abc.Callable` in 3.9.
+	Collection,  # Replaced by `collections.abc.Collection` in 3.9.
+	Iterable,  # Replaced by `collections.abc.Iterable` in 3.9.
+	Iterator,  # Replaced by `collections.abc.Iterator` in 3.9.
+	Optional,  # Replaced by `X | None` in 3.10.
+	Type,  # Replaced by `type` in 3.9.
 	TypeVar,
-	Union)
+	Union)  # Replaced by `X | Y` in 3.10.
 
 from . import util
 from .pattern import (
 	Pattern)
 from .util import (
+	CheckResult,
 	StrPath,
+	TStrPath,
 	TreeEntry,
-	_filter_patterns,
+	_filter_check_patterns,
 	_is_iterable,
-	match_file,
 	normalize_file)
 
 Self = TypeVar("Self", bound="PathSpec")
@@ -48,8 +49,10 @@ class PathSpec(object):
 		*patterns* (:class:`~collections.abc.Collection` or :class:`~collections.abc.Iterable`)
 		yields each compiled pattern (:class:`.Pattern`).
 		"""
+		if not isinstance(patterns, CollectionType):
+			patterns = list(patterns)
 
-		self.patterns = patterns if isinstance(patterns, CollectionType) else list(patterns)
+		self.patterns: Collection[Pattern] = patterns
 		"""
 		*patterns* (:class:`~collections.abc.Collection` of :class:`.Pattern`)
 		contains the compiled patterns.
@@ -94,6 +97,88 @@ class PathSpec(object):
 		else:
 			return NotImplemented
 
+	def check_file(
+		self,
+		file: TStrPath,
+		separators: Optional[Collection[str]] = None,
+	) -> CheckResult[TStrPath]:
+		"""
+		Check the files against this path-spec.
+
+		*file* (:class:`str` or :class:`os.PathLike`) is the file path to be
+		matched against :attr:`self.patterns <PathSpec.patterns>`.
+
+		*separators* (:class:`~collections.abc.Collection` of :class:`str`; or
+		:data:`None`) optionally contains the path separators to normalize. See
+		:func:`~pathspec.util.normalize_file` for more information.
+
+		Returns the file check result (:class:`~pathspec.util.CheckResult`).
+		"""
+		norm_file = normalize_file(file, separators)
+		include, index = self._match_file(enumerate(self.patterns), norm_file)
+		return CheckResult(file, include, index)
+
+	def check_files(
+		self,
+		files: Iterable[TStrPath],
+		separators: Optional[Collection[str]] = None,
+	) -> Iterator[CheckResult[TStrPath]]:
+		"""
+		Check the files against this path-spec.
+
+		*files* (:class:`~collections.abc.Iterable` of :class:`str` or
+		:class:`os.PathLike`) contains the file paths to be checked against
+		:attr:`self.patterns <PathSpec.patterns>`.
+
+		*separators* (:class:`~collections.abc.Collection` of :class:`str`; or
+		:data:`None`) optionally contains the path separators to normalize. See
+		:func:`~pathspec.util.normalize_file` for more information.
+
+		Returns an :class:`~collections.abc.Iterator` yielding each file check
+		result (:class:`~pathspec.util.CheckResult`).
+		"""
+		if not _is_iterable(files):
+			raise TypeError(f"files:{files!r} is not an iterable.")
+
+		use_patterns = _filter_check_patterns(self.patterns)
+		for orig_file in files:
+			norm_file = normalize_file(orig_file, separators)
+			include, index = self._match_file(use_patterns, norm_file)
+			yield CheckResult(orig_file, include, index)
+
+	def check_tree_files(
+		self,
+		root: StrPath,
+		on_error: Optional[Callable[[OSError], None]] = None,
+		follow_links: Optional[bool] = None,
+	) -> Iterator[CheckResult[str]]:
+		"""
+		Walks the specified root path for all files and checks them against this
+		path-spec.
+
+		*root* (:class:`str` or :class:`os.PathLike`) is the root directory to
+		search for files.
+
+		*on_error* (:class:`~collections.abc.Callable` or :data:`None`) optionally
+		is the error handler for file-system exceptions. It will be called with the
+		exception (:exc:`OSError`). Reraise the exception to abort the walk. Default
+		is :data:`None` to ignore file-system exceptions.
+
+		*follow_links* (:class:`bool` or :data:`None`) optionally is whether to walk
+		symbolic links that resolve to directories. Default is :data:`None` for
+		:data:`True`.
+
+		*negate* (:class:`bool` or :data:`None`) is whether to negate the match
+		results of the patterns. If :data:`True`, a pattern matching a file will
+		exclude the file rather than include it. Default is :data:`None` for
+		:data:`False`.
+
+		Returns an :class:`~collections.abc.Iterator` yielding each file check
+		result (:class:`~pathspec.util.CheckResult`).
+		"""
+		files = util.iter_tree_files(root, on_error=on_error, follow_links=follow_links)
+		yield from self.check_files(files)
+
 	@classmethod
 	def from_lines(
 		cls: Type[Self],
@@ -137,7 +222,7 @@ class PathSpec(object):
 		"""
 		Matches the entries to this path-spec.
 
-		*entries* (:class:`~collections.abc.Iterable` of :class:`~util.TreeEntry`)
+		*entries* (:class:`~collections.abc.Iterable` of :class:`~pathspec.util.TreeEntry`)
 		contains the entries to be matched against :attr:`self.patterns <PathSpec.patterns>`.
 
 		*separators* (:class:`~collections.abc.Collection` of :class:`str`; or
@@ -150,26 +235,28 @@ class PathSpec(object):
 		:data:`False`.
 
 		Returns the matched entries (:class:`~collections.abc.Iterator` of
-		:class:`~util.TreeEntry`).
+		:class:`~pathspec.util.TreeEntry`).
 		"""
 		if not _is_iterable(entries):
 			raise TypeError(f"entries:{entries!r} is not an iterable.")
 
-		use_patterns = _filter_patterns(self.patterns)
+		use_patterns = _filter_check_patterns(self.patterns)
 		for entry in entries:
 			norm_file = normalize_file(entry.path, separators)
-			is_match = self._match_file(use_patterns, norm_file)
+			include, _index = self._match_file(use_patterns, norm_file)
 
 			if negate:
-				is_match = not is_match
+				include = not include
 
-			if is_match:
+			if include:
 				yield entry
 
-	# Match files using the `match_file()` utility function. Subclasses may
-	# override this method as an instance method. It does not have to be a static
-	# method.
-	_match_file = staticmethod(match_file)
+	_match_file = staticmethod(util.check_match_file)
+	"""
+	Match files using the `check_match_file()` utility function. Subclasses may
+	override this method as an instance method. It does not have to be a static
+	method. The signature for this method is subject to change.
+	"""
 
 	def match_file(
 		self,
@@ -179,7 +266,7 @@ class PathSpec(object):
 		"""
 		Matches the file to this path-spec.
 
-		*file* (:class:`str` or :class:`os.PathLike[str]`) is the file path to be
+		*file* (:class:`str` or :class:`os.PathLike`) is the file path to be
 		matched against :attr:`self.patterns <PathSpec.patterns>`.
 
 		*separators* (:class:`~collections.abc.Collection` of :class:`str`)
@@ -188,8 +275,9 @@ class PathSpec(object):
 
 		Returns :data:`True` if *file* matched; otherwise, :data:`False`.
 		"""
-		norm_file = util.normalize_file(file, separators=separators)
-		return self._match_file(self.patterns, norm_file)
+		norm_file = normalize_file(file, separators)
+		include, _index = self._match_file(enumerate(self.patterns), norm_file)
+		return bool(include)
 
 	def match_files(
 		self,
@@ -202,7 +290,7 @@ class PathSpec(object):
 		Matches the files to this path-spec.
 
 		*files* (:class:`~collections.abc.Iterable` of :class:`str` or
-		:class:`os.PathLike[str]`) contains the file paths to be matched against
+		:class:`os.PathLike`) contains the file paths to be matched against
 		:attr:`self.patterns <PathSpec.patterns>`.
 
 		*separators* (:class:`~collections.abc.Collection` of :class:`str`; or
@@ -215,26 +303,26 @@ class PathSpec(object):
 		:data:`False`.
 
 		Returns the matched files (:class:`~collections.abc.Iterator` of
-		:class:`str` or :class:`os.PathLike[str]`).
+		:class:`str` or :class:`os.PathLike`).
 		"""
 		if not _is_iterable(files):
 			raise TypeError(f"files:{files!r} is not an iterable.")
 
-		use_patterns = _filter_patterns(self.patterns)
+		use_patterns = _filter_check_patterns(self.patterns)
 		for orig_file in files:
 			norm_file = normalize_file(orig_file, separators)
-			is_match = self._match_file(use_patterns, norm_file)
+			include, _index = self._match_file(use_patterns, norm_file)
 
 			if negate:
-				is_match = not is_match
+				include = not include
 
-			if is_match:
+			if include:
 				yield orig_file
 
 	def match_tree_entries(
 		self,
 		root: StrPath,
-		on_error: Optional[Callable] = None,
+		on_error: Optional[Callable[[OSError], None]] = None,
 		follow_links: Optional[bool] = None,
 		*,
 		negate: Optional[bool] = None,
@@ -243,16 +331,17 @@ class PathSpec(object):
 		Walks the specified root path for all files and matches them to this
 		path-spec.
 
-		*root* (:class:`str` or :class:`os.PathLike[str]`) is the root directory to
+		*root* (:class:`str` or :class:`os.PathLike`) is the root directory to
 		search.
 
 		*on_error* (:class:`~collections.abc.Callable` or :data:`None`) optionally
-		is the error handler for file-system exceptions. See
-		:func:`~pathspec.util.iter_tree_entries` for more information.
+		is the error handler for file-system exceptions. It will be called with the
+		exception (:exc:`OSError`). Reraise the exception to abort the walk. Default
+		is :data:`None` to ignore file-system exceptions.
 
 		*follow_links* (:class:`bool` or :data:`None`) optionally is whether to walk
-		symbolic links that resolve to directories. See
-		:func:`~pathspec.util.iter_tree_files` for more information.
+		symbolic links that resolve to directories. Default is :data:`None` for
+		:data:`True`.
 
 		*negate* (:class:`bool` or :data:`None`) is whether to negate the match
 		results of the patterns. If :data:`True`, a pattern matching a file will
@@ -268,7 +357,7 @@ class PathSpec(object):
 	def match_tree_files(
 		self,
 		root: StrPath,
-		on_error: Optional[Callable] = None,
+		on_error: Optional[Callable[[OSError], None]] = None,
 		follow_links: Optional[bool] = None,
 		*,
 		negate: Optional[bool] = None,
@@ -277,16 +366,17 @@ class PathSpec(object):
 		Walks the specified root path for all files and matches them to this
 		path-spec.
 
-		*root* (:class:`str` or :class:`os.PathLike[str]`) is the root directory to
+		*root* (:class:`str` or :class:`os.PathLike`) is the root directory to
 		search for files.
 
 		*on_error* (:class:`~collections.abc.Callable` or :data:`None`) optionally
-		is the error handler for file-system exceptions. See
-		:func:`~pathspec.util.iter_tree_files` for more information.
+		is the error handler for file-system exceptions. It will be called with the
+		exception (:exc:`OSError`). Reraise the exception to abort the walk. Default
+		is :data:`None` to ignore file-system exceptions.
 
 		*follow_links* (:class:`bool` or :data:`None`) optionally is whether to walk
-		symbolic links that resolve to directories. See
-		:func:`~pathspec.util.iter_tree_files` for more information.
+		symbolic links that resolve to directories. Default is :data:`None` for
+		:data:`True`.
 
 		*negate* (:class:`bool` or :data:`None`) is whether to negate the match
 		results of the patterns. If :data:`True`, a pattern matching a file will

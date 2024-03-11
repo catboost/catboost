@@ -400,6 +400,47 @@ namespace NCB {
         TString Header;
     };
 
+
+
+    class TAuxiliaryColumnPrinter: public IColumnPrinter {
+    public:
+        TAuxiliaryColumnPrinter(
+            TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
+            TString columnName,
+            ui64 docIdOffset
+        )
+            : PrinterPtr(printerPtr)
+            , AuxiliaryColumnId(printerPtr->GetAuxiliaryColumnId(columnName))
+            , ColumnName(std::move(columnName))
+            , DocIdOffset(docIdOffset)
+        {
+        }
+
+        void OutputValue(IOutputStream* outStream, size_t docIndex) override  {
+            PrinterPtr->OutputAuxiliaryColumn(outStream, DocIdOffset + docIndex, AuxiliaryColumnId, ColumnName);
+        }
+
+        void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
+            TStringStream value;
+            PrinterPtr->OutputAuxiliaryColumn(&value, DocIdOffset + docIndex, AuxiliaryColumnId, ColumnName);
+            *result = value.Str();
+        }
+
+        void OutputHeader(IOutputStream* outStream) override {
+            *outStream << ColumnName;
+        }
+
+        std::type_index GetOutputType() override {
+            return typeid(TString);
+        }
+
+    private:
+        TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
+        ui32 AuxiliaryColumnId;
+        TString ColumnName;
+        ui64 DocIdOffset;
+    };
+
     TVector<TString> CreatePredictionTypeHeader(
         ui32 approxDimension,
         bool isMultiTarget,

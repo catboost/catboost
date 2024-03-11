@@ -3,6 +3,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 #
+from __future__ import annotations
+
 from traitlets import Dict, Instance, Integer, Unicode, Union
 from traitlets.config import Configurable
 

@@ -24,17 +24,9 @@
 #endif
 
 #ifdef __cplusplus
-
-#include <ccomplex>
-
-#else  // __cplusplus
-
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_UCRT_INCLUDE_NEXT(complex.h)
-#else
-#include_next <complex.h>
+#  include <ccomplex>
+#elif __has_include_next(<complex.h>)
+#  include_next <complex.h>
 #endif
-
-#endif // __cplusplus
 
 #endif // _LIBCPP_COMPLEX_H

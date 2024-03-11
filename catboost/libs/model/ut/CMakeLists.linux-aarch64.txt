@@ -33,14 +33,14 @@ target_link_options(model_ut PRIVATE
   -ldl
 )
 target_sources(model_ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/model_export_helpers_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/formula_evaluator_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/json_model_export_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/leaf_weights_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/model_metadata_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/model_serialization_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/model_summ_ut.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/shrink_model_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/model_export_helpers_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/formula_evaluator_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/json_model_export_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/leaf_weights_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/model_metadata_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/model_serialization_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/model_summ_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/shrink_model_ut.cpp
 )
 set_property(
   TARGET
@@ -74,6 +74,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  model_ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(model_ut
   cpp-malloc-jemalloc

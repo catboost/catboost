@@ -2259,7 +2259,7 @@ process_geev_results(GEEV_PARAMS_t<typ> *params, scalar_trait)
     }
 }
 
-
+#if 0
 static inline fortran_int
 call_geev(GEEV_PARAMS_t<fortran_complex>* params)
 {
@@ -2275,6 +2275,8 @@ call_geev(GEEV_PARAMS_t<fortran_complex>* params)
                           &rv);
     return rv;
 }
+#endif
+
 static inline fortran_int
 call_geev(GEEV_PARAMS_t<fortran_doublecomplex>* params)
 {
@@ -4596,6 +4598,12 @@ PyMODINIT_FUNC PyInit__umath_linalg(void)
     if (addUfuncs(d) < 0) {
         return NULL;
     }
+
+#ifdef HAVE_BLAS_ILP64
+    PyDict_SetItemString(d, "_ilp64", Py_True);
+#else
+    PyDict_SetItemString(d, "_ilp64", Py_False);
+#endif
 
     return m;
 }

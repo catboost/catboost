@@ -9,7 +9,7 @@
 
 add_executable(flatc)
 target_include_directories(flatc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
 target_link_libraries(flatc PUBLIC
   contrib-libs-linux-headers
@@ -25,7 +25,7 @@ target_link_options(flatc PRIVATE
   -lpthread
 )
 target_sources(flatc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/flatc_main.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/flatc_main.cpp
 )
 target_allocator(flatc
   cpp-malloc-tcmalloc

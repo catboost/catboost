@@ -17,5 +17,5 @@ target_link_libraries(text_features-ut-lib PUBLIC
   text_processing-ut-lib
 )
 target_sources(text_features-ut-lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/ut/lib/text_features_data.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/lib/text_features_data.cpp
 )

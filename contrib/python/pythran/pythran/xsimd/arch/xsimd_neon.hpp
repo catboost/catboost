@@ -378,8 +378,8 @@ namespace xsimd
                                                  std::complex<float> c0, std::complex<float> c1,
                                                  std::complex<float> c2, std::complex<float> c3) noexcept
         {
-            return batch<std::complex<float>>(float32x4_t { c0.real(), c1.real(), c2.real(), c3.real() },
-                                              float32x4_t { c0.imag(), c1.imag(), c2.imag(), c3.imag() });
+            return batch<std::complex<float>, A>(float32x4_t { c0.real(), c1.real(), c2.real(), c3.real() },
+                                                 float32x4_t { c0.imag(), c1.imag(), c2.imag(), c3.imag() });
         }
 
         template <class A, class... Args>
@@ -2635,6 +2635,43 @@ namespace xsimd
         inline batch<T, A> slide_right(batch<T, A> const& x, requires_arch<neon>) noexcept
         {
             return detail::slider_right<N> {}(x, A {});
+        }
+
+        /****************
+         * rotate_right *
+         ****************/
+        namespace wrap
+        {
+            template <size_t N>
+            inline uint8x16_t rotate_right_u8(uint8x16_t a, uint8x16_t b) noexcept { return vextq_u8(a, b, N); }
+            template <size_t N>
+            inline int8x16_t rotate_right_s8(int8x16_t a, int8x16_t b) noexcept { return vextq_s8(a, b, N); }
+            template <size_t N>
+            inline uint16x8_t rotate_right_u16(uint16x8_t a, uint16x8_t b) noexcept { return vextq_u16(a, b, N); }
+            template <size_t N>
+            inline int16x8_t rotate_right_s16(int16x8_t a, int16x8_t b) noexcept { return vextq_s16(a, b, N); }
+            template <size_t N>
+            inline uint32x4_t rotate_right_u32(uint32x4_t a, uint32x4_t b) noexcept { return vextq_u32(a, b, N); }
+            template <size_t N>
+            inline int32x4_t rotate_right_s32(int32x4_t a, int32x4_t b) noexcept { return vextq_s32(a, b, N); }
+            template <size_t N>
+            inline uint64x2_t rotate_right_u64(uint64x2_t a, uint64x2_t b) noexcept { return vextq_u64(a, b, N); }
+            template <size_t N>
+            inline int64x2_t rotate_right_s64(int64x2_t a, int64x2_t b) noexcept { return vextq_s64(a, b, N); }
+            template <size_t N>
+            inline float32x4_t rotate_right_f32(float32x4_t a, float32x4_t b) noexcept { return vextq_f32(a, b, N); }
+        }
+
+        template <size_t N, class A, class T, detail::enable_neon_type_t<T> = 0>
+        inline batch<T, A> rotate_right(batch<T, A> const& a, requires_arch<neon>) noexcept
+        {
+            using register_type = typename batch<T, A>::register_type;
+            const detail::neon_dispatcher::binary dispatcher = {
+                std::make_tuple(wrap::rotate_right_u8<N>, wrap::rotate_right_s8<N>, wrap::rotate_right_u16<N>, wrap::rotate_right_s16<N>,
+                                wrap::rotate_right_u32<N>, wrap::rotate_right_s32<N>, wrap::rotate_right_u64<N>, wrap::rotate_right_s64<N>,
+                                wrap::rotate_right_f32<N>)
+            };
+            return dispatcher.apply(register_type(a), register_type(a));
         }
     }
 

@@ -10,7 +10,6 @@
 // --- Global vars / constants
 // ====================================================================
 
-extern int PSUTIL_TESTING;
 extern int PSUTIL_DEBUG;
 // a signaler for connections without an actual status
 static const int PSUTIL_CONN_NONE = 128;
@@ -32,11 +31,15 @@ static const int PSUTIL_CONN_NONE = 128;
     #define PyUnicode_DecodeFSDefaultAndSize   PyString_FromStringAndSize
 #endif
 
-#if defined(PSUTIL_WINDOWS) && \
-        defined(PYPY_VERSION) && \
-        !defined(PyErr_SetFromWindowsErrWithFilename)
-    PyObject *PyErr_SetFromWindowsErrWithFilename(int ierr,
-                                                  const char *filename);
+#if defined(PSUTIL_WINDOWS) && defined(PYPY_VERSION)
+    #if !defined(PyErr_SetFromWindowsErrWithFilename)
+        PyObject *PyErr_SetFromWindowsErrWithFilename(int ierr,
+                                                      const char *filename);
+    #endif
+    #if !defined(PyErr_SetExcFromWindowsErrWithFilenameObject)
+        PyObject *PyErr_SetExcFromWindowsErrWithFilenameObject(
+            PyObject *type, int ierr, PyObject *filename);
+    #endif
 #endif
 
 // --- _Py_PARSE_PID
@@ -100,15 +103,35 @@ PyObject* PyErr_SetFromOSErrnoWithSyscall(const char *syscall);
 // --- Global utils
 // ====================================================================
 
-PyObject* psutil_set_testing(PyObject *self, PyObject *args);
-void psutil_debug(const char* format, ...);
+PyObject* psutil_check_pid_range(PyObject *self, PyObject *args);
+PyObject* psutil_set_debug(PyObject *self, PyObject *args);
 int psutil_setup(void);
+
+
+// Print a debug message on stderr.
+#define psutil_debug(...) do { \
+    if (! PSUTIL_DEBUG) \
+        break; \
+    fprintf(stderr, "psutil-debug [%s:%d]> ", __FILE__, __LINE__); \
+    fprintf(stderr, __VA_ARGS__); \
+    fprintf(stderr, "\n");} while(0)
+
 
 // ====================================================================
 // --- BSD
 // ====================================================================
 
 void convert_kvm_err(const char *syscall, char *errbuf);
+
+// ====================================================================
+// --- macOS
+// ====================================================================
+
+#ifdef PSUTIL_OSX
+    #include <mach/mach_time.h>
+
+    extern struct mach_timebase_info PSUTIL_MACH_TIMEBASE_INFO;
+#endif
 
 // ====================================================================
 // --- Windows
@@ -149,7 +172,6 @@ void convert_kvm_err(const char *syscall, char *errbuf);
         #define AF_INET6 23
     #endif
 
-    int psutil_load_globals();
     PVOID psutil_GetProcAddress(LPCSTR libname, LPCSTR procname);
     PVOID psutil_GetProcAddressFromLib(LPCSTR libname, LPCSTR procname);
     PVOID psutil_SetFromNTStatusErr(NTSTATUS Status, const char *syscall);

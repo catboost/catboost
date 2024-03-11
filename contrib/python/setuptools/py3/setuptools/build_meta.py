@@ -121,16 +121,16 @@ def _file_with_extension(directory, extension):
         raise ValueError(
             'No distribution was found. Ensure that `setup.py` '
             'is not empty and that it calls `setup()`.'
-        )
+        ) from None
     return file
 
 
 def _open_setup_script(setup_script):
     if not os.path.exists(setup_script):
         # Supply a default setup.py
-        return io.StringIO(u"from setuptools import setup; setup()")
+        return io.StringIO("from setuptools import setup; setup()")
 
-    return getattr(tokenize, 'open', open)(setup_script)
+    return tokenize.open(setup_script)
 
 
 @contextlib.contextmanager
@@ -185,11 +185,6 @@ class _ConfigSettingsTranslator:
         opts = cfg.get(key) or []
         return shlex.split(opts) if isinstance(opts, str) else opts
 
-    def _valid_global_options(self):
-        """Global options accepted by setuptools (e.g. quiet or verbose)."""
-        options = (opt[:2] for opt in setuptools.dist.Distribution.global_options)
-        return {flag for long_and_short in options for flag in long_and_short if flag}
-
     def _global_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
         Let the user specify ``verbose`` or ``quiet`` + escape hatch via
@@ -220,9 +215,7 @@ class _ConfigSettingsTranslator:
             level = str(cfg.get("quiet") or cfg.get("--quiet") or "1")
             yield ("-v" if level.lower() in falsey else "-q")
 
-        valid = self._valid_global_options()
-        args = self._get_config("--global-option", config_settings)
-        yield from (arg for arg in args if arg.strip("-") in valid)
+        yield from self._get_config("--global-option", config_settings)
 
     def __dist_info_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
@@ -284,32 +277,10 @@ class _ConfigSettingsTranslator:
         ['foo']
         >>> list(fn({'--build-option': 'foo bar'}))
         ['foo', 'bar']
-        >>> warnings.simplefilter('error', SetuptoolsDeprecationWarning)
-        >>> list(fn({'--global-option': 'foo'}))  # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        SetuptoolsDeprecationWarning: ...arguments given via `--global-option`...
+        >>> list(fn({'--global-option': 'foo'}))
+        []
         """
-        args = self._get_config("--global-option", config_settings)
-        global_opts = self._valid_global_options()
-        bad_args = []
-
-        for arg in args:
-            if arg.strip("-") not in global_opts:
-                bad_args.append(arg)
-                yield arg
-
         yield from self._get_config("--build-option", config_settings)
-
-        if bad_args:
-            SetuptoolsDeprecationWarning.emit(
-                "Incompatible `config_settings` passed to build backend.",
-                f"""
-                The arguments {bad_args!r} were given via `--global-option`.
-                Please use `--build-option` instead,
-                `--global-option` is reserved for flags like `--verbose` or `--quiet`.
-                """,
-                due_date=(2023, 9, 26),  # Warning introduced in v64.0.1, 11/Aug/2022.
-            )
 
 
 class _BuildMetaBackend(_ConfigSettingsTranslator):
@@ -318,7 +289,6 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             *sys.argv[:1],
             *self._global_args(config_settings),
             "egg_info",
-            *self._arbitrary_args(config_settings),
         ]
         try:
             with Distribution.patch():
@@ -399,13 +369,19 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         return self._bubble_up_info_directory(metadata_directory, ".dist-info")
 
     def _build_with_temp_dir(
-        self, setup_command, result_extension, result_directory, config_settings
+        self,
+        setup_command,
+        result_extension,
+        result_directory,
+        config_settings,
+        arbitrary_args=(),
     ):
         result_directory = os.path.abspath(result_directory)
 
         # Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
         temp_opts = {"prefix": ".tmp-", "dir": result_directory}
+
         with tempfile.TemporaryDirectory(**temp_opts) as tmp_dist_dir:
             sys.argv = [
                 *sys.argv[:1],
@@ -413,7 +389,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
                 *setup_command,
                 "--dist-dir",
                 tmp_dist_dir,
-                *self._arbitrary_args(config_settings),
+                *arbitrary_args,
             ]
             with no_install_setup_requires():
                 self.run_setup()
@@ -432,7 +408,11 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
     ):
         with suppress_known_deprecation():
             return self._build_with_temp_dir(
-                ['bdist_wheel'], '.whl', wheel_directory, config_settings
+                ['bdist_wheel'],
+                '.whl',
+                wheel_directory,
+                config_settings,
+                self._arbitrary_args(config_settings),
             )
 
     def build_sdist(self, sdist_directory, config_settings=None):
@@ -504,7 +484,7 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
         sys.argv[0] = setup_script
 
         try:
-            super(_BuildMetaLegacyBackend, self).run_setup(setup_script=setup_script)
+            super().run_setup(setup_script=setup_script)
         finally:
             # While PEP 517 frontends should be calling each hook in a fresh
             # subprocess according to the standard (and thus it should not be

@@ -61,7 +61,7 @@ trait CatBoostPredictorTrait[
     )
 
     val oneHotMaxSize = native_impl.GetOneHotMaxSize(
-      catFeaturesMaxUniqValueCount, 
+      catFeaturesMaxUniqValueCount,
       quantizedTrainPool.isDefined(quantizedTrainPool.labelCol),
       compact(updatedCatBoostJsonParams)
     )
@@ -78,7 +78,7 @@ trait CatBoostPredictorTrait[
       (quantizedTrainPool, quantizedEvalPools, null)
     }
   }
-    
+
 
   /**
    *  override in descendants if necessary
@@ -90,11 +90,11 @@ trait CatBoostPredictorTrait[
     quantizedEvalPools: Array[Pool]
   ) : (Pool, Array[Pool], CatBoostTrainingContext) = {
     val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this)
-    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext) 
+    val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext)
         = addEstimatedCtrFeatures(quantizedTrainPool, quantizedEvalPools, catBoostJsonParams)
     (
-      preprocessedTrainPool, 
-      preprocessedEvalPools, 
+      preprocessedTrainPool,
+      preprocessedEvalPools,
       new CatBoostTrainingContext(
         ctrsContext,
         catBoostJsonParams,
@@ -172,7 +172,7 @@ trait CatBoostPredictorTrait[
 
     this.logInfo("fit. train.prepareDatasetForTraining: start")
     val preparedTrainDataset = DataHelpers.prepareDatasetForTraining(
-      preprocessedTrainPool, 
+      preprocessedTrainPool,
       datasetIdx=0.toByte,
       workerCount=partitionCount
     )
@@ -182,7 +182,7 @@ trait CatBoostPredictorTrait[
       case (evalPool, evalIdx) => {
         this.logInfo(s"fit. eval #${evalIdx}.prepareDatasetForTraining: start")
         val preparedEvalDataset = DataHelpers.prepareDatasetForTraining(
-          evalPool, 
+          evalPool,
           datasetIdx=(evalIdx + 1).toByte,
           workerCount=partitionCount
         )
@@ -223,62 +223,67 @@ trait CatBoostPredictorTrait[
       master.savedPoolsFuture
     )
 
-    breakable {
-      // retry training if network connection issues were the reason of failure
-      while (true) {
-        val trainingDriver : TrainingDriver = new TrainingDriver(
-          listeningPort = getOrDefault(trainingDriverListeningPort),
-          workerCount = partitionCount,
-          startMasterCallback = master.trainCallback,
-          connectTimeout = connectTimeoutValue,
-          workerInitializationTimeout = workerInitializationTimeoutValue
-        )
-
-        try {
-          val listeningPort = trainingDriver.getListeningPort
-          this.logInfo(s"fit. TrainingDriver listening port = ${listeningPort}")
-
-          this.logInfo(s"fit. Training started")
-
-          val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
-
-          val trainingDriverFuture = ecs.submit(trainingDriver, ())
-
-          val workersFuture = ecs.submit(
-            new Runnable {
-              def run = {
-                workers.run(listeningPort)
-              }
-            },
-            ()
+    val ecsPool = Executors.newCachedThreadPool()
+    try {
+      breakable {
+        // retry training if network connection issues were the reason of failure
+        while (true) {
+          val trainingDriver : TrainingDriver = new TrainingDriver(
+            listeningPort = getOrDefault(trainingDriverListeningPort),
+            workerCount = partitionCount,
+            startMasterCallback = master.trainCallback,
+            connectTimeout = connectTimeoutValue,
+            workerInitializationTimeout = workerInitializationTimeoutValue
           )
 
-          var catboostWorkersConnectionLost = false
           try {
-            impl.Helpers.waitForTwoFutures(ecs, trainingDriverFuture, "master", workersFuture, "workers")
-            break
-          } catch {
-            case e : java.util.concurrent.ExecutionException => {
-              e.getCause match {
-                case connectionLostException : CatBoostWorkersConnectionLostException => {
-                  catboostWorkersConnectionLost = true
+            val listeningPort = trainingDriver.getListeningPort
+            this.logInfo(s"fit. TrainingDriver listening port = ${listeningPort}")
+
+            this.logInfo(s"fit. Training started")
+
+            val ecs = new ExecutorCompletionService[Unit](ecsPool)
+
+            val trainingDriverFuture = ecs.submit(trainingDriver, ())
+
+            val workersFuture = ecs.submit(
+              new Runnable {
+                def run = {
+                  workers.run(listeningPort)
                 }
-                case _ => throw e
+              },
+              ()
+            )
+
+            var catboostWorkersConnectionLost = false
+            try {
+              impl.Helpers.waitForTwoFutures(ecs, trainingDriverFuture, "master", workersFuture, "workers")
+              break
+            } catch {
+              case e : java.util.concurrent.ExecutionException => {
+                e.getCause match {
+                  case connectionLostException : CatBoostWorkersConnectionLostException => {
+                    catboostWorkersConnectionLost = true
+                  }
+                  case _ => throw e
+                }
               }
             }
+            if (workers.workerFailureCount >= workerMaxFailuresValue) {
+              throw new CatBoostError(s"CatBoost workers failed at least $workerMaxFailuresValue times")
+            }
+            if (catboostWorkersConnectionLost) {
+              log.info(s"CatBoost master: communication with some of the workers has been lost. Retry training")
+            } else {
+              break
+            }
+          } finally {
+            trainingDriver.close(tryToShutdownWorkers=true, waitToShutdownWorkers=false)
           }
-          if (workers.workerFailureCount >= workerMaxFailuresValue) {
-            throw new CatBoostError(s"CatBoost workers failed at least $workerMaxFailuresValue times")
-          }
-          if (catboostWorkersConnectionLost) {
-            log.info(s"CatBoost master: communication with some of the workers has been lost. Retry training")
-          } else {
-            break
-          }
-        } finally {
-          trainingDriver.close(tryToShutdownWorkers=true, waitToShutdownWorkers=false)
         }
       }
+    } finally {
+      ecsPool.shutdown()
     }
     this.logInfo(s"fit. Training finished")
 
@@ -290,9 +295,9 @@ trait CatBoostPredictorTrait[
           catBoostTrainingContext.ctrsContext,
           quantizedTrainPool,
           quantizedEvalPools
-        ) 
+        )
       } else {
-        master.nativeModelResult 
+        master.nativeModelResult
       }
     )
 

@@ -16,6 +16,17 @@ int ibv_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr, int attr_mask) {
 }
 
 Y_HIDDEN
+int ibv_query_pkey(struct ibv_context *context, uint8_t port_num,
+		   int index, __be16 *pkey) {
+    return Call(IBSym()->ibv_query_pkey, context, port_num, index, pkey);
+}
+
+Y_HIDDEN
+const char *ibv_node_type_str(enum ibv_node_type node_type) {
+    return Call(IBSym()->ibv_node_type_str, node_type);
+}
+
+Y_HIDDEN
 struct ibv_ah *ibv_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr) {
     return Call(IBSym()->ibv_create_ah, pd, attr);
 }
@@ -102,7 +113,13 @@ struct ibv_mr *ibv_reg_mr(struct ibv_pd *pd, void *addr, size_t length, int acce
 
 Y_HIDDEN
 struct ibv_mr *ibv_reg_mr_iova2(struct ibv_pd *pd, void *addr, size_t length, uint64_t iova, unsigned int access) {
-    return Call(IBSym()->ibv_reg_mr_iova2, pd, addr, length, iova, access);
+    auto symFunc = IBSym()->ibv_reg_mr_iova2;
+    if (!symFunc) {
+        // On old versions we don`t have optimized ibv_reg_mr_iova2 on machines, 
+        // so fallback on ibv_reg_mr
+        return Call(IBSym()->ibv_reg_mr, pd, addr, length, access);
+    }
+    return Call(symFunc, pd, addr, length, iova, access);
 }
 
 Y_HIDDEN

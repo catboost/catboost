@@ -15,5 +15,5 @@ target_link_libraries(cpp-streams-lzma PUBLIC
   contrib-libs-lzmasdk
 )
 target_sources(cpp-streams-lzma PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/streams/lzma/lzma.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/streams/lzma/lzma.cpp
 )

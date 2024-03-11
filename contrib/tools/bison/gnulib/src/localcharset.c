@@ -62,7 +62,7 @@
 #endif
 #if defined OS2
 # define INCL_DOS
-# include <os2.h>
+# error #include <os2.h>
 #endif
 
 /* For MB_CUR_MAX_L */

@@ -4,6 +4,7 @@
 #include "flock.h"
 
 #include <util/generic/flags.h>
+#include <util/generic/fwd.h>
 #include <util/generic/ptr.h>
 #include <util/generic/noncopyable.h>
 
@@ -76,7 +77,9 @@ public:
         other.Fd_ = INVALID_FHANDLE;
     }
 
+    TFileHandle(const char* fName, EOpenMode oMode) noexcept;
     TFileHandle(const TString& fName, EOpenMode oMode) noexcept;
+    TFileHandle(const std::filesystem::path& path, EOpenMode oMode) noexcept;
 
     inline ~TFileHandle() {
         Close();
@@ -150,7 +153,9 @@ public:
     /// Takes ownership of handle, so closes it when the last holder of descriptor dies.
     explicit TFile(FHANDLE fd);
     TFile(FHANDLE fd, const TString& fname);
+    TFile(const char* fName, EOpenMode oMode);
     TFile(const TString& fName, EOpenMode oMode);
+    TFile(const std::filesystem::path& path, EOpenMode oMode);
     ~TFile();
 
     void Close();

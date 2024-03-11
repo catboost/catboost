@@ -9,7 +9,7 @@
 
 add_executable(catboost-private-libs-quantization-ut)
 target_include_directories(catboost-private-libs-quantization-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization
 )
 target_link_libraries(catboost-private-libs-quantization-ut PUBLIC
   contrib-libs-linux-headers
@@ -30,7 +30,7 @@ target_link_options(catboost-private-libs-quantization-ut PRIVATE
   -ldl
 )
 target_sources(catboost-private-libs-quantization-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization/ut/utils_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization/ut/utils_ut.cpp
 )
 set_property(
   TARGET
@@ -64,6 +64,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-private-libs-quantization-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-private-libs-quantization-ut
   cpp-malloc-tcmalloc

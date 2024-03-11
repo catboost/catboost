@@ -30,11 +30,10 @@ class bdist_rpm(orig.bdist_rpm):
 
     def _make_spec_file(self):
         spec = orig.bdist_rpm._make_spec_file(self)
-        spec = [
+        return [
             line.replace(
                 "setup.py install ",
                 "setup.py install --single-version-externally-managed ",
             ).replace("%setup", "%setup -n %{name}-%{unmangled_version}")
             for line in spec
         ]
-        return spec

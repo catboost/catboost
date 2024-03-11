@@ -15,8 +15,8 @@ target_link_libraries(cpp-testing-common PUBLIC
   library-cpp-json
 )
 target_sources(cpp-testing-common PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/common/env.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/common/network.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/common/probe.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/common/scope.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/common/env.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/common/network.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/common/probe.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/testing/common/scope.cpp
 )

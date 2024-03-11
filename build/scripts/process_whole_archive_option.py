@@ -3,11 +3,11 @@ import os
 import process_command_files as pcf
 
 
-class ProcessWholeArchiveOption():
+class ProcessWholeArchiveOption:
     def __init__(self, arch, peers=None, libs=None):
         self.arch = arch.upper()
-        self.peers = { x : 0 for x in peers } if peers else None
-        self.libs = { x : 0 for x in libs } if libs else None
+        self.peers = {x: 0 for x in peers} if peers else None
+        self.libs = {x: 0 for x in libs} if libs else None
         self.start_wa_marker = '--start-wa'
         self.end_wa_marker = '--end-wa'
 

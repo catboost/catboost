@@ -1,5 +1,6 @@
 import sys
 from collections import OrderedDict
+import setuptools
 from distutils.util import strtobool
 
 # from prettytable import PrettyTable

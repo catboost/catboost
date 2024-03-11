@@ -20,9 +20,9 @@ target_link_libraries(private-libs-text_processing PUBLIC
   cpp-threading-local_executor
 )
 target_sources(private-libs-text_processing PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/text_column_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/text_dataset.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/text_digitizers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/tokenizer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/dictionary.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/text_column_builder.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/text_dataset.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/text_digitizers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/tokenizer.cpp
 )

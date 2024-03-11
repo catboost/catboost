@@ -23,6 +23,7 @@ from traitlets.config.loader import (
     ArgumentError,
     Config,
     ConfigFileNotFound,
+    DeferredConfigString,
     JSONFileConfigLoader,
     KVArgParseConfigLoader,
     PyFileConfigLoader,
@@ -96,7 +97,7 @@ else:
 IS_PYTHONW = sys.executable and sys.executable.endswith("pythonw.exe")
 
 T = t.TypeVar("T", bound=t.Callable[..., t.Any])
-AnyLogger = t.Union[logging.Logger, logging.LoggerAdapter]
+AnyLogger = t.Union[logging.Logger, "logging.LoggerAdapter[t.Any]"]
 StrDict = t.Dict[str, t.Any]
 ArgvType = t.Optional[t.List[str]]
 ClassesType = t.List[t.Type[Configurable]]
@@ -303,8 +304,7 @@ class Application(SingletonConfigurable):
                 return log
             if not _log.propagate:
                 break
-            else:
-                _log = _log.parent  # type:ignore[assignment]
+            _log = _log.parent  # type:ignore[assignment]
         return log
 
     logging_config = Dict(
@@ -500,7 +500,7 @@ class Application(SingletonConfigurable):
             if not class_config:
                 continue
             print(classname)
-            pformat_kwargs: StrDict = dict(indent=4, compact=True)
+            pformat_kwargs: StrDict = dict(indent=4, compact=True)  # noqa: C408
 
             for traitname in sorted(class_config):
                 value = class_config[traitname]
@@ -713,12 +713,12 @@ class Application(SingletonConfigurable):
             self.subapp = subapp.instance(parent=self)
         elif callable(subapp):
             # or ask factory to create it...
-            self.subapp = subapp(self)  # type:ignore[call-arg]
+            self.subapp = subapp(self)
         else:
             raise AssertionError("Invalid mappings for subcommand '%s'!" % subc)
 
         # ... and finally initialize subapp.
-        self.subapp.initialize(argv)  # type:ignore[union-attr]
+        self.subapp.initialize(argv)
 
     def flatten_flags(self) -> tuple[dict[str, t.Any], dict[str, t.Any]]:
         """Flatten flags and aliases for loaders, so cl-args override as expected.
@@ -923,7 +923,7 @@ class Application(SingletonConfigurable):
                     if raise_config_file_errors:
                         raise
                     if log:
-                        log.error("Exception while loading config file %s", filename, exc_info=True)
+                        log.error("Exception while loading config file %s", filename, exc_info=True)  # noqa: G201
                 else:
                     if log:
                         log.debug("Loaded config file: %s", loader.full_filename)
@@ -932,7 +932,7 @@ class Application(SingletonConfigurable):
                         collisions = earlier_config.collisions(config)
                         if collisions and log:
                             log.warning(
-                                "Collisions detected in {0} and {1} config files."
+                                "Collisions detected in {0} and {1} config files."  # noqa: G001
                                 " {1} has higher priority: {2}".format(
                                     filename,
                                     loader.full_filename,
@@ -967,6 +967,28 @@ class Application(SingletonConfigurable):
             ):  # only add to list of loaded files if not previously loaded
                 self._loaded_config_files.append(fname)
         # add self.cli_config to preserve CLI config priority
+        new_config.merge(self.cli_config)
+        self.update_config(new_config)
+
+    @catch_config_error
+    def load_config_environ(self) -> None:
+        """Load config files by environment."""
+        PREFIX = self.name.upper().replace("-", "_")
+        new_config = Config()
+
+        self.log.debug('Looping through config variables with prefix "%s"', PREFIX)
+
+        for k, v in os.environ.items():
+            if k.startswith(PREFIX):
+                self.log.debug('Seeing environ "%s"="%s"', k, v)
+                # use __ instead of . as separator in env variable.
+                # Warning, case sensitive !
+                _, *path, key = k.split("__")
+                section = new_config
+                for p in path:
+                    section = section[p]
+                setattr(section, key, DeferredConfigString(v))
+
         new_config.merge(self.cli_config)
         self.update_config(new_config)
 
@@ -1035,7 +1057,7 @@ class Application(SingletonConfigurable):
             self._logging_configured = False
 
     def exit(self, exit_status: int | str | None = 0) -> None:
-        self.log.debug("Exiting application: %s" % self.name)
+        self.log.debug("Exiting application: %s", self.name)
         self.close_handlers()
         sys.exit(exit_status)
 

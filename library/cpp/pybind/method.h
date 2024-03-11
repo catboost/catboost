@@ -12,6 +12,7 @@
 #include <util/generic/function.h>
 
 #include "cast.h"
+#include "exceptions.h"
 
 namespace NPyBind {
     template <typename TObjType>
@@ -334,6 +335,11 @@ namespace NPyBind {
                 res = BuildPyObject(std::move(Apply(Applicant{sub, Method}, GetArguments<Args...>(args))));
             } catch (cast_exception) {
                 return false;
+            } catch (const TPyNativeErrorException&) {
+                if (!PyErr_Occurred()) {
+                    PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+                }
+                return true;
             } catch (...) {
                 if (PyExc_StopIteration == PyErr_Occurred()) {
                     // NB: it's replacement for geo_boost::python::throw_error_already_set();
@@ -384,6 +390,11 @@ namespace NPyBind {
                 res = Py_None;
             } catch (cast_exception) {
                 return false;
+            } catch (const TPyNativeErrorException&) {
+                if (!PyErr_Occurred()) {
+                    PyErr_SetString(PyExc_RuntimeError, "Some PY error occurred, but it is not set.");
+                }
+                return true;
             } catch (...) {
                 PyErr_SetString(PyExc_RuntimeError, CurrentExceptionMessage().data());
                 return true;

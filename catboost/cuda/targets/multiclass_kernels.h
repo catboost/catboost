@@ -307,31 +307,28 @@ namespace NKernelHost {
     private:
         TCudaBufferPtr<const float> Weights;
         ui32 RowIdx;
-        ui32 SampleCount;
         TCudaBufferPtr<float> Der2;
 
     public:
         TMultiRMSESecondDerKernel() = default;
 
         TMultiRMSESecondDerKernel(
-            ui32 sampleCount,
             TCudaBufferPtr<const float> weights,
             ui32 rowIdx,
             TCudaBufferPtr<float> der2
         )
             : Weights(weights)
             , RowIdx(rowIdx)
-            , SampleCount(sampleCount)
             , Der2(der2)
         {
         }
 
-        Y_SAVELOAD_DEFINE(Weights, RowIdx, SampleCount, Der2);
+        Y_SAVELOAD_DEFINE(Weights, RowIdx, Der2);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(RowIdx <= Der2.GetColumnCount(), LabeledOutput(RowIdx, Der2.GetColumnCount()));
             NKernel::MultiRMSESecondDer(
-                SampleCount,
+                Weights.Size(),
                 Weights.Get(),
                 Der2.Get(),
                 RowIdx, Der2.AlignedColumnSize(),
@@ -601,7 +598,6 @@ inline void MultiRMSESecondDerRow(
     LaunchKernels<TKernel>(
         target.NonEmptyDevices(),
         stream,
-        SafeIntegerCast<ui32>(target.GetObjectsSlice().Size()),
         weights,
         rowIdx,
         weightedDer2Row);

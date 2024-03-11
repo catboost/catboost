@@ -20,11 +20,17 @@ C SetPredictionType
 C SetPredictionTypeString
 
 C CalcModelPrediction
+C CalcModelPredictionStaged
 C CalcModelPredictionText
+C CalcModelPredictionTextStaged
 C CalcModelPredictionTextAndEmbeddings
+C CalcModelPredictionTextAndEmbeddingsStaged
 C CalcModelPredictionSingle
+C CalcModelPredictionSingleStaged
 C CalcModelPredictionFlat
+C CalcModelPredictionFlatStaged
 C CalcModelPredictionFlatTransposed
+C CalcModelPredictionFlatTransposedStaged
 C CalcModelPredictionWithHashedCatFeatures
 C CalcModelPredictionWithHashedCatFeaturesAndTextFeatures
 C CalcModelPredictionWithHashedCatFeaturesAndTextAndEmbeddingFeatures
@@ -49,3 +55,8 @@ C CheckModelMetadataHasKey
 C GetModelInfoValueSize
 C GetModelInfoValue
 C GetModelUsedFeaturesNames
+
+C GetCatFeatureIndices
+C GetFloatFeatureIndices
+C GetTextFeatureIndices
+C GetEmbeddingFeatureIndices

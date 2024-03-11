@@ -10,7 +10,7 @@ find_package(CUDAToolkit REQUIRED)
 
 add_library(libs-model-cuda)
 target_cuda_sources(libs-model-cuda PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/cuda/evaluator.cu
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/cuda/evaluator.cu
 )
 target_link_libraries(libs-model-cuda PUBLIC
   contrib-libs-cxxsupp
@@ -55,5 +55,5 @@ target_link_libraries(libs-model-cuda.global PUBLIC
   CUDA::toolkit
 )
 target_sources(libs-model-cuda.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/model/cuda/evaluator.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/model/cuda/evaluator.cpp
 )

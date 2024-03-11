@@ -14,12 +14,12 @@ target_compile_options(contrib-libs-mimalloc PRIVATE
   -DMI_PADDING=0
 )
 target_include_directories(contrib-libs-mimalloc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/mimalloc/include
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/include
 )
 target_link_libraries(contrib-libs-mimalloc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
 target_sources(contrib-libs-mimalloc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/mimalloc/src/static.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/static.c
 )

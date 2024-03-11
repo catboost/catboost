@@ -11,10 +11,11 @@
 import contextlib
 import os
 import sys
+import textwrap
 import traceback
 from inspect import getframeinfo
 from pathlib import Path
-from typing import Dict
+from typing import Dict, NamedTuple, Optional, Type
 
 import hypothesis
 from hypothesis.errors import (
@@ -105,32 +106,48 @@ def get_trimmed_traceback(exception=None):
     return tb
 
 
-def get_interesting_origin(exception):
+class InterestingOrigin(NamedTuple):
     # The `interesting_origin` is how Hypothesis distinguishes between multiple
     # failures, for reporting and also to replay from the example database (even
     # if report_multiple_bugs=False).  We traditionally use the exception type and
     # location, but have extracted this logic in order to see through `except ...:`
     # blocks and understand the __cause__ (`raise x from y`) or __context__ that
     # first raised an exception as well as PEP-654 exception groups.
-    tb = get_trimmed_traceback(exception)
-    if tb is None:
+    exc_type: Type[BaseException]
+    filename: Optional[str]
+    lineno: Optional[int]
+    context: "InterestingOrigin | tuple[()]"
+    group_elems: "tuple[InterestingOrigin, ...]"
+
+    def __str__(self) -> str:
+        ctx = ""
+        if self.context:
+            ctx = textwrap.indent(f"\ncontext: {self.context}", prefix="    ")
+        group = ""
+        if self.group_elems:
+            chunks = "\n  ".join(str(x) for x in self.group_elems)
+            group = textwrap.indent(f"\nchild exceptions:\n  {chunks}", prefix="    ")
+        return f"{self.exc_type.__name__} at {self.filename}:{self.lineno}{ctx}{group}"
+
+    @classmethod
+    def from_exception(cls, exception: BaseException, /) -> "InterestingOrigin":
         filename, lineno = None, None
-    else:
-        filename, lineno, *_ = traceback.extract_tb(tb)[-1]
-    return (
-        type(exception),
-        filename,
-        lineno,
-        # Note that if __cause__ is set it is always equal to __context__, explicitly
-        # to support introspection when debugging, so we can use that unconditionally.
-        get_interesting_origin(exception.__context__) if exception.__context__ else (),
-        # We distinguish exception groups by the inner exceptions, as for __context__
-        tuple(
-            map(get_interesting_origin, exception.exceptions)
-            if isinstance(exception, BaseExceptionGroup)
-            else []
-        ),
-    )
+        if tb := get_trimmed_traceback(exception):
+            filename, lineno, *_ = traceback.extract_tb(tb)[-1]
+        return cls(
+            type(exception),
+            filename,
+            lineno,
+            # Note that if __cause__ is set it is always equal to __context__, explicitly
+            # to support introspection when debugging, so we can use that unconditionally.
+            cls.from_exception(exception.__context__) if exception.__context__ else (),
+            # We distinguish exception groups by the inner exceptions, as for __context__
+            (
+                tuple(map(cls.from_exception, exception.exceptions))
+                if isinstance(exception, BaseExceptionGroup)
+                else ()
+            ),
+        )
 
 
 current_pytest_item = DynamicVariable(None)

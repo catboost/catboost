@@ -16,7 +16,7 @@
 
 namespace NCB {
 
-class TDatasetStatisticsFullVisitor: public IRawObjectsOrderDataVisitor {
+class TDatasetStatisticsFullVisitor final : public IRawObjectsOrderDataVisitor {
 public:
     TDatasetStatisticsFullVisitor(
         const TDataProviderBuilderOptions& options,
@@ -221,9 +221,13 @@ public:
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 localObjectIdx, float value) override {
-        DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
-        with_lock(TargetLock) {
-            FloatTarget[0].push_back(value);
+        if (MetaInfo.TargetType == ERawTargetType::Float) {
+            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
+            with_lock(TargetLock) {
+                FloatTarget[0].push_back(value);
+            }
+        } else {
+            DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, ui32(value));
         }
         Y_UNUSED(localObjectIdx);
     }
@@ -240,9 +244,13 @@ public:
         Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
-        DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
-        with_lock(TargetLock) {
-            FloatTarget[flatTargetIdx].push_back(value);
+        if (MetaInfo.TargetType == ERawTargetType::Float) {
+            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
+            with_lock(TargetLock) {
+                FloatTarget[flatTargetIdx].push_back(value);
+            }
+        } else {
+            DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, ui32(value));
         }
         Y_UNUSED(localObjectIdx);
     }
@@ -262,6 +270,11 @@ public:
             !IsLocal || NextCursor >= ObjectCount,
             "processed object count is less than than specified in metadata: " << NextCursor << "<"
             << ObjectCount);
+        if (IsLocal) {
+            DatasetStatistics.ObjectsCount = ObjectCount;
+        } else {
+            DatasetStatistics.ObjectsCount = NextCursor;
+        }
 
         if (DatasetStatistics.GroupwiseStats.Defined()) {
             DatasetStatistics.GroupwiseStats->Flush();
@@ -337,7 +350,7 @@ private:
     bool ConvertStringTargets;
 };
 
-class TDatasetStatisticsOnlyGroupVisitor: public IRawObjectsOrderDataVisitor {
+class TDatasetStatisticsOnlyGroupVisitor final : public IRawObjectsOrderDataVisitor {
 public:
     explicit TDatasetStatisticsOnlyGroupVisitor(bool isLocal)
         : ObjectCount(0)

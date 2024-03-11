@@ -21,7 +21,7 @@ endfunction()
 
 
 function(target_ragel_lexers TgtName Key Src)
-  SET(RAGEL_BIN ${CMAKE_BINARY_DIR}/bin/ragel${CMAKE_EXECUTABLE_SUFFIX})
+  SET(RAGEL_BIN ${PROJECT_BINARY_DIR}/bin/ragel${CMAKE_EXECUTABLE_SUFFIX})
   get_filename_component(OutPath ${Src} NAME_WLE)
   get_filename_component(SrcDirPath ${Src} DIRECTORY)
   get_filename_component(OutputExt ${OutPath} EXT)
@@ -30,34 +30,34 @@ function(target_ragel_lexers TgtName Key Src)
   endif()
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${OutPath}
-    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py -- ${RAGEL_BIN} ${RAGEL_FLAGS} ${ARGN} -o ${CMAKE_CURRENT_BINARY_DIR}/${OutPath} ${Src}
-    DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py ${Src}
+    COMMAND Python3::Interpreter ${PROJECT_SOURCE_DIR}/build/scripts/run_tool.py -- ${RAGEL_BIN} ${RAGEL_FLAGS} ${ARGN} -o ${CMAKE_CURRENT_BINARY_DIR}/${OutPath} ${Src}
+    DEPENDS ${PROJECT_SOURCE_DIR}/build/scripts/run_tool.py ${Src}
     WORKING_DIRECTORY ${SrcDirPath}
   )
   target_sources(${TgtName} ${Key} ${CMAKE_CURRENT_BINARY_DIR}/${OutPath})
 endfunction()
 
 function(target_yasm_source TgtName Key Src)
-  SET(YASM_BIN ${CMAKE_BINARY_DIR}/bin/yasm${CMAKE_EXECUTABLE_SUFFIX})
+  SET(YASM_BIN ${PROJECT_BINARY_DIR}/bin/yasm${CMAKE_EXECUTABLE_SUFFIX})
   get_filename_component(OutPath ${Src} NAME_WLE)
   string(APPEND OutPath .o)
   add_custom_command(
       OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${OutPath}
-      COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py -- ${YASM_BIN} ${YASM_FLAGS} ${ARGN} -o ${CMAKE_CURRENT_BINARY_DIR}/${OutPath} ${Src}
-    DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/run_tool.py ${Src}
+      COMMAND Python3::Interpreter ${PROJECT_SOURCE_DIR}/build/scripts/run_tool.py -- ${YASM_BIN} ${YASM_FLAGS} ${ARGN} -o ${CMAKE_CURRENT_BINARY_DIR}/${OutPath} ${Src}
+    DEPENDS ${PROJECT_SOURCE_DIR}/build/scripts/run_tool.py ${Src}
   )
   target_sources(${TgtName} ${Key} ${CMAKE_CURRENT_BINARY_DIR}/${OutPath})
 endfunction()
 
 function(target_joined_source TgtName Out)
   foreach(InSrc ${ARGN})
-    file(RELATIVE_PATH IncludePath ${CMAKE_SOURCE_DIR} ${InSrc})
+    file(RELATIVE_PATH IncludePath ${PROJECT_SOURCE_DIR} ${InSrc})
     list(APPEND IncludesList ${IncludePath})
   endforeach()
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${Out}
-    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/gen_join_srcs.py ${CMAKE_CURRENT_BINARY_DIR}/${Out} ${IncludesList}
-    DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/gen_join_srcs.py ${ARGN}
+    COMMAND Python3::Interpreter ${PROJECT_SOURCE_DIR}/build/scripts/gen_join_srcs.py ${CMAKE_CURRENT_BINARY_DIR}/${Out} ${IncludesList}
+    DEPENDS ${PROJECT_SOURCE_DIR}/build/scripts/gen_join_srcs.py ${ARGN}
   )
   target_sources(${TgtName} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${Out})
 endfunction()
@@ -74,11 +74,11 @@ function(target_sources_custom TgtName CompileOutSuffix)
   )
 
   foreach(Src ${TARGET_SOURCES_CUSTOM_SRCS})
-    file(RELATIVE_PATH SrcRealPath ${CMAKE_SOURCE_DIR} ${Src})
+    file(RELATIVE_PATH SrcRealPath ${PROJECT_SOURCE_DIR} ${Src})
     get_filename_component(SrcDir ${SrcRealPath} DIRECTORY)
     get_filename_component(SrcName ${SrcRealPath} NAME_WLE)
     get_filename_component(SrcExt ${SrcRealPath} LAST_EXT)
-    set(SrcCopy "${CMAKE_BINARY_DIR}/${SrcDir}/${SrcName}${CompileOutSuffix}${SrcExt}")
+    set(SrcCopy "${PROJECT_BINARY_DIR}/${SrcDir}/${SrcName}${CompileOutSuffix}${SrcExt}")
     add_custom_command(
       OUTPUT ${SrcCopy}
       COMMAND ${CMAKE_COMMAND} -E copy ${Src} ${SrcCopy}
@@ -90,7 +90,7 @@ function(target_sources_custom TgtName CompileOutSuffix)
       ${SrcCopy}
       APPEND PROPERTY COMPILE_OPTIONS
       ${TARGET_SOURCES_CUSTOM_CUSTOM_FLAGS}
-      -I${CMAKE_SOURCE_DIR}/${SrcDir}
+      -I${PROJECT_SOURCE_DIR}/${SrcDir}
     )
   endforeach()
 
@@ -103,7 +103,7 @@ endfunction()
 
 function(generate_enum_serilization Tgt Input)
   set(opts "")
-  set(oneval_args INCLUDE_HEADERS)
+  set(oneval_args INCLUDE_HEADERS GEN_HEADER)
   set(multival_args "")
   cmake_parse_arguments(ENUM_SERIALIZATION_ARGS
     "${opts}"
@@ -115,15 +115,29 @@ function(generate_enum_serilization Tgt Input)
   get_built_tool_path(enum_parser_bin enum_parser_dependency tools/enum_parser/enum_parser enum_parser)
 
   get_filename_component(BaseName ${Input} NAME)
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
-    COMMAND
-      ${enum_parser_bin}
-      ${Input}
-      --include-path ${ENUM_SERIALIZATION_ARGS_INCLUDE_HEADERS}
-      --output ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
-    DEPENDS ${Input} ${enum_parser_dependency}
-  )
+  if (ENUM_SERIALIZATION_ARGS_GEN_HEADER)
+    set_property(SOURCE ${ENUM_SERIALIZATION_ARGS_GEN_HEADER} PROPERTY GENERATED On)
+    add_custom_command(
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp ${ENUM_SERIALIZATION_ARGS_GEN_HEADER}
+      COMMAND
+        ${enum_parser_bin}
+        ${Input}
+        --include-path ${ENUM_SERIALIZATION_ARGS_INCLUDE_HEADERS}
+        --output ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
+        --header ${ENUM_SERIALIZATION_ARGS_GEN_HEADER}
+      DEPENDS ${Input} ${enum_parser_dependency}
+    )
+  else()
+    add_custom_command(
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
+      COMMAND
+        ${enum_parser_bin}
+        ${Input}
+        --include-path ${ENUM_SERIALIZATION_ARGS_INCLUDE_HEADERS}
+        --output ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp
+      DEPENDS ${Input} ${enum_parser_dependency}
+    )
+  endif()
   target_sources(${Tgt} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${BaseName}_serialized.cpp)
 endfunction()
 
@@ -162,14 +176,14 @@ endfunction()
 function(vcs_info Tgt)
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json
-    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/generate_vcs_info.py ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json ${CMAKE_SOURCE_DIR}
-    DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/generate_vcs_info.py
+    COMMAND Python3::Interpreter ${PROJECT_SOURCE_DIR}/build/scripts/generate_vcs_info.py ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json ${PROJECT_SOURCE_DIR}
+    DEPENDS ${PROJECT_SOURCE_DIR}/build/scripts/generate_vcs_info.py
   )
 
   add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/__vcs_version__.c
-    COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/vcs_info.py ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json ${CMAKE_CURRENT_BINARY_DIR}/__vcs_version__.c ${CMAKE_SOURCE_DIR}/build/scripts/c_templates/svn_interface.c
-    DEPENDS ${CMAKE_SOURCE_DIR}/build/scripts/vcs_info.py ${CMAKE_SOURCE_DIR}/build/scripts/c_templates/svn_interface.c ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json
+    COMMAND Python3::Interpreter ${PROJECT_SOURCE_DIR}/build/scripts/vcs_info.py ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json ${CMAKE_CURRENT_BINARY_DIR}/__vcs_version__.c ${PROJECT_SOURCE_DIR}/build/scripts/c_templates/svn_interface.c
+    DEPENDS ${PROJECT_SOURCE_DIR}/build/scripts/vcs_info.py ${PROJECT_SOURCE_DIR}/build/scripts/c_templates/svn_interface.c ${CMAKE_CURRENT_BINARY_DIR}/vcs_info.json
   )
   target_sources(${Tgt} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/__vcs_version__.c)
 endfunction()
@@ -215,7 +229,7 @@ function(use_export_script Target ExportFile)
     set(EXPORT_SCRIPT_FLAVOR msvc)
   elseif(APPLE)
     execute_process(
-      COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/build/scripts/export_script_gen.py ${ExportFile} - --format darwin
+      COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/build/scripts/export_script_gen.py ${ExportFile} - --format darwin
       RESULT_VARIABLE _SCRIPT_RES
       OUTPUT_VARIABLE _SCRIPT_FLAGS
       ERROR_VARIABLE _SCRIPT_STDERR
@@ -235,8 +249,8 @@ function(use_export_script Target ExportFile)
   add_custom_command(
     OUTPUT ${OutPath}
     COMMAND
-      Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/export_script_gen.py ${ExportFile} ${OutPath} --format ${EXPORT_SCRIPT_FLAVOR}
-    DEPENDS ${ExportFile} ${CMAKE_SOURCE_DIR}/build/scripts/export_script_gen.py
+      Python3::Interpreter ${PROJECT_SOURCE_DIR}/build/scripts/export_script_gen.py ${ExportFile} ${OutPath} --format ${EXPORT_SCRIPT_FLAVOR}
+    DEPENDS ${ExportFile} ${PROJECT_SOURCE_DIR}/build/scripts/export_script_gen.py
   )
   target_sources(${Target} PRIVATE ${OutPath})
   set_property(SOURCE ${OutPath} PROPERTY
@@ -263,7 +277,7 @@ function(add_yunittest)
 
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/run_testpack")
         add_test(NAME ${YUNITTEST_ARGS_NAME} COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/run_testpack" ${YUNITTEST_ARGS_TEST_ARG})
-        set_property(TEST ${YUNITTEST_ARGS_NAME} PROPERTY ENVIRONMENT "source_root=${CMAKE_SOURCE_DIR};build_root=${CMAKE_BINARY_DIR};test_split_factor=${SPLIT_FACTOR};test_split_type=${SPLIT_TYPE}")
+        set_property(TEST ${YUNITTEST_ARGS_NAME} PROPERTY ENVIRONMENT "source_root=${PROJECT_SOURCE_DIR};build_root=${PROJECT_BINARY_DIR};test_split_factor=${SPLIT_FACTOR};test_split_type=${SPLIT_TYPE}")
         return()
   endif()
 
@@ -278,7 +292,7 @@ function(add_yunittest)
   math(EXPR LastIdx "${SPLIT_FACTOR} - 1")
   foreach(Idx RANGE ${LastIdx})
     add_test(NAME ${YUNITTEST_ARGS_NAME}_${Idx}
-      COMMAND Python3::Interpreter ${CMAKE_SOURCE_DIR}/build/scripts/split_unittest.py --split-factor ${SPLIT_FACTOR} ${FORK_MODE_ARG} --shard ${Idx}
+      COMMAND Python3::Interpreter ${PROJECT_SOURCE_DIR}/build/scripts/split_unittest.py --split-factor ${SPLIT_FACTOR} ${FORK_MODE_ARG} --shard ${Idx}
        $<TARGET_FILE:${YUNITTEST_ARGS_TEST_TARGET}> ${YUNITTEST_ARGS_TEST_ARG})
   endforeach()
 endfunction()
@@ -296,13 +310,13 @@ function(set_yunittest_property)
   get_property(SPLIT_FACTOR TARGET ${YUNITTEST_ARGS_TEST} PROPERTY SPLIT_FACTOR)
 
   if ((${SPLIT_FACTOR} EQUAL 1) OR (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/run_testpack"))
-    set_property(TEST ${YUNITTEST_ARGS_TEST} PROPERTY ${YUNITTEST_ARGS_PROPERTY} ${YUNITTEST_ARGS_UNPARSED_ARGUMENTS})
+    set_property(TEST ${YUNITTEST_ARGS_TEST} PROPERTY ${YUNITTEST_ARGS_PROPERTY} "${YUNITTEST_ARGS_UNPARSED_ARGUMENTS}")
   	return()
   endif()
 
   math(EXPR LastIdx "${SPLIT_FACTOR} - 1")
   foreach(Idx RANGE ${LastIdx})
-    set_property(TEST ${YUNITTEST_ARGS_TEST}_${Idx} PROPERTY ${YUNITTEST_ARGS_PROPERTY} ${YUNITTEST_ARGS_UNPARSED_ARGUMENTS})
+    set_property(TEST ${YUNITTEST_ARGS_TEST}_${Idx} PROPERTY ${YUNITTEST_ARGS_PROPERTY} "${YUNITTEST_ARGS_UNPARSED_ARGUMENTS}")
   endforeach()
 endfunction()
 

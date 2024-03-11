@@ -59,13 +59,13 @@ static inline int CRYPTO_DOWN_REF(_Atomic int *val, int *ret, void *lock)
 
 typedef int CRYPTO_REF_COUNT;
 
-static __inline__ int CRYPTO_UP_REF(int *val, int *ret, void *lock)
+static __inline__ int CRYPTO_UP_REF(int *val, int *ret, void * /*lock*/)
 {
     *ret = __atomic_fetch_add(val, 1, __ATOMIC_RELAXED) + 1;
     return 1;
 }
 
-static __inline__ int CRYPTO_DOWN_REF(int *val, int *ret, void *lock)
+static __inline__ int CRYPTO_DOWN_REF(int *val, int *ret, void * /*lock*/)
 {
     *ret = __atomic_fetch_sub(val, 1, __ATOMIC_RELAXED) - 1;
     if (*ret == 0)

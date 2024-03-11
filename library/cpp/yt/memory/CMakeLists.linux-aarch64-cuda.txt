@@ -21,15 +21,15 @@ target_link_libraries(cpp-yt-memory PUBLIC
   cpp-yt-malloc
 )
 target_sources(cpp-yt-memory PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/blob.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/chunked_input_stream.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/chunked_memory_allocator.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/chunked_memory_pool.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/chunked_memory_pool_output.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/chunked_output_stream.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/memory_tag.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/ref.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/ref_tracked.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/safe_memory_reader.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/shared_range.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/blob.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/chunked_input_stream.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/chunked_memory_allocator.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/chunked_memory_pool.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/chunked_memory_pool_output.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/chunked_output_stream.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/memory_tag.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/ref.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/ref_tracked.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/safe_memory_reader.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/shared_range.cpp
 )

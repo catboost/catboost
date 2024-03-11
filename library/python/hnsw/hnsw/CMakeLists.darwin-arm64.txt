@@ -13,7 +13,7 @@ target_compile_options(_hnsw PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_cython_sources(_hnsw PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/python/hnsw/hnsw/_hnsw.pyx
+  ${PROJECT_SOURCE_DIR}/library/python/hnsw/hnsw/_hnsw.pyx
 )
 target_link_libraries(_hnsw PUBLIC
   contrib-libs-cxxsupp
@@ -32,21 +32,20 @@ target_link_options(_hnsw PRIVATE
   -fPIC
   -undefined
   dynamic_lookup
-  -flat_namespace
   -fPIC
 )
 target_sources(_hnsw PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/python/hnsw/hnsw/helpers.cpp
+  ${PROJECT_SOURCE_DIR}/library/python/hnsw/hnsw/helpers.cpp
 )
 set_python_type_for_cython(_hnsw
   PY3
 )
 target_cython_include_directories(_hnsw
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/tools/cython/Cython/Includes
-  ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
-  ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
+  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/contrib/tools/cython/Cython/Includes
+  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
+  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )
 target_cython_options(_hnsw
   -E
@@ -56,6 +55,6 @@ target_cython_options(_hnsw
   --cplus
 )
 use_export_script(_hnsw
-  ${CMAKE_SOURCE_DIR}/library/python/hnsw/hnsw/hnsw3.exports
+  ${PROJECT_SOURCE_DIR}/library/python/hnsw/hnsw/hnsw3.exports
 )
 vcs_info(_hnsw)

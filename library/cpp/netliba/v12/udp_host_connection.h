@@ -530,7 +530,7 @@ namespace NNetliba_v12 {
         TString GetDebugInfo() const {
             char buf[1000];
             const TCongestionControl& cc = *UdpCongestion;
-            sprintf(buf, "IB: %d, RTT: %g, Timeout: %g, Window: %g, MaxWin: %g, FailRate: %g, TimeSinceLastRecv: %g, MTU: %d, Sleeping: %g, Alive: %d",
+            snprintf(buf, sizeof(buf), "IB: %d, RTT: %g, Timeout: %g, Window: %g, MaxWin: %g, FailRate: %g, TimeSinceLastRecv: %g, MTU: %d, Sleeping: %g, Alive: %d",
                     IBPeer.Get() ? IBPeer->GetState() : -1,
                     cc.GetRTT() * 1000, cc.GetTimeout() * 1000, cc.GetWindow(), cc.GetMaxWindow(), cc.GetFailRate(),
                     cc.GetTimeSinceLastRecv() * 1000, cc.GetMTU(), TimeSleeping, (int)cc.IsAlive());

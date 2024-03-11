@@ -122,6 +122,7 @@ class CatBoostClassifierTest {
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
 
+
   @Test
   @throws(classOf[Exception])
   def testSimpleBinaryClassification() {
@@ -280,6 +281,108 @@ class CatBoostClassifierTest {
         }
       }
     }
+  }
+
+  @Test
+  @throws(classOf[Exception])
+  def testSimpleBinaryClassificationWithBooleanTarget() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+
+    val featureNames = Array[String]("f1", "f2", "f3")
+    val srcSchemaData = Seq(
+      ("features", SQLDataTypes.VectorType),
+      ("label", BooleanType)
+    )
+
+    val srcData = Seq(
+      Row(Vectors.dense(0.1, 0.2, 0.11), false),
+      Row(Vectors.dense(0.97, 0.82, 0.33), true),
+      Row(Vectors.dense(0.13, 0.22, 0.23), true),
+      Row(Vectors.dense(0.14, 0.18, 0.1), false),
+      Row(Vectors.dense(0.9, 0.67, 0.17), true),
+      Row(Vectors.dense(0.66, 0.1, 0.31), false)
+    )
+
+    val pool = PoolTestHelpers.createRawPool(
+      TestHelpers.getCurrentMethodName,
+      PoolTestHelpers.createSchema(
+        srcSchemaData,
+        featureNames,
+        /*addFeatureNamesMetadata*/ true
+      ),
+      srcData,
+      Map()
+    )
+
+    val classifier = new CatBoostClassifier()
+      .setIterations(20)
+      .setTrainDir(temporaryFolder.newFolder(TestHelpers.getCurrentMethodName).getPath)
+    val model = classifier.fit(pool)
+    val predictions = model.transform(pool.data)
+
+    val expectedPredictionsSchema = PoolTestHelpers.createSchema(
+      Seq(
+        ("features", SQLDataTypes.VectorType),
+        ("label", BooleanType),
+        ("rawPrediction", SQLDataTypes.VectorType),
+        ("probability", SQLDataTypes.VectorType),
+        ("prediction", DoubleType)
+      ),
+      featureNames,
+      /*addFeatureNamesMetadata*/ true,
+      /*nullableFields*/ Seq("rawPrediction", "probability", "prediction")
+    )
+
+    val expectedPredictionsData = Seq(
+      Row(
+        Vectors.dense(0.1, 0.2, 0.11),
+        false,
+        Vectors.dense(0.08414989363659559, -0.08414989363659559),
+        Vectors.dense(0.541975913549805, 0.458024086450195),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.97, 0.82, 0.33),
+        true,
+        Vectors.dense(-0.07660239597875373,0.07660239597875373),
+        Vectors.dense(0.4617735427982884,0.5382264572017116),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.13, 0.22, 0.23),
+        true,
+        Vectors.dense(-0.07657474373810148,0.07657474373810148),
+        Vectors.dense(0.4617872881333314,0.5382127118666686),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.14, 0.18, 0.1),
+        false,
+        Vectors.dense(0.09721485072232189,-0.09721485072232189),
+        Vectors.dense(0.5484548768406571,0.4515451231593429),
+        0.0
+      ),
+      Row(
+        Vectors.dense(0.9, 0.67, 0.17),
+        true,
+        Vectors.dense(-0.08702243949954704,0.08702243949954704),
+        Vectors.dense(0.4565982840017737,0.5434017159982263),
+        1.0
+      ),
+      Row(
+        Vectors.dense(0.66, 0.1, 0.31),
+        false,
+        Vectors.dense(0.07883731282470079,-0.07883731282470079),
+        Vectors.dense(0.539337192390336,0.460662807609664),
+        0.0
+      )
+    )
+    val expectedPredictions = spark.createDataFrame(
+      spark.sparkContext.parallelize(expectedPredictionsData),
+      StructType(expectedPredictionsSchema)
+    )
+
+    TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions)
   }
 
   // Master: String target type is not currently supported

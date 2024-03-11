@@ -27,6 +27,7 @@
 #pragma once
 
 #include <cstdio>
+#include <exception>
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/system/cuda/detail/execution_policy.h>
@@ -35,9 +36,11 @@
 
 #include <cub/detail/device_synchronize.cuh>
 #include <cub/util_arch.cuh>
+#include <cub/util_device.cuh>
+
+#include <nv/target>
 
 THRUST_NAMESPACE_BEGIN
-
 namespace cuda_cub {
 
 inline __host__ __device__
@@ -94,25 +97,7 @@ __host__ __device__
 cudaError_t
 synchronize_stream(execution_policy<Derived> &policy)
 {
-  cudaError_t result;
-  if (THRUST_IS_HOST_CODE) {
-    #if THRUST_INCLUDE_HOST_CODE
-      cudaStreamSynchronize(stream(policy));
-      result = cudaGetLastError();
-    #endif
-  } else {
-    #if THRUST_INCLUDE_DEVICE_CODE
-      #if __THRUST_HAS_CUDART__
-        THRUST_UNUSED_VAR(policy);
-        cub::detail::device_synchronize();
-        result = cudaGetLastError();
-      #else
-        THRUST_UNUSED_VAR(policy);
-        result = cudaSuccess;
-      #endif
-    #endif
-  }
-  return result;
+  return cub::SyncStream(stream(policy));
 }
 
 // Entry point/interface.
@@ -132,30 +117,16 @@ cudaError_t
 synchronize_stream_optional(execution_policy<Derived> &policy)
 {
   cudaError_t result;
-  if (THRUST_IS_HOST_CODE) {
-    #if THRUST_INCLUDE_HOST_CODE
-      if(must_perform_optional_synchronization(policy)){
-        cudaStreamSynchronize(stream(policy));
-        result = cudaGetLastError();
-      }else{
-        result = cudaSuccess;
-      }
-    #endif
-  } else {
-    #if THRUST_INCLUDE_DEVICE_CODE
-      #if __THRUST_HAS_CUDART__
-        if(must_perform_optional_synchronization(policy)){
-          cub::detail::device_synchronize();
-          result = cudaGetLastError();
-        }else{
-          result = cudaSuccess;
-        }
-      #else
-        THRUST_UNUSED_VAR(policy);
-        result = cudaSuccess;
-      #endif
-    #endif
+
+  if (must_perform_optional_synchronization(policy))
+  {
+    result = synchronize_stream(policy);
   }
+  else
+  {
+    result = cudaSuccess;
+  }
+
   return result;
 }
 
@@ -230,78 +201,93 @@ trivial_copy_device_to_device(Policy &    policy,
 inline void __host__ __device__
 terminate()
 {
-  if (THRUST_IS_DEVICE_CODE) {
-    #if THRUST_INCLUDE_DEVICE_CODE
-      asm("trap;");
-    #endif
-  } else {
-    #if THRUST_INCLUDE_HOST_CODE
-      std::terminate();
-    #endif
-  }
+  NV_IF_TARGET(NV_IS_HOST, (std::terminate();), (asm("trap;");));
 }
 
 __host__  __device__
 inline void throw_on_error(cudaError_t status)
 {
-#if __THRUST_HAS_CUDART__
   // Clear the global CUDA error state which may have been set by the last
   // call. Otherwise, errors may "leak" to unrelated kernel launches.
+#ifdef THRUST_RDC_ENABLED
   cudaGetLastError();
+#else
+  NV_IF_TARGET(NV_IS_HOST, (cudaGetLastError();));
 #endif
 
   if (cudaSuccess != status)
   {
-    if (THRUST_IS_HOST_CODE) {
-      #if THRUST_INCLUDE_HOST_CODE
-        throw thrust::system_error(status, thrust::cuda_category());
-      #endif
-    } else {
-      #if THRUST_INCLUDE_DEVICE_CODE
-        #if __THRUST_HAS_CUDART__
-          printf("Thrust CUDA backend error: %s: %s\n",
-                 cudaGetErrorName(status),
-                 cudaGetErrorString(status));
-        #else
-          printf("Thrust CUDA backend error: %d\n",
-                 static_cast<int>(status));
-        #endif
-        cuda_cub::terminate();
-      #endif
-    }
+
+    // Can't use #if inside NV_IF_TARGET, use a temp macro to hoist the device
+    // instructions out of the target logic.
+#ifdef THRUST_RDC_ENABLED
+
+#define THRUST_TEMP_DEVICE_CODE \
+  printf("Thrust CUDA backend error: %s: %s\n", \
+         cudaGetErrorName(status), \
+         cudaGetErrorString(status))
+
+#else
+
+#define THRUST_TEMP_DEVICE_CODE \
+  printf("Thrust CUDA backend error: %d\n", \
+         static_cast<int>(status))
+
+#endif
+
+    NV_IF_TARGET(NV_IS_HOST, (
+      throw thrust::system_error(status, thrust::cuda_category());
+    ), (
+      THRUST_TEMP_DEVICE_CODE;
+      cuda_cub::terminate();
+    ));
+
+#undef THRUST_TEMP_DEVICE_CODE
+
   }
 }
 
 __host__ __device__
 inline void throw_on_error(cudaError_t status, char const *msg)
 {
-#if __THRUST_HAS_CUDART__
   // Clear the global CUDA error state which may have been set by the last
   // call. Otherwise, errors may "leak" to unrelated kernel launches.
+#ifdef THRUST_RDC_ENABLED
   cudaGetLastError();
+#else
+  NV_IF_TARGET(NV_IS_HOST, (cudaGetLastError();));
 #endif
 
   if (cudaSuccess != status)
   {
-    if (THRUST_IS_HOST_CODE) {
-      #if THRUST_INCLUDE_HOST_CODE
-        throw thrust::system_error(status, thrust::cuda_category(), msg);
-      #endif
-    } else {
-      #if THRUST_INCLUDE_DEVICE_CODE
-        #if __THRUST_HAS_CUDART__
-          printf("Thrust CUDA backend error: %s: %s: %s\n",
-                 cudaGetErrorName(status),
-                 cudaGetErrorString(status),
-                 msg);
-        #else
-          printf("Thrust CUDA backend error: %d: %s \n",
-                 static_cast<int>(status),
-                 msg);
-        #endif
-        cuda_cub::terminate();
-      #endif
-    }
+    // Can't use #if inside NV_IF_TARGET, use a temp macro to hoist the device
+    // instructions out of the target logic.
+#ifdef THRUST_RDC_ENABLED
+
+#define THRUST_TEMP_DEVICE_CODE \
+  printf("Thrust CUDA backend error: %s: %s: %s\n", \
+         cudaGetErrorName(status), \
+         cudaGetErrorString(status),\
+         msg)
+
+#else
+
+#define THRUST_TEMP_DEVICE_CODE \
+  printf("Thrust CUDA backend error: %d: %s\n", \
+         static_cast<int>(status),              \
+         msg)
+
+#endif
+
+    NV_IF_TARGET(NV_IS_HOST, (
+      throw thrust::system_error(status, thrust::cuda_category(), msg);
+    ), (
+      THRUST_TEMP_DEVICE_CODE;
+      cuda_cub::terminate();
+    ));
+
+#undef THRUST_TEMP_DEVICE_CODE
+
   }
 }
 
@@ -332,6 +318,7 @@ struct transform_input_iterator_t
 
   // UnaryOp might not be copy assignable, such as when it is a lambda.  Define
   // an explicit copy assignment operator that doesn't try to assign it.
+  __host__ __device__ 
   self_t& operator=(const self_t& o)
   {
     input = o.input;
@@ -446,6 +433,7 @@ struct transform_pair_of_input_iterators_t
 
   // BinaryOp might not be copy assignable, such as when it is a lambda.
   // Define an explicit copy assignment operator that doesn't try to assign it.
+  __host__ __device__
   self_t& operator=(const self_t& o)
   {
     input1 = o.input1;

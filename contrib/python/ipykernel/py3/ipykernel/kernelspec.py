@@ -12,6 +12,7 @@ import shutil
 import stat
 import sys
 import tempfile
+from pathlib import Path
 from typing import Any
 
 from jupyter_client.kernelspec import KernelSpecManager
@@ -27,7 +28,7 @@ pjoin = os.path.join
 KERNEL_NAME = "python%i" % sys.version_info[0]
 
 # path to kernelspec resources
-RESOURCES = pjoin(os.path.dirname(__file__), "resources")
+RESOURCES = pjoin(Path(__file__).parent, "resources")
 
 
 def make_ipkernel_cmd(
@@ -65,12 +66,12 @@ def get_kernel_dict(extra_arguments: list[str] | None = None) -> dict[str, Any]:
         "argv": make_ipkernel_cmd(extra_arguments=extra_arguments),
         "display_name": "Python %i (ipykernel)" % sys.version_info[0],
         "language": "python",
-        "metadata": {"debugger": _is_debugpy_available},
+        "metadata": {"debugger": True},
     }
 
 
 def write_kernel_spec(
-    path: str | None = None,
+    path: Path | str | None = None,
     overrides: dict[str, Any] | None = None,
     extra_arguments: list[str] | None = None,
 ) -> str:
@@ -82,15 +83,15 @@ def write_kernel_spec(
     The path to the kernelspec is always returned.
     """
     if path is None:
-        path = os.path.join(tempfile.mkdtemp(suffix="_kernels"), KERNEL_NAME)
+        path = Path(tempfile.mkdtemp(suffix="_kernels")) / KERNEL_NAME
 
     # stage resources
     shutil.copytree(RESOURCES, path)
 
     # ensure path is writable
-    mask = os.stat(path).st_mode
+    mask = Path(path).stat().st_mode
     if not mask & stat.S_IWUSR:
-        os.chmod(path, mask | stat.S_IWUSR)
+        Path(path).chmod(mask | stat.S_IWUSR)
 
     # write kernel.json
     kernel_dict = get_kernel_dict(extra_arguments)
@@ -100,7 +101,7 @@ def write_kernel_spec(
     with open(pjoin(path, "kernel.json"), "w") as f:
         json.dump(kernel_dict, f, indent=1)
 
-    return path
+    return str(path)
 
 
 def install(
@@ -165,7 +166,7 @@ def install(
     )
     # cleanup afterward
     shutil.rmtree(path)
-    return dest  # type:ignore[no-any-return]
+    return dest
 
 
 # Entrypoint

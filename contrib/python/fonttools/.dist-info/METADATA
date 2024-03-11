@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.44.0
+Version: 4.49.0
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -31,9 +31,10 @@ Requires-Python: >=3.8
 License-File: LICENSE
 Provides-Extra: all
 Requires-Dist: fs <3,>=2.2.0 ; extra == 'all'
-Requires-Dist: lxml <5,>=4.0 ; extra == 'all'
+Requires-Dist: lxml >=4.0 ; extra == 'all'
 Requires-Dist: zopfli >=0.1.4 ; extra == 'all'
 Requires-Dist: lz4 >=1.7.4.2 ; extra == 'all'
+Requires-Dist: pycairo ; extra == 'all'
 Requires-Dist: matplotlib ; extra == 'all'
 Requires-Dist: sympy ; extra == 'all'
 Requires-Dist: skia-pathops >=0.5.0 ; extra == 'all'
@@ -47,10 +48,11 @@ Requires-Dist: xattr ; (sys_platform == "darwin") and extra == 'all'
 Provides-Extra: graphite
 Requires-Dist: lz4 >=1.7.4.2 ; extra == 'graphite'
 Provides-Extra: interpolatable
+Requires-Dist: pycairo ; extra == 'interpolatable'
 Requires-Dist: scipy ; (platform_python_implementation != "PyPy") and extra == 'interpolatable'
 Requires-Dist: munkres ; (platform_python_implementation == "PyPy") and extra == 'interpolatable'
 Provides-Extra: lxml
-Requires-Dist: lxml <5,>=4.0 ; extra == 'lxml'
+Requires-Dist: lxml >=4.0 ; extra == 'lxml'
 Provides-Extra: pathops
 Requires-Dist: skia-pathops >=0.5.0 ; extra == 'pathops'
 Provides-Extra: plot
@@ -116,7 +118,7 @@ Python 3 `venv <https://docs.python.org/3/library/venv.html>`__ module.
     # create new virtual environment called e.g. 'fonttools-venv', or anything you like
     python -m virtualenv fonttools-venv
 
-    # source the `activate` shell script to enter the environment (Un*x); to exit, just type `deactivate`
+    # source the `activate` shell script to enter the environment (Unix-like); to exit, just type `deactivate`
     . fonttools-venv/bin/activate
 
     # to activate the virtual environment in Windows `cmd.exe`, do
@@ -209,6 +211,13 @@ are required to unlock the extra features named "ufo", etc.
     arrays and hence is very fast;
   * `munkres <https://pypi.python.org/pypi/munkres>`__: a pure-Python
     module that implements the Hungarian or Kuhn-Munkres algorithm.
+
+  To plot the results to a PDF or HTML format, you also need to install:
+
+  * `pycairo <https://pypi.org/project/pycairo/>`__: Python bindings for the
+    Cairo graphics library. Note that wheels are currently only available for
+    Windows, for other platforms see pycairo's `installation instructions
+    <https://pycairo.readthedocs.io/en/latest/getting_started.html>`__.
 
   *Extra:* ``interpolatable``
 
@@ -365,6 +374,112 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.49.0 (released 2024-02-15)
+----------------------------
+
+- [otlLib] Add API for building ``MATH`` table (#3446)
+
+4.48.1 (released 2024-02-06)
+----------------------------
+
+- Fixed uploading wheels to PyPI, no code changes since v4.48.0.
+
+4.48.0 (released 2024-02-06)
+----------------------------
+
+- [varLib] Do not log when there are no OTL tables to be merged.
+- [setup.py] Do not restrict lxml<5 any more, tests pass just fine with lxml>=5.
+- [feaLib] Remove glyph and class names length restrictions in FEA (#3424).
+- [roundingPens] Added ``transformRoundFunc`` parameter to the rounding pens to allow
+  for custom rounding of the components' transforms (#3426).
+- [feaLib] Keep declaration order of ligature components within a ligature set, instead
+  of sorting by glyph name (#3429).
+- [feaLib] Fixed ordering of alternates in ``aalt`` lookups, following the declaration
+  order of feature references within the ``aalt`` feature block (#3430).
+- [varLib.instancer] Fixed a bug in the instancer's IUP optimization (#3432).
+- [sbix] Support sbix glyphs with new graphicType "flip" (#3433).
+- [svgPathPen] Added ``--glyphs`` option to dump the SVG paths for the named glyphs
+  in the font (0572f78).
+- [designspaceLib] Added "description" attribute to ``<mappings>`` and ``<mapping>``
+  elements, and allow multiple ``<mappings>`` elements to group ``<mapping>`` elements
+  that are logically related (#3435, #3437).
+- [otlLib] Correctly choose the most compact GSUB contextual lookup format (#3439).
+
+4.47.2 (released 2024-01-11)
+----------------------------
+
+Minor release to fix uploading wheels to PyPI.
+
+4.47.1 (released 2024-01-11)
+----------------------------
+
+- [merge] Improve help message and add standard command line options (#3408)
+- [otlLib] Pass ``ttFont`` to ``name.addName`` in ``buildStatTable`` (#3406)
+- [featureVars] Re-use ``FeatureVariationRecord``'s when possible (#3413)
+
+4.47.0 (released 2023-12-18)
+----------------------------
+
+- [varLib.models] New API for VariationModel: ``getMasterScalars`` and
+  ``interpolateFromValuesAndScalars``.
+- [varLib.interpolatable] Various bugfixes and rendering improvements. In particular,
+  add a Summary page in the front, and an Index and Table-of-Contents in the back.
+  Change the page size to Letter.
+- [Docs/designspaceLib] Defined a new ``public.fontInfo`` lib key, not used anywhere yet (#3358).
+
+4.46.0 (released 2023-12-02)
+----------------------------
+
+- [featureVars] Allow to register the same set of substitution rules to multiple features.
+  The ``addFeatureVariations`` function can now take a list of featureTags; similarly, the
+  lib key 'com.github.fonttools.varLib.featureVarsFeatureTag' can now take a
+  comma-separateed string of feature tags (e.g. "salt,ss01") instead of a single tag (#3360).
+- [featureVars] Don't overwrite GSUB FeatureVariations, but append new records to it
+  for features which are not already there. But raise ``VarLibError`` if the feature tag
+  already has feature variations associated with it (#3363).
+- [varLib] Added ``addGSUBFeatureVariations`` function to add GSUB Feature Variations
+  to an existing variable font from rules defined in a DesignSpace document (#3362).
+- [varLib.interpolatable] Various bugfixes and rendering improvements. In particular,
+  a new test for "underweight" glyphs. The new test reports quite a few false-positives
+  though. Please send feedback.
+
+4.45.1 (released 2023-11-23)
+----------------------------
+
+- [varLib.interpolatable] Various bugfixes and improvements, better reporting, reduced
+  false positives.
+- [ttGlyphSet] Added option to not recalculate glyf bounds (#3348).
+
+4.45.0 (released 2023-11-20)
+----------------------------
+
+- [varLib.interpolatable] Vastly improved algorithms. Also available now is ``--pdf``
+  and ``--html`` options to generate a PDF or HTML report of the interpolation issues.
+  The PDF/HTML report showcases the problematic masters, the interpolated broken
+  glyph, as well as the proposed fixed version.
+
+4.44.3 (released 2023-11-15)
+----------------------------
+
+- [subset] Only prune codepage ranges for OS/2.version >= 1, ignore otherwise (#3334).
+- [instancer] Ensure hhea vertical metrics stay in sync with OS/2 ones after instancing
+  MVAR table containing 'hasc', 'hdsc' or 'hlgp' tags (#3297).
+
+4.44.2 (released 2023-11-14)
+----------------------------
+
+- [glyf] Have ``Glyph.recalcBounds`` skip empty components (base glyph with no contours)
+  when computing the bounding box of composite glyphs. This simply restores the existing
+  behavior before some changes were introduced in fonttools 4.44.0 (#3333).
+
+4.44.1 (released 2023-11-14)
+----------------------------
+
+- [feaLib] Ensure variable mark anchors are deep-copied while building since they
+  get modified in-place and later reused (#3330).
+- [OS/2|subset] Added method to ``recalcCodePageRanges`` to OS/2 table class; added
+  ``--prune-codepage-ranges`` to `fonttools subset` command (#3328, #2607).
 
 4.44.0 (released 2023-11-03)
 ----------------------------
@@ -613,10 +728,10 @@ Changelog
 ----------------------------
 
 - [varLib.instancer] Added support for L4 instancing, i.e. moving the default value of
-  an axis while keeping it variable. Thanks Behdad! (#2728, #2861).  
+  an axis while keeping it variable. Thanks Behdad! (#2728, #2861).
   It's now also possible to restrict an axis min/max values beyond the current default
   value, e.g. a font wght has min=100, def=400, max=900 and you want a partial VF that
-  only varies between 500 and 700, you can now do that.  
+  only varies between 500 and 700, you can now do that.
   You can either specify two min/max values (wght=500:700), and the new default will be
   set to either the minimum or maximum, depending on which one is closer to the current
   default (e.g. 500 in this case). Or you can specify three values (e.g. wght=500:600:700)
@@ -624,7 +739,7 @@ Changelog
 - [otlLib/featureVars] Set a few Count values so one doesn't need to compile the font
   to update them (#2860).
 - [varLib.models] Make extrapolation work for 2-master models as well where one master
-  is at the default location (#2843, #2846).  
+  is at the default location (#2843, #2846).
   Add optional extrapolate=False to normalizeLocation() (#2847, #2849).
 - [varLib.cff] Fixed sub-optimal packing of CFF2 deltas by no longer rounding them to
   integer (#2838).

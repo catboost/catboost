@@ -47,6 +47,70 @@
     "test.test_ctr_target_border_count[GPU]": {
         "uri": "file://test.test_ctr_target_border_count_GPU_/model.bin"
     },
+    "test.test_custom_class_labels[GPU-label_type=boolean-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=boolean-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=boolean-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=boolean-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=boolean-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=boolean-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=int-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=int-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=int-class_count=5-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=5-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=int-class_count=5-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=string-class_count=2-loss_function=Logloss]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=2-loss_function=Logloss_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=2-loss_function=Logloss_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=string-class_count=2-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=2-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=2-loss_function=MultiClass_/score.txt"
+        }
+    ],
+    "test.test_custom_class_labels[GPU-label_type=string-class_count=5-loss_function=MultiClass]": [
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=5-loss_function=MultiClass_/predictions.txt"
+        },
+        {
+            "uri": "file://test.test_custom_class_labels_GPU-label_type=string-class_count=5-loss_function=MultiClass_/score.txt"
+        }
+    ],
     "test.test_cv[GPU]": {
         "uri": "file://test.test_cv_GPU_/catboost_training.json"
     },
@@ -71,8 +135,11 @@
     "test.test_cv_pairs_generated[GPU]": {
         "uri": "file://test.test_cv_pairs_generated_GPU_/catboost_training.json"
     },
-    "test.test_cv_query[GPU]": {
-        "uri": "file://test.test_cv_query_GPU_/catboost_training.json"
+    "test.test_cv_query[GPU-loss_function=QueryRMSE]": {
+        "uri": "file://test.test_cv_query_GPU-loss_function=QueryRMSE_/catboost_training.json"
+    },
+    "test.test_cv_query[GPU-loss_function=YetiRank]": {
+        "uri": "file://test.test_cv_query_GPU-loss_function=YetiRank_/catboost_training.json"
     },
     "test.test_cv_skip_train[GPU]": {
         "uri": "file://test.test_cv_skip_train_GPU_/catboost_training.json"
@@ -307,12 +374,6 @@
             "uri": "file://test.test_multiclass_classes_count_GPU-missed_classes=True_/model.bin"
         }
     ],
-    "test.test_multiclass_custom_class_labels[GPU-int]": {
-        "uri": "file://test.test_multiclass_custom_class_labels_GPU-int_/predictions.txt"
-    },
-    "test.test_multiclass_custom_class_labels[GPU-string]": {
-        "uri": "file://test.test_multiclass_custom_class_labels_GPU-string_/predictions.txt"
-    },
     "test.test_multiclass_custom_class_labels_from_files[GPU]": {
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_GPU_/predictions.txt"
     },

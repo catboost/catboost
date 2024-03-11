@@ -34,7 +34,7 @@ namespace boost {
         template < typename T >
         struct is_character
         {
-            typedef BOOST_DEDUCED_TYPENAME boost::integral_constant<
+            typedef typename boost::integral_constant<
                 bool,
                 boost::is_same< T, char >::value ||
                     #if !defined(BOOST_NO_STRINGSTREAM) && !defined(BOOST_NO_STD_WSTRING)

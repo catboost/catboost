@@ -4,6 +4,7 @@ This module provides utilities to introspect native libraries that relies on
 thread pools (notably BLAS and OpenMP implementations) and dynamically set the
 maximal number of threads they can use.
 """
+
 # License: BSD 3-Clause
 
 # The code to introspect dynamically loaded libraries on POSIX systems is
@@ -22,7 +23,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 from contextlib import ContextDecorator
 
-__version__ = "3.2.0"
+__version__ = "3.3.0"
 __all__ = [
     "threadpool_limits",
     "threadpool_info",
@@ -104,20 +105,17 @@ class LibController(ABC):
     """
 
     @final
-    def __init__(self, *, filepath=None, prefix=None):
+    def __init__(self, *, filepath=None, prefix=None, parent=None):
         """This is not meant to be overriden by subclasses."""
+        self.parent = parent
         self.prefix = prefix
         self.filepath = filepath
         self.dynlib = ctypes.CDLL(filepath, mode=_RTLD_NOLOAD)
         self.version = self.get_version()
         self.set_additional_attributes()
 
-    @final
     def info(self):
-        """Return relevant info wrapped in a dict
-
-        This is not meant to be overriden by subclasses.
-        """
+        """Return relevant info wrapped in a dict"""
         exposed_attrs = {
             "user_api": self.user_api,
             "internal_api": self.internal_api,
@@ -125,6 +123,7 @@ class LibController(ABC):
             **vars(self),
         }
         exposed_attrs.pop("dynlib")
+        exposed_attrs.pop("parent")
         return exposed_attrs
 
     def set_additional_attributes(self):
@@ -157,7 +156,18 @@ class OpenBLASController(LibController):
     user_api = "blas"
     internal_api = "openblas"
     filename_prefixes = ("libopenblas", "libblas")
-    check_symbols = ("openblas_get_num_threads", "openblas_get_num_threads64_")
+    check_symbols = (
+        "openblas_get_num_threads",
+        "openblas_get_num_threads64_",
+        "openblas_set_num_threads",
+        "openblas_set_num_threads64_",
+        "openblas_get_config",
+        "openblas_get_config64_",
+        "openblas_get_parallel",
+        "openblas_get_parallel64_",
+        "openblas_get_corename",
+        "openblas_get_corename64_",
+    )
 
     def set_additional_attributes(self):
         self.threading_layer = self._get_threading_layer()
@@ -237,7 +247,15 @@ class BLISController(LibController):
     user_api = "blas"
     internal_api = "blis"
     filename_prefixes = ("libblis", "libblas")
-    check_symbols = ("bli_thread_get_num_threads",)
+    check_symbols = (
+        "bli_thread_get_num_threads",
+        "bli_thread_set_num_threads",
+        "bli_info_get_version_str",
+        "bli_info_get_enable_openmp",
+        "bli_info_get_enable_pthreads",
+        "bli_arch_query_id",
+        "bli_arch_string",
+    )
 
     def set_additional_attributes(self):
         self.threading_layer = self._get_threading_layer()
@@ -266,9 +284,9 @@ class BLISController(LibController):
 
     def _get_threading_layer(self):
         """Return the threading layer of BLIS"""
-        if self.dynlib.bli_info_get_enable_openmp():
+        if getattr(self.dynlib, "bli_info_get_enable_openmp", lambda: False)():
             return "openmp"
-        elif self.dynlib.bli_info_get_enable_pthreads():
+        elif getattr(self.dynlib, "bli_info_get_enable_pthreads", lambda: False)():
             return "pthreads"
         return "disabled"
 
@@ -286,13 +304,146 @@ class BLISController(LibController):
         return bli_arch_string(bli_arch_query_id()).decode("utf-8")
 
 
+class FlexiBLASController(LibController):
+    """Controller class for FlexiBLAS"""
+
+    user_api = "blas"
+    internal_api = "flexiblas"
+    filename_prefixes = ("libflexiblas",)
+    check_symbols = (
+        "flexiblas_get_num_threads",
+        "flexiblas_set_num_threads",
+        "flexiblas_get_version",
+        "flexiblas_list",
+        "flexiblas_list_loaded",
+        "flexiblas_current_backend",
+    )
+
+    @property
+    def loaded_backends(self):
+        return self._get_backend_list(loaded=True)
+
+    @property
+    def current_backend(self):
+        return self._get_current_backend()
+
+    def info(self):
+        """Return relevant info wrapped in a dict"""
+        # We override the info method because the loaded and current backends
+        # are dynamic properties
+        exposed_attrs = super().info()
+        exposed_attrs["loaded_backends"] = self.loaded_backends
+        exposed_attrs["current_backend"] = self.current_backend
+
+        return exposed_attrs
+
+    def set_additional_attributes(self):
+        self.available_backends = self._get_backend_list(loaded=False)
+
+    def get_num_threads(self):
+        get_func = getattr(self.dynlib, "flexiblas_get_num_threads", lambda: None)
+        num_threads = get_func()
+        # by default BLIS is single-threaded and get_num_threads
+        # returns -1. We map it to 1 for consistency with other libraries.
+        return 1 if num_threads == -1 else num_threads
+
+    def set_num_threads(self, num_threads):
+        set_func = getattr(
+            self.dynlib, "flexiblas_set_num_threads", lambda num_threads: None
+        )
+        return set_func(num_threads)
+
+    def get_version(self):
+        get_version_ = getattr(self.dynlib, "flexiblas_get_version", None)
+        if get_version_ is None:
+            return None
+
+        major = ctypes.c_int()
+        minor = ctypes.c_int()
+        patch = ctypes.c_int()
+        get_version_(ctypes.byref(major), ctypes.byref(minor), ctypes.byref(patch))
+        return f"{major.value}.{minor.value}.{patch.value}"
+
+    def _get_backend_list(self, loaded=False):
+        """Return the list of available backends for FlexiBLAS.
+
+        If loaded is False, return the list of available backends from the FlexiBLAS
+        configuration. If loaded is True, return the list of actually loaded backends.
+        """
+        func_name = f"flexiblas_list{'_loaded' if loaded else ''}"
+        get_backend_list_ = getattr(self.dynlib, func_name, None)
+        if get_backend_list_ is None:
+            return None
+
+        n_backends = get_backend_list_(None, 0, 0)
+
+        backends = []
+        for i in range(n_backends):
+            backend_name = ctypes.create_string_buffer(1024)
+            get_backend_list_(backend_name, 1024, i)
+            if backend_name.value.decode("utf-8") != "__FALLBACK__":
+                # We don't know when to expect __FALLBACK__ but it is not a real
+                # backend and does not show up when running flexiblas list.
+                backends.append(backend_name.value.decode("utf-8"))
+        return backends
+
+    def _get_current_backend(self):
+        """Return the backend of FlexiBLAS"""
+        get_backend_ = getattr(self.dynlib, "flexiblas_current_backend", None)
+        if get_backend_ is None:
+            return None
+
+        backend = ctypes.create_string_buffer(1024)
+        get_backend_(backend, ctypes.sizeof(backend))
+        return backend.value.decode("utf-8")
+
+    def switch_backend(self, backend):
+        """Switch the backend of FlexiBLAS
+
+        Parameters
+        ----------
+        backend : str
+            The name or the path to the shared library of the backend to switch to. If
+            the backend is not already loaded, it will be loaded first.
+        """
+        if backend not in self.loaded_backends:
+            if backend in self.available_backends:
+                load_func = getattr(self.dynlib, "flexiblas_load_backend", lambda _: -1)
+            else:  # assume backend is a path to a shared library
+                load_func = getattr(
+                    self.dynlib, "flexiblas_load_backend_library", lambda _: -1
+                )
+            res = load_func(str(backend).encode("utf-8"))
+            if res == -1:
+                raise RuntimeError(
+                    f"Failed to load backend {backend!r}. It must either be the name of"
+                    " a backend available in the FlexiBLAS configuration "
+                    f"{self.available_backends} or the path to a valid shared library."
+                )
+
+            # Trigger a new search of loaded shared libraries since loading a new
+            # backend caused a dlopen.
+            self.parent._load_libraries()
+
+        switch_func = getattr(self.dynlib, "flexiblas_switch", lambda _: -1)
+        idx = self.loaded_backends.index(backend)
+        res = switch_func(idx)
+        if res == -1:
+            raise RuntimeError(f"Failed to switch to backend {backend!r}.")
+
+
 class MKLController(LibController):
     """Controller class for MKL"""
 
     user_api = "blas"
     internal_api = "mkl"
     filename_prefixes = ("libmkl_rt", "mkl_rt", "libblas")
-    check_symbols = ("MKL_Get_Max_Threads",)
+    check_symbols = (
+        "MKL_Get_Max_Threads",
+        "MKL_Set_Num_Threads",
+        "MKL_Get_Version_String",
+        "MKL_Set_Threading_Layer",
+    )
 
     def set_additional_attributes(self):
         self.threading_layer = self._get_threading_layer()
@@ -343,6 +494,10 @@ class OpenMPController(LibController):
     user_api = "openmp"
     internal_api = "openmp"
     filename_prefixes = ("libiomp", "libgomp", "libomp", "vcomp")
+    check_symbols = (
+        "omp_get_max_threads",
+        "omp_get_num_threads",
+    )
 
     def get_num_threads(self):
         get_func = getattr(self.dynlib, "omp_get_max_threads", lambda: None)
@@ -359,7 +514,13 @@ class OpenMPController(LibController):
 
 # Controllers for the libraries that we'll look for in the loaded libraries.
 # Third party libraries can register their own controllers.
-_ALL_CONTROLLERS = [OpenBLASController, BLISController, MKLController, OpenMPController]
+_ALL_CONTROLLERS = [
+    OpenBLASController,
+    BLISController,
+    MKLController,
+    OpenMPController,
+    FlexiBLASController,
+]
 
 # Helpers for the doc and test names
 _ALL_USER_APIS = list(set(lib.user_api for lib in _ALL_CONTROLLERS))
@@ -978,11 +1139,24 @@ class ThreadpoolController:
                     # duplicate entry in threadpool_info.
                     continue
 
-            # filename matches a prefix. Create and store the library
+            # filename matches a prefix. Now we check if the library has the symbols we
+            # are looking for. If none of the symbols exists, it's very likely not the
+            # expected library (e.g. a library having a common prefix with one of the
+            # our supported libraries). Otherwise, create and store the library
             # controller.
+            lib_controller = controller_class(
+                filepath=filepath, prefix=prefix, parent=self
+            )
 
-            lib_controller = controller_class(filepath=filepath, prefix=prefix)
-            self.lib_controllers.append(lib_controller)
+            if filepath in (lib.filepath for lib in self.lib_controllers):
+                # We already have a controller for this library.
+                continue
+
+            if not hasattr(controller_class, "check_symbols") or any(
+                hasattr(lib_controller.dynlib, func)
+                for func in controller_class.check_symbols
+            ):
+                self.lib_controllers.append(lib_controller)
 
     def _check_prefix(self, library_basename, filename_prefixes):
         """Return the prefix library_basename starts with
@@ -997,7 +1171,8 @@ class ThreadpoolController:
     def _warn_if_incompatible_openmp(self):
         """Raise a warning if llvm-OpenMP and intel-OpenMP are both loaded"""
         prefixes = [lib_controller.prefix for lib_controller in self.lib_controllers]
-        msg = textwrap.dedent("""
+        msg = textwrap.dedent(
+            """
             Found Intel OpenMP ('libiomp') and LLVM OpenMP ('libomp') loaded at
             the same time. Both libraries are known to be incompatible and this
             can cause random crashes or deadlocks on Linux when loaded in the
@@ -1005,7 +1180,8 @@ class ThreadpoolController:
             Using threadpoolctl may cause crashes or deadlocks. For more
             information and possible workarounds, please see
                 https://github.com/joblib/threadpoolctl/blob/master/multiple_openmp.md
-            """)
+            """
+        )
         if "libomp" in prefixes and "libiomp" in prefixes:
             warnings.warn(msg, RuntimeWarning)
 

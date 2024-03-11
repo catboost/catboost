@@ -40,14 +40,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <descrip.h>
+#error #include <descrip.h>
 #include <namdef.h>
-#include <rmsdef.h>
-#include <libfildef.h>
-#include <lib$routines.h>
+#error #include <rmsdef.h>
+#error #include <libfildef.h>
+#error #include <lib$routines.h>
 #include <strdef.h>
-#include <str$routines.h>
-#include <stsdef.h>
+#error #include <str$routines.h>
+#error #include <stsdef.h>
 #ifndef LPDIR_H
 # include "LPdir.h"
 #endif

@@ -525,19 +525,29 @@ class CompletionFinder(object):
             special_chars = special_chars.replace('`', '')
         else:
             escape_char = "\\"
-        for char in special_chars:
-            completions = [c.replace(char, escape_char + char) for c in completions]
+            if os.environ.get("_ARGCOMPLETE_SHELL") == "zsh":
+                # zsh uses colon as a separator between a completion and its description.
+                special_chars += ":"
+
+        escaped_completions = []
+        for completion in completions:
+            escaped_completion = completion
+            for char in special_chars:
+                escaped_completion = escaped_completion.replace(char, escape_char + char)
+            escaped_completions.append(escaped_completion)
+            if completion in self._display_completions:
+                self._display_completions[escaped_completion] = self._display_completions[completion]
 
         if self.append_space:
             # Similar functionality in bash was previously turned off by supplying the "-o nospace" option to complete.
             # Now it is conditionally disabled using "compopt -o nospace" if the match ends in a continuation character.
             # This code is retained for environments where this isn't done natively.
             continuation_chars = "=/:"
-            if len(completions) == 1 and completions[0][-1] not in continuation_chars:
+            if len(escaped_completions) == 1 and escaped_completions[0][-1] not in continuation_chars:
                 if cword_prequote == "":
-                    completions[0] += " "
+                    escaped_completions[0] += " "
 
-        return completions
+        return escaped_completions
 
     def rl_complete(self, text, state):
         """
@@ -569,7 +579,7 @@ class CompletionFinder(object):
 
     def get_display_completions(self):
         """
-        This function returns a mapping of option names to their help strings for displaying to the user.
+        This function returns a mapping of completions to their help strings for displaying to the user.
         """
         return self._display_completions
 

@@ -14,5 +14,5 @@ target_link_libraries(private-libs-index_range PUBLIC
   yutil
 )
 target_sources(private-libs-index_range PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/index_range/index_range.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/index_range/index_range.cpp
 )

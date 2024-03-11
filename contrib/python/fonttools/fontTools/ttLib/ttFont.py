@@ -15,7 +15,6 @@ log = logging.getLogger(__name__)
 
 
 class TTFont(object):
-
     """Represents a TrueType font.
 
     The object manages file input and output, and offers a convenient way of
@@ -735,7 +734,9 @@ class TTFont(object):
         else:
             raise KeyError(tag)
 
-    def getGlyphSet(self, preferCFF=True, location=None, normalized=False):
+    def getGlyphSet(
+        self, preferCFF=True, location=None, normalized=False, recalcBounds=True
+    ):
         """Return a generic GlyphSet, which is a dict-like object
         mapping glyph names to glyph objects. The returned glyph objects
         have a ``.draw()`` method that supports the Pen protocol, and will
@@ -766,7 +767,7 @@ class TTFont(object):
         if ("CFF " in self or "CFF2" in self) and (preferCFF or "glyf" not in self):
             return _TTGlyphSetCFF(self, location)
         elif "glyf" in self:
-            return _TTGlyphSetGlyf(self, location)
+            return _TTGlyphSetGlyf(self, location, recalcBounds=recalcBounds)
         else:
             raise TTLibError("Font contains no outlines")
 
@@ -841,7 +842,6 @@ class TTFont(object):
 
 
 class GlyphOrder(object):
-
     """A pseudo table. The glyph order isn't in the font as a separate
     table, but it's nice to present it as such in the TTX format.
     """

@@ -27,7 +27,8 @@ class NormalizeMethodCalls(Transformation):
 
     def __init__(self):
         Transformation.__init__(self, Globals, Ancestors)
-        self.imports = {'builtins': 'builtins'}
+        self.imports = {'builtins': 'builtins',
+                        mangle('__dispatch__'): '__dispatch__'}
         self.to_import = set()
 
     def visit_Module(self, node):
@@ -156,6 +157,7 @@ class NormalizeMethodCalls(Transformation):
                 self.update = True
                 mod = methods[node.attr][0]
                 self.to_import.add(mangle(mod[0]))
+                self.to_import.add(mangle('functools'))
                 func = self.attr_to_func(node)
                 z = ast.Call(
                     ast.Attribute(
@@ -250,7 +252,16 @@ class NormalizeMethodCalls(Transformation):
                     self.to_import.add(mangle(mod[0]))
                     node.func = self.attr_to_func(node.func)
                 # else methods have been called using function syntax
-            if node.func.attr in methods or node.func.attr in functions:
+
+            ismethod = node.func.attr in methods
+            isfunction = node.func.attr in functions
+            if ismethod or isfunction:  # i.e. if it's callable
+                if not ismethod and self.baseobj(node.func.value):
+                    raise PythranSyntaxError(
+                            "'{}' called as a method while it's a function"
+                            .format(node.func.attr),
+                            node)
+
                 # Now, methods and function have both function syntax
                 def rec(path, cur_module):
                     """

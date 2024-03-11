@@ -69,7 +69,7 @@ private[spark] class WorkerInfo (
       port.equals(rhsWorkerInfo.port)
     }
   }
-  
+
   override def toString() : String = {
     s"partitionId=${partitionId}, partitionSize=${partitionSize}, host=${host}, port=${port}"
   }
@@ -158,7 +158,7 @@ private[spark] class UpdatableWorkersInfo (
       Arrays.copyOf(workersInfo, workersInfo.length)
     }
   }
-  
+
   def shutdownRemainingWorkers(
     connectTimeout: java.time.Duration,
     workerShutdownOptimisticTimeout: java.time.Duration,
@@ -168,7 +168,7 @@ private[spark] class UpdatableWorkersInfo (
 
     val remainingWorkersInfo = workersInfo.filter(
       workerInfo => {
-        val isListening 
+        val isListening
           = (workerInfo != null) &&
             TrainingDriver.isWorkerListening(workerInfo.host, workerInfo.port, connectTimeout)
         if (isListening) {
@@ -182,15 +182,15 @@ private[spark] class UpdatableWorkersInfo (
       log.info("Shutdown remaining workers: no remaining workers")
     } else {
       val tmpDirPath = Files.createTempDirectory("catboost_train")
-  
+
       val hostsFilePath = tmpDirPath.resolve("worker_hosts.txt")
       TrainingDriver.saveHostsListToFile(hostsFilePath, remainingWorkersInfo)
-  
+
       val shutdownWorkersAppProcess = RunClassInNewProcess(
         ShutdownWorkersApp.getClass,
         args = Some(Array(hostsFilePath.toString, workerShutdownPessimisticTimeout.getSeconds.toString))
       )
-  
+
       val returnValue = shutdownWorkersAppProcess.waitFor
       if (returnValue != 0) {
         throw new CatBoostError(s"Shutdown workers process failed: exited with code $returnValue")
@@ -287,7 +287,7 @@ private[spark] class TrainingDriver (
       log.info("finished")
     }
   }
-  
+
   def close(tryToShutdownWorkers:Boolean, waitToShutdownWorkers:Boolean) = {
     this.synchronized {
       if (!closed) {
@@ -354,7 +354,7 @@ private[spark] object TrainingDriver extends Logging {
       true
     } catch {
       case _ : Throwable => false
-    } 
+    }
     if (connected) {
       socket.close
     }

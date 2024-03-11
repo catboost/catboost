@@ -11,7 +11,7 @@
 #include "yassert.h"
 #include <utility>
 
-#if defined(_linux_)
+#if defined(_linux_) || defined(_android_)
     #include <sys/prctl.h>
 #endif
 
@@ -472,7 +472,7 @@ void TThread::SetCurrentThreadName(const char* name) {
 #if defined(_freebsd_)
     pthread_t thread = pthread_self();
     pthread_set_name_np(thread, name);
-#elif defined(_linux_)
+#elif defined(_linux_) || defined(_android_)
     prctl(PR_SET_NAME, name, 0, 0, 0);
 #elif defined(_darwin_)
     pthread_setname_np(name);

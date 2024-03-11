@@ -34,27 +34,33 @@ target_link_libraries(private-libs-text_features PUBLIC
   cpp-threading-local_executor
 )
 target_sources(private-libs-text_features PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/feature_calcer.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/text_feature_calcers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/text_processing_collection.cpp
-  ${CMAKE_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.cpp
-  ${CMAKE_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.iter.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.iter.fbs.h
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.bfbs
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.bfbs
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/feature_calcer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/text_feature_calcers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/text_processing_collection.cpp
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.cpp
 )
 target_fbs_source(private-libs-text_features
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs
   -I
-  ${CMAKE_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}
   -I
-  ${CMAKE_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}
 )
 target_fbs_source(private-libs-text_features
   PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs
   -I
-  ${CMAKE_BINARY_DIR}
+  ${PROJECT_BINARY_DIR}
   -I
-  ${CMAKE_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}
 )
 
 add_global_library_for(private-libs-text_features.global private-libs-text_features)
@@ -71,7 +77,7 @@ target_link_libraries(private-libs-text_features.global PUBLIC
   cpp-threading-local_executor
 )
 target_sources(private-libs-text_features.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/bm25.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/bow.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_features/naive_bayesian.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/bm25.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/bow.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/naive_bayesian.cpp
 )

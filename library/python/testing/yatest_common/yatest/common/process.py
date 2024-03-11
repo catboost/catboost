@@ -208,6 +208,7 @@ class _Execution(object):
         """
         Deprecated, use stderr
         """
+        # TODO: Fix bytes/str, maybe need to change a lot of tests
         if self._std_err is not None:
             return self._std_err
         if self._process.stderr and not self._user_stderr:
@@ -443,7 +444,7 @@ class _Execution(object):
         if self._std_err and self._check_sanitizer and runtime._get_ya_config().sanitizer_extra_checks:
             build_path = runtime.build_path()
             if self.command[0].startswith(build_path):
-                match = re.search(SANITIZER_ERROR_PATTERN, self._std_err)
+                match = re.search(SANITIZER_ERROR_PATTERN, six.ensure_binary(self._std_err))
                 if match:
                     yatest_logger.error(
                         "%s sanitizer found errors:\n\tstd_err:%s\n",

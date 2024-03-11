@@ -12,21 +12,26 @@ import warnings
 from collections.abc import (
 	Collection as CollectionType,
 	Iterable as IterableType)
+from dataclasses import (
+	dataclass)
 from os import (
 	PathLike)
 from typing import (
 	Any,
 	AnyStr,
-	Callable,
-	Collection,
-	Dict,
-	Iterable,
-	Iterator,
-	List,
-	Optional,
-	Sequence,
-	Set,
-	Union)
+	Callable,  # Replaced by `collections.abc.Callable` in 3.9.
+	Collection,  # Replaced by `collections.abc.Collection` in 3.9.
+	Dict,  # Replaced by `dict` in 3.9.
+	Generic,
+	Iterable,  # Replaced by `collections.abc.Iterable` in 3.9.
+	Iterator,  # Replaced by `collections.abc.Iterator` in 3.9.
+	List,  # Replaced by `list` in 3.9.
+	Optional,  # Replaced by `X | None` in 3.10.
+	Sequence,  # Replaced by `collections.abc.Sequence` in 3.9.
+	Set,  # Replaced by `set` in 3.9.
+	Tuple,  # Replaced by `tuple` in 3.9.
+	TypeVar,
+	Union)  # Replaced by `X | Y` in 3.10.
 
 from .pattern import (
 	Pattern)
@@ -35,6 +40,11 @@ if sys.version_info >= (3, 9):
 	StrPath = Union[str, PathLike[str]]
 else:
 	StrPath = Union[str, PathLike]
+
+TStrPath = TypeVar("TStrPath", bound=StrPath)
+"""
+Type variable for :class:`str` or :class:`os.PathLike`.
+"""
 
 NORMALIZE_PATH_SEPS = [
 	__sep
@@ -62,7 +72,7 @@ def append_dir_sep(path: pathlib.Path) -> str:
 	files on the file-system by relying on the presence of a trailing path
 	separator.
 
-	*path* (:class:`pathlib.path`) is the path to use.
+	*path* (:class:`pathlib.Path`) is the path to use.
 
 	Returns the path (:class:`str`).
 	"""
@@ -71,6 +81,34 @@ def append_dir_sep(path: pathlib.Path) -> str:
 		str_path += os.sep
 
 	return str_path
+
+
+def check_match_file(
+	patterns: Iterable[Tuple[int, Pattern]],
+	file: str,
+) -> Tuple[Optional[bool], Optional[int]]:
+	"""
+	Check the file against the patterns.
+
+	*patterns* (:class:`~collections.abc.Iterable`) yields each indexed pattern
+	(:class:`tuple`) which contains the pattern index (:class:`int`) and actual
+	pattern (:class:`~pathspec.pattern.Pattern`).
+
+	*file* (:class:`str`) is the normalized file path to be matched
+	against *patterns*.
+
+	Returns a :class:`tuple` containing whether to include *file* (:class:`bool`
+	or :data:`None`), and the index of the last matched pattern (:class:`int` or
+	:data:`None`).
+	"""
+	out_include: Optional[bool] = None
+	out_index: Optional[int] = None
+	for index, pattern in patterns:
+		if pattern.include is not None and pattern.match_file(file) is not None:
+			out_include = pattern.include
+			out_index = index
+
+	return out_include, out_index
 
 
 def detailed_match_files(
@@ -88,7 +126,7 @@ def detailed_match_files(
 	*files* (:class:`~collections.abc.Iterable` of :class:`str`) contains
 	the normalized file paths to be matched against *patterns*.
 
-	*all_matches* (:class:`boot` or :data:`None`) is whether to return all
+	*all_matches* (:class:`bool` or :data:`None`) is whether to return all
 	matches patterns (:data:`True`), or only the last matched pattern
 	(:data:`False`). Default is :data:`None` for :data:`False`.
 
@@ -119,18 +157,22 @@ def detailed_match_files(
 	return return_files
 
 
-def _filter_patterns(patterns: Iterable[Pattern]) -> List[Pattern]:
+def _filter_check_patterns(
+	patterns: Iterable[Pattern],
+) -> List[Tuple[int, Pattern]]:
 	"""
 	Filters out null-patterns.
 
 	*patterns* (:class:`Iterable` of :class:`.Pattern`) contains the
 	patterns.
 
-	Returns the patterns (:class:`list` of :class:`.Pattern`).
+	Returns a :class:`list` containing each indexed pattern (:class:`tuple`) which
+	contains the pattern index (:class:`int`) and the actual pattern
+	(:class:`~pathspec.pattern.Pattern`).
 	"""
 	return [
-		__pat
-		for __pat in patterns
+		(__index, __pat)
+		for __index, __pat in enumerate(patterns)
 		if __pat.include is not None
 	]
 
@@ -148,13 +190,13 @@ def _is_iterable(value: Any) -> bool:
 
 def iter_tree_entries(
 	root: StrPath,
-	on_error: Optional[Callable] = None,
+	on_error: Optional[Callable[[OSError], None]] = None,
 	follow_links: Optional[bool] = None,
 ) -> Iterator['TreeEntry']:
 	"""
 	Walks the specified directory for all files and directories.
 
-	*root* (:class:`str` or :class:`os.PathLike[str]`) is the root directory to
+	*root* (:class:`str` or :class:`os.PathLike`) is the root directory to
 	search.
 
 	*on_error* (:class:`~collections.abc.Callable` or :data:`None`)
@@ -185,7 +227,7 @@ def _iter_tree_entries_next(
 	root_full: str,
 	dir_rel: str,
 	memo: Dict[str, str],
-	on_error: Callable,
+	on_error: Callable[[OSError], None],
 	follow_links: bool,
 ) -> Iterator['TreeEntry']:
 	"""
@@ -264,13 +306,13 @@ def _iter_tree_entries_next(
 
 def iter_tree_files(
 	root: StrPath,
-	on_error: Optional[Callable] = None,
+	on_error: Optional[Callable[[OSError], None]] = None,
 	follow_links: Optional[bool] = None,
 ) -> Iterator[str]:
 	"""
 	Walks the specified directory for all files.
 
-	*root* (:class:`str` or :class:`os.PathLike[str]`) is the root directory to
+	*root* (:class:`str` or :class:`os.PathLike`) is the root directory to
 	search for files.
 
 	*on_error* (:class:`~collections.abc.Callable` or :data:`None`)
@@ -330,9 +372,8 @@ def match_file(patterns: Iterable[Pattern], file: str) -> bool:
 	"""
 	matched = False
 	for pattern in patterns:
-		if pattern.include is not None:
-			if pattern.match_file(file) is not None:
-				matched = pattern.include
+		if pattern.include is not None and pattern.match_file(file) is not None:
+			matched = pattern.include
 
 	return matched
 
@@ -342,8 +383,8 @@ def match_files(
 	files: Iterable[str],
 ) -> Set[str]:
 	"""
-	DEPRECATED: This is an old function no longer used. Use the :func:`.match_file`
-	function with a loop for better results.
+	DEPRECATED: This is an old function no longer used. Use the
+	:func:`~pathspec.util.match_file` function with a loop for better results.
 
 	Matches the files to the patterns.
 
@@ -356,11 +397,11 @@ def match_files(
 	Returns the matched files (:class:`set` of :class:`str`).
 	"""
 	warnings.warn((
-		"util.match_files() is deprecated. Use util.match_file() with a "
-		"loop for better results."
+		f"{__name__}.match_files() is deprecated. Use {__name__}.match_file() with "
+		f"a loop for better results."
 	), DeprecationWarning, stacklevel=2)
 
-	use_patterns = _filter_patterns(patterns)
+	use_patterns = [__pat for __pat in patterns if __pat.include is not None]
 
 	return_files = set()
 	for file in files:
@@ -376,16 +417,16 @@ def normalize_file(
 ) -> str:
 	"""
 	Normalizes the file path to use the POSIX path separator (i.e.,
-	:data:`'/'`), and make the paths relative (remove leading :data:`'/'`).
+	``"/"``), and make the paths relative (remove leading ``"/"``).
 
-	*file* (:class:`str` or :class:`os.PathLike[str]`) is the file path.
+	*file* (:class:`str` or :class:`os.PathLike`) is the file path.
 
 	*separators* (:class:`~collections.abc.Collection` of :class:`str`; or
-	:data:`None`) optionally contains the path separators to normalize.
-	This does not need to include the POSIX path separator (:data:`'/'`),
-	but including it will not affect the results. Default is :data:`None`
-	for :data:`NORMALIZE_PATH_SEPS`. To prevent normalization, pass an
-	empty container (e.g., an empty tuple :data:`()`).
+	``None``) optionally contains the path separators to normalize.
+	This does not need to include the POSIX path separator (``"/"``),
+	but including it will not affect the results. Default is ``None``
+	for ``NORMALIZE_PATH_SEPS``. To prevent normalization, pass an
+	empty container (e.g., an empty tuple ``()``).
 
 	Returns the normalized file path (:class:`str`).
 	"""
@@ -421,7 +462,7 @@ def normalize_files(
 	Normalizes the file paths to use the POSIX path separator.
 
 	*files* (:class:`~collections.abc.Iterable` of :class:`str` or
-	:class:`os.PathLike[str]`) contains the file paths to be normalized.
+	:class:`os.PathLike`) contains the file paths to be normalized.
 
 	*separators* (:class:`~collections.abc.Collection` of :class:`str`; or
 	:data:`None`) optionally contains the path separators to normalize.
@@ -429,7 +470,7 @@ def normalize_files(
 
 	Returns a :class:`dict` mapping each normalized file path (:class:`str`)
 	to the original file paths (:class:`list` of :class:`str` or
-	:class:`os.PathLike[str]`).
+	:class:`os.PathLike`).
 	"""
 	warnings.warn((
 		"util.normalize_files() is deprecated. Use util.normalize_file() "
@@ -586,6 +627,38 @@ class RecursionError(Exception):
 		:attr:`self.real_path <RecursionError.real_path>`.
 		"""
 		return self.args[2]
+
+
+@dataclass(frozen=True)
+class CheckResult(Generic[TStrPath]):
+	"""
+	The :class:`CheckResult` class contains information about the file and which
+	pattern matched it.
+	"""
+
+	# Make the class dict-less.
+	__slots__ = (
+		'file',
+		'include',
+		'index',
+	)
+
+	file: TStrPath
+	"""
+	*file* (:class:`str` or :class:`os.PathLike`) is the file path.
+	"""
+
+	include: Optional[bool]
+	"""
+	*include* (:class:`bool` or :data:`None`) is whether to include or exclude the
+	file. If :data:`None`, no pattern matched.
+	"""
+
+	index: Optional[int]
+	"""
+	*index* (:class:`int` or :data:`None`) is the index of the last pattern that
+	matched. If :data:`None`, no pattern matched.
+	"""
 
 
 class MatchDetail(object):

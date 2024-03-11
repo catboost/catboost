@@ -4,11 +4,11 @@
 #include <napi.h>
 
 // Catboost C API
-#include <c_api.h>
+#include <catboost/libs/model_interface/c_api.h>
 
-#include <util/generic/vector.h>
+#include <vector>
 
-// Using STD version of string as it is used by N-API.
+// used by N-API.
 #include <string>
 
 namespace NHelper {
@@ -17,8 +17,7 @@ namespace NHelper {
 // Returns false if check failed.
 inline bool Check(Napi::Env env, bool condition, const std::string& message) {
     if (!condition) {
-        Napi::TypeError::New(env, message)
-	    .ThrowAsJavaScriptException();
+        Napi::TypeError::New(env, message).ThrowAsJavaScriptException();
     }
 
     return condition;
@@ -51,6 +50,7 @@ enum ENApiType {
     NAT_NUMBER,
     NAT_STRING,
     NAT_NUMBER_OR_STRING,
+    NAT_ARRAY_OR_NUMBERS
 };
 
 // Checks if the value a matrix with element of a given type.
@@ -58,7 +58,7 @@ bool CheckIsMatrix(Napi::Env env, const Napi::Value& value, ENApiType type, cons
 
 // Converts vector of numbers to N-API array.
 template <typename T>
-Napi::Array ConvertToArray(Napi::Env env, const TVector<T>& values) {
+Napi::Array ConvertToArray(Napi::Env env, const std::vector<T>& values) {
     Napi::Array result = Napi::Array::New(env);
     uint32_t index = 0;
     for (const auto value: values) {

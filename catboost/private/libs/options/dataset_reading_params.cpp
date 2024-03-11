@@ -9,28 +9,42 @@
 
 using namespace NCB;
 
-void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts* parser) {
+
+void NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(NLastGetopt::TOpts* parser) {
     BindColumnarPoolFormatParams(parser, &ColumnarPoolFormatParams);
     parser->AddLongOption("input-path", "input path")
+        .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PoolPath = TPathWithScheme(pathWithScheme, "dsv");
         });
-    parser->AddLongOption("input-pairs", "PATH")
-        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
-            PairsFilePath = TPathWithScheme(pathWithScheme, "dsv-flat");
-        });
-    parser->AddLongOption("feature-names-path", "PATH")
+    parser->AddLongOption("feature-names-path", "Path to feature names data")
+        .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             FeatureNamesPath = TPathWithScheme(pathWithScheme, "dsv");
         });
-    parser->AddLongOption("pool-metainfo-path", "PATH")
+    parser->AddLongOption("pool-metainfo-path", "Path to JSON file with additional dataset meta information")
+        .RequiredArgument("PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PoolMetaInfoPath = TPathWithScheme(pathWithScheme);
         });
 }
 
-void NCatboostOptions::TDatasetReadingParams::ValidatePoolParams() const {
+void NCatboostOptions::TDatasetReadingBaseParams::ValidatePoolParams() const {
     NCatboostOptions::ValidatePoolParams(PoolPath, ColumnarPoolFormatParams);
+}
+
+void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts* parser) {
+    NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(parser);
+
+    parser->AddLongOption("input-pairs", "Path to pairs data")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
+            PairsFilePath = TPathWithScheme(pathWithScheme, "dsv-flat");
+        });
+}
+
+void NCatboostOptions::TDatasetReadingParams::ValidatePoolParams() const {
+    NCatboostOptions::TDatasetReadingBaseParams::ValidatePoolParams();
 }
 
 void NCatboostOptions::BindColumnarPoolFormatParams(

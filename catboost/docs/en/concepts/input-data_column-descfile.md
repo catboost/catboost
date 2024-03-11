@@ -34,8 +34,17 @@ The columns description file is optional. {{ column-desc__default }}
 * [{{ cd-file__col-type__SubgroupId }}](#subgroupId)
 * [{{ cd-file__col-type__Timestamp }}](#timestamp)
 * [{{ cd-file__col-type__Position }}](#position)
+{% if audience == "internal" %}
+
+{% include [internal__cd-type-of-cd-to-use__desc](../yandex_specific/_includes/column_types.md) %}
+{% endif %}
 
 {% include [catboost-cd__full-desc-table-descriptions__full](../_includes/work_src/reusage-input-data/table-descriptions__full.md) %}
+{% if audience == "internal" %}
+
+{% include [catboost-cd__yandex_specific__full-desc-table-descriptions__full](../yandex_specific/_includes/reusage-input-data/table-descriptions__full.md) %}
+
+{% endif %}
 
 ## {{ input_data__title__specification }}
 

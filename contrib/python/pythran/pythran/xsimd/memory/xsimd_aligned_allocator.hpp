@@ -39,7 +39,7 @@ namespace xsimd
      * @tparam T type of objects to allocate.
      * @tparam Align alignment in bytes.
      */
-    template <class T, size_t Align = default_arch::alignment()>
+    template <class T, size_t Align>
     class aligned_allocator
     {
     public:
@@ -59,43 +59,43 @@ namespace xsimd
             using other = aligned_allocator<U, Align>;
         };
 
-        aligned_allocator() noexcept;
-        aligned_allocator(const aligned_allocator& rhs) noexcept;
+        inline aligned_allocator() noexcept;
+        inline aligned_allocator(const aligned_allocator& rhs) noexcept;
 
         template <class U>
-        aligned_allocator(const aligned_allocator<U, Align>& rhs) noexcept;
+        inline aligned_allocator(const aligned_allocator<U, Align>& rhs) noexcept;
 
-        ~aligned_allocator();
+        inline ~aligned_allocator();
 
-        pointer address(reference) noexcept;
-        const_pointer address(const_reference) const noexcept;
+        inline pointer address(reference) noexcept;
+        inline const_pointer address(const_reference) const noexcept;
 
-        pointer allocate(size_type n, const void* hint = 0);
-        void deallocate(pointer p, size_type n);
+        inline pointer allocate(size_type n, const void* hint = 0);
+        inline void deallocate(pointer p, size_type n);
 
-        size_type max_size() const noexcept;
-        size_type size_max() const noexcept;
+        inline size_type max_size() const noexcept;
+        inline size_type size_max() const noexcept;
 
         template <class U, class... Args>
-        void construct(U* p, Args&&... args);
+        inline void construct(U* p, Args&&... args);
 
         template <class U>
-        void destroy(U* p);
+        inline void destroy(U* p);
     };
 
     template <class T1, size_t Align1, class T2, size_t Align2>
-    bool operator==(const aligned_allocator<T1, Align1>& lhs,
-                    const aligned_allocator<T2, Align2>& rhs) noexcept;
+    inline bool operator==(const aligned_allocator<T1, Align1>& lhs,
+                           const aligned_allocator<T2, Align2>& rhs) noexcept;
 
     template <class T1, size_t Align1, class T2, size_t Align2>
-    bool operator!=(const aligned_allocator<T1, Align1>& lhs,
-                    const aligned_allocator<T2, Align2>& rhs) noexcept;
+    inline bool operator!=(const aligned_allocator<T1, Align1>& lhs,
+                           const aligned_allocator<T2, Align2>& rhs) noexcept;
 
-    void* aligned_malloc(size_t size, size_t alignment);
-    void aligned_free(void* ptr);
+    inline void* aligned_malloc(size_t size, size_t alignment);
+    inline void aligned_free(void* ptr);
 
     template <class T>
-    size_t get_alignment_offset(const T* p, size_t size, size_t block_size);
+    inline size_t get_alignment_offset(const T* p, size_t size, size_t block_size);
 
     /************************************
      * aligned_allocator implementation *

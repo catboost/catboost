@@ -1,0 +1,289 @@
+--- contrib/tools/python3/Modules/posixmodule.c     (index)
++++ contrib/tools/python3/Modules/posixmodule.c     (working tree)
+@@ -288,6 +288,7 @@ corresponding Unix manual entries for more information on calls.");
+ #endif
+ #ifdef HAVE_GETRANDOM_SYSCALL
+ #  include <sys/syscall.h>
++#  include <sys/random.h>
+ #endif
+
+ #if defined(MS_WINDOWS)
+--- contrib/tools/python3/Lib/ctypes/__init__.py	(index)
++++ contrib/tools/python3/Lib/ctypes/__init__.py	(working tree)
+@@ -11,6 +11,7 @@ from _ctypes import CFuncPtr as _CFuncPtr
+ from _ctypes import RTLD_LOCAL, RTLD_GLOBAL
+ from _ctypes import ArgumentError
+ from _ctypes import SIZEOF_TIME_T
++from .util import find_library as _find_library
+ 
+ from struct import calcsize as _calcsize
+ 
+@@ -372,8 +373,15 @@ class CDLL(object):
+             _restype_ = self._func_restype_
+         self._FuncPtr = _FuncPtr
+ 
++        self._builtin = {}
++
+         if handle is None:
+-            self._handle = _dlopen(self._name, mode)
++            if isinstance(self._name, dict):
++                self._builtin = self._name['symbols']
++                self._name = self._name['name']
++                self._handle = 0
++            else:
++                self._handle = _dlopen(self._name, mode)
+         else:
+             self._handle = handle
+ 
+@@ -391,7 +399,13 @@ class CDLL(object):
+         return func
+ 
+     def __getitem__(self, name_or_ordinal):
+-        func = self._FuncPtr((name_or_ordinal, self))
++        if self._builtin:
++            if name_or_ordinal not in self._builtin:
++                raise AttributeError("function %r not found" % name_or_ordinal)
++            func = self._FuncPtr(self._builtin[name_or_ordinal])
++        else:
++            func = self._FuncPtr((name_or_ordinal, self))
++
+         if not isinstance(name_or_ordinal, int):
+             func.__name__ = name_or_ordinal
+         return func
+@@ -458,12 +472,20 @@ class LibraryLoader(object):
+ cdll = LibraryLoader(CDLL)
+ pydll = LibraryLoader(PyDLL)
+ 
+-if _os.name == "nt":
+-    pythonapi = PyDLL("python dll", None, _sys.dllhandle)
+-elif _sys.platform == "cygwin":
+-    pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2])
+-else:
++#if _os.name == "nt":
++#    pythonapi = PyDLL("python dll", None, _sys.dllhandle)
++#elif _sys.platform == "cygwin":
++#    pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2])
++#else:
++#    pythonapi = PyDLL(None)
++
++try:
+     pythonapi = PyDLL(None)
++except:
++    try:
++        pythonapi = PyDLL(_find_library('python'))
++    except:
++        pythonapi = PyDLL(dict(name='python', symbols={}))
+ 
+ 
+ if _os.name == "nt":
+--- contrib/tools/python3/Lib/ctypes/util.py	(index)
++++ contrib/tools/python3/Lib/ctypes/util.py	(working tree)
+@@ -329,6 +329,16 @@ elif os.name == "posix":
+             return _findSoname_ldconfig(name) or \
+                    _get_soname(_findLib_gcc(name)) or _get_soname(_findLib_ld(name))
+ 
++try:
++    from library.python.symbols.module import find_library as _find_library
++except ImportError:
++    pass
++else:
++    _next_find_library = find_library
++
++    def find_library(name):
++        return _find_library(name, _next_find_library)
++
+ ################################################################
+ # test code
+ 
+--- contrib/tools/python3/Lib/doctest.py	(index)
++++ contrib/tools/python3/Lib/doctest.py	(working tree)
+@@ -957,7 +957,7 @@ class DocTestFinder:
+             return module.__dict__ is object.__globals__
+         elif (inspect.ismethoddescriptor(object) or
+               inspect.ismethodwrapper(object)):
+-            if hasattr(object, '__objclass__'):
++            if hasattr(object, '__objclass__') and hasattr(object.__objclass__, '__module__'):
+                 obj_mod = object.__objclass__.__module__
+             elif hasattr(object, '__module__'):
+                 obj_mod = object.__module__
+@@ -965,7 +965,10 @@ class DocTestFinder:
+                 return True # [XX] no easy way to tell otherwise
+             return module.__name__ == obj_mod
+         elif inspect.isclass(object):
+-            return module.__name__ == object.__module__
++            try:
++                return module.__name__ == object.__module__
++            except:
++                return True
+         elif hasattr(object, '__module__'):
+             return module.__name__ == object.__module__
+         elif isinstance(object, property):
+--- contrib/tools/python3/Lib/multiprocessing/popen_spawn_win32.py	(index)
++++ contrib/tools/python3/Lib/multiprocessing/popen_spawn_win32.py	(working tree)
+@@ -65,5 +65,6 @@ class Popen(object):
+             env["__PYVENV_LAUNCHER__"] = sys.executable
+         else:
+-            env = None
++            env = os.environ.copy()
++        env['Y_PYTHON_ENTRY_POINT'] = ':main'
+ 
+         cmd = ' '.join('"%s"' % x for x in cmd)
+--- contrib/tools/python3/Lib/multiprocessing/spawn.py	(index)
++++ contrib/tools/python3/Lib/multiprocessing/spawn.py	(working tree)
+@@ -82,7 +82,7 @@ def get_command_line(**kwds):
+     '''
+     Returns prefix of command line used for spawning a child process
+     '''
+-    if getattr(sys, 'frozen', False):
++    if False and getattr(sys, 'frozen', False):
+         return ([sys.executable, '--multiprocessing-fork'] +
+                 ['%s=%r' % item for item in kwds.items()])
+     else:
+--- contrib/tools/python3/Lib/multiprocessing/util.py	(index)
++++ contrib/tools/python3/Lib/multiprocessing/util.py	(working tree)
+@@ -383,8 +383,11 @@ class ForkAwareThreadLock(object):
+ 
+ 
+ class ForkAwareLocal(threading.local):
+-    def __init__(self):
+-        register_after_fork(self, lambda obj : obj.__dict__.clear())
++    def __new__(cls):
++        self = threading.local.__new__(cls)
++        register_after_fork(self, lambda obj: obj.__dict__.clear())
++        return self
++
+     def __reduce__(self):
+         return type(self), ()
+ 
+@@ -444,14 +447,26 @@ def _flush_std_streams():
+ # Start a program with only specified fds kept open
+ #
+ 
++
++def _env_list():
++    # Based on fork_exec in subprocess.py.
++    env = os.environ.copy()
++    env['Y_PYTHON_ENTRY_POINT'] = ':main'
++    env_list = []
++    for k, v in env.items():
++        if '=' not in k:
++            env_list.append(os.fsencode(k) + b'=' + os.fsencode(v))
++    return env_list
++
++
+ def spawnv_passfds(path, args, passfds):
+     import _posixsubprocess
+     import subprocess
+     passfds = tuple(sorted(map(int, passfds)))
+     errpipe_read, errpipe_write = os.pipe()
+     try:
+         return _posixsubprocess.fork_exec(
+-            args, [path], True, passfds, None, None,
++            args, [path], True, passfds, None, _env_list(),
+             -1, -1, -1, -1, -1, -1, errpipe_read, errpipe_write,
+             False, False, -1, None, None, None, -1, None,
+             subprocess._USE_VFORK)
+--- contrib/tools/python3/Modules/_decimal/libmpdec/io.c	(index)
++++ contrib/tools/python3/Modules/_decimal/libmpdec/io.c	(working tree)
+@@ -37,7 +37,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#include "io.h"
++#include "mpd_io.h"
+ #include "typearith.h"
+ 
+ 
+--- contrib/tools/python3/Modules/_decimal/libmpdec/mpdecimal.h	(index)
++++ contrib/tools/python3/Modules/_decimal/libmpdec/mpdecimal.h	(working tree)
+@@ -96,17 +96,17 @@ const char *mpd_version(void);
+ /*                              Configuration                                 */
+ /******************************************************************************/
+ 
+-#if defined(UNIVERSAL)
++#if 1
+   #if defined(CONFIG_64) || defined(CONFIG_32)
+     #error "cannot use CONFIG_64 or CONFIG_32 with UNIVERSAL."
+   #endif
+-  #if defined(__ppc__)
+-    #define CONFIG_32
+-    #define ANSI
+-  #elif defined(__ppc64__)
++  #if defined(__powerpc64__) || defined(_M_AMD64) || defined(__aarch64__)
+     #define CONFIG_64
+     #define ANSI
+-  #elif defined(__i386__)
++  #elif defined(__powerpc__)
++    #define CONFIG_32
++    #define ANSI
++  #elif defined(__i386__) || defined(_M_IX86)
+     #define CONFIG_32
+     #define ANSI
+   #elif defined(__x86_64__)
+--- contrib/tools/python3/Modules/getpath.c	(index)
++++ contrib/tools/python3/Modules/getpath.c	(working tree)
+@@ -1,3 +1,4 @@
++#define PYTHONPATH ":"
+ /* Return the initial module search path. */
+ 
+ #include "Python.h"
+--- contrib/tools/python3/Modules/main.c	(index)
++++ contrib/tools/python3/Modules/main.c	(working tree)
+@@ -51,6 +51,7 @@ pymain_init(const _PyArgv *args)
+ 
+     PyConfig config;
+     PyConfig_InitPythonConfig(&config);
++    config.pathconfig_warnings = 0;   /* Suppress errors from getpath.c */
+ 
+     /* pass NULL as the config: config is read from command line arguments,
+        environment variables, configuration files */
+--- contrib/tools/python3/PC/pyconfig.h	(index)
++++ contrib/tools/python3/PC/pyconfig.h	(working tree)
+@@ -306,10 +306,6 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
+ #       endif
+ #endif
+ 
+-#ifdef _DEBUG
+-#       define Py_DEBUG
+-#endif
+-
+ 
+ #ifdef MS_WIN32
+ 
+@@ -460,7 +456,9 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
+ /* #define WITH_READLINE 1 */
+ 
+ /* Use Python's own small-block memory-allocator. */
++#ifndef address_sanitizer_enabled
+ #define WITH_PYMALLOC 1
++#endif
+ 
+ /* Define if you want to compile in object freelists optimization */
+ #define WITH_FREELISTS 1
+--- contrib/tools/python3/Python/initconfig.c	(index)
++++ contrib/tools/python3/Python/initconfig.c	(working tree)
+@@ -163,7 +163,7 @@ int Py_InspectFlag = 0; /* Needed to determine whether to exit at SystemExit */
+ int Py_OptimizeFlag = 0; /* Needed by compile.c */
+ int Py_NoSiteFlag = 0; /* Suppress 'import site' */
+ int Py_BytesWarningFlag = 0; /* Warn on str(bytes) and str(buffer) */
+-int Py_FrozenFlag = 0; /* Needed by getpath.c */
++int Py_FrozenFlag = 1; /* Needed by getpath.c */
+ int Py_IgnoreEnvironmentFlag = 0; /* e.g. PYTHONPATH, PYTHONHOME */
+ int Py_DontWriteBytecodeFlag = 0; /* Suppress writing bytecode files (*.pyc) */
+ int Py_NoUserSiteDirectory = 0; /* for -s and site.py */
+--- contrib/tools/python3/Python/import.c	(index)
++++ contrib/tools/python3/Python/import.c	(working tree)
+@@ -2101,6 +2101,13 @@ init_importlib_external(PyInterpreterState *interp)
+         return -1;
+     }
+     Py_DECREF(value);
++
++    value = PyImport_ImportModule("__res");
++    if (value == NULL) {
++        return -1;
++    }
++    Py_DECREF(value);
++
+     return 0;
+ }
+ 

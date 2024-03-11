@@ -1,3 +1,210 @@
+# CUB 2.1.0
+
+## Breaking Changes
+
+- NVIDIA/cub#553: Deprecate the `CUB_USE_COOPERATIVE_GROUPS` macro, as all supported CTK
+  distributions provide CG. This macro will be removed in a future version of CUB.
+
+## New Features
+
+- NVIDIA/cub#359: Add new `DeviceBatchMemcpy` algorithm.
+- NVIDIA/cub#565: Add `DeviceMergeSort::StableSortKeysCopy` API. Thanks to David Wendt (@davidwendt)
+  for this contribution.
+- NVIDIA/cub#585: Add SM90 tuning policy for `DeviceRadixSort`. Thanks to Andy Adinets (@canonizer)
+  for this contribution.
+- NVIDIA/cub#586: Introduce a new mechanism to opt-out of compiling CDP support in CUB algorithms by
+  defining `CUB_DISABLE_CDP`.
+- NVIDIA/cub#589: Support 64-bit indexing in `DeviceReduce`.
+- NVIDIA/cub#607: Support 128-bit integers in radix sort.
+
+## Bug Fixes
+
+- NVIDIA/cub#547: Resolve several long-running issues resulting from using multiple versions of CUB
+  within the same process. Adds an inline namespace that encodes CUB version and targeted PTX
+  architectures.
+- NVIDIA/cub#562: Fix bug in `BlockShuffle` resulting from an invalid thread offset. Thanks to
+  @sjfeng1999 for this contribution.
+- NVIDIA/cub#564: Fix bug in `BlockRadixRank` when used with blocks that are not a multiple of 32
+  threads.
+- NVIDIA/cub#579: Ensure that all threads in the logical warp participate in the index-shuffle
+  for `BlockRadixRank`. Thanks to Andy Adinets (@canonizer) for this contribution.
+- NVIDIA/cub#582: Fix reordering in CUB member initializer lists.
+- NVIDIA/cub#589: Fix `DeviceSegmentedSort` when used with `bool` keys.
+- NVIDIA/cub#590: Fix CUB's CMake install rules. Thanks to Robert Maynard (@robertmaynard) for this
+  contribution.
+- NVIDIA/cub#592: Fix overflow in `DeviceReduce`.
+- NVIDIA/cub#598: Fix `DeviceRunLengthEncode` when the first item is a `NaN`.
+- NVIDIA/cub#611: Fix `WarpScanExclusive` for vector types.
+
+## Other Enhancements
+
+- NVIDIA/cub#537: Add detailed and expanded version of
+  a [CUB developer overview](https://github.com/NVIDIA/cub/blob/main/docs/developer_overview.md).
+- NVIDIA/cub#549: Fix `BlockReduceRaking` docs for non-commutative operations. Thanks to Tobias
+  Ribizel (@upsj) for this contribution.
+- NVIDIA/cub#606: Optimize CUB's decoupled-lookback implementation.
+
+# CUB 2.0.1
+
+## Other Enhancements
+
+- Skip device-side synchronization on SM90+. These syncs are a debugging-only feature and not
+  required for correctness, and a warning will be emitted if this happens.
+
+# CUB 2.0.0
+
+## Summary
+
+The CUB 2.0.0 major release adds a dependency on libcu++ and contains several
+breaking changes. These include new diagnostics when inspecting device-only
+lambdas from the host, an updated method of determining accumulator types for
+algorithms like Reduce and Scan, and a compile-time replacement for the
+runtime `debug_synchronous` debugging flags.
+
+This release also includes several new features. `DeviceHistogram` now
+supports `__half` and better handles various edge cases. `WarpReduce` now
+performs correctly when restricted to a single-thread “warp”, and will use
+the `__reduce_add_sync` accelerated intrinsic (introduced with Ampere) when
+appropriate. `DeviceRadixSort` learned to handle the case
+where `begin_bit == end_bit`.
+
+Several algorithms also have updated documentation, with a particular focus on
+clarifying which operations can and cannot be performed in-place.
+
+## Breaking Changes
+
+- NVIDIA/cub#448 Add libcu++ dependency (v1.8.0+).
+- NVIDIA/cub#448: The following macros are no longer defined by default. They
+  can be re-enabled by defining `CUB_PROVIDE_LEGACY_ARCH_MACROS`. These will be
+  completely removed in a future release.
+  - `CUB_IS_HOST_CODE`: Replace with `NV_IF_TARGET`.
+  - `CUB_IS_DEVICE_CODE`: Replace with `NV_IF_TARGET`.
+  - `CUB_INCLUDE_HOST_CODE`: Replace with `NV_IF_TARGET`.
+  - `CUB_INCLUDE_DEVICE_CODE`: Replace with `NV_IF_TARGET`.
+- NVIDIA/cub#486: CUB's CUDA Runtime support macros have been updated to
+  support `NV_IF_TARGET`. They are now defined consistently across all
+  host/device compilation passes. This should not affect most usages of these
+  macros, but may require changes for some edge cases.
+  - `CUB_RUNTIME_FUNCTION`: Execution space annotations for functions that
+    invoke CUDA Runtime APIs.
+    - Old behavior:
+      - RDC enabled: Defined to `__host__ __device__`
+      - RDC not enabled:
+        - NVCC host pass: Defined to `__host__ __device__`
+        - NVCC device pass: Defined to `__host__`
+    - New behavior:
+      - RDC enabled: Defined to `__host__ __device__`
+      - RDC not enabled: Defined to `__host__`
+  - `CUB_RUNTIME_ENABLED`: No change in behavior, but no longer used in CUB.
+    Provided for legacy support only. Legacy behavior:
+    - RDC enabled: Macro is defined.
+    - RDC not enabled:
+      - NVCC host pass: Macro is defined.
+      - NVCC device pass: Macro is not defined.
+  - `CUB_RDC_ENABLED`: New macro, may be combined with `NV_IF_TARGET` to replace
+    most usages of `CUB_RUNTIME_ENABLED`. Behavior:
+    - RDC enabled: Macro is defined.
+    - RDC not enabled: Macro is not defined.
+- NVIDIA/cub#509: A compile-time error is now emitted when a `__device__`-only
+  lambda's return type is queried from host code (requires libcu++ ≥ 1.9.0).
+  - Due to limitations in the CUDA programming model, the result of this query
+    is unreliable, and will silently return an incorrect result. This leads to
+    difficult to debug errors.
+  - When using libcu++ 1.9.0, an error will be emitted with information about
+    work-arounds:
+    - Use a named function object with a `__device__`-only implementation
+      of `operator()`.
+    - Use a `__host__ __device__` lambda.
+    - Use `cuda::proclaim_return_type` (Added in libcu++ 1.9.0)
+- NVIDIA/cub#509: Use the result type of the binary reduction operator for
+  accumulating intermediate results in the `DeviceReduce` algorithm, following
+  guidance from http://wg21.link/P2322R6.
+  - This change requires host-side introspection of the binary operator's
+    signature, and device-only extended lambda functions can no longer be used.
+  - In addition to the behavioral changes, the interfaces for
+    the `Dispatch*Reduce` layer have changed:
+    - `DispatchReduce`:
+      - Now accepts accumulator type as last parameter.
+      - Now accepts initializer type instead of output iterator value type.
+      - Constructor now accepts `init` as initial type instead of output
+        iterator value type.
+    - `DispatchSegmentedReduce`:
+      - Accepts accumulator type as last parameter.
+      - Accepts initializer type instead of output iterator value type.
+  - Thread operators now accept parameters using different types: `Equality`
+    , `Inequality`, `InequalityWrapper`, `Sum`, `Difference`, `Division`, `Max`
+    , `ArgMax`, `Min`, `ArgMin`.
+  - `ThreadReduce` now accepts accumulator type and uses a different type
+    for `prefix`.
+- NVIDIA/cub#511: Use the result type of the binary operator for accumulating
+  intermediate results in the `DeviceScan`, `DeviceScanByKey`,
+  and `DeviceReduceByKey` algorithms, following guidance
+  from http://wg21.link/P2322R6.
+  - This change requires host-side introspection of the binary operator's
+    signature, and device-only extended lambda functions can no longer be used.
+  - In addition to the behavioral changes, the interfaces for the `Dispatch`
+    layer have changed:
+    - `DispatchScan`now accepts accumulator type as a template parameter.
+    - `DispatchScanByKey`now accepts accumulator type as a template parameter.
+    - `DispatchReduceByKey`now accepts accumulator type as the last template
+      parameter.
+- NVIDIA/cub#527: Deprecate the `debug_synchronous` flags on device algorithms.
+  - This flag no longer has any effect. Define `CUB_DEBUG_SYNC` during
+    compilation to enable these checks.
+  - Moving this option from run-time to compile-time avoids the compilation
+    overhead of unused debugging paths in production code.
+
+## New Features
+
+- NVIDIA/cub#514: Support `__half` in `DeviceHistogram`.
+- NVIDIA/cub#516: Add support for single-threaded invocations of `WarpReduce`.
+- NVIDIA/cub#516: Use `__reduce_add_sync` hardware acceleration for `WarpReduce`
+  on supported architectures.
+
+## Bug Fixes
+
+- NVIDIA/cub#481: Fix the device-wide radix sort implementations to simply copy
+  the input to the output when `begin_bit == end_bit`.
+- NVIDIA/cub#487: Fix `DeviceHistogram::Even` for a variety of edge cases:
+  - Bin ids are now correctly computed when mixing different types for `SampleT`
+    and `LevelT`.
+  - Bin ids are now correctly computed when `LevelT` is an integral type and the
+    number of levels does not evenly divide the level range.
+- NVIDIA/cub#508: Ensure that `temp_storage_bytes` is properly set in
+  the `AdjacentDifferenceCopy` device algorithms.
+- NVIDIA/cub#508: Remove excessive calls to the binary operator given to
+  the `AdjacentDifferenceCopy` device algorithms.
+- NVIDIA/cub#533: Fix debugging utilities when RDC is disabled.
+
+## Other Enhancements
+
+- NVIDIA/cub#448: Removed special case code for unsupported CUDA architectures.
+- NVIDIA/cub#448: Replace several usages of `__CUDA_ARCH__` with `<nv/target>`
+  to handle host/device code divergence.
+- NVIDIA/cub#448: Mark unused PTX arch parameters as legacy.
+- NVIDIA/cub#476: Enabled additional debug logging for the onesweep radix sort
+  implementation. Thanks to @canonizer for this contribution.
+- NVIDIA/cub#480: Add `CUB_DISABLE_BF16_SUPPORT` to avoid including
+  the `cuda_bf16.h` header or using the `__nv_bfloat16` type.
+- NVIDIA/cub#486: Add debug log messages for post-kernel debug synchronizations.
+- NVIDIA/cub#490: Clarify documentation for in-place usage of `DeviceScan`
+  algorithms.
+- NVIDIA/cub#494: Clarify documentation for in-place usage of `DeviceHistogram`
+  algorithms.
+- NVIDIA/cub#495: Clarify documentation for in-place usage of `DevicePartition`
+  algorithms.
+- NVIDIA/cub#499: Clarify documentation for in-place usage of `Device*Sort`
+  algorithms.
+- NVIDIA/cub#500: Clarify documentation for in-place usage of `DeviceReduce`
+  algorithms.
+- NVIDIA/cub#501: Clarify documentation for in-place usage
+  of `DeviceRunLengthEncode` algorithms.
+- NVIDIA/cub#503: Clarify documentation for in-place usage of `DeviceSelect`
+  algorithms.
+- NVIDIA/cub#518: Fix typo in `WarpMergeSort` documentation.
+- NVIDIA/cub#519: Clarify segmented sort documentation regarding the handling of
+  elements that are not included in any segment.
+
 # CUB 1.17.2
 
 ## Summary
@@ -36,7 +243,7 @@ Several CUB device algorithms are documented to provide deterministic results
 addition). Unfortunately, the implementations of these algorithms contain
 performance optimizations that violate this guarantee.
 The `DeviceReduce::ReduceByKey` and `DeviceScan` algorithms are known to be
-affected. We’re currently evaluating the scope and impact of correcting this in
+affected. We're currently evaluating the scope and impact of correcting this in
 a future CUB release. See NVIDIA/cub#471 for details.
 
 ## Bug Fixes
@@ -90,7 +297,7 @@ updates are also included.
 
 ### 64-bit Offsets in `DeviceRadixSort` Public APIs
 
-Users frequently want to process large datasets using CUB’s device-scope
+Users frequently want to process large datasets using CUB's device-scope
 algorithms, but the current public APIs limit input data sizes to those that can
 be indexed by a 32-bit integer. Beginning with this release, CUB is updating
 these APIs to support 64-bit offsets, as discussed in NVIDIA/cub#212.
@@ -168,7 +375,7 @@ now `SubtractLeft`, and `FlagTails` has been replaced by `SubtractRight`.
 - NVIDIA/cub#400: Implement a significant reduction in `DeviceMergeSort`
   compilation time.
 - NVIDIA/cub#415: Support user-defined `CMAKE_INSTALL_INCLUDEDIR` values in
-  Thrust’s CMake install rules. Thanks for @robertmaynard for this contribution.
+  Thrust's CMake install rules. Thanks for @robertmaynard for this contribution.
 
 ## Bug Fixes
 
@@ -185,7 +392,7 @@ now `SubtractLeft`, and `FlagTails` has been replaced by `SubtractRight`.
   gcc 10.
 - NVIDIA/cub#423: Fix some collisions with the `small` macro defined
   in `windows.h`.
-- NVIDIA/cub#426: Fix some issues with version handling in CUB’s CMake packages.
+- NVIDIA/cub#426: Fix some issues with version handling in CUB's CMake packages.
 - NVIDIA/cub#430: Remove documentation for `DeviceSpmv` parameters that are
   absent from public APIs.
 - NVIDIA/cub#432: Remove incorrect documentation for `DeviceScan` algorithms

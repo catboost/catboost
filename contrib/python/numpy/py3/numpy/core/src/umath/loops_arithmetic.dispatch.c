@@ -46,8 +46,16 @@
  *     q = TRUNC((n - (-dsign ) + (-nsign))/d) - (-qsign);
  ********************************************************************************/
 
+#if (defined(NPY_HAVE_VSX) && !defined(NPY_HAVE_VSX4)) || defined(NPY_HAVE_NEON)
+    // Due to integer 128-bit multiplication emulation, SIMD 64-bit division
+    // may not perform well on both neon and up to VSX3 compared to scalar
+    // division.
+    #define SIMD_DISABLE_DIV64_OPT
+#endif
+
 #if NPY_SIMD
-#line 45
+#line 52
+#if 8 < 64 || (8 == 64 && !defined(SIMD_DISABLE_DIV64_OPT))
 static inline void
 simd_divide_by_scalar_contig_s8(char **args, npy_intp len)
 {
@@ -107,8 +115,10 @@ simd_divide_by_scalar_contig_s8(char **args, npy_intp len)
     }
     npyv_cleanup();
 }
+#endif
 
-#line 45
+#line 52
+#if 16 < 64 || (16 == 64 && !defined(SIMD_DISABLE_DIV64_OPT))
 static inline void
 simd_divide_by_scalar_contig_s16(char **args, npy_intp len)
 {
@@ -168,8 +178,10 @@ simd_divide_by_scalar_contig_s16(char **args, npy_intp len)
     }
     npyv_cleanup();
 }
+#endif
 
-#line 45
+#line 52
+#if 32 < 64 || (32 == 64 && !defined(SIMD_DISABLE_DIV64_OPT))
 static inline void
 simd_divide_by_scalar_contig_s32(char **args, npy_intp len)
 {
@@ -229,8 +241,10 @@ simd_divide_by_scalar_contig_s32(char **args, npy_intp len)
     }
     npyv_cleanup();
 }
+#endif
 
-#line 45
+#line 52
+#if 64 < 64 || (64 == 64 && !defined(SIMD_DISABLE_DIV64_OPT))
 static inline void
 simd_divide_by_scalar_contig_s64(char **args, npy_intp len)
 {
@@ -290,9 +304,11 @@ simd_divide_by_scalar_contig_s64(char **args, npy_intp len)
     }
     npyv_cleanup();
 }
+#endif
 
 
-#line 111
+#line 120
+#if 8 < 64 || (8 == 64 && !defined(SIMD_DISABLE_DIV64_OPT))
 static inline void
 simd_divide_by_scalar_contig_u8(char **args, npy_intp len)
 {
@@ -314,8 +330,10 @@ simd_divide_by_scalar_contig_u8(char **args, npy_intp len)
     }
     npyv_cleanup();
 }
+#endif
 
-#line 111
+#line 120
+#if 16 < 64 || (16 == 64 && !defined(SIMD_DISABLE_DIV64_OPT))
 static inline void
 simd_divide_by_scalar_contig_u16(char **args, npy_intp len)
 {
@@ -337,8 +355,10 @@ simd_divide_by_scalar_contig_u16(char **args, npy_intp len)
     }
     npyv_cleanup();
 }
+#endif
 
-#line 111
+#line 120
+#if 32 < 64 || (32 == 64 && !defined(SIMD_DISABLE_DIV64_OPT))
 static inline void
 simd_divide_by_scalar_contig_u32(char **args, npy_intp len)
 {
@@ -360,8 +380,10 @@ simd_divide_by_scalar_contig_u32(char **args, npy_intp len)
     }
     npyv_cleanup();
 }
+#endif
 
-#line 111
+#line 120
+#if 64 < 64 || (64 == 64 && !defined(SIMD_DISABLE_DIV64_OPT))
 static inline void
 simd_divide_by_scalar_contig_u64(char **args, npy_intp len)
 {
@@ -383,11 +405,12 @@ simd_divide_by_scalar_contig_u64(char **args, npy_intp len)
     }
     npyv_cleanup();
 }
+#endif
 
 
 #if defined(NPY_HAVE_VSX4)
 
-#line 140
+#line 151
 /*
  * Computes division of 2 8-bit signed/unsigned integer vectors
  *
@@ -452,7 +475,7 @@ vsx4_div_u16(npyv_u16 a, npyv_u16 b)
 #define vsx4_div_u32 vec_div
 #define vsx4_div_u64 vec_div
 
-#line 140
+#line 151
 /*
  * Computes division of 2 8-bit signed/unsigned integer vectors
  *
@@ -518,7 +541,7 @@ vsx4_div_s16(npyv_s16 a, npyv_s16 b)
 #define vsx4_div_s64 vec_div
 
 
-#line 210
+#line 221
 static inline void
 vsx4_simd_divide_contig_u8(char **args, npy_intp len)
 {
@@ -552,7 +575,7 @@ vsx4_simd_divide_contig_u8(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-#line 210
+#line 221
 static inline void
 vsx4_simd_divide_contig_u16(char **args, npy_intp len)
 {
@@ -586,7 +609,7 @@ vsx4_simd_divide_contig_u16(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-#line 210
+#line 221
 static inline void
 vsx4_simd_divide_contig_u32(char **args, npy_intp len)
 {
@@ -620,7 +643,7 @@ vsx4_simd_divide_contig_u32(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-#line 210
+#line 221
 static inline void
 vsx4_simd_divide_contig_u64(char **args, npy_intp len)
 {
@@ -655,7 +678,7 @@ vsx4_simd_divide_contig_u64(char **args, npy_intp len)
 }
 
 
-#line 249
+#line 260
 static inline void
 vsx4_simd_divide_contig_s8(char **args, npy_intp len)
 {
@@ -724,7 +747,7 @@ vsx4_simd_divide_contig_s8(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-#line 249
+#line 260
 static inline void
 vsx4_simd_divide_contig_s16(char **args, npy_intp len)
 {
@@ -793,7 +816,7 @@ vsx4_simd_divide_contig_s16(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-#line 249
+#line 260
 static inline void
 vsx4_simd_divide_contig_s32(char **args, npy_intp len)
 {
@@ -862,7 +885,7 @@ vsx4_simd_divide_contig_s32(char **args, npy_intp len)
     npyv_cleanup();
 }
 
-#line 249
+#line 260
 static inline void
 vsx4_simd_divide_contig_s64(char **args, npy_intp len)
 {
@@ -938,28 +961,27 @@ vsx4_simd_divide_contig_s64(char **args, npy_intp len)
  ** Defining ufunc inner functions
  ********************************************************************************/
 
-#line 329
+#line 340
 #undef TO_SIMD_SFX
 #if 0
-#line 334
+#line 345
 #elif NPY_BITSOF_BYTE == 8
     #define TO_SIMD_SFX(X) X##_s8
 
-#line 334
+#line 345
 #elif NPY_BITSOF_BYTE == 16
     #define TO_SIMD_SFX(X) X##_s16
 
-#line 334
+#line 345
 #elif NPY_BITSOF_BYTE == 32
     #define TO_SIMD_SFX(X) X##_s32
 
-#line 334
+#line 345
 #elif NPY_BITSOF_BYTE == 64
     #define TO_SIMD_SFX(X) X##_s64
 
 #endif
-
-#if NPY_BITSOF_BYTE == 64 && !defined(NPY_HAVE_VSX4) && (defined(NPY_HAVE_VSX) || defined(NPY_HAVE_NEON))
+#if NPY_BITSOF_BYTE == 64 && defined(SIMD_DISABLE_DIV64_OPT)
     #undef TO_SIMD_SFX
 #endif
 
@@ -1042,28 +1064,27 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(BYTE_divide_indexed)
 }
 
 
-#line 329
+#line 340
 #undef TO_SIMD_SFX
 #if 0
-#line 334
+#line 345
 #elif NPY_BITSOF_SHORT == 8
     #define TO_SIMD_SFX(X) X##_s8
 
-#line 334
+#line 345
 #elif NPY_BITSOF_SHORT == 16
     #define TO_SIMD_SFX(X) X##_s16
 
-#line 334
+#line 345
 #elif NPY_BITSOF_SHORT == 32
     #define TO_SIMD_SFX(X) X##_s32
 
-#line 334
+#line 345
 #elif NPY_BITSOF_SHORT == 64
     #define TO_SIMD_SFX(X) X##_s64
 
 #endif
-
-#if NPY_BITSOF_SHORT == 64 && !defined(NPY_HAVE_VSX4) && (defined(NPY_HAVE_VSX) || defined(NPY_HAVE_NEON))
+#if NPY_BITSOF_SHORT == 64 && defined(SIMD_DISABLE_DIV64_OPT)
     #undef TO_SIMD_SFX
 #endif
 
@@ -1146,28 +1167,27 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(SHORT_divide_indexed)
 }
 
 
-#line 329
+#line 340
 #undef TO_SIMD_SFX
 #if 0
-#line 334
+#line 345
 #elif NPY_BITSOF_INT == 8
     #define TO_SIMD_SFX(X) X##_s8
 
-#line 334
+#line 345
 #elif NPY_BITSOF_INT == 16
     #define TO_SIMD_SFX(X) X##_s16
 
-#line 334
+#line 345
 #elif NPY_BITSOF_INT == 32
     #define TO_SIMD_SFX(X) X##_s32
 
-#line 334
+#line 345
 #elif NPY_BITSOF_INT == 64
     #define TO_SIMD_SFX(X) X##_s64
 
 #endif
-
-#if NPY_BITSOF_INT == 64 && !defined(NPY_HAVE_VSX4) && (defined(NPY_HAVE_VSX) || defined(NPY_HAVE_NEON))
+#if NPY_BITSOF_INT == 64 && defined(SIMD_DISABLE_DIV64_OPT)
     #undef TO_SIMD_SFX
 #endif
 
@@ -1250,28 +1270,27 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(INT_divide_indexed)
 }
 
 
-#line 329
+#line 340
 #undef TO_SIMD_SFX
 #if 0
-#line 334
+#line 345
 #elif NPY_BITSOF_LONG == 8
     #define TO_SIMD_SFX(X) X##_s8
 
-#line 334
+#line 345
 #elif NPY_BITSOF_LONG == 16
     #define TO_SIMD_SFX(X) X##_s16
 
-#line 334
+#line 345
 #elif NPY_BITSOF_LONG == 32
     #define TO_SIMD_SFX(X) X##_s32
 
-#line 334
+#line 345
 #elif NPY_BITSOF_LONG == 64
     #define TO_SIMD_SFX(X) X##_s64
 
 #endif
-
-#if NPY_BITSOF_LONG == 64 && !defined(NPY_HAVE_VSX4) && (defined(NPY_HAVE_VSX) || defined(NPY_HAVE_NEON))
+#if NPY_BITSOF_LONG == 64 && defined(SIMD_DISABLE_DIV64_OPT)
     #undef TO_SIMD_SFX
 #endif
 
@@ -1354,28 +1373,27 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONG_divide_indexed)
 }
 
 
-#line 329
+#line 340
 #undef TO_SIMD_SFX
 #if 0
-#line 334
+#line 345
 #elif NPY_BITSOF_LONGLONG == 8
     #define TO_SIMD_SFX(X) X##_s8
 
-#line 334
+#line 345
 #elif NPY_BITSOF_LONGLONG == 16
     #define TO_SIMD_SFX(X) X##_s16
 
-#line 334
+#line 345
 #elif NPY_BITSOF_LONGLONG == 32
     #define TO_SIMD_SFX(X) X##_s32
 
-#line 334
+#line 345
 #elif NPY_BITSOF_LONGLONG == 64
     #define TO_SIMD_SFX(X) X##_s64
 
 #endif
-
-#if NPY_BITSOF_LONGLONG == 64 && !defined(NPY_HAVE_VSX4) && (defined(NPY_HAVE_VSX) || defined(NPY_HAVE_NEON))
+#if NPY_BITSOF_LONGLONG == 64 && defined(SIMD_DISABLE_DIV64_OPT)
     #undef TO_SIMD_SFX
 #endif
 
@@ -1459,22 +1477,22 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(LONGLONG_divide_indexed)
 
 
 
-#line 429
+#line 439
 #undef TO_SIMD_SFX
 #if 0
-#line 434
+#line 444
 #elif NPY_BITSOF_BYTE == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 434
+#line 444
 #elif NPY_BITSOF_BYTE == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 434
+#line 444
 #elif NPY_BITSOF_BYTE == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 434
+#line 444
 #elif NPY_BITSOF_BYTE == 64
     #define TO_SIMD_SFX(X) X##_u64
 
@@ -1560,22 +1578,22 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UBYTE_divide_indexed)
 }
 
 
-#line 429
+#line 439
 #undef TO_SIMD_SFX
 #if 0
-#line 434
+#line 444
 #elif NPY_BITSOF_SHORT == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 434
+#line 444
 #elif NPY_BITSOF_SHORT == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 434
+#line 444
 #elif NPY_BITSOF_SHORT == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 434
+#line 444
 #elif NPY_BITSOF_SHORT == 64
     #define TO_SIMD_SFX(X) X##_u64
 
@@ -1661,22 +1679,22 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(USHORT_divide_indexed)
 }
 
 
-#line 429
+#line 439
 #undef TO_SIMD_SFX
 #if 0
-#line 434
+#line 444
 #elif NPY_BITSOF_INT == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 434
+#line 444
 #elif NPY_BITSOF_INT == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 434
+#line 444
 #elif NPY_BITSOF_INT == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 434
+#line 444
 #elif NPY_BITSOF_INT == 64
     #define TO_SIMD_SFX(X) X##_u64
 
@@ -1762,22 +1780,22 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(UINT_divide_indexed)
 }
 
 
-#line 429
+#line 439
 #undef TO_SIMD_SFX
 #if 0
-#line 434
+#line 444
 #elif NPY_BITSOF_LONG == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 434
+#line 444
 #elif NPY_BITSOF_LONG == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 434
+#line 444
 #elif NPY_BITSOF_LONG == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 434
+#line 444
 #elif NPY_BITSOF_LONG == 64
     #define TO_SIMD_SFX(X) X##_u64
 
@@ -1863,22 +1881,22 @@ NPY_NO_EXPORT int NPY_CPU_DISPATCH_CURFX(ULONG_divide_indexed)
 }
 
 
-#line 429
+#line 439
 #undef TO_SIMD_SFX
 #if 0
-#line 434
+#line 444
 #elif NPY_BITSOF_LONGLONG == 8
     #define TO_SIMD_SFX(X) X##_u8
 
-#line 434
+#line 444
 #elif NPY_BITSOF_LONGLONG == 16
     #define TO_SIMD_SFX(X) X##_u16
 
-#line 434
+#line 444
 #elif NPY_BITSOF_LONGLONG == 32
     #define TO_SIMD_SFX(X) X##_u32
 
-#line 434
+#line 444
 #elif NPY_BITSOF_LONGLONG == 64
     #define TO_SIMD_SFX(X) X##_u64
 

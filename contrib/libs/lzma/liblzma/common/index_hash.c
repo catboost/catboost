@@ -145,7 +145,7 @@ lzma_index_hash_append(lzma_index_hash *index_hash, lzma_vli unpadded_size,
 		lzma_vli uncompressed_size)
 {
 	// Validate the arguments.
-	if (index_hash->sequence != SEQ_BLOCK
+	if (index_hash == NULL || index_hash->sequence != SEQ_BLOCK
 			|| unpadded_size < UNPADDED_SIZE_MIN
 			|| unpadded_size > UNPADDED_SIZE_MAX
 			|| uncompressed_size > LZMA_VLI_MAX)
@@ -190,7 +190,7 @@ lzma_index_hash_decode(lzma_index_hash *index_hash, const uint8_t *in,
 	switch (index_hash->sequence) {
 	case SEQ_BLOCK:
 		// Check the Index Indicator is present.
-		if (in[(*in_pos)++] != 0x00)
+		if (in[(*in_pos)++] != INDEX_INDICATOR)
 			return LZMA_DATA_ERROR;
 
 		index_hash->sequence = SEQ_COUNT;
@@ -328,9 +328,16 @@ lzma_index_hash_decode(lzma_index_hash *index_hash, const uint8_t *in,
 	}
 
 out:
-	// Update the CRC32,
-	index_hash->crc32 = lzma_crc32(in + in_start,
-			*in_pos - in_start, index_hash->crc32);
+	// Update the CRC32.
+	//
+	// Avoid null pointer + 0 (undefined behavior) in "in + in_start".
+	// In such a case we had no input and thus in_used == 0.
+	{
+		const size_t in_used = *in_pos - in_start;
+		if (in_used > 0)
+			index_hash->crc32 = lzma_crc32(in + in_start,
+					in_used, index_hash->crc32);
+	}
 
 	return ret;
 }

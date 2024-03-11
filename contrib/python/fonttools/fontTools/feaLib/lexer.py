@@ -111,10 +111,6 @@ class Lexer(object):
             glyphclass = text[start + 1 : self.pos_]
             if len(glyphclass) < 1:
                 raise FeatureLibError("Expected glyph class name", location)
-            if len(glyphclass) > 63:
-                raise FeatureLibError(
-                    "Glyph class names must not be longer than 63 characters", location
-                )
             if not Lexer.RE_GLYPHCLASS.match(glyphclass):
                 raise FeatureLibError(
                     "Glyph class names must consist of letters, digits, "

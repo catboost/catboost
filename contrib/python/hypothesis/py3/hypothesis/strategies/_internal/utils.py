@@ -8,13 +8,19 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+import sys
 import threading
 from inspect import signature
 from typing import TYPE_CHECKING, Callable, Dict
 
+import attr
+
 from hypothesis.internal.cache import LRUReusedCache
+from hypothesis.internal.compat import dataclass_asdict
+from hypothesis.internal.conjecture.junkdrawer import clamp
 from hypothesis.internal.floats import float_to_int
 from hypothesis.internal.reflection import proxies
+from hypothesis.vendor.pretty import pretty
 
 if TYPE_CHECKING:
     from hypothesis.strategies._internal.strategies import SearchStrategy, T
@@ -144,3 +150,51 @@ def defines_strategy(
         return accept
 
     return decorator
+
+
+def to_jsonable(obj: object) -> object:
+    """Recursively convert an object to json-encodable form.
+
+    This is not intended to round-trip, but rather provide an analysis-ready
+    format for observability.  To avoid side affects, we pretty-print all but
+    known types.
+    """
+    if isinstance(obj, (str, int, float, bool, type(None))):
+        if isinstance(obj, int) and abs(obj) >= 2**63:
+            # Silently clamp very large ints to max_float, to avoid
+            # OverflowError when casting to float.
+            obj = clamp(-sys.float_info.max, obj, sys.float_info.max)
+            return float(obj)
+        return obj
+    if isinstance(obj, (list, tuple, set, frozenset)):
+        if isinstance(obj, tuple) and hasattr(obj, "_asdict"):
+            return to_jsonable(obj._asdict())  # treat namedtuples as dicts
+        return [to_jsonable(x) for x in obj]
+    if isinstance(obj, dict):
+        return {
+            k if isinstance(k, str) else pretty(k): to_jsonable(v)
+            for k, v in obj.items()
+        }
+
+    # Hey, might as well try calling a .to_json() method - it works for Pandas!
+    # We try this before the below general-purpose handlers to give folks a
+    # chance to control this behavior on their custom classes.
+    try:
+        return to_jsonable(obj.to_json())  # type: ignore
+    except Exception:
+        pass
+
+    # Special handling for dataclasses, attrs, and pydantic classes
+    if (
+        (dcs := sys.modules.get("dataclasses"))
+        and dcs.is_dataclass(obj)
+        and not isinstance(obj, type)
+    ):
+        return to_jsonable(dataclass_asdict(obj))
+    if attr.has(type(obj)):
+        return to_jsonable(attr.asdict(obj, recurse=False))  # type: ignore
+    if (pyd := sys.modules.get("pydantic")) and isinstance(obj, pyd.BaseModel):
+        return to_jsonable(obj.model_dump())
+
+    # If all else fails, we'll just pretty-print as a string.
+    return pretty(obj)

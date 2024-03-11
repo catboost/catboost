@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: wcwidth
-Version: 0.2.6
+Version: 0.2.13
 Summary: Measures the displayed width of unicode strings in a terminal
 Home-page: https://github.com/jquast/wcwidth
 Author: Jeff Quast
@@ -18,12 +18,16 @@ Classifier: Programming Language :: Python :: 3.5
 Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Software Development :: Localization
 Classifier: Topic :: Software Development :: Internationalization
 Classifier: Topic :: Terminals
 License-File: LICENSE
-Requires-Dist: backports.functools-lru-cache (>=1.2.1) ; python_version < "3.2"
+Requires-Dist: backports.functools-lru-cache >=1.2.1 ; python_version < "3.2"
 
 |pypi_downloads| |codecov| |license|
 
@@ -59,7 +63,7 @@ Example
    >>>  text = u'コンニチハ'
 
 Python **incorrectly** uses the *string length* of 5 codepoints rather than the
-*printible length* of 10 cells, so that when using the `rjust` function, the
+*printable length* of 10 cells, so that when using the `rjust` function, the
 output length is wrong::
 
     >>> print(len('コンニチハ'))
@@ -122,7 +126,7 @@ Briefly, return values of function ``wcwidth()`` are:
 Function ``wcswidth()`` simply returns the sum of all values for each character
 along a string, or ``-1`` when it occurs anywhere along a string.
 
-Full API Documentation at http://wcwidth.readthedocs.org
+Full API Documentation at https://wcwidth.readthedocs.org
 
 ==========
 Developing
@@ -130,32 +134,70 @@ Developing
 
 Install wcwidth in editable mode::
 
-   pip install -e.
+   pip install -e .
 
 Execute unit tests using tox_::
 
-   tox
+   tox -e py27,py35,py36,py37,py38,py39,py310,py311,py312
+
+Updating Unicode Version
+------------------------
 
 Regenerate python code tables from latest Unicode Specification data files::
 
    tox -e update
 
+The script is located at ``bin/update-tables.py``, requires Python 3.9 or
+later. It is recommended but not necessary to run this script with the newest
+Python, because the newest Python has the latest ``unicodedata`` for generating
+comments.
+
+Building Documentation
+----------------------
+
+This project is using `sphinx`_ 4.5 to build documentation::
+
+   tox -e sphinx
+
+The output will be in ``docs/_build/html/``.
+
+Updating Requirements
+---------------------
+
+This project is using `pip-tools`_ to manage requirements.
+
+To upgrade requirements for updating unicode version, run::
+
+   tox -e update_requirements_update
+
+To upgrade requirements for testing, run::
+
+   tox -e update_requirements37,update_requirements39
+
+To upgrade requirements for building documentation, run::
+
+   tox -e update_requirements_docs
+
+Utilities
+---------
+
 Supplementary tools for browsing and testing terminals for wide unicode
 characters are found in the `bin/`_ of this project's source code.  Just ensure
-to first ``pip install -erequirements-develop.txt`` from this projects main
+to first ``pip install -r requirements-develop.txt`` from this projects main
 folder. For example, an interactive browser for testing::
 
   python ./bin/wcwidth-browser.py
 
+====
 Uses
-----
+====
 
 This library is used in:
 
 - `jquast/blessed`_: a thin, practical wrapper around terminal capabilities in
   Python.
 
-- `jonathanslenders/python-prompt-toolkit`_: a Library for building powerful
+- `prompt-toolkit/python-prompt-toolkit`_: a Library for building powerful
   interactive command lines in Python.
 
 - `dbcli/pgcli`_: Postgres CLI with autocompletion and syntax highlighting.
@@ -168,7 +210,7 @@ This library is used in:
 - `astanin/python-tabulate`_: Pretty-print tabular data in Python, a library
   and a command-line utility.
 
-- `LuminosoInsight/python-ftfy`_: Fixes mojibake and other glitches in Unicode
+- `rspeer/python-ftfy`_: Fixes mojibake and other glitches in Unicode
   text.
 
 - `nbedos/termtosvg`_: Terminal recorder that renders sessions as SVG
@@ -177,23 +219,61 @@ This library is used in:
 - `peterbrittain/asciimatics`_: Package to help people create full-screen text
   UIs.
 
+- `python-cmd2/cmd2`_: A tool for building interactive command line apps
+
+- `stratis-storage/stratis-cli`_: CLI for the Stratis project
+
+- `ihabunek/toot`_: A Mastodon CLI/TUI client
+
+- `saulpw/visidata`_: Terminal spreadsheet multitool for discovering and
+  arranging data
+
+===============
 Other Languages
----------------
+===============
 
 - `timoxley/wcwidth`_: JavaScript
 - `janlelis/unicode-display_width`_: Ruby
 - `alecrabbit/php-wcwidth`_: PHP
 - `Text::CharWidth`_: Perl
-- `bluebear94/Terminal-WCWidth`: Perl 6
+- `bluebear94/Terminal-WCWidth`_: Perl 6
 - `mattn/go-runewidth`_: Go
-- `emugel/wcwidth`_: Haxe
-- `aperezdc/lua-wcwidth`: Lua
-- `joachimschmidt557/zig-wcwidth`: Zig
-- `fumiyas/wcwidth-cjk`: `LD_PRELOAD` override
-- `joshuarubin/wcwidth9`: Unicode version 9 in C
+- `grepsuzette/wcwidth`_: Haxe
+- `aperezdc/lua-wcwidth`_: Lua
+- `joachimschmidt557/zig-wcwidth`_: Zig
+- `fumiyas/wcwidth-cjk`_: `LD_PRELOAD` override
+- `joshuarubin/wcwidth9`_: Unicode version 9 in C
 
+=======
 History
--------
+=======
+
+0.2.13 *2024-01-06*
+  * **Bugfix** zero-width support for Hangul Jamo (Korean)
+
+0.2.12 *2023-11-21*
+  * re-release to remove .pyi file misplaced in wheel files `Issue #101`_.
+
+0.2.11 *2023-11-20*
+  * Include tests files in the source distribution (`PR #98`_, `PR #100`_).
+
+0.2.10 *2023-11-13*
+  * **Bugfix** accounting of some kinds of emoji sequences using U+FE0F
+    Variation Selector 16 (`PR #97`_).
+  * **Updated** `Specification <Specification_from_pypi_>`_.
+
+0.2.9 *2023-10-30*
+  * **Bugfix** zero-width characters used in Emoji ZWJ sequences, Balinese,
+    Jamo, Devanagari, Tamil, Kannada and others (`PR #91`_).
+  * **Updated** to include `Specification <Specification_from_pypi_>`_ of
+    character measurements.
+
+0.2.8 *2023-09-30*
+  * Include requirements files in the source distribution (`PR #82`_).
+
+0.2.7 *2023-09-28*
+  * **Updated** tables to include Unicode Specification 15.1.0.
+  * Include ``bin``, ``docs``, and ``tox.ini`` in the source distribution
 
 0.2.6 *2023-01-14*
   * **Updated** tables to include Unicode Specification 14.0.0 and 15.0.0.
@@ -259,7 +339,7 @@ History
 
 This code was originally derived directly from C code of the same name,
 whose latest version is available at
-http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c::
+https://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c::
 
  * Markus Kuhn -- 2007-05-26 (Unicode 5.0)
  *
@@ -267,11 +347,12 @@ http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c::
  * for any purpose and without fee is hereby granted. The author
  * disclaims all warranties with regard to this software.
 
-.. _`tox`: https://testrun.org/tox/latest/install.html
+.. _`Specification_from_pypi`: https://wcwidth.readthedocs.io/en/latest/specs.html
+.. _`tox`: https://tox.wiki/en/latest/
 .. _`prospector`: https://github.com/landscapeio/prospector
 .. _`combining`: https://en.wikipedia.org/wiki/Combining_character
 .. _`bin/`: https://github.com/jquast/wcwidth/tree/master/bin
-.. _`bin/wcwidth-browser.py`: https://github.com/jquast/wcwidth/tree/master/bin/wcwidth-browser.py
+.. _`bin/wcwidth-browser.py`: https://github.com/jquast/wcwidth/blob/master/bin/wcwidth-browser.py
 .. _`Thomas Ballinger`: https://github.com/thomasballinger
 .. _`Leta Montopoli`: https://github.com/lmontopo
 .. _`Philip Craig`: https://github.com/philipc
@@ -282,34 +363,48 @@ http://www.cl.cam.ac.uk/~mgk25/ucs/wcwidth.c::
 .. _`PR #18`: https://github.com/jquast/wcwidth/pull/18
 .. _`PR #30`: https://github.com/jquast/wcwidth/pull/30
 .. _`PR #35`: https://github.com/jquast/wcwidth/pull/35
+.. _`PR #82`: https://github.com/jquast/wcwidth/pull/82
+.. _`PR #91`: https://github.com/jquast/wcwidth/pull/91
+.. _`PR #97`: https://github.com/jquast/wcwidth/pull/97
+.. _`PR #98`: https://github.com/jquast/wcwidth/pull/98
+.. _`PR #100`: https://github.com/jquast/wcwidth/pull/100
+.. _`Issue #101`: https://github.com/jquast/wcwidth/issues/101
 .. _`jquast/blessed`: https://github.com/jquast/blessed
 .. _`selectel/pyte`: https://github.com/selectel/pyte
 .. _`thomasballinger/curtsies`: https://github.com/thomasballinger/curtsies
 .. _`dbcli/pgcli`: https://github.com/dbcli/pgcli
-.. _`jonathanslenders/python-prompt-toolkit`: https://github.com/jonathanslenders/python-prompt-toolkit
+.. _`prompt-toolkit/python-prompt-toolkit`: https://github.com/prompt-toolkit/python-prompt-toolkit
 .. _`timoxley/wcwidth`: https://github.com/timoxley/wcwidth
-.. _`wcwidth(3)`:  http://man7.org/linux/man-pages/man3/wcwidth.3.html
-.. _`wcswidth(3)`: http://man7.org/linux/man-pages/man3/wcswidth.3.html
+.. _`wcwidth(3)`:  https://man7.org/linux/man-pages/man3/wcwidth.3.html
+.. _`wcswidth(3)`: https://man7.org/linux/man-pages/man3/wcswidth.3.html
 .. _`astanin/python-tabulate`: https://github.com/astanin/python-tabulate
 .. _`janlelis/unicode-display_width`: https://github.com/janlelis/unicode-display_width
-.. _`LuminosoInsight/python-ftfy`: https://github.com/LuminosoInsight/python-ftfy
+.. _`rspeer/python-ftfy`: https://github.com/rspeer/python-ftfy
 .. _`alecrabbit/php-wcwidth`: https://github.com/alecrabbit/php-wcwidth
 .. _`Text::CharWidth`: https://metacpan.org/pod/Text::CharWidth
 .. _`bluebear94/Terminal-WCWidth`: https://github.com/bluebear94/Terminal-WCWidth
 .. _`mattn/go-runewidth`: https://github.com/mattn/go-runewidth
-.. _`emugel/wcwidth`: https://github.com/emugel/wcwidth
+.. _`grepsuzette/wcwidth`: https://github.com/grepsuzette/wcwidth
 .. _`jquast/ucs-detect`: https://github.com/jquast/ucs-detect
 .. _`Avram Lubkin`: https://github.com/avylove
 .. _`nbedos/termtosvg`: https://github.com/nbedos/termtosvg
 .. _`peterbrittain/asciimatics`: https://github.com/peterbrittain/asciimatics
 .. _`aperezdc/lua-wcwidth`: https://github.com/aperezdc/lua-wcwidth
+.. _`joachimschmidt557/zig-wcwidth`: https://github.com/joachimschmidt557/zig-wcwidth
 .. _`fumiyas/wcwidth-cjk`: https://github.com/fumiyas/wcwidth-cjk
+.. _`joshuarubin/wcwidth9`: https://github.com/joshuarubin/wcwidth9
+.. _`python-cmd2/cmd2`: https://github.com/python-cmd2/cmd2
+.. _`stratis-storage/stratis-cli`: https://github.com/stratis-storage/stratis-cli
+.. _`ihabunek/toot`: https://github.com/ihabunek/toot
+.. _`saulpw/visidata`: https://github.com/saulpw/visidata
+.. _`pip-tools`: https://pip-tools.readthedocs.io/
+.. _`sphinx`: https://www.sphinx-doc.org/
 .. |pypi_downloads| image:: https://img.shields.io/pypi/dm/wcwidth.svg?logo=pypi
     :alt: Downloads
     :target: https://pypi.org/project/wcwidth/
 .. |codecov| image:: https://codecov.io/gh/jquast/wcwidth/branch/master/graph/badge.svg
     :alt: codecov.io Code Coverage
-    :target: https://codecov.io/gh/jquast/wcwidth/
-.. |license| image:: https://img.shields.io/github/license/jquast/wcwidth.svg
-    :target: https://pypi.python.org/pypi/wcwidth/
+    :target: https://app.codecov.io/gh/jquast/wcwidth/
+.. |license| image:: https://img.shields.io/pypi/l/wcwidth.svg
+    :target: https://pypi.org/project/wcwidth/
     :alt: MIT License

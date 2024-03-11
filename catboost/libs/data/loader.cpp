@@ -288,6 +288,21 @@ namespace NCB {
         return featureNames;
     }
 
+    static size_t GetFeatureCount(TConstArrayRef<TColumn> columns) {
+        size_t featureCount = 0;
+
+        for (auto column : columns) {
+            if (IsFactorColumn(column.Type)) {
+                ++featureCount;
+            } else if (column.Type == EColumn::Features) {
+                featureCount += GetFeatureCount(column.SubColumns);
+            }
+        }
+
+        return featureCount;
+    }
+
+
     TVector<TString> GetFeatureNames(
         const TDataColumnsMetaInfo& columnsDescription,
         const TMaybe<TVector<TString>>& headerColumns,
@@ -297,10 +312,7 @@ namespace NCB {
         const TVector<TString> featureNamesFromColumns = columnsDescription.GenerateFeatureIds(headerColumns);
         const size_t featureCount
             = featureNamesFromColumns.empty() ?
-                CountIf(
-                    columnsDescription.Columns,
-                    [](const TColumn& column) { return IsFactorColumn(column.Type); }
-                )
+                GetFeatureCount(columnsDescription.Columns)
                 : featureNamesFromColumns.size();
 
         TVector<TString> externalFeatureNames = LoadFeatureNames(featureNamesPath);

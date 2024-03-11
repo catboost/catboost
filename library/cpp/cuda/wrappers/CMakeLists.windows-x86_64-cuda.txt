@@ -10,9 +10,9 @@ find_package(CUDAToolkit REQUIRED)
 
 add_library(cpp-cuda-wrappers)
 target_cuda_sources(cpp-cuda-wrappers PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel.cu
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel_helpers.cu
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/arch.cu
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel.cu
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel_helpers.cu
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/arch.cu
 )
 target_link_libraries(cpp-cuda-wrappers PUBLIC
   contrib-libs-cxxsupp
@@ -23,13 +23,13 @@ target_link_libraries(cpp-cuda-wrappers PUBLIC
   CUDA::toolkit
 )
 target_sources(cpp-cuda-wrappers PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/base.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/run_gpu_program.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_event.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/stream_pool.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_vec.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_graph.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/cuda/wrappers/stream_capture.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/base.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/run_gpu_program.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_event.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/stream_pool.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_vec.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_graph.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/stream_capture.cpp
 )
 target_cuda_cflags(cpp-cuda-wrappers)
 target_cuda_flags(cpp-cuda-wrappers

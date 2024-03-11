@@ -18,7 +18,7 @@ target_link_libraries(libs-algo-approx_calcer PUBLIC
   private-libs-options
 )
 target_sources(libs-algo-approx_calcer PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer/approx_calcer_multi.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer/eval_additive_metric_with_leaves.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer/leafwise_approx_calcer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer/approx_calcer_multi.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer/eval_additive_metric_with_leaves.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer/leafwise_approx_calcer.cpp
 )

@@ -20,3 +20,4 @@ Patches and Suggestions
 - `Lukasz Balcerzak <https://github.com/lukaszb>`_
 - `Hannes Ljungberg <hannes@5monkeys.se>`_
 - `staticdev <staticdev-support@proton.me>`_
+- `Marcin Sulikowski <https://github.com/marcinsulikowski>`_

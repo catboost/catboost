@@ -28,7 +28,7 @@ target_link_options(catboost-libs-helpers-parallel_sort-ut PRIVATE
   -ldl
 )
 target_sources(catboost-libs-helpers-parallel_sort-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/parallel_sort/ut/parallel_sort_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/parallel_sort/ut/parallel_sort_ut.cpp
 )
 set_property(
   TARGET
@@ -62,6 +62,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-libs-helpers-parallel_sort-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-libs-helpers-parallel_sort-ut
   cpp-malloc-tcmalloc

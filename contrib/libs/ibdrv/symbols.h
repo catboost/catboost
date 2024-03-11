@@ -47,6 +47,8 @@ extern "C" {
     M(ibv_reg_mr, struct ibv_mr *(struct ibv_pd *pd, void *addr, size_t length, int access)) \
     M(ibv_reg_mr_iova2, struct ibv_mr *(struct ibv_pd *pd, void *addr, size_t length, uint64_t iova, unsigned int access)) \
     M(ibv_dereg_mr, int (struct ibv_mr *mr)) \
+    M(ibv_query_pkey, int (struct ibv_context *context, uint8_t port_num, int index, __be16 *pkey)) \
+    M(ibv_node_type_str, const char *(enum ibv_node_type node_type)) \
     M(ibv_destroy_cq, int (struct ibv_cq *cq)) \
     M(ibv_query_gid, int (struct ibv_context *context, uint8_t port_num, int index, union ibv_gid *gid)) \
     M(ibv_query_port, int (struct ibv_context *context, uint8_t port_num, struct _compat_ibv_port_attr *port_attr)) \

@@ -9,13 +9,8 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 from array import array
-from typing import TYPE_CHECKING, Optional
 
-from hypothesis.internal.conjecture.utils import calc_label_from_name
 from hypothesis.internal.floats import float_to_int, int_to_float
-
-if TYPE_CHECKING:
-    from hypothesis.internal.conjecture.data import ConjectureData
 
 """
 This module implements support for arbitrary floating point numbers in
@@ -83,8 +78,6 @@ MAX_EXPONENT = 0x7FF
 BIAS = 1023
 MAX_POSITIVE_EXPONENT = MAX_EXPONENT - 1 - BIAS
 
-DRAW_FLOAT_LABEL = calc_label_from_name("drawing a float")
-
 
 def exponent_key(e: int) -> float:
     if e == MAX_EXPONENT:
@@ -106,7 +99,7 @@ del i, b
 
 
 def decode_exponent(e: int) -> int:
-    """Take draw_bits(11) and turn it into a suitable floating point exponent
+    """Take an integer and turn it into a suitable floating point exponent
     such that lexicographically simpler leads to simpler floats."""
     assert 0 <= e <= MAX_EXPONENT
     return ENCODING_TABLE[e]
@@ -224,19 +217,3 @@ def is_simple(f: float) -> int:
     if i != f:
         return False
     return i.bit_length() <= 56
-
-
-def draw_float(data: "ConjectureData", forced_sign_bit: Optional[int] = None) -> float:
-    try:
-        data.start_example(DRAW_FLOAT_LABEL)
-        is_negative = data.draw_bits(1, forced=forced_sign_bit)
-        f = lex_to_float(data.draw_bits(64))
-        return -f if is_negative else f
-    finally:
-        data.stop_example()
-
-
-def write_float(data: "ConjectureData", f: float) -> None:
-    sign = float_to_int(f) >> 63
-    data.draw_bits(1, forced=sign)
-    data.draw_bits(64, forced=float_to_lex(abs(f)))

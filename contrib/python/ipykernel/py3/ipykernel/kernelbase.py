@@ -2,6 +2,7 @@
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
+from __future__ import annotations
 
 import asyncio
 import concurrent.futures
@@ -60,14 +61,21 @@ from zmq.eventloop.zmqstream import ZMQStream
 from ipykernel.jsonutil import json_clean
 
 from ._version import kernel_protocol_version
+from .iostream import OutStream
 
 
-def _accepts_cell_id(meth):
+def _accepts_parameters(meth, param_names):
     parameters = inspect.signature(meth).parameters
-    cid_param = parameters.get("cell_id")
-    return (cid_param and cid_param.kind == cid_param.KEYWORD_ONLY) or any(
-        p.kind == p.VAR_KEYWORD for p in parameters.values()
-    )
+    accepts = {param: False for param in param_names}
+
+    for param in param_names:
+        param_spec = parameters.get(param)
+        accepts[param] = (
+            param_spec
+            and param_spec.kind in [param_spec.KEYWORD_ONLY, param_spec.POSITIONAL_OR_KEYWORD]
+        ) or any(p.kind == p.VAR_KEYWORD for p in parameters.values())
+
+    return accepts
 
 
 class Kernel(SingletonConfigurable):
@@ -80,7 +88,7 @@ class Kernel(SingletonConfigurable):
     # attribute to override with a GUI
     eventloop = Any(None)
 
-    processes: t.Dict[str, psutil.Process] = {}
+    processes: dict[str, psutil.Process] = {}
 
     @observe("eventloop")
     def _update_eventloop(self, change):
@@ -93,7 +101,7 @@ class Kernel(SingletonConfigurable):
     profile_dir = Instance("IPython.core.profiledir.ProfileDir", allow_none=True)
     shell_stream = Instance(ZMQStream, allow_none=True)
 
-    shell_streams = List(
+    shell_streams: List[t.Any] = List(
         help="""Deprecated shell_streams alias. Use shell_stream
 
         .. versionchanged:: 6.0
@@ -114,8 +122,7 @@ class Kernel(SingletonConfigurable):
         )
         if self.shell_stream is not None:
             return [self.shell_stream]
-        else:
-            return []
+        return []
 
     @observe("shell_streams")
     def _shell_streams_changed(self, change):  # pragma: no cover
@@ -153,10 +160,10 @@ class Kernel(SingletonConfigurable):
 
     # This should be overridden by wrapper kernels that implement any real
     # language.
-    language_info: t.Dict[str, object] = {}
+    language_info: dict[str, object] = {}
 
     # any links that should go in the help menu
-    help_links = List()
+    help_links: List[dict[str, str]] = List()
 
     # Experimental option to break in non-user code.
     # The ipykernel source is in the call stack, so the user
@@ -180,7 +187,7 @@ class Kernel(SingletonConfigurable):
 
     # track associations with current request
     _allow_stdin = Bool(False)
-    _parents = Dict({"shell": {}, "control": {}})
+    _parents: Dict[str, t.Any] = Dict({"shell": {}, "control": {}})
     _parent_ident = Dict({"shell": b"", "control": b""})
 
     @property
@@ -266,6 +273,13 @@ class Kernel(SingletonConfigurable):
     def __init__(self, **kwargs):
         """Initialize the kernel."""
         super().__init__(**kwargs)
+
+        # Kernel application may swap stdout and stderr to OutStream,
+        # which is the case in `IPKernelApp.init_io`, hence `sys.stdout`
+        # can already by different from TextIO at initialization time.
+        self._stdout: OutStream | t.TextIO = sys.stdout
+        self._stderr: OutStream | t.TextIO = sys.stderr
+
         # Build dict of handlers for message types
         self.shell_handlers = {}
         for msg_type in self.msg_types:
@@ -276,6 +290,11 @@ class Kernel(SingletonConfigurable):
             self.control_handlers[msg_type] = getattr(self, msg_type)
 
         self.control_queue: Queue[t.Any] = Queue()
+
+        # Storing the accepted parameters for do_execute, used in execute_request
+        self._do_exec_accepted_params = _accepts_parameters(
+            self.do_execute, ["cell_meta", "cell_id"]
+        )
 
     def dispatch_control(self, msg):
         self.control_queue.put_nowait(msg)
@@ -291,7 +310,7 @@ class Kernel(SingletonConfigurable):
 
     async def _flush_control_queue(self):
         """Flush the control queue, wait for processing of any pending messages"""
-        tracer_future: t.Union[concurrent.futures.Future[object], asyncio.Future[object]]
+        tracer_future: concurrent.futures.Future[object] | asyncio.Future[object]
         if self.control_thread:
             control_loop = self.control_thread.io_loop
             # concurrent.futures.Futures are threadsafe
@@ -321,7 +340,7 @@ class Kernel(SingletonConfigurable):
         try:
             msg = self.session.deserialize(msg, content=True, copy=False)
         except Exception:
-            self.log.error("Invalid Control Message", exc_info=True)
+            self.log.error("Invalid Control Message", exc_info=True)  # noqa: G201
             return
 
         self.log.debug("Control received: %s", msg)
@@ -342,7 +361,7 @@ class Kernel(SingletonConfigurable):
                 if inspect.isawaitable(result):
                     await result
             except Exception:
-                self.log.error("Exception in control handler:", exc_info=True)
+                self.log.error("Exception in control handler:", exc_info=True)  # noqa: G201
 
         sys.stdout.flush()
         sys.stderr.flush()
@@ -375,7 +394,7 @@ class Kernel(SingletonConfigurable):
         try:
             msg = self.session.deserialize(msg, content=True, copy=False)
         except Exception:
-            self.log.error("Invalid Message", exc_info=True)
+            self.log.error("Invalid Message", exc_info=True)  # noqa: G201
             return
 
         # Set the parent message for side effects.
@@ -417,7 +436,7 @@ class Kernel(SingletonConfigurable):
                 if inspect.isawaitable(result):
                     await result
             except Exception:
-                self.log.error("Exception in message handler:", exc_info=True)
+                self.log.error("Exception in message handler:", exc_info=True)  # noqa: G201
             except KeyboardInterrupt:
                 # Ctrl-c shouldn't crash the kernel here.
                 self.log.error("KeyboardInterrupt caught in kernel.")
@@ -469,7 +488,6 @@ class Kernel(SingletonConfigurable):
             except KeyboardInterrupt:
                 # Ctrl-C shouldn't crash the kernel
                 self.log.error("KeyboardInterrupt caught in kernel")
-                pass
             if self.eventloop is eventloop:
                 # schedule advance again
                 schedule_next()
@@ -509,7 +527,7 @@ class Kernel(SingletonConfigurable):
             try:
                 t, dispatch, args = self.msg_queue.get_nowait()
             except (asyncio.QueueEmpty, QueueEmpty):
-                return None
+                return
         await dispatch(*args)
 
     async def dispatch_queue(self):
@@ -677,7 +695,7 @@ class Kernel(SingletonConfigurable):
         message.
         """
         if not self.session:
-            return
+            return None
         return self.session.send(
             stream,
             msg_or_type,
@@ -715,10 +733,12 @@ class Kernel(SingletonConfigurable):
         try:
             content = parent["content"]
             code = content["code"]
-            silent = content["silent"]
+            silent = content.get("silent", False)
             store_history = content.get("store_history", not silent)
             user_expressions = content.get("user_expressions", {})
             allow_stdin = content.get("allow_stdin", False)
+            cell_meta = parent.get("metadata", {})
+            cell_id = cell_meta.get("cellId")
         except Exception:
             self.log.error("Got bad msg: ")
             self.log.error("%s", parent)
@@ -734,25 +754,22 @@ class Kernel(SingletonConfigurable):
             self.execution_count += 1
             self._publish_execute_input(code, parent, self.execution_count)
 
-        cell_id = (parent.get("metadata") or {}).get("cellId")
+        # Arguments based on the do_execute signature
+        do_execute_args = {
+            "code": code,
+            "silent": silent,
+            "store_history": store_history,
+            "user_expressions": user_expressions,
+            "allow_stdin": allow_stdin,
+        }
 
-        if _accepts_cell_id(self.do_execute):
-            reply_content = self.do_execute(
-                code,
-                silent,
-                store_history,
-                user_expressions,
-                allow_stdin,
-                cell_id=cell_id,
-            )
-        else:
-            reply_content = self.do_execute(
-                code,
-                silent,
-                store_history,
-                user_expressions,
-                allow_stdin,
-            )
+        if self._do_exec_accepted_params["cell_meta"]:
+            do_execute_args["cell_meta"] = cell_meta
+        if self._do_exec_accepted_params["cell_id"]:
+            do_execute_args["cell_id"] = cell_id
+
+        # Call do_execute with the appropriate arguments
+        reply_content = self.do_execute(**do_execute_args)
 
         if inspect.isawaitable(reply_content):
             reply_content = await reply_content
@@ -792,6 +809,7 @@ class Kernel(SingletonConfigurable):
         user_expressions=None,
         allow_stdin=False,
         *,
+        cell_meta=None,
         cell_id=None,
     ):
         """Execute user code. Must be overridden by subclasses."""
@@ -945,7 +963,7 @@ class Kernel(SingletonConfigurable):
         """Handle an interrupt request."""
         if not self.session:
             return
-        content: t.Dict[str, t.Any] = {"status": "ok"}
+        content: dict[str, t.Any] = {"status": "ok"}
         try:
             self._send_interrupt_children()
         except OSError as err:
@@ -1026,12 +1044,12 @@ class Kernel(SingletonConfigurable):
             metric_value = getattr(process, name)()
             if attribute is not None:  # ... a named tuple
                 return getattr(metric_value, attribute)
-            else:  # ... or a number
-                return metric_value
+            # ... or a number
+            return metric_value
         # Avoid littering logs with stack traces
         # complaining about dead processes
         except BaseException:
-            return None
+            return 0
 
     async def usage_request(self, stream, ident, parent):
         """Handle a usage request."""
@@ -1043,7 +1061,8 @@ class Kernel(SingletonConfigurable):
         # Ensure 1) self.processes is updated to only current subprocesses
         # and 2) we reuse processes when possible (needed for accurate CPU)
         self.processes = {
-            process.pid: self.processes.get(process.pid, process) for process in all_processes
+            process.pid: self.processes.get(process.pid, process)  # type:ignore[misc,call-overload]
+            for process in all_processes
         }
         reply_content["kernel_cpu"] = sum(
             [
@@ -1061,7 +1080,7 @@ class Kernel(SingletonConfigurable):
         cpu_percent = psutil.cpu_percent()
         # https://psutil.readthedocs.io/en/latest/index.html?highlight=cpu#psutil.cpu_percent
         # The first time cpu_percent is called it will return a meaningless 0.0 value which you are supposed to ignore.
-        if cpu_percent is not None and cpu_percent != 0.0:
+        if cpu_percent is not None and cpu_percent != 0.0:  # type:ignore[redundant-expr]
             reply_content["host_cpu_percent"] = cpu_percent
         reply_content["cpu_count"] = psutil.cpu_count(logical=True)
         reply_content["host_virtual_memory"] = dict(psutil.virtual_memory()._asdict())
@@ -1083,7 +1102,7 @@ class Kernel(SingletonConfigurable):
             bufs = parent["buffers"]
             msg_id = parent["header"]["msg_id"]
         except Exception:
-            self.log.error("Got bad msg: %s", parent, exc_info=True)
+            self.log.error("Got bad msg: %s", parent, exc_info=True)  # noqa: G201
             return
 
         md = self.init_metadata(parent)
@@ -1191,7 +1210,7 @@ class Kernel(SingletonConfigurable):
         """Send a reply to an aborted request"""
         if not self.session:
             return
-        self.log.info(f"Aborting {msg['header']['msg_id']}: {msg['header']['msg_type']}")
+        self.log.info("Aborting %s: %s", msg["header"]["msg_id"], msg["header"]["msg_type"])
         reply_type = msg["header"]["msg_type"].rsplit("_", 1)[0] + "_reply"
         status = {"status": "aborted"}
         md = self.init_metadata(msg)
@@ -1267,8 +1286,7 @@ class Kernel(SingletonConfigurable):
             except zmq.ZMQError as e:
                 if e.errno == zmq.EAGAIN:
                     break
-                else:
-                    raise
+                raise
 
         # Send the input request.
         assert self.session is not None
@@ -1313,8 +1331,9 @@ class Kernel(SingletonConfigurable):
         Like `killpg`, but does not include the current process
         (or possible parents).
         """
+        sig_rep = f"{Signals(signum)!r}"
         for p in self._process_children():
-            self.log.debug(f"Sending {Signals(signum)!r} to subprocess {p}")
+            self.log.debug("Sending %s to subprocess %s", sig_rep, p)
             try:
                 if signum == SIGTERM:
                     p.terminate()
@@ -1363,7 +1382,9 @@ class Kernel(SingletonConfigurable):
                 # signals only children, not current process
                 self._signal_children(signum)
                 self.log.debug(
-                    f"Will sleep {delay}s before checking for children and retrying. {children}"
+                    "Will sleep %s sec before checking for children and retrying. %s",
+                    delay,
+                    children,
                 )
                 await asyncio.sleep(delay)
 

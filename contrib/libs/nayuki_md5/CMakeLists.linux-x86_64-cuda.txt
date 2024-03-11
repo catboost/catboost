@@ -14,5 +14,5 @@ target_link_libraries(contrib-libs-nayuki_md5 PUBLIC
   yutil
 )
 target_sources(contrib-libs-nayuki_md5 PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/nayuki_md5/md5-fast-x8664.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/nayuki_md5/md5-fast-x8664.S
 )

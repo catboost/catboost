@@ -40,8 +40,8 @@
 
 namespace NCB {
 
-    class TRawObjectsOrderDataProviderBuilder : public IDataProviderBuilder,
-                                                public IRawObjectsOrderDataVisitor
+    class TRawObjectsOrderDataProviderBuilder final : public IDataProviderBuilder,
+                                                      public IRawObjectsOrderDataVisitor
     {
     public:
         TRawObjectsOrderDataProviderBuilder(
@@ -126,6 +126,7 @@ namespace NCB {
             prepareFeaturesStorage(EmbeddingFeaturesStorage);
 
             switch (Data.MetaInfo.TargetType) {
+                case ERawTargetType::Boolean:
                 case ERawTargetType::Float:
                 case ERawTargetType::Integer:
                     PrepareForInitialization(
@@ -345,6 +346,7 @@ namespace NCB {
         }
         void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
             Y_ASSERT(
+                (Data.MetaInfo.TargetType == ERawTargetType::Boolean) ||
                 (Data.MetaInfo.TargetType == ERawTargetType::Float) ||
                 (Data.MetaInfo.TargetType == ERawTargetType::Integer)
             );
@@ -1083,8 +1085,8 @@ namespace NCB {
     };
 
 
-    class TRawFeaturesOrderDataProviderBuilder : public IDataProviderBuilder,
-                                                 public IRawFeaturesOrderDataVisitor
+    class TRawFeaturesOrderDataProviderBuilder final : public IDataProviderBuilder,
+                                                       public IRawFeaturesOrderDataVisitor
     {
     public:
         static constexpr int OBJECT_CALC_BLOCK_SIZE = 10000;
@@ -1487,24 +1489,17 @@ namespace NCB {
             } else if ((metaInfo.TargetType != ERawTargetType::None) && !schemaClassLabels.empty()) {
                 FloatClassLabels.reserve(schemaClassLabels.size());
                 switch (schemaClassLabels[0].GetType()) {
+                    case NJson::JSON_BOOLEAN:
+                        CheckBooleanClassLabels(schemaClassLabels);
+                        FloatClassLabels.push_back(0.0f);
+                        FloatClassLabels.push_back(1.0f);
+                        break;
                     case NJson::JSON_INTEGER:
-                        CB_ENSURE_INTERNAL(
-                            metaInfo.TargetType == ERawTargetType::Integer,
-                            "metaInfo.TargetType (" << metaInfo.TargetType
-                            << ") is inconsistent with schemaClassLabels type ("
-                            << schemaClassLabels[0].GetType() << ')'
-                        );
                         for (const NJson::TJsonValue& classLabel : schemaClassLabels) {
                             FloatClassLabels.push_back(static_cast<float>(classLabel.GetInteger()));
                         }
                         break;
                     case NJson::JSON_DOUBLE:
-                        CB_ENSURE_INTERNAL(
-                            metaInfo.TargetType == ERawTargetType::Float,
-                            "metaInfo.TargetType (" << metaInfo.TargetType
-                            << ") is inconsistent with schemaClassLabels type ("
-                            << schemaClassLabels[0].GetType() << ')'
-                        );
                         for (const NJson::TJsonValue& classLabel : schemaClassLabels) {
                             FloatClassLabels.push_back(static_cast<float>(classLabel.GetDouble()));
                         }
@@ -1512,10 +1507,16 @@ namespace NCB {
                     default:
                         CB_ENSURE_INTERNAL(
                             false,
-                            "Unexpected JSON label type for numeric target type : "
+                            "Unexpected JSON label type for non-string target type : "
                             << schemaClassLabels[0].GetType()
                         );
                 }
+                CB_ENSURE_INTERNAL(
+                    metaInfo.TargetType == GetRawTargetType(schemaClassLabels[0].GetType()),
+                    "metaInfo.TargetType (" << metaInfo.TargetType
+                    << ") is inconsistent with schemaClassLabels type ("
+                    << schemaClassLabels[0].GetType() << ')'
+                );
             }
 
             InProcess = true;
@@ -1709,6 +1710,7 @@ namespace NCB {
                 );
             } else {
                 Y_ASSERT(
+                    (Data.MetaInfo.TargetType == ERawTargetType::Boolean) ||
                     (Data.MetaInfo.TargetType == ERawTargetType::Integer) ||
                     (Data.MetaInfo.TargetType == ERawTargetType::Float)
                 );
@@ -2332,7 +2334,7 @@ namespace NCB {
     };
 
 
-    class TLazyQuantizedFeaturesDataProviderBuilder : public TQuantizedFeaturesDataProviderBuilder
+    class TLazyQuantizedFeaturesDataProviderBuilder final : public TQuantizedFeaturesDataProviderBuilder
     {
     public:
         TLazyQuantizedFeaturesDataProviderBuilder(

@@ -79,7 +79,7 @@ do { \
 } while (0)
 
 
-#if !(defined(_WIN32) && !defined(__CYGWIN__))
+#if !(defined(_WIN32) && !defined(__CYGWIN__)) && !defined(__wasm__)
 // Use sigprocmask() to set the signal mask in single-threaded programs.
 #include <signal.h>
 
@@ -100,11 +100,17 @@ mythread_sigmask(int how, const sigset_t *restrict set,
 // Using pthreads //
 ////////////////////
 
-#include <sys/time.h>
 #include <pthread.h>
 #include <signal.h>
 #include <time.h>
 #include <errno.h>
+
+// If clock_gettime() isn't available, use gettimeofday() from <sys/time.h>
+// as a fallback. gettimeofday() is in SUSv2 and thus is supported on all
+// relevant POSIX systems.
+#ifndef HAVE_CLOCK_GETTIME
+#	include <sys/time.h>
+#endif
 
 #define MYTHREAD_RET_TYPE void *
 #define MYTHREAD_RET_VALUE NULL
@@ -219,8 +225,8 @@ static inline int
 mythread_cond_init(mythread_cond *mycond)
 {
 #ifdef HAVE_CLOCK_GETTIME
-	// NOTE: HAVE_DECL_CLOCK_MONOTONIC is always defined to 0 or 1.
-#	if defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && HAVE_DECL_CLOCK_MONOTONIC
+#	if defined(HAVE_PTHREAD_CONDATTR_SETCLOCK) && \
+		defined(HAVE_CLOCK_MONOTONIC)
 	struct timespec ts;
 	pthread_condattr_t condattr;
 
@@ -294,8 +300,8 @@ static inline void
 mythread_condtime_set(mythread_condtime *condtime, const mythread_cond *cond,
 		uint32_t timeout_ms)
 {
-	condtime->tv_sec = timeout_ms / 1000;
-	condtime->tv_nsec = (timeout_ms % 1000) * 1000000;
+	condtime->tv_sec = (time_t)(timeout_ms / 1000);
+	condtime->tv_nsec = (long)((timeout_ms % 1000) * 1000000);
 
 #ifdef HAVE_CLOCK_GETTIME
 	struct timespec now;
@@ -372,7 +378,7 @@ typedef struct {
 			abort(); \
 		if (pending_) { \
 			func(); \
-			if (!InitOnceComplete(&once, 0, NULL)) \
+			if (!InitOnceComplete(&once_, 0, NULL)) \
 				abort(); \
 		} \
 	} while (0)

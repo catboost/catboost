@@ -158,18 +158,13 @@ namespace {
         ) const {
             TMinMax<double> result{+DBL_MAX, -DBL_MAX};
             TMutex result_guard;
+
+            NCatboostOptions::TDatasetReadingParams datasetReadingParams;
+            datasetReadingParams.ColumnarPoolFormatParams = modeParams.ColumnarPoolFormatParams;
+            datasetReadingParams.PoolPath = poolPath;
+
             ReadAndProceedPoolInBlocks(
-                NCatboostOptions::TDatasetReadingParams{
-                    modeParams.ColumnarPoolFormatParams,
-                    poolPath,
-                    TVector<NJson::TJsonValue>(),  // ClassLabels
-                    TPathWithScheme(),  // PairsFilePath
-                    TPathWithScheme(),  // FeatureNamesPath
-                    TPathWithScheme(),  // PoolMetaInfoPath
-                    false,  // LoadSampleIds
-                    false,  // ForceUnitAutoPairWeights
-                    TVector<ui32>(),  // IgnoredFeatures
-                },
+                datasetReadingParams,
                 10000,  // blockSize
                 [&](const TDataProviderPtr datasetPart) {
                     auto approx = ApplyModelForMinMax(
@@ -188,4 +183,4 @@ namespace {
     };
 }
 
-TModeNormalizeModelImplementationFactory::TRegistrator<TOpenSourceModeNormalizeModelImplementation> YandexSpecificModeNormalizeModelImplementationRegistrator(EImplementationType::OpenSource);
+TModeNormalizeModelImplementationFactory::TRegistrator<TOpenSourceModeNormalizeModelImplementation> OpenSourceModeNormalizeModelImplementationRegistrator(EImplementationType::OpenSource);

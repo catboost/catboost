@@ -94,9 +94,7 @@ class JupyterConsoleApp(ConnectionFileMixin):
 
     name: t.Union[str, Unicode] = "jupyter-console-mixin"
 
-    description: t.Union[
-        str, Unicode
-    ] = """
+    description: t.Union[str, Unicode] = """
         The Jupyter Console Mixin.
 
         This class contains the common portions of console client (QtConsole,

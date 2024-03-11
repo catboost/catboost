@@ -480,9 +480,10 @@ def apply_catboost_model_multi(float_features, cat_features=[], ntree_start=0, n
     binary_feature_index = 0
 
     for i in range(len(model.float_feature_borders)):
-        for border in model.float_feature_borders[i]:
-            binary_features[binary_feature_index] += 1 if (float_features[model.float_features_index[i]] > border) else 0
-        binary_feature_index += 1
+        if len(model.float_feature_borders[i]) > 0:
+            for border in model.float_feature_borders[i]:
+                binary_features[binary_feature_index] += 1 if (float_features[model.float_features_index[i]] > border) else 0
+            binary_feature_index += 1
     transposed_hash = [0] * model.cat_feature_count
     for i in range(model.cat_feature_count):
         transposed_hash[i] = hash_uint64(cat_features[i])
@@ -494,9 +495,10 @@ def apply_catboost_model_multi(float_features, cat_features=[], ntree_start=0, n
         for i in range(len(model.one_hot_cat_feature_index)):
             cat_idx = cat_feature_packed_indexes[model.one_hot_cat_feature_index[i]]
             hash = transposed_hash[cat_idx]
-            for border_idx in range(len(model.one_hot_hash_values[i])):
-                binary_features[binary_feature_index] |= (1 if hash == model.one_hot_hash_values[i][border_idx] else 0) * (border_idx + 1)
-            binary_feature_index += 1
+            if len(model.one_hot_hash_values[i]) > 0:
+                for border_idx in range(len(model.one_hot_hash_values[i])):
+                    binary_features[binary_feature_index] |= (1 if hash == model.one_hot_hash_values[i][border_idx] else 0) * (border_idx + 1)
+                binary_feature_index += 1
 
     if hasattr(model, 'model_ctrs') and model.model_ctrs.used_model_ctrs_count > 0:
         ctrs = [0.] * model.model_ctrs.used_model_ctrs_count;
@@ -520,7 +522,7 @@ def apply_catboost_model_multi(float_features, cat_features=[], ntree_start=0, n
             index |= ((binary_features[feature_index] ^ xor_mask) >= border_val) << depth
         results = [result + delta for result, delta in zip(results, model.leaf_values[current_tree_leaf_values_index + index])]
         tree_splits_index += current_tree_depth
-        current_tree_leaf_values_index += (1 << current_tree_depth) * model.dimension
+        current_tree_leaf_values_index += (1 << current_tree_depth)
     return [model.scale * res + bias for res, bias in zip(results, model.biases)]
 
 

@@ -27,7 +27,7 @@ target_link_options(catboost-libs-carry_model-ut PRIVATE
   -ldl
 )
 target_sources(catboost-libs-carry_model-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/carry_model/ut/carry_model_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/carry_model/ut/carry_model_ut.cpp
 )
 set_property(
   TARGET
@@ -61,6 +61,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-libs-carry_model-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-libs-carry_model-ut
   system_allocator

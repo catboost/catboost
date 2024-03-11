@@ -27,7 +27,7 @@ target_link_options(enum_parser PRIVATE
   -ldl
 )
 target_sources(enum_parser PRIVATE
-  ${CMAKE_SOURCE_DIR}/tools/enum_parser/enum_parser/main.cpp
+  ${PROJECT_SOURCE_DIR}/tools/enum_parser/enum_parser/main.cpp
 )
 target_allocator(enum_parser
   cpp-malloc-tcmalloc

@@ -1,5 +1,5 @@
 #!python
-#cython: wraparound=False, nonecheck=False, boundscheck=False, cdivision=True, language_level=3
+#cython: wraparound=False, nonecheck=False, boundscheck=False, cdivision=True, language_level=3, binding=False
 import operator
 import warnings
 from collections.abc import Sequence
@@ -63,7 +63,7 @@ cdef int64_t _safe_sum_nonneg_int64(size_t num_colors, int64_t *colors):
 cdef inline void _shuffle_raw_wrap(bitgen_t *bitgen, np.npy_intp n,
                                    np.npy_intp first, np.npy_intp itemsize,
                                    np.npy_intp stride,
-                                   char* data, char* buf) nogil:
+                                   char* data, char* buf) noexcept nogil:
     # We trick gcc into providing a specialized implementation for
     # the most common case, yielding a ~33% performance improvement.
     # Note that apparently, only one branch can ever be specialized.
@@ -76,7 +76,7 @@ cdef inline void _shuffle_raw_wrap(bitgen_t *bitgen, np.npy_intp n,
 cdef inline void _shuffle_raw(bitgen_t *bitgen, np.npy_intp n,
                               np.npy_intp first, np.npy_intp itemsize,
                               np.npy_intp stride,
-                              char* data, char* buf) nogil:
+                              char* data, char* buf) noexcept nogil:
     """
     Parameters
     ----------
@@ -107,7 +107,7 @@ cdef inline void _shuffle_raw(bitgen_t *bitgen, np.npy_intp n,
 
 
 cdef inline void _shuffle_int(bitgen_t *bitgen, np.npy_intp n,
-                              np.npy_intp first, int64_t* data) nogil:
+                              np.npy_intp first, int64_t* data) noexcept nogil:
     """
     Parameters
     ----------
@@ -277,7 +277,7 @@ cdef class Generator:
         >>> entropy = 0x3034c61a9ae04ff8cb62ab8ec2c4b501
         >>> rng = np.random.default_rng(entropy)
 
-        Create two new generators for example for parallel executation:
+        Create two new generators for example for parallel execution:
 
         >>> child_rng1, child_rng2 = rng.spawn(2)
 
@@ -3477,7 +3477,7 @@ cdef class Generator:
         #   answer = 0.003 ... pretty unlikely!
 
         """
-        DEF HYPERGEOM_MAX = 10**9
+        cdef double HYPERGEOM_MAX = 10**9
         cdef bint is_scalar = True
         cdef np.ndarray ongood, onbad, onsample
         cdef int64_t lngood, lnbad, lnsample
@@ -3757,7 +3757,7 @@ cdef class Generator:
 
         if size is None:
             shape = []
-        elif isinstance(size, (int, long, np.integer)):
+        elif isinstance(size, (int, np.integer)):
             shape = [size]
         else:
             shape = size
@@ -4408,6 +4408,7 @@ cdef class Generator:
             np.NPY_ARRAY_ALIGNED | np.NPY_ARRAY_C_CONTIGUOUS)
         if np.any(np.less(alpha_arr, 0)):
             raise ValueError('alpha < 0')
+
         alpha_data = <double*>np.PyArray_DATA(alpha_arr)
 
         if size is None:
@@ -4467,17 +4468,23 @@ cdef class Generator:
                 csum += alpha_data[j]
                 alpha_csum_data[j] = csum
 
-            with self.lock, nogil:
-                while i < totsize:
-                    acc = 1.
-                    for j in range(k - 1):
-                        v = random_beta(&self._bitgen, alpha_data[j],
-                                        alpha_csum_data[j + 1])
-                        val_data[i + j] = acc * v
-                        acc *= (1. - v)
-                    val_data[i + k - 1] = acc
-                    i = i + k
-
+            # If csum == 0, then all the values in alpha are 0, and there is
+            # nothing to do, because diric was created with np.zeros().
+            if csum > 0:
+                with self.lock, nogil:
+                    while i < totsize:
+                        acc = 1.
+                        for j in range(k - 1):
+                            v = random_beta(&self._bitgen, alpha_data[j],
+                                            alpha_csum_data[j + 1])
+                            val_data[i + j] = acc * v
+                            acc *= (1. - v)
+                            if alpha_csum_data[j + 1] == 0:
+                                # v must be 1, so acc is now 0. All
+                                # remaining elements will be left at 0.
+                                break
+                        val_data[i + k - 1] = acc
+                        i = i + k
         else:
             # Standard case: Unit normalisation of a vector of gamma random
             # variates

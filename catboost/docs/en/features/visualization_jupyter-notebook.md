@@ -2,6 +2,12 @@
 
 [Additional packages for data visualization support](../installation/python-installation-additional-data-visualization-packages.md) must be installed to plot charts in [Jupyter Notebook](http://jupyter.org/).
 
+{% note info %}
+
+CatBoost widgets do work in JupyterLab but only for versions 3.x, versions 4.x support is in progress. See [this issue](https://github.com/catboost/catboost/issues/2533)
+
+{% endnote %}
+
 Several charts reflecting different aspects of model training and analysis can be plotted in Jupyter Notebook. Choose the suitable case and refer to examples for implementation details.
 
 ## Add a training parameter {#fit-parameter}
@@ -140,7 +146,7 @@ Refer to the [MetricVisualizer](../concepts/python-reference_catboostipythonwid
     w.start()
     ```
 
-{% include [reusage-code-examples-graph-plotted-with-jupyter-notebook](../_includes/work_src/reusage-code-examples/graph-plotted-with-jupyter-notebook.md) %}  
+{% include [reusage-code-examples-graph-plotted-with-jupyter-notebook](../_includes/work_src/reusage-code-examples/graph-plotted-with-jupyter-notebook.md) %}
 
 ![](../images/interface__visualization-tools__jupyter__cross-entropy_and_logloss.png)
 

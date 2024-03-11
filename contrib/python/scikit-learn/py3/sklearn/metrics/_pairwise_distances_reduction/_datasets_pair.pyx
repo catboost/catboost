@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 
 from cython cimport final
@@ -40,7 +41,7 @@ cdef class DatasetsPair64:
         cls,
         X,
         Y,
-        str metric="euclidean",
+        metric="euclidean",
         dict metric_kwargs=None,
     ) -> DatasetsPair64:
         """Return the DatasetsPair implementation for the given arguments.
@@ -57,7 +58,7 @@ cdef class DatasetsPair64:
             If provided as a ndarray, it must be C-contiguous.
             If provided as a sparse matrix, it must be in CSR format.
 
-        metric : str, default='euclidean'
+        metric : str or DistanceMetric object, default='euclidean'
             The distance metric to compute between rows of X and Y.
             The default metric is a fast implementation of the Euclidean
             metric. For a list of available metrics, see the documentation
@@ -71,12 +72,17 @@ cdef class DatasetsPair64:
         datasets_pair: DatasetsPair64
             The suited DatasetsPair64 implementation.
         """
-        # Y_norm_squared might be propagated down to DatasetsPairs
-        # via metrics_kwargs when the Euclidean specialisations
-        # can't be used. To prevent Y_norm_squared to be passed
+        # X_norm_squared and Y_norm_squared might be propagated
+        # down to DatasetsPairs via metrics_kwargs when the Euclidean
+        # specialisations can't be used.
+        # To prevent X_norm_squared and Y_norm_squared to be passed
         # down to DistanceMetrics (whose constructors would raise
-        # a RuntimeError), we pop it here.
+        # a RuntimeError), we pop them here.
         if metric_kwargs is not None:
+            # Copying metric_kwargs not to pop "X_norm_squared"
+            # and "Y_norm_squared" where they are used
+            metric_kwargs = copy.copy(metric_kwargs)
+            metric_kwargs.pop("X_norm_squared", None)
             metric_kwargs.pop("Y_norm_squared", None)
         cdef:
             DistanceMetric64 distance_metric = DistanceMetric.get_metric(
@@ -218,9 +224,9 @@ cdef class SparseSparseDatasetsPair64(DatasetsPair64):
     cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist_csr(
             x1_data=&self.X_data[0],
-            x1_indices=self.X_indices,
+            x1_indices=&self.X_indices[0],
             x2_data=&self.Y_data[0],
-            x2_indices=self.Y_indices,
+            x2_indices=&self.Y_indices[0],
             x1_start=self.X_indptr[i],
             x1_end=self.X_indptr[i + 1],
             x2_start=self.Y_indptr[j],
@@ -232,9 +238,9 @@ cdef class SparseSparseDatasetsPair64(DatasetsPair64):
     cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.dist_csr(
             x1_data=&self.X_data[0],
-            x1_indices=self.X_indices,
+            x1_indices=&self.X_indices[0],
             x2_data=&self.Y_data[0],
-            x2_indices=self.Y_indices,
+            x2_indices=&self.Y_indices[0],
             x1_start=self.X_indptr[i],
             x1_end=self.X_indptr[i + 1],
             x2_start=self.Y_indptr[j],
@@ -311,11 +317,11 @@ cdef class SparseDenseDatasetsPair64(DatasetsPair64):
     cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist_csr(
             x1_data=&self.X_data[0],
-            x1_indices=self.X_indices,
+            x1_indices=&self.X_indices[0],
             # Increment the data pointer such that x2_start=0 is aligned with the
             # j-th row
             x2_data=&self.Y_data[0] + j * self.n_features,
-            x2_indices=self.Y_indices,
+            x2_indices=&self.Y_indices[0],
             x1_start=self.X_indptr[i],
             x1_end=self.X_indptr[i + 1],
             x2_start=0,
@@ -328,11 +334,11 @@ cdef class SparseDenseDatasetsPair64(DatasetsPair64):
 
         return self.distance_metric.dist_csr(
             x1_data=&self.X_data[0],
-            x1_indices=self.X_indices,
+            x1_indices=&self.X_indices[0],
             # Increment the data pointer such that x2_start=0 is aligned with the
             # j-th row
             x2_data=&self.Y_data[0] + j * self.n_features,
-            x2_indices=self.Y_indices,
+            x2_indices=&self.Y_indices[0],
             x1_start=self.X_indptr[i],
             x1_end=self.X_indptr[i + 1],
             x2_start=0,
@@ -417,7 +423,7 @@ cdef class DatasetsPair32:
         cls,
         X,
         Y,
-        str metric="euclidean",
+        metric="euclidean",
         dict metric_kwargs=None,
     ) -> DatasetsPair32:
         """Return the DatasetsPair implementation for the given arguments.
@@ -434,7 +440,7 @@ cdef class DatasetsPair32:
             If provided as a ndarray, it must be C-contiguous.
             If provided as a sparse matrix, it must be in CSR format.
 
-        metric : str, default='euclidean'
+        metric : str or DistanceMetric object, default='euclidean'
             The distance metric to compute between rows of X and Y.
             The default metric is a fast implementation of the Euclidean
             metric. For a list of available metrics, see the documentation
@@ -448,12 +454,17 @@ cdef class DatasetsPair32:
         datasets_pair: DatasetsPair32
             The suited DatasetsPair32 implementation.
         """
-        # Y_norm_squared might be propagated down to DatasetsPairs
-        # via metrics_kwargs when the Euclidean specialisations
-        # can't be used. To prevent Y_norm_squared to be passed
+        # X_norm_squared and Y_norm_squared might be propagated
+        # down to DatasetsPairs via metrics_kwargs when the Euclidean
+        # specialisations can't be used.
+        # To prevent X_norm_squared and Y_norm_squared to be passed
         # down to DistanceMetrics (whose constructors would raise
-        # a RuntimeError), we pop it here.
+        # a RuntimeError), we pop them here.
         if metric_kwargs is not None:
+            # Copying metric_kwargs not to pop "X_norm_squared"
+            # and "Y_norm_squared" where they are used
+            metric_kwargs = copy.copy(metric_kwargs)
+            metric_kwargs.pop("X_norm_squared", None)
             metric_kwargs.pop("Y_norm_squared", None)
         cdef:
             DistanceMetric32 distance_metric = DistanceMetric.get_metric(
@@ -595,9 +606,9 @@ cdef class SparseSparseDatasetsPair32(DatasetsPair32):
     cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist_csr(
             x1_data=&self.X_data[0],
-            x1_indices=self.X_indices,
+            x1_indices=&self.X_indices[0],
             x2_data=&self.Y_data[0],
-            x2_indices=self.Y_indices,
+            x2_indices=&self.Y_indices[0],
             x1_start=self.X_indptr[i],
             x1_end=self.X_indptr[i + 1],
             x2_start=self.Y_indptr[j],
@@ -609,9 +620,9 @@ cdef class SparseSparseDatasetsPair32(DatasetsPair32):
     cdef float64_t dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.dist_csr(
             x1_data=&self.X_data[0],
-            x1_indices=self.X_indices,
+            x1_indices=&self.X_indices[0],
             x2_data=&self.Y_data[0],
-            x2_indices=self.Y_indices,
+            x2_indices=&self.Y_indices[0],
             x1_start=self.X_indptr[i],
             x1_end=self.X_indptr[i + 1],
             x2_start=self.Y_indptr[j],
@@ -688,11 +699,11 @@ cdef class SparseDenseDatasetsPair32(DatasetsPair32):
     cdef float64_t surrogate_dist(self, intp_t i, intp_t j) noexcept nogil:
         return self.distance_metric.rdist_csr(
             x1_data=&self.X_data[0],
-            x1_indices=self.X_indices,
+            x1_indices=&self.X_indices[0],
             # Increment the data pointer such that x2_start=0 is aligned with the
             # j-th row
             x2_data=&self.Y_data[0] + j * self.n_features,
-            x2_indices=self.Y_indices,
+            x2_indices=&self.Y_indices[0],
             x1_start=self.X_indptr[i],
             x1_end=self.X_indptr[i + 1],
             x2_start=0,
@@ -705,11 +716,11 @@ cdef class SparseDenseDatasetsPair32(DatasetsPair32):
 
         return self.distance_metric.dist_csr(
             x1_data=&self.X_data[0],
-            x1_indices=self.X_indices,
+            x1_indices=&self.X_indices[0],
             # Increment the data pointer such that x2_start=0 is aligned with the
             # j-th row
             x2_data=&self.Y_data[0] + j * self.n_features,
-            x2_indices=self.Y_indices,
+            x2_indices=&self.Y_indices[0],
             x1_start=self.X_indptr[i],
             x1_end=self.X_indptr[i + 1],
             x2_start=0,

@@ -23,10 +23,10 @@ target_link_libraries(cpp-threading-thread_local PUBLIC
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(cpp-threading-thread_local PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.cpp
 )
 generate_enum_serilization(cpp-threading-thread_local
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.h
   INCLUDE_HEADERS
   library/cpp/threading/thread_local/thread_local.h
 )

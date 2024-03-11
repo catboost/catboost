@@ -49,7 +49,7 @@ private[spark] object RunClassInNewProcess {
         }
     ).toSeq
   }
-  
+
   // Strips trailing $ from Scala's object class name to get companion class with static "main" method.
   private def getAppMainClassName(className: String) : String = {
     if (className.endsWith("$")) { className.substring(0, className.length - 1) } else { className }

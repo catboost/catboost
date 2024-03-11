@@ -15,5 +15,5 @@ target_link_libraries(cpp-threading-skip_list PUBLIC
   cpp-deprecated-atomic
 )
 target_sources(cpp-threading-skip_list PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/threading/skip_list/skiplist.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/threading/skip_list/skiplist.cpp
 )

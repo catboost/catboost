@@ -31,7 +31,7 @@ class ConfigLoaderError(ConfigError):
     pass
 
 
-class ConfigFileNotFound(ConfigError):  # noqa
+class ConfigFileNotFound(ConfigError):
     pass
 
 
@@ -79,7 +79,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 def execfile(fname: str, glob: dict[str, Any]) -> None:
     with open(fname, "rb") as f:
-        exec(compile(f.read(), fname, "exec"), glob, glob)  # noqa
+        exec(compile(f.read(), fname, "exec"), glob, glob)  # noqa: S102
 
 
 class LazyConfigValue(HasTraits):
@@ -218,10 +218,7 @@ class LazyConfigValue(HasTraits):
 
 def _is_section_key(key: str) -> bool:
     """Is a Config key a section name (does it start with a capital)?"""
-    if key and key[0].upper() == key[0] and not key.startswith("_"):
-        return True
-    else:
-        return False
+    return bool(key and key[0].upper() == key[0] and not key.startswith("_"))
 
 
 class Config(dict):  # type:ignore[type-arg]
@@ -381,8 +378,6 @@ class Config(dict):  # type:ignore[type-arg]
 
 class DeferredConfig:
     """Class for deferred-evaluation of config from CLI"""
-
-    pass
 
     def get_value(self, trait: TraitType[t.Any, t.Any]) -> t.Any:
         raise NotImplementedError("Implement in subclasses")
@@ -597,7 +592,7 @@ class JSONFileConfigLoader(FileConfigLoader):
         self.load_config()
         return self.config
 
-    def __exit__(self, exc_type: t.Any, exc_value: t.Any, traceback: t.Any) -> None:
+    def __exit__(self, exc_type: object, exc_value: object, traceback: object) -> None:
         """
         Exit the context manager but do not handle any errors.
 
@@ -649,7 +644,7 @@ class PyFileConfigLoader(FileConfigLoader):
             """Unnecessary now, but a deprecation warning is more trouble than it's worth."""
             return self.config
 
-        namespace = dict(
+        namespace = dict(  # noqa: C408
             c=self.config,
             load_subconfig=self.load_subconfig,
             get_config=get_config,
@@ -657,7 +652,7 @@ class PyFileConfigLoader(FileConfigLoader):
         )
         conf_filename = self.full_filename
         with open(conf_filename, "rb") as f:
-            exec(compile(f.read(), conf_filename, "exec"), namespace, namespace)  # noqa
+            exec(compile(f.read(), conf_filename, "exec"), namespace, namespace)  # noqa: S102
 
 
 class CommandLineConfigLoader(ConfigLoader):
@@ -856,7 +851,7 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
         self.parser_args = parser_args
         self.version = parser_kw.pop("version", None)
-        kwargs = dict(argument_default=argparse.SUPPRESS)
+        kwargs = dict(argument_default=argparse.SUPPRESS)  # noqa: C408
         kwargs.update(parser_kw)
         self.parser_kw = kwargs
 
@@ -919,7 +914,6 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
 
     def _argcomplete(self, classes: list[t.Any], subcommands: SubcommandsDict | None) -> None:
         """If argcomplete is enabled, allow triggering command-line autocompletion"""
-        pass
 
     def _parse_args(self, args: t.Any) -> t.Any:
         """self.parser->self.parsed_data"""
@@ -1089,7 +1083,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
             if lhs == "extra_args":
                 self.extra_args = ["-" if a == _DASH_REPLACEMENT else a for a in rhs] + extra_args
                 continue
-            elif lhs == "_flags":
+            if lhs == "_flags":
                 # _flags will be handled later
                 continue
 
@@ -1132,7 +1126,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
     def _argcomplete(self, classes: list[t.Any], subcommands: SubcommandsDict | None) -> None:
         """If argcomplete is enabled, allow triggering command-line autocompletion"""
         try:
-            import argcomplete  # noqa
+            import argcomplete  # noqa: F401
         except ImportError:
             return
 

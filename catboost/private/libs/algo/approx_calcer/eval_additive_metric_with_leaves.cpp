@@ -56,8 +56,6 @@ TMetricHolder EvalErrorsWithLeaves(
     const IMetric& error,
     NPar::ILocalExecutor* localExecutor
 ) {
-    CB_ENSURE(error.IsAdditiveMetric(), "EvalErrorsWithLeaves is not implemented for non-additive metric " + error.GetDescription());
-
     const auto approxDimension = approx.size();
     TVector<TVector<double>> localLeafDelta;
     ResizeRank2(approxDimension, leafDelta[0].size(), localLeafDelta);
@@ -142,5 +140,9 @@ TMetricHolder EvalErrorsWithLeaves(
     }
 
     CB_ENSURE(end > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
-    return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, *localExecutor);
+    if (error.IsAdditiveMetric()) {
+        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, *localExecutor);
+    } else {
+        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, sequentialExecutor);
+    }
 }

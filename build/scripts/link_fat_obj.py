@@ -38,7 +38,7 @@ def get_args():
         elif arg == '--with-global-srcs':
             groups['default'].append(arg)
         elif arg.startswith(YA_ARG_PREFIX):
-            group_name = arg[len(YA_ARG_PREFIX):]
+            group_name = arg[len(YA_ARG_PREFIX) :]
             args_list = groups.setdefault(group_name, [])
         else:
             args_list.append(arg)
@@ -52,7 +52,7 @@ def strip_suppression_files(srcs):
 
 def strip_forceload_prefix(srcs):
     force_load_prefix = '-Wl,-force_load,'
-    return list(map(lambda lib: lib[lib.startswith(force_load_prefix) and len(force_load_prefix):], srcs))
+    return list(map(lambda lib: lib[lib.startswith(force_load_prefix) and len(force_load_prefix) :], srcs))
 
 
 def main():
@@ -81,7 +81,9 @@ def main():
     else:
         no_pie = '-Wl,-no-pie'
 
-    do_link = linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles', no_pie] + global_srcs + auto_input
+    do_link = (
+        linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles', no_pie] + global_srcs + auto_input
+    )
     do_archive = archiver + [lib_output] + peers
     do_globals = None
     if args.globals_lib:

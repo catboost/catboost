@@ -13,5 +13,6 @@ target_link_libraries(cpp-containers-dense_hash PUBLIC
   yutil
 )
 target_sources(cpp-containers-dense_hash PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/dense_hash/dense_hash.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/dense_hash/dense_hash.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/dense_hash/dense_hash.cpp
 )

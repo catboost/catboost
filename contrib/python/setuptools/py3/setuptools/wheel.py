@@ -38,7 +38,7 @@ def _get_supported_tags():
 
 
 def unpack(src_dir, dst_dir):
-    '''Move everything under `src_dir` to `dst_dir`, and delete the former.'''
+    """Move everything under `src_dir` to `dst_dir`, and delete the former."""
     for dirpath, dirnames, filenames in os.walk(src_dir):
         subdir = os.path.relpath(dirpath, src_dir)
         for f in filenames:
@@ -83,7 +83,7 @@ class Wheel:
             setattr(self, k, v)
 
     def tags(self):
-        '''List tags (py_version, abi, platform) supported by this wheel.'''
+        """List tags (py_version, abi, platform) supported by this wheel."""
         return itertools.product(
             self.py_version.split('.'),
             self.abi.split('.'),
@@ -91,7 +91,7 @@ class Wheel:
         )
 
     def is_compatible(self):
-        '''Is the wheel compatible with the current platform?'''
+        """Is the wheel compatible with the current platform?"""
         return next((True for t in self.tags() if t in _get_supported_tags()), False)
 
     def egg_name(self):
@@ -115,7 +115,7 @@ class Wheel:
         raise ValueError("unsupported wheel format. .dist-info not found")
 
     def install_as_egg(self, destination_eggdir):
-        '''Install wheel as an egg directory.'''
+        """Install wheel as an egg directory."""
         with zipfile.ZipFile(self.filename) as zf:
             self._install_as_egg(destination_eggdir, zf)
 

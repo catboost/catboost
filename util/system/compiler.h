@@ -607,7 +607,7 @@ _YandexAbort();
     #define Y_HAVE_INT128 1
 #endif
 
-#if defined(__clang__) && Y_CUDA_AT_LEAST(11, 0)
+#if defined(__clang__) && (!defined(__CUDACC__) || Y_CUDA_AT_LEAST(11, 0))
     #define Y_REINITIALIZES_OBJECT [[clang::reinitializes]]
 #else
     #define Y_REINITIALIZES_OBJECT
@@ -649,4 +649,64 @@ Y_FORCE_INLINE void DoNotOptimizeAway(const T&) = delete;
      */
     #define Y_DO_NOT_OPTIMIZE_AWAY(X) ::DoNotOptimizeAway(X)
 
+#endif
+
+/**
+ * @def Y_LIFETIME_BOUND
+ *
+ * The attribute on a function parameter can be used to tell the compiler
+ * that function return value may refer that parameter.
+ * The compiler may produce compile-time warning if it is able to detect that
+ * an object or reference refers to another object with a shorter lifetime.
+ */
+#if defined(__clang__) && defined(__cplusplus) && defined(__has_cpp_attribute)
+    #if defined(__CUDACC__) && !Y_CUDA_AT_LEAST(11, 0)
+        #define Y_LIFETIME_BOUND
+    #elif __has_cpp_attribute(clang::lifetimebound)
+        #define Y_LIFETIME_BOUND [[clang::lifetimebound]]
+    #else
+        #define Y_LIFETIME_BOUND
+    #endif
+#else
+    #define Y_LIFETIME_BOUND
+#endif
+
+/**
+ * @def Y_HAVE_ATTRIBUTE
+ *
+ * A function-like feature checking macro that is a wrapper around
+ * `__has_attribute`, which is defined by GCC 5+ and Clang and evaluates to a
+ * nonzero constant integer if the attribute is supported or 0 if not.
+ *
+ * It evaluates to zero if `__has_attribute` is not defined by the compiler.
+ *
+ * @see
+ *     GCC: https://gcc.gnu.org/gcc-5/changes.html
+ *     Clang: https://clang.llvm.org/docs/LanguageExtensions.html
+ */
+#ifdef __has_attribute
+    #define Y_HAVE_ATTRIBUTE(x) __has_attribute(x)
+#else
+    #define Y_HAVE_ATTRIBUTE(x) 0
+#endif
+
+/**
+ * @def Y_RETURNS_NONNULL
+ *
+ * The returns_nonnull attribute specifies that the function return value should
+ * be a non-null pointer. It lets the compiler optimize callers based on
+ * the knowledge that the return value will never be null.
+ *
+ * @see
+ *    GCC: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-returns_005fnonnull-function-attribute
+ *    Clang: https://clang.llvm.org/docs/AttributeReference.html#returns-nonnull
+ *
+ * @code
+ * Y_RETURNS_NONNULL extern void* mymalloc(size_t len);
+ * @endcode
+ */
+#if Y_HAVE_ATTRIBUTE(returns_nonnull)
+    #define Y_RETURNS_NONNULL __attribute__((returns_nonnull))
+#else
+    #define Y_RETURNS_NONNULL
 #endif

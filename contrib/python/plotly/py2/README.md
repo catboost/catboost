@@ -15,7 +15,6 @@
             <img src="https://img.shields.io/badge/help_forum-discourse-blue.svg"/>
         </td>
     </tr>
-
     <tr>
         <td>PyPI Downloads</td>
         <td>
@@ -32,11 +31,15 @@
     </tr>
 </table>
 
+## Data Science Workspaces
+
+Our recommended IDE for Plotly’s Python graphing library is Dash Enterprise’s [Data Science Workspaces](https://plotly.com/dash/workspaces/), which has both Jupyter notebook and Python code file support.
+
 ## Quickstart
 
-`pip install plotly==4.6.0`
+`pip install plotly==4.14.3`
 
-Inside [Jupyter notebook](https://jupyter.org/install) (installable with `pip install "notebook>=5.3" "ipywidgets>=7.2"`):
+Inside [Jupyter notebook](https://jupyter.org/install) (installable with `pip install "notebook>=5.3" "ipywidgets>=7.5"`):
 
 ```python
 import plotly.graph_objects as go
@@ -83,80 +86,86 @@ Built on top of [plotly.js](https://github.com/plotly/plotly.js), `plotly.py` is
 plotly.py may be installed using pip...
 
 ```
-pip install plotly==4.6.0
+pip install plotly==4.14.3
 ```
 
 or conda.
 
 ```
-conda install -c plotly plotly=4.6.0
+conda install -c plotly plotly=4.14.3
 ```
 
 ### Jupyter Notebook Support
 
 For use in the Jupyter Notebook, install the `notebook` and `ipywidgets`
-packages using pip...
+packages using `pip`:
 
 ```
-pip install "notebook>=5.3" "ipywidgets==7.5"
+pip install "notebook>=5.3" "ipywidgets>=7.5"
 ```
 
-or conda.
+or `conda`:
 
 ```
-conda install "notebook>=5.3" "ipywidgets=7.5"
+conda install "notebook>=5.3" "ipywidgets>=7.5"
 ```
 
-### JupyterLab Support (Python 3.5+)
+### JupyterLab Support
 
 For use in JupyterLab, install the `jupyterlab` and `ipywidgets`
-packages using pip...
+packages using `pip`:
 
 ```
-pip install jupyterlab==1.2 "ipywidgets==7.5"
+pip install jupyterlab "ipywidgets>=7.5"
 ```
 
-or conda.
+or `conda`:
 
 ```
-conda install jupyterlab=1.2
-conda install "ipywidgets=7.5"
+conda install jupyterlab "ipywidgets>=7.5"
 ```
 
 Then run the following commands to install the required JupyterLab extensions (note that this will require [`node`](https://nodejs.org/) to be installed):
 
 ```
-# Avoid "JavaScript heap out of memory" errors during extension installation
-# (OS X/Linux)
-export NODE_OPTIONS=--max-old-space-size=4096
-# (Windows)
-set NODE_OPTIONS=--max-old-space-size=4096
+# Basic JupyterLab renderer support
+jupyter labextension install jupyterlab-plotly@4.14.3
 
-# Jupyter widgets extension
-jupyter labextension install @jupyter-widgets/jupyterlab-manager@1.1 --no-build
-
-# FigureWidget support
-jupyter labextension install plotlywidget@4.6.0 --no-build
-
-# and jupyterlab renderer support
-jupyter labextension install jupyterlab-plotly@4.6.0 --no-build
-
-# Build extensions (must be done to activate extensions since --no-build is used above)
-jupyter lab build
-
-# Unset NODE_OPTIONS environment variable
-# (OS X/Linux)
-unset NODE_OPTIONS
-# (Windows)
-set NODE_OPTIONS=
+# OPTIONAL: Jupyter widgets extension for FigureWidget support
+jupyter labextension install @jupyter-widgets/jupyterlab-manager plotlywidget@4.14.3
 ```
+
+Please check out our [Troubleshooting guide](https://plotly.com/python/troubleshooting/) if you run into any problems with JupyterLab.
 
 ### Static Image Export
 
-plotly.py supports static image export using the `to_image` and `write_image`
-functions in the `plotly.io` package. This functionality requires the
-installation of the plotly [orca](https://github.com/plotly/orca) command line utility and the
-[`psutil`](https://github.com/giampaolo/psutil) Python package.
+plotly.py supports [static image export](https://plotly.com/python/static-image-export/),
+using either the [`kaleido`](https://github.com/plotly/Kaleido)
+package (recommended, supported as of `plotly` version 4.9) or the [orca](https://github.com/plotly/orca)
+command line utility (legacy as of `plotly` version 4.9).
+
+#### Kaleido
+
+The [`kaleido`](https://github.com/plotly/Kaleido) package has no dependencies and can be installed
+using pip...
+
+```
+$ pip install -U kaleido
+```
+
+or conda.
+
+```
+$ conda install -c conda-forge python-kaleido
+```
+
+#### Orca
+
+While Kaleido is now the recommended image export approach because it is easier to install
+and more widely compatible, [static image export](https://plotly.com/python/static-image-export/)
+can also be supported
+by the legacy [orca](https://github.com/plotly/orca) command line utility and the
+ [`psutil`](https://github.com/giampaolo/psutil) Python package.
 
 These dependencies can both be installed using conda:
 
@@ -172,13 +181,6 @@ pip install psutil
 
 and orca can be installed according to the instructions in the [orca README](https://github.com/plotly/orca).
 
-#### Troubleshooting
-
-##### Wrong Executable found
-
-If you get an error message stating that the `orca` executable that was found is not valid, this may be because another executable with the same name was found on your system. Please specify the complete path to the Plotly-Orca binary that you downloaded (for instance in the Miniconda folder) with the following command:
-
-`plotly.io.orca.config.executable = '/home/your_name/miniconda3/bin/orca'`
 
 ### Extended Geo Support
 
@@ -202,13 +204,13 @@ The `chart-studio` package can be used to upload plotly figures to Plotly's Char
 Studio Cloud or On-Prem service. This package can be installed using pip...
 
 ```
-pip install chart-studio==1.0.0
+pip install chart-studio==1.1.0
 ```
 
 or conda
 
 ```
-conda install -c plotly chart-studio=1.0.0
+conda install -c plotly chart-studio=1.1.0
 ```
 
 ## Migration

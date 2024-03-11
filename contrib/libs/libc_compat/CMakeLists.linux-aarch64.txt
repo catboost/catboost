@@ -12,22 +12,22 @@ target_compile_options(contrib-libs-libc_compat PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(contrib-libs-libc_compat PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/include/readpassphrase
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/random
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/include/readpassphrase
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random
 )
 target_link_libraries(contrib-libs-libc_compat PUBLIC
   contrib-libs-linux-headers
   cpp-sanitizer-include
 )
 target_sources(contrib-libs-libc_compat PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/string.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/readpassphrase.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/explicit_bzero.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/memfd_create.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/strlcat.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/strlcpy.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray/reallocarray.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/random/getrandom.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libc_compat/random/getentropy.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/string.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/readpassphrase.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/explicit_bzero.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/memfd_create.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/strlcat.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/strlcpy.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray/reallocarray.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random/getrandom.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random/getentropy.c
 )

@@ -15,6 +15,6 @@ target_link_libraries(cpp-deprecated-split PUBLIC
   cpp-deprecated-kmp
 )
 target_sources(cpp-deprecated-split PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/deprecated/split/delim_string_iter.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/deprecated/split/split_iterator.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/deprecated/split/delim_string_iter.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/deprecated/split/split_iterator.cpp
 )

@@ -12,7 +12,7 @@ def hide_file(path):
     """
     Set the hidden attribute on a file or directory.
 
-    From http://stackoverflow.com/questions/19622133/
+    From https://stackoverflow.com/questions/19622133/
 
     `path` must be text.
     """

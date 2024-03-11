@@ -36,8 +36,11 @@
 #include <cub/config.cuh>
 #include <cub/device/dispatch/dispatch_scan.cuh>
 #include <cub/thread/thread_operators.cuh>
+#include <cub/util_deprecated.cuh>
 #include <cub/util_device.cuh>
 #include <cub/util_math.cuh>
+
+#include <nv/target>
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
@@ -206,25 +209,18 @@ struct DispatchThreeWayPartitionIf
     int             ptx_version,
     KernelConfig    &select_if_config)
   {
-    if (CUB_IS_DEVICE_CODE)
-    {
-#if CUB_INCLUDE_DEVICE_CODE
-      (void)ptx_version;
-      // We're on the device, so initialize the kernel dispatch configurations
-      // with the current PTX policy
-      select_if_config.template Init<PtxThreeWayPartitionPolicyT>();
-#endif
-    }
-    else
-    {
-#if CUB_INCLUDE_HOST_CODE
-      // We're on the host, so lookup and initialize the kernel dispatch configurations with the policies that match the device's PTX version
-
-      // (There's only one policy right now)
-      (void)ptx_version;
-      select_if_config.template Init<typename Policy350::ThreeWayPartitionPolicy>();
-#endif
-    }
+    NV_IF_TARGET(
+      NV_IS_DEVICE,
+      ((void)ptx_version;
+       // We're on the device, so initialize the kernel dispatch configurations
+       // with the current PTX policy
+       select_if_config.template Init<PtxThreeWayPartitionPolicyT>();),
+      (// We're on the host, so lookup and initialize the kernel dispatch
+       // configurations with the policies that match the device's PTX version
+       // (There's only one policy right now)
+       (void)ptx_version;
+       select_if_config
+         .template Init<typename Policy350::ThreeWayPartitionPolicy>();));
   }
 
 
@@ -266,7 +262,6 @@ struct DispatchThreeWayPartitionIf
            SelectSecondPartOp select_second_part_op,
            OffsetT num_items,
            cudaStream_t stream,
-           bool debug_synchronous,
            int /*ptx_version*/,
            ScanInitKernelPtrT three_way_partition_init_kernel,
            SelectIfKernelPtrT three_way_partition_kernel,
@@ -343,13 +338,13 @@ struct DispatchThreeWayPartitionIf
 
       // Log three_way_partition_init_kernel configuration
       int init_grid_size = CUB_MAX(1, DivideAndRoundUp(num_tiles, INIT_KERNEL_THREADS));
-      if (debug_synchronous)
-      {
-        _CubLog("Invoking three_way_partition_init_kernel<<<%d, %d, 0, %lld>>>()\n",
-                init_grid_size,
-                INIT_KERNEL_THREADS,
-                reinterpret_cast<long long>(stream));
-      }
+
+      #ifdef CUB_DETAIL_DEBUG_ENABLE_LOG
+      _CubLog("Invoking three_way_partition_init_kernel<<<%d, %d, 0, %lld>>>()\n",
+              init_grid_size,
+              INIT_KERNEL_THREADS,
+              reinterpret_cast<long long>(stream));
+      #endif
 
       // Invoke three_way_partition_init_kernel to initialize tile descriptors
       THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
@@ -367,12 +362,10 @@ struct DispatchThreeWayPartitionIf
       }
 
       // Sync the stream if specified to flush runtime errors
-      if (debug_synchronous)
+      error = detail::DebugSyncStream(stream);
+      if (CubDebug(error))
       {
-        if (CubDebug(error = cub::SyncStream(stream)))
-        {
-          break;
-        }
+        break;
       }
 
       // Get max x-dimension of grid
@@ -391,7 +384,7 @@ struct DispatchThreeWayPartitionIf
       scan_grid_size.x = CUB_MIN(num_tiles, max_dim_x);
 
       // Log select_if_kernel configuration
-      if (debug_synchronous)
+      #ifdef CUB_DETAIL_DEBUG_ENABLE_LOG
       {
         // Get SM occupancy for select_if_kernel
         int range_select_sm_occupancy;
@@ -413,6 +406,7 @@ struct DispatchThreeWayPartitionIf
                 three_way_partition_config.items_per_thread,
                 range_select_sm_occupancy);
       }
+      #endif
 
       // Invoke select_if_kernel
       THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
@@ -437,17 +431,56 @@ struct DispatchThreeWayPartitionIf
       }
 
       // Sync the stream if specified to flush runtime errors
-      if (debug_synchronous)
+      error = detail::DebugSyncStream(stream);
+      if (CubDebug(error))
       {
-        if (CubDebug(error = cub::SyncStream(stream)))
-        {
-          break;
-        }
+        break;
       }
     }
     while (0);
 
     return error;
+  }
+
+  template <typename ScanInitKernelPtrT,
+            typename SelectIfKernelPtrT>
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+  CUB_RUNTIME_FUNCTION __forceinline__ static cudaError_t
+  Dispatch(void *d_temp_storage,
+           std::size_t &temp_storage_bytes,
+           InputIteratorT d_in,
+           FirstOutputIteratorT d_first_part_out,
+           SecondOutputIteratorT d_second_part_out,
+           UnselectedOutputIteratorT d_unselected_out,
+           NumSelectedIteratorT d_num_selected_out,
+           SelectFirstPartOp select_first_part_op,
+           SelectSecondPartOp select_second_part_op,
+           OffsetT num_items,
+           cudaStream_t stream,
+           bool debug_synchronous,
+           int ptx_version,
+           ScanInitKernelPtrT three_way_partition_init_kernel,
+           SelectIfKernelPtrT three_way_partition_kernel,
+           KernelConfig three_way_partition_config)
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+    return Dispatch<ScanInitKernelPtrT, SelectIfKernelPtrT>(
+      d_temp_storage,
+      temp_storage_bytes,
+      d_in,
+      d_first_part_out,
+      d_second_part_out,
+      d_unselected_out,
+      d_num_selected_out,
+      select_first_part_op,
+      select_second_part_op,
+      num_items,
+      stream,
+      ptx_version,
+      three_way_partition_init_kernel,
+      three_way_partition_kernel,
+      three_way_partition_config);
   }
 
 
@@ -466,8 +499,7 @@ struct DispatchThreeWayPartitionIf
     SelectFirstPartOp           select_first_part_op,
     SelectSecondPartOp          select_second_part_op,
     OffsetT                     num_items,
-    cudaStream_t                stream,
-    bool                        debug_synchronous)
+    cudaStream_t                stream)
   {
     cudaError error = cudaSuccess;
 
@@ -497,7 +529,6 @@ struct DispatchThreeWayPartitionIf
                      select_second_part_op,
                      num_items,
                      stream,
-                     debug_synchronous,
                      ptx_version,
                      DeviceThreeWayPartitionInitKernel<ScanTileStateT,
                                                        NumSelectedIteratorT>,
@@ -518,6 +549,37 @@ struct DispatchThreeWayPartitionIf
     } while (0);
 
     return error;
+  }
+
+  CUB_DETAIL_RUNTIME_DEBUG_SYNC_IS_NOT_SUPPORTED
+  CUB_RUNTIME_FUNCTION __forceinline__
+  static cudaError_t Dispatch(
+    void*                       d_temp_storage,
+    std::size_t&                temp_storage_bytes,
+    InputIteratorT              d_in,
+    FirstOutputIteratorT        d_first_part_out,
+    SecondOutputIteratorT       d_second_part_out,
+    UnselectedOutputIteratorT   d_unselected_out,
+    NumSelectedIteratorT        d_num_selected_out,
+    SelectFirstPartOp           select_first_part_op,
+    SelectSecondPartOp          select_second_part_op,
+    OffsetT                     num_items,
+    cudaStream_t                stream,
+    bool                        debug_synchronous)
+  {
+    CUB_DETAIL_RUNTIME_DEBUG_SYNC_USAGE_LOG
+
+    return Dispatch(d_temp_storage,
+                    temp_storage_bytes,
+                    d_in,
+                    d_first_part_out,
+                    d_second_part_out,
+                    d_unselected_out,
+                    d_num_selected_out,
+                    select_first_part_op,
+                    select_second_part_op,
+                    num_items,
+                    stream);
   }
 };
 

@@ -9,7 +9,7 @@
 
 add_executable(catboost-private-libs-quantization_schema-ut)
 target_include_directories(catboost-private-libs-quantization_schema-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization_schema
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema
 )
 target_link_libraries(catboost-private-libs-quantization_schema-ut PUBLIC
   contrib-libs-cxxsupp
@@ -20,7 +20,7 @@ target_link_libraries(catboost-private-libs-quantization_schema-ut PUBLIC
   idl-pool-proto
 )
 target_sources(catboost-private-libs-quantization_schema-ut PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization_schema/ut/serialization_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema/ut/serialization_ut.cpp
 )
 set_property(
   TARGET
@@ -54,6 +54,12 @@ set_yunittest_property(
   PROPERTY
   PROCESSORS
   1
+)
+set_yunittest_property(
+  TEST
+  catboost-private-libs-quantization_schema-ut
+  PROPERTY
+  ENVIRONMENT
 )
 target_allocator(catboost-private-libs-quantization_schema-ut
   system_allocator

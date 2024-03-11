@@ -33,8 +33,8 @@ target_link_options(methods PRIVATE
   -lcudart_static
 )
 target_sources(methods PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/cuda/methods/ut/test_tree_searcher.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_tree_searcher.cpp
 )
 target_allocator(methods
   cpp-malloc-tcmalloc

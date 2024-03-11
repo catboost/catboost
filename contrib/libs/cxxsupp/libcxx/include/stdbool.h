@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
+
 #ifndef _LIBCPP_STDBOOL_H
 #define _LIBCPP_STDBOOL_H
 
@@ -24,10 +25,8 @@ Macros:
 #  pragma GCC system_header
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
-#include Y_MSVC_INCLUDE_NEXT(stdbool.h)
-#else
-#include_next <stdbool.h>
+#if __has_include_next(<stdbool.h>)
+#  include_next <stdbool.h>
 #endif
 
 #ifdef __cplusplus

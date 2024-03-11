@@ -2,4 +2,5 @@
 for the old ufoLib.pointPen module, which was moved to fontTools.pens.pointPen.
 Please use the latter instead.
 """
+
 from fontTools.pens.pointPen import *

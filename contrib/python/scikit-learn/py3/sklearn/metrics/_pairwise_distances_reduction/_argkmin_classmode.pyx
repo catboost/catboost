@@ -8,13 +8,7 @@ from ...utils._typedefs cimport intp_t, float64_t
 import numpy as np
 from scipy.sparse import issparse
 from sklearn.utils.fixes import threadpool_limits
-
-cpdef enum WeightingStrategy:
-    uniform = 0
-    # TODO: Implement the following options, most likely in
-    # `weighted_histogram_mode`
-    distance = 1
-    callable = 2
+from ._classmode cimport WeightingStrategy
 from ._argkmin cimport ArgKmin32
 from ._datasets_pair cimport DatasetsPair32
 
@@ -23,8 +17,8 @@ cdef class ArgKminClassMode32(ArgKmin32):
     32bit implementation of ArgKminClassMode.
     """
     cdef:
-        const intp_t[:] class_membership,
-        const intp_t[:] unique_labels
+        const intp_t[:] Y_labels,
+        const intp_t[:] unique_Y_labels
         float64_t[:, :] class_scores
         cpp_map[intp_t, intp_t] labels_to_index
         WeightingStrategy weight_type
@@ -36,14 +30,14 @@ cdef class ArgKminClassMode32(ArgKmin32):
         Y,
         intp_t k,
         weights,
-        class_membership,
-        unique_labels,
+        Y_labels,
+        unique_Y_labels,
         str metric="euclidean",
         chunk_size=None,
         dict metric_kwargs=None,
         str strategy=None,
     ):
-        """Compute the argkmin reduction with class_membership.
+        """Compute the argkmin reduction with Y_labels.
 
         This classmethod is responsible for introspecting the arguments
         values to dispatch to the most appropriate implementation of
@@ -64,8 +58,8 @@ cdef class ArgKminClassMode32(ArgKmin32):
             chunk_size=chunk_size,
             strategy=strategy,
             weights=weights,
-            class_membership=class_membership,
-            unique_labels=unique_labels,
+            Y_labels=Y_labels,
+            unique_Y_labels=unique_Y_labels,
         )
 
         # Limit the number of threads in second level of nested parallelism for BLAS
@@ -81,8 +75,8 @@ cdef class ArgKminClassMode32(ArgKmin32):
     def __init__(
         self,
         DatasetsPair32 datasets_pair,
-        const intp_t[:] class_membership,
-        const intp_t[:] unique_labels,
+        const intp_t[:] Y_labels,
+        const intp_t[:] unique_Y_labels,
         chunk_size=None,
         strategy=None,
         intp_t k=1,
@@ -101,15 +95,15 @@ cdef class ArgKminClassMode32(ArgKmin32):
             self.weight_type = WeightingStrategy.distance
         else:
             self.weight_type = WeightingStrategy.callable
-        self.class_membership = class_membership
+        self.Y_labels = Y_labels
 
-        self.unique_labels = unique_labels
+        self.unique_Y_labels = unique_Y_labels
 
         cdef intp_t idx, neighbor_class_idx
         # Map from set of unique labels to their indices in `class_scores`
         # Buffer used in building a histogram for one-pass weighted mode
         self.class_scores = np.zeros(
-            (self.n_samples_X, unique_labels.shape[0]), dtype=np.float64,
+            (self.n_samples_X, unique_Y_labels.shape[0]), dtype=np.float64,
         )
 
     def _finalize_results(self):
@@ -140,7 +134,7 @@ cdef class ArgKminClassMode32(ArgKmin32):
             if use_distance_weighting:
                 score_incr = 1 / distances[neighbor_rank]
             neighbor_idx = indices[neighbor_rank]
-            neighbor_class_idx = self.class_membership[neighbor_idx]
+            neighbor_class_idx = self.Y_labels[neighbor_idx]
             self.class_scores[sample_index][neighbor_class_idx] += score_incr
         return
 
@@ -190,8 +184,8 @@ cdef class ArgKminClassMode64(ArgKmin64):
     64bit implementation of ArgKminClassMode.
     """
     cdef:
-        const intp_t[:] class_membership,
-        const intp_t[:] unique_labels
+        const intp_t[:] Y_labels,
+        const intp_t[:] unique_Y_labels
         float64_t[:, :] class_scores
         cpp_map[intp_t, intp_t] labels_to_index
         WeightingStrategy weight_type
@@ -203,14 +197,14 @@ cdef class ArgKminClassMode64(ArgKmin64):
         Y,
         intp_t k,
         weights,
-        class_membership,
-        unique_labels,
+        Y_labels,
+        unique_Y_labels,
         str metric="euclidean",
         chunk_size=None,
         dict metric_kwargs=None,
         str strategy=None,
     ):
-        """Compute the argkmin reduction with class_membership.
+        """Compute the argkmin reduction with Y_labels.
 
         This classmethod is responsible for introspecting the arguments
         values to dispatch to the most appropriate implementation of
@@ -231,8 +225,8 @@ cdef class ArgKminClassMode64(ArgKmin64):
             chunk_size=chunk_size,
             strategy=strategy,
             weights=weights,
-            class_membership=class_membership,
-            unique_labels=unique_labels,
+            Y_labels=Y_labels,
+            unique_Y_labels=unique_Y_labels,
         )
 
         # Limit the number of threads in second level of nested parallelism for BLAS
@@ -248,8 +242,8 @@ cdef class ArgKminClassMode64(ArgKmin64):
     def __init__(
         self,
         DatasetsPair64 datasets_pair,
-        const intp_t[:] class_membership,
-        const intp_t[:] unique_labels,
+        const intp_t[:] Y_labels,
+        const intp_t[:] unique_Y_labels,
         chunk_size=None,
         strategy=None,
         intp_t k=1,
@@ -268,15 +262,15 @@ cdef class ArgKminClassMode64(ArgKmin64):
             self.weight_type = WeightingStrategy.distance
         else:
             self.weight_type = WeightingStrategy.callable
-        self.class_membership = class_membership
+        self.Y_labels = Y_labels
 
-        self.unique_labels = unique_labels
+        self.unique_Y_labels = unique_Y_labels
 
         cdef intp_t idx, neighbor_class_idx
         # Map from set of unique labels to their indices in `class_scores`
         # Buffer used in building a histogram for one-pass weighted mode
         self.class_scores = np.zeros(
-            (self.n_samples_X, unique_labels.shape[0]), dtype=np.float64,
+            (self.n_samples_X, unique_Y_labels.shape[0]), dtype=np.float64,
         )
 
     def _finalize_results(self):
@@ -307,7 +301,7 @@ cdef class ArgKminClassMode64(ArgKmin64):
             if use_distance_weighting:
                 score_incr = 1 / distances[neighbor_rank]
             neighbor_idx = indices[neighbor_rank]
-            neighbor_class_idx = self.class_membership[neighbor_idx]
+            neighbor_class_idx = self.Y_labels[neighbor_idx]
             self.class_scores[sample_index][neighbor_class_idx] += score_incr
         return
 

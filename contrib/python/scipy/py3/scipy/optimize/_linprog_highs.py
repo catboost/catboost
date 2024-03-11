@@ -15,7 +15,7 @@ References
 
 import inspect
 import numpy as np
-from .optimize import _check_unknown_options, OptimizeWarning, OptimizeResult
+from ._optimize import _check_unknown_options, OptimizeWarning, OptimizeResult
 from warnings import warn
 from ._highs._highs_wrapper import _highs_wrapper
 from ._highs._highs_constants import (
@@ -389,8 +389,8 @@ def _linprog_highs(lp, solver, time_limit=None, presolve=True,
         lamda = res['lambda']
         marg_ineqlin = np.array(lamda[:len(b_ub)])
         marg_eqlin = np.array(lamda[len(b_ub):])
-        marg_upper = res['marg_bnds'][1, :]
-        marg_lower = res['marg_bnds'][0, :]
+        marg_upper = np.array(res['marg_bnds'][1, :])
+        marg_lower = np.array(res['marg_bnds'][0, :])
     else:
         marg_ineqlin, marg_eqlin = None, None
         marg_upper, marg_lower = None, None

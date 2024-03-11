@@ -15,11 +15,11 @@ target_link_libraries(contrib-libs-libbz2 PUBLIC
   contrib-libs-linux-headers
 )
 target_sources(contrib-libs-libbz2 PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/blocksort.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/bzlib.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/compress.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/crctable.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/decompress.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/huffman.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/randtable.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libbz2/blocksort.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libbz2/bzlib.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libbz2/compress.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libbz2/crctable.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libbz2/decompress.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libbz2/huffman.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libbz2/randtable.c
 )

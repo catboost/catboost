@@ -12,7 +12,7 @@ target_compile_options(abseil-cpp-absl-hash PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 target_include_directories(abseil-cpp-absl-hash PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
 target_link_libraries(abseil-cpp-absl-hash PUBLIC
   contrib-libs-linux-headers
@@ -23,7 +23,7 @@ target_link_libraries(abseil-cpp-absl-hash PUBLIC
   abseil-cpp-absl-types
 )
 target_sources(abseil-cpp-absl-hash PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/hash/internal/city.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/hash/internal/hash.cc
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/hash/internal/low_level_hash.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/hash/internal/city.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/hash/internal/hash.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/hash/internal/low_level_hash.cc
 )

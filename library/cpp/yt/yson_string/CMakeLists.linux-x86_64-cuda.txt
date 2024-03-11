@@ -23,6 +23,6 @@ target_link_libraries(cpp-yt-yson_string PUBLIC
   cpp-yt-misc
 )
 target_sources(cpp-yt-yson_string PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/yson_string/convert.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/yson_string/string.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/yson_string/convert.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/yson_string/string.cpp
 )

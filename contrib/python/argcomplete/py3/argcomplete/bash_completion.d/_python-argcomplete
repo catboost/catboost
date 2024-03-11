@@ -1,9 +1,14 @@
-#compdef -P *
+#compdef -default-
 
 # Copyright 2012-2023, Andrey Kislyuk and argcomplete contributors.
 # Licensed under the Apache License. See https://github.com/kislyuk/argcomplete for more info.
 
 # Note: both the leading underscore in the name of this file and the first line (compdef) are required by zsh
+
+# In zsh, this file is autoloaded and used as the default completer (_default).
+# There are many other special contexts we don't want to override
+# (as would be the case with `#compdef -P *`).
+# https://zsh.sourceforge.io/Doc/Release/Completion-System.html
 
 # Copy of __expand_tilde_by_ref from bash-completion
 # ZSH implementation added
@@ -138,13 +143,8 @@ _python_argcomplete_global() {
         req_argv=( "" "${COMP_WORDS[@]:1}" )
         __python_argcomplete_expand_tilde_by_ref executable
     else
-        if [[ "$service" != "-default-" ]]; then
-            # TODO: this may not be sufficient - see https://zsh.sourceforge.io/Doc/Release/Completion-System.html
-            # May need to call _complete with avoid-completer=_python-argcomplete or something like that
-            _default
-            return
-        fi
         executable="${words[1]}"
+        __python_argcomplete_expand_tilde_by_ref executable
         req_argv=( "${words[@]:1}" )
     fi
 
@@ -208,7 +208,15 @@ _python_argcomplete_global() {
                 _ARGCOMPLETE_SHELL="zsh" \
                 _ARGCOMPLETE_SUPPRESS_SPACE=1 \
                 __python_argcomplete_run "$executable" "${(@)req_argv[1, ${ARGCOMPLETE}-1]}"))
-            _describe "$executable" completions
+            local nosort=()
+            local nospace=()
+            if is-at-least 5.8; then
+                nosort=(-o nosort)
+            fi
+            if [[ "${completions-}" =~ ([^\\]): && "${BASH_REMATCH[2]}" =~ [=/:] ]]; then
+                nospace=(-S '')
+            fi
+            _describe "$executable" completions "${nosort[@]}" "${nospace[@]}"
         else
             COMPREPLY=($(IFS="$IFS" \
                 COMP_LINE="$COMP_LINE" \
@@ -234,5 +242,20 @@ _python_argcomplete_global() {
 if [[ -z "${ZSH_VERSION-}" ]]; then
     complete -o default -o bashdefault -D -F _python_argcomplete_global
 else
-    compdef _python_argcomplete_global -P '*'
+    # -Uz is recommended for the use of functions supplied with the zsh distribution.
+    # https://unix.stackexchange.com/a/214306
+    autoload -Uz is-at-least
+    # If this is being implicitly loaded because we placed it on fpath,
+    # the comment at the top of this file causes zsh to invoke this script directly,
+    # so we must explicitly call the global completion function.
+    # Note $service should only ever be -default- because the comment at the top
+    # registers this script as the default completer (#compdef -default-).
+    if [[ $service == -default- ]]; then
+        _python_argcomplete_global
+    fi
+    # If this has been executed directly (e.g. `eval "$(activate-global-python-argcomplete --dest=-)"`)
+    # we need to explicitly call compdef to register the completion function.
+    # If we have been implicitly loaded, we still call compdef as a slight optimisation
+    # (there is no need to execute any top-level code more than once).
+    compdef _python_argcomplete_global -default-
 fi

@@ -24,7 +24,7 @@
 #include <openssl/err.h>
 /* Needed to get the other O_xxx flags. */
 #ifdef OPENSSL_SYS_VMS
-# include <unixio.h>
+# error #include <unixio.h>
 #endif
 #include "apps.h"
 #define INCLUDE_FUNCTION_TABLE
