@@ -11308,8 +11308,8 @@ def test_carry_model():
     assert np.max((uplift_pool_predict - uplift_model_predict) ** 2)**0.5 < 1e-8, 'Wrong uplift model predict'
 
 
-def test_custom_gpu_eval_metric(task_type):
-
+def test_custom_gpu_eval_metric():
+    
     class LoglossMetric(object):
         def get_final_error(self, error, weight):
             return error / (weight + 1e-38)
