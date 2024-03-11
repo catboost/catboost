@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: typing_extensions
-Version: 4.9.0
+Version: 4.10.0
 Summary: Backported and Experimental Type Hints for Python 3.8+
 Keywords: annotations,backport,checker,checking,function,hinting,hints,type,typechecking,typehinting,typehints,typing
 Author-email: "Guido van Rossum, Jukka Lehtosalo, Łukasz Langa, Michael Lee" <levkivskyi@gmail.com>
