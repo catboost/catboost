@@ -61,10 +61,6 @@ def unwrap_strategies(s):
         assert unwrap_depth >= 0
 
 
-def _repr_filter(condition):
-    return f".filter({get_pretty_function_description(condition)})"
-
-
 class LazyStrategy(SearchStrategy):
     """A strategy which is defined purely by conversion to and from another
     strategy.
@@ -72,14 +68,14 @@ class LazyStrategy(SearchStrategy):
     Its parameter and distribution come from that other strategy.
     """
 
-    def __init__(self, function, args, kwargs, filters=(), *, force_repr=None):
+    def __init__(self, function, args, kwargs, *, transforms=(), force_repr=None):
         super().__init__()
         self.__wrapped_strategy = None
         self.__representation = force_repr
         self.function = function
         self.__args = args
         self.__kwargs = kwargs
-        self.__filters = filters
+        self._transformations = transforms
 
     @property
     def supports_find(self):
@@ -115,22 +111,27 @@ class LazyStrategy(SearchStrategy):
                 self.__wrapped_strategy = self.function(
                     *unwrapped_args, **unwrapped_kwargs
                 )
-            for f in self.__filters:
-                self.__wrapped_strategy = self.__wrapped_strategy.filter(f)
+            for method, fn in self._transformations:
+                self.__wrapped_strategy = getattr(self.__wrapped_strategy, method)(fn)
         return self.__wrapped_strategy
 
-    def filter(self, condition):
-        try:
-            repr_ = f"{self!r}{_repr_filter(condition)}"
-        except Exception:
-            repr_ = None
-        return LazyStrategy(
+    def __with_transform(self, method, fn):
+        repr_ = self.__representation
+        if repr_:
+            repr_ = f"{repr_}.{method}({get_pretty_function_description(fn)})"
+        return type(self)(
             self.function,
             self.__args,
             self.__kwargs,
-            (*self.__filters, condition),
+            transforms=(*self._transformations, (method, fn)),
             force_repr=repr_,
         )
+
+    def map(self, pack):
+        return self.__with_transform("map", pack)
+
+    def filter(self, condition):
+        return self.__with_transform("filter", condition)
 
     def do_validate(self):
         w = self.wrapped_strategy
@@ -156,7 +157,10 @@ class LazyStrategy(SearchStrategy):
             }
             self.__representation = repr_call(
                 self.function, _args, kwargs_for_repr, reorder=False
-            ) + "".join(map(_repr_filter, self.__filters))
+            ) + "".join(
+                f".{method}({get_pretty_function_description(fn)})"
+                for method, fn in self._transformations
+            )
         return self.__representation
 
     def do_draw(self, data):

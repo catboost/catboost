@@ -11,6 +11,7 @@
 import sys
 import warnings
 from collections import abc, defaultdict
+from functools import lru_cache
 from random import shuffle
 from typing import (
     Any,
@@ -60,7 +61,7 @@ T5 = TypeVar("T5")
 calculating = UniqueIdentifier("calculating")
 
 MAPPED_SEARCH_STRATEGY_DO_DRAW_LABEL = calc_label_from_name(
-    "another attempted draw in MappedSearchStrategy"
+    "another attempted draw in MappedStrategy"
 )
 
 FILTERED_SEARCH_STRATEGY_DO_DRAW_LABEL = calc_label_from_name(
@@ -346,7 +347,7 @@ class SearchStrategy(Generic[Ex]):
         """
         if is_identity_function(pack):
             return self  # type: ignore  # Mypy has no way to know that `Ex == T`
-        return MappedSearchStrategy(pack=pack, strategy=self)
+        return MappedStrategy(self, pack=pack)
 
     def flatmap(
         self, expand: Callable[[Ex], "SearchStrategy[T]"]
@@ -468,9 +469,6 @@ class SampledFromStrategy(SearchStrategy):
     """A strategy which samples from a set of elements. This is essentially
     equivalent to using a OneOfStrategy over Just strategies but may be more
     efficient and convenient.
-
-    The conditional distribution chooses uniformly at random from some
-    non-empty subset of the elements.
     """
 
     _MAX_FILTER_CALLS = 10_000
@@ -521,7 +519,10 @@ class SampledFromStrategy(SearchStrategy):
         # Used in UniqueSampledListStrategy
         for name, f in self._transformations:
             if name == "map":
-                element = f(element)
+                result = f(element)
+                if build_context := _current_build_context.value:
+                    build_context.record_call(result, f, [element], {})
+                element = result
             else:
                 assert name == "filter"
                 if not f(element):
@@ -794,18 +795,17 @@ def one_of(
     return OneOfStrategy(args)
 
 
-class MappedSearchStrategy(SearchStrategy[Ex]):
+class MappedStrategy(SearchStrategy[Ex]):
     """A strategy which is defined purely by conversion to and from another
     strategy.
 
     Its parameter and distribution come from that other strategy.
     """
 
-    def __init__(self, strategy, pack=None):
+    def __init__(self, strategy, pack):
         super().__init__()
         self.mapped_strategy = strategy
-        if pack is not None:
-            self.pack = pack
+        self.pack = pack
 
     def calc_is_empty(self, recur):
         return recur(self.mapped_strategy)
@@ -820,11 +820,6 @@ class MappedSearchStrategy(SearchStrategy[Ex]):
 
     def do_validate(self):
         self.mapped_strategy.validate()
-
-    def pack(self, x):
-        """Take a value produced by the underlying mapped_strategy and turn it
-        into a value suitable for outputting from this strategy."""
-        raise NotImplementedError(f"{self.__class__.__name__}.pack()")
 
     def do_draw(self, data: ConjectureData) -> Any:
         with warnings.catch_warnings():
@@ -847,9 +842,66 @@ class MappedSearchStrategy(SearchStrategy[Ex]):
     @property
     def branches(self) -> List[SearchStrategy[Ex]]:
         return [
-            MappedSearchStrategy(pack=self.pack, strategy=strategy)
+            MappedStrategy(strategy, pack=self.pack)
             for strategy in self.mapped_strategy.branches
         ]
+
+    def filter(self, condition: Callable[[Ex], Any]) -> "SearchStrategy[Ex]":
+        # Includes a special case so that we can rewrite filters on collection
+        # lengths, when most collections are `st.lists(...).map(the_type)`.
+        ListStrategy = _list_strategy_type()
+        if not isinstance(self.mapped_strategy, ListStrategy) or not (
+            (isinstance(self.pack, type) and issubclass(self.pack, abc.Collection))
+            or self.pack in _collection_ish_functions()
+        ):
+            return super().filter(condition)
+
+        # Check whether our inner list strategy can rewrite this filter condition.
+        # If not, discard the result and _only_ apply a new outer filter.
+        new = ListStrategy.filter(self.mapped_strategy, condition)
+        if getattr(new, "filtered_strategy", None) is self.mapped_strategy:
+            return super().filter(condition)  # didn't rewrite
+
+        # Apply a new outer filter even though we rewrote the inner strategy,
+        # because some collections can change the list length (dict, set, etc).
+        return FilteredStrategy(type(self)(new, self.pack), conditions=(condition,))
+
+
+@lru_cache
+def _list_strategy_type():
+    from hypothesis.strategies._internal.collections import ListStrategy
+
+    return ListStrategy
+
+
+def _collection_ish_functions():
+    funcs = [sorted]
+    if np := sys.modules.get("numpy"):
+        # c.f. https://numpy.org/doc/stable/reference/routines.array-creation.html
+        # Probably only `np.array` and `np.asarray` will be used in practice,
+        # but why should that stop us when we've already gone this far?
+        funcs += [
+            np.empty_like,
+            np.eye,
+            np.identity,
+            np.ones_like,
+            np.zeros_like,
+            np.array,
+            np.asarray,
+            np.asanyarray,
+            np.ascontiguousarray,
+            np.asmatrix,
+            np.copy,
+            np.rec.array,
+            np.rec.fromarrays,
+            np.rec.fromrecords,
+            np.diag,
+            # bonus undocumented functions from tab-completion:
+            np.asarray_chkfinite,
+            np.asfarray,
+            np.asfortranarray,
+        ]
+    return funcs
 
 
 filter_not_satisfied = UniqueIdentifier("filter not satisfied")

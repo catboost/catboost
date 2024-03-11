@@ -33,7 +33,10 @@ from typing import Any, Callable, Collection, Dict, NamedTuple, Optional, TypeVa
 
 from hypothesis.internal.compat import ceil, floor
 from hypothesis.internal.floats import next_down, next_up
-from hypothesis.internal.reflection import extract_lambda_source
+from hypothesis.internal.reflection import (
+    extract_lambda_source,
+    get_pretty_function_description,
+)
 
 Ex = TypeVar("Ex")
 Predicate = Callable[[Ex], bool]
@@ -63,6 +66,10 @@ class ConstructivePredicate(NamedTuple):
     @classmethod
     def unchanged(cls, predicate: Predicate) -> "ConstructivePredicate":
         return cls({}, predicate)
+
+    def __repr__(self) -> str:
+        fn = get_pretty_function_description(self.predicate)
+        return f"{self.__class__.__name__}(kwargs={self.kwargs!r}, predicate={fn})"
 
 
 ARG = object()
@@ -147,8 +154,8 @@ def merge_preds(*con_predicates: ConstructivePredicate) -> ConstructivePredicate
             elif kw["max_value"] == base["max_value"]:
                 base["exclude_max"] |= kw.get("exclude_max", False)
 
-    has_len = {"len" in kw for kw, _ in con_predicates}
-    assert len(has_len) == 1, "can't mix numeric with length constraints"
+    has_len = {"len" in kw for kw, _ in con_predicates if kw}
+    assert len(has_len) <= 1, "can't mix numeric with length constraints"
     if has_len == {True}:
         base["len"] = True
 

@@ -50,7 +50,7 @@ from hypothesis.strategies._internal.lazy import unwrap_strategies
 from hypothesis.strategies._internal.numbers import Real
 from hypothesis.strategies._internal.strategies import (
     Ex,
-    MappedSearchStrategy,
+    MappedStrategy,
     T,
     check_strategy,
 )
@@ -516,7 +516,7 @@ def arrays(
     # If there's a redundant cast to the requested dtype, remove it.  This unlocks
     # optimizations such as fast unique sampled_from, and saves some time directly too.
     unwrapped = unwrap_strategies(elements)
-    if isinstance(unwrapped, MappedSearchStrategy) and unwrapped.pack == dtype.type:
+    if isinstance(unwrapped, MappedStrategy) and unwrapped.pack == dtype.type:
         elements = unwrapped.mapped_strategy
     if isinstance(shape, int):
         shape = (shape,)

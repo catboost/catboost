@@ -122,7 +122,7 @@ from hypothesis.strategies._internal.flatmapped import FlatMapStrategy
 from hypothesis.strategies._internal.lazy import LazyStrategy, unwrap_strategies
 from hypothesis.strategies._internal.strategies import (
     FilteredStrategy,
-    MappedSearchStrategy,
+    MappedStrategy,
     OneOfStrategy,
     SampledFromStrategy,
 )
@@ -627,7 +627,7 @@ def _imports_for_strategy(strategy):
         strategy = unwrap_strategies(strategy)
 
     # Get imports for s.map(f), s.filter(f), s.flatmap(f), including both s and f
-    if isinstance(strategy, MappedSearchStrategy):
+    if isinstance(strategy, MappedStrategy):
         imports |= _imports_for_strategy(strategy.mapped_strategy)
         imports |= _imports_for_object(strategy.pack)
     if isinstance(strategy, FilteredStrategy):
