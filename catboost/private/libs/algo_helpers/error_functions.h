@@ -430,6 +430,7 @@ public:
     explicit TCoxError(bool isExpApprox, ui32 maxDerivativeOrder = 3)
         : IDerCalcer(isExpApprox, maxDerivativeOrder)
     {
+        CB_ENSURE_INTERNAL(!isExpApprox, "Cox objective requires isExpApprox == false");
     }
 
     void CalcDersRange(

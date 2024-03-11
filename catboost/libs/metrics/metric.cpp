@@ -877,7 +877,7 @@ TVector<TParamSet> TCoxMetric::ValidParamSets() {
 
 TMetricHolder TCoxMetric::Eval(
     TConstArrayRef<TConstArrayRef<double>> approx,
-    TConstArrayRef<TConstArrayRef<double>> /*approxDelta*/,
+    TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> targets,
     TConstArrayRef<float> /*weight*/,
@@ -891,46 +891,49 @@ TMetricHolder TCoxMetric::Eval(
     TMetricHolder error(2);
     error.Stats[1] = 1;
 
-    TVector<size_t> labelOrder(targets.ysize());
+    const auto ndata = targets.ysize();
+    TVector<int> labelOrder(ndata);
     std::iota(labelOrder.begin(), labelOrder.end(), 0);
-    std::sort(labelOrder.begin(), labelOrder.end(), [&]
-        (size_t lhs, size_t rhs){
+    std::sort(
+        labelOrder.begin(),
+        labelOrder.end(),
+        [=] (int lhs, int rhs) {
             return std::abs(targets[lhs]) < std::abs(targets[rhs]);
         }
     );
 
-    const yssize_t ndata = targets.ysize();
+    const auto approxRef = approx[0];
+    const auto approxDeltaRef = GetRowRef(approxDelta, /*row idx*/ 0);
+    const auto getApprox = [=] (int i) {
+        return approxRef[i] + (approxDelta.empty() ? 0 : approxDeltaRef[i]);
+    };
+
     double expPSum = 0;
-    for (yssize_t i = 0; i < ndata; ++i) {
-        expPSum += std::exp(approx[0][i]);
+    for (auto i = 0; i < ndata; ++i) {
+        expPSum += std::exp(getApprox(i));
     }
 
     double lastExpP = 0.0;
-    double lastAbsY = 0.0;
     double accumulatedSum = 0;
-    for (yssize_t i = 0; i < ndata; ++i) {
-        const size_t ind = labelOrder[i];
+    for (auto i : xrange(ndata)) {
+        const int ind = labelOrder[i];
 
         const double y = targets[ind];
-        const double absY = std::abs(y);
 
-        const double p = approx[0][ind];
+        const double p = getApprox(ind);
         const double expP = std::exp(p);
 
         accumulatedSum += lastExpP;
-        if (lastAbsY < absY) {
-            expPSum -= accumulatedSum;
-            accumulatedSum = 0;
-        }
 
         if (y > 0) {
-            error.Stats[0] += p - std::log(expPSum);
+            expPSum -= accumulatedSum;
+            accumulatedSum = 0;
+            error.Stats[0] += p - std::log(std::max(expPSum, 1e-20));
         }
 
-        lastAbsY = absY;
         lastExpP = expP;
     }
-    error.Stats[0] = - error.Stats[0];
+    error.Stats[0] = error.Stats[0];
 
     return error;
 }
