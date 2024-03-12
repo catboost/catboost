@@ -698,7 +698,7 @@ struct TSerializer<std::variant<Args...>> {
 private:
     template <size_t... Is>
     static void LoadImpl(IInputStream* is, TVar& v, ui8 index, std::index_sequence<Is...>) {
-        using TLoader = void (*)(IInputStream*, TVar & v);
+        using TLoader = void (*)(IInputStream*, TVar& v);
         constexpr TLoader loaders[] = {::NPrivate::LoadVariantAlternative<TVar, Args, Is>...};
         loaders[index](is, v);
     }

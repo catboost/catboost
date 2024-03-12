@@ -321,11 +321,10 @@ namespace NPrivate {
     using std::end;
 
     template <typename T>
-    auto IsIterableImpl(int) -> decltype(
-        begin(std::declval<T&>()) != end(std::declval<T&>()),   // begin/end and operator !=
-        ++std::declval<decltype(begin(std::declval<T&>()))&>(), // operator ++
-        *begin(std::declval<T&>()),                             // operator*
-        std::true_type{});
+    auto IsIterableImpl(int) -> decltype(begin(std::declval<T&>()) != end(std::declval<T&>()),   // begin/end and operator !=
+                                         ++std::declval<decltype(begin(std::declval<T&>()))&>(), // operator ++
+                                         *begin(std::declval<T&>()),                             // operator*
+                                         std::true_type{});
 
     template <typename T>
     std::false_type IsIterableImpl(...);

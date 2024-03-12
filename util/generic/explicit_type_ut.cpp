@@ -5,7 +5,9 @@
 struct TCallableBase {
 public:
     using TYes = char;
-    using TNo = struct { TYes dummy[32]; };
+    using TNo = struct {
+        TYes dummy[32];
+    };
 
     template <class T, class Arg>
     static TNo Test(const T&, const Arg&, ...);
