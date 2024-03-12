@@ -1,8 +1,12 @@
 Metadata-Version: 2.1
 Name: ipykernel
-Version: 6.29.2
+Version: 6.29.3
 Summary: IPython Kernel for Jupyter
 Project-URL: Homepage, https://ipython.org
+Project-URL: Documentation, https://ipykernel.readthedocs.io
+Project-URL: Funding, https://numfocus.org/donate
+Project-URL: Source, https://github.com/ipython/ipykernel
+Project-URL: Tracker, https://github.com/ipython/ipykernel/issues
 Author-email: IPython Development Team <ipython-dev@scipy.org>
 License: BSD 3-Clause License
         
@@ -78,7 +82,7 @@ Provides-Extra: test
 Requires-Dist: flaky; extra == 'test'
 Requires-Dist: ipyparallel; extra == 'test'
 Requires-Dist: pre-commit; extra == 'test'
-Requires-Dist: pytest-asyncio==0.23.4; extra == 'test'
+Requires-Dist: pytest-asyncio>=0.23.5; extra == 'test'
 Requires-Dist: pytest-cov; extra == 'test'
 Requires-Dist: pytest-timeout; extra == 'test'
 Requires-Dist: pytest>=7.0; extra == 'test'

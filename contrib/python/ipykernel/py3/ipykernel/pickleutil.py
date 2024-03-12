@@ -2,24 +2,22 @@
 
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
+import copy
+import pickle
+import sys
 import typing
 import warnings
+from types import FunctionType
+
+# This registers a hook when it's imported
+from traitlets.log import get_logger
+from traitlets.utils.importstring import import_item
 
 warnings.warn(
     "ipykernel.pickleutil is deprecated. It has moved to ipyparallel.",
     DeprecationWarning,
     stacklevel=2,
 )
-
-import copy
-import pickle
-import sys
-from types import FunctionType
-
-# This registers a hook when it's imported
-from ipyparallel.serialize import codeutil
-from traitlets.log import get_logger
-from traitlets.utils.importstring import import_item
 
 buffer = memoryview
 class_type = type

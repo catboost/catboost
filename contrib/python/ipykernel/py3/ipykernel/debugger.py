@@ -21,7 +21,7 @@ from .compiler import get_file_name, get_tmp_directory, get_tmp_hash_seed
 
 try:
     # This import is required to have the next ones working...
-    from debugpy.server import api
+    from debugpy.server import api  # noqa: F401
 
     from _pydevd_bundle import pydevd_frame_utils  # isort: skip
     from _pydevd_bundle.pydevd_suspended_frames import (  # isort: skip
@@ -610,7 +610,7 @@ class Debugger:
         }
 
     async def inspectVariables(self, message):
-        """Handle an insepct variables message."""
+        """Handle an inspect variables message."""
         self.variable_explorer.untrack_all()
         # looks like the implementation of untrack_all in ptvsd
         # destroys objects we nee din track. We have no choice but

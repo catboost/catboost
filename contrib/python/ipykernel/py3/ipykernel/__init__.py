@@ -4,4 +4,4 @@ from ._version import (
     kernel_protocol_version_info,
     version_info,
 )
-from .connect import *
+from .connect import *  # noqa: F403

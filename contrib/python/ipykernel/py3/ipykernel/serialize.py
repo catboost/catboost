@@ -3,15 +3,8 @@
 # Copyright (c) IPython Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-import warnings
-
-warnings.warn(
-    "ipykernel.serialize is deprecated. It has moved to ipyparallel.serialize",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
 import pickle
+import warnings
 from itertools import chain
 
 try:
@@ -40,6 +33,12 @@ except ImportError:
     )
 
 from jupyter_client.session import MAX_BYTES, MAX_ITEMS
+
+warnings.warn(
+    "ipykernel.serialize is deprecated. It has moved to ipyparallel.serialize",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 # -----------------------------------------------------------------------------
 # Serialization Functions

@@ -472,7 +472,7 @@ class Kernel(SingletonConfigurable):
             self.log.info("Exiting as there is no eventloop")
             return
 
-        def advance_eventloop():
+        async def advance_eventloop():
             # check if eventloop changed:
             if self.eventloop is not eventloop:
                 self.log.info("exiting eventloop %s", eventloop)
@@ -494,10 +494,13 @@ class Kernel(SingletonConfigurable):
 
         def schedule_next():
             """Schedule the next advance of the eventloop"""
-            # flush the eventloop every so often,
-            # giving us a chance to handle messages in the meantime
+            # call_later allows the io_loop to process other events if needed.
+            # Going through schedule_dispatch ensures all other dispatches on msg_queue
+            # are processed before we enter the eventloop, even if the previous dispatch was
+            # already consumed from the queue by process_one and the queue is
+            # technically empty.
             self.log.debug("Scheduling eventloop advance")
-            self.io_loop.call_later(0.001, advance_eventloop)
+            self.io_loop.call_later(0.001, partial(self.schedule_dispatch, advance_eventloop))
 
         # begin polling the eventloop
         schedule_next()
@@ -1202,9 +1205,18 @@ class Kernel(SingletonConfigurable):
         # before we reset the flag
         schedule_stop_aborting = partial(self.schedule_dispatch, stop_aborting)
 
-        # if we have a delay, give messages this long to arrive on the queue
-        # before we stop aborting requests
-        asyncio.get_event_loop().call_later(self.stop_on_error_timeout, schedule_stop_aborting)
+        if self.stop_on_error_timeout:
+            # if we have a delay, give messages this long to arrive on the queue
+            # before we stop aborting requests
+            self.io_loop.call_later(self.stop_on_error_timeout, schedule_stop_aborting)
+            # If we have an eventloop, it may interfere with the call_later above.
+            # If the loop has a _schedule_exit method, we call that so the loop exits
+            # after stop_on_error_timeout, returning to the main io_loop and letting
+            # the call_later fire.
+            if self.eventloop is not None and hasattr(self.eventloop, "_schedule_exit"):
+                self.eventloop._schedule_exit(self.stop_on_error_timeout + 0.01)
+        else:
+            schedule_stop_aborting()
 
     def _send_abort_reply(self, stream, msg, idents):
         """Send a reply to an aborted request"""

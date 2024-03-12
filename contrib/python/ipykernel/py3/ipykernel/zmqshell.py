@@ -612,7 +612,7 @@ class ZMQInteractiveShell(InteractiveShell):
         """Initialize magics."""
         super().init_magics()
         self.register_magics(KernelMagics)
-        self.magics_manager.register_alias("ed", "edit")  # type:ignore[union-attr]
+        self.magics_manager.register_alias("ed", "edit")
 
     def init_virtualenv(self):
         """Initialize virtual environment."""

@@ -1,16 +1,10 @@
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+
 """Publishing native (typically pickled) objects.
 """
 
 import warnings
-
-warnings.warn(
-    "ipykernel.datapub is deprecated. It has moved to ipyparallel.datapub",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
-# Copyright (c) IPython Development Team.
-# Distributed under the terms of the Modified BSD License.
 
 from traitlets import Any, CBytes, Dict, Instance
 from traitlets.config import Configurable
@@ -25,6 +19,12 @@ except ImportError:
     from ipykernel.serialize import serialize_object
 
 from jupyter_client.session import Session, extract_header
+
+warnings.warn(
+    "ipykernel.datapub is deprecated. It has moved to ipyparallel.datapub",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class ZMQDataPublisher(Configurable):

@@ -82,6 +82,11 @@ def _notify_stream_qt(kernel):
         def enum_helper(name):
             return operator.attrgetter(name.rpartition(".")[0])(sys.modules[QtCore.__package__])
 
+    def exit_loop():
+        """fall back to main loop"""
+        kernel._qt_notifier.setEnabled(False)
+        kernel.app.qt_event_loop.quit()
+
     def process_stream_events():
         """fall back to main loop when there's a socket event"""
         # call flush to ensure that the stream doesn't lose events
@@ -89,8 +94,7 @@ def _notify_stream_qt(kernel):
         # flush returns the number of events consumed.
         # if there were any, wake it up
         if kernel.shell_stream.flush(limit=1):
-            kernel._qt_notifier.setEnabled(False)
-            kernel.app.qt_event_loop.quit()
+            exit_loop()
 
     if not hasattr(kernel, "_qt_notifier"):
         fd = kernel.shell_stream.getsockopt(zmq.FD)
@@ -101,6 +105,23 @@ def _notify_stream_qt(kernel):
     else:
         kernel._qt_notifier.setEnabled(True)
 
+    # allow for scheduling exits from the loop in case a timeout needs to
+    # be set from the kernel level
+    def _schedule_exit(delay):
+        """schedule fall back to main loop in [delay] seconds"""
+        # The signatures of QtCore.QTimer.singleShot are inconsistent between PySide and PyQt
+        # if setting the TimerType, so we create a timer explicitly and store it
+        # to avoid a memory leak.
+        # PreciseTimer is needed so we exit after _at least_ the specified delay, not within 5% of it
+        if not hasattr(kernel, "_qt_timer"):
+            kernel._qt_timer = QtCore.QTimer(kernel.app)
+            kernel._qt_timer.setSingleShot(True)
+            kernel._qt_timer.setTimerType(enum_helper("QtCore.Qt.TimerType").PreciseTimer)
+            kernel._qt_timer.timeout.connect(exit_loop)
+        kernel._qt_timer.start(int(1000 * delay))
+
+    loop_qt._schedule_exit = _schedule_exit
+
     # there may already be unprocessed events waiting.
     # these events will not wake zmq's edge-triggered FD
     # since edge-triggered notification only occurs on new i/o activity.
@@ -108,11 +129,7 @@ def _notify_stream_qt(kernel):
     # so we start in a clean state ensuring that any new i/o events will notify.
     # schedule first call on the eventloop as soon as it's running,
     # so we don't block here processing events
-    if not hasattr(kernel, "_qt_timer"):
-        kernel._qt_timer = QtCore.QTimer(kernel.app)
-        kernel._qt_timer.setSingleShot(True)
-        kernel._qt_timer.timeout.connect(process_stream_events)
-    kernel._qt_timer.start(0)
+    QtCore.QTimer.singleShot(0, process_stream_events)
 
 
 @register_integration("qt", "qt5", "qt6")
@@ -229,23 +246,33 @@ def loop_tk(kernel):
                 self.app = app
                 self.app.withdraw()
 
-        def process_stream_events(stream, *a, **kw):
+        def exit_loop():
+            """fall back to main loop"""
+            app.tk.deletefilehandler(kernel.shell_stream.getsockopt(zmq.FD))
+            app.quit()
+            app.destroy()
+            del kernel.app_wrapper
+
+        def process_stream_events(*a, **kw):
             """fall back to main loop when there's a socket event"""
-            if stream.flush(limit=1):
-                app.tk.deletefilehandler(stream.getsockopt(zmq.FD))
-                app.quit()
-                app.destroy()
-                del kernel.app_wrapper
+            if kernel.shell_stream.flush(limit=1):
+                exit_loop()
+
+        # allow for scheduling exits from the loop in case a timeout needs to
+        # be set from the kernel level
+        def _schedule_exit(delay):
+            """schedule fall back to main loop in [delay] seconds"""
+            app.after(int(1000 * delay), exit_loop)
+
+        loop_tk._schedule_exit = _schedule_exit
 
         # For Tkinter, we create a Tk object and call its withdraw method.
         kernel.app_wrapper = BasicAppWrapper(app)
-
-        notifier = partial(process_stream_events, kernel.shell_stream)
-        # seems to be needed for tk
-        notifier.__name__ = "notifier"  # type:ignore[attr-defined]
-        app.tk.createfilehandler(kernel.shell_stream.getsockopt(zmq.FD), READABLE, notifier)
+        app.tk.createfilehandler(
+            kernel.shell_stream.getsockopt(zmq.FD), READABLE, process_stream_events
+        )
         # schedule initial call after start
-        app.after(0, notifier)
+        app.after(0, process_stream_events)
 
         app.mainloop()
 
@@ -484,24 +511,24 @@ def set_qt_api_env_from_gui(gui):
     else:
         if gui == "qt5":
             try:
-                import PyQt5
+                import PyQt5  # noqa: F401
 
                 os.environ["QT_API"] = "pyqt5"
             except ImportError:
                 try:
-                    import PySide2
+                    import PySide2  # noqa: F401
 
                     os.environ["QT_API"] = "pyside2"
                 except ImportError:
                     os.environ["QT_API"] = "pyqt5"
         elif gui == "qt6":
             try:
-                import PyQt6
+                import PyQt6  # noqa: F401
 
                 os.environ["QT_API"] = "pyqt6"
             except ImportError:
                 try:
-                    import PySide6
+                    import PySide6  # noqa: F401
 
                     os.environ["QT_API"] = "pyside6"
                 except ImportError:
@@ -516,7 +543,7 @@ def set_qt_api_env_from_gui(gui):
 
     # Do the actual import now that the environment variable is set to make sure it works.
     try:
-        from IPython.external.qt_for_kernel import QtCore, QtGui
+        pass
     except Exception as e:
         # Clear the environment variable for the next attempt.
         if "QT_API" in os.environ:
@@ -560,6 +587,10 @@ def enable_gui(gui, kernel=None):
         # User wants to turn off integration; clear any evidence if Qt was the last one.
         if hasattr(kernel, "app"):
             delattr(kernel, "app")
+        if hasattr(kernel, "_qt_notifier"):
+            delattr(kernel, "_qt_notifier")
+        if hasattr(kernel, "_qt_timer"):
+            delattr(kernel, "_qt_timer")
     else:
         if gui.startswith("qt"):
             # Prepare the kernel here so any exceptions are displayed in the client.
