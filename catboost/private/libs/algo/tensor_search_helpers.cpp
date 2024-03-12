@@ -666,7 +666,7 @@ void CalcWeightedDerivatives(
             } else {
                 error.CalcFirstDerRange(
                     /*start*/ 0,
-                    /*count*/ target.size(),
+                    /*count*/ tailFinish,
                     /*approx*/ approx[0].data(),
                     /*approx deltas*/ nullptr,
                     /*targets*/ target.data(),

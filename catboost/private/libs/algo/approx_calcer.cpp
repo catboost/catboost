@@ -122,6 +122,7 @@ static void CalcApproxDers(
     TLearnContext* ctx) {
     NPar::ILocalExecutor::TExecRangeParams blockParams(sampleStart, sampleFinish);
     blockParams.SetBlockSize(AdjustBlockSize(sampleFinish - sampleStart, APPROX_BLOCK_SIZE));
+    // todo(espetrov): this is ordered boosting -- support Cox here some day
     ctx->LocalExecutor->ExecRangeWithThrow(
         [&](int blockId) {
             const int blockOffset = sampleStart + blockId * blockParams.GetBlockSize();
@@ -291,6 +292,7 @@ static void CalcLeafCoxDers(
     // Check speedup on flights dataset.
     TVector<TVector<double>> blockBucketSumWeights(blockParams.GetBlockCount(), TVector<double>(leafCount, 0));
     TVector<double>* blockBucketSumWeightsData = blockBucketSumWeights.data();
+    CB_ENSURE_INTERNAL(weightedDers.size() >= targets.size(), "Temporary buffer is too small");
     error.CalcDersRange(
         0,
         targets.size(),
@@ -302,17 +304,13 @@ static void CalcLeafCoxDers(
         weightedDers.data());
     localExecutor->ExecRangeWithThrow(
         [=](int blockId) {
-            constexpr int innerBlockSize = APPROX_BLOCK_SIZE;
-            const auto approxDers = MakeArrayRef(
-                weightedDers.data() + innerBlockSize * blockId,
-                innerBlockSize);
-
             const int blockStart = blockId * blockParams.GetBlockSize();
             const int nextBlockStart = Min(sampleCount, blockStart + blockParams.GetBlockSize());
+            const auto approxDers = MakeArrayRef(weightedDers.data() + blockStart, blockParams.GetBlockSize());
 
             const auto bucketDers = MakeArrayRef(blockBucketDersData[blockId].data(), leafCount);
             const auto bucketSumWeights = MakeArrayRef(blockBucketSumWeightsData[blockId].data(), leafCount);
-
+            const int innerBlockSize = Min(blockParams.GetBlockSize(), APPROX_BLOCK_SIZE);
             for (int innerBlockStart = blockStart;
                  innerBlockStart < nextBlockStart;
                  innerBlockStart += innerBlockSize) {
@@ -391,6 +389,7 @@ void CalcLeafDersSimple(
     }
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         if (dynamic_cast<const TCoxError*>(&error) != nullptr) {
+            scratchDers->yresize(fold.GetLearnSampleCount());
             CalcLeafCoxDers(
                 indices,
                 fold.LearnTarget[0],
@@ -405,6 +404,7 @@ void CalcLeafDersSimple(
                 *leafDers,
                 *scratchDers);
         } else {
+            scratchDers->yresize(APPROX_BLOCK_SIZE * CB_THREAD_LIMIT);
             CalcLeafDers(
                 indices,
                 fold.LearnTarget[0],
@@ -441,6 +441,7 @@ void CalcLeafDersSimple(
         const TVector<TQueryInfo>& queriesInfo = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : fold.LearnQueriesInfo;
         const TVector<float>& weights = bt.PairwiseWeights.empty() ? fold.GetLearnWeights() : shouldGenerateYetiRankPairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
 
+        scratchDers->yresize(fold.GetLearnSampleCount());
         CalculateDersForQueries(
             approxes,
             approxDeltas,
@@ -608,7 +609,7 @@ static void UpdateApproxDeltasHistorically(
     TLearnContext* ctx,
     TArrayRef<TSum> leafDers,
     TVector<double>* approxDeltas,
-    TArrayRef<TDers> approxDers) {
+    TVector<TDers>* approxDers) {
     Y_ASSERT(fold.LearnTarget.size() == 1);
     TVector<TQueryInfo> recalculatedQueriesInfo;
     TVector<float> recalculatedPairwiseWeights;
@@ -628,6 +629,8 @@ static void UpdateApproxDeltasHistorically(
     const TVector<float>& weights = bt.PairwiseWeights.empty() ? fold.GetLearnWeights() : shouldGenerateYetiRankPairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
 
     if (error.GetErrorType() == EErrorType::PerObjectError) {
+        // todo(espetrov): Cox needs approxDers.size() >= bt.TailFinish
+        approxDers->yresize(APPROX_BLOCK_SIZE * CB_THREAD_LIMIT);
         CalcApproxDers(
             bt.Approx[0],
             *approxDeltas,
@@ -636,12 +639,13 @@ static void UpdateApproxDeltasHistorically(
             error,
             bt.BodyFinish,
             bt.TailFinish,
-            approxDers,
+            *approxDers,
             ctx);
     } else {
         Y_ASSERT(
             error.GetErrorType() == EErrorType::QuerywiseError ||
             error.GetErrorType() == EErrorType::PairwiseError);
+        approxDers->yresize(fold.GetLearnSampleCount());
         CalculateDersForQueries(
             bt.Approx[0],
             *approxDeltas,
@@ -651,7 +655,7 @@ static void UpdateApproxDeltasHistorically(
             error,
             bt.BodyQueryFinish,
             bt.TailQueryFinish,
-            approxDers,
+            *approxDers,
             randomSeed,
             localExecutor);
     }
@@ -663,7 +667,7 @@ static void UpdateApproxDeltasHistorically(
         count,
         indices,
         weights,
-        approxDers,
+        *approxDers,
         l2Regularizer,
         bt.BodySumWeight,
         estimationMethod,
@@ -709,17 +713,13 @@ static void CalcApproxDeltaSimple(
     TVector<TVector<double>>* approxDeltas,
     TVector<TVector<double>>* sumLeafDeltas) {
     Y_ASSERT(fold.LearnTarget.size() == 1);
-    const int scratchSize = Max(
-        !ctx->Params.BoostingOptions->ApproxOnFullHistory ? 0 : bt.TailFinish - bt.BodyFinish,
-        error.GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT : bt.BodyFinish);
-    TVector<TDers> weightedDers;
-    weightedDers.yresize(scratchSize); // iteration scratch space
 
     const auto treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const ui32 gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
     const auto estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     TVector<TSum> leafDers(leafCount, TSum()); // iteration scratch space
     TArray2D<double> pairwiseBuckets;          // iteration scratch space
+    TVector<TDers> weightedDers;               // iteration scratch space
     const bool treeHasMonotonicConstraints = AnyOf(
         treeMonotoneConstraints,
         [](int val) { return val != 0; });
@@ -832,7 +832,7 @@ static void CalcApproxDeltaSimple(
                 ctx,
                 localLeafDers,
                 &(*approxDeltas)[0],
-                weightedDers);
+                &weightedDers);
         }
     };
 
@@ -904,11 +904,6 @@ static void CalcLeafValuesSimple(
     TLearnContext* ctx,
     TVector<TVector<double>>* sumLeafDeltas) {
     Y_ASSERT(fold.LearnTarget.size() == 1);
-    const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError
-                                ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
-                                : fold.GetLearnSampleCount();
-    TVector<TDers> weightedDers;
-    weightedDers.yresize(scratchSize);
     sumLeafDeltas->assign(1, TVector<double>(leafCount));
 
     const int queryCount = fold.LearnQueriesInfo.ysize();
@@ -927,6 +922,7 @@ static void CalcLeafValuesSimple(
     CopyApprox(bt.Approx, &approxes, ctx->LocalExecutor);
     TVector<TSum> leafDers(leafCount, TSum()); // iteration scratch space
     TArray2D<double> pairwiseBuckets;          // iteration scratch space
+    TVector<TDers> weightedDers;               // iteration scratch space
     const auto leafUpdaterFunc = [&](
                                      bool recalcLeafWeights,
                                      const TVector<TVector<double>>& approxes,

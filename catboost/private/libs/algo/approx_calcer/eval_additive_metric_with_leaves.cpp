@@ -66,14 +66,13 @@ TMetricHolder EvalErrorsWithLeaves(
         }
     }
 
-    NPar::TLocalExecutor sequentialExecutor;
+    const size_t MaxQueryBlockSize = error.IsAdditiveMetric() ? 4096 : target[0].size();
     const auto evalMetric = [&] (int from, int to) { // objects or queries
         TVector<TConstArrayRef<double>> approxBlock(approxDimension, TArrayRef<double>{});
         TVector<TConstArrayRef<float>> targetBlock(target.size(), TArrayRef<float>{});
 
         const bool isObjectwise = error.GetErrorType() == EErrorType::PerObjectError;
         CB_ENSURE(isObjectwise || !queriesInfo.empty(), "Need queries to evaluate metric " + error.GetDescription());
-        constexpr size_t MaxQueryBlockSize = 4096;
         int maxApproxBlockSize = MaxQueryBlockSize;
         if (!isObjectwise) {
             const auto maxQuerySize = MaxElementBy(
@@ -88,6 +87,7 @@ TMetricHolder EvalErrorsWithLeaves(
         TVector<TQueryInfo> queriesInfoBlock(MaxQueryBlockSize);
 
         TMetricHolder result;
+        NPar::TLocalExecutor sequentialExecutor;
         for (int idx = from; idx < to; /*see below*/) {
             const int nextIdx = GetNextIdx(isObjectwise, queriesInfo, to, maxApproxBlockSize, idx);
             const int approxBlockSize = GetBlockSize(isObjectwise, queriesInfo, idx, nextIdx);
@@ -143,6 +143,6 @@ TMetricHolder EvalErrorsWithLeaves(
     if (error.IsAdditiveMetric()) {
         return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, *localExecutor);
     } else {
-        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, sequentialExecutor);
+        return evalMetric(begin, end);
     }
 }

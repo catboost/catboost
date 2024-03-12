@@ -453,7 +453,8 @@ bool IsPlainOnlyModeLoss(ELossFunction loss) {
     return (
         loss == ELossFunction::YetiRankPairwise ||
         loss == ELossFunction::PairLogitPairwise ||
-        loss == ELossFunction::QueryCrossEntropy
+        loss == ELossFunction::QueryCrossEntropy ||
+        loss == ELossFunction::Cox
     );
 }
 
