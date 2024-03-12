@@ -79,18 +79,15 @@ The path to the input file{% if audience == "internal" %} or table{% endif %} th
 
 #### Description
 
-The target variables (in other words, the objects' label values) for the training dataset.
+The target variables (in other words, the objects' label values).
 
-Must be in the form of a one-dimensional array. The type of data in the array depends on the machine learning task being solved:
-- Regression , multiregression and ranking  — Numeric values.
-- Binary classification — Numeric values.
+{% include [methods-param-desc-label--detailed-desc-generic](../_includes/work_src/reusage/label--detailed-desc-generic.md) %}
 
-    The interpretation of numeric values depends on the selected loss function:
+{% note info %}
 
-    - {{ error-function--Logit }} — The value is considered a positive class if it is strictly greater than the value of the `` parameter of the loss function. Otherwise, it is considered a negative class.
-    - {{ error-function--CrossEntropy }} — The value is interpreted as the probability that the dataset object belongs to the positive class. Possible values are in the range `[0; 1]`.
+If `data` parameter points to a file, label data is loaded from it as well. This parameter must be `None` in this case.
 
-- Multiclassification — Integers or strings that represents the labels of the classes.
+{% endnote %}
 
 **Possible types**
 

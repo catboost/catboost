@@ -71,11 +71,9 @@ The input training dataset in the form of a two-dimensional feature matrix.
 
 #### Description
 
-{% include [methods-param-desc-label--short-desc1](../_includes/work_src/reusage/label--short-desc1.md) %}
+{% include [methods-param-desc-label--short-desc-training](../_includes/work_src/reusage/label--short-desc-training.md) %}
 
-
-{% include [methods-param-desc-label--short-desc2](../_includes/work_src/reusage/label--short-desc2.md) %}
-
+{% include [methods-param-desc-label--detailed-desc-classification](../_includes/work_src/reusage/label--detailed-desc-classification.md) %}
 
 {% note info %}
 
@@ -83,21 +81,7 @@ Do not use this parameter if the input training dataset (specified in the `X` pa
 
 {% endnote %}
 
-**Possible types**
-
-- {{ python-type--list }}
-- {{ python-type--numpy-ndarray }}
-- {{ python-type--pandasDataFrame }}
-- {{ python-type--pandasSeries }}
-
-**Default value**
-
-None
-
-**Supported processing units**
-
-{{ cpu-gpu }}
-
+{% include [methods-param-desc-label--possible-types-default-supported-processing-units](../_includes/work_src/reusage/label--possible-types-default-supported-processing-units.md) %}
 
 
 ### eval_set

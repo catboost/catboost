@@ -70,7 +70,8 @@ Special class for features data. See [FeaturesData](python-features-data__desc.
 
 #### Description
 
-Training data labels (numerical). 1-dimensional array like.
+Labels of the training data.
+Must be a single-dimensional array with numerical values.
 
 **Possible types**
 

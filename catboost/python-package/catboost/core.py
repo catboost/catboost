@@ -639,8 +639,10 @@ class Pool(_PoolBase):
               If string starts with "quantized://", the file has to contain quantized dataset saved with Pool.save().
 
         label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series, optional (default=None)
-            Label of the training data.
-            If not None, giving 1 or 2 dimensional array like data with floats.
+            Labels data.
+            If not None, can be a single- or two- dimensional array with either:
+              - numerical values - for regression (including multiregression), ranking and binary classification problems
+              - class labels (boolean, integer or string) - for classification (including multiclassification) problems
             If `data` parameter points to a file, Label data is loaded from it as well. This parameter must
               be None in this case.
 
@@ -2454,8 +2456,11 @@ class CatBoost(_CatBoostBase):
              Must be non-empty (contain > 0 objects)
 
         y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-            Labels, 1 dimensional array like.
-            Use only if X is not catboost.Pool.
+            Labels of the training data.
+            If not None, can be a single- or two- dimensional array with either:
+              - numerical values - for regression (including multiregression), ranking and binary classification problems
+              - class labels (boolean, integer or string) - for classification (including multiclassification) problems
+            Use only if X is not catboost.Pool and does not point to a file.
 
         cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
@@ -4101,9 +4106,12 @@ class CatBoost(_CatBoostBase):
         X: numpy.ndarray or pandas.DataFrame or catboost.Pool
             Data to compute statistics on
 
-        y: numpy.ndarray or pandas.Series or None
-            Target corresponding to data
-            Use only if data is not catboost.Pool.
+        y: list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+            Labels of the training data.
+            If not None, can be a single- or two- dimensional array with either:
+              - numerical values - for regression (including multiregression), ranking and binary classification problems
+              - class labels (boolean, integer or string) - for classification (including multiclassification) problems
+            Use only if X is not catboost.Pool and does not point to a file.
 
         cv: int, cross-validation generator or an iterable, optional (default=None)
             Determines the cross-validation splitting strategy. Possible inputs for cv are:
@@ -4208,9 +4216,12 @@ class CatBoost(_CatBoostBase):
         X: numpy.ndarray or pandas.DataFrame or catboost.Pool
             Data to compute statistics on
 
-        y: numpy.ndarray or pandas.Series or None
-            Target corresponding to data
-            Use only if data is not catboost.Pool.
+        y: list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
+            Labels of the training data.
+            If not None, can be a single- or two- dimensional array with either:
+              - numerical values - for regression (including multiregression), ranking and binary classification problems
+              - class labels (boolean, integer or string) - for classification (including multiclassification) problems
+            Use only if X is not catboost.Pool and does not point to a file.
 
         cv: int, cross-validation generator or an iterable, optional (default=None)
             Determines the cross-validation splitting strategy. Possible inputs for cv are:
@@ -4309,8 +4320,11 @@ class CatBoost(_CatBoostBase):
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
         y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-            Labels, 1 dimensional array like.
-            Use only if X is not catboost.Pool.
+            Labels of the training data.
+            If not None, can be a single- or two- dimensional array with either:
+              - numerical values - for regression (including multiregression), ranking and binary classification problems
+              - class labels (boolean, integer or string) - for classification (including multiclassification) problems
+            Use only if X is not catboost.Pool and does not point to a file.
 
         eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
             Validation dataset or datasets for metrics calculation and possibly early stopping.
@@ -5107,8 +5121,11 @@ class CatBoostClassifier(CatBoost):
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
         y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-            Labels, 1 dimensional array like.
-            Use only if X is not catboost.Pool.
+            Labels of the training data.
+            If not None, can be a single- or two- dimensional array with either:
+              - numerical values - for binary classification problems
+              - class labels (boolean, integer or string)
+            Use only if X is not catboost.Pool and does not point to a file.
 
         cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
@@ -5713,8 +5730,9 @@ class CatBoostRegressor(CatBoost):
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
         y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-            Labels, 1 dimensional array like.
-            Use only if X is not catboost.Pool.
+            Labels of the training data.
+            If not None, can be a single- or two- dimensional array with numerical values.
+            Use only if X is not catboost.Pool and does not point to a file.
 
         cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
@@ -6111,8 +6129,9 @@ class CatBoostRanker(CatBoost):
         X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
         y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-            Labels, 1 dimensional array like.
-            Use only if X is not catboost.Pool.
+            Labels of the training data.
+            If not None, can be a single-dimensional array with numerical values.
+            Use only if X is not catboost.Pool and does not point to a file.
         group_id : numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Ranking groups, 1 dimensional array like.
             Use only if X is not catboost.Pool.
@@ -6489,7 +6508,8 @@ def sample_gaussian_process(X, y, eval_set=None,
         If catboost.FeaturesData it must be 2 dimensional Feature matrix
         Must be non-empty (contain > 0 objects)
     y : list or numpy.ndarray or pandas.DataFrame or pandas.Series
-        Labels, 1 dimensional array like.
+        Labels of the training data.
+        Must be a single-dimensional array with numerical values.
     eval_set : catboost.Pool or list of catboost.Pool or tuple (X, y) or list [(X, y)], optional (default=None)
         Validation dataset or datasets for metrics calculation and possibly early stopping in posterior training.
     cat_features : list or numpy.ndarray, optional (default=None)

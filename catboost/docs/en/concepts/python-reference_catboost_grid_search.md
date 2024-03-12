@@ -81,19 +81,9 @@ The input training dataset in the form of a two-dimensional sparse feature matri
 
 #### Description
 
-The target variables (in other words, the objects' label values) for the training dataset.
+{% include [methods-param-desc-label--short-desc-training](../_includes/work_src/reusage/label--short-desc-training.md) %}
 
-Must be in the form of a one-dimensional array. The type of data in the array depends on the machine learning task being solved:
-- Regression , multiregression and ranking — Numeric values.
-
-- Binary classification — Numeric values.
-
-The interpretation of numeric values depends on the selected loss function:
-
-   - Logloss — The value is considered a positive class if it is strictly greater than the value of the border parameter of the loss function. Otherwise, it is considered a negative class.
-   - CrossEntropy — The value is interpreted as the probability that the dataset object belongs to the positive class. Possible values are in the range [0; 1].
-
-- Multiclassification — Integers or strings that represents the labels of the classes.
+{% include [methods-param-desc-label--detailed-desc-generic](../_includes/work_src/reusage/label--detailed-desc-generic.md) %}
 
 {% note info %}
 
@@ -101,14 +91,7 @@ Do not use this parameter if the input training dataset (specified in the X para
 
 {% endnote %}
 
-**Possible types**
-
-- numpy.ndarray
-- pandas.Series
-
-**Default value**
-
-None
+{% include [methods-param-desc-label--possible-types-default-supported-processing-units](../_includes/work_src/reusage/label--possible-types-default-supported-processing-units.md) %}
 
 ### cv
 
