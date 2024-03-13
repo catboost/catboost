@@ -747,7 +747,7 @@ _type_pprinters = {
     type: _type_pprint,
     types.FunctionType: _function_pprint,
     types.BuiltinFunctionType: _function_pprint,
-    types.MethodType: _repr_pprint,
+    types.MethodType: _function_pprint,
     datetime.datetime: _repr_pprint,
     datetime.timedelta: _repr_pprint,
     BaseException: _exception_pprint,

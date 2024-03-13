@@ -134,7 +134,7 @@ from hypothesis.strategies._internal.strategies import (
     one_of,
 )
 from hypothesis.strategies._internal.strings import (
-    FixedSizeBytes,
+    BytesStrategy,
     OneCharStringStrategy,
     TextStrategy,
 )
@@ -963,11 +963,7 @@ def binary(
     values.
     """
     check_valid_sizes(min_size, max_size)
-    if min_size == max_size:
-        return FixedSizeBytes(min_size)
-    return lists(
-        integers(min_value=0, max_value=255), min_size=min_size, max_size=max_size
-    ).map(bytes)
+    return BytesStrategy(min_size, max_size)
 
 
 @cacheable
