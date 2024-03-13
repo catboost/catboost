@@ -126,7 +126,9 @@ $\displaystyle\frac{\sum\limits_{i=1}^N |a_{i} - t_{i}|^q w_i}{\sum\limits_{i=1}
 
 {% cut "{{ loss-functions__params__q }}" %}
 
-The power coefficient.<br/><br/>Valid values are real numbers in the following range:  $[1; +\infty)$
+The power coefficient.
+
+Valid values are real numbers in the following range:  $[1; +\infty)$
 
 _Default:_ {{ loss-functions__params__q__default }}
 
@@ -288,9 +290,56 @@ No.
 
 ### {{ error-function__Cox }} {#Cox}
 
-$\displaystyle\sum\limits_{t_{i} > 0}\left( a_{i} - \log\sum\limits_{|t_{j}| \ge t_{i}} \exp(a_{j})\right)$
+$\displaystyle\sum\limits_{t_i > 0}\left( a_i - \log\sum\limits_{|t_j| \ge t_i} \exp(a_j)\right)$
 
-Above, positive labels $t_{i} > 0$ mean occurence of the event.
+Labels $t_i > 0$ mean occurence of the event at time $t_i$, and labels $t_i < 0$ mean absence of the event at time $|t_i|$.
+
+Predictions $a_i$ are hazard rates.
+
+**{{ optimization }}**  See [more](#usage-information).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+No.
+
+### {{ error-function__SurvivalAft }} {#SurvivalAft}
+
+$\displaystyle\sum\limits_{t_{i,0} = t_{i,1}} \log\left(f(\epsilon(t_{i,0}, a_i)\right) + \sum\limits_{t_{i,0} \ne t_{i,1}} \log \left(F(\epsilon(t_{i,1}, a_i)) - F(\epsilon(t_{i,0}, a_i))\right)$
+
+Observation interval is $[t_{i,0}, t_{i,1}]$ for $t_{i,1} \ne -1$, and $[t_{i,0}, \infty)$ for $t_{i,1} = -1$.
+
+Predictions $a_i$ are hazard rates.
+
+Helper $\epsilon(t, a) = (\log t - a)/\sigma$ for $t \ne -1$, and $\epsilon(-1, a) = \infty$, is hazard prediction error.
+
+Coefficient $\sigma$ is scale of hazard prediction error, specified by `scale` parameter.
+
+Functions $f$ and $F$ are probability density and cumulative distribution, specified by `dist` parameter.
+
+{% cut "{{ loss-functions__params__survivalaft_dist }}" %}
+
+Guessed distribution of hazard prediction error.
+
+Possible values: `Normal`, `Extreme`, `Logistic`.
+
+| `dist` | $F$ | $f$ |
+| --- | --- | --- |
+| `Normal` | $\displaystyle\frac{1}{2}\left(1+\text{erf}\left( \frac{z}{\sqrt{2}}\right)\right)$ | $\displaystyle\frac{e^{-z^2/2}}{\sqrt{2\pi}}$|
+| `Logistic` | $\displaystyle\frac{e^z}{1+e^z}$ | $\displaystyle\frac{e^z}{(1+e^z)^2}$ |
+| `Extreme` | $\displaystyle 1-e^{-e^z}$ | $\displaystyle e^ze^{-e^z}$  |
+
+_Default:_ {{ loss-functions__params__survivalaft_dist_default }}
+
+{% endcut %}
+
+{% cut "{{ loss-functions__params__survivalaft_scale }}" %}
+
+Scale of hazard prediction error.
+
+_Default:_ {{ loss-functions__params__survivalaft_scale_default }}
+
+{% endcut %}
+
 
 **{{ optimization }}**  See [more](#usage-information).
 
@@ -317,6 +366,7 @@ No.
 [{{ error-function__Tweedie }}](#Tweedie)                         |     +                   |     +                   |
 [{{ error-function__LogCosh }}](#LogCosh)                         |     +                   |     -                   |
 [{{ error-function__Cox }}](#Cox)                                 |     +                   |     -                   |
+[{{ error-function__SurvivalAft }}](#SurvivalAft)                 |     +                   |     -                   |
 [{{ error-function__FairLoss }}](#FairLoss)                       |     -                   |     -                   |
 [{{ error-function__NumErrors }}](#NumErrors)                     |     -                   |     +                   |
 [{{ error-function__SMAPE }}](#SMAPE)                             |     -                   |     -                   |

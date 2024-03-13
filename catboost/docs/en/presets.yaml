@@ -239,6 +239,7 @@ default:
   error-function__BalancedAccuracy: BalancedAccuracy
   error-function__BalancedErrorRate: BalancedErrorRate
   error-function__Cox: Cox
+  error-function__SurvivalAft: SurvivalAft
   error-function__SMAPE: SMAPE
   error-function__CtrFactor: CtrFactor
   error-function--AUC: AUC
@@ -557,6 +558,10 @@ default:
   loss-functions__params__max_pairs_default: All possible pairs are generated in each group
   loss-functions__params__q__default: Obligatory parameter
   loss-functions__params__mode: mode
+  loss-functions__params__survivalaft_scale: scale
+  loss-functions__params__survivalaft_scale_default: '1.0'
+  loss-functions__params__survivalaft_dist: dist
+  loss-functions__params__survivalaft_dist_default: '`Normal`'
   loss-functions__obligatory-text: This parameter is obligatory (the default value is not defined)
   loss-functions__params__default: 'true'
   ctr-types__TargetBorderCount: TargetBorderCount
