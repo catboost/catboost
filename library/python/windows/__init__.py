@@ -27,9 +27,9 @@ RETRIABLE_FILE_ERRORS = (ERRORS['ACCESS_DENIED'], ERRORS['SHARING_VIOLATION'])
 RETRIABLE_DIR_ERRORS = (ERRORS['ACCESS_DENIED'], ERRORS['DIR_NOT_EMPTY'], ERRORS['SHARING_VIOLATION'])
 
 
-# Check if on Windows
 @library.python.func.lazy
 def on_win():
+    """Check if code run on Windows"""
     return os.name == 'nt'
 
 
@@ -48,8 +48,9 @@ class NoCTypesError(RuntimeError):
         super(NoCTypesError, self).__init__(message)
 
 
-# Decorator for Windows-only functions
 def win_only(f):
+    """Decorator for Windows-only functions"""
+
     def f_wrapped(*args, **kwargs):
         if not on_win():
             raise NotOnWindowsError('Windows-only function is called, but platform is not Windows')
@@ -58,8 +59,8 @@ def win_only(f):
     return f_wrapped
 
 
-# Decorator for functions disabled on Windows
 def win_disabled(f):
+    """Decorator for functions disabled on Windows"""
     def f_wrapped(*args, **kwargs):
         if on_win():
             run_disabled()
@@ -83,10 +84,14 @@ def errorfix(f):
     return f_wrapped
 
 
-# Decorator for diehard wrapper
-# On Windows platform retries to run function while specific WindowsError is thrown
-# On non-Windows platforms fallbacks to function itself
 def diehard(winerrors, tries=100, delay=1):
+    """
+    Decorator for diehard wrapper
+
+    On Windows platform retries to run function while specific WindowsError is thrown
+
+    On non-Windows platforms fallbacks to function itself
+    """
     def wrap(f):
         if not on_win():
             return f
@@ -94,6 +99,11 @@ def diehard(winerrors, tries=100, delay=1):
         return lambda *args, **kwargs: run_diehard(f, winerrors, tries, delay, *args, **kwargs)
 
     return wrap
+
+
+def win_path_fix(path):
+    """Fix slashes in paths on windows"""
+    return path if sys.platform != 'win32' else path.replace('\\', '/')
 
 
 if on_win():
@@ -155,9 +165,9 @@ if on_win():
                 time.sleep(delay)
         reraise(ei[0], ei[1], ei[2])
 
-    # Placeholder for disabled functions
     @win_only
     def run_disabled(*args, **kwargs):
+        """Placeholder for disabled functions"""
         raise DisabledOnWindowsError('Function called is disabled on Windows')
 
     class CustomWinError(WindowsError):
