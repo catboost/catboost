@@ -60,7 +60,7 @@ train_labels = [0, 0, 1, 1]
 
 model = CatBoostClassifier(iterations=1000,
                            task_type="GPU",
-                           devices='0:1')
+                           devices='0')
 model.fit(train_data,
           train_labels,
           verbose=False)
