@@ -133,27 +133,34 @@ namespace NPyBind {
     bool FromPyObject(PyObject* obj, long& res) {
         if (PyLong_Check(obj)) {
             res = PyLong_AsLong(obj);
-            return true;
+            return !PyErr_Occurred();
         }
         if (PyFloat_Check(obj)) {
             res = static_cast<long>(PyFloat_AsDouble(obj));
-            return true;
+            return !PyErr_Occurred();
         }
 #if PY_MAJOR_VERSION < 3
         res = PyInt_AsLong(obj);
+#else
+        return false;
 #endif
         return -1 != res || !PyErr_Occurred();
     }
 
     template <>
     bool FromPyObject(PyObject* obj, unsigned long& res) {
-        long lres;
-        if (!FromPyObject(obj, lres))
-            return false;
-        if (lres < 0)
-            return false;
-        res = static_cast<unsigned long long>(lres);
-        return true;
+        if (PyLong_Check(obj)) {
+            res = PyLong_AsUnsignedLong(obj);
+            return !PyErr_Occurred();
+        }
+        if (PyFloat_Check(obj)) {
+            res = static_cast<unsigned long>(PyFloat_AsDouble(obj));
+            return !PyErr_Occurred();
+        }
+#if PY_MAJOR_VERSION < 3
+        res = PyInt_AsLong(obj);
+#endif
+        return !PyErr_Occurred();
     }
 
     template <>
