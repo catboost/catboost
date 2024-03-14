@@ -8,6 +8,8 @@ import tarfile
 import zipfile
 import sys
 
+import process_command_files as pcf
+
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description='Wrapper to invoke Java compilation from ya make build')
@@ -40,7 +42,9 @@ def split_cmd_by_delim(cmd, delim='DELIM'):
 
 
 def main():
-    cmd_parts = split_cmd_by_delim(sys.argv[1:])
+    loaded_args = pcf.get_args(sys.argv[1:])
+
+    cmd_parts = split_cmd_by_delim(loaded_args)
     assert len(cmd_parts) == 4
     args, javac_opts, peers, ktc_opts = cmd_parts
     opts, jsrcs = parse_args(args)
