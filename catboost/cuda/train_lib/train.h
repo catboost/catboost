@@ -39,7 +39,8 @@ namespace NCatboostCuda {
             ITrainingCallbacks* trainingCallbacks,
             NPar::ILocalExecutor* localExecutor,
             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
+            TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) const = 0;
 
         virtual void ModelBasedEval(
             TBinarizedFeaturesManager& featureManager,

@@ -227,7 +227,9 @@ namespace NCatboostCuda {
                                                                 ITrainingCallbacks* trainingCallbacks,
                                                                 NPar::ILocalExecutor* localExecutor,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-                                                                TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
+                                                                TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                                                                const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+                                                                ) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
         ConfigureCudaProfiler(trainCatBoostOptions.IsProfile, &profiler);
 
@@ -251,7 +253,8 @@ namespace NCatboostCuda {
                                         trainingCallbacks,
                                         localExecutor,
                                         testMultiApprox,
-                                        metricsAndTimeHistory);
+                                        metricsAndTimeHistory,
+                                        evalMetricDescriptor);
         } else {
             ythrow TCatBoostException() << "Error: optimization scheme is not supported for GPU learning " << optimizationImplementation;
         }
@@ -308,7 +311,6 @@ namespace NCatboostCuda {
             THolder<TLearnProgress>* dstLearnProgress) const override {
 
             Y_UNUSED(objectiveDescriptor);
-            Y_UNUSED(evalMetricDescriptor);
             Y_UNUSED(rand);
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             CB_ENSURE(!precomputedSingleOnlineCtrDataForSingleFold,
@@ -393,7 +395,9 @@ namespace NCatboostCuda {
                 trainingCallbacks,
                 localExecutor,
                 &rawValues,
-                metricsAndTimeHistory);
+                metricsAndTimeHistory,
+                evalMetricDescriptor
+            );
 
             if (evalResultPtrs.size()) {
                 evalResultPtrs[0]->SetRawValuesByMove(rawValues);

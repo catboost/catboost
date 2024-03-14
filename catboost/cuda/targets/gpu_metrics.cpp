@@ -654,14 +654,13 @@ namespace NCatboostCuda {
     }
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
-                                                  ui32 cpuApproxDim, bool hasWeights) {
+                                                  ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
         CB_ENSURE(metricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
         const NCatboostOptions::TLossDescription& objectiveMetricDescription = metricOptions->ObjectiveMetric.Get();
         const bool haveEvalMetricFromUser = metricOptions->EvalMetric.IsSet();
         const NCatboostOptions::TLossDescription& evalMetricDescription =
                 haveEvalMetricFromUser ? metricOptions->EvalMetric.Get() : objectiveMetricDescription;
         CB_ENSURE(!IsUserDefined(objectiveMetricDescription.GetLossFunction()), "Error: GPU doesn't support user-defined loss");
-        CB_ENSURE(!IsUserDefined(evalMetricDescription.GetLossFunction()), "Error: GPU doesn't support custom metrics");
 
 
         TVector<THolder<IGpuMetric>> createdObjectiveMetrics = CreateGpuMetricFromDescription(
@@ -680,10 +679,17 @@ namespace NCatboostCuda {
         TVector<THolder<IGpuMetric>> metrics;
         THashSet<TString> usedDescriptions;
 
-        metrics = CreateGpuMetricFromDescription(
-                objectiveMetricDescription.GetLossFunction(),
-                evalMetricDescription,
-                cpuApproxDim);
+        if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
+            metrics.emplace_back(new TCpuFallbackMetric(
+                MakeCustomMetric(evalMetricDescriptor.GetRef()),
+                evalMetricDescription
+            ));
+        } else {
+            metrics = CreateGpuMetricFromDescription(
+                    objectiveMetricDescription.GetLossFunction(),
+                    evalMetricDescription,
+                    cpuApproxDim);
+        }
         CB_ENSURE(metrics.size() == 1, "Eval metric should have a single value. Metric "
                 << ToString(objectiveMetricDescription.GetLossFunction())
                 << " provides a value for each class, thus it cannot be used as "
