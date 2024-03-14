@@ -47,7 +47,7 @@ catboost.caret$grid <- function(x, y, len = 5, search = "grid") {
   }
   else {
     # search == "random"
-    grid <- data.frame(depth = sample.int(len, len, replace = TRUE),
+    grid <- data.frame(depth = sample(1:min(16, len), len, replace = TRUE),
                        learning_rate = runif(len, min = 1e-6, max = 1),
                        iterations = rep(100, len),
                        l2_leaf_reg = sample(c(1e-1, 1e-3, 1e-6), len, replace = TRUE),
