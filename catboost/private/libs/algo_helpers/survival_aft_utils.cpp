@@ -1,5 +1,9 @@
 #include "survival_aft_utils.h"
 
+#include <library/cpp/fast_log/fast_log.h>
+
+#include <util/generic/ymath.h>
+
 
 namespace NCB {
     double InverseMonotoneTransform(double approx, double target, double scale) {
@@ -27,11 +31,11 @@ namespace NCB {
                 switch (censoredType) {
                     case ECensoredType::IntervalCensored:
                     case ECensoredType::Uncensored:
-                        return std::make_tuple(1 / std::pow(scale, 2), 1 / std::pow(scale, 2));
+                        return std::make_tuple(1 / Sqr(scale), 1 / Sqr(scale));
                     case ECensoredType::RightCensored:
-                        return std::make_tuple(1 / std::pow(scale, 2), TDerivativeConstants::MinSecondDer);
+                        return std::make_tuple(1 / Sqr(scale), TDerivativeConstants::MinSecondDer);
                     case ECensoredType::LeftCensored:
-                        return std::make_tuple(TDerivativeConstants::MinSecondDer, 1 / std::pow(scale, 2));
+                        return std::make_tuple(TDerivativeConstants::MinSecondDer, 1 / Sqr(scale));
                 }
         }
     }

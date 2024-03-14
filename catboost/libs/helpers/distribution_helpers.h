@@ -1,16 +1,10 @@
 #pragma once
 
-#include <util/generic/string.h>
-#include <util/generic/ymath.h>
-
-
 namespace NCB {
-    static constexpr double INV_SQRT_2PI = 0.398942280401432677939946;
-
     enum class EDistributionType {
-        Normal /* "Normal" */,
-        Logistic /* "Logistic" */,
-        Extreme /* "Extreme" */,
+        Normal,
+        Logistic,
+        Extreme,
     };
 
     class IDistribution {
@@ -27,7 +21,7 @@ namespace NCB {
         virtual ~IDistribution() = default;
     };
 
-    class TNormalDistribution : public IDistribution {
+    class TNormalDistribution final : public IDistribution {
     public:
         virtual double CalcPdf(double x) const override;
 
@@ -46,7 +40,7 @@ namespace NCB {
 
     double ErrorFunction(const double x);
 
-    class TExtremeDistribution : public IDistribution {
+    class TExtremeDistribution final : public IDistribution {
     public:
         virtual double CalcPdf(double x) const override;
 
@@ -65,7 +59,7 @@ namespace NCB {
         double ErrorFunction(const double x) const;
     };
 
-    class TLogisticDistribution : public IDistribution {
+    class TLogisticDistribution final : public IDistribution {
     public:
         virtual double CalcPdf(double x) const override;
 

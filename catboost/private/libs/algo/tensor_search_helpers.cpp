@@ -134,8 +134,8 @@ THolder<IDerCalcer> BuildError(
     switch (params.LossFunctionDescription->GetLossFunction()) {
         case ELossFunction::SurvivalAft: {
             const auto& lossParams = params.LossFunctionDescription->GetLossParamsMap();
-            for (auto &param: lossParams) {
-            CB_ENSURE(
+            for (const auto& param : lossParams) {
+                CB_ENSURE(
                     param.first == "dist" || param.first == "scale",
                     "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
             }
