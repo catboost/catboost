@@ -178,15 +178,15 @@ namespace NCB {
     static void SaveGuidAndType(
         const TGuid& guid,
         NCatBoostFbs::EPartType type,
-        flatbuffers::FlatBufferBuilder* builder,
         TCountingOutput* stream
     ) {
+        flatbuffers::FlatBufferBuilder builder;
         const auto fbsPartGuid = CreateFbsGuid(guid);
-        auto collectionPart = NCatBoostFbs::CreateTCollectionPart(*builder, type, &fbsPartGuid);
-        builder->Finish(collectionPart);
+        auto collectionPart = NCatBoostFbs::CreateTCollectionPart(builder, type, &fbsPartGuid);
+        builder.Finish(collectionPart);
 
-        ::Save(stream, static_cast<ui64>(builder->GetSize()));
-        stream->Write(builder->GetBufferPointer(), builder->GetSize());
+        ::Save(stream, static_cast<ui64>(builder.GetSize()));
+        stream->Write(builder.GetBufferPointer(), builder.GetSize());
     }
 
     void TTextProcessingCollection::Save(IOutputStream* s) const {
@@ -198,10 +198,9 @@ namespace NCB {
         SaveHeader(&stream);
 
         for (ui32 digitizerId : xrange(Digitizers.size())) {
-            flatbuffers::FlatBufferBuilder builder;
-            SaveGuidAndType(TokenizerId[digitizerId], NCatBoostFbs::EPartType::EPartType_Tokenizer, &builder, &stream);
+            SaveGuidAndType(TokenizerId[digitizerId], NCatBoostFbs::EPartType::EPartType_Tokenizer, &stream);
             Digitizers[digitizerId].Tokenizer->Save(&stream);
-            SaveGuidAndType(DictionaryId[digitizerId], NCatBoostFbs::EPartType::EPartType_Dictionary, &builder, &stream);
+            SaveGuidAndType(DictionaryId[digitizerId], NCatBoostFbs::EPartType::EPartType_Dictionary, &stream);
             Digitizers[digitizerId].Dictionary->Save(&stream);
         }
 
@@ -221,9 +220,8 @@ namespace NCB {
             TTextCalcerSerializer::Save(&stream, *FeatureCalcers[calcerId]);
         }
         {
-            flatbuffers::FlatBufferBuilder builder;
             auto guid = TGuid();
-            SaveGuidAndType(guid, NCatBoostFbs::EPartType::EPartType_Terminate, &builder, &stream);
+            SaveGuidAndType(guid, NCatBoostFbs::EPartType::EPartType_Terminate, &stream);
         }
     }
 
