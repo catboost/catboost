@@ -342,7 +342,10 @@ struct FieldDef : public Definition {
   bool Deserialize(Parser &parser, const reflection::Field *field);
 
   bool IsScalarOptional() const {
-    return IsScalar(value.type.base_type) && IsOptional();
+    return IsScalar() && IsOptional();
+  }
+  bool IsScalar() const {
+      return ::flatbuffers::IsScalar(value.type.base_type);
   }
   bool IsOptional() const { return presence == kOptional; }
   bool IsRequired() const { return presence == kRequired; }
@@ -673,6 +676,7 @@ struct IDLOptions {
   bool binary_schema_comments;
   bool binary_schema_builtins;
   bool binary_schema_gen_embed;
+  bool binary_schema_absolute_paths;
   std::string go_import;
   std::string go_namespace;
   std::string go_module_name;
@@ -703,6 +707,7 @@ struct IDLOptions {
   bool keep_proto_id;
   bool python_no_type_prefix_suffix;
   bool python_typing;
+  bool ts_omit_entrypoint;
   ProtoIdGapAction proto_id_gap_action;
 
   // Possible options for the more general generator below.
@@ -726,6 +731,7 @@ struct IDLOptions {
     kCppYandexMapsIter = 1 << 19,
     kNim = 1 << 17,
     kProto = 1 << 18,
+    kKotlinKmp = 1 << 19,
     kMAX
   };
 
@@ -792,6 +798,7 @@ struct IDLOptions {
         binary_schema_comments(false),
         binary_schema_builtins(false),
         binary_schema_gen_embed(false),
+        binary_schema_absolute_paths(false),
         protobuf_ascii_alike(false),
         size_prefixed(false),
         force_defaults(false),
@@ -815,6 +822,7 @@ struct IDLOptions {
         keep_proto_id(false),
         python_no_type_prefix_suffix(false),
         python_typing(false),
+        ts_omit_entrypoint(false),
         proto_id_gap_action(ProtoIdGapAction::WARNING),
         mini_reflect(IDLOptions::kNone),
         require_explicit_ids(false),
@@ -1215,6 +1223,16 @@ class Parser : public ParserState {
 // These functions return nullptr on success, or an error string,
 // which may happen if the flatbuffer cannot be encoded in JSON (e.g.,
 // it contains non-UTF-8 byte arrays in String values).
+extern bool GenerateTextFromTable(const Parser &parser,
+                                         const void *table,
+                                         const std::string &tablename,
+                                         std::string *text);
+extern const char *GenerateText(const Parser &parser, const void *flatbuffer,
+                                std::string *text);
+extern const char *GenerateTextFile(const Parser &parser,
+                                    const std::string &path,
+                                    const std::string &file_name);
+
 extern const char *GenTextFromTable(const Parser &parser, const void *table,
                                     const std::string &tablename,
                                     std::string *text);

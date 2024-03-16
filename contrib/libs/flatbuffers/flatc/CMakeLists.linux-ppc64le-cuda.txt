@@ -48,6 +48,7 @@ target_sources(libs-flatbuffers-flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_java.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_json_schema.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_kotlin.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_kotlin_kmp.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_lobster.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_php.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_python.cpp

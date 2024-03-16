@@ -127,6 +127,11 @@ int main(int argc, const char *argv[]) {
       flatbuffers::NewKotlinCodeGenerator());
 
   flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{ "", "kotlin-kmp", "",
+                                "Generate Kotlin multiplatform classes for tables/structs" },
+      flatbuffers::NewKotlinKMPCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "lobster", "",
                                 "Generate Lobster files for tables/structs" },
       flatbuffers::NewLobsterCodeGenerator());
@@ -162,14 +167,14 @@ int main(int argc, const char *argv[]) {
       flatbuffers::NewTextCodeGenerator());
 
   flatc.RegisterCodeGenerator(
-      flatbuffers::FlatCOption{ "", "swift", "",
-                                "Generate Swift files for tables/structs" },
-      flatbuffers::NewSwiftCodeGenerator());
-
-  flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "", "yandex-maps-iter", "",
                                 "Generate C++ template headers for tables/structs" },
       flatbuffers::NewCppYandexMapsIterCodeGenerator());
+
+  flatc.RegisterCodeGenerator(
+      flatbuffers::FlatCOption{ "", "swift", "",
+                                "Generate Swift files for tables/structs" },
+      flatbuffers::NewSwiftCodeGenerator());
 
   flatc.RegisterCodeGenerator(
       flatbuffers::FlatCOption{ "T", "ts", "",
