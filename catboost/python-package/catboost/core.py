@@ -4093,7 +4093,7 @@ class CatBoost(_CatBoostBase):
                     log_cout=None, log_cerr=None):
         """
         Exhaustive search over specified parameter values for a model.
-        Aafter calling this method model is fitted and can be used, if not specified otherwise (refit=False).
+        After calling this method model is fitted and can be used, if not specified otherwise (refit=False).
 
         Parameters
         ----------
