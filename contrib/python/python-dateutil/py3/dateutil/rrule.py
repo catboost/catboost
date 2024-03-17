@@ -182,7 +182,7 @@ class rrulebase(object):
     # __len__() introduces a large performance penalty.
     def count(self):
         """ Returns the number of recurrences in this set. It will have go
-            trough the whole recurrence, if this hasn't been done before. """
+            through the whole recurrence, if this hasn't been done before. """
         if self._len is None:
             for x in self:
                 pass

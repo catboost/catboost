@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: python-dateutil
-Version: 2.8.2
+Version: 2.9.0.post0
 Summary: Extensions to the standard Python datetime module
 Home-page: https://github.com/dateutil/dateutil
 Author: Gustavo Niemeyer
@@ -10,7 +10,6 @@ Maintainer-email: dateutil@python.org
 License: Dual License
 Project-URL: Documentation, https://dateutil.readthedocs.io/en/stable/
 Project-URL: Source, https://github.com/dateutil/dateutil
-Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: BSD License
@@ -26,11 +25,14 @@ Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
 Classifier: Topic :: Software Development :: Libraries
 Requires-Python: !=3.0.*,!=3.1.*,!=3.2.*,>=2.7
 Description-Content-Type: text/x-rst
 License-File: LICENSE
-Requires-Dist: six (>=1.5)
+Requires-Dist: six >=1.5
 
 dateutil - powerful extensions to datetime
 ==========================================
@@ -181,7 +183,7 @@ keys can be found below:
 ===========  ============================
 Releases     Signing key fingerprint
 ===========  ============================
-2.4.1-2.8.2  `6B49 ACBA DCF6 BD1C A206 67AB CD54 FCE3 D964 BEFB`_ 
+2.4.1-2.8.2  `6B49 ACBA DCF6 BD1C A206 67AB CD54 FCE3 D964 BEFB`_
 ===========  ============================
 
 New releases *may* have signed tags, but binary and source distributions
@@ -200,5 +202,3 @@ All contributions after December 1, 2017 released under dual license - either `A
 
 .. _6B49 ACBA DCF6 BD1C A206 67AB CD54 FCE3 D964 BEFB:
    https://pgp.mit.edu/pks/lookup?op=vindex&search=0xCD54FCE3D964BEFB
-
-

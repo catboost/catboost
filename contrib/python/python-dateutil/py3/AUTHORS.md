@@ -15,6 +15,7 @@ switch, and thus all their contributions are dual-licensed.
 - Adrien Cossa <cossa@MASKED>
 - Alec Nikolas Reiter <alecreiter@MASKED>
 - Alec Reiter <areiter@MASKED>
+- Aleksei Strizhak <alexei.mifrill.strizhak@MASKED> (gh: @Mifrill)
 - Alex Chamberlain (gh: @alexchamberlain) **D**
 - Alex Verdyan <verdyan@MASKED>
 - Alex Willmer <alex@moreati.org.uk> (gh: @moreati) **R**
@@ -59,6 +60,7 @@ switch, and thus all their contributions are dual-licensed.
 - Ionuț Ciocîrlan <jdxlark@MASKED>
 - Jacqueline Chen <jacqueline415@outlook.com> (gh: @jachen20) **D**
 - Jake Chorley (gh: @jakec-github) **D**
+- Jakub Kulík (gh: @kulikjak) **D**
 - Jan Studený <jendas1@MASKED>
 - Jay Weisskopf <jay@jayschwa.net> (gh: @jayschwa) **D**
 - Jitesh <jitesh@MASKED>
@@ -108,6 +110,7 @@ switch, and thus all their contributions are dual-licensed.
 - Thierry Bastian <thierryb@MASKED>
 - Thomas A Caswell <tcaswell@MASKED> (gh: @tacaswell) **R**
 - Thomas Achtemichuk <tom@MASKED>
+- Thomas Grainger <tagrain@gmail.com> (gh: @graingert) **D**
 - Thomas Kluyver <takowl@MASKED> (gh: @takluyver)
 - Tim Gates <tim.gates@iress.com> (gh: timgates42)
 - Tomasz Kluczkowski (gh: @Tomasz-Kluczkowski) **D**
