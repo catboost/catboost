@@ -6,7 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(flatc)
 
 add_library(contrib-libs-flatbuffers)
 target_compile_options(contrib-libs-flatbuffers PRIVATE
