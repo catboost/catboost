@@ -12,11 +12,7 @@ using namespace NCB;
 
 void NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(NLastGetopt::TOpts* parser) {
     BindColumnarPoolFormatParams(parser, &ColumnarPoolFormatParams);
-    parser->AddLongOption("input-path", "input path")
-        .RequiredArgument("[SCHEME://]PATH")
-        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
-            PoolPath = TPathWithScheme(pathWithScheme, "dsv");
-        });
+
     parser->AddLongOption("feature-names-path", "Path to feature names data")
         .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
@@ -29,12 +25,24 @@ void NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(NLastGetopt::TO
         });
 }
 
-void NCatboostOptions::TDatasetReadingBaseParams::ValidatePoolParams() const {
+
+void NCatboostOptions::TSingleDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts* parser) {
+    NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(parser);
+
+    parser->AddLongOption("input-path", "input path")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
+            PoolPath = TPathWithScheme(pathWithScheme, "dsv");
+        });
+}
+
+void NCatboostOptions::TSingleDatasetReadingParams::ValidatePoolParams() const {
     NCatboostOptions::ValidatePoolParams(PoolPath, ColumnarPoolFormatParams);
 }
 
+
 void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts* parser) {
-    NCatboostOptions::TDatasetReadingBaseParams::BindParserOpts(parser);
+    NCatboostOptions::TSingleDatasetReadingParams::BindParserOpts(parser);
 
     parser->AddLongOption("input-pairs", "Path to pairs data")
         .RequiredArgument("[SCHEME://]PATH")
@@ -44,7 +52,7 @@ void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts*
 }
 
 void NCatboostOptions::TDatasetReadingParams::ValidatePoolParams() const {
-    NCatboostOptions::TDatasetReadingBaseParams::ValidatePoolParams();
+    NCatboostOptions::TSingleDatasetReadingParams::ValidatePoolParams();
 }
 
 void NCatboostOptions::BindColumnarPoolFormatParams(

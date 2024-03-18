@@ -31,7 +31,7 @@ namespace {
         EModelType ModelType = EModelType::CatboostBinary;
         TString OutputModelFileName;
         TMaybe<EModelType> OutputModelType;
-        NCatboostOptions::TColumnarPoolFormatParams ColumnarPoolFormatParams;
+        NCatboostOptions::TDatasetReadingBaseParams DatasetReadingBaseParams;
         TMaybe<double> Scale;
         TMaybe<TVector<double>> Bias;
         ELoggingLevel LoggingLevel;
@@ -44,7 +44,7 @@ namespace {
             parser.AddHelpOption();
             parser.SetFreeArgsNum(0);
             BindModelFileParams(&parser, &ModelFileName, &ModelType);
-            BindColumnarPoolFormatParams(&parser, &ColumnarPoolFormatParams);
+            DatasetReadingBaseParams.BindParserOpts(&parser);
             parser.AddLongOption("set-scale").RequiredArgument("SCALE")
                 .Handler1T<double>([=](auto scale){ Scale = scale; })
                 .Help("Scale")
@@ -160,7 +160,7 @@ namespace {
             TMutex result_guard;
 
             NCatboostOptions::TDatasetReadingParams datasetReadingParams;
-            datasetReadingParams.ColumnarPoolFormatParams = modeParams.ColumnarPoolFormatParams;
+            ((NCatboostOptions::TDatasetReadingBaseParams&)datasetReadingParams) = modeParams.DatasetReadingBaseParams;
             datasetReadingParams.PoolPath = poolPath;
 
             ReadAndProceedPoolInBlocks(

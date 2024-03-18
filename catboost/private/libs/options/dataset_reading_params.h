@@ -17,18 +17,25 @@ namespace NCatboostOptions {
     class TDatasetReadingBaseParams {
     public:
         void BindParserOpts(NLastGetopt::TOpts* parser);
-        void ValidatePoolParams() const;
 
     public:
         NCatboostOptions::TColumnarPoolFormatParams ColumnarPoolFormatParams;
-
-        NCB::TPathWithScheme PoolPath;
 
         NCB::TPathWithScheme FeatureNamesPath;
         NCB::TPathWithScheme PoolMetaInfoPath;
     };
 
-    class TDatasetReadingParams : public TDatasetReadingBaseParams {
+    class TSingleDatasetReadingParams : public TDatasetReadingBaseParams {
+    public:
+        void BindParserOpts(NLastGetopt::TOpts* parser);
+        void ValidatePoolParams() const;
+
+    public:
+        NCB::TPathWithScheme PoolPath;
+    };
+
+
+    class TDatasetReadingParams : public TSingleDatasetReadingParams {
     public:
         void BindParserOpts(NLastGetopt::TOpts* parser);
         void ValidatePoolParams() const;
