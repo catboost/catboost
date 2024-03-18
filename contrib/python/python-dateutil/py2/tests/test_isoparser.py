@@ -80,10 +80,10 @@ def _isoparse_date_and_time(dt, date_fmt, time_fmt, tzoffset,
         if not fmt.endswith('%f'):  # pragma: nocover
             raise ValueError('Time format has no microseconds!')
 
-        if microsecond_precision != 6: 
-            dtstr = dtstr[:-(6 - microsecond_precision)]
-        elif microsecond_precision > 6: # pragma: nocover
-            raise ValueError('Precision must be 1-6') 
+        if microsecond_precision != 6:
+            dtstr = dtstr[: -(6 - microsecond_precision)]
+        elif microsecond_precision > 6:  # pragma: nocover
+            raise ValueError("Precision must be 1-6")
 
     dtstr += offset_str
 

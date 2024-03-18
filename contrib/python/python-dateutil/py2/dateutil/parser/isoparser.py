@@ -72,7 +72,7 @@ class isoparser(object):
         Common:
 
         - ``YYYY``
-        - ``YYYY-MM`` or ``YYYYMM``
+        - ``YYYY-MM``
         - ``YYYY-MM-DD`` or ``YYYYMMDD``
 
         Uncommon:
