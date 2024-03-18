@@ -137,7 +137,7 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 ### {{ error-function__Huber }} {#Huber}
 
-$L(t, a) = \sum\limits_{i=0}^N l(t_i, a_i) \cdot w_{i}}$
+$L(t, a) = \sum\limits_{i=0}^N l(t_i, a_i) \cdot w_{i}$
 
 $l(t,a) = \begin{cases} \frac{1}{2} (t - a)^{2} { , } & |t -a| \leq \delta \\ \delta|t -a| - \frac{1}{2} \delta^{2} { , } & |t -a| > \delta \end{cases}$
 
