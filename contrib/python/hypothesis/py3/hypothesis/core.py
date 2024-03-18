@@ -108,6 +108,7 @@ from hypothesis.internal.reflection import (
     repr_call,
 )
 from hypothesis.internal.scrutineer import (
+    MONITORING_TOOL_ID,
     Trace,
     Tracer,
     explanatory_lines,
@@ -983,8 +984,27 @@ class StateForActualGivenExecution:
         """
         trace: Trace = set()
         try:
+            # this is actually covered by our tests, but only on >= 3.12.
+            if (
+                sys.version_info[:2] >= (3, 12)
+                and sys.monitoring.get_tool(MONITORING_TOOL_ID) is not None
+            ):  # pragma: no cover
+                warnings.warn(
+                    "avoiding tracing test function because tool id "
+                    f"{MONITORING_TOOL_ID} is already taken by tool "
+                    f"{sys.monitoring.get_tool(MONITORING_TOOL_ID)}.",
+                    HypothesisWarning,
+                    # I'm not sure computing a correct stacklevel is reasonable
+                    # given the number of entry points here.
+                    stacklevel=1,
+                )
+
             _can_trace = (
-                sys.gettrace() is None or sys.version_info[:2] >= (3, 12)
+                (sys.version_info[:2] < (3, 12) and sys.gettrace() is None)
+                or (
+                    sys.version_info[:2] >= (3, 12)
+                    and sys.monitoring.get_tool(MONITORING_TOOL_ID) is None
+                )
             ) and not PYPY
             _trace_obs = TESTCASE_CALLBACKS and OBSERVABILITY_COLLECT_COVERAGE
             _trace_failure = (

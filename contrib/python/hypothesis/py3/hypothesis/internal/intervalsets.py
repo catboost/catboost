@@ -102,6 +102,9 @@ class IntervalSet:
     def __eq__(self, other):
         return isinstance(other, IntervalSet) and (other.intervals == self.intervals)
 
+    def __hash__(self):
+        return hash(self.intervals)
+
     def union(self, other):
         """Merge two sequences of intervals into a single tuple of intervals.
 
