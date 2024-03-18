@@ -74,6 +74,7 @@ STYLE_TEST_TYPES = [
     "flake8",
     "black",
     "ruff",
+    "tsc_typecheck",
 ]
 
 REGULAR_TEST_TYPES = [
