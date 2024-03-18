@@ -2,6 +2,20 @@
 
 More details in the [CHANGELOG](https://github.com/uclouvain/openjpeg/blob/master/CHANGELOG.md)
 
+## OpenJPEG 2.5.2 (Feb 2024)
+
+No API/ABI break compared to v2.5.1
+
+* Make sure openjpeg.h includes opj_config.h [\#1514](https://github.com/uclouvain/openjpeg/issues/1514)
+
+## OpenJPEG 2.5.1 (Feb 2024)
+
+No API/ABI break compared to v2.5.0
+
+* CMake: drop support for cmake < 3.5
+* Several bugfixes, including [\#1509](https://github.com/uclouvain/openjpeg/pull/1509) for CVE-2021-3575
+* Significant speed-up rate allocation by rate/distoratio ratio [\#1440](https://github.com/uclouvain/openjpeg/pull/1440)
+
 ## OpenJPEG 2.5.0 (May 2022)
 
 No API/ABI break compared to v2.4.0, but additional symbols for subset of components decoding (hence the MINOR version bump).

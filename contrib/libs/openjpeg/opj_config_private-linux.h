@@ -1,7 +1,6 @@
 /* create opj_config_private.h for CMake */
-#define OPJ_HAVE_INTTYPES_H 	1
 
-#define OPJ_PACKAGE_VERSION "2.5.0"
+#define OPJ_PACKAGE_VERSION "2.5.2"
 
 /* Not used by openjp2*/
 /*#define HAVE_MEMORY_H 1*/
@@ -11,6 +10,8 @@
 /*#define HAVE_SYS_STAT_H 1*/
 /*#define HAVE_SYS_TYPES_H 1 */
 /*#define HAVE_UNISTD_H 1*/
+/*#define HAVE_INTTYPES_H 1 */
+/*#define HAVE_STDINT_H 1 */
 
 /* #undef _LARGEFILE_SOURCE */
 /* #undef _LARGE_FILES */
