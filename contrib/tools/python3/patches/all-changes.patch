@@ -194,32 +194,6 @@
  #include "typearith.h"
  
  
---- contrib/tools/python3/Modules/_decimal/libmpdec/mpdecimal.h	(index)
-+++ contrib/tools/python3/Modules/_decimal/libmpdec/mpdecimal.h	(working tree)
-@@ -96,17 +96,17 @@ const char *mpd_version(void);
- /*                              Configuration                                 */
- /******************************************************************************/
- 
--#if defined(UNIVERSAL)
-+#if 1
-   #if defined(CONFIG_64) || defined(CONFIG_32)
-     #error "cannot use CONFIG_64 or CONFIG_32 with UNIVERSAL."
-   #endif
--  #if defined(__ppc__)
--    #define CONFIG_32
--    #define ANSI
--  #elif defined(__ppc64__)
-+  #if defined(__powerpc64__) || defined(_M_AMD64) || defined(__aarch64__)
-     #define CONFIG_64
-     #define ANSI
--  #elif defined(__i386__)
-+  #elif defined(__powerpc__)
-+    #define CONFIG_32
-+    #define ANSI
-+  #elif defined(__i386__) || defined(_M_IX86)
-     #define CONFIG_32
-     #define ANSI
-   #elif defined(__x86_64__)
 --- contrib/tools/python3/Modules/getpath.c	(index)
 +++ contrib/tools/python3/Modules/getpath.c	(working tree)
 @@ -1,3 +1,4 @@
