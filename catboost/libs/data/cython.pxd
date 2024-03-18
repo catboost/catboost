@@ -398,6 +398,7 @@ cdef extern from "catboost/libs/data/target.h" namespace "NCB":
 cdef extern from "catboost/libs/data/feature_names_converter.h":
     cdef void ConvertFeaturesFromStringToIndices(
         const TPathWithScheme& cdFilePath,
+        const TPathWithScheme& featureNamesPath,
         const TPathWithScheme& poolMetaInfoPath,
         TJsonValue* featuresArrayJson
     ) except +ProcessException

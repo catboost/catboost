@@ -1,10 +1,14 @@
 #include "feature_names_converter.h"
 
+#include "loader.h"
+
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/pool_metainfo_options.h>
 
+#include <util/generic/cast.h>
+#include <util/generic/xrange.h>
 #include <util/string/split.h>
 #include <util/string/type.h>
 
@@ -56,9 +60,44 @@ TMap<TString, ui32> MakeIndicesFromNamesByCdFile(const NCB::TPathWithScheme& cdF
     return indicesFromNames;
 }
 
+TMap<TString, ui32> MakeIndicesFromNamesFromFeatureNamesFile(const NCB::TPathWithScheme& featureNamesPath) {
+    TMap<TString, ui32> indicesFromNames;
+    if (featureNamesPath.Inited()) {
+        const TVector<TString> featureNames = LoadFeatureNames(featureNamesPath);
+        for (auto featureIdx : xrange(SafeIntegerCast<ui32>(featureNames.size()))) {
+            indicesFromNames.emplace(featureNames[featureIdx], featureIdx);
+        }
+    }
+    return indicesFromNames;
+}
+
+void AddIndicesMap(
+    TStringBuf addName,
+    const TMap<TString, ui32>& add,
+    TStringBuf resultName,
+    TMap<TString, ui32>* /*inout*/ result
+) {
+    for (const auto& [name, idx] : add) {
+        auto resIt = result->find(name);
+        if (resIt == result->end()) {
+            result->emplace(name, idx);
+        } else {
+            CB_ENSURE(
+                resIt->second == idx,
+                "feature \"" << name << "\": indices conflict: index " << idx << " in " << addName
+                << " and index " << resIt->second << " in " << resultName
+            );
+        }
+    }
+}
+
+
 TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
-    // TODO: support 'feature-names' option and header in tsv file
-    return MakeIndicesFromNamesByCdFile(poolLoadParams.ColumnarPoolFormatParams.CdFilePath);
+    // TODO: support header in tsv file
+    auto result = MakeIndicesFromNamesFromFeatureNamesFile(poolLoadParams.FeatureNamesPath);
+    auto mapFromCdFile = MakeIndicesFromNamesByCdFile(poolLoadParams.ColumnarPoolFormatParams.CdFilePath);
+    AddIndicesMap("Column Description file", mapFromCdFile, "Feature Names file", &result);
+    return result;
 }
 
 TMap<TString, ui32> MakeIndicesFromNames(const NCB::TFeaturesLayout& featuresLayout) {
@@ -98,8 +137,16 @@ THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TDataMetaInfo& m
     return MakeIndicesFromTags(*metaInfo.FeaturesLayout);
 }
 
-void ConvertFeaturesFromStringToIndices(const NCB::TPathWithScheme& cdFilePath, const NCB::TPathWithScheme& poolMetaInfoPath, NJson::TJsonValue* featuresArrayJson) {
-    auto indicesFromNames = MakeIndicesFromNamesByCdFile(cdFilePath);
+void ConvertFeaturesFromStringToIndices(
+    const NCB::TPathWithScheme& cdFilePath,
+    const NCB::TPathWithScheme& featureNamesPath,
+    const NCB::TPathWithScheme& poolMetaInfoPath,
+    NJson::TJsonValue* featuresArrayJson
+) {
+    // TODO: support header in tsv file
+    auto indicesFromNames = MakeIndicesFromNamesFromFeatureNamesFile(featureNamesPath);
+    auto indicesFromCdFile = MakeIndicesFromNamesByCdFile(cdFilePath);
+    AddIndicesMap("Column Description file", indicesFromCdFile, "Feature Names file", &indicesFromNames);
     auto indicesFromTags = MakeIndicesFromTagsFromPoolMetaInfo(poolMetaInfoPath);
     ConvertNamesIntoIndices(TIndicesMapper(std::move(indicesFromNames), std::move(indicesFromTags)), featuresArrayJson);
 }

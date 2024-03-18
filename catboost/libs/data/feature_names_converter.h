@@ -111,7 +111,12 @@ void ConvertAllFeaturePenaltiesFromStringToIndices(const TSource& matchingSource
     }
 }
 
-void ConvertFeaturesFromStringToIndices(const NCB::TPathWithScheme& cdFilePath, const NCB::TPathWithScheme& poolMetaInfoPath, NJson::TJsonValue* featuresArrayJson);
+void ConvertFeaturesFromStringToIndices(
+    const NCB::TPathWithScheme& cdFilePath,
+    const NCB::TPathWithScheme& featureNamesPath,
+    const NCB::TPathWithScheme& poolMetaInfoPath,
+    NJson::TJsonValue* featuresArrayJson
+);
 void ConvertIgnoredFeaturesFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions);

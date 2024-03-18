@@ -6271,7 +6271,7 @@ cpdef get_experiment_name(ui32 feature_set_idx, ui32 fold_idx):
     return py_experiment_name_str
 
 
-cpdef convert_features_to_indices(indices_or_names, cd_path, pool_metainfo_path):
+cpdef convert_features_to_indices(indices_or_names, cd_path, feature_names_path, pool_metainfo_path):
     cdef TJsonValue indices_or_names_as_json = ReadTJsonValue(
         to_arcadia_string(
             dumps(indices_or_names, cls=_NumpyAwareEncoder)
@@ -6281,11 +6281,20 @@ cpdef convert_features_to_indices(indices_or_names, cd_path, pool_metainfo_path)
     if cd_path is not None:
         cd_path_with_scheme = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(cd_path)), TStringBuf(<char*>'dsv'))
 
+    cdef TPathWithScheme feature_names_path_with_scheme
+    if feature_names_path is not None:
+        feature_names_path_with_scheme = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(feature_names_path)), TStringBuf(<char*>'dsv'))
+
     cdef TPathWithScheme pool_metainfo_path_with_scheme
     if pool_metainfo_path is not None:
         pool_metainfo_path_with_scheme = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(pool_metainfo_path)), TStringBuf(<char*>''))
 
-    ConvertFeaturesFromStringToIndices(cd_path_with_scheme, pool_metainfo_path_with_scheme, &indices_or_names_as_json)
+    ConvertFeaturesFromStringToIndices(
+        cd_path_with_scheme,
+        feature_names_path_with_scheme,
+        pool_metainfo_path_with_scheme,
+        &indices_or_names_as_json
+    )
     return loads(to_native_str(WriteTJsonValue(indices_or_names_as_json)))
 
 
