@@ -1091,7 +1091,7 @@ except ImportError:
 
         np = Mock()
     else:
-        np = None
+        np = None  # type: ignore[assignment]
 if np is not None:
 
     class FloatInfo(NamedTuple):
@@ -1112,7 +1112,7 @@ if np is not None:
         introduced it in v1.21.1, so we just use the equivalent tiny attribute
         to keep mocking with older versions working.
         """
-        _finfo = np.finfo(dtype)
+        _finfo = np.finfo(dtype)  # type: ignore[call-overload]
         return FloatInfo(
             int(_finfo.bits),
             float(_finfo.eps),

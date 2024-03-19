@@ -50,7 +50,10 @@ def add_note(exc, note):
         exc.add_note(note)
     except AttributeError:
         if not hasattr(exc, "__notes__"):
-            exc.__notes__ = []
+            try:
+                exc.__notes__ = []
+            except AttributeError:
+                return  # give up, might be e.g. a frozen dataclass
         exc.__notes__.append(note)
 
 
