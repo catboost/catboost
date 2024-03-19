@@ -6,6 +6,12 @@
 # original buildsystem will not be accepted.
 
 
+get_built_tool_path(
+  TOOL_flatc_bin
+  TOOL_flatc_dependency
+  contrib/tools/flatc
+  flatc
+)
 
 add_library(libs-helpers-flatbuffers)
 target_link_libraries(libs-helpers-flatbuffers PUBLIC

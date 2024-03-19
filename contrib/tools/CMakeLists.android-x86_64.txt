@@ -6,4 +6,5 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(flatc)
 add_subdirectory(protoc)

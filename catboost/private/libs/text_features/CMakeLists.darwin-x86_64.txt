@@ -7,6 +7,18 @@
 
 
 add_subdirectory(ut)
+get_built_tool_path(
+  TOOL_flatc_bin
+  TOOL_flatc_dependency
+  contrib/tools/flatc
+  flatc
+)
+get_built_tool_path(
+  TOOL_flatc_bin
+  TOOL_flatc_dependency
+  contrib/tools/flatc
+  flatc
+)
 
 add_library(private-libs-text_features)
 target_link_libraries(private-libs-text_features PUBLIC
