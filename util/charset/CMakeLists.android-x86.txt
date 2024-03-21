@@ -5,16 +5,19 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
-
 add_library(util-charset)
+
+
 target_link_libraries(util-charset PUBLIC
   contrib-libs-cxxsupp
 )
+
 target_sources(util-charset PRIVATE
   ${PROJECT_SOURCE_DIR}/util/charset/wide_sse41.cpp
 )
+
+
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/util/charset/wide_sse41.cpp
@@ -23,6 +26,8 @@ set_property(
   COMPILE_OPTIONS
   -DSSE41_STUB
 )
+
+
 target_joined_source(util-charset
   all_charset.cpp
   ${PROJECT_SOURCE_DIR}/util/charset/generated/unidata.cpp
@@ -32,3 +37,7 @@ target_joined_source(util-charset
   ${PROJECT_SOURCE_DIR}/util/charset/utf8.cpp
   ${PROJECT_SOURCE_DIR}/util/charset/wide.cpp
 )
+
+
+
+

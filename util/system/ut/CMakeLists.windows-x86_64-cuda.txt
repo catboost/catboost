@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-system-ut)
+
+
 target_link_libraries(util-system-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -15,6 +15,7 @@ target_link_libraries(util-system-ut PUBLIC
   cpp-testing-unittest_main
   cpp-testing-benchmark
 )
+
 target_sources(util-system-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/align_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/atexit_ut.cpp
@@ -68,6 +69,8 @@ target_sources(util-system-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/yassert_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/fs_win_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-system-ut
@@ -75,6 +78,7 @@ set_property(
   SPLIT_FACTOR
   40
 )
+
 add_yunittest(
   NAME
   util-system-ut
@@ -87,6 +91,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-system-ut
@@ -94,6 +99,7 @@ set_yunittest_property(
   LABELS
   MEDIUM
 )
+
 set_yunittest_property(
   TEST
   util-system-ut
@@ -101,12 +107,14 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-system-ut
   PROPERTY
   ENVIRONMENT
 )
+
 set_yunittest_property(
   TEST
   util-system-ut
@@ -114,7 +122,14 @@ set_yunittest_property(
   TIMEOUT
   300
 )
+
+
 target_allocator(util-system-ut
   system_allocator
 )
+
 vcs_info(util-system-ut)
+
+
+
+

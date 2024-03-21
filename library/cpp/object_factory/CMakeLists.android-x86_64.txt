@@ -5,13 +5,20 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-object_factory)
+
+
 target_link_libraries(library-cpp-object_factory PUBLIC
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(library-cpp-object_factory PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/object_factory/object_factory.cpp
 )
+
+
+
+
+
+

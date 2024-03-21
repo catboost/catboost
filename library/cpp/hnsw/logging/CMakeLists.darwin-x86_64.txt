@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-hnsw-logging)
+
+
 target_link_libraries(cpp-hnsw-logging PUBLIC
   contrib-libs-cxxsupp
   yutil
   library-cpp-logger
 )
+
 target_sources(cpp-hnsw-logging PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/hnsw/logging/logging.cpp
 )
+
+
+
+
+
+

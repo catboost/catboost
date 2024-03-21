@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(lib)
-
 add_executable(model_ut)
+
+
 target_link_libraries(model_ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -22,6 +22,7 @@ target_link_libraries(model_ut PUBLIC
   text_features-ut-lib
   library-cpp-json
 )
+
 target_link_options(model_ut PRIVATE
   -ldl
   -lrt
@@ -35,6 +36,7 @@ target_link_options(model_ut PRIVATE
   -lculibos
   -lcudart_static
 )
+
 target_sources(model_ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/model_export_helpers_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/formula_evaluator_ut.cpp
@@ -45,6 +47,8 @@ target_sources(model_ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/model_summ_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/shrink_model_ut.cpp
 )
+
+
 set_property(
   TARGET
   model_ut
@@ -52,6 +56,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   model_ut
@@ -64,6 +69,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   model_ut
@@ -71,6 +77,7 @@ set_yunittest_property(
   LABELS
   MEDIUM
 )
+
 set_yunittest_property(
   TEST
   model_ut
@@ -78,13 +85,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   model_ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(model_ut
   cpp-malloc-jemalloc
 )
+
 vcs_info(model_ut)
+
+
+
+

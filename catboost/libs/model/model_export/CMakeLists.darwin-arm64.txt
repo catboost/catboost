@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_rescompiler_bin
   TOOL_rescompiler_dependency
@@ -14,10 +13,13 @@ get_built_tool_path(
 )
 
 add_library(libs-model-model_export)
+
+
 target_compile_options(libs-model-model_export PRIVATE
   -DONNX_ML=1
   -DONNX_NAMESPACE=onnx
 )
+
 target_link_libraries(libs-model-model_export PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -29,6 +31,7 @@ target_link_libraries(libs-model-model_export PUBLIC
   contrib-libs-onnx
   library-cpp-resource
 )
+
 target_sources(libs-model-model_export PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/coreml_helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/cpp_exporter.cpp
@@ -40,11 +43,18 @@ target_sources(libs-model-model_export PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/python_exporter.cpp
 )
 
-add_global_library_for(libs-model-model_export.global libs-model-model_export)
+
+
+
+add_global_library_for(libs-model-model_export.global
+  libs-model-model_export)
+
+
 target_compile_options(libs-model-model_export.global PRIVATE
   -DONNX_ML=1
   -DONNX_NAMESPACE=onnx
 )
+
 target_link_libraries(libs-model-model_export.global PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -56,10 +66,14 @@ target_link_libraries(libs-model-model_export.global PUBLIC
   contrib-libs-onnx
   library-cpp-resource
 )
+
 target_sources(libs-model-model_export.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/model_import.cpp
   ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
 )
+
+
+
 resources(libs-model-model_export.global
   ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
   INPUTS
@@ -79,3 +93,7 @@ resources(libs-model-model_export.global
   catboost_model_export_cpp_ctr_structs
   catboost_model_export_cpp_ctr_calcer
 )
+
+
+
+

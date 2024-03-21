@@ -5,13 +5,20 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-threading-name_guard)
+
+
 target_link_libraries(cpp-threading-name_guard PUBLIC
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(cpp-threading-name_guard PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/threading/name_guard/name_guard.cpp
 )
+
+
+
+
+
+

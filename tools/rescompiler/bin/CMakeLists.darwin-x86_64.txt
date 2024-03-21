@@ -5,24 +5,34 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(rescompiler)
+
+
 target_link_libraries(rescompiler PUBLIC
   contrib-libs-cxxsupp
   yutil
   library-cpp-cpuid_check
   library-cpp-resource
 )
+
 target_link_options(rescompiler PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )
+
 target_sources(rescompiler PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/rescompiler/main.cpp
 )
+
+
+
 target_allocator(rescompiler
   system_allocator
 )
+
 vcs_info(rescompiler)
+
+
+
+

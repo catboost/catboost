@@ -5,20 +5,29 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-mimalloc)
+
+
 target_compile_options(contrib-libs-mimalloc PRIVATE
   -w
   -DMI_MALLOC_OVERRIDE=1
   -DMI_PADDING=0
 )
+
 target_include_directories(contrib-libs-mimalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/include
 )
+
 target_link_libraries(contrib-libs-mimalloc PUBLIC
   contrib-libs-cxxsupp
 )
+
 target_sources(contrib-libs-mimalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/static.c
 )
+
+
+
+
+
+

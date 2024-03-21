@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(blockcodecs-codecs-bzip INTERFACE)
+
+
 target_link_libraries(blockcodecs-codecs-bzip INTERFACE
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,7 +16,13 @@ target_link_libraries(blockcodecs-codecs-bzip INTERFACE
   cpp-blockcodecs-core
 )
 
-add_global_library_for(blockcodecs-codecs-bzip.global blockcodecs-codecs-bzip)
+
+
+
+add_global_library_for(blockcodecs-codecs-bzip.global
+  blockcodecs-codecs-bzip)
+
+
 target_link_libraries(blockcodecs-codecs-bzip.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -24,6 +30,13 @@ target_link_libraries(blockcodecs-codecs-bzip.global PUBLIC
   contrib-libs-libbz2
   cpp-blockcodecs-core
 )
+
 target_sources(blockcodecs-codecs-bzip.global PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/bzip/bzip.cpp
 )
+
+
+
+
+
+

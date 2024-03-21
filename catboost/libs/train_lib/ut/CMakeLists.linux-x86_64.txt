@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-libs-train_lib-ut)
+
+
 target_include_directories(catboost-libs-train_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib
 )
+
 target_link_libraries(catboost-libs-train_lib-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -20,6 +21,7 @@ target_link_libraries(catboost-libs-train_lib-ut PUBLIC
   catboost-libs-train_lib
   catboost-libs-helpers
 )
+
 target_link_options(catboost-libs-train_lib-ut PRIVATE
   -ldl
   -lrt
@@ -30,9 +32,12 @@ target_link_options(catboost-libs-train_lib-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(catboost-libs-train_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/ut/train_model_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-libs-train_lib-ut
@@ -40,6 +45,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-libs-train_lib-ut
@@ -52,6 +58,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-libs-train_lib-ut
@@ -59,6 +66,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   catboost-libs-train_lib-ut
@@ -66,14 +74,22 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-libs-train_lib-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-libs-train_lib-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(catboost-libs-train_lib-ut)
+
+
+
+

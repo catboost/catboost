@@ -5,30 +5,35 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(murmur)
+
+
 target_link_libraries(murmur PUBLIC
   contrib-libs-cxxsupp
   yutil
   library-cpp-cpuid_check
   cpp-testing-gbenchmark
 )
+
 target_link_options(murmur PRIVATE
   -ldl
   -Wl,--no-as-needed
   -fPIC
   -fPIC
 )
+
 target_sources(murmur PRIVATE
   ${PROJECT_SOURCE_DIR}/util/digest/benchmark/murmur/main.cpp
 )
+
+
 add_test(
   NAME
   murmur
   COMMAND
   murmur
 )
+
 set_property(
   TEST
   murmur
@@ -36,6 +41,7 @@ set_property(
   LABELS
   SMALL
 )
+
 set_property(
   TEST
   murmur
@@ -43,7 +49,14 @@ set_property(
   PROCESSORS
   1
 )
+
+
 target_allocator(murmur
   cpp-malloc-jemalloc
 )
+
 vcs_info(murmur)
+
+
+
+

@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-cuda-methods-ut)
+
+
 target_link_libraries(catboost-cuda-methods-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -21,6 +21,7 @@ target_link_libraries(catboost-cuda-methods-ut PUBLIC
   catboost-libs-helpers
   private-libs-quantization
 )
+
 target_link_options(catboost-cuda-methods-ut PRIVATE
   -ldl
   -lrt
@@ -34,6 +35,7 @@ target_link_options(catboost-cuda-methods-ut PRIVATE
   -lculibos
   -lcudart_static
 )
+
 target_sources(catboost-cuda-methods-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_tree_searcher.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_pairwise_tree_searcher.cpp
@@ -41,6 +43,8 @@ target_sources(catboost-cuda-methods-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_exact_leaves_estimation.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_langevin.cpp
 )
+
+
 set_property(
   TARGET
   catboost-cuda-methods-ut
@@ -48,6 +52,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-cuda-methods-ut
@@ -60,6 +65,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-methods-ut
@@ -67,6 +73,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-methods-ut
@@ -74,14 +81,22 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-methods-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-cuda-methods-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(catboost-cuda-methods-ut)
+
+
+
+

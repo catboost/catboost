@@ -5,18 +5,26 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-lz4)
+
+
 target_include_directories(contrib-libs-lz4 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/xxhash
 )
+
 target_link_libraries(contrib-libs-lz4 PUBLIC
   contrib-libs-xxhash
 )
+
 target_sources(contrib-libs-lz4 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/lz4/lz4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/lz4/lz4file.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/lz4/lz4frame.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/lz4/lz4hc.c
 )
+
+
+
+
+
+

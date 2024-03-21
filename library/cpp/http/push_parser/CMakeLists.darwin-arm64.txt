@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-http-push_parser)
+
+
 target_link_libraries(cpp-http-push_parser PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -15,6 +15,13 @@ target_link_libraries(cpp-http-push_parser PUBLIC
   library-cpp-blockcodecs
   cpp-streams-brotli
 )
+
 target_sources(cpp-http-push_parser PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/http/push_parser/http_parser.cpp
 )
+
+
+
+
+
+

@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -15,6 +14,8 @@ get_built_tool_path(
 )
 
 add_library(private-libs-quantized_pool)
+
+
 target_link_libraries(private-libs-quantized_pool PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -33,6 +34,7 @@ target_link_libraries(private-libs-quantized_pool PUBLIC
   library-cpp-object_factory
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(private-libs-quantized_pool PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/detail.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/pool.cpp
@@ -40,13 +42,20 @@ target_sources(private-libs-quantized_pool PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/quantized.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/serialization.cpp
 )
+
+
+
 generate_enum_serilization(private-libs-quantized_pool
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/print.h
   INCLUDE_HEADERS
   catboost/private/libs/quantized_pool/print.h
 )
 
-add_global_library_for(private-libs-quantized_pool.global private-libs-quantized_pool)
+
+add_global_library_for(private-libs-quantized_pool.global
+  private-libs-quantized_pool)
+
+
 target_link_libraries(private-libs-quantized_pool.global PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -65,6 +74,13 @@ target_link_libraries(private-libs-quantized_pool.global PUBLIC
   library-cpp-object_factory
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(private-libs-quantized_pool.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/loader.cpp
 )
+
+
+
+
+
+

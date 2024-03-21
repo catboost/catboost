@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(gpu_data)
+
+
 target_link_libraries(gpu_data PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -17,6 +17,7 @@ target_link_libraries(gpu_data PUBLIC
   catboost-cuda-data
   catboost-cuda-ut_helpers
 )
+
 target_link_options(gpu_data PRIVATE
   -ldl
   -lrt
@@ -30,12 +31,21 @@ target_link_options(gpu_data PRIVATE
   -lculibos
   -lcudart_static
 )
+
 target_sources(gpu_data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_bin_builder.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_binarization.cpp
 )
+
+
+
 target_allocator(gpu_data
   cpp-malloc-jemalloc
 )
+
 vcs_info(gpu_data)
+
+
+
+

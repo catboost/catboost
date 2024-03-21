@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -15,6 +14,8 @@ get_built_tool_path(
 )
 
 add_library(private-libs-quantization_schema)
+
+
 target_link_libraries(private-libs-quantization_schema PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -25,13 +26,21 @@ target_link_libraries(private-libs-quantization_schema PUBLIC
   library-cpp-json
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(private-libs-quantization_schema PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema/detail.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema/schema.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema/serialization.cpp
 )
+
+
+
 generate_enum_serilization(private-libs-quantization_schema
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema/serialization.h
   INCLUDE_HEADERS
   catboost/private/libs/quantization_schema/serialization.h
 )
+
+
+
+

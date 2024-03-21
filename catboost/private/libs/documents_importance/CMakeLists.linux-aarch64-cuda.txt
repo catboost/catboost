@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -14,6 +13,8 @@ get_built_tool_path(
 )
 
 add_library(private-libs-documents_importance)
+
+
 target_link_libraries(private-libs-documents_importance PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -29,14 +30,22 @@ target_link_libraries(private-libs-documents_importance PUBLIC
   cpp-threading-local_executor
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(private-libs-documents_importance PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/docs_importance_helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/docs_importance.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/tree_statistics.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/ders_helpers.cpp
 )
+
+
+
 generate_enum_serilization(private-libs-documents_importance
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/enums.h
   INCLUDE_HEADERS
   catboost/private/libs/documents_importance/enums.h
 )
+
+
+
+

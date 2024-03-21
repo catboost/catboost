@@ -5,16 +5,17 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(lib)
-
 add_executable(triecompiler)
+
+
 target_link_libraries(triecompiler PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   tools-triecompiler-lib
 )
+
 target_link_options(triecompiler PRIVATE
   -ldl
   -lrt
@@ -25,10 +26,19 @@ target_link_options(triecompiler PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(triecompiler PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/triecompiler/main.cpp
 )
+
+
+
 target_allocator(triecompiler
   system_allocator
 )
+
 vcs_info(triecompiler)
+
+
+
+

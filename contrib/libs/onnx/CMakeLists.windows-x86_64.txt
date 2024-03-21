@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(proto)
-
 add_library(contrib-libs-onnx)
+
+
 target_compile_options(contrib-libs-onnx PUBLIC
   -DONNX_ML=1
   -DONNX_NAMESPACE=onnx
@@ -16,15 +16,18 @@ target_compile_options(contrib-libs-onnx PUBLIC
 target_compile_options(contrib-libs-onnx PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-onnx PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx
 )
+
 target_link_libraries(contrib-libs-onnx PUBLIC
   contrib-libs-cxxsupp
   yutil
   libs-onnx-proto
   contrib-libs-protobuf
 )
+
 target_sources(contrib-libs-onnx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/checker.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/common/assertions.cc
@@ -76,3 +79,9 @@ target_sources(contrib-libs-onnx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/version_converter/convert.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/version_converter/helper.cc
 )
+
+
+
+
+
+

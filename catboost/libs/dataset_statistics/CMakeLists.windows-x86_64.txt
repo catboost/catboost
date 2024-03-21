@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -15,6 +14,8 @@ get_built_tool_path(
 )
 
 add_library(catboost-libs-dataset_statistics)
+
+
 target_link_libraries(catboost-libs-dataset_statistics PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -25,13 +26,21 @@ target_link_libraries(catboost-libs-dataset_statistics PUBLIC
   private-libs-target
   library-cpp-json
 )
+
 target_sources(catboost-libs-dataset_statistics PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/dataset_statistics/visitors.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/dataset_statistics/histograms.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/dataset_statistics/statistics_data_structures.cpp
 )
+
+
+
 generate_enum_serilization(catboost-libs-dataset_statistics
   ${PROJECT_SOURCE_DIR}/catboost/libs/dataset_statistics/histograms.h
   INCLUDE_HEADERS
   catboost/libs/dataset_statistics/histograms.h
 )
+
+
+
+

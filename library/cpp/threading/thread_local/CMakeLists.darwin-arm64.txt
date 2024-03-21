@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -14,6 +13,8 @@ get_built_tool_path(
 )
 
 add_library(cpp-threading-thread_local)
+
+
 target_link_libraries(cpp-threading-thread_local PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -21,11 +22,19 @@ target_link_libraries(cpp-threading-thread_local PUBLIC
   cpp-threading-skip_list
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(cpp-threading-thread_local PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.cpp
 )
+
+
+
 generate_enum_serilization(cpp-threading-thread_local
   ${PROJECT_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.h
   INCLUDE_HEADERS
   library/cpp/threading/thread_local/thread_local.h
 )
+
+
+
+

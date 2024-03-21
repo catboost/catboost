@@ -5,14 +5,15 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-iterator)
+
+
 target_link_libraries(library-cpp-iterator PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(library-cpp-iterator PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/iterator/cartesian_product.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/iterator/concatenate.cpp
@@ -24,3 +25,9 @@ target_sources(library-cpp-iterator PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/iterator/mapped.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/iterator/zip.cpp
 )
+
+
+
+
+
+

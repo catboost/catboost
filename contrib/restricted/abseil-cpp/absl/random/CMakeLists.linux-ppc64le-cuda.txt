@@ -5,15 +5,17 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(abseil-cpp-absl-random)
+
+
 target_compile_options(abseil-cpp-absl-random PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(abseil-cpp-absl-random PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
+
 target_link_libraries(abseil-cpp-absl-random PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -22,6 +24,7 @@ target_link_libraries(abseil-cpp-absl-random PUBLIC
   abseil-cpp-absl-strings
   abseil-cpp-absl-types
 )
+
 target_sources(abseil-cpp-absl-random PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/discrete_distribution.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/gaussian_distribution.cc
@@ -37,3 +40,9 @@ target_sources(abseil-cpp-absl-random PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/seed_gen_exception.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/seed_sequences.cc
 )
+
+
+
+
+
+

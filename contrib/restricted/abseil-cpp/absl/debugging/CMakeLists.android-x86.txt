@@ -5,20 +5,23 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(abseil-cpp-absl-debugging)
+
+
 target_compile_options(abseil-cpp-absl-debugging PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(abseil-cpp-absl-debugging PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
+
 target_link_libraries(abseil-cpp-absl-debugging PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
   cpp-sanitizer-include
 )
+
 target_sources(abseil-cpp-absl-debugging PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/failure_signal_handler.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/internal/address_is_readable.cc
@@ -30,3 +33,9 @@ target_sources(abseil-cpp-absl-debugging PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/stacktrace.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/debugging/symbolize.cc
 )
+
+
+
+
+
+

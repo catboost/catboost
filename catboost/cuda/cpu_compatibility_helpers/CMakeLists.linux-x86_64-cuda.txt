@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(catboost-cuda-cpu_compatibility_helpers)
+
+
 target_link_libraries(catboost-cuda-cpu_compatibility_helpers PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -20,6 +20,13 @@ target_link_libraries(catboost-cuda-cpu_compatibility_helpers PUBLIC
   catboost-libs-model
   private-libs-target
 )
+
 target_sources(catboost-cuda-cpu_compatibility_helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cpu_compatibility_helpers/model_converter.cpp
 )
+
+
+
+
+
+

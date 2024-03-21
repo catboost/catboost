@@ -5,18 +5,27 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(abseil-cpp-absl-numeric)
+
+
 target_compile_options(abseil-cpp-absl-numeric PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(abseil-cpp-absl-numeric PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
+
 target_link_libraries(abseil-cpp-absl-numeric PUBLIC
   contrib-libs-cxxsupp
 )
+
 target_sources(abseil-cpp-absl-numeric PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/numeric/int128.cc
 )
+
+
+
+
+
+

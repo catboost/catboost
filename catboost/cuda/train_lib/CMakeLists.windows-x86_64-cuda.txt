@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
-
 add_library(catboost-cuda-train_lib INTERFACE)
+
+
 target_link_libraries(catboost-cuda-train_lib INTERFACE
   contrib-libs-cxxsupp
   yutil
@@ -38,7 +38,13 @@ target_link_libraries(catboost-cuda-train_lib INTERFACE
   cpp-threading-local_executor
 )
 
-add_global_library_for(catboost-cuda-train_lib.global catboost-cuda-train_lib)
+
+
+
+add_global_library_for(catboost-cuda-train_lib.global
+  catboost-cuda-train_lib)
+
+
 target_link_libraries(catboost-cuda-train_lib.global PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -67,6 +73,7 @@ target_link_libraries(catboost-cuda-train_lib.global PUBLIC
   library-cpp-object_factory
   cpp-threading-local_executor
 )
+
 target_sources(catboost-cuda-train_lib.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/cuda_trainer_env.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/train.cpp
@@ -84,3 +91,9 @@ target_sources(catboost-cuda-train_lib.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/multiclass_non_symmetric.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/combination.cpp
 )
+
+
+
+
+
+

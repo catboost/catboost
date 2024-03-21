@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-cxxsupp-libcxxabi-parts)
+
+
 target_compile_options(libs-cxxsupp-libcxxabi-parts PUBLIC
   -nostdinc++
 )
@@ -15,19 +15,24 @@ target_compile_options(libs-cxxsupp-libcxxabi-parts PRIVATE
   -D_LIBCXXABI_BUILDING_LIBRARY
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(libs-cxxsupp-libcxxabi-parts PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/include
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx
 )
+
 target_link_libraries(libs-cxxsupp-libcxxabi-parts PUBLIC
   contrib-libs-linux-headers
 )
+
 target_sources(libs-cxxsupp-libcxxabi-parts PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_thread_atexit.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/abort_message.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_demangle.cpp
 )
+
+
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_thread_atexit.cpp
@@ -37,3 +42,8 @@ set_property(
   -fPIC
   -fno-lto
 )
+
+
+
+
+

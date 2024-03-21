@@ -5,16 +5,18 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-crcutil)
+
+
 target_compile_options(contrib-libs-crcutil PRIVATE
   -DCRCUTIL_USE_MM_CRC32=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_link_libraries(contrib-libs-crcutil PUBLIC
   contrib-libs-cxxsupp
 )
+
 target_sources(contrib-libs-crcutil PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/crcutil/multiword_64_64_gcc_i386_mmx.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/crcutil/multiword_128_64_gcc_amd64_sse2.cc
@@ -22,6 +24,9 @@ target_sources(contrib-libs-crcutil PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/crcutil/interface.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc
 )
+
+
+
 target_sources_custom(contrib-libs-crcutil
   .sse4
   SRCS
@@ -31,3 +36,7 @@ target_sources_custom(contrib-libs-crcutil
   -msse4.2
   -mpopcnt
 )
+
+
+
+

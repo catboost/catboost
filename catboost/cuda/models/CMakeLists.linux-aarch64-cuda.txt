@@ -5,13 +5,14 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(CUDAToolkit REQUIRED)
-
 add_library(models)
+
+
 target_cuda_sources(models PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/models/kernel/add_model_value.cu
 )
+
 target_link_libraries(models PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -21,6 +22,7 @@ target_link_libraries(models PUBLIC
   catboost-cuda-gpu_data
   CUDA::toolkit
 )
+
 target_sources(models PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/models/add_oblivious_tree_model_doc_parallel.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/models/oblivious_model.cpp
@@ -29,7 +31,11 @@ target_sources(models PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/models/model_converter.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/models/compact_model.cpp
 )
+
+
+
 target_cuda_cflags(models)
+
 target_cuda_flags(models
   -gencode
   arch=compute_35,code=sm_35
@@ -54,7 +60,11 @@ target_cuda_flags(models
   -gencode=arch=compute_90,code=sm_90
 )
 
-add_global_library_for(models.global models)
+
+add_global_library_for(models.global
+  models)
+
+
 target_link_libraries(models.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -64,8 +74,15 @@ target_link_libraries(models.global PUBLIC
   catboost-cuda-gpu_data
   CUDA::toolkit
 )
+
 target_sources(models.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/models/add_bin_values.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/models/add_region_doc_parallel.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/models/add_non_symmetric_tree_doc_parallel.cpp
 )
+
+
+
+
+
+

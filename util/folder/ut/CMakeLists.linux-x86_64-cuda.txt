@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-folder-ut)
+
+
 target_link_libraries(util-folder-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,6 +16,7 @@ target_link_libraries(util-folder-ut PUBLIC
   cpp-testing-unittest_main
   cpp-threading-future
 )
+
 target_link_options(util-folder-ut PRIVATE
   -ldl
   -lrt
@@ -26,6 +27,7 @@ target_link_options(util-folder-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(util-folder-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/folder/dirut_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/folder/filelist_ut.cpp
@@ -34,6 +36,8 @@ target_sources(util-folder-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/folder/path_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/folder/pathsplit_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-folder-ut
@@ -41,6 +45,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-folder-ut
@@ -53,6 +58,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-folder-ut
@@ -60,6 +66,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-folder-ut
@@ -67,14 +74,22 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-folder-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-folder-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(util-folder-ut)
+
+
+
+

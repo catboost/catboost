@@ -5,20 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-thread-ut)
+
+
 target_link_libraries(util-thread-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest_main
   cpp-threading-future
 )
+
 target_link_options(util-thread-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )
+
 target_sources(util-thread-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/thread/factory_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/thread/lfqueue_ut.cpp
@@ -26,6 +28,8 @@ target_sources(util-thread-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/thread/pool_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/thread/singleton_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-thread-ut
@@ -33,6 +37,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-thread-ut
@@ -45,6 +50,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-thread-ut
@@ -52,6 +58,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-thread-ut
@@ -59,13 +66,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-thread-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-thread-ut
   system_allocator
 )
+
 vcs_info(util-thread-ut)
+
+
+
+

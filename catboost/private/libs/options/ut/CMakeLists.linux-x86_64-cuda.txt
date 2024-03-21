@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(json_options_ut)
+
+
 target_link_libraries(json_options_ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,6 +16,7 @@ target_link_libraries(json_options_ut PUBLIC
   cpp-testing-unittest_main
   private-libs-options
 )
+
 target_link_options(json_options_ut PRIVATE
   -ldl
   -lrt
@@ -26,12 +27,15 @@ target_link_options(json_options_ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(json_options_ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/json_helper_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/options_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/text_options_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/all_losses_described.cpp
 )
+
+
 set_property(
   TARGET
   json_options_ut
@@ -39,6 +43,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   json_options_ut
@@ -51,6 +56,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   json_options_ut
@@ -58,6 +64,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   json_options_ut
@@ -65,14 +72,22 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   json_options_ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(json_options_ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(json_options_ut)
+
+
+
+

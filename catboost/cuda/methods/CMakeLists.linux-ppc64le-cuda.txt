@@ -5,11 +5,11 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(CUDAToolkit REQUIRED)
 add_subdirectory(ut)
-
 add_library(catboost-cuda-methods)
+
+
 target_cuda_sources(catboost-cuda-methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/kernel/linear_cusolver_stub.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/kernel/pointwise_hist2.cu
@@ -48,6 +48,7 @@ target_cuda_sources(catboost-cuda-methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/greedy_subsets_searcher/kernel/split_points.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/greedy_subsets_searcher/kernel/compute_scores.cu
 )
+
 target_link_libraries(catboost-cuda-methods PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -69,6 +70,7 @@ target_link_libraries(catboost-cuda-methods PUBLIC
   cpp-threading-local_executor
   CUDA::toolkit
 )
+
 target_sources(catboost-cuda-methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/greedy_subsets_searcher/split_points.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/greedy_subsets_searcher/model_builder.cpp
@@ -107,7 +109,11 @@ target_sources(catboost-cuda-methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/pairwise_oblivious_trees/pairwise_optimization_subsets.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/pairwise_oblivious_trees/pairwise_structure_searcher.cpp
 )
+
+
+
 target_cuda_cflags(catboost-cuda-methods)
+
 target_cuda_flags(catboost-cuda-methods
   -gencode
   arch=compute_35,code=sm_35
@@ -132,7 +138,11 @@ target_cuda_flags(catboost-cuda-methods
   -gencode=arch=compute_90,code=sm_90
 )
 
-add_global_library_for(catboost-cuda-methods.global catboost-cuda-methods)
+
+add_global_library_for(catboost-cuda-methods.global
+  catboost-cuda-methods)
+
+
 target_link_libraries(catboost-cuda-methods.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -154,8 +164,15 @@ target_link_libraries(catboost-cuda-methods.global PUBLIC
   cpp-threading-local_executor
   CUDA::toolkit
 )
+
 target_sources(catboost-cuda-methods.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/pointwise_kernels.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/pairwise_kernels.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/exact_estimation.cpp
 )
+
+
+
+
+
+

@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(text_features-ut-lib)
+
+
 target_link_libraries(text_features-ut-lib PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -17,6 +17,13 @@ target_link_libraries(text_features-ut-lib PUBLIC
   private-libs-text_processing
   text_processing-ut-lib
 )
+
 target_sources(text_features-ut-lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/lib/text_features_data.cpp
 )
+
+
+
+
+
+

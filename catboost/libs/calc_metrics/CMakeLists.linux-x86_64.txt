@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
-
 add_library(catboost-libs-calc_metrics)
+
+
 target_link_libraries(catboost-libs-calc_metrics PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -19,6 +19,13 @@ target_link_libraries(catboost-libs-calc_metrics PUBLIC
   private-libs-target
   private-libs-options
 )
+
 target_sources(catboost-libs-calc_metrics PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/calc_metrics/calc_metrics.cpp
 )
+
+
+
+
+
+

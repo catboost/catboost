@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-memory-ut)
+
+
 target_link_libraries(util-memory-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -15,6 +15,7 @@ target_link_libraries(util-memory-ut PUBLIC
   library-cpp-cpuid_check
   cpp-testing-unittest_main
 )
+
 target_link_options(util-memory-ut PRIVATE
   -ldl
   -lrt
@@ -25,6 +26,7 @@ target_link_options(util-memory-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(util-memory-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/memory/addstorage_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/memory/blob_ut.cpp
@@ -32,6 +34,8 @@ target_sources(util-memory-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/memory/smallobj_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/memory/tempbuf_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-memory-ut
@@ -39,6 +43,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-memory-ut
@@ -51,6 +56,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-memory-ut
@@ -58,6 +64,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-memory-ut
@@ -65,14 +72,22 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-memory-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-memory-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(util-memory-ut)
+
+
+
+

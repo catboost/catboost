@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(blockcodecs-codecs-lzma INTERFACE)
+
+
 target_link_libraries(blockcodecs-codecs-lzma INTERFACE
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,7 +16,13 @@ target_link_libraries(blockcodecs-codecs-lzma INTERFACE
   cpp-blockcodecs-core
 )
 
-add_global_library_for(blockcodecs-codecs-lzma.global blockcodecs-codecs-lzma)
+
+
+
+add_global_library_for(blockcodecs-codecs-lzma.global
+  blockcodecs-codecs-lzma)
+
+
 target_link_libraries(blockcodecs-codecs-lzma.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -24,6 +30,13 @@ target_link_libraries(blockcodecs-codecs-lzma.global PUBLIC
   contrib-libs-lzmasdk
   cpp-blockcodecs-core
 )
+
 target_sources(blockcodecs-codecs-lzma.global PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/lzma/lzma.cpp
 )
+
+
+
+
+
+

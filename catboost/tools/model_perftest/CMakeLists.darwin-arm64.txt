@@ -5,22 +5,31 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(lib)
-
 add_executable(model_perftest)
+
+
 target_link_libraries(model_perftest PUBLIC
   contrib-libs-cxxsupp
   yutil
   tools-model_perftest-lib
   library-cpp-getopt
 )
+
 target_link_options(model_perftest PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )
+
+
+
 target_allocator(model_perftest
   system_allocator
 )
+
 vcs_info(model_perftest)
+
+
+
+

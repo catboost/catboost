@@ -5,12 +5,12 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(CUDAToolkit REQUIRED)
 add_subdirectory(bin)
 add_subdirectory(ut)
-
 add_library(catboost-cuda-targets)
+
+
 target_cuda_sources(catboost-cuda-targets PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/dcg.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/multilogit.cu
@@ -22,6 +22,7 @@ target_cuda_sources(catboost-cuda-targets PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/query_softmax.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/yeti_rank_pointwise.cu
 )
+
 target_link_libraries(catboost-cuda-targets PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -36,6 +37,7 @@ target_link_libraries(catboost-cuda-targets PUBLIC
   cpp-threading-local_executor
   CUDA::toolkit
 )
+
 target_sources(catboost-cuda-targets PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/auc.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/combination_targets_impl.cpp
@@ -48,7 +50,11 @@ target_sources(catboost-cuda-targets PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/querywise_targets_impl.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/target_func.cpp
 )
+
+
+
 target_cuda_cflags(catboost-cuda-targets)
+
 target_cuda_flags(catboost-cuda-targets
   -gencode
   arch=compute_35,code=sm_35
@@ -73,7 +79,11 @@ target_cuda_flags(catboost-cuda-targets
   -gencode=arch=compute_90,code=sm_90
 )
 
-add_global_library_for(catboost-cuda-targets.global catboost-cuda-targets)
+
+add_global_library_for(catboost-cuda-targets.global
+  catboost-cuda-targets)
+
+
 target_link_libraries(catboost-cuda-targets.global PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -88,9 +98,16 @@ target_link_libraries(catboost-cuda-targets.global PUBLIC
   cpp-threading-local_executor
   CUDA::toolkit
 )
+
 target_sources(catboost-cuda-targets.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/dcg.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/multiclass_kernels.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/query_cross_entropy_kernels.cpp
 )
+
+
+
+
+
+

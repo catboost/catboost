@@ -5,15 +5,16 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-stream-ut)
+
+
 target_link_libraries(util-stream-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest_main
 )
+
 target_link_options(util-stream-ut PRIVATE
   -ldl
   -lrt
@@ -24,6 +25,7 @@ target_link_options(util-stream-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(util-stream-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/stream/aligned_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/buffer_ut.cpp
@@ -46,6 +48,8 @@ target_sources(util-stream-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/stream/zerocopy_output_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/zlib_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-stream-ut
@@ -53,6 +57,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-stream-ut
@@ -65,6 +70,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-stream-ut
@@ -72,6 +78,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-stream-ut
@@ -79,13 +86,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-stream-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-stream-ut
   cpp-malloc-jemalloc
 )
+
 vcs_info(util-stream-ut)
+
+
+
+

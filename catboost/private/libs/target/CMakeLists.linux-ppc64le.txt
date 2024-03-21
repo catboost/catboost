@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(private-libs-target)
+
+
 target_link_libraries(private-libs-target PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -24,6 +24,7 @@ target_link_libraries(private-libs-target PUBLIC
   library-cpp-json
   cpp-threading-local_executor
 )
+
 target_sources(private-libs-target PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/target/binarize_target.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/target/classification_target_helper.cpp
@@ -32,3 +33,9 @@ target_sources(private-libs-target PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/target/calc_class_weights.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/target/util.cpp
 )
+
+
+
+
+
+

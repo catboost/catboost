@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-yt-string)
+
+
 target_compile_options(cpp-yt-string PRIVATE
   -Wdeprecated-this-capture
 )
+
 target_link_libraries(cpp-yt-string PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -19,9 +20,16 @@ target_link_libraries(cpp-yt-string PUBLIC
   cpp-yt-misc
   cpp-yt-small_containers
 )
+
 target_sources(cpp-yt-string PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/string/enum.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/string/guid.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/string/string.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/string/format.cpp
 )
+
+
+
+
+
+

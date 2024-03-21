@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-libs-helpers-ut)
+
+
 target_include_directories(catboost-libs-helpers-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers
 )
+
 target_link_libraries(catboost-libs-helpers-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -19,6 +20,7 @@ target_link_libraries(catboost-libs-helpers-ut PUBLIC
   catboost-libs-helpers
   cpp-binsaver-ut_util
 )
+
 target_link_options(catboost-libs-helpers-ut PRIVATE
   -ldl
   -lrt
@@ -29,6 +31,7 @@ target_link_options(catboost-libs-helpers-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(catboost-libs-helpers-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/ut/array_subset_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/ut/checksum_ut.cpp
@@ -52,6 +55,8 @@ target_sources(catboost-libs-helpers-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/ut/wx_test_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/ut/xml_output_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-libs-helpers-ut
@@ -59,6 +64,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-libs-helpers-ut
@@ -71,6 +77,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-libs-helpers-ut
@@ -78,6 +85,7 @@ set_yunittest_property(
   LABELS
   MEDIUM
 )
+
 set_yunittest_property(
   TEST
   catboost-libs-helpers-ut
@@ -85,13 +93,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-libs-helpers-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-libs-helpers-ut
   system_allocator
 )
+
 vcs_info(catboost-libs-helpers-ut)
+
+
+
+

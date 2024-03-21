@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
-
 add_library(private-libs-text_processing)
+
+
 target_link_libraries(private-libs-text_processing PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -20,6 +20,7 @@ target_link_libraries(private-libs-text_processing PUBLIC
   cpp-text_processing-tokenizer
   cpp-threading-local_executor
 )
+
 target_sources(private-libs-text_processing PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/dictionary.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/text_column_builder.cpp
@@ -27,3 +28,9 @@ target_sources(private-libs-text_processing PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/text_digitizers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/tokenizer.cpp
 )
+
+
+
+
+
+

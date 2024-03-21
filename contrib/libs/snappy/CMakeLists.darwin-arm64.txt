@@ -5,24 +5,33 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-snappy)
+
+
 target_compile_options(contrib-libs-snappy PRIVATE
   -DHAVE_CONFIG_H
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-snappy PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/snappy/include
 )
+
 target_link_libraries(contrib-libs-snappy PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-sanitizer-include
 )
+
 target_sources(contrib-libs-snappy PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/snappy/snappy-c.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/snappy/snappy-sinksource.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/snappy/snappy-stubs-internal.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/snappy/snappy.cc
 )
+
+
+
+
+
+

@@ -5,15 +5,17 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-zlib)
+
+
 target_compile_options(contrib-libs-zlib PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-zlib PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/zlib/include
 )
+
 target_sources(contrib-libs-zlib PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zlib/adler32.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zlib/compress.c
@@ -31,3 +33,9 @@ target_sources(contrib-libs-zlib PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zlib/uncompr.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zlib/zutil.c
 )
+
+
+
+
+
+

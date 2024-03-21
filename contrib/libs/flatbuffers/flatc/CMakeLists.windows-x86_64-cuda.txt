@@ -5,21 +5,24 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-flatbuffers-flatc)
+
+
 target_compile_options(libs-flatbuffers-flatc PRIVATE
   -DFLATBUFFERS_LOCALE_INDEPENDENT=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(libs-flatbuffers-flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
+
 target_link_libraries(libs-flatbuffers-flatc PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
 )
+
 target_sources(libs-flatbuffers-flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/cpp_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/go_generator.cc
@@ -59,3 +62,9 @@ target_sources(libs-flatbuffers-flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/reflection.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
 )
+
+
+
+
+
+

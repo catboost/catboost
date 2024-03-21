@@ -5,13 +5,14 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-zstd06)
+
+
 target_compile_options(contrib-libs-zstd06 PRIVATE
   -DZSTD_LEGACY_SUPPORT=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-zstd06 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/common
@@ -20,10 +21,12 @@ target_include_directories(contrib-libs-zstd06 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/dictBuilder
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/legacy
 )
+
 target_link_libraries(contrib-libs-zstd06 PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
+
 target_sources(contrib-libs-zstd06 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/common/entropy_common.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/common/fse_decompress.c
@@ -46,3 +49,9 @@ target_sources(contrib-libs-zstd06 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/legacy/zstd_v07.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd06/legacy/zstd_v08.c
 )
+
+
+
+
+
+

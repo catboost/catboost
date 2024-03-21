@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(lib)
-
 add_executable(catboost-private-libs-text_features-ut)
+
+
 target_link_libraries(catboost-private-libs-text_features-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -19,6 +19,7 @@ target_link_libraries(catboost-private-libs-text_features-ut PUBLIC
   private-libs-text_features
   text_features-ut-lib
 )
+
 target_link_options(catboost-private-libs-text_features-ut PRIVATE
   -ldl
   -lrt
@@ -29,11 +30,14 @@ target_link_options(catboost-private-libs-text_features-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(catboost-private-libs-text_features-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/calcer_canonization_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/feature_calcer_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/text_processing_collection_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-private-libs-text_features-ut
@@ -41,6 +45,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-private-libs-text_features-ut
@@ -53,6 +58,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-text_features-ut
@@ -60,6 +66,7 @@ set_yunittest_property(
   LABELS
   MEDIUM
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-text_features-ut
@@ -67,14 +74,22 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-text_features-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-private-libs-text_features-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(catboost-private-libs-text_features-ut)
+
+
+
+

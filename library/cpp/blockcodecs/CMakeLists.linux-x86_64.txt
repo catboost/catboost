@@ -5,11 +5,11 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(codecs)
 add_subdirectory(core)
-
 add_library(library-cpp-blockcodecs)
+
+
 target_link_libraries(library-cpp-blockcodecs PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -25,7 +25,14 @@ target_link_libraries(library-cpp-blockcodecs PUBLIC
   blockcodecs-codecs-zlib
   blockcodecs-codecs-zstd
 )
+
 target_sources(library-cpp-blockcodecs PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/stream.cpp
 )
+
+
+
+
+
+

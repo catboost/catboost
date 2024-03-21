@@ -5,16 +5,17 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut_util)
-
 add_library(library-cpp-binsaver)
+
+
 target_link_libraries(library-cpp-binsaver PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-containers-2d_array
 )
+
 target_sources(library-cpp-binsaver PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/class_factory.h
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/bin_saver.cpp
@@ -23,3 +24,9 @@ target_sources(library-cpp-binsaver PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/mem_io.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/util_stream_io.cpp
 )
+
+
+
+
+
+

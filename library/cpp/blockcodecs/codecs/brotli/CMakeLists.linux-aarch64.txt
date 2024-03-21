@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(blockcodecs-codecs-brotli INTERFACE)
+
+
 target_link_libraries(blockcodecs-codecs-brotli INTERFACE
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -17,7 +17,13 @@ target_link_libraries(blockcodecs-codecs-brotli INTERFACE
   cpp-blockcodecs-core
 )
 
-add_global_library_for(blockcodecs-codecs-brotli.global blockcodecs-codecs-brotli)
+
+
+
+add_global_library_for(blockcodecs-codecs-brotli.global
+  blockcodecs-codecs-brotli)
+
+
 target_link_libraries(blockcodecs-codecs-brotli.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -26,6 +32,13 @@ target_link_libraries(blockcodecs-codecs-brotli.global PUBLIC
   libs-brotli-dec
   cpp-blockcodecs-core
 )
+
 target_sources(blockcodecs-codecs-brotli.global PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/brotli/brotli.cpp
 )
+
+
+
+
+
+

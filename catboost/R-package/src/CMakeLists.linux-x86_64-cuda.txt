@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_shared_library(catboostr)
+
+
 target_include_directories(catboostr PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/r-lang
 )
+
 target_link_libraries(catboostr PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -32,6 +33,7 @@ target_link_libraries(catboostr PUBLIC
   catboost-cuda-train_lib
   libs-model-cuda
 )
+
 target_link_options(catboostr PRIVATE
   -ldl
   -lrt
@@ -46,11 +48,20 @@ target_link_options(catboostr PRIVATE
   -lculibos
   -lcudart_static
 )
+
 target_sources(catboostr PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/catboostr.cpp
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/init.c
 )
+
+
+
 use_export_script(catboostr
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/catboostr.exports
 )
+
 vcs_info(catboostr)
+
+
+
+

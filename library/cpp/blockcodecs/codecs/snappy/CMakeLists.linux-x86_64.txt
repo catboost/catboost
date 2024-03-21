@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(blockcodecs-codecs-snappy INTERFACE)
+
+
 target_link_libraries(blockcodecs-codecs-snappy INTERFACE
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,7 +16,13 @@ target_link_libraries(blockcodecs-codecs-snappy INTERFACE
   cpp-blockcodecs-core
 )
 
-add_global_library_for(blockcodecs-codecs-snappy.global blockcodecs-codecs-snappy)
+
+
+
+add_global_library_for(blockcodecs-codecs-snappy.global
+  blockcodecs-codecs-snappy)
+
+
 target_link_libraries(blockcodecs-codecs-snappy.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -24,6 +30,13 @@ target_link_libraries(blockcodecs-codecs-snappy.global PUBLIC
   contrib-libs-snappy
   cpp-blockcodecs-core
 )
+
 target_sources(blockcodecs-codecs-snappy.global PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/snappy/snappy.cpp
 )
+
+
+
+
+
+

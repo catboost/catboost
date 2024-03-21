@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-tbb)
+
+
 target_compile_options(contrib-libs-tbb PRIVATE
   -D__TBB_BUILD
   -DUSE_WINTHREAD
@@ -15,12 +15,15 @@ target_compile_options(contrib-libs-tbb PRIVATE
   -DDO_ITT_NOTIFY
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-tbb PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/include
 )
+
 target_link_libraries(contrib-libs-tbb PUBLIC
   contrib-libs-cxxsupp
 )
+
 target_sources(contrib-libs-tbb PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/address_waiter.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/allocator.cpp
@@ -51,3 +54,9 @@ target_sources(contrib-libs-tbb PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/version.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/tbb/src/tbb/itt_notify.cpp
 )
+
+
+
+
+
+

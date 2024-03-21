@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(tools-model_perftest-lib INTERFACE)
+
+
 target_link_libraries(tools-model_perftest-lib INTERFACE
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -19,7 +19,13 @@ target_link_libraries(tools-model_perftest-lib INTERFACE
   libs-model-cuda
 )
 
-add_global_library_for(tools-model_perftest-lib.global tools-model_perftest-lib)
+
+
+
+add_global_library_for(tools-model_perftest-lib.global
+  tools-model_perftest-lib)
+
+
 target_link_libraries(tools-model_perftest-lib.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -30,7 +36,14 @@ target_link_libraries(tools-model_perftest-lib.global PUBLIC
   cpp-threading-future
   libs-model-cuda
 )
+
 target_sources(tools-model_perftest-lib.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/tools/model_perftest/lib/main.cpp
   ${PROJECT_SOURCE_DIR}/catboost/tools/model_perftest/lib/perftest_modules.cpp
 )
+
+
+
+
+
+

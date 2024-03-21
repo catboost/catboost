@@ -5,13 +5,20 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(private-libs-validate_fb)
+
+
 target_link_libraries(private-libs-validate_fb PUBLIC
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(private-libs-validate_fb PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/validate_fb/validate.cpp
 )
+
+
+
+
+
+

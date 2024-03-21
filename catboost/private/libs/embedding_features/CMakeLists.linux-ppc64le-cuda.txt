@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
 get_built_tool_path(
   TOOL_flatc_bin
@@ -13,6 +12,7 @@ get_built_tool_path(
   contrib/tools/flatc
   flatc
 )
+
 get_built_tool_path(
   TOOL_flatc_bin
   TOOL_flatc_dependency
@@ -21,6 +21,8 @@ get_built_tool_path(
 )
 
 add_library(private-libs-embedding_features)
+
+
 target_link_libraries(private-libs-embedding_features PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -32,6 +34,7 @@ target_link_libraries(private-libs-embedding_features PUBLIC
   cpp-hnsw-index
   cpp-online_hnsw-dense_vectors
 )
+
 target_sources(private-libs-embedding_features PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.iter.fbs.h
@@ -45,6 +48,9 @@ target_sources(private-libs-embedding_features PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs.cpp
   ${PROJECT_BINARY_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs.cpp
 )
+
+
+
 target_fbs_source(private-libs-embedding_features
   PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_feature_calcers.fbs
@@ -53,6 +59,7 @@ target_fbs_source(private-libs-embedding_features
   -I
   ${PROJECT_SOURCE_DIR}
 )
+
 target_fbs_source(private-libs-embedding_features
   PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/flatbuffers/embedding_processing_collection.fbs
@@ -62,7 +69,11 @@ target_fbs_source(private-libs-embedding_features
   ${PROJECT_SOURCE_DIR}
 )
 
-add_global_library_for(private-libs-embedding_features.global private-libs-embedding_features)
+
+add_global_library_for(private-libs-embedding_features.global
+  private-libs-embedding_features)
+
+
 target_link_libraries(private-libs-embedding_features.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -74,7 +85,14 @@ target_link_libraries(private-libs-embedding_features.global PUBLIC
   cpp-hnsw-index
   cpp-online_hnsw-dense_vectors
 )
+
 target_sources(private-libs-embedding_features.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/knn.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/lda.cpp
 )
+
+
+
+
+
+

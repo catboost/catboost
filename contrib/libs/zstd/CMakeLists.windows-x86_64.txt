@@ -5,22 +5,25 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-zstd)
+
+
 target_compile_options(contrib-libs-zstd PRIVATE
   -DZSTD_LEGACY_SUPPORT=1
   -DZSTD_MULTITHREAD
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-zstd PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/common
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/legacy
 )
+
 target_link_libraries(contrib-libs-zstd PUBLIC
   contrib-libs-xxhash
 )
+
 target_sources(contrib-libs-zstd PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/common/debug.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/common/entropy_common.c
@@ -58,3 +61,9 @@ target_sources(contrib-libs-zstd PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/legacy/zstd_v06.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/legacy/zstd_v07.c
 )
+
+
+
+
+
+

@@ -5,23 +5,32 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(abseil-cpp-absl-types)
+
+
 target_compile_options(abseil-cpp-absl-types PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(abseil-cpp-absl-types PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
+
 target_link_libraries(abseil-cpp-absl-types PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
   abseil-cpp-absl-memory
 )
+
 target_sources(abseil-cpp-absl-types PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/types/bad_any_cast.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/types/bad_optional_access.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/types/bad_variant_access.cc
 )
+
+
+
+
+
+

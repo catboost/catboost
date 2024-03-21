@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -14,6 +13,8 @@ get_built_tool_path(
 )
 
 add_library(library-cpp-par)
+
+
 target_link_libraries(library-cpp-par PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -31,6 +32,7 @@ target_link_libraries(library-cpp-par PUBLIC
   cpp-threading-local_executor
   cpp-deprecated-atomic
 )
+
 target_sources(library-cpp-par PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/par/distr_tree.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/par/compression.cpp
@@ -47,8 +49,15 @@ target_sources(library-cpp-par PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/par/par_log.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/par/par_wb.cpp
 )
+
+
+
 generate_enum_serilization(library-cpp-par
   ${PROJECT_SOURCE_DIR}/library/cpp/par/par_host_stats.h
   INCLUDE_HEADERS
   library/cpp/par/par_host_stats.h
 )
+
+
+
+

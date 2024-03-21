@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-generic-ut)
+
+
 target_link_libraries(util-generic-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -15,6 +15,7 @@ target_link_libraries(util-generic-ut PUBLIC
   cpp-testing-unittest_main
   cpp-containers-absl_flat_hash
 )
+
 target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/adaptor_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/algorithm_ut.cpp
@@ -67,6 +68,8 @@ target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/ymath_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/string_transparent_hash_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-generic-ut
@@ -74,6 +77,7 @@ set_property(
   SPLIT_FACTOR
   10
 )
+
 add_yunittest(
   NAME
   util-generic-ut
@@ -86,6 +90,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-generic-ut
@@ -93,6 +98,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-generic-ut
@@ -100,13 +106,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-generic-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-generic-ut
   system_allocator
 )
+
 vcs_info(util-generic-ut)
+
+
+
+

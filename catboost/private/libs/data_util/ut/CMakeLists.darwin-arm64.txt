@@ -5,24 +5,28 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-private-libs-data_util-ut)
+
+
 target_link_libraries(catboost-private-libs-data_util-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest_main
   private-libs-data_util
 )
+
 target_link_options(catboost-private-libs-data_util-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )
+
 target_sources(catboost-private-libs-data_util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/data_util/ut/line_data_reader_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/data_util/ut/path_with_scheme_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-private-libs-data_util-ut
@@ -30,6 +34,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-private-libs-data_util-ut
@@ -42,6 +47,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-data_util-ut
@@ -49,6 +55,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-data_util-ut
@@ -56,13 +63,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-data_util-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-private-libs-data_util-ut
   system_allocator
 )
+
 vcs_info(catboost-private-libs-data_util-ut)
+
+
+
+

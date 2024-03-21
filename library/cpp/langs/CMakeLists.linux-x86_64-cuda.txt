@@ -5,17 +5,24 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-langs)
+
+
 target_link_libraries(library-cpp-langs PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-digest-lower_case
 )
+
 target_sources(library-cpp-langs PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/langs/generated/uniscripts.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/langs/langs.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/langs/scripts.cpp
 )
+
+
+
+
+
+

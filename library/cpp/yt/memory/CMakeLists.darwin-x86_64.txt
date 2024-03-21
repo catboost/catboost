@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-yt-memory)
+
+
 target_compile_options(cpp-yt-memory PRIVATE
   -Wdeprecated-this-capture
 )
+
 target_link_libraries(cpp-yt-memory PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -19,6 +20,7 @@ target_link_libraries(cpp-yt-memory PUBLIC
   cpp-yt-misc
   cpp-yt-malloc
 )
+
 target_sources(cpp-yt-memory PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/blob.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/chunked_input_stream.cpp
@@ -32,3 +34,9 @@ target_sources(cpp-yt-memory PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/safe_memory_reader.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/shared_range.cpp
 )
+
+
+
+
+
+

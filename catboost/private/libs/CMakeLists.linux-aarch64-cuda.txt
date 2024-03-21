@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(algo)
 add_subdirectory(algo_helpers)
 add_subdirectory(app_helpers)
@@ -33,3 +32,5 @@ add_subdirectory(target)
 add_subdirectory(text_features)
 add_subdirectory(text_processing)
 add_subdirectory(validate_fb)
+
+

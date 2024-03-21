@@ -5,20 +5,23 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(abseil-cpp-absl-base)
+
+
 target_compile_options(abseil-cpp-absl-base PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(abseil-cpp-absl-base PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
+
 target_link_libraries(abseil-cpp-absl-base PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   cpp-sanitizer-include
 )
+
 target_sources(abseil-cpp-absl-base PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/cycleclock.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc.cc
@@ -33,3 +36,9 @@ target_sources(abseil-cpp-absl-base PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/unscaledcycleclock.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/log_severity.cc
 )
+
+
+
+
+
+

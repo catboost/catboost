@@ -5,13 +5,20 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-testing-hook)
+
+
 target_link_libraries(cpp-testing-hook PUBLIC
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(cpp-testing-hook PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/hook/hook.cpp
 )
+
+
+
+
+
+

@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-libf2c)
+
+
 target_compile_options(contrib-libs-libf2c PRIVATE
   -DNO_FPINIT
   -DSkip_f2c_Undefs
@@ -19,13 +19,16 @@ target_compile_options(contrib-libs-libf2c PRIVATE
   -DNON_POSIX_STDIO
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-libf2c PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c
 )
+
 target_link_libraries(contrib-libs-libf2c PUBLIC
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(contrib-libs-libf2c PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c/abort_.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c/backspac.c
@@ -183,3 +186,9 @@ target_sources(contrib-libs-libf2c PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c/z_sin.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c/z_sqrt.c
 )
+
+
+
+
+
+

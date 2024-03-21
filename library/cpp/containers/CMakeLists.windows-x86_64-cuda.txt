@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(2d_array)
 add_subdirectory(absl_flat_hash)
 add_subdirectory(compact_vector)
@@ -18,3 +17,5 @@ add_subdirectory(paged_vector)
 add_subdirectory(ring_buffer)
 add_subdirectory(stack_array)
 add_subdirectory(stack_vector)
+
+

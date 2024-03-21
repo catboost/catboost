@@ -5,6 +5,19 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
+get_built_tool_path(
+  TOOL_protoc_bin
+  TOOL_protoc_dependency
+  contrib/tools/protoc/bin
+  protoc
+)
+
+get_built_tool_path(
+  TOOL_cpp_styleguide_bin
+  TOOL_cpp_styleguide_dependency
+  contrib/tools/protoc/plugins/cpp_styleguide
+  cpp_styleguide
+)
 
 get_built_tool_path(
   TOOL_protoc_bin
@@ -12,198 +25,217 @@ get_built_tool_path(
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
-get_built_tool_path(
-  TOOL_cpp_styleguide_bin
-  TOOL_cpp_styleguide_dependency
-  contrib/tools/protoc/plugins/cpp_styleguide
-  cpp_styleguide
-)
-get_built_tool_path(
-  TOOL_protoc_bin
-  TOOL_protoc_dependency
-  contrib/tools/protoc/bin
-  protoc
-)
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
@@ -212,11 +244,14 @@ get_built_tool_path(
 )
 
 add_library(contrib-libs-coreml)
+
+
 target_link_libraries(contrib-libs-coreml PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-protobuf
 )
+
 target_proto_messages(contrib-libs-coreml PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/ArrayFeatureExtractor.proto
   ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/CategoricalMapping.proto
@@ -236,6 +271,7 @@ target_proto_messages(contrib-libs-coreml PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/Scaler.proto
   ${PROJECT_SOURCE_DIR}/contrib/libs/coreml/TreeEnsemble.proto
 )
+
 target_sources(contrib-libs-coreml PRIVATE
   ${PROJECT_BINARY_DIR}/contrib/libs/coreml/ArrayFeatureExtractor.pb.h
   ${PROJECT_BINARY_DIR}/contrib/libs/coreml/CategoricalMapping.pb.h
@@ -255,6 +291,9 @@ target_sources(contrib-libs-coreml PRIVATE
   ${PROJECT_BINARY_DIR}/contrib/libs/coreml/Scaler.pb.h
   ${PROJECT_BINARY_DIR}/contrib/libs/coreml/TreeEnsemble.pb.h
 )
+
+
+
 target_proto_addincls(contrib-libs-coreml
   ./
   ${PROJECT_SOURCE_DIR}/
@@ -264,7 +303,12 @@ target_proto_addincls(contrib-libs-coreml
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
+
 target_proto_outs(contrib-libs-coreml
   --cpp_out=${PROJECT_BINARY_DIR}/
   --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
 )
+
+
+
+

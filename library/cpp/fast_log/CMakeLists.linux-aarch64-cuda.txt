@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-fast_log)
+
+
 target_link_libraries(library-cpp-fast_log PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(library-cpp-fast_log PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/fast_log/fast_log.h
   ${PROJECT_SOURCE_DIR}/library/cpp/fast_log/fast_log.cpp
 )
+
+
+
+
+
+

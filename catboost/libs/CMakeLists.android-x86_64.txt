@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(cat_feature)
 add_subdirectory(column_description)
 add_subdirectory(data)
@@ -13,3 +12,5 @@ add_subdirectory(helpers)
 add_subdirectory(logging)
 add_subdirectory(model)
 add_subdirectory(model_interface)
+
+

@@ -17,3 +17,4 @@ bin, ytasm* -> ./bin
 [generators]
 cmake_find_package
 cmake_paths
+

@@ -5,15 +5,16 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-string-ut)
+
+
 target_link_libraries(util-string-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest_main
 )
+
 target_link_options(util-string-ut PRIVATE
   -ldl
   -lrt
@@ -24,6 +25,7 @@ target_link_options(util-string-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(util-string-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/string/builder_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/string/cast_ut.cpp
@@ -40,6 +42,8 @@ target_sources(util-string-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/string/vector_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/string/ascii_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-string-ut
@@ -47,6 +51,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-string-ut
@@ -59,6 +64,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-string-ut
@@ -66,6 +72,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-string-ut
@@ -73,13 +80,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-string-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-string-ut
   system_allocator
 )
+
 vcs_info(util-string-ut)
+
+
+
+

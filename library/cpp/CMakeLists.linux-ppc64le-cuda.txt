@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(accurate_accumulate)
 add_subdirectory(archive)
 add_subdirectory(binsaver)
@@ -69,3 +68,5 @@ add_subdirectory(token)
 add_subdirectory(tokenizer)
 add_subdirectory(yson)
 add_subdirectory(yt)
+
+

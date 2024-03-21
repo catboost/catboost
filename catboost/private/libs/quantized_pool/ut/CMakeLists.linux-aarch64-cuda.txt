@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-private-libs-quantized_pool-ut)
+
+
 target_include_directories(catboost-private-libs-quantized_pool-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool
 )
+
 target_link_libraries(catboost-private-libs-quantized_pool-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -25,6 +26,7 @@ target_link_libraries(catboost-private-libs-quantized_pool-ut PUBLIC
   contrib-libs-flatbuffers
   library-cpp-json
 )
+
 target_link_options(catboost-private-libs-quantized_pool-ut PRIVATE
   -ldl
   -lrt
@@ -35,11 +37,14 @@ target_link_options(catboost-private-libs-quantized_pool-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(catboost-private-libs-quantized_pool-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/ut/loader_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/ut/serialization_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/ut/print_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-private-libs-quantized_pool-ut
@@ -47,6 +52,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-private-libs-quantized_pool-ut
@@ -59,6 +65,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-quantized_pool-ut
@@ -66,6 +73,7 @@ set_yunittest_property(
   LABELS
   MEDIUM
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-quantized_pool-ut
@@ -73,13 +81,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-quantized_pool-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-private-libs-quantized_pool-ut
   cpp-malloc-jemalloc
 )
+
 vcs_info(catboost-private-libs-quantized_pool-ut)
+
+
+
+

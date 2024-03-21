@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(catboost-libs-fstr)
+
+
 target_link_libraries(catboost-libs-fstr PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -22,6 +22,7 @@ target_link_libraries(catboost-libs-fstr PUBLIC
   private-libs-target
   cpp-threading-local_executor
 )
+
 target_sources(catboost-libs-fstr PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/fstr/calc_fstr.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/fstr/compare_documents.cpp
@@ -37,3 +38,9 @@ target_sources(catboost-libs-fstr PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/fstr/shap_values.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/fstr/util.cpp
 )
+
+
+
+
+
+

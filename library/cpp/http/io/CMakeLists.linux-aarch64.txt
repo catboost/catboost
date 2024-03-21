@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-http-io)
+
+
 target_link_libraries(cpp-http-io PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -17,9 +17,16 @@ target_link_libraries(cpp-http-io PUBLIC
   cpp-streams-bzip2
   cpp-streams-lzma
 )
+
 target_sources(cpp-http-io PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/http/io/chunk.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/http/io/compression.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/http/io/headers.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/http/io/stream.cpp
 )
+
+
+
+
+
+

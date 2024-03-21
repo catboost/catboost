@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(flatbuffers)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -13,18 +12,21 @@ get_built_tool_path(
   tools/enum_parser/enum_parser
   enum_parser
 )
+
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
   tools/enum_parser/enum_parser
   enum_parser
 )
+
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
   tools/enum_parser/enum_parser
   enum_parser
 )
+
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -33,6 +35,8 @@ get_built_tool_path(
 )
 
 add_library(catboost-libs-model)
+
+
 target_link_libraries(catboost-libs-model PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -53,6 +57,7 @@ target_link_libraries(catboost-libs-model PUBLIC
   library-cpp-object_factory
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(catboost-libs-model PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/evaluator_impl.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/quantization.cpp
@@ -71,28 +76,38 @@ target_sources(catboost-libs-model PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/static_ctr_provider.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/utils.cpp
 )
+
+
+
 generate_enum_serilization(catboost-libs-model
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ctr_provider.h
   INCLUDE_HEADERS
   catboost/libs/model/ctr_provider.h
 )
+
 generate_enum_serilization(catboost-libs-model
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/enums.h
   INCLUDE_HEADERS
   catboost/libs/model/enums.h
 )
+
 generate_enum_serilization(catboost-libs-model
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/features.h
   INCLUDE_HEADERS
   catboost/libs/model/features.h
 )
+
 generate_enum_serilization(catboost-libs-model
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/split.h
   INCLUDE_HEADERS
   catboost/libs/model/split.h
 )
 
-add_global_library_for(catboost-libs-model.global catboost-libs-model)
+
+add_global_library_for(catboost-libs-model.global
+  catboost-libs-model)
+
+
 target_link_libraries(catboost-libs-model.global PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -113,7 +128,14 @@ target_link_libraries(catboost-libs-model.global PUBLIC
   library-cpp-object_factory
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(catboost-libs-model.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/cpu/formula_evaluator.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_import_interface.cpp
 )
+
+
+
+
+
+

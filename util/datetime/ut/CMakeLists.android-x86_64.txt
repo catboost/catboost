@@ -5,21 +5,23 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-datetime-ut)
+
+
 target_link_libraries(util-datetime-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
   library-cpp-cpuid_check
   cpp-testing-unittest_main
 )
+
 target_link_options(util-datetime-ut PRIVATE
   -ldl
   -Wl,--no-as-needed
   -fPIC
   -fPIC
 )
+
 target_sources(util-datetime-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/base_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/cputimer_ut.cpp
@@ -27,6 +29,8 @@ target_sources(util-datetime-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/parser_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/uptime_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-datetime-ut
@@ -34,6 +38,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-datetime-ut
@@ -46,6 +51,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-datetime-ut
@@ -53,6 +59,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-datetime-ut
@@ -60,13 +67,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-datetime-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-datetime-ut
   cpp-malloc-jemalloc
 )
+
 vcs_info(util-datetime-ut)
+
+
+
+

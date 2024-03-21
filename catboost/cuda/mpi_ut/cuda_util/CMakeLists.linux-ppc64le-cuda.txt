@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(cuda_util)
+
+
 target_link_libraries(cuda_util PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,6 +16,7 @@ target_link_libraries(cuda_util PUBLIC
   catboost-cuda-cuda_lib
   catboost-cuda-cuda_util
 )
+
 target_link_options(cuda_util PRIVATE
   -ldl
   -lrt
@@ -29,6 +30,7 @@ target_link_options(cuda_util PRIVATE
   -lculibos
   -lcudart_static
 )
+
 target_sources(cuda_util PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/main.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_compression_gpu.cpp
@@ -41,8 +43,16 @@ target_sources(cuda_util PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_sort.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_transform.cpp
 )
+
+
+
 target_allocator(cuda_util
   cpp-malloc-tcmalloc
   contrib-libs-tcmalloc
 )
+
 vcs_info(cuda_util)
+
+
+
+

@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-private-libs-algo-ut)
+
+
 target_include_directories(catboost-private-libs-algo-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo
 )
+
 target_link_libraries(catboost-private-libs-algo-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -25,6 +26,7 @@ target_link_libraries(catboost-private-libs-algo-ut PUBLIC
   catboost-libs-train_lib
   cpp-threading-local_executor
 )
+
 target_link_options(catboost-private-libs-algo-ut PRIVATE
   -ldl
   -lrt
@@ -35,6 +37,7 @@ target_link_options(catboost-private-libs-algo-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(catboost-private-libs-algo-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/apply_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/train_ut.cpp
@@ -44,6 +47,8 @@ target_sources(catboost-private-libs-algo-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/monotonic_constraints_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/nonsymmetric_index_calcer_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-private-libs-algo-ut
@@ -51,6 +56,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-private-libs-algo-ut
@@ -63,6 +69,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-algo-ut
@@ -70,6 +77,7 @@ set_yunittest_property(
   LABELS
   MEDIUM
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-algo-ut
@@ -77,13 +85,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-algo-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-private-libs-algo-ut
   cpp-malloc-jemalloc
 )
+
 vcs_info(catboost-private-libs-algo-ut)
+
+
+
+

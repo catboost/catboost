@@ -5,16 +5,23 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(float16_avx_impl)
-
 add_library(library-cpp-float16)
+
+
 target_link_libraries(library-cpp-float16 PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-float16-float16_avx_impl
 )
+
 target_sources(library-cpp-float16 PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/float16/float16.cpp
 )
+
+
+
+
+
+

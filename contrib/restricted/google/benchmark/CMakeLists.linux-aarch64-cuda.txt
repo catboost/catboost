@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(restricted-google-benchmark)
+
+
 target_compile_options(restricted-google-benchmark PUBLIC
   -DBENCHMARK_STATIC_DEFINE
 )
@@ -19,16 +19,19 @@ target_compile_options(restricted-google-benchmark PRIVATE
   -DBENCHMARK_HAS_PTHREAD_AFFINITY
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(restricted-google-benchmark PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/include
 )
 target_include_directories(restricted-google-benchmark PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src
 )
+
 target_link_libraries(restricted-google-benchmark PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
+
 target_sources(restricted-google-benchmark PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/benchmark_api_internal.cc
@@ -50,3 +53,9 @@ target_sources(restricted-google-benchmark PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/sysinfo.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/google/benchmark/src/timers.cc
 )
+
+
+
+
+
+

@@ -5,15 +5,17 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(abseil-cpp-absl-log)
+
+
 target_compile_options(abseil-cpp-absl-log PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(abseil-cpp-absl-log PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
+
 target_link_libraries(abseil-cpp-absl-log PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -29,6 +31,7 @@ target_link_libraries(abseil-cpp-absl-log PUBLIC
   abseil-cpp-absl-time
   abseil-cpp-absl-types
 )
+
 target_sources(abseil-cpp-absl-log PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/die_if_null.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/flags.cc
@@ -47,3 +50,9 @@ target_sources(abseil-cpp-absl-log PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_entry.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_sink.cc
 )
+
+
+
+
+
+

@@ -5,21 +5,30 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-tcmalloc-malloc_extension)
+
+
 target_compile_options(libs-tcmalloc-malloc_extension PRIVATE
   -DTCMALLOC_256K_PAGES
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(libs-tcmalloc-malloc_extension PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc
 )
+
 target_link_libraries(libs-tcmalloc-malloc_extension PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
 )
+
 target_sources(libs-tcmalloc-malloc_extension PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/malloc_extension.cc
 )
+
+
+
+
+
+

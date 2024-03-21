@@ -5,15 +5,17 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-cxxsupp-builtins)
+
+
 target_compile_options(libs-cxxsupp-builtins PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_link_libraries(libs-cxxsupp-builtins PUBLIC
   contrib-libs-linux-headers
 )
+
 target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addtf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ashlti3.c
@@ -62,3 +64,9 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/udivti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umodti3.c
 )
+
+
+
+
+
+

@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-streams-bzip2)
+
+
 target_link_libraries(cpp-streams-bzip2 PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-libbz2
 )
+
 target_sources(cpp-streams-bzip2 PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/streams/bzip2/bzip2.cpp
 )
+
+
+
+
+
+

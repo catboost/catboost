@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
-
 add_library(catboost-libs-train_lib)
+
+
 target_link_libraries(catboost-libs-train_lib PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -36,6 +36,7 @@ target_link_libraries(catboost-libs-train_lib PUBLIC
   library-cpp-object_factory
   cpp-threading-local_executor
 )
+
 target_sources(catboost-libs-train_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/cross_validation.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/dir_helper.cpp
@@ -44,7 +45,13 @@ target_sources(catboost-libs-train_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/trainer_env.cpp
 )
 
-add_global_library_for(catboost-libs-train_lib.global catboost-libs-train_lib)
+
+
+
+add_global_library_for(catboost-libs-train_lib.global
+  catboost-libs-train_lib)
+
+
 target_link_libraries(catboost-libs-train_lib.global PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -72,7 +79,14 @@ target_link_libraries(catboost-libs-train_lib.global PUBLIC
   library-cpp-object_factory
   cpp-threading-local_executor
 )
+
 target_sources(catboost-libs-train_lib.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/train_model.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/model_import_snapshot.cpp
 )
+
+
+
+
+
+

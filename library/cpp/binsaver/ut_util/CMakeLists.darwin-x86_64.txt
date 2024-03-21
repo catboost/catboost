@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-binsaver-ut_util)
+
+
 target_link_libraries(cpp-binsaver-ut_util PUBLIC
   contrib-libs-cxxsupp
   yutil
   library-cpp-binsaver
   cpp-testing-unittest
 )
+
 target_sources(cpp-binsaver-ut_util PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/ut_util/ut_util.cpp
 )
+
+
+
+
+
+

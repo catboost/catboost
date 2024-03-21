@@ -5,13 +5,14 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(model_comparator)
+
+
 target_compile_options(model_comparator PRIVATE
   -DONNX_ML=1
   -DONNX_NAMESPACE=onnx
 )
+
 target_link_libraries(model_comparator PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -24,13 +25,22 @@ target_link_libraries(model_comparator PUBLIC
   cpp-getopt-small
   cpp-string_utils-ztstrbuf
 )
+
 target_sources(model_comparator PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/decl.cpp
   ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/main.cpp
   ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/onnx.cpp
   ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/pmml.cpp
 )
+
+
+
 target_allocator(model_comparator
   system_allocator
 )
+
 vcs_info(model_comparator)
+
+
+
+

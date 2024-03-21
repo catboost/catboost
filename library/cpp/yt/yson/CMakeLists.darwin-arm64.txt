@@ -5,17 +5,25 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-yt-yson)
+
+
 target_compile_options(cpp-yt-yson PRIVATE
   -Wdeprecated-this-capture
 )
+
 target_link_libraries(cpp-yt-yson PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-yt-yson_string
 )
+
 target_sources(cpp-yt-yson PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/yson/consumer.cpp
 )
+
+
+
+
+
+

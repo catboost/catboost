@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-cxxsupp-libcxx)
+
+
 target_compile_options(libs-cxxsupp-libcxx PUBLIC
   -DLIBCXX_BUILDING_LIBCXXRT
   -nostdinc++
@@ -16,6 +16,7 @@ target_compile_options(libs-cxxsupp-libcxx PRIVATE
   -D_LIBCPP_BUILDING_LIBRARY
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(libs-cxxsupp-libcxx PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt/include
@@ -23,12 +24,14 @@ target_include_directories(libs-cxxsupp-libcxx PUBLIC
 target_include_directories(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src
 )
+
 target_link_libraries(libs-cxxsupp-libcxx PUBLIC
   contrib-libs-linux-headers
   libs-cxxsupp-libcxxabi-parts
   libs-cxxsupp-libcxxrt
   libs-cxxsupp-builtins
 )
+
 target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/algorithm.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/algorithm_old.cpp
@@ -82,3 +85,9 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/new_handler.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/new_helpers.cpp
 )
+
+
+
+
+
+

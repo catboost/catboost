@@ -5,15 +5,16 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-getopt-small)
+
+
 target_link_libraries(cpp-getopt-small PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-colorizer
 )
+
 target_sources(cpp-getopt-small PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/getopt/small/completer.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/getopt/small/completer_command.cpp
@@ -32,3 +33,9 @@ target_sources(cpp-getopt-small PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/getopt/small/wrap.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/getopt/small/ygetopt.cpp
 )
+
+
+
+
+
+

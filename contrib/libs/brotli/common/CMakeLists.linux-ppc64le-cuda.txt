@@ -5,21 +5,30 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-brotli-common)
+
+
 target_compile_options(libs-brotli-common PRIVATE
   -DBROTLI_BUILD_PORTABLE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(libs-brotli-common PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/include
 )
+
 target_link_libraries(libs-brotli-common PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
+
 target_sources(libs-brotli-common PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/common/dictionary.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/brotli/common/transform.c
 )
+
+
+
+
+
+

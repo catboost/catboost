@@ -5,23 +5,33 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(tensorboard_logger_example)
+
+
 target_link_libraries(tensorboard_logger_example PUBLIC
   contrib-libs-cxxsupp
   yutil
   catboost-libs-loggers
 )
+
 target_link_options(tensorboard_logger_example PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )
+
 target_sources(tensorboard_logger_example PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/loggers/tensorboard_logger_example/example.cpp
 )
+
+
+
 target_allocator(tensorboard_logger_example
   system_allocator
 )
+
 vcs_info(tensorboard_logger_example)
+
+
+
+

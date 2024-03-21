@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-containers-stack_array)
+
+
 target_link_libraries(cpp-containers-stack_array PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(cpp-containers-stack_array PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/stack_array/range_ops.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/stack_array/stack_array.cpp
 )
+
+
+
+
+
+

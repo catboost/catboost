@@ -5,13 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
   tools/enum_parser/enum_parser
   enum_parser
 )
+
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -20,6 +20,8 @@ get_built_tool_path(
 )
 
 add_library(cpp-coroutine-engine)
+
+
 target_link_libraries(cpp-coroutine-engine PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -29,6 +31,7 @@ target_link_libraries(cpp-coroutine-engine PUBLIC
   cpp-containers-intrusive_rb_tree
   cpp-deprecated-atomic
 )
+
 target_sources(cpp-coroutine-engine PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/coroutine/engine/cont_poller.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/coroutine/engine/helper.cpp
@@ -44,13 +47,21 @@ target_sources(cpp-coroutine-engine PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/coroutine/engine/stack/stack_utils.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/coroutine/engine/trampoline.cpp
 )
+
+
+
 generate_enum_serilization(cpp-coroutine-engine
   ${PROJECT_SOURCE_DIR}/library/cpp/coroutine/engine/poller.h
   INCLUDE_HEADERS
   library/cpp/coroutine/engine/poller.h
 )
+
 generate_enum_serilization(cpp-coroutine-engine
   ${PROJECT_SOURCE_DIR}/library/cpp/coroutine/engine/stack/stack_common.h
   INCLUDE_HEADERS
   library/cpp/coroutine/engine/stack/stack_common.h
 )
+
+
+
+

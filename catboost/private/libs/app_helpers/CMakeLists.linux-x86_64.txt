@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -14,6 +13,8 @@ get_built_tool_path(
 )
 
 add_library(private-libs-app_helpers)
+
+
 target_link_libraries(private-libs-app_helpers PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -40,6 +41,7 @@ target_link_libraries(private-libs-app_helpers PUBLIC
   cpp-threading-local_executor
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(private-libs-app_helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/bind_options.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_calc_helpers.cpp
@@ -48,8 +50,15 @@ target_sources(private-libs-app_helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_fstr_helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_normalize_model_helpers.cpp
 )
+
+
+
 generate_enum_serilization(private-libs-app_helpers
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/implementation_type_enum.h
   INCLUDE_HEADERS
   catboost/private/libs/app_helpers/implementation_type_enum.h
 )
+
+
+
+

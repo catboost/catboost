@@ -5,17 +5,24 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-dbg_output)
+
+
 target_link_libraries(library-cpp-dbg_output PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-colorizer
 )
+
 target_sources(library-cpp-dbg_output PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/dbg_output/dump.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/dbg_output/dumpers.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/dbg_output/engine.cpp
 )
+
+
+
+
+
+

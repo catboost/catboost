@@ -5,20 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-folder-ut)
+
+
 target_link_libraries(util-folder-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest_main
   cpp-threading-future
 )
+
 target_link_options(util-folder-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )
+
 target_sources(util-folder-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/folder/dirut_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/folder/filelist_ut.cpp
@@ -27,6 +29,8 @@ target_sources(util-folder-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/folder/path_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/folder/pathsplit_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-folder-ut
@@ -34,6 +38,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-folder-ut
@@ -46,6 +51,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-folder-ut
@@ -53,6 +59,7 @@ set_yunittest_property(
   LABELS
   LARGE
 )
+
 set_yunittest_property(
   TEST
   util-folder-ut
@@ -60,13 +67,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-folder-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-folder-ut
   system_allocator
 )
+
 vcs_info(util-folder-ut)
+
+
+
+

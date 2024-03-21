@@ -5,12 +5,18 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-yt-coding INTERFACE)
+
+
 target_link_libraries(cpp-yt-coding INTERFACE
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-yt-exception
 )
+
+
+
+
+
+

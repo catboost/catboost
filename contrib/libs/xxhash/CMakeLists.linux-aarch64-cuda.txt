@@ -5,15 +5,23 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-xxhash)
+
+
 target_compile_options(contrib-libs-xxhash PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_link_libraries(contrib-libs-xxhash PUBLIC
   contrib-libs-linux-headers
 )
+
 target_sources(contrib-libs-xxhash PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/xxhash/xxhash.c
 )
+
+
+
+
+
+

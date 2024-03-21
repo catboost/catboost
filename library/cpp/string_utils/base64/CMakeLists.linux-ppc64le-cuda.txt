@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-string_utils-base64)
+
+
 target_link_libraries(cpp-string_utils-base64 PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -19,6 +19,13 @@ target_link_libraries(cpp-string_utils-base64 PUBLIC
   libs-base64-plain32
   libs-base64-plain64
 )
+
 target_sources(cpp-string_utils-base64 PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/string_utils/base64/base64.cpp
 )
+
+
+
+
+
+

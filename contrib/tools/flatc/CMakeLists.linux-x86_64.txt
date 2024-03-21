@@ -5,17 +5,19 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(flatc)
+
+
 target_include_directories(flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
+
 target_link_libraries(flatc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   libs-flatbuffers-flatc
 )
+
 target_link_options(flatc PRIVATE
   -ldl
   -lrt
@@ -24,11 +26,20 @@ target_link_options(flatc PRIVATE
   -fPIC
   -lpthread
 )
+
 target_sources(flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/flatc_main.cpp
 )
+
+
+
 target_allocator(flatc
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(flatc)
+
+
+
+

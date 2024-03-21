@@ -5,16 +5,23 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-digest-lower_case)
+
+
 target_link_libraries(cpp-digest-lower_case PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(cpp-digest-lower_case PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/digest/lower_case/lciter.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/digest/lower_case/lchash.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/digest/lower_case/hash_ops.cpp
 )
+
+
+
+
+
+

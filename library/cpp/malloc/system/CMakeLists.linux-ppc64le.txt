@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(system_allocator)
+
+
 target_link_libraries(system_allocator PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   cpp-malloc-api
 )
+
 target_sources(system_allocator PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/malloc/system/malloc-info.cpp
 )
+
+
+
+
+
+

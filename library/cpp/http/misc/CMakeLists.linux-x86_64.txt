@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -14,6 +13,8 @@ get_built_tool_path(
 )
 
 add_library(cpp-http-misc)
+
+
 target_link_libraries(cpp-http-misc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -23,14 +24,22 @@ target_link_libraries(cpp-http-misc PUBLIC
   library-cpp-cgiparam
   cpp-digest-lower_case
 )
+
 target_sources(cpp-http-misc PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/http/misc/httpcodes.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/http/misc/httpdate.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/http/misc/httpreqdata.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/http/misc/parsed_request.cpp
 )
+
+
+
 generate_enum_serilization(cpp-http-misc
   ${PROJECT_SOURCE_DIR}/library/cpp/http/misc/httpcodes.h
   INCLUDE_HEADERS
   library/cpp/http/misc/httpcodes.h
 )
+
+
+
+

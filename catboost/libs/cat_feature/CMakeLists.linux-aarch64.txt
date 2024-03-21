@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(catboost-libs-cat_feature)
+
+
 target_link_libraries(catboost-libs-cat_feature PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(catboost-libs-cat_feature PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/cat_feature/cat_feature.cpp
 )
+
+
+
+
+
+

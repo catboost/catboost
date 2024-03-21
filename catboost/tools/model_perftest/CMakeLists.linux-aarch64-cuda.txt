@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(lib)
-
 add_executable(model_perftest)
+
+
 target_link_libraries(model_perftest PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,6 +16,7 @@ target_link_libraries(model_perftest PUBLIC
   tools-model_perftest-lib
   library-cpp-getopt
 )
+
 target_link_options(model_perftest PRIVATE
   -ldl
   -lrt
@@ -29,7 +30,15 @@ target_link_options(model_perftest PRIVATE
   -lculibos
   -lcudart_static
 )
+
+
+
 target_allocator(model_perftest
   cpp-malloc-jemalloc
 )
+
 vcs_info(model_perftest)
+
+
+
+

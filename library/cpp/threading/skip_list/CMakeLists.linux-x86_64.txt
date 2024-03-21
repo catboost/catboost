@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-threading-skip_list)
+
+
 target_link_libraries(cpp-threading-skip_list PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-deprecated-atomic
 )
+
 target_sources(cpp-threading-skip_list PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/threading/skip_list/skiplist.cpp
 )
+
+
+
+
+
+

@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-cuda-gpu_data-ut)
+
+
 target_link_libraries(catboost-cuda-gpu_data-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -19,6 +19,7 @@ target_link_libraries(catboost-cuda-gpu_data-ut PUBLIC
   catboost-libs-helpers
   private-libs-quantization
 )
+
 target_link_options(catboost-cuda-gpu_data-ut PRIVATE
   -ldl
   -lrt
@@ -32,11 +33,14 @@ target_link_options(catboost-cuda-gpu_data-ut PRIVATE
   -lculibos
   -lcudart_static
 )
+
 target_sources(catboost-cuda-gpu_data-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_bin_builder.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_binarization.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_uniform_binarization.cpp
 )
+
+
 set_property(
   TARGET
   catboost-cuda-gpu_data-ut
@@ -44,6 +48,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-cuda-gpu_data-ut
@@ -56,6 +61,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-gpu_data-ut
@@ -63,6 +69,7 @@ set_yunittest_property(
   LABELS
   MEDIUM
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-gpu_data-ut
@@ -70,14 +77,22 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-gpu_data-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-cuda-gpu_data-ut
   cpp-malloc-tcmalloc
   contrib-libs-tcmalloc
 )
+
 vcs_info(catboost-cuda-gpu_data-ut)
+
+
+
+

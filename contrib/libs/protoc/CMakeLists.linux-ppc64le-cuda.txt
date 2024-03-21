@@ -5,23 +5,26 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-protoc)
+
+
 target_compile_options(contrib-libs-protoc PRIVATE
   -DHAVE_CONFIG_H
   -DHAVE_PTHREAD=1
   -DHAVE_ZLIB=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-protoc PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src
 )
+
 target_link_libraries(contrib-libs-protoc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-libs-protobuf
 )
+
 target_sources(contrib-libs-protoc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/code_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/command_line_interface.cc
@@ -111,3 +114,9 @@ target_sources(contrib-libs-protoc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/subprocess.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/zip_writer.cc
 )
+
+
+
+
+
+

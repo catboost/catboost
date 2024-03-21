@@ -5,13 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_flatc_bin
   TOOL_flatc_dependency
   contrib/tools/flatc
   flatc
 )
+
 get_built_tool_path(
   TOOL_flatc_bin
   TOOL_flatc_dependency
@@ -20,6 +20,8 @@ get_built_tool_path(
 )
 
 add_library(private-libs-text_features)
+
+
 target_link_libraries(private-libs-text_features PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -31,6 +33,7 @@ target_link_libraries(private-libs-text_features PUBLIC
   contrib-libs-flatbuffers
   cpp-threading-local_executor
 )
+
 target_sources(private-libs-text_features PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.iter.fbs.h
@@ -44,6 +47,9 @@ target_sources(private-libs-text_features PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.cpp
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.cpp
 )
+
+
+
 target_fbs_source(private-libs-text_features
   PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs
@@ -52,6 +58,7 @@ target_fbs_source(private-libs-text_features
   -I
   ${PROJECT_SOURCE_DIR}
 )
+
 target_fbs_source(private-libs-text_features
   PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs
@@ -61,7 +68,11 @@ target_fbs_source(private-libs-text_features
   ${PROJECT_SOURCE_DIR}
 )
 
-add_global_library_for(private-libs-text_features.global private-libs-text_features)
+
+add_global_library_for(private-libs-text_features.global
+  private-libs-text_features)
+
+
 target_link_libraries(private-libs-text_features.global PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -73,8 +84,15 @@ target_link_libraries(private-libs-text_features.global PUBLIC
   contrib-libs-flatbuffers
   cpp-threading-local_executor
 )
+
 target_sources(private-libs-text_features.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/bm25.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/bow.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/naive_bayesian.cpp
 )
+
+
+
+
+
+

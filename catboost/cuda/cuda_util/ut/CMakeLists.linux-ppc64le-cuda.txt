@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-cuda-cuda_util-ut)
+
+
 target_link_libraries(catboost-cuda-cuda_util-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -15,6 +15,7 @@ target_link_libraries(catboost-cuda-cuda_util-ut PUBLIC
   cpp-testing-unittest_main
   catboost-cuda-cuda_util
 )
+
 target_link_options(catboost-cuda-cuda_util-ut PRIVATE
   -ldl
   -lrt
@@ -28,6 +29,7 @@ target_link_options(catboost-cuda-cuda_util-ut PRIVATE
   -lculibos
   -lcudart_static
 )
+
 target_sources(catboost-cuda-cuda_util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_calculate_threshold.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_compression_cpu.cpp
@@ -41,6 +43,8 @@ target_sources(catboost-cuda-cuda_util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_sort.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_transform.cpp
 )
+
+
 set_property(
   TARGET
   catboost-cuda-cuda_util-ut
@@ -48,6 +52,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-cuda-cuda_util-ut
@@ -60,6 +65,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-cuda_util-ut
@@ -67,6 +73,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-cuda_util-ut
@@ -74,13 +81,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-cuda_util-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-cuda-cuda_util-ut
   system_allocator
 )
+
 vcs_info(catboost-cuda-cuda_util-ut)
+
+
+
+

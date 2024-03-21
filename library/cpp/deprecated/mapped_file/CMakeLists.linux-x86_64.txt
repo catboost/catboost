@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-deprecated-mapped_file)
+
+
 target_link_libraries(cpp-deprecated-mapped_file PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(cpp-deprecated-mapped_file PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/deprecated/mapped_file/mapped_file.cpp
 )
+
+
+
+
+
+

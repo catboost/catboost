@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_flatc_bin
   TOOL_flatc_dependency
@@ -14,18 +13,24 @@ get_built_tool_path(
 )
 
 add_library(libs-helpers-flatbuffers)
+
+
 target_link_libraries(libs-helpers-flatbuffers PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-flatbuffers
 )
+
 target_sources(libs-helpers-flatbuffers PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/libs/helpers/flatbuffers/guid.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/libs/helpers/flatbuffers/guid.iter.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/libs/helpers/flatbuffers/guid.bfbs
   ${PROJECT_BINARY_DIR}/catboost/libs/helpers/flatbuffers/guid.fbs.cpp
 )
+
+
+
 target_fbs_source(libs-helpers-flatbuffers
   PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/flatbuffers/guid.fbs
@@ -34,3 +39,7 @@ target_fbs_source(libs-helpers-flatbuffers
   -I
   ${PROJECT_SOURCE_DIR}
 )
+
+
+
+

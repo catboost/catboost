@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-private-libs-quantization_schema-ut)
+
+
 target_include_directories(catboost-private-libs-quantization_schema-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema
 )
+
 target_link_libraries(catboost-private-libs-quantization_schema-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -19,9 +20,12 @@ target_link_libraries(catboost-private-libs-quantization_schema-ut PUBLIC
   private-libs-quantization_schema
   idl-pool-proto
 )
+
 target_sources(catboost-private-libs-quantization_schema-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema/ut/serialization_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-private-libs-quantization_schema-ut
@@ -29,6 +33,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-private-libs-quantization_schema-ut
@@ -41,6 +46,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-quantization_schema-ut
@@ -48,6 +54,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-quantization_schema-ut
@@ -55,13 +62,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-quantization_schema-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-private-libs-quantization_schema-ut
   system_allocator
 )
+
 vcs_info(catboost-private-libs-quantization_schema-ut)
+
+
+
+

@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(private-libs-labels)
+
+
 target_link_libraries(private-libs-labels PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -18,8 +18,15 @@ target_link_libraries(private-libs-labels PUBLIC
   library-cpp-binsaver
   library-cpp-json
 )
+
 target_sources(private-libs-labels PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/labels/label_converter.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/labels/external_label_helper.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/labels/helpers.cpp
 )
+
+
+
+
+
+

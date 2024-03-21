@@ -5,23 +5,26 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-cblas)
+
+
 target_compile_options(contrib-libs-cblas PRIVATE
   -DADD_
   -DNO_BLAS_WRAP
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-cblas PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cblas/include
 )
+
 target_link_libraries(contrib-libs-cblas PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-libf2c
 )
+
 target_sources(contrib-libs-cblas PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cblas/caxpy.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cblas/ccopy.c
@@ -340,3 +343,9 @@ target_sources(contrib-libs-cblas PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cblas/src/zdotcsub.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cblas/src/zdotusub.c
 )
+
+
+
+
+
+

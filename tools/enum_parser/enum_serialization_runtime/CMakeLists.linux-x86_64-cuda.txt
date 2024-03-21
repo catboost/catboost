@@ -5,16 +5,23 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(tools-enum_parser-enum_serialization_runtime)
+
+
 target_link_libraries(tools-enum_parser-enum_serialization_runtime PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(tools-enum_parser-enum_serialization_runtime PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/enum_parser/enum_serialization_runtime/dispatch_methods.cpp
   ${PROJECT_SOURCE_DIR}/tools/enum_parser/enum_serialization_runtime/enum_runtime.cpp
   ${PROJECT_SOURCE_DIR}/tools/enum_parser/enum_serialization_runtime/ordered_pairs.cpp
 )
+
+
+
+
+
+

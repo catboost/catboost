@@ -5,17 +5,20 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-base64-ssse3)
+
+
 target_link_libraries(libs-base64-ssse3 PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
+
 target_sources(libs-base64-ssse3 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/ssse3/codec_ssse3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/ssse3/lib.c
 )
+
+
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/ssse3/codec_ssse3.c
@@ -25,6 +28,7 @@ set_property(
   -mssse3
   -std=c11
 )
+
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/ssse3/lib.c
@@ -34,3 +38,8 @@ set_property(
   -mssse3
   -std=c11
 )
+
+
+
+
+

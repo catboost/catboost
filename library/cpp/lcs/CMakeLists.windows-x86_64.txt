@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-lcs)
+
+
 target_link_libraries(library-cpp-lcs PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-containers-paged_vector
 )
+
 target_sources(library-cpp-lcs PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/lcs/lcs_via_lis.cpp
 )
+
+
+
+
+
+

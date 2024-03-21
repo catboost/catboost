@@ -5,21 +5,29 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-yt-misc)
+
+
 target_compile_options(cpp-yt-misc PRIVATE
   -Wdeprecated-this-capture
 )
+
 target_link_libraries(cpp-yt-misc PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-yt-exception
   cpp-yt-assert
 )
+
 target_sources(cpp-yt-misc PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/misc/guid.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/misc/source_location.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/misc/thread_name.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/misc/variant.cpp
 )
+
+
+
+
+
+

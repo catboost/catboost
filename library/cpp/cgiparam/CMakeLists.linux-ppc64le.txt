@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-cgiparam)
+
+
 target_link_libraries(library-cpp-cgiparam PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,7 +16,14 @@ target_link_libraries(library-cpp-cgiparam PUBLIC
   cpp-string_utils-quote
   cpp-string_utils-scan
 )
+
 target_sources(library-cpp-cgiparam PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/cgiparam/cgiparam.h
   ${PROJECT_SOURCE_DIR}/library/cpp/cgiparam/cgiparam.cpp
 )
+
+
+
+
+
+

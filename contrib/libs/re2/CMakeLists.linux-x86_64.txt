@@ -5,18 +5,20 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-re2)
+
+
 target_compile_options(contrib-libs-re2 PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-re2 PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/re2/include
 )
 target_include_directories(contrib-libs-re2 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/re2
 )
+
 target_link_libraries(contrib-libs-re2 PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -28,6 +30,7 @@ target_link_libraries(contrib-libs-re2 PUBLIC
   abseil-cpp-absl-synchronization
   cpp-sanitizer-include
 )
+
 target_sources(contrib-libs-re2 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/re2/re2/bitmap256.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/re2/re2/bitstate.cc
@@ -52,3 +55,9 @@ target_sources(contrib-libs-re2 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/re2/util/rune.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/re2/util/strutil.cc
 )
+
+
+
+
+
+

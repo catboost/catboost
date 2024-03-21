@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -14,18 +13,28 @@ get_built_tool_path(
 )
 
 add_library(private-libs-ctr_description)
+
+
 target_link_libraries(private-libs-ctr_description PUBLIC
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(private-libs-ctr_description PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_config.h
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_type.cpp
 )
+
+
+
 generate_enum_serilization(private-libs-ctr_description
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_type.h
   INCLUDE_HEADERS
   catboost/private/libs/ctr_description/ctr_type.h
 )
+
+
+
+

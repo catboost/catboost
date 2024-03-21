@@ -5,16 +5,18 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(Python3 REQUIRED COMPONENTS Development)
-
 add_shared_library(_hnsw)
+
+
 target_compile_options(_hnsw PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_cython_sources(_hnsw PRIVATE
   ${PROJECT_SOURCE_DIR}/library/python/hnsw/hnsw/_hnsw.pyx
 )
+
 target_link_libraries(_hnsw PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -27,6 +29,7 @@ target_link_libraries(_hnsw PUBLIC
   cpp-online_hnsw-base
   cpp-online_hnsw-dense_vectors
 )
+
 target_link_options(_hnsw PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -34,12 +37,17 @@ target_link_options(_hnsw PRIVATE
   dynamic_lookup
   -fPIC
 )
+
 target_sources(_hnsw PRIVATE
   ${PROJECT_SOURCE_DIR}/library/python/hnsw/hnsw/helpers.cpp
 )
+
+
+
 set_python_type_for_cython(_hnsw
   PY3
 )
+
 target_cython_include_directories(_hnsw
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}
@@ -47,6 +55,7 @@ target_cython_include_directories(_hnsw
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )
+
 target_cython_options(_hnsw
   -E
   UNAME_SYSNAME=Darwin
@@ -54,7 +63,13 @@ target_cython_options(_hnsw
   _hnsw
   --cplus
 )
+
 use_export_script(_hnsw
   ${PROJECT_SOURCE_DIR}/library/python/hnsw/hnsw/hnsw3.exports
 )
+
 vcs_info(_hnsw)
+
+
+
+

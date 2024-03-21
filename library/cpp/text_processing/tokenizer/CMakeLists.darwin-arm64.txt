@@ -5,13 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
   tools/enum_parser/enum_parser
   enum_parser
 )
+
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -20,6 +20,8 @@ get_built_tool_path(
 )
 
 add_library(cpp-text_processing-tokenizer)
+
+
 target_link_libraries(cpp-text_processing-tokenizer PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -30,22 +32,31 @@ target_link_libraries(cpp-text_processing-tokenizer PUBLIC
   library-cpp-tokenizer
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(cpp-text_processing-tokenizer PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/tokenizer/options.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/tokenizer/tokenizer.cpp
 )
+
+
+
 generate_enum_serilization(cpp-text_processing-tokenizer
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/tokenizer/options.h
   INCLUDE_HEADERS
   library/cpp/text_processing/tokenizer/options.h
 )
+
 generate_enum_serilization(cpp-text_processing-tokenizer
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/tokenizer/lemmer_impl.h
   INCLUDE_HEADERS
   library/cpp/text_processing/tokenizer/lemmer_impl.h
 )
 
-add_global_library_for(cpp-text_processing-tokenizer.global cpp-text_processing-tokenizer)
+
+add_global_library_for(cpp-text_processing-tokenizer.global
+  cpp-text_processing-tokenizer)
+
+
 target_link_libraries(cpp-text_processing-tokenizer.global PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -56,6 +67,13 @@ target_link_libraries(cpp-text_processing-tokenizer.global PUBLIC
   library-cpp-tokenizer
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(cpp-text_processing-tokenizer.global PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/tokenizer/lemmer_impl.cpp
 )
+
+
+
+
+
+

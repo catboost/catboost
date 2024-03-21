@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-private-libs-embedding_features-ut)
+
+
 target_link_libraries(catboost-private-libs-embedding_features-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -15,14 +15,18 @@ target_link_libraries(catboost-private-libs-embedding_features-ut PUBLIC
   cpp-testing-unittest_main
   private-libs-embedding_features
 )
+
 target_link_options(catboost-private-libs-embedding_features-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )
+
 target_sources(catboost-private-libs-embedding_features-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/embedding_features/ut/calcer_canonization_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-private-libs-embedding_features-ut
@@ -30,6 +34,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-private-libs-embedding_features-ut
@@ -42,6 +47,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-embedding_features-ut
@@ -49,6 +55,7 @@ set_yunittest_property(
   LABELS
   MEDIUM
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-embedding_features-ut
@@ -56,13 +63,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-embedding_features-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-private-libs-embedding_features-ut
   system_allocator
 )
+
 vcs_info(catboost-private-libs-embedding_features-ut)
+
+
+
+

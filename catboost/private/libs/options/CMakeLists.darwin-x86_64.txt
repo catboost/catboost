@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -15,6 +14,8 @@ get_built_tool_path(
 )
 
 add_library(private-libs-options)
+
+
 target_link_libraries(private-libs-options PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -30,6 +31,7 @@ target_link_libraries(private-libs-options PUBLIC
   cpp-text_processing-tokenizer
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(private-libs-options PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/analytical_mode_params.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/binarization_options.cpp
@@ -68,8 +70,15 @@ target_sources(private-libs-options PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/system_options.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/text_processing_options.cpp
 )
+
+
+
 generate_enum_serilization(private-libs-options
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/enums.h
   INCLUDE_HEADERS
   catboost/private/libs/options/enums.h
 )
+
+
+
+

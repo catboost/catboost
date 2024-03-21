@@ -5,15 +5,16 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-random-ut)
+
+
 target_link_libraries(util-random-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest_main
 )
+
 target_link_options(util-random-ut PRIVATE
   -ldl
   -lrt
@@ -24,6 +25,7 @@ target_link_options(util-random-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(util-random-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/random/common_ops_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/random/easy_ut.cpp
@@ -34,6 +36,8 @@ target_sources(util-random-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/random/random_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/random/shuffle_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-random-ut
@@ -41,6 +45,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-random-ut
@@ -53,6 +58,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-random-ut
@@ -60,6 +66,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-random-ut
@@ -67,13 +74,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-random-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-random-ut
   cpp-malloc-jemalloc
 )
+
 vcs_info(util-random-ut)
+
+
+
+

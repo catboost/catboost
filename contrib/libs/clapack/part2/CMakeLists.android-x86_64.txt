@@ -5,21 +5,24 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-clapack-part2)
+
+
 target_compile_options(libs-clapack-part2 PRIVATE
   -DNO_BLAS_WRAP
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(libs-clapack-part2 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libf2c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cblas
 )
+
 target_link_libraries(libs-clapack-part2 PUBLIC
   contrib-libs-libf2c
   contrib-libs-cblas
 )
+
 target_sources(libs-clapack-part2 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/clapack/lsamen.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/clapack/maxloc.c
@@ -740,3 +743,9 @@ target_sources(libs-clapack-part2 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/clapack/zupgtr.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/clapack/zupmtr.c
 )
+
+
+
+
+
+

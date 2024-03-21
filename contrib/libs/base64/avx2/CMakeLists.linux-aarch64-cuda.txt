@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-base64-avx2)
+
+
 target_link_libraries(libs-base64-avx2 PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
+
 target_sources(libs-base64-avx2 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/avx2/codec_avx2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/avx2/lib.c
 )
+
+
+
+
+
+

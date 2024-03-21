@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-blockcodecs-core)
+
+
 target_link_libraries(cpp-blockcodecs-core PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(cpp-blockcodecs-core PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/core/codecs.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/core/stream.cpp
 )
+
+
+
+
+
+

@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-testing-unittest)
+
+
 target_link_libraries(cpp-testing-unittest PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -20,6 +20,7 @@ target_link_libraries(cpp-testing-unittest PUBLIC
   cpp-testing-common
   cpp-testing-hook
 )
+
 target_sources(cpp-testing-unittest PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/gtest.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/checks.cpp
@@ -29,3 +30,9 @@ target_sources(cpp-testing-unittest PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/tests_data.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/unittest/utmain.cpp
 )
+
+
+
+
+
+

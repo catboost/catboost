@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-libunwind)
+
+
 target_compile_options(contrib-libs-libunwind PUBLIC
   -D_libunwind_
 )
@@ -17,13 +17,16 @@ target_compile_options(contrib-libs-libunwind PRIVATE
   -funwind-tables
   -D_LIBUNWIND_IS_NATIVE_ONLY
 )
+
 target_include_directories(contrib-libs-libunwind PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/include
 )
+
 target_link_libraries(contrib-libs-libunwind PUBLIC
   contrib-libs-linux-headers
   cpp-sanitizer-include
 )
+
 target_sources(contrib-libs-libunwind PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-EHABI.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-seh.cpp
@@ -35,3 +38,9 @@ target_sources(contrib-libs-libunwind PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/UnwindRegistersSave.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/src/libunwind.cpp
 )
+
+
+
+
+
+

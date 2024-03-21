@@ -5,18 +5,26 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-libc_compat)
+
+
 target_compile_options(contrib-libs-libc_compat PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-libc_compat PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray
 )
+
 target_sources(contrib-libs-libc_compat PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/string.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/memrchr.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/explicit_bzero.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray/reallocarray.c
 )
+
+
+
+
+
+

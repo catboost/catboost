@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-gpu_config-force_no_cuda)
+
+
 target_link_libraries(libs-gpu_config-force_no_cuda PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   libs-gpu_config-interface
 )
+
 target_sources(libs-gpu_config-force_no_cuda PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/gpu_config/force_no_cuda/get_gpu_device_count_no_cuda.cpp
 )
+
+
+
+
+
+

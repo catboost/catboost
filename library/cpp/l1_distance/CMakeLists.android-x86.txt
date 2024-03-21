@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-l1_distance INTERFACE)
+
+
 target_link_libraries(library-cpp-l1_distance INTERFACE
   contrib-libs-cxxsupp
   yutil
   library-cpp-sse
 )
+
 target_sources(library-cpp-l1_distance INTERFACE
   ${PROJECT_SOURCE_DIR}/library/cpp/l1_distance/l1_distance.h
 )
+
+
+
+
+
+

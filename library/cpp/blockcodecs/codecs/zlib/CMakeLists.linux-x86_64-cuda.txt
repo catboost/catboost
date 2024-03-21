@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(blockcodecs-codecs-zlib INTERFACE)
+
+
 target_link_libraries(blockcodecs-codecs-zlib INTERFACE
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,7 +16,13 @@ target_link_libraries(blockcodecs-codecs-zlib INTERFACE
   cpp-blockcodecs-core
 )
 
-add_global_library_for(blockcodecs-codecs-zlib.global blockcodecs-codecs-zlib)
+
+
+
+add_global_library_for(blockcodecs-codecs-zlib.global
+  blockcodecs-codecs-zlib)
+
+
 target_link_libraries(blockcodecs-codecs-zlib.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -24,6 +30,13 @@ target_link_libraries(blockcodecs-codecs-zlib.global PUBLIC
   contrib-libs-zlib
   cpp-blockcodecs-core
 )
+
 target_sources(blockcodecs-codecs-zlib.global PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/blockcodecs/codecs/zlib/zlib.cpp
 )
+
+
+
+
+
+

@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(rescompiler)
+
+
 target_link_libraries(rescompiler PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -15,6 +15,7 @@ target_link_libraries(rescompiler PUBLIC
   library-cpp-cpuid_check
   library-cpp-resource
 )
+
 target_link_options(rescompiler PRIVATE
   -ldl
   -lrt
@@ -25,11 +26,20 @@ target_link_options(rescompiler PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(rescompiler PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/rescompiler/main.cpp
 )
+
+
+
 target_allocator(rescompiler
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(rescompiler)
+
+
+
+

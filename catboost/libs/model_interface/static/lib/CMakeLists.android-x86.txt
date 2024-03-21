@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(model_interface-static-lib)
+
+
 target_compile_options(model_interface-static-lib PRIVATE
   -DCATBOOST_API_STATIC_LIB
 )
+
 target_link_libraries(model_interface-static-lib PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -18,6 +19,13 @@ target_link_libraries(model_interface-static-lib PUBLIC
   catboost-libs-data
   catboost-libs-model
 )
+
 target_sources(model_interface-static-lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model_interface/c_api.cpp
 )
+
+
+
+
+
+

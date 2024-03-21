@@ -5,17 +5,25 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-yt-exception)
+
+
 target_compile_options(cpp-yt-exception PRIVATE
   -Wdeprecated-this-capture
 )
+
 target_link_libraries(cpp-yt-exception PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(cpp-yt-exception PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/exception/exception.cpp
 )
+
+
+
+
+
+

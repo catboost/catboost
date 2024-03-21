@@ -5,24 +5,33 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(flatc)
-
 add_library(contrib-libs-flatbuffers)
+
+
 target_compile_options(contrib-libs-flatbuffers PRIVATE
   -DFLATBUFFERS_LOCALE_INDEPENDENT=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-flatbuffers PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
+
 target_link_libraries(contrib-libs-flatbuffers PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
 )
+
 target_sources(contrib-libs-flatbuffers PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_text.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_parser.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/reflection.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
 )
+
+
+
+
+
+

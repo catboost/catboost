@@ -5,16 +5,20 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(Java REQUIRED)
 find_package(SWIG REQUIRED COMPONENTS java)
 include(UseSWIG)
 include(UseJava)
+add_swig_jni_library(catboost4j-spark-impl-cpp
+  GEN_JAVA_FILES_LIST
+  ${CMAKE_CURRENT_BINARY_DIR}/swig_gen_java.lst
+  SOURCES
+  native_impl.swg)
 
-add_swig_jni_library(catboost4j-spark-impl-cpp GEN_JAVA_FILES_LIST ${CMAKE_CURRENT_BINARY_DIR}/swig_gen_java.lst SOURCES native_impl.swg)
 set_property(TARGET catboost4j-spark-impl-cpp PROPERTY
   OUTPUT_NAME catboost4j-spark-impl
 )
+
 target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -47,6 +51,7 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   swig-Lib-java
   contrib-libs-jdk
 )
+
 target_link_options(catboost4j-spark-impl-cpp PRIVATE
   -ldl
   -lrt
@@ -62,6 +67,7 @@ target_link_options(catboost4j-spark-impl-cpp PRIVATE
   -lculibos
   -lcudart_static
 )
+
 target_sources(catboost4j-spark-impl-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/calc_fstr.cpp
   ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/ctrs.cpp
@@ -84,9 +90,17 @@ target_sources(catboost4j-spark-impl-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/vector_output.cpp
   ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/worker.cpp
 )
+
+
 add_jar(
   catboost4j-spark-impl
   SOURCES
   @${CMAKE_CURRENT_BINARY_DIR}/swig_gen_java.lst
 )
+
+
 vcs_info(catboost4j-spark-impl-cpp)
+
+
+
+

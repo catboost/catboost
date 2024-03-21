@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(flatbuffers)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -13,6 +12,7 @@ get_built_tool_path(
   tools/enum_parser/enum_parser
   enum_parser
 )
+
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -21,6 +21,8 @@ get_built_tool_path(
 )
 
 add_library(catboost-libs-helpers)
+
+
 target_link_libraries(catboost-libs-helpers PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -43,6 +45,7 @@ target_link_libraries(catboost-libs-helpers PUBLIC
   cpp-deprecated-atomic
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(catboost-libs-helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/array_subset.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/borders_io.cpp
@@ -89,13 +92,21 @@ target_sources(catboost-libs-helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/wx_test.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/xml_output.cpp
 )
+
+
+
 generate_enum_serilization(catboost-libs-helpers
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/sparse_array.h
   INCLUDE_HEADERS
   catboost/libs/helpers/sparse_array.h
 )
+
 generate_enum_serilization(catboost-libs-helpers
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/distribution_helpers.h
   INCLUDE_HEADERS
   catboost/libs/helpers/distribution_helpers.h
 )
+
+
+
+

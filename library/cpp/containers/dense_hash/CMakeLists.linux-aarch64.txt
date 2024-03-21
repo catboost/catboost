@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-containers-dense_hash)
+
+
 target_link_libraries(cpp-containers-dense_hash PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(cpp-containers-dense_hash PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/dense_hash/dense_hash.h
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/dense_hash/dense_hash.cpp
 )
+
+
+
+
+
+

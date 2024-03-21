@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -14,6 +13,8 @@ get_built_tool_path(
 )
 
 add_library(cpp-json-writer)
+
+
 target_link_libraries(cpp-json-writer PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -21,12 +22,20 @@ target_link_libraries(cpp-json-writer PUBLIC
   cpp-json-common
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(cpp-json-writer PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/json/writer/json_value.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/json/writer/json.cpp
 )
+
+
+
 generate_enum_serilization(cpp-json-writer
   ${PROJECT_SOURCE_DIR}/library/cpp/json/writer/json_value.h
   INCLUDE_HEADERS
   library/cpp/json/writer/json_value.h
 )
+
+
+
+

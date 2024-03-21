@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(private-libs-feature_estimator)
+
+
 target_link_libraries(private-libs-feature_estimator PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -19,6 +19,7 @@ target_link_libraries(private-libs-feature_estimator PUBLIC
   private-libs-options
   cpp-threading-local_executor
 )
+
 target_sources(private-libs-feature_estimator PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/base_embedding_feature_estimator.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/base_text_feature_estimator.cpp
@@ -27,3 +28,9 @@ target_sources(private-libs-feature_estimator PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/feature_estimator.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/text_feature_estimators.cpp
 )
+
+
+
+
+
+

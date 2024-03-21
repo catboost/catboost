@@ -5,18 +5,27 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(methods)
+
+
 target_link_libraries(methods PUBLIC
   contrib-libs-cxxsupp
   yutil
   library-cpp-cpuid_check
 )
+
 target_sources(methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/empty_main.cpp
 )
+
+
+
 target_allocator(methods
   system_allocator
 )
+
 vcs_info(methods)
+
+
+
+

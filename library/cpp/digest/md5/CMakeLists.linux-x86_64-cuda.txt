@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-digest-md5)
+
+
 target_link_libraries(cpp-digest-md5 PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -15,6 +15,13 @@ target_link_libraries(cpp-digest-md5 PUBLIC
   contrib-libs-nayuki_md5
   cpp-string_utils-base64
 )
+
 target_sources(cpp-digest-md5 PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/digest/md5/md5.cpp
 )
+
+
+
+
+
+

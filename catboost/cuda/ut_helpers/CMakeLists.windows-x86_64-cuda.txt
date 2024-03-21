@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(catboost-cuda-ut_helpers)
+
+
 target_link_libraries(catboost-cuda-ut_helpers PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -21,6 +21,13 @@ target_link_libraries(catboost-cuda-ut_helpers PUBLIC
   private-libs-quantization
   catboost-libs-train_lib
 )
+
 target_sources(catboost-cuda-ut_helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/ut_helpers/test_utils.cpp
 )
+
+
+
+
+
+

@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ctr_description)
 add_subdirectory(data_types)
 add_subdirectory(data_util)
@@ -19,3 +18,5 @@ add_subdirectory(quantization)
 add_subdirectory(quantization_schema)
 add_subdirectory(text_features)
 add_subdirectory(text_processing)
+
+

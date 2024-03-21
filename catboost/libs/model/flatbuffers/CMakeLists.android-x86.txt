@@ -5,6 +5,12 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
+get_built_tool_path(
+  TOOL_flatc_bin
+  TOOL_flatc_dependency
+  contrib/tools/flatc
+  flatc
+)
 
 get_built_tool_path(
   TOOL_flatc_bin
@@ -12,12 +18,7 @@ get_built_tool_path(
   contrib/tools/flatc
   flatc
 )
-get_built_tool_path(
-  TOOL_flatc_bin
-  TOOL_flatc_dependency
-  contrib/tools/flatc
-  flatc
-)
+
 get_built_tool_path(
   TOOL_flatc_bin
   TOOL_flatc_dependency
@@ -26,12 +27,15 @@ get_built_tool_path(
 )
 
 add_library(libs-model-flatbuffers)
+
+
 target_link_libraries(libs-model-flatbuffers PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-flatbuffers
   libs-helpers-flatbuffers
 )
+
 target_sources(libs-model-flatbuffers PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.iter.fbs.h
@@ -46,6 +50,9 @@ target_sources(libs-model-flatbuffers PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.cpp
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.cpp
 )
+
+
+
 target_fbs_source(libs-model-flatbuffers
   PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/flatbuffers/features.fbs
@@ -54,6 +61,7 @@ target_fbs_source(libs-model-flatbuffers
   -I
   ${PROJECT_SOURCE_DIR}
 )
+
 target_fbs_source(libs-model-flatbuffers
   PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs
@@ -62,6 +70,7 @@ target_fbs_source(libs-model-flatbuffers
   -I
   ${PROJECT_SOURCE_DIR}
 )
+
 target_fbs_source(libs-model-flatbuffers
   PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/flatbuffers/model.fbs
@@ -70,3 +79,7 @@ target_fbs_source(libs-model-flatbuffers
   -I
   ${PROJECT_SOURCE_DIR}
 )
+
+
+
+

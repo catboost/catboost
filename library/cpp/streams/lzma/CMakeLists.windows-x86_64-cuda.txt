@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-streams-lzma)
+
+
 target_link_libraries(cpp-streams-lzma PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-lzmasdk
 )
+
 target_sources(cpp-streams-lzma PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/streams/lzma/lzma.cpp
 )
+
+
+
+
+
+

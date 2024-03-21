@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-private-libs-feature_estimator-ut)
+
+
 target_link_libraries(catboost-private-libs-feature_estimator-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -17,6 +17,7 @@ target_link_libraries(catboost-private-libs-feature_estimator-ut PUBLIC
   private-libs-text_features
   private-libs-text_processing
 )
+
 target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
   -ldl
   -lrt
@@ -27,9 +28,12 @@ target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(catboost-private-libs-feature_estimator-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/ut/feature_estimator_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-private-libs-feature_estimator-ut
@@ -37,6 +41,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-private-libs-feature_estimator-ut
@@ -49,6 +54,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-feature_estimator-ut
@@ -56,6 +62,7 @@ set_yunittest_property(
   LABELS
   MEDIUM
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-feature_estimator-ut
@@ -63,13 +70,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-feature_estimator-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-private-libs-feature_estimator-ut
   system_allocator
 )
+
 vcs_info(catboost-private-libs-feature_estimator-ut)
+
+
+
+

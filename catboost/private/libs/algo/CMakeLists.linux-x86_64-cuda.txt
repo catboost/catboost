@@ -5,14 +5,15 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(approx_calcer)
 add_subdirectory(ut)
-
 add_library(private-libs-algo)
+
+
 target_compile_options(private-libs-algo PRIVATE
   -DHAVE_CUDA
 )
+
 target_link_libraries(private-libs-algo PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -55,6 +56,7 @@ target_link_libraries(private-libs-algo PUBLIC
   cpp-threading-local_executor
   libs-model-cuda
 )
+
 target_sources(private-libs-algo PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/apply.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/approx_calcer.cpp
@@ -100,3 +102,9 @@ target_sources(private-libs-algo PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/yetirank_helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/confusion_matrix.cpp
 )
+
+
+
+
+
+

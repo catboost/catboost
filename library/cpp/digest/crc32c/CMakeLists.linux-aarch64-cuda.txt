@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-digest-crc32c)
+
+
 target_link_libraries(cpp-digest-crc32c PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-crcutil
 )
+
 target_sources(cpp-digest-crc32c PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/digest/crc32c/crc32c.cpp
 )
+
+
+
+
+
+

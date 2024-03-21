@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-gamma_function_apache_math_port)
+
+
 target_link_libraries(contrib-libs-gamma_function_apache_math_port PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(contrib-libs-gamma_function_apache_math_port PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/gamma_function_apache_math_port/gamma_function.cpp
 )
+
+
+
+
+
+

@@ -5,18 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-fast_exp)
+
+
 target_link_libraries(library-cpp-fast_exp PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-fmath
 )
+
 target_sources(library-cpp-fast_exp PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.h
   ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.cpp
 )
+
+
+
 target_sources_custom(library-cpp-fast_exp
   .avx2
   SRCS
@@ -25,6 +29,7 @@ target_sources_custom(library-cpp-fast_exp
   /arch:AVX2
   /DAVX2_ENABLED=1
 )
+
 target_sources_custom(library-cpp-fast_exp
   .sse2
   SRCS
@@ -32,3 +37,7 @@ target_sources_custom(library-cpp-fast_exp
   CUSTOM_FLAGS
   /D__SSE2__=1
 )
+
+
+
+

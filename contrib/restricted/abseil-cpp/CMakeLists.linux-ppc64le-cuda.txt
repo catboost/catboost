@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(absl)
-
 add_library(contrib-restricted-abseil-cpp INTERFACE)
+
+
 target_link_libraries(contrib-restricted-abseil-cpp INTERFACE
   contrib-libs-linux-headers
   abseil-cpp-absl-algorithm
@@ -31,3 +31,9 @@ target_link_libraries(contrib-restricted-abseil-cpp INTERFACE
   abseil-cpp-absl-types
   abseil-cpp-absl-utility
 )
+
+
+
+
+
+

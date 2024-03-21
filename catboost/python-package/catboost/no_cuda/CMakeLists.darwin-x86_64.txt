@@ -5,19 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(Python3 REQUIRED COMPONENTS Development)
-
 add_shared_library(_catboost_no_cuda)
+
 set_property(TARGET _catboost_no_cuda PROPERTY
   OUTPUT_NAME _catboost
 )
+
 target_compile_options(_catboost_no_cuda PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_cython_sources(_catboost_no_cuda PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
 )
+
 target_link_libraries(_catboost_no_cuda PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -53,6 +55,7 @@ target_link_libraries(_catboost_no_cuda PUBLIC
   cpp-text_processing-tokenizer
   cpp-text_processing-app_helpers
 )
+
 target_link_options(_catboost_no_cuda PRIVATE
   -headerpad_max_install_names
   -Wl,-platform_version,macos,11.0,11.0
@@ -61,13 +64,18 @@ target_link_options(_catboost_no_cuda PRIVATE
   dynamic_lookup
   -fPIC
 )
+
 target_sources(_catboost_no_cuda PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/monoforest_helpers.cpp
 )
+
+
+
 set_python_type_for_cython(_catboost_no_cuda
   PY3
 )
+
 target_cython_include_directories(_catboost_no_cuda
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}
@@ -75,6 +83,7 @@ target_cython_include_directories(_catboost_no_cuda
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )
+
 target_cython_options(_catboost_no_cuda
   -E
   UNAME_SYSNAME=Darwin
@@ -82,7 +91,13 @@ target_cython_options(_catboost_no_cuda
   _catboost
   --cplus
 )
+
 use_export_script(_catboost_no_cuda
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/catboost3.exports
 )
+
 vcs_info(_catboost_no_cuda)
+
+
+
+

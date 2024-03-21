@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(archiver)
+
+
 target_link_libraries(archiver PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,6 +16,7 @@ target_link_libraries(archiver PUBLIC
   cpp-digest-md5
   cpp-getopt-small
 )
+
 target_link_options(archiver PRIVATE
   -ldl
   -lrt
@@ -26,10 +27,19 @@ target_link_options(archiver PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(archiver PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/archiver/main.cpp
 )
+
+
+
 target_allocator(archiver
   system_allocator
 )
+
 vcs_info(archiver)
+
+
+
+

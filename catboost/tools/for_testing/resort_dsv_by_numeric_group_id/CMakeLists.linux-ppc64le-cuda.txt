@@ -5,15 +5,16 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(resort_dsv_by_numeric_group_id)
+
+
 target_link_libraries(resort_dsv_by_numeric_group_id PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-data_types
 )
+
 target_link_options(resort_dsv_by_numeric_group_id PRIVATE
   -ldl
   -lrt
@@ -24,10 +25,19 @@ target_link_options(resort_dsv_by_numeric_group_id PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(resort_dsv_by_numeric_group_id PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/tools/for_testing/resort_dsv_by_numeric_group_id/resort_dsv_by_numeric_group_id.cpp
 )
+
+
+
 target_allocator(resort_dsv_by_numeric_group_id
   system_allocator
 )
+
 vcs_info(resort_dsv_by_numeric_group_id)
+
+
+
+

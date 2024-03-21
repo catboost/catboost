@@ -5,18 +5,20 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-protobuf)
+
+
 target_compile_options(contrib-libs-protobuf PRIVATE
   -DHAVE_CONFIG_H
   -DHAVE_PTHREAD=1
   -DHAVE_ZLIB=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-protobuf PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
+
 target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -24,6 +26,7 @@ target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-zlib
   cpp-sanitizer-include
 )
+
 target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
@@ -121,61 +124,80 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format_lite.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.pb.cc
 )
+
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/duration.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/empty.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/field_mask.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/type.proto
 )
+
 copy_file(
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.proto
 )
 
-add_global_library_for(contrib-libs-protobuf.global contrib-libs-protobuf)
+
+
+add_global_library_for(contrib-libs-protobuf.global
+  contrib-libs-protobuf)
+
+
 target_compile_options(contrib-libs-protobuf.global PRIVATE
   -DHAVE_CONFIG_H
   -DHAVE_PTHREAD=1
   -DHAVE_ZLIB=1
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-protobuf.global PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
+
 target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -183,6 +205,13 @@ target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-zlib
   cpp-sanitizer-include
 )
+
 target_sources(contrib-libs-protobuf.global PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_util.cc
 )
+
+
+
+
+
+

@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-dot_product)
+
+
 target_link_libraries(library-cpp-dot_product PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -15,11 +15,15 @@ target_link_libraries(library-cpp-dot_product PUBLIC
   library-cpp-sse
   cpp-testing-common
 )
+
 target_sources(library-cpp-dot_product PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/dot_product/dot_product.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/dot_product/dot_product_sse.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/dot_product/dot_product_simple.cpp
 )
+
+
+
 target_sources_custom(library-cpp-dot_product
   .avx2
   SRCS
@@ -31,3 +35,7 @@ target_sources_custom(library-cpp-dot_product
   -mbmi2
   -mfma
 )
+
+
+
+

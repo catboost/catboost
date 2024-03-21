@@ -5,14 +5,21 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(private-libs-index_range)
+
+
 target_link_libraries(private-libs-index_range PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(private-libs-index_range PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/index_range/index_range.cpp
 )
+
+
+
+
+
+

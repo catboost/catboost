@@ -5,20 +5,23 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-jemalloc)
+
+
 target_compile_options(contrib-libs-jemalloc PRIVATE
   -funroll-loops
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-jemalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/include
   ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/include
 )
+
 target_link_libraries(contrib-libs-jemalloc PUBLIC
   contrib-libs-cxxsupp
 )
+
 target_sources(contrib-libs-jemalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/zone.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/arena.c
@@ -86,18 +89,33 @@ target_sources(contrib-libs-jemalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/src/witness.c
 )
 
-add_global_library_for(contrib-libs-jemalloc.global contrib-libs-jemalloc)
+
+
+
+add_global_library_for(contrib-libs-jemalloc.global
+  contrib-libs-jemalloc)
+
+
 target_compile_options(contrib-libs-jemalloc.global PRIVATE
   -funroll-loops
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-jemalloc.global PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/include
   ${PROJECT_SOURCE_DIR}/contrib/libs/libunwind/include
 )
+
 target_link_libraries(contrib-libs-jemalloc.global PUBLIC
   contrib-libs-cxxsupp
 )
+
 target_sources(contrib-libs-jemalloc.global PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/jemalloc/reg_zone.cpp
 )
+
+
+
+
+
+

@@ -5,15 +5,17 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(abseil-cpp-absl-time)
+
+
 target_compile_options(abseil-cpp-absl-time PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(abseil-cpp-absl-time PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
+
 target_link_libraries(abseil-cpp-absl-time PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -21,6 +23,7 @@ target_link_libraries(abseil-cpp-absl-time PUBLIC
   abseil-cpp-absl-numeric
   abseil-cpp-absl-strings
 )
+
 target_sources(abseil-cpp-absl-time PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/civil_time.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/clock.cc
@@ -38,3 +41,9 @@ target_sources(abseil-cpp-absl-time PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/internal/cctz/src/zone_info_source.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/time/time.cc
 )
+
+
+
+
+
+

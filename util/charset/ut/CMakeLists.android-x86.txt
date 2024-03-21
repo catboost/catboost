@@ -5,28 +5,33 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-charset-ut)
+
+
 target_include_directories(util-charset-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/charset
 )
+
 target_link_libraries(util-charset-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest_main
   util-charset
 )
+
 target_link_options(util-charset-ut PRIVATE
   -ldl
   -Wl,--no-as-needed
   -fPIC
   -fPIC
 )
+
 target_sources(util-charset-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/charset/utf8_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/charset/wide_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-charset-ut
@@ -34,6 +39,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-charset-ut
@@ -46,6 +52,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-charset-ut
@@ -53,6 +60,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-charset-ut
@@ -60,13 +68,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-charset-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-charset-ut
   cpp-malloc-jemalloc
 )
+
 vcs_info(util-charset-ut)
+
+
+
+

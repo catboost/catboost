@@ -5,9 +5,15 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(abseil-cpp-absl-functional INTERFACE)
+
+
 target_link_libraries(abseil-cpp-absl-functional INTERFACE
   contrib-libs-linux-headers
 )
+
+
+
+
+
+

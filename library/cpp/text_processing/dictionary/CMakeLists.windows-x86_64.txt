@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(idl)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -15,6 +14,8 @@ get_built_tool_path(
 )
 
 add_library(cpp-text_processing-dictionary)
+
+
 target_link_libraries(cpp-text_processing-dictionary PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -24,6 +25,7 @@ target_link_libraries(cpp-text_processing-dictionary PUBLIC
   cpp-threading-local_executor
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(cpp-text_processing-dictionary PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_builder.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_dictionary.cpp
@@ -41,8 +43,15 @@ target_sources(cpp-text_processing-dictionary PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/serialization_helpers.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/util.cpp
 )
+
+
+
 generate_enum_serilization(cpp-text_processing-dictionary
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/types.h
   INCLUDE_HEADERS
   library/cpp/text_processing/dictionary/types.h
 )
+
+
+
+

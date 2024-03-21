@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(protoc)
+
+
 target_compile_options(protoc PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_link_libraries(protoc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -18,6 +19,7 @@ target_link_libraries(protoc PUBLIC
   library-cpp-cpuid_check
   contrib-libs-protoc
 )
+
 target_link_options(protoc PRIVATE
   -ldl
   -lrt
@@ -28,11 +30,20 @@ target_link_options(protoc PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(protoc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/main.cc
 )
+
+
+
 target_allocator(protoc
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(protoc)
+
+
+
+

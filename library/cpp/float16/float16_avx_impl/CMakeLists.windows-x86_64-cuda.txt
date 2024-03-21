@@ -5,13 +5,16 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-float16-float16_avx_impl)
+
+
 target_link_libraries(cpp-float16-float16_avx_impl PUBLIC
   contrib-libs-cxxsupp
   yutil
 )
+
+
+
 target_sources_custom(cpp-float16-float16_avx_impl
   .avx
   SRCS
@@ -20,3 +23,7 @@ target_sources_custom(cpp-float16-float16_avx_impl
   /arch:AVX
   /DAVX_ENABLED=1
 )
+
+
+
+

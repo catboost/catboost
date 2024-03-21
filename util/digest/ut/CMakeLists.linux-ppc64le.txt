@@ -5,15 +5,16 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-digest-ut)
+
+
 target_link_libraries(util-digest-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest_main
 )
+
 target_link_options(util-digest-ut PRIVATE
   -ldl
   -lrt
@@ -24,6 +25,7 @@ target_link_options(util-digest-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(util-digest-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/digest/city_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/digest/fnv_ut.cpp
@@ -31,6 +33,8 @@ target_sources(util-digest-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/digest/murmur_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/digest/sequence_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-digest-ut
@@ -38,6 +42,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-digest-ut
@@ -50,6 +55,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-digest-ut
@@ -57,6 +63,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-digest-ut
@@ -64,13 +71,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-digest-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-digest-ut
   system_allocator
 )
+
 vcs_info(util-digest-ut)
+
+
+
+

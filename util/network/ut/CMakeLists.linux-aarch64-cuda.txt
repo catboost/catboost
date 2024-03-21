@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-network-ut)
+
+
 target_link_libraries(util-network-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -15,6 +15,7 @@ target_link_libraries(util-network-ut PUBLIC
   cpp-testing-unittest_main
   cpp-threading-future
 )
+
 target_link_options(util-network-ut PRIVATE
   -ldl
   -lrt
@@ -25,6 +26,7 @@ target_link_options(util-network-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(util-network-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/network/address_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/network/endpoint_ut.cpp
@@ -33,6 +35,8 @@ target_sources(util-network-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/network/sock_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/network/socket_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-network-ut
@@ -40,6 +44,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-network-ut
@@ -52,6 +57,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-network-ut
@@ -59,6 +65,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-network-ut
@@ -66,13 +73,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-network-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-network-ut
   cpp-malloc-jemalloc
 )
+
 vcs_info(util-network-ut)
+
+
+
+

@@ -5,30 +5,35 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(Python3 REQUIRED)
 set(
   KOSHER_SVN_VERSION
   
 )
+
 set(
   SANDBOX_TASK_ID
   0
 )
+
 set(
   BUILD_TYPE
   RELEASE
 )
 
 add_library(library-cpp-build_info)
+
+
 target_include_directories(library-cpp-build_info PUBLIC
   ${PROJECT_BINARY_DIR}/library/cpp/build_info
 )
+
 target_link_libraries(library-cpp-build_info PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-string_utils-base64
 )
+
 target_sources(library-cpp-build_info PRIVATE
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/buildinfo_data.h
   ${PROJECT_SOURCE_DIR}/library/cpp/build_info/build_info_static.cpp
@@ -36,6 +41,8 @@ target_sources(library-cpp-build_info PRIVATE
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/sandbox.cpp
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/build_info.cpp
 )
+
+
 add_custom_command(
   OUTPUT
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/buildinfo_data.h
@@ -48,11 +55,18 @@ add_custom_command(
   \"${CMAKE_CXX_COMPILER}\"
   \"${CMAKE_CXX_FLAGS}\"
 )
+
 configure_file(
   ${PROJECT_SOURCE_DIR}/library/cpp/build_info/sandbox.cpp.in
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/sandbox.cpp
 )
+
 configure_file(
   ${PROJECT_SOURCE_DIR}/library/cpp/build_info/build_info.cpp.in
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/build_info.cpp
 )
+
+
+
+
+

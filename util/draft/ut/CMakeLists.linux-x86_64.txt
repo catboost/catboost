@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(util-draft-ut)
+
+
 target_link_libraries(util-draft-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -16,6 +16,7 @@ target_link_libraries(util-draft-ut PUBLIC
   cpp-testing-unittest_main
   util-draft
 )
+
 target_link_options(util-draft-ut PRIVATE
   -ldl
   -lrt
@@ -26,12 +27,15 @@ target_link_options(util-draft-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(util-draft-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/draft/date_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/draft/datetime_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/draft/holder_vector_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/draft/memory_ut.cpp
 )
+
+
 set_property(
   TARGET
   util-draft-ut
@@ -39,6 +43,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   util-draft-ut
@@ -51,6 +56,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   util-draft-ut
@@ -58,6 +64,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   util-draft-ut
@@ -65,14 +72,22 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   util-draft-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(util-draft-ut
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(util-draft-ut)
+
+
+
+

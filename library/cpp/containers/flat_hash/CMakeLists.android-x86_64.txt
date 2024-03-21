@@ -5,13 +5,14 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-containers-flat_hash)
+
+
 target_link_libraries(cpp-containers-flat_hash PUBLIC
   contrib-libs-cxxsupp
   yutil
 )
+
 target_sources(cpp-containers-flat_hash PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/flat_hash/flat_hash.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/flat_hash/lib/concepts/container.cpp
@@ -28,3 +29,9 @@ target_sources(cpp-containers-flat_hash PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/flat_hash/lib/table.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/flat_hash/lib/value_markers.cpp
 )
+
+
+
+
+
+

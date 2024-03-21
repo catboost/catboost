@@ -5,36 +5,46 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-tcmalloc-no_percpu_cache)
+
+
 target_compile_options(libs-tcmalloc-no_percpu_cache PRIVATE
   -DTCMALLOC_256K_PAGES
   -DTCMALLOC_DEPRECATED_PERTHREAD
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_link_libraries(libs-tcmalloc-no_percpu_cache PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
   libs-tcmalloc-malloc_extension
 )
+
 target_sources(libs-tcmalloc-no_percpu_cache PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/no_percpu_cache/aligned_alloc.c
 )
 
-add_global_library_for(libs-tcmalloc-no_percpu_cache.global libs-tcmalloc-no_percpu_cache)
+
+
+
+add_global_library_for(libs-tcmalloc-no_percpu_cache.global
+  libs-tcmalloc-no_percpu_cache)
+
+
 target_compile_options(libs-tcmalloc-no_percpu_cache.global PRIVATE
   -DTCMALLOC_256K_PAGES
   -DTCMALLOC_DEPRECATED_PERTHREAD
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_link_libraries(libs-tcmalloc-no_percpu_cache.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
   libs-tcmalloc-malloc_extension
 )
+
 target_sources(libs-tcmalloc-no_percpu_cache.global PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/want_hpaa.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/tcmalloc.cc
@@ -79,3 +89,9 @@ target_sources(libs-tcmalloc-no_percpu_cache.global PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/percpu_rseq_unsupported.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/util.cc
 )
+
+
+
+
+
+

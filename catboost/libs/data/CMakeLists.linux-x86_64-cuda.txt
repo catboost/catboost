@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -13,12 +12,14 @@ get_built_tool_path(
   tools/enum_parser/enum_parser
   enum_parser
 )
+
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
   tools/enum_parser/enum_parser
   enum_parser
 )
+
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -27,6 +28,8 @@ get_built_tool_path(
 )
 
 add_library(catboost-libs-data)
+
+
 target_link_libraries(catboost-libs-data PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -55,6 +58,7 @@ target_link_libraries(catboost-libs-data PUBLIC
   private-libs-quantization_schema
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(catboost-libs-data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/async_row_processor.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/borders_io.cpp
@@ -95,23 +99,32 @@ target_sources(catboost-libs-data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/visitor.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/weights.cpp
 )
+
+
+
 generate_enum_serilization(catboost-libs-data
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/columns.h
   INCLUDE_HEADERS
   catboost/libs/data/columns.h
 )
+
 generate_enum_serilization(catboost-libs-data
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/order.h
   INCLUDE_HEADERS
   catboost/libs/data/order.h
 )
+
 generate_enum_serilization(catboost-libs-data
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/visitor.h
   INCLUDE_HEADERS
   catboost/libs/data/visitor.h
 )
 
-add_global_library_for(catboost-libs-data.global catboost-libs-data)
+
+add_global_library_for(catboost-libs-data.global
+  catboost-libs-data)
+
+
 target_link_libraries(catboost-libs-data.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -140,9 +153,16 @@ target_link_libraries(catboost-libs-data.global PUBLIC
   private-libs-quantization_schema
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(catboost-libs-data.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/baseline.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/cb_dsv_loader.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/libsvm_loader.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/pairs_data_loaders.cpp
 )
+
+
+
+
+
+

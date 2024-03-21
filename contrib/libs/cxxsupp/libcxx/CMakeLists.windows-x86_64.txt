@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-cxxsupp-libcxx)
+
+
 target_compile_options(libs-cxxsupp-libcxx PUBLIC
   -D_LIBCPP_VASPRINTF_DEFINED
   -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_
@@ -16,15 +16,18 @@ target_compile_options(libs-cxxsupp-libcxx PRIVATE
   -D_LIBCPP_BUILDING_LIBRARY
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(libs-cxxsupp-libcxx PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/include
 )
 target_include_directories(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src
 )
+
 target_link_libraries(libs-cxxsupp-libcxx PUBLIC
   libs-cxxsupp-builtins
 )
+
 target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/locale_win32.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/support.cpp
@@ -80,3 +83,9 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/vector.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/verbose_abort.cpp
 )
+
+
+
+
+
+

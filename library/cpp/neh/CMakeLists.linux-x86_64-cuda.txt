@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(OpenSSL REQUIRED)
 add_subdirectory(asio)
 get_built_tool_path(
@@ -16,6 +15,8 @@ get_built_tool_path(
 )
 
 add_library(library-cpp-neh)
+
+
 target_link_libraries(library-cpp-neh PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -37,6 +38,7 @@ target_link_libraries(library-cpp-neh PUBLIC
   cpp-deprecated-atomic
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(library-cpp-neh PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/neh/conn_cache.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/neh/factory.cpp
@@ -62,8 +64,15 @@ target_sources(library-cpp-neh PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/neh/udp.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/neh/utils.cpp
 )
+
+
+
 generate_enum_serilization(library-cpp-neh
   ${PROJECT_SOURCE_DIR}/library/cpp/neh/http_common.h
   INCLUDE_HEADERS
   library/cpp/neh/http_common.h
 )
+
+
+
+

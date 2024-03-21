@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
-
 add_library(catboost-libs-metrics)
+
+
 target_link_libraries(catboost-libs-metrics PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -25,6 +25,7 @@ target_link_libraries(catboost-libs-metrics PUBLIC
   library-cpp-dot_product
   cpp-threading-local_executor
 )
+
 target_sources(catboost-libs-metrics PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/auc.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/auc_mu.cpp
@@ -43,3 +44,9 @@ target_sources(catboost-libs-metrics PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/sample.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/caching_metric.cpp
 )
+
+
+
+
+
+

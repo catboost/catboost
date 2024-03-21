@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_shared_library(catboost4j-prediction)
+
+
 target_link_libraries(catboost4j-prediction PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -17,6 +17,7 @@ target_link_libraries(catboost4j-prediction PUBLIC
   libs-model-model_export
   library-cpp-jni
 )
+
 target_link_options(catboost4j-prediction PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -24,7 +25,15 @@ target_link_options(catboost4j-prediction PRIVATE
   dynamic_lookup
   -fPIC
 )
+
 target_sources(catboost4j-prediction PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/jvm-packages/catboost4j-prediction/src/native_impl/ai_catboost_CatBoostJNIImpl.cpp
 )
+
+
+
 vcs_info(catboost4j-prediction)
+
+
+
+

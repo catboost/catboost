@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(CUDAToolkit REQUIRED)
 add_subdirectory(ut)
 get_built_tool_path(
@@ -16,11 +15,14 @@ get_built_tool_path(
 )
 
 add_library(catboost-cuda-gpu_data)
+
+
 target_cuda_sources(catboost-cuda-gpu_data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/split.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/query_helper.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernel/binarize.cu
 )
+
 target_link_libraries(catboost-cuda-gpu_data PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -39,6 +41,7 @@ target_link_libraries(catboost-cuda-gpu_data PUBLIC
   tools-enum_parser-enum_serialization_runtime
   CUDA::toolkit
 )
+
 target_sources(catboost-cuda-gpu_data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/batch_binarized_ctr_calcer.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/cat_features_dataset.cpp
@@ -61,12 +64,17 @@ target_sources(catboost-cuda-gpu_data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/gpu_binarization_helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/estimated_features_calcer.cpp
 )
+
+
+
 generate_enum_serilization(catboost-cuda-gpu_data
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/grid_policy.h
   INCLUDE_HEADERS
   catboost/cuda/gpu_data/grid_policy.h
 )
+
 target_cuda_cflags(catboost-cuda-gpu_data)
+
 target_cuda_flags(catboost-cuda-gpu_data
   -gencode
   arch=compute_35,code=sm_35
@@ -91,7 +99,11 @@ target_cuda_flags(catboost-cuda-gpu_data
   -gencode=arch=compute_90,code=sm_90
 )
 
-add_global_library_for(catboost-cuda-gpu_data.global catboost-cuda-gpu_data)
+
+add_global_library_for(catboost-cuda-gpu_data.global
+  catboost-cuda-gpu_data)
+
+
 target_link_libraries(catboost-cuda-gpu_data.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -110,7 +122,14 @@ target_link_libraries(catboost-cuda-gpu_data.global PUBLIC
   tools-enum_parser-enum_serialization_runtime
   CUDA::toolkit
 )
+
 target_sources(catboost-cuda-gpu_data.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/kernels.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/splitter.cpp
 )
+
+
+
+
+
+

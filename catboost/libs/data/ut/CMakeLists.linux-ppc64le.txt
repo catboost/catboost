@@ -5,13 +5,14 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(lib)
-
 add_executable(catboost-libs-data-ut)
+
+
 target_include_directories(catboost-libs-data-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/data
 )
+
 target_link_libraries(catboost-libs-data-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -25,6 +26,7 @@ target_link_libraries(catboost-libs-data-ut PUBLIC
   libs-gpu_config-maybe_have_cuda
   private-libs-quantization
 )
+
 target_link_options(catboost-libs-data-ut PRIVATE
   -ldl
   -lrt
@@ -35,6 +37,7 @@ target_link_options(catboost-libs-data-ut PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(catboost-libs-data-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/borders_io_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/columns_ut.cpp
@@ -56,6 +59,8 @@ target_sources(catboost-libs-data-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/util.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/ut/weights_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-libs-data-ut
@@ -63,6 +68,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-libs-data-ut
@@ -75,6 +81,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-libs-data-ut
@@ -82,6 +89,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   catboost-libs-data-ut
@@ -89,13 +97,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-libs-data-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-libs-data-ut
   system_allocator
 )
+
 vcs_info(catboost-libs-data-ut)
+
+
+
+

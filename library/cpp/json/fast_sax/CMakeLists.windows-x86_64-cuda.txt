@@ -5,19 +5,27 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-json-fast_sax)
+
+
 target_link_libraries(cpp-json-fast_sax PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-json-common
 )
+
 target_sources(cpp-json-fast_sax PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/json/fast_sax/unescape.cpp
 )
+
+
+
 target_ragel_lexers(cpp-json-fast_sax
   PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/json/fast_sax/parser.rl6
   -CT0
 )
+
+
+
+

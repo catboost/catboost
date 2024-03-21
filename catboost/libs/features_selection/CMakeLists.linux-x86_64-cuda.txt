@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(catboost-libs-features_selection)
+
+
 target_link_libraries(catboost-libs-features_selection PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -25,8 +25,15 @@ target_link_libraries(catboost-libs-features_selection PUBLIC
   private-libs-target
   cpp-json-writer
 )
+
 target_sources(catboost-libs-features_selection PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/features_selection/recursive_features_elimination.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/features_selection/select_features.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/features_selection/selection_results.cpp
 )
+
+
+
+
+
+

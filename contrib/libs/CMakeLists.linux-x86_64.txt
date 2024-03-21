@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(base64)
 add_subdirectory(brotli)
 add_subdirectory(cblas)
@@ -42,3 +41,5 @@ add_subdirectory(xxhash)
 add_subdirectory(zlib)
 add_subdirectory(zstd)
 add_subdirectory(zstd06)
+
+

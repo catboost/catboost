@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(tensorboard_logger_example)
-
 add_library(catboost-libs-loggers)
+
+
 target_link_libraries(catboost-libs-loggers PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -21,8 +21,15 @@ target_link_libraries(catboost-libs-loggers PUBLIC
   cpp-digest-crc32c
   cpp-json-writer
 )
+
 target_sources(catboost-libs-loggers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/loggers/tensorboard_logger.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/loggers/catboost_logger_helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/loggers/logger.cpp
 )
+
+
+
+
+
+

@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-yt-yson_string)
+
+
 target_compile_options(cpp-yt-yson_string PRIVATE
   -Wdeprecated-this-capture
 )
+
 target_link_libraries(cpp-yt-yson_string PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -21,7 +22,14 @@ target_link_libraries(cpp-yt-yson_string PUBLIC
   cpp-yt-memory
   cpp-yt-misc
 )
+
 target_sources(cpp-yt-yson_string PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/yson_string/convert.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/yson_string/string.cpp
 )
+
+
+
+
+
+

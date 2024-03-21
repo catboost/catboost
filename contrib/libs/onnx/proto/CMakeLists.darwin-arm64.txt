@@ -5,6 +5,19 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
+get_built_tool_path(
+  TOOL_protoc_bin
+  TOOL_protoc_dependency
+  contrib/tools/protoc/bin
+  protoc
+)
+
+get_built_tool_path(
+  TOOL_cpp_styleguide_bin
+  TOOL_cpp_styleguide_dependency
+  contrib/tools/protoc/plugins/cpp_styleguide
+  cpp_styleguide
+)
 
 get_built_tool_path(
   TOOL_protoc_bin
@@ -12,30 +25,21 @@ get_built_tool_path(
   contrib/tools/protoc/bin
   protoc
 )
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
   contrib/tools/protoc/plugins/cpp_styleguide
   cpp_styleguide
 )
+
 get_built_tool_path(
   TOOL_protoc_bin
   TOOL_protoc_dependency
   contrib/tools/protoc/bin
   protoc
 )
-get_built_tool_path(
-  TOOL_cpp_styleguide_bin
-  TOOL_cpp_styleguide_dependency
-  contrib/tools/protoc/plugins/cpp_styleguide
-  cpp_styleguide
-)
-get_built_tool_path(
-  TOOL_protoc_bin
-  TOOL_protoc_dependency
-  contrib/tools/protoc/bin
-  protoc
-)
+
 get_built_tool_path(
   TOOL_cpp_styleguide_bin
   TOOL_cpp_styleguide_dependency
@@ -44,24 +48,32 @@ get_built_tool_path(
 )
 
 add_library(libs-onnx-proto)
+
+
 target_include_directories(libs-onnx-proto PUBLIC
   ${PROJECT_BINARY_DIR}/contrib/libs/onnx
 )
+
 target_link_libraries(libs-onnx-proto PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-protobuf
 )
+
 target_proto_messages(libs-onnx-proto PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/onnx_data.proto
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/onnx_ml.proto
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx/onnx/onnx_operators_ml.proto
 )
+
 target_sources(libs-onnx-proto PRIVATE
   ${PROJECT_BINARY_DIR}/contrib/libs/onnx/onnx/onnx_data.pb.h
   ${PROJECT_BINARY_DIR}/contrib/libs/onnx/onnx/onnx_ml.pb.h
   ${PROJECT_BINARY_DIR}/contrib/libs/onnx/onnx/onnx_operators_ml.pb.h
 )
+
+
+
 target_proto_addincls(libs-onnx-proto
   ./contrib/libs/onnx
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx
@@ -72,7 +84,12 @@ target_proto_addincls(libs-onnx-proto
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
+
 target_proto_outs(libs-onnx-proto
   --cpp_out=${PROJECT_BINARY_DIR}/contrib/libs/onnx
   --cpp_styleguide_out=${PROJECT_BINARY_DIR}/contrib/libs/onnx
 )
+
+
+
+

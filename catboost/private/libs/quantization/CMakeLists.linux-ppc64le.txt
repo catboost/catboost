@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(ut)
-
 add_library(private-libs-quantization)
+
+
 target_link_libraries(private-libs-quantization PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -18,7 +18,14 @@ target_link_libraries(private-libs-quantization PUBLIC
   catboost-libs-helpers
   private-libs-options
 )
+
 target_sources(private-libs-quantization PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization/grid_creator.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization/utils.cpp
 )
+
+
+
+
+
+

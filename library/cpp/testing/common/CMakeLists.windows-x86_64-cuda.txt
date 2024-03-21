@@ -5,17 +5,24 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-testing-common)
+
+
 target_link_libraries(cpp-testing-common PUBLIC
   contrib-libs-cxxsupp
   yutil
   library-cpp-json
 )
+
 target_sources(cpp-testing-common PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/common/env.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/common/network.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/common/probe.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/common/scope.cpp
 )
+
+
+
+
+
+

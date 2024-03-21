@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(library-cpp-case_insensitive_string)
+
+
 target_link_libraries(library-cpp-case_insensitive_string PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -15,7 +15,14 @@ target_link_libraries(library-cpp-case_insensitive_string PUBLIC
   contrib-libs-libc_compat
   cpp-digest-murmur
 )
+
 target_sources(library-cpp-case_insensitive_string PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/case_insensitive_string/case_insensitive_char_traits.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/case_insensitive_string/case_insensitive_string.cpp
 )
+
+
+
+
+
+

@@ -5,36 +5,46 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(malloc_extension)
 add_subdirectory(no_percpu_cache)
-
 add_library(contrib-libs-tcmalloc)
+
+
 target_compile_options(contrib-libs-tcmalloc PRIVATE
   -DTCMALLOC_256K_PAGES
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_link_libraries(contrib-libs-tcmalloc PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
   libs-tcmalloc-malloc_extension
 )
+
 target_sources(contrib-libs-tcmalloc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/want_hpaa.cc
 )
 
-add_global_library_for(contrib-libs-tcmalloc.global contrib-libs-tcmalloc)
+
+
+
+add_global_library_for(contrib-libs-tcmalloc.global
+  contrib-libs-tcmalloc)
+
+
 target_compile_options(contrib-libs-tcmalloc.global PRIVATE
   -DTCMALLOC_256K_PAGES
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_link_libraries(contrib-libs-tcmalloc.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
   libs-tcmalloc-malloc_extension
 )
+
 target_sources(contrib-libs-tcmalloc.global PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/tcmalloc.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/arena.cc
@@ -78,3 +88,9 @@ target_sources(contrib-libs-tcmalloc.global PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/percpu_rseq_unsupported.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/util.cc
 )
+
+
+
+
+
+

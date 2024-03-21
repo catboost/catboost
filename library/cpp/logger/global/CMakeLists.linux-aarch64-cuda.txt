@@ -5,17 +5,24 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-logger-global)
+
+
 target_link_libraries(cpp-logger-global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-logger
 )
+
 target_sources(cpp-logger-global PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/logger/global/common.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/logger/global/global.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/logger/global/rty_formater.cpp
 )
+
+
+
+
+
+

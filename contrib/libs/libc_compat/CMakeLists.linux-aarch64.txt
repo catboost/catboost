@@ -5,21 +5,24 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-libc_compat)
+
+
 target_compile_options(contrib-libs-libc_compat PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(contrib-libs-libc_compat PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/include/readpassphrase
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random
 )
+
 target_link_libraries(contrib-libs-libc_compat PUBLIC
   contrib-libs-linux-headers
   cpp-sanitizer-include
 )
+
 target_sources(contrib-libs-libc_compat PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/string.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/readpassphrase.c
@@ -31,3 +34,9 @@ target_sources(contrib-libs-libc_compat PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random/getrandom.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random/getentropy.c
 )
+
+
+
+
+
+

@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-cuda-train_lib-ut)
+
+
 target_include_directories(catboost-cuda-train_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib
 )
+
 target_link_libraries(catboost-cuda-train_lib-ut PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -21,6 +22,7 @@ target_link_libraries(catboost-cuda-train_lib-ut PUBLIC
   catboost-libs-train_lib
   catboost-libs-model
 )
+
 target_link_options(catboost-cuda-train_lib-ut PRIVATE
   -ldl
   -lrt
@@ -34,10 +36,13 @@ target_link_options(catboost-cuda-train_lib-ut PRIVATE
   -lculibos
   -lcudart_static
 )
+
 target_sources(catboost-cuda-train_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/ut/dummy_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/ut/train_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-cuda-train_lib-ut
@@ -45,6 +50,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-cuda-train_lib-ut
@@ -57,6 +63,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-train_lib-ut
@@ -64,6 +71,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-train_lib-ut
@@ -71,13 +79,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-cuda-train_lib-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-cuda-train_lib-ut
   cpp-malloc-jemalloc
 )
+
 vcs_info(catboost-cuda-train_lib-ut)
+
+
+
+

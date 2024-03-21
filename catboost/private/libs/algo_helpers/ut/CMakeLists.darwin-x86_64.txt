@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(catboost-private-libs-algo_helpers-ut)
+
+
 target_include_directories(catboost-private-libs-algo_helpers-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers
 )
+
 target_link_libraries(catboost-private-libs-algo_helpers-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -18,15 +19,19 @@ target_link_libraries(catboost-private-libs-algo_helpers-ut PUBLIC
   cpp-testing-unittest_main
   private-libs-algo_helpers
 )
+
 target_link_options(catboost-private-libs-algo_helpers-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
 )
+
 target_sources(catboost-private-libs-algo_helpers-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/ut/pairwise_leaves_calculation_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/ut/multiquantile_derivatives_ut.cpp
 )
+
+
 set_property(
   TARGET
   catboost-private-libs-algo_helpers-ut
@@ -34,6 +39,7 @@ set_property(
   SPLIT_FACTOR
   1
 )
+
 add_yunittest(
   NAME
   catboost-private-libs-algo_helpers-ut
@@ -46,6 +52,7 @@ add_yunittest(
   --print-times
   --show-fails
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-algo_helpers-ut
@@ -53,6 +60,7 @@ set_yunittest_property(
   LABELS
   SMALL
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-algo_helpers-ut
@@ -60,13 +68,21 @@ set_yunittest_property(
   PROCESSORS
   1
 )
+
 set_yunittest_property(
   TEST
   catboost-private-libs-algo_helpers-ut
   PROPERTY
   ENVIRONMENT
 )
+
+
 target_allocator(catboost-private-libs-algo_helpers-ut
   system_allocator
 )
+
 vcs_info(catboost-private-libs-algo_helpers-ut)
+
+
+
+

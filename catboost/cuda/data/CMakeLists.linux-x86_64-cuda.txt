@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -14,6 +13,8 @@ get_built_tool_path(
 )
 
 add_library(catboost-cuda-data)
+
+
 target_link_libraries(catboost-cuda-data PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -28,6 +29,7 @@ target_link_libraries(catboost-cuda-data PUBLIC
   private-libs-feature_estimator
   tools-enum_parser-enum_serialization_runtime
 )
+
 target_sources(catboost-cuda-data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/feature.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/binarizations_manager.cpp
@@ -35,8 +37,15 @@ target_sources(catboost-cuda-data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/data_utils.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/leaf_path.cpp
 )
+
+
+
 generate_enum_serilization(catboost-cuda-data
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/feature.h
   INCLUDE_HEADERS
   catboost/cuda/data/feature.h
 )
+
+
+
+

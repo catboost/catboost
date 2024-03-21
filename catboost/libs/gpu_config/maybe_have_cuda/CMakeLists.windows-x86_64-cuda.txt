@@ -5,10 +5,10 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(CUDAToolkit REQUIRED)
-
 add_library(libs-gpu_config-maybe_have_cuda)
+
+
 target_link_libraries(libs-gpu_config-maybe_have_cuda PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -16,6 +16,13 @@ target_link_libraries(libs-gpu_config-maybe_have_cuda PUBLIC
   libs-gpu_config-interface
   CUDA::toolkit
 )
+
 target_sources(libs-gpu_config-maybe_have_cuda PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/gpu_config/maybe_have_cuda/get_gpu_device_count_cuda.cpp
 )
+
+
+
+
+
+

@@ -5,12 +5,13 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_executable(cpp_styleguide)
+
+
 target_compile_options(cpp_styleguide PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_link_libraries(cpp_styleguide PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -18,6 +19,7 @@ target_link_libraries(cpp_styleguide PUBLIC
   library-cpp-cpuid_check
   contrib-libs-protoc
 )
+
 target_link_options(cpp_styleguide PRIVATE
   -ldl
   -lrt
@@ -28,11 +30,20 @@ target_link_options(cpp_styleguide PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(cpp_styleguide PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.cpp
 )
+
+
+
 target_allocator(cpp_styleguide
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache
 )
+
 vcs_info(cpp_styleguide)
+
+
+
+

@@ -5,7 +5,6 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(cpu_compatibility_helpers)
 add_subdirectory(ctrs)
 add_subdirectory(cuda_lib)
@@ -19,3 +18,5 @@ add_subdirectory(targets)
 add_subdirectory(train_lib)
 add_subdirectory(ut_helpers)
 add_subdirectory(utils)
+
+

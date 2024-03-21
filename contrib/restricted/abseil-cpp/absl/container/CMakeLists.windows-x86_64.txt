@@ -5,15 +5,17 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(abseil-cpp-absl-container)
+
+
 target_compile_options(abseil-cpp-absl-container PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_include_directories(abseil-cpp-absl-container PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
+
 target_link_libraries(abseil-cpp-absl-container PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
@@ -28,8 +30,15 @@ target_link_libraries(abseil-cpp-absl-container PUBLIC
   abseil-cpp-absl-types
   cpp-sanitizer-include
 )
+
 target_sources(abseil-cpp-absl-container PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler_force_weak_definition.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/raw_hash_set.cc
 )
+
+
+
+
+
+

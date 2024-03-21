@@ -5,17 +5,20 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(libs-base64-neon32)
+
+
 target_link_libraries(libs-base64-neon32 PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
+
 target_sources(libs-base64-neon32 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/neon32/codec_neon32.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/neon32/lib.c
 )
+
+
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/neon32/codec_neon32.c
@@ -24,6 +27,7 @@ set_property(
   COMPILE_OPTIONS
   -std=c11
 )
+
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/neon32/lib.c
@@ -32,3 +36,8 @@ set_property(
   COMPILE_OPTIONS
   -std=c11
 )
+
+
+
+
+

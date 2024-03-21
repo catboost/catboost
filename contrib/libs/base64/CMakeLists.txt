@@ -5,10 +5,11 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 add_subdirectory(avx2)
 add_subdirectory(neon32)
 add_subdirectory(neon64)
 add_subdirectory(plain32)
 add_subdirectory(plain64)
 add_subdirectory(ssse3)
+
+

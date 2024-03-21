@@ -5,15 +5,16 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(CUDAToolkit REQUIRED)
-
 add_library(cpp-cuda-wrappers)
+
+
 target_cuda_sources(cpp-cuda-wrappers PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel.cu
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel_helpers.cu
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/arch.cu
 )
+
 target_link_libraries(cpp-cuda-wrappers PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -23,6 +24,7 @@ target_link_libraries(cpp-cuda-wrappers PUBLIC
   cpp-threading-future
   CUDA::toolkit
 )
+
 target_sources(cpp-cuda-wrappers PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/base.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/run_gpu_program.cpp
@@ -32,7 +34,11 @@ target_sources(cpp-cuda-wrappers PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/cuda_graph.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/stream_capture.cpp
 )
+
+
+
 target_cuda_cflags(cpp-cuda-wrappers)
+
 target_cuda_flags(cpp-cuda-wrappers
   -gencode
   arch=compute_35,code=sm_35
@@ -58,3 +64,7 @@ target_cuda_flags(cpp-cuda-wrappers
   -gencode=arch=compute_89,code=sm_89
   -gencode=arch=compute_90,code=sm_90
 )
+
+
+
+

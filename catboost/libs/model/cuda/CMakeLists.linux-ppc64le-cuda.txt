@@ -5,13 +5,14 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(CUDAToolkit REQUIRED)
-
 add_library(libs-model-cuda)
+
+
 target_cuda_sources(libs-model-cuda PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/cuda/evaluator.cu
 )
+
 target_link_libraries(libs-model-cuda PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -20,7 +21,11 @@ target_link_libraries(libs-model-cuda PUBLIC
   cpp-cuda-wrappers
   CUDA::toolkit
 )
+
+
+
 target_cuda_cflags(libs-model-cuda)
+
 target_cuda_flags(libs-model-cuda
   -gencode
   arch=compute_35,code=sm_35
@@ -47,7 +52,11 @@ target_cuda_flags(libs-model-cuda
   -gencode=arch=compute_90,code=sm_90
 )
 
-add_global_library_for(libs-model-cuda.global libs-model-cuda)
+
+add_global_library_for(libs-model-cuda.global
+  libs-model-cuda)
+
+
 target_link_libraries(libs-model-cuda.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -56,6 +65,13 @@ target_link_libraries(libs-model-cuda.global PUBLIC
   cpp-cuda-wrappers
   CUDA::toolkit
 )
+
 target_sources(libs-model-cuda.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/cuda/evaluator.cpp
 )
+
+
+
+
+
+

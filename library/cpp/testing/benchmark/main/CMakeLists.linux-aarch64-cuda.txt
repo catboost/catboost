@@ -5,9 +5,9 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(testing-benchmark-main INTERFACE)
+
+
 target_link_libraries(testing-benchmark-main INTERFACE
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -15,13 +15,26 @@ target_link_libraries(testing-benchmark-main INTERFACE
   cpp-testing-benchmark
 )
 
-add_global_library_for(testing-benchmark-main.global testing-benchmark-main)
+
+
+
+add_global_library_for(testing-benchmark-main.global
+  testing-benchmark-main)
+
+
 target_link_libraries(testing-benchmark-main.global PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-testing-benchmark
 )
+
 target_sources(testing-benchmark-main.global PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/testing/benchmark/main/main.cpp
 )
+
+
+
+
+
+

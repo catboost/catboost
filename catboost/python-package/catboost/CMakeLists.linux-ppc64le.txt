@@ -5,17 +5,19 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
 find_package(Python3 REQUIRED COMPONENTS Development)
 add_subdirectory(no_cuda)
-
 add_shared_library(_catboost)
+
+
 target_compile_options(_catboost PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
+
 target_cython_sources(_catboost PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
 )
+
 target_link_libraries(_catboost PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -52,6 +54,7 @@ target_link_libraries(_catboost PUBLIC
   cpp-text_processing-app_helpers
   libs-gpu_config-maybe_have_cuda
 )
+
 target_link_options(_catboost PRIVATE
   -ldl
   -lrt
@@ -64,13 +67,18 @@ target_link_options(_catboost PRIVATE
   -lrt
   -ldl
 )
+
 target_sources(_catboost PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/monoforest_helpers.cpp
 )
+
+
+
 set_python_type_for_cython(_catboost
   PY3
 )
+
 target_cython_include_directories(_catboost
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}
@@ -78,6 +86,7 @@ target_cython_include_directories(_catboost
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )
+
 target_cython_options(_catboost
   -E
   UNAME_SYSNAME=Linux
@@ -85,7 +94,13 @@ target_cython_options(_catboost
   _catboost
   --cplus
 )
+
 use_export_script(_catboost
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/catboost3.exports
 )
+
 vcs_info(_catboost)
+
+
+
+

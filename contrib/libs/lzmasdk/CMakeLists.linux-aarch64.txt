@@ -5,16 +5,18 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(contrib-libs-lzmasdk)
+
+
 target_compile_options(contrib-libs-lzmasdk PRIVATE
   -D_7ZIP_ST=1
 )
+
 target_link_libraries(contrib-libs-lzmasdk PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
+
 target_sources(contrib-libs-lzmasdk PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/7zStream.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Aes.c
@@ -32,3 +34,9 @@ target_sources(contrib-libs-lzmasdk PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/LzmaLib.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/lzmasdk/Sha256.c
 )
+
+
+
+
+
+

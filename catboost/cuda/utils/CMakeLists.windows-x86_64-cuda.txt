@@ -5,17 +5,24 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(catboost-cuda-utils)
+
+
 target_link_libraries(catboost-cuda-utils PUBLIC
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers
   cpp-deprecated-atomic
 )
+
 target_sources(catboost-cuda-utils PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/utils/countdown_latch.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/utils/spin_wait.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/utils/helpers.cpp
 )
+
+
+
+
+
+

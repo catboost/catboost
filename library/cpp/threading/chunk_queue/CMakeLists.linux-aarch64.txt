@@ -5,15 +5,22 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-
-
 add_library(cpp-threading-chunk_queue)
+
+
 target_link_libraries(cpp-threading-chunk_queue PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-deprecated-atomic
 )
+
 target_sources(cpp-threading-chunk_queue PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/threading/chunk_queue/queue.cpp
 )
+
+
+
+
+
+
