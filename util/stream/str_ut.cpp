@@ -2,6 +2,7 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 #include <util/generic/typetraits.h>
+#include <util/string/join.h>
 
 template <typename T>
 const T ReturnConstTemp();
@@ -148,6 +149,40 @@ Y_UNIT_TEST_SUITE(TStringInputOutputTest) {
 
         // Check old stream is in a valid state
         output1 << "baz";
+    }
+
+    Y_UNIT_TEST(MoveableStringInputStream) {
+        TString data{JoinSeq("\n", "qwertyuiop"sv)};
+        TStringInput in0{data};
+        TString str;
+        in0 >> str;
+        UNIT_ASSERT_VALUES_EQUAL(str, ToString(int('q')));
+        TStringInput in1{std::move(in0)};
+        in1 >> str;
+        UNIT_ASSERT_VALUES_EQUAL(str, ToString(int('w')));
+
+        // Check old stream is in a valid state
+        in0 >> str;
+    }
+
+    Y_UNIT_TEST(MoveableStringStream) {
+        TString str;
+        str.reserve(500);
+        const char* ptr = str.data();
+        TStringStream stream{std::move(str)};
+        stream << "foo"
+               << "bar";
+        TString out = std::move(stream).Str();
+        UNIT_ASSERT_EQUAL(ptr, out.data());
+        UNIT_ASSERT_STRINGS_EQUAL(out, "foobar");
+
+        TStringStream multiline{JoinSeq("\n", "qwertyuiop"sv)};
+        multiline >> str;
+        UNIT_ASSERT_VALUES_EQUAL(str, ToString(int('q')));
+        TStringStream other = std::move(multiline);
+        // Check old stream is in a valid state
+        multiline >> str;
+        multiline << "bar";
     }
 
     // There is no distinct tests for Out<> via IOutputStream.
