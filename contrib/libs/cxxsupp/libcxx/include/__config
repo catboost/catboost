@@ -1553,4 +1553,7 @@ __sanitizer_verify_double_ended_contiguous_container(const void*, const void*, c
 
 #endif // __cplusplus
 
+#include <__config_epilogue.h>
+
 #endif // _LIBCPP___CONFIG
+
