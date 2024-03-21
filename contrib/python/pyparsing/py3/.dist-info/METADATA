@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pyparsing
-Version: 3.1.1
+Version: 3.1.2
 Summary: pyparsing module - Classes and methods to define and execute parsing grammars
 Author-email: Paul McGuire <ptmcg.gm+pyparsing@gmail.com>
 Requires-Python: >=3.6.8
@@ -19,6 +19,7 @@ Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
