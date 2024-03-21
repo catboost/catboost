@@ -62,6 +62,7 @@ class THashTest: public TTestBase {
     UNIT_TEST(TestHSetInsertInitializerList);
     UNIT_TEST(TestTupleHash);
     UNIT_TEST(TestStringHash);
+    UNIT_TEST(TestFloatingPointHash);
     UNIT_TEST_SUITE_END();
 
     using hmset = THashMultiSet<char, hash<char>, TEqualTo<char>>;
@@ -115,6 +116,7 @@ protected:
     void TestHSetInsertInitializerList();
     void TestTupleHash();
     void TestStringHash();
+    void TestFloatingPointHash();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(THashTest);
@@ -1333,4 +1335,25 @@ void THashTest::TestStringHash() {
     UNIT_ASSERT_VALUES_EQUAL(ComputeHash("hehe"sv), expected);            // std::string_view
     UNIT_ASSERT_VALUES_EQUAL(ComputeHash(TStringBuf("hehe")), expected);  // TStringBuf
     UNIT_ASSERT_VALUES_EQUAL(ComputeHash<const char*>("hehe"), expected); // const char*
+}
+
+template <class TFloat>
+static void TestFloatingPointHashImpl() {
+    const TFloat f = 0;
+    Y_ASSERT(f == -f);
+    THashSet<TFloat> set;
+    set.insert(f);
+    UNIT_ASSERT_C(set.contains(-f), TypeName<TFloat>());
+    UNIT_ASSERT_VALUES_EQUAL_C(ComputeHash(f), ComputeHash(-f), TypeName<TFloat>());
+    for (int i = 0; i < 5; ++i) {
+        set.insert(-TFloat(i));
+        set.insert(+TFloat(i));
+    }
+    UNIT_ASSERT_VALUES_EQUAL_C(set.size(), 9, TypeName<TFloat>());
+}
+
+void THashTest::TestFloatingPointHash() {
+    TestFloatingPointHashImpl<float>();
+    TestFloatingPointHashImpl<double>();
+    // TestFloatingPointHashImpl<long double>();
 }
