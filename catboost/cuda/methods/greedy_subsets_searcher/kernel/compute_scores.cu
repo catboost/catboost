@@ -635,11 +635,9 @@ namespace NKernel {
             const int leafId = allPartIds[i];
             const double weight = max(partStats[leafId * statCount], 0.0);
             double totalSum = 0;
-            double totalSumPart = 0;
 
             for (int statId = 1; statId < statCount; ++statId) {
                 double sum = partStats[leafId * statCount + statId];
-                totalSumPart += sum;
 
                 calcer.AddLeaf(sum, weight);
                 totalSum += sum;
