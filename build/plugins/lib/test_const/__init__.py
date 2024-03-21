@@ -203,12 +203,27 @@ JSTYLE_RUNNER_LIB = 'JSTYLE_LIB_RESOURCE_GLOBAL'
 NODEJS_RESOURCE = 'NODEJS_RESOURCE_GLOBAL'
 NYC_RESOURCE = 'NYC_RESOURCE_GLOBAL'
 RUFF_RESOURCE = 'RUFF_RESOURCE_GLOBAL'
-TEST_TOOL3_HOST = 'TEST_TOOL3_HOST_RESOURCE_GLOBAL'
-TEST_TOOL3_HOST_LOCAL = 'TEST_TOOL3_HOST_LOCAL'
+
+# test_tool resource for host platform.
+# source - build/platform/test_tool/host.ya.make.inc.
+# always using this test_tool resource except 2 cases:
+# 1. when we use TEST_TOOL_TARGET
+# 2. when --test-tool-bin passed
 TEST_TOOL_HOST = 'TEST_TOOL_HOST_RESOURCE_GLOBAL'
+
+# path to locally built test_tool passed by --test-tool-bin opt
 TEST_TOOL_HOST_LOCAL = 'TEST_TOOL_HOST_LOCAL'
+
+# test_tool resource for target platform.
+# source - build/platform/test_tool/ya.make.
+# The only usage of this resource is running tests under ios emulator
 TEST_TOOL_TARGET = 'TEST_TOOL_TARGET_RESOURCE_GLOBAL'
+
+# path to locally built test_tool passed by --test-tool-bin opt
+# always same as TEST_TOOL_HOST_LOCAL
+# The only usage of this path is running tests under ios emulator
 TEST_TOOL_TARGET_LOCAL = 'TEST_TOOL_TARGET_LOCAL'
+
 XCODE_TOOLS_RESOURCE = 'XCODE_TOOLS_ROOT_RESOURCE_GLOBAL'
 WINE_TOOL = 'WINE_TOOL_RESOURCE_GLOBAL'
 WINE32_TOOL = 'WINE32_TOOL_RESOURCE_GLOBAL'
