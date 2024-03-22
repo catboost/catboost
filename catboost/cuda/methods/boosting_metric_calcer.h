@@ -75,6 +75,17 @@ namespace NCatboostCuda {
                                                                              CpuWeights,
                                                                              QueryInfo,
                                                                              LocalExecutor);
+            } else if (dynamic_cast<const TGpuCustomMetric*>(metric)) {
+                CachePointOnCpu();
+                CacheCpuTargetAndWeight();
+                if (metric->GetCpuMetric().GetErrorType() != EErrorType::PerObjectError) {
+                    CacheQueryInfo(Target.GetSamplesGrouping());
+                }
+                return dynamic_cast<const TGpuCustomMetric*>(metric)->Eval(PointOnCpu,
+                                                                             CpuTarget,
+                                                                             CpuWeights,
+                                                                             QueryInfo,
+                                                                             LocalExecutor);
             } else {
                 CB_ENSURE(false, "Can't compute metric " << metric->GetCpuMetric().GetDescription() << " during GPU learning");
             }

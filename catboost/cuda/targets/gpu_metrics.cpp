@@ -522,6 +522,28 @@ namespace NCatboostCuda {
                            *localExecutor);
     }
 
+    TMetricHolder TGpuCustomMetric::Eval(const TVector<TVector<double>>& approx,
+                                           const TVector<float>& target,
+                                           const TVector<float>& weight,
+                                           const TVector<TQueryInfo>& queriesInfo,
+                                           NPar::ILocalExecutor* localExecutor) const {
+        const int start = 0;
+        const int end = static_cast<const int>(GetCpuMetric().GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());
+        CB_ENSURE(approx.size() >= 1);
+        CB_ENSURE(end > 0, "Not enough data to calculate metric: groupwise metric w/o group id's, or objectwise metric w/o samples");
+        for (ui32 dim = 0; dim < approx.size(); ++dim) {
+            CB_ENSURE(approx[dim].size() == target.size());
+        }
+        const ISingleTargetEval& singleEvalMetric = dynamic_cast<const ISingleTargetEval&>(GetCpuMetric());
+        return singleEvalMetric.Eval(approx,
+                           target,
+                           weight,
+                           queriesInfo,
+                           start,
+                           end,
+                           *localExecutor);
+    }
+
     static THolder<IMetric> CreateSingleMetric(ELossFunction metric, const TLossParams& params, int approxDimension) {
         THolder<IMetric> metricHolder = std::move(CreateMetric(metric, params, approxDimension)[0]);
         return metricHolder;
@@ -654,7 +676,9 @@ namespace NCatboostCuda {
     }
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
-                                                  ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
+                                                  ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                  const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) {
+        Y_UNUSED(objectiveDescriptor);
         CB_ENSURE(metricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
         const NCatboostOptions::TLossDescription& objectiveMetricDescription = metricOptions->ObjectiveMetric.Get();
         const bool haveEvalMetricFromUser = metricOptions->EvalMetric.IsSet();
@@ -680,8 +704,8 @@ namespace NCatboostCuda {
         THashSet<TString> usedDescriptions;
 
         if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
-            metrics.emplace_back(new TCpuFallbackMetric(
-                MakeCustomMetric(evalMetricDescriptor.GetRef()),
+            metrics.emplace_back(new TGpuCustomMetric(
+                evalMetricDescriptor.GetRef(),
                 evalMetricDescription
             ));
         } else {

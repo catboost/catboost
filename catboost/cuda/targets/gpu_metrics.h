@@ -7,6 +7,7 @@
 #include <catboost/private/libs/options/metric_options.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
@@ -119,6 +120,29 @@ namespace NCatboostCuda {
                            NPar::ILocalExecutor* localExecutor) const;
     };
 
+    class TGpuCustomMetric : public IGpuMetric {
+    public:
+        explicit TGpuCustomMetric(
+            const NCatboostOptions::TLossDescription& config,
+            ui32 approxDim): IGpuMetric(config, approxDim)
+            {
+            }
+
+        explicit TGpuCustomMetric(
+            const TCustomMetricDescriptor& metricDescriptor,
+            const NCatboostOptions::TLossDescription& config
+        ) : IGpuMetric(MakeCustomMetric(metricDescriptor), config)
+        {
+        }
+
+        TMetricHolder Eval(const TVector<TVector<double>>& approx,
+                            const TVector<float>& target,
+                            const TVector<float>& weight,
+                            const TVector<TQueryInfo>& queriesInfo,
+                            NPar::ILocalExecutor* localExecutor) const;
+    };
+
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
-                                                  const ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor);
+                                                  const ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                  const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor);
 }

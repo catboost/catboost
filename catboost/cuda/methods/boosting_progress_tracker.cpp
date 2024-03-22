@@ -28,11 +28,12 @@ namespace NCatboostCuda {
                                                        bool hasWeights,
                                                        TMaybe<ui32> learnAndTestCheckSum,
                                                        ITrainingCallbacks* trainingCallbacks,
-                                                       const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor)
+                                                       const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                       const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor)
         : CatboostOptions(catBoostOptions)
         , OutputOptions(outputFilesOptions)
         , OutputFiles(outputFilesOptions, "")
-        , Metrics(CreateGpuMetrics(catBoostOptions.MetricOptions, cpuApproxDim, hasWeights, evalMetricDescriptor))
+        , Metrics(CreateGpuMetrics(catBoostOptions.MetricOptions, cpuApproxDim, hasWeights, evalMetricDescriptor, objectiveDescriptor))
         , ErrorTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , BestModelMinTreesTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , TrainingCallbacks(trainingCallbacks)
