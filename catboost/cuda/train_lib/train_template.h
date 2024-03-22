@@ -57,7 +57,8 @@ namespace NCatboostCuda {
         ITrainingCallbacks* trainingCallbacks,
         bool hasWeights,
         TMaybe<ui32> learnAndTestCheckSum,
-        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor
     ) {
         return TBoostingProgressTracker(catBoostOptions,
             outputOptions,
@@ -68,7 +69,8 @@ namespace NCatboostCuda {
             hasWeights,
             learnAndTestCheckSum,
             trainingCallbacks,
-            evalMetricDescriptor);
+            evalMetricDescriptor,
+            objectiveDescriptor);
     }
 
     template <class TBoosting>
@@ -85,7 +87,8 @@ namespace NCatboostCuda {
                                                                          NPar::ILocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
+                                                                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) {
         auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
 
         boosting.SetDataProvider(learn, featureEstimators, test);
@@ -104,7 +107,8 @@ namespace NCatboostCuda {
             trainingCallbacks,
             learn.MetaInfo.HasWeights,
             learnAndTestCheckSum,
-            evalMetricDescriptor);
+            evalMetricDescriptor,
+            objectiveDescriptor);
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 
@@ -163,6 +167,7 @@ namespace NCatboostCuda {
             defaultTrainingCallcbacks.Get(),
             learn.MetaInfo.HasWeights,
             /*learnAndTestCheckSum*/ Nothing(),
+            Nothing(),
             Nothing());
 
         boosting.SetBoostingProgressTracker(&progressTracker);
