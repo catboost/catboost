@@ -11,6 +11,9 @@
     "test.test_approximate_shap_feature_importance_multiclass[GPU]": {
         "uri": "file://test.test_approximate_shap_feature_importance_multiclass_GPU_/feature_importance.npy"
     },
+    "test.test_approximate_shap_feature_importance_multirmse[GPU]": {
+        "uri": "file://test.test_approximate_shap_feature_importance_multirmse_GPU_/feature_importance.npy"
+    },
     "test.test_class_names[GPU]": {
         "uri": "file://test.test_class_names_GPU_/predictions.txt"
     },
@@ -286,6 +289,9 @@
     "test.test_exact_shap_feature_importance_multiclass[GPU]": {
         "uri": "file://test.test_exact_shap_feature_importance_multiclass_GPU_/feature_importance.npy"
     },
+    "test.test_exact_shap_feature_importance_multirmse[GPU]": {
+        "uri": "file://test.test_exact_shap_feature_importance_multirmse_GPU_/feature_importance.npy"
+    },
     "test.test_export_to_python_no_cat_features[GPU-2]": {
         "uri": "file://test.test_export_to_python_no_cat_features_GPU-2_/model.py"
     },
@@ -516,6 +522,9 @@
     },
     "test.test_shap_feature_importance_multiclass[GPU-TreeSHAP]": {
         "uri": "file://test.test_shap_feature_importance_multiclass_GPU-TreeSHAP_/feature_importance.npy"
+    },
+    "test.test_shap_feature_importance_multirmse[GPU-IndependentTreeSHAP]": {
+        "uri": "file://test.test_shap_feature_importance_multirmse_GPU-IndependentTreeSHAP_/feature_importance.npy"
     },
     "test.test_shap_interaction_feature_importance[GPU]": {
         "uri": "file://test.test_shap_interaction_feature_importance_GPU_/feature_importance.npy"

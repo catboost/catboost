@@ -1700,10 +1700,14 @@ def test_yetiloss_dcgs(main_loss_function, mode, top, dcg_type, dcg_denominator,
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
+        # MLTOOLS-8054
+        '--bootstrap-type', 'No',
+        '--has-time',
+        '--random-strength', '0',
     )
     execute_catboost_fit('CPU', cmd)
 
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool(1e-9))]
 
 
 @pytest.mark.parametrize('mode', ['MRR', 'ERR', 'MAP'], ids=['mode=%s' % mode for mode in ['MRR', 'ERR', 'MAP']])

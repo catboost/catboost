@@ -406,7 +406,7 @@ namespace NCB {
 
         TVector<ui32> featureIndicesToCalcByNonDefaultCount = featureIndicesToCalc;
 
-        Sort(
+        StableSort(
             featureIndicesToCalcByNonDefaultCount,
             [&] (ui32 featureIdx1, ui32 featureIdx2) {
                 return featuresNonDefaultCount[featureIdx1] > featuresNonDefaultCount[featureIdx2];

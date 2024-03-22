@@ -272,7 +272,7 @@ void CalcAndOutputPredictionDiff(
     for (const auto& impact: factorImpact) {
         impacts.push_back({impact[0], impacts.size()});
     }
-    Sort(impacts.begin(), impacts.end(), std::greater<std::pair<double, int>>());
+    StableSort(impacts.begin(), impacts.end(), std::greater<std::pair<double, int>>());
 
     TFileOutput out(outputPath);
     for (const auto& impact: impacts) {

@@ -31,10 +31,16 @@ static TStackVec<double> GetTopSortedTargets(
         PartialSort(
             indices.begin(), indices.begin() + topSize, indices.end(),
             [samples, cmp](const auto lhs, const auto rhs) {
-                return cmp(samples[lhs], samples[rhs]);
+                if (cmp(samples[lhs], samples[rhs])) {
+                    return true;
+                }
+                if (cmp(samples[rhs], samples[lhs])) {
+                    return false;
+                }
+                return lhs < rhs;
         });
     } else {
-        Sort(
+        StableSort(
             indices.begin(), indices.end(),
             [samples, cmp](const auto lhs, const auto rhs) {
                 return cmp(samples[lhs], samples[rhs]);

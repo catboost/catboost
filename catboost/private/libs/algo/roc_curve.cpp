@@ -113,7 +113,7 @@ void TRocCurve::BuildCurve(
         );
     }
 
-    Sort(
+    StableSort(
         probabilitiesWithTargets.begin(),
         probabilitiesWithTargets.end(),
         [](const TClassWithProbability& element1, const TClassWithProbability& element2) {

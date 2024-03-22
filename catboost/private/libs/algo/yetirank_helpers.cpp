@@ -323,7 +323,7 @@ static void GenerateYetiRankPairsForQuery(
         TVector<double> bootstrappedApprox(expApproxes, expApproxes + querySize);
         weightsCalcer->AddNoise(bootstrappedApprox, rand);
 
-        Sort(
+        StableSort(
             indices,
             [&](int i, int j) {
                 return bootstrappedApprox[i] > bootstrappedApprox[j];

@@ -239,7 +239,7 @@ namespace NMonoForest {
             monoms.push_back({structure, stat});
         }
 
-        Sort(monoms.begin(), monoms.end(), [&](const TMonom& left, const TMonom& right) -> bool {
+        StableSort(monoms.begin(), monoms.end(), [&](const TMonom& left, const TMonom& right) -> bool {
             return left.Structure.GetDepth() > right.Structure.GetDepth();
         });
 
