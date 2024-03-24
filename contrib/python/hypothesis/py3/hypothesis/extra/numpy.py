@@ -235,6 +235,12 @@ class ArrayStrategy(st.SearchStrategy):
         self.unique = unique
         self._check_elements = dtype.kind not in ("O", "V")
 
+    def __repr__(self):
+        return (
+            f"ArrayStrategy({self.element_strategy!r}, shape={self.shape}, "
+            f"dtype={self.dtype!r}, fill={self.fill!r}, unique={self.unique!r})"
+        )
+
     def set_element(self, val, result, idx, *, fill=False):
         try:
             result[idx] = val
@@ -547,6 +553,8 @@ def arrays(
     unwrapped = unwrap_strategies(elements)
     if isinstance(unwrapped, MappedStrategy) and unwrapped.pack == dtype.type:
         elements = unwrapped.mapped_strategy
+        if getattr(unwrapped, "force_has_reusable_values", False):
+            elements.force_has_reusable_values = True  # type: ignore
     if isinstance(shape, int):
         shape = (shape,)
     shape = tuple(shape)

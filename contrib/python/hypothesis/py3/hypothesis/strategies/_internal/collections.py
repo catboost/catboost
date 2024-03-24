@@ -143,15 +143,18 @@ class ListStrategy(SearchStrategy):
         self.min_size = min_size or 0
         self.max_size = max_size if max_size is not None else float("inf")
         assert 0 <= self.min_size <= self.max_size
-        if min_size > BUFFER_SIZE:
-            raise InvalidArgument(
-                f"min_size={min_size:_d} is larger than Hypothesis is designed to handle"
-            )
         self.average_size = min(
             max(self.min_size * 2, self.min_size + 5),
             0.5 * (self.min_size + self.max_size),
         )
         self.element_strategy = elements
+        if min_size > BUFFER_SIZE:
+            raise InvalidArgument(
+                f"{self!r} can never generate an example, because min_size is larger "
+                "than Hypothesis supports.  Including it is at best slowing down your "
+                "tests for no benefit; at worst making them fail (maybe flakily) with "
+                "a HealthCheck error."
+            )
 
     def calc_label(self):
         return combine_labels(self.class_label, self.element_strategy.label)
@@ -193,7 +196,7 @@ class ListStrategy(SearchStrategy):
         return result
 
     def __repr__(self):
-        return "{}({!r}, min_size={!r}, max_size={!r})".format(
+        return "{}({!r}, min_size={:_}, max_size={:_})".format(
             self.__class__.__name__, self.element_strategy, self.min_size, self.max_size
         )
 

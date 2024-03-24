@@ -12,7 +12,7 @@ target_link_libraries(gmtime_r PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  testing-benchmark-main
+  cpp-testing-gbenchmark
   util-draft
 )
 
@@ -31,6 +31,29 @@ target_sources(gmtime_r PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/benchmark/gmtime_r/main.cpp
 )
 
+
+add_test(
+  NAME
+  gmtime_r
+  COMMAND
+  gmtime_r
+)
+
+set_property(
+  TEST
+  gmtime_r
+  PROPERTY
+  LABELS
+  SMALL
+)
+
+set_property(
+  TEST
+  gmtime_r
+  PROPERTY
+  PROCESSORS
+  1
+)
 
 
 target_allocator(gmtime_r

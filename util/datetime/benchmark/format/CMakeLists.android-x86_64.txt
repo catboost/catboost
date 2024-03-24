@@ -5,32 +5,38 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-add_executable(gmtime_r)
+add_executable(format)
 
 
-target_link_libraries(gmtime_r PUBLIC
+target_link_libraries(format PUBLIC
   contrib-libs-cxxsupp
   yutil
   library-cpp-cpuid_check
   cpp-testing-gbenchmark
-  util-draft
 )
 
-target_sources(gmtime_r PRIVATE
-  ${PROJECT_SOURCE_DIR}/util/datetime/benchmark/gmtime_r/main.cpp
+target_link_options(format PRIVATE
+  -ldl
+  -Wl,--no-as-needed
+  -fPIC
+  -fPIC
+)
+
+target_sources(format PRIVATE
+  ${PROJECT_SOURCE_DIR}/util/datetime/benchmark/format/main.cpp
 )
 
 
 add_test(
   NAME
-  gmtime_r
+  format
   COMMAND
-  gmtime_r
+  format
 )
 
 set_property(
   TEST
-  gmtime_r
+  format
   PROPERTY
   LABELS
   SMALL
@@ -38,18 +44,18 @@ set_property(
 
 set_property(
   TEST
-  gmtime_r
+  format
   PROPERTY
   PROCESSORS
   1
 )
 
 
-target_allocator(gmtime_r
-  system_allocator
+target_allocator(format
+  cpp-malloc-jemalloc
 )
 
-vcs_info(gmtime_r)
+vcs_info(format)
 
 
 

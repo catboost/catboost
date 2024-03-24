@@ -166,7 +166,13 @@ class Sampler:
                 self.table.append((base, alternate, alternate_chance))
         self.table.sort()
 
-    def sample(self, data: "ConjectureData", forced: Optional[int] = None) -> int:
+    def sample(
+        self,
+        data: "ConjectureData",
+        *,
+        forced: Optional[int] = None,
+        fake_forced: bool = False,
+    ) -> int:
         data.start_example(SAMPLE_IN_SAMPLER_LABEL)
         forced_choice = (  # pragma: no branch # https://github.com/nedbat/coveragepy/issues/1617
             None
@@ -178,7 +184,10 @@ class Sampler:
             )
         )
         base, alternate, alternate_chance = data.choice(
-            self.table, forced=forced_choice, observe=self.observe
+            self.table,
+            forced=forced_choice,
+            fake_forced=fake_forced,
+            observe=self.observe,
         )
         forced_use_alternate = None
         if forced is not None:
@@ -189,7 +198,10 @@ class Sampler:
             assert forced == base or forced_use_alternate
 
         use_alternate = data.draw_boolean(
-            alternate_chance, forced=forced_use_alternate, observe=self.observe
+            alternate_chance,
+            forced=forced_use_alternate,
+            fake_forced=fake_forced,
+            observe=self.observe,
         )
         data.stop_example()
         if use_alternate:
@@ -224,6 +236,7 @@ class many:
         average_size: Union[int, float],
         *,
         forced: Optional[int] = None,
+        fake_forced: bool = False,
         observe: bool = True,
     ) -> None:
         assert 0 <= min_size <= average_size <= max_size
@@ -232,6 +245,7 @@ class many:
         self.max_size = max_size
         self.data = data
         self.forced_size = forced
+        self.fake_forced = fake_forced
         self.p_continue = _calc_p_continue(average_size - min_size, max_size - min_size)
         self.count = 0
         self.rejections = 0
@@ -267,7 +281,10 @@ class many:
             elif self.forced_size is not None:
                 forced_result = self.count < self.forced_size
             should_continue = self.data.draw_boolean(
-                self.p_continue, forced=forced_result, observe=self.observe
+                self.p_continue,
+                forced=forced_result,
+                fake_forced=self.fake_forced,
+                observe=self.observe,
             )
 
         if should_continue:

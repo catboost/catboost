@@ -8,6 +8,8 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+import abc
+import contextlib
 import math
 import time
 from collections import defaultdict
@@ -956,7 +958,7 @@ BYTE_MASKS = [(1 << n) - 1 for n in range(8)]
 BYTE_MASKS[0] = 255
 
 
-class PrimitiveProvider:
+class PrimitiveProvider(abc.ABC):
     # This is the low-level interface which would also be implemented
     # by e.g. CrossHair, by an Atheris-hypothesis integration, etc.
     # We'd then build the structured tree handling, database and replay
@@ -964,16 +966,119 @@ class PrimitiveProvider:
     #
     # See https://github.com/HypothesisWorks/hypothesis/issues/3086
 
-    def __init__(self, conjecturedata: "ConjectureData", /) -> None:
+    # How long a provider instance is used for. One of test_function or
+    # test_case. Defaults to test_function.
+    #
+    # If test_function, a single provider instance will be instantiated and used
+    # for the entirety of each test function. I.e., roughly one provider per
+    # @given annotation. This can be useful if you need to track state over many
+    # executions to a test function.
+    #
+    # This lifetime will cause None to be passed for the ConjectureData object
+    # in PrimitiveProvider.__init__, because that object is instantiated per
+    # test case.
+    #
+    # If test_case, a new provider instance will be instantiated and used each
+    # time hypothesis tries to generate a new input to the test function. This
+    # lifetime can access the passed ConjectureData object.
+    #
+    # Non-hypothesis providers probably want to set a lifetime of test_function.
+    lifetime = "test_function"
+
+    def __init__(self, conjecturedata: Optional["ConjectureData"], /) -> None:
         self._cd = conjecturedata
 
-    def draw_boolean(self, p: float = 0.5, *, forced: Optional[bool] = None) -> bool:
+    def post_test_case_hook(self, value):
+        # hook for providers to modify values returned by draw_* after a full
+        # test case concludes. Originally exposed for crosshair to reify its
+        # symbolic values into actual values.
+        # I'm not tied to this exact function name or design.
+        return value
+
+    def per_test_case_context_manager(self):
+        return contextlib.nullcontext()
+
+    @abc.abstractmethod
+    def draw_boolean(
+        self,
+        p: float = 0.5,
+        *,
+        forced: Optional[bool] = None,
+        fake_forced: bool = False,
+    ) -> bool:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def draw_integer(
+        self,
+        min_value: Optional[int] = None,
+        max_value: Optional[int] = None,
+        *,
+        # weights are for choosing an element index from a bounded range
+        weights: Optional[Sequence[float]] = None,
+        shrink_towards: int = 0,
+        forced: Optional[int] = None,
+        fake_forced: bool = False,
+    ) -> int:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def draw_float(
+        self,
+        *,
+        min_value: float = -math.inf,
+        max_value: float = math.inf,
+        allow_nan: bool = True,
+        smallest_nonzero_magnitude: float,
+        # TODO: consider supporting these float widths at the IR level in the
+        # future.
+        # width: Literal[16, 32, 64] = 64,
+        # exclude_min and exclude_max handled higher up,
+        forced: Optional[float] = None,
+        fake_forced: bool = False,
+    ) -> float:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def draw_string(
+        self,
+        intervals: IntervalSet,
+        *,
+        min_size: int = 0,
+        max_size: Optional[int] = None,
+        forced: Optional[str] = None,
+        fake_forced: bool = False,
+    ) -> str:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def draw_bytes(
+        self, size: int, *, forced: Optional[bytes] = None, fake_forced: bool = False
+    ) -> bytes:
+        raise NotImplementedError
+
+
+class HypothesisProvider(PrimitiveProvider):
+    lifetime = "test_case"
+
+    def __init__(self, conjecturedata: Optional["ConjectureData"], /):
+        assert conjecturedata is not None
+        super().__init__(conjecturedata)
+
+    def draw_boolean(
+        self,
+        p: float = 0.5,
+        *,
+        forced: Optional[bool] = None,
+        fake_forced: bool = False,
+    ) -> bool:
         """Return True with probability p (assuming a uniform generator),
         shrinking towards False. If ``forced`` is set to a non-None value, this
         will always return that value but will write choices appropriate to having
         drawn that value randomly."""
         # Note that this could also be implemented in terms of draw_integer().
 
+        assert self._cd is not None
         # NB this function is vastly more complicated than it may seem reasonable
         # for it to be. This is because it is used in a lot of places and it's
         # important for it to shrink well, so it's worth the engineering effort.
@@ -1035,7 +1140,9 @@ class PrimitiveProvider:
                     partial = True
 
                 i = self._cd.draw_bits(
-                    bits, forced=None if forced is None else int(forced)
+                    bits,
+                    forced=None if forced is None else int(forced),
+                    fake_forced=fake_forced,
                 )
 
                 # We always choose the region that causes us to repeat the loop as
@@ -1079,7 +1186,10 @@ class PrimitiveProvider:
         weights: Optional[Sequence[float]] = None,
         shrink_towards: int = 0,
         forced: Optional[int] = None,
+        fake_forced: bool = False,
     ) -> int:
+        assert self._cd is not None
+
         if min_value is not None:
             shrink_towards = max(min_value, shrink_towards)
         if max_value is not None:
@@ -1100,7 +1210,7 @@ class PrimitiveProvider:
                     forced_idx = forced - shrink_towards
                 else:
                     forced_idx = shrink_towards + gap - forced
-            idx = sampler.sample(self._cd, forced=forced_idx)
+            idx = sampler.sample(self._cd, forced=forced_idx, fake_forced=fake_forced)
 
             # For range -2..2, interpret idx = 0..4 as [0, 1, 2, -1, -2]
             if idx <= gap:
@@ -1109,7 +1219,7 @@ class PrimitiveProvider:
                 return shrink_towards - (idx - gap)
 
         if min_value is None and max_value is None:
-            return self._draw_unbounded_integer(forced=forced)
+            return self._draw_unbounded_integer(forced=forced, fake_forced=fake_forced)
 
         if min_value is None:
             assert max_value is not None  # make mypy happy
@@ -1117,7 +1227,8 @@ class PrimitiveProvider:
             while max_value < probe:
                 self._cd.start_example(ONE_BOUND_INTEGERS_LABEL)
                 probe = shrink_towards + self._draw_unbounded_integer(
-                    forced=None if forced is None else forced - shrink_towards
+                    forced=None if forced is None else forced - shrink_towards,
+                    fake_forced=fake_forced,
                 )
                 self._cd.stop_example()
             return probe
@@ -1128,7 +1239,8 @@ class PrimitiveProvider:
             while probe < min_value:
                 self._cd.start_example(ONE_BOUND_INTEGERS_LABEL)
                 probe = shrink_towards + self._draw_unbounded_integer(
-                    forced=None if forced is None else forced - shrink_towards
+                    forced=None if forced is None else forced - shrink_towards,
+                    fake_forced=fake_forced,
                 )
                 self._cd.stop_example()
             return probe
@@ -1138,6 +1250,7 @@ class PrimitiveProvider:
             max_value,
             center=shrink_towards,
             forced=forced,
+            fake_forced=fake_forced,
         )
 
     def draw_float(
@@ -1152,6 +1265,7 @@ class PrimitiveProvider:
         # width: Literal[16, 32, 64] = 64,
         # exclude_min and exclude_max handled higher up,
         forced: Optional[float] = None,
+        fake_forced: bool = False,
     ) -> float:
         (
             sampler,
@@ -1166,6 +1280,8 @@ class PrimitiveProvider:
             smallest_nonzero_magnitude=smallest_nonzero_magnitude,
         )
 
+        assert self._cd is not None
+
         while True:
             self._cd.start_example(FLOAT_STRATEGY_DO_DRAW_LABEL)
             # If `forced in nasty_floats`, then `forced` was *probably*
@@ -1174,11 +1290,17 @@ class PrimitiveProvider:
             # i == 0 is able to produce all possible floats, and the forcing
             # logic is simpler if we assume this choice.
             forced_i = None if forced is None else 0
-            i = sampler.sample(self._cd, forced=forced_i) if sampler else 0
+            i = (
+                sampler.sample(self._cd, forced=forced_i, fake_forced=fake_forced)
+                if sampler
+                else 0
+            )
             self._cd.start_example(DRAW_FLOAT_LABEL)
             if i == 0:
                 result = self._draw_float(
-                    forced_sign_bit=forced_sign_bit, forced=forced
+                    forced_sign_bit=forced_sign_bit,
+                    forced=forced,
+                    fake_forced=fake_forced,
                 )
                 if allow_nan and math.isnan(result):
                     clamped = result
@@ -1191,12 +1313,12 @@ class PrimitiveProvider:
                 if clamped != result and not (math.isnan(result) and allow_nan):
                     self._cd.stop_example()
                     self._cd.start_example(DRAW_FLOAT_LABEL)
-                    self._draw_float(forced=clamped)
+                    self._draw_float(forced=clamped, fake_forced=fake_forced)
                     result = clamped
             else:
                 result = nasty_floats[i - 1]
 
-                self._draw_float(forced=result)
+                self._draw_float(forced=result, fake_forced=fake_forced)
 
             self._cd.stop_example()  # (DRAW_FLOAT_LABEL)
             self._cd.stop_example()  # (FLOAT_STRATEGY_DO_DRAW_LABEL)
@@ -1209,11 +1331,13 @@ class PrimitiveProvider:
         min_size: int = 0,
         max_size: Optional[int] = None,
         forced: Optional[str] = None,
+        fake_forced: bool = False,
     ) -> str:
         if max_size is None:
             max_size = DRAW_STRING_DEFAULT_MAX_SIZE
 
         assert forced is None or min_size <= len(forced) <= max_size
+        assert self._cd is not None
 
         average_size = min(
             max(min_size * 2, min_size + 5),
@@ -1227,6 +1351,7 @@ class PrimitiveProvider:
             max_size=max_size,
             average_size=average_size,
             forced=None if forced is None else len(forced),
+            fake_forced=fake_forced,
             observe=False,
         )
         while elements.more():
@@ -1237,47 +1362,74 @@ class PrimitiveProvider:
 
             if len(intervals) > 256:
                 if self.draw_boolean(
-                    0.2, forced=None if forced_i is None else forced_i > 255
+                    0.2,
+                    forced=None if forced_i is None else forced_i > 255,
+                    fake_forced=fake_forced,
                 ):
                     i = self._draw_bounded_integer(
-                        256, len(intervals) - 1, forced=forced_i
+                        256,
+                        len(intervals) - 1,
+                        forced=forced_i,
+                        fake_forced=fake_forced,
                     )
                 else:
-                    i = self._draw_bounded_integer(0, 255, forced=forced_i)
+                    i = self._draw_bounded_integer(
+                        0, 255, forced=forced_i, fake_forced=fake_forced
+                    )
             else:
-                i = self._draw_bounded_integer(0, len(intervals) - 1, forced=forced_i)
+                i = self._draw_bounded_integer(
+                    0, len(intervals) - 1, forced=forced_i, fake_forced=fake_forced
+                )
 
             chars.append(intervals.char_in_shrink_order(i))
 
         return "".join(chars)
 
-    def draw_bytes(self, size: int, *, forced: Optional[bytes] = None) -> bytes:
+    def draw_bytes(
+        self, size: int, *, forced: Optional[bytes] = None, fake_forced: bool = False
+    ) -> bytes:
         forced_i = None
         if forced is not None:
             forced_i = int_from_bytes(forced)
             size = len(forced)
 
-        return self._cd.draw_bits(8 * size, forced=forced_i).to_bytes(size, "big")
+        assert self._cd is not None
+        return self._cd.draw_bits(
+            8 * size, forced=forced_i, fake_forced=fake_forced
+        ).to_bytes(size, "big")
 
     def _draw_float(
-        self, forced_sign_bit: Optional[int] = None, *, forced: Optional[float] = None
+        self,
+        forced_sign_bit: Optional[int] = None,
+        *,
+        forced: Optional[float] = None,
+        fake_forced: bool = False,
     ) -> float:
         """
         Helper for draw_float which draws a random 64-bit float.
         """
+        assert self._cd is not None
+
         if forced is not None:
             # sign_aware_lte(forced, -0.0) does not correctly handle the
             # math.nan case here.
             forced_sign_bit = math.copysign(1, forced) == -1
-        is_negative = self._cd.draw_bits(1, forced=forced_sign_bit)
+        is_negative = self._cd.draw_bits(
+            1, forced=forced_sign_bit, fake_forced=fake_forced
+        )
         f = lex_to_float(
             self._cd.draw_bits(
-                64, forced=None if forced is None else float_to_lex(abs(forced))
+                64,
+                forced=None if forced is None else float_to_lex(abs(forced)),
+                fake_forced=fake_forced,
             )
         )
         return -f if is_negative else f
 
-    def _draw_unbounded_integer(self, *, forced: Optional[int] = None) -> int:
+    def _draw_unbounded_integer(
+        self, *, forced: Optional[int] = None, fake_forced: bool = False
+    ) -> int:
+        assert self._cd is not None
         forced_i = None
         if forced is not None:
             # Using any bucket large enough to contain this integer would be a
@@ -1292,7 +1444,9 @@ class PrimitiveProvider:
             size = min(size for size in INT_SIZES if bit_size <= size)
             forced_i = INT_SIZES.index(size)
 
-        size = INT_SIZES[INT_SIZES_SAMPLER.sample(self._cd, forced=forced_i)]
+        size = INT_SIZES[
+            INT_SIZES_SAMPLER.sample(self._cd, forced=forced_i, fake_forced=fake_forced)
+        ]
 
         forced_r = None
         if forced is not None:
@@ -1302,7 +1456,7 @@ class PrimitiveProvider:
                 forced_r = -forced_r
                 forced_r |= 1
 
-        r = self._cd.draw_bits(size, forced=forced_r)
+        r = self._cd.draw_bits(size, forced=forced_r, fake_forced=fake_forced)
         sign = r & 1
         r >>= 1
         if sign:
@@ -1316,9 +1470,11 @@ class PrimitiveProvider:
         *,
         center: Optional[int] = None,
         forced: Optional[int] = None,
+        fake_forced: bool = False,
     ) -> int:
         assert lower <= upper
         assert forced is None or lower <= forced <= upper
+        assert self._cd is not None
         if lower == upper:
             # Write a value even when this is trivial so that when a bound depends
             # on other values we don't suddenly disappear when the gap shrinks to
@@ -1337,7 +1493,9 @@ class PrimitiveProvider:
             above = True
         else:
             force_above = None if forced is None else forced < center
-            above = not self._cd.draw_bits(1, forced=force_above)
+            above = not self._cd.draw_bits(
+                1, forced=force_above, fake_forced=fake_forced
+            )
 
         if above:
             gap = upper - center
@@ -1350,7 +1508,7 @@ class PrimitiveProvider:
         probe = gap + 1
 
         if bits > 24 and self.draw_boolean(
-            7 / 8, forced=None if forced is None else False
+            7 / 8, forced=None if forced is None else False, fake_forced=fake_forced
         ):
             # For large ranges, we combine the uniform random distribution from draw_bits
             # with a weighting scheme with moderate chance.  Cutoff at 2 ** 24 so that our
@@ -1361,7 +1519,9 @@ class PrimitiveProvider:
         while probe > gap:
             self._cd.start_example(INTEGER_RANGE_DRAW_LABEL)
             probe = self._cd.draw_bits(
-                bits, forced=None if forced is None else abs(forced - center)
+                bits,
+                forced=None if forced is None else abs(forced - center),
+                fake_forced=fake_forced,
             )
             self._cd.stop_example()
 
@@ -1476,21 +1636,59 @@ class PrimitiveProvider:
         return (sampler, forced_sign_bit, neg_clamper, pos_clamper, nasty_floats)
 
 
+# The set of available `PrimitiveProvider`s, by name.  Other libraries, such as
+# crosshair, can implement this interface and add themselves; at which point users
+# can configure which backend to use via settings.   Keys are the name of the library,
+# which doubles as the backend= setting, and values are importable class names.
+#
+# NOTE: this is a temporary interface.  We DO NOT promise to continue supporting it!
+#       (but if you want to experiment and don't mind breakage, here you go)
+AVAILABLE_PROVIDERS = {
+    "hypothesis": "hypothesis.internal.conjecture.data.HypothesisProvider",
+}
+
+
 class ConjectureData:
     @classmethod
     def for_buffer(
         cls,
         buffer: Union[List[int], bytes],
+        *,
         observer: Optional[DataObserver] = None,
+        provider: Union[type, PrimitiveProvider] = HypothesisProvider,
     ) -> "ConjectureData":
-        return cls(len(buffer), buffer, random=None, observer=observer)
+        return cls(
+            len(buffer), buffer, random=None, observer=observer, provider=provider
+        )
+
+    @classmethod
+    def for_ir_tree(
+        cls,
+        ir_tree_prefix: List[IRNode],
+        *,
+        observer: Optional[DataObserver] = None,
+        provider: Union[type, PrimitiveProvider] = HypothesisProvider,
+    ) -> "ConjectureData":
+        from hypothesis.internal.conjecture.engine import BUFFER_SIZE
+
+        return cls(
+            BUFFER_SIZE,
+            b"",
+            random=None,
+            ir_tree_prefix=ir_tree_prefix,
+            observer=observer,
+            provider=provider,
+        )
 
     def __init__(
         self,
         max_length: int,
         prefix: Union[List[int], bytes, bytearray],
+        *,
         random: Optional[Random],
         observer: Optional[DataObserver] = None,
+        provider: Union[type, PrimitiveProvider] = HypothesisProvider,
+        ir_tree_prefix: Optional[List[IRNode]] = None,
     ) -> None:
         if observer is None:
             observer = DataObserver()
@@ -1503,7 +1701,8 @@ class ConjectureData:
         self.__prefix = bytes(prefix)
         self.__random = random
 
-        assert random is not None or max_length <= len(prefix)
+        if ir_tree_prefix is None:
+            assert random is not None or max_length <= len(prefix)
 
         self.blocks = Blocks(self)
         self.buffer: "Union[bytes, bytearray]" = bytearray()
@@ -1522,7 +1721,9 @@ class ConjectureData:
         self._stateful_run_times: "DefaultDict[str, float]" = defaultdict(float)
         self.max_depth = 0
         self.has_discards = False
-        self.provider = PrimitiveProvider(self)
+
+        self.provider = provider(self) if isinstance(provider, type) else provider
+        assert isinstance(self.provider, PrimitiveProvider)
 
         self.__result: "Optional[ConjectureResult]" = None
 
@@ -1556,6 +1757,7 @@ class ConjectureData:
 
         self.extra_information = ExtraInformation()
 
+        self.ir_tree_nodes = ir_tree_prefix
         self.start_example(TOP_LABEL)
 
     def __repr__(self):
@@ -1565,7 +1767,8 @@ class ConjectureData:
             ", frozen" if self.frozen else "",
         )
 
-    # A bit of explanation of the `observe` argument in our draw_* functions.
+    # A bit of explanation of the `observe` and `fake_forced` arguments in our
+    # draw_* functions.
     #
     # There are two types of draws: sub-ir and super-ir. For instance, some ir
     # nodes use `many`, which in turn calls draw_boolean. But some strategies
@@ -1577,6 +1780,17 @@ class ConjectureData:
     #
     # `observe` formalizes this distinction. The draw will only be written to
     # the DataTree if observe is True.
+    #
+    # `fake_forced` deals with a different problem. We use `forced=` to convert
+    # ir prefixes, which are potentially from other backends, into our backing
+    # bits representation. This works fine, except using `forced=` in this way
+    # also sets `was_forced=True` for all blocks, even those that weren't forced
+    # in the traditional way. The shrinker chokes on this due to thinking that
+    # nothing can be modified.
+    #
+    # Setting `fake_forced` to true says that yes, we want to force a particular
+    # value to be returned, but we don't want to treat that block as fixed for
+    # e.g. the shrinker.
 
     def draw_integer(
         self,
@@ -1587,6 +1801,7 @@ class ConjectureData:
         weights: Optional[Sequence[float]] = None,
         shrink_towards: int = 0,
         forced: Optional[int] = None,
+        fake_forced: bool = False,
         observe: bool = True,
     ) -> int:
         # Validate arguments
@@ -1617,13 +1832,25 @@ class ConjectureData:
                 "shrink_towards": shrink_towards,
             },
         )
-        value = self.provider.draw_integer(**kwargs, forced=forced)
+
+        if self.ir_tree_nodes is not None and observe:
+            node = self._pop_ir_tree_node("integer", kwargs)
+            assert isinstance(node.value, int)
+            forced = node.value
+            fake_forced = not node.was_forced
+
+        value = self.provider.draw_integer(
+            **kwargs, forced=forced, fake_forced=fake_forced
+        )
         if observe:
             self.observer.draw_integer(
-                value, kwargs=kwargs, was_forced=forced is not None
+                value, kwargs=kwargs, was_forced=forced is not None and not fake_forced
             )
             self.__example_record.record_ir_draw(
-                "integer", value, kwargs=kwargs, was_forced=forced is not None
+                "integer",
+                value,
+                kwargs=kwargs,
+                was_forced=forced is not None and not fake_forced,
             )
         return value
 
@@ -1639,6 +1866,7 @@ class ConjectureData:
         # width: Literal[16, 32, 64] = 64,
         # exclude_min and exclude_max handled higher up,
         forced: Optional[float] = None,
+        fake_forced: bool = False,
         observe: bool = True,
     ) -> float:
         assert smallest_nonzero_magnitude > 0
@@ -1660,13 +1888,25 @@ class ConjectureData:
                 "smallest_nonzero_magnitude": smallest_nonzero_magnitude,
             },
         )
-        value = self.provider.draw_float(**kwargs, forced=forced)
+
+        if self.ir_tree_nodes is not None and observe:
+            node = self._pop_ir_tree_node("float", kwargs)
+            assert isinstance(node.value, float)
+            forced = node.value
+            fake_forced = not node.was_forced
+
+        value = self.provider.draw_float(
+            **kwargs, forced=forced, fake_forced=fake_forced
+        )
         if observe:
             self.observer.draw_float(
-                value, kwargs=kwargs, was_forced=forced is not None
+                value, kwargs=kwargs, was_forced=forced is not None and not fake_forced
             )
             self.__example_record.record_ir_draw(
-                "float", value, kwargs=kwargs, was_forced=forced is not None
+                "float",
+                value,
+                kwargs=kwargs,
+                was_forced=forced is not None and not fake_forced,
             )
         return value
 
@@ -1677,6 +1917,7 @@ class ConjectureData:
         min_size: int = 0,
         max_size: Optional[int] = None,
         forced: Optional[str] = None,
+        fake_forced: bool = False,
         observe: bool = True,
     ) -> str:
         assert forced is None or min_size <= len(forced)
@@ -1689,13 +1930,24 @@ class ConjectureData:
                 "max_size": max_size,
             },
         )
-        value = self.provider.draw_string(**kwargs, forced=forced)
+        if self.ir_tree_nodes is not None and observe:
+            node = self._pop_ir_tree_node("string", kwargs)
+            assert isinstance(node.value, str)
+            forced = node.value
+            fake_forced = not node.was_forced
+
+        value = self.provider.draw_string(
+            **kwargs, forced=forced, fake_forced=fake_forced
+        )
         if observe:
             self.observer.draw_string(
-                value, kwargs=kwargs, was_forced=forced is not None
+                value, kwargs=kwargs, was_forced=forced is not None and not fake_forced
             )
             self.__example_record.record_ir_draw(
-                "string", value, kwargs=kwargs, was_forced=forced is not None
+                "string",
+                value,
+                kwargs=kwargs,
+                was_forced=forced is not None and not fake_forced,
             )
         return value
 
@@ -1705,24 +1957,42 @@ class ConjectureData:
         size: int,
         *,
         forced: Optional[bytes] = None,
+        fake_forced: bool = False,
         observe: bool = True,
     ) -> bytes:
         assert forced is None or len(forced) == size
         assert size >= 0
 
         kwargs: BytesKWargs = self._pooled_kwargs("bytes", {"size": size})
-        value = self.provider.draw_bytes(**kwargs, forced=forced)
+
+        if self.ir_tree_nodes is not None and observe:
+            node = self._pop_ir_tree_node("bytes", kwargs)
+            assert isinstance(node.value, bytes)
+            forced = node.value
+            fake_forced = not node.was_forced
+
+        value = self.provider.draw_bytes(
+            **kwargs, forced=forced, fake_forced=fake_forced
+        )
         if observe:
             self.observer.draw_bytes(
-                value, kwargs=kwargs, was_forced=forced is not None
+                value, kwargs=kwargs, was_forced=forced is not None and not fake_forced
             )
             self.__example_record.record_ir_draw(
-                "bytes", value, kwargs=kwargs, was_forced=forced is not None
+                "bytes",
+                value,
+                kwargs=kwargs,
+                was_forced=forced is not None and not fake_forced,
             )
         return value
 
     def draw_boolean(
-        self, p: float = 0.5, *, forced: Optional[bool] = None, observe: bool = True
+        self,
+        p: float = 0.5,
+        *,
+        forced: Optional[bool] = None,
+        observe: bool = True,
+        fake_forced: bool = False,
     ) -> bool:
         # Internally, we treat probabilities lower than 1 / 2**64 as
         # unconditionally false.
@@ -1735,13 +2005,25 @@ class ConjectureData:
             assert p < (1 - 2 ** (-64))
 
         kwargs: BooleanKWargs = self._pooled_kwargs("boolean", {"p": p})
-        value = self.provider.draw_boolean(**kwargs, forced=forced)
+
+        if self.ir_tree_nodes is not None and observe:
+            node = self._pop_ir_tree_node("boolean", kwargs)
+            assert isinstance(node.value, bool)
+            forced = node.value
+            fake_forced = not node.was_forced
+
+        value = self.provider.draw_boolean(
+            **kwargs, forced=forced, fake_forced=fake_forced
+        )
         if observe:
             self.observer.draw_boolean(
-                value, kwargs=kwargs, was_forced=forced is not None
+                value, kwargs=kwargs, was_forced=forced is not None and not fake_forced
             )
             self.__example_record.record_ir_draw(
-                "boolean", value, kwargs=kwargs, was_forced=forced is not None
+                "boolean",
+                value,
+                kwargs=kwargs,
+                was_forced=forced is not None and not fake_forced,
             )
         return value
 
@@ -1764,6 +2046,14 @@ class ConjectureData:
         except KeyError:
             POOLED_KWARGS_CACHE[key] = kwargs
             return kwargs
+
+    def _pop_ir_tree_node(self, ir_type: IRTypeName, kwargs: IRKWargsType) -> IRNode:
+        assert self.ir_tree_nodes is not None
+        node = self.ir_tree_nodes.pop(0)
+        assert node.ir_type == ir_type
+        assert kwargs == node.kwargs
+
+        return node
 
     def as_result(self) -> Union[ConjectureResult, _Overrun]:
         """Convert the result of running this test into
@@ -1945,13 +2235,22 @@ class ConjectureData:
         values: Sequence[T],
         *,
         forced: Optional[T] = None,
+        fake_forced: bool = False,
         observe: bool = True,
     ) -> T:
         forced_i = None if forced is None else values.index(forced)
-        i = self.draw_integer(0, len(values) - 1, forced=forced_i, observe=observe)
+        i = self.draw_integer(
+            0,
+            len(values) - 1,
+            forced=forced_i,
+            fake_forced=fake_forced,
+            observe=observe,
+        )
         return values[i]
 
-    def draw_bits(self, n: int, *, forced: Optional[int] = None) -> int:
+    def draw_bits(
+        self, n: int, *, forced: Optional[int] = None, fake_forced: bool = False
+    ) -> int:
         """Return an ``n``-bit integer from the underlying source of
         bytes. If ``forced`` is set to an integer will instead
         ignore the underlying source and simulate a draw as if it had
@@ -1993,7 +2292,7 @@ class ConjectureData:
         self.buffer.extend(buf)
         self.index = len(self.buffer)
 
-        if forced is not None:
+        if forced is not None and not fake_forced:
             self.forced_indices.update(range(initial, self.index))
 
         self.blocks.add_endpoint(self.index)

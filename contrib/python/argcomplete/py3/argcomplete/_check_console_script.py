@@ -11,6 +11,7 @@ https://setuptools.readthedocs.io/en/latest/setuptools.html#automatic-script-cre
 
 Intended to be invoked by argcomplete's global completion function.
 """
+
 import os
 import sys
 from importlib.metadata import EntryPoint

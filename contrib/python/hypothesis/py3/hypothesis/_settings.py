@@ -165,6 +165,7 @@ class settings(metaclass=settingsMeta):
         suppress_health_check: Collection["HealthCheck"] = not_set,  # type: ignore
         deadline: Union[int, float, datetime.timedelta, None] = not_set,  # type: ignore
         print_blob: bool = not_set,  # type: ignore
+        backend: str = not_set,  # type: ignore
     ) -> None:
         if parent is not None:
             check_type(settings, parent, "parent")
@@ -289,7 +290,13 @@ class settings(metaclass=settingsMeta):
         raise AttributeError("settings objects are immutable")
 
     def __repr__(self):
-        bits = sorted(f"{name}={getattr(self, name)!r}" for name in all_settings)
+        from hypothesis.internal.conjecture.data import AVAILABLE_PROVIDERS
+
+        bits = sorted(
+            f"{name}={getattr(self, name)!r}"
+            for name in all_settings
+            if (name != "backend" or len(AVAILABLE_PROVIDERS) > 1)  # experimental
+        )
         return "settings({})".format(", ".join(bits))
 
     def show_changed(self):
@@ -703,6 +710,33 @@ settings._define_setting(
 If set to ``True``, Hypothesis will print code for failing examples that can be used with
 :func:`@reproduce_failure <hypothesis.reproduce_failure>` to reproduce the failing example.
 The default is ``True`` if the ``CI`` or ``TF_BUILD`` env vars are set, ``False`` otherwise.
+""",
+)
+
+
+def _backend_validator(value):
+    from hypothesis.internal.conjecture.data import AVAILABLE_PROVIDERS
+
+    if value not in AVAILABLE_PROVIDERS:
+        if value == "crosshair":  # pragma: no cover
+            install = '`pip install "hypothesis[crosshair]"` and try again.'
+            raise InvalidArgument(f"backend={value!r} is not available.  {install}")
+        raise InvalidArgument(
+            f"backend={value!r} is not available - maybe you need to install a plugin?"
+            f"\n    Installed backends: {sorted(AVAILABLE_PROVIDERS)!r}"
+        )
+    return value
+
+
+settings._define_setting(
+    "backend",
+    default="hypothesis",
+    show_default=False,
+    validator=_backend_validator,
+    description="""
+EXPERIMENTAL AND UNSTABLE - see :ref:`alternative-backends`.
+The importable name of a backend which Hypothesis should use to generate primitive
+types.  We aim to support heuristic-random, solver-based, and fuzzing-based backends.
 """,
 )
 

@@ -28,7 +28,7 @@ from typing import (
 )
 
 from hypothesis._settings import HealthCheck, Phase, Verbosity, settings
-from hypothesis.control import _current_build_context, assume
+from hypothesis.control import _current_build_context
 from hypothesis.errors import (
     HypothesisException,
     HypothesisWarning,
@@ -1002,7 +1002,6 @@ class FilteredStrategy(SearchStrategy[Ex]):
 
     def do_filtered_draw(self, data):
         for i in range(3):
-            start_index = data.index
             data.start_example(FILTERED_SEARCH_STRATEGY_DO_DRAW_LABEL)
             value = data.draw(self.filtered_strategy)
             if self.condition(value):
@@ -1012,10 +1011,6 @@ class FilteredStrategy(SearchStrategy[Ex]):
                 data.stop_example(discard=True)
                 if i == 0:
                     data.events[f"Retried draw from {self!r} to satisfy filter"] = ""
-                # This is to guard against the case where we consume no data.
-                # As long as we consume data, we'll eventually pass or raise.
-                # But if we don't this could be an infinite loop.
-                assume(data.index > start_index)
 
         return filter_not_satisfied
 

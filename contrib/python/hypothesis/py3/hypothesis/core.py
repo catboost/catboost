@@ -938,9 +938,13 @@ class StateForActualGivenExecution:
         with local_settings(self.settings):
             with deterministic_PRNG():
                 with BuildContext(data, is_final=is_final) as context:
-                    # Run the test function once, via the executor hook.
-                    # In most cases this will delegate straight to `run(data)`.
-                    result = self.test_runner(data, run)
+                    # providers may throw in per_case_context_fn, and we'd like
+                    # `result` to still be set in these cases.
+                    result = None
+                    with data.provider.per_test_case_context_manager():
+                        # Run the test function once, via the executor hook.
+                        # In most cases this will delegate straight to `run(data)`.
+                        result = self.test_runner(data, run)
 
         # If a failure was expected, it should have been raised already, so
         # instead raise an appropriate diagnostic error.

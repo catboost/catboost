@@ -5,33 +5,50 @@
 # ya.make files by maintainers. Any complex modifications which can't be ported back to the
 # original buildsystem will not be accepted.
 
-add_library(testing-benchmark-main INTERFACE)
+add_executable(format)
 
 
-target_link_libraries(testing-benchmark-main INTERFACE
+target_link_libraries(format PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-testing-benchmark
+  library-cpp-cpuid_check
+  cpp-testing-gbenchmark
+)
+
+target_sources(format PRIVATE
+  ${PROJECT_SOURCE_DIR}/util/datetime/benchmark/format/main.cpp
 )
 
 
-
-
-add_global_library_for(testing-benchmark-main.global
-  testing-benchmark-main)
-
-
-target_link_libraries(testing-benchmark-main.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-testing-benchmark
+add_test(
+  NAME
+  format
+  COMMAND
+  format
 )
 
-target_sources(testing-benchmark-main.global PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/testing/benchmark/main/main.cpp
+set_property(
+  TEST
+  format
+  PROPERTY
+  LABELS
+  SMALL
+)
+
+set_property(
+  TEST
+  format
+  PROPERTY
+  PROCESSORS
+  1
 )
 
 
+target_allocator(format
+  system_allocator
+)
+
+vcs_info(format)
 
 
 

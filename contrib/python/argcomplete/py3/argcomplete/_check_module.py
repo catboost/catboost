@@ -6,6 +6,7 @@ The module name should be specified in a form usable with `python -m`.
 
 Intended to be invoked by argcomplete's global completion function.
 """
+
 import os
 import sys
 import tokenize

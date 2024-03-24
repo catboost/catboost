@@ -8,6 +8,7 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+import importlib
 import math
 import time
 from collections import defaultdict
@@ -15,26 +16,26 @@ from contextlib import contextmanager
 from datetime import timedelta
 from enum import Enum
 from random import Random, getrandbits
+from typing import Union
 
 import attr
 
 from hypothesis import HealthCheck, Phase, Verbosity, settings as Settings
 from hypothesis._settings import local_settings
-from hypothesis.errors import StopTest
+from hypothesis.errors import InvalidArgument, StopTest
 from hypothesis.internal.cache import LRUReusedCache
 from hypothesis.internal.compat import ceil, int_from_bytes
 from hypothesis.internal.conjecture.data import (
+    AVAILABLE_PROVIDERS,
     ConjectureData,
     ConjectureResult,
     DataObserver,
+    HypothesisProvider,
     Overrun,
+    PrimitiveProvider,
     Status,
 )
-from hypothesis.internal.conjecture.datatree import (
-    DataTree,
-    PreviouslyUnseenBehaviour,
-    TreeRecordingObserver,
-)
+from hypothesis.internal.conjecture.datatree import DataTree, PreviouslyUnseenBehaviour
 from hypothesis.internal.conjecture.junkdrawer import clamp, ensure_free_stackframes
 from hypothesis.internal.conjecture.pareto import NO_SCORE, ParetoFront, ParetoOptimiser
 from hypothesis.internal.conjecture.shrinker import Shrinker, sort_key
@@ -114,6 +115,20 @@ class RunIsComplete(Exception):
     pass
 
 
+def _get_provider(backend: str) -> Union[type, PrimitiveProvider]:
+    mname, cname = AVAILABLE_PROVIDERS[backend].rsplit(".", 1)
+    provider_cls = getattr(importlib.import_module(mname), cname)
+    if provider_cls.lifetime == "test_function":
+        return provider_cls(None)
+    elif provider_cls.lifetime == "test_case":
+        return provider_cls
+    else:
+        raise InvalidArgument(
+            f"invalid lifetime {provider_cls.lifetime} for provider {provider_cls.__name__}. "
+            "Expected one of 'test_function', 'test_case'."
+        )
+
+
 class ConjectureRunner:
     def __init__(
         self,
@@ -151,6 +166,8 @@ class ConjectureRunner:
 
         self.tree = DataTree()
 
+        self.provider = _get_provider(self.settings.backend)
+
         self.best_observed_targets = defaultdict(lambda: NO_SCORE)
         self.best_examples_of_observed_targets = {}
 
@@ -171,6 +188,7 @@ class ConjectureRunner:
         self.__data_cache = LRUReusedCache(CACHE_SIZE)
 
         self.__pending_call_explanation = None
+        self._switch_to_hypothesis_provider = False
 
     def explain_next_call_as(self, explanation):
         self.__pending_call_explanation = explanation
@@ -198,7 +216,7 @@ class ConjectureRunner:
         return Phase.target in self.settings.phases
 
     def __tree_is_exhausted(self):
-        return self.tree.is_exhausted
+        return self.tree.is_exhausted and self.settings.backend == "hypothesis"
 
     def __stoppable_test_function(self, data):
         """Run ``self._test_function``, but convert a ``StopTest`` exception
@@ -226,7 +244,6 @@ class ConjectureRunner:
             self.debug(self.__pending_call_explanation)
             self.__pending_call_explanation = None
 
-        assert isinstance(data.observer, TreeRecordingObserver)
         self.call_count += 1
 
         interrupted = False
@@ -284,6 +301,21 @@ class ConjectureRunner:
             self.valid_examples += 1
 
         if data.status == Status.INTERESTING:
+            if self.settings.backend != "hypothesis":
+                for node in data.examples.ir_tree_nodes:
+                    value = data.provider.post_test_case_hook(node.value)
+                    # require providers to return something valid here.
+                    assert (
+                        value is not None
+                    ), "providers must return a non-null value from post_test_case_hook"
+                    node.value = value
+
+                # drive the ir tree through the test function to convert it
+                # to a buffer
+                data = ConjectureData.for_ir_tree(data.examples.ir_tree_nodes)
+                self.__stoppable_test_function(data)
+                self.__data_cache[data.buffer] = data.as_result()
+
             key = data.interesting_origin
             changed = False
             try:
@@ -702,6 +734,15 @@ class ConjectureRunner:
         ran_optimisations = False
 
         while self.should_generate_more():
+            # Unfortunately generate_novel_prefix still operates in terms of
+            # a buffer and uses HypothesisProvider as its backing provider,
+            # not whatever is specified by the backend. We can improve this
+            # once more things are on the ir.
+            if self.settings.backend != "hypothesis":
+                data = self.new_conjecture_data(prefix=b"", max_length=BUFFER_SIZE)
+                self.test_function(data)
+                continue
+
             self._current_phase = "generate"
             prefix = self.generate_novel_prefix()
             assert len(prefix) <= BUFFER_SIZE
@@ -905,26 +946,40 @@ class ConjectureRunner:
             ParetoOptimiser(self).run()
 
     def _run(self):
+        # have to use the primitive provider to interpret database bits...
+        self._switch_to_hypothesis_provider = True
         with self._log_phase_statistics("reuse"):
             self.reuse_existing_examples()
+        # ...but we should use the supplied provider when generating...
+        self._switch_to_hypothesis_provider = False
         with self._log_phase_statistics("generate"):
             self.generate_new_examples()
             # We normally run the targeting phase mixed in with the generate phase,
             # but if we've been asked to run it but not generation then we have to
-            # run it explciitly on its own here.
+            # run it explicitly on its own here.
             if Phase.generate not in self.settings.phases:
                 self._current_phase = "target"
                 self.optimise_targets()
+        # ...and back to the primitive provider when shrinking.
+        self._switch_to_hypothesis_provider = True
         with self._log_phase_statistics("shrink"):
             self.shrink_interesting_examples()
         self.exit_with(ExitReason.finished)
 
     def new_conjecture_data(self, prefix, max_length=BUFFER_SIZE, observer=None):
+        provider = (
+            HypothesisProvider if self._switch_to_hypothesis_provider else self.provider
+        )
+        observer = observer or self.tree.new_observer()
+        if self.settings.backend != "hypothesis":
+            observer = DataObserver()
+
         return ConjectureData(
             prefix=prefix,
             max_length=max_length,
             random=self.random,
-            observer=observer or self.tree.new_observer(),
+            observer=observer,
+            provider=provider,
         )
 
     def new_conjecture_data_for_buffer(self, buffer):
@@ -1066,20 +1121,21 @@ class ConjectureRunner:
             prefix=buffer, max_length=max_length, observer=observer
         )
 
-        try:
-            self.tree.simulate_test_function(dummy_data)
-        except PreviouslyUnseenBehaviour:
-            pass
-        else:
-            if dummy_data.status > Status.OVERRUN:
-                dummy_data.freeze()
-                try:
-                    return self.__data_cache[dummy_data.buffer]
-                except KeyError:
-                    pass
+        if self.settings.backend == "hypothesis":
+            try:
+                self.tree.simulate_test_function(dummy_data)
+            except PreviouslyUnseenBehaviour:
+                pass
             else:
-                self.__data_cache[buffer] = Overrun
-                return Overrun
+                if dummy_data.status > Status.OVERRUN:
+                    dummy_data.freeze()
+                    try:
+                        return self.__data_cache[dummy_data.buffer]
+                    except KeyError:
+                        pass
+                else:
+                    self.__data_cache[buffer] = Overrun
+                    return Overrun
 
         # We didn't find a match in the tree, so we need to run the test
         # function normally. Note that test_function will automatically

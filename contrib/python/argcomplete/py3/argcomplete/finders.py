@@ -117,11 +117,7 @@ class CompletionFinder(object):
             # not an argument completion invocation
             return
 
-        try:
-            _io.debug_stream = os.fdopen(9, "w")
-        except Exception:
-            _io.debug_stream = sys.stderr
-        debug()
+        self._init_debug_stream()
 
         if output_stream is None:
             filename = os.environ.get("_ARGCOMPLETE_STDOUT_FILENAME")
@@ -189,6 +185,19 @@ class CompletionFinder(object):
         output_stream.flush()
         _io.debug_stream.flush()
         exit_method(0)
+
+    def _init_debug_stream(self):
+        """Initialize debug output stream
+
+        By default, writes to file descriptor 9, or stderr if that fails.
+        This can be overridden by derived classes, for example to avoid
+        clashes with file descriptors being used elsewhere (such as in pytest).
+        """
+        try:
+            _io.debug_stream = os.fdopen(9, "w")
+        except Exception:
+            _io.debug_stream = sys.stderr
+        debug()
 
     def _get_completions(self, comp_words, cword_prefix, cword_prequote, last_wordbreak_pos):
         active_parsers = self._patch_argument_parser()
