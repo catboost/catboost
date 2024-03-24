@@ -2,6 +2,32 @@
 XZ Utils Release Notes
 ======================
 
+5.6.1 (2024-03-09)
+
+    * liblzma: Fixed two bugs relating to GNU indirect function (IFUNC)
+      with GCC. The more serious bug caused a program linked with
+      liblzma to crash on start up if the flag -fprofile-generate was
+      used to build liblzma. The second bug caused liblzma to falsely
+      report an invalid write to Valgrind when loading liblzma.
+
+    * xz: Changed the messages for thread reduction due to memory
+      constraints to only appear under the highest verbosity level.
+
+    * Build:
+
+        - Fixed a build issue when the header file <linux/landlock.h>
+          was present on the system but the Landlock system calls were
+          not defined in <sys/syscall.h>.
+
+        - The CMake build now warns and disables NLS if both gettext
+          tools and pre-created .gmo files are missing. Previously,
+          this caused the CMake build to fail.
+
+    * Minor improvements to man pages.
+
+    * Minor improvements to tests.
+
+
 5.6.0 (2024-02-24)
 
     This bumps the minor version of liblzma because new features were
@@ -23,7 +49,7 @@ XZ Utils Release Notes
     * Sandboxing support in xz:
 
         - Landlock is now used even when xz needs to create files.
-          In this case the sandbox is has to be more permissive than
+          In this case the sandbox has to be more permissive than
           when no files need to be created. A similar thing was
           already in use with pledge(2) since 5.3.4alpha.
 

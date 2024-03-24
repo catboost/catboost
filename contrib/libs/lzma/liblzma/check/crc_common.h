@@ -128,6 +128,31 @@
 #	endif
 #endif
 
+#ifdef CRC_USE_IFUNC
+// Two function attributes are needed to make IFUNC safe with GCC.
+//
+// no-omit-frame-pointer prevents false Valgrind issues when combined with
+// a few other compiler flags. The optimize attribute is supported on
+// GCC >= 4.4 and is not supported with Clang.
+#	if TUKLIB_GNUC_REQ(4,4) && !defined(__clang__)
+#		define no_omit_frame_pointer \
+			__attribute__((optimize("no-omit-frame-pointer")))
+#	else
+#		define no_omit_frame_pointer
+#	endif
+
+// The __no_profile_instrument_function__ attribute support is checked when
+// determining if ifunc can be used, so it is safe to use unconditionally.
+// This attribute is needed because GCC can add profiling to the IFUNC
+// resolver, which calls functions that have not yet been relocated leading
+// to a crash on liblzma start up.
+#	define lzma_resolver_attributes \
+		__attribute__((__no_profile_instrument_function__)) \
+		no_omit_frame_pointer
+#else
+#	define lzma_resolver_attributes
+#endif
+
 // For CRC32 use the generic slice-by-eight implementation if no optimized
 // version is available.
 #if !defined(CRC32_ARCH_OPTIMIZED) && !defined(CRC32_GENERIC)
