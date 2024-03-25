@@ -11,7 +11,7 @@
 from collections import OrderedDict, abc
 from copy import copy
 from datetime import datetime, timedelta
-from typing import Any, List, Optional, Sequence, Set, Union
+from typing import Any, Generic, List, Optional, Sequence, Set, Union
 
 import attr
 import numpy as np
@@ -358,7 +358,7 @@ def series(
 
 
 @attr.s(slots=True)
-class column:
+class column(Generic[Ex]):
     """Data object for describing a column in a DataFrame.
 
     Arguments:
@@ -375,11 +375,11 @@ class column:
     * unique: If all values in this column should be distinct.
     """
 
-    name = attr.ib(default=None)
-    elements = attr.ib(default=None)
-    dtype = attr.ib(default=None, repr=get_pretty_function_description)
-    fill = attr.ib(default=None)
-    unique = attr.ib(default=False)
+    name: Optional[Union[str, int]] = attr.ib(default=None)
+    elements: Optional[st.SearchStrategy[Ex]] = attr.ib(default=None)
+    dtype: Any = attr.ib(default=None, repr=get_pretty_function_description)
+    fill: Optional[st.SearchStrategy[Ex]] = attr.ib(default=None)
+    unique: bool = attr.ib(default=False)
 
 
 def columns(
@@ -389,7 +389,7 @@ def columns(
     elements: Optional[st.SearchStrategy[Ex]] = None,
     fill: Optional[st.SearchStrategy[Ex]] = None,
     unique: bool = False,
-) -> List[column]:
+) -> List[column[Ex]]:
     """A convenience function for producing a list of :class:`column` objects
     of the same general shape.
 
