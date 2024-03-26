@@ -1,0 +1,18 @@
+on:
+  workflow_call
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - name: Run CMake-based tests
+      run: cd build_native_root/have_cuda/linux-x86_64/ && ninja test
+
+    - name: Run pytest
+      run: cd catboost/pytest && python3.11 -m pytest
+
+    - name: Run python package tests
+      run: cd catboost/python-package/ut/medium && python3.11 -m pytest

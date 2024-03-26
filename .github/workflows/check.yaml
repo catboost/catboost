@@ -1,0 +1,32 @@
+on:
+  push:
+    branches:
+      - master
+
+env:
+  catboost_package_version: 1.2.3post0
+
+jobs:
+  checkout:
+    name: Checkout sources
+    steps:
+      - name: Checkout catboost
+        uses: actions/checkout@v3
+        with:
+          path: catboost
+          fetch-depth: 0
+
+  build:
+    name: Build
+    needs:
+      - checkout
+    with:
+      artifacts_version: ${{ github.sha }}
+      catboost_package_version: $catboost_package_version
+    uses: ./.github/workflows/build.yaml
+
+  test:
+    name: Test
+    needs:
+      - build
+    uses: ./.github/workflows/test.yaml
