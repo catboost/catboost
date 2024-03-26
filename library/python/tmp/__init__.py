@@ -83,8 +83,8 @@ def create_temp_file(prefix='yatmp'):
     return path
 
 
-def temp_dir(prefix='yatmp'):
-    tmpdir = tempfile.mkdtemp(prefix=prefix)
+def temp_dir(prefix='yatmp', dir=None):
+    tmpdir = tempfile.mkdtemp(prefix=prefix, dir=dir)
     return temp_path(tmpdir)
 
 

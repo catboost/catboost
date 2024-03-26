@@ -624,11 +624,61 @@ def dtype_factory(kind, sizes, valid_sizes, endianness):
     return strat.map((endianness + kind).format)
 
 
+@overload
+@defines_dtype_strategy
+def unsigned_integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[8],
+) -> st.SearchStrategy["np.dtype[np.uint8]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def unsigned_integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[16],
+) -> st.SearchStrategy["np.dtype[np.uint16]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def unsigned_integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[32],
+) -> st.SearchStrategy["np.dtype[np.uint32]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def unsigned_integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[64],
+) -> st.SearchStrategy["np.dtype[np.uint64]"]: ...
+
+
+@overload
 @defines_dtype_strategy
 def unsigned_integer_dtypes(
     *,
     endianness: str = "?",
     sizes: Sequence[Literal[8, 16, 32, 64]] = (8, 16, 32, 64),
+) -> st.SearchStrategy["np.dtype[np.unsignedinteger[Any]]"]: ...
+
+
+@defines_dtype_strategy
+def unsigned_integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Union[Literal[8, 16, 32, 64], Sequence[Literal[8, 16, 32, 64]]] = (
+        8,
+        16,
+        32,
+        64,
+    ),
 ) -> st.SearchStrategy["np.dtype[np.unsignedinteger[Any]]"]:
     """Return a strategy for unsigned integer dtypes.
 
@@ -642,11 +692,61 @@ def unsigned_integer_dtypes(
     return dtype_factory("u", sizes, (8, 16, 32, 64), endianness)
 
 
+@overload
+@defines_dtype_strategy
+def integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[8],
+) -> st.SearchStrategy["np.dtype[np.int8]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[16],
+) -> st.SearchStrategy["np.dtype[np.int16]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[32],
+) -> st.SearchStrategy["np.dtype[np.int32]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[64],
+) -> st.SearchStrategy["np.dtype[np.int64]"]: ...
+
+
+@overload
 @defines_dtype_strategy
 def integer_dtypes(
     *,
     endianness: str = "?",
     sizes: Sequence[Literal[8, 16, 32, 64]] = (8, 16, 32, 64),
+) -> st.SearchStrategy["np.dtype[np.signedinteger[Any]]"]: ...
+
+
+@defines_dtype_strategy
+def integer_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Union[Literal[8, 16, 32, 64], Sequence[Literal[8, 16, 32, 64]]] = (
+        8,
+        16,
+        32,
+        64,
+    ),
 ) -> st.SearchStrategy["np.dtype[np.signedinteger[Any]]"]:
     """Return a strategy for signed integer dtypes.
 
@@ -656,11 +756,58 @@ def integer_dtypes(
     return dtype_factory("i", sizes, (8, 16, 32, 64), endianness)
 
 
+@overload
+@defines_dtype_strategy
+def floating_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[16],
+) -> st.SearchStrategy["np.dtype[np.float16]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def floating_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[32],
+) -> st.SearchStrategy["np.dtype[np.float32]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def floating_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[64],
+) -> st.SearchStrategy["np.dtype[np.float64]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def floating_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[128],
+) -> st.SearchStrategy["np.dtype[np.float128]"]: ...
+
+
+@overload
 @defines_dtype_strategy
 def floating_dtypes(
     *,
     endianness: str = "?",
     sizes: Sequence[Literal[16, 32, 64, 96, 128]] = (16, 32, 64),
+) -> st.SearchStrategy["np.dtype[np.floating[Any]]"]: ...
+
+
+@defines_dtype_strategy
+def floating_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Union[
+        Literal[16, 32, 64, 96, 128], Sequence[Literal[16, 32, 64, 96, 128]]
+    ] = (16, 32, 64),
 ) -> st.SearchStrategy["np.dtype[np.floating[Any]]"]:
     """Return a strategy for floating-point dtypes.
 
@@ -674,11 +821,50 @@ def floating_dtypes(
     return dtype_factory("f", sizes, (16, 32, 64, 96, 128), endianness)
 
 
+@overload
+@defines_dtype_strategy
+def complex_number_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[64],
+) -> st.SearchStrategy["np.dtype[np.complex64]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def complex_number_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[128],
+) -> st.SearchStrategy["np.dtype[np.complex128]"]: ...
+
+
+@overload
+@defines_dtype_strategy
+def complex_number_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Literal[256],
+) -> st.SearchStrategy["np.dtype[np.complex256]"]: ...
+
+
+@overload
 @defines_dtype_strategy
 def complex_number_dtypes(
     *,
     endianness: str = "?",
     sizes: Sequence[Literal[64, 128, 192, 256]] = (64, 128),
+) -> st.SearchStrategy["np.dtype[np.complexfloating[Any, Any]]"]: ...
+
+
+@defines_dtype_strategy
+def complex_number_dtypes(
+    *,
+    endianness: str = "?",
+    sizes: Union[Literal[64, 128, 192, 256], Sequence[Literal[64, 128, 192, 256]]] = (
+        64,
+        128,
+    ),
 ) -> st.SearchStrategy["np.dtype[np.complexfloating[Any, Any]]"]:
     """Return a strategy for complex-number dtypes.
 
