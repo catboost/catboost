@@ -48,7 +48,7 @@ jobs:
           mkdir -p ./cmake_build_cache
 
       - name: Fixup python package version
-        run: python3 ./ci/fixup_python_version.py
+        run: cd catboost && python3 ./ci/fixup_python_version.py
 
       - name: Setup build environment
         run: . /work/setup_env/build_x86_64.sh
