@@ -12,7 +12,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
     with:
       runs-on_value: ${{ matrix.os }}
       artifacts_version: ${{ github.sha }}

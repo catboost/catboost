@@ -14,7 +14,6 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ${{ inputs.runs-on_value }}
     uses: ./.github/workflows/build.yaml
     with:
       runs-on_value: ${{ inputs.runs-on_value }}
