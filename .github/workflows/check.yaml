@@ -11,7 +11,7 @@ jobs:
     name: Check per OS
     strategy:
       matrix:
-        os: []
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     with:
       runs-on_value: ${{ matrix.os }}
