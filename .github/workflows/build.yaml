@@ -33,75 +33,76 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: catboost
-    - name: Update cache on every commit
-      uses: actions/cache@v4
+
+      - name: Update cache on every commit
+        uses: actions/cache@v4
+        with:
+          path: cmake_build_cache.zip
+          key: cmake_build_cache-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            cmake_build_cache-${{ runner.os }}
+
+      - name: Fixup python package version
+        run: python3 ./ci/fixup_python_version.py
+
+      - name: Setup build environment
+        run: . /work/setup_env/build_x86_64.sh
+
+      - name: Setup cmake_build_env_root
+        run: ln -sf /opt/cmake_build_env_root $HOME/
+
+      - name: Setup conan cache
+        run: rsync -rptl /opt/.conan $HOME/
+
+      - name: Build all
+        run: cd /src/catboost/ && python3 ./ci/build_all.py
+
+      - uses: actions/upload-artifact@v4
       with:
-        path: cmake_build_cache.zip
-        key: cmake_build_cache-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-        restore-keys: |
-          cmake_build_cache-${{ runner.os }}
+        name: catboost-cli-linux-x86_64-${{ inputs.arfifacts_version }}
+        path: build_native_root/have_cuda/linux-x86_64/catboost/app/catboost
 
-    - name: Fixup python package version
-      run: python3 ./ci/fixup_python_version.py
+      - uses: actions/upload-artifact@v4
+      with:
+        name: catboost-cli-linux-aarch64-${{ inputs.arfifacts_version }}
+        path: build_native_root/have_cuda/linux-aarch64/catboost/app/catboost
 
-    - name: Setup build environment
-      run: . /work/setup_env/build_x86_64.sh
+      - uses: actions/upload-artifact@v4
+      with:
+        name: catboost-python-package-dist-linux-${{ inputs.arfifacts_version }}
+        path: catboost/python-package/dist/*.whl
 
-    - name: Setup cmake_build_env_root
-      run: ln -sf /opt/cmake_build_env_root $HOME/
+      - uses: actions/upload-artifact@v4
+      with:
+        name: catboost-python-package-dist-src-${{ inputs.arfifacts_version }}
+        path: catboost/python-package/dist/*.tar.gz
 
-    - name: Setup conan cache
-      run: rsync -rptl /opt/.conan $HOME/
+      - uses: actions/upload-artifact@v4
+      with:
+        name: catboost-R-package-linux-x86_64-${{ inputs.arfifacts_version }}
+        path: catboost/R-package/catboost-R-linux-x86_64.tgz
 
-    - name: Build all
-      run: cd /src/catboost/ && python3 ./ci/build_all.py
+      - uses: actions/upload-artifact@v4
+      with:
+        name: catboost-R-package-linux-aarch64-${{ inputs.arfifacts_version }}
+        path: catboost/R-package/catboost-R-linux-aarch64.tgz
 
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost-cli-linux-x86_64-${{ inputs.arfifacts_version }}
-      path: build_native_root/have_cuda/linux-x86_64/catboost/app/catboost
+      - uses: actions/upload-artifact@v4
+      with:
+        name: catboost-model-interface-linux-x86_64-${{ inputs.arfifacts_version }}
+        path: build_native_root/have_cuda/linux-x86_64/catboost/libs/model_interface/libcatboostmodel.*
 
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost-cli-linux-aarch64-${{ inputs.arfifacts_version }}
-      path: build_native_root/have_cuda/linux-aarch64/catboost/app/catboost
+      - uses: actions/upload-artifact@v4
+      with:
+        name: catboost-model-interface-linux-aarch64-${{ inputs.arfifacts_version }}
+        path: build_native_root/have_cuda/linux-aarch64/catboost/libs/model_interface/libcatboostmodel.*
 
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost-python-package-dist-linux-${{ inputs.arfifacts_version }}
-      path: catboost/python-package/dist/*.whl
+      - uses: actions/upload-artifact@v4
+      with:
+        name: catboost4j-spark_core_resources_classes-${{ inputs.arfifacts_version }}
+        path: catboost/spark/catboost4j-spark/core/src/main/resources/ru
 
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost-python-package-dist-src-${{ inputs.arfifacts_version }}
-      path: catboost/python-package/dist/*.tar.gz
-
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost-R-package-linux-x86_64-${{ inputs.arfifacts_version }}
-      path: catboost/R-package/catboost-R-linux-x86_64.tgz
-
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost-R-package-linux-aarch64-${{ inputs.arfifacts_version }}
-      path: catboost/R-package/catboost-R-linux-aarch64.tgz
-
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost-model-interface-linux-x86_64-${{ inputs.arfifacts_version }}
-      path: build_native_root/have_cuda/linux-x86_64/catboost/libs/model_interface/libcatboostmodel.*
-
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost-model-interface-linux-aarch64-${{ inputs.arfifacts_version }}
-      path: build_native_root/have_cuda/linux-aarch64/catboost/libs/model_interface/libcatboostmodel.*
-
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost4j-spark_core_resources_classes-${{ inputs.arfifacts_version }}
-      path: catboost/spark/catboost4j-spark/core/src/main/resources/ru
-
-    - uses: actions/upload-artifact@v4
-    with:
-      name: catboost4j-prediction_resources-${{ inputs.arfifacts_version }}
-      path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
+      - uses: actions/upload-artifact@v4
+      with:
+        name: catboost4j-prediction_resources-${{ inputs.arfifacts_version }}
+        path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
