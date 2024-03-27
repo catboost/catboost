@@ -63,10 +63,10 @@ target_sources(util-system-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/thread_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/tls_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/types_ut.cpp
-  ${PROJECT_SOURCE_DIR}/util/system/type_name_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/user_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/unaligned_mem_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/yassert_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/type_name_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/fs_win_ut.cpp
 )
 

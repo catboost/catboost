@@ -67,10 +67,10 @@ Y_UNIT_TEST_SUITE(TypeName) {
         UNIT_ASSERT_VALUES_EQUAL(TypeName<double>(), "double");
 
 #ifdef _MSC_VER
-        UNIT_ASSERT_VALUES_EQUAL(TypeName<std::string>(), "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >");
+        UNIT_ASSERT_VALUES_EQUAL(TypeName<std::string>(), "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char>>");
         UNIT_ASSERT_VALUES_EQUAL(TypeName<std::runtime_error>(), "class std::runtime_error");
 #else
-        UNIT_ASSERT_VALUES_EQUAL(TypeName<std::string>(), "std::basic_string<char, std::char_traits<char>, std::allocator<char> >");
+        UNIT_ASSERT_VALUES_EQUAL(TypeName<std::string>(), "std::basic_string<char, std::char_traits<char>, std::allocator<char>>");
         UNIT_ASSERT_VALUES_EQUAL(TypeName<std::runtime_error>(), "std::runtime_error");
 #endif
     }
@@ -78,10 +78,10 @@ Y_UNIT_TEST_SUITE(TypeName) {
     Y_UNIT_TEST(FromArcadiaTypes) {
 #ifdef _MSC_VER
         UNIT_ASSERT_VALUES_EQUAL(TypeName<yexception>(), "class yexception");
-        UNIT_ASSERT_VALUES_EQUAL(TypeName<TString>(), "class TBasicString<char,struct std::char_traits<char> >");
+        UNIT_ASSERT_VALUES_EQUAL(TypeName<TString>(), "class TBasicString<char,struct std::char_traits<char>>");
 #else
         UNIT_ASSERT_VALUES_EQUAL(TypeName<yexception>(), "yexception");
-        UNIT_ASSERT_VALUES_EQUAL(TypeName<TString>(), "TBasicString<char, std::char_traits<char> >");
+        UNIT_ASSERT_VALUES_EQUAL(TypeName<TString>(), "TBasicString<char, std::char_traits<char>>");
 #endif
     }
 
@@ -122,10 +122,10 @@ Y_UNIT_TEST_SUITE(TypeName) {
         std::string string;
         std::runtime_error err("This is awful");
 #ifdef _MSC_VER
-        UNIT_ASSERT_VALUES_EQUAL(TypeName(string), "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >");
+        UNIT_ASSERT_VALUES_EQUAL(TypeName(string), "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char>>");
         UNIT_ASSERT_VALUES_EQUAL(TypeName(err), "class std::runtime_error");
 #else
-        UNIT_ASSERT_VALUES_EQUAL(TypeName(string), "std::basic_string<char, std::char_traits<char>, std::allocator<char> >");
+        UNIT_ASSERT_VALUES_EQUAL(TypeName(string), "std::basic_string<char, std::char_traits<char>, std::allocator<char>>");
         UNIT_ASSERT_VALUES_EQUAL(TypeName(err), "std::runtime_error");
 #endif
     }
