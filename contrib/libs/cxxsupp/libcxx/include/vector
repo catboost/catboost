@@ -842,11 +842,11 @@ private:
 
     template <class _Up>
     _LIBCPP_CONSTEXPR_SINCE_CXX20 _LIBCPP_HIDE_FROM_ABI
-    inline void __push_back_slow_path(_Up&& __x);
+    inline pointer __push_back_slow_path(_Up&& __x);
 
     template <class... _Args>
     _LIBCPP_CONSTEXPR_SINCE_CXX20 _LIBCPP_HIDE_FROM_ABI
-    inline void __emplace_back_slow_path(_Args&&... __args);
+    inline pointer __emplace_back_slow_path(_Args&&... __args);
 
     // The following functions are no-ops outside of AddressSanitizer mode.
     // We call annotations for every allocator, unless explicitly disabled.
@@ -1663,7 +1663,7 @@ vector<_Tp, _Allocator>::shrink_to_fit() _NOEXCEPT
 template <class _Tp, class _Allocator>
 template <class _Up>
 _LIBCPP_CONSTEXPR_SINCE_CXX20
-void
+typename vector<_Tp, _Allocator>::pointer
 vector<_Tp, _Allocator>::__push_back_slow_path(_Up&& __x)
 {
     allocator_type& __a = this->__alloc();
@@ -1672,6 +1672,7 @@ vector<_Tp, _Allocator>::__push_back_slow_path(_Up&& __x)
     __alloc_traits::construct(__a, std::__to_address(__v.__end_), std::forward<_Up>(__x));
     __v.__end_++;
     __swap_out_circular_buffer(__v);
+    return this->__end_;
 }
 
 template <class _Tp, class _Allocator>
@@ -1680,12 +1681,14 @@ inline _LIBCPP_HIDE_FROM_ABI
 void
 vector<_Tp, _Allocator>::push_back(const_reference __x)
 {
-    if (this->__end_ != this->__end_cap())
-    {
+    pointer __end = this->__end_;
+    if (__end < this->__end_cap()) {
         __construct_one_at_end(__x);
+        ++__end;
+    } else {
+        __end = __push_back_slow_path(__x);
     }
-    else
-        __push_back_slow_path(__x);
+    this->__end_ = __end;
 }
 
 template <class _Tp, class _Allocator>
@@ -1694,18 +1697,20 @@ inline _LIBCPP_HIDE_FROM_ABI
 void
 vector<_Tp, _Allocator>::push_back(value_type&& __x)
 {
-    if (this->__end_ < this->__end_cap())
-    {
+    pointer __end = this->__end_;
+    if (__end < this->__end_cap()) {
         __construct_one_at_end(std::move(__x));
+        ++__end;
+    } else {
+        __end = __push_back_slow_path(std::move(__x));
     }
-    else
-        __push_back_slow_path(std::move(__x));
+    this->__end_ = __end;
 }
 
 template <class _Tp, class _Allocator>
 template <class... _Args>
 _LIBCPP_CONSTEXPR_SINCE_CXX20
-void
+typename vector<_Tp, _Allocator>::pointer
 vector<_Tp, _Allocator>::__emplace_back_slow_path(_Args&&... __args)
 {
     allocator_type& __a = this->__alloc();
@@ -1714,6 +1719,7 @@ vector<_Tp, _Allocator>::__emplace_back_slow_path(_Args&&... __args)
     __alloc_traits::construct(__a, std::__to_address(__v.__end_), std::forward<_Args>(__args)...);
     __v.__end_++;
     __swap_out_circular_buffer(__v);
+    return this->__end_;
 }
 
 template <class _Tp, class _Allocator>
@@ -1727,14 +1733,16 @@ void
 #endif
 vector<_Tp, _Allocator>::emplace_back(_Args&&... __args)
 {
-    if (this->__end_ < this->__end_cap())
-    {
+    pointer __end = this->__end_;
+    if (__end < this->__end_cap()) {
         __construct_one_at_end(std::forward<_Args>(__args)...);
+        ++__end;
+    } else {
+        __end = __emplace_back_slow_path(std::forward<_Args>(__args)...);
     }
-    else
-        __emplace_back_slow_path(std::forward<_Args>(__args)...);
+    this->__end_ = __end;
 #if _LIBCPP_STD_VER >= 17
-    return this->back();
+    return *(__end - 1);
 #endif
 }
 
@@ -2037,18 +2045,6 @@ vector<_Tp, _Allocator>::resize(size_type __sz)
         this->__destruct_at_end(this->__begin_ + __sz);
 }
 
-template <class _Tp, class _Allocator>
-_LIBCPP_CONSTEXPR_SINCE_CXX20
-void
-vector<_Tp, _Allocator>::resize(size_type __sz, const_reference __x)
-{
-    size_type __cs = size();
-    if (__cs < __sz)
-        this->__append(__sz - __cs, __x);
-    else if (__cs > __sz)
-        this->__destruct_at_end(this->__begin_ + __sz);
-}
-
 #if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
 
 template <class _Tp, class _Allocator>
@@ -2065,6 +2061,18 @@ vector<_Tp, _Allocator>::resize_uninitialized(size_type __sz)
 }
 
 #endif
+
+template <class _Tp, class _Allocator>
+_LIBCPP_CONSTEXPR_SINCE_CXX20
+void
+vector<_Tp, _Allocator>::resize(size_type __sz, const_reference __x)
+{
+    size_type __cs = size();
+    if (__cs < __sz)
+        this->__append(__sz - __cs, __x);
+    else if (__cs > __sz)
+        this->__destruct_at_end(this->__begin_ + __sz);
+}
 
 template <class _Tp, class _Allocator>
 _LIBCPP_CONSTEXPR_SINCE_CXX20
@@ -2214,18 +2222,14 @@ public:
 #endif
     _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(size_type __n, const value_type& __v);
     _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(size_type __n, const value_type& __v, const allocator_type& __a);
-    template <class _InputIterator>
-    _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(_InputIterator __first, _InputIterator __last,
-               typename enable_if<__has_exactly_input_iterator_category<_InputIterator>::value>::type* = 0);
-    template <class _InputIterator>
-    _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(_InputIterator __first, _InputIterator __last, const allocator_type& __a,
-               typename enable_if<__has_exactly_input_iterator_category<_InputIterator>::value>::type* = 0);
-    template <class _ForwardIterator>
-    _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(_ForwardIterator __first, _ForwardIterator __last,
-               typename enable_if<__has_forward_iterator_category<_ForwardIterator>::value>::type* = 0);
-    template <class _ForwardIterator>
-    _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(_ForwardIterator __first, _ForwardIterator __last, const allocator_type& __a,
-               typename enable_if<__has_forward_iterator_category<_ForwardIterator>::value>::type* = 0);
+    template <class _InputIterator, __enable_if_t<__has_exactly_input_iterator_category<_InputIterator>::value, int> = 0>
+    _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(_InputIterator __first, _InputIterator __last);
+    template <class _InputIterator, __enable_if_t<__has_exactly_input_iterator_category<_InputIterator>::value, int> = 0>
+    _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(_InputIterator __first, _InputIterator __last, const allocator_type& __a);
+    template <class _ForwardIterator, __enable_if_t<__has_forward_iterator_category<_ForwardIterator>::value, int> = 0>
+    _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(_ForwardIterator __first, _ForwardIterator __last);
+    template <class _ForwardIterator, __enable_if_t<__has_forward_iterator_category<_ForwardIterator>::value, int> = 0>
+    _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 vector(_ForwardIterator __first, _ForwardIterator __last, const allocator_type& __a);
 
 #if _LIBCPP_STD_VER >= 23
     template <_ContainerCompatibleRange<bool> _Range>
@@ -2270,17 +2274,11 @@ public:
     vector& operator=(vector&& __v)
         _NOEXCEPT_((__noexcept_move_assign_container<_Allocator, __alloc_traits>::value));
 
-    template <class _InputIterator>
-        typename enable_if <__has_exactly_input_iterator_category<_InputIterator>::value,
-           void
-        >::type
+    template <class _InputIterator, __enable_if_t<__has_exactly_input_iterator_category<_InputIterator>::value, int> = 0>
+    void
     _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 assign(_InputIterator __first, _InputIterator __last);
-    template <class _ForwardIterator>
-        typename enable_if
-        <
-            __has_forward_iterator_category<_ForwardIterator>::value,
-           void
-        >::type
+    template <class _ForwardIterator, __enable_if_t<__has_forward_iterator_category<_ForwardIterator>::value, int> = 0>
+    void
     _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 assign(_ForwardIterator __first, _ForwardIterator __last);
 
 #if _LIBCPP_STD_VER >= 23
@@ -2404,17 +2402,11 @@ public:
 
     _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 iterator insert(const_iterator __position, const value_type& __x);
     _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 iterator insert(const_iterator __position, size_type __n, const value_type& __x);
-    template <class _InputIterator>
-        typename enable_if <__has_exactly_input_iterator_category<_InputIterator>::value,
-            iterator
-        >::type
+    template <class _InputIterator, __enable_if_t<__has_exactly_input_iterator_category<_InputIterator>::value, int> = 0>
+        iterator
         _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 insert(const_iterator __position, _InputIterator __first, _InputIterator __last);
-    template <class _ForwardIterator>
-        typename enable_if
-        <
-            __has_forward_iterator_category<_ForwardIterator>::value,
-            iterator
-        >::type
+    template <class _ForwardIterator, __enable_if_t<__has_forward_iterator_category<_ForwardIterator>::value, int> = 0>
+        iterator
         _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 insert(const_iterator __position, _ForwardIterator __first, _ForwardIterator __last);
 
 #if _LIBCPP_STD_VER >= 23
@@ -2769,10 +2761,9 @@ vector<bool, _Allocator>::vector(size_type __n, const value_type& __x, const all
 }
 
 template <class _Allocator>
-template <class _InputIterator>
+template <class _InputIterator, __enable_if_t<__has_exactly_input_iterator_category<_InputIterator>::value, int> >
 _LIBCPP_CONSTEXPR_SINCE_CXX20
-vector<bool, _Allocator>::vector(_InputIterator __first, _InputIterator __last,
-       typename enable_if<__has_exactly_input_iterator_category<_InputIterator>::value>::type*)
+vector<bool, _Allocator>::vector(_InputIterator __first, _InputIterator __last)
     : __begin_(nullptr),
       __size_(0),
       __cap_alloc_(0, __default_init_tag())
@@ -2781,10 +2772,9 @@ vector<bool, _Allocator>::vector(_InputIterator __first, _InputIterator __last,
 }
 
 template <class _Allocator>
-template <class _InputIterator>
+template <class _InputIterator, __enable_if_t<__has_exactly_input_iterator_category<_InputIterator>::value, int> >
 _LIBCPP_CONSTEXPR_SINCE_CXX20
-vector<bool, _Allocator>::vector(_InputIterator __first, _InputIterator __last, const allocator_type& __a,
-       typename enable_if<__has_exactly_input_iterator_category<_InputIterator>::value>::type*)
+vector<bool, _Allocator>::vector(_InputIterator __first, _InputIterator __last, const allocator_type& __a)
     : __begin_(nullptr),
       __size_(0),
       __cap_alloc_(0, static_cast<__storage_allocator>(__a))
@@ -2793,10 +2783,9 @@ vector<bool, _Allocator>::vector(_InputIterator __first, _InputIterator __last, 
 }
 
 template <class _Allocator>
-template <class _ForwardIterator>
+template <class _ForwardIterator, __enable_if_t<__has_forward_iterator_category<_ForwardIterator>::value, int> >
 _LIBCPP_CONSTEXPR_SINCE_CXX20
-vector<bool, _Allocator>::vector(_ForwardIterator __first, _ForwardIterator __last,
-                                typename enable_if<__has_forward_iterator_category<_ForwardIterator>::value>::type*)
+vector<bool, _Allocator>::vector(_ForwardIterator __first, _ForwardIterator __last)
     : __begin_(nullptr),
       __size_(0),
       __cap_alloc_(0, __default_init_tag())
@@ -2806,10 +2795,9 @@ vector<bool, _Allocator>::vector(_ForwardIterator __first, _ForwardIterator __la
 }
 
 template <class _Allocator>
-template <class _ForwardIterator>
+template <class _ForwardIterator, __enable_if_t<__has_forward_iterator_category<_ForwardIterator>::value, int> >
 _LIBCPP_CONSTEXPR_SINCE_CXX20
-vector<bool, _Allocator>::vector(_ForwardIterator __first, _ForwardIterator __last, const allocator_type& __a,
-                                typename enable_if<__has_forward_iterator_category<_ForwardIterator>::value>::type*)
+vector<bool, _Allocator>::vector(_ForwardIterator __first, _ForwardIterator __last, const allocator_type& __a)
     : __begin_(nullptr),
       __size_(0),
       __cap_alloc_(0, static_cast<__storage_allocator>(__a))
@@ -2996,10 +2984,9 @@ vector<bool, _Allocator>::assign(size_type __n, const value_type& __x)
 }
 
 template <class _Allocator>
-template <class _InputIterator>
-_LIBCPP_CONSTEXPR_SINCE_CXX20 typename enable_if <__has_exactly_input_iterator_category<_InputIterator>::value,
-   void
->::type
+template <class _InputIterator, __enable_if_t<__has_exactly_input_iterator_category<_InputIterator>::value, int> >
+_LIBCPP_CONSTEXPR_SINCE_CXX20
+void
 vector<bool, _Allocator>::assign(_InputIterator __first, _InputIterator __last)
 {
   __assign_with_sentinel(__first, __last);
@@ -3015,13 +3002,9 @@ void vector<bool, _Allocator>::__assign_with_sentinel(_Iterator __first, _Sentin
 }
 
 template <class _Allocator>
-template <class _ForwardIterator>
+template <class _ForwardIterator, __enable_if_t<__has_forward_iterator_category<_ForwardIterator>::value, int> >
 _LIBCPP_CONSTEXPR_SINCE_CXX20
-typename enable_if
-<
-    __has_forward_iterator_category<_ForwardIterator>::value,
-   void
->::type
+void
 vector<bool, _Allocator>::assign(_ForwardIterator __first, _ForwardIterator __last)
 {
   __assign_with_size(__first, __last, std::distance(__first, __last));
@@ -3162,10 +3145,9 @@ vector<bool, _Allocator>::insert(const_iterator __position, size_type __n, const
 }
 
 template <class _Allocator>
-template <class _InputIterator>
-_LIBCPP_CONSTEXPR_SINCE_CXX20 typename enable_if <__has_exactly_input_iterator_category<_InputIterator>::value,
-    typename vector<bool, _Allocator>::iterator
->::type
+template <class _InputIterator, __enable_if_t<__has_exactly_input_iterator_category<_InputIterator>::value, int> >
+_LIBCPP_CONSTEXPR_SINCE_CXX20
+typename vector<bool, _Allocator>::iterator
 vector<bool, _Allocator>::insert(const_iterator __position, _InputIterator __first, _InputIterator __last)
 {
   return __insert_with_sentinel(__position, __first, __last);
@@ -3212,13 +3194,9 @@ vector<bool, _Allocator>::__insert_with_sentinel(const_iterator __position, _Inp
 }
 
 template <class _Allocator>
-template <class _ForwardIterator>
+template <class _ForwardIterator, __enable_if_t<__has_forward_iterator_category<_ForwardIterator>::value, int> >
 _LIBCPP_CONSTEXPR_SINCE_CXX20
-typename enable_if
-<
-    __has_forward_iterator_category<_ForwardIterator>::value,
-    typename vector<bool, _Allocator>::iterator
->::type
+typename vector<bool, _Allocator>::iterator
 vector<bool, _Allocator>::insert(const_iterator __position, _ForwardIterator __first, _ForwardIterator __last)
 {
   return __insert_with_size(__position, __first, __last, std::distance(__first, __last));

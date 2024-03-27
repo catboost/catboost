@@ -8,6 +8,7 @@
 
 #include <__assert>
 #include <__thread/id.h>
+#include <__utility/exception_guard.h>
 #include <limits>
 #include <mutex>
 
@@ -212,68 +213,52 @@ void __call_once(volatile once_flag::_State_type& flag, void* arg,
 #endif
 {
 #if defined(_LIBCPP_HAS_NO_THREADS)
-    if (flag == 0)
-    {
-#ifndef _LIBCPP_HAS_NO_EXCEPTIONS
-        try
-        {
-#endif // _LIBCPP_HAS_NO_EXCEPTIONS
-            flag = 1;
-            func(arg);
-            flag = ~once_flag::_State_type(0);
-#ifndef _LIBCPP_HAS_NO_EXCEPTIONS
-        }
-        catch (...)
-        {
-            flag = 0;
-            throw;
-        }
-#endif // _LIBCPP_HAS_NO_EXCEPTIONS
+
+    if (flag == once_flag::_Unset) {
+        auto guard = std::__make_exception_guard([&flag] { flag = once_flag::_Unset; });
+        flag = once_flag::_Pending;
+        func(arg);
+        flag = once_flag::_Complete;
+        guard.__complete();
     }
+
 #else // !_LIBCPP_HAS_NO_THREADS
+
     __libcpp_mutex_lock(&mut);
-    while (flag == 1)
+    while (flag == once_flag::_Pending)
         __libcpp_condvar_wait(&cv, &mut);
-    if (flag == 0)
-    {
-#ifndef _LIBCPP_HAS_NO_EXCEPTIONS
-        try
-        {
-#endif // _LIBCPP_HAS_NO_EXCEPTIONS
-#ifdef _LIBCPP_ABI_MICROSOFT
-            flag.store(once_flag::_State_type(1));
-#else
-            __libcpp_relaxed_store(&flag, once_flag::_State_type(1));
-#endif
-            __libcpp_mutex_unlock(&mut);
-            func(arg);
+    if (flag == once_flag::_Unset) {
+        auto guard = std::__make_exception_guard([&flag] {
             __libcpp_mutex_lock(&mut);
 #ifdef _LIBCPP_ABI_MICROSOFT
-            flag.store(~once_flag::_State_type(0), memory_order_release);
+            flag.store(once_flag::_Unset);
 #else
-            __libcpp_atomic_store(&flag, ~once_flag::_State_type(0),
-                                  _AO_Release);
+            __libcpp_relaxed_store(&flag, once_flag::_Unset);
 #endif
             __libcpp_mutex_unlock(&mut);
             __libcpp_condvar_broadcast(&cv);
-#ifndef _LIBCPP_HAS_NO_EXCEPTIONS
-        }
-        catch (...)
-        {
-            __libcpp_mutex_lock(&mut);
+        });
+
 #ifdef _LIBCPP_ABI_MICROSOFT
-            flag.store(once_flag::_State_type(0), memory_order_relaxed);
+        flag.store(once_flag::_Pending, memory_order_relaxed);
 #else
-            __libcpp_relaxed_store(&flag, once_flag::_State_type(0));
+        __libcpp_relaxed_store(&flag, once_flag::_Pending);
 #endif
-            __libcpp_mutex_unlock(&mut);
-            __libcpp_condvar_broadcast(&cv);
-            throw;
-        }
-#endif // _LIBCPP_HAS_NO_EXCEPTIONS
-    }
-    else
         __libcpp_mutex_unlock(&mut);
+        func(arg);
+        __libcpp_mutex_lock(&mut);
+#ifdef _LIBCPP_ABI_MICROSOFT
+        flag.store(once_flag::_Complete, memory_order_release);
+#else
+        __libcpp_atomic_store(&flag, once_flag::_Complete, _AO_Release);
+#endif
+        __libcpp_mutex_unlock(&mut);
+        __libcpp_condvar_broadcast(&cv);
+        guard.__complete();
+    } else {
+        __libcpp_mutex_unlock(&mut);
+    }
+
 #endif // !_LIBCPP_HAS_NO_THREADS
 }
 

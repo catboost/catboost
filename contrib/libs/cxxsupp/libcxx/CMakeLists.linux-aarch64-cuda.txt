@@ -43,6 +43,7 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/chrono.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/condition_variable.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/condition_variable_destructor.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/error_category.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/exception.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/directory_entry.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/directory_iterator.cpp
@@ -84,6 +85,8 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/new.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/new_handler.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/new_helpers.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/tz.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/tzdb_list.cpp
 )
 
 
