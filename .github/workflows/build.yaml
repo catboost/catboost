@@ -50,9 +50,6 @@ jobs:
       - name: Fixup python package version
         run: cd catboost && python3 ./ci/fixup_python_version.py
 
-      - name: Setup build environment
-        run: . /work/setup_env/build_x86_64.sh
-
       - name: Setup cmake_build_env_root
         run: ln -sf /opt/cmake_build_env_root $HOME/
 
@@ -60,7 +57,11 @@ jobs:
         run: rsync -rptl /opt/.conan $HOME/
 
       - name: Build all
-        run: cd /src/catboost/ && python3 ./ci/build_all.py
+        run: |
+          . /work/setup_env/build_x86_64.sh
+          export CMAKE_BUILD_CACHE_DIR=${{ github.workspace }}/cmake_build_cache
+          cd catboost
+          python3 ./ci/build_all.py
 
       - name: Compress cache
         run: zip -ur ./cmake_build_cache.zip ./cmake_build_cache
