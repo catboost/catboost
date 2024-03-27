@@ -1,9 +1,19 @@
 on:
-  workflow_call
+  workflow_call:
+    inputs:
+      runs-on_value:
+        required: true
+        type: string
+      artifacts_version:
+        required: true
+        type: string
+      catboost_package_version:
+        required: true
+        type: string
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on_value }}
     defaults:
       run:
         shell: bash

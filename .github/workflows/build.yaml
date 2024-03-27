@@ -1,27 +1,38 @@
 on:
   workflow_call:
     inputs:
+      runs-on_value:
+        required: true
+        type: string
       artifacts_version:
         required: true
         type: string
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost_dev
       catboost_package_version:
         required: true
         type: string
 
 jobs:
   build-for-linux:
+    if: inputs.runs-on_value == 'ubuntu-latest'
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest
       env:
+        CATBOOST_PACKAGE_NAME: ${{ inputs.catboost_package_name }}
         CATBOOST_PACKAGE_VERSION: ${{ inputs.catboost_package_version }}
         CMAKE_BUILD_CACHE_DIR: cmake_build_cache
-      volumes:
-        - ../catboost:/src/catboost
     defaults:
       run:
         shell: bash
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: catboost
     - name: Update cache on every commit
       uses: actions/cache@v4
       with:
