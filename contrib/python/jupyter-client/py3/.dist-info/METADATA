@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: jupyter_client
-Version: 8.6.0
+Version: 8.6.1
 Summary: Jupyter protocol implementation and client libraries
 Project-URL: Homepage, https://jupyter.org
 Project-URL: Documentation, https://jupyter-client.readthedocs.io/
@@ -67,7 +67,7 @@ Provides-Extra: test
 Requires-Dist: coverage; extra == 'test'
 Requires-Dist: ipykernel>=6.14; extra == 'test'
 Requires-Dist: mypy; extra == 'test'
-Requires-Dist: paramiko; sys_platform == 'win32' and extra == 'test'
+Requires-Dist: paramiko; (sys_platform == 'win32') and extra == 'test'
 Requires-Dist: pre-commit; extra == 'test'
 Requires-Dist: pytest; extra == 'test'
 Requires-Dist: pytest-cov; extra == 'test'

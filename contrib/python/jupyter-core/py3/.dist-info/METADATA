@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: jupyter_core
-Version: 5.7.1
+Version: 5.7.2
 Summary: Jupyter core package. A base package on which Jupyter projects rely.
 Project-URL: Homepage, https://jupyter.org
 Project-URL: Documentation, https://jupyter-core.readthedocs.io/
@@ -60,9 +60,9 @@ Requires-Dist: traitlets; extra == 'docs'
 Provides-Extra: test
 Requires-Dist: ipykernel; extra == 'test'
 Requires-Dist: pre-commit; extra == 'test'
-Requires-Dist: pytest; extra == 'test'
 Requires-Dist: pytest-cov; extra == 'test'
 Requires-Dist: pytest-timeout; extra == 'test'
+Requires-Dist: pytest<8; extra == 'test'
 Description-Content-Type: text/plain
 
 There is no reason to install this package on its own.

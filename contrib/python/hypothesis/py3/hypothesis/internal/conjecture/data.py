@@ -1693,7 +1693,7 @@ class ConjectureData:
         if observer is None:
             observer = DataObserver()
         assert isinstance(observer, DataObserver)
-        self.__bytes_drawn = 0
+        self._bytes_drawn = 0
         self.observer = observer
         self.max_length = max_length
         self.is_find = False
@@ -2264,8 +2264,8 @@ class ConjectureData:
 
         if forced is not None:
             buf = int_to_bytes(forced, n_bytes)
-        elif self.__bytes_drawn < len(self.__prefix):
-            index = self.__bytes_drawn
+        elif self._bytes_drawn < len(self.__prefix):
+            index = self._bytes_drawn
             buf = self.__prefix[index : index + n_bytes]
             if len(buf) < n_bytes:
                 assert self.__random is not None
@@ -2274,7 +2274,7 @@ class ConjectureData:
             assert self.__random is not None
             buf = uniform(self.__random, n_bytes)
         buf = bytearray(buf)
-        self.__bytes_drawn += n_bytes
+        self._bytes_drawn += n_bytes
 
         assert len(buf) == n_bytes
 
