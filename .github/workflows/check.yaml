@@ -4,7 +4,7 @@ on:
       - master
 
 env:
-  catboost_package_version: 1.2.3post0
+  catboost_package_version: 1.2.4
 
 jobs:
   check:
