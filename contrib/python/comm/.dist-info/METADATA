@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: comm
-Version: 0.2.1
+Version: 0.2.2
 Summary: Jupyter Python Comm implementation, for usage in ipykernel, xeus-python etc.
 Project-URL: Homepage, https://github.com/ipython/comm
 Author: Jupyter contributors
