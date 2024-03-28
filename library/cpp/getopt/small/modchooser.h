@@ -124,7 +124,7 @@ public:
 
         // Full name includes primary name and aliases. Also, will add ANSI colors.
         size_t CalculateFullNameLen() const;
-        TString FormatFullName(size_t pad) const;
+        TString FormatFullName(size_t pad, const NColorizer::TColors& colors) const;
     };
 
     TVector<const TMode*> GetUnsortedModes() const {

@@ -250,19 +250,19 @@ size_t TModChooser::TMode::CalculateFullNameLen() const {
     return len;
 }
 
-TString TModChooser::TMode::FormatFullName(size_t pad) const {
+TString TModChooser::TMode::FormatFullName(size_t pad, const NColorizer::TColors& colors) const {
     TStringBuilder name;
     if (Aliases) {
         name << "{";
     }
 
-    name << NColorizer::StdErr().GreenColor();
+    name << colors.GreenColor();
     name << Name;
-    name << NColorizer::StdErr().OldColor();
+    name << colors.OldColor();
 
     if (Aliases) {
         for (const auto& alias : Aliases) {
-            name << "|" << NColorizer::StdErr().GreenColor() << alias << NColorizer::StdErr().OldColor();
+            name << "|" << colors.GreenColor() << alias << colors.OldColor();
         }
         name << "}";
     }
@@ -294,7 +294,7 @@ void TModChooser::PrintHelp(const TString& progName, bool toStdErr) const {
         for (const auto& unsortedMode : UnsortedModes)
             if (!unsortedMode->Hidden) {
                 if (unsortedMode->Name.size()) {
-                    out << "  " << unsortedMode->FormatFullName(maxModeLen + 4) << unsortedMode->Description << Endl;
+                    out << "  " << unsortedMode->FormatFullName(maxModeLen + 4, colors) << unsortedMode->Description << Endl;
                 } else {
                     out << SeparationString << Endl;
                     out << unsortedMode->Description << Endl;
@@ -306,7 +306,7 @@ void TModChooser::PrintHelp(const TString& progName, bool toStdErr) const {
                 continue;  // this is an alias
 
             if (!mode.second->Hidden) {
-                out << "  " << mode.second->FormatFullName(maxModeLen + 4) << mode.second->Description << Endl;
+                out << "  " << mode.second->FormatFullName(maxModeLen + 4, colors) << mode.second->Description << Endl;
             }
         }
     }
