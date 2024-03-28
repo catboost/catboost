@@ -29,7 +29,8 @@ __all__ = [
     'permute_dataset_columns',
     'remove_time_from_json',
     'test_output_path',
-    'compare_with_limited_precision'
+    'compare_with_limited_precision',
+    'is_canonical_test_run',
 ]
 
 try:
@@ -391,6 +392,10 @@ def append_params_to_cmdline(cmd, params):
 def format_crossvalidation(is_inverted, n, k):
     cv_type = 'Inverted' if is_inverted else 'Classical'
     return '{}:{};{}'.format(cv_type, n, k)
+
+
+def is_canonical_test_run():
+    return os.environ.get('IS_CANONICAL_TEST_RUN', '1').lower() in ('yes', 'true', '1')
 
 
 def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
