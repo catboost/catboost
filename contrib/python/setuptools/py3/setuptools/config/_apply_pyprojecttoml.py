@@ -29,24 +29,24 @@ from typing import (
     Union,
     cast,
 )
-
+from .._path import StrPath
 from ..errors import RemovedConfigError
 from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
+    from distutils.dist import _OptionsList
     from setuptools._importlib import metadata  # noqa
     from setuptools.dist import Distribution  # noqa
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
-_Path = Union[os.PathLike, str]
 _DictOrStr = Union[dict, str]
-_CorrespFn = Callable[["Distribution", Any, _Path], None]
+_CorrespFn = Callable[["Distribution", Any, StrPath], None]
 _Correspondence = Union[str, _CorrespFn]
 
 _logger = logging.getLogger(__name__)
 
 
-def apply(dist: "Distribution", config: dict, filename: _Path) -> "Distribution":
+def apply(dist: "Distribution", config: dict, filename: StrPath) -> "Distribution":
     """Apply configuration dict read with :func:`read_configuration`"""
 
     if not config:
@@ -68,7 +68,7 @@ def apply(dist: "Distribution", config: dict, filename: _Path) -> "Distribution"
     return dist
 
 
-def _apply_project_table(dist: "Distribution", config: dict, root_dir: _Path):
+def _apply_project_table(dist: "Distribution", config: dict, root_dir: StrPath):
     project_table = config.get("project", {}).copy()
     if not project_table:
         return  # short-circuit
@@ -85,7 +85,7 @@ def _apply_project_table(dist: "Distribution", config: dict, root_dir: _Path):
             _set_config(dist, corresp, value)
 
 
-def _apply_tool_table(dist: "Distribution", config: dict, filename: _Path):
+def _apply_tool_table(dist: "Distribution", config: dict, filename: StrPath):
     tool_table = config.get("tool", {}).get("setuptools", {})
     if not tool_table:
         return  # short-circuit
@@ -153,7 +153,7 @@ def _guess_content_type(file: str) -> Optional[str]:
     raise ValueError(f"Undefined content type for {file}, {msg}")
 
 
-def _long_description(dist: "Distribution", val: _DictOrStr, root_dir: _Path):
+def _long_description(dist: "Distribution", val: _DictOrStr, root_dir: StrPath):
     from setuptools.config import expand
 
     if isinstance(val, str):
@@ -174,7 +174,7 @@ def _long_description(dist: "Distribution", val: _DictOrStr, root_dir: _Path):
         dist._referenced_files.add(cast(str, file))
 
 
-def _license(dist: "Distribution", val: dict, root_dir: _Path):
+def _license(dist: "Distribution", val: dict, root_dir: StrPath):
     from setuptools.config import expand
 
     if "file" in val:
@@ -184,7 +184,7 @@ def _license(dist: "Distribution", val: dict, root_dir: _Path):
         _set_config(dist, "license", val["text"])
 
 
-def _people(dist: "Distribution", val: List[dict], _root_dir: _Path, kind: str):
+def _people(dist: "Distribution", val: List[dict], _root_dir: StrPath, kind: str):
     field = []
     email_field = []
     for person in val:
@@ -244,7 +244,7 @@ def _unify_entry_points(project_table: dict):
         # intentional (for resetting configurations that are missing `dynamic`).
 
 
-def _copy_command_options(pyproject: dict, dist: "Distribution", filename: _Path):
+def _copy_command_options(pyproject: dict, dist: "Distribution", filename: StrPath):
     tool_table = pyproject.get("tool", {})
     cmdclass = tool_table.get("setuptools", {}).get("cmdclass", {})
     valid_options = _valid_command_options(cmdclass)
@@ -294,7 +294,7 @@ def _normalise_cmd_option_key(name: str) -> str:
     return json_compatible_key(name).strip("_=")
 
 
-def _normalise_cmd_options(desc: List[Tuple[str, Optional[str], str]]) -> Set[str]:
+def _normalise_cmd_options(desc: "_OptionsList") -> Set[str]:
     return {_normalise_cmd_option_key(fancy_option[0]) for fancy_option in desc}
 
 

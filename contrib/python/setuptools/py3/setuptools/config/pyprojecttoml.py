@@ -13,8 +13,9 @@ import logging
 import os
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set, Union
+from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set
 
+from .._path import StrPath
 from ..errors import FileError, InvalidConfigError
 from ..warnings import SetuptoolsWarning
 from . import expand as _expand
@@ -23,19 +24,19 @@ from ._apply_pyprojecttoml import apply as _apply
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
+    from typing_extensions import Self
 
-_Path = Union[str, os.PathLike]
 _logger = logging.getLogger(__name__)
 
 
-def load_file(filepath: _Path) -> dict:
+def load_file(filepath: StrPath) -> dict:
     from ..compat.py310 import tomllib
 
     with open(filepath, "rb") as file:
         return tomllib.load(file)
 
 
-def validate(config: dict, filepath: _Path) -> bool:
+def validate(config: dict, filepath: StrPath) -> bool:
     from . import _validate_pyproject as validator
 
     trove_classifier = validator.FORMAT_FUNCTIONS.get("trove-classifier")
@@ -58,7 +59,7 @@ def validate(config: dict, filepath: _Path) -> bool:
 
 def apply_configuration(
     dist: "Distribution",
-    filepath: _Path,
+    filepath: StrPath,
     ignore_option_errors=False,
 ) -> "Distribution":
     """Apply the configuration from a ``pyproject.toml`` file into an existing
@@ -69,7 +70,7 @@ def apply_configuration(
 
 
 def read_configuration(
-    filepath: _Path,
+    filepath: StrPath,
     expand=True,
     ignore_option_errors=False,
     dist: Optional["Distribution"] = None,
@@ -136,7 +137,7 @@ def read_configuration(
 
 def expand_configuration(
     config: dict,
-    root_dir: Optional[_Path] = None,
+    root_dir: Optional[StrPath] = None,
     ignore_option_errors: bool = False,
     dist: Optional["Distribution"] = None,
 ) -> dict:
@@ -161,7 +162,7 @@ class _ConfigExpander:
     def __init__(
         self,
         config: dict,
-        root_dir: Optional[_Path] = None,
+        root_dir: Optional[StrPath] = None,
         ignore_option_errors: bool = False,
         dist: Optional["Distribution"] = None,
     ):
@@ -271,7 +272,7 @@ class _ConfigExpander:
     def _expand_directive(
         self, specifier: str, directive, package_dir: Mapping[str, str]
     ):
-        from setuptools.extern.more_itertools import always_iterable  # type: ignore
+        from setuptools.extern.more_itertools import always_iterable
 
         with _ignore_errors(self.ignore_option_errors):
             root_dir = self.root_dir
@@ -401,7 +402,7 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         self._project_cfg = project_cfg
         self._setuptools_cfg = setuptools_cfg
 
-    def __enter__(self):
+    def __enter__(self) -> "Self":
         """When entering the context, the values of ``packages``, ``py_modules`` and
         ``package_dir`` that are missing in ``dist`` are copied from ``setuptools_cfg``.
         """

@@ -3,6 +3,7 @@
 import functools
 import os
 import re
+from typing import TYPE_CHECKING
 
 import _distutils_hack.override  # noqa: F401
 import distutils.core
@@ -105,8 +106,11 @@ def setup(**attrs):
 
 setup.__doc__ = distutils.core.setup.__doc__
 
-
-_Command = monkey.get_unpatched(distutils.core.Command)
+if TYPE_CHECKING:
+    # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
+    _Command = distutils.core.Command
+else:
+    _Command = monkey.get_unpatched(distutils.core.Command)
 
 
 class Command(_Command):
@@ -165,8 +169,9 @@ class Command(_Command):
     """
 
     command_consumes_arguments = False
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def __init__(self, dist, **kw):
+    def __init__(self, dist: Distribution, **kw):
         """
         Construct the command for dist, updating
         vars(self) with any keyword parameters.

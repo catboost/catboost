@@ -20,9 +20,11 @@ import platform
 import itertools
 import subprocess
 import distutils.errors
+from typing import Dict, TYPE_CHECKING
 from setuptools.extern.more_itertools import unique_everseen
 
-if platform.system() == 'Windows':
+# https://github.com/python/mypy/issues/8166
+if not TYPE_CHECKING and platform.system() == 'Windows':
     import winreg
     from os import environ
 else:
@@ -34,7 +36,7 @@ else:
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
 
-    environ = dict()
+    environ: Dict[str, str] = dict()
 
 
 def _msvc14_find_vc2015():

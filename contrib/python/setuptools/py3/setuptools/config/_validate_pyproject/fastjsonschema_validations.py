@@ -1,5 +1,4 @@
 # noqa
-# type: ignore
 # flake8: noqa
 # pylint: skip-file
 # mypy: ignore-errors

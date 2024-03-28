@@ -50,7 +50,7 @@ class upload_docs(upload):
             and metadata.entry_points(group='distutils.commands', name='build_sphinx')
         )
 
-    sub_commands = [('build_sphinx', has_sphinx)]
+    sub_commands = [('build_sphinx', has_sphinx)]  # type: ignore[list-item] # TODO: Fix in typeshed distutils stubs
 
     def initialize_options(self):
         upload.initialize_options(self)

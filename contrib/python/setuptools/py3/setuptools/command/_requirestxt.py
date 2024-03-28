@@ -35,7 +35,7 @@ def _prepare(
 
 
 def _convert_extras_requirements(
-    extras_require: _StrOrIter,
+    extras_require: Mapping[str, _StrOrIter],
 ) -> Mapping[str, _Ordered[Requirement]]:
     """
     Convert requirements in `extras_require` of the form

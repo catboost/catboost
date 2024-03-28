@@ -9,8 +9,10 @@ from contextlib import contextmanager
 from distutils import log
 from distutils.core import Command
 from pathlib import Path
+from typing import cast
 
 from .. import _normalization
+from .egg_info import egg_info as egg_info_cls
 
 
 class dist_info(Command):
@@ -50,7 +52,7 @@ class dist_info(Command):
         project_dir = dist.src_root or os.curdir
         self.output_dir = Path(self.output_dir or project_dir)
 
-        egg_info = self.reinitialize_command("egg_info")
+        egg_info = cast(egg_info_cls, self.reinitialize_command("egg_info"))
         egg_info.egg_base = str(self.output_dir)
 
         if self.tag_date:

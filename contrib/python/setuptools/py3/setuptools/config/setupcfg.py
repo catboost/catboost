@@ -30,6 +30,7 @@ from typing import (
     Union,
 )
 
+from .._path import StrPath
 from ..errors import FileError, OptionError
 from ..extern.packaging.markers import default_environment as marker_env
 from ..extern.packaging.requirements import InvalidRequirement, Requirement
@@ -43,7 +44,6 @@ if TYPE_CHECKING:
 
     from setuptools.dist import Distribution  # noqa
 
-_Path = Union[str, os.PathLike]
 SingleCommandOptions = Dict["str", Tuple["str", Any]]
 """Dict that associate the name of the options of a particular command to a
 tuple. The first element of the tuple indicates the origin of the option value
@@ -55,7 +55,7 @@ Target = TypeVar("Target", bound=Union["Distribution", "DistributionMetadata"])
 
 
 def read_configuration(
-    filepath: _Path, find_others=False, ignore_option_errors=False
+    filepath: StrPath, find_others=False, ignore_option_errors=False
 ) -> dict:
     """Read given configuration file and returns options from it as a dict.
 
@@ -80,7 +80,7 @@ def read_configuration(
     return configuration_to_dict(handlers)
 
 
-def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution":
+def apply_configuration(dist: "Distribution", filepath: StrPath) -> "Distribution":
     """Apply the configuration from a ``setup.cfg`` file into an existing
     distribution object.
     """
@@ -91,8 +91,8 @@ def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution"
 
 def _apply(
     dist: "Distribution",
-    filepath: _Path,
-    other_files: Iterable[_Path] = (),
+    filepath: StrPath,
+    other_files: Iterable[StrPath] = (),
     ignore_option_errors: bool = False,
 ) -> Tuple["ConfigHandler", ...]:
     """Read configuration from ``filepath`` and applies to the ``dist`` object."""
@@ -108,7 +108,7 @@ def _apply(
     filenames = [*other_files, filepath]
 
     try:
-        _Distribution.parse_config_files(dist, filenames=filenames)
+        _Distribution.parse_config_files(dist, filenames=filenames)  # type: ignore[arg-type] # TODO: fix in disutils stubs
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )
@@ -371,7 +371,7 @@ class ConfigHandler(Generic[Target]):
 
         return parser
 
-    def _parse_file(self, value, root_dir: _Path):
+    def _parse_file(self, value, root_dir: StrPath):
         """Represents value as a string, allowing including text
         from nearest files using `file:` directive.
 
@@ -397,7 +397,7 @@ class ConfigHandler(Generic[Target]):
         self._referenced_files.update(filepaths)
         return expand.read_files(filepaths, root_dir)
 
-    def _parse_attr(self, value, package_dir, root_dir: _Path):
+    def _parse_attr(self, value, package_dir, root_dir: StrPath):
         """Represents value as a module attribute.
 
         Examples:
@@ -475,7 +475,7 @@ class ConfigHandler(Generic[Target]):
                 # Keep silent for a new option may appear anytime.
                 self[name] = value
 
-    def parse(self):
+    def parse(self) -> None:
         """Parses configuration file items from one
         or more related sections.
 
@@ -539,7 +539,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         ignore_option_errors: bool,
         ensure_discovered: expand.EnsurePackagesDiscovered,
         package_dir: Optional[dict] = None,
-        root_dir: _Path = os.curdir,
+        root_dir: StrPath = os.curdir,
     ):
         super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.package_dir = package_dir

@@ -4,12 +4,8 @@ and core metadata
 """
 
 import re
-from pathlib import Path
-from typing import Union
 
 from .extern import packaging
-
-_Path = Union[str, Path]
 
 # https://packaging.python.org/en/latest/specifications/core-metadata/#name
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
