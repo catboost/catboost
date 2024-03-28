@@ -41,7 +41,7 @@
 #if _MSC_VER >= 1900
 #include <../ucrt/fcntl.h>
 #else
-#include <../include/fcntl.h>
+#error #include <../include/fcntl.h>
 #endif
 
 #else
@@ -65,7 +65,7 @@
 #if _MSC_VER >= 1900
 #include <../ucrt/fcntl.h>
 #else
-#include <../include/fcntl.h>
+#error #include <../include/fcntl.h>
 #endif
 
 #ifndef _GL_M4_FCNTL_H

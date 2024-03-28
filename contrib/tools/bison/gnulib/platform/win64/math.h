@@ -27,7 +27,7 @@
 #if _MSC_VER >= 1900
 #include <../ucrt/math.h>
 #else
-#include <../include/math.h>
+#error #include <../include/math.h>
 #endif
 
 #ifndef _GL_M4_MATH_H

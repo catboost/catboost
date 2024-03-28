@@ -56,7 +56,7 @@
 	__re_search_2 (bufp, st1, s1, st2, s2, startpos, range, regs, stop)
 # define re_compile_fastmap(bufp) __re_compile_fastmap (bufp)
 
-# include "../locale/localeinfo.h"
+# error #include "../locale/localeinfo.h"
 #endif
 
 /* On some systems, limits.h sets RE_DUP_MAX to a lower value than

@@ -36,7 +36,7 @@
 #if _MSC_VER >= 1900
 #include <../ucrt/signal.h>
 #else
-#include <../include/signal.h>
+#error #include <../include/signal.h>
 #endif
 
 #else
@@ -56,7 +56,7 @@
 #if _MSC_VER >= 1900
 #include <../ucrt/signal.h>
 #else
-#include <../include/signal.h>
+#error #include <../include/signal.h>
 #endif
 
 #undef _GL_ALREADY_INCLUDING_SIGNAL_H

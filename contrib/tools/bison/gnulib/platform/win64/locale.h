@@ -28,7 +28,7 @@
 #if _MSC_VER >= 1900
 #include <../ucrt/locale.h>
 #else
-#include <../include/locale.h>
+#error #include <../include/locale.h>
 #endif
 
 #else
@@ -42,7 +42,7 @@
 #if _MSC_VER >= 1900
 #include <../ucrt/locale.h>
 #else
-#include <../include/locale.h>
+#error #include <../include/locale.h>
 #endif
 
 #undef _GL_ALREADY_INCLUDING_LOCALE_H
