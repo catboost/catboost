@@ -81,7 +81,7 @@ void LastSystemErrorText(char* str, size_t size, int code) {
     Strip(str);
 #elif defined(_sun_)
     strfcpy(str, strerror(code), size);
-#elif defined(_freebsd_) || defined(_darwin_) || defined(_musl_) || defined(_bionic_)
+#elif defined(_freebsd_) || defined(_darwin_) || defined(_musl_) || defined(_bionic_) || defined(_emscripten_)
     strerror_r(code, str, size);
 #elif defined(_linux_) | defined(_cygwin_)
     char* msg = strerror_r(code, str, size);

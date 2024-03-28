@@ -245,7 +245,6 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/system/backtrace.cpp
   ${PROJECT_SOURCE_DIR}/util/system/compat.cpp
   ${PROJECT_SOURCE_DIR}/util/system/condvar.cpp
-  ${PROJECT_SOURCE_DIR}/util/system/context.cpp
   ${PROJECT_SOURCE_DIR}/util/system/daemon.cpp
   ${PROJECT_SOURCE_DIR}/util/system/datetime.cpp
   ${PROJECT_SOURCE_DIR}/util/system/defaults.c
@@ -254,7 +253,6 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/system/env.cpp
   ${PROJECT_SOURCE_DIR}/util/system/error.cpp
   ${PROJECT_SOURCE_DIR}/util/system/event.cpp
-  ${PROJECT_SOURCE_DIR}/util/system/execpath.cpp
   ${PROJECT_SOURCE_DIR}/util/system/fasttime.cpp
   ${PROJECT_SOURCE_DIR}/util/system/file.cpp
   ${PROJECT_SOURCE_DIR}/util/system/file_lock.cpp
@@ -271,6 +269,12 @@ target_joined_source(yutil
 
 target_joined_source(yutil
   all_system_2.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/context.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/execpath.cpp
+)
+
+target_joined_source(yutil
+  all_system_3.cpp
   ${PROJECT_SOURCE_DIR}/util/system/align.cpp
   ${PROJECT_SOURCE_DIR}/util/system/byteorder.cpp
   ${PROJECT_SOURCE_DIR}/util/system/cpu_id.cpp
@@ -279,7 +283,6 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/system/interrupt_signals.cpp
   ${PROJECT_SOURCE_DIR}/util/system/madvise.cpp
   ${PROJECT_SOURCE_DIR}/util/system/maxlen.cpp
-  ${PROJECT_SOURCE_DIR}/util/system/mem_info.cpp
   ${PROJECT_SOURCE_DIR}/util/system/mincore.cpp
   ${PROJECT_SOURCE_DIR}/util/system/mktemp.cpp
   ${PROJECT_SOURCE_DIR}/util/system/mlock.cpp
@@ -292,7 +295,6 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/system/rusage.cpp
   ${PROJECT_SOURCE_DIR}/util/system/rwlock.cpp
   ${PROJECT_SOURCE_DIR}/util/system/sanitizers.cpp
-  ${PROJECT_SOURCE_DIR}/util/system/sem.cpp
   ${PROJECT_SOURCE_DIR}/util/system/shellcommand.cpp
   ${PROJECT_SOURCE_DIR}/util/system/shmat.cpp
   ${PROJECT_SOURCE_DIR}/util/system/sigset.cpp
@@ -302,15 +304,21 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/system/sys_alloc.cpp
   ${PROJECT_SOURCE_DIR}/util/system/sysstat.cpp
   ${PROJECT_SOURCE_DIR}/util/system/tempfile.cpp
-  ${PROJECT_SOURCE_DIR}/util/system/thread.cpp
   ${PROJECT_SOURCE_DIR}/util/system/tls.cpp
-  ${PROJECT_SOURCE_DIR}/util/system/types.cpp
   ${PROJECT_SOURCE_DIR}/util/system/type_name.cpp
   ${PROJECT_SOURCE_DIR}/util/system/unaligned_mem.cpp
   ${PROJECT_SOURCE_DIR}/util/system/user.cpp
   ${PROJECT_SOURCE_DIR}/util/system/utime.cpp
   ${PROJECT_SOURCE_DIR}/util/system/yassert.cpp
   ${PROJECT_SOURCE_DIR}/util/system/yield.cpp
+)
+
+target_joined_source(yutil
+  all_system_4.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/mem_info.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/sem.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/thread.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/types.cpp
 )
 
 target_joined_source(yutil

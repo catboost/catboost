@@ -52,5 +52,9 @@ TDuration Uptime() {
     return TDuration::MilliSeconds(up * 1000.0);
 #elif defined(_darwin_)
     return GetDarwinUptime();
+#elif defined(_emscripten_)
+    ythrow yexception() << "unimplemented";
+#else
+    #error "Implement this method"
 #endif
 }

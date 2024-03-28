@@ -12,7 +12,7 @@
     #include <sys/types.h>
     #include <sys/mman.h>
 
-    #if !defined(_linux_)
+    #if !defined(_linux_) && !defined(_emscripten_)
         #ifdef MAP_POPULATE
             #error unlisted platform supporting MAP_POPULATE
         #endif
