@@ -15,12 +15,6 @@ target_compile_options(contrib-libs-zstd PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
-target_include_directories(contrib-libs-zstd PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib
-  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/common
-  ${PROJECT_SOURCE_DIR}/contrib/libs/zstd/lib/legacy
-)
-
 target_link_libraries(contrib-libs-zstd PUBLIC
   contrib-libs-linux-headers
   contrib-libs-xxhash
