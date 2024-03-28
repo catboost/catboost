@@ -1,5 +1,7 @@
 #include "guid.h"
 
+#include <library/cpp/yt/exception/exception.h>
+
 #include <util/random/random.h>
 
 #include <util/string/printf.h>

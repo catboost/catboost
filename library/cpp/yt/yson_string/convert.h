@@ -69,10 +69,10 @@ TYsonString ConvertToYsonString<TGuid>(const TGuid& value);
 // Note: these currently support a subset of NYT::NYTree::Convert features.
 
 class TYsonLiteralParseException
-    : public TCompositeException
+    : public TSimpleException
 {
 public:
-    using TCompositeException::TCompositeException;
+    using TSimpleException::TSimpleException;
 };
 
 template <>

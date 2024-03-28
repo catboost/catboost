@@ -1,43 +1,74 @@
 #pragma once
 
-#include <util/generic/string.h>
+#include "attributes.h"
+
+#include <util/generic/hash.h>
 
 #include <exception>
 
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
-// These are poor man's versions of NYT::TErrorException to be used in
+// This is poor man's version of NYT::TErrorException to be used in
 // a limited subset of core libraries that are needed to implement NYT::TError.
 
 class TSimpleException
     : public std::exception
 {
 public:
+    using TAttributes = THashMap<
+        TExceptionAttribute::TKey,
+        TExceptionAttribute::TValue>;
+
+    template <class TValue>
+    static constexpr bool CNestable = requires (TSimpleException& ex, TValue&& operand) {
+        { ex <<= std::forward<TValue>(operand) } -> std::same_as<TSimpleException&>;
+    };
+
     explicit TSimpleException(TString message);
-
-    const TString& GetMessage() const;
-    const char* what() const noexcept override;
-
-protected:
-    const TString Message_;
-};
-
-class TCompositeException
-    : public TSimpleException
-{
-public:
-    explicit TCompositeException(TString message);
-    TCompositeException(
+    TSimpleException(
         const std::exception& exception,
         TString message);
 
     const std::exception_ptr& GetInnerException() const;
     const char* what() const noexcept override;
 
+    const TString& GetMessage() const;
+
+    const TAttributes& GetAttributes() const &;
+    TAttributes&& GetAttributes() &&;
+
+    TSimpleException& operator<<= (TExceptionAttribute&& attribute) &;
+    TSimpleException& operator<<= (std::vector<TExceptionAttribute>&& attributes) &;
+    TSimpleException& operator<<= (TAttributes&& attributes) &;
+
+    TSimpleException& operator<<= (const TExceptionAttribute& attribute) &;
+    TSimpleException& operator<<= (const std::vector<TExceptionAttribute>& attributes) &;
+    TSimpleException& operator<<= (const TAttributes& attributes) &;
+
+    // NB: clang is incapable of parsing such requirements (which refer back to the class) out-of-line.
+    // To keep this overload from winning in resolution
+    // when constraint actually fails, we define method right here.
+    template <class TValue>
+        requires CNestable<TValue>
+    TSimpleException&& operator<< (TValue&& value) &&
+    {
+        return std::move(*this <<= std::forward<TValue>(value));
+    }
+
+    template <class TValue>
+        requires CNestable<TValue>
+    TSimpleException operator<< (TValue&& value) const &
+    {
+        return TSimpleException(*this) << std::forward<TValue>(value);
+    }
+
 private:
     const std::exception_ptr InnerException_;
+    const TString Message_;
     const TString What_;
+
+    TAttributes Attributes_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

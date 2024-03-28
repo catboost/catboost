@@ -3,6 +3,8 @@
 
 #include <library/cpp/yt/assert/assert.h>
 
+#include <library/cpp/yt/exception/exception.h>
+
 #include <util/generic/hash.h>
 
 #include <util/string/ascii.h>
