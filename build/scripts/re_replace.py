@@ -1,4 +1,5 @@
 import sys
+from typing import List
 import argparse
 import re
 
@@ -9,7 +10,7 @@ def patch_line(line: str, from_re: re.Pattern, to_re: str) -> str:
     return re.sub(from_re, to_re, line)
 
 
-def main(args: list[str]):
+def main(args: List[str]):
     argparser = argparse.ArgumentParser(allow_abbrev=False)
     argparser.add_argument('--from-re', required=True)
     argparser.add_argument('--to-re', required=True)
