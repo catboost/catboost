@@ -25,7 +25,7 @@ def lazy(func):
     lock = threading.Lock()
 
     @functools.wraps(func)
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         try:
             return result.result
         except AttributeError:
@@ -33,7 +33,7 @@ def lazy(func):
                 try:
                     return result.result
                 except AttributeError:
-                    result.result = func(*args)
+                    result.result = func(*args, **kwargs)
 
             return result.result
 
