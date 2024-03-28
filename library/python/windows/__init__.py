@@ -61,6 +61,7 @@ def win_only(f):
 
 def win_disabled(f):
     """Decorator for functions disabled on Windows"""
+
     def f_wrapped(*args, **kwargs):
         if on_win():
             run_disabled()
@@ -92,6 +93,7 @@ def diehard(winerrors, tries=100, delay=1):
 
     On non-Windows platforms fallbacks to function itself
     """
+
     def wrap(f):
         if not on_win():
             return f
