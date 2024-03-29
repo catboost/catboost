@@ -19,6 +19,7 @@ def main():
     parser.add_argument("--suffixes", nargs="*", default=[])
     parser.add_argument("--input")
     parser.add_argument("--ns")
+    parser.add_argument("--py_ver")
     parser.add_argument("protoc_args", nargs=argparse.REMAINDER)
     script_args = parser.parse_args()
 
@@ -72,7 +73,7 @@ def main():
         temp_file_name = path.join(temp_name, temp_base_name + suf)
         assert path.exists(temp_file_name)
 
-        orig_file_name = path.join(orig_name, orig_base_name + '__int__' + suf)
+        orig_file_name = path.join(orig_name, orig_base_name + '__int{}__'.format(script_args.py_ver) + suf)
         os.rename(temp_file_name, orig_file_name)
 
     shutil.rmtree(out_dir_temp)
