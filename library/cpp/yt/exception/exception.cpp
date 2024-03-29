@@ -6,14 +6,17 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+namespace {
+
 template <class TRange>
-    // requires (!std::is_lvalue_reference_v<TRange>)
 void AddAttributes(TSimpleException::TAttributes& attrs, TRange&& range)
 {
     for (auto&& [key, value] : range) {
         YT_VERIFY(attrs.emplace(std::move(key), std::move(value)).second);
     }
 }
+
+} // namespace
 
 ////////////////////////////////////////////////////////////////////////////////
 
