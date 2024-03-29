@@ -1022,14 +1022,17 @@
     "test.test_text_processing_dictionary": {
         "uri": "file://test.test_text_processing_dictionary/dictionary.tsv"
     },
-    "test.test_train_with_embedding_features[classification]": {
-        "uri": "file://test.test_train_with_embedding_features_classification_/predictions.txt"
+    "test.test_train_with_embedding_features[CPU-classification]": {
+        "uri": "file://test.test_train_with_embedding_features_CPU-classification_/predictions.txt"
     },
-    "test.test_train_with_embedding_features[ranking]": {
-        "uri": "file://test.test_train_with_embedding_features_ranking_/predictions.txt"
+    "test.test_train_with_embedding_features[CPU-multilabel]": {
+        "uri": "file://test.test_train_with_embedding_features_CPU-multilabel_/predictions.txt"
     },
-    "test.test_train_with_embedding_features[regression]": {
-        "uri": "file://test.test_train_with_embedding_features_regression_/predictions.txt"
+    "test.test_train_with_embedding_features[CPU-ranking]": {
+        "uri": "file://test.test_train_with_embedding_features_CPU-ranking_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[CPU-regression]": {
+        "uri": "file://test.test_train_with_embedding_features_CPU-regression_/predictions.txt"
     },
     "test.test_uncertainty_prediction_types[Logloss-TotalUncertainty-1]": {
         "uri": "file://test.test_uncertainty_prediction_types_Logloss-TotalUncertainty-1_/predictions.txt"

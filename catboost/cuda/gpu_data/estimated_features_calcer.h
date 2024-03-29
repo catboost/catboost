@@ -35,11 +35,6 @@ namespace NCatboostCuda {
                             TMaybe<TBinarizedFeatureVisitor> testVisitor
                             );
 
-        void ExecBinaryFeaturesEstimators(TConstArrayRef<NCB::TEstimatorId> estimatorIds,
-                                          TBinarizedFeatureVisitor visitor,
-                                          TMaybe<TBinarizedFeatureVisitor> testVisitor
-                                          );
-
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TFeatureEstimators& Estimators;

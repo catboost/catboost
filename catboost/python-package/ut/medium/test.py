@@ -72,6 +72,7 @@ generate_dataset_with_num_and_cat_features = lib.generate_dataset_with_num_and_c
 load_dataset_as_dataframe = lib.load_dataset_as_dataframe
 load_pool_features_as_df = lib.load_pool_features_as_df
 compare_with_limited_precision = lib.compare_with_limited_precision
+is_canonical_test_run = lib.is_canonical_test_run
 
 
 fails_on_gpu = pytest.mark.fails_on_gpu
@@ -178,6 +179,12 @@ CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 CAT_COLUMNS = [0, 2, 3, 5, 7, 9, 10, 11, 12, 13, 17]
 
 JSON_LOG_PATH = 'catboost_info/catboost_training.json'
+
+NO_RANDOM_PARAMS = {
+    'random_strength': 0,
+    'bootstrap_type': 'No',
+    'has_time': True
+}
 
 
 def JSON_LOG_CV_PATH(foldIdx):
@@ -10910,8 +10917,16 @@ def test_pandas_categorical_with_categories_as_string_array():
     clf.fit(X, y)
 
 
-@pytest.mark.parametrize('problem_type', ['classification', 'regression', 'ranking'])
-def test_train_with_embedding_features(problem_type):
+@pytest.mark.parametrize('problem_type', ['classification', 'regression', 'ranking', 'multilabel'])
+def test_train_with_embedding_features(task_type, problem_type):
+
+    def make_train_y(problem_type):
+        if problem_type == 'classification':
+            return [0, 1, 1, 0, 1, 0, 1]
+        elif problem_type == 'multilabel':
+            return [[0, 1], [1, 0], [1, 0], [1, 1], [0, 0], [1, 0], [1, 1]]
+        else:
+            return [0.0, 0.1, 0.2, 0.12, 0.3, 0.1, 0.13]
     train_pool = Pool(
         data=[
             [0.1, 3, [0.1, 0.2], [0.8, 0.3, 0.1], 0.12],
@@ -10922,10 +10937,18 @@ def test_train_with_embedding_features(problem_type):
             [0.3, 2, [0.1, 0.22], [0.1, 0.22, 0.2], 0.0],
             [0.5, 3, [0.21, 0.3], [0.4, 0.6, 0.33], 0.25]
         ],
-        label=[0, 1, 1, 0, 1, 0, 1] if problem_type == 'classification' else [0.0, 0.1, 0.2, 0.12, 0.3, 0.1, 0.13],
+        label=make_train_y(problem_type),
         group_id=[0, 0, 0, 1, 1, 1, 2],
         embedding_features=[2, 3]
     )
+
+    def make_test_y(problem_type):
+        if problem_type == 'classification':
+            return [1, 0, 0, 1]
+        elif problem_type == 'multilabel':
+            return [[1, 0], [0, 1], [0, 1], [1, 0]]
+        else:
+            return [0.1, 0.0, 0.3, 0.2]
     test_pool = Pool(
         data=[
             [0.3, 2, [0.0, 0.14], [0.9, 0.0, 0.12], 0.22],
@@ -10933,7 +10956,7 @@ def test_train_with_embedding_features(problem_type):
             [0.2, 7, [0.3, 0.11], [0.0, 0.2, 0.4], 0.7],
             [0.0, 3, [0.5, 0.3], [1.0, 0.93, 0.1], 0.8]
         ],
-        label=[1, 0, 0, 1] if problem_type == 'classification' else [0.1, 0.0, 0.3, 0.2],
+        label=make_test_y(problem_type),
         group_id=[0, 0, 1, 1],
         embedding_features=[2, 3]
     )
@@ -10943,9 +10966,12 @@ def test_train_with_embedding_features(problem_type):
             'loss_function' : {
                 'classification': 'Logloss',
                 'regression': 'RMSE',
-                'ranking': 'YetiRank'
+                'ranking': 'YetiRank',
+                'multilabel': 'MultiLogloss',
             }[problem_type],
-            'iterations' : 5
+            'iterations' : 5,
+            'task_type' : task_type,
+            **NO_RANDOM_PARAMS,
         }
     )
     model.fit(train_pool, eval_set=test_pool)
@@ -10953,7 +10979,9 @@ def test_train_with_embedding_features(problem_type):
     preds = model.predict(test_pool)
     preds_path = test_output_path(PREDS_TXT_PATH)
     np.savetxt(preds_path, np.array(preds))
-    return local_canonical_file(preds_path)
+
+    epsilon = 1e-18 if is_canonical_test_run() else 1e9
+    return local_canonical_file(preds_path, diff_tool=get_limited_precision_dsv_diff_tool(epsilon, False))
 
 
 @pytest.mark.parametrize(

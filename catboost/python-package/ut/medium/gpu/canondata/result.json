@@ -538,6 +538,18 @@
     "test.test_staged_predict[GPU]": {
         "uri": "file://test.test_staged_predict_GPU_/predictions.npy"
     },
+    "test.test_train_with_embedding_features[GPU-classification]": {
+        "uri": "file://test.test_train_with_embedding_features_GPU-classification_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[GPU-multilabel]": {
+        "uri": "file://test.test_train_with_embedding_features_GPU-multilabel_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[GPU-ranking]": {
+        "uri": "file://test.test_train_with_embedding_features_GPU-ranking_/predictions.txt"
+    },
+    "test.test_train_with_embedding_features[GPU-regression]": {
+        "uri": "file://test.test_train_with_embedding_features_GPU-regression_/predictions.txt"
+    },
     "test.test_verbose_int[GPU-5]": {
         "uri": "file://test.test_verbose_int_GPU-5_/catboost_training.json"
     },

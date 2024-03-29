@@ -292,16 +292,10 @@ namespace NCatboostCuda {
 
         void Write(const TVector<ui32>& featureIds) {
             using namespace std::placeholders;
-            THashSet<ui32> genericFeaturesToEstimate = TakeFeaturesToEstimate(featureIds);
+            const THashSet<ui32> genericFeaturesToEstimate = TakeFeaturesToEstimate(featureIds);
             Write(
                 genericFeaturesToEstimate,
                 std::bind(&TEstimatorsExecutor::ExecEstimators, EstimatorsExecutor, _1, _2, _3)
-            );
-
-            THashSet<ui32> binaryFeaturesToEstimate = TakeFeaturesToEstimate(featureIds, true);
-            Write(
-                binaryFeaturesToEstimate,
-                std::bind(&TEstimatorsExecutor::ExecBinaryFeaturesEstimators, EstimatorsExecutor, _1, _2, _3)
             );
         }
 
@@ -350,17 +344,11 @@ namespace NCatboostCuda {
             execEstimators(estimators, learnWriter, testWriter);
         }
 
-        THashSet<ui32> TakeFeaturesToEstimate(const TVector<ui32>& featureIds, bool takeBinaryFeatures = false) {
+        THashSet<ui32> TakeFeaturesToEstimate(const TVector<ui32>& featureIds) {
             THashSet<ui32> result;
             for (const auto& feature : featureIds) {
                 if (FeaturesManager.IsEstimatedFeature(feature)) {
-                    const ui32 featureBinCount = FeaturesManager.GetBinCount(feature);
-                    if (
-                        (takeBinaryFeatures && (featureBinCount == 2)) ||
-                        (!takeBinaryFeatures && (featureBinCount > 2))
-                    ) {
-                        result.insert(feature);
-                    }
+                    result.insert(feature);
                 }
             }
             return result;
