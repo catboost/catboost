@@ -592,31 +592,40 @@ static PyObject* AddSerializedFile(PyObject* pself, PyObject* serialized_pb) {
     PyErr_SetString(PyExc_TypeError, "Couldn't parse file content!");
     return NULL;
   }
-
+  // DescriptorPool::InternalAddGeneratedFile(message_type, message_len);
   // If the file was already part of a C++ library, all its descriptors are in
   // the underlying pool.  No need to do anything else.
   const FileDescriptor* generated_file = NULL;
   if (self->underlay) {
     generated_file = self->underlay->FindFileByName(file_proto.name());
   }
+
   if (generated_file != NULL) {
-    return PyFileDescriptor_FromDescriptorWithSerializedPb(
-        generated_file, serialized_pb);
+    return PyFileDescriptor_FromDescriptorWithSerializedPb(generated_file, serialized_pb);
   }
 
   BuildFileErrorCollector error_collector;
-  const FileDescriptor* descriptor =
-      self->pool->BuildFileCollectingErrors(file_proto,
-                                            &error_collector);
-  if (descriptor == NULL) {
-    PyErr_Format(PyExc_TypeError,
-                 "Couldn't build proto file into descriptor pool!\n%s",
-                 error_collector.error_message.c_str());
-    return NULL;
+
+  generated_file = self->pool->BuildFileCollectingErrors(file_proto, &error_collector);
+
+  if (generated_file != NULL) {
+    return PyFileDescriptor_FromDescriptorWithSerializedPb(generated_file, serialized_pb);
   }
 
-  return PyFileDescriptor_FromDescriptorWithSerializedPb(
-      descriptor, serialized_pb);
+  DescriptorPool::InternalAddGeneratedFile(message_type, message_len);
+
+  if (self->underlay) {
+    generated_file = self->underlay->FindFileByName(file_proto.name());
+  }
+
+  if (generated_file != NULL) {
+    return PyFileDescriptor_FromDescriptorWithSerializedPb(generated_file, serialized_pb);
+  }
+
+  PyErr_Format(PyExc_TypeError,
+                 "Couldn't build proto file into descriptor pool!\n%s",
+                 error_collector.error_message.c_str());
+  return NULL;
 }
 
 static PyObject* Add(PyObject* self, PyObject* file_descriptor_proto) {
