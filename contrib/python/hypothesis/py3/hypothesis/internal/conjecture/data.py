@@ -920,6 +920,50 @@ class IRNode:
     kwargs: IRKWargsType = attr.ib()
     was_forced: bool = attr.ib()
 
+    def copy(self, *, with_value: IRType) -> "IRNode":
+        # we may want to allow this combination in the future, but for now it's
+        # a footgun.
+        assert not self.was_forced, "modifying a forced node doesn't make sense"
+        return IRNode(
+            ir_type=self.ir_type,
+            value=with_value,
+            kwargs=self.kwargs,
+            was_forced=self.was_forced,
+        )
+
+
+def ir_value_permitted(value, ir_type, kwargs):
+    if ir_type == "integer":
+        if kwargs["min_value"] is not None and value < kwargs["min_value"]:
+            return False
+        if kwargs["max_value"] is not None and value > kwargs["max_value"]:
+            return False
+
+        return True
+    elif ir_type == "float":
+        if math.isnan(value):
+            return kwargs["allow_nan"]
+        return (
+            sign_aware_lte(kwargs["min_value"], value)
+            and sign_aware_lte(value, kwargs["max_value"])
+        ) and not (0 < abs(value) < kwargs["smallest_nonzero_magnitude"])
+    elif ir_type == "string":
+        if len(value) < kwargs["min_size"]:
+            return False
+        if kwargs["max_size"] is not None and len(value) > kwargs["max_size"]:
+            return False
+        return all(ord(c) in kwargs["intervals"] for c in value)
+    elif ir_type == "bytes":
+        return len(value) == kwargs["size"]
+    elif ir_type == "boolean":
+        if kwargs["p"] <= 2 ** (-64):
+            return value is False
+        if kwargs["p"] >= (1 - 2 ** (-64)):
+            return value is True
+        return True
+
+    raise NotImplementedError(f"unhandled type {type(value)} of ir value {value}")
+
 
 @dataclass_transform()
 @attr.s(slots=True)
@@ -1991,8 +2035,8 @@ class ConjectureData:
         p: float = 0.5,
         *,
         forced: Optional[bool] = None,
-        observe: bool = True,
         fake_forced: bool = False,
+        observe: bool = True,
     ) -> bool:
         # Internally, we treat probabilities lower than 1 / 2**64 as
         # unconditionally false.
@@ -2049,9 +2093,30 @@ class ConjectureData:
 
     def _pop_ir_tree_node(self, ir_type: IRTypeName, kwargs: IRKWargsType) -> IRNode:
         assert self.ir_tree_nodes is not None
+
+        if self.ir_tree_nodes == []:
+            self.mark_overrun()
+
         node = self.ir_tree_nodes.pop(0)
-        assert node.ir_type == ir_type
-        assert kwargs == node.kwargs
+        # If we're trying to draw a different ir type at the same location, then
+        # this ir tree has become badly misaligned. We don't have many good/simple
+        # options here for realigning beyond giving up.
+        #
+        # This is more of an issue for ir nodes while shrinking than it was for
+        # buffers: misaligned buffers are still usually valid, just interpreted
+        # differently. This would be somewhat like drawing a random value for
+        # the new ir type here. For what it's worth, misaligned buffers are
+        # rather unlikely to be *useful* buffers, so giving up isn't a big downgrade.
+        # (in fact, it is possible that giving up early here results in more time
+        # for useful shrinks to run).
+        if node.ir_type != ir_type:
+            self.mark_invalid()
+
+        # if a node has different kwargs (and so is misaligned), but has a value
+        # that is allowed by the expected kwargs, then we can coerce this node
+        # into an aligned one by using its value. It's unclear how useful this is.
+        if not ir_value_permitted(node.value, node.ir_type, kwargs):
+            self.mark_invalid()
 
         return node
 

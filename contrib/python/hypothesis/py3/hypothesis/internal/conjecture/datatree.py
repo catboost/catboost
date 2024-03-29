@@ -30,7 +30,12 @@ from hypothesis.internal.conjecture.data import (
     Status,
     StringKWargs,
 )
-from hypothesis.internal.floats import count_between_floats, float_to_int, int_to_float
+from hypothesis.internal.floats import (
+    count_between_floats,
+    float_to_int,
+    int_to_float,
+    sign_aware_lte,
+)
 
 
 class PreviouslyUnseenBehaviour(HypothesisException):
@@ -184,7 +189,35 @@ def compute_max_children(ir_type, kwargs):
         return sum(len(intervals) ** k for k in range(min_size, max_size + 1))
 
     elif ir_type == "float":
-        return count_between_floats(kwargs["min_value"], kwargs["max_value"])
+        min_value = kwargs["min_value"]
+        max_value = kwargs["max_value"]
+        smallest_nonzero_magnitude = kwargs["smallest_nonzero_magnitude"]
+
+        count = count_between_floats(min_value, max_value)
+
+        # we have two intervals:
+        # a. [min_value, max_value]
+        # b. [-smallest_nonzero_magnitude, smallest_nonzero_magnitude]
+        #
+        # which could be subsets (in either order), overlapping, or disjoint. We
+        # want the interval difference a - b.
+
+        # next_down because endpoints are ok with smallest_nonzero_magnitude
+        min_point = max(min_value, -flt.next_down(smallest_nonzero_magnitude))
+        max_point = min(max_value, flt.next_down(smallest_nonzero_magnitude))
+
+        if min_point > max_point:
+            # case: disjoint intervals.
+            return count
+
+        count -= count_between_floats(min_point, max_point)
+        if sign_aware_lte(min_value, -0.0) and sign_aware_lte(-0.0, max_value):
+            # account for -0.0
+            count += 1
+        if sign_aware_lte(min_value, 0.0) and sign_aware_lte(0.0, max_value):
+            # account for 0.0
+            count += 1
+        return count
 
     raise NotImplementedError(f"unhandled ir_type {ir_type}")
 
@@ -247,16 +280,30 @@ def all_children(ir_type, kwargs):
 
         min_value = kwargs["min_value"]
         max_value = kwargs["max_value"]
+        smallest_nonzero_magnitude = kwargs["smallest_nonzero_magnitude"]
+
+        # handle zeroes separately so smallest_nonzero_magnitude can think of
+        # itself as a complete interval (instead of a hole at ±0).
+        if sign_aware_lte(min_value, -0.0) and sign_aware_lte(-0.0, max_value):
+            yield -0.0
+        if sign_aware_lte(min_value, 0.0) and sign_aware_lte(0.0, max_value):
+            yield 0.0
 
         if flt.is_negative(min_value):
             if flt.is_negative(max_value):
-                # if both are negative, have to invert order
-                yield from floats_between(max_value, min_value)
+                # case: both negative.
+                max_point = min(max_value, -smallest_nonzero_magnitude)
+                # float_to_int increases as negative magnitude increases, so
+                # invert order.
+                yield from floats_between(max_point, min_value)
             else:
-                yield from floats_between(-0.0, min_value)
-                yield from floats_between(0.0, max_value)
+                # case: straddles midpoint (which is between -0.0 and 0.0).
+                yield from floats_between(-smallest_nonzero_magnitude, min_value)
+                yield from floats_between(smallest_nonzero_magnitude, max_value)
         else:
-            yield from floats_between(min_value, max_value)
+            # case: both positive.
+            min_point = max(min_value, smallest_nonzero_magnitude)
+            yield from floats_between(min_point, max_value)
 
 
 @attr.s(slots=True)

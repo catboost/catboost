@@ -133,6 +133,7 @@ class Shrinker:
     def consider(self, value):
         """Returns True if make_immutable(value) == self.current after calling
         self.incorporate(value)."""
+        self.debug(f"considering {value}")
         value = self.make_immutable(value)
         if value == self.current:
             return True

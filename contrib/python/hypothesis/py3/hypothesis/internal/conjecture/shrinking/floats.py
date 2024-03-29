@@ -11,6 +11,7 @@
 import math
 import sys
 
+from hypothesis.internal.conjecture.data import ir_value_permitted
 from hypothesis.internal.conjecture.floats import float_to_lex
 from hypothesis.internal.conjecture.shrinking.common import Shrinker
 from hypothesis.internal.conjecture.shrinking.integer import Integer
@@ -19,9 +20,16 @@ MAX_PRECISE_INTEGER = 2**53
 
 
 class Float(Shrinker):
-    def setup(self):
+    def setup(self, node):
         self.NAN = math.nan
         self.debugging_enabled = True
+        self.node = node
+
+    def consider(self, value):
+        if not ir_value_permitted(value, "float", self.node.kwargs):
+            self.debug(f"rejecting {value} as disallowed for {self.node.kwargs}")
+            return False
+        return super().consider(value)
 
     def make_immutable(self, f):
         f = float(f)

@@ -8,6 +8,7 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+import math
 from collections import defaultdict
 from typing import TYPE_CHECKING, Callable, Dict, Optional
 
@@ -19,14 +20,9 @@ from hypothesis.internal.conjecture.choicetree import (
     prefix_selection_order,
     random_selection_order,
 )
-from hypothesis.internal.conjecture.data import (
-    DRAW_FLOAT_LABEL,
-    ConjectureData,
-    ConjectureResult,
-    Status,
-)
+from hypothesis.internal.conjecture.data import ConjectureData, ConjectureResult, Status
 from hypothesis.internal.conjecture.dfa import ConcreteDFA
-from hypothesis.internal.conjecture.floats import float_to_lex, lex_to_float
+from hypothesis.internal.conjecture.floats import is_simple
 from hypothesis.internal.conjecture.junkdrawer import (
     binary_search,
     find_integer,
@@ -378,6 +374,12 @@ class Shrinker:
         """Return the number of calls that have been made to the underlying
         test function."""
         return self.engine.call_count
+
+    def consider_new_tree(self, tree):
+        data = ConjectureData.for_ir_tree(tree)
+        self.engine.test_function(data)
+
+        return self.consider_new_buffer(data.buffer)
 
     def consider_new_buffer(self, buffer):
         """Returns True if after running this buffer the result would be
@@ -773,6 +775,10 @@ class Shrinker:
     @property
     def blocks(self):
         return self.shrink_target.blocks
+
+    @property
+    def nodes(self):
+        return self.shrink_target.examples.ir_tree_nodes
 
     @property
     def examples(self):
@@ -1207,31 +1213,32 @@ class Shrinker:
         anything particularly meaningful for non-float values.
         """
 
-        ex = chooser.choose(
-            self.examples,
-            lambda ex: (
-                ex.label == DRAW_FLOAT_LABEL
-                and len(ex.children) == 2
-                and ex.children[1].length == 8
-            ),
+        node = chooser.choose(
+            self.nodes,
+            lambda node: node.ir_type == "float" and not node.was_forced
+            # avoid shrinking integer-valued floats. In our current ordering, these
+            # are already simpler than all other floats, so it's better to shrink
+            # them in other passes.
+            and not is_simple(node.value),
         )
 
-        u = ex.children[1].start
-        v = ex.children[1].end
-        buf = self.shrink_target.buffer
-        b = buf[u:v]
-        f = lex_to_float(int_from_bytes(b))
-        b2 = int_to_bytes(float_to_lex(f), 8)
-        if b == b2 or self.consider_new_buffer(buf[:u] + b2 + buf[v:]):
-            Float.shrink(
-                f,
-                lambda x: self.consider_new_buffer(
-                    self.shrink_target.buffer[:u]
-                    + int_to_bytes(float_to_lex(x), 8)
-                    + self.shrink_target.buffer[v:]
-                ),
-                random=self.random,
-            )
+        i = self.nodes.index(node)
+        # the Float shrinker was only built to handle positive floats. We'll
+        # shrink the positive portion and reapply the sign after, which is
+        # equivalent to this shrinker's previous behavior. We'll want to refactor
+        # Float to handle negative floats natively in the future. (likely a pure
+        # code quality change, with no shrinking impact.)
+        sign = math.copysign(1.0, node.value)
+        Float.shrink(
+            abs(node.value),
+            lambda val: self.consider_new_tree(
+                self.nodes[:i]
+                + [node.copy(with_value=sign * val)]
+                + self.nodes[i + 1 :]
+            ),
+            random=self.random,
+            node=node,
+        )
 
     @defines_shrink_pass()
     def redistribute_block_pairs(self, chooser):
