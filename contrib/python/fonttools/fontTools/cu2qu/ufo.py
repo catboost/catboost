@@ -250,7 +250,7 @@ def fonts_to_quadratic(
     compatibility. If this is not required, calling fonts_to_quadratic with one
     font at a time may yield slightly more optimized results.
 
-    Return True if fonts were modified, else return False.
+    Return the set of modified glyph names if any, else return an empty set.
 
     By default, cu2qu stores the curve type in the fonts' lib, under a private
     key "com.github.googlei18n.cu2qu.curve_type", and will not try to convert
@@ -296,7 +296,7 @@ def fonts_to_quadratic(
     elif max_err_em:
         max_errors = [f.info.unitsPerEm * max_err_em for f in fonts]
 
-    modified = False
+    modified = set()
     glyph_errors = {}
     for name in set().union(*(f.keys() for f in fonts)):
         glyphs = []
@@ -306,9 +306,10 @@ def fonts_to_quadratic(
                 glyphs.append(font[name])
                 cur_max_errors.append(error)
         try:
-            modified |= _glyphs_to_quadratic(
+            if _glyphs_to_quadratic(
                 glyphs, cur_max_errors, reverse_direction, stats, all_quadratic
-            )
+            ):
+                modified.add(name)
         except IncompatibleGlyphsError as exc:
             logger.error(exc)
             glyph_errors[name] = exc
@@ -329,7 +330,6 @@ def fonts_to_quadratic(
             new_curve_type = "quadratic" if all_quadratic else "mixed"
             if curve_type != new_curve_type:
                 font.lib[CURVE_TYPE_LIB_KEY] = new_curve_type
-                modified = True
     return modified
 
 
@@ -343,7 +343,7 @@ def glyph_to_quadratic(glyph, **kwargs):
 
 def font_to_quadratic(font, **kwargs):
     """Convenience wrapper around fonts_to_quadratic, for just one font.
-    Return True if the font was modified, else return False.
+    Return the set of modified glyph names if any, else return empty set.
     """
 
     return fonts_to_quadratic([font], **kwargs)
