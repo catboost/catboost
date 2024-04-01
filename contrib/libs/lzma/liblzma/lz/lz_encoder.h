@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: 0BSD
-
 ///////////////////////////////////////////////////////////////////////////////
 //
 /// \file       lz_encoder.h
@@ -8,20 +6,15 @@
 //  Authors:    Igor Pavlov
 //              Lasse Collin
 //
+//  This file has been put into the public domain.
+//  You can do whatever you want with this file.
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef LZMA_LZ_ENCODER_H
 #define LZMA_LZ_ENCODER_H
 
 #include "common.h"
-
-
-// For now, the dictionary size is limited to 1.5 GiB. This may grow
-// in the future if needed, but it needs a little more work than just
-// changing this check.
-#define IS_ENC_DICT_SIZE_VALID(size) \
-	((size) >= LZMA_DICT_SIZE_MIN \
-			&&  (size) <= (UINT32_C(1) << 30) + (UINT32_C(1) << 29))
 
 
 /// A table of these is used by the LZ-based encoder to hold
@@ -228,7 +221,7 @@ typedef struct {
 //  3. The literals and matches are encoded using e.g. LZMA.
 //
 // The bytes that have been ran through the match finder, but not encoded yet,
-// are called 'read ahead'.
+// are called `read ahead'.
 
 
 /// Get how many bytes the match finder hashes in its initial step.

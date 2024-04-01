@@ -143,37 +143,43 @@ XZ Utils Installation
 
 1.2.7. Windows
 
-    The "windows" directory contains instructions for a few types
-    of builds:
+    If it is enough to build liblzma (no command line tools):
 
-      - INSTALL-MinGW-w64_with_CMake.txt
-                Simple instructions how to build XZ Utils natively on
-                Windows using only CMake and a prebuilt toolchain
-                (GCC + MinGW-w64 or Clang/LLVM + MinGW-w64).
+      - There is CMake support. It should be good enough to build
+        static liblzma or liblzma.dll with Visual Studio. The CMake
+        support may work with MinGW or MinGW-w64. Read the comment
+        in the beginning of CMakeLists.txt before running CMake!
 
-      - INSTALL-MinGW-w64_with_Autotools.txt
-                Native build under MSYS2 or cross-compilation from
-                GNU/Linux using a bash script that creates a .zip
-                and .7z archives of the binaries and documentation.
-                The related file README-Windows.txt is for the
-                resulting binary package.
+      - There are Visual Studio project files under the "windows"
+        directory. See windows/INSTALL-MSVC.txt. In the future the
+        project files will be removed when CMake support is good
+        enough. Thus, please test the CMake version and help fix
+        possible issues.
 
-      - INSTALL-MSVC.txt
-                Building with MSVC / Visual Studio and CMake.
+    To build also the command line tools:
 
-      - liblzma-crt-mixing.txt
-                Documentation what to take into account as a programmer
-                if liblzma.dll and the application don't use the same
-                CRT (MSVCRT or UCRT).
+      - MinGW-w64 + MSYS (32-bit and 64-bit x86): This is used
+        for building the official binary packages for Windows.
+        There is windows/build.bash to ease packaging XZ Utils with
+        MinGW(-w64) + MSYS into a redistributable .zip or .7z file.
+        See windows/INSTALL-MinGW.txt for more information.
 
-    Other choices:
+      - MinGW + MSYS (32-bit x86): I haven't recently tested this.
 
-      - Cygwin: https://cygwin.com/
-        Building on Cygwin can be done like on many POSIX operating
-        systems. XZ Utils >= 5.2.0 isn't compatible with Cygwin older
-        than 1.7.35 (data loss!). 1.7.35 was released on 2015-03-04.
+      - Cygwin 1.7.35 and later: NOTE that using XZ Utils >= 5.2.0
+        under Cygwin older than 1.7.35 can lead to DATA LOSS! If
+        you must use an old Cygwin version, stick to XZ Utils 5.0.x
+        which is safe under older Cygwin versions. You can check
+        the Cygwin version with the command "cygcheck -V".
 
-      - MSYS2: https://www.msys2.org/
+    It may be possible to build liblzma with other toolchains too, but
+    that will probably require writing a separate makefile. Building
+    the command line tools with non-GNU toolchains will be harder than
+    building only liblzma.
+
+    Even if liblzma is built with MinGW(-w64), the resulting DLL can
+    be used by other compilers and linkers, including MSVC. See
+    windows/README-Windows.txt for details.
 
 
 1.2.8. DOS
@@ -353,20 +359,20 @@ XZ Utils Installation
                 with --docdir=DIR.
 
     --disable-assembler
-                This disables CRC32 and CRC64 assembly code on
-                32-bit x86. This option currently does nothing
-                on other architectures (not even on x86-64).
+                liblzma includes some assembler optimizations. Currently
+                there is only assembler code for CRC32 and CRC64 for
+                32-bit x86.
 
-                The 32-bit x86 assembly is position-independent code
-                which is suitable for use in shared libraries and
-                position-independent executables. It uses only i386
-                instructions but the code is optimized for i686 class
-                CPUs. If you are compiling liblzma exclusively for
+                All the assembler code in liblzma is position-independent
+                code, which is suitable for use in shared libraries and
+                position-independent executables. So far only i386
+                instructions are used, but the code is optimized for i686
+                class CPUs. If you are compiling liblzma exclusively for
                 pre-i686 systems, you may want to disable the assembler
                 code.
 
     --disable-clmul-crc
-                Disable the use of carryless multiplication for CRC
+                Disable the use carryless multiplication for CRC
                 calculation even if compiler support for it is detected.
                 The code uses runtime detection of SSSE3, SSE4.1, and
                 CLMUL instructions on x86. On 32-bit x86 this currently
@@ -377,16 +383,6 @@ XZ Utils Installation
                 required extensions (-msse4.1 -mpclmul) then runtime
                 detection isn't used and the generic code is omitted.
 
-    --disable-arm64-crc32
-                Disable the use of the ARM64 CRC32 instruction extension
-                even if compiler support for it is detected. The code will
-                detect support for the instruction at runtime.
-
-                If using compiler options that unconditionally allow the
-                required extensions (-march=armv8-a+crc or -march=armv8.1-a
-                and later) then runtime detection isn't used and the
-                generic code is omitted.
-
     --enable-unaligned-access
                 Allow liblzma to use unaligned memory access for 16-bit,
                 32-bit, and 64-bit loads and stores. This should be
@@ -396,43 +392,8 @@ XZ Utils Installation
                 slow. This option shouldn't be used on systems that
                 rely on such emulation.
 
-                Unaligned access is enabled by default on these:
-                  - 32-bit x86
-                  - 64-bit x86-64
-                  - 32-bit big endian PowerPC
-                  - 64-bit big endian PowerPC
-                  - 64-bit little endian PowerPC
-                  - some RISC-V [1]
-                  - some 32-bit ARM [2]
-                  - some 64-bit ARM64 [2] (NOTE: Autodetection bug
-                    if using GCC -mstrict-align, see below.)
-
-                [1] Unaligned access is enabled by default if
-                    configure sees that the C compiler
-                    #defines __riscv_misaligned_fast.
-
-                [2] Unaligned access is enabled by default if
-                    configure sees that the C compiler
-                    #defines __ARM_FEATURE_UNALIGNED:
-
-                      - ARMv7 + GCC or Clang: It works. The options
-                        -munaligned-access and -mno-unaligned-access
-                        affect this macro correctly.
-
-                      - ARM64 + Clang: It works. The options
-                        -munaligned-access, -mno-unaligned-access,
-                        and -mstrict-align affect this macro correctly.
-                        Clang >= 17 supports -mno-strict-align too.
-
-                      - ARM64 + GCC: It partially works. The macro
-                        is always #defined by GCC versions at least
-                        up to 13.2, even when using -mstrict-align.
-                        If building for strict-align ARM64, the
-                        configure option --disable-unaligned-access
-                        should be used if using a GCC version that has
-                        this issue because otherwise the performance
-                        may be degraded. It likely won't crash due to
-                        how unaligned access is done in the C code.
+                Unaligned access is enabled by default on x86, x86-64,
+                big endian PowerPC, some ARM, and some ARM64 systems.
 
     --enable-unsafe-type-punning
                 This enables use of code like
@@ -499,14 +460,14 @@ XZ Utils Installation
                                 too. This is the default for 32-bit x86
                                 Windows builds. Unless the compiler
                                 supports __attribute__((__constructor__)),
-                                the 'win95' threading is incompatible with
+                                the `win95' threading is incompatible with
                                 --enable-small.
 
                         vista   Use Windows Vista compatible threads. The
                                 resulting binaries won't run on Windows XP
                                 or older. This is the default for Windows
                                 excluding 32-bit x86 builds (that is, on
-                                x86-64 the default is 'vista').
+                                x86-64 the default is `vista').
 
                         no      Disable threading support. This is the
                                 same as using --disable-threads.
@@ -518,25 +479,14 @@ XZ Utils Installation
                                 calls any liblzma functions from more than
                                 one thread, something bad may happen.
 
-    --enable-ifunc
-                Use __attribute__((__ifunc__())) in liblzma. This is
-                enabled by default on GNU/Linux and FreeBSD.
-
-                The ifunc attribute is incompatible with
-                -fsanitize=address. --disable-ifunc must be used
-                if any -fsanitize= option is specified in CFLAGS.
-
     --enable-sandbox=METHOD
-                There is limited sandboxing support in the xz and xzdec
-                tools. If built with sandbox support, xz uses it
-                automatically when (de)compressing exactly one file to
-                standard output when the options --files or --files0 aren't
-                used. This is a common use case, for example,
-                (de)compressing .tar.xz files via GNU tar. The sandbox is
-                also used for single-file 'xz --test' or 'xz --list'.
-                xzdec always uses the sandbox, except when more than one
-                file are decompressed. In this case it will enable the
-                sandbox for the last file that is decompressed.
+                There is limited sandboxing support in the xz tool. If
+                built with sandbox support, it's used automatically when
+                (de)compressing exactly one file to standard output and
+                the options --files or --files0 weren't used. This is a
+                common use case, for example, (de)compressing .tar.xz
+                files via GNU tar. The sandbox is also used for
+                single-file `xz --test' or `xz --list'.
 
                 Supported METHODs:
 
@@ -548,18 +498,13 @@ XZ Utils Installation
                         no      Disable sandboxing support.
 
                         capsicum
-                                Use Capsicum (FreeBSD >= 10.2) for
+                                Use Capsicum (FreeBSD >= 10) for
                                 sandboxing. If no Capsicum support
                                 is found, configure will give an error.
 
                         pledge  Use pledge(2) (OpenBSD >= 5.9) for
                                 sandboxing. If pledge(2) isn't found,
                                 configure will give an error.
-
-                        landlock
-                                Use Landlock (Linux >= 5.13) for
-                                sandboxing. If no Landlock support
-                                is found, configure will give an error.
 
     --enable-symbol-versions
                 Use symbol versioning for liblzma. This is enabled by
