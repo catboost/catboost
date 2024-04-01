@@ -376,8 +376,7 @@ class Shrinker:
         return self.engine.call_count
 
     def consider_new_tree(self, tree):
-        data = ConjectureData.for_ir_tree(tree)
-        self.engine.test_function(data)
+        data = self.engine.ir_tree_to_data(tree)
 
         return self.consider_new_buffer(data.buffer)
 
@@ -1413,20 +1412,31 @@ class Shrinker:
         ex = chooser.choose(self.examples)
         label = chooser.choose(ex.children).label
 
-        group = [c for c in ex.children if c.label == label]
-        if len(group) <= 1:
+        examples = [c for c in ex.children if c.label == label]
+        if len(examples) <= 1:
             return
-
         st = self.shrink_target
-        pieces = [st.buffer[ex.start : ex.end] for ex in group]
-        endpoints = [(ex.start, ex.end) for ex in group]
+        endpoints = [(ex.ir_start, ex.ir_end) for ex in examples]
 
         Ordering.shrink(
-            pieces,
-            lambda ls: self.consider_new_buffer(
-                replace_all(st.buffer, [(u, v, r) for (u, v), r in zip(endpoints, ls)])
+            range(len(examples)),
+            lambda indices: self.consider_new_tree(
+                replace_all(
+                    st.examples.ir_nodes,
+                    [
+                        (
+                            u,
+                            v,
+                            st.examples.ir_nodes[
+                                examples[i].ir_start : examples[i].ir_end
+                            ],
+                        )
+                        for (u, v), i in zip(endpoints, indices)
+                    ],
+                )
             ),
             random=self.random,
+            key=lambda i: st.buffer[examples[i].start : examples[i].end],
         )
 
     def run_block_program(self, i, description, original, repeats=1):

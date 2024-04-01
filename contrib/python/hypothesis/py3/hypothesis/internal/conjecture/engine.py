@@ -239,6 +239,11 @@ class ConjectureRunner:
                     # correct engine.
                     raise
 
+    def ir_tree_to_data(self, ir_tree_nodes):
+        data = ConjectureData.for_ir_tree(ir_tree_nodes)
+        self.__stoppable_test_function(data)
+        return data
+
     def test_function(self, data):
         if self.__pending_call_explanation is not None:
             self.debug(self.__pending_call_explanation)
@@ -273,7 +278,11 @@ class ConjectureRunner:
 
         self.debug_data(data)
 
-        if self.pareto_front is not None and self.pareto_front.add(data.as_result()):
+        if (
+            data.target_observations
+            and self.pareto_front is not None
+            and self.pareto_front.add(data.as_result())
+        ):
             self.save_buffer(data.buffer, sub_key=b"pareto")
 
         assert len(data.buffer) <= BUFFER_SIZE
@@ -312,8 +321,7 @@ class ConjectureRunner:
 
                 # drive the ir tree through the test function to convert it
                 # to a buffer
-                data = ConjectureData.for_ir_tree(data.examples.ir_tree_nodes)
-                self.__stoppable_test_function(data)
+                data = self.ir_tree_to_data(data.examples.ir_tree_nodes)
                 self.__data_cache[data.buffer] = data.as_result()
 
             key = data.interesting_origin

@@ -35,6 +35,8 @@ from hypothesis.errors import HypothesisWarning
 
 ARRAY_CODES = ["B", "H", "I", "L", "Q", "O"]
 
+T = TypeVar("T")
+
 
 def array_or_list(
     code: str, contents: Iterable[int]
@@ -45,25 +47,25 @@ def array_or_list(
 
 
 def replace_all(
-    buffer: Sequence[int],
-    replacements: Iterable[Tuple[int, int, Sequence[int]]],
-) -> bytes:
-    """Substitute multiple replacement values into a buffer.
+    ls: Sequence[T],
+    replacements: Iterable[Tuple[int, int, Sequence[T]]],
+) -> List[T]:
+    """Substitute multiple replacement values into a list.
 
     Replacements is a list of (start, end, value) triples.
     """
 
-    result = bytearray()
+    result: List[T] = []
     prev = 0
     offset = 0
     for u, v, r in replacements:
-        result.extend(buffer[prev:u])
+        result.extend(ls[prev:u])
         result.extend(r)
         prev = v
         offset += len(r) - (v - u)
-    result.extend(buffer[prev:])
-    assert len(result) == len(buffer) + offset
-    return bytes(result)
+    result.extend(ls[prev:])
+    assert len(result) == len(ls) + offset
+    return result
 
 
 NEXT_ARRAY_CODE = dict(zip(ARRAY_CODES, ARRAY_CODES[1:]))
@@ -188,9 +190,6 @@ def binary_search(lo: int, hi: int, f: Callable[[int], bool]) -> int:
 def uniform(random: Random, n: int) -> bytes:
     """Returns a bytestring of length n, distributed uniformly at random."""
     return random.getrandbits(n * 8).to_bytes(n, "big")
-
-
-T = TypeVar("T")
 
 
 class LazySequenceCopy:

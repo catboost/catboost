@@ -290,6 +290,14 @@ class Example:
         return self.owner.ends[self.index]
 
     @property
+    def ir_start(self) -> int:
+        return self.owner.ir_starts[self.index]
+
+    @property
+    def ir_end(self) -> int:
+        return self.owner.ir_ends[self.index]
+
+    @property
     def depth(self):
         """Depth of this example in the example tree. The top-level example has a
         depth of 0."""
@@ -528,6 +536,32 @@ class Examples:
     @property
     def ends(self) -> IntList:
         return self.starts_and_ends[1]
+
+    class _ir_starts_and_ends(ExampleProperty):
+        def begin(self):
+            self.starts = IntList.of_length(len(self.examples))
+            self.ends = IntList.of_length(len(self.examples))
+
+        def start_example(self, i: int, label_index: int) -> None:
+            self.starts[i] = self.ir_node_count
+
+        def stop_example(self, i: int, *, discarded: bool) -> None:
+            self.ends[i] = self.ir_node_count
+
+        def finish(self) -> Tuple[IntList, IntList]:
+            return (self.starts, self.ends)
+
+    ir_starts_and_ends: "Tuple[IntList, IntList]" = calculated_example_property(
+        _ir_starts_and_ends
+    )
+
+    @property
+    def ir_starts(self) -> IntList:
+        return self.ir_starts_and_ends[0]
+
+    @property
+    def ir_ends(self) -> IntList:
+        return self.ir_starts_and_ends[1]
 
     class _discarded(ExampleProperty):
         def begin(self) -> None:
@@ -856,9 +890,6 @@ class _Overrun:
     def __repr__(self):
         return "Overrun"
 
-    def as_result(self) -> "_Overrun":
-        return self
-
 
 Overrun = _Overrun()
 
@@ -913,7 +944,7 @@ class DataObserver:
         pass
 
 
-@attr.s(slots=True)
+@attr.s(slots=True, repr=False, eq=False)
 class IRNode:
     ir_type: IRTypeName = attr.ib()
     value: IRType = attr.ib()
@@ -930,6 +961,22 @@ class IRNode:
             kwargs=self.kwargs,
             was_forced=self.was_forced,
         )
+
+    def __eq__(self, other):
+        if not isinstance(other, IRNode):
+            return NotImplemented
+
+        return (
+            self.ir_type == other.ir_type
+            and ir_value_equal(self.ir_type, self.value, other.value)
+            and ir_kwargs_equal(self.ir_type, self.kwargs, other.kwargs)
+            and self.was_forced == other.was_forced
+        )
+
+    def __repr__(self):
+        # repr to avoid "BytesWarning: str() on a bytes instance" for bytes nodes
+        forced_marker = " [forced]" if self.was_forced else ""
+        return f"{self.ir_type} {self.value!r}{forced_marker} {self.kwargs!r}"
 
 
 def ir_value_permitted(value, ir_type, kwargs):
@@ -963,6 +1010,24 @@ def ir_value_permitted(value, ir_type, kwargs):
         return True
 
     raise NotImplementedError(f"unhandled type {type(value)} of ir value {value}")
+
+
+def ir_value_equal(ir_type, v1, v2):
+    if ir_type != "float":
+        return v1 == v2
+    return float_to_int(v1) == float_to_int(v2)
+
+
+def ir_kwargs_equal(ir_type, kwargs1, kwargs2):
+    if ir_type != "float":
+        return kwargs1 == kwargs2
+    return (
+        float_to_int(kwargs1["min_value"]) == float_to_int(kwargs2["min_value"])
+        and float_to_int(kwargs1["max_value"]) == float_to_int(kwargs2["max_value"])
+        and kwargs1["allow_nan"] == kwargs2["allow_nan"]
+        and kwargs1["smallest_nonzero_magnitude"]
+        == kwargs2["smallest_nonzero_magnitude"]
+    )
 
 
 @dataclass_transform()
@@ -1879,9 +1944,10 @@ class ConjectureData:
 
         if self.ir_tree_nodes is not None and observe:
             node = self._pop_ir_tree_node("integer", kwargs)
-            assert isinstance(node.value, int)
-            forced = node.value
-            fake_forced = not node.was_forced
+            if forced is None:
+                assert isinstance(node.value, int)
+                forced = node.value
+                fake_forced = True
 
         value = self.provider.draw_integer(
             **kwargs, forced=forced, fake_forced=fake_forced
@@ -1935,9 +2001,10 @@ class ConjectureData:
 
         if self.ir_tree_nodes is not None and observe:
             node = self._pop_ir_tree_node("float", kwargs)
-            assert isinstance(node.value, float)
-            forced = node.value
-            fake_forced = not node.was_forced
+            if forced is None:
+                assert isinstance(node.value, float)
+                forced = node.value
+                fake_forced = True
 
         value = self.provider.draw_float(
             **kwargs, forced=forced, fake_forced=fake_forced
@@ -1976,9 +2043,10 @@ class ConjectureData:
         )
         if self.ir_tree_nodes is not None and observe:
             node = self._pop_ir_tree_node("string", kwargs)
-            assert isinstance(node.value, str)
-            forced = node.value
-            fake_forced = not node.was_forced
+            if forced is None:
+                assert isinstance(node.value, str)
+                forced = node.value
+                fake_forced = True
 
         value = self.provider.draw_string(
             **kwargs, forced=forced, fake_forced=fake_forced
@@ -2011,9 +2079,10 @@ class ConjectureData:
 
         if self.ir_tree_nodes is not None and observe:
             node = self._pop_ir_tree_node("bytes", kwargs)
-            assert isinstance(node.value, bytes)
-            forced = node.value
-            fake_forced = not node.was_forced
+            if forced is None:
+                assert isinstance(node.value, bytes)
+                forced = node.value
+                fake_forced = True
 
         value = self.provider.draw_bytes(
             **kwargs, forced=forced, fake_forced=fake_forced
@@ -2052,9 +2121,10 @@ class ConjectureData:
 
         if self.ir_tree_nodes is not None and observe:
             node = self._pop_ir_tree_node("boolean", kwargs)
-            assert isinstance(node.value, bool)
-            forced = node.value
-            fake_forced = not node.was_forced
+            if forced is None:
+                assert isinstance(node.value, bool)
+                forced = node.value
+                fake_forced = True
 
         value = self.provider.draw_boolean(
             **kwargs, forced=forced, fake_forced=fake_forced
