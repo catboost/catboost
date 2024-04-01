@@ -30,6 +30,7 @@
   "PULL_REQUEST_TEMPLATE.md":"catboost/github_toplevel/PULL_REQUEST_TEMPLATE.md",
   "README.md":"catboost/github_toplevel/README.md",
   "RELEASE.md":"catboost/github_toplevel/RELEASE.md",
+  "SECURITY.md":"catboost/github_toplevel/SECURITY.md",
   "build/build_native.py":"catboost/github_toplevel/build/build_native.py",
   "build/scripts/create_recursive_library_for_cmake.py":"",
   "build/scripts/export_script_gen.py":"",
