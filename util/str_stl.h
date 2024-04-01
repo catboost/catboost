@@ -11,6 +11,8 @@
 #include <typeindex>
 #include <utility>
 
+#ifndef NO_CUSTOM_CHAR_PTR_STD_COMPARATOR
+
 namespace std {
     template <>
     struct less<const char*> {
@@ -29,6 +31,8 @@ namespace std {
         using is_transparent = void;
     };
 }
+
+#endif
 
 namespace NHashPrivate {
     template <class T, bool needNumericHashing>
