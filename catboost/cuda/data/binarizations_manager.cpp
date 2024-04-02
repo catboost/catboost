@@ -82,6 +82,18 @@ namespace NCatboostCuda {
         return Borders.contains(featureId);
     }
 
+    bool TBinarizedFeaturesManager::IsEmbedding(ui32 featureId) const {
+        if (!FeatureManagerIdToEstimatedFeatureId.contains(featureId)) {
+            return false;
+        }
+        const auto& featuresLayout = *QuantizedFeaturesInfo->GetFeaturesLayout();
+        const auto& metaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
+        const auto estimatedFeatureId = FeatureManagerIdToDataProviderId[featureId];
+
+        return metaInfo[estimatedFeatureId].Type == EFeatureType::Embedding;
+    }
+
+
     bool TBinarizedFeaturesManager::IsFloat(ui32 featureId) const {
         if (FeatureManagerIdToDataProviderId.contains(featureId)) {
             return DataProviderFloatFeatureIdToFeatureManagerId.contains(FeatureManagerIdToDataProviderId.at(featureId));
