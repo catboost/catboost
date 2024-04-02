@@ -5,18 +5,26 @@ import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
+import java.util.stream.Stream;
 
 
 public class NativeLib {
     private static final Logger logger = LoggerFactory.getLogger(NativeLib.class);
+    private static final String LOCK_EXT = ".lck";
 
     /**
-     * Load libName, first will try try to load libName from default location then will try to load library from JAR.
+     * Load libName, first will try to load libName from default location then will try to load library from JAR.
      *
      * @param libName
      * @throws IOException
      */
-    public static void smartLoad(final @NotNull String libName) throws IOException {
+    public static synchronized void smartLoad(final @NotNull String libName) throws IOException {
+        cleanup(libName);
         try {
             loadNativeLibraryFromJar(libName);
         } catch (IOException ioe) {
@@ -101,14 +109,86 @@ public class NativeLib {
         final String filename = parts[parts.length - 1];
 
         parts = filename.split("\\.", 2);
-        final String prefix = parts[0];
+        final String prefix = parts[0] + "-" + getVersion() + "-";
         final String suffix = parts.length > 1 ? "." + parts[parts.length - 1] : null;
 
         final File libOnDisk = File.createTempFile(prefix, suffix);
         libOnDisk.deleteOnExit();
 
+        final File libOnDiskLck = new File(libOnDisk.getAbsolutePath() + LOCK_EXT);
+        libOnDiskLck.createNewFile();
+        libOnDiskLck.deleteOnExit();
+
         copyFileFromJar(pathWithinJar, libOnDisk.getPath());
 
         return libOnDisk.getAbsolutePath();
+    }
+
+    /** @return The version of the catboost */
+    public static String getVersion() {
+        return VersionHolder.VERSION;
+    }
+
+    /**
+     * Delete old native libraries
+     */
+    private static void cleanup(final @NotNull String libName) {
+        final String searchPattern = libName + "-" + getVersion();
+
+        try (Stream<Path> dirList = Files.list(new File(System.getProperty("java.io.tmpdir")).toPath())) {
+            dirList.filter(
+                            path ->
+                                    !path.getFileName().toString().endsWith(LOCK_EXT)
+                                            && path.getFileName()
+                                            .toString()
+                                            .startsWith(searchPattern))
+                    .forEach(
+                            nativeLib -> {
+                                Path lckFile = Paths.get(nativeLib + LOCK_EXT);
+                                if (Files.notExists(lckFile)) {
+                                    try {
+                                        Files.delete(nativeLib);
+                                    } catch (Exception e) {
+                                        logger.error("Failed to delete old native lib", e);
+                                    }
+                                }
+                            });
+        } catch (IOException e) {
+            logger.error("Failed to open directory", e);
+        }
+    }
+
+    /**
+     * This class will load the version from resources.
+     */
+    public static final class VersionHolder {
+        private static final String VERSION;
+
+        static {
+            URL versionFile =
+                    VersionHolder.class.getResource(
+                            "/META-INF/maven/ai.catboost/catboost-common/pom.properties");
+            if (versionFile == null) {
+                versionFile =
+                        VersionHolder.class.getResource(
+                                "/META-INF/maven/ai.catboost/catboost-common/VERSION");
+            }
+
+            String version = "unknown";
+            try {
+                if (versionFile != null) {
+                    Properties versionData = new Properties();
+                    versionData.load(versionFile.openStream());
+                    version = versionData.getProperty("version", version);
+                    version = version.trim().replaceAll("[^0-9\\.]", "");
+                }
+            } catch (IOException e) {
+                // inline creation of logger to avoid build-time initialization of the logging
+                // framework in native-image
+                LoggerFactory.getLogger(VersionHolder.class)
+                        .error("Could not read version from file: {}", versionFile, e);
+            }
+            VERSION = version;
+        }
     }
 }
