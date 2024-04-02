@@ -2,7 +2,7 @@ DLL_JAVA(catboost4j-spark-impl)
 
 NO_WERROR()
 
-OWNER(
+SUBSCRIBER(
     akhropov
     g:matrixnet
 )

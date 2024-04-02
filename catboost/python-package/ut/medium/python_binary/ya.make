@@ -1,4 +1,4 @@
-OWNER(g:matrixnet)
+SUBSCRIBER(g:matrixnet)
 
 PROGRAM(catboost-python)
 
