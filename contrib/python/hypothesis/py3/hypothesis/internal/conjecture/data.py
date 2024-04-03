@@ -325,6 +325,11 @@ class Example:
         return self.end - self.start
 
     @property
+    def ir_length(self) -> int:
+        """The number of ir nodes in this example."""
+        return self.ir_end - self.ir_start
+
+    @property
     def children(self) -> "List[Example]":
         """The list of all examples with this as a parent, in increasing index
         order."""
@@ -465,7 +470,11 @@ class ExampleRecord:
     def record_ir_draw(self, ir_type, value, *, kwargs, was_forced):
         self.trail.append(IR_NODE_RECORD)
         node = IRNode(
-            ir_type=ir_type, value=value, kwargs=kwargs, was_forced=was_forced
+            ir_type=ir_type,
+            value=value,
+            kwargs=kwargs,
+            was_forced=was_forced,
+            index=len(self.ir_nodes),
         )
         self.ir_nodes.append(node)
 
@@ -950,17 +959,63 @@ class IRNode:
     value: IRType = attr.ib()
     kwargs: IRKWargsType = attr.ib()
     was_forced: bool = attr.ib()
+    index: Optional[int] = attr.ib(default=None)
 
     def copy(self, *, with_value: IRType) -> "IRNode":
         # we may want to allow this combination in the future, but for now it's
         # a footgun.
         assert not self.was_forced, "modifying a forced node doesn't make sense"
+        # explicitly not copying index. node indices are only assigned via
+        # ExampleRecord. This prevents footguns with relying on stale indices
+        # after copying.
         return IRNode(
             ir_type=self.ir_type,
             value=with_value,
             kwargs=self.kwargs,
             was_forced=self.was_forced,
         )
+
+    @property
+    def trivial(self):
+        """
+        A node is trivial if it cannot be simplified any further. This does not
+        mean that modifying a trivial node can't produce simpler test cases when
+        viewing the tree as a whole. Just that when viewing this node in
+        isolation, this is the simplest the node can get.
+        """
+        if self.was_forced:
+            return True
+
+        if self.ir_type == "integer":
+            shrink_towards = self.kwargs["shrink_towards"]
+            min_value = self.kwargs["min_value"]
+            max_value = self.kwargs["max_value"]
+
+            if min_value is not None:
+                shrink_towards = max(min_value, shrink_towards)
+            if max_value is not None:
+                shrink_towards = min(max_value, shrink_towards)
+
+            return self.value == shrink_towards
+        if self.ir_type == "float":
+            # floats shrink "like integers" (for now, anyway), except shrink_towards
+            # is not configurable and is always 0.
+            shrink_towards = 0
+            shrink_towards = max(self.kwargs["min_value"], shrink_towards)
+            shrink_towards = min(self.kwargs["max_value"], shrink_towards)
+
+            return ir_value_equal("float", self.value, shrink_towards)
+        if self.ir_type == "boolean":
+            return self.value is False
+        if self.ir_type == "string":
+            # smallest size and contains only the smallest-in-shrink-order character.
+            minimal_char = self.kwargs["intervals"].char_in_shrink_order(0)
+            return self.value == (minimal_char * self.kwargs["min_size"])
+        if self.ir_type == "bytes":
+            # smallest size and all-zero value.
+            return len(self.value) == self.kwargs["size"] and not any(self.value)
+
+        raise NotImplementedError(f"unhandled ir_type {self.ir_type}")
 
     def __eq__(self, other):
         if not isinstance(other, IRNode):
