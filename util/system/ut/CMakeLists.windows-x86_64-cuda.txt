@@ -16,6 +16,11 @@ target_link_libraries(util-system-ut PUBLIC
   cpp-testing-benchmark
 )
 
+target_link_options(util-system-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(util-system-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/align_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/atexit_ut.cpp
@@ -68,6 +73,7 @@ target_sources(util-system-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/yassert_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/type_name_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/system/fs_win_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/system/mktemp_ut.cpp
 )
 
 

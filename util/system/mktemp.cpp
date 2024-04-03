@@ -15,7 +15,6 @@
 extern "C" int mkstemps(char* path, int slen);
 
 TString MakeTempName(const char* wrkDir, const char* prefix, const char* extension) {
-#ifndef _win32_
     TString filePath;
 
     if (wrkDir && *wrkDir) {
@@ -23,6 +22,19 @@ TString MakeTempName(const char* wrkDir, const char* prefix, const char* extensi
     } else {
         filePath += GetSystemTempDir();
     }
+
+#ifdef _win32_
+    // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-gettempfilenamea?redirectedfrom=MSDN
+    const unsigned int DirPathMaxLen = 247;
+    if (filePath.length() <= DirPathMaxLen) {
+        // it always takes up to 3 characters, no more
+        char winFilePath[MAX_PATH];
+        if (GetTempFileName(filePath.c_str(), (prefix) ? (prefix) : "yan", 0,
+                            winFilePath)) {
+            return winFilePath;
+        }
+    }
+#endif // _win32_
 
     if (filePath.back() != '/') {
         filePath += '/';
@@ -49,22 +61,6 @@ TString MakeTempName(const char* wrkDir, const char* prefix, const char* extensi
         close(fd);
         return filePath;
     }
-#else
-    char tmpDir[MAX_PATH + 1]; // +1 -- for terminating null character
-    char filePath[MAX_PATH];
-    const char* pDir = 0;
-
-    if (wrkDir && *wrkDir) {
-        pDir = wrkDir;
-    } else if (GetTempPath(MAX_PATH + 1, tmpDir)) {
-        pDir = tmpDir;
-    }
-
-    // it always takes up to 3 characters, no more
-    if (GetTempFileName(pDir, (prefix) ? (prefix) : "yan", 0, filePath)) {
-        return filePath;
-    }
-#endif
 
     ythrow TSystemError() << "can not create temp name(" << wrkDir << ", " << prefix << ", " << extension << ")";
 }
