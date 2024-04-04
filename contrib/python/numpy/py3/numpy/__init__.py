@@ -390,7 +390,7 @@ else:
     if sys.platform == "darwin":
         from . import exceptions
         with warnings.catch_warnings(record=True) as w:
-            #_mac_os_check()
+            _mac_os_check()
             # Throw runtime error, if the test failed Check for warning and error_message
             if len(w) > 0:
                 for _wn in w:
