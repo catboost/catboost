@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: threadpoolctl
-Version: 3.3.0
+Version: 3.4.0
 Summary: threadpoolctl
 Home-page: https://github.com/joblib/threadpoolctl
 License: BSD-3-Clause

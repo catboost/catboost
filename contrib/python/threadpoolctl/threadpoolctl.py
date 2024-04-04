@@ -23,7 +23,7 @@ from abc import ABC, abstractmethod
 from functools import lru_cache
 from contextlib import ContextDecorator
 
-__version__ = "3.3.0"
+__version__ = "3.4.0"
 __all__ = [
     "threadpool_limits",
     "threadpool_info",
@@ -979,6 +979,8 @@ class ThreadpoolController:
             self._find_libraries_with_dyld()
         elif sys.platform == "win32":
             self._find_libraries_with_enum_process_module_ex()
+        elif "pyodide" in sys.modules:
+            self._find_libraries_pyodide()
         else:
             self._find_libraries_with_dl_iterate_phdr()
 
@@ -994,6 +996,10 @@ class ThreadpoolController:
         """
         libc = self._get_libc()
         if not hasattr(libc, "dl_iterate_phdr"):  # pragma: no cover
+            warnings.warn(
+                "Could not find dl_iterate_phdr in the C standard library.",
+                RuntimeWarning,
+            )
             return []
 
         # Callback function for `dl_iterate_phdr` which is called for every
@@ -1026,6 +1032,10 @@ class ThreadpoolController:
         """
         libc = self._get_libc()
         if not hasattr(libc, "_dyld_image_count"):  # pragma: no cover
+            warnings.warn(
+                "Could not find _dyld_image_count in the C standard library.",
+                RuntimeWarning,
+            )
             return []
 
         n_dyld = libc._dyld_image_count()
@@ -1099,6 +1109,33 @@ class ThreadpoolController:
                 self._make_controller_from_path(filepath)
         finally:
             kernel_32.CloseHandle(h_process)
+
+    def _find_libraries_pyodide(self):
+        """Pyodide specific implementation for finding loaded libraries.
+
+        Adapted from suggestion in https://github.com/joblib/threadpoolctl/pull/169#issuecomment-1946696449.
+
+        One day, we may have a simpler solution. libc dl_iterate_phdr needs to
+        be implemented in Emscripten and exposed in Pyodide, see
+        https://github.com/emscripten-core/emscripten/issues/21354 for more
+        details.
+        """
+        try:
+            from pyodide_js._module import LDSO
+        except ImportError:
+            warnings.warn(
+                "Unable to import LDSO from pyodide_js._module. This should never "
+                "happen."
+            )
+            return
+
+        for filepath in LDSO.loadedLibsByName.as_object_map():
+            # Some libraries are duplicated by Pyodide and do not exist in the
+            # filesystem, so we first check for the existence of the file. For
+            # more details, see
+            # https://github.com/joblib/threadpoolctl/pull/169#issuecomment-1947946728
+            if os.path.exists(filepath):
+                self._make_controller_from_path(filepath)
 
     def _make_controller_from_path(self, filepath):
         """Store a library controller if it is supported and selected"""
@@ -1190,16 +1227,13 @@ class ThreadpoolController:
         """Load the lib-C for unix systems."""
         libc = cls._system_libraries.get("libc")
         if libc is None:
-            libc_name = find_library("c")
-            if libc_name is None:  # pragma: no cover
-                warnings.warn(
-                    "libc not found. The ctypes module in Python"
-                    f" {sys.version_info.major}.{sys.version_info.minor} is maybe"
-                    " too old for this OS.",
-                    RuntimeWarning,
-                )
-                return None
-            libc = ctypes.CDLL(libc_name, mode=_RTLD_NOLOAD)
+            # Remark: If libc is statically linked or if Python is linked against an
+            # alternative implementation of libc like musl, find_library will return
+            # None and CDLL will load the main program itself which should contain the
+            # libc symbols. We still name it libc for convenience.
+            # If the main program does not contain the libc symbols, it's ok because
+            # we check their presence later anyway.
+            libc = ctypes.CDLL(find_library("c"), mode=_RTLD_NOLOAD)
             cls._system_libraries["libc"] = libc
         return libc
 
