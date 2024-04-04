@@ -14,7 +14,6 @@ from warnings import warn
 
 import numpy as np
 
-
 # unconstrained minimization
 from ._optimize import (_minimize_neldermead, _minimize_powell, _minimize_cg,
                         _minimize_bfgs, _minimize_newtoncg,
@@ -55,7 +54,7 @@ def minimize(fun, x0, args=(), method=None, jac=None, hess=None,
 
             ``fun(x, *args) -> float``
 
-        where ``x`` is an 1-D array with shape (n,) and ``args``
+        where ``x`` is a 1-D array with shape (n,) and ``args``
         is a tuple of the fixed parameters needed to completely
         specify the function.
     x0 : ndarray, shape (n,)
@@ -515,6 +514,14 @@ def minimize(fun, x0, args=(), method=None, jac=None, hess=None,
 
     """
     x0 = np.atleast_1d(np.asarray(x0))
+
+    if x0.ndim != 1:
+        message = ('Use of `minimize` with `x0.ndim != 1` is deprecated. '
+                   'Currently, singleton dimensions will be removed from '
+                   '`x0`, but an error will be raised in SciPy 1.11.0.')
+        warn(message, DeprecationWarning, stacklevel=2)
+        x0 = np.atleast_1d(np.squeeze(x0))
+
     if x0.dtype.kind in np.typecodes["AllInteger"]:
         x0 = np.asarray(x0, dtype=float)
 
@@ -989,7 +996,7 @@ def _optimize_result_for_equal_bounds(
 
     if constraints:
         message = ("All independent variables were fixed by bounds at values"
-                   " that satisfy the constraints")
+                   " that satisfy the constraints.")
         constraints = standardize_constraints(constraints, x0, 'new')
 
     maxcv = 0

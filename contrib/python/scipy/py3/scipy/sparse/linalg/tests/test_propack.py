@@ -8,9 +8,6 @@ from pytest import raises as assert_raises
 from scipy.sparse.linalg._svdp import _svdp
 from scipy.sparse import csr_matrix, csc_matrix, coo_matrix
 
-if not os.environ.get("USE_PROPACK"):
-    pytestmark = pytest.mark.skip("USE_PROPACK not set")
-
 TOLS = {
     np.float32: 1e-4,
     np.float64: 1e-8,
@@ -34,10 +31,17 @@ def is_32bit():
     return sys.maxsize <= 2**32  # (usually 2**31-1 on 32-bit)
 
 
+def is_windows():
+    return 'win32' in sys.platform
+
+
 _dtype_testing = []
 for dtype in _dtype_map:
     if 'complex' in dtype and is_32bit():
         # PROPACK has issues w/ complex on 32-bit; see gh-14433
+        marks = [pytest.mark.skip]
+    elif 'complex16' in dtype and is_windows():
+        # windows crashes for complex128 (so don't xfail); see gh-15108
         marks = [pytest.mark.skip]
     elif 'complex' in dtype:
         marks = [pytest.mark.slow]  # type: ignore[list-item]
@@ -118,7 +122,7 @@ def test_examples(precision, irl):
     # with BLIS, Netlib, and MKL+AVX512 - see
     # https://github.com/conda-forge/scipy-feedstock/pull/198#issuecomment-999180432
     atol = {
-        'single': 1.2e-4,
+        'single': 1.3e-4,
         'double': 1e-9,
         'complex8': 1e-3,
         'complex16': 1e-9,

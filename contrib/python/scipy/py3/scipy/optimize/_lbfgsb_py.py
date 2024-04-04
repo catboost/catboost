@@ -183,8 +183,6 @@ def fmin_l_bfgs_b(func, x0, fprime=None, args=(),
         jac = fprime
 
     # build options
-    if disp is None:
-        disp = iprint
     opts = {'disp': disp,
             'iprint': iprint,
             'maxcor': m,
@@ -258,7 +256,7 @@ def _minimize_lbfgsb(fun, x0, args=(), jac=None, bounds=None,
     finite_diff_rel_step : None or array_like, optional
         If `jac in ['2-point', '3-point', 'cs']` the relative step size to
         use for numerical approximation of the jacobian. The absolute step
-        size is computed as ``h = rel_step * sign(x0) * max(1, abs(x0))``,
+        size is computed as ``h = rel_step * sign(x) * max(1, abs(x))``,
         possibly adjusted to fit into the bounds. For ``method='3-point'``
         the sign of `h` is ignored. If None (default) then step is selected
         automatically.

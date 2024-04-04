@@ -1,4 +1,5 @@
       real*8 function evapol(tu,nu,tv,nv,c,rad,x,y)
+      implicit none
 c  function program evacir evaluates the function f(x,y) = s(u,v),
 c  defined through the transformation
 c      x = u*rad(v)*cos(v)    y = u*rad(v)*sin(v)

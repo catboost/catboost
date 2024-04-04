@@ -1,4 +1,5 @@
       real*8 function dblint(tx,nx,ty,ny,c,kx,ky,xb,xe,yb,ye,wrk)
+      implicit none
 c  function dblint calculates the double integral
 c         / xe  / ye
 c        |     |      s(x,y) dx dy

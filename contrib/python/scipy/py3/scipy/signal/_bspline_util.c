@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "_splinemodule.h"
+
 #define NO_IMPORT_ARRAY
 #include "numpy/arrayobject.h"
 
@@ -13,7 +15,7 @@
 #endif
 
 #ifdef __GNUC__
-#define CONJ(a) (~((__complex__)a))
+#define CONJ(a) (~((__complex__ double)a))
 #define ABSQ(a) (__real__ (a*CONJ(a)))
 #else
 #define CONJ(a) ((a))
@@ -72,11 +74,11 @@ void Z_IIR_order1(__complex__ double a1, __complex__ double a2, __complex__ doub
     }
 }
 #endif
-void D_IIR_order1(double a1, double a2, double *x, double *y,
+void S_IIR_order1(float a1, float a2, float *x, float *y,
              int N, int stridex, int stridey)
 {
-    double *yvec = y + stridey;
-    double *xvec = x + stridex;
+    float *yvec = y + stridey;
+    float *xvec = x + stridex;
     int n;
 
     for (n = 1; n < N; n++) {
@@ -85,11 +87,11 @@ void D_IIR_order1(double a1, double a2, double *x, double *y,
 	xvec += stridex;
     }
 }
-void S_IIR_order1(float a1, float a2, float *x, float *y,
+void D_IIR_order1(double a1, double a2, double *x, double *y,
              int N, int stridex, int stridey)
 {
-    float *yvec = y + stridey;
-    float *xvec = x + stridex;
+    double *yvec = y + stridey;
+    double *xvec = x + stridex;
     int n;
 
     for (n = 1; n < N; n++) {
@@ -133,11 +135,11 @@ void Z_IIR_order2(__complex__ double a1, __complex__ double a2, __complex__ doub
     }
 }
 #endif
-void D_IIR_order2(double a1, double a2, double a3,
-             double *x, double *y, int N, int stridex, int stridey)
+void S_IIR_order2(float a1, float a2, float a3,
+             float *x, float *y, int N, int stridex, int stridey)
 {
-    double *yvec = y + 2*stridey;
-    double *xvec = x + 2*stridex;
+    float *yvec = y + 2*stridey;
+    float *xvec = x + 2*stridex;
     int n;
 
     for (n = 2; n < N; n++) {
@@ -146,11 +148,11 @@ void D_IIR_order2(double a1, double a2, double a3,
 	xvec += stridex;
     }
 }
-void S_IIR_order2(float a1, float a2, float a3,
-             float *x, float *y, int N, int stridex, int stridey)
+void D_IIR_order2(double a1, double a2, double a3,
+             double *x, double *y, int N, int stridex, int stridey)
 {
-    float *yvec = y + 2*stridey;
-    float *xvec = x + 2*stridex;
+    double *yvec = y + 2*stridey;
+    double *xvec = x + 2*stridex;
     int n;
 
     for (n = 2; n < N; n++) {
@@ -210,12 +212,12 @@ void Z_IIR_order2_cascade(__complex__ double cs, __complex__ double z1, __comple
     }
 }
 #endif
-void D_IIR_order2_cascade(double cs, double z1, double z2,
-                     double y1_0, double *x, double *yp,
+void S_IIR_order2_cascade(float cs, float z1, float z2,
+                     float y1_0, float *x, float *yp,
                      int N, int stridex, int stridey)
 {
-    double *yvec = yp + stridey;
-    double *xvec = x + stridex;
+    float *yvec = yp + stridey;
+    float *xvec = x + stridex;
     int n;
 
     for (n = 1; n < N; n++) {
@@ -225,12 +227,12 @@ void D_IIR_order2_cascade(double cs, double z1, double z2,
 	xvec += stridex;
     }
 }
-void S_IIR_order2_cascade(float cs, float z1, float z2,
-                     float y1_0, float *x, float *yp,
+void D_IIR_order2_cascade(double cs, double z1, double z2,
+                     double y1_0, double *x, double *yp,
                      int N, int stridex, int stridey)
 {
-    float *yvec = yp + stridey;
-    float *xvec = x + stridex;
+    double *yvec = yp + stridey;
+    double *xvec = x + stridex;
     int n;
 
     for (n = 1; n < N; n++) {
@@ -270,7 +272,7 @@ void S_IIR_order2_cascade(float cs, float z1, float z2,
 */
 #ifdef __GNUC__
 int C_IIR_forback1(__complex__ float c0, __complex__ float z1, __complex__ float *x, __complex__ float *y,
-               int N, int stridex, int stridey, float precision)
+                   int N, int stridex, int stridey, float precision)
 {
     __complex__ float *yp = NULL;
     __complex__ float *xptr = x;
@@ -316,12 +318,12 @@ int C_IIR_forback1(__complex__ float c0, __complex__ float z1, __complex__ float
 #endif
 #ifdef __GNUC__
 int Z_IIR_forback1(__complex__ double c0, __complex__ double z1, __complex__ double *x, __complex__ double *y,
-               int N, int stridex, int stridey, float precision)
+                   int N, int stridex, int stridey, double precision)
 {
     __complex__ double *yp = NULL;
     __complex__ double *xptr = x;
     __complex__ double yp0, powz1, diff;
-    float err;
+    double err;
     int k;
 
     if (ABSQ(z1) >= 1.0) return -2; /* z1 not less than 1 */
@@ -360,52 +362,8 @@ int Z_IIR_forback1(__complex__ double c0, __complex__ double z1, __complex__ dou
     return 0;
 }
 #endif
-int D_IIR_forback1(double c0, double z1, double *x, double *y,
-               int N, int stridex, int stridey, float precision)
-{
-    double *yp = NULL;
-    double *xptr = x;
-    double yp0, powz1, diff;
-    float err;
-    int k;
-
-    if (ABSQ(z1) >= 1.0) return -2; /* z1 not less than 1 */
-
-    /* Initialize memory for loop */
-    if ((yp = malloc(N*sizeof(double)))==NULL) return -1;
-
-   /* Fix starting value assuming mirror-symmetric boundary conditions. */
-    yp0 = x[0];
-    powz1 = 1.0;
-    k = 0;
-    precision *= precision;
-    do {
-    	yp[0] = yp0;
-    	powz1 *= z1;
-    	yp0 += powz1 * (*xptr);
-    	diff = powz1;
-    	err = ABSQ(diff);
-    	xptr += stridex;
-    	k++;
-    } while((err > precision) && (k < N));
-    if (k >= N){
-        /* sum did not converge */
-        free(yp);
-        return -3;
-    }
-    yp[0] = yp0;
-
-    D_IIR_order1(1.0, z1, x, yp, N, stridex, 1);
-
-    *(y + (N - 1)*stridey) = -c0 / (z1 - 1.0) * yp[N-1];
-
-    D_IIR_order1(c0, z1, yp + N - 1, y + (N - 1)*stridey, N, -1, -stridey);
-
-    free(yp);
-    return 0;
-}
 int S_IIR_forback1(float c0, float z1, float *x, float *y,
-               int N, int stridex, int stridey, float precision)
+                   int N, int stridex, int stridey, float precision)
 {
     float *yp = NULL;
     float *xptr = x;
@@ -444,6 +402,50 @@ int S_IIR_forback1(float c0, float z1, float *x, float *y,
     *(y + (N - 1)*stridey) = -c0 / (z1 - 1.0) * yp[N-1];
 
     S_IIR_order1(c0, z1, yp + N - 1, y + (N - 1)*stridey, N, -1, -stridey);
+
+    free(yp);
+    return 0;
+}
+int D_IIR_forback1(double c0, double z1, double *x, double *y,
+                   int N, int stridex, int stridey, double precision)
+{
+    double *yp = NULL;
+    double *xptr = x;
+    double yp0, powz1, diff;
+    double err;
+    int k;
+
+    if (ABSQ(z1) >= 1.0) return -2; /* z1 not less than 1 */
+
+    /* Initialize memory for loop */
+    if ((yp = malloc(N*sizeof(double)))==NULL) return -1;
+
+   /* Fix starting value assuming mirror-symmetric boundary conditions. */
+    yp0 = x[0];
+    powz1 = 1.0;
+    k = 0;
+    precision *= precision;
+    do {
+    	yp[0] = yp0;
+    	powz1 *= z1;
+    	yp0 += powz1 * (*xptr);
+    	diff = powz1;
+    	err = ABSQ(diff);
+    	xptr += stridex;
+    	k++;
+    } while((err > precision) && (k < N));
+    if (k >= N){
+        /* sum did not converge */
+        free(yp);
+        return -3;
+    }
+    yp[0] = yp0;
+
+    D_IIR_order1(1.0, z1, x, yp, N, stridex, 1);
+
+    *(y + (N - 1)*stridey) = -c0 / (z1 - 1.0) * yp[N-1];
+
+    D_IIR_order1(c0, z1, yp + N - 1, y + (N - 1)*stridey, N, -1, -stridey);
 
     free(yp);
     return 0;
@@ -573,14 +575,14 @@ void Z_FIR_mirror_symmetric(__complex__ double *in, __complex__ double *out, int
 
 }
 #endif
-void D_FIR_mirror_symmetric(double *in, double *out, int N,
-                            double *h, int Nh, int instride, int outstride)
+void S_FIR_mirror_symmetric(float *in, float *out, int N,
+                            float *h, int Nh, int instride, int outstride)
 {
     int n, k;
     int Nhdiv2 = Nh >> 1;
-    double *outptr;
-    double *inptr;
-    double *hptr;
+    float *outptr;
+    float *inptr;
+    float *hptr;
 
     /* first part boundary conditions */
     outptr = out;
@@ -632,14 +634,14 @@ void D_FIR_mirror_symmetric(double *in, double *out, int N,
     }
 
 }
-void S_FIR_mirror_symmetric(float *in, float *out, int N,
-                            float *h, int Nh, int instride, int outstride)
+void D_FIR_mirror_symmetric(double *in, double *out, int N,
+                            double *h, int Nh, int instride, int outstride)
 {
     int n, k;
     int Nhdiv2 = Nh >> 1;
-    float *outptr;
-    float *inptr;
-    float *hptr;
+    double *outptr;
+    double *inptr;
+    double *hptr;
 
     /* first part boundary conditions */
     outptr = out;
@@ -777,47 +779,6 @@ int Z_separable_2Dconvolve_mirror(__complex__ double *in, __complex__ double *ou
     return 0;
 }
 #endif
-int D_separable_2Dconvolve_mirror(double *in, double *out,
-                              int M, int N, double *hr, double *hc,
-                              int Nhr, int Nhc,
-                              npy_intp *instrides, npy_intp *outstrides)
-{
-    int m, n;
-    double *tmpmem;
-    double *inptr=NULL, *outptr=NULL;
-
-    tmpmem = malloc(M*N*sizeof(double));
-    if (tmpmem == NULL) return -1;
-
-    if (Nhr > 0) {
-	/* filter across rows */
-	inptr = in;
-	outptr = tmpmem;
-	for (m = 0; m < M; m++) {
-	    D_FIR_mirror_symmetric (inptr, outptr, N, hr, Nhr, instrides[1], 1);
-	    inptr += instrides[0];
-	    outptr += N;
-	}
-    }
-    else
-	memmove(tmpmem, in, M*N*sizeof(double));
-
-    if (Nhc > 0) {
-	/* filter down columns */
-	inptr = tmpmem;
-	outptr = out;
-	for (n = 0; n < N; n++) {
-	    D_FIR_mirror_symmetric (inptr, outptr, M, hc, Nhc, N, outstrides[0]);
-	    outptr += outstrides[1];
-	    inptr += 1;
-	}
-    }
-    else
-	memmove(out, tmpmem, M*N*sizeof(double));
-
-    free(tmpmem);
-    return 0;
-}
 int S_separable_2Dconvolve_mirror(float *in, float *out,
                               int M, int N, float *hr, float *hc,
                               int Nhr, int Nhc,
@@ -859,19 +820,51 @@ int S_separable_2Dconvolve_mirror(float *in, float *out,
     free(tmpmem);
     return 0;
 }
-static double D_hc(int, double, double, double);
-static double D_hs(int, double, double, double);
+int D_separable_2Dconvolve_mirror(double *in, double *out,
+                              int M, int N, double *hr, double *hc,
+                              int Nhr, int Nhc,
+                              npy_intp *instrides, npy_intp *outstrides)
+{
+    int m, n;
+    double *tmpmem;
+    double *inptr=NULL, *outptr=NULL;
+
+    tmpmem = malloc(M*N*sizeof(double));
+    if (tmpmem == NULL) return -1;
+
+    if (Nhr > 0) {
+	/* filter across rows */
+	inptr = in;
+	outptr = tmpmem;
+	for (m = 0; m < M; m++) {
+	    D_FIR_mirror_symmetric (inptr, outptr, N, hr, Nhr, instrides[1], 1);
+	    inptr += instrides[0];
+	    outptr += N;
+	}
+    }
+    else
+	memmove(tmpmem, in, M*N*sizeof(double));
+
+    if (Nhc > 0) {
+	/* filter down columns */
+	inptr = tmpmem;
+	outptr = out;
+	for (n = 0; n < N; n++) {
+	    D_FIR_mirror_symmetric (inptr, outptr, M, hc, Nhc, N, outstrides[0]);
+	    outptr += outstrides[1];
+	    inptr += 1;
+	}
+    }
+    else
+	memmove(out, tmpmem, M*N*sizeof(double));
+
+    free(tmpmem);
+    return 0;
+}
 static float S_hc(int, float, double, double);
 static float S_hs(int, float, double, double);
-double D_hc(int k, double cs, double r, double omega)
-{
-    if (k < 0) return 0.0;
-    if (omega == 0.0)
-	return cs * pow(r, (double )k) * (k+1);
-    else if (omega == M_PI)
-	return cs * pow(r, (double )k) * (k+1) * (1 - 2*(k % 2));
-    return cs * pow(r, (double) k) * sin(omega * (k+1)) / sin(omega);
-}
+static double D_hc(int, double, double, double);
+static double D_hs(int, double, double, double);
 float S_hc(int k, float cs, double r, double omega)
 {
     if (k < 0) return 0.0;
@@ -881,10 +874,19 @@ float S_hc(int k, float cs, double r, double omega)
 	return cs * pow(r, (double )k) * (k+1) * (1 - 2*(k % 2));
     return cs * pow(r, (double) k) * sin(omega * (k+1)) / sin(omega);
 }
-double D_hs(int k, double cs, double rsq, double omega)
+double D_hc(int k, double cs, double r, double omega)
 {
-    double cssq;
-    double c0;
+    if (k < 0) return 0.0;
+    if (omega == 0.0)
+	return cs * pow(r, (double )k) * (k+1);
+    else if (omega == M_PI)
+	return cs * pow(r, (double )k) * (k+1) * (1 - 2*(k % 2));
+    return cs * pow(r, (double) k) * sin(omega * (k+1)) / sin(omega);
+}
+float S_hs(int k, float cs, double rsq, double omega)
+{
+    float cssq;
+    float c0;
     double gamma, rsupk;
 
     cssq = cs * cs;
@@ -904,10 +906,10 @@ double D_hs(int k, double cs, double rsq, double omega)
     gamma = (1.0 - rsq)/ (1.0+rsq) / tan(omega);
     return c0 * rsupk * (cos(omega*k) + gamma * sin(omega * k));
 }
-float S_hs(int k, float cs, double rsq, double omega)
+double D_hs(int k, double cs, double rsq, double omega)
 {
-    float cssq;
-    float c0;
+    double cssq;
+    double c0;
     double gamma, rsupk;
 
     cssq = cs * cs;
@@ -962,99 +964,6 @@ float S_hs(int k, float cs, double rsq, double omega)
    z1 should be less than 1;
 
 */
-int D_IIR_forback2 (double r, double omega, double *x, double *y,
-		int N, int stridex, int stridey, float precision) {
-    double cs;
-    double *yp = NULL;
-    double *yptr;
-    double *xptr;
-    double yp0;
-    double yp1;
-    double rsq;
-    double diff;
-    double err;
-    double a2, a3;
-    int k;
-
-    if (r >= 1.0) return -2; /* z1 not less than 1 */
-
-    /* Initialize memory for loop */
-    if ((yp = malloc(N*sizeof(double)))==NULL) return -1;
-
-    rsq = r * r;
-    a2 = 2 * r * cos(omega);
-    a3 = -rsq;
-    cs = 1 - 2 * r * cos(omega) + rsq;
-
-   /* Fix starting values assuming mirror-symmetric boundary conditions. */
-    yp0 = D_hc(0, cs, r, omega) * x[0];
-    k = 0;
-    precision *= precision;
-    xptr = x;
-    do {
-	yp[0] = yp0;
-	diff = D_hc(k+1, cs, r, omega);
-  	yp0 += diff * (*xptr);
-	err = diff * diff;
-	xptr += stridex;
-	k++;
-    } while((err > precision) && (k < N));
-    if (k >= N) {free(yp); return -3;}     /* sum did not converge */
-    yp[0] = yp0;
-
-    yp1 = D_hc(0, cs, r, omega) * (*(x+stridex));
-    yp1 += D_hc(1, cs, r, omega) * x[0];
-    k = 0;
-    xptr = x;
-    do {
-	yp[1] = yp1;
-	diff = D_hc(k+2, cs, r, omega);
-	yp1 += diff * (*xptr);
-	err = diff * diff;
-	xptr += stridex;
-	k++;
-    } while((err > precision) && (k < N));
-    if (k >= N) {free(yp); return -3;}     /* sum did not converge */
-    yp[1] = yp1;
-
-    D_IIR_order2(cs, a2, a3, x, yp, N, stridex, 1);
-
-   /* Fix starting values assuming mirror-symmetric boundary conditions. */
-    yp0 = 0.0;
-    k = 0;
-    yptr = y + (N-1)*stridey;
-    xptr = x + (N-1)*stridex;
-    do {
-	*yptr = yp0;
-	diff = (D_hs(k, cs, rsq, omega) + D_hs(k+1, cs, rsq, omega));
-	yp0 += diff * (*xptr);
-	err = diff * diff;
-	xptr -= stridex;
-	k++;
-    } while((err > precision) && (k < N));
-    if (k >= N) {free(yp); return -3;}     /* sum did not converge */
-    *yptr = yp0;
-
-    yp1 = 0.0;
-    k = 0;
-    yptr -= stridey;        /* Initialize in next-to-last slot in output array */
-    xptr = x + (N-1)*stridex;
-    do {
-	*yptr = yp1;
-	diff = (D_hs(k-1, cs, rsq, omega) + D_hs(k+2, cs, rsq, omega));
-	yp1 += diff * (*xptr);
-	err = diff * diff;
-	xptr -= stridex;
-	k++;
-    } while((err > precision) && (k < N));
-    if (k >= N) {free(yp); return -3;}     /* sum did not converge */
-    *yptr = yp1;
-
-    D_IIR_order2(cs, a2, a3, yp+N-1, yptr+stridey, N, -1, -stridey);
-
-    free(yp);
-    return 0;
-}
 int S_IIR_forback2 (double r, double omega, float *x, float *y,
 		int N, int stridex, int stridey, float precision) {
     float cs;
@@ -1148,6 +1057,99 @@ int S_IIR_forback2 (double r, double omega, float *x, float *y,
     free(yp);
     return 0;
 }
+int D_IIR_forback2 (double r, double omega, double *x, double *y,
+		int N, int stridex, int stridey, double precision) {
+    double cs;
+    double *yp = NULL;
+    double *yptr;
+    double *xptr;
+    double yp0;
+    double yp1;
+    double rsq;
+    double diff;
+    double err;
+    double a2, a3;
+    int k;
+
+    if (r >= 1.0) return -2; /* z1 not less than 1 */
+
+    /* Initialize memory for loop */
+    if ((yp = malloc(N*sizeof(double)))==NULL) return -1;
+
+    rsq = r * r;
+    a2 = 2 * r * cos(omega);
+    a3 = -rsq;
+    cs = 1 - 2 * r * cos(omega) + rsq;
+
+   /* Fix starting values assuming mirror-symmetric boundary conditions. */
+    yp0 = D_hc(0, cs, r, omega) * x[0];
+    k = 0;
+    precision *= precision;
+    xptr = x;
+    do {
+	yp[0] = yp0;
+	diff = D_hc(k+1, cs, r, omega);
+  	yp0 += diff * (*xptr);
+	err = diff * diff;
+	xptr += stridex;
+	k++;
+    } while((err > precision) && (k < N));
+    if (k >= N) {free(yp); return -3;}     /* sum did not converge */
+    yp[0] = yp0;
+
+    yp1 = D_hc(0, cs, r, omega) * (*(x+stridex));
+    yp1 += D_hc(1, cs, r, omega) * x[0];
+    k = 0;
+    xptr = x;
+    do {
+	yp[1] = yp1;
+	diff = D_hc(k+2, cs, r, omega);
+	yp1 += diff * (*xptr);
+	err = diff * diff;
+	xptr += stridex;
+	k++;
+    } while((err > precision) && (k < N));
+    if (k >= N) {free(yp); return -3;}     /* sum did not converge */
+    yp[1] = yp1;
+
+    D_IIR_order2(cs, a2, a3, x, yp, N, stridex, 1);
+
+   /* Fix starting values assuming mirror-symmetric boundary conditions. */
+    yp0 = 0.0;
+    k = 0;
+    yptr = y + (N-1)*stridey;
+    xptr = x + (N-1)*stridex;
+    do {
+	*yptr = yp0;
+	diff = (D_hs(k, cs, rsq, omega) + D_hs(k+1, cs, rsq, omega));
+	yp0 += diff * (*xptr);
+	err = diff * diff;
+	xptr -= stridex;
+	k++;
+    } while((err > precision) && (k < N));
+    if (k >= N) {free(yp); return -3;}     /* sum did not converge */
+    *yptr = yp0;
+
+    yp1 = 0.0;
+    k = 0;
+    yptr -= stridey;        /* Initialize in next-to-last slot in output array */
+    xptr = x + (N-1)*stridex;
+    do {
+	*yptr = yp1;
+	diff = (D_hs(k-1, cs, rsq, omega) + D_hs(k+2, cs, rsq, omega));
+	yp1 += diff * (*xptr);
+	err = diff * diff;
+	xptr -= stridex;
+	k++;
+    } while((err > precision) && (k < N));
+    if (k >= N) {free(yp); return -3;}     /* sum did not converge */
+    *yptr = yp1;
+
+    D_IIR_order2(cs, a2, a3, yp+N-1, yptr+stridey, N, -1, -stridey);
+
+    free(yp);
+    return 0;
+}
 
 
 /* Find the cubic spline coefficients of an image
@@ -1163,76 +1165,6 @@ int S_IIR_forback2 (double r, double omega, float *x, float *y,
 /* to get the (smoothed) image back mirror-symmetric convolve with a length
    three separable FIR filter [1.0, 4.0, 1.0]/ 6.0
 */
-int D_cubic_spline2D(double *image, double *coeffs, int M, int N, double lambda,
-		 npy_intp *strides, npy_intp *cstrides, double precision) {
-    double r, omega;
-    double *inptr;
-    double *coptr;
-    double *tmpmem;
-    double *tptr;
-    int m, n, retval=0;
-
-    tmpmem = malloc(N*M*sizeof(double));
-    if (tmpmem == NULL) return -1;
-
-    if (lambda <= 1.0 / 144.0) {
-	/* normal cubic spline */
-	r = -2 + sqrt(3.0);
-
-	/* Loop over rows */
-	inptr = image;
-	tptr = tmpmem;
-	for (m = 0; m < M; m++) {
-	    retval = D_IIR_forback1 (-r*6.0, r, inptr, tptr, N, strides[1], 1, precision);
-	    if (retval < 0) break;
-	    inptr += strides[0];
-	    tptr += N;
-	}
-
-	if (retval >=0) {
-	    /* Loop over columns */
-	    tptr = tmpmem;
-	    coptr = coeffs;
-	    for (n = 0; n < N; n++) {
-		retval = D_IIR_forback1 (-r*6.0, r, tptr, coptr, M, N, cstrides[0], precision);
-		if (retval < 0) break;
-		coptr += cstrides[1];
-		tptr += 1;
-	    }
-	}
-	free(tmpmem);
-	return retval;
-    }
-
-    /* Smoothing spline */
-
-    /* Compute r and omega from lambda */
-    compute_root_from_lambda(lambda, &r, &omega);
-
-    /* Loop over rows */
-    inptr = image;
-    tptr = tmpmem;
-    for (m = 0; m < M; m++) {
-	retval = D_IIR_forback2 (r, omega, inptr, tptr, N, strides[1],
-				       1, precision);
-	if (retval < 0) break;
-	inptr += strides[0];
-	tptr += N;
-    }
-    /* Loop over columns */
-    tptr = tmpmem;
-    coptr = coeffs;
-    for (n = 0; n < N; n++) {
-	retval = D_IIR_forback2 (r, omega, tptr, coptr, M, N,
-				       cstrides[0], precision);
-	if (retval < 0) break;
-	coptr += cstrides[1];
-	tptr += 1;
-    }
-
-    free(tmpmem);
-    return retval;
-}
 int S_cubic_spline2D(float *image, float *coeffs, int M, int N, double lambda,
 		 npy_intp *strides, npy_intp *cstrides, float precision) {
     double r, omega;
@@ -1303,6 +1235,76 @@ int S_cubic_spline2D(float *image, float *coeffs, int M, int N, double lambda,
     free(tmpmem);
     return retval;
 }
+int D_cubic_spline2D(double *image, double *coeffs, int M, int N, double lambda,
+		 npy_intp *strides, npy_intp *cstrides, double precision) {
+    double r, omega;
+    double *inptr;
+    double *coptr;
+    double *tmpmem;
+    double *tptr;
+    int m, n, retval=0;
+
+    tmpmem = malloc(N*M*sizeof(double));
+    if (tmpmem == NULL) return -1;
+
+    if (lambda <= 1.0 / 144.0) {
+	/* normal cubic spline */
+	r = -2 + sqrt(3.0);
+
+	/* Loop over rows */
+	inptr = image;
+	tptr = tmpmem;
+	for (m = 0; m < M; m++) {
+	    retval = D_IIR_forback1 (-r*6.0, r, inptr, tptr, N, strides[1], 1, precision);
+	    if (retval < 0) break;
+	    inptr += strides[0];
+	    tptr += N;
+	}
+
+	if (retval >=0) {
+	    /* Loop over columns */
+	    tptr = tmpmem;
+	    coptr = coeffs;
+	    for (n = 0; n < N; n++) {
+		retval = D_IIR_forback1 (-r*6.0, r, tptr, coptr, M, N, cstrides[0], precision);
+		if (retval < 0) break;
+		coptr += cstrides[1];
+		tptr += 1;
+	    }
+	}
+	free(tmpmem);
+	return retval;
+    }
+
+    /* Smoothing spline */
+
+    /* Compute r and omega from lambda */
+    compute_root_from_lambda(lambda, &r, &omega);
+
+    /* Loop over rows */
+    inptr = image;
+    tptr = tmpmem;
+    for (m = 0; m < M; m++) {
+	retval = D_IIR_forback2 (r, omega, inptr, tptr, N, strides[1],
+				       1, precision);
+	if (retval < 0) break;
+	inptr += strides[0];
+	tptr += N;
+    }
+    /* Loop over columns */
+    tptr = tmpmem;
+    coptr = coeffs;
+    for (n = 0; n < N; n++) {
+	retval = D_IIR_forback2 (r, omega, tptr, coptr, M, N,
+				       cstrides[0], precision);
+	if (retval < 0) break;
+	coptr += cstrides[1];
+	tptr += 1;
+    }
+
+    free(tmpmem);
+    return retval;
+}
 
 /* Find the quadratic spline coefficients of an image
    image is M rows by N columns stored rowise in memory (vary column number
@@ -1318,47 +1320,6 @@ int S_cubic_spline2D(float *image, float *coeffs, int M, int N, double lambda,
 /* to get the (smoothed) image back mirror-symmetric convolve with a length
    three separable FIR filter [1.0, 6.0, 1.0]/ 8.0
 */
-int D_quadratic_spline2D(double *image, double *coeffs, int M, int N, double lambda,
-		     npy_intp *strides, npy_intp *cstrides, double precision) {
-    double r;
-    double *inptr;
-    double *coptr;
-    double *tmpmem;
-    double *tptr;
-    int m,n, retval=0;
-
-    if (lambda > 0) return -2;
-
-    tmpmem = malloc(N*M*sizeof(double));
-    if (tmpmem == NULL) return -1;
-
-    /* normal quadratic spline */
-    r = -3 + 2*sqrt(2.0);
-
-    /* Loop over rows */
-    inptr = image;
-    tptr = tmpmem;
-    for (m = 0; m < M; m++) {
-      retval = D_IIR_forback1 (-r*8.0, r, inptr, tptr, N, strides[1], 1, precision);
-      if (retval < 0) break;
-      inptr += strides[0];
-      tptr += N;
-    }
-
-    if (retval >=0) {
-    /* Loop over columns */
-      tptr = tmpmem;
-      coptr = coeffs;
-      for (n = 0; n < N; n++) {
-	retval = D_IIR_forback1 (-r*8.0, r, tptr, coptr, M, N, cstrides[0], precision);
-	if (retval < 0) break;
-	coptr += cstrides[1];
-	tptr += 1;
-      }
-    }
-    free(tmpmem);
-    return retval;
-}
 int S_quadratic_spline2D(float *image, float *coeffs, int M, int N, double lambda,
 		     npy_intp *strides, npy_intp *cstrides, float precision) {
     double r;
@@ -1392,6 +1353,47 @@ int S_quadratic_spline2D(float *image, float *coeffs, int M, int N, double lambd
       coptr = coeffs;
       for (n = 0; n < N; n++) {
 	retval = S_IIR_forback1 (-r*8.0, r, tptr, coptr, M, N, cstrides[0], precision);
+	if (retval < 0) break;
+	coptr += cstrides[1];
+	tptr += 1;
+      }
+    }
+    free(tmpmem);
+    return retval;
+}
+int D_quadratic_spline2D(double *image, double *coeffs, int M, int N, double lambda,
+		     npy_intp *strides, npy_intp *cstrides, double precision) {
+    double r;
+    double *inptr;
+    double *coptr;
+    double *tmpmem;
+    double *tptr;
+    int m,n, retval=0;
+
+    if (lambda > 0) return -2;
+
+    tmpmem = malloc(N*M*sizeof(double));
+    if (tmpmem == NULL) return -1;
+
+    /* normal quadratic spline */
+    r = -3 + 2*sqrt(2.0);
+
+    /* Loop over rows */
+    inptr = image;
+    tptr = tmpmem;
+    for (m = 0; m < M; m++) {
+      retval = D_IIR_forback1 (-r*8.0, r, inptr, tptr, N, strides[1], 1, precision);
+      if (retval < 0) break;
+      inptr += strides[0];
+      tptr += N;
+    }
+
+    if (retval >=0) {
+    /* Loop over columns */
+      tptr = tmpmem;
+      coptr = coeffs;
+      for (n = 0; n < N; n++) {
+	retval = D_IIR_forback1 (-r*8.0, r, tptr, coptr, M, N, cstrides[0], precision);
 	if (retval < 0) break;
 	coptr += cstrides[1];
 	tptr += 1;

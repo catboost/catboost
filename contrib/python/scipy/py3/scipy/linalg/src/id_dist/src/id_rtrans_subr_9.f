@@ -27,10 +27,10 @@ c
         return
         end
 c
-c 
-c 
-c 
-c 
+c
+c
+c
+c
         subroutine idz_random_transf00(x,y,n,albetas,gammas,ixs)
         implicit real *8 (a-h,o-z)
         save

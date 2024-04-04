@@ -3,7 +3,6 @@
 
 import sys
 import operator
-import warnings
 import numpy as np
 from scipy._lib._util import prod
 
@@ -11,7 +10,8 @@ __all__ = ['upcast', 'getdtype', 'getdata', 'isscalarlike', 'isintlike',
            'isshape', 'issequence', 'isdense', 'ismatrix', 'get_sum_dtype']
 
 supported_dtypes = [np.bool_, np.byte, np.ubyte, np.short, np.ushort, np.intc,
-                    np.uintc, np.int_, np.uint, np.longlong, np.ulonglong, np.single, np.double,
+                    np.uintc, np.int_, np.uint, np.longlong, np.ulonglong,
+                    np.single, np.double,
                     np.longdouble, np.csingle, np.cdouble, np.clongdouble]
 
 _upcast_memo = {}
@@ -89,7 +89,19 @@ def downcast_intp_index(arr):
 
 
 def to_native(A):
-    return np.asarray(A, dtype=A.dtype.newbyteorder('native'))
+    """
+    Ensure that the data type of the NumPy array `A` has native byte order.
+
+    `A` must be a NumPy array.  If the data type of `A` does not have native
+    byte order, a copy of `A` with a native byte order is returned. Otherwise
+    `A` is returned.
+    """
+    dt = A.dtype
+    if dt.isnative:
+        # Don't call `asarray()` if A is already native, to avoid unnecessarily
+        # creating a view of the input array.
+        return A
+    return np.asarray(A, dtype=dt.newbyteorder('native'))
 
 
 def getdtype(dtype, a=None, default=None):
@@ -111,7 +123,9 @@ def getdtype(dtype, a=None, default=None):
     else:
         newdtype = np.dtype(dtype)
         if newdtype == np.object_:
-            warnings.warn("object dtype is not supported by sparse matrices")
+            raise ValueError(
+                "object dtype is not supported by sparse matrices"
+            )
 
     return newdtype
 
@@ -211,8 +225,8 @@ def isintlike(x):
         except (TypeError, ValueError):
             return False
         if loose_int:
-            warnings.warn("Inexact indices into sparse matrices are deprecated",
-                          DeprecationWarning)
+            msg = "Inexact indices into sparse matrices are not allowed"
+            raise ValueError(msg)
         return loose_int
     return True
 

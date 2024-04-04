@@ -43,7 +43,7 @@
       CALL DFFTI (NM1,WSAVE(N+1))
       RETURN
       END
- 
+
       SUBROUTINE DZFFTB (N,R,AZERO,A,B,WSAVE)
 	IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION       R(*)       ,A(*)       ,B(*)       ,WSAVE(*)

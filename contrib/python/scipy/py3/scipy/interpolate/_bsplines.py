@@ -393,7 +393,7 @@ class BSpline:
         In each row of the design matrix all the basis elements are evaluated
         at the certain point (first row - x[0], ..., last row - x[-1]).
 
-        `nt` is a lenght of the vector of knots: as far as there are
+        `nt` is a length of the vector of knots: as far as there are
         `nt - k - 1` basis elements, `nt` should be not less than `2 * k + 2`
         to have at least `k + 1` basis element.
 
@@ -427,7 +427,7 @@ class BSpline:
         ----------
         x : array_like
             points to evaluate the spline at.
-        nu: int, optional
+        nu : int, optional
             derivative to evaluate (default is 0).
         extrapolate : bool or 'periodic', optional
             whether to extrapolate based on the first and last intervals
@@ -1241,9 +1241,17 @@ def make_interp_spline(x, y, k=3, t=None, bc_type=None, axis=0,
 
     y = np.moveaxis(y, axis, 0)    # now internally interp axis is zero
 
+    # sanity check the input
     if bc_type == 'periodic' and not np.allclose(y[0], y[-1], atol=1e-15):
         raise ValueError("First and last points does not match while "
                          "periodic case expected")
+    if x.size != y.shape[0]:
+        raise ValueError('Shapes of x {} and y {} are incompatible'
+                         .format(x.shape, y.shape))
+    if np.any(x[1:] == x[:-1]):
+        raise ValueError("Expect x to not have duplicates")
+    if x.ndim != 1 or np.any(x[1:] < x[:-1]):
+        raise ValueError("Expect x to be a 1D strictly increasing sequence.")
 
     # special-case k=0 right away
     if k == 0:
@@ -1289,17 +1297,10 @@ def make_interp_spline(x, y, k=3, t=None, bc_type=None, axis=0,
 
     t = _as_float_array(t, check_finite)
 
-    if x.ndim != 1 or np.any(x[1:] < x[:-1]):
-        raise ValueError("Expect x to be a 1-D sorted array_like.")
-    if np.any(x[1:] == x[:-1]):
-        raise ValueError("Expect x to not have duplicates")
     if k < 0:
         raise ValueError("Expect non-negative k.")
     if t.ndim != 1 or np.any(t[1:] < t[:-1]):
         raise ValueError("Expect t to be a 1-D sorted array_like.")
-    if x.size != y.shape[0]:
-        raise ValueError('Shapes of x {} and y {} are incompatible'
-                         .format(x.shape, y.shape))
     if t.size < x.size + k + 1:
         raise ValueError('Got %d knots, need at least %d.' %
                          (t.size, x.size + k + 1))
@@ -1405,7 +1406,6 @@ def make_lsq_spline(x, y, t, k=3, w=None, axis=0, check_finite=True):
 
     Notes
     -----
-
     The number of data points must be larger than the spline degree `k`.
 
     Knots `t` must satisfy the Schoenberg-Whitney conditions,

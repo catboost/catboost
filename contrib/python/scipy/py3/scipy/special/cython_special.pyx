@@ -662,8 +662,8 @@ Available functions
 
 - :py:func:`~scipy.special.log_ndtr`::
 
-        double complex log_ndtr(double complex)
         double log_ndtr(double)
+        double complex log_ndtr(double complex)
 
 - :py:func:`~scipy.special.loggamma`::
 
@@ -1500,8 +1500,6 @@ ctypedef double complex _proto_clog1p_t(double complex) nogil
 cdef _proto_clog1p_t *_proto_clog1p_t_var = &_func_clog1p
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_log1p "log1p"(npy_double)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_log_ndtr "log_ndtr"(npy_double)nogil
 from ._loggamma cimport loggamma_real as _func_loggamma_real
 ctypedef double _proto_loggamma_real_t(double) nogil
 cdef _proto_loggamma_real_t *_proto_loggamma_real_t_var = &_func_loggamma_real
@@ -2076,7 +2074,7 @@ cpdef Dd_number_t erf(Dd_number_t x0) nogil:
 cpdef Dd_number_t erfc(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.erfc"""
     if Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfc)(x0)
+        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfc_complex)(x0)
     elif Dd_number_t is double:
         return _func_erfc(x0)
     else:
@@ -2807,10 +2805,10 @@ cpdef dfg_number_t log_expit(dfg_number_t x0) nogil:
 
 cpdef Dd_number_t log_ndtr(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.log_ndtr"""
-    if Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_log_ndtr)(x0)
-    elif Dd_number_t is double:
-        return _func_log_ndtr(x0)
+    if Dd_number_t is double:
+        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_faddeeva_log_ndtr)(x0)
+    elif Dd_number_t is double_complex:
+        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_log_ndtr_complex)(x0)
     else:
         if Dd_number_t is double_complex:
             return NPY_NAN

@@ -1,10 +1,11 @@
+# THIS FILE IS GENERATED DURING THE SCIPY BUILD
+# See tools/version_utils.py for details
 
-# THIS FILE IS GENERATED FROM SCIPY SETUP.PY
-short_version = '1.8.1'
-version = '1.8.1'
-full_version = '1.8.1'
-git_revision = '4cf21e7'
-commit_count = '4cf21e7'
+short_version = '1.9.3'
+version = '1.9.3'
+full_version = '1.9.3'
+git_revision = 'Unknown'
+commit_count = 'Unknown'
 release = True
 
 if not release:

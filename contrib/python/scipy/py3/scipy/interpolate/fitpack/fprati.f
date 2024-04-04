@@ -1,4 +1,5 @@
       real*8 function fprati(p1,f1,p2,f2,p3,f3)
+      implicit none
 c  given three points (p1,f1),(p2,f2) and (p3,f3), function fprati
 c  gives the value of p such that the rational interpolating function
 c  of the form r(p) = (u*p+v)/(p+w) equals zero at p.

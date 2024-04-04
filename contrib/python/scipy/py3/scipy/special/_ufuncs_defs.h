@@ -137,7 +137,6 @@ npy_double cbesk_wrap_real(npy_double, npy_double);
 npy_cdouble cbesk_wrap_e(npy_double, npy_cdouble);
 npy_double cbesk_wrap_e_real(npy_double, npy_double);
 npy_double log1p(npy_double);
-npy_double log_ndtr(npy_double);
 npy_double pmv_wrap(npy_double, npy_double, npy_double);
 npy_double cem_cva_wrap(npy_double, npy_double);
 npy_double sem_cva_wrap(npy_double, npy_double);

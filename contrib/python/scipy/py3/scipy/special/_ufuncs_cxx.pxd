@@ -13,7 +13,7 @@ cdef void *_export_cellint_RG
 cdef void *_export_fellint_RJ
 cdef void *_export_cellint_RJ
 cdef void *_export_faddeeva_erf
-cdef void *_export_faddeeva_erfc
+cdef void *_export_faddeeva_erfc_complex
 cdef void *_export_faddeeva_erfcx
 cdef void *_export_faddeeva_erfcx_complex
 cdef void *_export_faddeeva_erfi
@@ -25,6 +25,7 @@ cdef void *_export_log_expit
 cdef void *_export_log_expitf
 cdef void *_export_log_expitl
 cdef void *_export_faddeeva_log_ndtr
+cdef void *_export_faddeeva_log_ndtr_complex
 cdef void *_export_logit
 cdef void *_export_logitf
 cdef void *_export_logitl

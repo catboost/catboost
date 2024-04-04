@@ -36,7 +36,7 @@
       X(1) = X(1)+X(1)
       RETURN
       END
- 
+
       SUBROUTINE DCOSQF1 (N,X,W,XH)
 	IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION       X(*)       ,W(*)       ,XH(*)
@@ -119,4 +119,4 @@
       IF (MODN .NE. 0) X(N) = XIM2
   106 RETURN
       END
- 
+
