@@ -56,6 +56,7 @@ from hypothesis.internal.floats import (
     SIGNALING_NAN,
     SMALLEST_SUBNORMAL,
     float_to_int,
+    int_to_float,
     make_float_clamper,
     next_down,
     next_up,
@@ -998,13 +999,29 @@ class IRNode:
 
             return self.value == shrink_towards
         if self.ir_type == "float":
-            # floats shrink "like integers" (for now, anyway), except shrink_towards
-            # is not configurable and is always 0.
+            min_value = self.kwargs["min_value"]
+            max_value = self.kwargs["max_value"]
             shrink_towards = 0
-            shrink_towards = max(self.kwargs["min_value"], shrink_towards)
-            shrink_towards = min(self.kwargs["max_value"], shrink_towards)
 
-            return ir_value_equal("float", self.value, shrink_towards)
+            if min_value == -math.inf and max_value == math.inf:
+                return ir_value_equal("float", self.value, shrink_towards)
+
+            if (
+                not math.isinf(min_value)
+                and not math.isinf(max_value)
+                and math.ceil(min_value) <= math.floor(max_value)
+            ):
+                # the interval contains an integer. the simplest integer is the
+                # one closest to shrink_towards
+                shrink_towards = max(math.ceil(min_value), shrink_towards)
+                shrink_towards = min(math.floor(max_value), shrink_towards)
+                return ir_value_equal("float", self.value, shrink_towards)
+
+            # the real answer here is "the value in [min_value, max_value] with
+            # the lowest denominator when represented as a fraction".
+            # It would be good to compute this correctly in the future, but it's
+            # also not incorrect to be conservative here.
+            return False
         if self.ir_type == "boolean":
             return self.value is False
         if self.ir_type == "string":
@@ -1481,6 +1498,27 @@ class HypothesisProvider(PrimitiveProvider):
                     result = clamped
             else:
                 result = nasty_floats[i - 1]
+                # nan values generated via int_to_float break list membership:
+                #
+                #  >>> n = 18444492273895866368
+                # >>> assert math.isnan(int_to_float(n))
+                # >>> assert int_to_float(n) not in [int_to_float(n)]
+                #
+                # because int_to_float nans are not equal in the sense of either
+                # `a == b` or `a is b`.
+                #
+                # This can lead to flaky errors when collections require unique
+                # floats. I think what is happening is that in some places we
+                # provide math.nan, and in others we provide
+                # int_to_float(float_to_int(math.nan)), and which one gets used
+                # is not deterministic across test iterations.
+                #
+                # As a (temporary?) fix, we'll *always* generate nan values which
+                # are not equal in the identity sense.
+                #
+                # see also https://github.com/HypothesisWorks/hypothesis/issues/3926.
+                if math.isnan(result):
+                    result = int_to_float(float_to_int(result))
 
                 self._draw_float(forced=result, fake_forced=fake_forced)
 

@@ -1194,7 +1194,6 @@ class Shrinker:
             block,
             lambda b: self.try_shrinking_blocks(targets, b),
             random=self.random,
-            full=False,
         )
 
     @defines_shrink_pass()
@@ -1217,7 +1216,7 @@ class Shrinker:
 
         node = chooser.choose(
             self.nodes,
-            lambda node: node.ir_type == "float" and not node.was_forced
+            lambda node: node.ir_type == "float" and not node.trivial
             # avoid shrinking integer-valued floats. In our current ordering, these
             # are already simpler than all other floats, so it's better to shrink
             # them in other passes.
@@ -1364,7 +1363,6 @@ class Shrinker:
             self.shrink_target.buffer[u:v],
             lambda b: self.try_shrinking_blocks((i,), b),
             random=self.random,
-            full=False,
         )
 
         if self.shrink_target is not initial:
