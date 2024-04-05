@@ -1,38 +1,36 @@
 Metadata-Version: 2.1
 Name: pytest-mock
-Version: 3.12.0
+Version: 3.14.0
 Summary: Thin-wrapper around the mock package for easier use with pytest
-Home-page: https://github.com/pytest-dev/pytest-mock/
-Author: Bruno Oliveira
-Author-email: nicoddemus@gmail.com
+Author-email: Bruno Oliveira <nicoddemus@gmail.com>
 License: MIT
+Project-URL: Homepage, https://github.com/pytest-dev/pytest-mock/
 Project-URL: Documentation, https://pytest-mock.readthedocs.io/en/latest/
 Project-URL: Changelog, https://pytest-mock.readthedocs.io/en/latest/changelog.html
 Project-URL: Source, https://github.com/pytest-dev/pytest-mock/
 Project-URL: Tracker, https://github.com/pytest-dev/pytest-mock/issues
-Keywords: pytest mock
-Platform: any
+Keywords: pytest,mock
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Framework :: Pytest
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
-Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Topic :: Software Development :: Testing
 Requires-Python: >=3.8
 Description-Content-Type: text/x-rst
 License-File: LICENSE
-Requires-Dist: pytest >=5.0
+Requires-Dist: pytest >=6.2.5
 Provides-Extra: dev
 Requires-Dist: pre-commit ; extra == 'dev'
-Requires-Dist: tox ; extra == 'dev'
 Requires-Dist: pytest-asyncio ; extra == 'dev'
+Requires-Dist: tox ; extra == 'dev'
 
 ===========
 pytest-mock

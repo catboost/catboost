@@ -6,6 +6,7 @@ Home-page: http://cffi.readthedocs.org
 Author: Armin Rigo, Maciej Fijalkowski
 Author-email: python-cffi@googlegroups.com
 License: MIT
+Platform: UNKNOWN
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 2
 Classifier: Programming Language :: Python :: 2.7
@@ -18,9 +19,7 @@ Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: License :: OSI Approved :: MIT License
-License-File: LICENSE
 Requires-Dist: pycparser
-
 
 CFFI
 ====
@@ -32,3 +31,5 @@ Contact
 -------
 
 `Mailing list <https://groups.google.com/forum/#!forum/python-cffi>`_
+
+
