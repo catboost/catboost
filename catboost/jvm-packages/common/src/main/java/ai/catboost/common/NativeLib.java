@@ -27,11 +27,9 @@ public class NativeLib {
 
     @NotNull
     private static String[] getCurrentMachineResourcesDirs() {
-        // NOTE: This is an incomplete list of all possible combinations! But CatBoost officially only supports x86_64
-        // and arm64 platfroms on Mac, and only x86_64 on Linux and Windows. If you wont support for other platforms 
-        // you'll have to build JNI from sources by yourself for your target platform and probably write your own shared
-        // library loader for shared library.
-        // On macOS this function returns paths for both arch-specific and universal binaries paths.
+        // Returns list of '<osName>-<osArch>' subdirs (like 'linux-aarch64', 'win32-x86_64')
+        // On macOS this function returns paths for both arch-specific and universal binaries paths:
+        // ('darwin-<osArch>', 'darwin-universal2').
 
         String osArch = System.getProperty("os.arch").toLowerCase();
         // Java is inconsistent with Python, and returns `amd64` on my dev machine, while Python `platform.machine()`
@@ -56,7 +54,6 @@ public class NativeLib {
             if (osName.contains("win")) {
                 osName = "win32";
             }
-            // Will result in something like "linux-x86_64"
             return new String[] {osName + "-" + osArch};
         }
     }
