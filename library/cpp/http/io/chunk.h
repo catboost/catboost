@@ -35,8 +35,10 @@ public:
     TChunkedOutput(IOutputStream* slave);
     ~TChunkedOutput() override;
 
-private:
+protected:
     void DoWrite(const void* buf, size_t len) override;
+
+private:
     void DoFlush() override;
     void DoFinish() override;
 
