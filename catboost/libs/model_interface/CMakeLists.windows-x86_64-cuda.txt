@@ -25,7 +25,6 @@ target_compile_options(catboostmodel PRIVATE
 target_link_libraries(catboostmodel PUBLIC
   contrib-libs-cxxsupp
   yutil
-  system_allocator
   catboost-libs-cat_feature
   catboost-libs-data
   catboost-libs-model
