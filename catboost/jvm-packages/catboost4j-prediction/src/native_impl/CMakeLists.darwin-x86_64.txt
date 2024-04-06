@@ -40,6 +40,10 @@ target_sources(catboost4j-prediction PRIVATE
 
 
 
+use_export_script(catboost4j-prediction
+  ${PROJECT_SOURCE_DIR}/catboost/jvm-packages/catboost4j-prediction/src/native_impl/exports.exports
+)
+
 vcs_info(catboost4j-prediction)
 
 
