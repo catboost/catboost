@@ -625,6 +625,23 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
     ) nogil except +ProcessException
 
 
+cdef extern from "catboost/cuda/targets/gpu_metrics.h":
+    cdef cppclass TCustomGpuMetricDescriptor:
+
+        void* CustomData
+        TMaybe[TEvalFuncPtr] EvalFunc
+
+        ctypedef TMetricHolder (*TEvalFuncPtr)(
+            TConstArrayRef[TConstArrayRef[double]]& approx,
+            TConstArrayRef[float] target,
+            TConstArrayRef[float] weight,
+            int begin, int end, void* customData) with gil
+
+        bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
+        double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) except * with gil
+        cdef bool_t IsMaxOptimal(const TString& metricName) nogil except +ProcessException
+
+
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
         void* CustomData

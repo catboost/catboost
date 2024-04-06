@@ -167,3 +167,23 @@ namespace NCatboostCuda {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
     );
 }
+
+
+class TCustomGpuMetricDescriptor {
+
+    using TEvalFuncPtr = TMetricHolder (*)(
+        TConstArrayRef<TConstArrayRef<double>>& approx,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        int begin,
+        int end,
+        void* customData);
+
+    using TGetFinalErrorFuncPtr = double (*)(const TMetricHolder& error, void* customData);
+
+    void* CustomData = nullptr;
+    TMaybe<TEvalFuncPtr> EvalFunc;
+
+    TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
+    TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
+};
