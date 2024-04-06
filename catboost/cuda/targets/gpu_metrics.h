@@ -135,14 +135,33 @@ namespace NCatboostCuda {
         {
         }
 
-        TMetricHolder Eval(const TVector<TVector<double>>& approx,
-                            const TVector<float>& target,
-                            const TVector<float>& weight,
-                            const TVector<TQueryInfo>& queriesInfo,
-                            NPar::ILocalExecutor* localExecutor) const;
+        TMetricHolder Eval(const TStripeBuffer<const float>& target,
+                                   const TStripeBuffer<const float>& weights,
+                                   const TStripeBuffer<const float>& cursor,
+                                   TScopedCacheHolder* cache) const;
     };
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
                                                   const ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                                                   const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor);
 }
+
+
+class TCustomGpuMetricDescriptor {
+
+    using TEvalFuncPtr = TMetricHolder (*)(
+        TConstArrayRef<TConstArrayRef<double>>& approx,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        int begin,
+        int end,
+        void* customData);
+
+    using TGetFinalErrorFuncPtr = double (*)(const TMetricHolder& error, void* customData);
+
+    void* CustomData = nullptr;
+    TMaybe<TEvalFuncPtr> EvalFunc;
+
+    TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
+    TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
+};
