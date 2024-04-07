@@ -233,7 +233,7 @@ Perform the following steps to use this API:
             On Linux additional libraries `libdl` and `libpthread` have to be added to the linker input as well.
 
             ```
-            clang++ <your sources and options> -nodefaultlibs -lpthread -ldl -Wl,--whole-archive <catboost_lib_dir>/libcatboostmodel_static.global.a -Wl,--no-whole-archive <catboost_lib_dir>/libcatboostmodel_static.a
+            clang++ <your sources and options> -Wl,--whole-archive <catboost_lib_dir>/libcatboostmodel_static.global.a -Wl,--no-whole-archive <catboost_lib_dir>/libcatboostmodel_static.a -lpthread -ldl
             ```
 
         - macOS
