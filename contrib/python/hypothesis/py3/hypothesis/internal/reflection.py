@@ -14,6 +14,7 @@ to really unreasonable lengths to produce pretty output."""
 import ast
 import hashlib
 import inspect
+import linecache
 import os
 import re
 import sys
@@ -315,6 +316,10 @@ def extract_lambda_source(f):
     sig = inspect.signature(f)
     assert sig.return_annotation in (inspect.Parameter.empty, None), sig
 
+    # Using pytest-xdist on Python 3.13, there's an entry in the linecache for
+    # file "<string>", which then returns nonsense to getsource.  Discard it.
+    linecache.cache.pop("<string>", None)
+
     if sig.parameters:
         if_confused = f"lambda {str(sig)[1:-1]}: <unknown>"
     else:
@@ -329,7 +334,7 @@ def extract_lambda_source(f):
     source = source.strip()
     if "lambda" not in source and sys.platform == "emscripten":  # pragma: no cover
         return if_confused  # work around Pyodide bug in inspect.getsource()
-    assert "lambda" in source
+    assert "lambda" in source, source
 
     tree = None
 
