@@ -424,12 +424,12 @@ class ArrayStrategy(st.SearchStrategy):
             while elements.more():
                 i = data.draw_integer(0, self.array_size - 1)
                 if i in assigned:
-                    elements.reject()
+                    elements.reject("chose an array index we've already used")
                     continue
                 val = data.draw(self.elements_strategy)
                 if self.unique:
                     if val in seen:
-                        elements.reject()
+                        elements.reject("chose an element we've already used")
                         continue
                     else:
                         seen.add(val)

@@ -36,7 +36,7 @@ def make_testcase(
     start_timestamp: float,
     test_name_or_nodeid: str,
     data: ConjectureData,
-    how_generated: str = "unknown",
+    how_generated: str,
     string_repr: str = "<unknown>",
     arguments: Optional[dict] = None,
     timing: Dict[str, float],

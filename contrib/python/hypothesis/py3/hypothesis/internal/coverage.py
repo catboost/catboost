@@ -61,7 +61,7 @@ if IN_COVERAGE_TESTS:
         if key in written:
             return
         written.add(key)
-        with open("branch-check", mode="a", encoding="utf-8") as log:
+        with open(f"branch-check-{os.getpid()}", mode="a", encoding="utf-8") as log:
             log.write(json.dumps({"name": name, "value": value}) + "\n")
 
     description_stack = []

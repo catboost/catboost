@@ -2273,13 +2273,13 @@ class ConjectureData:
         # (in fact, it is possible that giving up early here results in more time
         # for useful shrinks to run).
         if node.ir_type != ir_type:
-            self.mark_invalid()
+            self.mark_invalid(f"(internal) want a {ir_type} but have a {node.ir_type}")
 
         # if a node has different kwargs (and so is misaligned), but has a value
         # that is allowed by the expected kwargs, then we can coerce this node
         # into an aligned one by using its value. It's unclear how useful this is.
         if not ir_value_permitted(node.value, node.ir_type, kwargs):
-            self.mark_invalid()
+            self.mark_invalid(f"(internal) got a {ir_type} but outside the valid range")
 
         return node
 
@@ -2348,7 +2348,7 @@ class ConjectureData:
         strategy.validate()
 
         if strategy.is_empty:
-            self.mark_invalid("strategy is empty")
+            self.mark_invalid(f"empty strategy {self!r}")
 
         if self.depth >= MAX_DEPTH:
             self.mark_invalid("max depth exceeded")

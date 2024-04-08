@@ -155,7 +155,7 @@ class DatetimeStrategy(SearchStrategy):
 
         # If we happened to end up with a disallowed imaginary time, reject it.
         if (not self.allow_imaginary) and datetime_does_not_exist(result):
-            data.mark_invalid("nonexistent datetime")
+            data.mark_invalid(f"{result} does not exist (usually a DST transition)")
         return result
 
     def draw_naive_datetime_and_combine(self, data, tz):

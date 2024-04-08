@@ -809,6 +809,15 @@ class ConjectureRunner:
 
             self.test_function(data)
 
+            if (
+                data.status == Status.OVERRUN
+                and max_length < BUFFER_SIZE
+                and "invalid because" not in data.events
+            ):
+                data.events["invalid because"] = (
+                    "reduced max size for early examples (avoids flaky health checks)"
+                )
+
             self.generate_mutations_from(data)
 
             # Although the optimisations are logically a distinct phase, we

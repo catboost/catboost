@@ -478,7 +478,7 @@ class BundleReferenceStrategy(SearchStrategy):
         machine = data.draw(self_strategy)
         bundle = machine.bundle(self.name)
         if not bundle:
-            data.mark_invalid()
+            data.mark_invalid(f"Cannot draw from empty bundle {self.name!r}")
         # Shrink towards the right rather than the left. This makes it easier
         # to delete data generated earlier, as when the error is towards the
         # end there can be a lot of hard to remove padding.
