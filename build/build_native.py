@@ -481,7 +481,9 @@ def build(
     else:
         target_platform = get_host_platform()
 
-    require_pic = get_require_pic(opts.targets)
+    # require_pic = get_require_pic(opts.targets)
+    # TODO(akhropov): return when -fPIC is removed from explicit linking flags
+    require_pic = True
 
     logging.info(
         f'target_platform={target_platform}. Building targets {" ".join(opts.targets)} {"with" if require_pic else "without"} PIC'
