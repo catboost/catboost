@@ -16,6 +16,10 @@ else:
     import shlex
 
 
+MSVS_TO_DEFAULT_MSVC_TOOLSET = {
+    '2019': '14.28.29333',
+    '2022': '14.39.33519'
+}
 
 class Target(object):
     def __init__(self, catboost_component, need_pic, macos_binaries_paths):
@@ -90,7 +94,11 @@ class Opts(object):
             Option('Microsoft Visual Studio installation path (default is "{Program Files}\\Microsoft Visual Studio\\")'
         ),
         'msvs_version': Option('Microsoft Visual Studio version (like "2019", "2022")', default='2019'),
-        'msvc_toolset': Option('Microsoft Visual C++ Toolset version to use', default='14.28.29333'),
+        'msvc_toolset': Option(
+            'Microsoft Visual C++ Toolset version to use'
+            + f'(default for Visual Studio 2019 is "{MSVS_TO_DEFAULT_MSVC_TOOLSET["2019"]}",'
+            + f' for Visual Studio 2022 is "{MSVS_TO_DEFAULT_MSVC_TOOLSET["2022"]}")'
+        ),
         'macosx_version_min': Option('Minimal macOS version to target', default='11.0'),
         'have_cuda': Option('Enable CUDA support', default=False, opt_type=bool),
         'cuda_root_dir': Option('CUDA root dir (taken from CUDA_PATH or CUDA_ROOT by default)'),
@@ -385,6 +393,10 @@ def get_msvs_dir(msvs_installation_path, msvs_version):
 
 def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_runner, dry_run):
     msvs_dir = get_msvs_dir(msvs_installation_path, msvs_version)
+    if msvc_toolset is None:
+        if msvs_version not in MSVS_TO_DEFAULT_MSVC_TOOLSET:
+            raise RuntimeError(f'No default C++ toolset for Microsoft Visual Studio {msvs_version}')
+        msvc_toolset = MSVS_TO_DEFAULT_MSVC_TOOLSET[msvs_version]
 
     env_vars = {}
 
