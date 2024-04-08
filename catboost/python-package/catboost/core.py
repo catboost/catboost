@@ -169,6 +169,8 @@ class _CustomLoggersStack(object):
             _reset_logger()
             if len(self._stack) != 1:
                 _set_logger(*self._stack[-2])
+            else:
+                self._owning_thread_id = None
             self._stack.pop()
 
 
