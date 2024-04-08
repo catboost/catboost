@@ -136,11 +136,10 @@ class _CustomLoggersStack(object):
             if not self._stack:
                 self._owning_thread_id = threading.current_thread().ident
             elif self._owning_thread_id != threading.current_thread().ident:
-                if ((log_cout is not None) or (log_cerr is not None)) and ((log_cout, log_cerr) != self._stack[-1]):
-                    logger.warning(
-                        'CatBoost custom logger function is already set in another thread, ' +
-                        'will use it from this thread. If you are training CatBoost models from different threads, ' +
-                        'consider using sys.stdout and sys.stderr default loggers'
+                if (log_cout is not None) or (log_cerr is not None):
+                    raise CatBoostError(
+                        'CatBoost custom loggers have been already set in another thread. '
+                        + ' Setting custom loggers from different threads is not currently supported'
                     )
                 return
 
@@ -161,11 +160,11 @@ class _CustomLoggersStack(object):
 
     def pop(self):
         with self._lock:
-            if not self._stack:
-                raise RuntimeError('Attempt to pop from an empty stack')
             if self._owning_thread_id != threading.current_thread().ident:
                 # because push from other threads does nothing
                 return
+            if not self._stack:
+                raise RuntimeError('Attempt to pop from an empty stack')
 
             _reset_logger()
             if len(self._stack) != 1:
