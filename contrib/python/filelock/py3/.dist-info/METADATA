@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.3
 Name: filelock
-Version: 3.13.1
+Version: 3.13.3
 Summary: A platform independent file lock.
 Project-URL: Documentation, https://py-filelock.readthedocs.io
 Project-URL: Homepage, https://github.com/tox-dev/py-filelock
@@ -27,18 +27,18 @@ Classifier: Topic :: System
 Requires-Python: >=3.8
 Provides-Extra: docs
 Requires-Dist: furo>=2023.9.10; extra == 'docs'
-Requires-Dist: sphinx-autodoc-typehints!=1.23.4,>=1.24; extra == 'docs'
+Requires-Dist: sphinx-autodoc-typehints!=1.23.4,>=1.25.2; extra == 'docs'
 Requires-Dist: sphinx>=7.2.6; extra == 'docs'
 Provides-Extra: testing
 Requires-Dist: covdefaults>=2.3; extra == 'testing'
 Requires-Dist: coverage>=7.3.2; extra == 'testing'
-Requires-Dist: diff-cover>=8; extra == 'testing'
+Requires-Dist: diff-cover>=8.0.1; extra == 'testing'
 Requires-Dist: pytest-cov>=4.1; extra == 'testing'
 Requires-Dist: pytest-mock>=3.12; extra == 'testing'
 Requires-Dist: pytest-timeout>=2.2; extra == 'testing'
 Requires-Dist: pytest>=7.4.3; extra == 'testing'
 Provides-Extra: typing
-Requires-Dist: typing-extensions>=4.8; python_version < '3.11' and extra == 'typing'
+Requires-Dist: typing-extensions>=4.8; (python_version < '3.11') and extra == 'typing'
 Description-Content-Type: text/markdown
 
 # filelock
