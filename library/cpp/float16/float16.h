@@ -116,6 +116,15 @@ namespace std {
     template <>
     class numeric_limits<TFloat16> {
     public:
+        static constexpr bool is_specialized = true;
+        static constexpr bool is_signed = true;
+        static constexpr bool is_integer = false;
+        static constexpr bool is_exact = false;
+        static constexpr bool has_infinity = true;
+        static constexpr bool has_quiet_NaN = true;
+        static constexpr bool has_signaling_NaN = true;
+        static constexpr std::float_denorm_style has_denorm = std::denorm_present;
+
         static constexpr TFloat16 min() noexcept {
             return TFloat16::Load(0b0'00001'0000000000);
         }
