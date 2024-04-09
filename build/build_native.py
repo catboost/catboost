@@ -446,6 +446,25 @@ def get_default_build_platform_toolchain(source_root_dir):
     else:
         return os.path.abspath(os.path.join(source_root_dir, 'build', 'toolchains', 'clang.toolchain'))
 
+def get_build_environ(opts, cmd_runner):
+    if platform.system().lower() == 'windows':
+        # Need vcvars set up for Ninja generator
+        build_environ = get_msvc_environ(
+            opts.msvs_installation_path,
+            opts.msvs_version,
+            opts.msvc_toolset,
+            cmd_runner,
+            opts.dry_run
+        )
+    else:
+        build_environ = os.environ
+
+    if opts.have_cuda:
+        cuda_root_dir = get_cuda_root_dir(opts.cuda_root_dir)
+        # CMake requires nvcc to be available in $PATH
+        add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir)
+
+    return build_environ
 
 def build(
     opts=None,
@@ -496,17 +515,7 @@ def build(
     else:
         cmake_target_toolchain = opts.cmake_target_toolchain
 
-    if platform.system().lower() == 'windows':
-        # Need vcvars set up for Ninja generator
-        build_environ = get_msvc_environ(
-            opts.msvs_installation_path,
-            opts.msvs_version,
-            opts.msvc_toolset,
-            cmd_runner,
-            opts.dry_run
-        )
-    else:
-        build_environ = os.environ
+    build_environ = get_build_environ(opts, cmd_runner)
 
     # can be empty if called for tools build
     catboost_components = get_catboost_components(opts.targets)
@@ -541,8 +550,6 @@ def build(
     cmake_cmd += [f'-DHAVE_CUDA={"yes" if opts.have_cuda else "no"}']
     if opts.have_cuda:
         cuda_root_dir = get_cuda_root_dir(opts.cuda_root_dir)
-        # CMake requires nvcc to be available in $PATH
-        add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir)
         cmake_cmd += [
             f'-DCUDAToolkit_ROOT={cuda_root_dir}',
             f'-DCMAKE_CUDA_RUNTIME_LIBRARY={opts.cuda_runtime_library}'
