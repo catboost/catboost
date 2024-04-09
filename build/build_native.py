@@ -457,7 +457,7 @@ def get_build_environ(opts, cmd_runner):
             opts.dry_run
         )
     else:
-        build_environ = os.environ
+        build_environ = copy.deepcopy(os.environ)
 
     if opts.have_cuda:
         cuda_root_dir = get_cuda_root_dir(opts.cuda_root_dir)
