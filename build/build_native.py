@@ -446,7 +446,7 @@ def get_default_build_platform_toolchain(source_root_dir):
     else:
         return os.path.abspath(os.path.join(source_root_dir, 'build', 'toolchains', 'clang.toolchain'))
 
-def get_build_environ(opts, cmd_runner):
+def get_build_environ(opts, target_platform, cmd_runner):
     if platform.system().lower() == 'windows':
         # Need vcvars set up for Ninja generator
         build_environ = get_msvc_environ(
@@ -458,6 +458,11 @@ def get_build_environ(opts, cmd_runner):
         )
     else:
         build_environ = copy.deepcopy(os.environ)
+        if target_platform == 'linux-aarch64':
+            # Inject these flags to conan builds
+            # TODO(akhropov): Prefer a more general solution at CMake/conan level
+            build_environ['CFLAGS'] = '-mno-outline-atomics'
+            build_environ['CXXFLAGS'] = '-mno-outline-atomics'
 
     if opts.have_cuda:
         cuda_root_dir = get_cuda_root_dir(opts.cuda_root_dir)
@@ -515,7 +520,7 @@ def build(
     else:
         cmake_target_toolchain = opts.cmake_target_toolchain
 
-    build_environ = get_build_environ(opts, cmd_runner)
+    build_environ = get_build_environ(opts, target_platform, cmd_runner)
 
     # can be empty if called for tools build
     catboost_components = get_catboost_components(opts.targets)

@@ -105,6 +105,13 @@ For most common scenarios it is easier to run [`build_native.py` descibed above]
 
 1. Choose some directory as a build root. Prefer short paths on Windows to avoid hitting the path length limit of 260 characters for files in this directory. This directory is referred to as `$CMAKE_BINARY_DIR` later.
 
+1. If you build on Linux for `aarch64` architecture set special compilation flags (will be used in `conan` packages builds):
+    ```
+    export CFLAGS="-mno-outline-atomics"
+    export CXXFLAGS="-mno-outline-atomics"
+    ```
+    See [GitHub issue #2527](https://github.com/catboost/catboost/issues/2527) for details.
+
 1. Call `cmake` with `$CATBOOST_SRC_ROOT` as a source tree root and a build root specification: `-B $CMAKE_BINARY_DIR`. See [CMake CLI documentation](https://cmake.org/cmake/help/latest/manual/cmake.1.html) for details. Other important options and definitions for this call are [described below](#cmake-options-and-definitions).
 
 1. Call the build tool (depending on what generator has been specified in the `cmake` call above) with the build specification files generated in `$CMAKE_BINARY_DIR`.
