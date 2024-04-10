@@ -1,5 +1,6 @@
 #include "options.h"
 
+#include <util/stream/output.h>
 #include <util/string/cast.h>
 #include <util/digest/numeric.h>
 #include <util/network/ip.h>
@@ -40,4 +41,19 @@ void THttpServerOptions::BindAddresses(TBindAddresses& ret) const {
     if (ret.empty()) {
         ret.push_back(Host ? TNetworkAddress(Host, Port) : TNetworkAddress(Port));
     }
+}
+
+void THttpServerOptions::DebugPrint(IOutputStream& stream) const noexcept {
+    stream << "Port: " << Port << "\n";
+    stream << "Host: " << Host << "\n";
+    stream << "KeepAliveEnabled: " << KeepAliveEnabled << "\n";
+    stream << "CompressionEnabled: " << CompressionEnabled << "\n";
+    stream << "nThreads: " << nThreads << "\n";
+    stream << "nListenerThreads: " << nListenerThreads << "\n";
+    stream << "MaxQueueSize: " << MaxQueueSize << "\n";
+    stream << "nFThreads: " << nFThreads << "\n";
+    stream << "MaxFQueueSize: " << MaxFQueueSize << "\n";
+    stream << "MaxConnections: " << MaxConnections << "\n";
+    stream << "MaxRequestsPerConnection: " << MaxRequestsPerConnection << "\n";
+    stream << "ClientTimeout(ms): " << ClientTimeout.MilliSeconds() << "\n";
 }

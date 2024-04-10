@@ -8,6 +8,8 @@
 #include <util/generic/vector.h>
 #include <util/datetime/base.h>
 
+class IOutputStream;
+
 class THttpServerOptions {
 public:
     inline THttpServerOptions(ui16 port = 17000) noexcept
@@ -150,6 +152,8 @@ public:
 
         return *this;
     }
+
+    void DebugPrint(IOutputStream& stream) const noexcept;
 
     struct TAddr {
         TString Addr;
