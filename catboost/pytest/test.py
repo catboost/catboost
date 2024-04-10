@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import timeit
 import json
+import shutil
 
 import catboost
 
@@ -9294,7 +9295,9 @@ def test_eval_feature_snapshot(eval_mode, features_to_eval, offset, fstr_mode):
     for idx in range(resume_from_snapshot_count):
         timeout = 0.5 if idx % 2 == 0 else snapshot_interval + 0.1
         stop_after_timeout(cmd=eval_with_snapshot_cmd, timeout=timeout)
-        yatest.common.execute(['rm', '-rf', snapshot_dir])
+        if os.path.exists(snapshot_dir):
+            shutil.rmtree(snapshot_dir)
+
     yatest.common.execute(eval_with_snapshot_cmd)
 
     assert filecmp.cmp(reference_summary, snapshot_summary)
