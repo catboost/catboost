@@ -1355,11 +1355,6 @@ NpyIter_GetInnerFixedStrideArray(NpyIter *iter, npy_intp *out_strides)
 
         for (iop = 0; iop < nop; ++iop) {
             stride = strides[iop];
-#if defined(__has_feature)
-#  if __has_feature(memory_sanitizer)
-            __msan_unpoison(&stride, sizeof(stride));
-#  endif
-#endif
             /*
              * Operands which are always/never buffered have fixed strides,
              * and everything has fixed strides when ndim is 0 or 1
