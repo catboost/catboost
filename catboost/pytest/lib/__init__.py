@@ -40,7 +40,7 @@ def data_file(*path):
     if _use_cmake_paths:
         return os.path.join(os.environ["CMAKE_SOURCE_DIR"], "catboost", "pytest", "data", *path)
     else:
-        return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path))
+        return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path).replace('\\', '/'))
 
 
 @yatest.common.misc.lazy
@@ -193,7 +193,7 @@ def execute_dist_train(cmd):
 
 @pytest.fixture(scope="module")
 def compressed_data():
-    data_path = yatest.common.source_path(os.path.join("catboost", "pytest", "data"))
+    data_path = yatest.common.source_path("catboost/pytest/data")
     tmp_dir = TemporaryDirectory()
     for file_name in os.listdir(data_path):
         if file_name.endswith('.zip'):
