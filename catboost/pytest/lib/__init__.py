@@ -27,7 +27,7 @@ import yatest.common.network  # noqa
 def get_catboost_binary_path():
     if _use_cmake_paths:
         return os.path.join(
-            'CMAKE_BINARY_DIR',
+            os.environ['CMAKE_BINARY_DIR'],
             'catboost',
             'app',
             'catboost' + ('.exe' if sys.platform == 'win32' else '')
@@ -38,7 +38,7 @@ def get_catboost_binary_path():
 
 def data_file(*path):
     if _use_cmake_paths:
-        return os.path.join("CMAKE_SOURCE_DIR", "catboost", "pytest", "data", *path)
+        return os.path.join(os.environ["CMAKE_SOURCE_DIR"], "catboost", "pytest", "data", *path)
     else:
         return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path))
 
