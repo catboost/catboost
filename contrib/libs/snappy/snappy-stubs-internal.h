@@ -105,6 +105,12 @@
 #define SNAPPY_ATTRIBUTE_ALWAYS_INLINE
 #endif  // HAVE_ATTRIBUTE_ALWAYS_INLINE
 
+#if HAVE_BUILTIN_PREFETCH
+#define SNAPPY_PREFETCH(ptr) __builtin_prefetch(ptr, 0, 3)
+#else
+#define SNAPPY_PREFETCH(ptr) (void)(ptr)
+#endif
+
 // Stubbed version of ABSL_FLAG.
 //
 // In the open source version, flags can only be changed at compile time.

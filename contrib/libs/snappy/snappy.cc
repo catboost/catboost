@@ -68,18 +68,13 @@
 #include <arm_acle.h>
 #endif
 
-#if defined(__GNUC__)
-#define SNAPPY_PREFETCH(ptr) __builtin_prefetch(ptr, 0, 3)
-#else
-#define SNAPPY_PREFETCH(ptr) (void)(ptr)
-#endif
-
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -177,6 +172,22 @@ inline uint16_t* TableEntry(uint16_t* table, uint32_t bytes, uint32_t mask) {
   constexpr uint32_t kMagic = 0x1e35a7bd;
   const uint32_t hash = (kMagic * bytes) >> (31 - kMaxHashTableBits);
 #endif
+  return reinterpret_cast<uint16_t*>(reinterpret_cast<uintptr_t>(table) +
+                                     (hash & mask));
+}
+
+inline uint16_t* TableEntry4ByteMatch(uint16_t* table, uint32_t bytes,
+                                      uint32_t mask) {
+  constexpr uint32_t kMagic = 2654435761U;
+  const uint32_t hash = (kMagic * bytes) >> (32 - kMaxHashTableBits);
+  return reinterpret_cast<uint16_t*>(reinterpret_cast<uintptr_t>(table) +
+                                     (hash & mask));
+}
+
+inline uint16_t* TableEntry8ByteMatch(uint16_t* table, uint64_t bytes,
+                                      uint32_t mask) {
+  constexpr uint64_t kMagic = 58295818150454627ULL;
+  const uint32_t hash = (kMagic * bytes) >> (64 - kMaxHashTableBits);
   return reinterpret_cast<uint16_t*>(reinterpret_cast<uintptr_t>(table) +
                                      (hash & mask));
 }
@@ -945,12 +956,180 @@ emit_remainder:
 
   return op;
 }
+
+char* CompressFragmentDoubleHash(const char* input, size_t input_size, char* op,
+                                 uint16_t* table, const int table_size,
+                                 uint16_t* table2, const int table_size2) {
+  (void)table_size2;
+  assert(table_size == table_size2);
+  // "ip" is the input pointer, and "op" is the output pointer.
+  const char* ip = input;
+  assert(input_size <= kBlockSize);
+  assert((table_size & (table_size - 1)) == 0);  // table must be power of two
+  const uint32_t mask = 2 * (table_size - 1);
+  const char* ip_end = input + input_size;
+  const char* base_ip = ip;
+
+  const size_t kInputMarginBytes = 15;
+  if (SNAPPY_PREDICT_TRUE(input_size >= kInputMarginBytes)) {
+    const char* ip_limit = input + input_size - kInputMarginBytes;
+
+    for (;;) {
+      const char* next_emit = ip++;
+      uint64_t data = LittleEndian::Load64(ip);
+      uint32_t skip = 512;
+
+      const char* candidate;
+      uint32_t candidate_length;
+      while (true) {
+        assert(static_cast<uint32_t>(data) == LittleEndian::Load32(ip));
+        uint16_t* table_entry2 = TableEntry8ByteMatch(table2, data, mask);
+        uint32_t bytes_between_hash_lookups = skip >> 9;
+        skip++;
+        const char* next_ip = ip + bytes_between_hash_lookups;
+        if (SNAPPY_PREDICT_FALSE(next_ip > ip_limit)) {
+          ip = next_emit;
+          goto emit_remainder;
+        }
+        candidate = base_ip + *table_entry2;
+        assert(candidate >= base_ip);
+        assert(candidate < ip);
+
+        *table_entry2 = ip - base_ip;
+        if (SNAPPY_PREDICT_FALSE(static_cast<uint32_t>(data) ==
+                                LittleEndian::Load32(candidate))) {
+          candidate_length =
+              FindMatchLengthPlain(candidate + 4, ip + 4, ip_end) + 4;
+          break;
+        }
+
+        uint16_t* table_entry = TableEntry4ByteMatch(table, data, mask);
+        candidate = base_ip + *table_entry;
+        assert(candidate >= base_ip);
+        assert(candidate < ip);
+
+        *table_entry = ip - base_ip;
+        if (SNAPPY_PREDICT_FALSE(static_cast<uint32_t>(data) ==
+                                LittleEndian::Load32(candidate))) {
+          candidate_length =
+              FindMatchLengthPlain(candidate + 4, ip + 4, ip_end) + 4;
+          table_entry2 =
+              TableEntry8ByteMatch(table2, LittleEndian::Load64(ip + 1), mask);
+          auto candidate2 = base_ip + *table_entry2;
+          size_t candidate_length2 =
+              FindMatchLengthPlain(candidate2, ip + 1, ip_end);
+          if (candidate_length2 > candidate_length) {
+            *table_entry2 = ip - base_ip;
+            candidate = candidate2;
+            candidate_length = candidate_length2;
+            ++ip;
+          }
+          break;
+        }
+        data = LittleEndian::Load64(next_ip);
+        ip = next_ip;
+      }
+      // Backtrack to the point it matches fully.
+      while (ip > next_emit && candidate > base_ip &&
+             *(ip - 1) == *(candidate - 1)) {
+        --ip;
+        --candidate;
+        ++candidate_length;
+      }
+      *TableEntry8ByteMatch(table2, LittleEndian::Load64(ip + 1), mask) =
+          ip - base_ip + 1;
+      *TableEntry8ByteMatch(table2, LittleEndian::Load64(ip + 2), mask) =
+          ip - base_ip + 2;
+      *TableEntry4ByteMatch(table, LittleEndian::Load32(ip + 1), mask) =
+          ip - base_ip + 1;
+      // Step 2: A 4-byte or 8-byte match has been found.
+      // We'll later see if more than 4 bytes match.  But, prior to the match,
+      // input bytes [next_emit, ip) are unmatched.  Emit them as
+      // "literal bytes."
+      assert(next_emit + 16 <= ip_end);
+      if (ip - next_emit > 0) {
+        op = EmitLiteral</*allow_fast_path=*/true>(op, next_emit,
+                                                   ip - next_emit);
+      }
+      // Step 3: Call EmitCopy, and then see if another EmitCopy could
+      // be our next move.  Repeat until we find no match for the
+      // input immediately after what was consumed by the last EmitCopy call.
+      //
+      // If we exit this loop normally then we need to call EmitLiteral next,
+      // though we don't yet know how big the literal will be.  We handle that
+      // by proceeding to the next iteration of the main loop.  We also can exit
+      // this loop via goto if we get close to exhausting the input.
+      do {
+        // We have a 4-byte match at ip, and no need to emit any
+        // "literal bytes" prior to ip.
+        const char* base = ip;
+        ip += candidate_length;
+        size_t offset = base - candidate;
+        if (candidate_length < 12) {
+          op =
+              EmitCopy</*len_less_than_12=*/true>(op, offset, candidate_length);
+        } else {
+          op = EmitCopy</*len_less_than_12=*/false>(op, offset,
+                                                    candidate_length);
+        }
+        if (SNAPPY_PREDICT_FALSE(ip >= ip_limit)) {
+          goto emit_remainder;
+        }
+        // We are now looking for a 4-byte match again.  We read
+        // table[Hash(ip, mask)] for that. To improve compression,
+        // we also update several previous table entries.
+        if (ip - base_ip > 7) {
+          *TableEntry8ByteMatch(table2, LittleEndian::Load64(ip - 7), mask) =
+              ip - base_ip - 7;
+          *TableEntry8ByteMatch(table2, LittleEndian::Load64(ip - 4), mask) =
+              ip - base_ip - 4;
+        }
+        *TableEntry8ByteMatch(table2, LittleEndian::Load64(ip - 3), mask) =
+            ip - base_ip - 3;
+        *TableEntry8ByteMatch(table2, LittleEndian::Load64(ip - 2), mask) =
+            ip - base_ip - 2;
+        *TableEntry4ByteMatch(table, LittleEndian::Load32(ip - 2), mask) =
+            ip - base_ip - 2;
+        *TableEntry4ByteMatch(table, LittleEndian::Load32(ip - 1), mask) =
+            ip - base_ip - 1;
+
+        uint16_t* table_entry =
+            TableEntry8ByteMatch(table2, LittleEndian::Load64(ip), mask);
+        candidate = base_ip + *table_entry;
+        *table_entry = ip - base_ip;
+        if (LittleEndian::Load32(ip) == LittleEndian::Load32(candidate)) {
+          candidate_length =
+              FindMatchLengthPlain(candidate + 4, ip + 4, ip_end) + 4;
+          continue;
+        }
+        table_entry =
+            TableEntry4ByteMatch(table, LittleEndian::Load32(ip), mask);
+        candidate = base_ip + *table_entry;
+        *table_entry = ip - base_ip;
+        if (LittleEndian::Load32(ip) == LittleEndian::Load32(candidate)) {
+          candidate_length =
+              FindMatchLengthPlain(candidate + 4, ip + 4, ip_end) + 4;
+          continue;
+        }
+        break;
+      } while (true);
+    }
+  }
+
+emit_remainder:
+  // Emit the remaining bytes as a literal
+  if (ip < ip_end) {
+    op = EmitLiteral</*allow_fast_path=*/false>(op, ip, ip_end - ip);
+  }
+
+  return op;
+}
 }  // end namespace internal
 
-// Called back at avery compression call to trace parameters and sizes.
-static inline void Report(const char *algorithm, size_t compressed_size,
-                          size_t uncompressed_size) {
+static inline void Report(int token, const char *algorithm, size_t
+compressed_size, size_t uncompressed_size) {
   // TODO: Switch to [[maybe_unused]] when we can assume C++17.
+  (void)token;
   (void)algorithm;
   (void)compressed_size;
   (void)uncompressed_size;
@@ -1235,16 +1414,21 @@ std::pair<const uint8_t*, ptrdiff_t> DecompressBranchless(
         assert(tag == ip[-1]);
         // For literals tag_type = 0, hence we will always obtain 0 from
         // ExtractLowBytes. For literals offset will thus be kLiteralOffset.
-        ptrdiff_t len_min_offset = kLengthMinusOffset[tag];
+        ptrdiff_t len_minus_offset = kLengthMinusOffset[tag];
+        uint32_t next;
 #if defined(__aarch64__)
         size_t tag_type = AdvanceToNextTagARMOptimized(&ip, &tag);
+        // We never need more than 16 bits. Doing a Load16 allows the compiler
+        // to elide the masking operation in ExtractOffset.
+        next = LittleEndian::Load16(old_ip);
 #else
         size_t tag_type = AdvanceToNextTagX86Optimized(&ip, &tag);
+        next = LittleEndian::Load32(old_ip);
 #endif
-        uint32_t next = LittleEndian::Load32(old_ip);
-        size_t len = len_min_offset & 0xFF;
-        len_min_offset -= ExtractOffset(next, tag_type);
-        if (SNAPPY_PREDICT_FALSE(len_min_offset > 0)) {
+        size_t len = len_minus_offset & 0xFF;
+        ptrdiff_t extracted = ExtractOffset(next, tag_type);
+        ptrdiff_t len_min_offset = len_minus_offset - extracted;
+        if (SNAPPY_PREDICT_FALSE(len_minus_offset > extracted)) {
           if (SNAPPY_PREDICT_FALSE(len & 0x80)) {
             // Exceptional case (long literal or copy 4).
             // Actually doing the copy here is negatively impacting the main
@@ -1291,7 +1475,7 @@ std::pair<const uint8_t*, ptrdiff_t> DecompressBranchless(
         DeferMemCopy(&deferred_src, &deferred_length, from, len);
       }
     } while (ip < ip_limit_min_slop &&
-             (op + deferred_length) < op_limit_min_slop);
+             static_cast<ptrdiff_t>(op + deferred_length) < op_limit_min_slop);
   exit:
     ip--;
     assert(ip <= ip_limit);
@@ -1593,7 +1777,8 @@ template <typename Writer>
 static bool InternalUncompressAllTags(SnappyDecompressor* decompressor,
                                       Writer* writer, uint32_t compressed_len,
                                       uint32_t uncompressed_len) {
-  Report("snappy_uncompress", compressed_len, uncompressed_len);
+    int token = 0;
+  Report(token, "snappy_uncompress", compressed_len, uncompressed_len);
 
   writer->SetExpectedLength(uncompressed_len);
 
@@ -1608,7 +1793,9 @@ bool GetUncompressedLength(Source* source, uint32_t* result) {
   return decompressor.ReadUncompressedLength(result);
 }
 
-size_t Compress(Source* reader, Sink* writer) {
+size_t Compress(Source* reader, Sink* writer, CompressionOptions options) {
+  assert(options.level == 1 || options.level == 2);
+  int token = 0;
   size_t written = 0;
   size_t N = reader->Available();
   const size_t uncompressed_size = N;
@@ -1655,17 +1842,23 @@ size_t Compress(Source* reader, Sink* writer) {
     uint16_t* table = wmem.GetHashTable(num_to_read, &table_size);
 
     // Compress input_fragment and append to dest
-    const int max_output = MaxCompressedLength(num_to_read);
-
-    // Need a scratch buffer for the output, in case the byte sink doesn't
-    // have room for us directly.
+    int max_output = MaxCompressedLength(num_to_read);
 
     // Since we encode kBlockSize regions followed by a region
     // which is <= kBlockSize in length, a previously allocated
     // scratch_output[] region is big enough for this iteration.
+    // Need a scratch buffer for the output, in case the byte sink doesn't
+    // have room for us directly.
     char* dest = writer->GetAppendBuffer(max_output, wmem.GetScratchOutput());
-    char* end = internal::CompressFragment(fragment, fragment_size, dest, table,
-                                           table_size);
+    char* end = nullptr;
+    if (options.level == 1) {
+      end = internal::CompressFragment(fragment, fragment_size, dest, table,
+                                       table_size);
+    } else if (options.level == 2) {
+      end = internal::CompressFragmentDoubleHash(
+          fragment, fragment_size, dest, table, table_size >> 1,
+          table + (table_size >> 1), table_size >> 1);
+    }
     writer->Append(dest, end - dest);
     written += (end - dest);
 
@@ -1673,8 +1866,7 @@ size_t Compress(Source* reader, Sink* writer) {
     reader->Skip(pending_advance);
   }
 
-  Report("snappy_compress", written, uncompressed_size);
-
+  Report(token, "snappy_compress", written, uncompressed_size);
   return written;
 }
 
@@ -1697,16 +1889,16 @@ class SnappyIOVecReader : public Source {
     if (total_size > 0 && curr_size_remaining_ == 0) Advance();
   }
 
-  ~SnappyIOVecReader() = default;
+  ~SnappyIOVecReader() override = default;
 
-  size_t Available() const { return total_size_remaining_; }
+  size_t Available() const override { return total_size_remaining_; }
 
-  const char* Peek(size_t* len) {
+  const char* Peek(size_t* len) override {
     *len = curr_size_remaining_;
     return curr_pos_;
   }
 
-  void Skip(size_t n) {
+  void Skip(size_t n) override {
     while (n >= curr_size_remaining_ && n > 0) {
       n -= curr_size_remaining_;
       Advance();
@@ -2122,39 +2314,40 @@ bool IsValidCompressed(Source* compressed) {
 }
 
 void RawCompress(const char* input, size_t input_length, char* compressed,
-                 size_t* compressed_length) {
+                 size_t* compressed_length, CompressionOptions options) {
   ByteArraySource reader(input, input_length);
   UncheckedByteArraySink writer(compressed);
-  Compress(&reader, &writer);
+  Compress(&reader, &writer, options);
 
   // Compute how many bytes were added
   *compressed_length = (writer.CurrentDestination() - compressed);
 }
 
 void RawCompressFromIOVec(const struct iovec* iov, size_t uncompressed_length,
-                          char* compressed, size_t* compressed_length) {
+                          char* compressed, size_t* compressed_length,
+                          CompressionOptions options) {
   SnappyIOVecReader reader(iov, uncompressed_length);
   UncheckedByteArraySink writer(compressed);
-  Compress(&reader, &writer);
+  Compress(&reader, &writer, options);
 
   // Compute how many bytes were added.
   *compressed_length = writer.CurrentDestination() - compressed;
 }
 
-size_t Compress(const char* input, size_t input_length,
-                std::string* compressed) {
+size_t Compress(const char* input, size_t input_length, std::string* compressed,
+                CompressionOptions options) {
   // Pre-grow the buffer to the max length of the compressed output
   STLStringResizeUninitialized(compressed, MaxCompressedLength(input_length));
 
   size_t compressed_length;
   RawCompress(input, input_length, string_as_array(compressed),
-              &compressed_length);
+              &compressed_length, options);
   compressed->erase(compressed_length);
   return compressed_length;
 }
 
 size_t CompressFromIOVec(const struct iovec* iov, size_t iov_cnt,
-                         std::string* compressed) {
+                         std::string* compressed, CompressionOptions options) {
   // Compute the number of bytes to be compressed.
   size_t uncompressed_length = 0;
   for (size_t i = 0; i < iov_cnt; ++i) {
@@ -2167,19 +2360,19 @@ size_t CompressFromIOVec(const struct iovec* iov, size_t iov_cnt,
 
   size_t compressed_length;
   RawCompressFromIOVec(iov, uncompressed_length, string_as_array(compressed),
-                       &compressed_length);
+                       &compressed_length, options);
   compressed->erase(compressed_length);
   return compressed_length;
 }
 
 size_t Compress(const char* input, size_t input_length,
-                TString* compressed) {
+                TString* compressed, CompressionOptions options) {
   // Pre-grow the buffer to the max length of the compressed output
   compressed->ReserveAndResize(MaxCompressedLength(input_length));
 
   size_t compressed_length;
   RawCompress(input, input_length, compressed->begin(),
-              &compressed_length);
+              &compressed_length, options);
   compressed->resize(compressed_length);
   return compressed_length;
 }
@@ -2369,7 +2562,6 @@ bool SnappyScatteredWriter<Allocator>::SlowAppendFromSelf(size_t offset,
 class SnappySinkAllocator {
  public:
   explicit SnappySinkAllocator(Sink* dest) : dest_(dest) {}
-  ~SnappySinkAllocator() {}
 
   char* Allocate(int size) {
     Datablock block(new char[size], size);

@@ -31,6 +31,8 @@
 #ifndef THIRD_PARTY_SNAPPY_SNAPPY_INTERNAL_H_
 #define THIRD_PARTY_SNAPPY_SNAPPY_INTERNAL_H_
 
+#include <utility>
+
 #include "snappy-stubs-internal.h"
 
 #if SNAPPY_HAVE_SSSE3
@@ -256,6 +258,8 @@ static inline std::pair<size_t, bool> FindMatchLength(const char* s1,
       s2 += 8;
     }
   }
+  SNAPPY_PREFETCH(s1 + 64);
+  SNAPPY_PREFETCH(s2 + 64);
 
   // Find out how long the match is. We loop over the data 64 bits at a
   // time until we find a 64-bit block that doesn't match; then we find
@@ -329,6 +333,31 @@ static inline std::pair<size_t, bool> FindMatchLength(const char* s1,
   return std::pair<size_t, bool>(matched, matched < 8);
 }
 #endif
+
+static inline size_t FindMatchLengthPlain(const char* s1, const char* s2,
+                                          const char* s2_limit) {
+  // Implementation based on the x86-64 version, above.
+  assert(s2_limit >= s2);
+  int matched = 0;
+
+  while (s2 <= s2_limit - 8 &&
+         UNALIGNED_LOAD64(s2) == UNALIGNED_LOAD64(s1 + matched)) {
+    s2 += 8;
+    matched += 8;
+  }
+  if (LittleEndian::IsLittleEndian() && s2 <= s2_limit - 8) {
+    uint64_t x = UNALIGNED_LOAD64(s2) ^ UNALIGNED_LOAD64(s1 + matched);
+    int matching_bits = Bits::FindLSBSetNonZero64(x);
+    matched += matching_bits >> 3;
+    s2 += matching_bits >> 3;
+  } else {
+    while ((s2 < s2_limit) && (s1[matched] == *s2)) {
+      ++s2;
+      ++matched;
+    }
+  }
+  return matched;
+}
 
 // Lookup tables for decompression code.  Give --snappy_dump_decompression_table
 // to the unit test to recompute char_table.
