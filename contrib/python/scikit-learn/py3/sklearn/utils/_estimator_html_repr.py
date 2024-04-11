@@ -24,7 +24,7 @@ class _IDCounter:
 
 def _get_css_style():
     import importlib.resources
-    return (importlib.resources.files("sklearn") / "utils/_estimator_html_repr.css").read_text(encoding="utf-8")
+    return (importlib.resources.files("sklearn") / "utils" / "_estimator_html_repr.css").read_text(encoding="utf-8")
 
 
 _CONTAINER_ID_COUNTER = _IDCounter("sk-container-id")
@@ -330,6 +330,13 @@ def estimator_html_repr(estimator):
     -------
     html: str
         HTML representation of estimator.
+
+    Examples
+    --------
+    >>> from sklearn.utils._estimator_html_repr import estimator_html_repr
+    >>> from sklearn.linear_model import LogisticRegression
+    >>> estimator_html_repr(LogisticRegression())
+    '<style>...</div>'
     """
     from sklearn.exceptions import NotFittedError
     from sklearn.utils.validation import check_is_fitted

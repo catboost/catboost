@@ -1521,7 +1521,7 @@ cdef class BinaryTree64:
             raise ValueError("query data dimension must "
                              "match training data dimension")
         Xarr_np = X.reshape((-1, n_features))
-        cdef float64_t[:, ::1] Xarr = Xarr_np
+        cdef const float64_t[:, ::1] Xarr = Xarr_np
 
         log_density_arr = np.zeros(Xarr.shape[0], dtype=np.float64)
         cdef float64_t[::1] log_density = log_density_arr
@@ -3157,7 +3157,7 @@ cdef class BinaryTree32:
             raise ValueError("query data dimension must "
                              "match training data dimension")
         Xarr_np = X.reshape((-1, n_features))
-        cdef float32_t[:, ::1] Xarr = Xarr_np
+        cdef const float32_t[:, ::1] Xarr = Xarr_np
 
         log_density_arr = np.zeros(Xarr.shape[0], dtype=np.float32)
         cdef float32_t[::1] log_density = log_density_arr

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: scikit-learn
-Version: 1.4.0
+Version: 1.4.1.post1
 Summary: A set of python modules for machine learning and data mining
 Home-page: https://scikit-learn.org
 Download-URL: https://pypi.org/project/scikit-learn/#files
