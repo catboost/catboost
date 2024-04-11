@@ -19,6 +19,10 @@ import random
 import sys
 import signal
 import threading
+import tempfile
+import os
+
+from library.python.resource import iteritems
 
 try:
     import tornado
@@ -177,12 +181,14 @@ class WebAggApplication(tornado.web.Application):
             assert url_prefix[0] == '/' and url_prefix[-1] != '/', \
                 'url_prefix must start with a "/" and not end with one.'
 
+        self._store_resources()
+        package_resources_abspath = os.path.join(self._stored_package_path, core.FigureManagerWebAgg.get_static_file_path())
         super().__init__(
             [
                 # Static files for the CSS and JS
                 (url_prefix + r'/_static/(.*)',
                  tornado.web.StaticFileHandler,
-                 {'path': core.FigureManagerWebAgg.get_static_file_path()}),
+                 {'path': package_resources_abspath}),
 
                 # Static images for the toolbar
                 (url_prefix + r'/_images/(.*)',
@@ -210,7 +216,19 @@ class WebAggApplication(tornado.web.Application):
                 (url_prefix + r'/([0-9]+)/download.([a-z0-9.]+)',
                  self.Download),
             ],
-            template_path=core.FigureManagerWebAgg.get_static_file_path())
+            template_path=package_resources_abspath)
+
+    def _store_resources(self):
+        self._stored_package_dir = tempfile.TemporaryDirectory()
+        self._stored_package_path = self._stored_package_dir.name
+        package_path = os.path.join(*"contrib/python/matplotlib/py3/".split("/"))
+        for key, data in iteritems(prefix="resfs/file/" + package_path, strip_prefix=True):
+            path = os.path.join(self._stored_package_path, *os.path.split(package_path), *os.path.split(key))
+            dir = os.path.dirname(path)
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+            with open(path, "wb") as file:
+                file.write(data)
 
     @classmethod
     def initialize(cls, url_prefix='', port=None, address=None):
