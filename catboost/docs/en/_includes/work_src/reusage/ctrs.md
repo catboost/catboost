@@ -15,7 +15,7 @@ $ctr_{i} = \frac{countInClass + prior}{totalCount + 1} { , where}$
 
 **Formula:**
 
-Calculating ctr for the i-th bucket ($i\in[0; k]$, creates $k+1$ buckets):
+Calculating ctr for the i-th bucket ($i\in[0; k]$, creates $k+1$ features):
 
 $ctr_{i} = \frac{countInClass + prior}{totalCount + 1} { , where}$
 
@@ -32,7 +32,7 @@ How ctr is calculated:
 
 $ctr = \frac{countInClass + prior}{totalCount + 1} { , where}$
 
-- `countInClass` is the ratio of the sum of the label value integers for this categorical feature to the maximum label value integer ($k$).
+- `countInClass` is the sum of the label values divided by the maximum label value integer ($k$).
 - `totalCount` is the total number of objects that have a feature value matching the current one.
 - `prior` is a number (constant) defined by the starting parameters.
 
