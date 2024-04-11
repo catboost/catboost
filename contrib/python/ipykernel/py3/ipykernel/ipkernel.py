@@ -22,7 +22,6 @@ from zmq.eventloop.zmqstream import ZMQStream
 from .comm.comm import BaseComm
 from .comm.manager import CommManager
 from .compiler import XCachingCompiler
-from .debugger import Debugger, _is_debugpy_available
 from .eventloops import _use_appnope
 from .iostream import OutStream
 from .kernelbase import Kernel as KernelBase
@@ -81,7 +80,7 @@ class IPythonKernel(KernelBase):
         help="Set this flag to False to deactivate the use of experimental IPython completion APIs.",
     ).tag(config=True)
 
-    debugpy_stream = Instance(ZMQStream, allow_none=True) if _is_debugpy_available else None
+    debugpy_stream = Instance(ZMQStream, allow_none=True)
 
     user_module = Any()
 
@@ -108,6 +107,8 @@ class IPythonKernel(KernelBase):
     def __init__(self, **kwargs):
         """Initialize the kernel."""
         super().__init__(**kwargs)
+
+        from .debugger import Debugger, _is_debugpy_available
 
         # Initialize the Debugger
         if _is_debugpy_available:
@@ -209,6 +210,8 @@ class IPythonKernel(KernelBase):
     }
 
     def dispatch_debugpy(self, msg):
+        from .debugger import _is_debugpy_available
+
         if _is_debugpy_available:
             # The first frame is the socket id, we can drop it
             frame = msg[1].bytes.decode("utf-8")
@@ -524,6 +527,8 @@ class IPythonKernel(KernelBase):
 
     async def do_debug_request(self, msg):
         """Handle a debug request."""
+        from .debugger import _is_debugpy_available
+
         if _is_debugpy_available:
             return await self.debugger.process_request(msg)
         return None

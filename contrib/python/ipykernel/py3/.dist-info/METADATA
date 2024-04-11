@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.3
 Name: ipykernel
-Version: 6.29.3
+Version: 6.29.4
 Summary: IPython Kernel for Jupyter
 Project-URL: Homepage, https://ipython.org
 Project-URL: Documentation, https://ipykernel.readthedocs.io
