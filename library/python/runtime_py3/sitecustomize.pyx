@@ -8,7 +8,6 @@ import warnings
 from importlib.metadata import (
     Distribution,
     DistributionFinder,
-    PackageNotFoundError,
     Prepared,
 )
 from importlib.resources.abc import Traversable
@@ -129,7 +128,7 @@ class ArcadiaDistribution(Distribution):
         return self._path.parent / path
 
 
-class ArcadiaMetadataFinder(DistributionFinder):
+class MetadataArcadiaFinder(DistributionFinder):
     prefixes = {}
 
     @classmethod
@@ -148,8 +147,7 @@ class ArcadiaMetadataFinder(DistributionFinder):
             data = __res.resfs_read(resource).decode("utf-8")
             metadata_name = METADATA_NAME.search(data)
             if metadata_name:
-                metadata_name = Prepared(metadata_name.group(1))
-                cls.prefixes[metadata_name.normalized] = resource[: -len("METADATA")]
+                cls.prefixes[Prepared(metadata_name.group(1)).normalized] = resource.removesuffix("METADATA")
 
     @classmethod
     def _search_prefixes(cls, name):
@@ -160,12 +158,6 @@ class ArcadiaMetadataFinder(DistributionFinder):
             try:
                 yield cls.prefixes[Prepared(name).normalized]
             except KeyError:
-                raise PackageNotFoundError(name)
+                pass
         else:
             yield from sorted(cls.prefixes.values())
-
-
-# monkeypatch standart library
-import importlib.metadata
-
-importlib.metadata.MetadataPathFinder = ArcadiaMetadataFinder

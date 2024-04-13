@@ -408,6 +408,19 @@ class ResourceImporter:
         path = os.path.dirname(self.get_filename(fullname))
         return _ResfsResourceReader(self, path)
 
+    @staticmethod
+    def find_distributions(*args, **kwargs):
+        """
+        Find distributions.
+
+        Return an iterable of all Distribution instances capable of
+        loading the metadata for packages matching ``context.name``
+        (or all names if ``None`` indicated) along the paths in the list
+        of directories ``context.path``.
+        """
+        from sitecustomize import MetadataArcadiaFinder
+        return MetadataArcadiaFinder.find_distributions(*args, **kwargs)
+
 
 class _ResfsResourceReader:
 
