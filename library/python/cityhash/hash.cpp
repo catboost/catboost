@@ -14,6 +14,8 @@ void ReadFile(const char* fpath, TBlob& blob) {
     if (size < (64 << 10)) {
         blob = TBlob::FromFileContent(f, 0, size);
     } else {
+        // Read 1 byte before mapping to detect access problems for encrypted and banned files in arc
+        TBlob::FromFileContentSingleThreaded(f, 0, 1);
         blob = TBlob::FromFile(f);
     }
 }
