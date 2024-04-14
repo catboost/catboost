@@ -77,7 +77,7 @@ public:
     }
 
     inline TVector(TSelf&& src) noexcept
-        : TBase(std::forward<TSelf>(src))
+        : TBase(std::move(src))
     {
     }
 
@@ -93,7 +93,7 @@ public:
     }
 
     inline TSelf& operator=(TSelf&& src) noexcept {
-        TBase::operator=(std::forward<TSelf>(src));
+        TBase::operator=(std::move(src));
         return *this;
     }
 
@@ -111,7 +111,7 @@ public:
     }
 
     inline yssize_t ysize() const noexcept {
-        return (yssize_t)TBase::size();
+        return static_cast<yssize_t>(TBase::size());
     }
 
 #if defined(_YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED) && !defined(__CUDACC__)
