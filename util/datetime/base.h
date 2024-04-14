@@ -308,7 +308,7 @@ public:
     }
 
     /// parses strings like 10s, 15ms, 15.05s, 20us, or just 25 (s). See parser_ut.cpp for details
-    static TDuration Parse(const TStringBuf input);
+    [[nodiscard]] static TDuration Parse(const TStringBuf input);
 
     static bool TryParse(const TStringBuf input, TDuration& result);
 
