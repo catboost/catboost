@@ -50,7 +50,7 @@ __all__ = [
 ]
 
 try:
-    import library.python.resource
+    import __res as res
     ARCADIA = True
 except ImportError:
     ARCADIA = False
@@ -966,24 +966,24 @@ class PathDistribution(Distribution):
 
 
 class ArcadiaDistribution(Distribution):
-
     def __init__(self, prefix):
-        self.prefix = prefix
+        self._prefix = prefix
+        self._path = pathlib.Path(prefix)
 
     def read_text(self, filename):
-        from library.python.resource import resfs_read
-        data = resfs_read('{}{}'.format(self.prefix, filename))
-        if data:
-            return data.decode('utf-8')
+        data = res.resfs_read(f"{self._prefix}{filename}")
+        if data is not None:
+            return data.decode("utf-8")
+
     read_text.__doc__ = Distribution.read_text.__doc__
 
     def locate_file(self, path):
-        return '{}{}'.format(self.prefix, path)
+        return self._path.parent / path
 
 
 @install(ARCADIA == True)
-class ArcadiaMetadataFinder(NullFinder, DistributionFinder):
-
+class MetadataArcadiaFinder(DistributionFinder):
+    METADATA_NAME = re.compile("^Name: (.*)$", re.MULTILINE)
     prefixes = {}
 
     @classmethod
@@ -993,19 +993,16 @@ class ArcadiaMetadataFinder(NullFinder, DistributionFinder):
 
     @classmethod
     def _init_prefixes(cls):
-        from library.python.resource import resfs_read, resfs_files
         cls.prefixes.clear()
 
-        METADATA_NAME = re.compile('^Name: (.*)$', re.MULTILINE)
-
-        for resource in resfs_files():
-            if not resource.endswith('METADATA'):
+        for resource in res.resfs_files():
+            resource = resource.decode("utf-8")
+            if not resource.endswith("METADATA"):
                 continue
-            data = resfs_read(resource).decode('utf-8')
-            metadata_name = METADATA_NAME.search(data)
+            data = res.resfs_read(resource).decode("utf-8")
+            metadata_name = cls.METADATA_NAME.search(data)
             if metadata_name:
-                metadata_name = Prepared(metadata_name.group(1))
-                cls.prefixes[metadata_name.normalized] = resource[:-len('METADATA')]
+                cls.prefixes[Prepared(metadata_name.group(1)).normalized] = resource.removesuffix("METADATA")
 
     @classmethod
     def _search_prefixes(cls, name):
@@ -1016,10 +1013,9 @@ class ArcadiaMetadataFinder(NullFinder, DistributionFinder):
             try:
                 yield cls.prefixes[Prepared(name).normalized]
             except KeyError:
-                raise PackageNotFoundError(name)
+                pass
         else:
-            for prefix in sorted(cls.prefixes.values()):
-                yield prefix
+            yield from sorted(cls.prefixes.values())
 
 
 def distribution(distribution_name: str) -> Distribution:
