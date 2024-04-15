@@ -59,7 +59,7 @@
 
   Tests will check `catboost` module for the `python` interpreter you run them with, so if you want to test `catboost` python package built from source [build and install it first](../installation/python-installation-method-build-from-source#installation).
 
-  1. Install [testpath](https://pypi.org/project/testpath/) and [pytest](https://pytest.org/) packages for the python interpreter you intend to use.
+  1. Install [testpath](https://pypi.org/project/testpath/), [pytest](https://pytest.org/), [pandas](https://pypi.org/project/pandas/), [ipywidgets](https://pypi.org/project/ipywidgets/) and [scikit-learn](https://pypi.org/project/scikit-learn/) packages for the python interpreter you intend to use.
   1. [Build](build-from-source#build-cmake) supplementary tools that are used to compare results generated as tests output with the canonical ones (targets `limited_precision_dsv_diff`, `limited_precision_json_diff`, `model_comparator` for Ninja or another build tool).
   1. Set the following environment variables:
       - `CMAKE_SOURCE_DIR` to the root of the local copy of the {{ product }} repository.
