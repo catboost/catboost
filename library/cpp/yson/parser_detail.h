@@ -12,11 +12,17 @@ namespace NYson {
         private:
             using TBase = TLexerBase<TBlockStream, EnableLinePositionInfo>;
             TConsumer* Consumer;
+            bool ConsumeUntilEof_;
 
         public:
-            TParser(const TBlockStream& blockStream, TConsumer* consumer, TMaybe<ui64> memoryLimit)
-                : TBase(blockStream, memoryLimit)
-                , Consumer(consumer)
+            TParser(
+                const TBlockStream& blockStream,
+                TConsumer* consumer,
+                bool consumeUntilEof,
+                TMaybe<ui64> memoryLimit)
+                    : TBase(blockStream, memoryLimit)
+                    , Consumer(consumer)
+                    , ConsumeUntilEof_(consumeUntilEof)
             {
             }
 
@@ -38,11 +44,13 @@ namespace NYson {
                         Y_ABORT("unreachable");
                 }
 
-                while (!(TBase::IsFinished() && TBase::IsEmpty())) {
-                    if (TBase::template SkipSpaceAndGetChar<true>() != EndSymbol) {
-                        ythrow TYsonException() << "Stray '" << (*TBase::Begin()) << "' found";
-                    } else if (!TBase::IsEmpty()) {
-                        TBase::Advance(1);
+                if (ConsumeUntilEof_) {
+                    while (!(TBase::IsFinished() && TBase::IsEmpty())) {
+                        if (TBase::template SkipSpaceAndGetChar<true>() != EndSymbol) {
+                            ythrow TYsonException() << "Stray '" << (*TBase::Begin()) << "' found";
+                        } else if (!TBase::IsEmpty()) {
+                            TBase::Advance(1);
+                        }
                     }
                 }
             }
@@ -308,14 +316,15 @@ namespace NYson {
         NYT::NYson::IYsonConsumer* consumer,
         EYsonType parsingMode,
         bool enableLinePositionInfo,
+        bool consumeUntilEof,
         TMaybe<ui64> memoryLimit) {
         if (enableLinePositionInfo) {
             using TImpl = NDetail::TParser<TConsumer, TBlockStream, true>;
-            TImpl impl(blockStream, consumer, memoryLimit);
+            TImpl impl(blockStream, consumer, consumeUntilEof, memoryLimit);
             impl.DoParse(parsingMode);
         } else {
             using TImpl = NDetail::TParser<TConsumer, TBlockStream, false>;
-            TImpl impl(blockStream, consumer, memoryLimit);
+            TImpl impl(blockStream, consumer, consumeUntilEof, memoryLimit);
             impl.DoParse(parsingMode);
         }
     }
@@ -337,7 +346,7 @@ namespace NYson {
 
     public:
         TStatelessYsonParserImpl(TConsumer* consumer, TMaybe<ui64> memoryLimit)
-            : Parser(TStringReader(), consumer, memoryLimit)
+            : Parser(TStringReader(), consumer, true, memoryLimit)
         {
         }
 
@@ -365,7 +374,7 @@ namespace NYson {
 
     public:
         TYsonListParserImpl(const TBlockStream& blockStream, TConsumer* consumer, TMaybe<ui64> memoryLimit)
-            : Parser(blockStream, consumer, memoryLimit)
+            : Parser(blockStream, consumer, true, memoryLimit)
         {
         }
 

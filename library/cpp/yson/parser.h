@@ -21,6 +21,8 @@ namespace NYson {
             IInputStream* stream,
             EYsonType type = ::NYson::EYsonType::Node,
             bool enableLinePositionInfo = false,
+            ui64 bufferSizeLimit = 64 << 10,
+            bool consumeUntilEof = true,
             TMaybe<ui64> memoryLimit = Nothing());
 
         ~TYsonParser();
