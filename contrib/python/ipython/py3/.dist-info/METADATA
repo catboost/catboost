@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.22.2
+Version: 8.23.0
 Summary: IPython: Productive Interactive Computing
 Author: The IPython Development Team
 Author-email: ipython-dev@python.org
@@ -33,12 +33,12 @@ Requires-Dist: prompt-toolkit <3.1.0,>=3.0.41
 Requires-Dist: pygments >=2.4.0
 Requires-Dist: stack-data
 Requires-Dist: traitlets >=5.13.0
-Requires-Dist: typing-extensions ; python_version < "3.10"
 Requires-Dist: exceptiongroup ; python_version < "3.11"
+Requires-Dist: typing-extensions ; python_version < "3.12"
 Requires-Dist: pexpect >4.3 ; sys_platform != "win32" and sys_platform != "emscripten"
 Requires-Dist: colorama ; sys_platform == "win32"
 Provides-Extra: all
-Requires-Dist: ipython[black,doc,kernel,nbconvert,nbformat,notebook,parallel,qtconsole,terminal] ; extra == 'all'
+Requires-Dist: ipython[black,doc,kernel,matplotlib,nbconvert,nbformat,notebook,parallel,qtconsole] ; extra == 'all'
 Requires-Dist: ipython[test,test_extra] ; extra == 'all'
 Provides-Extra: black
 Requires-Dist: black ; extra == 'black'
@@ -56,6 +56,8 @@ Requires-Dist: exceptiongroup ; extra == 'doc'
 Requires-Dist: ipython[test] ; extra == 'doc'
 Provides-Extra: kernel
 Requires-Dist: ipykernel ; extra == 'kernel'
+Provides-Extra: matplotlib
+Requires-Dist: matplotlib ; extra == 'matplotlib'
 Provides-Extra: nbconvert
 Requires-Dist: nbconvert ; extra == 'nbconvert'
 Provides-Extra: nbformat
