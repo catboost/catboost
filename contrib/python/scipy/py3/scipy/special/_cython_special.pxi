@@ -11,9 +11,6 @@ cdef extern from "numpy/ufuncobject.h":
     int PyUFunc_getfperr() nogil
 
 
-cdef extern from "numpy/npy_math.h":
-    double NPY_NAN
-
 from . cimport sf_error
 from . cimport _complexstuff
 cimport scipy.special._ufuncs_cxx

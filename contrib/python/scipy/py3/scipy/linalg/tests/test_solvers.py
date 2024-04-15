@@ -17,7 +17,8 @@ def _load_data(name):
     Load npz data file under data/
     Returns a copy of the data, rather than keeping the npz file open.
     """
-    filename = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+    import yatest.common as yc
+    filename = os.path.join(os.path.abspath(os.path.dirname(yc.source_path(__file__))),
                             'data', name)
     with np.load(filename) as f:
         return dict(f.items())
@@ -474,7 +475,7 @@ def test_solve_discrete_are():
          np.array([[0], [1]]),
          np.eye(2),
          np.array([[1]]),
-         None),
+         "Presumed issue with OpenBLAS, see gh-16926"),
         # TEST CASE 16 : darex #13
         (np.array([[16, 10, -2],
                   [10, 13, -8],

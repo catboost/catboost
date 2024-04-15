@@ -1,4 +1,4 @@
-      real*8 function splint(t,n,c,k,a,b,wrk)
+      real*8 function splint(t,n,c,nc,k,a,b,wrk)
       implicit none
 c  function splint calculates the integral of a spline function s(x)
 c  of degree k, which is given in its normalized b-spline representation
@@ -10,7 +10,9 @@ c  input parameters:
 c    t    : array,length n,which contains the position of the knots
 c           of s(x).
 c    n    : integer, giving the total number of knots of s(x).
-c    c    : array,length n, containing the b-spline coefficients.
+c    c    : array,length nc, containing the b-spline coefficients.
+c           the length of the array, nc >= n - k -1.
+c           further coefficients are ignored.
 c    k    : integer, giving the degree of s(x).
 c    a,b  : real values, containing the end points of the integration
 c           interval. s(x) is considered to be identically zero outside
@@ -40,9 +42,9 @@ c  latest update : march 1987
 c
 c  ..scalar arguments..
       real*8 a,b
-      integer n,k
+      integer n,k, nc
 c  ..array arguments..
-      real*8 t(n),c(n),wrk(n)
+      real*8 t(n),c(nc),wrk(n)
 c  ..local scalars..
       integer i,nk1
 c  ..

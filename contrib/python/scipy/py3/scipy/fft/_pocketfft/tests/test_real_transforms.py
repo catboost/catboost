@@ -10,7 +10,8 @@ from pytest import raises as assert_raises
 from scipy.fft._pocketfft.realtransforms import (
     dct, idct, dst, idst, dctn, idctn, dstn, idstn)
 
-fftpack_test_dir = join(dirname(__file__), '..', '..', '..', 'fftpack', 'tests')
+import yatest.common as yc
+fftpack_test_dir = join(dirname(yc.source_path(__file__)), '..', '..', '..', 'fftpack', 'tests')
 
 MDATA_COUNT = 8
 FFTWDATA_COUNT = 14

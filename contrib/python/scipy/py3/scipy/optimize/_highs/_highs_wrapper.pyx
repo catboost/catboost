@@ -7,33 +7,20 @@ from scipy.optimize import OptimizeWarning
 from warnings import warn
 import numbers
 
-from libc.stdio cimport stdout
 from libcpp.string cimport string
-from libcpp.memory cimport unique_ptr
 from libcpp.map cimport map as cppmap
 from libcpp.cast cimport reinterpret_cast
 
-from .HighsIO cimport (
-    kWarning,
-)
 from .HConst cimport (
     HIGHS_CONST_INF,
+
     HighsModelStatus,
     HighsModelStatusNOTSET,
-    HighsModelStatusLOAD_ERROR,
     HighsModelStatusMODEL_ERROR,
-    HighsModelStatusMODEL_EMPTY,
-    HighsModelStatusPRESOLVE_ERROR,
-    HighsModelStatusSOLVE_ERROR,
-    HighsModelStatusPOSTSOLVE_ERROR,
-    HighsModelStatusINFEASIBLE,
-    HighsModelStatusUNBOUNDED,
     HighsModelStatusOPTIMAL,
-    HighsModelStatusREACHED_DUAL_OBJECTIVE_VALUE_UPPER_BOUND,
     HighsModelStatusREACHED_TIME_LIMIT,
     HighsModelStatusREACHED_ITERATION_LIMIT,
 
-    PrimalDualStatusSTATUS_FEASIBLE_POINT,
     HighsOptionTypeBOOL,
     HighsOptionTypeINT,
     HighsOptionTypeDOUBLE,
@@ -178,7 +165,8 @@ cdef apply_options(dict options, Highs & highs):
             'simplex_initial_condition_tolerance',
             'small_matrix_value',
             'start_crossover_tolerance',
-            'time_limit'
+            'time_limit',
+            'mip_rel_gap'
     ]):
         val = options.get(opt, None)
         if val is not None:
@@ -567,7 +555,7 @@ def _highs_wrapper(
 
     References
     ----------
-    .. [1] https://www.maths.ed.ac.uk/hall/HiGHS
+    .. [1] https://highs.dev/
     .. [2] https://www.maths.ed.ac.uk/hall/HiGHS/HighsOptions.html
     '''
 

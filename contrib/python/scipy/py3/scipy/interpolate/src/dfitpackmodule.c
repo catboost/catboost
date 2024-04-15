@@ -381,9 +381,9 @@ static F_INT calc_regrid_lwrk(F_INT mx, F_INT my, F_INT kx, F_INT ky,
 extern void F_FUNC(fpchec,FPCHEC)(double*,int*,double*,int*,int*,int*);
 extern void F_FUNC(splev,SPLEV)(double*,int*,double*,int*,double*,double*,int*,int*,int*);
 extern void F_FUNC(splder,SPLDER)(double*,int*,double*,int*,int*,double*,double*,int*,int*,double*,int*);
-extern void F_WRAPPEDFUNC(splint,SPLINT)(double*,double*,int*,double*,int*,double*,double*,double*);
-extern void F_FUNC(sproot,SPROOT)(double*,int*,double*,double*,int*,int*,int*);
-extern void F_FUNC(spalde,SPALDE)(double*,F_INT*,double*,F_INT*,double*,double*,F_INT* );
+extern void F_WRAPPEDFUNC(splint,SPLINT)(double*,double*,int*,double*,int*,int*,double*,double*,double*);
+extern void F_FUNC(sproot,SPROOT)(double*,int*,double*,int*,double*,int*,int*,int*);
+extern void F_FUNC(spalde,SPALDE)(double*,int*,double*,int*,double*,double*,int*);
 extern void F_FUNC(curfit,CURFIT)(int*,int*,double*,double*,double*,double*,double*,int*,double*,int*,int*,double*,double*,double*,double*,int*,int*,int*);
 extern void F_FUNC(percur,PERCUR)(int*,int*,double*,double*,double*,int*,double*,int*,int*,double*,double*,double*,double*,int*,int*,int*);
 extern void F_FUNC(parcur,PARCUR)(int*,int*,int*,int*,double*,int*,double*,double*,double*,double*,int*,double*,int*,int*,double*,int*,double*,double*,double*,int*,int*,int*);
@@ -966,20 +966,21 @@ f2py_stop_clock();
 
 /*********************************** splint ***********************************/
 static char doc_f2py_rout_dfitpack_splint[] = "\
-splint = splint(t,c,k,a,b)\n\nWrapper for ``splint``.\
+splint,wrk = splint(t,c,k,a,b)\n\nWrapper for ``splint``.\
 \n\nParameters\n----------\n"
 "t : input rank-1 array('d') with bounds (n)\n"
-"c : input rank-1 array('d') with bounds (n)\n"
+"c : input rank-1 array('d') with bounds (nc)\n"
 "k : input int\n"
 "a : input float\n"
 "b : input float\n"
 "\nReturns\n-------\n"
-"splint : float";
-/* extern void F_WRAPPEDFUNC(splint,SPLINT)(double*,double*,int*,double*,int*,double*,double*,double*); */
+"splint : float\n"
+"wrk : rank-1 array('d') with bounds (n)";
+/* extern void F_WRAPPEDFUNC(splint,SPLINT)(double*,double*,int*,double*,int*,int*,double*,double*,double*); */
 static PyObject *f2py_rout_dfitpack_splint(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
-                           void (*f2py_func)(double*,double*,int*,double*,int*,double*,double*,double*)) {
+                           void (*f2py_func)(double*,double*,int*,double*,int*,int*,double*,double*,double*)) {
     PyObject * volatile capi_buildvalue = NULL;
     volatile int f2py_success = 1;
 /*decl*/
@@ -998,6 +999,7 @@ static PyObject *f2py_rout_dfitpack_splint(const PyObject *capi_self,
     PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     PyObject *c_capi = Py_None;
+    int nc = 0;
     int k = 0;
     PyObject *k_capi = Py_None;
     double a = 0;
@@ -1047,7 +1049,7 @@ f2py_start_clock();
     /* Processing variable n */
     n = len(t);
     /* Processing variable c */
-    c_Dims[0]=n;
+    ;
     capi_c_intent |= F2PY_INTENT_IN;
     const char * capi_errmess = "dfitpack.dfitpack.splint: failed to create array from the 2nd argument `c`";
     capi_c_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
@@ -1060,10 +1062,12 @@ f2py_start_clock();
     } else {
         c = (double *)(PyArray_DATA(capi_c_as_array));
 
-    CHECKARRAY(len(c)==n,"len(c)==n","2nd argument c") {
+    CHECKARRAY(len(c)>=n-k-1,"len(c)>=n-k-1","2nd argument c") {
+    /* Processing variable nc */
+    nc = len(c);
     /* Processing variable wrk */
     wrk_Dims[0]=n;
-    capi_wrk_intent |= F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
+    capi_wrk_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE|F2PY_INTENT_CACHE;
     const char * capi_errmess = "dfitpack.dfitpack.splint: failed to create array from the hidden `wrk`";
     capi_wrk_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,wrk_Dims,wrk_Rank,  capi_wrk_intent,Py_None,capi_errmess);
     if (capi_wrk_as_array == NULL) {
@@ -1081,7 +1085,7 @@ f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
     Py_BEGIN_ALLOW_THREADS
-    (*f2py_func)(&splint,t,&n,c,&k,&a,&b,wrk);
+    (*f2py_func)(&splint,t,&n,c,&nc,&k,&a,&b,wrk);
     Py_END_ALLOW_THREADS
 if (PyErr_Occurred())
   f2py_success = 0;
@@ -1093,15 +1097,15 @@ f2py_stop_call_clock();
 /*pyobjfrom*/
 /*end of pyobjfrom*/
         CFUNCSMESS("Building return value.\n");
-        capi_buildvalue = Py_BuildValue("d",splint);
+        capi_buildvalue = Py_BuildValue("dN",splint,capi_wrk_as_array);
 /*closepyobjfrom*/
 /*end of closepyobjfrom*/
         } /*if (f2py_success) after callfortranroutine*/
 /*cleanupfrompyobj*/
-        Py_XDECREF(capi_wrk_as_array);
     }  /* if (capi_wrk_as_array == NULL) ... else of wrk */
     /* End of cleaning variable wrk */
-    } /*CHECKARRAY(len(c)==n)*/
+    /* End of cleaning variable nc */
+    } /*CHECKARRAY(len(c)>=n-k-1)*/
     if((PyObject *)capi_c_as_array!=c_capi) {
         Py_XDECREF(capi_c_as_array); }
     }  /* if (capi_c_as_array == NULL) ... else of c */
@@ -1138,18 +1142,18 @@ static char doc_f2py_rout_dfitpack_sproot[] = "\
 zero,m,ier = sproot(t,c,[mest])\n\nWrapper for ``sproot``.\
 \n\nParameters\n----------\n"
 "t : input rank-1 array('d') with bounds (n)\n"
-"c : input rank-1 array('d') with bounds (n)\n"
+"c : input rank-1 array('d') with bounds (nc)\n"
 "\nOther Parameters\n----------------\n"
 "mest : input int, optional\n    Default: 3*(n-7)\n"
 "\nReturns\n-------\n"
 "zero : rank-1 array('d') with bounds (mest)\n"
 "m : int\n"
 "ier : int";
-/* extern void F_FUNC(sproot,SPROOT)(double*,int*,double*,double*,int*,int*,int*); */
+/* extern void F_FUNC(sproot,SPROOT)(double*,int*,double*,int*,double*,int*,int*,int*); */
 static PyObject *f2py_rout_dfitpack_sproot(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
-                           void (*f2py_func)(double*,int*,double*,double*,int*,int*,int*)) {
+                           void (*f2py_func)(double*,int*,double*,int*,double*,int*,int*,int*)) {
     PyObject * volatile capi_buildvalue = NULL;
     volatile int f2py_success = 1;
 /*decl*/
@@ -1167,6 +1171,7 @@ static PyObject *f2py_rout_dfitpack_sproot(const PyObject *capi_self,
     PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     PyObject *c_capi = Py_None;
+    int nc = 0;
     double *zero = NULL;
     npy_intp zero_Dims[1] = {-1};
     const int zero_Rank = 1;
@@ -1207,7 +1212,7 @@ f2py_start_clock();
     n = len(t);
     CHECKSCALAR(n>=8,"n>=8","hidden n","sproot:n=%d",n) {
     /* Processing variable c */
-    c_Dims[0]=n;
+    ;
     capi_c_intent |= F2PY_INTENT_IN;
     const char * capi_errmess = "dfitpack.dfitpack.sproot: failed to create array from the 2nd argument `c`";
     capi_c_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,c_Dims,c_Rank,  capi_c_intent,c_capi,capi_errmess);
@@ -1220,7 +1225,9 @@ f2py_start_clock();
     } else {
         c = (double *)(PyArray_DATA(capi_c_as_array));
 
-    CHECKARRAY(len(c)==n,"len(c)==n","2nd argument c") {
+    CHECKARRAY(len(c)>=n-3-1,"len(c)>=n-3-1","2nd argument c") {
+    /* Processing variable nc */
+    nc = len(c);
     /* Processing variable mest */
     if (mest_capi == Py_None) mest = 3*(n-7); else
         f2py_success = int_from_pyobj(&mest,mest_capi,"dfitpack.sproot() 1st keyword (mest) can't be converted to int");
@@ -1245,7 +1252,7 @@ f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
             Py_BEGIN_ALLOW_THREADS
-                (*f2py_func)(t,&n,c,zero,&mest,&m,&ier);
+                (*f2py_func)(t,&n,c,&nc,zero,&mest,&m,&ier);
             Py_END_ALLOW_THREADS
 if (PyErr_Occurred())
   f2py_success = 0;
@@ -1266,7 +1273,8 @@ f2py_stop_call_clock();
     /* End of cleaning variable zero */
     } /*if (f2py_success) of mest*/
     /* End of cleaning variable mest */
-    } /*CHECKARRAY(len(c)==n)*/
+    /* End of cleaning variable nc */
+    } /*CHECKARRAY(len(c)>=n-3-1)*/
     if((PyObject *)capi_c_as_array!=c_capi) {
         Py_XDECREF(capi_c_as_array); }
     }  /* if (capi_c_as_array == NULL) ... else of c */
@@ -1296,20 +1304,20 @@ f2py_stop_clock();
 
 /*********************************** spalde ***********************************/
 static char doc_f2py_rout_dfitpack_spalde[] = "\
-d,ier = spalde(t,c,k,x)\n\nWrapper for ``spalde``.\
+d,ier = spalde(t,c,k1,x)\n\nWrapper for ``spalde``.\
 \n\nParameters\n----------\n"
 "t : input rank-1 array('d') with bounds (n)\n"
 "c : input rank-1 array('d') with bounds (n)\n"
-"k : input int\n"
+"k1 : input int\n"
 "x : input float\n"
 "\nReturns\n-------\n"
-"d : rank-1 array('d') with bounds (1 + k)\n"
+"d : rank-1 array('d') with bounds (k1)\n"
 "ier : int";
-/* extern void F_FUNC(spalde,SPALDE)(double*,F_INT*,double*,F_INT*,double*,double*,F_INT* ); */
+/* extern void F_FUNC(spalde,SPALDE)(double*,int*,double*,int*,double*,double*,int*); */
 static PyObject *f2py_rout_dfitpack_spalde(const PyObject *capi_self,
                            PyObject *capi_args,
                            PyObject *capi_keywds,
-                           void (*f2py_func)(double*,F_INT*,double*,F_INT*,double*,double*,F_INT* )) {
+                           void (*f2py_func)(double*,int*,double*,int*,double*,double*,int*)) {
     PyObject * volatile capi_buildvalue = NULL;
     volatile int f2py_success = 1;
 /*decl*/
@@ -1327,8 +1335,8 @@ static PyObject *f2py_rout_dfitpack_spalde(const PyObject *capi_self,
     PyArrayObject *capi_c_as_array = NULL;
     int capi_c_intent = 0;
     PyObject *c_capi = Py_None;
-    int k = 0;
-    PyObject *k_capi = Py_None;
+    int k1 = 0;
+    PyObject *k1_capi = Py_None;
     double x = 0;
     PyObject *x_capi = Py_None;
     double *d = NULL;
@@ -1337,7 +1345,7 @@ static PyObject *f2py_rout_dfitpack_spalde(const PyObject *capi_self,
     PyArrayObject *capi_d_as_array = NULL;
     int capi_d_intent = 0;
     int ier = 0;
-    static char *capi_kwlist[] = {"t","c","k","x",NULL};
+    static char *capi_kwlist[] = {"t","c","k1","x",NULL};
 
 /*routdebugenter*/
 #ifdef F2PY_REPORT_ATEXIT
@@ -1345,7 +1353,7 @@ f2py_start_clock();
 #endif
     if (!PyArg_ParseTupleAndKeywords(capi_args,capi_keywds,\
         "OOOO|:dfitpack.spalde",\
-        capi_kwlist,&t_capi,&c_capi,&k_capi,&x_capi))
+        capi_kwlist,&t_capi,&c_capi,&k1_capi,&x_capi))
         return NULL;
 /*frompyobj*/
     /* Processing variable t */
@@ -1362,8 +1370,8 @@ f2py_start_clock();
     } else {
         t = (double *)(PyArray_DATA(capi_t_as_array));
 
-    /* Processing variable k */
-        f2py_success = int_from_pyobj(&k,k_capi,"dfitpack.spalde() 3rd argument (k) can't be converted to int");
+    /* Processing variable k1 */
+        f2py_success = int_from_pyobj(&k1,k1_capi,"dfitpack.spalde() 3rd argument (k1) can't be converted to int");
     if (f2py_success) {
     /* Processing variable x */
         f2py_success = double_from_pyobj(&x,x_capi,"dfitpack.spalde() 4th argument (x) can't be converted to double");
@@ -1387,7 +1395,7 @@ f2py_start_clock();
 
     CHECKARRAY(len(c)==n,"len(c)==n","2nd argument c") {
     /* Processing variable d */
-    d_Dims[0]=1 + k;
+    d_Dims[0]=k1;
     capi_d_intent |= F2PY_INTENT_OUT|F2PY_INTENT_HIDE;
     const char * capi_errmess = "dfitpack.dfitpack.spalde: failed to create array from the hidden `d`";
     capi_d_as_array = ndarray_from_pyobj(  NPY_DOUBLE,1,d_Dims,d_Rank,  capi_d_intent,Py_None,capi_errmess);
@@ -1406,8 +1414,7 @@ f2py_start_call_clock();
 #endif
 /*callfortranroutine*/
             Py_BEGIN_ALLOW_THREADS
-                {int k1=k+1; (*f2py_func)(t,&n,c,&k1,&x,d,&ier); } ;
-                /*(*f2py_func)(t,&n,c,&k,&x,d,&ier);*/
+                (*f2py_func)(t,&n,c,&k1,&x,d,&ier);
             Py_END_ALLOW_THREADS
 if (PyErr_Occurred())
   f2py_success = 0;
@@ -1435,8 +1442,8 @@ f2py_stop_call_clock();
     /* End of cleaning variable ier */
     } /*if (f2py_success) of x*/
     /* End of cleaning variable x */
-    } /*if (f2py_success) of k*/
-    /* End of cleaning variable k */
+    } /*if (f2py_success) of k1*/
+    /* End of cleaning variable k1 */
     if((PyObject *)capi_t_as_array!=t_capi) {
         Py_XDECREF(capi_t_as_array); }
     }  /* if (capi_t_as_array == NULL) ... else of t */
@@ -7725,9 +7732,9 @@ PyMODINIT_FUNC PyInit_dfitpack(void) {
 "    ier = fpchec(x,t,k)\n"
 "    y = splev(t,c,k,x,e=0)\n"
 "    y = splder(t,c,k,x,nu=1,e=0)\n"
-"    splint = splint(t,c,k,a,b)\n"
+"    splint,wrk = splint(t,c,k,a,b)\n"
 "    zero,m,ier = sproot(t,c,mest=3*(n-7))\n"
-"    d,ier = spalde(t,c,k,x)\n"
+"    d,ier = spalde(t,c,k1,x)\n"
 "    n,c,fp,ier = curfit(iopt,x,y,w,t,wrk,iwrk,xb=x[0],xe=x[m-1],k=3,s=0.0)\n"
 "    n,c,fp,ier = percur(iopt,x,y,w,t,wrk,iwrk,k=3,s=0.0)\n"
 "    n,c,fp,ier = parcur(iopt,ipar,idim,u,x,w,ub,ue,t,wrk,iwrk,k=3.0,s=0.0)\n"

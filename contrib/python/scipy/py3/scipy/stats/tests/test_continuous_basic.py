@@ -1,4 +1,3 @@
-
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -7,7 +6,6 @@ from scipy.integrate import IntegrationWarning
 import itertools
 
 from scipy import stats
-from scipy.special import betainc
 from .common_tests import (check_normalization, check_moment, check_mean_expect,
                            check_var_expect, check_skew_expect,
                            check_kurt_expect, check_entropy,
@@ -38,10 +36,9 @@ not for numerically exact results.
 DECIMAL = 5  # specify the precision of the tests  # increased from 0 to 5
 
 # For skipping test_cont_basic
-# distslow are sorted by speed (very slow to slow)
 distslow = ['recipinvgauss', 'vonmises', 'kappa4', 'vonmises_line',
             'gausshyper', 'norminvgauss', 'geninvgauss', 'genhyperbolic',
-            'truncnorm']
+            'truncnorm', 'truncweibull_min']
 
 # distxslow are sorted by speed (very slow to slow)
 distxslow = ['studentized_range', 'kstwo', 'ksone', 'wrapcauchy', 'genexpon']
@@ -62,7 +59,7 @@ skip_fit_test_mle = ['exponpow', 'exponweib', 'gausshyper', 'genexpon',
 # note that this list is used to skip both fit_test and fit_fix tests
 slow_fit_test_mm = ['argus', 'exponpow', 'exponweib', 'gausshyper', 'genexpon',
                     'genhalflogistic', 'halfgennorm', 'gompertz', 'johnsonsb',
-                    'kappa4', 'kstwobign', 'recipinvgauss', 'skewnorm',
+                    'kappa4', 'kstwobign', 'recipinvgauss',
                     'trapezoid', 'truncexpon', 'vonmises', 'vonmises_line',
                     'studentized_range']
 # pearson3 fails due to something weird
@@ -97,7 +94,7 @@ fail_fit_fix_test_mm = (['alpha', 'betaprime', 'burr', 'burr12', 'cauchy',
                          'genextreme', 'genpareto', 'halfcauchy', 'invgamma',
                          'kappa3', 'levy', 'levy_l', 'loglaplace', 'lomax',
                          'mielke', 'nakagami', 'ncf', 'nct', 'skewcauchy', 't',
-                         'invweibull']
+                         'truncpareto', 'invweibull']
                          + ['genhyperbolic', 'johnsonsu', 'ksone', 'kstwo',
                             'pareto', 'powernorm', 'powerlognorm']
                          + ['pearson3'])
@@ -146,6 +143,7 @@ def cases_test_cont_basic():
 
 
 @pytest.mark.skip
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
 @pytest.mark.parametrize('distname,arg', cases_test_cont_basic())
 @pytest.mark.parametrize('sn, n_fit_samples', [(500, 200)])
 def test_cont_basic(distname, arg, sn, n_fit_samples):
@@ -187,7 +185,7 @@ def test_cont_basic(distname, arg, sn, n_fit_samples):
              distfn.logsf]
     # make sure arguments are within support
     spec_x = {'weibull_max': -0.5, 'levy_l': -0.5,
-              'pareto': 1.5, 'tukeylambda': 0.3,
+              'pareto': 1.5, 'truncpareto': 3.2, 'tukeylambda': 0.3,
               'rv_histogram_instance': 5.0}
     x = spec_x.get(distname, 0.5)
     if distname == 'invweibull':
@@ -274,15 +272,25 @@ def cases_test_moments():
         cond1 = distname not in fail_normalization
         cond2 = distname not in fail_higher
 
-        yield distname, arg, cond1, cond2, False
+        marks = list()
+        # Currently unused, `marks` can be used to add a timeout to a test of
+        # a specific distribution.  For example, this shows how a timeout could
+        # be added for the 'skewnorm' distribution:
+        #
+        #     marks = list()
+        #     if distname == 'skewnorm':
+        #         marks.append(pytest.mark.timeout(300))
+
+        yield pytest.param(distname, arg, cond1, cond2, False, marks=marks)
 
         if not cond1 or not cond2:
             # Run the distributions that have issues twice, once skipping the
             # not_ok parts, once with the not_ok parts but marked as knownfail
             yield pytest.param(distname, arg, True, True, True,
-                               marks=pytest.mark.xfail)
+                               marks=[pytest.mark.xfail] + marks)
 
 
+@pytest.mark.skip
 @pytest.mark.slow
 @pytest.mark.parametrize('distname,arg,normalization_ok,higher_ok,'
                          'is_xfailing',
@@ -354,6 +362,46 @@ def test_rvs_broadcast(dist, shape_args):
     # parameters are all broadcast together.
 
     check_rvs_broadcast(distfunc, dist, allargs, bshape, shape_only, 'd')
+
+
+# Expected values of the SF, CDF, PDF were computed using
+# mpmath with mpmath.mp.dps = 50 and output at 20:
+#
+# def ks(x, n):
+#     x = mpmath.mpf(x)
+#     logp = -mpmath.power(6.0*n*x+1.0, 2)/18.0/n
+#     sf, cdf = mpmath.exp(logp), -mpmath.expm1(logp)
+#     pdf = (6.0*n*x+1.0) * 2 * sf/3
+#     print(mpmath.nstr(sf, 20), mpmath.nstr(cdf, 20), mpmath.nstr(pdf, 20))
+#
+# Tests use 1/n < x < 1-1/n and n > 1e6 to use the asymptotic computation.
+# Larger x has a smaller sf.
+@pytest.mark.parametrize('x,n,sf,cdf,pdf,rtol',
+                         [(2.0e-5, 1000000000,
+                           0.44932297307934442379, 0.55067702692065557621,
+                           35946.137394996276407, 5e-15),
+                          (2.0e-9, 1000000000,
+                           0.99999999061111115519, 9.3888888448132728224e-9,
+                           8.6666665852962971765, 5e-14),
+                          (5.0e-4, 1000000000,
+                           7.1222019433090374624e-218, 1.0,
+                           1.4244408634752704094e-211, 5e-14)])
+def test_gh17775_regression(x, n, sf, cdf, pdf, rtol):
+    # Regression test for gh-17775. In scipy 1.9.3 and earlier,
+    # these test would fail.
+    #
+    # KS one asymptotic sf ~ e^(-(6nx+1)^2 / 18n)
+    # Given a large 32-bit integer n, 6n will overflow in the c implementation.
+    # Example of broken behaviour:
+    # ksone.sf(2.0e-5, 1000000000) == 0.9374359693473666
+    ks = stats.ksone
+    vals = np.array([ks.sf(x, n), ks.cdf(x, n), ks.pdf(x, n)])
+    expected = np.array([sf, cdf, pdf])
+    npt.assert_allclose(vals, expected, rtol=rtol)
+    # The sf+cdf must sum to 1.0.
+    npt.assert_equal(vals[0] + vals[1], 1.0)
+    # Check inverting the (potentially very small) sf (uses a lower tolerance)
+    npt.assert_allclose([ks.isf(sf, n)], [x], rtol=1e-8)
 
 
 def test_rvs_gh2069_regression():
@@ -617,7 +665,7 @@ def check_distribution_rvs(dist, args, alpha, rvs):
     if (pval < alpha):
         # The rvs passed in failed the K-S test, which _could_ happen
         # but is unlikely if alpha is small enough.
-        # Repeat the the test with a new sample of rvs.
+        # Repeat the test with a new sample of rvs.
         # Generate 1000 rvs, perform a K-S test that the new sample of rvs
         # are distributed according to the distribution.
         D, pval = stats.kstest(dist, dist, args=args, N=1000)
@@ -690,6 +738,7 @@ def check_fit_args_fix(distfn, arg, rvs, method):
             npt.assert_(vals5[2] == arg[2])
 
 
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
 @pytest.mark.parametrize('method', ['pdf', 'logpdf', 'cdf', 'logcdf',
                                     'sf', 'logsf', 'ppf', 'isf'])
 @pytest.mark.parametrize('distname, args', distcont)
@@ -864,6 +913,7 @@ def test_kappa3_array_gh13582():
     npt.assert_allclose(res, res2)
 
 
+@pytest.mark.xslow
 def test_kappa4_array_gh13582():
     h = np.array([-0.5, 2.5, 3.5, 4.5, -3])
     k = np.array([-0.5, 1, -1.5, 0, 3.5])
@@ -913,3 +963,37 @@ def test_skewnorm_pdf_gh16038():
     res = stats.skewnorm.pdf(x, a)
     npt.assert_equal(res[mask], stats.norm.pdf(x_norm))
     npt.assert_equal(res[~mask], stats.skewnorm.pdf(x[~mask], a[~mask]))
+
+
+# for scalar input, these functions should return scalar output
+scalar_out = [['rvs', []], ['pdf', [0]], ['logpdf', [0]], ['cdf', [0]],
+              ['logcdf', [0]], ['sf', [0]], ['logsf', [0]], ['ppf', [0]],
+              ['isf', [0]], ['moment', [1]], ['entropy', []], ['expect', []],
+              ['median', []], ['mean', []], ['std', []], ['var', []]]
+scalars_out = [['interval', [0.95]], ['support', []], ['stats', ['mv']]]
+
+
+@pytest.mark.parametrize('case', scalar_out + scalars_out)
+def test_scalar_for_scalar(case):
+    # Some rv_continuous functions returned 0d array instead of NumPy scalar
+    # Guard against regression
+    method_name, args = case
+    method = getattr(stats.norm(), method_name)
+    res = method(*args)
+    if case in scalar_out:
+        assert isinstance(res, np.number)
+    else:
+        assert isinstance(res[0], np.number)
+        assert isinstance(res[1], np.number)
+
+
+def test_scalar_for_scalar2():
+    # test methods that are not attributes of frozen distributions
+    res = stats.norm.fit([1, 2, 3])
+    assert isinstance(res[0], np.number)
+    assert isinstance(res[1], np.number)
+    res = stats.norm.fit_loc_scale([1, 2, 3])
+    assert isinstance(res[0], np.number)
+    assert isinstance(res[1], np.number)
+    res = stats.norm.nnlf((0, 1), [1, 2, 3])
+    assert isinstance(res, np.number)

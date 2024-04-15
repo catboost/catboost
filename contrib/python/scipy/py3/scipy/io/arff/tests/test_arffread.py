@@ -16,7 +16,8 @@ from scipy.io.arff import loadarff
 from scipy.io.arff._arffread import read_header, ParseArffError
 
 
-data_path = pjoin(os.path.dirname(__file__), 'data')
+import yatest.common as yc
+data_path = pjoin(os.path.dirname(yc.source_path(__file__)), 'data')
 
 test1 = pjoin(data_path, 'test1.arff')
 test2 = pjoin(data_path, 'test2.arff')

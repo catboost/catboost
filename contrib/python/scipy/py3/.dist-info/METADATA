@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: SciPy
-Version: 1.9.3
+Version: 1.10.1
 Summary: Fundamental algorithms for scientific computing in Python
 Home-page: https://www.scipy.org
 Download-URL: https://github.com/scipy/scipy/releases
@@ -51,6 +51,7 @@ Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Scientific/Engineering
 Classifier: Operating System :: Microsoft :: Windows
@@ -62,28 +63,39 @@ Requires-Python: >=3.8,<3.12
 Description-Content-Type: text/x-rst
 License-File: LICENSE.txt
 License-File: LICENSES_bundled.txt
-Requires-Dist: numpy (<1.27.0,>=1.18.5)
+Requires-Dist: numpy (<1.27.0,>=1.19.5)
 Provides-Extra: dev
 Requires-Dist: mypy ; extra == 'dev'
 Requires-Dist: typing-extensions ; extra == 'dev'
 Requires-Dist: pycodestyle ; extra == 'dev'
 Requires-Dist: flake8 ; extra == 'dev'
+Requires-Dist: rich-click ; extra == 'dev'
+Requires-Dist: click ; extra == 'dev'
+Requires-Dist: doit (>=0.36.0) ; extra == 'dev'
+Requires-Dist: pydevtool ; extra == 'dev'
 Provides-Extra: doc
 Requires-Dist: sphinx (!=4.1.0) ; extra == 'doc'
 Requires-Dist: pydata-sphinx-theme (==0.9.0) ; extra == 'doc'
-Requires-Dist: sphinx-panels (>=0.5.2) ; extra == 'doc'
+Requires-Dist: sphinx-design (>=0.2.0) ; extra == 'doc'
 Requires-Dist: matplotlib (>2) ; extra == 'doc'
 Requires-Dist: numpydoc ; extra == 'doc'
-Requires-Dist: sphinx-tabs ; extra == 'doc'
 Provides-Extra: test
 Requires-Dist: pytest ; extra == 'test'
 Requires-Dist: pytest-cov ; extra == 'test'
+Requires-Dist: pytest-timeout ; extra == 'test'
 Requires-Dist: pytest-xdist ; extra == 'test'
 Requires-Dist: asv ; extra == 'test'
 Requires-Dist: mpmath ; extra == 'test'
 Requires-Dist: gmpy2 ; extra == 'test'
 Requires-Dist: threadpoolctl ; extra == 'test'
 Requires-Dist: scikit-umfpack ; extra == 'test'
+Requires-Dist: pooch ; extra == 'test'
+
+.. image:: https://github.com/scipy/scipy/blob/main/doc/source/_static/logo.svg
+  :target: https://scipy.org
+  :width: 110
+  :height: 110
+  :align: left 
 
 .. image:: https://img.shields.io/badge/powered%20by-NumFOCUS-orange.svg?style=flat&colorA=E1523D&colorB=007D8A
   :target: https://numfocus.org
@@ -106,12 +118,13 @@ integration, linear algebra, Fourier transforms, signal and image processing,
 ODE solvers, and more.
 
 - **Website:** https://scipy.org
-- **Documentation:** https://docs.scipy.org/
+- **Documentation:** https://docs.scipy.org/doc/scipy/
+- **Development version of the documentation:** https://scipy.github.io/devdocs
 - **Mailing list:** https://mail.python.org/mailman3/lists/scipy-dev.python.org/
 - **Source code:** https://github.com/scipy/scipy
 - **Contributing:** https://scipy.github.io/devdocs/dev/index.html
 - **Bug reports:** https://github.com/scipy/scipy/issues
-- **Code of Conduct:** https://scipy.github.io/devdocs/dev/conduct/code_of_conduct.html
+- **Code of Conduct:** https://docs.scipy.org/doc/scipy/dev/conduct/code_of_conduct.html
 - **Report a security vulnerability:** https://tidelift.com/docs/security
 - **Citing in your work:** https://www.scipy.org/citing-scipy/
 
@@ -125,7 +138,7 @@ manipulate numbers on a computer and display or publish the results, give
 SciPy a try!
 
 For the installation instructions, see `our install
-guide <https://scipy.github.io/devdocs/getting_started.html#installation>`__.
+guide <https://docs.scipy.org/doc/scipy/getting_started.html#installation>`__.
 
 
 Call for Contributions
@@ -133,7 +146,7 @@ Call for Contributions
 
 We appreciate and welcome contributions. Small improvements or fixes are always appreciated; issues labeled as "good
 first issue" may be a good starting point. Have a look at `our contributing
-guide <http://scipy.github.io/devdocs/dev/hacking.html>`__.
+guide <https://scipy.github.io/devdocs/dev/index.html>`__.
 
 Writing code isn’t the only way to contribute to SciPy. You can also:
 

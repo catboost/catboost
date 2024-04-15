@@ -201,6 +201,7 @@ __all__ = [
     'pdtri',
     'pdtrik',
     'poch',
+    'powm1',
     'pro_ang1',
     'pro_ang1_cv',
     'pro_cv',
@@ -477,6 +478,7 @@ pdtrc: np.ufunc
 pdtri: np.ufunc
 pdtrik: np.ufunc
 poch: np.ufunc
+powm1: np.ufunc
 pro_ang1: np.ufunc
 pro_ang1_cv: np.ufunc
 pro_cv: np.ufunc

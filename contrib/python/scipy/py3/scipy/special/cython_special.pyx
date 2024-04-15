@@ -263,6 +263,7 @@ Available functions
 
 - :py:func:`~scipy.special.erfinv`::
 
+        float erfinv(float)
         double erfinv(double)
 
 - :py:func:`~scipy.special.erfcinv`::
@@ -865,6 +866,11 @@ Available functions
 
         double poch(double, double)
 
+- :py:func:`~scipy.special.powm1`::
+
+        float powm1(float, float)
+        double powm1(double, double)
+
 - :py:func:`~scipy.special.pro_ang1`::
 
         void pro_ang1(double, double, double, double, double *, double *)
@@ -1074,6 +1080,8 @@ optional Cython ``bint``, leading to the following signatures.
 
 """
 
+from libc.math cimport NAN
+
 include "_cython_special.pxi"
 include "_cython_special_custom.pxi"
 
@@ -1186,8 +1194,6 @@ cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_erf "erf"(npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_erfc "erfc"(npy_double)nogil
-cdef extern from "_ufuncs_defs.h":
-    cdef npy_double _func_erfinv "erfinv"(npy_double)nogil
 cdef extern from "_ufuncs_defs.h":
     cdef npy_double _func_erfcinv "erfcinv"(npy_double)nogil
 from .orthogonal_eval cimport eval_chebyc as _func_eval_chebyc
@@ -1394,9 +1400,6 @@ cdef _proto__hyp0f1_cmplx_t *_proto__hyp0f1_cmplx_t_var = &_func__hyp0f1_cmplx
 from ._hyp0f1 cimport _hyp0f1_real as _func__hyp0f1_real
 ctypedef double _proto__hyp0f1_real_t(double, double) nogil
 cdef _proto__hyp0f1_real_t *_proto__hyp0f1_real_t_var = &_func__hyp0f1_real
-from ._hypergeometric cimport hyp1f1 as _func_hyp1f1
-ctypedef double _proto_hyp1f1_t(double, double, double) nogil
-cdef _proto_hyp1f1_t *_proto_hyp1f1_t_var = &_func_hyp1f1
 cdef extern from "_ufuncs_defs.h":
     cdef npy_cdouble _func_chyp1f1_wrap "chyp1f1_wrap"(npy_double, npy_double, npy_cdouble)nogil
 cdef extern from "_ufuncs_defs.h":
@@ -1752,15 +1755,15 @@ cdef void airy(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1, Dd_number_t *y2
         y3[0] = _complexstuff.double_complex_from_npy_cdouble(tmp3)
     else:
         if Dd_number_t is double_complex:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
-            y2[0] = NPY_NAN
-            y3[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
+            y2[0] = NAN
+            y3[0] = NAN
         else:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
-            y2[0] = NPY_NAN
-            y3[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
+            y2[0] = NAN
+            y3[0] = NAN
 
 def _airy_pywrap(Dd_number_t x0):
     cdef Dd_number_t y0
@@ -1786,15 +1789,15 @@ cdef void airye(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1, Dd_number_t *y
         _func_cairy_wrap_e_real(x0, y0, y1, y2, y3)
     else:
         if Dd_number_t is double_complex:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
-            y2[0] = NPY_NAN
-            y3[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
+            y2[0] = NAN
+            y3[0] = NAN
         else:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
-            y2[0] = NPY_NAN
-            y3[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
+            y2[0] = NAN
+            y3[0] = NAN
 
 def _airye_pywrap(Dd_number_t x0):
     cdef Dd_number_t y0
@@ -1811,7 +1814,7 @@ cpdef double bdtr(double x0, dl_number_t x1, double x2) nogil:
     elif dl_number_t is long:
         return _func_bdtr(x0, x1, x2)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double bdtrc(double x0, dl_number_t x1, double x2) nogil:
     """See the documentation for scipy.special.bdtrc"""
@@ -1820,7 +1823,7 @@ cpdef double bdtrc(double x0, dl_number_t x1, double x2) nogil:
     elif dl_number_t is long:
         return _func_bdtrc(x0, x1, x2)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double bdtri(double x0, dl_number_t x1, double x2) nogil:
     """See the documentation for scipy.special.bdtri"""
@@ -1829,7 +1832,7 @@ cpdef double bdtri(double x0, dl_number_t x1, double x2) nogil:
     elif dl_number_t is long:
         return _func_bdtri(x0, x1, x2)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double bdtrik(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.bdtrik"""
@@ -1959,9 +1962,9 @@ cpdef Dd_number_t dawsn(Dd_number_t x0) nogil:
         return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_dawsn_complex)(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double ellipe(double x0) nogil:
     """See the documentation for scipy.special.ellipe"""
@@ -2003,9 +2006,9 @@ cpdef Dd_number_t elliprc(Dd_number_t x0, Dd_number_t x1) nogil:
         return (<double complex(*)(double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RC)(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t elliprd(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.elliprd"""
@@ -2015,9 +2018,9 @@ cpdef Dd_number_t elliprd(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
         return (<double complex(*)(double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RD)(x0, x1, x2)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t elliprf(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.elliprf"""
@@ -2027,9 +2030,9 @@ cpdef Dd_number_t elliprf(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
         return (<double complex(*)(double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RF)(x0, x1, x2)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t elliprg(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.elliprg"""
@@ -2039,9 +2042,9 @@ cpdef Dd_number_t elliprg(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
         return (<double complex(*)(double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RG)(x0, x1, x2)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t elliprj(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2, Dd_number_t x3) nogil:
     """See the documentation for scipy.special.elliprj"""
@@ -2051,9 +2054,9 @@ cpdef Dd_number_t elliprj(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2, Dd_num
         return (<double complex(*)(double complex, double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RJ)(x0, x1, x2, x3)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double entr(double x0) nogil:
     """See the documentation for scipy.special.entr"""
@@ -2067,9 +2070,9 @@ cpdef Dd_number_t erf(Dd_number_t x0) nogil:
         return _func_erf(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t erfc(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.erfc"""
@@ -2079,9 +2082,9 @@ cpdef Dd_number_t erfc(Dd_number_t x0) nogil:
         return _func_erfc(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t erfcx(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.erfcx"""
@@ -2091,9 +2094,9 @@ cpdef Dd_number_t erfcx(Dd_number_t x0) nogil:
         return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfcx_complex)(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t erfi(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.erfi"""
@@ -2103,13 +2106,21 @@ cpdef Dd_number_t erfi(Dd_number_t x0) nogil:
         return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfi_complex)(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
-cpdef double erfinv(double x0) nogil:
+cpdef df_number_t erfinv(df_number_t x0) nogil:
     """See the documentation for scipy.special.erfinv"""
-    return _func_erfinv(x0)
+    if df_number_t is float:
+        return (<float(*)(float) nogil>scipy.special._ufuncs_cxx._export_erfinv_float)(x0)
+    elif df_number_t is double:
+        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_erfinv_double)(x0)
+    else:
+        if df_number_t is double:
+            return NAN
+        else:
+            return NAN
 
 cpdef double erfcinv(double x0) nogil:
     """See the documentation for scipy.special.erfcinv"""
@@ -2125,9 +2136,9 @@ cpdef Dd_number_t eval_chebyc(dl_number_t x0, Dd_number_t x1) nogil:
         return _func_eval_chebyc_l(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_chebys(dl_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.eval_chebys"""
@@ -2139,9 +2150,9 @@ cpdef Dd_number_t eval_chebys(dl_number_t x0, Dd_number_t x1) nogil:
         return _func_eval_chebys_l(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_chebyt(dl_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.eval_chebyt"""
@@ -2153,9 +2164,9 @@ cpdef Dd_number_t eval_chebyt(dl_number_t x0, Dd_number_t x1) nogil:
         return _func_eval_chebyt_l(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_chebyu(dl_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.eval_chebyu"""
@@ -2167,9 +2178,9 @@ cpdef Dd_number_t eval_chebyu(dl_number_t x0, Dd_number_t x1) nogil:
         return _func_eval_chebyu_l(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_gegenbauer(dl_number_t x0, double x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.eval_gegenbauer"""
@@ -2181,9 +2192,9 @@ cpdef Dd_number_t eval_gegenbauer(dl_number_t x0, double x1, Dd_number_t x2) nog
         return _func_eval_gegenbauer_l(x0, x1, x2)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_genlaguerre(dl_number_t x0, double x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.eval_genlaguerre"""
@@ -2195,9 +2206,9 @@ cpdef Dd_number_t eval_genlaguerre(dl_number_t x0, double x1, Dd_number_t x2) no
         return _func_eval_genlaguerre_l(x0, x1, x2)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double eval_hermite(long x0, double x1) nogil:
     """See the documentation for scipy.special.eval_hermite"""
@@ -2217,9 +2228,9 @@ cpdef Dd_number_t eval_jacobi(dl_number_t x0, double x1, double x2, Dd_number_t 
         return _func_eval_jacobi_l(x0, x1, x2, x3)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_laguerre(dl_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.eval_laguerre"""
@@ -2231,9 +2242,9 @@ cpdef Dd_number_t eval_laguerre(dl_number_t x0, Dd_number_t x1) nogil:
         return _func_eval_laguerre_l(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_legendre(dl_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.eval_legendre"""
@@ -2245,9 +2256,9 @@ cpdef Dd_number_t eval_legendre(dl_number_t x0, Dd_number_t x1) nogil:
         return _func_eval_legendre_l(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_sh_chebyt(dl_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.eval_sh_chebyt"""
@@ -2259,9 +2270,9 @@ cpdef Dd_number_t eval_sh_chebyt(dl_number_t x0, Dd_number_t x1) nogil:
         return _func_eval_sh_chebyt_l(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_sh_chebyu(dl_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.eval_sh_chebyu"""
@@ -2273,9 +2284,9 @@ cpdef Dd_number_t eval_sh_chebyu(dl_number_t x0, Dd_number_t x1) nogil:
         return _func_eval_sh_chebyu_l(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_sh_jacobi(dl_number_t x0, double x1, double x2, Dd_number_t x3) nogil:
     """See the documentation for scipy.special.eval_sh_jacobi"""
@@ -2287,9 +2298,9 @@ cpdef Dd_number_t eval_sh_jacobi(dl_number_t x0, double x1, double x2, Dd_number
         return _func_eval_sh_jacobi_l(x0, x1, x2, x3)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t eval_sh_legendre(dl_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.eval_sh_legendre"""
@@ -2301,9 +2312,9 @@ cpdef Dd_number_t eval_sh_legendre(dl_number_t x0, Dd_number_t x1) nogil:
         return _func_eval_sh_legendre_l(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t exp1(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.exp1"""
@@ -2313,9 +2324,9 @@ cpdef Dd_number_t exp1(Dd_number_t x0) nogil:
         return _func_exp1_wrap(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double exp10(double x0) nogil:
     """See the documentation for scipy.special.exp10"""
@@ -2333,9 +2344,9 @@ cpdef Dd_number_t expi(Dd_number_t x0) nogil:
         return _func_expi_wrap(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef dfg_number_t expit(dfg_number_t x0) nogil:
     """See the documentation for scipy.special.expit"""
@@ -2347,11 +2358,11 @@ cpdef dfg_number_t expit(dfg_number_t x0) nogil:
         return (<long double(*)(long double) nogil>scipy.special._ufuncs_cxx._export_expitl)(x0)
     else:
         if dfg_number_t is double:
-            return NPY_NAN
+            return NAN
         elif dfg_number_t is float:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t expm1(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.expm1"""
@@ -2361,9 +2372,9 @@ cpdef Dd_number_t expm1(Dd_number_t x0) nogil:
         return _func_expm1(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double expn(dl_number_t x0, double x1) nogil:
     """See the documentation for scipy.special.expn"""
@@ -2372,7 +2383,7 @@ cpdef double expn(dl_number_t x0, double x1) nogil:
     elif dl_number_t is long:
         return _func_expn(x0, x1)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double exprel(double x0) nogil:
     """See the documentation for scipy.special.exprel"""
@@ -2406,11 +2417,11 @@ cdef void fresnel(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1) nogil:
         y1[0] = _complexstuff.double_complex_from_npy_cdouble(tmp1)
     else:
         if Dd_number_t is double_complex:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
         else:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
 
 def _fresnel_pywrap(Dd_number_t x0):
     cdef Dd_number_t y0
@@ -2426,9 +2437,9 @@ cpdef Dd_number_t gamma(Dd_number_t x0) nogil:
         return _func_Gamma(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double gammainc(double x0, double x1) nogil:
     """See the documentation for scipy.special.gammainc"""
@@ -2502,21 +2513,21 @@ cpdef Dd_number_t hyp0f1(double x0, Dd_number_t x1) nogil:
         return _func__hyp0f1_real(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t hyp1f1(double x0, double x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.hyp1f1"""
     if Dd_number_t is double:
-        return _func_hyp1f1(x0, x1, x2)
+        return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_hyp1f1_double)(x0, x1, x2)
     elif Dd_number_t is double_complex:
         return _complexstuff.double_complex_from_npy_cdouble(_func_chyp1f1_wrap(x0, x1, _complexstuff.npy_cdouble_from_double_complex(x2)))
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t hyp2f1(double x0, double x1, double x2, Dd_number_t x3) nogil:
     """See the documentation for scipy.special.hyp2f1"""
@@ -2526,9 +2537,9 @@ cpdef Dd_number_t hyp2f1(double x0, double x1, double x2, Dd_number_t x3) nogil:
         return _func_hyp2f1_complex(x0, x1, x2, x3)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double hyperu(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.hyperu"""
@@ -2630,9 +2641,9 @@ cpdef Dd_number_t iv(double x0, Dd_number_t x1) nogil:
         return _func_iv(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t ive(double x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.ive"""
@@ -2642,9 +2653,9 @@ cpdef Dd_number_t ive(double x0, Dd_number_t x1) nogil:
         return _func_cbesi_wrap_e_real(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double j0(double x0) nogil:
     """See the documentation for scipy.special.j0"""
@@ -2662,9 +2673,9 @@ cpdef Dd_number_t jv(double x0, Dd_number_t x1) nogil:
         return _func_cbesj_wrap_real(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t jve(double x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.jve"""
@@ -2674,9 +2685,9 @@ cpdef Dd_number_t jve(double x0, Dd_number_t x1) nogil:
         return _func_cbesj_wrap_e_real(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double k0(double x0) nogil:
     """See the documentation for scipy.special.k0"""
@@ -2741,7 +2752,7 @@ cpdef double kn(dl_number_t x0, double x1) nogil:
     elif dl_number_t is long:
         return _func_cbesk_wrap_real_int(x0, x1)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double kolmogi(double x0) nogil:
     """See the documentation for scipy.special.kolmogi"""
@@ -2759,9 +2770,9 @@ cpdef Dd_number_t kv(double x0, Dd_number_t x1) nogil:
         return _func_cbesk_wrap_real(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t kve(double x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.kve"""
@@ -2771,9 +2782,9 @@ cpdef Dd_number_t kve(double x0, Dd_number_t x1) nogil:
         return _func_cbesk_wrap_e_real(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t log1p(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.log1p"""
@@ -2783,9 +2794,9 @@ cpdef Dd_number_t log1p(Dd_number_t x0) nogil:
         return _func_log1p(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef dfg_number_t log_expit(dfg_number_t x0) nogil:
     """See the documentation for scipy.special.log_expit"""
@@ -2797,11 +2808,11 @@ cpdef dfg_number_t log_expit(dfg_number_t x0) nogil:
         return (<long double(*)(long double) nogil>scipy.special._ufuncs_cxx._export_log_expitl)(x0)
     else:
         if dfg_number_t is double:
-            return NPY_NAN
+            return NAN
         elif dfg_number_t is float:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t log_ndtr(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.log_ndtr"""
@@ -2811,9 +2822,9 @@ cpdef Dd_number_t log_ndtr(Dd_number_t x0) nogil:
         return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_log_ndtr_complex)(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t loggamma(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.loggamma"""
@@ -2823,9 +2834,9 @@ cpdef Dd_number_t loggamma(Dd_number_t x0) nogil:
         return _func_loggamma(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef dfg_number_t logit(dfg_number_t x0) nogil:
     """See the documentation for scipy.special.logit"""
@@ -2837,11 +2848,11 @@ cpdef dfg_number_t logit(dfg_number_t x0) nogil:
         return (<long double(*)(long double) nogil>scipy.special._ufuncs_cxx._export_logitl)(x0)
     else:
         if dfg_number_t is double:
-            return NPY_NAN
+            return NAN
         elif dfg_number_t is float:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double lpmv(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.lpmv"""
@@ -2954,7 +2965,7 @@ cpdef double nbdtr(dl_number_t x0, dl_number_t x1, double x2) nogil:
     elif dl_number_t is long:
         return _func_nbdtr(x0, x1, x2)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double nbdtrc(dl_number_t x0, dl_number_t x1, double x2) nogil:
     """See the documentation for scipy.special.nbdtrc"""
@@ -2963,7 +2974,7 @@ cpdef double nbdtrc(dl_number_t x0, dl_number_t x1, double x2) nogil:
     elif dl_number_t is long:
         return _func_nbdtrc(x0, x1, x2)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double nbdtri(dl_number_t x0, dl_number_t x1, double x2) nogil:
     """See the documentation for scipy.special.nbdtri"""
@@ -2972,7 +2983,7 @@ cpdef double nbdtri(dl_number_t x0, dl_number_t x1, double x2) nogil:
     elif dl_number_t is long:
         return _func_nbdtri(x0, x1, x2)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double nbdtrik(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.nbdtrik"""
@@ -3026,9 +3037,9 @@ cpdef Dd_number_t ndtr(Dd_number_t x0) nogil:
         return _func_ndtr(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double ndtri(double x0) nogil:
     """See the documentation for scipy.special.ndtri"""
@@ -3155,7 +3166,7 @@ cpdef double pdtri(dl_number_t x0, double x1) nogil:
     elif dl_number_t is long:
         return _func_pdtri(x0, x1)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double pdtrik(double x0, double x1) nogil:
     """See the documentation for scipy.special.pdtrik"""
@@ -3164,6 +3175,18 @@ cpdef double pdtrik(double x0, double x1) nogil:
 cpdef double poch(double x0, double x1) nogil:
     """See the documentation for scipy.special.poch"""
     return _func_poch(x0, x1)
+
+cpdef df_number_t powm1(df_number_t x0, df_number_t x1) nogil:
+    """See the documentation for scipy.special.powm1"""
+    if df_number_t is float:
+        return (<float(*)(float, float) nogil>scipy.special._ufuncs_cxx._export_powm1_float)(x0, x1)
+    elif df_number_t is double:
+        return (<double(*)(double, double) nogil>scipy.special._ufuncs_cxx._export_powm1_double)(x0, x1)
+    else:
+        if df_number_t is double:
+            return NAN
+        else:
+            return NAN
 
 cdef void pro_ang1(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil:
     """See the documentation for scipy.special.pro_ang1"""
@@ -3241,9 +3264,9 @@ cpdef Dd_number_t psi(Dd_number_t x0) nogil:
         return _func_digamma(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double radian(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.radian"""
@@ -3261,9 +3284,9 @@ cpdef Dd_number_t rgamma(Dd_number_t x0) nogil:
         return _func_rgamma(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double round(double x0) nogil:
     """See the documentation for scipy.special.round"""
@@ -3277,11 +3300,11 @@ cdef void shichi(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1) nogil:
         _func_shichi(x0, y0, y1)
     else:
         if Dd_number_t is double_complex:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
         else:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
 
 def _shichi_pywrap(Dd_number_t x0):
     cdef Dd_number_t y0
@@ -3297,11 +3320,11 @@ cdef void sici(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1) nogil:
         _func_sici(x0, y0, y1)
     else:
         if Dd_number_t is double_complex:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
         else:
-            y0[0] = NPY_NAN
-            y1[0] = NPY_NAN
+            y0[0] = NAN
+            y1[0] = NAN
 
 def _sici_pywrap(Dd_number_t x0):
     cdef Dd_number_t y0
@@ -3320,7 +3343,7 @@ cpdef double smirnov(dl_number_t x0, double x1) nogil:
     elif dl_number_t is long:
         return _func_smirnov(x0, x1)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double smirnovi(dl_number_t x0, double x1) nogil:
     """See the documentation for scipy.special.smirnovi"""
@@ -3329,7 +3352,7 @@ cpdef double smirnovi(dl_number_t x0, double x1) nogil:
     elif dl_number_t is long:
         return _func_smirnovi(x0, x1)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef Dd_number_t spence(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.spence"""
@@ -3339,9 +3362,9 @@ cpdef Dd_number_t spence(Dd_number_t x0) nogil:
         return _func_spence(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double complex sph_harm(dl_number_t x0, dl_number_t x1, double x2, double x3) nogil:
     """See the documentation for scipy.special.sph_harm"""
@@ -3350,7 +3373,7 @@ cpdef double complex sph_harm(dl_number_t x0, dl_number_t x1, double x2, double 
     elif dl_number_t is long:
         return _func_sph_harmonic(x0, x1, x2, x3)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef double stdtr(double x0, double x1) nogil:
     """See the documentation for scipy.special.stdtr"""
@@ -3388,9 +3411,9 @@ cpdef Dd_number_t wrightomega(Dd_number_t x0) nogil:
         return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_wrightomega_real)(x0)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t xlog1py(Dd_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.xlog1py"""
@@ -3400,9 +3423,9 @@ cpdef Dd_number_t xlog1py(Dd_number_t x0, Dd_number_t x1) nogil:
         return _func_xlog1py[double_complex](x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t xlogy(Dd_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.xlogy"""
@@ -3412,9 +3435,9 @@ cpdef Dd_number_t xlogy(Dd_number_t x0, Dd_number_t x1) nogil:
         return _func_xlogy[double_complex](x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double y0(double x0) nogil:
     """See the documentation for scipy.special.y0"""
@@ -3431,7 +3454,7 @@ cpdef double yn(dl_number_t x0, double x1) nogil:
     elif dl_number_t is long:
         return _func_yn(x0, x1)
     else:
-        return NPY_NAN
+        return NAN
 
 cpdef Dd_number_t yv(double x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.yv"""
@@ -3441,9 +3464,9 @@ cpdef Dd_number_t yv(double x0, Dd_number_t x1) nogil:
         return _func_cbesy_wrap_real(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef Dd_number_t yve(double x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.yve"""
@@ -3453,9 +3476,9 @@ cpdef Dd_number_t yve(double x0, Dd_number_t x1) nogil:
         return _func_cbesy_wrap_e_real(x0, x1)
     else:
         if Dd_number_t is double_complex:
-            return NPY_NAN
+            return NAN
         else:
-            return NPY_NAN
+            return NAN
 
 cpdef double zetac(double x0) nogil:
     """See the documentation for scipy.special.zetac"""

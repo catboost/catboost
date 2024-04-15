@@ -65,7 +65,6 @@ npy_double ellpk(npy_double);
 npy_double erf(npy_double);
 npy_double erfc(npy_double);
 npy_double erfcinv(npy_double);
-npy_double erfinv(npy_double);
 npy_cdouble cexp1_wrap(npy_cdouble);
 npy_double exp1_wrap(npy_double);
 npy_double exp10(npy_double);

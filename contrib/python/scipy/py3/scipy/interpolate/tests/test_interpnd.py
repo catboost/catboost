@@ -13,7 +13,8 @@ import pickle
 
 
 def data_file(basename):
-    return os.path.join(os.path.abspath(os.path.dirname(__file__)),
+    import yatest.common as yc
+    return os.path.join(os.path.abspath(os.path.dirname(yc.source_path(__file__))),
                         'data', basename)
 
 

@@ -12,12 +12,16 @@ from numpy.testing import (assert_array_equal,
     assert_, assert_allclose, assert_equal, suppress_warnings)
 import pytest
 from pytest import raises as assert_raises
+import re
 from scipy import optimize
 from scipy import stats
 from scipy.stats._morestats import _abw_state
 from .common_tests import check_named_results
 from scipy.stats._hypotests import _get_wilcoxon_distr, _get_wilcoxon_distr2
 from scipy.stats._binomtest import _binary_search_for_binom_tst
+from scipy.stats._distr_params import distcont
+
+distcont = dict(distcont)  # type: ignore
 
 # Matplotlib is not a scipy dependency but is optionally used in probplot, so
 # check if it's available
@@ -306,6 +310,20 @@ class TestAnderson:
         assert_array_less(A1, crit1[-2:])
         assert_(A2 > crit2[-1])
 
+    @pytest.mark.parametrize('distname',
+                             ['norm', 'expon', 'gumbel_l', 'extreme1',
+                              'gumbel', 'gumbel_r', 'logistic'])
+    def test_anderson_fit_params(self, distname):
+        # check that anderson now returns a FitResult
+        rng = np.random.default_rng(330691555377792039)
+        real_distname = ('gumbel_l' if distname in {'extreme1', 'gumbel'}
+                         else distname)
+        dist = getattr(stats, real_distname)
+        params = distcont[real_distname]
+        x = dist.rvs(*params, size=1000, random_state=rng)
+        res = stats.anderson(x, distname)
+        assert res.fit_result.success
+
 
 class TestAndersonKSamp:
     def test_example1a(self):
@@ -504,6 +522,8 @@ class TestAndersonKSamp:
         attributes = ('statistic', 'critical_values', 'significance_level')
         check_named_results(res, attributes)
 
+        assert_equal(res.significance_level, res.pvalue)
+
 
 class TestAnsari:
 
@@ -567,7 +587,7 @@ class TestAnsari:
         pval_g = stats.ansari(x1, x2, alternative='greater').pvalue
         assert pval_l > 0.95
         assert pval_g < 0.05  # level of significance.
-        # also check if the p-values sum up to 1 plus the the probability
+        # also check if the p-values sum up to 1 plus the probability
         # mass under the calculated statistic.
         prob = _abw_state.pmf(statistic, len(x1), len(x2))
         assert_allclose(pval_g + pval_l, 1 + prob, atol=1e-12)
@@ -734,10 +754,27 @@ class TestLevene:
         assert_raises(ValueError, stats.levene, g1, x)
 
 
-class TestBinomP:
-    """Tests for stats.binom_test."""
+class TestBinomTestP:
+    """
+    Tests for stats.binomtest as a replacement for deprecated stats.binom_test.
+    """
+    @staticmethod
+    def binom_test_func(x, n=None, p=0.5, alternative='two-sided'):
+        # This processing of x and n is copied from binom_test.
+        x = np.atleast_1d(x).astype(np.int_)
+        if len(x) == 2:
+            n = x[1] + x[0]
+            x = x[0]
+        elif len(x) == 1:
+            x = x[0]
+            if n is None or n < x:
+                raise ValueError("n must be >= x")
+            n = np.int_(n)
+        else:
+            raise ValueError("Incorrect length for x.")
 
-    binom_test_func = staticmethod(stats.binom_test)
+        result = stats.binomtest(x, n, p=p, alternative=alternative)
+        return result.pvalue
 
     def test_data(self):
         pval = self.binom_test_func(100, 250)
@@ -776,29 +813,6 @@ class TestBinomP:
     def test_boost_overflow_raises(self):
         # Boost.Math error policy should raise exceptions in Python
         assert_raises(OverflowError, self.binom_test_func, 5.0, 6, p=sys.float_info.min)
-
-
-class TestBinomTestP(TestBinomP):
-    """
-    Tests for stats.binomtest as a replacement for stats.binom_test.
-    """
-    @staticmethod
-    def binom_test_func(x, n=None, p=0.5, alternative='two-sided'):
-        # This processing of x and n is copied from from binom_test.
-        x = np.atleast_1d(x).astype(np.int_)
-        if len(x) == 2:
-            n = x[1] + x[0]
-            x = x[0]
-        elif len(x) == 1:
-            x = x[0]
-            if n is None or n < x:
-                raise ValueError("n must be >= x")
-            n = np.int_(n)
-        else:
-            raise ValueError("Incorrect length for x.")
-
-        result = stats.binomtest(x, n, p=p, alternative=alternative)
-        return result.pvalue
 
 
 class TestBinomTest:
@@ -896,7 +910,7 @@ class TestBinomTest:
     def test_confidence_intervals1(self, alternative, pval, ci_low, ci_high):
         res = stats.binomtest(20, n=100, p=0.25, alternative=alternative)
         assert_allclose(res.pvalue, pval, rtol=1e-12)
-        assert_equal(res.proportion_estimate, 0.2)
+        assert_equal(res.statistic, 0.2)
         ci = res.proportion_ci(confidence_level=0.95)
         assert_allclose((ci.low, ci.high), (ci_low, ci_high), rtol=1e-12)
 
@@ -911,7 +925,7 @@ class TestBinomTest:
     def test_confidence_intervals2(self, alternative, pval, ci_low, ci_high):
         res = stats.binomtest(3, n=50, p=0.2, alternative=alternative)
         assert_allclose(res.pvalue, pval, rtol=1e-6)
-        assert_equal(res.proportion_estimate, 0.06)
+        assert_equal(res.statistic, 0.06)
         ci = res.proportion_ci(confidence_level=0.99)
         assert_allclose((ci.low, ci.high), (ci_low, ci_high), rtol=1e-6)
 
@@ -986,7 +1000,7 @@ class TestBinomTest:
         # the hypothesized proportion.  When alternative is 'two-sided',
         # the p-value is 1.
         res = stats.binomtest(4, 16, 0.25)
-        assert_equal(res.proportion_estimate, 0.25)
+        assert_equal(res.statistic, 0.25)
         assert_equal(res.pvalue, 1.0)
 
     @pytest.mark.parametrize('k, n', [(0, 0), (-1, 2)])
@@ -1009,6 +1023,10 @@ class TestBinomTest:
         res = stats.binomtest(3, n=10, p=0.1)
         with pytest.raises(ValueError, match="method must be"):
             res.proportion_ci(method="plate of shrimp")
+
+    def test_alias(self):
+        res = stats.binomtest(3, n=10, p=0.1)
+        assert_equal(res.proportion_estimate, res.statistic)
 
 
 class TestFligner:
@@ -1264,6 +1282,15 @@ class TestMood:
 
         with pytest.raises(ValueError, match="alternative must be..."):
             stats.mood(x, y, alternative='ekki-ekki')
+
+    @pytest.mark.parametrize("alternative", ['two-sided', 'less', 'greater'])
+    def test_result(self, alternative):
+        rng = np.random.default_rng(265827767938813079281100964083953437622)
+        x1 = rng.standard_normal((10, 1))
+        x2 = rng.standard_normal((15, 1))
+
+        res = stats.mood(x1, x2, alternative=alternative)
+        assert_equal((res.statistic, res.pvalue), res)
 
 
 class TestProbplot:
@@ -2537,3 +2564,111 @@ class TestMedianTest:
         exp_stat, exp_p, dof, e = stats.chi2_contingency(tbl, correction=False)
         assert_allclose(stat, exp_stat)
         assert_allclose(p, exp_p)
+
+    @pytest.mark.parametrize("correction", [False, True])
+    def test_result(self, correction):
+        x = [1, 2, 3]
+        y = [1, 2, 3]
+
+        res = stats.median_test(x, y, correction=correction)
+        assert_equal((res.statistic, res.pvalue, res.median, res.table), res)
+
+
+class TestDirectionalStats:
+    # Reference implementations are not available
+    def test_directional_stats_correctness(self):
+        # Data from Fisher: Dispersion on a sphere, 1953 and
+        # Mardia and Jupp, Directional Statistics.
+
+        decl = -np.deg2rad(np.array([343.2, 62., 36.9, 27., 359.,
+                                     5.7, 50.4, 357.6, 44.]))
+        incl = -np.deg2rad(np.array([66.1, 68.7, 70.1, 82.1, 79.5,
+                                     73., 69.3, 58.8, 51.4]))
+        data = np.stack((np.cos(incl) * np.cos(decl),
+                         np.cos(incl) * np.sin(decl),
+                         np.sin(incl)),
+                        axis=1)
+
+        dirstats = stats.directional_stats(data)
+        directional_mean = dirstats.mean_direction
+        mean_rounded = np.round(directional_mean, 4)
+
+        reference_mean = np.array([0.2984, -0.1346, -0.9449])
+        assert_allclose(mean_rounded, reference_mean)
+
+    @pytest.mark.parametrize('angles, ref', [
+        ([-np.pi/2, np.pi/2], 1.),
+        ([0, 2*np.pi], 0.)
+    ])
+    def test_directional_stats_2d_special_cases(self, angles, ref):
+        if callable(ref):
+            ref = ref(angles)
+        data = np.stack([np.cos(angles), np.sin(angles)], axis=1)
+        res = 1 - stats.directional_stats(data).mean_resultant_length
+        assert_allclose(res, ref)
+
+    def test_directional_stats_2d(self):
+        # Test that for circular data directional_stats
+        # yields the same result as circmean/circvar
+        rng = np.random.default_rng(0xec9a6899d5a2830e0d1af479dbe1fd0c)
+        testdata = 2 * np.pi * rng.random((1000, ))
+        testdata_vector = np.stack((np.cos(testdata),
+                                    np.sin(testdata)),
+                                   axis=1)
+        dirstats = stats.directional_stats(testdata_vector)
+        directional_mean = dirstats.mean_direction
+        directional_mean_angle = np.arctan2(directional_mean[1],
+                                            directional_mean[0])
+        directional_mean_angle = directional_mean_angle % (2*np.pi)
+        circmean = stats.circmean(testdata)
+        assert_allclose(circmean, directional_mean_angle)
+
+        directional_var = 1 - dirstats.mean_resultant_length
+        circular_var = stats.circvar(testdata)
+        assert_allclose(directional_var, circular_var)
+
+    def test_directional_mean_higher_dim(self):
+        # test that directional_stats works for higher dimensions
+        # here a 4D array is reduced over axis = 2
+        data = np.array([[0.8660254, 0.5, 0.],
+                         [0.8660254, -0.5, 0.]])
+        full_array = np.tile(data, (2, 2, 2, 1))
+        expected = np.array([[[1., 0., 0.],
+                              [1., 0., 0.]],
+                             [[1., 0., 0.],
+                              [1., 0., 0.]]])
+        dirstats = stats.directional_stats(full_array, axis=2)
+        assert_allclose(expected, dirstats.mean_direction)
+
+    def test_directional_stats_list_ndarray_input(self):
+        # test that list and numpy array inputs yield same results
+        data = [[0.8660254, 0.5, 0.], [0.8660254, -0.5, 0]]
+        data_array = np.asarray(data)
+        res = stats.directional_stats(data)
+        ref = stats.directional_stats(data_array)
+        assert_allclose(res.mean_direction, ref.mean_direction)
+        assert_allclose(res.mean_resultant_length,
+                        res.mean_resultant_length)
+
+    def test_directional_stats_1d_error(self):
+        # test that one-dimensional data raises ValueError
+        data = np.ones((5, ))
+        message = (r"samples must at least be two-dimensional. "
+                   r"Instead samples has shape: (5,)")
+        with pytest.raises(ValueError, match=re.escape(message)):
+            stats.directional_stats(data)
+
+    def test_directional_stats_normalize(self):
+        # test that directional stats calculations yield same results
+        # for unnormalized input with normalize=True and normalized
+        # input with normalize=False
+        data = np.array([[0.8660254, 0.5, 0.],
+                         [1.7320508, -1., 0.]])
+        res = stats.directional_stats(data, normalize=True)
+        normalized_data = data / np.linalg.norm(data, axis=-1,
+                                                keepdims=True)
+        ref = stats.directional_stats(normalized_data,
+                                      normalize=False)
+        assert_allclose(res.mean_direction, ref.mean_direction)
+        assert_allclose(res.mean_resultant_length,
+                        ref.mean_resultant_length)

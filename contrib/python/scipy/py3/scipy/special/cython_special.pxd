@@ -14,6 +14,10 @@ ctypedef fused Dd_number_t:
     double complex
     double
 
+ctypedef fused df_number_t:
+    double
+    float
+
 ctypedef fused dfg_number_t:
     double
     float
@@ -77,7 +81,7 @@ cpdef Dd_number_t erf(Dd_number_t x0) nogil
 cpdef Dd_number_t erfc(Dd_number_t x0) nogil
 cpdef Dd_number_t erfcx(Dd_number_t x0) nogil
 cpdef Dd_number_t erfi(Dd_number_t x0) nogil
-cpdef double erfinv(double x0) nogil
+cpdef df_number_t erfinv(df_number_t x0) nogil
 cpdef double erfcinv(double x0) nogil
 cpdef Dd_number_t eval_chebyc(dl_number_t x0, Dd_number_t x1) nogil
 cpdef Dd_number_t eval_chebys(dl_number_t x0, Dd_number_t x1) nogil
@@ -214,6 +218,7 @@ cpdef double pdtrc(double x0, double x1) nogil
 cpdef double pdtri(dl_number_t x0, double x1) nogil
 cpdef double pdtrik(double x0, double x1) nogil
 cpdef double poch(double x0, double x1) nogil
+cpdef df_number_t powm1(df_number_t x0, df_number_t x1) nogil
 cdef void pro_ang1(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil
 cdef void pro_ang1_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) nogil
 cpdef double pro_cv(double x0, double x1, double x2) nogil

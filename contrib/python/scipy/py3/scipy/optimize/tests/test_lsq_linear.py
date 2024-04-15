@@ -8,8 +8,6 @@ from scipy.sparse import rand, coo_matrix
 from scipy.sparse.linalg import aslinearoperator
 from scipy.optimize import lsq_linear
 
-import pytest
-
 
 A = np.array([
     [0.171, -0.057],

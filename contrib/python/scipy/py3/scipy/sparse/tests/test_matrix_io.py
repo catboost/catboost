@@ -9,7 +9,8 @@ from scipy.sparse import (csc_matrix, csr_matrix, bsr_matrix, dia_matrix,
                           coo_matrix, save_npz, load_npz, dok_matrix)
 
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+import yatest.common as yc
+DATA_DIR = os.path.join(os.path.dirname(yc.source_path(__file__)), 'data')
 
 
 def _save_and_load(matrix):

@@ -18,6 +18,7 @@ Using any of these subpackages requires an explicit import. For example,
 ::
 
  cluster                      --- Vector Quantization / Kmeans
+ datasets                     --- Dataset methods
  fft                          --- Discrete Fourier transforms
  fftpack                      --- Legacy discrete Fourier transforms
  integrate                    --- Integration routines
@@ -56,19 +57,6 @@ Utility tools
  __numpy_version__ --- Numpy version string
 
 """
-
-# Note: this patch is specific to SciPy 1.9.0; other SciPy versions will
-#       have a correct upper bound in `python_requires` in pyproject.toml
-#       (or in setup.py for SciPy 1.7.x-1.8.x).
-import sys
-if sys.version_info >= (3, 13):
-    _msg = ("Your Python version is too new. SciPy 1.9 supports "
-            "Python 3.8-3.11; if you are trying to build from source for the "
-            "most recent SciPy version you may hit this error as well. Please "
-            "build from the `main` branch on GitHub instead.")
-    raise RuntimeError(_msg)
-del sys
-
 
 from numpy import show_config as show_numpy_config
 if show_numpy_config is None:
@@ -147,14 +135,14 @@ else:
     from scipy._lib import _pep440
     # In maintenance branch, change to np_maxversion N+3 if numpy is at N
     # See setup.py for more details
-    np_minversion = '1.18.5'
+    np_minversion = '1.19.5'
     np_maxversion = '1.27.0'
     if (_pep440.parse(__numpy_version__) < _pep440.Version(np_minversion) or
             _pep440.parse(__numpy_version__) >= _pep440.Version(np_maxversion)):
         import warnings
         warnings.warn(f"A NumPy version >={np_minversion} and <{np_maxversion}"
                       f" is required for this version of SciPy (detected "
-                      f"version {__numpy_version__}",
+                      f"version {__numpy_version__})",
                       UserWarning)
     del _pep440
 
@@ -176,6 +164,7 @@ else:
 
     submodules = [
         'cluster',
+        'datasets',
         'fft',
         'fftpack',
         'integrate',

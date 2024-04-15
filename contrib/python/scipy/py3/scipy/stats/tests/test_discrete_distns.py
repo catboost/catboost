@@ -232,6 +232,7 @@ def test_boost_divide_by_zero_issue_15101():
     assert_allclose(binom.pmf(k, n, p), 0.0)
 
 
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
 def test_skellam_gh11474():
     # test issue reported in gh-11474 caused by `cdfchn`
     mu = [1, 10, 100, 1000, 5000, 5050, 5100, 5250, 6000]
@@ -471,7 +472,7 @@ class TestNCH():
 
         atol, rtol = 1e-6, 1e-6
         i = np.abs(pmf1 - pmf0) < atol + rtol*np.abs(pmf0)
-        assert(i.sum() > np.prod(shape) / 2)  # works at least half the time
+        assert i.sum() > np.prod(shape) / 2  # works at least half the time
 
         # for those that fail, discredit the naive implementation
         for N, m1, n, w in zip(N[~i], m1[~i], n[~i], w[~i]):
