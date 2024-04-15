@@ -13,6 +13,7 @@
 # Insert '.' and '..' as first entries to the search path for modules.
 # Restricted environments like embeddable python do not include the
 # current working directory on startup.
+import importlib
 import sys
 sys.path[0:0] = ['.', '..']
 
@@ -32,6 +33,8 @@ c_parser.CParser(
 
 # Load to compile into .pyc
 #
+importlib.invalidate_caches()
+
 import lextab
 import yacctab
 import c_ast

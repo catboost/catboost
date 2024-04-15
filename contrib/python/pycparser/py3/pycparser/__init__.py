@@ -8,7 +8,7 @@
 # License: BSD
 #-----------------------------------------------------------------
 __all__ = ['c_lexer', 'c_parser', 'c_ast']
-__version__ = '2.21'
+__version__ = '2.22'
 
 import io
 from subprocess import check_output
@@ -49,7 +49,7 @@ def preprocess_file(filename, cpp_path='cpp', cpp_args=''):
 
 
 def parse_file(filename, use_cpp=False, cpp_path='cpp', cpp_args='',
-               parser=None):
+               parser=None, encoding=None):
     """ Parse a C file using pycparser.
 
         filename:
@@ -71,6 +71,9 @@ def parse_file(filename, use_cpp=False, cpp_path='cpp', cpp_args='',
             r'-I../utils/fake_libc_include'
             If several arguments are required, pass a list of strings.
 
+        encoding:
+            Encoding to use for the file to parse
+
         parser:
             Optional parser object to be used instead of the default CParser
 
@@ -82,7 +85,7 @@ def parse_file(filename, use_cpp=False, cpp_path='cpp', cpp_args='',
     if use_cpp:
         text = preprocess_file(filename, cpp_path, cpp_args)
     else:
-        with io.open(filename) as f:
+        with io.open(filename, encoding=encoding) as f:
             text = f.read()
 
     if parser is None:
