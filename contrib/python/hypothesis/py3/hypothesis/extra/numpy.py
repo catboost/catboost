@@ -219,7 +219,11 @@ def from_dtype(
             # it here because we'd have to guard against equivalents in arrays()
             # regardless and drawing scalars is a valid use-case.
             res = st.sampled_from(TIME_RESOLUTIONS)
-        result = st.builds(dtype.type, st.integers(-(2**63), 2**63 - 1), res)
+        if allow_nan is not False:
+            elems = st.integers(-(2**63), 2**63 - 1) | st.just("NaT")
+        else:  # NEP-7 defines the NaT value as integer -(2**63)
+            elems = st.integers(-(2**63) + 1, 2**63 - 1)
+        result = st.builds(dtype.type, elems, res)
     else:
         raise InvalidArgument(f"No strategy inference for {dtype}")
     return result.map(dtype.type)
