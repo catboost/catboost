@@ -57,7 +57,7 @@ namespace NCatboostCuda {
         ITrainingCallbacks* trainingCallbacks,
         bool hasWeights,
         TMaybe<ui32> learnAndTestCheckSum,
-        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor
     ) {
         return TBoostingProgressTracker(catBoostOptions,
@@ -87,7 +87,7 @@ namespace NCatboostCuda {
                                                                          NPar::ILocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                                         const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
                                                                          const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) {
         auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
 

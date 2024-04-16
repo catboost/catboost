@@ -101,6 +101,7 @@ public:
         const NCatboostOptions::TCatBoostOptions& catboostOptions,
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+        const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         NCB::TTrainingDataProviders trainingData,
 
@@ -154,6 +155,7 @@ void TrainModel(
     NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     NCB::TDataProviders pools, // not rvalue reference because Cython does not support them

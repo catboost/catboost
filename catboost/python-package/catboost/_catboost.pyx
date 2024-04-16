@@ -23,6 +23,8 @@ import inspect
 import os
 import traceback
 import types
+from numba import cuda as numba_cuda
+
 
 import sys
 if sys.version_info >= (3, 3):
@@ -140,7 +142,6 @@ custom_metric_methods_to_optimize = [
 
 custom_gpu_metric_methods_to_optimize = [
     'evaluate',
-    'get_final_error'
 ]
 
 from catboost.private.libs.cython cimport *
@@ -629,18 +630,19 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
 cdef extern from "catboost/cuda/targets/gpu_metrics.h":
     cdef cppclass TCustomGpuMetricDescriptor:
 
+        ctypedef TMetricHolder (*TEvalFuncPtr)(
+            TConstArrayRef[float] approx,
+            TConstArrayRef[float]  target,
+            TConstArrayRef[float]  weight,
+            int begin,
+            int end,
+            void* customData)  with gil
+
         void* CustomData
         TMaybe[TEvalFuncPtr] EvalFunc
 
-        ctypedef TMetricHolder (*TEvalFuncPtr)(
-            TConstArrayRef[TConstArrayRef[double]]& approx,
-            TConstArrayRef[float] target,
-            TConstArrayRef[float] weight,
-            int begin, int end, void* customData) with gil
-
-        bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
+        # bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
         double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) except * with gil
-        cdef bool_t IsMaxOptimal(const TString& metricName) nogil except +ProcessException
 
 
 cdef extern from "catboost/libs/metrics/metric.h":
@@ -727,7 +729,8 @@ cdef extern from "catboost/private/libs/options/check_train_options.h":
     cdef void CheckFitParams(
         const TJsonValue& tree,
         const TCustomObjectiveDescriptor* objectiveDescriptor,
-        const TCustomMetricDescriptor* evalMetricDescriptor
+        const TCustomMetricDescriptor* evalMetricDescriptor,
+        const TCustomGpuMetricDescriptor* evalGpuMetricDescriptor,
     ) nogil except +ProcessException
 
 cdef extern from "catboost/private/libs/options/json_helper.h":
@@ -746,6 +749,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         TJsonValue params,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
+        const TMaybe[TCustomGpuMetricDescriptor]& evalGpuMetricDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         const TMaybe[TCustomCallbackDescriptor]& callbackDescriptor,
         TDataProviders pools,
@@ -1426,11 +1430,40 @@ cdef _ToPythonObjArrayOfArraysOfFloats(const TConstArrayRef[float]* values, int 
     # using tuple as in _ToPythonObjArrayOfArraysOfDoubles
     return tuple(_CreateNumpyFloatArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
 
-cdef TMetricHolder _GpuMetricEval(
-    
-) with gil:
-    ThrowCppExceptionWithMessage(TString("Calling custom GpuMetricEval!"));
+cdef _ToPythonObjArrayRefOnGpu(size_t size, uint64_t data):
+    return numba_cuda.from_cuda_array_interface({
+        'shape' : size,
+        'typestr' : 'f4',
+        'data' : (data, True),
+        'version' : 2
+    })  
 
+cdef TMetricHolder _GpuMetricEval(
+    TConstArrayRef[float] approx,
+    TConstArrayRef[float] target,
+    TConstArrayRef[float] weight,
+    int begin,
+    int end,
+    void* customData
+) with gil:
+    cdef TMetricHolder holder
+    holder.Stats.resize(2)
+    
+    approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
+    target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
+    weight_gpu = _ToPythonObjArrayRefOnGpu(weight.size(), <uint64_t>weight.data())
+
+    total_threads = 128
+    output_gpu = numba_cuda.device_array((total_threads,))
+    output_weight_gpu = numba_cuda.device_array((total_threads,))
+
+    metric_object = <object>customData
+    (<object>(metric_object.evaluate))[1, total_threads](0, approx_gpu, target_gpu, weight_gpu, output_gpu, output_weight_gpu)
+
+    holder.Stats[0] = output_gpu.copy_to_host().sum()
+    holder.Stats[1] = output_weight_gpu.copy_to_host().sum()
+
+    return holder
 
 cdef TMetricHolder _MetricEval(
     TConstArrayRef[TConstArrayRef[double]]& approx,
@@ -1701,29 +1734,30 @@ def _try_cuda_jit_method(obj, method_name):
         return
 
     try:
-        optimized = numba.cuda.jit(class_method)
+        optimized = numba_cuda.jit(class_method)
     except numba.core.errors.NumbaError as err:
         warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(method_name, err))
         return
 
-    def new_method(*args):
-        if not new_method.initialized:
-            try:
-                value = optimized(0, *args)
-                return value
-            except numba.core.errors.NumbaError as err:
-                warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(method_name, err))
-                new_method.use_optimized = False
-                return object_method(*args)
-            finally:
-                new_method.initialized = True
-        elif new_method.use_optimized:
-            return optimized(0, *args)
-        else:
-            return object_method(*args)
-    setattr(new_method, "initialized", False)
-    setattr(new_method, "use_optimized", True)
-    setattr(obj, method_name, new_method)
+    # def new_method(*args):
+    #     if not new_method.initialized:
+    #         try:
+    #             value = optimized(0, *args)
+    #             return value
+    #         except numba.core.errors.NumbaError as err:
+    #             warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(method_name, err))
+    #             new_method.use_optimized = False
+    #             return object_method(*args)
+    #         finally:
+    #             new_method.initialized = True
+    #     elif new_method.use_optimized:
+    #         return optimized(0, *args)
+    #     else:
+    #         return object_method(*args)
+
+    # setattr(new_method, "initialized", False)
+    # setattr(new_method, "use_optimized", True)
+    setattr(obj, method_name, optimized)
 
 def _try_jit_methods(obj, method_names):
     if hasattr(obj, "no_jit"):
@@ -1777,7 +1811,7 @@ cdef TCustomGpuMetricDescriptor _BuildCustomGpuMetricDescriptor(object metricObj
     descriptor.CustomData = <void*>metricObject
     descriptor.EvalFunc = &_GpuMetricEval
     # descriptor.GetDescriptionFunc = &_MetricGetDescription
-    descriptor.IsMaxOptimalFunc = &_MetricIsMaxOptimal
+    # descriptor.IsMaxOptimalFunc = &_MetricIsMaxOptimal
     # descriptor.IsAdditiveFunc = &_MetricIsAdditive
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
@@ -1873,6 +1907,7 @@ cdef class _PreprocessParams:
     cdef TJsonValue tree
     cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
     cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
+    cdef TMaybe[TCustomGpuMetricDescriptor] customGpuMetricDescriptor
     cdef TMaybe[TCustomCallbackDescriptor] customCallbackDescriptor
     def __init__(self, dict params):
         eval_metric = params.get("eval_metric")
@@ -1919,7 +1954,10 @@ cdef class _PreprocessParams:
                 params_to_json["loss_function"] = "PythonUserDefinedMultiTarget"
 
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
-            self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
+            if params.get("task_type") == "GPU":
+                self.customGpuMetricDescriptor = _BuildCustomGpuMetricDescriptor(params['eval_metric'])
+            else:
+                self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
             is_multitarget_metric = issubclass(params["eval_metric"].__class__, MultiTargetCustomMetric)
             if is_multitarget_objective(params_to_json["loss_function"]):
                 assert is_multitarget_metric, \
@@ -4988,6 +5026,7 @@ cdef class _CatBoost:
                     prep_params.tree,
                     quantizedFeaturesInfo,
                     prep_params.customObjectiveDescriptor,
+                    prep_params.customGpuMetricDescriptor,
                     prep_params.customMetricDescriptor,
                     prep_params.customCallbackDescriptor,
                     dataProviders,
@@ -6520,7 +6559,8 @@ cpdef _check_train_params(dict params):
     CheckFitParams(
         prep_params.tree,
         prep_params.customObjectiveDescriptor.Get(),
-        prep_params.customMetricDescriptor.Get())
+        prep_params.customMetricDescriptor.Get(),
+        prep_params.customGpuMetricDescriptor.Get())
 
 
 cpdef _get_gpu_device_count():

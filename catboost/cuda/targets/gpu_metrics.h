@@ -12,6 +12,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 namespace NCatboostCuda {
+
     class IGpuMetric {
     public:
         virtual ~IGpuMetric() {
@@ -121,17 +122,13 @@ namespace NCatboostCuda {
     };
 
     class TGpuCustomMetric : public IGpuMetric {
+        TCustomGpuMetricDescriptor Descriptor;
     public:
         explicit TGpuCustomMetric(
+            const TCustomGpuMetricDescriptor& metricDescriptor,
             const NCatboostOptions::TLossDescription& config,
-            ui32 approxDim): IGpuMetric(config, approxDim)
-            {
-            }
-
-        explicit TGpuCustomMetric(
-            const TCustomMetricDescriptor& metricDescriptor,
-            const NCatboostOptions::TLossDescription& config
-        ) : IGpuMetric(MakeCustomMetric(metricDescriptor), config)
+            ui32 approxDim
+        ) : IGpuMetric(config, approxDim), Descriptor(metricDescriptor)
         {
         }
 
@@ -139,29 +136,16 @@ namespace NCatboostCuda {
                                    const TStripeBuffer<const float>& weights,
                                    const TStripeBuffer<const float>& cursor,
                                    TScopedCacheHolder* cache) const;
+
+        TMetricHolder Eval(const TMirrorBuffer<const float>& target,
+                                   const TMirrorBuffer<const float>& weights,
+                                   const TMirrorBuffer<const float>& cursor,
+                                   TScopedCacheHolder* cache) const;
+        
+        double GetFinalError(TMetricHolder&& metricHolder) const;
     };
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
-                                                  const ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                  const ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
                                                   const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor);
 }
-
-
-class TCustomGpuMetricDescriptor {
-
-    using TEvalFuncPtr = TMetricHolder (*)(
-        TConstArrayRef<TConstArrayRef<double>>& approx,
-        TConstArrayRef<float> target,
-        TConstArrayRef<float> weight,
-        int begin,
-        int end,
-        void* customData);
-
-    using TGetFinalErrorFuncPtr = double (*)(const TMetricHolder& error, void* customData);
-
-    void* CustomData = nullptr;
-    TMaybe<TEvalFuncPtr> EvalFunc;
-
-    TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
-    TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
-};

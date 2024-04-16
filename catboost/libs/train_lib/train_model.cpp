@@ -777,6 +777,7 @@ namespace {
             const NCatboostOptions::TCatBoostOptions& catboostOptions,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+            const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             TTrainingDataProviders trainingData,
             TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
@@ -793,6 +794,7 @@ namespace {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress
         ) const override {
+            Y_UNUSED(evalGpuMetricDescriptor);
             if (!internalOptions.CalcMetricsOnly) {
                 if (dstModel != nullptr) {
                     CB_ENSURE(
@@ -950,6 +952,7 @@ static void TrainModel(
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     TDataProviders pools,
@@ -1158,6 +1161,7 @@ static void TrainModel(
         catBoostOptions,
         updatedOutputOptions,
         objectiveDescriptor,
+        evalGpuMetricDescriptor,
         evalMetricDescriptor,
         std::move(trainingData),
         std::move(precomputedSingleOnlineCtrDataForSingleFold),
@@ -1333,6 +1337,7 @@ void TrainModel(
         quantizedFeaturesInfo,
         /*objectiveDescriptor*/ Nothing(),
         /*evalMetricDescriptor*/ Nothing(),
+        /*evalGpuMetricDescriptor*/ Nothing(),
         /*callbackDescriptor*/ Nothing(),
         std::move(pools),
         std::move(precomputedSingleOnlineCtrDataForSingleFold),
@@ -1610,6 +1615,7 @@ void TrainModel(
     NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     const TMaybe<TCustomCallbackDescriptor>& callbackDescriptor,
     NCB::TDataProviders pools, // not rvalue reference because Cython does not support them
@@ -1639,6 +1645,7 @@ void TrainModel(
         outputOptions,
         quantizedFeaturesInfo,
         objectiveDescriptor,
+        evalGpuMetricDescriptor,
         evalMetricDescriptor,
         callbackDescriptor,
         std::move(pools),

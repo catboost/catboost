@@ -5,6 +5,7 @@
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/non_symmetric_tree.h>
 #include <catboost/cuda/models/oblivious_model.h>
+#include <catboost/cuda/targets/gpu_metrics.h>
 
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
@@ -40,7 +41,7 @@ namespace NCatboostCuda {
             NPar::ILocalExecutor* localExecutor,
             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+            const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) const = 0;
 
         virtual void ModelBasedEval(

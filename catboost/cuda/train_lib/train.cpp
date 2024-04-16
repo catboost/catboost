@@ -228,8 +228,9 @@ namespace NCatboostCuda {
                                                                 NPar::ILocalExecutor* localExecutor,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                                                                const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor
+                                                                const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                                                                const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
+                                                                const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
                                                                 ) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
         ConfigureCudaProfiler(trainCatBoostOptions.IsProfile, &profiler);
@@ -255,7 +256,7 @@ namespace NCatboostCuda {
                                         localExecutor,
                                         testMultiApprox,
                                         metricsAndTimeHistory,
-                                        evalMetricDescriptor,
+                                        evalGpuMetricDescriptor,
                                         objectiveDescriptor);
         } else {
             ythrow TCatBoostException() << "Error: optimization scheme is not supported for GPU learning " << optimizationImplementation;
@@ -296,6 +297,7 @@ namespace NCatboostCuda {
             const NCatboostOptions::TCatBoostOptions& catboostOptions,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+            const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             TTrainingDataProviders trainingData,
             TMaybe<NCB::TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold,
@@ -398,8 +400,9 @@ namespace NCatboostCuda {
                 localExecutor,
                 &rawValues,
                 metricsAndTimeHistory,
-                evalMetricDescriptor,
-                objectiveDescriptor
+                objectiveDescriptor,
+                evalGpuMetricDescriptor,
+                evalMetricDescriptor
             );
 
             if (evalResultPtrs.size()) {
