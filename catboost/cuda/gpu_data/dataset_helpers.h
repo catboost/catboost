@@ -356,7 +356,7 @@ namespace NCatboostCuda {
                 if (FeaturesManager.IsEstimatedFeature(feature)) {
                     const ui32 featureBinCount = FeaturesManager.GetBinCount(feature);
                     if (
-                        (takeBinaryFeatures && (featureBinCount == 2) && FeaturesManager.IsEmbedding(feature)) ||
+                        (takeBinaryFeatures && (featureBinCount == 2) && FeaturesManager.IsEstimated(feature)) ||
                         (!takeBinaryFeatures && (featureBinCount > 2))
                     ) {
                         result.insert(feature);

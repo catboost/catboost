@@ -54,7 +54,7 @@ namespace NCatboostCuda {
 
         bool IsCat(ui32 featureId) const;
 
-        bool IsEmbedding(ui32 featureId) const;
+        bool IsEstimated(ui32 featureId) const;
 
         bool UseForOneHotEncoding(ui32 featureId) const;
 

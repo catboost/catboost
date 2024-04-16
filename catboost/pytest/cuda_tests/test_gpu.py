@@ -3002,24 +3002,24 @@ def test_fit_regression_with_text_features(separator_type, feature_estimators):
     pool_name = 'rotten_tomatoes'
     test_file = data_file(pool_name, 'test')
     cd_file = data_file(pool_name, 'cd_binclass')
-    params = {
-        '--loss-function': 'RMSE',
-        '--eval-metric': 'RMSE',
-        '-f': data_file(pool_name, 'train'),
-        '-t': test_file,
-        '--text-processing': json.dumps(text_processing),
-        '--column-description': cd_file,
-        '--boosting-type': 'Plain',
-        '-i': '20',
-        '-T': '4',
-        '-m': output_model_path,
-        '--learn-err-log': learn_error_path,
-        '--test-err-log': test_error_path,
-        '--eval-file': test_eval_path,
-        '--output-columns': 'RawFormulaVal',
-        '--use-best-model': 'false',
-    }
-    fit_catboost_gpu(params)
+    params = (
+        '--loss-function', 'RMSE',
+        '--eval-metric', 'RMSE',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    fit_catboost_gpu(params + NO_RANDOM_PARAMS)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
     assert (

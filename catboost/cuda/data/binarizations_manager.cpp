@@ -82,7 +82,7 @@ namespace NCatboostCuda {
         return Borders.contains(featureId);
     }
 
-    bool TBinarizedFeaturesManager::IsEmbedding(ui32 featureId) const {
+    bool TBinarizedFeaturesManager::IsEstimated(ui32 featureId) const {
         if (!FeatureManagerIdToEstimatedFeatureId.contains(featureId)) {
             return false;
         }
@@ -90,9 +90,8 @@ namespace NCatboostCuda {
         const auto& metaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
         const auto estimatedFeatureId = FeatureManagerIdToDataProviderId[featureId];
 
-        return metaInfo[estimatedFeatureId].Type == EFeatureType::Embedding;
+        return EqualToOneOf(metaInfo[estimatedFeatureId].Type, EFeatureType::Embedding, EFeatureType::Text);
     }
-
 
     bool TBinarizedFeaturesManager::IsFloat(ui32 featureId) const {
         if (FeatureManagerIdToDataProviderId.contains(featureId)) {
