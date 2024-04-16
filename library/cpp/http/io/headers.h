@@ -1,9 +1,10 @@
 #pragma once
 
+#include <util/generic/array_ref.h>
+#include <util/generic/deque.h>
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
-#include <util/generic/deque.h>
-#include <util/generic/vector.h>
+#include <util/generic/vector.h>  // XXX unused - remove after fixing transitive includes.
 #include <util/string/cast.h>
 
 class IInputStream;
@@ -64,6 +65,10 @@ public:
 
     /// Добавляет каждую строку из потока в контейнер, считая ее правильным заголовком.
     THttpHeaders(IInputStream* stream);
+
+    /// Создаёт контейнер из initializer-list'а или массива/вектора хедеров.
+    /// Пример: `THttpHeaders headers({{"Host", "example.com"}});`
+    THttpHeaders(TArrayRef<const THttpInputHeader> headers);
 
     /// Стандартный итератор.
     inline TConstIterator Begin() const noexcept {

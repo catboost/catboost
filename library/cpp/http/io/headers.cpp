@@ -66,6 +66,13 @@ THttpHeaders::THttpHeaders(IInputStream* stream) {
     }
 }
 
+THttpHeaders::THttpHeaders(TArrayRef<const THttpInputHeader> headers) {
+    for (const auto& header : headers) {
+        AddHeader(header);
+    }
+}
+
+
 bool THttpHeaders::HasHeader(const TStringBuf header) const {
     return FindHeader(header);
 }

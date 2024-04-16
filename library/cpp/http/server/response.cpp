@@ -1,5 +1,6 @@
 #include "response.h"
 
+#include <util/generic/vector.h>
 #include <util/stream/output.h>
 #include <util/stream/mem.h>
 #include <util/string/cast.h>
