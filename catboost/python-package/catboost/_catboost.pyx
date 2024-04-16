@@ -23,6 +23,8 @@ import inspect
 import os
 import traceback
 import types
+from numba import cuda as numba_cuda
+
 
 import sys
 if sys.version_info >= (3, 3):
@@ -628,18 +630,19 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
 cdef extern from "catboost/cuda/targets/gpu_metrics.h":
     cdef cppclass TCustomGpuMetricDescriptor:
 
+        ctypedef TMetricHolder (*TEvalFuncPtr)(
+            TConstArrayRef[float] approx,
+            TConstArrayRef[float]  target,
+            TConstArrayRef[float]  weight,
+            int begin,
+            int end,
+            void* customData)  with gil
+
         void* CustomData
         TMaybe[TEvalFuncPtr] EvalFunc
 
-        ctypedef TMetricHolder (*TEvalFuncPtr)(
-            TConstArrayRef[TConstArrayRef[double]]& approx,
-            TConstArrayRef[float] target,
-            TConstArrayRef[float] weight,
-            int begin, int end, void* customData) with gil
-
-        bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
+        # bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
         double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) except * with gil
-        cdef bool_t IsMaxOptimal(const TString& metricName) nogil except +ProcessException
 
 
 cdef extern from "catboost/libs/metrics/metric.h":
@@ -738,7 +741,8 @@ cdef extern from "catboost/private/libs/options/check_train_options.h":
     cdef void CheckFitParams(
         const TJsonValue& tree,
         const TCustomObjectiveDescriptor* objectiveDescriptor,
-        const TCustomMetricDescriptor* evalMetricDescriptor
+        const TCustomMetricDescriptor* evalMetricDescriptor,
+        const TCustomGpuMetricDescriptor* evalGpuMetricDescriptor,
     ) nogil except +ProcessException
 
 cdef extern from "catboost/private/libs/options/json_helper.h":
@@ -757,6 +761,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         TJsonValue params,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
+        const TMaybe[TCustomGpuMetricDescriptor]& evalGpuMetricDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         const TMaybe[TCustomCallbackDescriptor]& callbackDescriptor,
         TDataProviders pools,
@@ -1869,6 +1874,7 @@ cdef class _PreprocessParams:
     cdef TJsonValue tree
     cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
     cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
+    cdef TMaybe[TCustomGpuMetricDescriptor] customGpuMetricDescriptor
     cdef TMaybe[TCustomCallbackDescriptor] customCallbackDescriptor
     def __init__(self, dict params):
         eval_metric = params.get("eval_metric")
@@ -4987,6 +4993,7 @@ cdef class _CatBoost:
                     prep_params.tree,
                     quantizedFeaturesInfo,
                     prep_params.customObjectiveDescriptor,
+                    prep_params.customGpuMetricDescriptor,
                     prep_params.customMetricDescriptor,
                     prep_params.customCallbackDescriptor,
                     dataProviders,
@@ -6519,7 +6526,8 @@ cpdef _check_train_params(dict params):
     CheckFitParams(
         prep_params.tree,
         prep_params.customObjectiveDescriptor.Get(),
-        prep_params.customMetricDescriptor.Get())
+        prep_params.customMetricDescriptor.Get(),
+        prep_params.customGpuMetricDescriptor.Get())
 
 
 cpdef _get_gpu_device_count():

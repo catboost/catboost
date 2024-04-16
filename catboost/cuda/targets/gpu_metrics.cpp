@@ -730,7 +730,6 @@ namespace NCatboostCuda {
 
         TVector<THolder<IGpuMetric>> metrics;
         THashSet<TString> usedDescriptions;
-
         if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
             if (evalMetricDescriptor.Defined() && evalMetricDescriptor.GetRef().GpuEvalFunc.Defined()) {
                 metrics.emplace_back(new TGpuCustomMetric(
@@ -766,7 +765,6 @@ namespace NCatboostCuda {
             }
         }
         usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());
-
         for (auto&& metric : createdObjectiveMetrics) {
             const TString& description = metric->GetCpuMetric().GetDescription();
             if (!usedDescriptions.contains(description)) {

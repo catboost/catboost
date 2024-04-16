@@ -19,7 +19,7 @@ namespace NCatboostCuda {
                                                                NPar::ILocalExecutor* localExecutor,
                                                                TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                               const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                               const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
                                                                const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) {
         CB_ENSURE(catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
                   "NonDiag learning works with doc-parallel learning");
@@ -87,7 +87,7 @@ namespace NCatboostCuda {
                                                                         NPar::ILocalExecutor* localExecutor,
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                                        const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
                                                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) const {
             return TrainPairwise<TTargetTemplate>(featuresManager,
                                                   internalOptions,

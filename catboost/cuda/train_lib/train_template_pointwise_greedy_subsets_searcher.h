@@ -28,7 +28,7 @@ namespace NCatboostCuda {
                                                                             NPar::ILocalExecutor* localExecutor,
                                                                             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                                            const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
                                                                             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor
                                                                             ) const {
                 CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");

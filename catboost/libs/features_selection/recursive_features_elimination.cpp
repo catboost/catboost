@@ -586,6 +586,7 @@ namespace NCB {
             catBoostOptions,
             outputFileOptions,
             /*objectiveDescriptor*/ Nothing(),
+            /*evalGpuMetricDescriptor*/ Nothing(),
             evalMetricDescriptor,
             trainingData,
             /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),

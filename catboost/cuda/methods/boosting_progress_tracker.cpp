@@ -28,7 +28,7 @@ namespace NCatboostCuda {
                                                        bool hasWeights,
                                                        TMaybe<ui32> learnAndTestCheckSum,
                                                        ITrainingCallbacks* trainingCallbacks,
-                                                       const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                                       const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
                                                        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor)
         : CatboostOptions(catBoostOptions)
         , OutputOptions(outputFilesOptions)
