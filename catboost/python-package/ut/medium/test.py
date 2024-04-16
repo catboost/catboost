@@ -11319,7 +11319,7 @@ def test_custom_gpu_eval_metric(task_type):
 
     class LoglossMetric(object):
         def get_final_error(self, error, weight):
-            return error / (weight + 1e-38)
+            return np.sqrt(error / (weight + 1e-38))
 
         def is_max_optimal(self):
             return False
@@ -11361,13 +11361,13 @@ def test_custom_gpu_eval_metric(task_type):
         iterations=5,
         learning_rate=0.03,
         use_best_model=True,
-        loss_function="Logloss",
-        eval_metric=LoglossMetric(),
+        loss_function="RMSE",
+        eval_metric=RMSEMetric(),
         # Leaf estimation method and gradient iteration are set to match
         # defaults for Logloss.
         leaf_estimation_method="Newton",
         leaf_estimation_iterations=1,
-        task_type=task_type,
+        task_type='GPU',
         devices='0',
         metric_period=1,
         random_strength=0,
@@ -11378,13 +11378,13 @@ def test_custom_gpu_eval_metric(task_type):
     model1.fit(train_pool, eval_set=test_pool)
     pred1 = model1.predict(test_pool, prediction_type='RawFormulaVal')
 
-    model2 = CatBoostClassifier(
+    model2 = CatBoostRegressor(
         iterations=5,
         learning_rate=0.03,
         use_best_model=True,
-        loss_function="Logloss",
-        eval_metric="Logloss",
-        task_type=task_type,
+        loss_function="RMSE",
+        eval_metric="RMSE",
+        task_type='GPU',
         devices='0',
         leaf_estimation_method="Newton",
         leaf_estimation_iterations=1,
