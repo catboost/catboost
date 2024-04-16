@@ -11309,46 +11309,40 @@ def test_carry_model():
 
 
 def test_custom_gpu_eval_metric():
+    from numba import cuda
     
-    class LoglossMetric(object):
+    class RMSEMetric(object):
         def get_final_error(self, error, weight):
-            return error / (weight + 1e-38)
+            return np.sqrt(error / (weight + 1e-38))
 
         def is_max_optimal(self):
             return False
 
-        def evaluate(self, approxes, target, weight):
-            assert len(approxes) == 1
-            assert len(target) == len(approxes[0])
+        def evaluate(self, approx, target, weight, output, output_weight):
+            init_thread_idx = thread_idx = cuda.grid(1)
+            n = target.size
+            
+            while thread_idx < n:
+                diff = approx[thread_idx] - target[thread_idx]
+                output[init_thread_idx] += diff * diff * weight[thread_idx]
+                output_weight[init_thread_idx] += weight[thread_idx]
+                thread_idx += cuda.gridsize(1)
 
-            approx = approxes[0]
-
-            error_sum = 0.0
-            weight_sum = 0.0
-
-            for i in range(len(approx)):
-                e = np.exp(approx[i])
-                p = e / (1 + e)
-                w = 1.0 if weight is None else weight[i]
-                weight_sum += w
-                error_sum += -w * (target[i] * np.log(p) + (1 - target[i]) * np.log(1 - p))
-
-            return error_sum, weight_sum
 
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
 
-    model = CatBoostClassifier(
+    model = CatBoostRegressor(
         iterations=5,
         learning_rate=0.03,
         use_best_model=True,
-        loss_function="Logloss",
-        eval_metric=LoglossMetric(),
+        loss_function="RMSE",
+        eval_metric=RMSEMetric(),
         # Leaf estimation method and gradient iteration are set to match
         # defaults for Logloss.
         leaf_estimation_method="Newton",
         leaf_estimation_iterations=1,
-        task_type=task_type,
+        task_type='GPU',
         devices='0',
         metric_period=1,
         random_strength=0,
@@ -11359,13 +11353,13 @@ def test_custom_gpu_eval_metric():
     model.fit(train_pool, eval_set=test_pool)
     pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
 
-    model2 = CatBoostClassifier(
+    model2 = CatBoostRegressor(
         iterations=5,
         learning_rate=0.03,
         use_best_model=True,
-        loss_function="Logloss",
-        eval_metric="Logloss",
-        task_type=task_type,
+        loss_function="RMSE",
+        eval_metric="RMSE",
+        task_type='GPU',
         devices='0',
         leaf_estimation_method="Newton",
         leaf_estimation_iterations=1,
