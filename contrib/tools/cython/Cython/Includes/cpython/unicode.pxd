@@ -570,3 +570,8 @@ cdef extern from *:
     int Py_UCS4_strncmp(const Py_UCS4 *s1, const Py_UCS4 *s2, size_t n)
     Py_UCS4* Py_UCS4_strchr(const Py_UCS4 *s, Py_UCS4 c)
     Py_UCS4* Py_UCS4_strrchr(const Py_UCS4 *s, Py_UCS4 c)
+
+# Backport from Cython 3
+    Py_UCS4 PyUnicode_READ(int kind, void *data, Py_ssize_t index)
+    unsigned int PyUnicode_KIND(object o)
+    void *PyUnicode_DATA(object o)
