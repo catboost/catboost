@@ -196,7 +196,7 @@ def check_lines(lines: cpy.LineReturn, line_type: LineType | str) -> None:
         if TYPE_CHECKING:
             lines = cast(cpy.LineReturn_ChunkCombinedNan, lines)
         _check_tuple_of_lists_with_same_length(lines, 1, allow_empty_lists=False)
-        for chunk, points_or_none in enumerate(lines[0]):
+        for _chunk, points_or_none in enumerate(lines[0]):
             if points_or_none is not None:
                 check_point_array(points_or_none)
     else:

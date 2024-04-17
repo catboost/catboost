@@ -5,8 +5,15 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from contourpy._contourpy import (
-    ContourGenerator, FillType, LineType, Mpl2005ContourGenerator, Mpl2014ContourGenerator,
-    SerialContourGenerator, ThreadedContourGenerator, ZInterp, max_threads,
+    ContourGenerator,
+    FillType,
+    LineType,
+    Mpl2005ContourGenerator,
+    Mpl2014ContourGenerator,
+    SerialContourGenerator,
+    ThreadedContourGenerator,
+    ZInterp,
+    max_threads,
 )
 from contourpy._version import __version__
 from contourpy.chunk import calc_chunk_sizes
@@ -41,12 +48,12 @@ __all__ = [
 
 
 # Simple mapping of algorithm name to class name.
-_class_lookup: dict[str, type[ContourGenerator]] = dict(
-    mpl2005=Mpl2005ContourGenerator,
-    mpl2014=Mpl2014ContourGenerator,
-    serial=SerialContourGenerator,
-    threaded=ThreadedContourGenerator,
-)
+_class_lookup: dict[str, type[ContourGenerator]] = {
+    "mpl2005": Mpl2005ContourGenerator,
+    "mpl2014": Mpl2014ContourGenerator,
+    "serial": SerialContourGenerator,
+    "threaded": ThreadedContourGenerator,
+}
 
 
 def _remove_z_mask(
@@ -257,6 +264,4 @@ def contour_generator(
         kwargs["thread_count"] = thread_count
 
     # Create contour generator.
-    cont_gen = cls(*args, **kwargs)
-
-    return cont_gen
+    return cls(*args, **kwargs)

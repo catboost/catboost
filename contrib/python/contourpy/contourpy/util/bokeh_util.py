@@ -9,7 +9,10 @@ from contourpy.dechunk import dechunk_lines
 
 if TYPE_CHECKING:
     from contourpy._contourpy import (
-        CoordinateArray, FillReturn, LineReturn, LineReturn_ChunkCombinedNan,
+        CoordinateArray,
+        FillReturn,
+        LineReturn,
+        LineReturn_ChunkCombinedNan,
     )
 
 

@@ -399,7 +399,8 @@ void Mpl2014ContourGenerator::append_contour_to_vertices_and_codes(
             const ContourLine::Children& children = line.get_children();
             py::ssize_t npoints = static_cast<py::ssize_t>(line.size() + 1);
             for (children_it = children.begin(); children_it != children.end(); ++children_it)
-                 npoints += static_cast<py::ssize_t>((*children_it)->size() + 1);
+                // cppcheck-suppress useStlAlgorithm
+                npoints += static_cast<py::ssize_t>((*children_it)->size() + 1);
 
             py::ssize_t vertices_dims[2] = {npoints, 2};
             PointArray vertices(vertices_dims);
@@ -642,8 +643,7 @@ unsigned int Mpl2014ContourGenerator::follow_boundary(
         // Add point to contour.
         get_point_xy(end_point, contour_line);
 
-        if (first_edge)
-            first_edge = false;
+        first_edge = false;
     }
 
     return level_index;

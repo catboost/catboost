@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING, cast
 
 from contourpy._contourpy import FillType, LineType
 from contourpy.array import (
-    concat_codes_or_none, concat_offsets_or_none, concat_points_or_none,
+    concat_codes_or_none,
+    concat_offsets_or_none,
+    concat_points_or_none,
     concat_points_or_none_with_nan,
 )
 from contourpy.enum_util import as_fill_type, as_line_type

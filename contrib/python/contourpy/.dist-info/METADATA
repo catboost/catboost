@@ -1,11 +1,11 @@
 Metadata-Version: 2.1
 Name: contourpy
-Version: 1.2.0
+Version: 1.2.1
 Summary: Python library for calculating contours of 2D quadrilateral grids
 Author-Email: Ian Thomas <ianthomas23@gmail.com>
 License: BSD 3-Clause License
         
-        Copyright (c) 2021-2023, ContourPy Developers.
+        Copyright (c) 2021-2024, ContourPy Developers.
         All rights reserved.
         
         Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ Project-URL: Changelog, https://contourpy.readthedocs.io/en/latest/changelog.htm
 Project-URL: Documentation, https://contourpy.readthedocs.io
 Project-URL: Repository, https://github.com/contourpy/contourpy
 Requires-Python: >=3.9
-Requires-Dist: numpy<2.0,>=1.20
+Requires-Dist: numpy>=1.20
 Requires-Dist: furo; extra == "docs"
 Requires-Dist: sphinx>=7.2; extra == "docs"
 Requires-Dist: sphinx-copybutton; extra == "docs"
@@ -58,7 +58,7 @@ Requires-Dist: bokeh; extra == "bokeh"
 Requires-Dist: selenium; extra == "bokeh"
 Requires-Dist: contourpy[bokeh,docs]; extra == "mypy"
 Requires-Dist: docutils-stubs; extra == "mypy"
-Requires-Dist: mypy==1.6.1; extra == "mypy"
+Requires-Dist: mypy==1.8.0; extra == "mypy"
 Requires-Dist: types-Pillow; extra == "mypy"
 Requires-Dist: contourpy[test-no-images]; extra == "test"
 Requires-Dist: matplotlib; extra == "test"
