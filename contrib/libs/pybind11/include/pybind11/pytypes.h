@@ -266,11 +266,6 @@ public:
         this function automatically. Returns a reference to itself.
     \endrst */
     const handle &dec_ref() const & {
-#ifdef Py_DEBUG
-        if (!Py_IsInitialized()) {
-            return *this;
-        }
-#endif
 #ifdef PYBIND11_ASSERT_GIL_HELD_INCREF_DECREF
         if (m_ptr != nullptr && !PyGILState_Check()) {
             throw_gilstate_error("pybind11::handle::dec_ref()");
