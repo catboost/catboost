@@ -1,3 +1,22 @@
+# Release 1.2.4
+
+## New features
+* \[Python-package\]: Support custom eval metrics on GPU. #1792. Thanks to @pnsemyon.
+
+## Bugfixes
+* \[Python-package\]: Check eval_period parameter validity for staged prediction. #2593
+* \[Python-package\]: Fix _CustomLoggersStack.pop logic. #2620
+* \[R-package\]: Fix Caret object: Inconsistent grid creation with documentation. #2606
+* \[JVM applier\]: Fix issues with exposing undesired symbols in JNI shared libraries (including allocators) on macOS. #2606
+* Fix training with embedding features on GPU. #2249, #2308, #2591
+* Fix training with text features on GPU
+* Use correct sample count in MultiRMSE on multiple GPUs. #2557
+* Fix sign of 2nd order derivative in Huber loss
+* Enable gradient walker for non-additive metrics
+* Fixes for Cox objective: buffer overflow in derivatives calculation, derivatives summation, metric calculation, disable ordered boosting
+* Fix text features data serialization in the model files
+
+
 # Release 1.2.3
 
 ## Python package
