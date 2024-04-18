@@ -646,7 +646,7 @@ default:
   learning-to-select-for-predefined-ranking: 'http://proceedings.mlr.press/v97/vorobev19a/vorobev19a.pdf'
   stochastic-gradient-langevin-boosting: 'https://arxiv.org/abs/2001.07248'
   releases-page: 'https://github.com/catboost/catboost/releases'
-  release-version: 1.2.4
+  release-version: 1.2.5
   pmml-supported-version: '4.3'
   cpu-gpu: CPU and GPU
 internal:

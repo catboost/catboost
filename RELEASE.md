@@ -1,4 +1,4 @@
-# Release 1.2.4
+# Release 1.2.5
 
 ## New features
 * \[Python-package\]: Support custom eval metrics on GPU. #1792. Thanks to @pnsemyon.
