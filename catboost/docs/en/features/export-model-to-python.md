@@ -1,6 +1,6 @@
 # Export a model to Python or C++
 
-The {{ product }} model can be saved as standalone Python or C++ code. This solution simplifies the integration of resulting models to Python and C++ applications, allows to port models to architectures that are not directly supported by {{ product }} (such as ARM) and allows advanced users to manually explore or edit the model parameters.
+The {{ product }} model can be saved as standalone Python or C++ code. This solution simplifies the integration of resulting models to Python and C++ applications, allows to port models to architectures that are not directly supported by {{ product }} (such as IBM z/Architecture) and allows advanced users to manually explore or edit the model parameters.
 
 {% include [feature-importance-choose-the-required-implementation-for-more-details](../_includes/work_src/reusage-common-phrases/choose-the-required-implementation-for-more-details.md) %}
 
