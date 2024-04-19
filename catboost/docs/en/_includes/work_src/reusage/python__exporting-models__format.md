@@ -10,6 +10,6 @@ Possible values:
 
     {% note info %}
 
-    {% include [reusage-multiclassification-models-are-not-currently-supported-p](multiclassification-models-are-not-currently-supported-p.md) %}
+    Multiclassification models are not currently supported.
 
     {% endnote %}

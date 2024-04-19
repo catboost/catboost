@@ -13,8 +13,6 @@ Depending on the output format the resulting file contains one of the following 
 
 {% note alert %}
 
-- {% include [reusage-multiclassification-models-are-not-currently-supported-p](../_includes/work_src/reusage/multiclassification-models-are-not-currently-supported-p.md) %}
-
 - {% include [reusage-common-phrases-apply_catboost_model__performance](../_includes/work_src/reusage-common-phrases/apply_catboost_model__performance.md) %}
 
 {% endnote %}

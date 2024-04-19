@@ -7,8 +7,6 @@ Apply the model in Python format. The method is available within the output Pyth
 
 - {% include [reusage-common-phrases-apply_catboost_model__performance](../_includes/work_src/reusage-common-phrases/apply_catboost_model__performance.md) %}
 
-- {% include [reusage-multiclassification-models-are-not-currently-supported-p](../_includes/work_src/reusage/multiclassification-models-are-not-currently-supported-p.md) %}
-
 {% endnote %}
 
 

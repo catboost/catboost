@@ -7,7 +7,7 @@ The [Predictive Model Markup Language]({{ pmml-v4point3 }}) (PMML) is an XML-bas
 
 - {{ product }} exports models to [PMML version {{ pmml-supported-version }}]({{ pmml-v4point3 }}).
 - Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset.
-- {% include [reusage-multiclassification-models-are-not-currently-supported-p](../_includes/work_src/reusage/multiclassification-models-are-not-currently-supported-p.md) %}
+- Multiclassification models are not currently supported.
 
 - Models saved as PMML cannot be currently loaded by {{ product }} libraries/executable. Use this format if the model is intended to be used with external Machine Learning libraries.
 
@@ -275,4 +275,3 @@ public class App
     }
 }
 ```
-

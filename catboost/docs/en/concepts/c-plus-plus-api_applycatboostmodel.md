@@ -8,8 +8,6 @@ Apply the model in C++ format. The method is available within the output C++ fil
 
 - {% include [reusage-common-phrases-cplusplus_apply_catboost_model__performance](../_includes/work_src/reusage-common-phrases/cplusplus_apply_catboost_model__performance.md) %}
 
-- {% include [reusage-multiclassification-models-are-not-currently-supported-p](../_includes/work_src/reusage/multiclassification-models-are-not-currently-supported-p.md) %}
-
 {% endnote %}
 
 
@@ -97,4 +95,3 @@ The result is identical to the code below but does not require the library linki
     C++14 compiler with aggregate member initialization support. Tested with the following compilers:
     - Clang++ 3.8
     - g++ 5.4.1 20160904
-
