@@ -248,7 +248,7 @@ The model's predictions.
 ## Object, array of numerical features, array of categorical features, new object with model predictions {#object-numfeaturesarray-catfeaturesarray-newobject}
 
 ```java
-predict(float[] numericFeatures, 
+predict(float[] numericFeatures,
         String[] catFeatures)
 ```
 
@@ -285,8 +285,8 @@ An array of input categorical features.
 ## Object, array of numerical features, array of categorical features, specified object with model predictions {#object-numfeaturesarray-catfeaturesarray-objectfromconstructor}
 
 ```java
-predict(float[] numericFeatures, 
-        String[] catFeatures, 
+predict(float[] numericFeatures,
+        String[] catFeatures,
         CatBoostPredictions prediction)
 ```
 

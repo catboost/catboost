@@ -9,8 +9,8 @@ class Dictionary(token_level_type=None,
                  end_of_sentence_policy=None,
                  occurence_lower_bound=None,
                  max_dictionary_size=None,
-                 num_bpe_units=None, 
-                 skip_unknown=None, 
+                 num_bpe_units=None,
+                 skip_unknown=None,
                  dictionary_type='FrequencyBased')
 ```
 
@@ -62,7 +62,7 @@ Process dictionaries. The text must be [tokenized](python-reference_tokenizer.md
 {% include [descriptions-min_unused_token_id](../_includes/work_src/reusage-tokenizer/min_unused_token_id.md) %}
 
 ### [load](python-reference_dictionary_load.md)
- 
+
 {% include [descriptions-load](../_includes/work_src/reusage-tokenizer/load.md) %}
 
 ### [save](python-reference_dictionary_save.md)

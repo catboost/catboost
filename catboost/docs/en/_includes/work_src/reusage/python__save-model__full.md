@@ -4,11 +4,11 @@
 
 The path to the output model.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -20,11 +20,11 @@ The output format of the model.
 
 {% include [reusage-python__exporting-models__format](python__exporting-models__format.md) %}
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ fitpython__model-format_default }}
 
@@ -35,42 +35,42 @@ The output format of the model.
 Additional format-dependent parameters for:
 
 - Apple CoreML
-    
+
     Possible values (all are strings):
 
     - `prediction_type`. Possible values are <q>probability </q>and <q>raw</q>.
-    
+
     - `coreml_description`
-    
+
     - `coreml_model_version`
-    
+
     - `coreml_model_author`
-    
+
     - `coreml_model_license`
-    
-    
+
+
 - ONNX-ML
-    
+
     {% include [reusage-export-formats-additional-parameters__onnx-model__possible-values__list-only](../reusage-export-formats/additional-parameters__onnx-model__possible-values__list-only.md) %}
-    
+
     See the [ONNX-ML parameters](../../../references/onnx-parameters.md) reference for details.
-    
-    
+
+
 - PMML
-    
+
     Possible values (all are strings):
-    
+
     {% include [reusage-export-formats-additional-parameters__pmml__possible-values__list-only](../reusage-export-formats/additional-parameters__pmml__possible-values__list-only.md) %}
-    
+
     See the [PMML parameters](../../../references/pmml-parameters.md) reference for details.
-    
 
 
-**Possible types** 
+
+**Possible types**
 
 {{ python-type--dict }}
 
-**Default value** 
+**Default value**
 
 None
 
@@ -88,7 +88,7 @@ The model can be saved to the {{ cli__metadata__dump_format__json }} format wit
 
 {% endnote %}
 
-**Possible types** 
+**Possible types**
 
 - {{ python-type--pool }}
 - {{ python-type--list }}
@@ -97,5 +97,5 @@ The model can be saved to the {{ cli__metadata__dump_format__json }} format wit
 - {{ python-type--pandasSeries }}
 - {{ python-type__FeaturesData }}
 
-**Default value** 
+**Default value**
 None

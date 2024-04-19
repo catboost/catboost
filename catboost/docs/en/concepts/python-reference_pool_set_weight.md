@@ -28,6 +28,6 @@ set_weight(weight)
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}

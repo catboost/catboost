@@ -25,7 +25,7 @@ train_label = np.random.randint(0, 1000, size=(100))
 # initialize Pool
 train_pool = Pool(train_data, train_label)
 
-# specify the training parameters 
+# specify the training parameters
 model = CatBoostRegressor()
 #train the model
 model.fit(train_pool)

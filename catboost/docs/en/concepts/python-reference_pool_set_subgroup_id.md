@@ -26,6 +26,6 @@ Subgroup identifiers for all input objects. Supported identifier types are:
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}

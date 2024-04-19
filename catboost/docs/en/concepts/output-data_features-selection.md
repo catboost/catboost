@@ -14,7 +14,7 @@ JSON with results of features selection. Contains the following fields:
     - `removed_features_count` — the number of removed features at each point.
     - `loss_values` — the corresponding loss values at each point.
     - `main_indices` — indices of main points on the plot (where model was really trained).
-    
+
 
 #### {{ output--example }}
 

@@ -35,11 +35,11 @@ model.set_params(iterations=500, thread_count=2, use_best_model=True)
 
 {% include [sections-with-methods-desc-see-training-params](../_includes/work_src/reusage/see-training-params.md) %}
 
-**Possible types** 
+**Possible types**
 
 key=value format
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 

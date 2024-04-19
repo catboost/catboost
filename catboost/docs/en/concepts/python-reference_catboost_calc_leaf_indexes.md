@@ -16,11 +16,11 @@ calc_leaf_indexes(data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=Fal
 
 A file or matrix with the input dataset.
 
-**Possible values** 
+**Possible values**
 
 {{ python-type--pool }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -33,11 +33,11 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 {% include [eval-start-end-ntree_start__short-param-desc](../_includes/work_src/reusage-common-phrases/ntree_start__short-param-desc.md) %}
 
-**Possible values** 
+**Possible values**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit--ntree_start }}
 
@@ -50,11 +50,11 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 {% include [eval-start-end-ntree_end__short-param-desc](../_includes/work_src/reusage-common-phrases/ntree_end__short-param-desc.md) %}
 
-**Possible values** 
+**Possible values**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit--ntree_end }}
 
@@ -67,11 +67,11 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 {% include [reusage-thread_count__cpu_cores__optimizes-the-speed-of-execution](../_includes/work_src/reusage/thread_count__cpu_cores__optimizes-the-speed-of-execution.md) %}
 
-**Possible values** 
+**Possible values**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__thread_count__wrappers }}
 
@@ -82,11 +82,11 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 
 Enable debug logging level.
 
-**Possible values** 
+**Possible values**
 
-bool 
+bool
 
-**Default value** 
+**Default value**
 
 False
 

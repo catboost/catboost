@@ -7,7 +7,7 @@ This dataset is best suited for binary classification.
 
 The training dataset contains 32769 objects. Each object is described by 10 columns of numerical features. The `ACTION` column is used as the label.
 
-The validation dataset contains 58921 objects. The structure is identical to the training dataset with the following variations: 
+The validation dataset contains 58921 objects. The structure is identical to the training dataset with the following variations:
 - The `ACTION` column is omitted.
 - The `id` column is added.
 

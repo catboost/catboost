@@ -13,7 +13,7 @@ set_pairs_weight(pairs_weight)
 
 ### pairs_weight
 
-#### Description 
+#### Description
 
 {% include [methods-param-desc-pairs_weight__short-desc](../_includes/work_src/reusage/pairs_weight__short-desc.md) %}
 
@@ -30,6 +30,6 @@ set_pairs_weight(pairs_weight)
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}

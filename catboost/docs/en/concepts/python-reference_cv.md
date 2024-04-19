@@ -46,7 +46,7 @@ _Alias_: `dtrain`
 
 The input dataset to cross-validate.
 
-**Possible types** 
+**Possible types**
 
 [Pool](python-reference_pool.md)
 
@@ -88,7 +88,7 @@ The maximum number of trees that can be built when solving machine learning prob
 
 When using other parameters that limit the number of iterations, the final number of trees may be less than the number specified in this parameter.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
@@ -104,11 +104,11 @@ _Alias_: `nfold`
 
 The number of folds to split the dataset into.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 `3`
 
@@ -122,7 +122,7 @@ Train on the test fold and evaluate the model on the training folds.
 
 {{ python-type--bool }}
 
-**Default value** 
+**Default value**
 
 False
 
@@ -140,11 +140,11 @@ _Alias_: `seed`
 
 {% include [reusage-cv-rand__unique-data-splits](../_includes/work_src/reusage/cv-rand__unique-data-splits.md) %}
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 0
 
@@ -154,7 +154,7 @@ _Alias_: `seed`
 
 Shuffle the dataset objects before splitting into folds.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--bool }}
 
@@ -181,11 +181,11 @@ Possible values:
 
 - Debug — Output debugging information.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 None (corresponds to the {{ fit--verbose }} logging level)
 
@@ -216,7 +216,7 @@ Sets the type of return value to {{ python-type--pandasDataFrame }}.
 
 The type of return value is {{ python-type--dict }} if this parameter is set to False or the `pandas`{{ python-package }} is not installed.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--bool }}
 
@@ -233,11 +233,11 @@ True
 
 {% include [reusage-cli__metric-period__desc__end](../_includes/work_src/reusage/cli__metric-period__desc__end.md) %}
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ fit__metric-period }}
 
@@ -282,7 +282,7 @@ This [option can be used](../features/visualization_jupyter-notebook.md) if tra
 
 {{ python-type--bool }}
 
-**Default value** 
+**Default value**
 
 {{ fit--plot }}
 
@@ -292,11 +292,11 @@ This [option can be used](../features/visualization_jupyter-notebook.md) if tra
 
 Sets the overfitting detector type to {{ fit--od-type-iter }} and stops the training after the specified number of iterations since the iteration with the optimal metric value.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 False
 
@@ -318,7 +318,7 @@ This parameter has the highest priority among other data split parameters.
 - {{ python-type__iterator }}
 - scikit-learn splitter {{ python-type__object }}
 
-**Default value** 
+**Default value**
 
 None
 
@@ -339,7 +339,7 @@ Possible values:
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ cv__type__default }}
 
@@ -349,7 +349,7 @@ Possible values:
 
 If `return_models` is `True`, returns a list of models fitted for each CV fold. By default, False.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--bool }}
 

@@ -25,7 +25,7 @@ set_baseline(baseline)
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 

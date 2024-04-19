@@ -15,21 +15,21 @@ Each line describes an object with a label and some features:
 ```
 
 - Label is a real value or an integer class index (for classification)
-    
+
 - Feature indices are positive integers starting from 1.
-    
+
     {% note info %}
-    
+
     When this dataset is loaded and being processed by the {{ product }} API, features' indices are changed to zero-based. For example, the feature indexed 1 in the file changes its' index to 0 in the {{ product }} APIs.
-    
+
     {% endnote %}
-    
+
     Feature indices on each line must be specified in ascending order.
-    
+
 - Feature values are integers, real numbers or strings (without spaces, to avoid breaking the format). Integers and real numbers can be used for numerical features, integers and strings can be used for categorical features.
-    
+
     Strings as feature values are an extension of the original libsvm format.
-    
+
 
 To specify categorical features, provide the [columns description file](input-data_column-descfile.md) in the following format:
 

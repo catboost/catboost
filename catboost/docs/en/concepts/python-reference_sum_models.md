@@ -8,8 +8,8 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-sum_models(models, 
-           weights=None, 
+sum_models(models,
+           weights=None,
            ctr_merge_policy='IntersectingCountersAverage')
 ```
 
@@ -44,27 +44,27 @@ X = train_df.drop('ACTION', axis=1)
 
 categorical_features_indices = np.where(X.dtypes != np.float)[0]
 
-X_train, X_validation, y_train, y_validation = train_test_split(X, 
-                                                                y, 
-                                                                train_size=0.8, 
+X_train, X_validation, y_train, y_validation = train_test_split(X,
+                                                                y,
+                                                                train_size=0.8,
                                                                 random_state=42)
 
-train_pool = Pool(X_train, 
-                  y_train, 
+train_pool = Pool(X_train,
+                  y_train,
                   cat_features=categorical_features_indices)
-validate_pool = Pool(X_validation, 
-                     y_validation, 
+validate_pool = Pool(X_validation,
+                     y_validation,
                      cat_features=categorical_features_indices)
 
 models = []
 for i in range(5):
-    model = CatBoostClassifier(iterations=100, 
+    model = CatBoostClassifier(iterations=100,
                                random_seed=i)
-    model.fit(train_pool, 
+    model.fit(train_pool,
               eval_set=validate_pool)
     models.append(model)
 
-models_avrg = sum_models(models, 
+models_avrg = sum_models(models,
                          weights=[1.0/len(models)] * len(models))
 ```
 

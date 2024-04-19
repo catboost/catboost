@@ -3,7 +3,7 @@
 Use the following example to test {{ product }}:
 
 ```python
-import numpy 
+import numpy
 from catboost import CatBoostRegressor
 
 dataset = numpy.array([[1,4,5,6],[4,5,6,7],[30,40,50,60],[20,15,85,60]])

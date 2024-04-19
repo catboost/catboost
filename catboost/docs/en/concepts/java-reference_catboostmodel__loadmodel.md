@@ -27,7 +27,7 @@ The input stream with the {{ product }} model.
 #### {{ java__dl__throws }}
 
 - {% include [reusage-java-throws__catboosterror__when-model-not-loaded](../_includes/work_src/reusage-java/throws__catboosterror__when-model-not-loaded.md) %}
-    
+
 - {% include [reusage-java-throws__javaioioexception](../_includes/work_src/reusage-java/throws__javaioioexception.md) %}
 
 
@@ -56,6 +56,6 @@ The path to the input {{ product }} model.
 #### {{ java__dl__throws }}
 
 - {% include [reusage-java-throws__catboosterror__when-model-not-loaded](../_includes/work_src/reusage-java/throws__catboosterror__when-model-not-loaded.md) %}
-    
+
 - {% include [reusage-java-throws__javaioioexception](../_includes/work_src/reusage-java/throws__javaioioexception.md) %}
 

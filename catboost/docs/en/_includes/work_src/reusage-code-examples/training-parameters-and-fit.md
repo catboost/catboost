@@ -6,8 +6,8 @@ library(catboost)
 dataset = matrix(c(1900,7,
                    1896,1,
                    1896,41),
-                 nrow=3, 
-                 ncol=2, 
+                 nrow=3,
+                 ncol=2,
                  byrow = TRUE)
 label_values = c(0,1,1)
 

@@ -16,12 +16,12 @@ set_feature_names(feature_names)
 
 A one-dimensional array of feature names for each feature. The order and number of specified names must match the ones used in the dataset.
 
-**Possible types** 
+**Possible types**
 
 - ndarray
 - list
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 

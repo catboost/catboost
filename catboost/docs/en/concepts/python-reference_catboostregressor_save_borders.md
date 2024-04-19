@@ -16,11 +16,11 @@ save_borders(fname)
 
 The name of the output file with borders.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 

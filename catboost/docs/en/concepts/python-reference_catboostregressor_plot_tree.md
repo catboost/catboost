@@ -20,11 +20,11 @@ plot_tree(tree_idx, pool=None)
 
 The index of the tree from the model that should be visualized.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--int }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 
@@ -37,10 +37,10 @@ An optional parameter for models that contain only float features. Allows to pas
 
 For example, for a semicolon-separated pool with 2 features <q>f1;label;f2</q> the external feature indices are 0 and 2, while the internal indices are 0 and 1 respectively.
 
-**Possible types** 
+**Possible types**
 {{ python-type--pool }}
 
-**Default value** 
+**Default value**
 
 None
 

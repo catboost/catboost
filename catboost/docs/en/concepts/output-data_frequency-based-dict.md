@@ -24,11 +24,11 @@ Format:
 ```
 
 - `token ID` — A zero-based token identifier. Tokens are sorted case sensitive ordering.
-    
+
 - {% include [dictionaries-number-of-occurrences-desc](../_includes/work_src/reusage-tokenizer/number-of-occurrences-desc.md) %}
-    
+
 - `token` — The value of the token.
-    
+
 
 #### {{ output--example }}
 

@@ -1,6 +1,6 @@
 # {{ catboost-spark }} API documentation
 
-Documentation is automatically generated from sources. 
+Documentation is automatically generated from sources.
 
 It is available as a part of Maven packages at [Maven central](https://search.maven.org/search?q=catboost-spark) (for Scala) or on this site.
 

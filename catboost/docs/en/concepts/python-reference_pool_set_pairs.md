@@ -30,6 +30,6 @@ This information is used for optimization and calculation of [Pairwise metrics]
 - {{ python-type__np_ndarray }}
 - {{ python-type--pandasDataFrame }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}

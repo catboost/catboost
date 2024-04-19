@@ -175,7 +175,7 @@ Property | Type | Description
     "`test_sets`": [
       "test"
     ],
-    "`test_metrics`": [      
+    "`test_metrics`": [
       {
         "`name`": "Precision:class=0",
         "`value`": "Max"

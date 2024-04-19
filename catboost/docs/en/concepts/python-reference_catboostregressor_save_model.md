@@ -20,11 +20,11 @@ save_model(fname,
 
 The path to the output model.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 

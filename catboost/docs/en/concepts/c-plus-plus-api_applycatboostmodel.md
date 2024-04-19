@@ -7,7 +7,7 @@ Apply the model in C++ format. The method is available within the output C++ fil
 {% note info %}
 
 - {% include [reusage-common-phrases-cplusplus_apply_catboost_model__performance](../_includes/work_src/reusage-common-phrases/cplusplus_apply_catboost_model__performance.md) %}
-    
+
 - {% include [reusage-multiclassification-models-are-not-currently-supported-p](../_includes/work_src/reusage/multiclassification-models-are-not-currently-supported-p.md) %}
 
 {% endnote %}
@@ -33,7 +33,7 @@ double {{ method_name__apply_cplusplus_model }}(const std::vector<float>& floatF
 
 ### features (floatFeatures)
 
- 
+
 {% include [exported-models-float-features-desc](../_includes/work_src/reusage-common-phrases/float-features-desc.md) %}
 
 Possible types: float
@@ -67,7 +67,7 @@ Prediction of the model for the object with given features.
 
 The result is identical to the code below but does not require the library linking (`libcatboostmodel.<so|dll|dylib>` for Linux/macOS or `libcatboostmodel.dll` for Windows):
 - {% include [reusage-common-phrases-for-datasets-that-contain-only-numeric-features](../_includes/work_src/reusage-common-phrases/for-datasets-that-contain-only-numeric-features.md) %}
-    
+
     ```cpp
     #include <catboost/libs/model_interface/wrapped_calcer.h>
     double ApplyCatboostModel(const std::vector<float>& features) {
@@ -75,9 +75,9 @@ The result is identical to the code below but does not require the library linki
     return calcer.Calc(features, {});
     }
     ```
-    
+
 - {% include [reusage-common-phrases-for-datasets-that-contain-both-numerical-and-categorical-features](../_includes/work_src/reusage-common-phrases/for-datasets-that-contain-both-numerical-and-categorical-features.md) %}
-    
+
     ```cpp
     #include <catboost/libs/model_interface/wrapped_calcer.h>
     double ApplyCatboostModel(const std::vector<float>& floatFeatures, const std::vector<std::string>& catFeatures) {
@@ -89,11 +89,11 @@ The result is identical to the code below but does not require the library linki
 ## Compilers
 
 - {% include [reusage-common-phrases-for-datasets-that-contain-only-numeric-features](../_includes/work_src/reusage-common-phrases/for-datasets-that-contain-only-numeric-features.md) %}
-    
+
     C++11 with support of non-static data member initializers and extended initializer lists.
-    
+
 - {% include [reusage-common-phrases-for-datasets-that-contain-both-numerical-and-categorical-features](../_includes/work_src/reusage-common-phrases/for-datasets-that-contain-both-numerical-and-categorical-features.md) %}
-    
+
     C++14 compiler with aggregate member initialization support. Tested with the following compilers:
     - Clang++ 3.8
     - g++ 5.4.1 20160904

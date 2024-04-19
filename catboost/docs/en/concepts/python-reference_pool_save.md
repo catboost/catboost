@@ -16,11 +16,11 @@ save(fname)
 
 The name of the output file to save the pool to.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value**  
+**Default value**
 
 Required parameter
 

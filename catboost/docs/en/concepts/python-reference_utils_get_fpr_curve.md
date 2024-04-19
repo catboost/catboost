@@ -6,16 +6,16 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-get_fpr_curve(model=None, 
-              data=None, 
-              curve=None, 
-              thread_count=-1, 
+get_fpr_curve(model=None,
+              data=None,
+              curve=None,
+              thread_count=-1,
               plot=False)
 ```
 
 ## {{ dl--parameters }} {#parameters}
 
-### model 
+### model
 
 #### Description
 

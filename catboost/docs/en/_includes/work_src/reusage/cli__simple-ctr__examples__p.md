@@ -7,7 +7,7 @@ Examples
 
 Two new features with differing quantization settings are generated. The first one concludes that an object belongs to the positive class when the label value exceeds the first border. The second one concludes that an object belongs to the positive class when the label value exceeds the second border.
 
-    
+
 For example, if the label takes three different values (0, 1, 2), the first border is 0.5 while the second one is 1.5.
 
 - ```

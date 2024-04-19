@@ -21,11 +21,11 @@ get_param(key)
 
 The key to get the value from.
 
-**Possible types** 
+**Possible types**
 
 {{ python-type--string }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}
 

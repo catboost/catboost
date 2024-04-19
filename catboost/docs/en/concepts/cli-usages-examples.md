@@ -69,11 +69,11 @@ catboost fit --learn-set train.tsv --test-set test.tsv --column-description trai
 
 To calculate the object importances:
 1. Train the model:
-    
+
     ```no-highlight
     catboost fit --loss-function Logloss -f train.tsv -t test.tsv --column-description train.cd
     ```
-    
+
 1. Calculate the object importances using the trained model:
     ```no-highlight
     catboost ostr -f train.tsv -t test.tsv --column-description train.cd -o object_importances.tsv

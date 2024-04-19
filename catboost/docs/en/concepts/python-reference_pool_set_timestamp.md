@@ -26,6 +26,6 @@ Useful for sorting a learning dataset by this field during training.
 - {{ python-type--pandasDataFrame }}
 - {{ python-type--pandasSeries }}
 
-**Default value** 
+**Default value**
 
 {{ python--required }}

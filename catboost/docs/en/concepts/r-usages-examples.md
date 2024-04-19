@@ -2,27 +2,27 @@
 
 ## Load datasets {#load}
 
-Load the [Dataset description in delimiter-separated values format](../concepts/input-data_values-file.md) and the [object descriptions](../concepts/input-data_column-descfile.md) from the `train` and `train.cd` files respectively (both stored in the current directory): 
+Load the [Dataset description in delimiter-separated values format](../concepts/input-data_values-file.md) and the [object descriptions](../concepts/input-data_column-descfile.md) from the `train` and `train.cd` files respectively (both stored in the current directory):
 ```r
 library(catboost)
 
-pool_path = system.file("extdata", 
-                        "adult_train.1000", 
+pool_path = system.file("extdata",
+                        "adult_train.1000",
                         package = "catboost")
-column_description_path = system.file("extdata", 
-                                      "adult.cd", 
+column_description_path = system.file("extdata",
+                                      "adult.cd",
                                       package = "catboost")
-pool <- catboost.load_pool(pool_path, 
+pool <- catboost.load_pool(pool_path,
                            column_description = column_description_path)
 head(pool, 1)[[1]]
 ```
 
-Load the dataset from the {{ product }}{{ r-package }} (this dataset is a subset of the [Adult Data Set](http://archive.ics.uci.edu/ml/datasets/adult) distributed through the [UCI Machine Learning Repository](http://archive.ics.uci.edu/ml)): 
+Load the dataset from the {{ product }}{{ r-package }} (this dataset is a subset of the [Adult Data Set](http://archive.ics.uci.edu/ml/datasets/adult) distributed through the [UCI Machine Learning Repository](http://archive.ics.uci.edu/ml)):
 ```r
 library(catboost)
 
-pool_path = system.file("extdata", 
-                        "adult_train.1000", 
+pool_path = system.file("extdata",
+                        "adult_train.1000",
                         package="catboost")
 
 column_description_vector = rep('numeric', 15)
@@ -30,10 +30,10 @@ cat_features <- c(3, 5, 7, 8, 9, 10, 11, 15)
 for (i in cat_features)
   column_description_vector[i] <- 'factor'
 
-data <- read.table(pool_path, 
-                   head = F, 
-                   sep = "\t", 
-                   colClasses = column_description_vector, 
+data <- read.table(pool_path,
+                   head = F,
+                   sep = "\t",
+                   colClasses = column_description_vector,
                    na.strings='NAN')
 
 # Transform categorical features to numerical
@@ -46,15 +46,15 @@ pool <- catboost.load_pool(as.matrix(data[,-target]),
 head(pool, 1)[[1]]
 ```
 
-Load the dataset from data.frame: 
+Load the dataset from data.frame:
 ```r
 library(catboost)
 
-train_path = system.file("extdata", 
-                         "adult_train.1000", 
+train_path = system.file("extdata",
+                         "adult_train.1000",
                          package="catboost")
-test_path = system.file("extdata", 
-                        "adult_test.1000", 
+test_path = system.file("extdata",
+                        "adult_test.1000",
                         package="catboost")
 
 column_description_vector = rep('numeric', 15)
@@ -62,20 +62,20 @@ cat_features <- c(3, 5, 7, 8, 9, 10, 11, 15)
 for (i in cat_features)
   column_description_vector[i] <- 'factor'
 
-train <- read.table(train_path, 
-                    head = F, 
-                    sep = "\t", 
-                    colClasses = column_description_vector, 
+train <- read.table(train_path,
+                    head = F,
+                    sep = "\t",
+                    colClasses = column_description_vector,
                     na.strings='NAN')
-test <- read.table(test_path, 
-                   head = F, 
-                   sep = "\t", 
-                   colClasses = column_description_vector, 
+test <- read.table(test_path,
+                   head = F,
+                   sep = "\t",
+                   colClasses = column_description_vector,
                    na.strings='NAN')
 target <- c(1)
-train_pool <- catboost.load_pool(data=train[,-target], 
+train_pool <- catboost.load_pool(data=train[,-target],
                                  label = train[,target])
-test_pool <- catboost.load_pool(data=test[,-target], 
+test_pool <- catboost.load_pool(data=test[,-target],
                                 label = test[,target])
 head(train_pool, 1)[[1]]
 head(test_pool, 1)[[1]]
@@ -91,8 +91,8 @@ library(catboost)
 dataset = matrix(c(1900,7,
                    1896,1,
                    1896,41),
-                 nrow=3, 
-                 ncol=2, 
+                 nrow=3,
+                 ncol=2,
                  byrow = TRUE)
 label_values = c(0,1,1)
 
@@ -111,8 +111,8 @@ library(catboost)
 dataset = matrix(c(1900,7,
                    1896,1,
                    1896,41),
-                 nrow=3, 
-                 ncol=2, 
+                 nrow=3,
+                 ncol=2,
                  byrow = TRUE)
 label_values = c(0,1,1)
 
@@ -186,8 +186,8 @@ Apply the model to the given dataset using the {{ prediction-type--RawFormulaVa
 ```r
 library(catboost)
 
-prediction <- catboost.predict(model, 
-                               pool, 
+prediction <- catboost.predict(model,
+                               pool,
                                prediction_type = 'RawFormulaVal')
 ```
 
@@ -250,22 +250,22 @@ library(catboost)
 
 train_dataset = matrix(c(1900,7,1,
                          1896,1,1),
-                        nrow=2, 
-                        ncol=3, 
+                        nrow=2,
+                        ncol=3,
                         byrow = TRUE)
 
 label_values = c(0, 1)
 
-train_pool = catboost.load_pool(train_dataset, 
+train_pool = catboost.load_pool(train_dataset,
                                 label_values)
 
 input_dataset = matrix(c(1900,47,1,
                          1904,27,1),
-                 nrow=2, 
-                 ncol=3, 
+                 nrow=2,
+                 ncol=3,
                  byrow = TRUE)
 
-input_pool = catboost.load_pool(input_dataset, 
+input_pool = catboost.load_pool(input_dataset,
                                 label_values)
 
 trained_model <- catboost.train(train_pool,
