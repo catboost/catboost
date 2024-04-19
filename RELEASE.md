@@ -6,7 +6,7 @@
 ## Bugfixes
 * \[Python-package\]: Check eval_period parameter validity for staged prediction. #2593
 * \[Python-package\]: Fix _CustomLoggersStack.pop logic. #2620
-* \[R-package\]: Fix Caret object: Inconsistent grid creation with documentation. #2606
+* \[R-package\]: Fix Caret object: Inconsistent grid creation with documentation. #2609
 * \[JVM applier\]: Fix issues with exposing undesired symbols in JNI shared libraries (including allocators) on macOS. #2606
 * Fix training with embedding features on GPU. #2249, #2308, #2591
 * Fix training with text features on GPU
