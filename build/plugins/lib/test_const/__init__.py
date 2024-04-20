@@ -402,7 +402,6 @@ class YaTestTags(Enum):
     HugeLogs = "ya:huge_logs"
     Manual = "ya:manual"
     MapRootUser = "ya:map_root_user"
-    NoFuse = "ya:nofuse"
     NoGracefulShutdown = "ya:no_graceful_shutdown"
     Norestart = "ya:norestart"
     Noretries = "ya:noretries"
