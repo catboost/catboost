@@ -153,6 +153,8 @@ class BaseConverter(object):
         self.name = name
         self.repeat = repeat
         self.aux = aux
+        if self.aux and not self.repeat:
+            self.aux = compile(self.aux, "<string>", "eval")
         self.tableClass = tableClass
         self.isCount = name.endswith("Count") or name in [
             "DesignAxisRecordSize",

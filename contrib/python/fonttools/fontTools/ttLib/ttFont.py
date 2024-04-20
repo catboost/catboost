@@ -840,6 +840,11 @@ class TTFont(object):
         """
         return self["cmap"].getBestCmap(cmapPreferences=cmapPreferences)
 
+    def reorderGlyphs(self, new_glyph_order):
+        from .reorderGlyphs import reorderGlyphs
+
+        reorderGlyphs(self, new_glyph_order)
+
 
 class GlyphOrder(object):
     """A pseudo table. The glyph order isn't in the font as a separate
