@@ -297,6 +297,9 @@ _YandexAbort();
     #if __has_feature(address_sanitizer)
         #define _asan_enabled_
     #endif
+    #if __has_feature(leak_sanitizer)
+        #define _lsan_enabled_
+    #endif
 
 #else
 
@@ -309,10 +312,13 @@ _YandexAbort();
     #if defined(address_sanitizer_enabled) || defined(__SANITIZE_ADDRESS__)
         #define _asan_enabled_
     #endif
+    #if defined(leak_sanitizer_enabled) || defined(__SANITIZE_LEAK__)
+        #define _lsan_enabled_
+    #endif
 
 #endif
 
-#if defined(_asan_enabled_) || defined(_msan_enabled_) || defined(_tsan_enabled_) || defined(_ubsan_enabled_)
+#if defined(_asan_enabled_) || defined(_msan_enabled_) || defined(_tsan_enabled_) || defined(_ubsan_enabled_) || defined(_lsan_enabled_)
     #define _san_enabled_
 #endif
 

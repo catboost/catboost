@@ -4,8 +4,11 @@
 
 extern "C" { // sanitizers API
 
-#if defined(_asan_enabled_)
+#if defined(_asan_enabled_) || defined(_lsan_enabled_)
     void __lsan_ignore_object(const void* p);
+#endif
+
+#if defined(_asan_enabled_)
     void __sanitizer_start_switch_fiber(void** fake_stack_save, const void* bottom, size_t size);
     void __sanitizer_finish_switch_fiber(void* fake_stack_save, const void** old_bottom, size_t* old_size);
 #endif
@@ -152,7 +155,7 @@ namespace NSan {
     }
 
     inline static void MarkAsIntentionallyLeaked(const void* ptr) noexcept {
-#if defined(_asan_enabled_)
+#if defined(_asan_enabled_) || defined(_lsan_enabled_)
         __lsan_ignore_object(ptr);
 #else
         Y_UNUSED(ptr);
