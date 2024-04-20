@@ -1,6 +1,7 @@
 """
 Testing if parso finds syntax errors and indentation errors.
 """
+import re
 import sys
 import warnings
 
@@ -136,6 +137,28 @@ def _get_actual_exception(code):
         wanted = 'SyntaxError: invalid syntax'
     elif wanted == "SyntaxError: f-string: single '}' is not allowed":
         wanted = 'SyntaxError: invalid syntax'
+    elif "Maybe you meant '==' instead of '='?" in wanted:
+        wanted = wanted.removesuffix(" here. Maybe you meant '==' instead of '='?")
+    elif re.match(
+        r"SyntaxError: unterminated string literal \(detected at line \d+\)", wanted
+    ):
+        wanted = "SyntaxError: EOL while scanning string literal"
+    elif re.match(
+        r"SyntaxError: unterminated triple-quoted string literal \(detected at line \d+\)",
+        wanted,
+    ):
+        wanted = 'SyntaxError: EOF while scanning triple-quoted string literal'
+    elif wanted == 'SyntaxError: cannot use starred expression here':
+        wanted = "SyntaxError: can't use starred expression here"
+    elif wanted == 'SyntaxError: f-string: cannot use starred expression here':
+        wanted = "SyntaxError: f-string: can't use starred expression here"
+    elif re.match(
+        r"IndentationError: expected an indented block after '[^']*' statement on line \d",
+        wanted,
+    ):
+        wanted = 'IndentationError: expected an indented block'
+    elif wanted == 'SyntaxError: unterminated string literal':
+        wanted = 'SyntaxError: EOL while scanning string literal'
     return [wanted], line_nr
 
 

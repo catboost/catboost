@@ -43,7 +43,7 @@ from parso.grammar import Grammar, load_grammar
 from parso.utils import split_lines, python_bytes_to_unicode
 
 
-__version__ = '0.8.3'
+__version__ = '0.8.4'
 
 
 def parse(code=None, **kwargs):

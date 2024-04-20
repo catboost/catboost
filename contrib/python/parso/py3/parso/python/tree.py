@@ -295,6 +295,8 @@ class FStringEnd(PythonLeaf):
 
 
 class _StringComparisonMixin:
+    __slots__ = ()
+
     def __eq__(self, other):
         """
         Make comparisons with strings easy.
@@ -544,6 +546,7 @@ class Function(ClassOrFunc):
         4. annotation (if present)
     """
     type = 'funcdef'
+    __slots__ = ()
 
     def __init__(self, children):
         super().__init__(children)

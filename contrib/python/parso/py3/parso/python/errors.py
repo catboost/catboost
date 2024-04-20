@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import codecs
+import sys
 import warnings
 import re
 from contextlib import contextmanager
@@ -33,7 +34,10 @@ def _get_rhs_name(node, version):
                 return "literal"
             else:
                 if second.children[1] == ":" or second.children[0] == "**":
-                    return "dict display"
+                    if version < (3, 10):
+                        return "dict display"
+                    else:
+                        return "dict literal"
                 else:
                     return "set display"
         elif (
@@ -47,7 +51,10 @@ def _get_rhs_name(node, version):
         elif first == "[":
             return "list"
         elif first == "{" and second == "}":
-            return "dict display"
+            if version < (3, 10):
+                return "dict display"
+            else:
+                return "dict literal"
         elif first == "{" and len(node.children) > 2:
             return "set display"
     elif type_ == "keyword":
@@ -58,7 +65,10 @@ def _get_rhs_name(node, version):
         else:
             return str(node.value)
     elif type_ == "operator" and node.value == "...":
-        return "Ellipsis"
+        if version < (3, 10):
+            return "Ellipsis"
+        else:
+            return "ellipsis"
     elif type_ == "comparison":
         return "comparison"
     elif type_ in ("string", "number", "strings"):
@@ -83,7 +93,10 @@ def _get_rhs_name(node, version):
         or "_test" in type_
         or type_ in ("term", "factor")
     ):
-        return "operator"
+        if version < (3, 10):
+            return "operator"
+        else:
+            return "expression"
     elif type_ == "star_expr":
         return "starred"
     elif type_ == "testlist_star_expr":
@@ -610,7 +623,10 @@ class _NameChecks(SyntaxRule):
 
 @ErrorFinder.register_rule(type='string')
 class _StringChecks(SyntaxRule):
-    message = "bytes can only contain ASCII literal characters."
+    if sys.version_info < (3, 10):
+        message = "bytes can only contain ASCII literal characters."
+    else:
+        message = "bytes can only contain ASCII literal characters"
 
     def is_issue(self, leaf):
         string_prefix = leaf.string_prefix.lower()
@@ -1043,14 +1059,20 @@ class _CheckAssignmentRule(SyntaxRule):
                         error = 'literal'
                     else:
                         if second.children[1] == ':':
-                            error = 'dict display'
+                            if self._normalizer.version < (3, 10):
+                                error = 'dict display'
+                            else:
+                                error = 'dict literal'
                         else:
                             error = 'set display'
                 elif first == "{" and second == "}":
                     if self._normalizer.version < (3, 8):
                         error = 'literal'
                     else:
-                        error = "dict display"
+                        if self._normalizer.version < (3, 10):
+                            error = "dict display"
+                        else:
+                            error = "dict literal"
                 elif first == "{" and len(node.children) > 2:
                     if self._normalizer.version < (3, 8):
                         error = 'literal'
@@ -1083,7 +1105,10 @@ class _CheckAssignmentRule(SyntaxRule):
                 error = str(node.value)
         elif type_ == 'operator':
             if node.value == '...':
-                error = 'Ellipsis'
+                if self._normalizer.version < (3, 10):
+                    error = 'Ellipsis'
+                else:
+                    error = 'ellipsis'
         elif type_ == 'comparison':
             error = 'comparison'
         elif type_ in ('string', 'number', 'strings'):
@@ -1098,7 +1123,10 @@ class _CheckAssignmentRule(SyntaxRule):
             if node.children[0] == 'await':
                 error = 'await expression'
             elif node.children[-2] == '**':
-                error = 'operator'
+                if self._normalizer.version < (3, 10):
+                    error = 'operator'
+                else:
+                    error = 'expression'
             else:
                 # Has a trailer
                 trailer = node.children[-1]
@@ -1120,7 +1148,10 @@ class _CheckAssignmentRule(SyntaxRule):
         elif ('expr' in type_ and type_ != 'star_expr'  # is a substring
               or '_test' in type_
               or type_ in ('term', 'factor')):
-            error = 'operator'
+            if self._normalizer.version < (3, 10):
+                error = 'operator'
+            else:
+                error = 'expression'
         elif type_ == "star_expr":
             if is_deletion:
                 if self._normalizer.version >= (3, 9):

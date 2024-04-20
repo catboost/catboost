@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: parso
-Version: 0.8.3
+Version: 0.8.4
 Summary: A Python Parser
 Home-page: https://github.com/davidhalter/parso
 Author: David Halter
@@ -26,11 +26,12 @@ Classifier: Topic :: Utilities
 Classifier: Typing :: Typed
 Requires-Python: >=3.6
 Provides-Extra: qa
-Requires-Dist: flake8 (==3.8.3) ; extra == 'qa'
-Requires-Dist: mypy (==0.782) ; extra == 'qa'
+Requires-Dist: flake8 (==5.0.4) ; extra == 'qa'
+Requires-Dist: mypy (==0.971) ; extra == 'qa'
+Requires-Dist: types-setuptools (==67.2.0.1) ; extra == 'qa'
 Provides-Extra: testing
 Requires-Dist: docopt ; extra == 'testing'
-Requires-Dist: pytest (<6.0.0) ; extra == 'testing'
+Requires-Dist: pytest ; extra == 'testing'
 
 ###################################################################
 parso - A Python Parser
@@ -136,6 +137,11 @@ Changelog
 
 Unreleased
 ++++++++++
+
+0.8.4 (2024-04-05)
+++++++++++++++++++
+
+- Add basic support for Python 3.13
 
 0.8.3 (2021-11-30)
 ++++++++++++++++++

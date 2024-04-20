@@ -276,7 +276,7 @@ def generate_grammar(bnf_grammar: str, token_namespace) -> Grammar:
                     dfa_state.transitions[transition] = DFAPlan(next_dfa)
 
     _calculate_tree_traversal(rule_to_dfas)
-    return Grammar(start_nonterminal, rule_to_dfas, reserved_strings)  # type: ignore
+    return Grammar(start_nonterminal, rule_to_dfas, reserved_strings)  # type: ignore[arg-type]
 
 
 def _make_transition(token_namespace, reserved_syntax_strings, label):
