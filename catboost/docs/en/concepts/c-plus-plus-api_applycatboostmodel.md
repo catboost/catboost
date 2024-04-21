@@ -69,8 +69,8 @@ The result is identical to the code below but does not require the library linki
     ```cpp
     #include <catboost/libs/model_interface/wrapped_calcer.h>
     double ApplyCatboostModel(const std::vector<float>& features) {
-    ModelCalcerWrapper calcer("model.cbm");
-    return calcer.Calc(features, {});
+        ModelCalcerWrapper calcer("model.cbm");
+        return calcer.Calc(features, {});
     }
     ```
 
@@ -79,8 +79,8 @@ The result is identical to the code below but does not require the library linki
     ```cpp
     #include <catboost/libs/model_interface/wrapped_calcer.h>
     double ApplyCatboostModel(const std::vector<float>& floatFeatures, const std::vector<std::string>& catFeatures) {
-    ModelCalcerWrapper calcer("model.cbm");
-    return calcer.Calc(floatFeatures, catFeatures);
+        ModelCalcerWrapper calcer("model.cbm");
+        return calcer.Calc(floatFeatures, catFeatures);
     }
     ```
 
