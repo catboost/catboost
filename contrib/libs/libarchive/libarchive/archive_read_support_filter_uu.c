@@ -24,7 +24,6 @@
  */
 
 #include "archive_platform.h"
-__FBSDID("$FreeBSD$");
 
 #ifdef HAVE_ERRNO_H
 #include <errno.h>
@@ -374,7 +373,7 @@ uudecode_bidder_init(struct archive_read_filter *self)
 	self->code = ARCHIVE_FILTER_UU;
 	self->name = "uu";
 
-	uudecode = (struct uudecode *)calloc(sizeof(*uudecode), 1);
+	uudecode = (struct uudecode *)calloc(1, sizeof(*uudecode));
 	out_buff = malloc(OUT_BUFF_SIZE);
 	in_buff = malloc(IN_BUFF_SIZE);
 	if (uudecode == NULL || out_buff == NULL || in_buff == NULL) {
