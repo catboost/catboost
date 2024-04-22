@@ -1,33 +1,8 @@
 #pragma once
 
-#include <concepts>
+#include <library/cpp/yt/misc/concepts.h>
 
 namespace NYT {
-
-////////////////////////////////////////////////////////////////////////////////
-
-namespace NDetail {
-
-template <class TSignature>
-struct TTypeErasureTraits;
-
-template <class TResult, bool NoExcept, class... TArgs>
-struct TTypeErasureTraits<TResult(TArgs...) noexcept(NoExcept)>
-{
-    using TSignature = TResult(TArgs...) noexcept(NoExcept);
-
-    // TODO(arkady-e1ppa): Support pointer-to-member-function?
-    template <class T>
-    static constexpr bool IsInvocable = NoExcept
-        ? requires (T obj, TArgs... args) {
-            { obj(std::forward<TArgs>(args)...) } noexcept -> std::same_as<TResult>;
-        }
-        : requires (T obj, TArgs... args) {
-            { obj(std::forward<TArgs>(args)...) } -> std::same_as<TResult>;
-        };
-};
-
-} // namespace NDetail
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -75,9 +50,10 @@ class TFunctionView;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// TODO(arkady-e1ppa): Support pointer-to-member-function?
 template <class T, class TSignature>
 concept CTypeErasable =
-    NDetail::TTypeErasureTraits<TSignature>::template IsInvocable<T> &&
+    CInvocable<T, TSignature> &&
     (!std::same_as<T, TFunctionView<TSignature>>);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +81,7 @@ public:
     bool IsValid() const noexcept;
     void Reset() noexcept;
 
-    // bool operator==(const TFunctionView& other) const & = default;
+    bool operator==(const TFunctionView& other) const & = default;
 
 private:
     // NB: Technically, this is UB according to C standard, which

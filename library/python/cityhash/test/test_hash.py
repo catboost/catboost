@@ -30,3 +30,13 @@ def test_hash64seed():
     assert cityhash.hash64seed('', 0) == 0
     assert cityhash.hash64seed('', 117) == 7102524123839304709
     assert cityhash.hash64seed('test', 12345) == 14900027982776226655
+
+
+def test_hash_large_encrypted_files():
+    path = yc.source_path('devtools/dummy_arcadia/arc_special_files/encrypted/encrypted_files/1mb_file.txt')
+    try:
+        cityhash.filehash64(path)
+    except RuntimeError:
+        # This is expected to fail on local and in Sandbox but run normally in distbuild
+        # Replace with 'with raises' once YA-1099 is done
+        pass
