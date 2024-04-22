@@ -530,9 +530,10 @@ namespace NCatboostCuda {
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {
         TVector<THolder<IGpuMetric>> result;
         const bool isMulticlass = IsMultiClassOnlyMetric(targetObjective);
+        const bool isMultiLabel = IsMultiLabelObjective(targetObjective);
         const bool isRMSEWithUncertainty = targetObjective == ELossFunction::RMSEWithUncertainty;
         const bool isMultiRMSE = targetObjective == ELossFunction::MultiRMSE;
-        if (isMulticlass || IsMultiLabelObjective(targetObjective) || isRMSEWithUncertainty || isMultiRMSE) {
+        if (isMulticlass || isMultiLabel || isRMSEWithUncertainty || isMultiRMSE) {
             CB_ENSURE(approxDim > 1, "Error: Approx dimension equal to 1 for multidimensional output");
         } else {
             CB_ENSURE(approxDim == 1, "Error: non-multidimensional output dim should be equal to 1");
@@ -574,7 +575,7 @@ namespace NCatboostCuda {
                 auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
                 const auto numClasses = approxDim == 1 ? 2 : approxDim;
                 for (ui32 i = 0; i < approxDim; ++i) {
-                    result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[i]), i, numClasses, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[i]), i, numClasses, isMulticlass || isMultiLabel, metricDescription));
                 }
                 break;
             }
