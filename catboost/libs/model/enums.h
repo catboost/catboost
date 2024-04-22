@@ -3,12 +3,12 @@
 namespace NCB { // split due to CUDA-compiler inability to support nested namespace definitions
     namespace NModelEvaluation {
         enum class EPredictionType {
-            RawFormulaVal,
-            Exponent,
-            RMSEWithUncertainty,
-            Probability,
-            MultiProbability,
-            Class
+            RawFormulaVal = 0,
+            Exponent = 1,
+            RMSEWithUncertainty = 2,
+            Probability = 3,
+            Class = 4,
+            MultiProbability = 5
         };
     }
 }
