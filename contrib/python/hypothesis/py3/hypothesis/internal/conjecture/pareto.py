@@ -133,9 +133,10 @@ class ParetoFront:
         """Attempts to add ``data`` to the pareto front. Returns True if
         ``data`` is now in the front, including if data is already in the
         collection, and False otherwise"""
-        data = data.as_result()
         if data.status < Status.VALID:
             return False
+
+        data = data.as_result()
 
         if not self.front:
             self.front.add(data)

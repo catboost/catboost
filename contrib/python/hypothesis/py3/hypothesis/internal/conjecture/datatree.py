@@ -30,6 +30,7 @@ from hypothesis.internal.conjecture.data import (
     Status,
     StringKWargs,
 )
+from hypothesis.internal.escalation import InterestingOrigin
 from hypothesis.internal.floats import (
     count_between_floats,
     float_to_int,
@@ -83,8 +84,8 @@ class Branch:
 class Conclusion:
     """Represents a transition to a finished state."""
 
-    status = attr.ib()
-    interesting_origin = attr.ib()
+    status: Status = attr.ib()
+    interesting_origin: Optional[InterestingOrigin] = attr.ib()
 
 
 # The number of max children where, beyond this, it is practically impossible
@@ -1043,8 +1044,9 @@ class TreeRecordingObserver(DataObserver):
                 or new_transition.status != Status.VALID
             ):
                 raise Flaky(
-                    f"Inconsistent test results! Test case was {node.transition!r} "
-                    f"on first run but {new_transition!r} on second"
+                    f"Inconsistent results from replaying a test case!\n"
+                    f"  last: {node.transition.status.name} from {node.transition.interesting_origin}\n"
+                    f"  this: {new_transition.status.name} from {new_transition.interesting_origin}"
                 )
         else:
             node.transition = new_transition
