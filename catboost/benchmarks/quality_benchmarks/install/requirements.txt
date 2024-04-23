@@ -1,7 +1,7 @@
 numpy==1.22.0
 pandas==0.19.2
 scipy==1.10.0
-scikit-learn==0.18.1
+scikit-learn==0.23.1
 pymongo==4.6.3
 networkx==1.11
 hyperopt==0.0.2
