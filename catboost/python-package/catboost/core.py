@@ -2882,6 +2882,38 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("Model is not fitted")
         return self._get_embedding_feature_indices()
 
+    def get_features_with_types(self) -> dict:
+        """
+        Returns a dictionary in which the key is the name of the features, and the value is its type
+
+        Returns
+        -------
+        features_with_types : `dict` object with `key:value` format `"feature_name":"feature_type"`
+            (`feature_type` is one of `['categorical', 'text', 'embedding', 'numerical']`)
+        """
+        if not self.is_fitted():
+            raise CatBoostError("Model is not fitted")
+
+        cat_features_idx = self.get_cat_feature_indices()
+        text_features_idx = self.get_text_feature_indices()
+        embedding_features_idx = self.get_embedding_feature_indices()
+
+        features_with_types = {}
+
+        for idx, feature_name in enumerate(self.feature_names_):
+            if idx in cat_features_idx:
+                feature_type = 'categorical'
+            elif idx in text_features_idx:
+                feature_type = 'text'
+            elif idx in embedding_features_idx:
+                feature_type = 'embedding'
+            else:
+                feature_type = 'numerical'
+            features_with_types[feature_name] = feature_type
+
+        return features_with_types
+
+
     def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir, plot, plot_file, log_cout=None, log_cerr=None):
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to evaluate metrics on. Use fit() to train model. Then call this method.")
