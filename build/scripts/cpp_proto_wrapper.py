@@ -5,7 +5,7 @@ import re
 import argparse
 
 
-FROM_RE = re.compile("((?:struct|class)\s+\S+\s+)final\s*:")
+FROM_RE = re.compile(u"((?:struct|class)\s+\S+\s+)final\s*:")
 TO_RE = "\\1:"
 
 
@@ -30,10 +30,10 @@ def main(namespace: argparse.Namespace) -> int:
         return e.returncode
 
     for output in namespace.outputs:
-        with open(output, 'r') as f:
+        with open(output, 'rt', encoding="utf-8") as f:
             patched_text, num_patches = patch_proto_file(f.read())
         if num_patches:
-            with open(output, 'w') as f:
+            with open(output, 'wt', encoding="utf-8") as f:
                 f.write(patched_text)
 
     return 0
