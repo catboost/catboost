@@ -9,32 +9,28 @@ is called with the same input arguments.
 # License: BSD Style, 3 clauses.
 
 
-from __future__ import with_statement
+import asyncio
+import datetime
+import functools
+import inspect
 import logging
 import os
-from textwrap import dedent
-import time
 import pathlib
 import pydoc
 import re
-import functools
+import textwrap
+import time
+import tokenize
 import traceback
 import warnings
-import inspect
 import weakref
-from datetime import timedelta
 
-from tokenize import open as open_py_source
-
-# Local imports
 from . import hashing
-from .func_inspect import get_func_code, get_func_name, filter_args
-from .func_inspect import format_call
-from .func_inspect import format_signature
-from .logger import Logger, format_time, pformat
-from ._store_backends import StoreBackendBase, FileSystemStoreBackend
 from ._store_backends import CacheWarning  # noqa
-
+from ._store_backends import FileSystemStoreBackend, StoreBackendBase
+from .func_inspect import (filter_args, format_call, format_signature,
+                           get_func_code, get_func_name)
+from .logger import Logger, format_time, pformat
 
 FIRST_LINE_TEXT = "# first line:"
 
@@ -141,45 +137,11 @@ def _store_backend_factory(backend, location, verbose=0, backend_options=None):
     return None
 
 
-def _get_func_fullname(func):
-    """Compute the part of part associated with a function."""
-    modules, funcname = get_func_name(func)
-    modules.append(funcname)
-    return os.path.join(*modules)
-
-
 def _build_func_identifier(func):
     """Build a roughly unique identifier for the cached function."""
-    parts = []
-    if isinstance(func, str):
-        parts.append(func)
-    else:
-        parts.append(_get_func_fullname(func))
-
+    modules, funcname = get_func_name(func)
     # We reuse historical fs-like way of building a function identifier
-    return os.path.join(*parts)
-
-
-def _format_load_msg(func_id, args_id, timestamp=None, metadata=None):
-    """ Helper function to format the message when loading the results.
-    """
-    signature = ""
-    try:
-        if metadata is not None:
-            args = ", ".join(['%s=%s' % (name, value)
-                              for name, value
-                              in metadata['input_args'].items()])
-            signature = "%s(%s)" % (os.path.basename(func_id), args)
-        else:
-            signature = os.path.basename(func_id)
-    except KeyError:
-        pass
-
-    if timestamp is not None:
-        ts_string = "{0: <16}".format(format_time(time.time() - timestamp))
-    else:
-        ts_string = ""
-    return '[Memory]{0}: Loading {1}'.format(ts_string, str(signature))
+    return os.path.join(*modules, funcname)
 
 
 # An in-memory store to avoid looking at the disk-based function
@@ -220,15 +182,10 @@ class MemorizedResult(Logger):
     timestamp, metadata: string
         for internal use only.
     """
-    def __init__(self, location, func, args_id, backend='local',
-                 mmap_mode=None, verbose=0, timestamp=None, metadata=None):
+    def __init__(self, location, call_id, backend='local', mmap_mode=None,
+                 verbose=0, timestamp=None, metadata=None):
         Logger.__init__(self)
-        self.func_id = _build_func_identifier(func)
-        if isinstance(func, str):
-            self.func = func
-        else:
-            self.func = self.func_id
-        self.args_id = args_id
+        self._call_id = call_id
         self.store_backend = _store_backend_factory(backend, location,
                                                     verbose=verbose)
         self.mmap_mode = mmap_mode
@@ -236,12 +193,23 @@ class MemorizedResult(Logger):
         if metadata is not None:
             self.metadata = metadata
         else:
-            self.metadata = self.store_backend.get_metadata(
-                [self.func_id, self.args_id])
+            self.metadata = self.store_backend.get_metadata(self._call_id)
 
         self.duration = self.metadata.get('duration', None)
         self.verbose = verbose
         self.timestamp = timestamp
+
+    @property
+    def func(self):
+        return self.func_id
+
+    @property
+    def func_id(self):
+        return self._call_id[0]
+
+    @property
+    def args_id(self):
+        return self._call_id[1]
 
     @property
     def argument_hash(self):
@@ -254,38 +222,29 @@ class MemorizedResult(Logger):
 
     def get(self):
         """Read value from cache and return it."""
-        if self.verbose:
-            msg = _format_load_msg(self.func_id, self.args_id,
-                                   timestamp=self.timestamp,
-                                   metadata=self.metadata)
-        else:
-            msg = None
-
         try:
             return self.store_backend.load_item(
-                [self.func_id, self.args_id], msg=msg, verbose=self.verbose)
+                self._call_id,
+                timestamp=self.timestamp,
+                metadata=self.metadata,
+                verbose=self.verbose
+            )
         except ValueError as exc:
             new_exc = KeyError(
                 "Error while trying to load a MemorizedResult's value. "
                 "It seems that this folder is corrupted : {}".format(
-                    os.path.join(
-                        self.store_backend.location, self.func_id,
-                        self.args_id)
-                ))
+                    os.path.join(self.store_backend.location, *self._call_id)))
             raise new_exc from exc
 
     def clear(self):
         """Clear value from cache"""
-        self.store_backend.clear_item([self.func_id, self.args_id])
+        self.store_backend.clear_item(self._call_id)
 
     def __repr__(self):
-        return ('{class_name}(location="{location}", func="{func}", '
-                'args_id="{args_id}")'
-                .format(class_name=self.__class__.__name__,
-                        location=self.store_backend.location,
-                        func=self.func,
-                        args_id=self.args_id
-                        ))
+        return '{}(location="{}", func="{}", args_id="{}")'.format(
+            self.__class__.__name__, self.store_backend.location,
+            *self._call_id
+        )
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -370,6 +329,14 @@ class NotMemorizedFunc(object):
 
 
 ###############################################################################
+# class `AsyncNotMemorizedFunc`
+###############################################################################
+class AsyncNotMemorizedFunc(NotMemorizedFunc):
+    async def call_and_shelve(self, *args, **kwargs):
+        return NotMemorizedResult(await self.func(*args, **kwargs))
+
+
+###############################################################################
 # class `MemorizedFunc`
 ###############################################################################
 class MemorizedFunc(Logger):
@@ -429,10 +396,8 @@ class MemorizedFunc(Logger):
         self.compress = compress
         self.func = func
         self.cache_validation_callback = cache_validation_callback
-
-        if ignore is None:
-            ignore = []
-        self.ignore = ignore
+        self.func_id = _build_func_identifier(func)
+        self.ignore = ignore if ignore is not None else []
         self._verbose = verbose
 
         # retrieve store object from backend type and location.
@@ -444,17 +409,13 @@ class MemorizedFunc(Logger):
                                                     )
         if self.store_backend is not None:
             # Create func directory on demand.
-            self.store_backend.store_cached_func_code([
-                _build_func_identifier(self.func)
-            ])
+            self.store_backend.store_cached_func_code([self.func_id])
 
-        if timestamp is None:
-            timestamp = time.time()
-        self.timestamp = timestamp
+        self.timestamp = timestamp if timestamp is not None else time.time()
         try:
             functools.update_wrapper(self, func)
         except Exception:
-            " Objects like ufunc don't like that "
+            pass  # Objects like ufunc don't like that
         if inspect.isfunction(func):
             doc = pydoc.TextDoc().document(func)
             # Remove blank line
@@ -469,7 +430,7 @@ class MemorizedFunc(Logger):
         self._func_code_info = None
         self._func_code_id = None
 
-    def _is_in_cache_and_valid(self, path):
+    def _is_in_cache_and_valid(self, call_id):
         """Check if the function call is cached and valid for given arguments.
 
         - Compare the function code with the one from the cached function,
@@ -485,22 +446,23 @@ class MemorizedFunc(Logger):
             return False
 
         # Check if this specific call is in the cache
-        if not self.store_backend.contains_item(path):
+        if not self.store_backend.contains_item(call_id):
             return False
 
         # Call the user defined cache validation callback
-        metadata = self.store_backend.get_metadata(path)
+        metadata = self.store_backend.get_metadata(call_id)
         if (self.cache_validation_callback is not None and
                 not self.cache_validation_callback(metadata)):
-            self.store_backend.clear_item(path)
+            self.store_backend.clear_item(call_id)
             return False
 
         return True
 
-    def _cached_call(self, args, kwargs, shelving=False):
+    def _cached_call(self, args, kwargs, shelving):
         """Call wrapped function and cache result, or read cache if available.
 
-        This function returns the wrapped function output and some metadata.
+        This function returns the wrapped function output or a reference to
+        the cached result.
 
         Arguments:
         ----------
@@ -514,35 +476,22 @@ class MemorizedFunc(Logger):
 
         Returns
         -------
-        output: value or tuple or None
-            Output of the wrapped function.
-            If shelving is True and the call has been already cached,
-            output is None.
-
-        argument_hash: string
-            Hash of function arguments.
-
-        metadata: dict
-            Some metadata about wrapped function call (see _persist_input()).
+        Output of the wrapped function if shelving is false, or a
+        MemorizedResult reference to the value if shelving is true.
         """
-        func_id, args_id = self._get_output_identifiers(*args, **kwargs)
-        metadata = None
-        msg = None
-
-        # Whether or not the memorized function must be called
-        must_call = False
+        args_id = self._get_args_id(*args, **kwargs)
+        call_id = (self.func_id, args_id)
+        _, func_name = get_func_name(self.func)
+        func_info = self.store_backend.get_cached_func_info([self.func_id])
+        location = func_info['location']
 
         if self._verbose >= 20:
             logging.basicConfig(level=logging.INFO)
-            _, name = get_func_name(self.func)
-            location = self.store_backend.get_cached_func_info([func_id])[
-                'location']
             _, signature = format_signature(self.func, *args, **kwargs)
-
             self.info(
-                dedent(
+                textwrap.dedent(
                     f"""
-                        Querying {name} with signature
+                        Querying {func_name} with signature
                         {signature}.
 
                         (argument hash {args_id})
@@ -555,58 +504,30 @@ class MemorizedFunc(Logger):
         # Compare the function code with the previous to see if the
         # function code has changed and check if the results are present in
         # the cache.
-        if self._is_in_cache_and_valid([func_id, args_id]):
+        if self._is_in_cache_and_valid(call_id):
+            if shelving:
+                return self._get_memorized_result(call_id)
+
             try:
-                t0 = time.time()
-                if self._verbose:
-                    msg = _format_load_msg(func_id, args_id,
-                                           timestamp=self.timestamp,
-                                           metadata=metadata)
-
-                if not shelving:
-                    # When shelving, we do not need to load the output
-                    out = self.store_backend.load_item(
-                        [func_id, args_id],
-                        msg=msg,
-                        verbose=self._verbose)
-                else:
-                    out = None
-
+                start_time = time.time()
+                output = self._load_item(call_id)
                 if self._verbose > 4:
-                    t = time.time() - t0
-                    _, name = get_func_name(self.func)
-                    msg = '%s cache loaded - %s' % (name, format_time(t))
-                    print(max(0, (80 - len(msg))) * '_' + msg)
+                    self._print_duration(time.time() - start_time,
+                                         context='cache loaded ')
+                return output
             except Exception:
                 # XXX: Should use an exception logger
                 _, signature = format_signature(self.func, *args, **kwargs)
                 self.warn('Exception while loading results for '
                           '{}\n {}'.format(signature, traceback.format_exc()))
 
-                must_call = True
-        else:
-            if self._verbose > 10:
-                _, name = get_func_name(self.func)
-                self.warn('Computing func {0}, argument hash {1} '
-                          'in location {2}'
-                          .format(name, args_id,
-                                  self.store_backend.
-                                  get_cached_func_info([func_id])['location']))
-            must_call = True
+        if self._verbose > 10:
+            self.warn(
+                f"Computing func {func_name}, argument hash {args_id} "
+                f"in location {location}"
+            )
 
-        if must_call:
-            out, metadata = self.call(*args, **kwargs)
-            if self.mmap_mode is not None:
-                # Memmap the output at the first call to be consistent with
-                # later calls
-                if self._verbose:
-                    msg = _format_load_msg(func_id, args_id,
-                                           timestamp=self.timestamp,
-                                           metadata=metadata)
-                out = self.store_backend.load_item([func_id, args_id], msg=msg,
-                                                   verbose=self._verbose)
-
-        return (out, args_id, metadata)
+        return self._call(call_id, args, kwargs, shelving)
 
     @property
     def func_code_info(self):
@@ -646,13 +567,10 @@ class MemorizedFunc(Logger):
             class "NotMemorizedResult" is used when there is no cache
             activated (e.g. location=None in Memory).
         """
-        _, args_id, metadata = self._cached_call(args, kwargs, shelving=True)
-        return MemorizedResult(self.store_backend, self.func, args_id,
-                               metadata=metadata, verbose=self._verbose - 1,
-                               timestamp=self.timestamp)
+        return self._cached_call(args, kwargs, shelving=True)
 
     def __call__(self, *args, **kwargs):
-        return self._cached_call(args, kwargs)[0]
+        return self._cached_call(args, kwargs, shelving=False)
 
     def __getstate__(self):
         # Make sure self.func's source is introspected prior to being pickled -
@@ -682,22 +600,17 @@ class MemorizedFunc(Logger):
             Whether or not the result of the function has been cached
             for the input arguments that have been passed.
         """
-        func_id, args_id = self._get_output_identifiers(*args, **kwargs)
-        return self.store_backend.contains_item((func_id, args_id))
+        call_id = (self.func_id, self._get_args_id(*args, **kwargs))
+        return self.store_backend.contains_item(call_id)
 
     # ------------------------------------------------------------------------
     # Private interface
     # ------------------------------------------------------------------------
 
-    def _get_argument_hash(self, *args, **kwargs):
+    def _get_args_id(self, *args, **kwargs):
+        """Return the input parameter hash of a result."""
         return hashing.hash(filter_args(self.func, self.ignore, args, kwargs),
-                            coerce_mmap=(self.mmap_mode is not None))
-
-    def _get_output_identifiers(self, *args, **kwargs):
-        """Return the func identifier and input parameter hash of a result."""
-        func_id = _build_func_identifier(self.func)
-        argument_hash = self._get_argument_hash(*args, **kwargs)
-        return func_id, argument_hash
+                            coerce_mmap=self.mmap_mode is not None)
 
     def _hash_func(self):
         """Hash a function to key the online cache"""
@@ -712,12 +625,10 @@ class MemorizedFunc(Logger):
         # sometimes have several functions named the same way in a
         # file. This is bad practice, but joblib should be robust to bad
         # practice.
-        func_id = _build_func_identifier(self.func)
         func_code = u'%s %i\n%s' % (FIRST_LINE_TEXT, first_line, func_code)
-        self.store_backend.store_cached_func_code([func_id], func_code)
+        self.store_backend.store_cached_func_code([self.func_id], func_code)
 
         # Also store in the in-memory store of function hashes
-        is_named_callable = False
         is_named_callable = (hasattr(self.func, '__name__') and
                              self.func.__name__ != '<lambda>')
         if is_named_callable:
@@ -755,12 +666,9 @@ class MemorizedFunc(Logger):
         # changing code and collision. We cannot inspect.getsource
         # because it is not reliable when using IPython's magic "%run".
         func_code, source_file, first_line = self.func_code_info
-        func_id = _build_func_identifier(self.func)
-
         try:
-            old_func_code, old_first_line =\
-                extract_first_line(
-                    self.store_backend.get_cached_func_code([func_id]))
+            old_func_code, old_first_line = extract_first_line(
+                self.store_backend.get_cached_func_code([self.func_id]))
         except (IOError, OSError):  # some backend can also raise OSError
             self._write_func_code(func_code, first_line)
             return False
@@ -789,11 +697,10 @@ class MemorizedFunc(Logger):
         # file has not changed, but the name we have is pointing to a new
         # code block.
         if not old_first_line == first_line and source_file is not None:
-            possible_collision = False
             if os.path.exists(source_file):
                 _, func_name = get_func_name(self.func, resolv_alias=False)
                 num_lines = len(func_code.split('\n'))
-                with open_py_source(source_file) as f:
+                with tokenize.open(source_file) as f:
                     on_disk_func_code = f.readlines()[
                         old_first_line - 1:old_first_line - 1 + num_lines - 1]
                 on_disk_func_code = ''.join(on_disk_func_code)
@@ -814,14 +721,13 @@ class MemorizedFunc(Logger):
         if self._verbose > 10:
             _, func_name = get_func_name(self.func, resolv_alias=False)
             self.warn("Function {0} (identified by {1}) has changed"
-                      ".".format(func_name, func_id))
+                      ".".format(func_name, self.func_id))
         self.clear(warn=True)
         return False
 
     def clear(self, warn=True):
         """Empty the function's cache."""
-        func_id = _build_func_identifier(self.func)
-
+        func_id = self.func_id
         if self._verbose > 0 and warn:
             self.warn("Clearing function cache identified by %s" % func_id)
         self.store_backend.clear_path([func_id, ])
@@ -846,27 +752,38 @@ class MemorizedFunc(Logger):
         -------
         output : object
             The output of the function call.
-        metadata : dict
-            The metadata associated with the call.
         """
+        call_id = (self.func_id, self._get_args_id(*args, **kwargs))
+        return self._call(call_id, args, kwargs)
+
+    def _call(self, call_id, args, kwargs, shelving=False):
+        self._before_call(args, kwargs)
         start_time = time.time()
-        func_id, args_id = self._get_output_identifiers(*args, **kwargs)
+        output = self.func(*args, **kwargs)
+        return self._after_call(call_id, args, kwargs, shelving,
+                                output, start_time)
+
+    def _before_call(self, args, kwargs):
         if self._verbose > 0:
             print(format_call(self.func, args, kwargs))
-        output = self.func(*args, **kwargs)
-        self.store_backend.dump_item(
-            [func_id, args_id], output, verbose=self._verbose)
 
+    def _after_call(self, call_id, args, kwargs, shelving, output, start_time):
+        self.store_backend.dump_item(call_id, output, verbose=self._verbose)
         duration = time.time() - start_time
-        metadata = self._persist_input(duration, args, kwargs)
-
         if self._verbose > 0:
-            _, name = get_func_name(self.func)
-            msg = '%s - %s' % (name, format_time(duration))
-            print(max(0, (80 - len(msg))) * '_' + msg)
-        return output, metadata
+            self._print_duration(duration)
+        metadata = self._persist_input(duration, call_id, args, kwargs)
+        if shelving:
+            return self._get_memorized_result(call_id, metadata)
 
-    def _persist_input(self, duration, args, kwargs, this_duration_limit=0.5):
+        if self.mmap_mode is not None:
+            # Memmap the output at the first call to be consistent with
+            # later calls
+            output = self._load_item(call_id, metadata)
+        return output
+
+    def _persist_input(self, duration, call_id, args, kwargs,
+                       this_duration_limit=0.5):
         """ Save a small summary of the call using json format in the
             output directory.
 
@@ -894,8 +811,7 @@ class MemorizedFunc(Logger):
             "duration": duration, "input_args": input_repr, "time": start_time,
         }
 
-        func_id, args_id = self._get_output_identifiers(*args, **kwargs)
-        self.store_backend.store_metadata([func_id, args_id], metadata)
+        self.store_backend.store_metadata(call_id, metadata)
 
         this_duration = time.time() - start_time
         if this_duration > this_duration_limit:
@@ -914,6 +830,21 @@ class MemorizedFunc(Logger):
                           % this_duration, stacklevel=5)
         return metadata
 
+    def _get_memorized_result(self, call_id, metadata=None):
+        return MemorizedResult(self.store_backend, call_id,
+                               metadata=metadata, timestamp=self.timestamp,
+                               verbose=self._verbose - 1)
+
+    def _load_item(self, call_id, metadata=None):
+        return self.store_backend.load_item(call_id, metadata=metadata,
+                                            timestamp=self.timestamp,
+                                            verbose=self._verbose)
+
+    def _print_duration(self, duration, context=''):
+        _, name = get_func_name(self.func)
+        msg = f"{name} {context}- {format_time(duration)}"
+        print(max(0, (80 - len(msg))) * '_' + msg)
+
     # ------------------------------------------------------------------------
     # Private `object` interface
     # ------------------------------------------------------------------------
@@ -923,6 +854,30 @@ class MemorizedFunc(Logger):
             class_name=self.__class__.__name__,
             func=self.func,
             location=self.store_backend.location,)
+
+
+###############################################################################
+# class `AsyncMemorizedFunc`
+###############################################################################
+class AsyncMemorizedFunc(MemorizedFunc):
+    async def __call__(self, *args, **kwargs):
+        out = super().__call__(*args, **kwargs)
+        return await out if asyncio.iscoroutine(out) else out
+
+    async def call_and_shelve(self, *args, **kwargs):
+        out = super().call_and_shelve(*args, **kwargs)
+        return await out if asyncio.iscoroutine(out) else out
+
+    async def call(self, *args, **kwargs):
+        out = super().call(*args, **kwargs)
+        return await out if asyncio.iscoroutine(out) else out
+
+    async def _call(self, call_id, args, kwargs, shelving=False):
+        self._before_call(args, kwargs)
+        start_time = time.time()
+        output = await self.func(*args, **kwargs)
+        return self._after_call(call_id, args, kwargs, shelving,
+                                output, start_time)
 
 
 ###############################################################################
@@ -1072,14 +1027,20 @@ class Memory(Logger):
                 cache_validation_callback=cache_validation_callback
             )
         if self.store_backend is None:
-            return NotMemorizedFunc(func)
+            cls = (AsyncNotMemorizedFunc
+                   if asyncio.iscoroutinefunction(func)
+                   else NotMemorizedFunc)
+            return cls(func)
         if verbose is None:
             verbose = self._verbose
         if mmap_mode is False:
             mmap_mode = self.mmap_mode
         if isinstance(func, MemorizedFunc):
             func = func.func
-        return MemorizedFunc(
+        cls = (AsyncMemorizedFunc
+               if asyncio.iscoroutinefunction(func)
+               else MemorizedFunc)
+        return cls(
             func, location=self.store_backend, backend=self.backend,
             ignore=ignore, mmap_mode=mmap_mode, compress=self.compress,
             verbose=verbose, timestamp=self.timestamp,
@@ -1187,7 +1148,7 @@ def expires_after(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0,
     days, seconds, microseconds, milliseconds, minutes, hours, weeks: numbers
         argument passed to a timedelta.
     """
-    delta = timedelta(
+    delta = datetime.timedelta(
         days=days, seconds=seconds, microseconds=microseconds,
         milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks
     )

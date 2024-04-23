@@ -4,6 +4,13 @@ import ast
 from dataclasses import dataclass
 import operator as op
 
+
+from ._multiprocessing_helpers import mp
+
+if mp is not None:
+    from .externals.loky.process_executor import _ExceptionWithTraceback
+
+
 # supported operators
 operators = {
     ast.Add: op.add,
@@ -35,8 +42,8 @@ def eval_expr(expr):
 
 
 def eval_(node):
-    if isinstance(node, ast.Num):  # <number>
-        return node.n
+    if isinstance(node, ast.Constant):  # <constant>
+        return node.value
     elif isinstance(node, ast.BinOp):  # <left> <operator> <right>
         return operators[type(node.op)](eval_(node.left), eval_(node.right))
     elif isinstance(node, ast.UnaryOp):  # <operator> <operand> e.g., -1
@@ -52,3 +59,25 @@ class _Sentinel:
 
     def __repr__(self):
         return f"default({self.default_value!r})"
+
+
+class _TracebackCapturingWrapper:
+    """Protect function call and return error with traceback."""
+
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, **kwargs):
+        try:
+            return self.func(**kwargs)
+        except BaseException as e:
+            return _ExceptionWithTraceback(e)
+
+
+def _retrieve_traceback_capturing_wrapped_call(out):
+    if isinstance(out, _ExceptionWithTraceback):
+        rebuild, args = out.__reduce__()
+        out = rebuild(*args)
+    if isinstance(out, BaseException):
+        raise out
+    return out

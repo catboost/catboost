@@ -266,8 +266,13 @@ def _reduce_memmap_backed(a, m):
     # offset that comes from the striding differences between a and m
     util.debug('[MEMMAP REDUCE] reducing a memmap-backed array '
                '(shape, {}, pid: {})'.format(a.shape, os.getpid()))
-    a_start, a_end = np.byte_bounds(a)
-    m_start = np.byte_bounds(m)[0]
+    try:
+        from numpy.lib.array_utils import byte_bounds
+    except (ModuleNotFoundError, ImportError):
+        # Backward-compat for numpy < 2.0
+        from numpy import byte_bounds
+    a_start, a_end = byte_bounds(a)
+    m_start = byte_bounds(m)[0]
     offset = a_start - m_start
 
     # offset from the backing memmap

@@ -9,6 +9,10 @@ import threading
 import contextlib
 from abc import ABCMeta, abstractmethod
 
+from ._utils import (
+    _TracebackCapturingWrapper,
+    _retrieve_traceback_capturing_wrapped_call
+)
 
 from ._multiprocessing_helpers import mp
 
@@ -20,7 +24,6 @@ if mp is not None:
     # Import loky only if multiprocessing is present
     from .externals.loky import process_executor, cpu_count
     from .externals.loky.process_executor import ShutdownExecutorError
-    from .externals.loky.process_executor import _ExceptionWithTraceback
 
 
 class ParallelBackendBase(metaclass=ABCMeta):
@@ -177,7 +180,7 @@ class ParallelBackendBase(metaclass=ABCMeta):
         OpenBLAS libraries in the child processes.
         """
         explicit_n_threads = self.inner_max_num_threads
-        default_n_threads = str(max(cpu_count() // n_jobs, 1))
+        default_n_threads = max(cpu_count() // n_jobs, 1)
 
         # Set the inner environment variables to self.inner_max_num_threads if
         # it is given. Else, default to cpu_count // n_jobs unless the variable
@@ -185,13 +188,11 @@ class ParallelBackendBase(metaclass=ABCMeta):
         env = {}
         for var in self.MAX_NUM_THREADS_VARS:
             if explicit_n_threads is None:
-                var_value = os.environ.get(var, None)
-                if var_value is None:
-                    var_value = default_n_threads
+                var_value = os.environ.get(var, default_n_threads)
             else:
-                var_value = str(explicit_n_threads)
+                var_value = explicit_n_threads
 
-            env[var] = var_value
+            env[var] = str(var_value)
 
         if self.TBB_ENABLE_IPC_VAR not in os.environ:
             # To avoid over-subscription when using TBB, let the TBB schedulers
@@ -266,32 +267,19 @@ class PoolManagerMixin(object):
         """Used by apply_async to make it possible to implement lazy init"""
         return self._pool
 
-    @staticmethod
-    def _wrap_func_call(func):
-        """Protect function call and return error with traceback."""
-        try:
-            return func()
-        except BaseException as e:
-            return _ExceptionWithTraceback(e)
-
     def apply_async(self, func, callback=None):
         """Schedule a func to be run"""
         # Here, we need a wrapper to avoid crashes on KeyboardInterruptErrors.
         # We also call the callback on error, to make sure the pool does not
         # wait on crashed jobs.
         return self._get_pool().apply_async(
-            self._wrap_func_call, (func,),
+            _TracebackCapturingWrapper(func), (),
             callback=callback, error_callback=callback
         )
 
     def retrieve_result_callback(self, out):
         """Mimic concurrent.futures results, raising an error if needed."""
-        if isinstance(out, _ExceptionWithTraceback):
-            rebuild, args = out.__reduce__()
-            out = rebuild(*args)
-        if isinstance(out, BaseException):
-            raise out
-        return out
+        return _retrieve_traceback_capturing_wrapped_call(out)
 
     def abort_everything(self, ensure_ready=True):
         """Shutdown the pool and restart a new one with the same parameters"""

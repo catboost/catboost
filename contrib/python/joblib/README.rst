@@ -26,10 +26,10 @@ Getting the latest code
 
 To get the latest code using git, simply type::
 
-    git clone git://github.com/joblib/joblib.git
+    git clone https://github.com/joblib/joblib.git
 
-If you don't have git installed, you can download a zip or tarball
-of the latest code: http://github.com/joblib/joblib/archives/master
+If you don't have git installed, you can download a zip
+of the latest code: https://github.com/joblib/joblib/archive/refs/heads/master.zip
 
 Installing
 ==========
@@ -48,7 +48,7 @@ Dependencies
 ============
 
 - Joblib has no mandatory dependencies besides Python (supported versions are
-  3.7+).
+  3.8+).
 - Joblib has an optional dependency on Numpy (at least version 1.6.1) for array
   manipulation.
 - Joblib includes its own vendored copy of
@@ -67,8 +67,8 @@ Workflow to contribute
 ======================
 
 To contribute to joblib, first create an account on `github
-<http://github.com/>`_. Once this is done, fork the `joblib repository
-<http://github.com/joblib/joblib>`_ to have your own repository,
+<https://github.com/>`_. Once this is done, fork the `joblib repository
+<https://github.com/joblib/joblib>`_ to have your own repository,
 clone it using 'git clone' on the computers where you want to work. Make
 your changes in your clone, push them to your github account, test them
 on several computers, and when you are happy with them, send a pull
