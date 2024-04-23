@@ -109,6 +109,14 @@ def _strip_prefix(path, strip_components):
     return '' if stripped == '.' else stripped
 
 
+def is_empty(tar_file_path):
+    with libarchive.Archive(tar_file_path, mode="rb") as tarfile:
+        for _ in tarfile:
+            return False
+        else:
+            return True
+
+
 def tar(
     paths,
     output,

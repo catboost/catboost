@@ -31,6 +31,14 @@ def extract_tar(filename, dirname, strip_components=None):
     return archive.extract_tar(filename, dirname, strip_components)
 
 
+def test_is_empty():
+    with_entries = os.path.join(data_dir, "sample.tar")
+    wo_entries = yatest.common.output_path("empty.tar")
+    archive.tar([], wo_entries)
+    assert not archive.is_empty(with_entries)
+    assert archive.is_empty(wo_entries)
+
+
 def test_extract_tar():
     out_tar = yatest.common.output_path("out_tar")
     out_tar_gz = yatest.common.output_path("out_tar_gz")

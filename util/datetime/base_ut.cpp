@@ -33,14 +33,14 @@ struct TTestTime {
 };
 
 namespace {
-    inline void OldDate8601(char* buf, time_t when) {
+    inline void OldDate8601(char* buf, size_t bufLen, time_t when) {
         struct tm theTm;
         struct tm* ret = nullptr;
 
         ret = GmTimeR(&when, &theTm);
 
         if (ret) {
-            sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02dZ", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday, theTm.tm_hour, theTm.tm_min, theTm.tm_sec);
+            snprintf(buf, bufLen, "%04d-%02d-%02dT%02d:%02d:%02dZ", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday, theTm.tm_hour, theTm.tm_min, theTm.tm_sec);
         } else {
             *buf = '\0';
         }
@@ -158,7 +158,7 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
         for (size_t i = 0; i < 1000000; ++i) {
             const time_t t = RandomNumber<ui32>();
 
-            OldDate8601(buf1, t);
+            OldDate8601(buf1, sizeof(buf1), t);
             sprint_date8601(buf2, t);
 
             UNIT_ASSERT_VALUES_EQUAL(TStringBuf(buf1), TStringBuf(buf2));
