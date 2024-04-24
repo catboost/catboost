@@ -1265,7 +1265,7 @@ __sanitizer_verify_double_ended_contiguous_container(const void*, const void*, c
 #    define _LIBCPP_REINITIALIZES_OBJECT
 #  endif
 
-#  if __has_attribute(__nodebug__) && !defined(__CUDACC__)
+#  if __has_attribute(__nodebug__)
 #    define _LIBCPP_NODEBUG __attribute__((__nodebug__))
 #  else
 #    define _LIBCPP_NODEBUG
@@ -1299,7 +1299,7 @@ __sanitizer_verify_double_ended_contiguous_container(const void*, const void*, c
 #    define _LIBCPP_IF_WIDE_CHARACTERS(...) __VA_ARGS__
 #  endif
 
-#  if defined(_LIBCPP_ABI_MICROSOFT) && __has_declspec_attribute(empty_bases) && !defined(__CUDACC__)
+#  if defined(_LIBCPP_ABI_MICROSOFT) && __has_declspec_attribute(empty_bases)
 #    define _LIBCPP_DECLSPEC_EMPTY_BASES __declspec(empty_bases)
 #  else
 #    define _LIBCPP_DECLSPEC_EMPTY_BASES
@@ -1421,7 +1421,7 @@ __sanitizer_verify_double_ended_contiguous_container(const void*, const void*, c
 #    define _LIBCPP_PACKED_BYTE_FOR_AIX_END /* empty */
 #  endif
 
-#  if __has_attribute(__packed__) && !defined(__CUDACC__)
+#  if __has_attribute(__packed__)
 #    define _LIBCPP_PACKED __attribute__((__packed__))
 #  else
 #    define _LIBCPP_PACKED
