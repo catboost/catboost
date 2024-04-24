@@ -534,6 +534,9 @@ public:
     }
 
 private:
+    template <typename T>
+    using TJoinParam = std::conditional_t<std::is_same_v<T, TCharType>, TCharType, TBasicStringBuf<TCharType, TTraits>>;
+
     template <typename... R>
     static size_t SumLength(const TBasicStringBuf<TCharType, TTraits> s1, const R&... r) noexcept {
         return s1.size() + SumLength(r...);
@@ -563,6 +566,15 @@ private:
     static void CopyAll(TCharType*) noexcept {
     }
 
+    template <typename... R>
+    static inline TBasicString JoinImpl(const R&... r) {
+        TBasicString s{TUninitialized{SumLength(r...)}};
+
+        TBasicString::CopyAll((TCharType*)s.data(), r...);
+
+        return s;
+    }
+
 public:
     Y_REINITIALIZES_OBJECT inline void clear() noexcept {
 #ifdef TSTRING_IS_STD_STRING
@@ -580,11 +592,7 @@ public:
 
     template <typename... R>
     static inline TBasicString Join(const R&... r) {
-        TBasicString s{TUninitialized{SumLength(r...)}};
-
-        TBasicString::CopyAll((TCharType*)s.data(), r...);
-
-        return s;
+        return JoinImpl(TJoinParam<R>(r)...);
     }
 
     // ~~~ Assignment ~~~ : FAMILY0(TBasicString&, assign);
