@@ -320,7 +320,7 @@ private:
                         p.KeepAlive = false;
                     }
                 }
-                [[fallthrough]];
+                break;
                 HEADERCMP(header, "expect") {
                     auto findContinue = [&](const TStringBuf& s) {
                         if (strnicmp(s.data(), "100-continue", 13) == 0) {
