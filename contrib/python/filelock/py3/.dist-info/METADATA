@@ -1,6 +1,6 @@
 Metadata-Version: 2.3
 Name: filelock
-Version: 3.13.3
+Version: 3.13.4
 Summary: A platform independent file lock.
 Project-URL: Documentation, https://py-filelock.readthedocs.io
 Project-URL: Homepage, https://github.com/tox-dev/py-filelock

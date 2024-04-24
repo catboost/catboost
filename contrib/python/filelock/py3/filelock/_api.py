@@ -82,8 +82,8 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
     def __new__(  # noqa: PLR0913
         cls,
         lock_file: str | os.PathLike[str],
-        timeout: float = -1,  # noqa: ARG003
-        mode: int = 0o644,  # noqa: ARG003
+        timeout: float = -1,
+        mode: int = 0o644,
         thread_local: bool = True,  # noqa: ARG003, FBT001, FBT002
         *,
         is_singleton: bool = False,
@@ -97,6 +97,9 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         if not instance:
             instance = super().__new__(cls)
             cls._instances[str(lock_file)] = instance
+        elif timeout != instance.timeout or mode != instance.mode:
+            msg = "Singleton lock instances cannot be initialized with differing arguments"
+            raise ValueError(msg)
 
         return instance  # type: ignore[return-value] # https://github.com/python/mypy/issues/15322
 
@@ -173,6 +176,11 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
 
         """
         self._context.timeout = float(value)
+
+    @property
+    def mode(self) -> int:
+        """:return: the file permissions for the lockfile"""
+        return self._context.mode
 
     @abstractmethod
     def _acquire(self) -> None:
