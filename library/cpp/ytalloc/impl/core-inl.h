@@ -251,7 +251,7 @@ void AssertBlobState(T* header, E expectedState)
     auto actualState = header->State;
     if (Y_UNLIKELY(actualState != expectedState)) {
         char message[256];
-        sprintf(message, "Invalid blob header state at %p: expected %" PRIx64 ", actual %" PRIx64,
+        snprintf(message, sizeof(message), "Invalid blob header state at %p: expected %" PRIx64 ", actual %" PRIx64,
             header,
             static_cast<ui64>(expectedState),
             static_cast<ui64>(actualState));
@@ -2678,7 +2678,7 @@ public:
         auto actualState = state;
         if (Y_UNLIKELY(actualState != expectedState)) {
             char message[256];
-            sprintf(message, "Invalid small chunk state at %p: expected %" PRIx8 ", actual %" PRIx8,
+            snprintf(message, sizeof(message), "Invalid small chunk state at %p: expected %" PRIx8 ", actual %" PRIx8,
                 ptr,
                 static_cast<ui8>(expectedState),
                 static_cast<ui8>(actualState));
