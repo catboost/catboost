@@ -2,21 +2,17 @@
 
 #include <util/system/compiler.h>
 
+#define YT_PREVENT_TLS_CACHING Y_NO_INLINE
+
 // Workaround for fiber (un)friendly TLS.
-// Volatile qualifier prevents caching access to thread local variables.
-#define YT_THREAD_LOCAL(...) thread_local __VA_ARGS__ volatile
+#define YT_DECLARE_THREAD_LOCAL(type, name) \
+    type& name();
 
-namespace NYT {
+#define YT_DEFINE_THREAD_LOCAL(type, name, ...) \
+    thread_local type name##Data { __VA_ARGS__ }; \
+    Y_NO_INLINE type& name() \
+    { \
+        asm volatile(""); \
+        return name##Data; \
+    }
 
-////////////////////////////////////////////////////////////////////////////////
-
-template <class T>
-Y_FORCE_INLINE T& GetTlsRef(volatile T& arg);
-
-////////////////////////////////////////////////////////////////////////////////
-
-} // namespace NYT
-
-#define TLS_INL_H_
-#include "tls-inl.h"
-#undef TLS_INL_H_

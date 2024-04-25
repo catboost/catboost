@@ -31,18 +31,16 @@ double GetTicksToMicroseconds()
     return TicksToMicroseconds;
 }
 
-TCalibrationState GetCalibrationState(TCpuInstant cpuInstant)
+YT_PREVENT_TLS_CACHING TCalibrationState GetCalibrationState(TCpuInstant cpuInstant)
 {
-    YT_THREAD_LOCAL(TCalibrationState) State;
+    thread_local TCalibrationState State;
 
-    auto& state = GetTlsRef(State);
-
-    if (state.CpuInstant + CalibrationCpuPeriod < cpuInstant) {
-        state.CpuInstant = cpuInstant;
-        state.Instant = TInstant::Now();
+    if (State.CpuInstant + CalibrationCpuPeriod < cpuInstant) {
+        State.CpuInstant = cpuInstant;
+        State.Instant = TInstant::Now();
     }
 
-    return state;
+    return State;
 }
 
 TCalibrationState GetCalibrationState()

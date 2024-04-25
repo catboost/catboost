@@ -13,26 +13,26 @@ namespace NYT::NThreading::NPrivate {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-YT_THREAD_LOCAL(i64) ActiveSpinLockCount = 0;
+YT_DEFINE_THREAD_LOCAL(i64, ActiveSpinLockCount, 0);
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void RecordSpinLockAcquired(bool isAcquired)
 {
     if (isAcquired) {
-        ActiveSpinLockCount++;
+        ActiveSpinLockCount()++;
     }
 }
 
 void RecordSpinLockReleased()
 {
-    YT_VERIFY(ActiveSpinLockCount > 0);
-    ActiveSpinLockCount--;
+    YT_VERIFY(ActiveSpinLockCount() > 0);
+    ActiveSpinLockCount()--;
 }
 
 void VerifyNoSpinLockAffinity()
 {
-    YT_VERIFY(ActiveSpinLockCount == 0);
+    YT_VERIFY(ActiveSpinLockCount() == 0);
 }
 
 #endif

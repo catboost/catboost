@@ -14,15 +14,16 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-extern YT_THREAD_LOCAL(TSequentialThreadId) CachedSequentialThreadId;
+YT_DECLARE_THREAD_LOCAL(TSequentialThreadId, CachedSequentialThreadId);
 extern std::atomic<TSequentialThreadId> SequentialThreadIdGenerator;
 
 inline TSequentialThreadId GetSequentialThreadId()
 {
-    if (Y_UNLIKELY(CachedSequentialThreadId == InvalidSequentialThreadId)) {
-        CachedSequentialThreadId = ++SequentialThreadIdGenerator;
+    auto& cachedSequentialThreadId = CachedSequentialThreadId();
+    if (Y_UNLIKELY(cachedSequentialThreadId == InvalidSequentialThreadId)) {
+        cachedSequentialThreadId = ++SequentialThreadIdGenerator;
     }
-    return CachedSequentialThreadId;
+    return cachedSequentialThreadId;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
