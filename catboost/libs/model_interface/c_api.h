@@ -53,6 +53,7 @@ enum EApiPredictionType {
     APT_RMSE_WITH_UNCERTAINTY = 2,
     APT_PROBABILITY = 3,
     APT_CLASS = 4,
+    APT_MULTI_PROBABILITY = 5,
 };
 
 enum ECatBoostApiFormulaEvaluatorType {
