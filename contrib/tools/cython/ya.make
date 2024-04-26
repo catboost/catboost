@@ -9,7 +9,7 @@ LICENSE(
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-OWNER(g:python-contrib)
+SUBSCRIBER(g:python-contrib)
 
 VERSION(0.29.37)
 
