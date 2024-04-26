@@ -371,7 +371,7 @@ namespace NKernel {
             const float scoreBefore = !skip ? beforeSplitCalcer.GetScore() : FLT_MAX;
 
             //-10 - 0 = -10
-            //in gpu catboost all scores are inverse, lower is better
+            //in GPU catboost all scores are inverse, lower is better
             float gain = !skip ? (scoreAfter - scoreBefore) : 0;
 
             const ui32 featureId = bf[binFeatureId].FeatureId;
@@ -460,7 +460,7 @@ namespace NKernel {
             const float scoreBefore = !skip ? beforeSplitCalcer.GetScore() : FLT_MAX;
 
             //-10 - 0 = -10
-            //in gpu catboost all scores are inverse, lower is better
+            //in GPU catboost all scores are inverse, lower is better
             float gain = !skip ? (scoreAfter - scoreBefore) : 0;
 
             const ui32 featureId = bf[binFeatureId].FeatureId;

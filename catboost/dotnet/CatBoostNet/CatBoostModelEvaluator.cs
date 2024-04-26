@@ -74,7 +74,7 @@ namespace CatBoostNet {
         public uint CatFeaturesCount => CatboostNativeInterface.GetCatFeaturesCount(ModelContainer.ModelHandler);
 
         /// <summary>
-        /// Use CUDA gpu device for model evaluation
+        /// Use CUDA GPU device for model evaluation
         /// </summary>
         public bool EnableGpuEvaluation(int deviceId) {
             return CatboostNativeInterface.EnableGPUEvaluation(ModelContainer.ModelHandler, deviceId);

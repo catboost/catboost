@@ -19,10 +19,10 @@ namespace NCB::NModelEvaluation {
                 : ModelTrees(model.ModelTrees)
                 , ApplyData(ModelTrees->GetApplyData())
             {
-                CB_ENSURE(!model.HasCategoricalFeatures(), "Model contains categorical features, gpu evaluation impossible");
-                CB_ENSURE(!model.HasTextFeatures(), "Model contains text features, gpu evaluation impossible");
-                CB_ENSURE(!model.HasEmbeddingFeatures(), "Model contains embedding features, gpu evaluation impossible");
-                CB_ENSURE(model.IsOblivious(), "Model is not oblivious, gpu evaluation impossible");
+                CB_ENSURE(!model.HasCategoricalFeatures(), "Model contains categorical features, GPU evaluation impossible");
+                CB_ENSURE(!model.HasTextFeatures(), "Model contains text features, GPU evaluation impossible");
+                CB_ENSURE(!model.HasEmbeddingFeatures(), "Model contains embedding features, GPU evaluation impossible");
+                CB_ENSURE(model.IsOblivious(), "Model is not oblivious, GPU evaluation impossible");
 
                 // TODO(akhropov): Support Multidimensional models
                 CB_ENSURE(ModelTrees->GetDimensionsCount() == 1, "Model is not one-dimensional, GPU evaluation is not supported yet");

@@ -575,7 +575,7 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
                 const auto positive = (prng.Uniform(2) == 0);
                 floats1[i] = (positive ? 1.f : -1.f) * prng.GenRandReal4() * scaleFactor;
                 if (TFloat16(floats1[i]) == 0.f) {
-                    // there is some inconsistency between cpu and gpu implementation of float to
+                    // there is some inconsistency between CPU and GPU implementation of float to
                     // half, just ignore everything that get casted to zero
                     floats1[i] = 0.f;
                 }
@@ -686,7 +686,7 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
                 const auto positive = (prng.Uniform(2) == 0);
                 floats1[i] = (positive ? 1.f : -1.f) * prng.GenRandReal4() * scaleFactor;
                 if (TFloat16(floats1[i]) == -0.f) {
-                    // there is some inconsistency between cpu and gpu implementation of float to
+                    // there is some inconsistency between CPU and GPU implementation of float to
                     // half, just ignore everything that get casted to zero
                     floats1[i] = 0.f;
                 }

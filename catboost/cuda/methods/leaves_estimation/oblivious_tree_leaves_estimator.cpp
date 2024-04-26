@@ -124,7 +124,7 @@ namespace NCatboostCuda {
             });
 
             //TODO(noxoomo): check change to reduceToAll and migrate all gradient descent to device side
-            //for 64 leaves cpu side code is fast enough (
+            //for 64 leaves CPU side code is fast enough (
             PartStats
                 .CreateReader()
                 .SetReadSlice(PartStats.GetMapping().DeviceSlice(0))

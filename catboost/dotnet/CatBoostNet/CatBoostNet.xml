@@ -118,7 +118,7 @@
         </member>
         <member name="M:CatBoostNet.CatBoostModelEvaluator.EnableGpuEvaluation(System.Int32)">
             <summary>
-            Use CUDA gpu device for model evaluation
+            Use CUDA GPU device for model evaluation
             </summary>
         </member>
         <member name="M:CatBoostNet.CatBoostModelEvaluator.GetModelInfoValue(System.String)">
@@ -216,7 +216,7 @@
         </member>
         <member name="M:CatBoostNet.CatboostNativeInterface.EnableGPUEvaluation(System.IntPtr,System.Int32)">
             <summary>
-            Use CUDA gpu device for model evaluation
+            Use CUDA GPU device for model evaluation
             </summary>
             <param name="handler"></param>
             <param name="deviceId"></param>

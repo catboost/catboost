@@ -312,7 +312,7 @@ namespace NCudaLib {
                 ui64 total = 0;
                 CUDA_SAFE_CALL(cudaMemGetInfo(&free, &total));
                 if (free * 1.0 / DeviceProperties.GetDeviceMemory() < 0.75) {
-                    CATBOOST_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << total * 1.0 / 1024 / 1024 << Endl;
+                    CATBOOST_WARNING_LOG << "Warning: less than 75% GPU memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << total * 1.0 / 1024 / 1024 << Endl;
                 }
                 gpuMemorySize = (ui64)(free * initTask.GpuMemoryPart);
             }

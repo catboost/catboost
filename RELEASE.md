@@ -241,7 +241,7 @@ This allowed us to prepare the Python package in the source distribution form (a
 # Release 1.0.6
 ## New features
 
-* Fixed splits for binary features on gpu for non-symmetric trees -- specify the set of splits to start each tree in the model with `--fixed-binary-splits` or `fixed_binary_splits` in Python package (by default, there are no fixed splits)
+* Fixed splits for binary features on GPU for non-symmetric trees -- specify the set of splits to start each tree in the model with `--fixed-binary-splits` or `fixed_binary_splits` in Python package (by default, there are no fixed splits)
 
 
 ## Documentation
@@ -249,17 +249,17 @@ This allowed us to prepare the Python package in the source distribution form (a
 * New sections on [MultiRMSEWithMissingValues](https://catboost.ai/en/docs/concepts/loss-functions-multiregression#MultiRMSEWithMissingValues)
 and [LogCosh](https://catboost.ai/en/docs/concepts/loss-functions-regression#LogCosh)
 * New section on [get_embedding_feature_indices](https://catboost.ai/en/docs/concepts/python-reference_pool_get_embedding_feature_indices)
-* Add info on gpu support for metrics
+* Add info on GPU support for metrics
 
 
 ## Bug-fixes
 
 * Fix warning about resetting logger when logging to sys.stdout & sys.stderr from different threads #1855
 * Fix model summation in CatBoost for Apache Spark
-* Fix performance and scalability of query auc for ranking (1m samples, query size 2, 8 cpu cores 0.55s -> 0.04s)
+* Fix performance and scalability of query auc for ranking (1m samples, query size 2, 8 CPU cores 0.55s -> 0.04s)
 * Fix support for text features and embeddings in Java applier #2043
 * Fix nan/inf split scores with yeti rank pairwise loss
-* Fix nan/inf feature strengths in pair logit on cpu
+* Fix nan/inf feature strengths in pair logit on CPU
 
 
 # Release 1.0.5
@@ -396,7 +396,7 @@ In this release we decided to increment major version as we think that CatBoost 
 
 ## GPU improvements
 * Fixed distributed training performance on Ethernet networks ~2x training time speedup. For 2 hosts, 8 v100/host, 10gigabit eth, 300 factors, 150m samples, 200 trees, 3300s -> 1700s
-* We've found a bug in model-size-reg implementation in gpu that leaded to worse quality of resulting model, especially in comparison to model trained on CPU with equal parameters
+* We've found a bug in model-size-reg implementation in GPU that leaded to worse quality of resulting model, especially in comparison to model trained on CPU with equal parameters
 
 ## Rust
 * Enabled load model from buffer for rust by @manavsah
@@ -601,7 +601,7 @@ CatBoost supports recursive feature elimination procedure - when you have lot's 
 
 
 ## Bugfixes:
-* Reduced GPU memory usage in multi gpu training when there is no need to compute categorical feature counters.
+* Reduced GPU memory usage in multi GPU training when there is no need to compute categorical feature counters.
 * Now CatBoost allows to specify `use_weights` for metrics when `auto_class_weights` parameter is set.
 * Correctly handle NaN values in `plot_predictions` function.
 * Fixed floating point precision drop releated bugs during Multiclass training with lots of objects in our case, bug was triggered while training on 25mln objects on single GPU card.

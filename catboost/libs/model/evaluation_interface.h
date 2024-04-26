@@ -99,7 +99,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 }
             }
 
-            // TODO(kirillovs): maybe write special class for results (on gpu it'll hold floats in possibly managed memory)
+            // TODO(kirillovs): maybe write special class for results (on GPU it'll hold floats in possibly managed memory)
             TVector<double> CreateVectorForPredictions(size_t docCount) const {
                 return TVector<double>(docCount * GetPredictionDimensions());
             }

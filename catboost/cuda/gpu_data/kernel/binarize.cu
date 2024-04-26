@@ -220,7 +220,7 @@ namespace NKernel {
 
         if (tid < (bordersCount + 1)) {
             const float borderIdx = tid * 1.0f / bordersCount;
-            //emulate ui8 rounding in cpu
+            //emulate ui8 rounding in CPU
             const float val =  (minValue + borderIdx * (maxValue - minValue)) * 0.9999;
             borders[tid] =  tid == 0 ? bordersCount : val;
         }

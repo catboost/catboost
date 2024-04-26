@@ -237,7 +237,7 @@ You need to implement special `ILineDataReader` successor class for scheme and p
 ## 20. Example of Kaggle GPU kernel in tutorials
 
 Use some large dataset, for example Epsilon (in catboost.datasets).
-In kernel run cpu and gpu and compare timings.
+In kernel run CPU and GPU and compare timings.
 Put link to kernel in tutorials repo.
 
 ## 21. rename Custom to UserDefined

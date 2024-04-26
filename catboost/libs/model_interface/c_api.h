@@ -103,7 +103,7 @@ CATBOOST_API bool LoadFullModelFromBuffer(
     size_t binaryBufferSize);
 
 /**
- * Use CUDA gpu device for model evaluation
+ * Use CUDA GPU device for model evaluation
 */
 CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId);
 

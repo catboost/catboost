@@ -7,7 +7,7 @@
 
 namespace NCudaLib {
     enum class EProfileMode {
-        //profile host + gpu operation time
+        //profile host + GPU operation time
         ImplicitLabelSync,
         //profile host send and recieve result time
         LabelAsync,
