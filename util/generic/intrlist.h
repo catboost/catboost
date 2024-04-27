@@ -39,7 +39,7 @@ public:
         Prev_->SetNext(Next_);
         Next_->SetPrev(Prev_);
 
-        SetEnd();
+        ResetItem();
     }
 
     inline void LinkBefore(TListItem* before) noexcept {
@@ -87,11 +87,6 @@ public:
     }
 
 public:
-    inline void SetEnd() noexcept {
-        Prev_ = this;
-        Next_ = Prev_;
-    }
-
     inline void SetNext(TListItem* item) noexcept {
         Next_ = item;
     }
@@ -107,6 +102,28 @@ public:
 
     inline const T* Node() const noexcept {
         return static_cast<const T*>(this);
+    }
+
+public:
+    // NB(arkady-e1ppa): These methods are used to implement
+    // intrusive lock-free algorithms which want to natively
+    // interact with TIntrusiveList.
+    // Assume that if you've used MutableNext/MutablePrev
+    // methods, you are not safe to use anything but
+    // MutableNext/MutablePrev/ResetItem methods until
+    // you call a ResetItem method.
+
+    inline TListItem*& MutableNext() noexcept {
+        return Next_;
+    }
+
+    inline TListItem*& MutablePrev() noexcept {
+        return Prev_;
+    }
+
+    inline void ResetItem() noexcept {
+        Next_ = this;
+        Prev_ = Next_;
     }
 
 private:
@@ -506,6 +523,10 @@ public:
 
     inline void Append(TIntrusiveList& list) noexcept {
         Cut(list.Begin(), list.End(), End());
+    }
+
+    inline void Append(TIntrusiveList&& list) noexcept {
+        Append(list);
     }
 
     inline static void Cut(TIterator begin, TIterator end, TIterator pasteBefore) noexcept {
