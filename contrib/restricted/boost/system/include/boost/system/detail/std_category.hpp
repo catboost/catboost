@@ -35,7 +35,7 @@ private:
 
 public:
 
-    boost::system::error_category const & original_category() const BOOST_NOEXCEPT
+    boost::system::error_category const & original_category() const noexcept
     {
         return *pc_;
     }
@@ -51,16 +51,12 @@ public:
         // here when Id != 0, but this should never happen now because this code
         // path is no longer used
 
-#if !defined(BOOST_NO_CXX11_STATIC_ASSERT)
-
         static_assert( Id == 0, "This constructor should only be called with Id == 0 under MS STL 14.0+" );
-
-#endif
 
 #endif
     }
 
-    const char * name() const BOOST_NOEXCEPT BOOST_OVERRIDE
+    const char * name() const noexcept BOOST_OVERRIDE
     {
         return pc_->name();
     }
@@ -70,13 +66,13 @@ public:
         return pc_->message( ev );
     }
 
-    std::error_condition default_error_condition( int ev ) const BOOST_NOEXCEPT BOOST_OVERRIDE
+    std::error_condition default_error_condition( int ev ) const noexcept BOOST_OVERRIDE
     {
         return pc_->default_error_condition( ev );
     }
 
-    inline bool equivalent( int code, const std::error_condition & condition ) const BOOST_NOEXCEPT BOOST_OVERRIDE;
-    inline bool equivalent( const std::error_code & code, int condition ) const BOOST_NOEXCEPT BOOST_OVERRIDE;
+    inline bool equivalent( int code, const std::error_condition & condition ) const noexcept BOOST_OVERRIDE;
+    inline bool equivalent( const std::error_code & code, int condition ) const noexcept BOOST_OVERRIDE;
 };
 
 } // namespace detail

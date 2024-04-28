@@ -17,11 +17,8 @@
 #include <string>
 #include <functional>
 #include <cstddef>
-
-#if defined(BOOST_SYSTEM_HAS_SYSTEM_ERROR)
-# include <system_error>
-# include <atomic>
-#endif
+#include <system_error>
+#include <atomic>
 
 namespace boost
 {
@@ -64,19 +61,10 @@ private:
     friend class error_code;
     friend class error_condition;
 
-#if !defined(BOOST_NO_CXX11_DELETED_FUNCTIONS)
 public:
 
     error_category( error_category const & ) = delete;
     error_category& operator=( error_category const & ) = delete;
-
-#else
-private:
-
-    error_category( error_category const & );
-    error_category& operator=( error_category const & );
-
-#endif
 
 private:
 
@@ -90,75 +78,47 @@ private:
         void const* stdcat_align_;
     };
 
-#if defined(BOOST_SYSTEM_HAS_SYSTEM_ERROR)
-
     mutable std::atomic< unsigned > sc_init_;
-
-#else
-
-    unsigned sc_init_;
-
-#endif
 
 protected:
 
-#if !defined(BOOST_NO_CXX11_DEFAULTED_FUNCTIONS) && !defined(BOOST_NO_CXX11_NON_PUBLIC_DEFAULTED_FUNCTIONS)
-
     ~error_category() = default;
 
-#else
-
-    // We'd like to make the destructor protected, to make code that deletes
-    // an error_category* not compile; unfortunately, doing the below makes
-    // the destructor user-provided and hence breaks use after main, as the
-    // categories may get destroyed before code that uses them
-
-    // ~error_category() {}
-
-#endif
-
-#if !BOOST_WORKAROUND(BOOST_GCC, < 40800)
-    BOOST_CONSTEXPR
-#endif
-    error_category() BOOST_NOEXCEPT: id_( 0 ), stdcat_(), sc_init_()
+    constexpr error_category() noexcept: id_( 0 ), stdcat_(), sc_init_()
     {
     }
 
-    explicit
-#if !BOOST_WORKAROUND(BOOST_GCC, < 40800)
-    BOOST_CONSTEXPR
-#endif
-    error_category( boost::ulong_long_type id ) BOOST_NOEXCEPT: id_( id ), stdcat_(), sc_init_()
+    explicit constexpr error_category( boost::ulong_long_type id ) noexcept: id_( id ), stdcat_(), sc_init_()
     {
     }
 
 public:
 
-    virtual const char * name() const BOOST_NOEXCEPT = 0;
+    virtual const char * name() const noexcept = 0;
 
-    virtual error_condition default_error_condition( int ev ) const BOOST_NOEXCEPT;
-    virtual bool equivalent( int code, const error_condition & condition ) const BOOST_NOEXCEPT;
-    virtual bool equivalent( const error_code & code, int condition ) const BOOST_NOEXCEPT;
+    virtual error_condition default_error_condition( int ev ) const noexcept;
+    virtual bool equivalent( int code, const error_condition & condition ) const noexcept;
+    virtual bool equivalent( const error_code & code, int condition ) const noexcept;
 
     virtual std::string message( int ev ) const = 0;
-    virtual char const * message( int ev, char * buffer, std::size_t len ) const BOOST_NOEXCEPT;
+    virtual char const * message( int ev, char * buffer, std::size_t len ) const noexcept;
 
-    virtual bool failed( int ev ) const BOOST_NOEXCEPT
+    virtual bool failed( int ev ) const noexcept
     {
         return ev != 0;
     }
 
-    friend BOOST_SYSTEM_CONSTEXPR bool operator==( error_category const & lhs, error_category const & rhs ) BOOST_NOEXCEPT
+    friend BOOST_SYSTEM_CONSTEXPR bool operator==( error_category const & lhs, error_category const & rhs ) noexcept
     {
         return rhs.id_ == 0? &lhs == &rhs: lhs.id_ == rhs.id_;
     }
 
-    friend BOOST_SYSTEM_CONSTEXPR bool operator!=( error_category const & lhs, error_category const & rhs ) BOOST_NOEXCEPT
+    friend BOOST_SYSTEM_CONSTEXPR bool operator!=( error_category const & lhs, error_category const & rhs ) noexcept
     {
         return !( lhs == rhs );
     }
 
-    friend BOOST_SYSTEM_CONSTEXPR bool operator<( error_category const & lhs, error_category const & rhs ) BOOST_NOEXCEPT
+    friend BOOST_SYSTEM_CONSTEXPR bool operator<( error_category const & lhs, error_category const & rhs ) noexcept
     {
         if( lhs.id_ < rhs.id_ )
         {
@@ -178,8 +138,6 @@ public:
         return std::less<error_category const *>()( &lhs, &rhs );
     }
 
-#if defined(BOOST_SYSTEM_HAS_SYSTEM_ERROR)
-
     void init_stdcat() const;
 
 # if defined(__SUNPRO_CC) // trailing __global is not supported
@@ -187,8 +145,6 @@ public:
 # else
     operator std::error_category const & () const BOOST_SYMBOL_VISIBLE;
 # endif
-
-#endif
 };
 
 #if defined(BOOST_MSVC) && BOOST_MSVC < 1900

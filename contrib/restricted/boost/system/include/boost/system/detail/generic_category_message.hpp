@@ -27,17 +27,17 @@ namespace detail
 
 // glibc has two incompatible strerror_r definitions
 
-inline char const * strerror_r_helper( char const * r, char const * ) BOOST_NOEXCEPT
+inline char const * strerror_r_helper( char const * r, char const * ) noexcept
 {
     return r;
 }
 
-inline char const * strerror_r_helper( int r, char const * buffer ) BOOST_NOEXCEPT
+inline char const * strerror_r_helper( int r, char const * buffer ) noexcept
 {
     return r == 0? buffer: "Unknown error";
 }
 
-inline char const * generic_error_category_message( int ev, char * buffer, std::size_t len ) BOOST_NOEXCEPT
+inline char const * generic_error_category_message( int ev, char * buffer, std::size_t len ) noexcept
 {
     return strerror_r_helper( strerror_r( ev, buffer, len ), buffer );
 }
@@ -68,7 +68,7 @@ inline std::string generic_error_category_message( int ev )
     return m? m: "Unknown error";
 }
 
-inline char const * generic_error_category_message( int ev, char * buffer, std::size_t len ) BOOST_NOEXCEPT
+inline char const * generic_error_category_message( int ev, char * buffer, std::size_t len ) noexcept
 {
     if( len == 0 )
     {

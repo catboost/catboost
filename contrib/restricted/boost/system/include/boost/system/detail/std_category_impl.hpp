@@ -26,7 +26,7 @@ namespace system
 namespace detail
 {
 
-inline bool std_category::equivalent( int code, const std::error_condition & condition ) const BOOST_NOEXCEPT
+inline bool std_category::equivalent( int code, const std::error_condition & condition ) const noexcept
 {
     if( condition.category() == *this )
     {
@@ -55,7 +55,7 @@ inline bool std_category::equivalent( int code, const std::error_condition & con
     }
 }
 
-inline bool std_category::equivalent( const std::error_code & code, int condition ) const BOOST_NOEXCEPT
+inline bool std_category::equivalent( const std::error_code & code, int condition ) const noexcept
 {
     if( code.category() == *this )
     {

@@ -25,7 +25,7 @@ namespace system
 namespace detail
 {
 
-inline int system_category_condition_win32( int ev ) BOOST_NOEXCEPT
+inline int system_category_condition_win32( int ev ) noexcept
 {
     // When using the Windows Runtime, most system errors are reported as HRESULTs.
     // We want to map the common Win32 errors to their equivalent error condition,

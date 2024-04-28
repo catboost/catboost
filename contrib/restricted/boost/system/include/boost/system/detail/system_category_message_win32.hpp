@@ -47,7 +47,7 @@ inline boost::winapi::UINT_ message_cp_win32()
 #endif
 }
 
-inline char const * system_category_message_win32( int ev, char * buffer, std::size_t len ) BOOST_NOEXCEPT
+inline char const * system_category_message_win32( int ev, char * buffer, std::size_t len ) noexcept
 {
     if( len == 0 )
     {
