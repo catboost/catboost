@@ -144,6 +144,10 @@ template<class E, class T> std::basic_ostream<E, T> & operator<<( std::basic_ost
 
 # define BOOST_CURRENT_LOCATION ::boost::source_location()
 
+#elif defined(BOOST_MSVC) && BOOST_MSVC >= 1935
+
+# define BOOST_CURRENT_LOCATION ::boost::source_location(__builtin_FILE(), __builtin_LINE(), __builtin_FUNCSIG(), __builtin_COLUMN())
+
 #elif defined(BOOST_MSVC) && BOOST_MSVC >= 1926
 
 // std::source_location::current() is available in -std:c++20, but fails with consteval errors before 19.31, and doesn't produce
