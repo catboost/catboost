@@ -164,6 +164,7 @@
 #endif
 
 #if defined(BOOST_NO_CXX14)\
+   || defined(BOOST_NO_CXX17_AUTO_NONTYPE_TEMPLATE_PARAMS)\
    || defined(BOOST_NO_CXX17_DEDUCTION_GUIDES)\
    || defined(BOOST_NO_CXX17_FOLD_EXPRESSIONS)\
    || defined(BOOST_NO_CXX17_HDR_ANY)\

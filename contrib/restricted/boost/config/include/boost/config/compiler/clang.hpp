@@ -327,6 +327,10 @@
 #  define BOOST_NO_CXX17_FOLD_EXPRESSIONS
 #endif
 
+#if (__clang_major__ < 4) || (__cplusplus < 201406L) /* non-standard value that is greater than 201402, which is reported by clang 4.0.0 for C++1z */
+#  define BOOST_NO_CXX17_AUTO_NONTYPE_TEMPLATE_PARAMS
+#endif
+
 #if __cplusplus < 201103L
 #define BOOST_NO_CXX11_SFINAE_EXPR
 #endif
