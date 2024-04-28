@@ -3,13 +3,12 @@
 Implements the Distutils 'install_lib' command
 (install all Python modules)."""
 
-import os
 import importlib.util
+import os
 import sys
 
 from ..core import Command
 from ..errors import DistutilsOptionError
-
 
 # Extension for Python source files.
 PYTHON_SOURCE_EXTENSION = ".py"

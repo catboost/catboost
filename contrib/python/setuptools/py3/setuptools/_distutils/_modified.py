@@ -3,9 +3,9 @@
 import functools
 import os.path
 
+from ._functools import splat
 from .errors import DistutilsFileError
 from .py39compat import zip_strict
-from ._functools import splat
 
 
 def _newer(source, target):

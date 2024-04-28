@@ -6,25 +6,25 @@ the Mingw32CCompiler class which handles the mingw32 port of GCC (same as
 cygwin in no-cygwin mode).
 """
 
-import os
-import re
-import sys
 import copy
+import os
+import pathlib
+import re
 import shlex
+import sys
 import warnings
 from subprocess import check_output
 
-from .unixccompiler import UnixCCompiler
-from .file_util import write_file
+from ._collections import RangeMap
 from .errors import (
-    DistutilsExecError,
-    DistutilsPlatformError,
     CCompilerError,
     CompileError,
+    DistutilsExecError,
+    DistutilsPlatformError,
 )
+from .file_util import write_file
+from .unixccompiler import UnixCCompiler
 from .version import LooseVersion, suppress_known_deprecation
-from ._collections import RangeMap
-
 
 _msvcr_lookup = RangeMap.left(
     {
@@ -87,9 +87,7 @@ class CygwinCCompiler(UnixCCompiler):
         super().__init__(verbose, dry_run, force)
 
         status, details = check_config_h()
-        self.debug_print(
-            "Python's GCC status: {} (details: {})".format(status, details)
-        )
+        self.debug_print(f"Python's GCC status: {status} (details: {details})")
         if status is not CONFIG_H_OK:
             self.warn(
                 "Python's pyconfig.h doesn't seem to support your compiler. "
@@ -108,7 +106,7 @@ class CygwinCCompiler(UnixCCompiler):
             compiler_so='%s -mcygwin -mdll -O -Wall' % self.cc,
             compiler_cxx='%s -mcygwin -O -Wall' % self.cxx,
             linker_exe='%s -mcygwin' % self.cc,
-            linker_so=('{} -mcygwin {}'.format(self.linker_dll, shared_option)),
+            linker_so=(f'{self.linker_dll} -mcygwin {shared_option}'),
         )
 
         # Include the appropriate MSVC runtime library if Python was built
@@ -280,7 +278,7 @@ class Mingw32CCompiler(CygwinCCompiler):
             compiler_so='%s -mdll -O -Wall' % self.cc,
             compiler_cxx='%s -O -Wall' % self.cxx,
             linker_exe='%s' % self.cc,
-            linker_so='{} {}'.format(self.linker_dll, shared_option),
+            linker_so=f'{self.linker_dll} {shared_option}',
         )
 
     def runtime_library_dir_option(self, dir):
@@ -331,20 +329,21 @@ def check_config_h():
     # let's see if __GNUC__ is mentioned in python.h
     fn = sysconfig.get_config_h_filename()
     try:
-        config_h = open(fn)
-        try:
-            if "__GNUC__" in config_h.read():
-                return CONFIG_H_OK, "'%s' mentions '__GNUC__'" % fn
-            else:
-                return CONFIG_H_NOTOK, "'%s' does not mention '__GNUC__'" % fn
-        finally:
-            config_h.close()
+        config_h = pathlib.Path(fn).read_text(encoding='utf-8')
+        substring = '__GNUC__'
+        if substring in config_h:
+            code = CONFIG_H_OK
+            mention_inflected = 'mentions'
+        else:
+            code = CONFIG_H_NOTOK
+            mention_inflected = 'does not mention'
+        return code, f"{fn!r} {mention_inflected} {substring!r}"
     except OSError as exc:
-        return (CONFIG_H_UNCERTAIN, "couldn't read '{}': {}".format(fn, exc.strerror))
+        return (CONFIG_H_UNCERTAIN, f"couldn't read '{fn}': {exc.strerror}")
 
 
 def is_cygwincc(cc):
-    '''Try to determine if the compiler that would be used is from cygwin.'''
+    """Try to determine if the compiler that would be used is from cygwin."""
     out_string = check_output(shlex.split(cc) + ['-dumpmachine'])
     return out_string.strip().endswith(b'cygwin')
 

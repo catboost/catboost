@@ -26,9 +26,9 @@ Every version number class implements the following interface:
     of the same class, thus must follow the same rules)
 """
 
+import contextlib
 import re
 import warnings
-import contextlib
 
 
 @contextlib.contextmanager
@@ -60,7 +60,7 @@ class Version:
         )
 
     def __repr__(self):
-        return "{} ('{}')".format(self.__class__.__name__, str(self))
+        return f"{self.__class__.__name__} ('{str(self)}')"
 
     def __eq__(self, other):
         c = self._cmp(other)
@@ -111,7 +111,6 @@ class Version:
 
 
 class StrictVersion(Version):
-
     """Version numbering for anal retentives and software idealists.
     Implements the standard interface for version number classes as
     described above.  A version number consists of two or three
@@ -179,42 +178,36 @@ class StrictVersion(Version):
 
         return vstring
 
-    def _cmp(self, other):  # noqa: C901
+    def _cmp(self, other):
         if isinstance(other, str):
             with suppress_known_deprecation():
                 other = StrictVersion(other)
         elif not isinstance(other, StrictVersion):
             return NotImplemented
 
-        if self.version != other.version:
-            # numeric versions don't match
-            # prerelease stuff doesn't matter
-            if self.version < other.version:
-                return -1
-            else:
-                return 1
+        if self.version == other.version:
+            # versions match; pre-release drives the comparison
+            return self._cmp_prerelease(other)
 
-        # have to compare prerelease
-        # case 1: neither has prerelease; they're equal
-        # case 2: self has prerelease, other doesn't; other is greater
-        # case 3: self doesn't have prerelease, other does: self is greater
-        # case 4: both have prerelease: must compare them!
+        return -1 if self.version < other.version else 1
 
-        if not self.prerelease and not other.prerelease:
-            return 0
-        elif self.prerelease and not other.prerelease:
+    def _cmp_prerelease(self, other):
+        """
+        case 1: self has prerelease, other doesn't; other is greater
+        case 2: self doesn't have prerelease, other does: self is greater
+        case 3: both or neither have prerelease: compare them!
+        """
+        if self.prerelease and not other.prerelease:
             return -1
         elif not self.prerelease and other.prerelease:
             return 1
-        elif self.prerelease and other.prerelease:
-            if self.prerelease == other.prerelease:
-                return 0
-            elif self.prerelease < other.prerelease:
-                return -1
-            else:
-                return 1
+
+        if self.prerelease == other.prerelease:
+            return 0
+        elif self.prerelease < other.prerelease:
+            return -1
         else:
-            assert False, "never get here"
+            return 1
 
 
 # end class StrictVersion
@@ -286,7 +279,6 @@ class StrictVersion(Version):
 
 
 class LooseVersion(Version):
-
     """Version numbering for anarchists and software realists.
     Implements the standard interface for version number classes as
     described above.  A version number consists of a series of numbers,

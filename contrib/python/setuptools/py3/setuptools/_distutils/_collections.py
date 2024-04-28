@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import collections
 import functools
 import itertools
 import operator
+from collections.abc import Mapping
+from typing import Any
 
 
 # from jaraco.collections 3.5.1
@@ -58,7 +62,7 @@ class DictStack(list, collections.abc.Mapping):
         return len(list(iter(self)))
 
 
-# from jaraco.collections 3.7
+# from jaraco.collections 5.0.1
 class RangeMap(dict):
     """
     A dictionary-like object that uses the keys as bounds for a range.
@@ -70,7 +74,7 @@ class RangeMap(dict):
     One may supply keyword parameters to be passed to the sort function used
     to sort keys (i.e. key, reverse) as sort_params.
 
-    Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
+    Create a map that maps 1-3 -> 'a', 4-6 -> 'b'
 
     >>> r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy
     >>> r[1], r[2], r[3], r[4], r[5], r[6]
@@ -82,7 +86,7 @@ class RangeMap(dict):
     >>> r[4.5]
     'b'
 
-    But you'll notice that the way rangemap is defined, it must be open-ended
+    Notice that the way rangemap is defined, it must be open-ended
     on one side.
 
     >>> r[0]
@@ -140,7 +144,12 @@ class RangeMap(dict):
 
     """
 
-    def __init__(self, source, sort_params={}, key_match_comparator=operator.le):
+    def __init__(
+        self,
+        source,
+        sort_params: Mapping[str, Any] = {},
+        key_match_comparator=operator.le,
+    ):
         dict.__init__(self, source)
         self.sort_params = sort_params
         self.match = key_match_comparator

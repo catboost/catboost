@@ -13,27 +13,27 @@ for older versions in distutils.msvc9compiler and distutils.msvccompiler.
 # ported to VS 2005 and VS 2008 by Christian Heimes
 # ported to VS 2015 by Steve Dower
 
+import contextlib
 import os
 import subprocess
-import contextlib
-import warnings
 import unittest.mock as mock
+import warnings
 
 with contextlib.suppress(ImportError):
     import winreg
 
+from itertools import count
+
+from ._log import log
+from .ccompiler import CCompiler, gen_lib_options
 from .errors import (
+    CompileError,
     DistutilsExecError,
     DistutilsPlatformError,
-    CompileError,
     LibError,
     LinkError,
 )
-from .ccompiler import CCompiler, gen_lib_options
-from ._log import log
 from .util import get_platform
-
-from itertools import count
 
 
 def _find_vc2015():
@@ -253,7 +253,7 @@ class MSVCCompiler(CCompiler):
         vc_env = _get_vc_env(plat_spec)
         if not vc_env:
             raise DistutilsPlatformError(
-                "Unable to find a compatible " "Visual Studio installation."
+                "Unable to find a compatible Visual Studio installation."
             )
         self._configure(vc_env)
 

@@ -3,6 +3,8 @@
 Provides the PyPIRCCommand class, the base class for the command classes
 that uses .pypirc in the distutils.command package.
 """
+
+import email.message
 import os
 from configparser import RawConfigParser
 
@@ -41,7 +43,8 @@ class PyPIRCCommand(Command):
     def _store_pypirc(self, username, password):
         """Creates a default .pypirc file."""
         rc = self._get_rc_file()
-        with os.fdopen(os.open(rc, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as f:
+        raw = os.open(rc, os.O_CREAT | os.O_WRONLY, 0o600)
+        with os.fdopen(raw, 'w', encoding='utf-8') as f:
             f.write(DEFAULT_PYPIRC % (username, password))
 
     def _read_pypirc(self):  # noqa: C901
@@ -52,7 +55,7 @@ class PyPIRCCommand(Command):
             repository = self.repository or self.DEFAULT_REPOSITORY
 
             config = RawConfigParser()
-            config.read(rc)
+            config.read(rc, encoding='utf-8')
             sections = config.sections()
             if 'distutils' in sections:
                 # let's get the list of servers
@@ -119,11 +122,8 @@ class PyPIRCCommand(Command):
 
     def _read_pypi_response(self, response):
         """Read and decode a PyPI HTTP response."""
-        import cgi
-
         content_type = response.getheader('content-type', 'text/plain')
-        encoding = cgi.parse_header(content_type)[1].get('charset', 'ascii')
-        return response.read().decode(encoding)
+        return response.read().decode(_extract_encoding(content_type))
 
     def initialize_options(self):
         """Initialize options."""
@@ -137,3 +137,15 @@ class PyPIRCCommand(Command):
             self.repository = self.DEFAULT_REPOSITORY
         if self.realm is None:
             self.realm = self.DEFAULT_REALM
+
+
+def _extract_encoding(content_type):
+    """
+    >>> _extract_encoding('text/plain')
+    'ascii'
+    >>> _extract_encoding('text/html; charset="utf8"')
+    'utf8'
+    """
+    msg = email.message.EmailMessage()
+    msg['content-type'] = content_type
+    return msg['content-type'].params.get('charset', 'ascii')

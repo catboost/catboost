@@ -15,10 +15,11 @@ module."""
 # cut 'n paste.  Sigh.
 
 import os
+from distutils._log import log
+
 from ..core import Command
 from ..errors import DistutilsSetupError
 from ..sysconfig import customize_compiler
-from distutils._log import log
 
 
 def show_compilers():
@@ -154,7 +155,7 @@ class build_clib(Command):
             return None
 
         lib_names = []
-        for lib_name, build_info in self.libraries:
+        for lib_name, _build_info in self.libraries:
             lib_names.append(lib_name)
         return lib_names
 

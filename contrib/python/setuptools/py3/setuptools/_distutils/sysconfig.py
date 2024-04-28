@@ -9,15 +9,16 @@ Written by:   Fred L. Drake, Jr.
 Email:        <fdrake@acm.org>
 """
 
+import functools
 import os
+import pathlib
 import re
 import sys
 import sysconfig
-import pathlib
 
-from .errors import DistutilsPlatformError
 from . import py39compat
 from ._functools import pass_none
+from .errors import DistutilsPlatformError
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -195,12 +196,11 @@ def _get_python_inc_posix_prefix(prefix):
 
 def _get_python_inc_nt(prefix, spec_prefix, plat_specific):
     if python_build:
-        # Include both the include and PC dir to ensure we can find
-        # pyconfig.h
+        # Include both include dirs to ensure we can find pyconfig.h
         return (
             os.path.join(prefix, "include")
             + os.path.pathsep
-            + os.path.join(prefix, "PC")
+            + os.path.dirname(sysconfig.get_config_h_filename())
         )
     return os.path.join(prefix, "include")
 
@@ -267,6 +267,24 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         )
 
 
+@functools.lru_cache
+def _customize_macos():
+    """
+    Perform first-time customization of compiler-related
+    config vars on macOS. Use after a compiler is known
+    to be needed. This customization exists primarily to support Pythons
+    from binary installers. The kind and paths to build tools on
+    the user system may vary significantly from the system
+    that Python itself was built on.  Also the user OS
+    version and build tools may not support the same set
+    of CPU architectures for universal builds.
+    """
+
+    sys.platform == "darwin" and __import__('_osx_support').customize_compiler(
+        get_config_vars()
+    )
+
+
 def customize_compiler(compiler):  # noqa: C901
     """Do any platform-specific customization of a CCompiler instance.
 
@@ -274,22 +292,7 @@ def customize_compiler(compiler):  # noqa: C901
     varies across Unices and is stored in Python's Makefile.
     """
     if compiler.compiler_type == "unix":
-        if sys.platform == "darwin":
-            # Perform first-time customization of compiler-related
-            # config vars on OS X now that we know we need a compiler.
-            # This is primarily to support Pythons from binary
-            # installers.  The kind and paths to build tools on
-            # the user system may vary significantly from the system
-            # that Python itself was built on.  Also the user OS
-            # version and build tools may not support the same set
-            # of CPU architectures for universal builds.
-            global _config_vars
-            # Use get_config_var() to ensure _config_vars is initialized.
-            if not get_config_var('CUSTOMIZED_OSX_COMPILER'):
-                import _osx_support
-
-                _osx_support.customize_compiler(_config_vars)
-                _config_vars['CUSTOMIZED_OSX_COMPILER'] = 'True'
+        _customize_macos()
 
         (
             cc,
@@ -361,14 +364,7 @@ def customize_compiler(compiler):  # noqa: C901
 
 def get_config_h_filename():
     """Return full pathname of installed pyconfig.h file."""
-    if python_build:
-        if os.name == "nt":
-            inc_dir = os.path.join(_sys_home or project_base, "PC")
-        else:
-            inc_dir = _sys_home or project_base
-        return os.path.join(inc_dir, 'pyconfig.h')
-    else:
-        return sysconfig.get_config_h_filename()
+    return sysconfig.get_config_h_filename()
 
 
 def get_makefile_filename():

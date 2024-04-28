@@ -2,15 +2,15 @@
 
 Implements the Distutils 'build_py' command."""
 
-import os
-import importlib.util
-import sys
 import glob
+import importlib.util
+import os
+import sys
+from distutils._log import log
 
 from ..core import Command
-from ..errors import DistutilsOptionError, DistutilsFileError
+from ..errors import DistutilsFileError, DistutilsOptionError
 from ..util import convert_path
-from distutils._log import log
 
 
 class build_py(Command):
@@ -129,14 +129,14 @@ class build_py(Command):
                 os.path.join(glob.escape(src_dir), convert_path(pattern))
             )
             # Files that match more than one pattern are only added once
-            files.extend(
-                [fn for fn in filelist if fn not in files and os.path.isfile(fn)]
-            )
+            files.extend([
+                fn for fn in filelist if fn not in files and os.path.isfile(fn)
+            ])
         return files
 
     def build_package_data(self):
         """Copy data files into build directory"""
-        for package, src_dir, build_dir, filenames in self.data_files:
+        for _package, src_dir, build_dir, filenames in self.data_files:
             for filename in filenames:
                 target = os.path.join(build_dir, filename)
                 self.mkpath(os.path.dirname(target))
@@ -309,7 +309,7 @@ class build_py(Command):
     def get_outputs(self, include_bytecode=1):
         modules = self.find_all_modules()
         outputs = []
-        for package, module, module_file in modules:
+        for package, module, _module_file in modules:
             package = package.split('.')
             filename = self.get_module_outfile(self.build_lib, package, module)
             outputs.append(filename)

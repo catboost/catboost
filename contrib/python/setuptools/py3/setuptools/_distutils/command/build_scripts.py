@@ -4,13 +4,14 @@ Implements the Distutils 'build_scripts' command."""
 
 import os
 import re
-from stat import ST_MODE
-from distutils import sysconfig
-from ..core import Command
-from .._modified import newer
-from ..util import convert_path
-from distutils._log import log
 import tokenize
+from distutils import sysconfig
+from distutils._log import log
+from stat import ST_MODE
+
+from .._modified import newer
+from ..core import Command
+from ..util import convert_path
 
 shebang_pattern = re.compile('^#!.*python[0-9.]*([ \t].*)?$')
 """
@@ -109,8 +110,7 @@ class build_scripts(Command):
                 else:
                     executable = os.path.join(
                         sysconfig.get_config_var("BINDIR"),
-                        "python%s%s"
-                        % (
+                        "python{}{}".format(
                             sysconfig.get_config_var("VERSION"),
                             sysconfig.get_config_var("EXE"),
                         ),
@@ -156,9 +156,7 @@ class build_scripts(Command):
         try:
             shebang.encode('utf-8')
         except UnicodeEncodeError:
-            raise ValueError(
-                "The shebang ({!r}) is not encodable " "to utf-8".format(shebang)
-            )
+            raise ValueError(f"The shebang ({shebang!r}) is not encodable to utf-8")
 
         # If the script is encoded to a custom encoding (use a
         # #coding:xxx cookie), the shebang has to be encodable to
@@ -167,6 +165,6 @@ class build_scripts(Command):
             shebang.encode(encoding)
         except UnicodeEncodeError:
             raise ValueError(
-                "The shebang ({!r}) is not encodable "
-                "to the script encoding ({})".format(shebang, encoding)
+                f"The shebang ({shebang!r}) is not encodable "
+                f"to the script encoding ({encoding})"
             )

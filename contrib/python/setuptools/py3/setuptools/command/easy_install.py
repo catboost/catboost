@@ -565,7 +565,7 @@ class easy_install(Command):
             msg += '\n' + self.__access_msg
         raise DistutilsError(msg)
 
-    def check_pth_processing(self):
+    def check_pth_processing(self):  # noqa: C901
         """Empirically verify whether .pth files are supported in inst. dir"""
         instdir = self.install_dir
         log.info("Checking .pth file support in %s", instdir)

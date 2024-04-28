@@ -5,17 +5,18 @@ Implements the Distutils 'upload' subcommand (upload package to a package
 index).
 """
 
-import os
-import io
 import hashlib
+import io
 import logging
+import os
 from base64 import standard_b64encode
-from urllib.request import urlopen, Request, HTTPError
 from urllib.parse import urlparse
-from ..errors import DistutilsError, DistutilsOptionError
-from ..core import PyPIRCCommand
-from ..spawn import spawn
+from urllib.request import HTTPError, Request, urlopen
 
+from .._itertools import always_iterable
+from ..core import PyPIRCCommand
+from ..errors import DistutilsError, DistutilsOptionError
+from ..spawn import spawn
 
 # PyPI Warehouse supports MD5, SHA256, and Blake2 (blake2-256)
 # https://bugs.python.org/issue40698
@@ -151,12 +152,9 @@ class upload(PyPIRCCommand):
         sep_boundary = b'\r\n--' + boundary.encode('ascii')
         end_boundary = sep_boundary + b'--\r\n'
         body = io.BytesIO()
-        for key, value in data.items():
+        for key, values in data.items():
             title = '\r\nContent-Disposition: form-data; name="%s"' % key
-            # handle multiple entries for the same name
-            if not isinstance(value, list):
-                value = [value]
-            for value in value:
+            for value in make_iterable(values):
                 if type(value) is tuple:
                     title += '; filename="%s"' % value[0]
                     value = value[1]
@@ -169,7 +167,7 @@ class upload(PyPIRCCommand):
         body.write(end_boundary)
         body = body.getvalue()
 
-        msg = "Submitting {} to {}".format(filename, self.repository)
+        msg = f"Submitting {filename} to {self.repository}"
         self.announce(msg, logging.INFO)
 
         # build the Request
@@ -193,14 +191,18 @@ class upload(PyPIRCCommand):
             raise
 
         if status == 200:
-            self.announce(
-                'Server response ({}): {}'.format(status, reason), logging.INFO
-            )
+            self.announce(f'Server response ({status}): {reason}', logging.INFO)
             if self.show_response:
                 text = self._read_pypi_response(result)
                 msg = '\n'.join(('-' * 75, text, '-' * 75))
                 self.announce(msg, logging.INFO)
         else:
-            msg = 'Upload failed ({}): {}'.format(status, reason)
+            msg = f'Upload failed ({status}): {reason}'
             self.announce(msg, logging.ERROR)
             raise DistutilsError(msg)
+
+
+def make_iterable(values):
+    if values is None:
+        return [None]
+    return always_iterable(values, base_type=(bytes, str, tuple))

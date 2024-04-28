@@ -6,13 +6,13 @@ Also provides the 'find_executable()' to search the path for a given
 executable name.
 """
 
-import sys
 import os
 import subprocess
+import sys
 
-from .errors import DistutilsExecError
-from .debug import DEBUG
 from ._log import log
+from .debug import DEBUG
+from .errors import DistutilsExecError
 
 
 def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):  # noqa: C901
@@ -60,16 +60,12 @@ def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):  # noqa: C901
     except OSError as exc:
         if not DEBUG:
             cmd = cmd[0]
-        raise DistutilsExecError(
-            "command {!r} failed: {}".format(cmd, exc.args[-1])
-        ) from exc
+        raise DistutilsExecError(f"command {cmd!r} failed: {exc.args[-1]}") from exc
 
     if exitcode:
         if not DEBUG:
             cmd = cmd[0]
-        raise DistutilsExecError(
-            "command {!r} failed with exit code {}".format(cmd, exitcode)
-        )
+        raise DistutilsExecError(f"command {cmd!r} failed with exit code {exitcode}")
 
 
 def find_executable(executable, path=None):

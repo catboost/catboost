@@ -4,8 +4,8 @@ Utility functions for creating archive files (tarballs, zip files,
 that sort of thing)."""
 
 import os
-from warnings import warn
 import sys
+from warnings import warn
 
 try:
     import zipfile
@@ -13,10 +13,10 @@ except ImportError:
     zipfile = None
 
 
+from ._log import log
+from .dir_util import mkpath
 from .errors import DistutilsExecError
 from .spawn import spawn
-from .dir_util import mkpath
-from ._log import log
 
 try:
     from pwd import getpwnam

@@ -76,5 +76,6 @@ names = (
     'jaraco',
     'importlib_resources',
     'more_itertools',
+    'backports',
 )
 VendorImporter(__name__, names).install()

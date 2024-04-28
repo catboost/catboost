@@ -1,9 +1,9 @@
-"""Module for parsing and testing package version predicate strings.
-"""
-import re
-from . import version
-import operator
+"""Module for parsing and testing package version predicate strings."""
 
+import operator
+import re
+
+from . import version
 
 re_validPackage = re.compile(r"(?i)^\s*([a-z_]\w*(?:\.[a-z_]\w*)*)(.*)", re.ASCII)
 # (package) (rest)

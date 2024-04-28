@@ -4,14 +4,14 @@ Provides the Command class, the base class for the command classes
 in the distutils.command package.
 """
 
-import sys
+import logging
 import os
 import re
-import logging
+import sys
 
-from .errors import DistutilsOptionError
-from . import util, dir_util, file_util, archive_util, _modified
+from . import _modified, archive_util, dir_util, file_util, util
 from ._log import log
+from .errors import DistutilsOptionError
 
 
 class Command:
@@ -165,7 +165,7 @@ class Command:
             if option[-1] == "=":
                 option = option[:-1]
             value = getattr(self, option)
-            self.announce(indent + "{} = {}".format(option, value), level=logging.INFO)
+            self.announce(indent + f"{option} = {value}", level=logging.INFO)
 
     def run(self):
         """A command's raison d'etre: carry out the action it exists to
@@ -213,9 +213,7 @@ class Command:
             setattr(self, option, default)
             return default
         elif not isinstance(val, str):
-            raise DistutilsOptionError(
-                "'{}' must be a {} (got `{}`)".format(option, what, val)
-            )
+            raise DistutilsOptionError(f"'{option}' must be a {what} (got `{val}`)")
         return val
 
     def ensure_string(self, option, default=None):
@@ -242,7 +240,7 @@ class Command:
                 ok = False
             if not ok:
                 raise DistutilsOptionError(
-                    "'{}' must be a list of strings (got {!r})".format(option, val)
+                    f"'{option}' must be a list of strings (got {val!r})"
                 )
 
     def _ensure_tested_string(self, option, tester, what, error_fmt, default=None):

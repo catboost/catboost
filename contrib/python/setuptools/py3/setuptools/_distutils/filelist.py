@@ -4,14 +4,14 @@ Provides the FileList class, used for poking about the filesystem
 and building lists of files.
 """
 
-import os
-import re
 import fnmatch
 import functools
+import os
+import re
 
-from .util import convert_path
-from .errors import DistutilsTemplateError, DistutilsInternalError
 from ._log import log
+from .errors import DistutilsInternalError, DistutilsTemplateError
+from .util import convert_path
 
 
 class FileList:
@@ -162,9 +162,7 @@ class FileList:
             self.debug_print("recursive-include {} {}".format(dir, ' '.join(patterns)))
             for pattern in patterns:
                 if not self.include_pattern(pattern, prefix=dir):
-                    msg = (
-                        "warning: no files found matching '%s' " "under directory '%s'"
-                    )
+                    msg = "warning: no files found matching '%s' under directory '%s'"
                     log.warning(msg, pattern, dir)
 
         elif action == 'recursive-exclude':
@@ -189,7 +187,7 @@ class FileList:
             self.debug_print("prune " + dir_pattern)
             if not self.exclude_pattern(None, prefix=dir_pattern):
                 log.warning(
-                    ("no previously-included directories found " "matching '%s'"),
+                    ("no previously-included directories found matching '%s'"),
                     dir_pattern,
                 )
         else:
@@ -363,9 +361,9 @@ def translate_pattern(pattern, anchor=1, prefix=None, is_regex=0):
         if os.sep == '\\':
             sep = r'\\'
         pattern_re = pattern_re[len(start) : len(pattern_re) - len(end)]
-        pattern_re = r'{}\A{}{}.*{}{}'.format(start, prefix_re, sep, pattern_re, end)
+        pattern_re = rf'{start}\A{prefix_re}{sep}.*{pattern_re}{end}'
     else:  # no prefix -- respect anchor flag
         if anchor:
-            pattern_re = r'{}\A{}'.format(start, pattern_re[len(start) :])
+            pattern_re = rf'{start}\A{pattern_re[len(start) :]}'
 
     return re.compile(pattern_re)

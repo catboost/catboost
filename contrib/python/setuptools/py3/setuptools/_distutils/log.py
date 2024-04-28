@@ -9,7 +9,6 @@ import warnings
 
 from ._log import log as _global_log
 
-
 DEBUG = logging.DEBUG
 INFO = logging.INFO
 WARN = logging.WARN

@@ -1,5 +1,5 @@
-import sys
 import importlib
+import sys
 
 
 def bypass_compiler_fixup(cmd, args):

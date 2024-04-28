@@ -6,12 +6,12 @@ a package's PKG-INFO metadata.
 """
 
 import os
-import sys
 import re
+import sys
 
-from ..cmd import Command
 from .. import dir_util
 from .._log import log
+from ..cmd import Command
 
 
 class install_egg_info(Command):

@@ -102,7 +102,7 @@ class Extension:
         depends=None,
         language=None,
         optional=None,
-        **kw  # To catch unknown keywords
+        **kw,  # To catch unknown keywords
     ):
         if not isinstance(name, str):
             raise AssertionError("'name' must be a string")
@@ -134,18 +134,12 @@ class Extension:
             warnings.warn(msg)
 
     def __repr__(self):
-        return '<{}.{}({!r}) at {:#x}>'.format(
-            self.__class__.__module__,
-            self.__class__.__qualname__,
-            self.name,
-            id(self),
-        )
+        return f'<{self.__class__.__module__}.{self.__class__.__qualname__}({self.name!r}) at {id(self):#x}>'
 
 
 def read_setup_file(filename):  # noqa: C901
     """Reads a Setup file and returns Extension instances."""
-    from distutils.sysconfig import parse_makefile, expand_makefile_vars, _variable_rx
-
+    from distutils.sysconfig import _variable_rx, expand_makefile_vars, parse_makefile
     from distutils.text_file import TextFile
     from distutils.util import split_quoted
 

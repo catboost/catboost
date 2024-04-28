@@ -2,15 +2,14 @@
 Backward compatibility for homebrew builds on macOS.
 """
 
-
-import sys
-import os
 import functools
+import os
 import subprocess
+import sys
 import sysconfig
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def enabled():
     """
     Only enabled for Python 3.9 framework homebrew builds
@@ -38,7 +37,7 @@ schemes = dict(
 )
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def vars():
     if not enabled():
         return {}

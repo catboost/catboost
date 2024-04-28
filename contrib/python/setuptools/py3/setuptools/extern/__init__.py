@@ -80,5 +80,6 @@ names = (
     'jaraco',
     'typing_extensions',
     'tomli',
+    'backports',
 )
 VendorImporter(__name__, names, 'setuptools._vendor').install()

@@ -4,12 +4,13 @@ Provides the Distribution class, which represents the module distribution
 being built/installed/distributed.
 """
 
-import sys
-import os
-import re
-import pathlib
 import contextlib
 import logging
+import os
+import pathlib
+import re
+import sys
+from collections.abc import Iterable
 from email import message_from_file
 
 try:
@@ -17,16 +18,16 @@ try:
 except ImportError:
     warnings = None
 
-from .errors import (
-    DistutilsOptionError,
-    DistutilsModuleError,
-    DistutilsArgError,
-    DistutilsClassError,
-)
-from .fancy_getopt import FancyGetopt, translate_longopt
-from .util import check_environ, strtobool, rfc822_escape
 from ._log import log
 from .debug import DEBUG
+from .errors import (
+    DistutilsArgError,
+    DistutilsClassError,
+    DistutilsModuleError,
+    DistutilsOptionError,
+)
+from .fancy_getopt import FancyGetopt, translate_longopt
+from .util import check_environ, rfc822_escape, strtobool
 
 # Regex to define acceptable Distutils command names.  This is not *quite*
 # the same as a Python NAME -- I don't allow leading underscores.  The fact
@@ -395,7 +396,7 @@ Common commands: (see '--help-commands' for more)
         for filename in filenames:
             if DEBUG:
                 self.announce("  reading %s" % filename)
-            parser.read(filename)
+            parser.read(filename, encoding='utf-8')
             for section in parser.sections():
                 options = parser.options(section)
                 opt_dict = self.get_option_dict(section)
@@ -414,7 +415,7 @@ Common commands: (see '--help-commands' for more)
         # to set Distribution options.
 
         if 'global' in self.command_options:
-            for opt, (src, val) in self.command_options['global'].items():
+            for opt, (_src, val) in self.command_options['global'].items():
                 alias = self.negative_opt.get(opt)
                 try:
                     if alias:
@@ -585,16 +586,15 @@ Common commands: (see '--help-commands' for more)
             cmd_class.help_options, list
         ):
             help_option_found = 0
-            for help_option, short, desc, func in cmd_class.help_options:
+            for help_option, _short, _desc, func in cmd_class.help_options:
                 if hasattr(opts, parser.get_attr_name(help_option)):
                     help_option_found = 1
                     if callable(func):
                         func()
                     else:
                         raise DistutilsClassError(
-                            "invalid help function %r for help option '%s': "
+                            f"invalid help function {func!r} for help option '{help_option}': "
                             "must be a callable object (function, etc.)"
-                            % (func, help_option)
                         )
 
             if help_option_found:
@@ -621,7 +621,9 @@ Common commands: (see '--help-commands' for more)
                 value = [elm.strip() for elm in value.split(',')]
                 setattr(self.metadata, attr, value)
 
-    def _show_help(self, parser, global_options=1, display_options=1, commands=[]):
+    def _show_help(
+        self, parser, global_options=1, display_options=1, commands: Iterable = ()
+    ):
         """Show help for the setup script command-line in the form of
         several lists of command-line options.  'parser' should be a
         FancyGetopt instance; do not expect it to be returned in the
@@ -635,8 +637,8 @@ Common commands: (see '--help-commands' for more)
         in 'commands'.
         """
         # late import because of mutual dependence between these modules
-        from distutils.core import gen_usage
         from distutils.cmd import Command
+        from distutils.core import gen_usage
 
         if global_options:
             if display_options:
@@ -645,7 +647,7 @@ Common commands: (see '--help-commands' for more)
                 options = self.global_options
             parser.set_option_table(options)
             parser.print_help(self.common_usage + "\nGlobal options:")
-            print('')
+            print()
 
         if display_options:
             parser.set_option_table(self.display_options)
@@ -653,7 +655,7 @@ Common commands: (see '--help-commands' for more)
                 "Information display options (just display "
                 + "information, ignore any commands)"
             )
-            print('')
+            print()
 
         for command in self.commands:
             if isinstance(command, type) and issubclass(command, Command):
@@ -667,7 +669,7 @@ Common commands: (see '--help-commands' for more)
             else:
                 parser.set_option_table(klass.user_options)
             parser.print_help("Options for '%s' command:" % klass.__name__)
-            print('')
+            print()
 
         print(gen_usage(self.script_name))
 
@@ -684,7 +686,7 @@ Common commands: (see '--help-commands' for more)
         # we ignore "foo bar").
         if self.help_commands:
             self.print_commands()
-            print('')
+            print()
             print(gen_usage(self.script_name))
             return 1
 
@@ -821,7 +823,7 @@ Common commands: (see '--help-commands' for more)
             return klass
 
         for pkgname in self.get_command_packages():
-            module_name = "{}.{}".format(pkgname, command)
+            module_name = f"{pkgname}.{command}"
             klass_name = command
 
             try:
@@ -834,8 +836,7 @@ Common commands: (see '--help-commands' for more)
                 klass = getattr(module, klass_name)
             except AttributeError:
                 raise DistutilsModuleError(
-                    "invalid command '%s' (no class '%s' in module '%s')"
-                    % (command, klass_name, module_name)
+                    f"invalid command '{command}' (no class '{klass_name}' in module '{module_name}')"
                 )
 
             self.cmdclass[command] = klass
@@ -889,7 +890,7 @@ Common commands: (see '--help-commands' for more)
             self.announce("  setting options for '%s' command:" % command_name)
         for option, (source, value) in option_dict.items():
             if DEBUG:
-                self.announce("    {} = {} (from {})".format(option, value, source))
+                self.announce(f"    {option} = {value} (from {source})")
             try:
                 bool_opts = [translate_longopt(o) for o in command_obj.boolean_options]
             except AttributeError:
@@ -909,8 +910,7 @@ Common commands: (see '--help-commands' for more)
                     setattr(command_obj, option, value)
                 else:
                     raise DistutilsOptionError(
-                        "error in %s: command '%s' has no such option '%s'"
-                        % (source, command_name, option)
+                        f"error in {source}: command '{command_name}' has no such option '{option}'"
                     )
             except ValueError as msg:
                 raise DistutilsOptionError(msg)
@@ -1178,7 +1178,7 @@ class DistributionMetadata:
     def _write_list(self, file, name, values):
         values = values or []
         for value in values:
-            file.write('{}: {}\n'.format(name, value))
+            file.write(f'{name}: {value}\n')
 
     # -- Metadata query methods ----------------------------------------
 
@@ -1189,7 +1189,7 @@ class DistributionMetadata:
         return self.version or "0.0.0"
 
     def get_fullname(self):
-        return "{}-{}".format(self.get_name(), self.get_version())
+        return f"{self.get_name()}-{self.get_version()}"
 
     def get_author(self):
         return self.author

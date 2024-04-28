@@ -9,11 +9,10 @@ Some backward-compatible usability improvements have been made.
 """
 import math
 import operator
-import warnings
 
 from collections import deque
 from collections.abc import Sized
-from functools import reduce
+from functools import partial, reduce
 from itertools import (
     chain,
     combinations,
@@ -52,10 +51,13 @@ __all__ = [
     'pad_none',
     'pairwise',
     'partition',
+    'polynomial_eval',
     'polynomial_from_roots',
+    'polynomial_derivative',
     'powerset',
     'prepend',
     'quantify',
+    'reshape',
     'random_combination_with_replacement',
     'random_combination',
     'random_permutation',
@@ -65,9 +67,11 @@ __all__ = [
     'sieve',
     'sliding_window',
     'subslices',
+    'sum_of_squares',
     'tabulate',
     'tail',
     'take',
+    'totient',
     'transpose',
     'triplewise',
     'unique_everseen',
@@ -75,6 +79,18 @@ __all__ = [
 ]
 
 _marker = object()
+
+
+# zip with strict is available for Python 3.10+
+try:
+    zip(strict=True)
+except TypeError:
+    _zip_strict = zip
+else:
+    _zip_strict = partial(zip, strict=True)
+
+# math.sumprod is available for Python 3.12+
+_sumprod = getattr(math, 'sumprod', lambda x, y: dotproduct(x, y))
 
 
 def take(n, iterable):
@@ -293,7 +309,7 @@ def _pairwise(iterable):
     """
     a, b = tee(iterable)
     next(b, None)
-    yield from zip(a, b)
+    return zip(a, b)
 
 
 try:
@@ -303,7 +319,7 @@ except ImportError:
 else:
 
     def pairwise(iterable):
-        yield from itertools_pairwise(iterable)
+        return itertools_pairwise(iterable)
 
     pairwise.__doc__ = _pairwise.__doc__
 
@@ -334,13 +350,9 @@ def _zip_equal(*iterables):
         for i, it in enumerate(iterables[1:], 1):
             size = len(it)
             if size != first_size:
-                break
-        else:
-            # If we didn't break out, we can use the built-in zip.
-            return zip(*iterables)
-
-        # If we did break out, there was a mismatch.
-        raise UnequalIterablesError(details=(first_size, i, size))
+                raise UnequalIterablesError(details=(first_size, i, size))
+        # All sizes are equal, we can use the built-in zip.
+        return zip(*iterables)
     # If any one of the iterables didn't have a length, start reading
     # them until one runs out.
     except TypeError:
@@ -433,12 +445,9 @@ def partition(pred, iterable):
     if pred is None:
         pred = bool
 
-    evaluations = ((pred(x), x) for x in iterable)
-    t1, t2 = tee(evaluations)
-    return (
-        (x for (cond, x) in t1 if not cond),
-        (x for (cond, x) in t2 if cond),
-    )
+    t1, t2, p = tee(iterable, 3)
+    p1, p2 = tee(map(pred, p))
+    return (compress(t1, map(operator.not_, p1)), compress(t2, p2))
 
 
 def powerset(iterable):
@@ -486,7 +495,7 @@ def unique_everseen(iterable, key=None):
         >>> list(unique_everseen(iterable, key=tuple))  # Faster
         [[1, 2], [2, 3]]
 
-    Similary, you may want to convert unhashable ``set`` objects with
+    Similarly, you may want to convert unhashable ``set`` objects with
     ``key=frozenset``. For ``dict`` objects,
     ``key=lambda x: frozenset(x.items())`` can be used.
 
@@ -518,6 +527,9 @@ def unique_justseen(iterable, key=None):
     ['A', 'B', 'C', 'A', 'D']
 
     """
+    if key is None:
+        return map(operator.itemgetter(0), groupby(iterable))
+
     return map(next, map(operator.itemgetter(1), groupby(iterable, key)))
 
 
@@ -712,12 +724,14 @@ def convolve(signal, kernel):
     is immediately consumed and stored.
 
     """
+    # This implementation intentionally doesn't match the one in the itertools
+    # documentation.
     kernel = tuple(kernel)[::-1]
     n = len(kernel)
     window = deque([0], maxlen=n) * n
     for x in chain(signal, repeat(0, n - 1)):
         window.append(x)
-        yield sum(map(operator.mul, kernel, window))
+        yield _sumprod(kernel, window)
 
 
 def before_and_after(predicate, it):
@@ -778,9 +792,7 @@ def sliding_window(iterable, n):
     For a variant with more features, see :func:`windowed`.
     """
     it = iter(iterable)
-    window = deque(islice(it, n), maxlen=n)
-    if len(window) == n:
-        yield tuple(window)
+    window = deque(islice(it, n - 1), maxlen=n)
     for x in it:
         window.append(x)
         yield tuple(window)
@@ -807,39 +819,38 @@ def polynomial_from_roots(roots):
     >>> polynomial_from_roots(roots)  # x^3 - 4 * x^2 - 17 * x + 60
     [1, -4, -17, 60]
     """
-    # Use math.prod for Python 3.8+,
-    prod = getattr(math, 'prod', lambda x: reduce(operator.mul, x, 1))
-    roots = list(map(operator.neg, roots))
-    return [
-        sum(map(prod, combinations(roots, k))) for k in range(len(roots) + 1)
-    ]
+    factors = zip(repeat(1), map(operator.neg, roots))
+    return list(reduce(convolve, factors, [1]))
 
 
-def iter_index(iterable, value, start=0):
+def iter_index(iterable, value, start=0, stop=None):
     """Yield the index of each place in *iterable* that *value* occurs,
-    beginning with index *start*.
+    beginning with index *start* and ending before index *stop*.
 
     See :func:`locate` for a more general means of finding the indexes
     associated with particular values.
 
     >>> list(iter_index('AABCADEAF', 'A'))
     [0, 1, 4, 7]
+    >>> list(iter_index('AABCADEAF', 'A', 1))  # start index is inclusive
+    [1, 4, 7]
+    >>> list(iter_index('AABCADEAF', 'A', 1, 7))  # stop index is not inclusive
+    [1, 4]
     """
-    try:
-        seq_index = iterable.index
-    except AttributeError:
+    seq_index = getattr(iterable, 'index', None)
+    if seq_index is None:
         # Slow path for general iterables
-        it = islice(iterable, start, None)
+        it = islice(iterable, start, stop)
         for i, element in enumerate(it, start):
             if element is value or element == value:
                 yield i
     else:
         # Fast path for sequences
+        stop = len(iterable) if stop is None else stop
         i = start - 1
         try:
             while True:
-                i = seq_index(value, i + 1)
-                yield i
+                yield (i := seq_index(value, i + 1, stop))
         except ValueError:
             pass
 
@@ -850,81 +861,152 @@ def sieve(n):
     >>> list(sieve(30))
     [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
     """
-    isqrt = getattr(math, 'isqrt', lambda x: int(math.sqrt(x)))
+    if n > 2:
+        yield 2
+    start = 3
     data = bytearray((0, 1)) * (n // 2)
-    data[:3] = 0, 0, 0
-    limit = isqrt(n) + 1
-    for p in compress(range(limit), data):
+    limit = math.isqrt(n) + 1
+    for p in iter_index(data, 1, start, limit):
+        yield from iter_index(data, 1, start, p * p)
         data[p * p : n : p + p] = bytes(len(range(p * p, n, p + p)))
-    data[2] = 1
-    return iter_index(data, 1) if n > 2 else iter([])
+        start = p * p
+    yield from iter_index(data, 1, start)
 
 
-def batched(iterable, n):
-    """Batch data into lists of length *n*. The last batch may be shorter.
+def _batched(iterable, n, *, strict=False):
+    """Batch data into tuples of length *n*. If the number of items in
+    *iterable* is not divisible by *n*:
+    * The last batch will be shorter if *strict* is ``False``.
+    * :exc:`ValueError` will be raised if *strict* is ``True``.
 
     >>> list(batched('ABCDEFG', 3))
-    [['A', 'B', 'C'], ['D', 'E', 'F'], ['G']]
+    [('A', 'B', 'C'), ('D', 'E', 'F'), ('G',)]
 
-    This recipe is from the ``itertools`` docs. This library also provides
-    :func:`chunked`, which has a different implementation.
+    On Python 3.13 and above, this is an alias for :func:`itertools.batched`.
     """
-    if hexversion >= 0x30C00A0:  # Python 3.12.0a0
-        warnings.warn(
-            (
-                'batched will be removed in a future version of '
-                'more-itertools. Use the standard library '
-                'itertools.batched function instead'
-            ),
-            DeprecationWarning,
-        )
-
+    if n < 1:
+        raise ValueError('n must be at least one')
     it = iter(iterable)
-    while True:
-        batch = list(islice(it, n))
-        if not batch:
-            break
+    while batch := tuple(islice(it, n)):
+        if strict and len(batch) != n:
+            raise ValueError('batched(): incomplete batch')
         yield batch
 
 
+if hexversion >= 0x30D00A2:
+    from itertools import batched as itertools_batched
+
+    def batched(iterable, n, *, strict=False):
+        return itertools_batched(iterable, n, strict=strict)
+
+else:
+    batched = _batched
+
+    batched.__doc__ = _batched.__doc__
+
+
 def transpose(it):
-    """Swap the rows and columns of the input.
+    """Swap the rows and columns of the input matrix.
 
     >>> list(transpose([(1, 2, 3), (11, 22, 33)]))
     [(1, 11), (2, 22), (3, 33)]
 
     The caller should ensure that the dimensions of the input are compatible.
+    If the input is empty, no output will be produced.
     """
-    # TODO: when 3.9 goes end-of-life, add stric=True to this.
-    return zip(*it)
+    return _zip_strict(*it)
+
+
+def reshape(matrix, cols):
+    """Reshape the 2-D input *matrix* to have a column count given by *cols*.
+
+    >>> matrix = [(0, 1), (2, 3), (4, 5)]
+    >>> cols = 3
+    >>> list(reshape(matrix, cols))
+    [(0, 1, 2), (3, 4, 5)]
+    """
+    return batched(chain.from_iterable(matrix), cols)
 
 
 def matmul(m1, m2):
     """Multiply two matrices.
+
     >>> list(matmul([(7, 5), (3, 5)], [(2, 5), (7, 9)]))
-    [[49, 80], [41, 60]]
+    [(49, 80), (41, 60)]
 
     The caller should ensure that the dimensions of the input matrices are
     compatible with each other.
     """
     n = len(m2[0])
-    return batched(starmap(dotproduct, product(m1, transpose(m2))), n)
+    return batched(starmap(_sumprod, product(m1, transpose(m2))), n)
 
 
 def factor(n):
     """Yield the prime factors of n.
+
     >>> list(factor(360))
     [2, 2, 2, 3, 3, 5]
     """
-    isqrt = getattr(math, 'isqrt', lambda x: int(math.sqrt(x)))
-    for prime in sieve(isqrt(n) + 1):
-        while True:
-            quotient, remainder = divmod(n, prime)
-            if remainder:
-                break
+    for prime in sieve(math.isqrt(n) + 1):
+        while not n % prime:
             yield prime
-            n = quotient
+            n //= prime
             if n == 1:
                 return
-    if n >= 2:
+    if n > 1:
         yield n
+
+
+def polynomial_eval(coefficients, x):
+    """Evaluate a polynomial at a specific value.
+
+    Example: evaluating x^3 - 4 * x^2 - 17 * x + 60 at x = 2.5:
+
+    >>> coefficients = [1, -4, -17, 60]
+    >>> x = 2.5
+    >>> polynomial_eval(coefficients, x)
+    8.125
+    """
+    n = len(coefficients)
+    if n == 0:
+        return x * 0  # coerce zero to the type of x
+    powers = map(pow, repeat(x), reversed(range(n)))
+    return _sumprod(coefficients, powers)
+
+
+def sum_of_squares(it):
+    """Return the sum of the squares of the input values.
+
+    >>> sum_of_squares([10, 20, 30])
+    1400
+    """
+    return _sumprod(*tee(it))
+
+
+def polynomial_derivative(coefficients):
+    """Compute the first derivative of a polynomial.
+
+    Example: evaluating the derivative of x^3 - 4 * x^2 - 17 * x + 60
+
+    >>> coefficients = [1, -4, -17, 60]
+    >>> derivative_coefficients = polynomial_derivative(coefficients)
+    >>> derivative_coefficients
+    [3, -8, -17]
+    """
+    n = len(coefficients)
+    powers = reversed(range(1, n))
+    return list(map(operator.mul, coefficients, powers))
+
+
+def totient(n):
+    """Return the count of natural numbers up to *n* that are coprime with *n*.
+
+    >>> totient(9)
+    6
+    >>> totient(12)
+    4
+    """
+    for p in unique_justseen(factor(n)):
+        n = n // p * (p - 1)
+
+    return n

@@ -10,10 +10,11 @@ import io
 import logging
 import urllib.parse
 import urllib.request
+from distutils._log import log
 from warnings import warn
 
+from .._itertools import always_iterable
 from ..core import PyPIRCCommand
-from distutils._log import log
 
 
 class register(PyPIRCCommand):
@@ -77,7 +78,7 @@ class register(PyPIRCCommand):
         check.run()
 
     def _set_config(self):
-        '''Reads the configuration file and set attributes.'''
+        """Reads the configuration file and set attributes."""
         config = self._read_pypirc()
         if config != {}:
             self.username = config['username']
@@ -93,19 +94,19 @@ class register(PyPIRCCommand):
             self.has_config = False
 
     def classifiers(self):
-        '''Fetch the list of classifiers from the server.'''
+        """Fetch the list of classifiers from the server."""
         url = self.repository + '?:action=list_classifiers'
         response = urllib.request.urlopen(url)
         log.info(self._read_pypi_response(response))
 
     def verify_metadata(self):
-        '''Send the metadata to the package index server to be checked.'''
+        """Send the metadata to the package index server to be checked."""
         # send the info to the server and report the result
         (code, result) = self.post_to_server(self.build_post_data('verify'))
         log.info('Server response (%s): %s', code, result)
 
     def send_metadata(self):  # noqa: C901
-        '''Send the metadata to the package index server.
+        """Send the metadata to the package index server.
 
         Well, do the following:
         1. figure who the user is, and then
@@ -131,7 +132,7 @@ class register(PyPIRCCommand):
          2. register as a new user, or
          3. set the password to a random string and email the user.
 
-        '''
+        """
         # see if we can short-cut and get the username/password from the
         # config
         if self.has_config:
@@ -146,13 +147,13 @@ class register(PyPIRCCommand):
         choices = '1 2 3 4'.split()
         while choice not in choices:
             self.announce(
-                '''\
+                """\
 We need to know who you are, so please choose either:
  1. use your existing login,
  2. register as a new user,
  3. have the server generate a new password for you (and email it to you), or
  4. quit
-Your selection [default 1]: ''',
+Your selection [default 1]: """,
                 logging.INFO,
             )
             choice = input()
@@ -174,7 +175,7 @@ Your selection [default 1]: ''',
             auth.add_password(self.realm, host, username, password)
             # send the info to the server and report the result
             code, result = self.post_to_server(self.build_post_data('submit'), auth)
-            self.announce('Server response ({}): {}'.format(code, result), logging.INFO)
+            self.announce(f'Server response ({code}): {result}', logging.INFO)
 
             # possibly save the login
             if code == 200:
@@ -262,7 +263,7 @@ Your selection [default 1]: ''',
         return data
 
     def post_to_server(self, data, auth=None):  # noqa: C901
-        '''Post a query to the server, and return a string response.'''
+        """Post a query to the server, and return a string response."""
         if 'name' in data:
             self.announce(
                 'Registering {} to {}'.format(data['name'], self.repository),
@@ -273,12 +274,8 @@ Your selection [default 1]: ''',
         sep_boundary = '\n--' + boundary
         end_boundary = sep_boundary + '--'
         body = io.StringIO()
-        for key, value in data.items():
-            # handle multiple entries for the same name
-            if type(value) not in (type([]), type(())):
-                value = [value]
-            for value in value:
-                value = str(value)
+        for key, values in data.items():
+            for value in map(str, make_iterable(values)):
                 body.write(sep_boundary)
                 body.write('\nContent-Disposition: form-data; name="%s"' % key)
                 body.write("\n\n")
@@ -318,3 +315,9 @@ Your selection [default 1]: ''',
             msg = '\n'.join(('-' * 75, data, '-' * 75))
             self.announce(msg, logging.INFO)
         return result
+
+
+def make_iterable(values):
+    if values is None:
+        return [None]
+    return always_iterable(values)

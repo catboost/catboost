@@ -1,5 +1,5 @@
-import sys
 import importlib
+import sys
 
 __version__, _, _ = sys.version.partition(' ')
 

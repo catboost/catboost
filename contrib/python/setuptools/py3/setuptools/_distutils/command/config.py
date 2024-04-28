@@ -9,13 +9,17 @@ configure-like tasks: "try to compile this C code", or "figure out where
 this header file lives".
 """
 
+from __future__ import annotations
+
 import os
+import pathlib
 import re
+from collections.abc import Sequence
+from distutils._log import log
 
 from ..core import Command
 from ..errors import DistutilsExecError
 from ..sysconfig import customize_compiler
-from distutils._log import log
 
 LANG_EXT = {"c": ".c", "c++": ".cxx"}
 
@@ -102,7 +106,7 @@ class config(Command):
 
     def _gen_temp_sourcefile(self, body, headers, lang):
         filename = "_configtest" + LANG_EXT[lang]
-        with open(filename, "w") as file:
+        with open(filename, "w", encoding='utf-8') as file:
             if headers:
                 for header in headers:
                     file.write("#include <%s>\n" % header)
@@ -199,15 +203,8 @@ class config(Command):
         if isinstance(pattern, str):
             pattern = re.compile(pattern)
 
-        with open(out) as file:
-            match = False
-            while True:
-                line = file.readline()
-                if line == '':
-                    break
-                if pattern.search(line):
-                    match = True
-                    break
+        with open(out, encoding='utf-8') as file:
+            match = any(pattern.search(line) for line in file)
 
         self._clean()
         return match
@@ -331,7 +328,7 @@ class config(Command):
         library_dirs=None,
         headers=None,
         include_dirs=None,
-        other_libraries=[],
+        other_libraries: Sequence[str] = [],
     ):
         """Determine if 'library' is available to be linked against,
         without actually checking that any particular symbols are provided
@@ -346,7 +343,7 @@ class config(Command):
             "int main (void) { }",
             headers,
             include_dirs,
-            [library] + other_libraries,
+            [library] + list(other_libraries),
             library_dirs,
         )
 
@@ -369,8 +366,4 @@ def dump_file(filename, head=None):
         log.info('%s', filename)
     else:
         log.info(head)
-    file = open(filename)
-    try:
-        log.info(file.read())
-    finally:
-        file.close()
+    log.info(pathlib.Path(filename).read_text(encoding='utf-8'))

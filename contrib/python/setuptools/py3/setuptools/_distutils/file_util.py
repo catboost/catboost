@@ -4,8 +4,9 @@ Utility functions for operating on single files.
 """
 
 import os
-from .errors import DistutilsFileError
+
 from ._log import log
+from .errors import DistutilsFileError
 
 # for generating verbose output in 'copy_file()'
 _copy_action = {None: 'copying', 'hard': 'hard linking', 'sym': 'symbolically linking'}
@@ -26,30 +27,24 @@ def _copy_file_contents(src, dst, buffer_size=16 * 1024):  # noqa: C901
         try:
             fsrc = open(src, 'rb')
         except OSError as e:
-            raise DistutilsFileError("could not open '{}': {}".format(src, e.strerror))
+            raise DistutilsFileError(f"could not open '{src}': {e.strerror}")
 
         if os.path.exists(dst):
             try:
                 os.unlink(dst)
             except OSError as e:
-                raise DistutilsFileError(
-                    "could not delete '{}': {}".format(dst, e.strerror)
-                )
+                raise DistutilsFileError(f"could not delete '{dst}': {e.strerror}")
 
         try:
             fdst = open(dst, 'wb')
         except OSError as e:
-            raise DistutilsFileError(
-                "could not create '{}': {}".format(dst, e.strerror)
-            )
+            raise DistutilsFileError(f"could not create '{dst}': {e.strerror}")
 
         while True:
             try:
                 buf = fsrc.read(buffer_size)
             except OSError as e:
-                raise DistutilsFileError(
-                    "could not read from '{}': {}".format(src, e.strerror)
-                )
+                raise DistutilsFileError(f"could not read from '{src}': {e.strerror}")
 
             if not buf:
                 break
@@ -57,9 +52,7 @@ def _copy_file_contents(src, dst, buffer_size=16 * 1024):  # noqa: C901
             try:
                 fdst.write(buf)
             except OSError as e:
-                raise DistutilsFileError(
-                    "could not write to '{}': {}".format(dst, e.strerror)
-                )
+                raise DistutilsFileError(f"could not write to '{dst}': {e.strerror}")
     finally:
         if fdst:
             fdst.close()
@@ -109,7 +102,7 @@ def copy_file(  # noqa: C901
     # (not update) and (src newer than dst).
 
     from distutils._modified import newer
-    from stat import ST_ATIME, ST_MTIME, ST_MODE, S_IMODE
+    from stat import S_IMODE, ST_ATIME, ST_MODE, ST_MTIME
 
     if not os.path.isfile(src):
         raise DistutilsFileError(
@@ -183,8 +176,8 @@ def move_file(src, dst, verbose=1, dry_run=0):  # noqa: C901
     Handles cross-device moves on Unix using 'copy_file()'.  What about
     other systems???
     """
-    from os.path import exists, isfile, isdir, basename, dirname
     import errno
+    from os.path import basename, dirname, exists, isdir, isfile
 
     if verbose >= 1:
         log.info("moving %s -> %s", src, dst)
@@ -199,12 +192,12 @@ def move_file(src, dst, verbose=1, dry_run=0):  # noqa: C901
         dst = os.path.join(dst, basename(src))
     elif exists(dst):
         raise DistutilsFileError(
-            "can't move '{}': destination '{}' already exists".format(src, dst)
+            f"can't move '{src}': destination '{dst}' already exists"
         )
 
     if not isdir(dirname(dst)):
         raise DistutilsFileError(
-            "can't move '{}': destination '{}' not a valid path".format(src, dst)
+            f"can't move '{src}': destination '{dst}' not a valid path"
         )
 
     copy_it = False
@@ -215,9 +208,7 @@ def move_file(src, dst, verbose=1, dry_run=0):  # noqa: C901
         if num == errno.EXDEV:
             copy_it = True
         else:
-            raise DistutilsFileError(
-                "couldn't move '{}' to '{}': {}".format(src, dst, msg)
-            )
+            raise DistutilsFileError(f"couldn't move '{src}' to '{dst}': {msg}")
 
     if copy_it:
         copy_file(src, dst, verbose=verbose)
@@ -230,8 +221,8 @@ def move_file(src, dst, verbose=1, dry_run=0):  # noqa: C901
             except OSError:
                 pass
             raise DistutilsFileError(
-                "couldn't move '%s' to '%s' by copy/delete: "
-                "delete '%s' failed: %s" % (src, dst, src, msg)
+                f"couldn't move '{src}' to '{dst}' by copy/delete: "
+                f"delete '{src}' failed: {msg}"
             )
     return dst
 
@@ -240,9 +231,5 @@ def write_file(filename, contents):
     """Create a file with the specified name and write 'contents' (a
     sequence of strings without line terminators) to it.
     """
-    f = open(filename, "w")
-    try:
-        for line in contents:
-            f.write(line + "\n")
-    finally:
-        f.close()
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.writelines(line + '\n' for line in contents)
