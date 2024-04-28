@@ -57,8 +57,8 @@ struct apply
 template< bool C_ >
 struct bool_ : integral_constant<bool, C_>
 {
-   BOOST_MOVE_FORCEINLINE operator bool() const { return C_; }
-   BOOST_MOVE_FORCEINLINE bool operator()() const { return C_; }
+   inline operator bool() const { return C_; }
+   inline bool operator()() const { return C_; }
 };
 
 typedef bool_<true>        true_;

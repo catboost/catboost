@@ -61,8 +61,11 @@
 #elif defined(BOOST_MSVC) && (_MSC_VER < 1900 || defined(_DEBUG))
    //"__forceinline" and MSVC seems to have some bugs in old versions and in debug mode
    #define BOOST_MOVE_FORCEINLINE inline
-#elif defined(BOOST_GCC) && (__GNUC__ <= 5)
+#elif defined(BOOST_CLANG) || (defined(BOOST_GCC) && ((__GNUC__ <= 5) || defined(__MINGW32__)))
    //Older GCCs have problems with forceinline
+   //Clang can have code bloat issues with forceinline, see
+   //https://lists.boost.org/boost-users/2023/04/91445.php and
+   //https://github.com/llvm/llvm-project/issues/62202
    #define BOOST_MOVE_FORCEINLINE inline
 #else
    #define BOOST_MOVE_FORCEINLINE BOOST_FORCEINLINE
@@ -126,7 +129,7 @@ template<unsigned> struct static_assert_test {};
 #define BOOST_MOVE_STATIC_ASSERT(B) \
          typedef ::boost::move_detail::static_assert_test<\
             (unsigned)sizeof(::boost::move_detail::STATIC_ASSERTION_FAILURE<bool(B)>)>\
-               BOOST_JOIN(boost_static_assert_typedef_, __LINE__) BOOST_ATTRIBUTE_UNUSED
+               BOOST_JOIN(boost_move_static_assert_typedef_, __LINE__) BOOST_ATTRIBUTE_UNUSED
 
 #endif
 

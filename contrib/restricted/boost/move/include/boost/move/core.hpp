@@ -262,12 +262,12 @@
 
    #define BOOST_COPYABLE_AND_MOVABLE(TYPE)\
       public:\
-      BOOST_MOVE_FORCEINLINE TYPE& operator=(TYPE &t)\
+      inline TYPE& operator=(TYPE &t)\
       {  this->operator=(const_cast<const TYPE&>(t)); return *this;}\
       public:\
-      BOOST_MOVE_FORCEINLINE operator ::boost::rv<TYPE>&() \
+      inline operator ::boost::rv<TYPE>&() \
       {  return *BOOST_MOVE_TO_RV_CAST(::boost::rv<TYPE>*, this);  }\
-      BOOST_MOVE_FORCEINLINE operator const ::boost::rv<TYPE>&() const \
+      inline operator const ::boost::rv<TYPE>&() const \
       {  return *BOOST_MOVE_TO_RV_CAST(const ::boost::rv<TYPE>*, this);  }\
       private:\
    //
