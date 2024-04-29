@@ -356,7 +356,7 @@ holds_gil(PyThreadState *tstate)
     assert(tstate != NULL);
 #ifndef NDEBUG
     if (!tstate_is_alive(tstate)) {
-        return 0;
+        return PyGILState_Check();
     }
 #endif
     _PyRuntimeState *runtime = tstate->interp->runtime;
