@@ -5553,7 +5553,7 @@ class CatBoostClassifier(CatBoost):
         else:
             if not isinstance(binclass_probability_threshold, FLOAT_TYPES):
                 raise CatBoostError("binclass_probability_threshold must have float type")
-            assert 0. <= binclass_probability_threshold <= 1.,\
+            assert 0. <= binclass_probability_threshold <= 1., \
                 "Please provide correct probability for binclass_probability_threshold argument in [0, 1] range"
             self.get_metadata()['binclass_probability_threshold'] = str(binclass_probability_threshold)
 

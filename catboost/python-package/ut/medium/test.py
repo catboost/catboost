@@ -2774,7 +2774,7 @@ def test_generated_multiclassification_class_metrics():
     for metric in class_metrics:
         for i_class in range(n_classes):
             metric_key = '{}:class={}'.format(metric['name'], i_class)
-            assert np.allclose(td_results[metric_key], ag_results[metric_key]),\
+            assert np.allclose(td_results[metric_key], ag_results[metric_key]), \
                 "Different results for {}".format(metric_key)
 
 
@@ -2860,7 +2860,7 @@ def _test_generated_losses(train_pool, test_pool, losses, result_dtype=float):
         ag_model = CatBoost(ag_params)
         ag_model.fit(train_pool, eval_set=test_pool)
         ag_pred = ag_model.predict(test_pool)
-        np.allclose(td_pred.astype(result_dtype), ag_pred.astype(result_dtype)),\
+        np.allclose(td_pred.astype(result_dtype), ag_pred.astype(result_dtype)), \
             "Different results for {}".format(loss_text)
 
 
