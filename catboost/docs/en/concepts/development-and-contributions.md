@@ -74,6 +74,11 @@
 
   {% endnote %}
 
+- JVM applier
+
+    Open the `catboost/jvm-packages/catboost4j-prediction` directory from the local copy of the {{ product }} repository. Run standard `mvn test` command.
+    To run tests on GPU as well add `-DtestOnGPU=1` command line flag.
+
 - CatBoost for Apache Spark
 
     See [building CatBoost for Apache Spark from source](../installation/spark-installation-build-from-source-maven.md). Use standard `mvn test` command.
