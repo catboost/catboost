@@ -14,7 +14,18 @@
 #include <boost/math/tools/config.hpp>
 #include <type_traits>
 #ifndef BOOST_MATH_STANDALONE
+
+#if defined(_MSC_VER) || defined(__GNUC__)
+# pragma push_macro( "I" )
+# undef I
+#endif
+
 #include <boost/lexical_cast.hpp>
+
+#if defined(_MSC_VER) || defined(__GNUC__)
+# pragma pop_macro( "I" )
+#endif
+
 #endif
 
 namespace boost{ namespace math{ namespace tools{

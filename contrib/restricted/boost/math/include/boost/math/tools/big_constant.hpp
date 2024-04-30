@@ -77,7 +77,7 @@ inline constexpr T make_big_value(largest_float, const char* s, std::false_type 
 #define BOOST_MATH_BIG_CONSTANT(T, D, x)\
    boost::math::tools::make_big_value<T>(\
       BOOST_MATH_LARGEST_FLOAT_C(x), \
-      BOOST_STRINGIZE(x), \
+      BOOST_MATH_STRINGIZE(x), \
       std::integral_constant<bool, (std::is_convertible<boost::math::tools::largest_float, T>::value) && \
       ((D <= boost::math::tools::numeric_traits<boost::math::tools::largest_float>::digits) \
           || std::is_floating_point<T>::value \
@@ -88,7 +88,7 @@ inline constexpr T make_big_value(largest_float, const char* s, std::false_type 
 // For constants too huge for any conceivable long double (and which generate compiler errors if we try and declare them as such):
 //
 #define BOOST_MATH_HUGE_CONSTANT(T, D, x)\
-   boost::math::tools::make_big_value<T>(0.0L, BOOST_STRINGIZE(x), \
+   boost::math::tools::make_big_value<T>(0.0L, BOOST_MATH_STRINGIZE(x), \
    std::integral_constant<bool, std::is_floating_point<T>::value || (boost::math::tools::numeric_traits<T>::is_specialized && boost::math::tools::numeric_traits<T>::max_exponent <= boost::math::tools::numeric_traits<boost::math::tools::largest_float>::max_exponent && boost::math::tools::numeric_traits<T>::digits <= boost::math::tools::numeric_traits<boost::math::tools::largest_float>::digits)>(), \
    std::is_constructible<T, const char*>())
 

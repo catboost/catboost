@@ -9,6 +9,7 @@
 #define BOOST_MATH_BESSEL_ITERATORS_HPP
 
 #include <boost/math/tools/recurrence.hpp>
+#include <boost/math/special_functions/bessel.hpp>
 
 namespace boost {
    namespace math {
@@ -154,8 +155,8 @@ namespace boost {
             if (v > 1)
                boost::math::policies::raise_domain_error("bessel_i_forwards_iterator<%1%>", "Order must be < 0 stable forwards recurrence but got %1%", v, Policy());
          }
-         bessel_i_forwards_iterator(const T& v, const T& x, const T& I_v_plus_1, const T& I_v)
-            : it(detail::bessel_ik_recurrence<T>(v, x), I_v_plus_1, I_v)
+         bessel_i_forwards_iterator(const T& v, const T& x, const T& I_v_minus_1, const T& I_v)
+            : it(detail::bessel_ik_recurrence<T>(v, x), I_v_minus_1, I_v)
          {
             if (v > 1)
                boost::math::policies::raise_domain_error("bessel_i_forwards_iterator<%1%>", "Order must be < 0 stable forwards recurrence but got %1%", v, Policy());

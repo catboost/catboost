@@ -15,6 +15,8 @@
 #include <boost/math/special_functions/erf.hpp>
 #include <boost/math/tools/roots.hpp>
 #include <boost/math/special_functions/detail/t_distribution_inv.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/math/tools/precision.hpp>
 
 namespace boost{ namespace math{ namespace detail{
 
@@ -26,8 +28,8 @@ template <class T>
 struct temme_root_finder
 {
    temme_root_finder(const T t_, const T a_) : t(t_), a(a_) {
-      const T x_extrema = 1 / (1 + a);
-      BOOST_MATH_ASSERT(0 < x_extrema && x_extrema < 1);
+      BOOST_MATH_ASSERT(
+         math::tools::epsilon<T>() <= a && !(boost::math::isinf)(a));
    }
 
    boost::math::tuple<T, T> operator()(T x)
@@ -638,7 +640,7 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
             T bet = 0;
             if (b < 2)
             {
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
                try
 #endif
                {
@@ -646,11 +648,11 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
 
                   typedef typename Policy::overflow_error_type overflow_type;
 
-                  BOOST_IF_CONSTEXPR(overflow_type::value != boost::math::policies::throw_on_error)
+                  BOOST_MATH_IF_CONSTEXPR(overflow_type::value != boost::math::policies::throw_on_error)
                      if(bet > tools::max_value<T>())
                         bet = tools::max_value<T>();
                }
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
                catch (const std::overflow_error&)
                {
                   bet = tools::max_value<T>();
@@ -712,11 +714,11 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
       T bet = 0;
       T xg;
       bool overflow = false;
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
       try {
 #endif
          bet = boost::math::beta(a, b, pol);
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
       }
       catch (const std::runtime_error&)
       {
@@ -841,14 +843,14 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
       }
       else if(pow(p, 1/a) < 0.5)
       {
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
          try 
          {
 #endif
             x = pow(p * a * boost::math::beta(a, b, pol), 1 / a);
             if ((x > 1) || !(boost::math::isfinite)(x))
                x = 1;
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
          }
          catch (const std::overflow_error&)
          {
@@ -862,14 +864,14 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
       else /*if(pow(q, 1/b) < 0.1)*/
       {
          // model a distorted quarter circle:
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
          try 
          {
 #endif
             y = pow(1 - pow(p, b * boost::math::beta(a, b, pol)), 1/b);
             if ((y > 1) || !(boost::math::isfinite)(y))
                y = 1;
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
          }
          catch (const std::overflow_error&)
          {

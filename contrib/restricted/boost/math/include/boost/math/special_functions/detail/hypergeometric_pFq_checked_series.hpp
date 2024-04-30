@@ -271,7 +271,7 @@
         //
         if(bj.size() > BOOST_MATH_PFQ_MAX_B_TERMS)
            policies::raise_domain_error<Real>("boost::math::hypergeometric_pFq<%1%>(Seq, Seq, %1%)",
-              "The number of b terms must be less than the value of BOOST_MATH_PFQ_MAX_B_TERMS (" BOOST_STRINGIZE(BOOST_MATH_PFQ_MAX_B_TERMS)  "), but got %1%.",
+              "The number of b terms must be less than the value of BOOST_MATH_PFQ_MAX_B_TERMS (" BOOST_MATH_STRINGIZE(BOOST_MATH_PFQ_MAX_B_TERMS)  "), but got %1%.",
               Real(bj.size()), pol);
 
         unsigned crossover_locations[BOOST_MATH_PFQ_MAX_B_TERMS];

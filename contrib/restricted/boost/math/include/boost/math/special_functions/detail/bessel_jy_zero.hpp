@@ -315,7 +315,7 @@
                 }
                 else
                 {
-                  root_lo *= 0.75F;
+                  root_lo *= 0.75F; // LCOV_EXCL_LINE probably unreachable, but hard to prove?
                 }
               }
             }
@@ -537,7 +537,7 @@
                 }
                 else
                 {
-                  root_lo *= 0.75F;
+                  root_lo *= 0.75F; // LCOV_EXCL_LINE probably unreachable, but hard to prove?
                 }
               }
             }

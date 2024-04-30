@@ -34,7 +34,7 @@ template <int N, int M = N%2>
 struct positive_power
 {
     template <typename T>
-    static BOOST_CXX14_CONSTEXPR T result(T base)
+    static BOOST_MATH_CXX14_CONSTEXPR T result(T base)
     {
         T power = positive_power<N/2>::result(base);
         return power * power;
@@ -45,7 +45,7 @@ template <int N>
 struct positive_power<N, 1>
 {
     template <typename T>
-    static BOOST_CXX14_CONSTEXPR T result(T base)
+    static BOOST_MATH_CXX14_CONSTEXPR T result(T base)
     {
         T power = positive_power<N/2>::result(base);
         return base * power * power;
@@ -56,7 +56,7 @@ template <>
 struct positive_power<1, 1>
 {
     template <typename T>
-    static BOOST_CXX14_CONSTEXPR T result(T base){ return base; }
+    static BOOST_MATH_CXX14_CONSTEXPR T result(T base){ return base; }
 };
 
 
@@ -64,7 +64,7 @@ template <int N, bool>
 struct power_if_positive
 {
     template <typename T, class Policy>
-    static BOOST_CXX14_CONSTEXPR T result(T base, const Policy&)
+    static BOOST_MATH_CXX14_CONSTEXPR T result(T base, const Policy&)
     { return positive_power<N>::result(base); }
 };
 
@@ -72,7 +72,7 @@ template <int N>
 struct power_if_positive<N, false>
 {
     template <typename T, class Policy>
-    static BOOST_CXX14_CONSTEXPR T result(T base, const Policy& policy)
+    static BOOST_MATH_CXX14_CONSTEXPR T result(T base, const Policy& policy)
     {
         if (base == 0)
         {
@@ -91,7 +91,7 @@ template <>
 struct power_if_positive<0, true>
 {
     template <typename T, class Policy>
-    static BOOST_CXX14_CONSTEXPR T result(T base, const Policy& policy)
+    static BOOST_MATH_CXX14_CONSTEXPR T result(T base, const Policy& policy)
     {
         if (base == 0)
         {
@@ -120,14 +120,14 @@ struct select_power_if_positive
 
 
 template <int N, typename T, class Policy>
-BOOST_CXX14_CONSTEXPR inline typename tools::promote_args<T>::type pow(T base, const Policy& policy)
+BOOST_MATH_CXX14_CONSTEXPR inline typename tools::promote_args<T>::type pow(T base, const Policy& policy)
 { 
    using result_type = typename tools::promote_args<T>::type;
    return detail::select_power_if_positive<N>::type::result(static_cast<result_type>(base), policy); 
 }
 
 template <int N, typename T>
-BOOST_CXX14_CONSTEXPR inline typename tools::promote_args<T>::type pow(T base)
+BOOST_MATH_CXX14_CONSTEXPR inline typename tools::promote_args<T>::type pow(T base)
 { return pow<N>(base, policies::policy<>()); }
 
 #ifdef _MSC_VER

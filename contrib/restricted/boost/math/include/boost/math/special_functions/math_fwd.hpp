@@ -1087,10 +1087,10 @@ namespace boost
 
    // pow:
    template <int N, typename T, class Policy>
-   BOOST_CXX14_CONSTEXPR tools::promote_args_t<T> pow(T base, const Policy& policy);
+   BOOST_MATH_CXX14_CONSTEXPR tools::promote_args_t<T> pow(T base, const Policy& policy);
 
    template <int N, typename T>
-   BOOST_CXX14_CONSTEXPR tools::promote_args_t<T> pow(T base);
+   BOOST_MATH_CXX14_CONSTEXPR tools::promote_args_t<T> pow(T base);
 
    // next:
    template <class T, class U, class Policy>

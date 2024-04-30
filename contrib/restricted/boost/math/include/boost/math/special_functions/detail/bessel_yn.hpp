@@ -36,8 +36,7 @@ T bessel_yn(int n, T x, const Policy& pol)
     }
     if (x <= 0)
     {
-       return policies::raise_domain_error<T>(function,
-            "Got x = %1%, but x must be > 0, complex result not supported.", x, pol);
+       return policies::raise_domain_error<T>(function, "Got x = %1%, but x must be > 0, complex result not supported.", x, pol);
     }
 
     //
@@ -56,7 +55,7 @@ T bessel_yn(int n, T x, const Policy& pol)
     {
        T scale = 1;
        value = bessel_yn_small_z(n, x, &scale, pol);
-       if(tools::max_value<T>() * fabs(scale) < fabs(value))
+       if (tools::max_value<T>() * fabs(scale) < fabs(value))
           return boost::math::sign(scale) * boost::math::sign(value) * policies::raise_overflow_error<T>(function, nullptr, pol);
        value /= scale;
     }
@@ -99,7 +98,7 @@ T bessel_yn(int n, T x, const Policy& pol)
            current = value;
            ++k;
        }
-       if(fabs(tools::max_value<T>() * factor) < fabs(value))
+       if (fabs(tools::max_value<T>() * factor) < fabs(value))
           return sign(value) * sign(factor) * policies::raise_overflow_error<T>(function, nullptr, pol);
        value /= factor;
     }

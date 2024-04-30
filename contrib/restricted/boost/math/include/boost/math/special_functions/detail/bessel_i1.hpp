@@ -40,46 +40,6 @@ namespace boost { namespace math { namespace detail{
 template <typename T>
 T bessel_i1(const T& x);
 
-template <class T, class tag>
-struct bessel_i1_initializer
-{
-   struct init
-   {
-      init()
-      {
-         do_init(tag());
-      }
-      static void do_init(const std::integral_constant<int, 64>&)
-      {
-         bessel_i1(T(1));
-         bessel_i1(T(15));
-         bessel_i1(T(80));
-         bessel_i1(T(101));
-      }
-      static void do_init(const std::integral_constant<int, 113>&)
-      {
-         bessel_i1(T(1));
-         bessel_i1(T(10));
-         bessel_i1(T(14));
-         bessel_i1(T(19));
-         bessel_i1(T(34));
-         bessel_i1(T(99));
-         bessel_i1(T(101));
-      }
-      template <class U>
-      static void do_init(const U&) {}
-      void force_instantiate()const{}
-   };
-   static const init initializer;
-   static void force_instantiate()
-   {
-      initializer.force_instantiate();
-   }
-};
-
-template <class T, class tag>
-const typename bessel_i1_initializer<T, tag>::init bessel_i1_initializer<T, tag>::initializer;
-
 template <typename T, int N>
 T bessel_i1_imp(const T&, const std::integral_constant<int, N>&)
 {
@@ -582,7 +542,6 @@ inline T bessel_i1(const T& x)
       113 : -1
    > tag_type;
 
-   bessel_i1_initializer<T, tag_type>::force_instantiate();
    return bessel_i1_imp(x, tag_type());
 }
 

@@ -335,9 +335,8 @@ RealType students_t_distribution<RealType, Policy>::find_degrees_of_freedom(
    RealType result = r.first + (r.second - r.first) / 2;
    if(max_iter >= policies::get_max_root_iterations<Policy>())
    {
-      return policies::raise_evaluation_error<RealType>(function, "Unable to locate solution in a reasonable time:"
-         " either there is no answer to how many degrees of freedom are required"
-         " or the answer is infinite.  Current best guess is %1%", result, Policy());
+      return policies::raise_evaluation_error<RealType>(function, "Unable to locate solution in a reasonable time: either there is no answer to how many degrees of freedom are required" // LCOV_EXCL_LINE
+         " or the answer is infinite.  Current best guess is %1%", result, Policy()); // LCOV_EXCL_LINE
    }
    return result;
 }

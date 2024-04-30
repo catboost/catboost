@@ -99,22 +99,25 @@ T cyl_bessel_j_imp(T v, T x, const bessel_no_int_tag& t, const Policy& pol)
    if(x < 0)
    {
       // better have integer v:
-      if(floor(v) == v)
+      if (floor(v) == v)
       {
+         // LCOV_EXCL_START
+         // This branch is hit by multiprecision types only, and is
+         // tested by our real_concept tests, but thee are excluded from coverage
+         // due to time constraints.
          T r = cyl_bessel_j_imp(v, T(-x), t, pol);
-         if(iround(v, pol) & 1)
+         if (iround(v, pol) & 1)
             r = -r;
          return r;
+         // LCOV_EXCL_STOP
       }
       else
-         return policies::raise_domain_error<T>(
-            function,
-            "Got x = %1%, but we need x >= 0", x, pol);
+         return policies::raise_domain_error<T>(function, "Got x = %1%, but we need x >= 0", x, pol);
    }
 
-   T j, y;
-   bessel_jy(v, x, &j, &y, need_j, pol);
-   return j;
+   T result_J, y; // LCOV_EXCL_LINE
+   bessel_jy(v, x, &result_J, &y, need_j, pol);
+   return result_J;
 }
 
 template <class T, class Policy>
@@ -143,9 +146,7 @@ inline T sph_bessel_j_imp(unsigned n, T x, const Policy& pol)
 {
    BOOST_MATH_STD_USING // ADL of std names
    if(x < 0)
-      return policies::raise_domain_error<T>(
-         "boost::math::sph_bessel_j<%1%>(%1%,%1%)",
-         "Got x = %1%, but function requires x > 0.", x, pol);
+      return policies::raise_domain_error<T>("boost::math::sph_bessel_j<%1%>(%1%,%1%)", "Got x = %1%, but function requires x > 0.", x, pol);
    //
    // Special case, n == 0 resolves down to the sinus cardinal of x:
    //
@@ -179,6 +180,7 @@ T cyl_bessel_i_imp(T v, T x, const Policy& pol)
    // case has better error handling too).
    //
    BOOST_MATH_STD_USING
+   static const char* function = "boost::math::cyl_bessel_i<%1%>(%1%,%1%)";
    if(x < 0)
    {
       // better have integer v:
@@ -190,12 +192,12 @@ T cyl_bessel_i_imp(T v, T x, const Policy& pol)
          return r;
       }
       else
-         return policies::raise_domain_error<T>(
-         "boost::math::cyl_bessel_i<%1%>(%1%,%1%)",
-            "Got x = %1%, but we need x >= 0", x, pol);
+         return policies::raise_domain_error<T>(function, "Got x = %1%, but we need x >= 0", x, pol);
    }
    if(x == 0)
    {
+      if(v < 0) 
+         return floor(v) == v ? static_cast<T>(0) : policies::raise_overflow_error<T>(function, nullptr, pol);
       return (v == 0) ? static_cast<T>(1) : static_cast<T>(0);
    }
    if(v == 0.5f)
@@ -221,9 +223,9 @@ T cyl_bessel_i_imp(T v, T x, const Policy& pol)
    }
    if((v > 0) && (x / v < 0.25))
       return bessel_i_small_z_series(v, x, pol);
-   T I, K;
-   bessel_ik(v, x, &I, &K, need_i, pol);
-   return I;
+   T result_I, result_K; // LCOV_EXCL_LINE
+   bessel_ik(v, x, &result_I, &result_K, need_i, pol);
+   return result_I;
 }
 
 template <class T, class Policy>
@@ -233,20 +235,16 @@ inline T cyl_bessel_k_imp(T v, T x, const bessel_no_int_tag& /* t */, const Poli
    BOOST_MATH_STD_USING
    if(x < 0)
    {
-      return policies::raise_domain_error<T>(
-         function,
-         "Got x = %1%, but we need x > 0", x, pol);
+      return policies::raise_domain_error<T>(function, "Got x = %1%, but we need x > 0", x, pol);
    }
    if(x == 0)
    {
       return (v == 0) ? policies::raise_overflow_error<T>(function, nullptr, pol)
-         : policies::raise_domain_error<T>(
-         function,
-         "Got x = %1%, but we need x > 0", x, pol);
+         : policies::raise_domain_error<T>(function, "Got x = %1%, but we need x > 0", x, pol);
    }
-   T I, K;
-   bessel_ik(v, x, &I, &K, need_k, pol);
-   return K;
+   T result_I, result_K; // LCOV_EXCL_LINE
+   bessel_ik(v, x, &result_I, &result_K, need_k, pol);
+   return result_K;
 }
 
 template <class T, class Policy>
@@ -277,20 +275,18 @@ inline T cyl_neumann_imp(T v, T x, const bessel_no_int_tag&, const Policy& pol)
    if(x <= 0)
    {
       return (v == 0) && (x == 0) ?
-         policies::raise_overflow_error<T>(function, nullptr, pol)
-         : policies::raise_domain_error<T>(
-               function,
-               "Got x = %1%, but result is complex for x <= 0", x, pol);
+         -policies::raise_overflow_error<T>(function, nullptr, pol) // LCOV_EXCL_LINE MP case only here, not tested in code coverage as it takes too long.
+         : policies::raise_domain_error<T>(function, "Got x = %1%, but result is complex for x <= 0", x, pol);
    }
-   T j, y;
-   bessel_jy(v, x, &j, &y, need_y, pol);
+   T result_J, y; // LCOV_EXCL_LINE
+   bessel_jy(v, x, &result_J, &y, need_y, pol);
    //
    // Post evaluation check for internal overflow during evaluation,
    // can occur when x is small and v is large, in which case the result
    // is -INF:
    //
    if(!(boost::math::isfinite)(y))
-      return -policies::raise_overflow_error<T>(function, nullptr, pol);
+      return -policies::raise_overflow_error<T>(function, nullptr, pol); // LCOV_EXCL_LINE defensive programming?  Might be dead code now...
    return y;
 }
 
@@ -329,9 +325,7 @@ inline T sph_neumann_imp(unsigned v, T x, const Policy& pol)
    // evaluate the function's definition directly:
    //
    if(x < 0)
-      return policies::raise_domain_error<T>(
-         function,
-         "Got x = %1%, but function requires x > 0.", x, pol);
+      return policies::raise_domain_error<T>(function, "Got x = %1%, but function requires x > 0.", x, pol);
 
    if(x < 2 * tools::min_value<T>())
       return -policies::raise_overflow_error<T>(function, nullptr, pol);
@@ -339,7 +333,7 @@ inline T sph_neumann_imp(unsigned v, T x, const Policy& pol)
    T result = cyl_neumann_imp(T(T(v)+0.5f), x, bessel_no_int_tag(), pol);
    T tx = sqrt(constants::pi<T>() / (2 * x));
 
-   if((tx > 1) && (tools::max_value<T>() / tx < result))
+   if((tx > 1) && (tools::max_value<T>() / tx < fabs(result)))
       return -policies::raise_overflow_error<T>(function, nullptr, pol);
 
    return result * tx;
@@ -417,8 +411,7 @@ inline T cyl_bessel_j_zero_imp(T v, int m, const Policy& pol)
 
    if(number_of_iterations >= policies::get_max_root_iterations<Policy>())
    {
-      return policies::raise_evaluation_error<T>(function, "Unable to locate root in a reasonable time:"
-         "  Current best guess is %1%", jvm, Policy());
+      return policies::raise_evaluation_error<T>(function, "Unable to locate root in a reasonable time: Current best guess is %1%", jvm, Policy()); // LCOV_EXCL_LINE
    }
 
    return jvm;
@@ -496,8 +489,7 @@ inline T cyl_neumann_zero_imp(T v, int m, const Policy& pol)
 
    if(number_of_iterations >= policies::get_max_root_iterations<Policy>())
    {
-      return policies::raise_evaluation_error<T>(function, "Unable to locate root in a reasonable time:"
-         "  Current best guess is %1%", yvm, Policy());
+      return policies::raise_evaluation_error<T>(function, "Unable to locate root in a reasonable time: Current best guess is %1%", yvm, Policy()); //LCOV_EXCL_LINE
    }
 
    return yvm;

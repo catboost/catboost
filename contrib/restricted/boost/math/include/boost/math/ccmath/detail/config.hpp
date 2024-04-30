@@ -17,7 +17,7 @@
 #ifndef BOOST_MATH_STANDALONE
 
 #include <boost/config.hpp>
-#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
+#ifdef BOOST_MATH_NO_CXX17_IF_CONSTEXPR
 #  define BOOST_MATH_NO_CCMATH
 #endif
 

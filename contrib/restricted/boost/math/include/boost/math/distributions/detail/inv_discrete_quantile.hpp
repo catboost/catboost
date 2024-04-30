@@ -215,7 +215,7 @@ typename Dist::value_type
          while(((boost::math::sign)(fb) == (boost::math::sign)(fa)) && (a != b))
          {
             if(count == 0)
-               return policies::raise_evaluation_error(function, "Unable to bracket root, last nearest value was %1%", b, policy_type());
+               return policies::raise_evaluation_error(function, "Unable to bracket root, last nearest value was %1%", b, policy_type()); // LCOV_EXCL_LINE
             a = b;
             fa = fb;
             b *= multiplier;
@@ -242,7 +242,7 @@ typename Dist::value_type
                return 0;
             }
             if(count == 0)
-               return policies::raise_evaluation_error(function, "Unable to bracket root, last nearest value was %1%", a, policy_type());
+               return policies::raise_evaluation_error(function, "Unable to bracket root, last nearest value was %1%", a, policy_type()); // LCOV_EXCL_LINE
             b = a;
             fb = fa;
             a /= multiplier;
@@ -276,6 +276,11 @@ typename Dist::value_type
    //
    std::pair<value_type, value_type> r = toms748_solve(f, a, b, fa, fb, tol, count, policy_type());
    max_iter += count;
+   if (max_iter >= policies::get_max_root_iterations<policy_type>())
+   {
+      return policies::raise_evaluation_error<value_type>(function, "Unable to locate solution in a reasonable time:" // LCOV_EXCL_LINE
+         " either there is no answer to quantile or the answer is infinite.  Current best guess is %1%", r.first, policy_type()); // LCOV_EXCL_LINE
+   }
    BOOST_MATH_INSTRUMENT_CODE("max_iter = " << max_iter << " count = " << count);
    return (r.first + r.second) / 2;
 }

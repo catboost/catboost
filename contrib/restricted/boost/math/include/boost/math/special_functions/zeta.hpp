@@ -936,7 +936,7 @@ T zeta_imp(T s, T sc, const Policy& pol, const Tag& tag)
    //
    if(floor(s) == s)
    {
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
       // Without exceptions we expect itrunc to return INT_MAX on overflow
       // and we fall through anyway.
       try
@@ -964,7 +964,7 @@ T zeta_imp(T s, T sc, const Policy& pol, const Tag& tag)
             else
                return zeta_imp_odd_integer(v, sc, pol, std::integral_constant<bool, (Tag::value <= 113) && Tag::value>());
          }
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
       }
       catch(const boost::math::rounding_error&){} // Just fall through, s is too large to round
       catch(const std::overflow_error&){}

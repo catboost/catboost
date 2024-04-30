@@ -43,6 +43,7 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
       // long double: Max error found: 1.017064e-20
       // Maximum Deviation Found (actual error term at infinite precision) 8.030e-21
       //
+      // LCOV_EXCL_START
       static const float Y = 0.0891314744949340820313f;
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 64, -0.000508781949658280665617),
@@ -66,6 +67,7 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
          BOOST_MATH_BIG_CONSTANT(T, 64, -0.00233393759374190016776),
          BOOST_MATH_BIG_CONSTANT(T, 64, 0.000886216390456424707504)
       };
+      // LCOV_EXCL_STOP
       T g = p * (p + 10);
       T r = tools::evaluate_polynomial(P, p) / tools::evaluate_polynomial(Q, p);
       result = g * Y + g * r;
@@ -84,6 +86,7 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
       // long double : Max error found: 6.084616e-20
       // Maximum Deviation Found (error term) 4.811e-20
       //
+      // LCOV_EXCL_START
       static const float Y = 2.249481201171875f;
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 64, -0.202433508355938759655),
@@ -107,6 +110,7 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
          BOOST_MATH_BIG_CONSTANT(T, 64, -22.6436933413139721736),
          BOOST_MATH_BIG_CONSTANT(T, 64, 1.72114765761200282724)
       };
+      // LCOV_EXCL_STOP
       T g = sqrt(-2 * log(q));
       T xs = q - 0.25f;
       T r = tools::evaluate_polynomial(P, xs) / tools::evaluate_polynomial(Q, xs);
@@ -136,6 +140,7 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
       T x = sqrt(-log(q));
       if(x < 3)
       {
+         // LCOV_EXCL_START
          // Max error found: 1.089051e-20
          static const float Y = 0.807220458984375f;
          static const T P[] = {
@@ -161,12 +166,14 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.152264338295331783612),
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.01105924229346489121)
          };
+         // LCOV_EXCL_STOP
          T xs = x - 1.125f;
          T R = tools::evaluate_polynomial(P, xs) / tools::evaluate_polynomial(Q, xs);
          result = Y * x + R * x;
       }
       else if(x < 6)
       {
+         // LCOV_EXCL_START
          // Max error found: 8.389174e-21
          static const float Y = 0.93995571136474609375f;
          static const T P[] = {
@@ -189,12 +196,14 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.00263861676657015992959),
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.764675292302794483503e-4)
          };
+         // LCOV_EXCL_STOP
          T xs = x - 3;
          T R = tools::evaluate_polynomial(P, xs) / tools::evaluate_polynomial(Q, xs);
          result = Y * x + R * x;
       }
       else if(x < 18)
       {
+         // LCOV_EXCL_START
          // Max error found: 1.481312e-19
          static const float Y = 0.98362827301025390625f;
          static const T P[] = {
@@ -217,12 +226,14 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.275335474764726041141e-4),
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.282243172016108031869e-6)
          };
+         // LCOV_EXCL_STOP
          T xs = x - 6;
          T R = tools::evaluate_polynomial(P, xs) / tools::evaluate_polynomial(Q, xs);
          result = Y * x + R * x;
       }
       else if(x < 44)
       {
+         // LCOV_EXCL_START
          // Max error found: 5.697761e-20
          static const float Y = 0.99714565277099609375f;
          static const T P[] = {
@@ -244,12 +255,14 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.144437756628144157666e-6),
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.509761276599778486139e-9)
          };
+         // LCOV_EXCL_STOP
          T xs = x - 18;
          T R = tools::evaluate_polynomial(P, xs) / tools::evaluate_polynomial(Q, xs);
          result = Y * x + R * x;
       }
       else
       {
+         // LCOV_EXCL_START
          // Max error found: 1.279746e-20
          static const float Y = 0.99941349029541015625f;
          static const T P[] = {
@@ -271,6 +284,7 @@ T erf_inv_imp(const T& p, const T& q, const Policy&, const std::integral_constan
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.161809290887904476097e-8),
             BOOST_MATH_BIG_CONSTANT(T, 64, 0.231558608310259605225e-11)
          };
+         // LCOV_EXCL_STOP
          T xs = x - 44;
          T R = tools::evaluate_polynomial(P, xs) / tools::evaluate_polynomial(Q, xs);
          result = Y * x + R * x;
@@ -325,71 +339,6 @@ T erf_inv_imp(const T& p, const T& q, const Policy& pol, const std::integral_con
       result = guess;
    }
    return result;
-}
-
-template <class T, class Policy>
-struct erf_inv_initializer
-{
-   struct init
-   {
-      init()
-      {
-         do_init();
-      }
-      static bool is_value_non_zero(T);
-      static void do_init()
-      {
-         // If std::numeric_limits<T>::digits is zero, we must not call
-         // our initialization code here as the precision presumably
-         // varies at runtime, and will not have been set yet.
-         if(std::numeric_limits<T>::digits)
-         {
-            boost::math::erf_inv(static_cast<T>(0.25), Policy());
-            boost::math::erf_inv(static_cast<T>(0.55), Policy());
-            boost::math::erf_inv(static_cast<T>(0.95), Policy());
-            boost::math::erfc_inv(static_cast<T>(1e-15), Policy());
-            // These following initializations must not be called if
-            // type T can not hold the relevant values without
-            // underflow to zero.  We check this at runtime because
-            // some tools such as valgrind silently change the precision
-            // of T at runtime, and numeric_limits basically lies!
-            if(is_value_non_zero(static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 1e-130))))
-               boost::math::erfc_inv(static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 1e-130)), Policy());
-
-            // Some compilers choke on constants that would underflow, even in code that isn't instantiated
-            // so try and filter these cases out in the preprocessor:
-#if LDBL_MAX_10_EXP >= 800
-            if(is_value_non_zero(static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 1e-800))))
-               boost::math::erfc_inv(static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 1e-800)), Policy());
-            if(is_value_non_zero(static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 1e-900))))
-               boost::math::erfc_inv(static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 1e-900)), Policy());
-#else
-            if(is_value_non_zero(static_cast<T>(BOOST_MATH_HUGE_CONSTANT(T, 64, 1e-800))))
-               boost::math::erfc_inv(static_cast<T>(BOOST_MATH_HUGE_CONSTANT(T, 64, 1e-800)), Policy());
-            if(is_value_non_zero(static_cast<T>(BOOST_MATH_HUGE_CONSTANT(T, 64, 1e-900))))
-               boost::math::erfc_inv(static_cast<T>(BOOST_MATH_HUGE_CONSTANT(T, 64, 1e-900)), Policy());
-#endif
-         }
-      }
-      void force_instantiate()const{}
-   };
-   static const init initializer;
-   static void force_instantiate()
-   {
-      initializer.force_instantiate();
-   }
-};
-
-template <class T, class Policy>
-const typename erf_inv_initializer<T, Policy>::init erf_inv_initializer<T, Policy>::initializer;
-
-template <class T, class Policy>
-BOOST_NOINLINE bool erf_inv_initializer<T, Policy>::init::is_value_non_zero(T v)
-{
-   // This needs to be non-inline to detect whether v is non zero at runtime
-   // rather than at compile time, only relevant when running under valgrind
-   // which changes long double's to double's on the fly.
-   return v != 0;
 }
 
 } // namespace detail
@@ -447,8 +396,6 @@ typename tools::promote_args<T>::type erfc_inv(T z, const Policy& pol)
       policies::promote_double<false>,
       policies::discrete_quantile<>,
       policies::assert_undefined<> >::type forwarding_policy;
-
-   detail::erf_inv_initializer<eval_type, forwarding_policy>::force_instantiate();
 
    //
    // And get the result, negating where required:
@@ -518,7 +465,6 @@ typename tools::promote_args<T>::type erf_inv(T z, const Policy& pol)
    //
    typedef typename policies::evaluation<result_type, Policy>::type eval_type;
 
-   detail::erf_inv_initializer<eval_type, forwarding_policy>::force_instantiate();
    //
    // And get the result, negating where required:
    //

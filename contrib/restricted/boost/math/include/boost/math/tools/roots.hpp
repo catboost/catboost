@@ -275,7 +275,13 @@ T newton_raphson_iterate(F f, T guess, T min, T max, int digits, std::uintmax_t&
       if (fabs(delta * 2) > fabs(delta2))
       {
          // Last two steps haven't converged.
-         delta = (delta > 0) ? (result - min) / 2 : (result - max) / 2;
+         T shift = (delta > 0) ? (result - min) / 2 : (result - max) / 2;
+         if ((result != 0) && (fabs(shift) > fabs(result)))
+         {
+            delta = sign(delta) * fabs(result); // protect against huge jumps!
+         }
+         else
+            delta = shift;
          // reset delta1/2 so we don't take this branch next time round:
          delta1 = 3 * delta;
          delta2 = 3 * delta;
@@ -536,13 +542,13 @@ namespace detail {
          last_f0 = f0;
          delta2 = delta1;
          delta1 = delta;
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
          try
 #endif
          {
             detail::unpack_tuple(f(result), f0, f1, f2);
          }
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
          catch (const std::overflow_error&)
          {
             f0 = max > 0 ? tools::max_value<T>() : -tools::min_value<T>();
@@ -864,7 +870,7 @@ Complex complex_newton(F g, Complex guess, int max_iterations = std::numeric_lim
 #endif
 
 
-#if !defined(BOOST_NO_CXX17_IF_CONSTEXPR)
+#if !defined(BOOST_MATH_NO_CXX17_IF_CONSTEXPR)
 // https://stackoverflow.com/questions/48979861/numerically-stable-method-for-solving-quadratic-equations/50065711
 namespace detail
 {

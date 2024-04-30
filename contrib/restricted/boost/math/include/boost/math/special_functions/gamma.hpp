@@ -1,7 +1,7 @@
 //  Copyright John Maddock 2006-7, 2013-20.
 //  Copyright Paul A. Bristow 2007, 2013-14.
 //  Copyright Nikhar Agrawal 2013-14
-//  Copyright Christopher Kormanyos 2013-14, 2020
+//  Copyright Christopher Kormanyos 2013-14, 2020, 2024
 
 //  Use, modification and distribution are subject to the
 //  Boost Software License, Version 1.0. (See accompanying file
@@ -813,10 +813,12 @@ T full_igamma_prefix(T a, T z, const Policy& pol)
 {
    BOOST_MATH_STD_USING
 
-   T prefix;
    if (z > tools::max_value<T>())
       return 0;
+
    T alz = a * log(z);
+
+   T prefix { };
 
    if(z >= 1)
    {
@@ -1021,8 +1023,9 @@ inline T tgamma_small_upper_part(T a, T x, const Policy& pol, T* pgam = 0, bool 
    //
    // Compute the full upper fraction (Q) when a is very small:
    //
-   T result;
-   result = boost::math::tgamma1pm1(a, pol);
+
+   T result { boost::math::tgamma1pm1(a, pol) };
+
    if(pgam)
       *pgam = (result + 1) / a;
    T p = boost::math::powm1(x, a, pol);
@@ -1466,12 +1469,12 @@ T gamma_incomplete_imp(T a, T x, bool normalised, bool invert,
             result = pow(x, a) / (a);
          else
          {
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
             try
             {
 #endif
                result = pow(x, a) / boost::math::tgamma(a + 1, pol);
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
             }
             catch (const std::overflow_error&)
             {

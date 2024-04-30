@@ -196,10 +196,8 @@ T bessel_j1(T x)
         value = factor * (rc * (sx - cx) + y * rs * (sx + cx));
     }
 
-    if (x < 0)
-    {
-        value *= -1;                 // odd function
-    }
+    BOOST_MATH_ASSERT(x >= 0);  // Negative values handled by the caller.
+
     return value;
 }
 

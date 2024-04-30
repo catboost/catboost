@@ -38,36 +38,9 @@ namespace boost { namespace math { namespace detail{
 template <typename T, typename Policy>
 T bessel_y1(T x, const Policy&);
 
-template <class T, class Policy>
-struct bessel_y1_initializer
-{
-   struct init
-   {
-      init()
-      {
-         do_init();
-      }
-      static void do_init()
-      {
-         bessel_y1(T(1), Policy());
-      }
-      void force_instantiate()const{}
-   };
-   static const init initializer;
-   static void force_instantiate()
-   {
-      initializer.force_instantiate();
-   }
-};
-
-template <class T, class Policy>
-const typename bessel_y1_initializer<T, Policy>::init bessel_y1_initializer<T, Policy>::initializer;
-
 template <typename T, typename Policy>
-T bessel_y1(T x, const Policy& pol)
+T bessel_y1(T x, const Policy&)
 {
-    bessel_y1_initializer<T, Policy>::force_instantiate();
-
     static const T P1[] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 4.0535726612579544093e+13)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 5.4708611716525426053e+12)),
@@ -157,11 +130,8 @@ T bessel_y1(T x, const Policy& pol)
     using namespace boost::math::tools;
     using namespace boost::math::constants;
 
-    if (x <= 0)
-    {
-       return policies::raise_domain_error<T>("boost::math::bessel_y1<%1%>(%1%,%1%)",
-            "Got x == %1%, but x must be > 0, complex result not supported.", x, pol);
-    }
+    BOOST_MATH_ASSERT(x > 0);
+
     if (x <= 4)                       // x in (0, 4]
     {
         T y = x * x;

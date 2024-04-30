@@ -25,7 +25,7 @@
 #include <boost/math/tools/assert.hpp>
 #include <boost/math/tools/config.hpp>
 
-#ifdef BOOST_HAS_THREADS
+#ifdef BOOST_MATH_HAS_THREADS
 #include <mutex>
 #endif
 
@@ -406,7 +406,7 @@ namespace boost { namespace math { namespace detail{
      //
      if((unsigned)n / 2u > policies::get_max_series_iterations<Policy>())
         return policies::raise_evaluation_error<T>(function, "The value of n is so large that we're unable to compute the result in reasonable time, best guess is %1%", 0, pol);
-#ifdef BOOST_HAS_THREADS
+#ifdef BOOST_MATH_HAS_THREADS
      static std::mutex m;
      std::lock_guard<std::mutex> l(m);
 #endif

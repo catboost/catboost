@@ -168,11 +168,11 @@ struct mp_at_c<L<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T...>, 1
 };
 }
 
-template<typename L, std::size_t I>
-using mp_at_c = typename detail::mp_at_c<L, I>::type;
+template<typename L, std::size_t Index>
+using mp_at_c = typename detail::mp_at_c<L, Index>::type;
 
-template<typename L, typename I>
-using mp_at = typename detail::mp_at_c<L, I::value>::type;
+template<typename L, typename Index>
+using mp_at = typename detail::mp_at_c<L, Index::value>::type;
 
 // Back
 template<typename L> 
@@ -339,8 +339,8 @@ using mp_remove_if_q = mp_remove_if<L, Q::template fn>;
 // Index sequence
 // Use C++14 index sequence if available
 #if defined(__cpp_lib_integer_sequence) && (__cpp_lib_integer_sequence >= 201304)
-template<std::size_t... I>
-using index_sequence = std::index_sequence<I...>;
+template<std::size_t... Index>
+using index_sequence = std::index_sequence<Index...>;
 
 template<std::size_t N>
 using make_index_sequence = std::make_index_sequence<N>;
@@ -350,11 +350,11 @@ using index_sequence_for = std::index_sequence_for<T...>;
 
 #else
 
-template<typename T, T... I>
+template<typename T, T... Index>
 struct integer_sequence {};
 
-template<std::size_t... I>
-using index_sequence = integer_sequence<std::size_t, I...>;
+template<std::size_t... Index>
+using index_sequence = integer_sequence<std::size_t, Index...>;
 
 namespace detail {
 
@@ -385,10 +385,10 @@ struct iseq_identity
 template<typename T1, typename T2>
 struct append_integer_sequence {};
 
-template<typename T, T... I, T... J>
-struct append_integer_sequence<integer_sequence<T, I...>, integer_sequence<T, J...>>
+template<typename T, T... Index, T... J>
+struct append_integer_sequence<integer_sequence<T, Index...>, integer_sequence<T, J...>>
 {
-    using type = integer_sequence<T, I..., (J + sizeof...(I))...>;
+    using type = integer_sequence<T, Index..., (J + sizeof...(Index))...>;
 };
 
 template<typename T, T N>

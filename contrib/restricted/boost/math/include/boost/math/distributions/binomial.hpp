@@ -258,7 +258,7 @@ namespace boost
 
         typedef typename Policy::discrete_quantile_type discrete_quantile_type;
         std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
-        return detail::inverse_discrete_quantile(
+        result = detail::inverse_discrete_quantile(
             dist,
             comp ? q : p,
             comp,
@@ -267,6 +267,7 @@ namespace boost
             RealType(1),
             discrete_quantile_type(),
             max_iter);
+        return result;
       } // quantile
 
      }

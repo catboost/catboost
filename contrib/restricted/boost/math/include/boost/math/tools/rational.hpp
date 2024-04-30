@@ -15,28 +15,28 @@
 #include <boost/math/tools/assert.hpp>
 
 #if BOOST_MATH_POLY_METHOD == 1
-#  define BOOST_HEADER() <BOOST_JOIN(boost/math/tools/detail/polynomial_horner1_, BOOST_MATH_MAX_POLY_ORDER).hpp>
+#  define BOOST_HEADER() <BOOST_MATH_JOIN(boost/math/tools/detail/polynomial_horner1_, BOOST_MATH_MAX_POLY_ORDER).hpp>
 #  include BOOST_HEADER()
 #  undef BOOST_HEADER
 #elif BOOST_MATH_POLY_METHOD == 2
-#  define BOOST_HEADER() <BOOST_JOIN(boost/math/tools/detail/polynomial_horner2_, BOOST_MATH_MAX_POLY_ORDER).hpp>
+#  define BOOST_HEADER() <BOOST_MATH_JOIN(boost/math/tools/detail/polynomial_horner2_, BOOST_MATH_MAX_POLY_ORDER).hpp>
 #  include BOOST_HEADER()
 #  undef BOOST_HEADER
 #elif BOOST_MATH_POLY_METHOD == 3
-#  define BOOST_HEADER() <BOOST_JOIN(boost/math/tools/detail/polynomial_horner3_, BOOST_MATH_MAX_POLY_ORDER).hpp>
+#  define BOOST_HEADER() <BOOST_MATH_JOIN(boost/math/tools/detail/polynomial_horner3_, BOOST_MATH_MAX_POLY_ORDER).hpp>
 #  include BOOST_HEADER()
 #  undef BOOST_HEADER
 #endif
 #if BOOST_MATH_RATIONAL_METHOD == 1
-#  define BOOST_HEADER() <BOOST_JOIN(boost/math/tools/detail/rational_horner1_, BOOST_MATH_MAX_POLY_ORDER).hpp>
+#  define BOOST_HEADER() <BOOST_MATH_JOIN(boost/math/tools/detail/rational_horner1_, BOOST_MATH_MAX_POLY_ORDER).hpp>
 #  include BOOST_HEADER()
 #  undef BOOST_HEADER
 #elif BOOST_MATH_RATIONAL_METHOD == 2
-#  define BOOST_HEADER() <BOOST_JOIN(boost/math/tools/detail/rational_horner2_, BOOST_MATH_MAX_POLY_ORDER).hpp>
+#  define BOOST_HEADER() <BOOST_MATH_JOIN(boost/math/tools/detail/rational_horner2_, BOOST_MATH_MAX_POLY_ORDER).hpp>
 #  include BOOST_HEADER()
 #  undef BOOST_HEADER
 #elif BOOST_MATH_RATIONAL_METHOD == 3
-#  define BOOST_HEADER() <BOOST_JOIN(boost/math/tools/detail/rational_horner3_, BOOST_MATH_MAX_POLY_ORDER).hpp>
+#  define BOOST_HEADER() <BOOST_MATH_JOIN(boost/math/tools/detail/rational_horner3_, BOOST_MATH_MAX_POLY_ORDER).hpp>
 #  include BOOST_HEADER()
 #  undef BOOST_HEADER
 #endif

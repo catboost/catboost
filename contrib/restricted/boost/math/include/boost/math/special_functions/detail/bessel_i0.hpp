@@ -37,45 +37,6 @@ namespace boost { namespace math { namespace detail{
 template <typename T>
 T bessel_i0(const T& x);
 
-template <class T, class tag>
-struct bessel_i0_initializer
-{
-   struct init
-   {
-      init()
-      {
-         do_init(tag());
-      }
-      static void do_init(const std::integral_constant<int, 64>&)
-      {
-         bessel_i0(T(1));
-         bessel_i0(T(8));
-         bessel_i0(T(12));
-         bessel_i0(T(40));
-         bessel_i0(T(101));
-      }
-      static void do_init(const std::integral_constant<int, 113>&)
-      {
-         bessel_i0(T(1));
-         bessel_i0(T(10));
-         bessel_i0(T(20));
-         bessel_i0(T(40));
-         bessel_i0(T(101));
-      }
-      template <class U>
-      static void do_init(const U&) {}
-      void force_instantiate()const {}
-   };
-   static const init initializer;
-   static void force_instantiate()
-   {
-      initializer.force_instantiate();
-   }
-};
-
-template <class T, class tag>
-const typename bessel_i0_initializer<T, tag>::init bessel_i0_initializer<T, tag>::initializer;
-
 template <typename T, int N>
 T bessel_i0_imp(const T&, const std::integral_constant<int, N>&)
 {
@@ -220,6 +181,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 64>&)
       // Bessel I0 over[10 ^ -16, 7.75]
       // Max error in interpolated form : 3.899e-20
       // Max Error found at float80 precision = Poly : 1.770840e-19
+      // LCOV_EXCL_START
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 64, 9.99999999999999999961011629e-01),
          BOOST_MATH_BIG_CONSTANT(T, 64, 2.50000000000000001321873912e-01),
@@ -238,6 +200,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 64>&)
          BOOST_MATH_BIG_CONSTANT(T, 64, 5.15976668870980234582896010e-25),
          BOOST_MATH_BIG_CONSTANT(T, 64, 3.46240478946376069211156548e-27)
       };
+      // LCOV_EXCL_STOP
       T a = x * x / 4;
       return a * boost::math::tools::evaluate_polynomial(P, a) + 1;
    }
@@ -247,6 +210,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 64>&)
       // Expected Error Term : -6.903e-21
       // Maximum Relative Change in Control Points : 1.631e-04
       // Max Error found at float80 precision = Poly : 7.811948e-21
+      // LCOV_EXCL_START
       static const T Y = 4.051098823547363281250e-01f;
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 64, -6.158081780620616479492e-03),
@@ -263,6 +227,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 64>&)
          BOOST_MATH_BIG_CONSTANT(T, 64, -1.601530760654337045917e+06),
          BOOST_MATH_BIG_CONSTANT(T, 64, 9.504921137873298402679e+05)
       };
+      // LCOV_EXCL_STOP
       return exp(x) * (boost::math::tools::evaluate_polynomial(P, T(1 / x)) + Y) / sqrt(x);
    }
    else if(x < 15)
@@ -271,6 +236,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 64>&)
       // Expected Error Term : -4.025e-21
       // Maximum Relative Change in Control Points : 1.304e-03
       // Max Error found at float80 precision = Poly : 2.303527e-20
+      // LCOV_EXCL_START
       static const T Y = 4.033188819885253906250e-01f;
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 64, -4.376373876116109401062e-03),
@@ -288,12 +254,14 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 64>&)
          BOOST_MATH_BIG_CONSTANT(T, 64, 5.227776578828667629347e+07),
          BOOST_MATH_BIG_CONSTANT(T, 64, -4.727797957441040896878e+07)
       };
+      // LCOV_EXCL_STOP
       return exp(x) * (boost::math::tools::evaluate_polynomial(P, T(1 / x)) + Y) / sqrt(x);
    }
    else if(x < 50)
    {
       // Max error in interpolated form: 1.035e-21
       // Max Error found at float80 precision = Poly: 1.885872e-21
+      // LCOV_EXCL_START
       static const T Y = 4.011702537536621093750e-01f;
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 64, -2.227973351806078464328e-03),
@@ -314,6 +282,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 64>&)
          BOOST_MATH_BIG_CONSTANT(T, 64, -4.441995678177349895640e+09),
          BOOST_MATH_BIG_CONSTANT(T, 64, 4.482292669974971387738e+09)
       };
+      // LCOV_EXCL_STOP
       return exp(x) * (boost::math::tools::evaluate_polynomial(P, T(1 / x)) + Y) / sqrt(x);
    }
    else
@@ -321,6 +290,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 64>&)
       // Bessel I0 over[50, INF]
       // Max error in interpolated form : 5.587e-20
       // Max Error found at float80 precision = Poly : 8.776852e-20
+      // LCOV_EXCL_START
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 64, 3.98942280401432677955074061e-01),
          BOOST_MATH_BIG_CONSTANT(T, 64, 4.98677850501789875615574058e-02),
@@ -341,6 +311,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 64>&)
          BOOST_MATH_BIG_CONSTANT(T, 64, 3.27310000726207055200805893e+10),
          BOOST_MATH_BIG_CONSTANT(T, 64, -6.64365417189215599168817064e+10)
       };
+      // LCOV_EXCL_STOP
       T ex = exp(x / 2);
       T result = ex * boost::math::tools::evaluate_polynomial(P, T(1 / x)) / sqrt(x);
       result *= ex;
@@ -357,6 +328,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
       // Bessel I0 over[10 ^ -34, 7.75]
       // Max error in interpolated form : 1.274e-34
       // Max Error found at float128 precision = Poly : 3.096091e-34
+      // LCOV_EXCL_START
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 113, 1.0000000000000000000000000000000001273856e+00),
          BOOST_MATH_BIG_CONSTANT(T, 113, 2.4999999999999999999999999999999107477496e-01),
@@ -382,6 +354,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
          BOOST_MATH_BIG_CONSTANT(T, 113, 7.4684706070226893763741850944911705726436e-43),
          BOOST_MATH_BIG_CONSTANT(T, 113, 2.0210715309399646335858150349406935414314e-45)
       };
+      // LCOV_EXCL_STOP
       T a = x * x / 4;
       return a * boost::math::tools::evaluate_polynomial(P, a) + 1;
    }
@@ -390,6 +363,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
       // Bessel I0 over[7.75, 15]
       // Max error in interpolated form : 7.534e-35
       // Max Error found at float128 precision = Poly : 6.123912e-34
+      // LCOV_EXCL_START
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 113, 9.9999999999999999992388573069504617493518e-01),
          BOOST_MATH_BIG_CONSTANT(T, 113, 2.5000000000000000007304739268173096975340e-01),
@@ -420,6 +394,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
          -BOOST_MATH_BIG_CONSTANT(T, 113, 5.1255595184052024349371058585102280860878e-57),
          BOOST_MATH_BIG_CONSTANT(T, 113, 3.4652470895944157957727948355523715335882e-59)
       };
+      // LCOV_EXCL_STOP
       T a = x * x / 4;
       return a * boost::math::tools::evaluate_polynomial(P, a) + 1;
    }
@@ -427,6 +402,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
    {
       // Max error in interpolated form : 1.808e-34
       // Max Error found at float128 precision = Poly : 2.399403e-34
+      // LCOV_EXCL_START
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 113, 3.9894228040870793650581242239624530714032e-01),
          BOOST_MATH_BIG_CONSTANT(T, 113, 4.9867780576714783790784348982178607842250e-02),
@@ -458,7 +434,9 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
          BOOST_MATH_BIG_CONSTANT(T, 113, 1.2368879358870281916900125550129211146626e+28),
          BOOST_MATH_BIG_CONSTANT(T, 113, -2.8296235063297831758204519071113999839858e+28),
          BOOST_MATH_BIG_CONSTANT(T, 113, 4.1253861666023020670144616019148954773662e+28),
-         BOOST_MATH_BIG_CONSTANT(T, 113, -2.8809536950051955163648980306847791014734e+28) };
+         BOOST_MATH_BIG_CONSTANT(T, 113, -2.8809536950051955163648980306847791014734e+28) 
+      };
+      // LCOV_EXCL_STOP
       return exp(x) * boost::math::tools::evaluate_polynomial(P, T(1 / x)) / sqrt(x);
    }
    else if(x < 100)
@@ -466,6 +444,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
       // Bessel I0 over[30, 100]
       // Max error in interpolated form : 1.487e-34
       // Max Error found at float128 precision = Poly : 1.929924e-34
+      // LCOV_EXCL_START
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 113, 3.9894228040143267793996798658172135362278e-01),
          BOOST_MATH_BIG_CONSTANT(T, 113, 4.9867785050179084714910130342157246539820e-02),
@@ -492,6 +471,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
          BOOST_MATH_BIG_CONSTANT(T, 113, -2.0375525734060401555856465179734887312420e+16),
          BOOST_MATH_BIG_CONSTANT(T, 113, 5.6392664899881014534361728644608549445131e+16)
       };
+      // LCOV_EXCL_STOP
       return exp(x) * boost::math::tools::evaluate_polynomial(P, T(1 / x)) / sqrt(x);
    }
    else
@@ -499,6 +479,7 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
       // Bessel I0 over[100, INF]
       // Max error in interpolated form : 5.459e-35
       // Max Error found at float128 precision = Poly : 1.472240e-34
+      // LCOV_EXCL_START
       static const T P[] = {
          BOOST_MATH_BIG_CONSTANT(T, 113, 3.9894228040143267793994605993438166526772e-01),
          BOOST_MATH_BIG_CONSTANT(T, 113, 4.9867785050179084742493257495245185241487e-02),
@@ -515,7 +496,9 @@ T bessel_i0_imp(const T& x, const std::integral_constant<int, 113>&)
          BOOST_MATH_BIG_CONSTANT(T, 113, 1.2076909538525038580501368530598517194748e+03),
          BOOST_MATH_BIG_CONSTANT(T, 113, 7.5684635141332367730007149159063086133399e+03),
          BOOST_MATH_BIG_CONSTANT(T, 113, 3.5178192543258299267923025833141286569141e+04),
-         BOOST_MATH_BIG_CONSTANT(T, 113, 6.2966297919851965784482163987240461837728e+05) };
+         BOOST_MATH_BIG_CONSTANT(T, 113, 6.2966297919851965784482163987240461837728e+05) 
+      };
+      // LCOV_EXCL_STOP
       T ex = exp(x / 2);
       T result = ex * boost::math::tools::evaluate_polynomial(P, T(1 / x)) / sqrt(x);
       result *= ex;
@@ -554,7 +537,6 @@ inline T bessel_i0(const T& x)
       113 : -1
    > tag_type;
 
-   bessel_i0_initializer<T, tag_type>::force_instantiate();
    return bessel_i0_imp(x, tag_type());
 }
 

@@ -561,12 +561,17 @@ namespace boost{ namespace math{
     }
 
     const int get_digits = policies::digits<RealType, Policy>();// get digits from policy,
-    std::uintmax_t m = policies::get_max_root_iterations<Policy>(); // and max iterations.
+    std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>(); // and max iterations.
 
     skew_normal_distribution<RealType, Policy> helper(0, 1, shape);
 
     result = tools::newton_raphson_iterate(detail::skew_normal_mode_functor<RealType, Policy>(helper), result,
-      search_min, search_max, get_digits, m);
+      search_min, search_max, get_digits, max_iter);
+    if (max_iter >= policies::get_max_root_iterations<Policy>())
+    {
+       return policies::raise_evaluation_error<RealType>(function, "Unable to locate solution in a reasonable time:" // LCOV_EXCL_LINE
+          " either there is no answer to quantile or the answer is infinite.  Current best guess is %1%", result, Policy()); // LCOV_EXCL_LINE
+    }
 
     result = result*scale + location;
 
@@ -680,10 +685,15 @@ namespace boost{ namespace math{
     const RealType search_max = support(dist).second;
 
     const int get_digits = policies::digits<RealType, Policy>();// get digits from policy,
-    std::uintmax_t m = policies::get_max_root_iterations<Policy>(); // and max iterations.
+    std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>(); // and max iterations.
 
     result = tools::newton_raphson_iterate(detail::skew_normal_quantile_functor<RealType, Policy>(dist, p), result,
-      search_min, search_max, get_digits, m);
+      search_min, search_max, get_digits, max_iter);
+    if (max_iter >= policies::get_max_root_iterations<Policy>())
+    {
+       return policies::raise_evaluation_error<RealType>(function, "Unable to locate solution in a reasonable time: either there is no answer to quantile" // LCOV_EXCL_LINE
+          " or the answer is infinite.  Current best guess is %1%", result, Policy());  // LCOV_EXCL_LINE
+    }
 
     return result;
   } // quantile

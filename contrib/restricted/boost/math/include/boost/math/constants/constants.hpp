@@ -94,10 +94,10 @@ namespace boost{ namespace math
       >;
    };
 
-#ifdef BOOST_HAS_THREADS
+#ifdef BOOST_MATH_HAS_THREADS
 #define BOOST_MATH_CONSTANT_THREAD_HELPER(name, prefix) \
       boost::once_flag f = BOOST_ONCE_INIT;\
-      boost::call_once(f, &BOOST_JOIN(BOOST_JOIN(string_, get_), name)<T>);
+      boost::call_once(f, &BOOST_MATH_JOIN(BOOST_MATH_JOIN(string_, get_), name)<T>);
 #else
 #define BOOST_MATH_CONSTANT_THREAD_HELPER(name, prefix)
 #endif
@@ -162,20 +162,20 @@ namespace boost{ namespace math
 #ifdef BOOST_MATH_USE_FLOAT128
 #  define BOOST_MATH_FLOAT128_CONSTANT_OVERLOAD(x) \
    static inline constexpr T get(const std::integral_constant<int, construct_from_float128>&) noexcept\
-   { return BOOST_JOIN(x, Q); }
+   { return BOOST_MATH_JOIN(x, Q); }
 #else
 #  define BOOST_MATH_FLOAT128_CONSTANT_OVERLOAD(x)
 #endif
 
-#ifdef BOOST_NO_CXX11_THREAD_LOCAL
-#  define BOOST_MATH_PRECOMPUTE_IF_NOT_LOCAL(constant_, name)       constant_initializer<T, & BOOST_JOIN(constant_, name)<T>::get_from_variable_precision>::force_instantiate();
+#ifdef BOOST_MATH_NO_CXX11_THREAD_LOCAL
+#  define BOOST_MATH_PRECOMPUTE_IF_NOT_LOCAL(constant_, name)       constant_initializer<T, & BOOST_MATH_JOIN(constant_, name)<T>::get_from_variable_precision>::force_instantiate();
 #else
 #  define BOOST_MATH_PRECOMPUTE_IF_NOT_LOCAL(constant_, name)
 #endif
 
 #define BOOST_DEFINE_MATH_CONSTANT(name, x, y)\
    namespace detail{\
-   template <typename T> struct BOOST_JOIN(constant_, name){\
+   template <typename T> struct BOOST_MATH_JOIN(constant_, name){\
    private:\
    /* The default implementations come next: */ \
    static inline const T& get_from_string()\
@@ -206,19 +206,19 @@ namespace boost{ namespace math
    public:\
    static inline const T& get(const std::integral_constant<int, construct_from_string>&)\
    {\
-      constant_initializer<T, & BOOST_JOIN(constant_, name)<T>::get_from_string >::force_instantiate();\
+      constant_initializer<T, & BOOST_MATH_JOIN(constant_, name)<T>::get_from_string >::force_instantiate();\
       return get_from_string();\
    }\
    static inline constexpr T get(const std::integral_constant<int, construct_from_float>) noexcept\
-   { return BOOST_JOIN(x, F); }\
+   { return BOOST_MATH_JOIN(x, F); }\
    static inline constexpr T get(const std::integral_constant<int, construct_from_double>&) noexcept\
    { return x; }\
    static inline constexpr T get(const std::integral_constant<int, construct_from_long_double>&) noexcept\
-   { return BOOST_JOIN(x, L); }\
+   { return BOOST_MATH_JOIN(x, L); }\
    BOOST_MATH_FLOAT128_CONSTANT_OVERLOAD(x) \
    template <int N> static inline const T& get(const std::integral_constant<int, N>&)\
    {\
-      constant_initializer2<T, N, & BOOST_JOIN(constant_, name)<T>::template get_from_compute<N> >::force_instantiate();\
+      constant_initializer2<T, N, & BOOST_MATH_JOIN(constant_, name)<T>::template get_from_compute<N> >::force_instantiate();\
       return get_from_compute<N>(); \
    }\
    /* This one is for true arbitrary precision, which may well vary at runtime: */ \
@@ -232,15 +232,15 @@ namespace boost{ namespace math
    \
    /* The actual forwarding function: */ \
    template <typename T, typename Policy> inline constexpr typename detail::constant_return<T, Policy>::type name(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE_SPEC(T) BOOST_MATH_APPEND_EXPLICIT_TEMPLATE_TYPE_SPEC(Policy)) BOOST_MATH_NOEXCEPT(T)\
-   { return detail:: BOOST_JOIN(constant_, name)<T>::get(typename construction_traits<T, Policy>::type()); }\
+   { return detail:: BOOST_MATH_JOIN(constant_, name)<T>::get(typename construction_traits<T, Policy>::type()); }\
    template <typename T> inline constexpr typename detail::constant_return<T>::type name(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE_SPEC(T)) BOOST_MATH_NOEXCEPT(T)\
    { return name<T, boost::math::policies::policy<> >(); }\
    \
    \
    /* Now the namespace specific versions: */ \
-   } namespace float_constants{ static constexpr float name = BOOST_JOIN(x, F); }\
+   } namespace float_constants{ static constexpr float name = BOOST_MATH_JOIN(x, F); }\
    namespace double_constants{ static constexpr double name = x; } \
-   namespace long_double_constants{ static constexpr long double name = BOOST_JOIN(x, L); }\
+   namespace long_double_constants{ static constexpr long double name = BOOST_MATH_JOIN(x, L); }\
    namespace constants{
 
   BOOST_DEFINE_MATH_CONSTANT(half, 5.000000000000000000000000000000000000e-01, "5.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e-01")

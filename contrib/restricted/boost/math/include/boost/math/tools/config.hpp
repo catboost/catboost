@@ -16,20 +16,73 @@
 // Minimum language standard transition
 #ifdef _MSVC_LANG
 #  if _MSVC_LANG < 201402L
-#    pragma warning("The minimum language standard to use Boost.Math will be C++14 starting in July 2023 (Boost 1.82 release)");
+#    pragma message("Boost.Math requires C++14");
+#  endif
+#  if _MSC_VER == 1900
+#    pragma message("MSVC 14.0 has broken C++14 constexpr support. Support for this compiler will be removed in Boost 1.86")
 #  endif
 #else
 #  if __cplusplus < 201402L
-#    warning "The minimum language standard to use Boost.Math will be C++14 starting in July 2023 (Boost 1.82 release)"
+#    warning "Boost.Math requires C++14"
 #  endif
 #endif
 
 #ifndef BOOST_MATH_STANDALONE
 #include <boost/config.hpp>
 
+
+// The following are all defined as standalone macros as well
+// If Boost.Config is available just use those definitions because they are more fine-grained
+
+// Could be defined in TR1
+#ifndef BOOST_MATH_PREVENT_MACRO_SUBSTITUTION
+#  define BOOST_MATH_PREVENT_MACRO_SUBSTITUTION BOOST_PREVENT_MACRO_SUBSTITUTION
+#endif
+
+#define BOOST_MATH_CXX14_CONSTEXPR BOOST_CXX14_CONSTEXPR
+#ifdef BOOST_NO_CXX14_CONSTEXPR
+#  define BOOST_MATH_NO_CXX14_CONSTEXPR
+#endif
+
+#define BOOST_MATH_IF_CONSTEXPR BOOST_IF_CONSTEXPR
+#ifdef BOOST_NO_CXX17_IF_CONSTEXPR
+#  define BOOST_MATH_NO_CXX17_IF_CONSTEXPR
+#endif
+
+#ifdef BOOST_NO_CXX17_HDR_EXECUTION
+#  define BOOST_MATH_NO_CXX17_HDR_EXECUTION
+#endif
+
+#ifdef BOOST_HAS_THREADS
+#  define BOOST_MATH_HAS_THREADS
+#endif
+#ifdef BOOST_DISABLE_THREADS
+#  define BOOST_MATH_DISABLE_THREADS
+#endif
+#ifdef BOOST_NO_CXX11_THREAD_LOCAL
+#  define BOOST_MATH_NO_CXX11_THREAD_LOCAL
+#endif
+
+#ifdef BOOST_NO_EXCEPTIONS
+#  define BOOST_MATH_NO_EXCEPTIONS
+#endif
+
+#ifdef BOOST_NO_TYPEID
+#  define BOOST_MATH_NO_TYPEID
+#endif
+#ifdef BOOST_NO_RTTI
+#  define BOOST_MATH_NO_RTTI
+#endif
+
+#define BOOST_MATH_NOINLINE BOOST_NOINLINE
+#define BOOST_MATH_FORCEINLINE BOOST_FORCEINLINE
+
+#define BOOST_MATH_JOIN(X, Y) BOOST_JOIN(X, Y)
+#define BOOST_MATH_STRINGIZE(X) BOOST_STRINGIZE(X)
+
 #else // Things from boost/config that are required, and easy to replicate
 
-#define BOOST_PREVENT_MACRO_SUBSTITUTION
+#define BOOST_MATH_PREVENT_MACRO_SUBSTITUTION
 #define BOOST_MATH_NO_REAL_CONCEPT_TESTS
 #define BOOST_MATH_NO_DISTRIBUTION_CONCEPT_TESTS
 #define BOOST_MATH_NO_LEXICAL_CAST
@@ -38,59 +91,56 @@
 #define BOOST_MATH_NO_MP_TESTS
 
 #if (__cplusplus > 201400L || _MSVC_LANG > 201400L)
-#define BOOST_CXX14_CONSTEXPR constexpr
+#define BOOST_MATH_CXX14_CONSTEXPR constexpr
 #else
-#define BOOST_CXX14_CONSTEXPR
-#define BOOST_NO_CXX14_CONSTEXPR
-#endif // BOOST_CXX14_CONSTEXPR
+#define BOOST_MATH_CXX14_CONSTEXPR
+#define BOOST_MATH_NO_CXX14_CONSTEXPR
+#endif // BOOST_MATH_CXX14_CONSTEXPR
 
 #if (__cplusplus > 201700L || _MSVC_LANG > 201700L)
-#define BOOST_IF_CONSTEXPR if constexpr
+#define BOOST_MATH_IF_CONSTEXPR if constexpr
 
 // Clang on mac provides the execution header with none of the functionality. TODO: Check back on this
 // https://en.cppreference.com/w/cpp/compiler_support "Standardization of Parallelism TS"
-#if !__has_include(<execution>) || (defined(__APPLE__) && defined(__clang__))
-#define BOOST_NO_CXX17_HDR_EXECUTION
-#endif
+#  if !__has_include(<execution>) || (defined(__APPLE__) && defined(__clang__))
+#  define BOOST_MATH_NO_CXX17_HDR_EXECUTION
+#  endif
 #else
-#define BOOST_IF_CONSTEXPR if
-#define BOOST_NO_CXX17_IF_CONSTEXPR
-#define BOOST_NO_CXX17_HDR_EXECUTION
+#  define BOOST_MATH_IF_CONSTEXPR if
+#  define BOOST_MATH_NO_CXX17_IF_CONSTEXPR
+#  define BOOST_MATH_NO_CXX17_HDR_EXECUTION
 #endif
 
 #if __cpp_lib_gcd_lcm >= 201606L
 #define BOOST_MATH_HAS_CXX17_NUMERIC
 #endif
 
-#define BOOST_JOIN(X, Y) BOOST_DO_JOIN(X, Y)
-#define BOOST_DO_JOIN(X, Y) BOOST_DO_JOIN2(X,Y)
-#define BOOST_DO_JOIN2(X, Y) X##Y
+#define BOOST_MATH_JOIN(X, Y) BOOST_MATH_DO_JOIN(X, Y)
+#define BOOST_MATH_DO_JOIN(X, Y) BOOST_MATH_DO_JOIN2(X,Y)
+#define BOOST_MATH_DO_JOIN2(X, Y) X##Y
 
-#define BOOST_STRINGIZE(X) BOOST_DO_STRINGIZE(X)
-#define BOOST_DO_STRINGIZE(X) #X
+#define BOOST_MATH_STRINGIZE(X) BOOST_MATH_DO_STRINGIZE(X)
+#define BOOST_MATH_DO_STRINGIZE(X) #X
 
-#ifdef BOOST_DISABLE_THREADS // No threads, do nothing
+#ifdef BOOST_MATH_DISABLE_THREADS // No threads, do nothing
 // Detect thread support via STL implementation
 #elif defined(__has_include)
 #  if !__has_include(<thread>) || !__has_include(<mutex>) || !__has_include(<future>) || !__has_include(<atomic>)
-#     define BOOST_DISABLE_THREADS
+#     define BOOST_MATH_DISABLE_THREADS
 #  else
-#     define BOOST_HAS_THREADS
+#     define BOOST_MATH_HAS_THREADS
 #  endif 
 #else
-#  define BOOST_HAS_THREADS // The default assumption is that the machine has threads
+#  define BOOST_MATH_HAS_THREADS // The default assumption is that the machine has threads
 #endif // Thread Support
 
-#ifdef BOOST_DISABLE_THREADS
-#  define BOOST_NO_CXX11_HDR_ATOMIC
-#  define BOOST_NO_CXX11_HDR_FUTURE
-#  define BOOST_NO_CXX11_HDR_THREAD
-#  define BOOST_NO_CXX11_THREAD_LOCAL
-#endif // BOOST_DISABLE_THREADS
+#ifdef BOOST_MATH_DISABLE_THREADS
+#  define BOOST_MATH_NO_CXX11_THREAD_LOCAL
+#endif // BOOST_MATH_DISABLE_THREADS
 
 #ifdef __GNUC__
-#  if !defined(__EXCEPTIONS) && !defined(BOOST_NO_EXCEPTIONS)
-#     define BOOST_NO_EXCEPTIONS
+#  if !defined(__EXCEPTIONS) && !defined(BOOST_MATH_NO_EXCEPTIONS)
+#     define BOOST_MATH_NO_EXCEPTIONS
 #  endif
    //
    // Make sure we have some std lib headers included so we can detect __GXX_RTTI:
@@ -98,43 +148,43 @@
 #  include <algorithm>  // for min and max
 #  include <limits>
 #  ifndef __GXX_RTTI
-#     ifndef BOOST_NO_TYPEID
-#        define BOOST_NO_TYPEID
+#     ifndef BOOST_MATH_NO_TYPEID
+#        define BOOST_MATH_NO_TYPEID
 #     endif
-#     ifndef BOOST_NO_RTTI
-#        define BOOST_NO_RTTI
+#     ifndef BOOST_MATH_NO_RTTI
+#        define BOOST_MATH_NO_RTTI
 #     endif
 #  endif
 #endif
 
-#if !defined(BOOST_NOINLINE)
+#if !defined(BOOST_MATH_NOINLINE)
 #  if defined(_MSC_VER)
-#    define BOOST_NOINLINE __declspec(noinline)
+#    define BOOST_MATH_NOINLINE __declspec(noinline)
 #  elif defined(__GNUC__) && __GNUC__ > 3
      // Clang also defines __GNUC__ (as 4)
 #    if defined(__CUDACC__)
        // nvcc doesn't always parse __noinline__,
        // see: https://svn.boost.org/trac/boost/ticket/9392
-#      define BOOST_NOINLINE __attribute__ ((noinline))
+#      define BOOST_MATH_NOINLINE __attribute__ ((noinline))
 #    elif defined(__HIP__)
        // See https://github.com/boostorg/config/issues/392
-#      define BOOST_NOINLINE __attribute__ ((noinline))
+#      define BOOST_MATH_NOINLINE __attribute__ ((noinline))
 #    else
-#      define BOOST_NOINLINE __attribute__ ((__noinline__))
+#      define BOOST_MATH_NOINLINE __attribute__ ((__noinline__))
 #    endif
 #  else
-#    define BOOST_NOINLINE
+#    define BOOST_MATH_NOINLINE
 #  endif
 #endif
 
-#if !defined(BOOST_FORCEINLINE)
+#if !defined(BOOST_MATH_FORCEINLINE)
 #  if defined(_MSC_VER)
-#    define BOOST_FORCEINLINE __forceinline
+#    define BOOST_MATH_FORCEINLINE __forceinline
 #  elif defined(__GNUC__) && __GNUC__ > 3
      // Clang also defines __GNUC__ (as 4)
-#    define BOOST_FORCEINLINE inline __attribute__ ((__always_inline__))
+#    define BOOST_MATH_FORCEINLINE inline __attribute__ ((__always_inline__))
 #  else
-#    define BOOST_FORCEINLINE inline
+#    define BOOST_MATH_FORCEINLINE inline
 #  endif
 #endif
 
@@ -142,7 +192,7 @@
 
 // Support compilers with P0024R2 implemented without linking TBB
 // https://en.cppreference.com/w/cpp/compiler_support
-#if !defined(BOOST_NO_CXX17_HDR_EXECUTION) && defined(BOOST_HAS_THREADS)
+#if !defined(BOOST_MATH_NO_CXX17_HDR_EXECUTION) && defined(BOOST_MATH_HAS_THREADS)
 #  define BOOST_MATH_EXEC_COMPATIBLE
 #endif
 
@@ -461,13 +511,13 @@ namespace tools
 {
 
 template <class T>
-inline T max BOOST_PREVENT_MACRO_SUBSTITUTION(T a, T b, T c) BOOST_MATH_NOEXCEPT(T)
+inline T max BOOST_MATH_PREVENT_MACRO_SUBSTITUTION(T a, T b, T c) BOOST_MATH_NOEXCEPT(T)
 {
    return (std::max)((std::max)(a, b), c);
 }
 
 template <class T>
-inline T max BOOST_PREVENT_MACRO_SUBSTITUTION(T a, T b, T c, T d) BOOST_MATH_NOEXCEPT(T)
+inline T max BOOST_MATH_PREVENT_MACRO_SUBSTITUTION(T a, T b, T c, T d) BOOST_MATH_NOEXCEPT(T)
 {
    return (std::max)((std::max)(a, b), (std::max)(c, d));
 }
@@ -565,7 +615,7 @@ namespace boost{ namespace math{
 //
 // Thread local storage:
 //
-#ifndef BOOST_DISABLE_THREADS
+#ifndef BOOST_MATH_DISABLE_THREADS
 #  define BOOST_MATH_THREAD_LOCAL thread_local
 #else
 #  define BOOST_MATH_THREAD_LOCAL 
@@ -583,7 +633,7 @@ namespace boost{ namespace math{
 //
 // Can we have constexpr tables?
 //
-#if (!defined(BOOST_NO_CXX14_CONSTEXPR)) || (defined(_MSC_VER) && _MSC_VER >= 1910)
+#if (!defined(BOOST_MATH_NO_CXX14_CONSTEXPR)) || (defined(_MSC_VER) && _MSC_VER >= 1910)
 #define BOOST_MATH_HAVE_CONSTEXPR_TABLES
 #define BOOST_MATH_CONSTEXPR_TABLE_FUNCTION constexpr
 #else

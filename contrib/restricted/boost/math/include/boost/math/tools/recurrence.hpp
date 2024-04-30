@@ -15,6 +15,8 @@
 #include <boost/math/tools/fraction.hpp>
 #include <boost/math/tools/cxx03_warn.hpp>
 #include <boost/math/tools/assert.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/math/policies/error_handling.hpp>
 
 namespace boost {
    namespace math {

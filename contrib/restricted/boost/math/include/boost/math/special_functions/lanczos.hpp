@@ -41,35 +41,6 @@ namespace boost{ namespace math{ namespace lanczos{
 // http://my.fit.edu/~gabdo/gamma.txt and elaborated by Toth at
 // http://www.rskey.org/gamma.htm using NTL::RR at 1000 bit precision.
 //
-// Begin with a small helper to force initialization of constants prior
-// to main.  This makes the constant initialization thread safe, even
-// when called with a user-defined number type.
-//
-template <class Lanczos, class T>
-struct lanczos_initializer
-{
-   struct init
-   {
-      init()
-      {
-         T t(1);
-         Lanczos::lanczos_sum(t);
-         Lanczos::lanczos_sum_expG_scaled(t);
-         Lanczos::lanczos_sum_near_1(t);
-         Lanczos::lanczos_sum_near_2(t);
-         Lanczos::g();
-      }
-      void force_instantiate()const{}
-   };
-   static const init initializer;
-   static void force_instantiate()
-   {
-      initializer.force_instantiate();
-   }
-};
-template <class Lanczos, class T>
-typename lanczos_initializer<Lanczos, T>::init const lanczos_initializer<Lanczos, T>::initializer;
-
 //
 // Non-member helper which allows us to have a different g() value for the
 // near_1 and near_2 approximations.  This is a big help in reducing error
@@ -97,7 +68,7 @@ struct lanczos6 : public std::integral_constant<int, 35>
    template <class T>
    static T lanczos_sum(const T& z)
    {
-      lanczos_initializer<lanczos6, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[6] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 8706.349592549009182288174442774377925882)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 8523.650341121874633477483696775067709735)),
@@ -114,13 +85,14 @@ struct lanczos6 : public std::integral_constant<int, 35>
          static_cast<std::uint16_t>(10u),
          static_cast<std::uint16_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
-      lanczos_initializer<lanczos6, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[6] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 32.81244541029783471623665933780748627823)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 32.12388941444332003446077108933558534361)),
@@ -137,6 +109,7 @@ struct lanczos6 : public std::integral_constant<int, 35>
          static_cast<std::uint16_t>(10u),
          static_cast<std::uint16_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -144,7 +117,7 @@ struct lanczos6 : public std::integral_constant<int, 35>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
-      lanczos_initializer<lanczos6, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[5] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 2.044879010930422922760429926121241330235)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, -2.751366405578505366591317846728753993668)),
@@ -152,6 +125,7 @@ struct lanczos6 : public std::integral_constant<int, 35>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, -0.09786124911582813985028889636665335893627)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 0.0009829742267506615183144364420540766510112)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
       {
@@ -163,7 +137,7 @@ struct lanczos6 : public std::integral_constant<int, 35>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
-      lanczos_initializer<lanczos6, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[5] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 5.748142489536043490764289256167080091892)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, -7.734074268282457156081021756682138251825)),
@@ -171,6 +145,7 @@ struct lanczos6 : public std::integral_constant<int, 35>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, -0.2750873773533504542306766137703788781776)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 0.002763134585812698552178368447708846850353)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
@@ -197,7 +172,7 @@ struct lanczos11 : public std::integral_constant<int, 60>
    template <class T>
    static T lanczos_sum(const T& z)
    {
-      lanczos_initializer<lanczos11, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[11] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 38474670393.31776828316099004518914832218)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 36857665043.51950660081971227404959150474)),
@@ -224,13 +199,14 @@ struct lanczos11 : public std::integral_constant<int, 60>
          static_cast<std::uint32_t>(45u),
          static_cast<std::uint32_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
-      lanczos_initializer<lanczos11, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[11] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 709811.662581657956893540610814842699825)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 679979.847415722640161734319823103390728)),
@@ -257,6 +233,7 @@ struct lanczos11 : public std::integral_constant<int, 60>
          static_cast<std::uint32_t>(45u),
          static_cast<std::uint32_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -264,7 +241,7 @@ struct lanczos11 : public std::integral_constant<int, 60>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
-      lanczos_initializer<lanczos11, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[10] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 4.005853070677940377969080796551266387954)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, -13.17044315127646469834125159673527183164)),
@@ -277,6 +254,7 @@ struct lanczos11 : public std::integral_constant<int, 60>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 0.17655204574495137651670832229571934738e-4)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, -0.1036282091079938047775645941885460820853e-7)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
       {
@@ -288,7 +266,7 @@ struct lanczos11 : public std::integral_constant<int, 60>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
-      lanczos_initializer<lanczos11, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[10] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 19.05889633808148715159575716844556056056)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, -62.66183664701721716960978577959655644762)),
@@ -301,6 +279,7 @@ struct lanczos11 : public std::integral_constant<int, 60>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 0.8399926504443119927673843789048514017761e-4)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, -0.493038376656195010308610694048822561263e-7)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
@@ -327,7 +306,7 @@ struct lanczos13 : public std::integral_constant<int, 72>
    template <class T>
    static T lanczos_sum(const T& z)
    {
-      lanczos_initializer<lanczos13, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[13] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 44012138428004.60895436261759919070125699)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 41590453358593.20051581730723108131357995)),
@@ -358,13 +337,14 @@ struct lanczos13 : public std::integral_constant<int, 72>
          static_cast<std::uint32_t>(66u),
          static_cast<std::uint32_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
-      lanczos_initializer<lanczos13, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[13] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 86091529.53418537217994842267760536134841)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 81354505.17858011242874285785316135398567)),
@@ -395,6 +375,7 @@ struct lanczos13 : public std::integral_constant<int, 72>
          static_cast<std::uint32_t>(66u),
          static_cast<std::uint32_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -402,7 +383,7 @@ struct lanczos13 : public std::integral_constant<int, 72>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
-      lanczos_initializer<lanczos13, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[12] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 4.832115561461656947793029596285626840312)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, -19.86441536140337740383120735104359034688)),
@@ -417,6 +398,7 @@ struct lanczos13 : public std::integral_constant<int, 72>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 0.462590910138598083940803704521211569234e-6)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, -0.1735307814426389420248044907765671743012e-9)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
       {
@@ -428,7 +410,7 @@ struct lanczos13 : public std::integral_constant<int, 72>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
-      lanczos_initializer<lanczos13, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[12] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 26.96979819614830698367887026728396466395)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, -110.8705424709385114023884328797900204863)),
@@ -443,6 +425,7 @@ struct lanczos13 : public std::integral_constant<int, 72>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 0.2581888478270733025288922038673392636029e-5)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, -0.9685385411006641478305219367315965391289e-9)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
@@ -468,6 +451,7 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
    template <class T>
    static T lanczos_sum(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[6] = {
          static_cast<T>(58.52061591769095910314047740215847630266L),
          static_cast<T>(182.5248962595894264831189414768236280862L),
@@ -484,12 +468,14 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
          static_cast<std::uint16_t>(10u),
          static_cast<std::uint16_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[6] = {
          static_cast<T>(14.0261432874996476619570577285003839357L),
          static_cast<T>(43.74732405540314316089531289293124360129L),
@@ -506,6 +492,7 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
          static_cast<std::uint16_t>(10u),
          static_cast<std::uint16_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -513,6 +500,7 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[5] = {
          static_cast<T>(0.4922488055204602807654354732674868442106L),
          static_cast<T>(0.004954497451132152436631238060933905650346L),
@@ -520,6 +508,7 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
          static_cast<T>(0.001924276018962061937026396537786414831385L),
          static_cast<T>(-0.00056533046336427583708166383712907694434L),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
       {
@@ -531,6 +520,7 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[5] = {
          static_cast<T>(0.6534966888520080645505805298901130485464L),
          static_cast<T>(0.006577461728560758362509168026049182707101L),
@@ -538,6 +528,7 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
          static_cast<T>(0.00255461870648818292376982818026706528842L),
          static_cast<T>(-0.000750517993690428370380996157470900204524L),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
@@ -563,6 +554,7 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
    template <class T>
    static T lanczos_sum(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[13] = {
          static_cast<T>(23531376880.41075968857200767445163675473L),
          static_cast<T>(42919803642.64909876895789904700198885093L),
@@ -593,12 +585,14 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
          static_cast<std::uint32_t>(66u),
          static_cast<std::uint32_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[13] = {
          static_cast<T>(56906521.91347156388090791033559122686859L),
          static_cast<T>(103794043.1163445451906271053616070238554L),
@@ -629,6 +623,7 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
          static_cast<std::uint32_t>(66u),
          static_cast<std::uint32_t>(1u)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -636,6 +631,7 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[12] = {
          static_cast<T>(2.208709979316623790862569924861841433016L),
          static_cast<T>(-3.327150580651624233553677113928873034916L),
@@ -650,6 +646,7 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
          static_cast<T>(-0.2499505151487868335680273909354071938387e-8L),
          static_cast<T>(0.3394643171893132535170101292240837927725e-9L),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
       {
@@ -661,6 +658,7 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[12] = {
          static_cast<T>(6.565936202082889535528455955485877361223L),
          static_cast<T>(-9.8907772644920670589288081640128194231L),
@@ -675,6 +673,7 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
          static_cast<T>(-0.7430396708998719707642735577238449585822e-8L),
          static_cast<T>(0.1009141566987569892221439918230042368112e-8L),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
@@ -700,7 +699,7 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
    template <class T>
    static T lanczos_sum(const T& z)
    {
-      lanczos_initializer<lanczos17m64, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[17] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 553681095419291969.2230556393350368550504)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 731918863887667017.2511276782146694632234)),
@@ -739,13 +738,14 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
          BOOST_MATH_INT_VALUE_SUFFIX(120, uLL),
          BOOST_MATH_INT_VALUE_SUFFIX(1, uLL)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
-      lanczos_initializer<lanczos17m64, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[17] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 2715894658327.717377557655133124376674911)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 3590179526097.912105038525528721129550434)),
@@ -784,6 +784,7 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
          BOOST_MATH_INT_VALUE_SUFFIX(120, uLL),
          BOOST_MATH_INT_VALUE_SUFFIX(1, uLL)
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -791,7 +792,7 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
-      lanczos_initializer<lanczos17m64, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[16] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 4.493645054286536365763334986866616581265)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, -16.95716370392468543800733966378143997694)),
@@ -810,6 +811,7 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 0.1472114697343266749193617793755763792681e-15)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, -0.1410901942033374651613542904678399264447e-16)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
       {
@@ -821,7 +823,7 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
-      lanczos_initializer<lanczos17m64, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[16] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 23.56409085052261327114594781581930373708)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, -88.92116338946308797946237246006238652361)),
@@ -840,6 +842,7 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 0.7719578215795234036320348283011129450595e-15)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, -0.7398586479708476329563577384044188912075e-16)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
@@ -865,7 +868,7 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
    template <class T>
    static T lanczos_sum(const T& z)
    {
-      lanczos_initializer<lanczos24m113, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[24] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 2029889364934367661624137213253.22102954656825019111612712252027267955023987678816620961507)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 2338599599286656537526273232565.2727349714338768161421882478417543004440597874814359063158)),
@@ -918,13 +921,14 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 253.0)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 1.0))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
-      lanczos_initializer<lanczos24m113, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T num[24] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 3035162425359883494754.02878223286972654682199012688209026810841953293372712802258398358538)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 3496756894406430103600.16057175075063458536101374170860226963245118484234495645518505519827)),
@@ -977,6 +981,7 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 253.0)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 1.0))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -984,7 +989,7 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
-      lanczos_initializer<lanczos24m113, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[23] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 7.4734083002469026177867421609938203388868806387315406134072298925733950040583068760685908)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, -50.4225805042247530267317342133388132970816607563062253708655085754357843064134941138154171)),
@@ -1010,6 +1015,7 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, -0.615420597971283870342083342286977366161772327800327789325710571275345878439656918541092056e-25)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.499641233843540749369110053005439398774706583601830828776209650445427083113181961630763702e-26)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
       {
@@ -1021,7 +1027,7 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
-      lanczos_initializer<lanczos24m113, T>::force_instantiate(); // Ensure our constants get initialized before main()
+      // LCOV_EXCL_START
       static const T d[23] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 61.4165001061101455341808888883960361969557848005400286332291451422461117307237198559485365)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, -414.372973678657049667308134761613915623353625332248315105320470271523320700386200587519147)),
@@ -1047,6 +1053,7 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, -0.505752900177513489906064295001851463338022055787536494321532352380960774349054239257683149e-24)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.410605371184590959139968810080063542546949719163227555918846829816144878123034347778284006e-25)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for(unsigned k = 1; k <= sizeof(d)/sizeof(d[0]); ++k)
@@ -1070,6 +1077,7 @@ struct lanczos27MP : public std::integral_constant<int, 134>
    template <class T>
    static T lanczos_sum(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[27] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 2.532923291341302819860952064783714673718970e+36)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 2.715272050979243637524956158081893927075092e+36)),
@@ -1128,12 +1136,14 @@ struct lanczos27MP : public std::integral_constant<int, 134>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 3.250000000000000000000000000000000000000000e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 1.000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[27] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 4.630539114451826442425094380936505531231478e+25)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 4.963898228350662244301785145431331232866294e+25)),
@@ -1192,6 +1202,7 @@ struct lanczos27MP : public std::integral_constant<int, 134>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 3.250000000000000000000000000000000000000000e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 1.000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -1199,6 +1210,7 @@ struct lanczos27MP : public std::integral_constant<int, 134>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[34] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 6.264579889722939745225908247624593169040293e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, -3.470545597111704235784909052092266897169254e+01)),
@@ -1235,6 +1247,7 @@ struct lanczos27MP : public std::integral_constant<int, 134>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, -2.542428477414786133402832964643707382175743e-24)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 1.409458057545117569935733339065832415295665e-25))
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)
       {
@@ -1246,6 +1259,7 @@ struct lanczos27MP : public std::integral_constant<int, 134>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[34] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 4.391991857844535020743473289228849738381662e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, -2.433141291692735004291785549611375831426138e+02)),
@@ -1282,6 +1296,7 @@ struct lanczos27MP : public std::integral_constant<int, 134>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, -1.782453950387991004107321678322483537333246e-23)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 9.881473972208065873607436095608077625677024e-25)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)
@@ -1310,6 +1325,7 @@ struct lanczos35MP : public std::integral_constant<int, 168>
    template <class T>
    static T lanczos_sum(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[35] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 2.17215050716253100021302249837728942659410271586236104e+50)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 2.51055117651708470336913962553466820524801246971658127e+50)),
@@ -1384,12 +1400,14 @@ struct lanczos35MP : public std::integral_constant<int, 168>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 5.61000000000000000000000000000000000000000000000000000e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 1.00000000000000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[35] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 2.84421398435712762388902267099927585742388886580864424e+37)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 3.28731583799033736725852757551292030085556435695468295e+37)),
@@ -1464,6 +1482,7 @@ struct lanczos35MP : public std::integral_constant<int, 168>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 5.61000000000000000000000000000000000000000000000000000e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 1.00000000000000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -1471,6 +1490,7 @@ struct lanczos35MP : public std::integral_constant<int, 168>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[42] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 8.2258008829795701933757823508857131818190413131511363e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, -6.1680809698202901664719598422224259984110345848176138e+01)),
@@ -1515,6 +1535,7 @@ struct lanczos35MP : public std::integral_constant<int, 168>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 9.4607280988529299025458955706898751267120992042268667e-32)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, -4.2702032336418528894772149178970767164510337389404370e-33))
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)
       {
@@ -1526,6 +1547,7 @@ struct lanczos35MP : public std::integral_constant<int, 168>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[42] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 7.3782193657165970743894979068466124765194827248379940e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, -5.5325256602067816772285455933211570612342576586214891e+02)),
@@ -1570,6 +1592,7 @@ struct lanczos35MP : public std::integral_constant<int, 168>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 8.4859004327675283792859615082199609974336399587796249e-31)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, -3.8302040910318742925508017945893539585506545571212821e-32)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)
@@ -1597,6 +1620,7 @@ struct lanczos48MP : public std::integral_constant<int, 201>
    template <class T>
    static T lanczos_sum(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 5.761757987425932419978923296640371540367427757167447418730589877e+70)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 8.723233313564421930629677035555276136256253817229396631458438691e+70)),
@@ -1697,12 +1721,14 @@ struct lanczos48MP : public std::integral_constant<int, 201>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.081000000000000000000000000000000000000000000000000000000000000e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.000000000000000000000000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.775732062655417998910881298714821053061055705608286949609421120e+58)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 2.688437299644448784121592662352787426980194425446481703306505899e+58)),
@@ -1803,6 +1829,7 @@ struct lanczos48MP : public std::integral_constant<int, 201>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.081000000000000000000000000000000000000000000000000000000000000e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.000000000000000000000000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -1810,6 +1837,7 @@ struct lanczos48MP : public std::integral_constant<int, 201>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[47] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.059629332377126683204423480567078764834299559082175332563440691e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, -1.045539783916612448318159279915745234781500064405838259582295756e+02)),
@@ -1859,6 +1887,7 @@ struct lanczos48MP : public std::integral_constant<int, 201>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.819104328189909539214493755590516594857915205552841395610714917e-40)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, -7.261124772729210946163851510369531392121538686694430629664292782e-42))
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)
       {
@@ -1870,6 +1899,7 @@ struct lanczos48MP : public std::integral_constant<int, 201>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[47] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.201442621036266842137537764128372139686555918574926377003612763e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, -1.185467427150643969519910927764836582205108528009141221591420898e+03)),
@@ -1919,6 +1949,7 @@ struct lanczos48MP : public std::integral_constant<int, 201>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 2.062560373914843383483799612278119836498689222815662595453851079e-39)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, -8.232902310328177520527925464546117674377821202617522000849431630e-41)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)
@@ -1941,6 +1972,7 @@ struct lanczos49MP : public std::integral_constant<int, 234>
    template <class T>
    static T lanczos_sum(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[49] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 2.019754080776483553135944314398390557182640085494778723336498544843678485e+75)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 2.676059842235360762770131859925648183945167646928679564649946220888559950e+75)),
@@ -2043,12 +2075,14 @@ struct lanczos49MP : public std::integral_constant<int, 234>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.128000000000000000000000000000000000000000000000000000000000000000000000e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.000000000000000000000000000000000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[49] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 9.256115936295239128792053510340342045264892843178101822334871337037830072e+59)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.226382973449509462464247401218271019985727521806127065773488938845990367e+60)),
@@ -2151,6 +2185,7 @@ struct lanczos49MP : public std::integral_constant<int, 234>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.128000000000000000000000000000000000000000000000000000000000000000000000e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.000000000000000000000000000000000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -2158,6 +2193,7 @@ struct lanczos49MP : public std::integral_constant<int, 234>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.233965513689195496302526816415068018137532804347903252026160914018410959e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, -1.432567696701419045483804034990696504881298696037704685583731202573594084e+02)),
@@ -2208,6 +2244,7 @@ struct lanczos49MP : public std::integral_constant<int, 234>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 6.892571860428412953244204670046307154753124542150699703190076405369134986e-46)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, -2.750996769906711001487027901108989269217518777400665423098451353536180397e-47))
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)
       {
@@ -2219,6 +2256,7 @@ struct lanczos49MP : public std::integral_constant<int, 234>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.614127734928823683399031924928203896697519780457812139739363243361356121e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, -1.873915620620241270111954934939697069495813017577862172724257417200307532e+03)),
@@ -2269,6 +2307,7 @@ struct lanczos49MP : public std::integral_constant<int, 234>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 9.016047273189589762707582112298788030798897468010511171850691914431226857e-45)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, -3.598528593988298984798384438686079221879557020145063999565131046963034260e-46)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)
@@ -2297,6 +2336,7 @@ struct lanczos52MP : public std::integral_constant<int, 267>
    template <class T>
    static T lanczos_sum(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[52] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 6.2155666558597192337239536765115831322604714024167432764126799013946738944179064162e+86)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 6.4127424062560995063147129656553600039438028633959646865531341376543275935920940510e+86)),
@@ -2405,12 +2445,14 @@ struct lanczos52MP : public std::integral_constant<int, 267>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.2750000000000000000000000000000000000000000000000000000000000000000000000000000000e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
    static T lanczos_sum_expG_scaled(const T& z)
    {
+      // LCOV_EXCL_START
       static const T num[52] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.2968364952374867351881152115042817894191583875220489481700563388077315440993668645e+65)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.3379758994539627857606593702434364057385206718035611620158459666404856221820703129e+65)),
@@ -2519,6 +2561,7 @@ struct lanczos52MP : public std::integral_constant<int, 267>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.2750000000000000000000000000000000000000000000000000000000000000000000000000000000e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.0000000000000000000000000000000000000000000000000000000000000000000000000000000000e+00))
       };
+      // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
@@ -2526,6 +2569,7 @@ struct lanczos52MP : public std::integral_constant<int, 267>
    template<class T>
    static T lanczos_sum_near_1(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[56] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.4249481633301349696310814410227012806541100102720500928500445853537331413655453290e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, -1.9263209672927829270913652941762375058727326960303110137656951784697992824730035351e+02)),
@@ -2584,6 +2628,7 @@ struct lanczos52MP : public std::integral_constant<int, 267>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, -2.4634008445755689570224291035627638546740260971523702032261365019321949141711275488e-53)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 8.2246731300220072906782081133065950352668949898418513030190006777980796985877588993e-55))
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)
       {
@@ -2595,6 +2640,7 @@ struct lanczos52MP : public std::integral_constant<int, 267>
    template<class T>
    static T lanczos_sum_near_2(const T& dz)
    {
+      // LCOV_EXCL_START
       static const T d[56] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 2.1359871474796665853092357455924330354587340093067807143261699873815704783987359772e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, -2.8875414095359657817766255009397774415784763914903057809977502598124862632510767554e+03)),
@@ -2653,6 +2699,7 @@ struct lanczos52MP : public std::integral_constant<int, 267>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, -3.6926203201715401183464726950807528731521709827951454941037337126228208878967951308e-52)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.2328726440751392123787631395330686880390176572387043105330275032212649717981066795e-53)),
       };
+      // LCOV_EXCL_STOP
       T result = 0;
       T z = dz + 2;
       for (unsigned k = 1; k <= sizeof(d) / sizeof(d[0]); ++k)

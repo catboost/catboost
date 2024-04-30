@@ -379,10 +379,16 @@ inline RealType quantile(const kolmogorov_smirnov_distribution<RealType, Policy>
 
    RealType k = detail::kolmogorov_smirnov_quantile_guess(p) / sqrt(n);
    const int get_digits = policies::digits<RealType, Policy>();// get digits from policy,
-   std::uintmax_t m = policies::get_max_root_iterations<Policy>(); // and max iterations.
+   std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>(); // and max iterations.
 
-   return tools::newton_raphson_iterate(detail::kolmogorov_smirnov_quantile_functor<RealType, Policy>(dist, p),
-           k, RealType(0), RealType(1), get_digits, m);
+   RealType result = tools::newton_raphson_iterate(detail::kolmogorov_smirnov_quantile_functor<RealType, Policy>(dist, p),
+           k, RealType(0), RealType(1), get_digits, max_iter);
+   if (max_iter >= policies::get_max_root_iterations<Policy>())
+   {
+      return policies::raise_evaluation_error<RealType>(function, "Unable to locate solution in a reasonable time:" // LCOV_EXCL_LINE
+         " either there is no answer to quantile or the answer is infinite.  Current best guess is %1%", result, Policy()); // LCOV_EXCL_LINE
+   }
+   return result;
 } // quantile
 
 template <class RealType, class Policy>
@@ -403,11 +409,17 @@ inline RealType quantile(const complemented2_type<kolmogorov_smirnov_distributio
    RealType k = detail::kolmogorov_smirnov_quantile_guess(RealType(1-p)) / sqrt(n);
 
    const int get_digits = policies::digits<RealType, Policy>();// get digits from policy,
-   std::uintmax_t m = policies::get_max_root_iterations<Policy>(); // and max iterations.
+   std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>(); // and max iterations.
 
-   return tools::newton_raphson_iterate(
+   RealType result = tools::newton_raphson_iterate(
            detail::kolmogorov_smirnov_complementary_quantile_functor<RealType, Policy>(dist, p),
-           k, RealType(0), RealType(1), get_digits, m);
+           k, RealType(0), RealType(1), get_digits, max_iter);
+   if (max_iter >= policies::get_max_root_iterations<Policy>())
+   {
+      return policies::raise_evaluation_error<RealType>(function, "Unable to locate solution in a reasonable time:" // LCOV_EXCL_LINE
+         " either there is no answer to quantile or the answer is infinite.  Current best guess is %1%", result, Policy()); // LCOV_EXCL_LINE
+   }
+   return result;
 } // quantile (complemented)
 
 template <class RealType, class Policy>

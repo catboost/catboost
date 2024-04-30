@@ -34,36 +34,9 @@ namespace boost { namespace math { namespace detail{
 template <typename T>
 T bessel_j0(T x);
 
-template <class T>
-struct bessel_j0_initializer
-{
-   struct init
-   {
-      init()
-      {
-         do_init();
-      }
-      static void do_init()
-      {
-         bessel_j0(T(1));
-      }
-      void force_instantiate()const{}
-   };
-   static const init initializer;
-   static void force_instantiate()
-   {
-      initializer.force_instantiate();
-   }
-};
-
-template <class T>
-const typename bessel_j0_initializer<T>::init bessel_j0_initializer<T>::initializer;
-
 template <typename T>
 T bessel_j0(T x)
 {
-    bessel_j0_initializer<T>::force_instantiate();
-    
 #ifdef BOOST_MATH_INSTRUMENT
     static bool b = false;
     if (!b)
@@ -158,10 +131,8 @@ T bessel_j0(T x)
     using namespace boost::math::tools;
     using namespace boost::math::constants;
 
-    if (x < 0)
-    {
-        x = -x;                         // even function
-    }
+    BOOST_MATH_ASSERT(x >= 0); // reflection handled elsewhere.
+
     if (x == 0)
     {
         return static_cast<T>(1);

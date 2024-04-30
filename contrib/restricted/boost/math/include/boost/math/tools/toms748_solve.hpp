@@ -57,7 +57,7 @@ struct equal_floor
    bool operator()(const T& a, const T& b)
    {
       BOOST_MATH_STD_USING
-      return floor(a) == floor(b);
+      return (floor(a) == floor(b)) || (fabs((b-a)/b) < boost::math::tools::epsilon<T>() * 2);
    }
 };
 
@@ -68,7 +68,7 @@ struct equal_ceil
    bool operator()(const T& a, const T& b)
    {
       BOOST_MATH_STD_USING
-      return ceil(a) == ceil(b);
+      return (ceil(a) == ceil(b)) || (fabs((b - a) / b) < boost::math::tools::epsilon<T>() * 2);
    }
 };
 
@@ -79,7 +79,7 @@ struct equal_nearest_integer
    bool operator()(const T& a, const T& b)
    {
       BOOST_MATH_STD_USING
-      return floor(a + 0.5f) == floor(b + 0.5f);
+      return (floor(a + 0.5f) == floor(b + 0.5f)) || (fabs((b - a) / b) < boost::math::tools::epsilon<T>() * 2);
    }
 };
 

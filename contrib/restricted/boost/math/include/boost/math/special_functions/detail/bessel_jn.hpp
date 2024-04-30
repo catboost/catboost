@@ -75,17 +75,7 @@ T bessel_jn(int n, T x, const Policy& pol)
         policies::check_series_iterations<T>("boost::math::bessel_j_n<%1%>(%1%,%1%)", n, pol);
         for (int k = 1; k < n; k++)
         {
-            T fact = 2 * k / x;
-            //
-            // rescale if we would overflow or underflow:
-            //
-            if((fabs(fact) > 1) && ((tools::max_value<T>() - fabs(prev)) / fabs(fact) < fabs(current)))
-            {
-               scale /= current;
-               prev /= current;
-               current = 1;
-            }
-            value = fact * current - prev;
+            value = (2 * k * current / x) - prev;
             prev = current;
             current = value;
         }
@@ -122,7 +112,7 @@ T bessel_jn(int n, T x, const Policy& pol)
     value *= factor;
 
     if(tools::max_value<T>() * scale < fabs(value))
-       return policies::raise_overflow_error<T>("boost::math::bessel_jn<%1%>(%1%,%1%)", nullptr, pol);
+       return policies::raise_overflow_error<T>("boost::math::bessel_jn<%1%>(%1%,%1%)", nullptr, pol); // LCOV_EXCL_LINE we should never get here!
 
     return value / scale;
 }

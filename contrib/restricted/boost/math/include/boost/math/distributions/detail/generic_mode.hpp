@@ -47,9 +47,7 @@ typename Dist::value_type generic_find_mode(const Dist& dist, typename Dist::val
       // Oops we don't know how to handle this, or even in which
       // direction we should move in, treat as an evaluation error:
       //
-      return policies::raise_evaluation_error(
-         function, 
-         "Could not locate a starting location for the search for the mode, original guess was %1%", guess, policy_type());
+      return policies::raise_evaluation_error(function, "Could not locate a starting location for the search for the mode, original guess was %1%", guess, policy_type());  // LCOV_EXCL_LINE
    }
    do
    {
@@ -82,11 +80,9 @@ typename Dist::value_type generic_find_mode(const Dist& dist, typename Dist::val
       max_iter).first;
    if(max_iter >= policies::get_max_root_iterations<policy_type>())
    {
-      return policies::raise_evaluation_error<value_type>(
-         function, 
-         "Unable to locate solution in a reasonable time:"
-         " either there is no answer to the mode of the distribution"
-         " or the answer is infinite.  Current best guess is %1%", result, policy_type());
+      return policies::raise_evaluation_error<value_type>(function,   // LCOV_EXCL_LINE
+         "Unable to locate solution in a reasonable time: either there is no answer to the mode of the distribution"  // LCOV_EXCL_LINE
+         " or the answer is infinite.  Current best guess is %1%", result, policy_type());  // LCOV_EXCL_LINE
    }
    return result;
 }
@@ -135,11 +131,8 @@ typename Dist::value_type generic_find_mode_01(const Dist& dist, typename Dist::
       max_iter).first;
    if(max_iter >= policies::get_max_root_iterations<policy_type>())
    {
-      return policies::raise_evaluation_error<value_type>(
-         function, 
-         "Unable to locate solution in a reasonable time:"
-         " either there is no answer to the mode of the distribution"
-         " or the answer is infinite.  Current best guess is %1%", result, policy_type());
+      return policies::raise_evaluation_error<value_type>(function, "Unable to locate solution in a reasonable time:" // LCOV_EXCL_LINE
+         " either there is no answer to the mode of the distribution or the answer is infinite.  Current best guess is %1%", result, policy_type());  // LCOV_EXCL_LINE
    }
    return result;
 }

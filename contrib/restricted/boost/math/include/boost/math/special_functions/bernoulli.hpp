@@ -88,7 +88,7 @@ inline OutputIterator bernoulli_b2n(const int start_index,
    if(start_index < 0)
    {
       *out_it = policies::raise_domain_error<T>("boost::math::bernoulli_b2n<%1%>", "Index should be >= 0 but got %1%", T(start_index), pol);
-      return ++out_it;
+      return ++out_it; // LCOV_EXCL_LINE we don't reach here, previous line throws.
    }
 
    return boost::math::detail::bernoulli_number_imp<T>(out_it, start_index, number_of_bernoullis_b2n, pol, tag_type());
@@ -130,7 +130,7 @@ inline OutputIterator tangent_t2n(const int start_index,
    if(start_index < 0)
    {
       *out_it = policies::raise_domain_error<T>("boost::math::tangent_t2n<%1%>", "Index should be >= 0 but got %1%", T(start_index), pol);
-      return ++out_it;
+      return ++out_it; // LCOV_EXCL_LINE we don't reach here, previous line throws.
    }
 
    return boost::math::detail::get_bernoulli_numbers_cache<T, Policy>().copy_tangent_numbers(out_it, start_index, number_of_tangent_t2n, pol);

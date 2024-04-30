@@ -16,7 +16,7 @@
 #include <vector>
 #include <type_traits>
 
-#if defined(BOOST_HAS_THREADS) && !defined(BOOST_NO_CXX11_HDR_MUTEX) && !defined(BOOST_MATH_NO_ATOMIC_INT)
+#if defined(BOOST_MATH_HAS_THREADS) && !defined(BOOST_NO_CXX11_HDR_MUTEX) && !defined(BOOST_MATH_NO_ATOMIC_INT)
 #include <mutex>
 #else
 #  define BOOST_MATH_BERNOULLI_NOTHREADS
@@ -196,7 +196,7 @@ struct fixed_vector : private std::allocator<T>
    {
       if(n > m_capacity)
       {
-#ifndef BOOST_NO_EXCEPTIONS
+#ifndef BOOST_MATH_NO_EXCEPTIONS
          BOOST_MATH_THROW_EXCEPTION(std::runtime_error("Exhausted storage for Bernoulli numbers."));
 #else
          return false;
@@ -351,7 +351,7 @@ public:
       //
       // There are basically 3 thread safety options:
       //
-      // 1) There are no threads (BOOST_HAS_THREADS is not defined).
+      // 1) There are no threads (BOOST_MATH_HAS_THREADS is not defined).
       // 2) There are threads, but we do not have a true atomic integer type,
       //    in this case we just use a mutex to guard against race conditions.
       // 3) There are threads, and we have an atomic integer: in this case we can
@@ -384,7 +384,7 @@ public:
          return out;
       }
 
-      #if defined(BOOST_HAS_THREADS) && defined(BOOST_MATH_BERNOULLI_NOTHREADS) && !defined(BOOST_MATH_BERNOULLI_UNTHREADED)
+      #if defined(BOOST_MATH_HAS_THREADS) && defined(BOOST_MATH_BERNOULLI_NOTHREADS) && !defined(BOOST_MATH_BERNOULLI_UNTHREADED)
       // Add a static_assert on instantiation if we have threads, but no C++11 threading support.
       static_assert(sizeof(T) == 1, "Unsupported configuration: your platform appears to have either no atomic integers, or no std::mutex.  If you are happy with thread-unsafe code, then you may define BOOST_MATH_BERNOULLI_UNTHREADED to suppress this error.");
       #elif defined(BOOST_MATH_BERNOULLI_NOTHREADS)
@@ -451,7 +451,7 @@ public:
          ++out;
       }
 
-      #endif // BOOST_HAS_THREADS
+      #endif // BOOST_MATH_HAS_THREADS
       return out;
    }
 
@@ -461,7 +461,7 @@ public:
       //
       // There are basically 3 thread safety options:
       //
-      // 1) There are no threads (BOOST_HAS_THREADS is not defined).
+      // 1) There are no threads (BOOST_MATH_HAS_THREADS is not defined).
       // 2) There are threads, but we do not have a true atomic integer type,
       //    in this case we just use a mutex to guard against race conditions.
       // 3) There are threads, and we have an atomic integer: in this case we can
@@ -575,7 +575,7 @@ public:
          ++out;
       }
 
-      #endif // BOOST_HAS_THREADS
+      #endif // BOOST_MATH_HAS_THREADS
       return out;
    }
 
@@ -596,7 +596,7 @@ private:
    #else
    int m_counter;
    int m_current_precision;
-   #endif // BOOST_HAS_THREADS
+   #endif // BOOST_MATH_HAS_THREADS
 };
 
 template <class T, class Policy>

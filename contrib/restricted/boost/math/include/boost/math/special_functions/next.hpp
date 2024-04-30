@@ -694,9 +694,9 @@ inline typename tools::promote_args<T, U>::type float_distance(const T& a, const
          && !std::numeric_limits<T>::is_integer && !std::numeric_limits<U>::is_integer)),
       "Float distance between two different floating point types is undefined.");
 
-   BOOST_IF_CONSTEXPR (!std::is_same<T, U>::value)
+   BOOST_MATH_IF_CONSTEXPR (!std::is_same<T, U>::value)
    {
-      BOOST_IF_CONSTEXPR(std::is_integral<T>::value)
+      BOOST_MATH_IF_CONSTEXPR(std::is_integral<T>::value)
       {
          return float_distance(static_cast<U>(a), b, pol);
       }

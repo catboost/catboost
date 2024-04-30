@@ -35,7 +35,7 @@ namespace policies{
 //
 // Special cases for exceptions disabled first:
 //
-#ifdef BOOST_NO_EXCEPTIONS
+#ifdef BOOST_MATH_NO_EXCEPTIONS
 #  ifndef BOOST_MATH_DOMAIN_ERROR_POLICY
 #    define BOOST_MATH_DOMAIN_ERROR_POLICY errno_on_error
 #  endif

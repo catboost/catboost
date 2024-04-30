@@ -287,7 +287,7 @@ namespace boost { namespace math {
          if (v > static_cast<T>((std::numeric_limits<int>::max)()))
          {
             *J = *Y = policies::raise_evaluation_error<T>(function, "Order of Bessel function is too large to evaluate: got %1%", v, pol);
-            return 1;
+            return 1;  // LCOV_EXCL_LINE previous line will throw.
          }
          n = iround(v, pol);
          u = v - n;                              // -1/2 <= u < 1/2
@@ -303,21 +303,22 @@ namespace boost { namespace math {
 
          if(x == 0)
          {
-            if(v == 0)
-               *J = 1;
-            else if((u == 0) || !reflect)
+            if (v == 0)
+               *J = 1; // LCOV_EXCL_LINE multiprecision case only
+            else if ((u == 0) || !reflect)
                *J = 0;
             else if(kind & need_j)
                *J = policies::raise_domain_error<T>(function, "Value of Bessel J_v(x) is complex-infinity at %1%", x, pol); // complex infinity
             else
-               *J = std::numeric_limits<T>::quiet_NaN();  // any value will do, not using J.
+               *J = std::numeric_limits<T>::quiet_NaN();  // LCOV_EXCL_LINE, we should never get here, any value will do, not using J.
 
             if((kind & need_y) == 0)
                *Y = std::numeric_limits<T>::quiet_NaN();  // any value will do, not using Y.
-            else if(v == 0)
-               *Y = -policies::raise_overflow_error<T>(function, nullptr, pol);
             else
-               *Y = policies::raise_domain_error<T>(function, "Value of Bessel Y_v(x) is complex-infinity at %1%", x, pol); // complex infinity
+            {
+               // We shoud never get here:
+               BOOST_MATH_ASSERT(x != 0); // LCOV_EXCL_LINE
+            }
             return 1;
          }
 
@@ -357,6 +358,8 @@ namespace boost { namespace math {
          {
             // Truncated series evaluation for small x and v an integer,
             // much quicker in this area than temme_jy below.
+            // This code is only used in the multiprecision case, otherwise
+            // we go via bessel_jn.  LCOV_EXCL_START
             if(kind&need_j)
                Jv = bessel_j_small_z_series(v, x, pol);
             else
@@ -369,6 +372,7 @@ namespace boost { namespace math {
             }
             else
                Yv = std::numeric_limits<T>::quiet_NaN();
+            // LCOV_EXCL_STOP
          }
          else if(asymptotic_bessel_large_x_limit(v, x))
          {
@@ -416,9 +420,9 @@ namespace boost { namespace math {
          {
             if(temme_jy(u, x, &Yu, &Yu1, pol))             // Temme series
             {
-               // domain error:
-               *J = *Y = Yu;
-               return 1;
+               // domain error, this should really have already been handled.
+               *J = *Y = Yu; // LCOV_EXCL_LINE
+               return 1;     // LCOV_EXCL_LINE
             }
             prev = Yu;
             current = Yu1;
@@ -470,7 +474,7 @@ namespace boost { namespace math {
                   // Pretend that one bit did not cancel:
                   if (next == 0)
                   {
-                     next = prev * tools::epsilon<T>() / 2;
+                     next = prev * tools::epsilon<T>() / 2;  // LCOV_EXCL_LINE requires specific hardware and rounding to trigger, does get tested on msvc
                   }
                   prev = current;
                   current = next;
@@ -522,7 +526,7 @@ namespace boost { namespace math {
             //
             if(gamma == 0)
             {
-               gamma = u * tools::epsilon<T>() / x;
+               gamma = u * tools::epsilon<T>() / x;  // LCOV_EXCL_LINE requires specific hardware and rounding to trigger, does get tested on msvc
             }
             BOOST_MATH_INSTRUMENT_VARIABLE(current);
             BOOST_MATH_INSTRUMENT_VARIABLE(W);

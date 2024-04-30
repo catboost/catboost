@@ -118,14 +118,14 @@ inline T digamma_imp_large(T x, const std::integral_constant<int, 53>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
    static const T P[] = {
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.0083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.003968253968253968253968253968253968253968253968254),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.0041666666666666666666666666666666666666666666666667),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.0075757575757575757575757575757575757575757575757576),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.021092796092796092796092796092796092796092796092796),
-      BOOST_MATH_BIG_CONSTANT(T, 53, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 53, -0.44325980392156862745098039215686274509803921568627)
+      0.083333333333333333333333333333333333333333333333333,
+      -0.0083333333333333333333333333333333333333333333333333,
+      0.003968253968253968253968253968253968253968253968254,
+      -0.0041666666666666666666666666666666666666666666666667,
+      0.0075757575757575757575757575757575757575757575757576,
+      -0.021092796092796092796092796092796092796092796092796,
+      0.083333333333333333333333333333333333333333333333333,
+      -0.44325980392156862745098039215686274509803921568627
    };
    x -= 1;
    T result = log(x);
@@ -142,9 +142,9 @@ inline T digamma_imp_large(T x, const std::integral_constant<int, 24>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
    static const T P[] = {
-      BOOST_MATH_BIG_CONSTANT(T, 24, 0.083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 24, -0.0083333333333333333333333333333333333333333333333333),
-      BOOST_MATH_BIG_CONSTANT(T, 24, 0.003968253968253968253968253968253968253968253968254)
+      0.083333333333333333333333333333333333333333333333333f,
+      -0.0083333333333333333333333333333333333333333333333333f,
+      0.003968253968253968253968253968253968253968253968254f
    };
    x -= 1;
    T result = log(x);
@@ -208,6 +208,7 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 113>*)
    // Max error found at 128-bit long double precision:  5.541e-35
    // Maximum Deviation Found (approximation error):     1.965e-35
    //
+   // LCOV_EXCL_START
    static const float Y = 0.99558162689208984375F;
 
    static const T root1 = T(1569415565) / 1073741824uL;
@@ -242,6 +243,7 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 113>*)
       BOOST_MATH_BIG_CONSTANT(T, 113, -0.90745971844439990284514121823069162795e-11),
       BOOST_MATH_BIG_CONSTANT(T, 113, 0.48857673606545846774761343500033283272e-13),
    };
+   // LCOV_EXCL_STOP
    T g = x - root1;
    g -= root2;
    g -= root3;
@@ -270,6 +272,7 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 64>*)
    // Max error found at 80-bit long double precision:   5.016e-20
    // Maximum Deviation Found (approximation error):     3.575e-20
    //
+   // LCOV_EXCL_START
    static const float Y = 0.99558162689208984375F;
 
    static const T root1 = T(1569415565) / 1073741824uL;
@@ -294,6 +297,7 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 64>*)
       BOOST_MATH_BIG_CONSTANT(T, 64, -0.165079794012604905639e-5),
       BOOST_MATH_BIG_CONSTANT(T, 64, 0.317940243105952177571e-7)
    };
+   // LCOV_EXCL_STOP
    T g = x - root1;
    g -= root2;
    g -= root3;
@@ -320,6 +324,7 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 53>*)
    // Maximum Deviation Found:               1.466e-18
    // At double precision, max error found:  2.452e-17
    //
+   // LCOV_EXCL_START
    static const float Y = 0.99558162689208984F;
 
    static const T root1 = T(1569415565) / 1073741824uL;
@@ -343,6 +348,7 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 53>*)
       BOOST_MATH_BIG_CONSTANT(T, 53, 0.0021284987017821144),
       BOOST_MATH_BIG_CONSTANT(T, 53, -0.55789841321675513e-6)
    };
+   // LCOV_EXCL_STOP
    T g = x - root1;
    g -= root2;
    g -= root3;
@@ -369,6 +375,7 @@ inline T digamma_imp_1_2(T x, const std::integral_constant<int, 24>*)
    // Maximum Deviation Found:              3.388e-010
    // At float precision, max error found:  2.008725e-008
    //
+   // LCOV_EXCL_START
    static const float Y = 0.99558162689208984f;
    static const T root = 1532632.0f / 1048576;
    static const T root_minor = static_cast<T>(0.3700660185912626595423257213284682051735604e-6L);
@@ -384,6 +391,7 @@ inline T digamma_imp_1_2(T x, const std::integral_constant<int, 24>*)
       0.65341249856146947e0f,
       0.63851690523355715e-1f
    };
+   // LCOV_EXCL_STOP
    T g = x - root;
    g -= root_minor;
    T r = tools::evaluate_polynomial(P, T(x-1)) / tools::evaluate_polynomial(Q, T(x-1));
@@ -464,6 +472,10 @@ T digamma_imp(T x, const std::integral_constant<int, 0>* t, const Policy& pol)
    //
    // This handles reflection of negative arguments, and all our
    // error handling, then forwards to the T-specific approximation.
+   //
+   // This is covered by our real_concept tests, but these are disabled for
+   // code coverage runs for performance reasons.
+   // LCOV_EXCL_START
    //
    BOOST_MATH_STD_USING // ADL of std functions.
 
@@ -549,37 +561,8 @@ T digamma_imp(T x, const std::integral_constant<int, 0>* t, const Policy& pol)
       result += digamma_imp_large(x, pol, t);
    }
    return result;
+   // LCOV_EXCL_STOP
 }
-//
-// Initializer: ensure all our constants are initialized prior to the first call of main:
-//
-template <class T, class Policy>
-struct digamma_initializer
-{
-   struct init
-   {
-      init()
-      {
-         typedef typename policies::precision<T, Policy>::type precision_type;
-         do_init(std::integral_constant<bool, precision_type::value && (precision_type::value <= 113)>());
-      }
-      void do_init(const std::true_type&)
-      {
-         boost::math::digamma(T(1.5), Policy());
-         boost::math::digamma(T(500), Policy());
-      }
-      void do_init(const std::false_type&){}
-      void force_instantiate()const{}
-   };
-   static const init initializer;
-   static void force_instantiate()
-   {
-      initializer.force_instantiate();
-   }
-};
-
-template <class T, class Policy>
-const typename digamma_initializer<T, Policy>::init digamma_initializer<T, Policy>::initializer;
 
 } // namespace detail
 
@@ -602,9 +585,6 @@ inline typename tools::promote_args<T>::type
       policies::promote_double<false>,
       policies::discrete_quantile<>,
       policies::assert_undefined<> >::type forwarding_policy;
-
-   // Force initialization of constants:
-   detail::digamma_initializer<value_type, forwarding_policy>::force_instantiate();
 
    return policies::checked_narrowing_cast<result_type, Policy>(detail::digamma_imp(
       static_cast<value_type>(x),
