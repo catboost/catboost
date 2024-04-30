@@ -1,12 +1,11 @@
 olefile
 =======
 
-[![Build Status TravisCI](https://travis-ci.org/decalage2/olefile.svg?branch=master)](https://travis-ci.org/decalage2/olefile)
+[![Test](https://github.com/decalage2/olefile/actions/workflows/test.yml/badge.svg)](https://github.com/decalage2/olefile/actions)
 [![Build Status AppVeyor](https://ci.appveyor.com/api/projects/status/github/decalage2/olefile?svg=true)](https://ci.appveyor.com/project/decalage2/olefile)
-[![Coverage Status](https://coveralls.io/repos/github/decalage2/olefile/badge.svg?branch=master)](https://coveralls.io/github/decalage2/olefile?branch=master)
+[![codecov](https://codecov.io/gh/decalage2/olefile/branch/main/graph/badge.svg)](https://codecov.io/gh/decalage2/olefile)
 [![Documentation Status](http://readthedocs.org/projects/olefile/badge/?version=latest)](http://olefile.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/olefile.svg)](https://pypi.org/project/olefile/)
-[![Can I Use Python 3?](https://caniusepython3.com/project/olefile.svg)](https://caniusepython3.com/project/olefile)
 [![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/decalage2)
 
 [olefile](https://www.decalage.info/olefile) is a Python package to parse, read and write
@@ -31,7 +30,9 @@ News
 
 Follow all updates and news on Twitter: <https://twitter.com/decalage2>
 
-- **2018-09-09 v0.46**: OleFileIO can now be used as a context manager
+- **2023-12-01 v0.47**: now distributed as wheel package, added VT_VECTOR support for properties,
+  added get_userdefined_properties, fixed bugs in isOleFile and write_sect, improved file closure
+- 2018-09-09 v0.46: OleFileIO can now be used as a context manager
 (with...as), to close the file automatically
 (see [doc](https://olefile.readthedocs.io/en/latest/Howto.html#open-an-ole-file-from-disk)).
 Improved handling of malformed files, fixed several bugs.
@@ -62,7 +63,7 @@ Features
 --------
 
 - Parse, read and write any OLE file such as Microsoft Office 97-2003 legacy document formats (Word .doc, Excel .xls,
-    PowerPoint .ppt, Visio .vsd, Project .mpp), Image Composer and FlashPix files, Outlook messages, StickyNotes,
+    PowerPoint .ppt, Visio .vsd, Project .mpp), MSI files, Image Composer and FlashPix files, Outlook messages, StickyNotes,
     Zeiss AxioVision ZVI files, Olympus FluoView OIB files, etc
 - List all the streams and storages contained in an OLE file
 - Open streams as files
@@ -92,7 +93,7 @@ See also [this paper](https://computer-forensics.sans.org/community/papers/gcfa/
 License
 -------
 
-olefile (formerly OleFileIO_PL) is copyright (c) 2005-2018 Philippe Lagadec
+olefile (formerly OleFileIO_PL) is copyright (c) 2005-2023 Philippe Lagadec
 ([https://www.decalage.info](https://www.decalage.info))
 
 All rights reserved.
