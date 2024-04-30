@@ -32,3 +32,13 @@ Select the appropriate build environment setup below accordingly.
 
 2. Go to the `catboost/catboost/jvm-packages/catboost4j-prediction` directory from the local copy of the CatBoost repository.
 3. Use [the usual maven build phases](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html) in this directory.
+
+   Additional flags for building native dynamic library part can specified using `buildNative.extraArgs` definition.
+   Supported flags are:
+   * `--build-system=<build_system>`. Supported values are `CMAKE` (default), `YA`.
+   * `--build-type=<build_type>`. Supported values are `Release` (default), `Debug`.
+   * `--have-cuda`. Add to enable CUDA support.
+   Example running tests with this definition:
+   ```
+   mvn test -DbuildNative.extraArgs="--build-type=Debug"
+   ```
