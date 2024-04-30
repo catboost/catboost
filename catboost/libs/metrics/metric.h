@@ -105,13 +105,18 @@ private:
 
 struct TCustomGpuMetricDescriptor {
 
-        using TEvalFuncPtr = TMetricHolder (*)(
+        using TEvalFuncPtr = void (*)(
             TConstArrayRef<float> approx,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
+            TConstArrayRef<float> result,
+            TConstArrayRef<float> result_weight,
             int begin,
             int end,
-            void* customData);
+            void* customData,
+            void* cudaStream,
+            size_t blockSize,
+            size_t numBlocks);
 
         using TGetFinalErrorFuncPtr = double (*)(const TMetricHolder& error, void* customData);
 

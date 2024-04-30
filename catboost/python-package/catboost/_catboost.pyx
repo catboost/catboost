@@ -630,13 +630,16 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
 cdef extern from "catboost/cuda/targets/gpu_metrics.h":
     cdef cppclass TCustomGpuMetricDescriptor:
 
-        ctypedef TMetricHolder (*TEvalFuncPtr)(
+        ctypedef void (*TEvalFuncPtr)(
             TConstArrayRef[float] approx,
             TConstArrayRef[float]  target,
             TConstArrayRef[float]  weight,
+            TConstArrayRef[float]  result,
+            TConstArrayRef[float]  result_weight,
             int begin,
             int end,
-            void* customData)  with gil
+            void* customData,
+            void* cudaStream)  with gil
 
         void* CustomData
         TMaybe[TEvalFuncPtr] EvalFunc
