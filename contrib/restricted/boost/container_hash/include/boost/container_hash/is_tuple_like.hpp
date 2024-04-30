@@ -26,7 +26,7 @@ template<class T> struct is_tuple_like_<T, std::integral_constant<bool, std::tup
 namespace container_hash
 {
 
-template<class T> struct is_tuple_like: hash_detail::is_tuple_like_<T>
+template<class T> struct is_tuple_like: hash_detail::is_tuple_like_< typename std::remove_cv<T>::type >
 {
 };
 

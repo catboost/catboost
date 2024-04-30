@@ -14,8 +14,12 @@ namespace boost
 namespace hash_detail
 {
 
+template<class T> struct iterator_traits: std::iterator_traits<T> {};
+template<> struct iterator_traits< void* > {};
+template<> struct iterator_traits< void const* > {};
+
 template<class T, class It>
-    std::integral_constant< bool, !std::is_same<typename std::remove_cv<T>::type, typename std::iterator_traits<It>::value_type>::value >
+    std::integral_constant< bool, !std::is_same<typename std::remove_cv<T>::type, typename iterator_traits<It>::value_type>::value >
         is_range_check( It first, It last );
 
 template<class T> decltype( is_range_check<T>( std::declval<T const&>().begin(), std::declval<T const&>().end() ) ) is_range_( int );
