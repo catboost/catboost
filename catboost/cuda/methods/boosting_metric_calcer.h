@@ -76,11 +76,6 @@ namespace NCatboostCuda {
                                                                              QueryInfo,
                                                                              LocalExecutor);
             } else if (dynamic_cast<const TGpuCustomMetric*>(metric)) {
-                // CachePointOnCpu();
-                // CacheCpuTargetAndWeight();
-                // if (metric->GetCpuMetric().GetErrorType() != EErrorType::PerObjectError) {
-                //     CacheQueryInfo(Target.GetSamplesGrouping());
-                // }
                 return dynamic_cast<const TGpuCustomMetric*>(metric)->Eval(targets,
                                                                             weights,
                                                                             Point,

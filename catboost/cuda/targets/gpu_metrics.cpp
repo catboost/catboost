@@ -13,7 +13,7 @@
 #include <catboost/cuda/gpu_data/kernels.h>
 #include <catboost/cuda/gpu_data/querywise_helper.h>
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
-
+#include <catboost/cuda/targets/user_defined.h>
 #include <catboost/libs/helpers/math_utils.h>
 
 using namespace NCudaLib;
@@ -523,23 +523,42 @@ namespace NCatboostCuda {
     }
 
     TMetricHolder TGpuCustomMetric::Eval(const TStripeBuffer<const float>& target,
-                                   const TStripeBuffer<const float>& weights,
-                                   const TStripeBuffer<const float>& cursor,
-                                   TScopedCacheHolder* cache) const {
-        auto target_ptr = TConstArrayRef<float>(target.At(0).Get(), target.At(0).ObjectCount());
-        auto weights_ptr = TConstArrayRef<float>(weights.At(0).Get(), weights.At(0).ObjectCount());
-        auto cursor_ptr = TConstArrayRef<float>(cursor.At(0).Get(), cursor.At(0).ObjectCount());
-        return (*(Descriptor.EvalFunc))(cursor_ptr, target_ptr, weights_ptr, 0, target_ptr.size(), Descriptor.CustomData);
-    }
+                        const TStripeBuffer<const float>& weights,
+                        const TStripeBuffer<const float>& cursor,
+                        TScopedCacheHolder* cache,
+                        ui32 stream) const {
+                            return EvalImpl<TStripeMapping>(target, weights, cursor, cache, stream);
+                        }
 
     TMetricHolder TGpuCustomMetric::Eval(const TMirrorBuffer<const float>& target,
-                                   const TMirrorBuffer<const float>& weights,
-                                   const TMirrorBuffer<const float>& cursor,
-                                   TScopedCacheHolder* cache) const {
-        auto target_ptr = TConstArrayRef<float>(target.At(0).Get(), target.At(0).ObjectCount());
-        auto weights_ptr = TConstArrayRef<float>(weights.At(0).Get(), weights.At(0).ObjectCount());
-        auto cursor_ptr = TConstArrayRef<float>(cursor.At(0).Get(), cursor.At(0).ObjectCount());
-        return (*(Descriptor.EvalFunc))(cursor_ptr, target_ptr, weights_ptr, 0, target_ptr.size(), Descriptor.CustomData);
+                        const TMirrorBuffer<const float>& weights,
+                        const TMirrorBuffer<const float>& cursor,
+                        TScopedCacheHolder* cache,
+                        ui32 stream) const {
+                            return EvalImpl<TMirrorMapping>(target, weights, cursor, cache, stream);
+                        }
+
+    template<class TMapping>
+    TMetricHolder TGpuCustomMetric::EvalImpl(
+                           const TCudaBuffer<const float, TMapping>& target,
+                           const TCudaBuffer<const float, TMapping>& weights,
+                           const TCudaBuffer<const float, TMapping>& cursor,
+                           TScopedCacheHolder* cache,
+                           ui32 stream) const{
+
+        using TKernel = NKernelHost::TUserDefinedMetricKernel;
+        using TVec = TCudaBuffer<float, TMapping>;
+        Y_UNUSED(cache);
+
+        const size_t tmpArraySize = TKernel::BlockSize * TKernel::NumBlocks;
+        auto resultTmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(tmpArraySize));
+        auto resultWeightsTmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(tmpArraySize));
+        
+        auto onesTmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(tmpArraySize));
+        FillBuffer(onesTmp, 1.0f);
+        
+        LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, cursor, resultTmp, resultWeightsTmp, Descriptor);
+        return MakeSimpleAdditiveStatistic(DotProduct(resultTmp, onesTmp), DotProduct(resultWeightsTmp, onesTmp));
     }
 
     double TGpuCustomMetric::GetFinalError(TMetricHolder &&metricHolder) const

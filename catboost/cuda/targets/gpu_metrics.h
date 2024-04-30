@@ -133,14 +133,25 @@ namespace NCatboostCuda {
         }
 
         TMetricHolder Eval(const TStripeBuffer<const float>& target,
-                                   const TStripeBuffer<const float>& weights,
-                                   const TStripeBuffer<const float>& cursor,
-                                   TScopedCacheHolder* cache) const;
+                           const TStripeBuffer<const float>& weights,
+                           const TStripeBuffer<const float>& cursor,
+                           TScopedCacheHolder* cache,
+                           ui32 stream = 0) const;
 
         TMetricHolder Eval(const TMirrorBuffer<const float>& target,
-                                   const TMirrorBuffer<const float>& weights,
-                                   const TMirrorBuffer<const float>& cursor,
-                                   TScopedCacheHolder* cache) const;
+                           const TMirrorBuffer<const float>& weights,
+                           const TMirrorBuffer<const float>& cursor,
+                           TScopedCacheHolder* cache,
+                           ui32 stream = 0) const;
+
+            
+        template<class TMapping>
+        TMetricHolder EvalImpl(
+                            const TCudaBuffer<const float, TMapping>& target,
+                            const TCudaBuffer<const float, TMapping>& weights,
+                            const TCudaBuffer<const float, TMapping>& cursor,
+                            TScopedCacheHolder* cache,
+                            ui32 stream) const;
         
         double GetFinalError(TMetricHolder&& metricHolder) const;
     };

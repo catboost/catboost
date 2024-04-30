@@ -11321,6 +11321,9 @@ def test_custom_gpu_eval_metric():
         def evaluate(self, approx, target, weight, output, output_weight):
             init_thread_idx = thread_idx = cuda.grid(1)
             n = target.size
+                
+            output[init_thread_idx] = 0.0
+            output_weight[init_thread_idx] = 0.0
             
             while thread_idx < n:
                 diff = approx[thread_idx] - target[thread_idx]

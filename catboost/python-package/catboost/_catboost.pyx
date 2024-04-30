@@ -630,13 +630,16 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
 cdef extern from "catboost/cuda/targets/gpu_metrics.h":
     cdef cppclass TCustomGpuMetricDescriptor:
 
-        ctypedef TMetricHolder (*TEvalFuncPtr)(
+        ctypedef void (*TEvalFuncPtr)(
             TConstArrayRef[float] approx,
             TConstArrayRef[float]  target,
             TConstArrayRef[float]  weight,
+            TConstArrayRef[float]  result,
+            TConstArrayRef[float]  result_weight,
             int begin,
             int end,
-            void* customData)  with gil
+            void* customData,
+            void* cudaStream)  with gil
 
         void* CustomData
         TMaybe[TEvalFuncPtr] EvalFunc
@@ -1438,32 +1441,29 @@ cdef _ToPythonObjArrayRefOnGpu(size_t size, uint64_t data):
         'version' : 2
     })  
 
-cdef TMetricHolder _GpuMetricEval(
+cdef void _GpuMetricEval(
     TConstArrayRef[float] approx,
     TConstArrayRef[float] target,
     TConstArrayRef[float] weight,
+    TConstArrayRef[float] result,
+    TConstArrayRef[float] result_weight,
     int begin,
     int end,
-    void* customData
+    void* customData,
+    void* cudaStream,
+    size_t blockSize,
+    size_t numBlocks
 ) with gil:
-    cdef TMetricHolder holder
-    holder.Stats.resize(2)
     
     approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
     target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
     weight_gpu = _ToPythonObjArrayRefOnGpu(weight.size(), <uint64_t>weight.data())
-
-    total_threads = 128
-    output_gpu = numba_cuda.device_array((total_threads,))
-    output_weight_gpu = numba_cuda.device_array((total_threads,))
-
+    result_gpu = _ToPythonObjArrayRefOnGpu(result.size(), <uint64_t>result.data())
+    result_weight_gpu = _ToPythonObjArrayRefOnGpu(result_weight.size(), <uint64_t>result_weight.data());
+    cuda_stream = numba_cuda.external_stream(<uint64_t>cudaStream)
     metric_object = <object>customData
-    (<object>(metric_object.evaluate))[1, total_threads](0, approx_gpu, target_gpu, weight_gpu, output_gpu, output_weight_gpu)
 
-    holder.Stats[0] = output_gpu.copy_to_host().sum()
-    holder.Stats[1] = output_weight_gpu.copy_to_host().sum()
-
-    return holder
+    (<object>(metric_object.evaluate))[numBlocks, blockSize, cuda_stream](0, approx_gpu, target_gpu, weight_gpu, result_gpu, result_weight_gpu)
 
 cdef TMetricHolder _MetricEval(
     TConstArrayRef[TConstArrayRef[double]]& approx,
