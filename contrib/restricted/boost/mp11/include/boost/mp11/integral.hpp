@@ -13,6 +13,11 @@
 #include <type_traits>
 #include <cstddef>
 
+#if defined(_MSC_VER) || defined(__GNUC__)
+# pragma push_macro( "I" )
+# undef I
+#endif
+
 namespace boost
 {
 namespace mp11
@@ -38,5 +43,9 @@ template<std::size_t N> using mp_size_t = std::integral_constant<std::size_t, N>
 
 } // namespace mp11
 } // namespace boost
+
+#if defined(_MSC_VER) || defined(__GNUC__)
+# pragma pop_macro( "I" )
+#endif
 
 #endif // #ifndef BOOST_MP11_INTEGRAL_HPP_INCLUDED

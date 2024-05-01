@@ -19,6 +19,11 @@
 #include <boost/mp11/detail/config.hpp>
 #include <type_traits>
 
+#if defined(_MSC_VER) || defined(__GNUC__)
+# pragma push_macro( "I" )
+# undef I
+#endif
+
 namespace boost
 {
 namespace mp11
@@ -468,5 +473,9 @@ template<class L, class Q> using mp_transform_third_q = mp_transform_third<L, Q:
 
 } // namespace mp11
 } // namespace boost
+
+#if defined(_MSC_VER) || defined(__GNUC__)
+# pragma pop_macro( "I" )
+#endif
 
 #endif // #ifndef BOOST_MP11_LIST_HPP_INCLUDED

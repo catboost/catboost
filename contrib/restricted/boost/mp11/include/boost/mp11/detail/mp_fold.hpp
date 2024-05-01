@@ -10,6 +10,8 @@
 
 #include <boost/mp11/detail/config.hpp>
 #include <boost/mp11/detail/mp_defer.hpp>
+#include <boost/mp11/detail/mp_rename.hpp>
+#include <boost/mp11/detail/mp_list.hpp>
 
 namespace boost
 {
@@ -155,7 +157,7 @@ struct mp_fold_impl<L<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T...>, V, F>
 
 } // namespace detail
 
-template<class L, class V, template<class...> class F> using mp_fold = typename detail::mp_fold_impl<L, V, F>::type;
+template<class L, class V, template<class...> class F> using mp_fold = typename detail::mp_fold_impl<mp_rename<L, mp_list>, V, F>::type;
 template<class L, class V, class Q> using mp_fold_q = mp_fold<L, V, Q::template fn>;
 
 } // namespace mp11
