@@ -101,8 +101,11 @@
 #elif defined(BOOST_MSVC) && (_MSC_VER <= 1900 || defined(_DEBUG))
    //"__forceinline" and MSVC seems to have some bugs in old versions and in debug mode
    #define BOOST_CONTAINER_FORCEINLINE inline
-#elif defined(BOOST_GCC) && ((__GNUC__ <= 5) || defined(__MINGW32__))
+#elif defined(BOOST_CLANG) || (defined(BOOST_GCC) && ((__GNUC__ <= 5) || defined(__MINGW32__)))
    //Older GCCs and MinGw have problems with forceinline
+   //Clang can have code bloat issues with forceinline, see
+   //https://lists.boost.org/boost-users/2023/04/91445.php and
+   //https://github.com/llvm/llvm-project/issues/62202
    #define BOOST_CONTAINER_FORCEINLINE inline
 #else
    #define BOOST_CONTAINER_FORCEINLINE BOOST_FORCEINLINE
@@ -185,6 +188,46 @@ BOOST_FORCEINLINE BOOST_CXX14_CONSTEXPR void ignore(T1 const&)
 #    endif
 #    define BOOST_CONTAINER_RETHROW
 #    define BOOST_CONTAINER_CATCH_END }
+#endif
+
+#ifndef BOOST_NO_CXX11_STATIC_ASSERT
+#  ifndef BOOST_NO_CXX11_VARIADIC_MACROS
+#     define BOOST_CONTAINER_STATIC_ASSERT( ... ) static_assert(__VA_ARGS__, #__VA_ARGS__)
+#  else
+#     define BOOST_CONTAINER_STATIC_ASSERT( B ) static_assert(B, #B)
+#  endif
+#else
+namespace boost {
+   namespace container {
+      namespace dtl {
+
+         template<bool B>
+         struct STATIC_ASSERTION_FAILURE;
+
+         template<>
+         struct STATIC_ASSERTION_FAILURE<true> {};
+
+         template<unsigned> struct static_assert_test {};
+
+      }
+   }
+}
+
+#define BOOST_CONTAINER_STATIC_ASSERT(B) \
+         typedef ::boost::container::dtl::static_assert_test<\
+            (unsigned)sizeof(::boost::container::dtl::STATIC_ASSERTION_FAILURE<bool(B)>)>\
+               BOOST_JOIN(boost_container_static_assert_typedef_, __LINE__) BOOST_ATTRIBUTE_UNUSED
+
+#endif
+
+#ifndef BOOST_NO_CXX11_STATIC_ASSERT
+#  ifndef BOOST_NO_CXX11_VARIADIC_MACROS
+#     define BOOST_CONTAINER_STATIC_ASSERT_MSG( ... ) static_assert(__VA_ARGS__)
+#  else
+#     define BOOST_CONTAINER_STATIC_ASSERT_MSG( B, Msg ) static_assert( B, Msg )
+#  endif
+#else
+#     define BOOST_CONTAINER_STATIC_ASSERT_MSG( B, Msg ) BOOST_CONTAINER_STATIC_ASSERT( B )
 #endif
 
 #endif   //#ifndef BOOST_CONTAINER_DETAIL_WORKAROUND_HPP
