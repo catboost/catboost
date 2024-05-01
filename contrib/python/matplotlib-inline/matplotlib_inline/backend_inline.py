@@ -176,7 +176,7 @@ def configure_inline_support(shell, backend):
     if cfg not in shell.configurables:
         shell.configurables.append(cfg)
 
-    if backend == 'module://matplotlib_inline.backend_inline':
+    if backend in ('inline', 'module://matplotlib_inline.backend_inline'):
         shell.events.register('post_execute', flush_figures)
 
         # Save rcParams that will be overwrittern
@@ -211,7 +211,7 @@ def _enable_matplotlib_integration():
     from matplotlib import get_backend
     ip = get_ipython()
     backend = get_backend()
-    if ip and backend == 'module://%s' % __name__:
+    if ip and backend in ('inline', 'module://matplotlib_inline.backend_inline'):
         from IPython.core.pylabtools import activate_matplotlib
         try:
             activate_matplotlib(backend)
