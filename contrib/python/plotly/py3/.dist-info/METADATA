@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: plotly
-Version: 5.20.0
+Version: 5.21.0
 Summary: An open-source, interactive data visualization library for Python
 Home-page: https://plotly.com/python/
 Author: Chris P
@@ -8,7 +8,9 @@ Author-email: chris@plot.ly
 Maintainer: Nicolas Kruchten
 Maintainer-email: nicolas@plot.ly
 License: MIT
+Project-URL: Documentation, https://plotly.com/python/
 Project-URL: Github, https://github.com/plotly/plotly.py
+Project-URL: Changelog, https://github.com/plotly/plotly.py/blob/master/CHANGELOG.md
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
@@ -58,7 +60,7 @@ Requires-Dist: packaging
 
 ## Quickstart
 
-`pip install plotly==5.20.0`
+`pip install plotly==5.21.0`
 
 Inside [Jupyter](https://jupyter.org/install) (installable with `pip install "jupyterlab>=3" "ipywidgets>=7.6"`):
 
@@ -103,13 +105,13 @@ Built on top of [plotly.js](https://github.com/plotly/plotly.js), `plotly.py` is
 plotly.py may be installed using pip...
 
 ```
-pip install plotly==5.20.0
+pip install plotly==5.21.0
 ```
 
 or conda.
 
 ```
-conda install -c plotly plotly=5.20.0
+conda install -c plotly plotly=5.21.0
 ```
 
 ### JupyterLab Support
@@ -131,7 +133,7 @@ The instructions above apply to JupyterLab 3.x. **For JupyterLab 2 or earlier**,
 
 ```
 # JupyterLab 2.x renderer support
-jupyter labextension install jupyterlab-plotly@5.20.0 @jupyter-widgets/jupyterlab-manager
+jupyter labextension install jupyterlab-plotly@5.21.0 @jupyter-widgets/jupyterlab-manager
 ```
 
 Please check out our [Troubleshooting guide](https://plotly.com/python/troubleshooting/) if you run into any problems with JupyterLab.
