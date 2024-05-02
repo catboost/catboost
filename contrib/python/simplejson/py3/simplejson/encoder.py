@@ -5,7 +5,7 @@ import re
 from operator import itemgetter
 # Do not import Decimal directly to avoid reload issues
 import decimal
-from .compat import unichr, binary_type, text_type, string_types, integer_types, PY3
+from .compat import binary_type, text_type, string_types, integer_types, PY3
 def _import_speedups():
     try:
         from . import _speedups
@@ -140,7 +140,7 @@ class JSONEncoder(object):
     key_separator = ': '
 
     def __init__(self, skipkeys=False, ensure_ascii=True,
-                 check_circular=True, allow_nan=True, sort_keys=False,
+                 check_circular=True, allow_nan=False, sort_keys=False,
                  indent=None, separators=None, encoding='utf-8', default=None,
                  use_decimal=True, namedtuple_as_object=True,
                  tuple_as_array=True, bigint_as_string=False,
@@ -161,10 +161,11 @@ class JSONEncoder(object):
         prevent an infinite recursion (which would cause an OverflowError).
         Otherwise, no such check takes place.
 
-        If allow_nan is true, then NaN, Infinity, and -Infinity will be
-        encoded as such.  This behavior is not JSON specification compliant,
-        but is consistent with most JavaScript based encoders and decoders.
-        Otherwise, it will be a ValueError to encode such floats.
+        If allow_nan is true (default: False), then out of range float
+        values (nan, inf, -inf) will be serialized to
+        their JavaScript equivalents (NaN, Infinity, -Infinity)
+        instead of raising a ValueError. See
+        ignore_nan for ECMA-262 compliant behavior.
 
         If sort_keys is true, then the output of dictionaries will be
         sorted by key; this is useful for regression tests to ensure
@@ -294,7 +295,7 @@ class JSONEncoder(object):
         # This doesn't pass the iterator directly to ''.join() because the
         # exceptions aren't as detailed.  The list call should be roughly
         # equivalent to the PySequence_Fast that ''.join() would do.
-        chunks = self.iterencode(o, _one_shot=True)
+        chunks = self.iterencode(o)
         if not isinstance(chunks, (list, tuple)):
             chunks = list(chunks)
         if self.ensure_ascii:
@@ -302,7 +303,7 @@ class JSONEncoder(object):
         else:
             return u''.join(chunks)
 
-    def iterencode(self, o, _one_shot=False):
+    def iterencode(self, o):
         """Encode the given object and yield each string
         representation as available.
 
@@ -356,8 +357,7 @@ class JSONEncoder(object):
         key_memo = {}
         int_as_string_bitcount = (
             53 if self.bigint_as_string else self.int_as_string_bitcount)
-        if (_one_shot and c_make_encoder is not None
-                and self.indent is None):
+        if (c_make_encoder is not None and self.indent is None):
             _iterencode = c_make_encoder(
                 markers, self.default, _encoder, self.indent,
                 self.key_separator, self.item_separator, self.sort_keys,
@@ -370,7 +370,7 @@ class JSONEncoder(object):
             _iterencode = _make_iterencode(
                 markers, self.default, _encoder, self.indent, floatstr,
                 self.key_separator, self.item_separator, self.sort_keys,
-                self.skipkeys, _one_shot, self.use_decimal,
+                self.skipkeys, self.use_decimal,
                 self.namedtuple_as_object, self.tuple_as_array,
                 int_as_string_bitcount,
                 self.item_sort_key, self.encoding, self.for_json,
@@ -398,14 +398,14 @@ class JSONEncoderForHTML(JSONEncoder):
     def encode(self, o):
         # Override JSONEncoder.encode because it has hacks for
         # performance that make things more complicated.
-        chunks = self.iterencode(o, True)
+        chunks = self.iterencode(o)
         if self.ensure_ascii:
             return ''.join(chunks)
         else:
             return u''.join(chunks)
 
-    def iterencode(self, o, _one_shot=False):
-        chunks = super(JSONEncoderForHTML, self).iterencode(o, _one_shot)
+    def iterencode(self, o):
+        chunks = super(JSONEncoderForHTML, self).iterencode(o)
         for chunk in chunks:
             chunk = chunk.replace('&', '\\u0026')
             chunk = chunk.replace('<', '\\u003c')
@@ -419,7 +419,7 @@ class JSONEncoderForHTML(JSONEncoder):
 
 
 def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
-        _key_separator, _item_separator, _sort_keys, _skipkeys, _one_shot,
+        _key_separator, _item_separator, _sort_keys, _skipkeys,
         _use_decimal, _namedtuple_as_object, _tuple_as_array,
         _int_as_string_bitcount, _item_sort_key,
         _encoding,_for_json,

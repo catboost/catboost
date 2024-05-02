@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import decimal
 from unittest import TestCase
 
+import sys
 import simplejson as json
 from simplejson.compat import StringIO, b, binary_type
 from simplejson import OrderedDict
@@ -117,3 +118,10 @@ class TestDecode(TestCase):
         diff = id(x) - id(y)
         self.assertRaises(ValueError, j.scan_once, y, diff)
         self.assertRaises(ValueError, j.raw_decode, y, i)
+
+    def test_bounded_int(self):
+        # SJ-PT-23-03, limit quadratic number parsing per Python 3.11
+        max_str_digits = getattr(sys, 'get_int_max_str_digits', lambda: 4300)()
+        s = '1' + '0' * (max_str_digits - 1)
+        self.assertEqual(json.loads(s), int(s))
+        self.assertRaises(ValueError, json.loads, s + '0')

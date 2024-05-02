@@ -60,11 +60,11 @@ def py_make_scanner(context):
             else:
                 res = parse_int(integer)
             return res, m.end()
-        elif nextchar == 'N' and string[idx:idx + 3] == 'NaN':
+        elif parse_constant and nextchar == 'N' and string[idx:idx + 3] == 'NaN':
             return parse_constant('NaN'), idx + 3
-        elif nextchar == 'I' and string[idx:idx + 8] == 'Infinity':
+        elif parse_constant and nextchar == 'I' and string[idx:idx + 8] == 'Infinity':
             return parse_constant('Infinity'), idx + 8
-        elif nextchar == '-' and string[idx:idx + 9] == '-Infinity':
+        elif parse_constant and nextchar == '-' and string[idx:idx + 9] == '-Infinity':
             return parse_constant('-Infinity'), idx + 9
         else:
             raise JSONDecodeError(errmsg, string, idx)

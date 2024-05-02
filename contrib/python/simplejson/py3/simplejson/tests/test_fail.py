@@ -145,7 +145,7 @@ class TestFail(TestCase):
             ('["spam', 'Unterminated string starting at', 1),
             ('["spam"', "Expecting ',' delimiter", 7),
             ('["spam",', 'Expecting value', 8),
-            ('{', 'Expecting property name enclosed in double quotes', 1),
+            ('{', "Expecting property name enclosed in double quotes or '}'", 1),
             ('{"', 'Unterminated string starting at', 1),
             ('{"spam', 'Unterminated string starting at', 1),
             ('{"spam"', "Expecting ':' delimiter", 7),
@@ -156,6 +156,8 @@ class TestFail(TestCase):
             ('"', 'Unterminated string starting at', 0),
             ('"spam', 'Unterminated string starting at', 0),
             ('[,', "Expecting value", 1),
+            ('--', 'Expecting value', 0),
+            ('"\x18d', "Invalid control character %r", 1),
         ]
         for data, msg, idx in test_cases:
             try:
