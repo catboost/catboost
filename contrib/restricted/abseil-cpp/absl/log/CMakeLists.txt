@@ -13,12 +13,54 @@
 # by maintainers. Any complex modifications which can't be easily ported back to the ya build 
 # system may be rejected.
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-x86_64.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
-  include(CMakeLists.linux-x86_64-cuda.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le-cuda.txt)
-endif()
+add_library(abseil-cpp-absl-log)
+
+
+target_compile_options(abseil-cpp-absl-log PRIVATE
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
+)
+
+target_include_directories(abseil-cpp-absl-log PUBLIC
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
+)
+
+target_link_libraries(abseil-cpp-absl-log PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  abseil-cpp-absl-base
+  abseil-cpp-absl-container
+  abseil-cpp-absl-debugging
+  abseil-cpp-absl-flags
+  abseil-cpp-absl-hash
+  abseil-cpp-absl-numeric
+  abseil-cpp-absl-profiling
+  abseil-cpp-absl-strings
+  abseil-cpp-absl-synchronization
+  abseil-cpp-absl-time
+  abseil-cpp-absl-types
+)
+
+target_sources(abseil-cpp-absl-log PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/die_if_null.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/flags.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/globals.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/initialize.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/check_op.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/conditions.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/fnmatch.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/globals.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/log_format.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/log_message.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/log_sink_set.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/nullguard.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/proto.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/internal/vlog_config.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_entry.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/log/log_sink.cc
+)
+
+
+
+
+
+

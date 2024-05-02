@@ -13,12 +13,49 @@
 # by maintainers. Any complex modifications which can't be easily ported back to the ya build 
 # system may be rejected.
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-x86_64.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
-  include(CMakeLists.linux-x86_64-cuda.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le-cuda.txt)
-endif()
+add_library(abseil-cpp-absl-flags)
+
+
+target_compile_options(abseil-cpp-absl-flags PRIVATE
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
+)
+
+target_include_directories(abseil-cpp-absl-flags PUBLIC
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
+)
+
+target_link_libraries(abseil-cpp-absl-flags PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  abseil-cpp-absl-base
+  abseil-cpp-absl-container
+  abseil-cpp-absl-debugging
+  abseil-cpp-absl-hash
+  abseil-cpp-absl-memory
+  abseil-cpp-absl-numeric
+  abseil-cpp-absl-profiling
+  abseil-cpp-absl-strings
+  abseil-cpp-absl-synchronization
+  abseil-cpp-absl-time
+  abseil-cpp-absl-types
+)
+
+target_sources(abseil-cpp-absl-flags PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/commandlineflag.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/commandlineflag.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/flag.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/private_handle_accessor.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/program_name.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/usage.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/marshalling.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/parse.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/reflection.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/usage.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/usage_config.cc
+)
+
+
+
+
+
+

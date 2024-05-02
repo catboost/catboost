@@ -13,8 +13,21 @@
 # by maintainers. Any complex modifications which can't be easily ported back to the ya build 
 # system may be rejected.
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND HAVE_CUDA)
-  include(CMakeLists.linux-aarch64-cuda.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le-cuda.txt)
-endif()
+add_library(cpp-float16-float16_dummy_impl)
+
+
+target_link_libraries(cpp-float16-float16_dummy_impl PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  yutil
+)
+
+target_sources(cpp-float16-float16_dummy_impl PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/float16/float16_dummy_impl/float16_dummy.cpp
+)
+
+
+
+
+
+

@@ -13,12 +13,44 @@
 # by maintainers. Any complex modifications which can't be easily ported back to the ya build 
 # system may be rejected.
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-x86_64.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
-  include(CMakeLists.linux-x86_64-cuda.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le-cuda.txt)
-endif()
+add_library(abseil-cpp-absl-random)
+
+
+target_compile_options(abseil-cpp-absl-random PRIVATE
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
+)
+
+target_include_directories(abseil-cpp-absl-random PUBLIC
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
+)
+
+target_link_libraries(abseil-cpp-absl-random PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  abseil-cpp-absl-base
+  abseil-cpp-absl-numeric
+  abseil-cpp-absl-strings
+  abseil-cpp-absl-types
+)
+
+target_sources(abseil-cpp-absl-random PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/discrete_distribution.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/gaussian_distribution.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/chi_square.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/distribution_test_util.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/pool_urbg.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/randen.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/randen_detect.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/randen_hwaes.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/randen_round_keys.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/randen_slow.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/seed_material.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/seed_gen_exception.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/seed_sequences.cc
+)
+
+
+
+
+
+

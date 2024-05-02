@@ -13,8 +13,93 @@
 # by maintainers. Any complex modifications which can't be easily ported back to the ya build 
 # system may be rejected.
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-x86_64.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
-  include(CMakeLists.linux-x86_64-cuda.txt)
-endif()
+add_library(libs-tcmalloc-no_percpu_cache)
+
+
+target_compile_options(libs-tcmalloc-no_percpu_cache PRIVATE
+  -DTCMALLOC_256K_PAGES
+  -DTCMALLOC_DEPRECATED_PERTHREAD
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
+)
+
+target_link_libraries(libs-tcmalloc-no_percpu_cache PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  contrib-restricted-abseil-cpp
+  libs-tcmalloc-malloc_extension
+)
+
+target_sources(libs-tcmalloc-no_percpu_cache PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/no_percpu_cache/aligned_alloc.c
+)
+
+
+
+
+add_global_library_for(libs-tcmalloc-no_percpu_cache.global
+  libs-tcmalloc-no_percpu_cache)
+
+
+target_compile_options(libs-tcmalloc-no_percpu_cache.global PRIVATE
+  -DTCMALLOC_256K_PAGES
+  -DTCMALLOC_DEPRECATED_PERTHREAD
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
+)
+
+target_link_libraries(libs-tcmalloc-no_percpu_cache.global PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  contrib-restricted-abseil-cpp
+  libs-tcmalloc-malloc_extension
+)
+
+target_sources(libs-tcmalloc-no_percpu_cache.global PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/want_hpaa.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/tcmalloc.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/arena.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/background.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/central_freelist.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/common.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/cpu_cache.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/experimental_pow2_below64_size_class.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/experimental_pow2_size_class.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/legacy_size_classes.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/guarded_page_allocator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/huge_address_map.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/huge_allocator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/huge_cache.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/huge_page_aware_allocator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/page_allocator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/page_allocator_interface.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/page_heap.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/pagemap.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/parameters.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/peak_heap_tracker.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/sampler.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/size_classes.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/span.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/stack_trace_table.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/static_vars.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/stats.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/system-alloc.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/thread_cache.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/transfer_cache.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/experiment.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/noruntime_size_classes.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/cache_topology.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/environment.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/logging.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/memory_stats.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/mincore.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/numa.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/percpu.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/percpu_rseq_asm.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/percpu_rseq_unsupported.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/internal/util.cc
+)
+
+
+
+
+
+

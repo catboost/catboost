@@ -13,12 +13,22 @@
 # by maintainers. Any complex modifications which can't be easily ported back to the ya build 
 # system may be rejected.
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-x86_64.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
-  include(CMakeLists.linux-x86_64-cuda.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le-cuda.txt)
-endif()
+add_library(cpp-malloc-tcmalloc)
+
+
+target_link_libraries(cpp-malloc-tcmalloc PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  cpp-malloc-api
+  libs-tcmalloc-malloc_extension
+)
+
+target_sources(cpp-malloc-tcmalloc PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/malloc/tcmalloc/malloc-info.cpp
+)
+
+
+
+
+
+

@@ -13,12 +13,30 @@
 # by maintainers. Any complex modifications which can't be easily ported back to the ya build 
 # system may be rejected.
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-x86_64.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
-  include(CMakeLists.linux-x86_64-cuda.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le-cuda.txt)
-endif()
+add_library(libs-tcmalloc-malloc_extension)
+
+
+target_compile_options(libs-tcmalloc-malloc_extension PRIVATE
+  -DTCMALLOC_256K_PAGES
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
+)
+
+target_include_directories(libs-tcmalloc-malloc_extension PUBLIC
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc
+)
+
+target_link_libraries(libs-tcmalloc-malloc_extension PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  contrib-restricted-abseil-cpp
+)
+
+target_sources(libs-tcmalloc-malloc_extension PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/tcmalloc/tcmalloc/malloc_extension.cc
+)
+
+
+
+
+
+

@@ -13,12 +13,38 @@
 # by maintainers. Any complex modifications which can't be easily ported back to the ya build 
 # system may be rejected.
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-x86_64.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
-  include(CMakeLists.linux-x86_64-cuda.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND NOT HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le-cuda.txt)
-endif()
+add_library(abseil-cpp-absl-status)
+
+
+target_compile_options(abseil-cpp-absl-status PRIVATE
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
+)
+
+target_include_directories(abseil-cpp-absl-status PUBLIC
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp
+)
+
+target_link_libraries(abseil-cpp-absl-status PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  abseil-cpp-absl-base
+  abseil-cpp-absl-debugging
+  abseil-cpp-absl-numeric
+  abseil-cpp-absl-profiling
+  abseil-cpp-absl-strings
+  abseil-cpp-absl-synchronization
+  abseil-cpp-absl-time
+  abseil-cpp-absl-types
+)
+
+target_sources(abseil-cpp-absl-status PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/internal/status_internal.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status_payload_printer.cc
+)
+
+
+
+
+
+

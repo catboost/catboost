@@ -13,12 +13,18 @@
 # by maintainers. Any complex modifications which can't be easily ported back to the ya build 
 # system may be rejected.
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
-  include(CMakeLists.linux-x86_64-cuda.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND HAVE_CUDA)
-  include(CMakeLists.linux-aarch64-cuda.txt)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
-  include(CMakeLists.linux-ppc64le-cuda.txt)
-elseif (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" AND HAVE_CUDA)
-  include(CMakeLists.windows-x86_64-cuda.txt)
-endif()
+add_subdirectory(cpu_compatibility_helpers)
+add_subdirectory(ctrs)
+add_subdirectory(cuda_lib)
+add_subdirectory(cuda_util)
+add_subdirectory(data)
+add_subdirectory(gpu_data)
+add_subdirectory(methods)
+add_subdirectory(models)
+add_subdirectory(mpi_ut)
+add_subdirectory(targets)
+add_subdirectory(train_lib)
+add_subdirectory(ut_helpers)
+add_subdirectory(utils)
+
+
