@@ -39,9 +39,8 @@ Note that there are additional [system requirements](#gpu-system-requirements) 
 
 ## GPU system requirements {#gpu-system-requirements}
 
-The versions of {{ product }} available from [pip install](../installation/python-installation-method-pip-install.md) and [conda install](../installation/python-installation-method-conda-install.md) have GPU support out-of-the-box.
+The versions of {{ product }} for Linux and Windows available from [pip install](../installation/python-installation-method-pip-install.md) and [conda install](../installation/python-installation-method-conda-install.md) have CUDA-enabled GPU support out-of-the-box.
 
 {% include [installation-compute-capability-requirements](../_includes/work_src/reusage-code-examples/compute-capability-requirements.md) %}
-
 
 {% include [installation-nvidia-driver-reqs](../_includes/work_src/reusage-code-examples/nvidia-driver-reqs.md) %}
