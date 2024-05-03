@@ -19,16 +19,21 @@ jobs:
   build-for-linux:
     if: inputs.runs-on_value == 'ubuntu-latest'
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest
-      env:
-        CATBOOST_PACKAGE_NAME: ${{ inputs.catboost_package_name }}
-        CATBOOST_PACKAGE_VERSION: ${{ inputs.catboost_package_version }}
-        CMAKE_BUILD_CACHE_DIR: cmake_build_cache
+    env:
+      CATBOOST_PACKAGE_NAME: ${{ inputs.catboost_package_name }}
+      CATBOOST_PACKAGE_VERSION: ${{ inputs.catboost_package_version }}
+      CMAKE_BUILD_CACHE_DIR: cmake_build_cache
     defaults:
       run:
         shell: bash
     steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 512
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -58,10 +63,9 @@ jobs:
 
       - name: Build all
         run: |
-          . /work/setup_env/build_x86_64.sh
-          export CMAKE_BUILD_CACHE_DIR=${{ github.workspace }}/cmake_build_cache
-          cd catboost
-          python3 ./ci/build_all.py
+          mkdir -p ${{ github.workspace }}/catboost_build_home
+          rm -fr ${{ github.workspace }}/catboost_build_home/*
+          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}:/src/catboost -v $CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan $HOME/  && cd /src/catboost && ./ci/build_all.py"
 
       - name: Compress cache
         run: zip -ur ./cmake_build_cache.zip ./cmake_build_cache
