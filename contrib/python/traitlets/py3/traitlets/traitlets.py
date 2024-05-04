@@ -3698,12 +3698,7 @@ class Set(Container[t.Set[t.Any]]):
 
     def set(self, obj: t.Any, value: t.Any) -> None:
         if isinstance(value, str):
-            return super().set(
-                obj,
-                set(
-                    value,
-                ),
-            )
+            return super().set(obj, {value})
         else:
             return super().set(obj, value)
 

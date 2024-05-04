@@ -1658,6 +1658,24 @@ class TestList(TraitTestBase):
         return value
 
 
+class SetTrait(HasTraits):
+    value = Set(Unicode())
+
+
+class TestSet(TraitTestBase):
+    obj = SetTrait()
+
+    _default_value: t.Set[str] = set()
+    _good_values = [{"a", "b"}, "ab"]
+    _bad_values = [1]
+
+    def coerce(self, value):
+        if isinstance(value, str):
+            # compatibility handling: convert string to set containing string
+            value = {value}
+        return value
+
+
 class Foo:
     pass
 

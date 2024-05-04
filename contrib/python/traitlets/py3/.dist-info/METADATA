@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.3
 Name: traitlets
-Version: 5.14.2
+Version: 5.14.3
 Summary: Traitlets Python configuration system
 Project-URL: Homepage, https://github.com/ipython/traitlets
 Project-URL: Documentation, https://traitlets.readthedocs.io
@@ -60,7 +60,7 @@ Requires-Dist: mypy>=1.7.0; extra == 'test'
 Requires-Dist: pre-commit; extra == 'test'
 Requires-Dist: pytest-mock; extra == 'test'
 Requires-Dist: pytest-mypy-testing; extra == 'test'
-Requires-Dist: pytest<8.1,>=7.0; extra == 'test'
+Requires-Dist: pytest<8.2,>=7.0; extra == 'test'
 Description-Content-Type: text/markdown
 
 # Traitlets
