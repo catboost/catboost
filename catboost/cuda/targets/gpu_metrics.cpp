@@ -699,9 +699,8 @@ namespace NCatboostCuda {
     }
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
-                                                  ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
-                                                  const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) {
-        Y_UNUSED(objectiveDescriptor);
+                                                  ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
+                                                  const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
         CB_ENSURE(metricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
         const NCatboostOptions::TLossDescription& objectiveMetricDescription = metricOptions->ObjectiveMetric.Get();
         const bool haveEvalMetricFromUser = metricOptions->EvalMetric.IsSet();
@@ -725,12 +724,20 @@ namespace NCatboostCuda {
 
         TVector<THolder<IGpuMetric>> metrics;
         THashSet<TString> usedDescriptions;
+
         if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
-            metrics.emplace_back(new TGpuCustomMetric(
-                evalMetricDescriptor.GetRef(),
-                evalMetricDescription,
-                cpuApproxDim
-            ));
+            if (evalGpuMetricDescriptor.Defined()) {
+                metrics.emplace_back(new TGpuCustomMetric(
+                    evalGpuMetricDescriptor.GetRef(),
+                    evalMetricDescription,
+                    cpuApproxDim
+                ));
+            } else {
+                metrics.emplace_back(new TCpuFallbackMetric(
+                    MakeCustomMetric(evalMetricDescriptor.GetRef()),
+                    evalMetricDescription
+                )); 
+            }
         } else {
             metrics = CreateGpuMetricFromDescription(
                     objectiveMetricDescription.GetLossFunction(),

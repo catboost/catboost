@@ -110,7 +110,7 @@ struct TCustomGpuMetricDescriptor {
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
             TConstArrayRef<float> result,
-            TConstArrayRef<float> result_weight,
+            TConstArrayRef<float> resultWeight,
             int begin,
             int end,
             void* customData,

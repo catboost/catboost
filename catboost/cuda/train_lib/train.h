@@ -41,8 +41,8 @@ namespace NCatboostCuda {
             NPar::ILocalExecutor* localExecutor,
             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-            const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
-            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) const = 0;
+            const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
+            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) const = 0;
 
         virtual void ModelBasedEval(
             TBinarizedFeaturesManager& featureManager,

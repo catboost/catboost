@@ -34,8 +34,8 @@ namespace NCatboostCuda {
                                  bool hasWeights,
                                  TMaybe<ui32> learnAndTestCheckSum,
                                  ITrainingCallbacks* trainingCallbacks, 
-                                 const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
-                                 const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor);
+                                 const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
+                                 const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor);
 
         const TErrorTracker& GetErrorTracker() const {
             return ErrorTracker;
