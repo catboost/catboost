@@ -23,7 +23,6 @@ import inspect
 import os
 import traceback
 import types
-from numba import cuda as numba_cuda
 
 
 import sys
@@ -627,7 +626,7 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
     ) nogil except +ProcessException
 
 
-cdef extern from "catboost/cuda/targets/gpu_metrics.h":
+cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomGpuMetricDescriptor:
 
         ctypedef void (*TEvalFuncPtr)(
@@ -635,7 +634,7 @@ cdef extern from "catboost/cuda/targets/gpu_metrics.h":
             TConstArrayRef[float]  target,
             TConstArrayRef[float]  weight,
             TConstArrayRef[float]  result,
-            TConstArrayRef[float]  result_weight,
+            TConstArrayRef[float]  resultWeight,
             int begin,
             int end,
             void* customData,

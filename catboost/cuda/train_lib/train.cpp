@@ -228,7 +228,6 @@ namespace NCatboostCuda {
                                                                 NPar::ILocalExecutor* localExecutor,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                                                 const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
                                                                 const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
                                                                 ) {
@@ -257,7 +256,7 @@ namespace NCatboostCuda {
                                         testMultiApprox,
                                         metricsAndTimeHistory,
                                         evalGpuMetricDescriptor,
-                                        objectiveDescriptor);
+                                        evalMetricDescriptor);
         } else {
             ythrow TCatBoostException() << "Error: optimization scheme is not supported for GPU learning " << optimizationImplementation;
         }
@@ -314,7 +313,7 @@ namespace NCatboostCuda {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress) const override {
 
-            // Y_UNUSED(objectiveDescriptor);
+            Y_UNUSED(objectiveDescriptor);
             Y_UNUSED(rand);
             CB_ENSURE(trainingData.Test.size() <= 1, "Multiple eval sets not supported for GPU");
             CB_ENSURE(!precomputedSingleOnlineCtrDataForSingleFold,
@@ -400,7 +399,6 @@ namespace NCatboostCuda {
                 localExecutor,
                 &rawValues,
                 metricsAndTimeHistory,
-                objectiveDescriptor,
                 evalGpuMetricDescriptor,
                 evalMetricDescriptor
             );

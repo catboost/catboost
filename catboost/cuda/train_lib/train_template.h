@@ -57,8 +57,8 @@ namespace NCatboostCuda {
         ITrainingCallbacks* trainingCallbacks,
         bool hasWeights,
         TMaybe<ui32> learnAndTestCheckSum,
-        const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
-        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor
+        const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
     ) {
         return TBoostingProgressTracker(catBoostOptions,
             outputOptions,
@@ -69,8 +69,8 @@ namespace NCatboostCuda {
             hasWeights,
             learnAndTestCheckSum,
             trainingCallbacks,
-            evalMetricDescriptor,
-            objectiveDescriptor);
+            evalGpuMetricDescriptor,
+            evalMetricDescriptor);
     }
 
     template <class TBoosting>
@@ -87,8 +87,8 @@ namespace NCatboostCuda {
                                                                          NPar::ILocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                         const TMaybe<TCustomGpuMetricDescriptor>& evalMetricDescriptor,
-                                                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) {
+                                                                         const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
+                                                                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
         auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
 
         boosting.SetDataProvider(learn, featureEstimators, test);
@@ -107,8 +107,8 @@ namespace NCatboostCuda {
             trainingCallbacks,
             learn.MetaInfo.HasWeights,
             learnAndTestCheckSum,
-            evalMetricDescriptor,
-            objectiveDescriptor);
+            evalGpuMetricDescriptor,
+            evalMetricDescriptor);
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 

@@ -730,6 +730,7 @@ namespace NCatboostCuda {
 
         TVector<THolder<IGpuMetric>> metrics;
         THashSet<TString> usedDescriptions;
+
         if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
             if (evalMetricDescriptor.Defined() && evalMetricDescriptor.GetRef().GpuEvalFunc.Defined()) {
                 metrics.emplace_back(new TGpuCustomMetric(
