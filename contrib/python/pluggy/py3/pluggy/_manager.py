@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import inspect
 import types
-import warnings
 from typing import Any
 from typing import Callable
 from typing import cast
@@ -11,6 +10,7 @@ from typing import Iterable
 from typing import Mapping
 from typing import Sequence
 from typing import TYPE_CHECKING
+import warnings
 
 from . import _tracing
 from ._callers import _multicall
@@ -25,6 +25,7 @@ from ._hooks import HookRelay
 from ._hooks import HookspecOpts
 from ._hooks import normalize_hookimpl_opts
 from ._result import Result
+
 
 if TYPE_CHECKING:
     # importtlib.metadata import is slow, defer it.
@@ -291,7 +292,7 @@ class PluginManager:
 
     def get_plugins(self) -> set[Any]:
         """Return a set of all registered plugin objects."""
-        return set(self._name2plugin.values())
+        return {x for x in self._name2plugin.values() if x is not None}
 
     def is_registered(self, plugin: _Plugin) -> bool:
         """Return whether the plugin is already registered."""
@@ -351,6 +352,12 @@ class PluginManager:
                     notinspec,
                 ),
             )
+
+        if hook.spec.warn_on_impl_args:
+            for hookimpl_argname in hookimpl.argnames:
+                argname_warning = hook.spec.warn_on_impl_args.get(hookimpl_argname)
+                if argname_warning is not None:
+                    _warn_for_function(argname_warning, hookimpl.function)
 
         if (
             hookimpl.wrapper or hookimpl.hookwrapper
