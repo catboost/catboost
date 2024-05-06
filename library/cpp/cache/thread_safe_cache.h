@@ -96,6 +96,16 @@ namespace NPrivate {
             return TThreadSafeCacheSingleton<TCallbacks>::Clear();
         }
 
+        size_t Size() const {
+            TReadGuard r(Mutex);
+            return Cache.Size();
+        }
+
+        size_t TotalSize() const {
+            TReadGuard r(Mutex);
+            return Cache.TotalSize();
+        }
+
         size_t GetMaxSize() const {
             TReadGuard w(Mutex);
             return Cache.GetMaxSize();

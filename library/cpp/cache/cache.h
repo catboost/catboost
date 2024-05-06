@@ -124,11 +124,11 @@ public:
         List.PushBack(item);
     }
 
-    size_t GetSize() const {
+    [[nodiscard]] size_t GetSize() const {
         return ItemsAmount;
     }
 
-    size_t GetTotalSize() const {
+    [[nodiscard]] size_t GetTotalSize() const {
         return TotalSize;
     }
 
@@ -157,7 +157,8 @@ public:
     TLFUList(size_t maxSize, const TSizeProvider& sizeProvider = TSizeProvider())
         : List()
         , SizeProvider(sizeProvider)
-        , ListSize(0)
+        , ItemsAmount(0)
+        , TotalSize(0)
         , MaxSize(maxSize)
     {
     }
@@ -228,14 +229,15 @@ public:
 public:
     TItem* Insert(TItem* item) {
         List.PushBack(item); // give a chance for promotion
-        ListSize += SizeProvider(item->Value);
+        ++ItemsAmount;
+        TotalSize += SizeProvider(item->Value);
 
         return RemoveIfOverflown();
     }
 
     TItem* RemoveIfOverflown() {
         TItem* deleted = nullptr;
-        if (ListSize > MaxSize) {
+        if (TotalSize > MaxSize && ItemsAmount > 1) {
             deleted = GetLeastFrequentlyUsed();
             Erase(deleted);
         }
@@ -250,7 +252,8 @@ public:
 
     void Erase(TItem* item) {
         item->Unlink();
-        ListSize -= SizeProvider(item->Value);
+        --ItemsAmount;
+        TotalSize -= SizeProvider(item->Value);
     }
 
     void Promote(TItem* item) {
@@ -262,8 +265,12 @@ public:
         item->LinkBefore(&*it);
     }
 
-    size_t GetSize() const {
-        return ListSize;
+    [[nodiscard]] size_t GetSize() const {
+        return ItemsAmount;
+    }
+
+    [[nodiscard]] size_t GetTotalSize() const {
+        return TotalSize;
     }
 
     size_t GetMaxSize() const {
@@ -280,7 +287,8 @@ private:
     typedef TIntrusiveList<TItem> TListType;
     TListType List;
     TSizeProvider SizeProvider;
-    size_t ListSize;
+    size_t ItemsAmount;
+    size_t TotalSize;
     size_t MaxSize;
 };
 
@@ -413,6 +421,10 @@ public:
         return Size;
     }
 
+    [[nodiscard]] size_t GetTotalSize() const {
+        return Size;
+    }
+
     size_t GetMaxSize() const {
         return MaxSize;
     }
@@ -515,8 +527,12 @@ public:
         Clear();
     }
 
-    size_t Size() const {
+    [[nodiscard]] size_t Size() const {
         return Index.size();
+    }
+
+    [[nodiscard]] size_t TotalSize() const {
+        return List.GetTotalSize();
     }
 
     TIterator Begin() const {
