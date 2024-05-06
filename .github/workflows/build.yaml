@@ -55,12 +55,6 @@ jobs:
       - name: Fixup python package version
         run: cd catboost && python3 ./ci/fixup_python_version.py
 
-      - name: Setup cmake_build_env_root
-        run: ln -sf /opt/cmake_build_env_root $HOME/
-
-      - name: Setup conan cache
-        run: rsync -rptl /opt/.conan $HOME/
-
       - name: Build all
         run: |
           mkdir -p ${{ github.workspace }}/catboost_build_home
