@@ -17,7 +17,7 @@ namespace NKernelHost {
     public:
 
         static const size_t BlockSize = 128;
-        static const size_t NumBlocks = 1;
+        static const size_t NumBlocks = 32;
 
         TUserDefinedMetricKernel() = default;
 
