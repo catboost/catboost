@@ -59,7 +59,7 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/catboost_build_home
           rm -fr ${{ github.workspace }}/catboost_build_home/*
-          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}:/src/catboost -v $CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan $HOME/  && cd /src/catboost && ./ci/build_all.py"
+          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v $CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan $HOME/  && cd /src/catboost && ./ci/build_all.py"
 
       - name: Compress cache
         run: zip -ur ./cmake_build_cache.zip ./cmake_build_cache
