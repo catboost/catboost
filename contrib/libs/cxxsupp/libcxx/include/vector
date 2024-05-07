@@ -730,6 +730,7 @@ public:
     }
 
 #if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
+    // This function works only for POD types, otherwise memory leak may occur.
     void resize_uninitialized(size_type __sz);
 #endif
 
