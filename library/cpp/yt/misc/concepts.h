@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <vector>
 
 namespace NYT {
 
@@ -43,6 +44,21 @@ concept CScalable = requires (TObject object, TScalar scalar)
 
 template <class T, class TSignature>
 concept CInvocable = NDetail::TIsInvocable<T, TSignature>::Value;
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class V>
+concept CStdVector = requires (V& vec) {
+    [] <class... T> (std::vector<T...>&) { } (vec);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class M>
+concept CAnyMap = requires {
+    typename M::mapped_type;
+    typename M::key_type;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
