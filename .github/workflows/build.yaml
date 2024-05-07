@@ -33,6 +33,9 @@ jobs:
           root-reserve-mb: 36000  # needed for docker image
           swap-size-mb: 1024
           remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
 
       - name: Check free space
         run: |
