@@ -71,7 +71,7 @@
 #endif
 
 #if defined(_unix_)
-    #define NO_UNIQUE_ADDRESS [[no_unique_address]]
+    #define YT_ATTRIBUTE_NO_UNIQUE_ADDRESS [[no_unique_address]]
 #else
-    #define NO_UNIQUE_ADDRESS
+    #define YT_ATTRIBUTE_NO_UNIQUE_ADDRESS
 #endif
