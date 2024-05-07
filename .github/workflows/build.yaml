@@ -34,6 +34,11 @@ jobs:
           swap-size-mb: 1024
           remove-dotnet: 'true'
 
+      - name: Check free space
+        run: |
+          echo "Free space:"
+          df -h
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
