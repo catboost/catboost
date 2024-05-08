@@ -111,3 +111,14 @@ def test_files_read_text(package, resource, expected):
 )
 def test_files_iterdir(package, expected):
     assert tuple(resource.name for resource in ir.files(package).iterdir()) == expected
+
+
+@pytest.mark.parametrize(
+    "package, expected",
+    (
+        ("resources", ("foo.txt", "submodule")),
+        ("resources.submodule", ("bar.txt",)),
+    ),
+)
+def test_files_iterdir_with_sort(package, expected):
+    assert tuple(resource.name for resource in sorted(ir.files(package).iterdir())) == expected
