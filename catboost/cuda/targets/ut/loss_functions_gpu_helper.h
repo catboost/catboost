@@ -158,7 +158,7 @@ static inline void TestLossFunctionImpl(ui64 seed,
         UNIT_ASSERT_DOUBLES_EQUAL(cpuResult.first, gpuResult.first, PRECISION);
         for (ui32 index = 0; index < targets.size(); ++index) {
             UNIT_ASSERT_DOUBLES_EQUAL(cpuResult.second[index].Der1, gpuResult.second.first[index], PRECISION);
-            UNIT_ASSERT_DOUBLES_EQUAL(cpuResult.second[index].Der2, gpuResult.second.second[index], PRECISION);
+            UNIT_ASSERT_DOUBLES_EQUAL(cpuResult.second[index].Der2, -gpuResult.second.second[index], PRECISION); // 2nd der signs are opposite
         }
     }
 }
