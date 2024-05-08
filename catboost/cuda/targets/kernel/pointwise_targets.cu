@@ -53,7 +53,7 @@ namespace NKernel {
         __device__ __forceinline__ float Der2(float target, float prediction) const {
             const float der2 = target * std::exp((1 - VariancePower) * prediction) * (1 - VariancePower);
             const float delta = std::exp((2 - VariancePower) * prediction) * (2 - VariancePower);
-            return der2 - delta;
+            return - der2 + delta;
         }
     };
 
