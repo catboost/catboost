@@ -12,5 +12,5 @@ jobs:
     with:
       runs-on_value: ${{ matrix.os }}
       artifacts_version: ${{ github.sha }}
-      catboost_package_version: 1.2.4
+      catboost_package_version: 1.2.5
     uses: ./.github/workflows/check_per_os.yaml
