@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: freezegun
-Version: 1.4.0
+Version: 1.5.0
 Summary: Let your Python tests travel through time
 Home-page: https://github.com/spulec/freezegun
 Author: Steve Pulec

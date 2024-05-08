@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: redis
-Version: 5.0.3
+Version: 5.0.4
 Summary: Python client for Redis database and key-value store
 Home-page: https://github.com/redis/redis-py
 Author: Redis Inc.

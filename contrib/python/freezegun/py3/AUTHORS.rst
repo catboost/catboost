@@ -21,3 +21,5 @@ Patches and Suggestions
 - `Hannes Ljungberg <hannes@5monkeys.se>`_
 - `staticdev <staticdev-support@proton.me>`_
 - `Marcin Sulikowski <https://github.com/marcinsulikowski>`_
+- `Ashish Patil <https://github.com/ashishnitinpatil>`_
+- `Victor Ferrer <https://github.com/vicfergar>`_

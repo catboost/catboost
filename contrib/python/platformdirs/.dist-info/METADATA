@@ -1,7 +1,7 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.3
 Name: platformdirs
-Version: 4.2.0
-Summary: A small Python package for determining appropriate platform-specific dirs, e.g. a "user data dir".
+Version: 4.2.1
+Summary: A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`.
 Project-URL: Documentation, https://platformdirs.readthedocs.io
 Project-URL: Homepage, https://github.com/platformdirs/platformdirs
 Project-URL: Source, https://github.com/platformdirs/platformdirs
@@ -36,6 +36,8 @@ Requires-Dist: covdefaults>=2.3; extra == 'test'
 Requires-Dist: pytest-cov>=4.1; extra == 'test'
 Requires-Dist: pytest-mock>=3.12; extra == 'test'
 Requires-Dist: pytest>=7.4.3; extra == 'test'
+Provides-Extra: type
+Requires-Dist: mypy>=1.8; extra == 'type'
 Description-Content-Type: text/x-rst
 
 The problem
