@@ -114,19 +114,15 @@ public:
         return static_cast<yssize_t>(TBase::size());
     }
 
+    void yresize(size_type newSize) {
 #if defined(_YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED) && !defined(__CUDACC__)
-    void yresize(size_type newSize) {
-        if (std::is_standard_layout_v<T> && std::is_trivial_v<T>) {
+        if constexpr (std::is_standard_layout_v<T> && std::is_trivial_v<T>) {
             TBase::resize_uninitialized(newSize);
-        } else {
-            TBase::resize(newSize);
+            return;
         }
-    }
-#else
-    void yresize(size_type newSize) {
+#endif
         TBase::resize(newSize);
     }
-#endif
 
     inline void crop(size_type size) {
         if (this->size() > size) {
