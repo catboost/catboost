@@ -1,3 +1,5 @@
+# cython: cpow=True
+
 import re
 import warnings
 import numpy as np
@@ -7,19 +9,18 @@ from ._rotation_groups import create_group
 cimport numpy as np
 cimport cython
 from cython.view cimport array
-from libc.math cimport sqrt, sin, cos, atan2, acos
-from numpy.math cimport PI as pi, NAN, isnan # avoid MSVC error
+from libc.math cimport sqrt, sin, cos, atan2, acos, hypot, isnan, NAN, pi
 
 np.import_array()
 
 # utilities for empty array initialization
-cdef inline double[:] _empty1(int n):
+cdef inline double[:] _empty1(int n) noexcept:
     return array(shape=(n,), itemsize=sizeof(double), format=b"d")
-cdef inline double[:, :] _empty2(int n1, int n2):
+cdef inline double[:, :] _empty2(int n1, int n2) noexcept :
     return array(shape=(n1, n2), itemsize=sizeof(double), format=b"d")
-cdef inline double[:, :, :] _empty3(int n1, int n2, int n3):
+cdef inline double[:, :, :] _empty3(int n1, int n2, int n3) noexcept:
     return array(shape=(n1, n2, n3), itemsize=sizeof(double), format=b"d")
-cdef inline double[:, :] _zeros2(int n1, int n2):
+cdef inline double[:, :] _zeros2(int n1, int n2) noexcept:
     cdef double[:, :] arr = array(shape=(n1, n2),
         itemsize=sizeof(double), format=b"d")
     arr[:, :] = 0
@@ -28,7 +29,7 @@ cdef inline double[:, :] _zeros2(int n1, int n2):
 # flat implementations of numpy functions
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef inline double[:] _cross3(const double[:] a, const double[:] b):
+cdef inline double[:] _cross3(const double[:] a, const double[:] b) noexcept:
     cdef double[:] result = _empty1(3)
     result[0] = a[1]*b[2] - a[2]*b[1]
     result[1] = a[2]*b[0] - a[0]*b[2]
@@ -37,17 +38,17 @@ cdef inline double[:] _cross3(const double[:] a, const double[:] b):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef inline double _dot3(const double[:] a, const double[:] b) nogil:
+cdef inline double _dot3(const double[:] a, const double[:] b) noexcept nogil:
     return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef inline double _norm3(const double[:] elems) nogil:
+cdef inline double _norm3(const double[:] elems) noexcept nogil:
     return sqrt(_dot3(elems, elems))
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef inline double _normalize4(double[:] elems) nogil:
+cdef inline double _normalize4(double[:] elems) noexcept nogil:
     cdef double norm = sqrt(_dot3(elems, elems) + elems[3]*elems[3])
 
     if norm == 0:
@@ -62,7 +63,7 @@ cdef inline double _normalize4(double[:] elems) nogil:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef inline int _argmax4(double[:] a) nogil:
+cdef inline int _argmax4(double[:] a) noexcept nogil:
     cdef int imax = 0
     cdef double vmax = a[0]
 
@@ -81,16 +82,46 @@ cdef double[3] _ez = [0, 0, 1]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef inline const double[:] _elementary_basis_vector(uchar axis):
+cdef inline const double[:] _elementary_basis_vector(uchar axis) noexcept:
     if axis == b'x': return _ex
     elif axis == b'y': return _ey
     elif axis == b'z': return _ez
+    
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline int _elementary_basis_index(uchar axis) noexcept:
+    if axis == b'x': return 0
+    elif axis == b'y': return 1
+    elif axis == b'z': return 2
+
+# Reduce the quaternion double coverage of the rotation group to a unique
+# canonical "positive" single cover
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline void _quat_canonical_single(double[:] q) noexcept nogil:
+    if ((q[3] < 0)
+        or (q[3] == 0 and q[0] < 0)
+        or (q[3] == 0 and q[0] == 0 and q[1] < 0)
+        or (q[3] == 0 and q[0] == 0 and q[1] == 0 and q[2] < 0)):
+        q[0] *= -1.0
+        q[1] *= -1.0
+        q[2] *= -1.0
+        q[3] *= -1.0
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef inline void _quat_canonical(double[:, :] q) noexcept:
+    cdef Py_ssize_t n = q.shape[0]
+    for ind in range(n):
+        _quat_canonical_single(q[ind])
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef double[:, :] _compute_euler_from_matrix(
     np.ndarray[double, ndim=3] matrix, const uchar[:] seq, bint extrinsic=False
-):
+) noexcept:
+    # This is being replaced by the newer: _compute_euler_from_quat
+    #
     # The algorithm assumes intrinsic frame transformations. The algorithm
     # in the paper is formulated for rotation matrices which are transposition
     # rotation matrices used within Rotation.
@@ -98,6 +129,10 @@ cdef double[:, :] _compute_euler_from_matrix(
     # 1. Instead of transposing our representation, use the transpose of the
     #    O matrix as defined in the paper, and be careful to swap indices
     # 2. Reversing both axis sequence and angles for extrinsic rotations
+    #
+    # Based on Malcolm D. Shuster, F. Landis Markley, "General formula for
+    # extraction the Euler angles", Journal of guidance, control, and
+    # dynamics, vol. 29.1, pp. 215-221. 2006
 
     if extrinsic:
         seq = seq[::-1]
@@ -225,9 +260,114 @@ cdef double[:, :] _compute_euler_from_matrix(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+cdef double[:, :] _compute_euler_from_quat(
+    np.ndarray[double, ndim=2] quat, const uchar[:] seq, bint extrinsic=False
+) noexcept:
+    # The algorithm assumes extrinsic frame transformations. The algorithm
+    # in the paper is formulated for rotation quaternions, which are stored
+    # directly by Rotation.
+    # Adapt the algorithm for our case by reversing both axis sequence and 
+    # angles for intrinsic rotations when needed
+    
+    # intrinsic/extrinsic conversion helpers
+    cdef int angle_first, angle_third
+    if extrinsic:
+        angle_first = 0
+        angle_third = 2
+    else:
+        seq = seq[::-1]
+        angle_first = 2
+        angle_third = 0
+        
+    cdef int i = _elementary_basis_index(seq[0])
+    cdef int j = _elementary_basis_index(seq[1])
+    cdef int k = _elementary_basis_index(seq[2])
+
+    cdef bint symmetric = i == k
+    if symmetric:
+        k = 3 - i - j # get third axis
+        
+    # Step 0
+    # Check if permutation is even (+1) or odd (-1)     
+    cdef int sign = (i - j) * (j - k) * (k - i) // 2
+
+    cdef Py_ssize_t num_rotations = quat.shape[0]
+
+    # some forward definitions
+    cdef double[:, :] angles = _empty2(num_rotations, 3)
+    cdef double[:] _angles # accessor for each rotation
+    cdef double a, b, c, d
+    cdef double half_sum, half_diff
+    cdef double eps = 1e-7
+    cdef int case
+
+    for ind in range(num_rotations):
+        _angles = angles[ind, :]
+
+        # Step 1
+        # Permutate quaternion elements            
+        if symmetric:
+            a = quat[ind, 3]
+            b = quat[ind, i]
+            c = quat[ind, j]
+            d = quat[ind, k] * sign
+        else:
+            a = quat[ind, 3] - quat[ind, j]
+            b = quat[ind, i] + quat[ind, k] * sign
+            c = quat[ind, j] + quat[ind, 3]
+            d = quat[ind, k] * sign - quat[ind, i]
+        
+        # Step 2
+        # Compute second angle...
+        _angles[1] = 2 * atan2(hypot(c, d), hypot(a, b))
+
+        # ... and check if equal to is 0 or pi, causing a singularity
+        if abs(_angles[1]) <= eps:
+            case = 1
+        elif abs(_angles[1] - <double>pi) <= eps:
+            case = 2
+        else:
+            case = 0 # normal case
+
+        # Step 3
+        # compute first and third angles, according to case
+        half_sum = atan2(b, a)
+        half_diff = atan2(d, c)
+        
+        if case == 0:  # no singularities
+            _angles[angle_first] = half_sum - half_diff
+            _angles[angle_third] = half_sum + half_diff
+        
+        else:  # any degenerate case
+            _angles[2] = 0
+            if case == 1:
+                _angles[0] = 2 * half_sum
+            else:
+                _angles[0] = 2 * half_diff * (-1 if extrinsic else 1)
+                
+        # for Tait-Bryan angles
+        if not symmetric:
+            _angles[angle_third] *= sign
+            _angles[1] -= pi / 2
+            
+        for idx in range(3):
+            if _angles[idx] < -pi:
+                _angles[idx] += 2 * pi
+            elif _angles[idx] > pi:
+                _angles[idx] -= 2 * pi
+
+        if case != 0:
+            warnings.warn("Gimbal lock detected. Setting third angle to zero "
+                          "since it is not possible to uniquely determine "
+                          "all angles.")
+
+    return angles
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cdef inline void _compose_quat_single( # calculate p * q into r
     const double[:] p, const double[:] q, double[:] r
-):
+) noexcept:
     cdef double[:] cross = _cross3(p[:3], q[:3])
 
     r[0] = p[3]*q[0] + q[3]*p[0] + cross[0]
@@ -239,7 +379,7 @@ cdef inline void _compose_quat_single( # calculate p * q into r
 @cython.wraparound(False)
 cdef inline double[:, :] _compose_quat(
     const double[:, :] p, const double[:, :] q
-):
+) noexcept:
     cdef Py_ssize_t n = max(p.shape[0], q.shape[0])
     cdef double[:, :] product = _empty2(n, 4)
 
@@ -260,7 +400,7 @@ cdef inline double[:, :] _compose_quat(
 @cython.wraparound(False)
 cdef inline double[:, :] _make_elementary_quat(
     uchar axis, const double[:] angles
-):
+) noexcept:
     cdef Py_ssize_t n = angles.shape[0]
     cdef double[:, :] quat = _zeros2(n, 4)
 
@@ -278,7 +418,7 @@ cdef inline double[:, :] _make_elementary_quat(
 @cython.wraparound(False)
 cdef double[:, :] _elementary_quat_compose(
     const uchar[:] seq, const double[:, :] angles, bint intrinsic=False
-):
+) noexcept:
     cdef double[:, :] result = _make_elementary_quat(seq[0], angles[:, 0])
     cdef Py_ssize_t seq_len = seq.shape[0]
 
@@ -354,7 +494,7 @@ cdef class Rotation:
 
     Notes
     -----
-    .. versionadded: 1.2.0
+    .. versionadded:: 1.2.0
 
     Examples
     --------
@@ -499,6 +639,63 @@ cdef class Rotation:
     array([[-90.,   0.,   0.],
            [-45.,   0.,   0.]])
 
+    The following function can be used to plot rotations with Matplotlib by
+    showing how they transform the standard x, y, z coordinate axes:
+
+    >>> import matplotlib.pyplot as plt
+
+    >>> def plot_rotated_axes(ax, r, name=None, offset=(0, 0, 0), scale=1):
+    ...     colors = ("#FF6666", "#005533", "#1199EE")  # Colorblind-safe RGB
+    ...     loc = np.array([offset, offset])
+    ...     for i, (axis, c) in enumerate(zip((ax.xaxis, ax.yaxis, ax.zaxis),
+    ...                                       colors)):
+    ...         axlabel = axis.axis_name
+    ...         axis.set_label_text(axlabel)
+    ...         axis.label.set_color(c)
+    ...         axis.line.set_color(c)
+    ...         axis.set_tick_params(colors=c)
+    ...         line = np.zeros((2, 3))
+    ...         line[1, i] = scale
+    ...         line_rot = r.apply(line)
+    ...         line_plot = line_rot + loc
+    ...         ax.plot(line_plot[:, 0], line_plot[:, 1], line_plot[:, 2], c)
+    ...         text_loc = line[1]*1.2
+    ...         text_loc_rot = r.apply(text_loc)
+    ...         text_plot = text_loc_rot + loc[0]
+    ...         ax.text(*text_plot, axlabel.upper(), color=c,
+    ...                 va="center", ha="center")
+    ...     ax.text(*offset, name, color="k", va="center", ha="center",
+    ...             bbox={"fc": "w", "alpha": 0.8, "boxstyle": "circle"})
+
+    Create three rotations - the identity and two Euler rotations using
+    intrinsic and extrinsic conventions:
+
+    >>> r0 = R.identity()
+    >>> r1 = R.from_euler("ZYX", [90, -30, 0], degrees=True)  # intrinsic
+    >>> r2 = R.from_euler("zyx", [90, -30, 0], degrees=True)  # extrinsic
+
+    Add all three rotations to a single plot:
+
+    >>> ax = plt.figure().add_subplot(projection="3d", proj_type="ortho")
+    >>> plot_rotated_axes(ax, r0, name="r0", offset=(0, 0, 0))
+    >>> plot_rotated_axes(ax, r1, name="r1", offset=(3, 0, 0))
+    >>> plot_rotated_axes(ax, r2, name="r2", offset=(6, 0, 0))
+    >>> _ = ax.annotate(
+    ...     "r0: Identity Rotation\\n"
+    ...     "r1: Intrinsic Euler Rotation (ZYX)\\n"
+    ...     "r2: Extrinsic Euler Rotation (zyx)",
+    ...     xy=(0.6, 0.7), xycoords="axes fraction", ha="left"
+    ... )
+    >>> ax.set(xlim=(-1.25, 7.25), ylim=(-1.25, 1.25), zlim=(-1.25, 1.25))
+    >>> ax.set(xticks=range(-1, 8), yticks=[-1, 0, 1], zticks=[-1, 0, 1])
+    >>> ax.set_aspect("equal", adjustable="box")
+    >>> ax.figure.set_size_inches(6, 5)
+    >>> plt.tight_layout()
+
+    Show the plot:
+
+    >>> plt.show()
+
     These examples serve as an overview into the `Rotation` class and highlight
     major functionalities. For more thorough examples of the range of input and
     output formats supported, consult the individual method's examples.
@@ -514,8 +711,8 @@ cdef class Rotation:
         quat = np.asarray(quat, dtype=float)
 
         if quat.ndim not in [1, 2] or quat.shape[len(quat.shape) - 1] != 4:
-            raise ValueError("Expected `quat` to have shape (4,) or (N x 4), "
-                             "got {}.".format(quat.shape))
+            raise ValueError("Expected `quat` to have shape (4,) or (N, 4), "
+                             f"got {quat.shape}.")
 
         # If a single quaternion is given, convert it to a 2D 1 x 4 matrix but
         # set self._single to True so that we can return appropriate objects
@@ -583,9 +780,9 @@ cdef class Rotation:
         Parameters
         ----------
         quat : array_like, shape (N, 4) or (4,)
-            Each row is a (possibly non-unit norm) quaternion in scalar-last
-            (x, y, z, w) format. Each quaternion will be normalized to unit
-            norm.
+            Each row is a (possibly non-unit norm) quaternion representing an
+            active rotation, in scalar-last (x, y, z, w) format. Each
+            quaternion will be normalized to unit norm.
 
         Returns
         -------
@@ -1160,14 +1357,23 @@ cdef class Rotation:
             return cls(quat, normalize=False, copy=False)
 
     @cython.embedsignature(True)
-    def as_quat(self):
+    def as_quat(self, canonical=False):
         """Represent as quaternions.
 
-        Rotations in 3 dimensions can be represented using unit norm
+        Active rotations in 3 dimensions can be represented using unit norm
         quaternions [1]_. The mapping from quaternions to rotations is
         two-to-one, i.e. quaternions ``q`` and ``-q``, where ``-q`` simply
         reverses the sign of each component, represent the same spatial
         rotation. The returned value is in scalar-last (x, y, z, w) format.
+
+        Parameters
+        ----------
+        canonical : `bool`, default False
+            Whether to map the redundant double cover of rotation space to a
+            unique "canonical" single cover. If True, then the quaternion is
+            chosen from {q, -q} such that the w term is positive. If the w term
+            is 0, then the quaternion is chosen such that the first nonzero
+            term of the x, y, and z terms is positive.
 
         Returns
         -------
@@ -1205,11 +1411,25 @@ cdef class Rotation:
         >>> r.as_quat().shape
         (2, 4)
 
+        Quaternions can be mapped from a redundant double cover of the
+        rotation space to a canonical representation with a positive w term.
+
+        >>> r = R.from_quat([0, 0, 0, -1])
+        >>> r.as_quat()
+        array([0. , 0. , 0. , -1.])
+        >>> r.as_quat(canonical=True)
+        array([0. , 0. , 0. , 1.])
         """
         if self._single:
-            return np.array(self._quat[0], copy=True)
+            q = np.array(self._quat[0], copy=True)
+            if canonical:
+                _quat_canonical_single(q)
         else:
-            return np.array(self._quat, copy=True)
+            q = np.array(self._quat, copy=True)
+            if canonical:
+                _quat_canonical(q)
+
+        return q
 
     @cython.embedsignature(True)
     @cython.boundscheck(False)
@@ -1389,12 +1609,8 @@ cdef class Rotation:
         cdef double[:] quat
 
         for ind in range(num_rotations):
-            if self._quat[ind, 3] < 0:  # w > 0 to ensure 0 <= angle <= pi
-                quat = self._quat[ind, :].copy()
-                for i in range(4):
-                    quat[i] *= -1
-            else:
-                quat = self._quat[ind, :]
+            quat = self._quat[ind, :].copy()
+            _quat_canonical_single(quat)  # w > 0 ensures that 0 <= angle <= pi
 
             angle = 2 * atan2(_norm3(quat), quat[3])
 
@@ -1417,7 +1633,48 @@ cdef class Rotation:
             return np.asarray(rotvec)
 
     @cython.embedsignature(True)
-    def as_euler(self, seq, degrees=False):
+    def _compute_euler(self, seq, degrees, algorithm):
+        # Prepare axis sequence to call Euler angles conversion algorithm.
+        
+        if len(seq) != 3:
+            raise ValueError("Expected 3 axes, got {}.".format(seq))
+
+        intrinsic = (re.match(r'^[XYZ]{1,3}$', seq) is not None)
+        extrinsic = (re.match(r'^[xyz]{1,3}$', seq) is not None)
+        if not (intrinsic or extrinsic):
+            raise ValueError("Expected axes from `seq` to be from "
+                             "['x', 'y', 'z'] or ['X', 'Y', 'Z'], "
+                             "got {}".format(seq))
+
+        if any(seq[i] == seq[i+1] for i in range(2)):
+            raise ValueError("Expected consecutive axes to be different, "
+                             "got {}".format(seq))
+
+        seq = seq.lower()
+            
+        if algorithm == 'from_matrix':
+            matrix = self.as_matrix()
+            if matrix.ndim == 2:
+                matrix = matrix[None, :, :]
+            angles = np.asarray(_compute_euler_from_matrix(
+                matrix, seq.encode(), extrinsic))
+        elif algorithm == 'from_quat':
+            quat = self.as_quat()
+            if quat.ndim == 1:
+                quat = quat[None, :]
+            angles = np.asarray(_compute_euler_from_quat(
+                    quat, seq.encode(), extrinsic))
+        else:
+            # algorithm can only be 'from_quat' or 'from_matrix'
+            assert False
+            
+        if degrees:
+            angles = np.rad2deg(angles)
+
+        return angles[0] if self._single else angles
+
+    @cython.embedsignature(True)
+    def _as_euler_from_matrix(self, seq, degrees=False):
         """Represent as Euler angles.
 
         Any orientation can be expressed as a composition of 3 elementary
@@ -1467,6 +1724,61 @@ cdef class Rotation:
                dynamics, vol. 29.1, pp. 215-221. 2006
         .. [3] https://en.wikipedia.org/wiki/Gimbal_lock#In_applied_mathematics
 
+        """
+        return self._compute_euler(seq, degrees, 'from_matrix')
+
+    @cython.embedsignature(True)
+    def as_euler(self, seq, degrees=False):
+        """Represent as Euler angles.
+
+        Any orientation can be expressed as a composition of 3 elementary
+        rotations. Once the axis sequence has been chosen, Euler angles define
+        the angle of rotation around each respective axis [1]_.
+
+        The algorithm from [2]_ has been used to calculate Euler angles for the 
+        rotation about a given sequence of axes.
+
+        Euler angles suffer from the problem of gimbal lock [3]_, where the
+        representation loses a degree of freedom and it is not possible to
+        determine the first and third angles uniquely. In this case,
+        a warning is raised, and the third angle is set to zero. Note however
+        that the returned angles still represent the correct rotation.
+
+        Parameters
+        ----------
+        seq : string, length 3
+            3 characters belonging to the set {'X', 'Y', 'Z'} for intrinsic
+            rotations, or {'x', 'y', 'z'} for extrinsic rotations [1]_.
+            Adjacent axes cannot be the same.
+            Extrinsic and intrinsic rotations cannot be mixed in one function
+            call.
+        degrees : boolean, optional
+            Returned angles are in degrees if this flag is True, else they are
+            in radians. Default is False.
+
+        Returns
+        -------
+        angles : ndarray, shape (3,) or (N, 3)
+            Shape depends on shape of inputs used to initialize object.
+            The returned angles are in the range:
+
+            - First angle belongs to [-180, 180] degrees (both inclusive)
+            - Third angle belongs to [-180, 180] degrees (both inclusive)
+            - Second angle belongs to:
+
+                - [-90, 90] degrees if all axes are different (like xyz)
+                - [0, 180] degrees if first and third axes are the same
+                  (like zxz)
+
+        References
+        ----------
+        .. [1] https://en.wikipedia.org/wiki/Euler_angles#Definition_by_intrinsic_rotations
+        .. [2] Bernardes E, Viollet S (2022) Quaternion to Euler angles 
+               conversion: A direct, general and computationally efficient 
+               method. PLoS ONE 17(11): e0276302. 
+               https://doi.org/10.1371/journal.pone.0276302
+        .. [3] https://en.wikipedia.org/wiki/Gimbal_lock#In_applied_mathematics
+
         Examples
         --------
         >>> from scipy.spatial.transform import Rotation as R
@@ -1502,31 +1814,7 @@ cdef class Rotation:
         (3, 3)
 
         """
-        if len(seq) != 3:
-            raise ValueError("Expected 3 axes, got {}.".format(seq))
-
-        intrinsic = (re.match(r'^[XYZ]{1,3}$', seq) is not None)
-        extrinsic = (re.match(r'^[xyz]{1,3}$', seq) is not None)
-        if not (intrinsic or extrinsic):
-            raise ValueError("Expected axes from `seq` to be from "
-                             "['x', 'y', 'z'] or ['X', 'Y', 'Z'], "
-                             "got {}".format(seq))
-
-        if any(seq[i] == seq[i+1] for i in range(2)):
-            raise ValueError("Expected consecutive axes to be different, "
-                             "got {}".format(seq))
-
-        seq = seq.lower()
-
-        matrix = self.as_matrix()
-        if matrix.ndim == 2:
-            matrix = matrix[None, :, :]
-        angles = np.asarray(_compute_euler_from_matrix(
-            matrix, seq.encode(), extrinsic))
-        if degrees:
-            angles = np.rad2deg(angles)
-
-        return angles[0] if self._single else angles
+        return self._compute_euler(seq, degrees, 'from_quat')
 
     @cython.embedsignature(True)
     def as_mrp(self):
@@ -1899,7 +2187,9 @@ cdef class Rotation:
 
         """
         cdef np.ndarray quat = np.array(self._quat, copy=True)
-        quat[:, -1] *= -1
+        quat[:, 0] *= -1
+        quat[:, 1] *= -1
+        quat[:, 2] *= -1
         if self._single:
             quat = quat[0]
         return self.__class__(quat, copy=False)
@@ -1992,7 +2282,7 @@ cdef class Rotation:
 
         quat = np.asarray(self._quat)
         K = np.dot(weights * quat.T, quat)
-        l, v = np.linalg.eigh(K)
+        _, v = np.linalg.eigh(K)
         return self.__class__(v[:, -1], normalize=False)
 
     @cython.embedsignature(True)
@@ -2519,12 +2809,11 @@ class Slerp:
 
     """
     def __init__(self, times, rotations):
-        if rotations.single:
-            raise ValueError("`rotations` must be a sequence of rotations.")
+        if not isinstance(rotations, Rotation):
+            raise TypeError("`rotations` must be a `Rotation` instance.")
 
-        if len(rotations) == 1:
-                raise ValueError("`rotations` must contain at least 2 "
-                                 "rotations.")
+        if rotations.single or len(rotations) == 1:
+            raise ValueError("`rotations` must be a sequence of at least 2 rotations.")
 
         times = np.asarray(times)
         if times.ndim != 1:

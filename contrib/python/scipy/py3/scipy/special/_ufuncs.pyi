@@ -269,6 +269,7 @@ _lanczos_sum_expg_scaled: np.ufunc
 _lgam1p: np.ufunc
 _log1pmx: np.ufunc
 _riemann_zeta: np.ufunc
+_scaled_exp1: np.ufunc
 _sf_error_test_function: np.ufunc
 _sinpi: np.ufunc
 _smirnovc: np.ufunc

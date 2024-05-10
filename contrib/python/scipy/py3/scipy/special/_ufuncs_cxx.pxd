@@ -1,5 +1,5 @@
 from . cimport sf_error
-cdef void _set_action(sf_error.sf_error_t, sf_error.sf_action_t) nogil
+cdef void _set_action(sf_error.sf_error_t, sf_error.sf_action_t) noexcept nogil
 cdef void *_export_faddeeva_dawsn
 cdef void *_export_faddeeva_dawsn_complex
 cdef void *_export_fellint_RC

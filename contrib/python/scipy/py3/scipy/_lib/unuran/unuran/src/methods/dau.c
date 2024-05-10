@@ -103,6 +103,10 @@
 #include "dau.h"
 #include "dau_struct.h"
 
+#ifndef FLT_EPSILON
+#define FLT_EPSILON 1.19209290e-7F
+#endif
+
 /*---------------------------------------------------------------------------*/
 /* Variants: none                                                            */
 
@@ -685,7 +689,7 @@ _unur_dau_make_urntable( struct unur_gen *gen )
   ratio = GEN->urn_size / sum;
   for( i=0; i<n_pv; i++ ) {
     GEN->qx[i] = pv[i] * ratio;  /* probability rescaled        */
-    if (GEN->qx[i] >= 1.) {      /* rich strip                  */
+    if (GEN->qx[i] >= 1. - FLT_EPSILON) {      /* rich strip                  */
       *rich = i;                /* add to list ...             */
       --rich;                   /* and update pointer          */
       GEN->jx[i] = i;            /* init donor (itself)           */

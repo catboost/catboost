@@ -13,6 +13,8 @@ npy_double lanczos_sum_expg_scaled(npy_double);
 npy_double lgam1p(npy_double);
 npy_double log1pmx(npy_double);
 npy_double riemann_zeta(npy_double);
+#include "scaled_exp1.h"
+npy_double scaled_exp1(npy_double);
 npy_double sinpi(npy_double);
 npy_double smirnovc(npy_int, npy_double);
 npy_double smirnovci(npy_int, npy_double);

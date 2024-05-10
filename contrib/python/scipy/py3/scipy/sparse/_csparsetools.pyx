@@ -130,7 +130,15 @@ np.dtype(np.int64): _lil_get_lengths_int64,
 
 
 
-def lil_flatten_to_array(object[:] input,
+# We define the fuse type below because Cython does not currently allow to
+# declare object memory views (cf. https://github.com/cython/cython/issues/2485)
+# We can track the support of object memory views in
+# https://github.com/cython/cython/pull/4712
+ctypedef fused obj_fused:
+    object
+    double
+
+def lil_flatten_to_array(const obj_fused[:] input,
                          cnp.ndarray output):
     return _LIL_FLATTEN_TO_ARRAY_DISPATCH[output.dtype](input, output)
 @cython.boundscheck(False)
@@ -948,7 +956,7 @@ cdef dict _LIL_FANCY_SET_DISPATCH = {
 
 
 def lil_get_row_ranges(cnp.npy_intp M, cnp.npy_intp N,
-                       object[:] rows, object[:] datas,
+                       const obj_fused[:] rows, const obj_fused[:] datas,
                        object[:] new_rows, object[:] new_datas,
                        object irows,
                        cnp.npy_intp j_start,

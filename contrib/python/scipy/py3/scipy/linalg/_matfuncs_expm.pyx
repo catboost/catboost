@@ -1,4 +1,5 @@
 # cython: language_level=3
+# cython: cpow=True
 cimport cython
 import math
 import random
@@ -29,7 +30,7 @@ cnp.import_array()
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef double norm1(lapack_t[:, ::1] A):
+cdef double norm1(lapack_t[:, ::1] A) noexcept:
     """
     Fast 1-norm computation for C-contiguous square arrays.
     Regardless of the dtype we work in double precision to prevent overflows
@@ -72,7 +73,7 @@ cdef double norm1(lapack_t[:, ::1] A):
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef double kth_power_norm_d(double* A, double* v1, double* v2, Py_ssize_t n, int spins):
+cdef double kth_power_norm_d(double* A, double* v1, double* v2, Py_ssize_t n, int spins) noexcept:
     cdef int k, int_one = 1, intn = <int>n
     cdef double one =1., zero = 0.
     for k in range(spins):
@@ -87,7 +88,7 @@ cdef double kth_power_norm_d(double* A, double* v1, double* v2, Py_ssize_t n, in
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef pick_pade_structure_s(float[:, :, ::1] Am):
+cdef pick_pade_structure_s(float[:, :, ::1] Am) noexcept:
     cdef Py_ssize_t n = Am.shape[1], i, j, k
     cdef int lm = 0, s = 0, intn = <int>n, n2= intn*intn, int_one = 1
     cdef float[:, :, ::1] Amv = Am
@@ -199,7 +200,7 @@ cdef pick_pade_structure_s(float[:, :, ::1] Am):
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef pick_pade_structure_d(double[:, :, ::1] Am):
+cdef pick_pade_structure_d(double[:, :, ::1] Am) noexcept:
     cdef Py_ssize_t n = Am.shape[1], i, j, k
     cdef int lm = 0, s = 0, intn = <int>n, n2= intn*intn, int_one = 1
     cdef double[:, :, ::1] Amv = Am
@@ -311,7 +312,7 @@ cdef pick_pade_structure_d(double[:, :, ::1] Am):
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef pick_pade_structure_c(float complex[:, :, ::1] Am):
+cdef pick_pade_structure_c(float complex[:, :, ::1] Am) noexcept:
     cdef Py_ssize_t n = Am.shape[1], i, j, k
     cdef int lm = 0, s = 0, intn = <int>n, n2= intn*intn, int_one = 1
     cdef float complex[:, :, ::1] Amv = Am
@@ -423,7 +424,7 @@ cdef pick_pade_structure_c(float complex[:, :, ::1] Am):
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef pick_pade_structure_z(double complex[:, :, ::1] Am):
+cdef pick_pade_structure_z(double complex[:, :, ::1] Am) noexcept:
     cdef Py_ssize_t n = Am.shape[1], i, j, k
     cdef int lm = 0, s = 0, intn = <int>n, n2= intn*intn, int_one = 1
     cdef double complex[:, :, ::1] Amv = Am
@@ -544,7 +545,7 @@ cdef pick_pade_structure_z(double complex[:, :, ::1] Am):
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_357_UV_calc_s(float[:, :, ::]Am, int n, int m) nogil:
+cdef void pade_357_UV_calc_s(float[:, :, ::]Am, int n, int m) noexcept nogil:
     cdef float b[7]
     cdef int *ipiv = <int*>malloc(n*sizeof(int))
     cdef int i, info, n2 = n*n, int_one = 1
@@ -621,7 +622,7 @@ cdef void pade_357_UV_calc_s(float[:, :, ::]Am, int n, int m) nogil:
         saxpy(&n2, &neg_one, &Am[3, 0, 0], &int_one, &Am[1, 0, 0], &int_one)
 
         # Convert array layout for solving AX = B into Am[2]
-        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n)
 
         sgetrf( &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &info )
         sgetrs(<char*>'T', &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &Am[2, 0, 0], &n, &info )
@@ -630,14 +631,14 @@ cdef void pade_357_UV_calc_s(float[:, :, ::]Am, int n, int m) nogil:
             Am[2, i, i] = Am[2, i, i] + 1.
 
         # Put it back in Am in C order
-        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n)
     finally:
         free(ipiv)
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_357_UV_calc_d(double[:, :, ::]Am, int n, int m) nogil:
+cdef void pade_357_UV_calc_d(double[:, :, ::]Am, int n, int m) noexcept nogil:
     cdef double b[7]
     cdef int *ipiv = <int*>malloc(n*sizeof(int))
     cdef int i, info, n2 = n*n, int_one = 1
@@ -714,7 +715,7 @@ cdef void pade_357_UV_calc_d(double[:, :, ::]Am, int n, int m) nogil:
         daxpy(&n2, &neg_one, &Am[3, 0, 0], &int_one, &Am[1, 0, 0], &int_one)
 
         # Convert array layout for solving AX = B into Am[2]
-        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n)
 
         dgetrf( &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &info )
         dgetrs(<char*>'T', &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &Am[2, 0, 0], &n, &info )
@@ -723,14 +724,14 @@ cdef void pade_357_UV_calc_d(double[:, :, ::]Am, int n, int m) nogil:
             Am[2, i, i] = Am[2, i, i] + 1.
 
         # Put it back in Am in C order
-        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n)
     finally:
         free(ipiv)
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_357_UV_calc_c(float complex[:, :, ::]Am, int n, int m) nogil:
+cdef void pade_357_UV_calc_c(float complex[:, :, ::]Am, int n, int m) noexcept nogil:
     cdef float complex b[7]
     cdef int *ipiv = <int*>malloc(n*sizeof(int))
     cdef int i, info, n2 = n*n, int_one = 1
@@ -807,7 +808,7 @@ cdef void pade_357_UV_calc_c(float complex[:, :, ::]Am, int n, int m) nogil:
         caxpy(&n2, &neg_one, &Am[3, 0, 0], &int_one, &Am[1, 0, 0], &int_one)
 
         # Convert array layout for solving AX = B into Am[2]
-        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n)
 
         cgetrf( &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &info )
         cgetrs(<char*>'T', &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &Am[2, 0, 0], &n, &info )
@@ -816,14 +817,14 @@ cdef void pade_357_UV_calc_c(float complex[:, :, ::]Am, int n, int m) nogil:
             Am[2, i, i] = Am[2, i, i] + 1.
 
         # Put it back in Am in C order
-        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n)
     finally:
         free(ipiv)
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_357_UV_calc_z(double complex[:, :, ::]Am, int n, int m) nogil:
+cdef void pade_357_UV_calc_z(double complex[:, :, ::]Am, int n, int m) noexcept nogil:
     cdef double complex b[7]
     cdef int *ipiv = <int*>malloc(n*sizeof(int))
     cdef int i, info, n2 = n*n, int_one = 1
@@ -900,7 +901,7 @@ cdef void pade_357_UV_calc_z(double complex[:, :, ::]Am, int n, int m) nogil:
         zaxpy(&n2, &neg_one, &Am[3, 0, 0], &int_one, &Am[1, 0, 0], &int_one)
 
         # Convert array layout for solving AX = B into Am[2]
-        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n)
 
         zgetrf( &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &info )
         zgetrs(<char*>'T', &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &Am[2, 0, 0], &n, &info )
@@ -909,14 +910,14 @@ cdef void pade_357_UV_calc_z(double complex[:, :, ::]Am, int n, int m) nogil:
             Am[2, i, i] = Am[2, i, i] + 1.
 
         # Put it back in Am in C order
-        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n)
     finally:
         free(ipiv)
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_9_UV_calc_s(float[:, :, ::]Am, int n) nogil:
+cdef void pade_9_UV_calc_s(float[:, :, ::]Am, int n) noexcept nogil:
     cdef float b[9]
     cdef float *work = <float*>malloc(n*n*sizeof(float))
     cdef int *ipiv = <int*>malloc(n*sizeof(int))
@@ -961,7 +962,7 @@ cdef void pade_9_UV_calc_s(float[:, :, ::]Am, int n) nogil:
         saxpy(&n2, &neg_one, &Am[3, 0, 0], &int_one, &Am[1, 0, 0], &int_one)
 
         # Convert array layout for solving AX = B into Am[2]
-        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n)
 
         sgetrf( &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &info )
         sgetrs(<char*>'T', &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &Am[2, 0, 0], &n, &info)
@@ -970,7 +971,7 @@ cdef void pade_9_UV_calc_s(float[:, :, ::]Am, int n) nogil:
             Am[2, i, i] = Am[2, i, i] + 1.
 
         # Put it back in Am in C order
-        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n)
     finally:
         free(work)
         free(ipiv)
@@ -978,7 +979,7 @@ cdef void pade_9_UV_calc_s(float[:, :, ::]Am, int n) nogil:
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_9_UV_calc_d(double[:, :, ::]Am, int n) nogil:
+cdef void pade_9_UV_calc_d(double[:, :, ::]Am, int n) noexcept nogil:
     cdef double b[9]
     cdef double *work = <double*>malloc(n*n*sizeof(double))
     cdef int *ipiv = <int*>malloc(n*sizeof(int))
@@ -1023,7 +1024,7 @@ cdef void pade_9_UV_calc_d(double[:, :, ::]Am, int n) nogil:
         daxpy(&n2, &neg_one, &Am[3, 0, 0], &int_one, &Am[1, 0, 0], &int_one)
 
         # Convert array layout for solving AX = B into Am[2]
-        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n)
 
         dgetrf( &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &info )
         dgetrs(<char*>'T', &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &Am[2, 0, 0], &n, &info)
@@ -1032,7 +1033,7 @@ cdef void pade_9_UV_calc_d(double[:, :, ::]Am, int n) nogil:
             Am[2, i, i] = Am[2, i, i] + 1.
 
         # Put it back in Am in C order
-        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n)
     finally:
         free(work)
         free(ipiv)
@@ -1040,7 +1041,7 @@ cdef void pade_9_UV_calc_d(double[:, :, ::]Am, int n) nogil:
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_9_UV_calc_c(float complex[:, :, ::]Am, int n) nogil:
+cdef void pade_9_UV_calc_c(float complex[:, :, ::]Am, int n) noexcept nogil:
     cdef float complex b[9]
     cdef float complex *work = <float complex*>malloc(n*n*sizeof(float complex))
     cdef int *ipiv = <int*>malloc(n*sizeof(int))
@@ -1085,7 +1086,7 @@ cdef void pade_9_UV_calc_c(float complex[:, :, ::]Am, int n) nogil:
         caxpy(&n2, &neg_one, &Am[3, 0, 0], &int_one, &Am[1, 0, 0], &int_one)
 
         # Convert array layout for solving AX = B into Am[2]
-        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n)
 
         cgetrf( &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &info )
         cgetrs(<char*>'T', &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &Am[2, 0, 0], &n, &info)
@@ -1094,7 +1095,7 @@ cdef void pade_9_UV_calc_c(float complex[:, :, ::]Am, int n) nogil:
             Am[2, i, i] = Am[2, i, i] + 1.
 
         # Put it back in Am in C order
-        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n)
     finally:
         free(work)
         free(ipiv)
@@ -1102,7 +1103,7 @@ cdef void pade_9_UV_calc_c(float complex[:, :, ::]Am, int n) nogil:
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_9_UV_calc_z(double complex[:, :, ::]Am, int n) nogil:
+cdef void pade_9_UV_calc_z(double complex[:, :, ::]Am, int n) noexcept nogil:
     cdef double complex b[9]
     cdef double complex *work = <double complex*>malloc(n*n*sizeof(double complex))
     cdef int *ipiv = <int*>malloc(n*sizeof(int))
@@ -1147,7 +1148,7 @@ cdef void pade_9_UV_calc_z(double complex[:, :, ::]Am, int n) nogil:
         zaxpy(&n2, &neg_one, &Am[3, 0, 0], &int_one, &Am[1, 0, 0], &int_one)
 
         # Convert array layout for solving AX = B into Am[2]
-        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[3, 0, 0], &Am[2, 0, 0], n, n)
 
         zgetrf( &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &info )
         zgetrs(<char*>'T', &n, &n, &Am[1, 0, 0], &n, &ipiv[0], &Am[2, 0, 0], &n, &info)
@@ -1156,7 +1157,7 @@ cdef void pade_9_UV_calc_z(double complex[:, :, ::]Am, int n) nogil:
             Am[2, i, i] = Am[2, i, i] + 1.
 
         # Put it back in Am in C order
-        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(&Am[2, 0, 0], &Am[0, 0, 0], n, n)
     finally:
         free(work)
         free(ipiv)
@@ -1164,7 +1165,7 @@ cdef void pade_9_UV_calc_z(double complex[:, :, ::]Am, int n) nogil:
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_13_UV_calc_s(float[:, :, ::1]Am, int n) nogil:
+cdef void pade_13_UV_calc_s(float[:, :, ::1]Am, int n) noexcept nogil:
     cdef float *work2 = <float*>malloc(n*n*sizeof(float))
     cdef float *work3 = <float*>malloc(n*n*sizeof(float))
     cdef float *work4 = <float*>malloc(n*n*sizeof(float))
@@ -1230,7 +1231,7 @@ cdef void pade_13_UV_calc_s(float[:, :, ::1]Am, int n) nogil:
         saxpy(&n2, &neg_one, &work2[0], &int1, &work3[0], &int1)
 
         # Convert array layout for solving AX = B into work4
-        swap_c_and_f_layout(work2, work4, n, n, n)
+        swap_c_and_f_layout(work2, work4, n, n)
 
         sgetrf( &n, &n, &work3[0], &n, &ipiv[0], &info )
         sgetrs(<char*>'T', &n, &n, &work3[0], &n, &ipiv[0], &work4[0], &n, &info )
@@ -1238,7 +1239,7 @@ cdef void pade_13_UV_calc_s(float[:, :, ::1]Am, int n) nogil:
         for i in range(n):
             work4[i*(n+1)] += 1.
         # Put it back in Am in C order
-        swap_c_and_f_layout(work4, &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(work4, &Am[0, 0, 0], n, n)
     finally:
         free(ipiv)
         free(work2)
@@ -1248,7 +1249,7 @@ cdef void pade_13_UV_calc_s(float[:, :, ::1]Am, int n) nogil:
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_13_UV_calc_d(double[:, :, ::1]Am, int n) nogil:
+cdef void pade_13_UV_calc_d(double[:, :, ::1]Am, int n) noexcept nogil:
     cdef double *work2 = <double*>malloc(n*n*sizeof(double))
     cdef double *work3 = <double*>malloc(n*n*sizeof(double))
     cdef double *work4 = <double*>malloc(n*n*sizeof(double))
@@ -1314,7 +1315,7 @@ cdef void pade_13_UV_calc_d(double[:, :, ::1]Am, int n) nogil:
         daxpy(&n2, &neg_one, &work2[0], &int1, &work3[0], &int1)
 
         # Convert array layout for solving AX = B into work4
-        swap_c_and_f_layout(work2, work4, n, n, n)
+        swap_c_and_f_layout(work2, work4, n, n)
 
         dgetrf( &n, &n, &work3[0], &n, &ipiv[0], &info )
         dgetrs(<char*>'T', &n, &n, &work3[0], &n, &ipiv[0], &work4[0], &n, &info )
@@ -1322,7 +1323,7 @@ cdef void pade_13_UV_calc_d(double[:, :, ::1]Am, int n) nogil:
         for i in range(n):
             work4[i*(n+1)] += 1.
         # Put it back in Am in C order
-        swap_c_and_f_layout(work4, &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(work4, &Am[0, 0, 0], n, n)
     finally:
         free(ipiv)
         free(work2)
@@ -1332,7 +1333,7 @@ cdef void pade_13_UV_calc_d(double[:, :, ::1]Am, int n) nogil:
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_13_UV_calc_c(float complex[:, :, ::1]Am, int n) nogil:
+cdef void pade_13_UV_calc_c(float complex[:, :, ::1]Am, int n) noexcept nogil:
     cdef float complex *work2 = <float complex*>malloc(n*n*sizeof(float complex))
     cdef float complex *work3 = <float complex*>malloc(n*n*sizeof(float complex))
     cdef float complex *work4 = <float complex*>malloc(n*n*sizeof(float complex))
@@ -1398,7 +1399,7 @@ cdef void pade_13_UV_calc_c(float complex[:, :, ::1]Am, int n) nogil:
         caxpy(&n2, &neg_one, &work2[0], &int1, &work3[0], &int1)
 
         # Convert array layout for solving AX = B into work4
-        swap_c_and_f_layout(work2, work4, n, n, n)
+        swap_c_and_f_layout(work2, work4, n, n)
 
         cgetrf( &n, &n, &work3[0], &n, &ipiv[0], &info )
         cgetrs(<char*>'T', &n, &n, &work3[0], &n, &ipiv[0], &work4[0], &n, &info )
@@ -1406,7 +1407,7 @@ cdef void pade_13_UV_calc_c(float complex[:, :, ::1]Am, int n) nogil:
         for i in range(n):
             work4[i*(n+1)] += 1.
         # Put it back in Am in C order
-        swap_c_and_f_layout(work4, &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(work4, &Am[0, 0, 0], n, n)
     finally:
         free(ipiv)
         free(work2)
@@ -1416,7 +1417,7 @@ cdef void pade_13_UV_calc_c(float complex[:, :, ::1]Am, int n) nogil:
 @cython.wraparound(False)
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cdef void pade_13_UV_calc_z(double complex[:, :, ::1]Am, int n) nogil:
+cdef void pade_13_UV_calc_z(double complex[:, :, ::1]Am, int n) noexcept nogil:
     cdef double complex *work2 = <double complex*>malloc(n*n*sizeof(double complex))
     cdef double complex *work3 = <double complex*>malloc(n*n*sizeof(double complex))
     cdef double complex *work4 = <double complex*>malloc(n*n*sizeof(double complex))
@@ -1482,7 +1483,7 @@ cdef void pade_13_UV_calc_z(double complex[:, :, ::1]Am, int n) nogil:
         zaxpy(&n2, &neg_one, &work2[0], &int1, &work3[0], &int1)
 
         # Convert array layout for solving AX = B into work4
-        swap_c_and_f_layout(work2, work4, n, n, n)
+        swap_c_and_f_layout(work2, work4, n, n)
 
         zgetrf( &n, &n, &work3[0], &n, &ipiv[0], &info )
         zgetrs(<char*>'T', &n, &n, &work3[0], &n, &ipiv[0], &work4[0], &n, &info )
@@ -1490,7 +1491,7 @@ cdef void pade_13_UV_calc_z(double complex[:, :, ::1]Am, int n) nogil:
         for i in range(n):
             work4[i*(n+1)] += 1.
         # Put it back in Am in C order
-        swap_c_and_f_layout(work4, &Am[0, 0, 0], n, n, n)
+        swap_c_and_f_layout(work4, &Am[0, 0, 0], n, n)
     finally:
         free(ipiv)
         free(work2)

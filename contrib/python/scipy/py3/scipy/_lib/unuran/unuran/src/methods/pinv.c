@@ -422,7 +422,7 @@ static int _unur_pinv_newton_testpoints (double *utest, double ui[], int order);
 /* [2c.] calculate the local maxima of the interpolation polynomial          */
 /*---------------------------------------------------------------------------*/
 
-static int _unur_pinv_cubic_hermite_is_monotone();
+static int _unur_pinv_cubic_hermite_is_monotone(struct unur_gen *gen, double *ui, double *zi, double *xval);
 /*---------------------------------------------------------------------------*/
 /* [2c.] check monotonicity of cubic Hermite interpolation                   */
 /*---------------------------------------------------------------------------*/

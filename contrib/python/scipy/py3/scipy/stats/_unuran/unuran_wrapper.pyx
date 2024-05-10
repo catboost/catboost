@@ -1,17 +1,11 @@
 # cython: language_level=3
 
-
-# Expression below is replaced by ``DEF NPY_OLD = True`` for NumPy < 1.19
-# and ``DEF NPY_OLD = False`` for NumPy >= 1.19.
-DEF NPY_OLD = False
-
-
 cimport cython
 from cpython.object cimport PyObject
 cimport numpy as np
-IF not NPY_OLD:
-    from cpython.pycapsule cimport PyCapsule_IsValid, PyCapsule_GetPointer
-    from numpy.random cimport bitgen_t
+from cpython.pycapsule cimport PyCapsule_IsValid, PyCapsule_GetPointer
+from numpy.random cimport bitgen_t
+
 from scipy._lib.ccallback cimport ccallback_t
 from scipy._lib.messagestream cimport MessageStream
 from .unuran cimport *
@@ -64,47 +58,27 @@ class UNURANError(RuntimeError):
     pass
 
 
-ctypedef double (*URNG_FUNCT)(void *) nogil
+ctypedef double (*URNG_FUNCT)(void *) noexcept nogil
 
-IF not NPY_OLD:
-    cdef object get_numpy_rng(object seed = None):
-        """
-        Create a NumPy Generator object from a given seed.
+cdef object get_numpy_rng(object seed = None):
+    """
+    Create a NumPy Generator object from a given seed.
 
-        Parameters
-        ----------
-        seed : object, optional
-            Seed for the generator. If None, no seed is set. The seed can be
-            an integer, Generator, or RandomState.
+    Parameters
+    ----------
+    seed : object, optional
+        Seed for the generator. If None, no seed is set. The seed can be
+        an integer, Generator, or RandomState.
 
-        Returns
-        -------
-        numpy_rng : object
-            An instance of NumPy's Generator class.
-        """
-        seed = check_random_state(seed)
-        if isinstance(seed, np.random.RandomState):
-            return np.random.default_rng(seed._bit_generator)
-        return seed
-ELSE:
-    cdef object get_numpy_rng(object seed = None):
-        """
-        Create a NumPy RandomState object from a given seed. If the seed is
-        is an instance of `np.random.Generator`, it is returned as-is.
-
-        Parameters
-        ----------
-        seed : object, optional
-            Seed for the generator. If None, no seed is set. The seed can be
-            an integer, Generator, or RandomState.
-
-        Returns
-        -------
-        numpy_rng : object
-            An instance of NumPy's RandomState or Generator class.
-        """
-        return check_random_state(seed)
-
+    Returns
+    -------
+    numpy_rng : object
+        An instance of NumPy's Generator class.
+    """
+    seed = check_random_state(seed)
+    if isinstance(seed, np.random.RandomState):
+        return np.random.default_rng(seed._bit_generator)
+    return seed
 
 @cython.final
 cdef class _URNG:
@@ -125,14 +99,9 @@ cdef class _URNG:
     def __init__(self, numpy_rng):
         self.numpy_rng = numpy_rng
 
-    IF NPY_OLD:
-        cdef double _next_double(self) nogil:
-            with gil:
-                return self.numpy_rng.uniform()
-
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef double _next_qdouble(self) nogil:
+    cdef double _next_qdouble(self) noexcept nogil:
         self.i += 1
         return self.qrvs_array[self.i-1]
 
@@ -146,25 +115,20 @@ cdef class _URNG:
             A UNU.RAN uniform random number generator.
         """
         cdef unur_urng *unuran_urng
-        IF NPY_OLD:
-            unuran_urng = unur_urng_new(<URNG_FUNCT>self._next_double,
-                                        <void *>self)
-            return unuran_urng
-        ELSE:
-            cdef:
-                bitgen_t *numpy_urng
-                const char *capsule_name = "BitGenerator"
+        cdef:
+            bitgen_t *numpy_urng
+            const char *capsule_name = "BitGenerator"
 
-            capsule = self.numpy_rng.bit_generator.capsule
+        capsule = self.numpy_rng.bit_generator.capsule
 
-            if not PyCapsule_IsValid(capsule, capsule_name):
-                raise ValueError("Invalid pointer to anon_func_state.")
+        if not PyCapsule_IsValid(capsule, capsule_name):
+            raise ValueError("Invalid pointer to anon_func_state.")
 
-            numpy_urng = <bitgen_t *> PyCapsule_GetPointer(capsule, capsule_name)
-            unuran_urng = unur_urng_new(numpy_urng.next_double,
-                                        <void *>(numpy_urng.state))
+        numpy_urng = <bitgen_t *> PyCapsule_GetPointer(capsule, capsule_name)
+        unuran_urng = unur_urng_new(numpy_urng.next_double,
+                                    <void *>(numpy_urng.state))
 
-            return unuran_urng
+        return unuran_urng
 
     cdef unur_urng *get_qurng(self, size, qmc_engine) except *:
         cdef unur_urng *unuran_urng
@@ -265,7 +229,7 @@ cdef dict _unpack_dist(object dist, str dist_type, list meths = None,
                     self.support = dist.support
                 def pdf(self, x):
                     # some distributions require array inputs.
-                    x = np.atleast_1d((x-self.loc)/self.scale)
+                    x = np.asarray((x-self.loc)/self.scale)
                     return max(0, self.dist.dist._pdf(x, *self.args)/self.scale)
                 def logpdf(self, x):
                     # some distributions require array inputs.
@@ -274,7 +238,7 @@ cdef dict _unpack_dist(object dist, str dist_type, list meths = None,
                         return self.dist.dist._logpdf(x, *self.args) - np.log(self.scale)
                     return -np.inf
                 def cdf(self, x):
-                    x = np.atleast_1d((x-self.loc)/self.scale)
+                    x = np.asarray((x-self.loc)/self.scale)
                     res = self.dist.dist._cdf(x, *self.args)
                     if res < 0:
                         return 0
@@ -291,10 +255,10 @@ cdef dict _unpack_dist(object dist, str dist_type, list meths = None,
                     self.support = dist.support
                 def pmf(self, x):
                     # some distributions require array inputs.
-                    x = np.atleast_1d(x-self.loc)
+                    x = np.asarray(x-self.loc)
                     return max(0, self.dist.dist._pmf(x, *self.args))
                 def cdf(self, x):
-                    x = np.atleast_1d(x-self.loc)
+                    x = np.asarray(x-self.loc)
                     res = self.dist.dist._cdf(x, *self.args)
                     if res < 0:
                         return 0
@@ -874,11 +838,6 @@ cdef class TransformedDensityRejection(Method):
             'random_state': random_state
         }
 
-        cdef:
-            unur_distr *distr
-            unur_par *par
-            unur_gen *rng
-
         self.callbacks = _unpack_dist(dist, "cont", meths=["pdf", "dpdf"])
         def _callback_wrapper(x, name):
             return self.callbacks[name](x)
@@ -1166,11 +1125,6 @@ cdef class SimpleRatioUniforms(Method):
             'random_state': random_state
         }
 
-        cdef:
-            unur_distr *distr
-            unur_par *par
-            unur_gen *rng
-
         self.callbacks = _unpack_dist(dist, "cont", meths=["pdf"])
         def _callback_wrapper(x, name):
             return self.callbacks[name](x)
@@ -1328,7 +1282,7 @@ cdef class NumericalInversePolynomial(Method):
            generation by numerical inversion when only the density is known." ACM
            Transactions on Modeling and Computer Simulation (TOMACS) 20.4 (2010): 1-25.
     .. [2] UNU.RAN reference manual, Section 5.3.12,
-           "PINV – Polynomial interpolation based INVersion of CDF",
+           "PINV - Polynomial interpolation based INVersion of CDF",
            https://statmath.wu.ac.at/software/unuran/doc/unuran.html#PINV
 
     Examples
@@ -1447,11 +1401,6 @@ cdef class NumericalInversePolynomial(Method):
             'u_resolution': u_resolution,
             'random_state': random_state
         }
-
-        cdef:
-            unur_distr *distr
-            unur_par *par
-            unur_gen *rng
 
         # either logpdf or pdf are required: use meths = None and check separately
         self.callbacks = _unpack_dist(dist, "cont", meths=None, optional_meths=["cdf", "pdf", "logpdf"])
@@ -1573,7 +1522,7 @@ cdef class NumericalInversePolynomial(Method):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef inline void _ppf(self, const double *u, double *out, size_t N):
+    cdef inline void _ppf(self, const double *u, double *out, size_t N) noexcept:
         cdef:
             size_t i
         for i in range(N):
@@ -2015,10 +1964,6 @@ cdef class NumericalInverseHermite(Method):
             'random_state': random_state
         }
 
-        cdef:
-            unur_distr *distr
-            unur_par *par
-
         self.callbacks = _unpack_dist(dist, "cont", meths=["cdf"], optional_meths=["pdf", "dpdf"])
         def _callback_wrapper(x, name):
             return self.callbacks[name](x)
@@ -2063,7 +2008,7 @@ cdef class NumericalInverseHermite(Method):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef inline void _ppf(self, const double *u, double *out, size_t N):
+    cdef inline void _ppf(self, const double *u, double *out, size_t N) noexcept:
         cdef:
             size_t i
         for i in range(N):
@@ -2435,11 +2380,6 @@ cdef class DiscreteAliasUrn(Method):
         # save all the arguments for pickling support
         self._kwargs = {'dist': dist, 'domain': domain, 'urn_factor': urn_factor, 'random_state': random_state}
 
-        cdef:
-            unur_distr *distr
-            unur_par *par
-            unur_gen *rng
-
         self._messages = MessageStream()
         _lock.acquire()
         try:
@@ -2708,11 +2648,6 @@ cdef class DiscreteGuideTable(Method):
             'random_state': random_state
         }
 
-        cdef:
-            unur_distr *distr
-            unur_par *par
-            unur_gen *rng
-
         self._messages = MessageStream()
         _lock.acquire()
 
@@ -2781,7 +2716,7 @@ cdef class DiscreteGuideTable(Method):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef inline void _ppf(self, const double *u, double *out, size_t N):
+    cdef inline void _ppf(self, const double *u, double *out, size_t N) noexcept:
         cdef:
             size_t i
         for i in range(N):

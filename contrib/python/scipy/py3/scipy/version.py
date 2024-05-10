@@ -1,9 +1,9 @@
 # THIS FILE IS GENERATED DURING THE SCIPY BUILD
 # See tools/version_utils.py for details
 
-short_version = '1.10.1'
-version = '1.10.1'
-full_version = '1.10.1'
+short_version = '1.11.4'
+version = '1.11.4'
+full_version = '1.11.4'
 git_revision = 'Unknown'
 commit_count = 'Unknown'
 release = True

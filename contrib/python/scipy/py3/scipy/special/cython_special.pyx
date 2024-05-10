@@ -1086,7 +1086,7 @@ include "_cython_special.pxi"
 include "_cython_special_custom.pxi"
 
 from ._agm cimport agm as _func_agm
-ctypedef double _proto_agm_t(double, double) nogil
+ctypedef double _proto_agm_t(double, double) noexcept nogil
 cdef _proto_agm_t *_proto_agm_t_var = &_func_agm
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_int _func_airy_wrap "airy_wrap"(npy_double, npy_double *, npy_double *, npy_double *, npy_double *)nogil
@@ -1097,17 +1097,17 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_int _func_cairy_wrap_e_real "cairy_wrap_e_real"(npy_double, npy_double *, npy_double *, npy_double *, npy_double *)nogil
 from ._legacy cimport bdtr_unsafe as _func_bdtr_unsafe
-ctypedef double _proto_bdtr_unsafe_t(double, double, double) nogil
+ctypedef double _proto_bdtr_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_bdtr_unsafe_t *_proto_bdtr_unsafe_t_var = &_func_bdtr_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_bdtr "bdtr"(npy_double, npy_int, npy_double)nogil
 from ._legacy cimport bdtrc_unsafe as _func_bdtrc_unsafe
-ctypedef double _proto_bdtrc_unsafe_t(double, double, double) nogil
+ctypedef double _proto_bdtrc_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_bdtrc_unsafe_t *_proto_bdtrc_unsafe_t_var = &_func_bdtrc_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_bdtrc "bdtrc"(npy_double, npy_int, npy_double)nogil
 from ._legacy cimport bdtri_unsafe as _func_bdtri_unsafe
-ctypedef double _proto_bdtri_unsafe_t(double, double, double) nogil
+ctypedef double _proto_bdtri_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_bdtri_unsafe_t *_proto_bdtri_unsafe_t_var = &_func_bdtri_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_bdtri "bdtri"(npy_double, npy_int, npy_double)nogil
@@ -1134,13 +1134,13 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_lbeta "lbeta"(npy_double, npy_double)nogil
 from .orthogonal_eval cimport binom as _func_binom
-ctypedef double _proto_binom_t(double, double) nogil
+ctypedef double _proto_binom_t(double, double) noexcept nogil
 cdef _proto_binom_t *_proto_binom_t_var = &_func_binom
 from ._boxcox cimport boxcox as _func_boxcox
-ctypedef double _proto_boxcox_t(double, double) nogil
+ctypedef double _proto_boxcox_t(double, double) noexcept nogil
 cdef _proto_boxcox_t *_proto_boxcox_t_var = &_func_boxcox
 from ._boxcox cimport boxcox1p as _func_boxcox1p
-ctypedef double _proto_boxcox1p_t(double, double) nogil
+ctypedef double _proto_boxcox1p_t(double, double) noexcept nogil
 cdef _proto_boxcox1p_t *_proto_boxcox1p_t_var = &_func_boxcox1p
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_btdtr "btdtr"(npy_double, npy_double, npy_double)nogil
@@ -1185,10 +1185,10 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_ellpk "ellpk"(npy_double)nogil
 from ._ellipk cimport ellipk as _func_ellipk
-ctypedef double _proto_ellipk_t(double) nogil
+ctypedef double _proto_ellipk_t(double) noexcept nogil
 cdef _proto_ellipk_t *_proto_ellipk_t_var = &_func_ellipk
 from ._convex_analysis cimport entr as _func_entr
-ctypedef double _proto_entr_t(double) nogil
+ctypedef double _proto_entr_t(double) noexcept nogil
 cdef _proto_entr_t *_proto_entr_t_var = &_func_entr
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_erf "erf"(npy_double)nogil
@@ -1197,127 +1197,127 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_erfcinv "erfcinv"(npy_double)nogil
 from .orthogonal_eval cimport eval_chebyc as _func_eval_chebyc
-ctypedef double complex _proto_eval_chebyc_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_chebyc_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_chebyc_double_complex__t *_proto_eval_chebyc_double_complex__t_var = &_func_eval_chebyc[double_complex]
 from .orthogonal_eval cimport eval_chebyc as _func_eval_chebyc
-ctypedef double _proto_eval_chebyc_double__t(double, double) nogil
+ctypedef double _proto_eval_chebyc_double__t(double, double) noexcept nogil
 cdef _proto_eval_chebyc_double__t *_proto_eval_chebyc_double__t_var = &_func_eval_chebyc[double]
 from .orthogonal_eval cimport eval_chebyc_l as _func_eval_chebyc_l
-ctypedef double _proto_eval_chebyc_l_t(long, double) nogil
+ctypedef double _proto_eval_chebyc_l_t(long, double) noexcept nogil
 cdef _proto_eval_chebyc_l_t *_proto_eval_chebyc_l_t_var = &_func_eval_chebyc_l
 from .orthogonal_eval cimport eval_chebys as _func_eval_chebys
-ctypedef double complex _proto_eval_chebys_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_chebys_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_chebys_double_complex__t *_proto_eval_chebys_double_complex__t_var = &_func_eval_chebys[double_complex]
 from .orthogonal_eval cimport eval_chebys as _func_eval_chebys
-ctypedef double _proto_eval_chebys_double__t(double, double) nogil
+ctypedef double _proto_eval_chebys_double__t(double, double) noexcept nogil
 cdef _proto_eval_chebys_double__t *_proto_eval_chebys_double__t_var = &_func_eval_chebys[double]
 from .orthogonal_eval cimport eval_chebys_l as _func_eval_chebys_l
-ctypedef double _proto_eval_chebys_l_t(long, double) nogil
+ctypedef double _proto_eval_chebys_l_t(long, double) noexcept nogil
 cdef _proto_eval_chebys_l_t *_proto_eval_chebys_l_t_var = &_func_eval_chebys_l
 from .orthogonal_eval cimport eval_chebyt as _func_eval_chebyt
-ctypedef double complex _proto_eval_chebyt_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_chebyt_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_chebyt_double_complex__t *_proto_eval_chebyt_double_complex__t_var = &_func_eval_chebyt[double_complex]
 from .orthogonal_eval cimport eval_chebyt as _func_eval_chebyt
-ctypedef double _proto_eval_chebyt_double__t(double, double) nogil
+ctypedef double _proto_eval_chebyt_double__t(double, double) noexcept nogil
 cdef _proto_eval_chebyt_double__t *_proto_eval_chebyt_double__t_var = &_func_eval_chebyt[double]
 from .orthogonal_eval cimport eval_chebyt_l as _func_eval_chebyt_l
-ctypedef double _proto_eval_chebyt_l_t(long, double) nogil
+ctypedef double _proto_eval_chebyt_l_t(long, double) noexcept nogil
 cdef _proto_eval_chebyt_l_t *_proto_eval_chebyt_l_t_var = &_func_eval_chebyt_l
 from .orthogonal_eval cimport eval_chebyu as _func_eval_chebyu
-ctypedef double complex _proto_eval_chebyu_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_chebyu_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_chebyu_double_complex__t *_proto_eval_chebyu_double_complex__t_var = &_func_eval_chebyu[double_complex]
 from .orthogonal_eval cimport eval_chebyu as _func_eval_chebyu
-ctypedef double _proto_eval_chebyu_double__t(double, double) nogil
+ctypedef double _proto_eval_chebyu_double__t(double, double) noexcept nogil
 cdef _proto_eval_chebyu_double__t *_proto_eval_chebyu_double__t_var = &_func_eval_chebyu[double]
 from .orthogonal_eval cimport eval_chebyu_l as _func_eval_chebyu_l
-ctypedef double _proto_eval_chebyu_l_t(long, double) nogil
+ctypedef double _proto_eval_chebyu_l_t(long, double) noexcept nogil
 cdef _proto_eval_chebyu_l_t *_proto_eval_chebyu_l_t_var = &_func_eval_chebyu_l
 from .orthogonal_eval cimport eval_gegenbauer as _func_eval_gegenbauer
-ctypedef double complex _proto_eval_gegenbauer_double_complex__t(double, double, double complex) nogil
+ctypedef double complex _proto_eval_gegenbauer_double_complex__t(double, double, double complex) noexcept nogil
 cdef _proto_eval_gegenbauer_double_complex__t *_proto_eval_gegenbauer_double_complex__t_var = &_func_eval_gegenbauer[double_complex]
 from .orthogonal_eval cimport eval_gegenbauer as _func_eval_gegenbauer
-ctypedef double _proto_eval_gegenbauer_double__t(double, double, double) nogil
+ctypedef double _proto_eval_gegenbauer_double__t(double, double, double) noexcept nogil
 cdef _proto_eval_gegenbauer_double__t *_proto_eval_gegenbauer_double__t_var = &_func_eval_gegenbauer[double]
 from .orthogonal_eval cimport eval_gegenbauer_l as _func_eval_gegenbauer_l
-ctypedef double _proto_eval_gegenbauer_l_t(long, double, double) nogil
+ctypedef double _proto_eval_gegenbauer_l_t(long, double, double) noexcept nogil
 cdef _proto_eval_gegenbauer_l_t *_proto_eval_gegenbauer_l_t_var = &_func_eval_gegenbauer_l
 from .orthogonal_eval cimport eval_genlaguerre as _func_eval_genlaguerre
-ctypedef double complex _proto_eval_genlaguerre_double_complex__t(double, double, double complex) nogil
+ctypedef double complex _proto_eval_genlaguerre_double_complex__t(double, double, double complex) noexcept nogil
 cdef _proto_eval_genlaguerre_double_complex__t *_proto_eval_genlaguerre_double_complex__t_var = &_func_eval_genlaguerre[double_complex]
 from .orthogonal_eval cimport eval_genlaguerre as _func_eval_genlaguerre
-ctypedef double _proto_eval_genlaguerre_double__t(double, double, double) nogil
+ctypedef double _proto_eval_genlaguerre_double__t(double, double, double) noexcept nogil
 cdef _proto_eval_genlaguerre_double__t *_proto_eval_genlaguerre_double__t_var = &_func_eval_genlaguerre[double]
 from .orthogonal_eval cimport eval_genlaguerre_l as _func_eval_genlaguerre_l
-ctypedef double _proto_eval_genlaguerre_l_t(long, double, double) nogil
+ctypedef double _proto_eval_genlaguerre_l_t(long, double, double) noexcept nogil
 cdef _proto_eval_genlaguerre_l_t *_proto_eval_genlaguerre_l_t_var = &_func_eval_genlaguerre_l
 from .orthogonal_eval cimport eval_hermite as _func_eval_hermite
-ctypedef double _proto_eval_hermite_t(long, double) nogil
+ctypedef double _proto_eval_hermite_t(long, double) noexcept nogil
 cdef _proto_eval_hermite_t *_proto_eval_hermite_t_var = &_func_eval_hermite
 from .orthogonal_eval cimport eval_hermitenorm as _func_eval_hermitenorm
-ctypedef double _proto_eval_hermitenorm_t(long, double) nogil
+ctypedef double _proto_eval_hermitenorm_t(long, double) noexcept nogil
 cdef _proto_eval_hermitenorm_t *_proto_eval_hermitenorm_t_var = &_func_eval_hermitenorm
 from .orthogonal_eval cimport eval_jacobi as _func_eval_jacobi
-ctypedef double complex _proto_eval_jacobi_double_complex__t(double, double, double, double complex) nogil
+ctypedef double complex _proto_eval_jacobi_double_complex__t(double, double, double, double complex) noexcept nogil
 cdef _proto_eval_jacobi_double_complex__t *_proto_eval_jacobi_double_complex__t_var = &_func_eval_jacobi[double_complex]
 from .orthogonal_eval cimport eval_jacobi as _func_eval_jacobi
-ctypedef double _proto_eval_jacobi_double__t(double, double, double, double) nogil
+ctypedef double _proto_eval_jacobi_double__t(double, double, double, double) noexcept nogil
 cdef _proto_eval_jacobi_double__t *_proto_eval_jacobi_double__t_var = &_func_eval_jacobi[double]
 from .orthogonal_eval cimport eval_jacobi_l as _func_eval_jacobi_l
-ctypedef double _proto_eval_jacobi_l_t(long, double, double, double) nogil
+ctypedef double _proto_eval_jacobi_l_t(long, double, double, double) noexcept nogil
 cdef _proto_eval_jacobi_l_t *_proto_eval_jacobi_l_t_var = &_func_eval_jacobi_l
 from .orthogonal_eval cimport eval_laguerre as _func_eval_laguerre
-ctypedef double complex _proto_eval_laguerre_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_laguerre_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_laguerre_double_complex__t *_proto_eval_laguerre_double_complex__t_var = &_func_eval_laguerre[double_complex]
 from .orthogonal_eval cimport eval_laguerre as _func_eval_laguerre
-ctypedef double _proto_eval_laguerre_double__t(double, double) nogil
+ctypedef double _proto_eval_laguerre_double__t(double, double) noexcept nogil
 cdef _proto_eval_laguerre_double__t *_proto_eval_laguerre_double__t_var = &_func_eval_laguerre[double]
 from .orthogonal_eval cimport eval_laguerre_l as _func_eval_laguerre_l
-ctypedef double _proto_eval_laguerre_l_t(long, double) nogil
+ctypedef double _proto_eval_laguerre_l_t(long, double) noexcept nogil
 cdef _proto_eval_laguerre_l_t *_proto_eval_laguerre_l_t_var = &_func_eval_laguerre_l
 from .orthogonal_eval cimport eval_legendre as _func_eval_legendre
-ctypedef double complex _proto_eval_legendre_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_legendre_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_legendre_double_complex__t *_proto_eval_legendre_double_complex__t_var = &_func_eval_legendre[double_complex]
 from .orthogonal_eval cimport eval_legendre as _func_eval_legendre
-ctypedef double _proto_eval_legendre_double__t(double, double) nogil
+ctypedef double _proto_eval_legendre_double__t(double, double) noexcept nogil
 cdef _proto_eval_legendre_double__t *_proto_eval_legendre_double__t_var = &_func_eval_legendre[double]
 from .orthogonal_eval cimport eval_legendre_l as _func_eval_legendre_l
-ctypedef double _proto_eval_legendre_l_t(long, double) nogil
+ctypedef double _proto_eval_legendre_l_t(long, double) noexcept nogil
 cdef _proto_eval_legendre_l_t *_proto_eval_legendre_l_t_var = &_func_eval_legendre_l
 from .orthogonal_eval cimport eval_sh_chebyt as _func_eval_sh_chebyt
-ctypedef double complex _proto_eval_sh_chebyt_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_sh_chebyt_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_sh_chebyt_double_complex__t *_proto_eval_sh_chebyt_double_complex__t_var = &_func_eval_sh_chebyt[double_complex]
 from .orthogonal_eval cimport eval_sh_chebyt as _func_eval_sh_chebyt
-ctypedef double _proto_eval_sh_chebyt_double__t(double, double) nogil
+ctypedef double _proto_eval_sh_chebyt_double__t(double, double) noexcept nogil
 cdef _proto_eval_sh_chebyt_double__t *_proto_eval_sh_chebyt_double__t_var = &_func_eval_sh_chebyt[double]
 from .orthogonal_eval cimport eval_sh_chebyt_l as _func_eval_sh_chebyt_l
-ctypedef double _proto_eval_sh_chebyt_l_t(long, double) nogil
+ctypedef double _proto_eval_sh_chebyt_l_t(long, double) noexcept nogil
 cdef _proto_eval_sh_chebyt_l_t *_proto_eval_sh_chebyt_l_t_var = &_func_eval_sh_chebyt_l
 from .orthogonal_eval cimport eval_sh_chebyu as _func_eval_sh_chebyu
-ctypedef double complex _proto_eval_sh_chebyu_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_sh_chebyu_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_sh_chebyu_double_complex__t *_proto_eval_sh_chebyu_double_complex__t_var = &_func_eval_sh_chebyu[double_complex]
 from .orthogonal_eval cimport eval_sh_chebyu as _func_eval_sh_chebyu
-ctypedef double _proto_eval_sh_chebyu_double__t(double, double) nogil
+ctypedef double _proto_eval_sh_chebyu_double__t(double, double) noexcept nogil
 cdef _proto_eval_sh_chebyu_double__t *_proto_eval_sh_chebyu_double__t_var = &_func_eval_sh_chebyu[double]
 from .orthogonal_eval cimport eval_sh_chebyu_l as _func_eval_sh_chebyu_l
-ctypedef double _proto_eval_sh_chebyu_l_t(long, double) nogil
+ctypedef double _proto_eval_sh_chebyu_l_t(long, double) noexcept nogil
 cdef _proto_eval_sh_chebyu_l_t *_proto_eval_sh_chebyu_l_t_var = &_func_eval_sh_chebyu_l
 from .orthogonal_eval cimport eval_sh_jacobi as _func_eval_sh_jacobi
-ctypedef double complex _proto_eval_sh_jacobi_double_complex__t(double, double, double, double complex) nogil
+ctypedef double complex _proto_eval_sh_jacobi_double_complex__t(double, double, double, double complex) noexcept nogil
 cdef _proto_eval_sh_jacobi_double_complex__t *_proto_eval_sh_jacobi_double_complex__t_var = &_func_eval_sh_jacobi[double_complex]
 from .orthogonal_eval cimport eval_sh_jacobi as _func_eval_sh_jacobi
-ctypedef double _proto_eval_sh_jacobi_double__t(double, double, double, double) nogil
+ctypedef double _proto_eval_sh_jacobi_double__t(double, double, double, double) noexcept nogil
 cdef _proto_eval_sh_jacobi_double__t *_proto_eval_sh_jacobi_double__t_var = &_func_eval_sh_jacobi[double]
 from .orthogonal_eval cimport eval_sh_jacobi_l as _func_eval_sh_jacobi_l
-ctypedef double _proto_eval_sh_jacobi_l_t(long, double, double, double) nogil
+ctypedef double _proto_eval_sh_jacobi_l_t(long, double, double, double) noexcept nogil
 cdef _proto_eval_sh_jacobi_l_t *_proto_eval_sh_jacobi_l_t_var = &_func_eval_sh_jacobi_l
 from .orthogonal_eval cimport eval_sh_legendre as _func_eval_sh_legendre
-ctypedef double complex _proto_eval_sh_legendre_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_sh_legendre_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_sh_legendre_double_complex__t *_proto_eval_sh_legendre_double_complex__t_var = &_func_eval_sh_legendre[double_complex]
 from .orthogonal_eval cimport eval_sh_legendre as _func_eval_sh_legendre
-ctypedef double _proto_eval_sh_legendre_double__t(double, double) nogil
+ctypedef double _proto_eval_sh_legendre_double__t(double, double) noexcept nogil
 cdef _proto_eval_sh_legendre_double__t *_proto_eval_sh_legendre_double__t_var = &_func_eval_sh_legendre[double]
 from .orthogonal_eval cimport eval_sh_legendre_l as _func_eval_sh_legendre_l
-ctypedef double _proto_eval_sh_legendre_l_t(long, double) nogil
+ctypedef double _proto_eval_sh_legendre_l_t(long, double) noexcept nogil
 cdef _proto_eval_sh_legendre_l_t *_proto_eval_sh_legendre_l_t_var = &_func_eval_sh_legendre_l
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_cdouble _func_cexp1_wrap "cexp1_wrap"(npy_cdouble)nogil
@@ -1332,17 +1332,17 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_expi_wrap "expi_wrap"(npy_double)nogil
 from ._cunity cimport cexpm1 as _func_cexpm1
-ctypedef double complex _proto_cexpm1_t(double complex) nogil
+ctypedef double complex _proto_cexpm1_t(double complex) noexcept nogil
 cdef _proto_cexpm1_t *_proto_cexpm1_t_var = &_func_cexpm1
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_expm1 "expm1"(npy_double)nogil
 from ._legacy cimport expn_unsafe as _func_expn_unsafe
-ctypedef double _proto_expn_unsafe_t(double, double) nogil
+ctypedef double _proto_expn_unsafe_t(double, double) noexcept nogil
 cdef _proto_expn_unsafe_t *_proto_expn_unsafe_t_var = &_func_expn_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_expn "expn"(npy_int, npy_double)nogil
 from ._exprel cimport exprel as _func_exprel
-ctypedef double _proto_exprel_t(double) nogil
+ctypedef double _proto_exprel_t(double) noexcept nogil
 cdef _proto_exprel_t *_proto_exprel_t_var = &_func_exprel
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_fdtr "fdtr"(npy_double, npy_double, npy_double)nogil
@@ -1357,7 +1357,7 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_int _func_cfresnl_wrap "cfresnl_wrap"(npy_cdouble, npy_cdouble *, npy_cdouble *)nogil
 from ._loggamma cimport cgamma as _func_cgamma
-ctypedef double complex _proto_cgamma_t(double complex) nogil
+ctypedef double complex _proto_cgamma_t(double complex) noexcept nogil
 cdef _proto_cgamma_t *_proto_cgamma_t_var = &_func_cgamma
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_Gamma "Gamma"(npy_double)nogil
@@ -1392,23 +1392,23 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_cdouble _func_cbesh_wrap2_e "cbesh_wrap2_e"(npy_double, npy_cdouble)nogil
 from ._convex_analysis cimport huber as _func_huber
-ctypedef double _proto_huber_t(double, double) nogil
+ctypedef double _proto_huber_t(double, double) noexcept nogil
 cdef _proto_huber_t *_proto_huber_t_var = &_func_huber
 from ._hyp0f1 cimport _hyp0f1_cmplx as _func__hyp0f1_cmplx
-ctypedef double complex _proto__hyp0f1_cmplx_t(double, double complex) nogil
+ctypedef double complex _proto__hyp0f1_cmplx_t(double, double complex) noexcept nogil
 cdef _proto__hyp0f1_cmplx_t *_proto__hyp0f1_cmplx_t_var = &_func__hyp0f1_cmplx
 from ._hyp0f1 cimport _hyp0f1_real as _func__hyp0f1_real
-ctypedef double _proto__hyp0f1_real_t(double, double) nogil
+ctypedef double _proto__hyp0f1_real_t(double, double) noexcept nogil
 cdef _proto__hyp0f1_real_t *_proto__hyp0f1_real_t_var = &_func__hyp0f1_real
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_cdouble _func_chyp1f1_wrap "chyp1f1_wrap"(npy_double, npy_double, npy_cdouble)nogil
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_hyp2f1 "hyp2f1"(npy_double, npy_double, npy_double, npy_double)nogil
 from ._hyp2f1 cimport hyp2f1_complex as _func_hyp2f1_complex
-ctypedef double complex _proto_hyp2f1_complex_t(double, double, double, double complex) nogil
+ctypedef double complex _proto_hyp2f1_complex_t(double, double, double, double complex) noexcept nogil
 cdef _proto_hyp2f1_complex_t *_proto_hyp2f1_complex_t_var = &_func_hyp2f1_complex
 from ._hypergeometric cimport hyperu as _func_hyperu
-ctypedef double _proto_hyperu_t(double, double, double) nogil
+ctypedef double _proto_hyperu_t(double, double, double) noexcept nogil
 cdef _proto_hyperu_t *_proto_hyperu_t_var = &_func_hyperu
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_i0 "i0"(npy_double)nogil
@@ -1419,10 +1419,10 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_i1e "i1e"(npy_double)nogil
 from ._boxcox cimport inv_boxcox as _func_inv_boxcox
-ctypedef double _proto_inv_boxcox_t(double, double) nogil
+ctypedef double _proto_inv_boxcox_t(double, double) noexcept nogil
 cdef _proto_inv_boxcox_t *_proto_inv_boxcox_t_var = &_func_inv_boxcox
 from ._boxcox cimport inv_boxcox1p as _func_inv_boxcox1p
-ctypedef double _proto_inv_boxcox1p_t(double, double) nogil
+ctypedef double _proto_inv_boxcox1p_t(double, double) noexcept nogil
 cdef _proto_inv_boxcox1p_t *_proto_inv_boxcox1p_t_var = &_func_inv_boxcox1p
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_int _func_it2i0k0_wrap "it2i0k0_wrap"(npy_double, npy_double *, npy_double *)nogil
@@ -1479,10 +1479,10 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_kerp_wrap "kerp_wrap"(npy_double)nogil
 from ._convex_analysis cimport kl_div as _func_kl_div
-ctypedef double _proto_kl_div_t(double, double) nogil
+ctypedef double _proto_kl_div_t(double, double) noexcept nogil
 cdef _proto_kl_div_t *_proto_kl_div_t_var = &_func_kl_div
 from ._legacy cimport kn_unsafe as _func_kn_unsafe
-ctypedef double _proto_kn_unsafe_t(double, double) nogil
+ctypedef double _proto_kn_unsafe_t(double, double) noexcept nogil
 cdef _proto_kn_unsafe_t *_proto_kn_unsafe_t_var = &_func_kn_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_cbesk_wrap_real_int "cbesk_wrap_real_int"(npy_int, npy_double)nogil
@@ -1499,15 +1499,15 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_cbesk_wrap_e_real "cbesk_wrap_e_real"(npy_double, npy_double)nogil
 from ._cunity cimport clog1p as _func_clog1p
-ctypedef double complex _proto_clog1p_t(double complex) nogil
+ctypedef double complex _proto_clog1p_t(double complex) noexcept nogil
 cdef _proto_clog1p_t *_proto_clog1p_t_var = &_func_clog1p
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_log1p "log1p"(npy_double)nogil
 from ._loggamma cimport loggamma_real as _func_loggamma_real
-ctypedef double _proto_loggamma_real_t(double) nogil
+ctypedef double _proto_loggamma_real_t(double) noexcept nogil
 cdef _proto_loggamma_real_t *_proto_loggamma_real_t_var = &_func_loggamma_real
 from ._loggamma cimport loggamma as _func_loggamma
-ctypedef double complex _proto_loggamma_t(double complex) nogil
+ctypedef double complex _proto_loggamma_t(double complex) noexcept nogil
 cdef _proto_loggamma_t *_proto_loggamma_t_var = &_func_loggamma
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_pmv_wrap "pmv_wrap"(npy_double, npy_double, npy_double)nogil
@@ -1534,17 +1534,17 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_struve_l "struve_l"(npy_double, npy_double)nogil
 from ._legacy cimport nbdtr_unsafe as _func_nbdtr_unsafe
-ctypedef double _proto_nbdtr_unsafe_t(double, double, double) nogil
+ctypedef double _proto_nbdtr_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_nbdtr_unsafe_t *_proto_nbdtr_unsafe_t_var = &_func_nbdtr_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_nbdtr "nbdtr"(npy_int, npy_int, npy_double)nogil
 from ._legacy cimport nbdtrc_unsafe as _func_nbdtrc_unsafe
-ctypedef double _proto_nbdtrc_unsafe_t(double, double, double) nogil
+ctypedef double _proto_nbdtrc_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_nbdtrc_unsafe_t *_proto_nbdtrc_unsafe_t_var = &_func_nbdtrc_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_nbdtrc "nbdtrc"(npy_int, npy_int, npy_double)nogil
 from ._legacy cimport nbdtri_unsafe as _func_nbdtri_unsafe
-ctypedef double _proto_nbdtri_unsafe_t(double, double, double) nogil
+ctypedef double _proto_nbdtri_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_nbdtri_unsafe_t *_proto_nbdtri_unsafe_t_var = &_func_nbdtri_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_nbdtri "nbdtri"(npy_int, npy_int, npy_double)nogil
@@ -1605,7 +1605,7 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_pdtrc "pdtrc"(npy_double, npy_double)nogil
 from ._legacy cimport pdtri_unsafe as _func_pdtri_unsafe
-ctypedef double _proto_pdtri_unsafe_t(double, double) nogil
+ctypedef double _proto_pdtri_unsafe_t(double, double) noexcept nogil
 cdef _proto_pdtri_unsafe_t *_proto_pdtri_unsafe_t_var = &_func_pdtri_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_pdtri "pdtri"(npy_int, npy_double)nogil
@@ -1628,58 +1628,58 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_int _func_prolate_radial2_wrap "prolate_radial2_wrap"(npy_double, npy_double, npy_double, npy_double, npy_double, npy_double *, npy_double *)nogil
 from ._convex_analysis cimport pseudo_huber as _func_pseudo_huber
-ctypedef double _proto_pseudo_huber_t(double, double) nogil
+ctypedef double _proto_pseudo_huber_t(double, double) noexcept nogil
 cdef _proto_pseudo_huber_t *_proto_pseudo_huber_t_var = &_func_pseudo_huber
 from ._digamma cimport cdigamma as _func_cdigamma
-ctypedef double complex _proto_cdigamma_t(double complex) nogil
+ctypedef double complex _proto_cdigamma_t(double complex) noexcept nogil
 cdef _proto_cdigamma_t *_proto_cdigamma_t_var = &_func_cdigamma
 from ._digamma cimport digamma as _func_digamma
-ctypedef double _proto_digamma_t(double) nogil
+ctypedef double _proto_digamma_t(double) noexcept nogil
 cdef _proto_digamma_t *_proto_digamma_t_var = &_func_digamma
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_radian "radian"(npy_double, npy_double, npy_double)nogil
 from ._convex_analysis cimport rel_entr as _func_rel_entr
-ctypedef double _proto_rel_entr_t(double, double) nogil
+ctypedef double _proto_rel_entr_t(double, double) noexcept nogil
 cdef _proto_rel_entr_t *_proto_rel_entr_t_var = &_func_rel_entr
 from ._loggamma cimport crgamma as _func_crgamma
-ctypedef double complex _proto_crgamma_t(double complex) nogil
+ctypedef double complex _proto_crgamma_t(double complex) noexcept nogil
 cdef _proto_crgamma_t *_proto_crgamma_t_var = &_func_crgamma
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_rgamma "rgamma"(npy_double)nogil
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_round "round"(npy_double)nogil
 from ._sici cimport cshichi as _func_cshichi
-ctypedef int _proto_cshichi_t(double complex, double complex *, double complex *) nogil
+ctypedef int _proto_cshichi_t(double complex, double complex *, double complex *) noexcept nogil
 cdef _proto_cshichi_t *_proto_cshichi_t_var = &_func_cshichi
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_int _func_shichi "shichi"(npy_double, npy_double *, npy_double *)nogil
 from ._sici cimport csici as _func_csici
-ctypedef int _proto_csici_t(double complex, double complex *, double complex *) nogil
+ctypedef int _proto_csici_t(double complex, double complex *, double complex *) noexcept nogil
 cdef _proto_csici_t *_proto_csici_t_var = &_func_csici
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_int _func_sici "sici"(npy_double, npy_double *, npy_double *)nogil
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_sindg "sindg"(npy_double)nogil
 from ._legacy cimport smirnov_unsafe as _func_smirnov_unsafe
-ctypedef double _proto_smirnov_unsafe_t(double, double) nogil
+ctypedef double _proto_smirnov_unsafe_t(double, double) noexcept nogil
 cdef _proto_smirnov_unsafe_t *_proto_smirnov_unsafe_t_var = &_func_smirnov_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_smirnov "smirnov"(npy_int, npy_double)nogil
 from ._legacy cimport smirnovi_unsafe as _func_smirnovi_unsafe
-ctypedef double _proto_smirnovi_unsafe_t(double, double) nogil
+ctypedef double _proto_smirnovi_unsafe_t(double, double) noexcept nogil
 cdef _proto_smirnovi_unsafe_t *_proto_smirnovi_unsafe_t_var = &_func_smirnovi_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_smirnovi "smirnovi"(npy_int, npy_double)nogil
 from ._spence cimport cspence as _func_cspence
-ctypedef double complex _proto_cspence_t(double complex) nogil
+ctypedef double complex _proto_cspence_t(double complex) noexcept nogil
 cdef _proto_cspence_t *_proto_cspence_t_var = &_func_cspence
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_spence "spence"(npy_double)nogil
 from ._legacy cimport sph_harmonic_unsafe as _func_sph_harmonic_unsafe
-ctypedef double complex _proto_sph_harmonic_unsafe_t(double, double, double, double) nogil
+ctypedef double complex _proto_sph_harmonic_unsafe_t(double, double, double, double) noexcept nogil
 cdef _proto_sph_harmonic_unsafe_t *_proto_sph_harmonic_unsafe_t_var = &_func_sph_harmonic_unsafe
 from .sph_harm cimport sph_harmonic as _func_sph_harmonic
-ctypedef double complex _proto_sph_harmonic_t(int, int, double, double) nogil
+ctypedef double complex _proto_sph_harmonic_t(int, int, double, double) noexcept nogil
 cdef _proto_sph_harmonic_t *_proto_sph_harmonic_t_var = &_func_sph_harmonic
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_cdft1_wrap "cdft1_wrap"(npy_double, npy_double)nogil
@@ -1694,23 +1694,23 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_tukeylambdacdf "tukeylambdacdf"(npy_double, npy_double)nogil
 from ._xlogy cimport xlog1py as _func_xlog1py
-ctypedef double _proto_xlog1py_double__t(double, double) nogil
+ctypedef double _proto_xlog1py_double__t(double, double) noexcept nogil
 cdef _proto_xlog1py_double__t *_proto_xlog1py_double__t_var = &_func_xlog1py[double]
 from ._xlogy cimport xlog1py as _func_xlog1py
-ctypedef double complex _proto_xlog1py_double_complex__t(double complex, double complex) nogil
+ctypedef double complex _proto_xlog1py_double_complex__t(double complex, double complex) noexcept nogil
 cdef _proto_xlog1py_double_complex__t *_proto_xlog1py_double_complex__t_var = &_func_xlog1py[double_complex]
 from ._xlogy cimport xlogy as _func_xlogy
-ctypedef double _proto_xlogy_double__t(double, double) nogil
+ctypedef double _proto_xlogy_double__t(double, double) noexcept nogil
 cdef _proto_xlogy_double__t *_proto_xlogy_double__t_var = &_func_xlogy[double]
 from ._xlogy cimport xlogy as _func_xlogy
-ctypedef double complex _proto_xlogy_double_complex__t(double complex, double complex) nogil
+ctypedef double complex _proto_xlogy_double_complex__t(double complex, double complex) noexcept nogil
 cdef _proto_xlogy_double_complex__t *_proto_xlogy_double_complex__t_var = &_func_xlogy[double_complex]
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_y0 "y0"(npy_double)nogil
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_y1 "y1"(npy_double)nogil
 from ._legacy cimport yn_unsafe as _func_yn_unsafe
-ctypedef double _proto_yn_unsafe_t(double, double) nogil
+ctypedef double _proto_yn_unsafe_t(double, double) noexcept nogil
 cdef _proto_yn_unsafe_t *_proto_yn_unsafe_t_var = &_func_yn_unsafe
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_yn "yn"(npy_int, npy_double)nogil
@@ -1725,21 +1725,21 @@ cdef extern from r"_ufuncs_defs.h":
 cdef extern from r"_ufuncs_defs.h":
     cdef npy_double _func_zetac "zetac"(npy_double)nogil
 from ._wright_bessel cimport wright_bessel_scalar as _func_wright_bessel_scalar
-ctypedef double _proto_wright_bessel_scalar_t(double, double, double) nogil
+ctypedef double _proto_wright_bessel_scalar_t(double, double, double) noexcept nogil
 cdef _proto_wright_bessel_scalar_t *_proto_wright_bessel_scalar_t_var = &_func_wright_bessel_scalar
 from ._ndtri_exp cimport ndtri_exp as _func_ndtri_exp
-ctypedef double _proto_ndtri_exp_t(double) nogil
+ctypedef double _proto_ndtri_exp_t(double) noexcept nogil
 cdef _proto_ndtri_exp_t *_proto_ndtri_exp_t_var = &_func_ndtri_exp
 
 cpdef double voigt_profile(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.voigt_profile"""
-    return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_faddeeva_voigt_profile)(x0, x1, x2)
+    return (<double(*)(double, double, double) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_voigt_profile)(x0, x1, x2)
 
 cpdef double agm(double x0, double x1) nogil:
     """See the documentation for scipy.special.agm"""
     return _func_agm(x0, x1)
 
-cdef void airy(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1, Dd_number_t *y2, Dd_number_t *y3) nogil:
+cdef void airy(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1, Dd_number_t *y2, Dd_number_t *y3) noexcept nogil:
     """See the documentation for scipy.special.airy"""
     cdef npy_cdouble tmp0
     cdef npy_cdouble tmp1
@@ -1773,7 +1773,7 @@ def _airy_pywrap(Dd_number_t x0):
     airy(x0, &y0, &y1, &y2, &y3)
     return y0, y1, y2, y3
 
-cdef void airye(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1, Dd_number_t *y2, Dd_number_t *y3) nogil:
+cdef void airye(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1, Dd_number_t *y2, Dd_number_t *y3) noexcept nogil:
     """See the documentation for scipy.special.airye"""
     cdef npy_cdouble tmp0
     cdef npy_cdouble tmp1
@@ -1957,9 +1957,9 @@ cpdef double cotdg(double x0) nogil:
 cpdef Dd_number_t dawsn(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.dawsn"""
     if Dd_number_t is double:
-        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_faddeeva_dawsn)(x0)
+        return (<double(*)(double) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_dawsn)(x0)
     elif Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_dawsn_complex)(x0)
+        return (<double complex(*)(double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_dawsn_complex)(x0)
     else:
         if Dd_number_t is double_complex:
             return NAN
@@ -1974,7 +1974,7 @@ cpdef double ellipeinc(double x0, double x1) nogil:
     """See the documentation for scipy.special.ellipeinc"""
     return _func_ellie(x0, x1)
 
-cdef void ellipj(double x0, double x1, double *y0, double *y1, double *y2, double *y3) nogil:
+cdef void ellipj(double x0, double x1, double *y0, double *y1, double *y2, double *y3) noexcept nogil:
     """See the documentation for scipy.special.ellipj"""
     _func_ellpj(x0, x1, y0, y1, y2, y3)
 
@@ -2001,9 +2001,9 @@ cpdef double ellipk(double x0) nogil:
 cpdef Dd_number_t elliprc(Dd_number_t x0, Dd_number_t x1) nogil:
     """See the documentation for scipy.special.elliprc"""
     if Dd_number_t is double:
-        return (<double(*)(double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RC)(x0, x1)
+        return (<double(*)(double, double) noexcept nogil>scipy.special._ufuncs_cxx._export_fellint_RC)(x0, x1)
     elif Dd_number_t is double_complex:
-        return (<double complex(*)(double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RC)(x0, x1)
+        return (<double complex(*)(double complex, double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_cellint_RC)(x0, x1)
     else:
         if Dd_number_t is double_complex:
             return NAN
@@ -2013,9 +2013,9 @@ cpdef Dd_number_t elliprc(Dd_number_t x0, Dd_number_t x1) nogil:
 cpdef Dd_number_t elliprd(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.elliprd"""
     if Dd_number_t is double:
-        return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RD)(x0, x1, x2)
+        return (<double(*)(double, double, double) noexcept nogil>scipy.special._ufuncs_cxx._export_fellint_RD)(x0, x1, x2)
     elif Dd_number_t is double_complex:
-        return (<double complex(*)(double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RD)(x0, x1, x2)
+        return (<double complex(*)(double complex, double complex, double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_cellint_RD)(x0, x1, x2)
     else:
         if Dd_number_t is double_complex:
             return NAN
@@ -2025,9 +2025,9 @@ cpdef Dd_number_t elliprd(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
 cpdef Dd_number_t elliprf(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.elliprf"""
     if Dd_number_t is double:
-        return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RF)(x0, x1, x2)
+        return (<double(*)(double, double, double) noexcept nogil>scipy.special._ufuncs_cxx._export_fellint_RF)(x0, x1, x2)
     elif Dd_number_t is double_complex:
-        return (<double complex(*)(double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RF)(x0, x1, x2)
+        return (<double complex(*)(double complex, double complex, double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_cellint_RF)(x0, x1, x2)
     else:
         if Dd_number_t is double_complex:
             return NAN
@@ -2037,9 +2037,9 @@ cpdef Dd_number_t elliprf(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
 cpdef Dd_number_t elliprg(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.elliprg"""
     if Dd_number_t is double:
-        return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RG)(x0, x1, x2)
+        return (<double(*)(double, double, double) noexcept nogil>scipy.special._ufuncs_cxx._export_fellint_RG)(x0, x1, x2)
     elif Dd_number_t is double_complex:
-        return (<double complex(*)(double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RG)(x0, x1, x2)
+        return (<double complex(*)(double complex, double complex, double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_cellint_RG)(x0, x1, x2)
     else:
         if Dd_number_t is double_complex:
             return NAN
@@ -2049,9 +2049,9 @@ cpdef Dd_number_t elliprg(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2) nogil:
 cpdef Dd_number_t elliprj(Dd_number_t x0, Dd_number_t x1, Dd_number_t x2, Dd_number_t x3) nogil:
     """See the documentation for scipy.special.elliprj"""
     if Dd_number_t is double:
-        return (<double(*)(double, double, double, double) nogil>scipy.special._ufuncs_cxx._export_fellint_RJ)(x0, x1, x2, x3)
+        return (<double(*)(double, double, double, double) noexcept nogil>scipy.special._ufuncs_cxx._export_fellint_RJ)(x0, x1, x2, x3)
     elif Dd_number_t is double_complex:
-        return (<double complex(*)(double complex, double complex, double complex, double complex) nogil>scipy.special._ufuncs_cxx._export_cellint_RJ)(x0, x1, x2, x3)
+        return (<double complex(*)(double complex, double complex, double complex, double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_cellint_RJ)(x0, x1, x2, x3)
     else:
         if Dd_number_t is double_complex:
             return NAN
@@ -2065,7 +2065,7 @@ cpdef double entr(double x0) nogil:
 cpdef Dd_number_t erf(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.erf"""
     if Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erf)(x0)
+        return (<double complex(*)(double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_erf)(x0)
     elif Dd_number_t is double:
         return _func_erf(x0)
     else:
@@ -2077,7 +2077,7 @@ cpdef Dd_number_t erf(Dd_number_t x0) nogil:
 cpdef Dd_number_t erfc(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.erfc"""
     if Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfc_complex)(x0)
+        return (<double complex(*)(double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfc_complex)(x0)
     elif Dd_number_t is double:
         return _func_erfc(x0)
     else:
@@ -2089,9 +2089,9 @@ cpdef Dd_number_t erfc(Dd_number_t x0) nogil:
 cpdef Dd_number_t erfcx(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.erfcx"""
     if Dd_number_t is double:
-        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfcx)(x0)
+        return (<double(*)(double) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfcx)(x0)
     elif Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfcx_complex)(x0)
+        return (<double complex(*)(double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfcx_complex)(x0)
     else:
         if Dd_number_t is double_complex:
             return NAN
@@ -2101,9 +2101,9 @@ cpdef Dd_number_t erfcx(Dd_number_t x0) nogil:
 cpdef Dd_number_t erfi(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.erfi"""
     if Dd_number_t is double:
-        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfi)(x0)
+        return (<double(*)(double) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfi)(x0)
     elif Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfi_complex)(x0)
+        return (<double complex(*)(double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_erfi_complex)(x0)
     else:
         if Dd_number_t is double_complex:
             return NAN
@@ -2113,9 +2113,9 @@ cpdef Dd_number_t erfi(Dd_number_t x0) nogil:
 cpdef df_number_t erfinv(df_number_t x0) nogil:
     """See the documentation for scipy.special.erfinv"""
     if df_number_t is float:
-        return (<float(*)(float) nogil>scipy.special._ufuncs_cxx._export_erfinv_float)(x0)
+        return (<float(*)(float) noexcept nogil>scipy.special._ufuncs_cxx._export_erfinv_float)(x0)
     elif df_number_t is double:
-        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_erfinv_double)(x0)
+        return (<double(*)(double) noexcept nogil>scipy.special._ufuncs_cxx._export_erfinv_double)(x0)
     else:
         if df_number_t is double:
             return NAN
@@ -2351,11 +2351,11 @@ cpdef Dd_number_t expi(Dd_number_t x0) nogil:
 cpdef dfg_number_t expit(dfg_number_t x0) nogil:
     """See the documentation for scipy.special.expit"""
     if dfg_number_t is double:
-        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_expit)(x0)
+        return (<double(*)(double) noexcept nogil>scipy.special._ufuncs_cxx._export_expit)(x0)
     elif dfg_number_t is float:
-        return (<float(*)(float) nogil>scipy.special._ufuncs_cxx._export_expitf)(x0)
+        return (<float(*)(float) noexcept nogil>scipy.special._ufuncs_cxx._export_expitf)(x0)
     elif dfg_number_t is long_double:
-        return (<long double(*)(long double) nogil>scipy.special._ufuncs_cxx._export_expitl)(x0)
+        return (<long double(*)(long double) noexcept nogil>scipy.special._ufuncs_cxx._export_expitl)(x0)
     else:
         if dfg_number_t is double:
             return NAN
@@ -2405,7 +2405,7 @@ cpdef double fdtridfd(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.fdtridfd"""
     return _func_cdff4_wrap(x0, x1, x2)
 
-cdef void fresnel(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1) nogil:
+cdef void fresnel(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1) noexcept nogil:
     """See the documentation for scipy.special.fresnel"""
     cdef npy_cdouble tmp0
     cdef npy_cdouble tmp1
@@ -2520,7 +2520,7 @@ cpdef Dd_number_t hyp0f1(double x0, Dd_number_t x1) nogil:
 cpdef Dd_number_t hyp1f1(double x0, double x1, Dd_number_t x2) nogil:
     """See the documentation for scipy.special.hyp1f1"""
     if Dd_number_t is double:
-        return (<double(*)(double, double, double) nogil>scipy.special._ufuncs_cxx._export_hyp1f1_double)(x0, x1, x2)
+        return (<double(*)(double, double, double) noexcept nogil>scipy.special._ufuncs_cxx._export_hyp1f1_double)(x0, x1, x2)
     elif Dd_number_t is double_complex:
         return _complexstuff.double_complex_from_npy_cdouble(_func_chyp1f1_wrap(x0, x1, _complexstuff.npy_cdouble_from_double_complex(x2)))
     else:
@@ -2569,7 +2569,7 @@ cpdef double inv_boxcox1p(double x0, double x1) nogil:
     """See the documentation for scipy.special.inv_boxcox1p"""
     return _func_inv_boxcox1p(x0, x1)
 
-cdef void it2i0k0(double x0, double *y0, double *y1) nogil:
+cdef void it2i0k0(double x0, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.it2i0k0"""
     _func_it2i0k0_wrap(x0, y0, y1)
 
@@ -2579,7 +2579,7 @@ def _it2i0k0_pywrap(double x0):
     it2i0k0(x0, &y0, &y1)
     return y0, y1
 
-cdef void it2j0y0(double x0, double *y0, double *y1) nogil:
+cdef void it2j0y0(double x0, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.it2j0y0"""
     _func_it2j0y0_wrap(x0, y0, y1)
 
@@ -2593,7 +2593,7 @@ cpdef double it2struve0(double x0) nogil:
     """See the documentation for scipy.special.it2struve0"""
     return _func_it2struve0_wrap(x0)
 
-cdef void itairy(double x0, double *y0, double *y1, double *y2, double *y3) nogil:
+cdef void itairy(double x0, double *y0, double *y1, double *y2, double *y3) noexcept nogil:
     """See the documentation for scipy.special.itairy"""
     _func_itairy_wrap(x0, y0, y1, y2, y3)
 
@@ -2605,7 +2605,7 @@ def _itairy_pywrap(double x0):
     itairy(x0, &y0, &y1, &y2, &y3)
     return y0, y1, y2, y3
 
-cdef void iti0k0(double x0, double *y0, double *y1) nogil:
+cdef void iti0k0(double x0, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.iti0k0"""
     _func_it1i0k0_wrap(x0, y0, y1)
 
@@ -2615,7 +2615,7 @@ def _iti0k0_pywrap(double x0):
     iti0k0(x0, &y0, &y1)
     return y0, y1
 
-cdef void itj0y0(double x0, double *y0, double *y1) nogil:
+cdef void itj0y0(double x0, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.itj0y0"""
     _func_it1j0y0_wrap(x0, y0, y1)
 
@@ -2713,7 +2713,7 @@ cpdef double keip(double x0) nogil:
     """See the documentation for scipy.special.keip"""
     return _func_keip_wrap(x0)
 
-cdef void kelvin(double x0, double complex *y0, double complex *y1, double complex *y2, double complex *y3) nogil:
+cdef void kelvin(double x0, double complex *y0, double complex *y1, double complex *y2, double complex *y3) noexcept nogil:
     """See the documentation for scipy.special.kelvin"""
     cdef npy_cdouble tmp0
     cdef npy_cdouble tmp1
@@ -2801,11 +2801,11 @@ cpdef Dd_number_t log1p(Dd_number_t x0) nogil:
 cpdef dfg_number_t log_expit(dfg_number_t x0) nogil:
     """See the documentation for scipy.special.log_expit"""
     if dfg_number_t is double:
-        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_log_expit)(x0)
+        return (<double(*)(double) noexcept nogil>scipy.special._ufuncs_cxx._export_log_expit)(x0)
     elif dfg_number_t is float:
-        return (<float(*)(float) nogil>scipy.special._ufuncs_cxx._export_log_expitf)(x0)
+        return (<float(*)(float) noexcept nogil>scipy.special._ufuncs_cxx._export_log_expitf)(x0)
     elif dfg_number_t is long_double:
-        return (<long double(*)(long double) nogil>scipy.special._ufuncs_cxx._export_log_expitl)(x0)
+        return (<long double(*)(long double) noexcept nogil>scipy.special._ufuncs_cxx._export_log_expitl)(x0)
     else:
         if dfg_number_t is double:
             return NAN
@@ -2817,9 +2817,9 @@ cpdef dfg_number_t log_expit(dfg_number_t x0) nogil:
 cpdef Dd_number_t log_ndtr(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.log_ndtr"""
     if Dd_number_t is double:
-        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_faddeeva_log_ndtr)(x0)
+        return (<double(*)(double) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_log_ndtr)(x0)
     elif Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_log_ndtr_complex)(x0)
+        return (<double complex(*)(double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_log_ndtr_complex)(x0)
     else:
         if Dd_number_t is double_complex:
             return NAN
@@ -2841,11 +2841,11 @@ cpdef Dd_number_t loggamma(Dd_number_t x0) nogil:
 cpdef dfg_number_t logit(dfg_number_t x0) nogil:
     """See the documentation for scipy.special.logit"""
     if dfg_number_t is double:
-        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_logit)(x0)
+        return (<double(*)(double) noexcept nogil>scipy.special._ufuncs_cxx._export_logit)(x0)
     elif dfg_number_t is float:
-        return (<float(*)(float) nogil>scipy.special._ufuncs_cxx._export_logitf)(x0)
+        return (<float(*)(float) noexcept nogil>scipy.special._ufuncs_cxx._export_logitf)(x0)
     elif dfg_number_t is long_double:
-        return (<long double(*)(long double) nogil>scipy.special._ufuncs_cxx._export_logitl)(x0)
+        return (<long double(*)(long double) noexcept nogil>scipy.special._ufuncs_cxx._export_logitl)(x0)
     else:
         if dfg_number_t is double:
             return NAN
@@ -2866,7 +2866,7 @@ cpdef double mathieu_b(double x0, double x1) nogil:
     """See the documentation for scipy.special.mathieu_b"""
     return _func_sem_cva_wrap(x0, x1)
 
-cdef void mathieu_cem(double x0, double x1, double x2, double *y0, double *y1) nogil:
+cdef void mathieu_cem(double x0, double x1, double x2, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.mathieu_cem"""
     _func_cem_wrap(x0, x1, x2, y0, y1)
 
@@ -2876,7 +2876,7 @@ def _mathieu_cem_pywrap(double x0, double x1, double x2):
     mathieu_cem(x0, x1, x2, &y0, &y1)
     return y0, y1
 
-cdef void mathieu_modcem1(double x0, double x1, double x2, double *y0, double *y1) nogil:
+cdef void mathieu_modcem1(double x0, double x1, double x2, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.mathieu_modcem1"""
     _func_mcm1_wrap(x0, x1, x2, y0, y1)
 
@@ -2886,7 +2886,7 @@ def _mathieu_modcem1_pywrap(double x0, double x1, double x2):
     mathieu_modcem1(x0, x1, x2, &y0, &y1)
     return y0, y1
 
-cdef void mathieu_modcem2(double x0, double x1, double x2, double *y0, double *y1) nogil:
+cdef void mathieu_modcem2(double x0, double x1, double x2, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.mathieu_modcem2"""
     _func_mcm2_wrap(x0, x1, x2, y0, y1)
 
@@ -2896,7 +2896,7 @@ def _mathieu_modcem2_pywrap(double x0, double x1, double x2):
     mathieu_modcem2(x0, x1, x2, &y0, &y1)
     return y0, y1
 
-cdef void mathieu_modsem1(double x0, double x1, double x2, double *y0, double *y1) nogil:
+cdef void mathieu_modsem1(double x0, double x1, double x2, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.mathieu_modsem1"""
     _func_msm1_wrap(x0, x1, x2, y0, y1)
 
@@ -2906,7 +2906,7 @@ def _mathieu_modsem1_pywrap(double x0, double x1, double x2):
     mathieu_modsem1(x0, x1, x2, &y0, &y1)
     return y0, y1
 
-cdef void mathieu_modsem2(double x0, double x1, double x2, double *y0, double *y1) nogil:
+cdef void mathieu_modsem2(double x0, double x1, double x2, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.mathieu_modsem2"""
     _func_msm2_wrap(x0, x1, x2, y0, y1)
 
@@ -2916,7 +2916,7 @@ def _mathieu_modsem2_pywrap(double x0, double x1, double x2):
     mathieu_modsem2(x0, x1, x2, &y0, &y1)
     return y0, y1
 
-cdef void mathieu_sem(double x0, double x1, double x2, double *y0, double *y1) nogil:
+cdef void mathieu_sem(double x0, double x1, double x2, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.mathieu_sem"""
     _func_sem_wrap(x0, x1, x2, y0, y1)
 
@@ -2926,7 +2926,7 @@ def _mathieu_sem_pywrap(double x0, double x1, double x2):
     mathieu_sem(x0, x1, x2, &y0, &y1)
     return y0, y1
 
-cdef void modfresnelm(double x0, double complex *y0, double complex *y1) nogil:
+cdef void modfresnelm(double x0, double complex *y0, double complex *y1) noexcept nogil:
     """See the documentation for scipy.special.modfresnelm"""
     cdef npy_cdouble tmp0
     cdef npy_cdouble tmp1
@@ -2940,7 +2940,7 @@ def _modfresnelm_pywrap(double x0):
     modfresnelm(x0, &y0, &y1)
     return y0, y1
 
-cdef void modfresnelp(double x0, double complex *y0, double complex *y1) nogil:
+cdef void modfresnelp(double x0, double complex *y0, double complex *y1) noexcept nogil:
     """See the documentation for scipy.special.modfresnelp"""
     cdef npy_cdouble tmp0
     cdef npy_cdouble tmp1
@@ -3032,7 +3032,7 @@ cpdef double nctdtrit(double x0, double x1, double x2) nogil:
 cpdef Dd_number_t ndtr(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.ndtr"""
     if Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_ndtr)(x0)
+        return (<double complex(*)(double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_ndtr)(x0)
     elif Dd_number_t is double:
         return _func_ndtr(x0)
     else:
@@ -3053,7 +3053,7 @@ cpdef double nrdtrisd(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.nrdtrisd"""
     return _func_cdfnor4_wrap(x0, x1, x2)
 
-cdef void obl_ang1(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil:
+cdef void obl_ang1(double x0, double x1, double x2, double x3, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.obl_ang1"""
     y0[0] = _func_oblate_aswfa_nocv_wrap(x0, x1, x2, x3, y1)
 
@@ -3063,7 +3063,7 @@ def _obl_ang1_pywrap(double x0, double x1, double x2, double x3):
     obl_ang1(x0, x1, x2, x3, &y0, &y1)
     return y0, y1
 
-cdef void obl_ang1_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) nogil:
+cdef void obl_ang1_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.obl_ang1_cv"""
     _func_oblate_aswfa_wrap(x0, x1, x2, x3, x4, y0, y1)
 
@@ -3077,7 +3077,7 @@ cpdef double obl_cv(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.obl_cv"""
     return _func_oblate_segv_wrap(x0, x1, x2)
 
-cdef void obl_rad1(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil:
+cdef void obl_rad1(double x0, double x1, double x2, double x3, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.obl_rad1"""
     y0[0] = _func_oblate_radial1_nocv_wrap(x0, x1, x2, x3, y1)
 
@@ -3087,7 +3087,7 @@ def _obl_rad1_pywrap(double x0, double x1, double x2, double x3):
     obl_rad1(x0, x1, x2, x3, &y0, &y1)
     return y0, y1
 
-cdef void obl_rad1_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) nogil:
+cdef void obl_rad1_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.obl_rad1_cv"""
     _func_oblate_radial1_wrap(x0, x1, x2, x3, x4, y0, y1)
 
@@ -3097,7 +3097,7 @@ def _obl_rad1_cv_pywrap(double x0, double x1, double x2, double x3, double x4):
     obl_rad1_cv(x0, x1, x2, x3, x4, &y0, &y1)
     return y0, y1
 
-cdef void obl_rad2(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil:
+cdef void obl_rad2(double x0, double x1, double x2, double x3, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.obl_rad2"""
     y0[0] = _func_oblate_radial2_nocv_wrap(x0, x1, x2, x3, y1)
 
@@ -3107,7 +3107,7 @@ def _obl_rad2_pywrap(double x0, double x1, double x2, double x3):
     obl_rad2(x0, x1, x2, x3, &y0, &y1)
     return y0, y1
 
-cdef void obl_rad2_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) nogil:
+cdef void obl_rad2_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.obl_rad2_cv"""
     _func_oblate_radial2_wrap(x0, x1, x2, x3, x4, y0, y1)
 
@@ -3121,7 +3121,7 @@ cpdef double owens_t(double x0, double x1) nogil:
     """See the documentation for scipy.special.owens_t"""
     return _func_owens_t(x0, x1)
 
-cdef void pbdv(double x0, double x1, double *y0, double *y1) nogil:
+cdef void pbdv(double x0, double x1, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.pbdv"""
     _func_pbdv_wrap(x0, x1, y0, y1)
 
@@ -3131,7 +3131,7 @@ def _pbdv_pywrap(double x0, double x1):
     pbdv(x0, x1, &y0, &y1)
     return y0, y1
 
-cdef void pbvv(double x0, double x1, double *y0, double *y1) nogil:
+cdef void pbvv(double x0, double x1, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.pbvv"""
     _func_pbvv_wrap(x0, x1, y0, y1)
 
@@ -3141,7 +3141,7 @@ def _pbvv_pywrap(double x0, double x1):
     pbvv(x0, x1, &y0, &y1)
     return y0, y1
 
-cdef void pbwa(double x0, double x1, double *y0, double *y1) nogil:
+cdef void pbwa(double x0, double x1, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.pbwa"""
     _func_pbwa_wrap(x0, x1, y0, y1)
 
@@ -3179,16 +3179,16 @@ cpdef double poch(double x0, double x1) nogil:
 cpdef df_number_t powm1(df_number_t x0, df_number_t x1) nogil:
     """See the documentation for scipy.special.powm1"""
     if df_number_t is float:
-        return (<float(*)(float, float) nogil>scipy.special._ufuncs_cxx._export_powm1_float)(x0, x1)
+        return (<float(*)(float, float) noexcept nogil>scipy.special._ufuncs_cxx._export_powm1_float)(x0, x1)
     elif df_number_t is double:
-        return (<double(*)(double, double) nogil>scipy.special._ufuncs_cxx._export_powm1_double)(x0, x1)
+        return (<double(*)(double, double) noexcept nogil>scipy.special._ufuncs_cxx._export_powm1_double)(x0, x1)
     else:
         if df_number_t is double:
             return NAN
         else:
             return NAN
 
-cdef void pro_ang1(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil:
+cdef void pro_ang1(double x0, double x1, double x2, double x3, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.pro_ang1"""
     y0[0] = _func_prolate_aswfa_nocv_wrap(x0, x1, x2, x3, y1)
 
@@ -3198,7 +3198,7 @@ def _pro_ang1_pywrap(double x0, double x1, double x2, double x3):
     pro_ang1(x0, x1, x2, x3, &y0, &y1)
     return y0, y1
 
-cdef void pro_ang1_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) nogil:
+cdef void pro_ang1_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.pro_ang1_cv"""
     _func_prolate_aswfa_wrap(x0, x1, x2, x3, x4, y0, y1)
 
@@ -3212,7 +3212,7 @@ cpdef double pro_cv(double x0, double x1, double x2) nogil:
     """See the documentation for scipy.special.pro_cv"""
     return _func_prolate_segv_wrap(x0, x1, x2)
 
-cdef void pro_rad1(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil:
+cdef void pro_rad1(double x0, double x1, double x2, double x3, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.pro_rad1"""
     y0[0] = _func_prolate_radial1_nocv_wrap(x0, x1, x2, x3, y1)
 
@@ -3222,7 +3222,7 @@ def _pro_rad1_pywrap(double x0, double x1, double x2, double x3):
     pro_rad1(x0, x1, x2, x3, &y0, &y1)
     return y0, y1
 
-cdef void pro_rad1_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) nogil:
+cdef void pro_rad1_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.pro_rad1_cv"""
     _func_prolate_radial1_wrap(x0, x1, x2, x3, x4, y0, y1)
 
@@ -3232,7 +3232,7 @@ def _pro_rad1_cv_pywrap(double x0, double x1, double x2, double x3, double x4):
     pro_rad1_cv(x0, x1, x2, x3, x4, &y0, &y1)
     return y0, y1
 
-cdef void pro_rad2(double x0, double x1, double x2, double x3, double *y0, double *y1) nogil:
+cdef void pro_rad2(double x0, double x1, double x2, double x3, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.pro_rad2"""
     y0[0] = _func_prolate_radial2_nocv_wrap(x0, x1, x2, x3, y1)
 
@@ -3242,7 +3242,7 @@ def _pro_rad2_pywrap(double x0, double x1, double x2, double x3):
     pro_rad2(x0, x1, x2, x3, &y0, &y1)
     return y0, y1
 
-cdef void pro_rad2_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) nogil:
+cdef void pro_rad2_cv(double x0, double x1, double x2, double x3, double x4, double *y0, double *y1) noexcept nogil:
     """See the documentation for scipy.special.pro_rad2_cv"""
     _func_prolate_radial2_wrap(x0, x1, x2, x3, x4, y0, y1)
 
@@ -3292,7 +3292,7 @@ cpdef double round(double x0) nogil:
     """See the documentation for scipy.special.round"""
     return _func_round(x0)
 
-cdef void shichi(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1) nogil:
+cdef void shichi(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1) noexcept nogil:
     """See the documentation for scipy.special.shichi"""
     if Dd_number_t is double_complex:
         _func_cshichi(x0, y0, y1)
@@ -3312,7 +3312,7 @@ def _shichi_pywrap(Dd_number_t x0):
     shichi(x0, &y0, &y1)
     return y0, y1
 
-cdef void sici(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1) nogil:
+cdef void sici(Dd_number_t x0, Dd_number_t *y0, Dd_number_t *y1) noexcept nogil:
     """See the documentation for scipy.special.sici"""
     if Dd_number_t is double_complex:
         _func_csici(x0, y0, y1)
@@ -3401,14 +3401,14 @@ cpdef double tklmbda(double x0, double x1) nogil:
 
 cpdef double complex wofz(double complex x0) nogil:
     """See the documentation for scipy.special.wofz"""
-    return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_faddeeva_w)(x0)
+    return (<double complex(*)(double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_faddeeva_w)(x0)
 
 cpdef Dd_number_t wrightomega(Dd_number_t x0) nogil:
     """See the documentation for scipy.special.wrightomega"""
     if Dd_number_t is double_complex:
-        return (<double complex(*)(double complex) nogil>scipy.special._ufuncs_cxx._export_wrightomega)(x0)
+        return (<double complex(*)(double complex) noexcept nogil>scipy.special._ufuncs_cxx._export_wrightomega)(x0)
     elif Dd_number_t is double:
-        return (<double(*)(double) nogil>scipy.special._ufuncs_cxx._export_wrightomega_real)(x0)
+        return (<double(*)(double) noexcept nogil>scipy.special._ufuncs_cxx._export_wrightomega_real)(x0)
     else:
         if Dd_number_t is double_complex:
             return NAN

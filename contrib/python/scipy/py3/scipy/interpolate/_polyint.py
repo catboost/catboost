@@ -106,7 +106,7 @@ class _Interpolator1D:
     def _reshape_yi(self, yi, check=False):
         yi = np.moveaxis(np.asarray(yi), self._y_axis, 0)
         if check and yi.shape[1:] != self._y_extra_shape:
-            ok_shape = "%r + (N,) + %r" % (self._y_extra_shape[-self._y_axis:],
+            ok_shape = "{!r} + (N,) + {!r}".format(self._y_extra_shape[-self._y_axis:],
                                            self._y_extra_shape[:-self._y_axis])
             raise ValueError("Data must be of shape %s" % ok_shape)
         return yi.reshape((yi.shape[0], -1))
@@ -235,13 +235,16 @@ class KroghInterpolator(_Interpolator1DWithDerivatives):
 
     Parameters
     ----------
-    xi : array_like, length N
+    xi : array_like, shape (npoints, )
         Known x-coordinates. Must be sorted in increasing order.
-    yi : array_like
+    yi : array_like, shape (..., npoints, ...)
         Known y-coordinates. When an xi occurs two or more times in
-        a row, the corresponding yi's represent derivative values.
+        a row, the corresponding yi's represent derivative values. The length of `yi`
+        along the interpolation axis must be equal to the length of `xi`. Use the
+        `axis` parameter to select the correct axis.
     axis : int, optional
-        Axis in the yi array corresponding to the x-coordinate values.
+        Axis in the `yi` array corresponding to the x-coordinate values. Defaults to
+        ``axis=0``.
 
     Notes
     -----
@@ -520,14 +523,17 @@ class BarycentricInterpolator(_Interpolator1D):
 
     Parameters
     ----------
-    xi : array_like
+    xi : array_like, shape (npoints, )
         1-D array of x coordinates of the points the polynomial
         should pass through
-    yi : array_like, optional
-        The y coordinates of the points the polynomial should pass through.
+    yi : array_like, shape (..., npoints, ...), optional
+        N-D array of y coordinates of the points the polynomial should pass through.
         If None, the y values will be supplied later via the `set_y` method.
+        The length of `yi` along the interpolation axis must be equal to the length
+        of `xi`. Use the ``axis`` parameter to select correct axis.
     axis : int, optional
-        Axis in the yi array corresponding to the x-coordinate values.
+        Axis in the yi array corresponding to the x-coordinate values. Defaults
+        to ``axis=0``.
 
     Notes
     -----

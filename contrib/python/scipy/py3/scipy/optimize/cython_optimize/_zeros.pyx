@@ -4,7 +4,7 @@ from . cimport c_zeros
 
 
 # callback function wrapper that extracts function, args from params struct
-cdef double scipy_zeros_functions_func(double x, void *params):
+cdef double scipy_zeros_functions_func(double x, void *params) noexcept:
     cdef zeros_parameters *myparams = <zeros_parameters *> params
     cdef void* args = myparams.args
     cdef callback_type f = myparams.function
@@ -16,7 +16,7 @@ cdef double scipy_zeros_functions_func(double x, void *params):
 # cythonized way to call scalar bisect
 cdef double bisect(
         callback_type f, double xa, double xb, void *args, double xtol,
-        double rtol, int iter, zeros_full_output *full_output) nogil:
+        double rtol, int iter, zeros_full_output *full_output) noexcept nogil:
     cdef c_zeros.scipy_zeros_info solver_stats
     cdef zeros_parameters myparams
     cdef double root
@@ -38,7 +38,7 @@ cdef double bisect(
 # cythonized way to call scalar ridder
 cdef double ridder(
         callback_type f, double xa, double xb, void *args, double xtol,
-        double rtol, int iter, zeros_full_output *full_output) nogil:
+        double rtol, int iter, zeros_full_output *full_output) noexcept nogil:
     cdef c_zeros.scipy_zeros_info solver_stats
     cdef zeros_parameters myparams
     cdef double root
@@ -60,7 +60,7 @@ cdef double ridder(
 # cythonized way to call scalar brenth
 cdef double brenth(
         callback_type f, double xa, double xb, void *args, double xtol,
-        double rtol, int iter, zeros_full_output *full_output) nogil:
+        double rtol, int iter, zeros_full_output *full_output) noexcept nogil:
     cdef c_zeros.scipy_zeros_info solver_stats
     cdef zeros_parameters myparams
     cdef double root
@@ -82,7 +82,7 @@ cdef double brenth(
 # cythonized way to call scalar brentq
 cdef double brentq(
         callback_type f, double xa, double xb, void *args, double xtol,
-        double rtol, int iter, zeros_full_output *full_output) nogil:
+        double rtol, int iter, zeros_full_output *full_output) noexcept nogil:
     cdef c_zeros.scipy_zeros_info solver_stats
     cdef zeros_parameters myparams
     cdef double root
@@ -111,7 +111,7 @@ ctypedef struct extra_params:
 
 
 # callback function
-cdef double f_example(double x, void *args):
+cdef double f_example(double x, void *args) noexcept:
     cdef extra_params *myargs = <extra_params *> args
     cdef double[4] a
     # unpack structure
@@ -123,7 +123,7 @@ cdef double f_example(double x, void *args):
 #
 # bisect example
 cdef double bisect_example(
-        tuple args, float xa, float xb, float xtol, float rtol, int mitr):
+        tuple args, float xa, float xb, float xtol, float rtol, int mitr) noexcept:
     cdef extra_params myargs
     myargs.a = args
     return bisect(
@@ -133,7 +133,7 @@ cdef double bisect_example(
 #
 # ridder example
 cdef double ridder_example(
-        tuple args, float xa, float xb, float xtol, float rtol, int mitr):
+        tuple args, float xa, float xb, float xtol, float rtol, int mitr) noexcept:
     cdef extra_params myargs
     myargs.a = args
     return ridder(
@@ -143,7 +143,7 @@ cdef double ridder_example(
 #
 # brenth example
 cdef double brenth_example(
-        tuple args, float xa, float xb, float xtol, float rtol, int mitr):
+        tuple args, float xa, float xb, float xtol, float rtol, int mitr) noexcept:
     cdef extra_params myargs
     myargs.a = args
     return brenth(
@@ -153,7 +153,7 @@ cdef double brenth_example(
 #
 # brentq example
 cdef double brentq_example(
-        tuple args, float xa, float xb, float xtol, float rtol, int mitr):
+        tuple args, float xa, float xb, float xtol, float rtol, int mitr) noexcept:
     cdef extra_params myargs
     myargs.a = args
     return brentq(
@@ -210,7 +210,7 @@ def loop_example(method, a0, args, xa, xb, xtol, rtol, mitr):
 
 # brentq example with full ouptut
 cdef zeros_full_output brentq_full_output_example(
-        tuple args, float xa, float xb, float xtol, float rtol, int mitr):
+        tuple args, float xa, float xb, float xtol, float rtol, int mitr) noexcept:
     cdef zeros_full_output full_output
     cdef extra_params myargs
     myargs.a = args

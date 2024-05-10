@@ -21,5 +21,5 @@ np.import_array()
 np.import_ufunc()
 
 cdef void _set_action(sf_error.sf_error_t code,
-                      sf_error.sf_action_t action) nogil:
+                      sf_error.sf_action_t action) noexcept nogil:
     sf_error.set_action(code, action)

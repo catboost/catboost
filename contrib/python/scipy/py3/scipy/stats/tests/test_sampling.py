@@ -7,7 +7,6 @@ import sys
 import math
 import numpy as np
 from numpy.testing import assert_allclose, assert_equal, suppress_warnings
-from numpy.lib import NumpyVersion
 from scipy.stats.sampling import (
     TransformedDensityRejection,
     DiscreteAliasUrn,
@@ -293,12 +292,12 @@ def test_with_scipy_distribution():
     check_discr_samples(rng, pv, dist.stats())
 
 
-def check_cont_samples(rng, dist, mv_ex):
+def check_cont_samples(rng, dist, mv_ex, rtol=1e-7, atol=1e-1):
     rvs = rng.rvs(100000)
     mv = rvs.mean(), rvs.var()
     # test the moments only if the variance is finite
     if np.isfinite(mv_ex[1]):
-        assert_allclose(mv, mv_ex, rtol=1e-7, atol=1e-1)
+        assert_allclose(mv, mv_ex, rtol=rtol, atol=atol)
     # Cramer Von Mises test for goodness-of-fit
     rvs = rng.rvs(500)
     dist.cdf = np.vectorize(dist.cdf)
@@ -306,11 +305,11 @@ def check_cont_samples(rng, dist, mv_ex):
     assert pval > 0.1
 
 
-def check_discr_samples(rng, pv, mv_ex):
+def check_discr_samples(rng, pv, mv_ex, rtol=1e-3, atol=1e-1):
     rvs = rng.rvs(100000)
     # test if the first few moments match
     mv = rvs.mean(), rvs.var()
-    assert_allclose(mv, mv_ex, rtol=1e-3, atol=1e-1)
+    assert_allclose(mv, mv_ex, rtol=rtol, atol=atol)
     # normalize
     pv = pv / pv.sum()
     # chi-squared test for goodness-of-fit
@@ -699,7 +698,7 @@ class TestDiscreteAliasUrn:
     def test_sampling_with_pv(self, pv):
         pv = np.asarray(pv, dtype=np.float64)
         rng = DiscreteAliasUrn(pv, random_state=123)
-        rvs = rng.rvs(100_000)
+        rng.rvs(100_000)
         pv = pv / pv.sum()
         variates = np.arange(0, len(pv))
         # test if the first few moments match
@@ -737,6 +736,13 @@ class TestDiscreteAliasUrn:
 
         with pytest.raises(ValueError, match=msg):
             DiscreteAliasUrn(dist)
+
+    def test_gh19359(self):
+        pv = special.softmax(np.ones((1533,)))
+        rng = DiscreteAliasUrn(pv, random_state=42)
+        # check the correctness
+        check_discr_samples(rng, pv, (1532 / 2, (1532**2 - 1) / 12),
+                            rtol=5e-3)
 
 
 class TestNumericalInversePolynomial:
@@ -807,21 +813,28 @@ class TestNumericalInversePolynomial:
         rng = NumericalInversePolynomial(dist, random_state=42)
         check_cont_samples(rng, dist, mv_ex)
 
-    very_slow_dists = ['studentized_range', 'trapezoid', 'triang', 'vonmises',
-                       'levy_stable', 'kappa4', 'ksone', 'kstwo', 'levy_l',
-                       'gausshyper', 'anglit']
-    # for these distributions, some assertions fail due to minor
-    # numerical differences. They can be avoided either by changing
-    # the seed or by increasing the u_resolution.
-    fail_dists = ['ncf', 'pareto', 'chi2', 'fatiguelife', 'halfgennorm',
-                  'gibrat', 'lognorm', 'ncx2', 't']
-
     @pytest.mark.xslow
     @pytest.mark.parametrize("distname, params", distcont)
     def test_basic_all_scipy_dists(self, distname, params):
-        if distname in self.very_slow_dists:
+
+        very_slow_dists = ['anglit', 'gausshyper', 'kappa4',
+                           'ksone', 'kstwo', 'levy_l',
+                           'levy_stable', 'studentized_range',
+                           'trapezoid', 'triang', 'vonmises']
+        # for these distributions, some assertions fail due to minor
+        # numerical differences. They can be avoided either by changing
+        # the seed or by increasing the u_resolution.
+        fail_dists = ['chi2', 'fatiguelife', 'gibrat',
+                      'halfgennorm', 'lognorm', 'ncf',
+                      'ncx2', 'pareto', 't']
+        # for these distributions, skip the check for agreement between sample
+        # moments and true moments. We cannot expect them to pass due to the
+        # high variance of sample moments.
+        skip_sample_moment_check = ['rel_breitwigner']
+
+        if distname in very_slow_dists:
             pytest.skip(f"PINV too slow for {distname}")
-        if distname in self.fail_dists:
+        if distname in fail_dists:
             pytest.skip(f"PINV fails for {distname}")
         dist = (getattr(stats, distname)
                 if isinstance(distname, str)
@@ -830,6 +843,8 @@ class TestNumericalInversePolynomial:
         with suppress_warnings() as sup:
             sup.filter(RuntimeWarning)
             rng = NumericalInversePolynomial(dist, random_state=42)
+        if distname in skip_sample_moment_check:
+            return
         check_cont_samples(rng, dist, [dist.mean(), dist.var()])
 
     @pytest.mark.parametrize("pdf, err, msg", bad_pdfs_common)

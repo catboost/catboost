@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 
 import warnings
@@ -1102,7 +1101,7 @@ class levy_stable_gen(rv_continuous):
                     density_x, np.real(density), k=fft_interpolation_degree
                 )
                 data_out[data_mask] = np.array(
-                    [f.integral(self.a, x_1) for x_1 in _x]
+                    [f.integral(self.a, float(x_1.squeeze())) for x_1 in _x]
                 ).reshape(data_out[data_mask].shape)
 
         return data_out.T[0]
@@ -1117,8 +1116,8 @@ class levy_stable_gen(rv_continuous):
     def _stats(self, alpha, beta):
         mu = 0 if alpha > 1 else np.nan
         mu2 = 2 if alpha == 2 else np.inf
-        g1 = 0.0 if alpha == 2.0 else np.NaN
-        g2 = 0.0 if alpha == 2.0 else np.NaN
+        g1 = 0.0 if alpha == 2.0 else np.nan
+        g2 = 0.0 if alpha == 2.0 else np.nan
         return mu, mu2, g1, g2
 
 

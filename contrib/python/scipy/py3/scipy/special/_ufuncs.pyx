@@ -6,7 +6,7 @@ from libc.math cimport NAN
 include "_ufuncs_extra_code_common.pxi"
 include "_ufuncs_extra_code.pxi"
 __all__ = ['agm', 'airy', 'airye', 'bdtr', 'bdtrc', 'bdtri', 'bdtrik', 'bdtrin', 'bei', 'beip', 'ber', 'berp', 'besselpoly', 'beta', 'betainc', 'betaincinv', 'betaln', 'binom', 'boxcox', 'boxcox1p', 'btdtr', 'btdtri', 'btdtria', 'btdtrib', 'cbrt', 'chdtr', 'chdtrc', 'chdtri', 'chdtriv', 'chndtr', 'chndtridf', 'chndtrinc', 'chndtrix', 'cosdg', 'cosm1', 'cotdg', 'dawsn', 'ellipe', 'ellipeinc', 'ellipj', 'ellipk', 'ellipkinc', 'ellipkm1', 'elliprc', 'elliprd', 'elliprf', 'elliprg', 'elliprj', 'entr', 'erf', 'erfc', 'erfcinv', 'erfcx', 'erfi', 'erfinv', 'eval_chebyc', 'eval_chebys', 'eval_chebyt', 'eval_chebyu', 'eval_gegenbauer', 'eval_genlaguerre', 'eval_hermite', 'eval_hermitenorm', 'eval_jacobi', 'eval_laguerre', 'eval_legendre', 'eval_sh_chebyt', 'eval_sh_chebyu', 'eval_sh_jacobi', 'eval_sh_legendre', 'exp1', 'exp10', 'exp2', 'expi', 'expit', 'expm1', 'expn', 'exprel', 'fdtr', 'fdtrc', 'fdtri', 'fdtridfd', 'fresnel', 'gamma', 'gammainc', 'gammaincc', 'gammainccinv', 'gammaincinv', 'gammaln', 'gammasgn', 'gdtr', 'gdtrc', 'gdtria', 'gdtrib', 'gdtrix', 'hankel1', 'hankel1e', 'hankel2', 'hankel2e', 'huber', 'hyp0f1', 'hyp1f1', 'hyp2f1', 'hyperu', 'i0', 'i0e', 'i1', 'i1e', 'inv_boxcox', 'inv_boxcox1p', 'it2i0k0', 'it2j0y0', 'it2struve0', 'itairy', 'iti0k0', 'itj0y0', 'itmodstruve0', 'itstruve0', 'iv', 'ive', 'j0', 'j1', 'jv', 'jve', 'k0', 'k0e', 'k1', 'k1e', 'kei', 'keip', 'kelvin', 'ker', 'kerp', 'kl_div', 'kn', 'kolmogi', 'kolmogorov', 'kv', 'kve', 'log1p', 'log_expit', 'log_ndtr', 'loggamma', 'logit', 'lpmv', 'mathieu_a', 'mathieu_b', 'mathieu_cem', 'mathieu_modcem1', 'mathieu_modcem2', 'mathieu_modsem1', 'mathieu_modsem2', 'mathieu_sem', 'modfresnelm', 'modfresnelp', 'modstruve', 'nbdtr', 'nbdtrc', 'nbdtri', 'nbdtrik', 'nbdtrin', 'ncfdtr', 'ncfdtri', 'ncfdtridfd', 'ncfdtridfn', 'ncfdtrinc', 'nctdtr', 'nctdtridf', 'nctdtrinc', 'nctdtrit', 'ndtr', 'ndtri', 'ndtri_exp', 'nrdtrimn', 'nrdtrisd', 'obl_ang1', 'obl_ang1_cv', 'obl_cv', 'obl_rad1', 'obl_rad1_cv', 'obl_rad2', 'obl_rad2_cv', 'owens_t', 'pbdv', 'pbvv', 'pbwa', 'pdtr', 'pdtrc', 'pdtri', 'pdtrik', 'poch', 'powm1', 'pro_ang1', 'pro_ang1_cv', 'pro_cv', 'pro_rad1', 'pro_rad1_cv', 'pro_rad2', 'pro_rad2_cv', 'pseudo_huber', 'psi', 'radian', 'rel_entr', 'rgamma', 'round', 'shichi', 'sici', 'sindg', 'smirnov', 'smirnovi', 'spence', 'sph_harm', 'stdtr', 'stdtridf', 'stdtrit', 'struve', 'tandg', 'tklmbda', 'voigt_profile', 'wofz', 'wright_bessel', 'wrightomega', 'xlog1py', 'xlogy', 'y0', 'y1', 'yn', 'yv', 'yve', 'zetac', 'geterr', 'seterr', 'errstate', 'jn']
-cdef void loop_D_DDDD__As_DDDD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_DDDD__As_DDDD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -17,7 +17,7 @@ cdef void loop_D_DDDD__As_DDDD_D(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef char *op0 = args[4]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double complex, double complex, double complex, double complex) nogil>func)(<double complex>(<double complex*>ip0)[0], <double complex>(<double complex*>ip1)[0], <double complex>(<double complex*>ip2)[0], <double complex>(<double complex*>ip3)[0])
+        ov0 = (<double complex(*)(double complex, double complex, double complex, double complex) noexcept nogil>func)(<double complex>(<double complex*>ip0)[0], <double complex>(<double complex*>ip1)[0], <double complex>(<double complex*>ip2)[0], <double complex>(<double complex*>ip3)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -26,7 +26,7 @@ cdef void loop_D_DDDD__As_DDDD_D(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_DDDD__As_FFFF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_DDDD__As_FFFF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -37,7 +37,7 @@ cdef void loop_D_DDDD__As_FFFF_F(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef char *op0 = args[4]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double complex, double complex, double complex, double complex) nogil>func)(<double complex>(<float complex*>ip0)[0], <double complex>(<float complex*>ip1)[0], <double complex>(<float complex*>ip2)[0], <double complex>(<float complex*>ip3)[0])
+        ov0 = (<double complex(*)(double complex, double complex, double complex, double complex) noexcept nogil>func)(<double complex>(<float complex*>ip0)[0], <double complex>(<float complex*>ip1)[0], <double complex>(<float complex*>ip2)[0], <double complex>(<float complex*>ip3)[0])
         (<float complex *>op0)[0] = <float complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -46,7 +46,7 @@ cdef void loop_D_DDDD__As_FFFF_F(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_DDD__As_DDD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_DDD__As_DDD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -56,7 +56,7 @@ cdef void loop_D_DDD__As_DDD_D(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef char *op0 = args[3]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double complex, double complex, double complex) nogil>func)(<double complex>(<double complex*>ip0)[0], <double complex>(<double complex*>ip1)[0], <double complex>(<double complex*>ip2)[0])
+        ov0 = (<double complex(*)(double complex, double complex, double complex) noexcept nogil>func)(<double complex>(<double complex*>ip0)[0], <double complex>(<double complex*>ip1)[0], <double complex>(<double complex*>ip2)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -64,7 +64,7 @@ cdef void loop_D_DDD__As_DDD_D(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_DDD__As_FFF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_DDD__As_FFF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -74,7 +74,7 @@ cdef void loop_D_DDD__As_FFF_F(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef char *op0 = args[3]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double complex, double complex, double complex) nogil>func)(<double complex>(<float complex*>ip0)[0], <double complex>(<float complex*>ip1)[0], <double complex>(<float complex*>ip2)[0])
+        ov0 = (<double complex(*)(double complex, double complex, double complex) noexcept nogil>func)(<double complex>(<float complex*>ip0)[0], <double complex>(<float complex*>ip1)[0], <double complex>(<float complex*>ip2)[0])
         (<float complex *>op0)[0] = <float complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -82,7 +82,7 @@ cdef void loop_D_DDD__As_FFF_F(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_DD__As_DD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_DD__As_DD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -91,14 +91,14 @@ cdef void loop_D_DD__As_DD_D(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef char *op0 = args[2]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double complex, double complex) nogil>func)(<double complex>(<double complex*>ip0)[0], <double complex>(<double complex*>ip1)[0])
+        ov0 = (<double complex(*)(double complex, double complex) noexcept nogil>func)(<double complex>(<double complex*>ip0)[0], <double complex>(<double complex*>ip1)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_DD__As_FF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_DD__As_FF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -107,14 +107,14 @@ cdef void loop_D_DD__As_FF_F(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef char *op0 = args[2]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double complex, double complex) nogil>func)(<double complex>(<float complex*>ip0)[0], <double complex>(<float complex*>ip1)[0])
+        ov0 = (<double complex(*)(double complex, double complex) noexcept nogil>func)(<double complex>(<float complex*>ip0)[0], <double complex>(<float complex*>ip1)[0])
         (<float complex *>op0)[0] = <float complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_D__As_D_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_D__As_D_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -122,13 +122,13 @@ cdef void loop_D_D__As_D_D(char **args, np.npy_intp *dims, np.npy_intp *steps, v
     cdef char *op0 = args[1]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double complex) nogil>func)(<double complex>(<double complex*>ip0)[0])
+        ov0 = (<double complex(*)(double complex) noexcept nogil>func)(<double complex>(<double complex*>ip0)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         op0 += steps[1]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_D__As_F_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_D__As_F_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -136,13 +136,13 @@ cdef void loop_D_D__As_F_F(char **args, np.npy_intp *dims, np.npy_intp *steps, v
     cdef char *op0 = args[1]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double complex) nogil>func)(<double complex>(<float complex*>ip0)[0])
+        ov0 = (<double complex(*)(double complex) noexcept nogil>func)(<double complex>(<float complex*>ip0)[0])
         (<float complex *>op0)[0] = <float complex>ov0
         ip0 += steps[0]
         op0 += steps[1]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_Dld__As_Dld_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_Dld__As_Dld_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -152,7 +152,7 @@ cdef void loop_D_Dld__As_Dld_D(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef char *op0 = args[3]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double complex, long, double) nogil>func)(<double complex>(<double complex*>ip0)[0], <long>(<long*>ip1)[0], <double>(<double*>ip2)[0])
+        ov0 = (<double complex(*)(double complex, long, double) noexcept nogil>func)(<double complex>(<double complex*>ip0)[0], <long>(<long*>ip1)[0], <double>(<double*>ip2)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -160,7 +160,7 @@ cdef void loop_D_Dld__As_Dld_D(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_dD__As_dD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_dD__As_dD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -169,14 +169,14 @@ cdef void loop_D_dD__As_dD_D(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef char *op0 = args[2]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double, double complex) nogil>func)(<double>(<double*>ip0)[0], <double complex>(<double complex*>ip1)[0])
+        ov0 = (<double complex(*)(double, double complex) noexcept nogil>func)(<double>(<double*>ip0)[0], <double complex>(<double complex*>ip1)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_dD__As_fF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_dD__As_fF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -185,14 +185,14 @@ cdef void loop_D_dD__As_fF_F(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef char *op0 = args[2]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double, double complex) nogil>func)(<double>(<float*>ip0)[0], <double complex>(<float complex*>ip1)[0])
+        ov0 = (<double complex(*)(double, double complex) noexcept nogil>func)(<double>(<float*>ip0)[0], <double complex>(<float complex*>ip1)[0])
         (<float complex *>op0)[0] = <float complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_ddD__As_ddD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_ddD__As_ddD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -202,7 +202,7 @@ cdef void loop_D_ddD__As_ddD_D(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef char *op0 = args[3]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double, double, double complex) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double complex>(<double complex*>ip2)[0])
+        ov0 = (<double complex(*)(double, double, double complex) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double complex>(<double complex*>ip2)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -210,7 +210,7 @@ cdef void loop_D_ddD__As_ddD_D(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_ddD__As_ffF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_ddD__As_ffF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -220,7 +220,7 @@ cdef void loop_D_ddD__As_ffF_F(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef char *op0 = args[3]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double, double, double complex) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double complex>(<float complex*>ip2)[0])
+        ov0 = (<double complex(*)(double, double, double complex) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double complex>(<float complex*>ip2)[0])
         (<float complex *>op0)[0] = <float complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -228,7 +228,7 @@ cdef void loop_D_ddD__As_ffF_F(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_dddD__As_dddD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_dddD__As_dddD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -239,7 +239,7 @@ cdef void loop_D_dddD__As_dddD_D(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef char *op0 = args[4]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double, double, double, double complex) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double complex>(<double complex*>ip3)[0])
+        ov0 = (<double complex(*)(double, double, double, double complex) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double complex>(<double complex*>ip3)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -248,7 +248,7 @@ cdef void loop_D_dddD__As_dddD_D(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_dddD__As_fffF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_dddD__As_fffF_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -259,7 +259,7 @@ cdef void loop_D_dddD__As_fffF_F(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef char *op0 = args[4]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double, double, double, double complex) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double complex>(<float complex*>ip3)[0])
+        ov0 = (<double complex(*)(double, double, double, double complex) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double complex>(<float complex*>ip3)[0])
         (<float complex *>op0)[0] = <float complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -268,7 +268,7 @@ cdef void loop_D_dddD__As_fffF_F(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_dddd__As_dddd_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_dddd__As_dddd_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -279,7 +279,7 @@ cdef void loop_D_dddd__As_dddd_D(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef char *op0 = args[4]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double, double, double, double) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0])
+        ov0 = (<double complex(*)(double, double, double, double) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -288,7 +288,7 @@ cdef void loop_D_dddd__As_dddd_D(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_dddd__As_ffff_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_dddd__As_ffff_F(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -299,7 +299,7 @@ cdef void loop_D_dddd__As_ffff_F(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef char *op0 = args[4]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(double, double, double, double) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0])
+        ov0 = (<double complex(*)(double, double, double, double) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0])
         (<float complex *>op0)[0] = <float complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -308,7 +308,7 @@ cdef void loop_D_dddd__As_ffff_F(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_iidd__As_lldd_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_iidd__As_lldd_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -320,7 +320,7 @@ cdef void loop_D_iidd__As_lldd_D(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef double complex ov0
     for i in range(n):
         if <int>(<long*>ip0)[0] == (<long*>ip0)[0] and <int>(<long*>ip1)[0] == (<long*>ip1)[0]:
-            ov0 = (<double complex(*)(int, int, double, double) nogil>func)(<int>(<long*>ip0)[0], <int>(<long*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0])
+            ov0 = (<double complex(*)(int, int, double, double) noexcept nogil>func)(<int>(<long*>ip0)[0], <int>(<long*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0])
         else:
             sf_error.error(func_name, sf_error.DOMAIN, "invalid input argument")
             ov0 = <double complex>NAN
@@ -332,7 +332,7 @@ cdef void loop_D_iidd__As_lldd_D(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_D_lD__As_lD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_D_lD__As_lD_D(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -341,14 +341,14 @@ cdef void loop_D_lD__As_lD_D(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef char *op0 = args[2]
     cdef double complex ov0
     for i in range(n):
-        ov0 = (<double complex(*)(long, double complex) nogil>func)(<long>(<long*>ip0)[0], <double complex>(<double complex*>ip1)[0])
+        ov0 = (<double complex(*)(long, double complex) noexcept nogil>func)(<long>(<long*>ip0)[0], <double complex>(<double complex*>ip1)[0])
         (<double complex *>op0)[0] = <double complex>ov0
         ip0 += steps[0]
         ip1 += steps[1]
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_d__As_d_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_d__As_d_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -356,13 +356,13 @@ cdef void loop_d_d__As_d_d(char **args, np.npy_intp *dims, np.npy_intp *steps, v
     cdef char *op0 = args[1]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double) nogil>func)(<double>(<double*>ip0)[0])
+        ov0 = (<double(*)(double) noexcept nogil>func)(<double>(<double*>ip0)[0])
         (<double *>op0)[0] = <double>ov0
         ip0 += steps[0]
         op0 += steps[1]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_d__As_f_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_d__As_f_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -370,13 +370,13 @@ cdef void loop_d_d__As_f_f(char **args, np.npy_intp *dims, np.npy_intp *steps, v
     cdef char *op0 = args[1]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double) nogil>func)(<double>(<float*>ip0)[0])
+        ov0 = (<double(*)(double) noexcept nogil>func)(<double>(<float*>ip0)[0])
         (<float *>op0)[0] = <float>ov0
         ip0 += steps[0]
         op0 += steps[1]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_dd__As_dd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_dd__As_dd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -385,14 +385,14 @@ cdef void loop_d_dd__As_dd_d(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef char *op0 = args[2]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double, double) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0])
+        ov0 = (<double(*)(double, double) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0])
         (<double *>op0)[0] = <double>ov0
         ip0 += steps[0]
         ip1 += steps[1]
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_dd__As_ff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_dd__As_ff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -401,14 +401,14 @@ cdef void loop_d_dd__As_ff_f(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef char *op0 = args[2]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double, double) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0])
+        ov0 = (<double(*)(double, double) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0])
         (<float *>op0)[0] = <float>ov0
         ip0 += steps[0]
         ip1 += steps[1]
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_ddd__As_ddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_ddd__As_ddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -418,7 +418,7 @@ cdef void loop_d_ddd__As_ddd_d(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef char *op0 = args[3]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double, double, double) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0])
+        ov0 = (<double(*)(double, double, double) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0])
         (<double *>op0)[0] = <double>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -426,7 +426,7 @@ cdef void loop_d_ddd__As_ddd_d(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_ddd__As_fff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_ddd__As_fff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -436,7 +436,7 @@ cdef void loop_d_ddd__As_fff_f(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef char *op0 = args[3]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double, double, double) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0])
+        ov0 = (<double(*)(double, double, double) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0])
         (<float *>op0)[0] = <float>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -444,7 +444,7 @@ cdef void loop_d_ddd__As_fff_f(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_dddd__As_dddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_dddd__As_dddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -455,7 +455,7 @@ cdef void loop_d_dddd__As_dddd_d(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef char *op0 = args[4]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double, double, double, double) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0])
+        ov0 = (<double(*)(double, double, double, double) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0])
         (<double *>op0)[0] = <double>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -464,7 +464,7 @@ cdef void loop_d_dddd__As_dddd_d(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_dddd__As_ffff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_dddd__As_ffff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -475,7 +475,7 @@ cdef void loop_d_dddd__As_ffff_f(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef char *op0 = args[4]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double, double, double, double) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0])
+        ov0 = (<double(*)(double, double, double, double) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0])
         (<float *>op0)[0] = <float>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -484,7 +484,7 @@ cdef void loop_d_dddd__As_ffff_f(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_dddd_d_As_dddd_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_dddd_d_As_dddd_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -497,7 +497,7 @@ cdef void loop_d_dddd_d_As_dddd_dd(char **args, np.npy_intp *dims, np.npy_intp *
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        ov0 = (<double(*)(double, double, double, double, double *) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0], &ov1)
+        ov0 = (<double(*)(double, double, double, double, double *) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0], &ov1)
         (<double *>op0)[0] = <double>ov0
         (<double *>op1)[0] = <double>ov1
         ip0 += steps[0]
@@ -508,7 +508,7 @@ cdef void loop_d_dddd_d_As_dddd_dd(char **args, np.npy_intp *dims, np.npy_intp *
         op1 += steps[5]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_dddd_d_As_ffff_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_dddd_d_As_ffff_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -521,7 +521,7 @@ cdef void loop_d_dddd_d_As_ffff_ff(char **args, np.npy_intp *dims, np.npy_intp *
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        ov0 = (<double(*)(double, double, double, double, double *) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0], &ov1)
+        ov0 = (<double(*)(double, double, double, double, double *) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0], &ov1)
         (<float *>op0)[0] = <float>ov0
         (<float *>op1)[0] = <float>ov1
         ip0 += steps[0]
@@ -532,7 +532,7 @@ cdef void loop_d_dddd_d_As_ffff_ff(char **args, np.npy_intp *dims, np.npy_intp *
         op1 += steps[5]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_ddddddd__As_ddddddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_ddddddd__As_ddddddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -546,7 +546,7 @@ cdef void loop_d_ddddddd__As_ddddddd_d(char **args, np.npy_intp *dims, np.npy_in
     cdef char *op0 = args[7]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double, double, double, double, double, double, double) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0], <double>(<double*>ip4)[0], <double>(<double*>ip5)[0], <double>(<double*>ip6)[0])
+        ov0 = (<double(*)(double, double, double, double, double, double, double) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0], <double>(<double*>ip4)[0], <double>(<double*>ip5)[0], <double>(<double*>ip6)[0])
         (<double *>op0)[0] = <double>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -558,7 +558,7 @@ cdef void loop_d_ddddddd__As_ddddddd_d(char **args, np.npy_intp *dims, np.npy_in
         op0 += steps[7]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_ddddddd__As_fffffff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_ddddddd__As_fffffff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -572,7 +572,7 @@ cdef void loop_d_ddddddd__As_fffffff_f(char **args, np.npy_intp *dims, np.npy_in
     cdef char *op0 = args[7]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(double, double, double, double, double, double, double) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0], <double>(<float*>ip4)[0], <double>(<float*>ip5)[0], <double>(<float*>ip6)[0])
+        ov0 = (<double(*)(double, double, double, double, double, double, double) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0], <double>(<float*>ip4)[0], <double>(<float*>ip5)[0], <double>(<float*>ip6)[0])
         (<float *>op0)[0] = <float>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -584,7 +584,7 @@ cdef void loop_d_ddddddd__As_fffffff_f(char **args, np.npy_intp *dims, np.npy_in
         op0 += steps[7]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_ddi_d_As_ddl_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_ddi_d_As_ddl_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -597,7 +597,7 @@ cdef void loop_d_ddi_d_As_ddl_dd(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef double ov1
     for i in range(n):
         if <int>(<long*>ip2)[0] == (<long*>ip2)[0]:
-            ov0 = (<double(*)(double, double, int, double *) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <int>(<long*>ip2)[0], &ov1)
+            ov0 = (<double(*)(double, double, int, double *) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <int>(<long*>ip2)[0], &ov1)
         else:
             sf_error.error(func_name, sf_error.DOMAIN, "invalid input argument")
             ov0 = <double>NAN
@@ -611,7 +611,7 @@ cdef void loop_d_ddi_d_As_ddl_dd(char **args, np.npy_intp *dims, np.npy_intp *st
         op1 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_ddiiddd__As_ddllddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_ddiiddd__As_ddllddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -626,7 +626,7 @@ cdef void loop_d_ddiiddd__As_ddllddd_d(char **args, np.npy_intp *dims, np.npy_in
     cdef double ov0
     for i in range(n):
         if <int>(<long*>ip2)[0] == (<long*>ip2)[0] and <int>(<long*>ip3)[0] == (<long*>ip3)[0]:
-            ov0 = (<double(*)(double, double, int, int, double, double, double) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <int>(<long*>ip2)[0], <int>(<long*>ip3)[0], <double>(<double*>ip4)[0], <double>(<double*>ip5)[0], <double>(<double*>ip6)[0])
+            ov0 = (<double(*)(double, double, int, int, double, double, double) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <int>(<long*>ip2)[0], <int>(<long*>ip3)[0], <double>(<double*>ip4)[0], <double>(<double*>ip5)[0], <double>(<double*>ip6)[0])
         else:
             sf_error.error(func_name, sf_error.DOMAIN, "invalid input argument")
             ov0 = <double>NAN
@@ -641,7 +641,7 @@ cdef void loop_d_ddiiddd__As_ddllddd_d(char **args, np.npy_intp *dims, np.npy_in
         op0 += steps[7]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_did__As_dld_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_did__As_dld_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -652,7 +652,7 @@ cdef void loop_d_did__As_dld_d(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef double ov0
     for i in range(n):
         if <int>(<long*>ip1)[0] == (<long*>ip1)[0]:
-            ov0 = (<double(*)(double, int, double) nogil>func)(<double>(<double*>ip0)[0], <int>(<long*>ip1)[0], <double>(<double*>ip2)[0])
+            ov0 = (<double(*)(double, int, double) noexcept nogil>func)(<double>(<double*>ip0)[0], <int>(<long*>ip1)[0], <double>(<double*>ip2)[0])
         else:
             sf_error.error(func_name, sf_error.DOMAIN, "invalid input argument")
             ov0 = <double>NAN
@@ -663,7 +663,7 @@ cdef void loop_d_did__As_dld_d(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_id__As_ld_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_id__As_ld_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -673,7 +673,7 @@ cdef void loop_d_id__As_ld_d(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef double ov0
     for i in range(n):
         if <int>(<long*>ip0)[0] == (<long*>ip0)[0]:
-            ov0 = (<double(*)(int, double) nogil>func)(<int>(<long*>ip0)[0], <double>(<double*>ip1)[0])
+            ov0 = (<double(*)(int, double) noexcept nogil>func)(<int>(<long*>ip0)[0], <double>(<double*>ip1)[0])
         else:
             sf_error.error(func_name, sf_error.DOMAIN, "invalid input argument")
             ov0 = <double>NAN
@@ -683,7 +683,7 @@ cdef void loop_d_id__As_ld_d(char **args, np.npy_intp *dims, np.npy_intp *steps,
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_iid__As_lld_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_iid__As_lld_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -694,7 +694,7 @@ cdef void loop_d_iid__As_lld_d(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef double ov0
     for i in range(n):
         if <int>(<long*>ip0)[0] == (<long*>ip0)[0] and <int>(<long*>ip1)[0] == (<long*>ip1)[0]:
-            ov0 = (<double(*)(int, int, double) nogil>func)(<int>(<long*>ip0)[0], <int>(<long*>ip1)[0], <double>(<double*>ip2)[0])
+            ov0 = (<double(*)(int, int, double) noexcept nogil>func)(<int>(<long*>ip0)[0], <int>(<long*>ip1)[0], <double>(<double*>ip2)[0])
         else:
             sf_error.error(func_name, sf_error.DOMAIN, "invalid input argument")
             ov0 = <double>NAN
@@ -705,7 +705,7 @@ cdef void loop_d_iid__As_lld_d(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_ld__As_ld_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_ld__As_ld_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -714,14 +714,14 @@ cdef void loop_d_ld__As_ld_d(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef char *op0 = args[2]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(long, double) nogil>func)(<long>(<long*>ip0)[0], <double>(<double*>ip1)[0])
+        ov0 = (<double(*)(long, double) noexcept nogil>func)(<long>(<long*>ip0)[0], <double>(<double*>ip1)[0])
         (<double *>op0)[0] = <double>ov0
         ip0 += steps[0]
         ip1 += steps[1]
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_ldd__As_ldd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_ldd__As_ldd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -731,7 +731,7 @@ cdef void loop_d_ldd__As_ldd_d(char **args, np.npy_intp *dims, np.npy_intp *step
     cdef char *op0 = args[3]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(long, double, double) nogil>func)(<long>(<long*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0])
+        ov0 = (<double(*)(long, double, double) noexcept nogil>func)(<long>(<long*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0])
         (<double *>op0)[0] = <double>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -739,7 +739,7 @@ cdef void loop_d_ldd__As_ldd_d(char **args, np.npy_intp *dims, np.npy_intp *step
         op0 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_d_lddd__As_lddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_d_lddd__As_lddd_d(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -750,7 +750,7 @@ cdef void loop_d_lddd__As_lddd_d(char **args, np.npy_intp *dims, np.npy_intp *st
     cdef char *op0 = args[4]
     cdef double ov0
     for i in range(n):
-        ov0 = (<double(*)(long, double, double, double) nogil>func)(<long>(<long*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0])
+        ov0 = (<double(*)(long, double, double, double) noexcept nogil>func)(<long>(<long*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0])
         (<double *>op0)[0] = <double>ov0
         ip0 += steps[0]
         ip1 += steps[1]
@@ -759,7 +759,7 @@ cdef void loop_d_lddd__As_lddd_d(char **args, np.npy_intp *dims, np.npy_intp *st
         op0 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_f_f__As_f_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_f_f__As_f_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -767,13 +767,13 @@ cdef void loop_f_f__As_f_f(char **args, np.npy_intp *dims, np.npy_intp *steps, v
     cdef char *op0 = args[1]
     cdef float ov0
     for i in range(n):
-        ov0 = (<float(*)(float) nogil>func)(<float>(<float*>ip0)[0])
+        ov0 = (<float(*)(float) noexcept nogil>func)(<float>(<float*>ip0)[0])
         (<float *>op0)[0] = <float>ov0
         ip0 += steps[0]
         op0 += steps[1]
     sf_error.check_fpe(func_name)
 
-cdef void loop_f_ff__As_ff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_f_ff__As_ff_f(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -782,14 +782,14 @@ cdef void loop_f_ff__As_ff_f(char **args, np.npy_intp *dims, np.npy_intp *steps,
     cdef char *op0 = args[2]
     cdef float ov0
     for i in range(n):
-        ov0 = (<float(*)(float, float) nogil>func)(<float>(<float*>ip0)[0], <float>(<float*>ip1)[0])
+        ov0 = (<float(*)(float, float) noexcept nogil>func)(<float>(<float*>ip0)[0], <float>(<float*>ip1)[0])
         (<float *>op0)[0] = <float>ov0
         ip0 += steps[0]
         ip1 += steps[1]
         op0 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_g_g__As_g_g(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_g_g__As_g_g(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -797,13 +797,13 @@ cdef void loop_g_g__As_g_g(char **args, np.npy_intp *dims, np.npy_intp *steps, v
     cdef char *op0 = args[1]
     cdef long double ov0
     for i in range(n):
-        ov0 = (<long double(*)(long double) nogil>func)(<long double>(<long double*>ip0)[0])
+        ov0 = (<long double(*)(long double) noexcept nogil>func)(<long double>(<long double*>ip0)[0])
         (<long double *>op0)[0] = <long double>ov0
         ip0 += steps[0]
         op0 += steps[1]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_D_DDDD_As_D_DDDD(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_D_DDDD_As_D_DDDD(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -817,7 +817,7 @@ cdef void loop_i_D_DDDD_As_D_DDDD(char **args, np.npy_intp *dims, np.npy_intp *s
     cdef double complex ov2
     cdef double complex ov3
     for i in range(n):
-        (<int(*)(double complex, double complex *, double complex *, double complex *, double complex *) nogil>func)(<double complex>(<double complex*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
+        (<int(*)(double complex, double complex *, double complex *, double complex *, double complex *) noexcept nogil>func)(<double complex>(<double complex*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
         (<double complex *>op0)[0] = <double complex>ov0
         (<double complex *>op1)[0] = <double complex>ov1
         (<double complex *>op2)[0] = <double complex>ov2
@@ -829,7 +829,7 @@ cdef void loop_i_D_DDDD_As_D_DDDD(char **args, np.npy_intp *dims, np.npy_intp *s
         op3 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_D_DDDD_As_F_FFFF(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_D_DDDD_As_F_FFFF(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -843,7 +843,7 @@ cdef void loop_i_D_DDDD_As_F_FFFF(char **args, np.npy_intp *dims, np.npy_intp *s
     cdef double complex ov2
     cdef double complex ov3
     for i in range(n):
-        (<int(*)(double complex, double complex *, double complex *, double complex *, double complex *) nogil>func)(<double complex>(<float complex*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
+        (<int(*)(double complex, double complex *, double complex *, double complex *, double complex *) noexcept nogil>func)(<double complex>(<float complex*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
         (<float complex *>op0)[0] = <float complex>ov0
         (<float complex *>op1)[0] = <float complex>ov1
         (<float complex *>op2)[0] = <float complex>ov2
@@ -855,7 +855,7 @@ cdef void loop_i_D_DDDD_As_F_FFFF(char **args, np.npy_intp *dims, np.npy_intp *s
         op3 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_D_DD_As_D_DD(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_D_DD_As_D_DD(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -865,7 +865,7 @@ cdef void loop_i_D_DD_As_D_DD(char **args, np.npy_intp *dims, np.npy_intp *steps
     cdef double complex ov0
     cdef double complex ov1
     for i in range(n):
-        (<int(*)(double complex, double complex *, double complex *) nogil>func)(<double complex>(<double complex*>ip0)[0], &ov0, &ov1)
+        (<int(*)(double complex, double complex *, double complex *) noexcept nogil>func)(<double complex>(<double complex*>ip0)[0], &ov0, &ov1)
         (<double complex *>op0)[0] = <double complex>ov0
         (<double complex *>op1)[0] = <double complex>ov1
         ip0 += steps[0]
@@ -873,7 +873,7 @@ cdef void loop_i_D_DD_As_D_DD(char **args, np.npy_intp *dims, np.npy_intp *steps
         op1 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_D_DD_As_F_FF(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_D_DD_As_F_FF(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -883,7 +883,7 @@ cdef void loop_i_D_DD_As_F_FF(char **args, np.npy_intp *dims, np.npy_intp *steps
     cdef double complex ov0
     cdef double complex ov1
     for i in range(n):
-        (<int(*)(double complex, double complex *, double complex *) nogil>func)(<double complex>(<float complex*>ip0)[0], &ov0, &ov1)
+        (<int(*)(double complex, double complex *, double complex *) noexcept nogil>func)(<double complex>(<float complex*>ip0)[0], &ov0, &ov1)
         (<float complex *>op0)[0] = <float complex>ov0
         (<float complex *>op1)[0] = <float complex>ov1
         ip0 += steps[0]
@@ -891,7 +891,7 @@ cdef void loop_i_D_DD_As_F_FF(char **args, np.npy_intp *dims, np.npy_intp *steps
         op1 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_d_DDDD_As_d_DDDD(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_d_DDDD_As_d_DDDD(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -905,7 +905,7 @@ cdef void loop_i_d_DDDD_As_d_DDDD(char **args, np.npy_intp *dims, np.npy_intp *s
     cdef double complex ov2
     cdef double complex ov3
     for i in range(n):
-        (<int(*)(double, double complex *, double complex *, double complex *, double complex *) nogil>func)(<double>(<double*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
+        (<int(*)(double, double complex *, double complex *, double complex *, double complex *) noexcept nogil>func)(<double>(<double*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
         (<double complex *>op0)[0] = <double complex>ov0
         (<double complex *>op1)[0] = <double complex>ov1
         (<double complex *>op2)[0] = <double complex>ov2
@@ -917,7 +917,7 @@ cdef void loop_i_d_DDDD_As_d_DDDD(char **args, np.npy_intp *dims, np.npy_intp *s
         op3 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_d_DDDD_As_f_FFFF(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_d_DDDD_As_f_FFFF(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -931,7 +931,7 @@ cdef void loop_i_d_DDDD_As_f_FFFF(char **args, np.npy_intp *dims, np.npy_intp *s
     cdef double complex ov2
     cdef double complex ov3
     for i in range(n):
-        (<int(*)(double, double complex *, double complex *, double complex *, double complex *) nogil>func)(<double>(<float*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
+        (<int(*)(double, double complex *, double complex *, double complex *, double complex *) noexcept nogil>func)(<double>(<float*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
         (<float complex *>op0)[0] = <float complex>ov0
         (<float complex *>op1)[0] = <float complex>ov1
         (<float complex *>op2)[0] = <float complex>ov2
@@ -943,7 +943,7 @@ cdef void loop_i_d_DDDD_As_f_FFFF(char **args, np.npy_intp *dims, np.npy_intp *s
         op3 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_d_DD_As_d_DD(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_d_DD_As_d_DD(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -953,7 +953,7 @@ cdef void loop_i_d_DD_As_d_DD(char **args, np.npy_intp *dims, np.npy_intp *steps
     cdef double complex ov0
     cdef double complex ov1
     for i in range(n):
-        (<int(*)(double, double complex *, double complex *) nogil>func)(<double>(<double*>ip0)[0], &ov0, &ov1)
+        (<int(*)(double, double complex *, double complex *) noexcept nogil>func)(<double>(<double*>ip0)[0], &ov0, &ov1)
         (<double complex *>op0)[0] = <double complex>ov0
         (<double complex *>op1)[0] = <double complex>ov1
         ip0 += steps[0]
@@ -961,7 +961,7 @@ cdef void loop_i_d_DD_As_d_DD(char **args, np.npy_intp *dims, np.npy_intp *steps
         op1 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_d_DD_As_f_FF(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_d_DD_As_f_FF(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -971,7 +971,7 @@ cdef void loop_i_d_DD_As_f_FF(char **args, np.npy_intp *dims, np.npy_intp *steps
     cdef double complex ov0
     cdef double complex ov1
     for i in range(n):
-        (<int(*)(double, double complex *, double complex *) nogil>func)(<double>(<float*>ip0)[0], &ov0, &ov1)
+        (<int(*)(double, double complex *, double complex *) noexcept nogil>func)(<double>(<float*>ip0)[0], &ov0, &ov1)
         (<float complex *>op0)[0] = <float complex>ov0
         (<float complex *>op1)[0] = <float complex>ov1
         ip0 += steps[0]
@@ -979,7 +979,7 @@ cdef void loop_i_d_DD_As_f_FF(char **args, np.npy_intp *dims, np.npy_intp *steps
         op1 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_d_dd_As_d_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_d_dd_As_d_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -989,7 +989,7 @@ cdef void loop_i_d_dd_As_d_dd(char **args, np.npy_intp *dims, np.npy_intp *steps
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        (<int(*)(double, double *, double *) nogil>func)(<double>(<double*>ip0)[0], &ov0, &ov1)
+        (<int(*)(double, double *, double *) noexcept nogil>func)(<double>(<double*>ip0)[0], &ov0, &ov1)
         (<double *>op0)[0] = <double>ov0
         (<double *>op1)[0] = <double>ov1
         ip0 += steps[0]
@@ -997,7 +997,7 @@ cdef void loop_i_d_dd_As_d_dd(char **args, np.npy_intp *dims, np.npy_intp *steps
         op1 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_d_dd_As_f_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_d_dd_As_f_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1007,7 +1007,7 @@ cdef void loop_i_d_dd_As_f_ff(char **args, np.npy_intp *dims, np.npy_intp *steps
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        (<int(*)(double, double *, double *) nogil>func)(<double>(<float*>ip0)[0], &ov0, &ov1)
+        (<int(*)(double, double *, double *) noexcept nogil>func)(<double>(<float*>ip0)[0], &ov0, &ov1)
         (<float *>op0)[0] = <float>ov0
         (<float *>op1)[0] = <float>ov1
         ip0 += steps[0]
@@ -1015,7 +1015,7 @@ cdef void loop_i_d_dd_As_f_ff(char **args, np.npy_intp *dims, np.npy_intp *steps
         op1 += steps[2]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_d_dddd_As_d_dddd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_d_dddd_As_d_dddd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1029,7 +1029,7 @@ cdef void loop_i_d_dddd_As_d_dddd(char **args, np.npy_intp *dims, np.npy_intp *s
     cdef double ov2
     cdef double ov3
     for i in range(n):
-        (<int(*)(double, double *, double *, double *, double *) nogil>func)(<double>(<double*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
+        (<int(*)(double, double *, double *, double *, double *) noexcept nogil>func)(<double>(<double*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
         (<double *>op0)[0] = <double>ov0
         (<double *>op1)[0] = <double>ov1
         (<double *>op2)[0] = <double>ov2
@@ -1041,7 +1041,7 @@ cdef void loop_i_d_dddd_As_d_dddd(char **args, np.npy_intp *dims, np.npy_intp *s
         op3 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_d_dddd_As_f_ffff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_d_dddd_As_f_ffff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1055,7 +1055,7 @@ cdef void loop_i_d_dddd_As_f_ffff(char **args, np.npy_intp *dims, np.npy_intp *s
     cdef double ov2
     cdef double ov3
     for i in range(n):
-        (<int(*)(double, double *, double *, double *, double *) nogil>func)(<double>(<float*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
+        (<int(*)(double, double *, double *, double *, double *) noexcept nogil>func)(<double>(<float*>ip0)[0], &ov0, &ov1, &ov2, &ov3)
         (<float *>op0)[0] = <float>ov0
         (<float *>op1)[0] = <float>ov1
         (<float *>op2)[0] = <float>ov2
@@ -1067,7 +1067,7 @@ cdef void loop_i_d_dddd_As_f_ffff(char **args, np.npy_intp *dims, np.npy_intp *s
         op3 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_dd_dd_As_dd_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_dd_dd_As_dd_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1078,7 +1078,7 @@ cdef void loop_i_dd_dd_As_dd_dd(char **args, np.npy_intp *dims, np.npy_intp *ste
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        (<int(*)(double, double, double *, double *) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], &ov0, &ov1)
+        (<int(*)(double, double, double *, double *) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], &ov0, &ov1)
         (<double *>op0)[0] = <double>ov0
         (<double *>op1)[0] = <double>ov1
         ip0 += steps[0]
@@ -1087,7 +1087,7 @@ cdef void loop_i_dd_dd_As_dd_dd(char **args, np.npy_intp *dims, np.npy_intp *ste
         op1 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_dd_dd_As_ff_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_dd_dd_As_ff_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1098,7 +1098,7 @@ cdef void loop_i_dd_dd_As_ff_ff(char **args, np.npy_intp *dims, np.npy_intp *ste
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        (<int(*)(double, double, double *, double *) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], &ov0, &ov1)
+        (<int(*)(double, double, double *, double *) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], &ov0, &ov1)
         (<float *>op0)[0] = <float>ov0
         (<float *>op1)[0] = <float>ov1
         ip0 += steps[0]
@@ -1107,7 +1107,7 @@ cdef void loop_i_dd_dd_As_ff_ff(char **args, np.npy_intp *dims, np.npy_intp *ste
         op1 += steps[3]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_dd_dddd_As_dd_dddd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_dd_dddd_As_dd_dddd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1122,7 +1122,7 @@ cdef void loop_i_dd_dddd_As_dd_dddd(char **args, np.npy_intp *dims, np.npy_intp 
     cdef double ov2
     cdef double ov3
     for i in range(n):
-        (<int(*)(double, double, double *, double *, double *, double *) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], &ov0, &ov1, &ov2, &ov3)
+        (<int(*)(double, double, double *, double *, double *, double *) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], &ov0, &ov1, &ov2, &ov3)
         (<double *>op0)[0] = <double>ov0
         (<double *>op1)[0] = <double>ov1
         (<double *>op2)[0] = <double>ov2
@@ -1135,7 +1135,7 @@ cdef void loop_i_dd_dddd_As_dd_dddd(char **args, np.npy_intp *dims, np.npy_intp 
         op3 += steps[5]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_dd_dddd_As_ff_ffff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_dd_dddd_As_ff_ffff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1150,7 +1150,7 @@ cdef void loop_i_dd_dddd_As_ff_ffff(char **args, np.npy_intp *dims, np.npy_intp 
     cdef double ov2
     cdef double ov3
     for i in range(n):
-        (<int(*)(double, double, double *, double *, double *, double *) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], &ov0, &ov1, &ov2, &ov3)
+        (<int(*)(double, double, double *, double *, double *, double *) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], &ov0, &ov1, &ov2, &ov3)
         (<float *>op0)[0] = <float>ov0
         (<float *>op1)[0] = <float>ov1
         (<float *>op2)[0] = <float>ov2
@@ -1163,7 +1163,7 @@ cdef void loop_i_dd_dddd_As_ff_ffff(char **args, np.npy_intp *dims, np.npy_intp 
         op3 += steps[5]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_ddd_dd_As_ddd_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_ddd_dd_As_ddd_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1175,7 +1175,7 @@ cdef void loop_i_ddd_dd_As_ddd_dd(char **args, np.npy_intp *dims, np.npy_intp *s
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        (<int(*)(double, double, double, double *, double *) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], &ov0, &ov1)
+        (<int(*)(double, double, double, double *, double *) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], &ov0, &ov1)
         (<double *>op0)[0] = <double>ov0
         (<double *>op1)[0] = <double>ov1
         ip0 += steps[0]
@@ -1185,7 +1185,7 @@ cdef void loop_i_ddd_dd_As_ddd_dd(char **args, np.npy_intp *dims, np.npy_intp *s
         op1 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_ddd_dd_As_fff_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_ddd_dd_As_fff_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1197,7 +1197,7 @@ cdef void loop_i_ddd_dd_As_fff_ff(char **args, np.npy_intp *dims, np.npy_intp *s
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        (<int(*)(double, double, double, double *, double *) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], &ov0, &ov1)
+        (<int(*)(double, double, double, double *, double *) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], &ov0, &ov1)
         (<float *>op0)[0] = <float>ov0
         (<float *>op1)[0] = <float>ov1
         ip0 += steps[0]
@@ -1207,7 +1207,7 @@ cdef void loop_i_ddd_dd_As_fff_ff(char **args, np.npy_intp *dims, np.npy_intp *s
         op1 += steps[4]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_ddddd_dd_As_ddddd_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_ddddd_dd_As_ddddd_dd(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1221,7 +1221,7 @@ cdef void loop_i_ddddd_dd_As_ddddd_dd(char **args, np.npy_intp *dims, np.npy_int
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        (<int(*)(double, double, double, double, double, double *, double *) nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0], <double>(<double*>ip4)[0], &ov0, &ov1)
+        (<int(*)(double, double, double, double, double, double *, double *) noexcept nogil>func)(<double>(<double*>ip0)[0], <double>(<double*>ip1)[0], <double>(<double*>ip2)[0], <double>(<double*>ip3)[0], <double>(<double*>ip4)[0], &ov0, &ov1)
         (<double *>op0)[0] = <double>ov0
         (<double *>op1)[0] = <double>ov1
         ip0 += steps[0]
@@ -1233,7 +1233,7 @@ cdef void loop_i_ddddd_dd_As_ddddd_dd(char **args, np.npy_intp *dims, np.npy_int
         op1 += steps[6]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_ddddd_dd_As_fffff_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_ddddd_dd_As_fffff_ff(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1247,7 +1247,7 @@ cdef void loop_i_ddddd_dd_As_fffff_ff(char **args, np.npy_intp *dims, np.npy_int
     cdef double ov0
     cdef double ov1
     for i in range(n):
-        (<int(*)(double, double, double, double, double, double *, double *) nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0], <double>(<float*>ip4)[0], &ov0, &ov1)
+        (<int(*)(double, double, double, double, double, double *, double *) noexcept nogil>func)(<double>(<float*>ip0)[0], <double>(<float*>ip1)[0], <double>(<float*>ip2)[0], <double>(<float*>ip3)[0], <double>(<float*>ip4)[0], &ov0, &ov1)
         (<float *>op0)[0] = <float>ov0
         (<float *>op1)[0] = <float>ov1
         ip0 += steps[0]
@@ -1259,7 +1259,7 @@ cdef void loop_i_ddddd_dd_As_fffff_ff(char **args, np.npy_intp *dims, np.npy_int
         op1 += steps[6]
     sf_error.check_fpe(func_name)
 
-cdef void loop_i_i__As_l_l(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) nogil:
+cdef void loop_i_i__As_l_l(char **args, np.npy_intp *dims, np.npy_intp *steps, void *data) noexcept nogil:
     cdef np.npy_intp i, n = dims[0]
     cdef void *func = (<void**>data)[0]
     cdef char *func_name = <char*>(<void**>data)[1]
@@ -1268,7 +1268,7 @@ cdef void loop_i_i__As_l_l(char **args, np.npy_intp *dims, np.npy_intp *steps, v
     cdef int ov0
     for i in range(n):
         if <int>(<long*>ip0)[0] == (<long*>ip0)[0]:
-            ov0 = (<int(*)(int) nogil>func)(<int>(<long*>ip0)[0])
+            ov0 = (<int(*)(int) noexcept nogil>func)(<int>(<long*>ip0)[0])
         else:
             sf_error.error(func_name, sf_error.DOMAIN, "invalid input argument")
             ov0 = <int>0xbad0bad0
@@ -1278,766 +1278,768 @@ cdef void loop_i_i__As_l_l(char **args, np.npy_intp *dims, np.npy_intp *steps, v
     sf_error.check_fpe(func_name)
 
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cosine_cdf "cosine_cdf"(double) nogil
+    cdef double _func_cosine_cdf "cosine_cdf"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cosine_invcdf "cosine_invcdf"(double) nogil
+    cdef double _func_cosine_invcdf "cosine_invcdf"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cospi "cospi"(double) nogil
+    cdef double _func_cospi "cospi"(double) noexcept nogil
 from ._trig cimport ccospi as _func_ccospi
-ctypedef double complex _proto_ccospi_t(double complex) nogil
+ctypedef double complex _proto_ccospi_t(double complex) noexcept nogil
 cdef _proto_ccospi_t *_proto_ccospi_t_var = &_func_ccospi
 from ._ellip_harm cimport ellip_harmonic as _func_ellip_harmonic
-ctypedef double _proto_ellip_harmonic_t(double, double, int, int, double, double, double) nogil
+ctypedef double _proto_ellip_harmonic_t(double, double, int, int, double, double, double) noexcept nogil
 cdef _proto_ellip_harmonic_t *_proto_ellip_harmonic_t_var = &_func_ellip_harmonic
 from ._legacy cimport ellip_harmonic_unsafe as _func_ellip_harmonic_unsafe
-ctypedef double _proto_ellip_harmonic_unsafe_t(double, double, double, double, double, double, double) nogil
+ctypedef double _proto_ellip_harmonic_unsafe_t(double, double, double, double, double, double, double) noexcept nogil
 cdef _proto_ellip_harmonic_unsafe_t *_proto_ellip_harmonic_unsafe_t_var = &_func_ellip_harmonic_unsafe
 from ._factorial cimport _factorial as _func__factorial
-ctypedef double _proto__factorial_t(double) nogil
+ctypedef double _proto__factorial_t(double) noexcept nogil
 cdef _proto__factorial_t *_proto__factorial_t_var = &_func__factorial
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_igam_fac "igam_fac"(double, double) nogil
+    cdef double _func_igam_fac "igam_fac"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_kolmogc "kolmogc"(double) nogil
+    cdef double _func_kolmogc "kolmogc"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_kolmogci "kolmogci"(double) nogil
+    cdef double _func_kolmogci "kolmogci"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_kolmogp "kolmogp"(double) nogil
+    cdef double _func_kolmogp "kolmogp"(double) noexcept nogil
 from ._lambertw cimport lambertw_scalar as _func_lambertw_scalar
-ctypedef double complex _proto_lambertw_scalar_t(double complex, long, double) nogil
+ctypedef double complex _proto_lambertw_scalar_t(double complex, long, double) noexcept nogil
 cdef _proto_lambertw_scalar_t *_proto_lambertw_scalar_t_var = &_func_lambertw_scalar
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_lanczos_sum_expg_scaled "lanczos_sum_expg_scaled"(double) nogil
+    cdef double _func_lanczos_sum_expg_scaled "lanczos_sum_expg_scaled"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_lgam1p "lgam1p"(double) nogil
+    cdef double _func_lgam1p "lgam1p"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_log1pmx "log1pmx"(double) nogil
+    cdef double _func_log1pmx "log1pmx"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_riemann_zeta "riemann_zeta"(double) nogil
+    cdef double _func_riemann_zeta "riemann_zeta"(double) noexcept nogil
+cdef extern from r"_ufuncs_defs.h":
+    cdef double _func_scaled_exp1 "scaled_exp1"(double) noexcept nogil
 from .sf_error cimport _sf_error_test_function as _func__sf_error_test_function
-ctypedef int _proto__sf_error_test_function_t(int) nogil
+ctypedef int _proto__sf_error_test_function_t(int) noexcept nogil
 cdef _proto__sf_error_test_function_t *_proto__sf_error_test_function_t_var = &_func__sf_error_test_function
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_sinpi "sinpi"(double) nogil
+    cdef double _func_sinpi "sinpi"(double) noexcept nogil
 from ._trig cimport csinpi as _func_csinpi
-ctypedef double complex _proto_csinpi_t(double complex) nogil
+ctypedef double complex _proto_csinpi_t(double complex) noexcept nogil
 cdef _proto_csinpi_t *_proto_csinpi_t_var = &_func_csinpi
 from ._legacy cimport smirnovc_unsafe as _func_smirnovc_unsafe
-ctypedef double _proto_smirnovc_unsafe_t(double, double) nogil
+ctypedef double _proto_smirnovc_unsafe_t(double, double) noexcept nogil
 cdef _proto_smirnovc_unsafe_t *_proto_smirnovc_unsafe_t_var = &_func_smirnovc_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_smirnovc "smirnovc"(int, double) nogil
+    cdef double _func_smirnovc "smirnovc"(int, double) noexcept nogil
 from ._legacy cimport smirnovci_unsafe as _func_smirnovci_unsafe
-ctypedef double _proto_smirnovci_unsafe_t(double, double) nogil
+ctypedef double _proto_smirnovci_unsafe_t(double, double) noexcept nogil
 cdef _proto_smirnovci_unsafe_t *_proto_smirnovci_unsafe_t_var = &_func_smirnovci_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_smirnovci "smirnovci"(int, double) nogil
+    cdef double _func_smirnovci "smirnovci"(int, double) noexcept nogil
 from ._legacy cimport smirnovp_unsafe as _func_smirnovp_unsafe
-ctypedef double _proto_smirnovp_unsafe_t(double, double) nogil
+ctypedef double _proto_smirnovp_unsafe_t(double, double) noexcept nogil
 cdef _proto_smirnovp_unsafe_t *_proto_smirnovp_unsafe_t_var = &_func_smirnovp_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_smirnovp "smirnovp"(int, double) nogil
+    cdef double _func_smirnovp "smirnovp"(int, double) noexcept nogil
 from ._spherical_bessel cimport spherical_in_complex as _func_spherical_in_complex
-ctypedef double complex _proto_spherical_in_complex_t(long, double complex) nogil
+ctypedef double complex _proto_spherical_in_complex_t(long, double complex) noexcept nogil
 cdef _proto_spherical_in_complex_t *_proto_spherical_in_complex_t_var = &_func_spherical_in_complex
 from ._spherical_bessel cimport spherical_in_real as _func_spherical_in_real
-ctypedef double _proto_spherical_in_real_t(long, double) nogil
+ctypedef double _proto_spherical_in_real_t(long, double) noexcept nogil
 cdef _proto_spherical_in_real_t *_proto_spherical_in_real_t_var = &_func_spherical_in_real
 from ._spherical_bessel cimport spherical_in_d_complex as _func_spherical_in_d_complex
-ctypedef double complex _proto_spherical_in_d_complex_t(long, double complex) nogil
+ctypedef double complex _proto_spherical_in_d_complex_t(long, double complex) noexcept nogil
 cdef _proto_spherical_in_d_complex_t *_proto_spherical_in_d_complex_t_var = &_func_spherical_in_d_complex
 from ._spherical_bessel cimport spherical_in_d_real as _func_spherical_in_d_real
-ctypedef double _proto_spherical_in_d_real_t(long, double) nogil
+ctypedef double _proto_spherical_in_d_real_t(long, double) noexcept nogil
 cdef _proto_spherical_in_d_real_t *_proto_spherical_in_d_real_t_var = &_func_spherical_in_d_real
 from ._spherical_bessel cimport spherical_jn_complex as _func_spherical_jn_complex
-ctypedef double complex _proto_spherical_jn_complex_t(long, double complex) nogil
+ctypedef double complex _proto_spherical_jn_complex_t(long, double complex) noexcept nogil
 cdef _proto_spherical_jn_complex_t *_proto_spherical_jn_complex_t_var = &_func_spherical_jn_complex
 from ._spherical_bessel cimport spherical_jn_real as _func_spherical_jn_real
-ctypedef double _proto_spherical_jn_real_t(long, double) nogil
+ctypedef double _proto_spherical_jn_real_t(long, double) noexcept nogil
 cdef _proto_spherical_jn_real_t *_proto_spherical_jn_real_t_var = &_func_spherical_jn_real
 from ._spherical_bessel cimport spherical_jn_d_complex as _func_spherical_jn_d_complex
-ctypedef double complex _proto_spherical_jn_d_complex_t(long, double complex) nogil
+ctypedef double complex _proto_spherical_jn_d_complex_t(long, double complex) noexcept nogil
 cdef _proto_spherical_jn_d_complex_t *_proto_spherical_jn_d_complex_t_var = &_func_spherical_jn_d_complex
 from ._spherical_bessel cimport spherical_jn_d_real as _func_spherical_jn_d_real
-ctypedef double _proto_spherical_jn_d_real_t(long, double) nogil
+ctypedef double _proto_spherical_jn_d_real_t(long, double) noexcept nogil
 cdef _proto_spherical_jn_d_real_t *_proto_spherical_jn_d_real_t_var = &_func_spherical_jn_d_real
 from ._spherical_bessel cimport spherical_kn_complex as _func_spherical_kn_complex
-ctypedef double complex _proto_spherical_kn_complex_t(long, double complex) nogil
+ctypedef double complex _proto_spherical_kn_complex_t(long, double complex) noexcept nogil
 cdef _proto_spherical_kn_complex_t *_proto_spherical_kn_complex_t_var = &_func_spherical_kn_complex
 from ._spherical_bessel cimport spherical_kn_real as _func_spherical_kn_real
-ctypedef double _proto_spherical_kn_real_t(long, double) nogil
+ctypedef double _proto_spherical_kn_real_t(long, double) noexcept nogil
 cdef _proto_spherical_kn_real_t *_proto_spherical_kn_real_t_var = &_func_spherical_kn_real
 from ._spherical_bessel cimport spherical_kn_d_complex as _func_spherical_kn_d_complex
-ctypedef double complex _proto_spherical_kn_d_complex_t(long, double complex) nogil
+ctypedef double complex _proto_spherical_kn_d_complex_t(long, double complex) noexcept nogil
 cdef _proto_spherical_kn_d_complex_t *_proto_spherical_kn_d_complex_t_var = &_func_spherical_kn_d_complex
 from ._spherical_bessel cimport spherical_kn_d_real as _func_spherical_kn_d_real
-ctypedef double _proto_spherical_kn_d_real_t(long, double) nogil
+ctypedef double _proto_spherical_kn_d_real_t(long, double) noexcept nogil
 cdef _proto_spherical_kn_d_real_t *_proto_spherical_kn_d_real_t_var = &_func_spherical_kn_d_real
 from ._spherical_bessel cimport spherical_yn_complex as _func_spherical_yn_complex
-ctypedef double complex _proto_spherical_yn_complex_t(long, double complex) nogil
+ctypedef double complex _proto_spherical_yn_complex_t(long, double complex) noexcept nogil
 cdef _proto_spherical_yn_complex_t *_proto_spherical_yn_complex_t_var = &_func_spherical_yn_complex
 from ._spherical_bessel cimport spherical_yn_real as _func_spherical_yn_real
-ctypedef double _proto_spherical_yn_real_t(long, double) nogil
+ctypedef double _proto_spherical_yn_real_t(long, double) noexcept nogil
 cdef _proto_spherical_yn_real_t *_proto_spherical_yn_real_t_var = &_func_spherical_yn_real
 from ._spherical_bessel cimport spherical_yn_d_complex as _func_spherical_yn_d_complex
-ctypedef double complex _proto_spherical_yn_d_complex_t(long, double complex) nogil
+ctypedef double complex _proto_spherical_yn_d_complex_t(long, double complex) noexcept nogil
 cdef _proto_spherical_yn_d_complex_t *_proto_spherical_yn_d_complex_t_var = &_func_spherical_yn_d_complex
 from ._spherical_bessel cimport spherical_yn_d_real as _func_spherical_yn_d_real
-ctypedef double _proto_spherical_yn_d_real_t(long, double) nogil
+ctypedef double _proto_spherical_yn_d_real_t(long, double) noexcept nogil
 cdef _proto_spherical_yn_d_real_t *_proto_spherical_yn_d_real_t_var = &_func_spherical_yn_d_real
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_struve_asymp_large_z "struve_asymp_large_z"(double, double, int, double *) nogil
+    cdef double _func_struve_asymp_large_z "struve_asymp_large_z"(double, double, int, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_struve_bessel_series "struve_bessel_series"(double, double, int, double *) nogil
+    cdef double _func_struve_bessel_series "struve_bessel_series"(double, double, int, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_struve_power_series "struve_power_series"(double, double, int, double *) nogil
+    cdef double _func_struve_power_series "struve_power_series"(double, double, int, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_zeta "zeta"(double, double) nogil
+    cdef double _func_zeta "zeta"(double, double) noexcept nogil
 from ._agm cimport agm as _func_agm
-ctypedef double _proto_agm_t(double, double) nogil
+ctypedef double _proto_agm_t(double, double) noexcept nogil
 cdef _proto_agm_t *_proto_agm_t_var = &_func_agm
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_airy_wrap "airy_wrap"(double, double *, double *, double *, double *) nogil
+    cdef int _func_airy_wrap "airy_wrap"(double, double *, double *, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_cairy_wrap "cairy_wrap"(double complex, double complex *, double complex *, double complex *, double complex *) nogil
+    cdef int _func_cairy_wrap "cairy_wrap"(double complex, double complex *, double complex *, double complex *, double complex *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_cairy_wrap_e "cairy_wrap_e"(double complex, double complex *, double complex *, double complex *, double complex *) nogil
+    cdef int _func_cairy_wrap_e "cairy_wrap_e"(double complex, double complex *, double complex *, double complex *, double complex *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_cairy_wrap_e_real "cairy_wrap_e_real"(double, double *, double *, double *, double *) nogil
+    cdef int _func_cairy_wrap_e_real "cairy_wrap_e_real"(double, double *, double *, double *, double *) noexcept nogil
 from ._legacy cimport bdtr_unsafe as _func_bdtr_unsafe
-ctypedef double _proto_bdtr_unsafe_t(double, double, double) nogil
+ctypedef double _proto_bdtr_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_bdtr_unsafe_t *_proto_bdtr_unsafe_t_var = &_func_bdtr_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_bdtr "bdtr"(double, int, double) nogil
+    cdef double _func_bdtr "bdtr"(double, int, double) noexcept nogil
 from ._legacy cimport bdtrc_unsafe as _func_bdtrc_unsafe
-ctypedef double _proto_bdtrc_unsafe_t(double, double, double) nogil
+ctypedef double _proto_bdtrc_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_bdtrc_unsafe_t *_proto_bdtrc_unsafe_t_var = &_func_bdtrc_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_bdtrc "bdtrc"(double, int, double) nogil
+    cdef double _func_bdtrc "bdtrc"(double, int, double) noexcept nogil
 from ._legacy cimport bdtri_unsafe as _func_bdtri_unsafe
-ctypedef double _proto_bdtri_unsafe_t(double, double, double) nogil
+ctypedef double _proto_bdtri_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_bdtri_unsafe_t *_proto_bdtri_unsafe_t_var = &_func_bdtri_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_bdtri "bdtri"(double, int, double) nogil
+    cdef double _func_bdtri "bdtri"(double, int, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfbin2_wrap "cdfbin2_wrap"(double, double, double) nogil
+    cdef double _func_cdfbin2_wrap "cdfbin2_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfbin3_wrap "cdfbin3_wrap"(double, double, double) nogil
+    cdef double _func_cdfbin3_wrap "cdfbin3_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_bei_wrap "bei_wrap"(double) nogil
+    cdef double _func_bei_wrap "bei_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_beip_wrap "beip_wrap"(double) nogil
+    cdef double _func_beip_wrap "beip_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_ber_wrap "ber_wrap"(double) nogil
+    cdef double _func_ber_wrap "ber_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_berp_wrap "berp_wrap"(double) nogil
+    cdef double _func_berp_wrap "berp_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_besselpoly "besselpoly"(double, double, double) nogil
+    cdef double _func_besselpoly "besselpoly"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_beta "beta"(double, double) nogil
+    cdef double _func_beta "beta"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_incbet "incbet"(double, double, double) nogil
+    cdef double _func_incbet "incbet"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_incbi "incbi"(double, double, double) nogil
+    cdef double _func_incbi "incbi"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_lbeta "lbeta"(double, double) nogil
+    cdef double _func_lbeta "lbeta"(double, double) noexcept nogil
 from .orthogonal_eval cimport binom as _func_binom
-ctypedef double _proto_binom_t(double, double) nogil
+ctypedef double _proto_binom_t(double, double) noexcept nogil
 cdef _proto_binom_t *_proto_binom_t_var = &_func_binom
 from ._boxcox cimport boxcox as _func_boxcox
-ctypedef double _proto_boxcox_t(double, double) nogil
+ctypedef double _proto_boxcox_t(double, double) noexcept nogil
 cdef _proto_boxcox_t *_proto_boxcox_t_var = &_func_boxcox
 from ._boxcox cimport boxcox1p as _func_boxcox1p
-ctypedef double _proto_boxcox1p_t(double, double) nogil
+ctypedef double _proto_boxcox1p_t(double, double) noexcept nogil
 cdef _proto_boxcox1p_t *_proto_boxcox1p_t_var = &_func_boxcox1p
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_btdtr "btdtr"(double, double, double) nogil
+    cdef double _func_btdtr "btdtr"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_incbi "incbi"(double, double, double) nogil
+    cdef double _func_incbi "incbi"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfbet3_wrap "cdfbet3_wrap"(double, double, double) nogil
+    cdef double _func_cdfbet3_wrap "cdfbet3_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfbet4_wrap "cdfbet4_wrap"(double, double, double) nogil
+    cdef double _func_cdfbet4_wrap "cdfbet4_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cbrt "cbrt"(double) nogil
+    cdef double _func_cbrt "cbrt"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_chdtr "chdtr"(double, double) nogil
+    cdef double _func_chdtr "chdtr"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_chdtrc "chdtrc"(double, double) nogil
+    cdef double _func_chdtrc "chdtrc"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_chdtri "chdtri"(double, double) nogil
+    cdef double _func_chdtri "chdtri"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfchi3_wrap "cdfchi3_wrap"(double, double) nogil
+    cdef double _func_cdfchi3_wrap "cdfchi3_wrap"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfchn1_wrap "cdfchn1_wrap"(double, double, double) nogil
+    cdef double _func_cdfchn1_wrap "cdfchn1_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfchn3_wrap "cdfchn3_wrap"(double, double, double) nogil
+    cdef double _func_cdfchn3_wrap "cdfchn3_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfchn4_wrap "cdfchn4_wrap"(double, double, double) nogil
+    cdef double _func_cdfchn4_wrap "cdfchn4_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfchn2_wrap "cdfchn2_wrap"(double, double, double) nogil
+    cdef double _func_cdfchn2_wrap "cdfchn2_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cosdg "cosdg"(double) nogil
+    cdef double _func_cosdg "cosdg"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cosm1 "cosm1"(double) nogil
+    cdef double _func_cosm1 "cosm1"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cotdg "cotdg"(double) nogil
+    cdef double _func_cotdg "cotdg"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_ellpe "ellpe"(double) nogil
+    cdef double _func_ellpe "ellpe"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_ellie "ellie"(double, double) nogil
+    cdef double _func_ellie "ellie"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_ellpj "ellpj"(double, double, double *, double *, double *, double *) nogil
+    cdef int _func_ellpj "ellpj"(double, double, double *, double *, double *, double *) noexcept nogil
 from ._ellipk cimport ellipk as _func_ellipk
-ctypedef double _proto_ellipk_t(double) nogil
+ctypedef double _proto_ellipk_t(double) noexcept nogil
 cdef _proto_ellipk_t *_proto_ellipk_t_var = &_func_ellipk
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_ellik "ellik"(double, double) nogil
+    cdef double _func_ellik "ellik"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_ellpk "ellpk"(double) nogil
+    cdef double _func_ellpk "ellpk"(double) noexcept nogil
 from ._convex_analysis cimport entr as _func_entr
-ctypedef double _proto_entr_t(double) nogil
+ctypedef double _proto_entr_t(double) noexcept nogil
 cdef _proto_entr_t *_proto_entr_t_var = &_func_entr
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_erf "erf"(double) nogil
+    cdef double _func_erf "erf"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_erfc "erfc"(double) nogil
+    cdef double _func_erfc "erfc"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_erfcinv "erfcinv"(double) nogil
+    cdef double _func_erfcinv "erfcinv"(double) noexcept nogil
 from .orthogonal_eval cimport eval_chebyc as _func_eval_chebyc
-ctypedef double complex _proto_eval_chebyc_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_chebyc_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_chebyc_double_complex__t *_proto_eval_chebyc_double_complex__t_var = &_func_eval_chebyc[double_complex]
 from .orthogonal_eval cimport eval_chebyc as _func_eval_chebyc
-ctypedef double _proto_eval_chebyc_double__t(double, double) nogil
+ctypedef double _proto_eval_chebyc_double__t(double, double) noexcept nogil
 cdef _proto_eval_chebyc_double__t *_proto_eval_chebyc_double__t_var = &_func_eval_chebyc[double]
 from .orthogonal_eval cimport eval_chebyc_l as _func_eval_chebyc_l
-ctypedef double _proto_eval_chebyc_l_t(long, double) nogil
+ctypedef double _proto_eval_chebyc_l_t(long, double) noexcept nogil
 cdef _proto_eval_chebyc_l_t *_proto_eval_chebyc_l_t_var = &_func_eval_chebyc_l
 from .orthogonal_eval cimport eval_chebys as _func_eval_chebys
-ctypedef double complex _proto_eval_chebys_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_chebys_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_chebys_double_complex__t *_proto_eval_chebys_double_complex__t_var = &_func_eval_chebys[double_complex]
 from .orthogonal_eval cimport eval_chebys as _func_eval_chebys
-ctypedef double _proto_eval_chebys_double__t(double, double) nogil
+ctypedef double _proto_eval_chebys_double__t(double, double) noexcept nogil
 cdef _proto_eval_chebys_double__t *_proto_eval_chebys_double__t_var = &_func_eval_chebys[double]
 from .orthogonal_eval cimport eval_chebys_l as _func_eval_chebys_l
-ctypedef double _proto_eval_chebys_l_t(long, double) nogil
+ctypedef double _proto_eval_chebys_l_t(long, double) noexcept nogil
 cdef _proto_eval_chebys_l_t *_proto_eval_chebys_l_t_var = &_func_eval_chebys_l
 from .orthogonal_eval cimport eval_chebyt as _func_eval_chebyt
-ctypedef double complex _proto_eval_chebyt_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_chebyt_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_chebyt_double_complex__t *_proto_eval_chebyt_double_complex__t_var = &_func_eval_chebyt[double_complex]
 from .orthogonal_eval cimport eval_chebyt as _func_eval_chebyt
-ctypedef double _proto_eval_chebyt_double__t(double, double) nogil
+ctypedef double _proto_eval_chebyt_double__t(double, double) noexcept nogil
 cdef _proto_eval_chebyt_double__t *_proto_eval_chebyt_double__t_var = &_func_eval_chebyt[double]
 from .orthogonal_eval cimport eval_chebyt_l as _func_eval_chebyt_l
-ctypedef double _proto_eval_chebyt_l_t(long, double) nogil
+ctypedef double _proto_eval_chebyt_l_t(long, double) noexcept nogil
 cdef _proto_eval_chebyt_l_t *_proto_eval_chebyt_l_t_var = &_func_eval_chebyt_l
 from .orthogonal_eval cimport eval_chebyu as _func_eval_chebyu
-ctypedef double complex _proto_eval_chebyu_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_chebyu_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_chebyu_double_complex__t *_proto_eval_chebyu_double_complex__t_var = &_func_eval_chebyu[double_complex]
 from .orthogonal_eval cimport eval_chebyu as _func_eval_chebyu
-ctypedef double _proto_eval_chebyu_double__t(double, double) nogil
+ctypedef double _proto_eval_chebyu_double__t(double, double) noexcept nogil
 cdef _proto_eval_chebyu_double__t *_proto_eval_chebyu_double__t_var = &_func_eval_chebyu[double]
 from .orthogonal_eval cimport eval_chebyu_l as _func_eval_chebyu_l
-ctypedef double _proto_eval_chebyu_l_t(long, double) nogil
+ctypedef double _proto_eval_chebyu_l_t(long, double) noexcept nogil
 cdef _proto_eval_chebyu_l_t *_proto_eval_chebyu_l_t_var = &_func_eval_chebyu_l
 from .orthogonal_eval cimport eval_gegenbauer as _func_eval_gegenbauer
-ctypedef double complex _proto_eval_gegenbauer_double_complex__t(double, double, double complex) nogil
+ctypedef double complex _proto_eval_gegenbauer_double_complex__t(double, double, double complex) noexcept nogil
 cdef _proto_eval_gegenbauer_double_complex__t *_proto_eval_gegenbauer_double_complex__t_var = &_func_eval_gegenbauer[double_complex]
 from .orthogonal_eval cimport eval_gegenbauer as _func_eval_gegenbauer
-ctypedef double _proto_eval_gegenbauer_double__t(double, double, double) nogil
+ctypedef double _proto_eval_gegenbauer_double__t(double, double, double) noexcept nogil
 cdef _proto_eval_gegenbauer_double__t *_proto_eval_gegenbauer_double__t_var = &_func_eval_gegenbauer[double]
 from .orthogonal_eval cimport eval_gegenbauer_l as _func_eval_gegenbauer_l
-ctypedef double _proto_eval_gegenbauer_l_t(long, double, double) nogil
+ctypedef double _proto_eval_gegenbauer_l_t(long, double, double) noexcept nogil
 cdef _proto_eval_gegenbauer_l_t *_proto_eval_gegenbauer_l_t_var = &_func_eval_gegenbauer_l
 from .orthogonal_eval cimport eval_genlaguerre as _func_eval_genlaguerre
-ctypedef double complex _proto_eval_genlaguerre_double_complex__t(double, double, double complex) nogil
+ctypedef double complex _proto_eval_genlaguerre_double_complex__t(double, double, double complex) noexcept nogil
 cdef _proto_eval_genlaguerre_double_complex__t *_proto_eval_genlaguerre_double_complex__t_var = &_func_eval_genlaguerre[double_complex]
 from .orthogonal_eval cimport eval_genlaguerre as _func_eval_genlaguerre
-ctypedef double _proto_eval_genlaguerre_double__t(double, double, double) nogil
+ctypedef double _proto_eval_genlaguerre_double__t(double, double, double) noexcept nogil
 cdef _proto_eval_genlaguerre_double__t *_proto_eval_genlaguerre_double__t_var = &_func_eval_genlaguerre[double]
 from .orthogonal_eval cimport eval_genlaguerre_l as _func_eval_genlaguerre_l
-ctypedef double _proto_eval_genlaguerre_l_t(long, double, double) nogil
+ctypedef double _proto_eval_genlaguerre_l_t(long, double, double) noexcept nogil
 cdef _proto_eval_genlaguerre_l_t *_proto_eval_genlaguerre_l_t_var = &_func_eval_genlaguerre_l
 from .orthogonal_eval cimport eval_hermite as _func_eval_hermite
-ctypedef double _proto_eval_hermite_t(long, double) nogil
+ctypedef double _proto_eval_hermite_t(long, double) noexcept nogil
 cdef _proto_eval_hermite_t *_proto_eval_hermite_t_var = &_func_eval_hermite
 from .orthogonal_eval cimport eval_hermitenorm as _func_eval_hermitenorm
-ctypedef double _proto_eval_hermitenorm_t(long, double) nogil
+ctypedef double _proto_eval_hermitenorm_t(long, double) noexcept nogil
 cdef _proto_eval_hermitenorm_t *_proto_eval_hermitenorm_t_var = &_func_eval_hermitenorm
 from .orthogonal_eval cimport eval_jacobi as _func_eval_jacobi
-ctypedef double complex _proto_eval_jacobi_double_complex__t(double, double, double, double complex) nogil
+ctypedef double complex _proto_eval_jacobi_double_complex__t(double, double, double, double complex) noexcept nogil
 cdef _proto_eval_jacobi_double_complex__t *_proto_eval_jacobi_double_complex__t_var = &_func_eval_jacobi[double_complex]
 from .orthogonal_eval cimport eval_jacobi as _func_eval_jacobi
-ctypedef double _proto_eval_jacobi_double__t(double, double, double, double) nogil
+ctypedef double _proto_eval_jacobi_double__t(double, double, double, double) noexcept nogil
 cdef _proto_eval_jacobi_double__t *_proto_eval_jacobi_double__t_var = &_func_eval_jacobi[double]
 from .orthogonal_eval cimport eval_jacobi_l as _func_eval_jacobi_l
-ctypedef double _proto_eval_jacobi_l_t(long, double, double, double) nogil
+ctypedef double _proto_eval_jacobi_l_t(long, double, double, double) noexcept nogil
 cdef _proto_eval_jacobi_l_t *_proto_eval_jacobi_l_t_var = &_func_eval_jacobi_l
 from .orthogonal_eval cimport eval_laguerre as _func_eval_laguerre
-ctypedef double complex _proto_eval_laguerre_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_laguerre_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_laguerre_double_complex__t *_proto_eval_laguerre_double_complex__t_var = &_func_eval_laguerre[double_complex]
 from .orthogonal_eval cimport eval_laguerre as _func_eval_laguerre
-ctypedef double _proto_eval_laguerre_double__t(double, double) nogil
+ctypedef double _proto_eval_laguerre_double__t(double, double) noexcept nogil
 cdef _proto_eval_laguerre_double__t *_proto_eval_laguerre_double__t_var = &_func_eval_laguerre[double]
 from .orthogonal_eval cimport eval_laguerre_l as _func_eval_laguerre_l
-ctypedef double _proto_eval_laguerre_l_t(long, double) nogil
+ctypedef double _proto_eval_laguerre_l_t(long, double) noexcept nogil
 cdef _proto_eval_laguerre_l_t *_proto_eval_laguerre_l_t_var = &_func_eval_laguerre_l
 from .orthogonal_eval cimport eval_legendre as _func_eval_legendre
-ctypedef double complex _proto_eval_legendre_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_legendre_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_legendre_double_complex__t *_proto_eval_legendre_double_complex__t_var = &_func_eval_legendre[double_complex]
 from .orthogonal_eval cimport eval_legendre as _func_eval_legendre
-ctypedef double _proto_eval_legendre_double__t(double, double) nogil
+ctypedef double _proto_eval_legendre_double__t(double, double) noexcept nogil
 cdef _proto_eval_legendre_double__t *_proto_eval_legendre_double__t_var = &_func_eval_legendre[double]
 from .orthogonal_eval cimport eval_legendre_l as _func_eval_legendre_l
-ctypedef double _proto_eval_legendre_l_t(long, double) nogil
+ctypedef double _proto_eval_legendre_l_t(long, double) noexcept nogil
 cdef _proto_eval_legendre_l_t *_proto_eval_legendre_l_t_var = &_func_eval_legendre_l
 from .orthogonal_eval cimport eval_sh_chebyt as _func_eval_sh_chebyt
-ctypedef double complex _proto_eval_sh_chebyt_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_sh_chebyt_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_sh_chebyt_double_complex__t *_proto_eval_sh_chebyt_double_complex__t_var = &_func_eval_sh_chebyt[double_complex]
 from .orthogonal_eval cimport eval_sh_chebyt as _func_eval_sh_chebyt
-ctypedef double _proto_eval_sh_chebyt_double__t(double, double) nogil
+ctypedef double _proto_eval_sh_chebyt_double__t(double, double) noexcept nogil
 cdef _proto_eval_sh_chebyt_double__t *_proto_eval_sh_chebyt_double__t_var = &_func_eval_sh_chebyt[double]
 from .orthogonal_eval cimport eval_sh_chebyt_l as _func_eval_sh_chebyt_l
-ctypedef double _proto_eval_sh_chebyt_l_t(long, double) nogil
+ctypedef double _proto_eval_sh_chebyt_l_t(long, double) noexcept nogil
 cdef _proto_eval_sh_chebyt_l_t *_proto_eval_sh_chebyt_l_t_var = &_func_eval_sh_chebyt_l
 from .orthogonal_eval cimport eval_sh_chebyu as _func_eval_sh_chebyu
-ctypedef double complex _proto_eval_sh_chebyu_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_sh_chebyu_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_sh_chebyu_double_complex__t *_proto_eval_sh_chebyu_double_complex__t_var = &_func_eval_sh_chebyu[double_complex]
 from .orthogonal_eval cimport eval_sh_chebyu as _func_eval_sh_chebyu
-ctypedef double _proto_eval_sh_chebyu_double__t(double, double) nogil
+ctypedef double _proto_eval_sh_chebyu_double__t(double, double) noexcept nogil
 cdef _proto_eval_sh_chebyu_double__t *_proto_eval_sh_chebyu_double__t_var = &_func_eval_sh_chebyu[double]
 from .orthogonal_eval cimport eval_sh_chebyu_l as _func_eval_sh_chebyu_l
-ctypedef double _proto_eval_sh_chebyu_l_t(long, double) nogil
+ctypedef double _proto_eval_sh_chebyu_l_t(long, double) noexcept nogil
 cdef _proto_eval_sh_chebyu_l_t *_proto_eval_sh_chebyu_l_t_var = &_func_eval_sh_chebyu_l
 from .orthogonal_eval cimport eval_sh_jacobi as _func_eval_sh_jacobi
-ctypedef double complex _proto_eval_sh_jacobi_double_complex__t(double, double, double, double complex) nogil
+ctypedef double complex _proto_eval_sh_jacobi_double_complex__t(double, double, double, double complex) noexcept nogil
 cdef _proto_eval_sh_jacobi_double_complex__t *_proto_eval_sh_jacobi_double_complex__t_var = &_func_eval_sh_jacobi[double_complex]
 from .orthogonal_eval cimport eval_sh_jacobi as _func_eval_sh_jacobi
-ctypedef double _proto_eval_sh_jacobi_double__t(double, double, double, double) nogil
+ctypedef double _proto_eval_sh_jacobi_double__t(double, double, double, double) noexcept nogil
 cdef _proto_eval_sh_jacobi_double__t *_proto_eval_sh_jacobi_double__t_var = &_func_eval_sh_jacobi[double]
 from .orthogonal_eval cimport eval_sh_jacobi_l as _func_eval_sh_jacobi_l
-ctypedef double _proto_eval_sh_jacobi_l_t(long, double, double, double) nogil
+ctypedef double _proto_eval_sh_jacobi_l_t(long, double, double, double) noexcept nogil
 cdef _proto_eval_sh_jacobi_l_t *_proto_eval_sh_jacobi_l_t_var = &_func_eval_sh_jacobi_l
 from .orthogonal_eval cimport eval_sh_legendre as _func_eval_sh_legendre
-ctypedef double complex _proto_eval_sh_legendre_double_complex__t(double, double complex) nogil
+ctypedef double complex _proto_eval_sh_legendre_double_complex__t(double, double complex) noexcept nogil
 cdef _proto_eval_sh_legendre_double_complex__t *_proto_eval_sh_legendre_double_complex__t_var = &_func_eval_sh_legendre[double_complex]
 from .orthogonal_eval cimport eval_sh_legendre as _func_eval_sh_legendre
-ctypedef double _proto_eval_sh_legendre_double__t(double, double) nogil
+ctypedef double _proto_eval_sh_legendre_double__t(double, double) noexcept nogil
 cdef _proto_eval_sh_legendre_double__t *_proto_eval_sh_legendre_double__t_var = &_func_eval_sh_legendre[double]
 from .orthogonal_eval cimport eval_sh_legendre_l as _func_eval_sh_legendre_l
-ctypedef double _proto_eval_sh_legendre_l_t(long, double) nogil
+ctypedef double _proto_eval_sh_legendre_l_t(long, double) noexcept nogil
 cdef _proto_eval_sh_legendre_l_t *_proto_eval_sh_legendre_l_t_var = &_func_eval_sh_legendre_l
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cexp1_wrap "cexp1_wrap"(double complex) nogil
+    cdef double complex _func_cexp1_wrap "cexp1_wrap"(double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_exp1_wrap "exp1_wrap"(double) nogil
+    cdef double _func_exp1_wrap "exp1_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_exp10 "exp10"(double) nogil
+    cdef double _func_exp10 "exp10"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_exp2 "exp2"(double) nogil
+    cdef double _func_exp2 "exp2"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cexpi_wrap "cexpi_wrap"(double complex) nogil
+    cdef double complex _func_cexpi_wrap "cexpi_wrap"(double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_expi_wrap "expi_wrap"(double) nogil
+    cdef double _func_expi_wrap "expi_wrap"(double) noexcept nogil
 from ._cunity cimport cexpm1 as _func_cexpm1
-ctypedef double complex _proto_cexpm1_t(double complex) nogil
+ctypedef double complex _proto_cexpm1_t(double complex) noexcept nogil
 cdef _proto_cexpm1_t *_proto_cexpm1_t_var = &_func_cexpm1
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_expm1 "expm1"(double) nogil
+    cdef double _func_expm1 "expm1"(double) noexcept nogil
 from ._legacy cimport expn_unsafe as _func_expn_unsafe
-ctypedef double _proto_expn_unsafe_t(double, double) nogil
+ctypedef double _proto_expn_unsafe_t(double, double) noexcept nogil
 cdef _proto_expn_unsafe_t *_proto_expn_unsafe_t_var = &_func_expn_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_expn "expn"(int, double) nogil
+    cdef double _func_expn "expn"(int, double) noexcept nogil
 from ._exprel cimport exprel as _func_exprel
-ctypedef double _proto_exprel_t(double) nogil
+ctypedef double _proto_exprel_t(double) noexcept nogil
 cdef _proto_exprel_t *_proto_exprel_t_var = &_func_exprel
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_fdtr "fdtr"(double, double, double) nogil
+    cdef double _func_fdtr "fdtr"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_fdtrc "fdtrc"(double, double, double) nogil
+    cdef double _func_fdtrc "fdtrc"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_fdtri "fdtri"(double, double, double) nogil
+    cdef double _func_fdtri "fdtri"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdff4_wrap "cdff4_wrap"(double, double, double) nogil
+    cdef double _func_cdff4_wrap "cdff4_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_fresnl "fresnl"(double, double *, double *) nogil
+    cdef int _func_fresnl "fresnl"(double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_cfresnl_wrap "cfresnl_wrap"(double complex, double complex *, double complex *) nogil
+    cdef int _func_cfresnl_wrap "cfresnl_wrap"(double complex, double complex *, double complex *) noexcept nogil
 from ._loggamma cimport cgamma as _func_cgamma
-ctypedef double complex _proto_cgamma_t(double complex) nogil
+ctypedef double complex _proto_cgamma_t(double complex) noexcept nogil
 cdef _proto_cgamma_t *_proto_cgamma_t_var = &_func_cgamma
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_Gamma "Gamma"(double) nogil
+    cdef double _func_Gamma "Gamma"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_igam "igam"(double, double) nogil
+    cdef double _func_igam "igam"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_igamc "igamc"(double, double) nogil
+    cdef double _func_igamc "igamc"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_igamci "igamci"(double, double) nogil
+    cdef double _func_igamci "igamci"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_igami "igami"(double, double) nogil
+    cdef double _func_igami "igami"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_lgam "lgam"(double) nogil
+    cdef double _func_lgam "lgam"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_gammasgn "gammasgn"(double) nogil
+    cdef double _func_gammasgn "gammasgn"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_gdtr "gdtr"(double, double, double) nogil
+    cdef double _func_gdtr "gdtr"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_gdtrc "gdtrc"(double, double, double) nogil
+    cdef double _func_gdtrc "gdtrc"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfgam4_wrap "cdfgam4_wrap"(double, double, double) nogil
+    cdef double _func_cdfgam4_wrap "cdfgam4_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfgam3_wrap "cdfgam3_wrap"(double, double, double) nogil
+    cdef double _func_cdfgam3_wrap "cdfgam3_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfgam2_wrap "cdfgam2_wrap"(double, double, double) nogil
+    cdef double _func_cdfgam2_wrap "cdfgam2_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesh_wrap1 "cbesh_wrap1"(double, double complex) nogil
+    cdef double complex _func_cbesh_wrap1 "cbesh_wrap1"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesh_wrap1_e "cbesh_wrap1_e"(double, double complex) nogil
+    cdef double complex _func_cbesh_wrap1_e "cbesh_wrap1_e"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesh_wrap2 "cbesh_wrap2"(double, double complex) nogil
+    cdef double complex _func_cbesh_wrap2 "cbesh_wrap2"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesh_wrap2_e "cbesh_wrap2_e"(double, double complex) nogil
+    cdef double complex _func_cbesh_wrap2_e "cbesh_wrap2_e"(double, double complex) noexcept nogil
 from ._convex_analysis cimport huber as _func_huber
-ctypedef double _proto_huber_t(double, double) nogil
+ctypedef double _proto_huber_t(double, double) noexcept nogil
 cdef _proto_huber_t *_proto_huber_t_var = &_func_huber
 from ._hyp0f1 cimport _hyp0f1_cmplx as _func__hyp0f1_cmplx
-ctypedef double complex _proto__hyp0f1_cmplx_t(double, double complex) nogil
+ctypedef double complex _proto__hyp0f1_cmplx_t(double, double complex) noexcept nogil
 cdef _proto__hyp0f1_cmplx_t *_proto__hyp0f1_cmplx_t_var = &_func__hyp0f1_cmplx
 from ._hyp0f1 cimport _hyp0f1_real as _func__hyp0f1_real
-ctypedef double _proto__hyp0f1_real_t(double, double) nogil
+ctypedef double _proto__hyp0f1_real_t(double, double) noexcept nogil
 cdef _proto__hyp0f1_real_t *_proto__hyp0f1_real_t_var = &_func__hyp0f1_real
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_chyp1f1_wrap "chyp1f1_wrap"(double, double, double complex) nogil
+    cdef double complex _func_chyp1f1_wrap "chyp1f1_wrap"(double, double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_hyp2f1 "hyp2f1"(double, double, double, double) nogil
+    cdef double _func_hyp2f1 "hyp2f1"(double, double, double, double) noexcept nogil
 from ._hyp2f1 cimport hyp2f1_complex as _func_hyp2f1_complex
-ctypedef double complex _proto_hyp2f1_complex_t(double, double, double, double complex) nogil
+ctypedef double complex _proto_hyp2f1_complex_t(double, double, double, double complex) noexcept nogil
 cdef _proto_hyp2f1_complex_t *_proto_hyp2f1_complex_t_var = &_func_hyp2f1_complex
 from ._hypergeometric cimport hyperu as _func_hyperu
-ctypedef double _proto_hyperu_t(double, double, double) nogil
+ctypedef double _proto_hyperu_t(double, double, double) noexcept nogil
 cdef _proto_hyperu_t *_proto_hyperu_t_var = &_func_hyperu
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_i0 "i0"(double) nogil
+    cdef double _func_i0 "i0"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_i0e "i0e"(double) nogil
+    cdef double _func_i0e "i0e"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_i1 "i1"(double) nogil
+    cdef double _func_i1 "i1"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_i1e "i1e"(double) nogil
+    cdef double _func_i1e "i1e"(double) noexcept nogil
 from ._boxcox cimport inv_boxcox as _func_inv_boxcox
-ctypedef double _proto_inv_boxcox_t(double, double) nogil
+ctypedef double _proto_inv_boxcox_t(double, double) noexcept nogil
 cdef _proto_inv_boxcox_t *_proto_inv_boxcox_t_var = &_func_inv_boxcox
 from ._boxcox cimport inv_boxcox1p as _func_inv_boxcox1p
-ctypedef double _proto_inv_boxcox1p_t(double, double) nogil
+ctypedef double _proto_inv_boxcox1p_t(double, double) noexcept nogil
 cdef _proto_inv_boxcox1p_t *_proto_inv_boxcox1p_t_var = &_func_inv_boxcox1p
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_it2i0k0_wrap "it2i0k0_wrap"(double, double *, double *) nogil
+    cdef int _func_it2i0k0_wrap "it2i0k0_wrap"(double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_it2j0y0_wrap "it2j0y0_wrap"(double, double *, double *) nogil
+    cdef int _func_it2j0y0_wrap "it2j0y0_wrap"(double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_it2struve0_wrap "it2struve0_wrap"(double) nogil
+    cdef double _func_it2struve0_wrap "it2struve0_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_itairy_wrap "itairy_wrap"(double, double *, double *, double *, double *) nogil
+    cdef int _func_itairy_wrap "itairy_wrap"(double, double *, double *, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_it1i0k0_wrap "it1i0k0_wrap"(double, double *, double *) nogil
+    cdef int _func_it1i0k0_wrap "it1i0k0_wrap"(double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_it1j0y0_wrap "it1j0y0_wrap"(double, double *, double *) nogil
+    cdef int _func_it1j0y0_wrap "it1j0y0_wrap"(double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_itmodstruve0_wrap "itmodstruve0_wrap"(double) nogil
+    cdef double _func_itmodstruve0_wrap "itmodstruve0_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_itstruve0_wrap "itstruve0_wrap"(double) nogil
+    cdef double _func_itstruve0_wrap "itstruve0_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesi_wrap "cbesi_wrap"(double, double complex) nogil
+    cdef double complex _func_cbesi_wrap "cbesi_wrap"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_iv "iv"(double, double) nogil
+    cdef double _func_iv "iv"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesi_wrap_e "cbesi_wrap_e"(double, double complex) nogil
+    cdef double complex _func_cbesi_wrap_e "cbesi_wrap_e"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cbesi_wrap_e_real "cbesi_wrap_e_real"(double, double) nogil
+    cdef double _func_cbesi_wrap_e_real "cbesi_wrap_e_real"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_j0 "j0"(double) nogil
+    cdef double _func_j0 "j0"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_j1 "j1"(double) nogil
+    cdef double _func_j1 "j1"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesj_wrap "cbesj_wrap"(double, double complex) nogil
+    cdef double complex _func_cbesj_wrap "cbesj_wrap"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cbesj_wrap_real "cbesj_wrap_real"(double, double) nogil
+    cdef double _func_cbesj_wrap_real "cbesj_wrap_real"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesj_wrap_e "cbesj_wrap_e"(double, double complex) nogil
+    cdef double complex _func_cbesj_wrap_e "cbesj_wrap_e"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cbesj_wrap_e_real "cbesj_wrap_e_real"(double, double) nogil
+    cdef double _func_cbesj_wrap_e_real "cbesj_wrap_e_real"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_k0 "k0"(double) nogil
+    cdef double _func_k0 "k0"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_k0e "k0e"(double) nogil
+    cdef double _func_k0e "k0e"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_k1 "k1"(double) nogil
+    cdef double _func_k1 "k1"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_k1e "k1e"(double) nogil
+    cdef double _func_k1e "k1e"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_kei_wrap "kei_wrap"(double) nogil
+    cdef double _func_kei_wrap "kei_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_keip_wrap "keip_wrap"(double) nogil
+    cdef double _func_keip_wrap "keip_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_kelvin_wrap "kelvin_wrap"(double, double complex *, double complex *, double complex *, double complex *) nogil
+    cdef int _func_kelvin_wrap "kelvin_wrap"(double, double complex *, double complex *, double complex *, double complex *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_ker_wrap "ker_wrap"(double) nogil
+    cdef double _func_ker_wrap "ker_wrap"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_kerp_wrap "kerp_wrap"(double) nogil
+    cdef double _func_kerp_wrap "kerp_wrap"(double) noexcept nogil
 from ._convex_analysis cimport kl_div as _func_kl_div
-ctypedef double _proto_kl_div_t(double, double) nogil
+ctypedef double _proto_kl_div_t(double, double) noexcept nogil
 cdef _proto_kl_div_t *_proto_kl_div_t_var = &_func_kl_div
 from ._legacy cimport kn_unsafe as _func_kn_unsafe
-ctypedef double _proto_kn_unsafe_t(double, double) nogil
+ctypedef double _proto_kn_unsafe_t(double, double) noexcept nogil
 cdef _proto_kn_unsafe_t *_proto_kn_unsafe_t_var = &_func_kn_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cbesk_wrap_real_int "cbesk_wrap_real_int"(int, double) nogil
+    cdef double _func_cbesk_wrap_real_int "cbesk_wrap_real_int"(int, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_kolmogi "kolmogi"(double) nogil
+    cdef double _func_kolmogi "kolmogi"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_kolmogorov "kolmogorov"(double) nogil
+    cdef double _func_kolmogorov "kolmogorov"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesk_wrap "cbesk_wrap"(double, double complex) nogil
+    cdef double complex _func_cbesk_wrap "cbesk_wrap"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cbesk_wrap_real "cbesk_wrap_real"(double, double) nogil
+    cdef double _func_cbesk_wrap_real "cbesk_wrap_real"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesk_wrap_e "cbesk_wrap_e"(double, double complex) nogil
+    cdef double complex _func_cbesk_wrap_e "cbesk_wrap_e"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cbesk_wrap_e_real "cbesk_wrap_e_real"(double, double) nogil
+    cdef double _func_cbesk_wrap_e_real "cbesk_wrap_e_real"(double, double) noexcept nogil
 from ._cunity cimport clog1p as _func_clog1p
-ctypedef double complex _proto_clog1p_t(double complex) nogil
+ctypedef double complex _proto_clog1p_t(double complex) noexcept nogil
 cdef _proto_clog1p_t *_proto_clog1p_t_var = &_func_clog1p
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_log1p "log1p"(double) nogil
+    cdef double _func_log1p "log1p"(double) noexcept nogil
 from ._loggamma cimport loggamma_real as _func_loggamma_real
-ctypedef double _proto_loggamma_real_t(double) nogil
+ctypedef double _proto_loggamma_real_t(double) noexcept nogil
 cdef _proto_loggamma_real_t *_proto_loggamma_real_t_var = &_func_loggamma_real
 from ._loggamma cimport loggamma as _func_loggamma
-ctypedef double complex _proto_loggamma_t(double complex) nogil
+ctypedef double complex _proto_loggamma_t(double complex) noexcept nogil
 cdef _proto_loggamma_t *_proto_loggamma_t_var = &_func_loggamma
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_pmv_wrap "pmv_wrap"(double, double, double) nogil
+    cdef double _func_pmv_wrap "pmv_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cem_cva_wrap "cem_cva_wrap"(double, double) nogil
+    cdef double _func_cem_cva_wrap "cem_cva_wrap"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_sem_cva_wrap "sem_cva_wrap"(double, double) nogil
+    cdef double _func_sem_cva_wrap "sem_cva_wrap"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_cem_wrap "cem_wrap"(double, double, double, double *, double *) nogil
+    cdef int _func_cem_wrap "cem_wrap"(double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_mcm1_wrap "mcm1_wrap"(double, double, double, double *, double *) nogil
+    cdef int _func_mcm1_wrap "mcm1_wrap"(double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_mcm2_wrap "mcm2_wrap"(double, double, double, double *, double *) nogil
+    cdef int _func_mcm2_wrap "mcm2_wrap"(double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_msm1_wrap "msm1_wrap"(double, double, double, double *, double *) nogil
+    cdef int _func_msm1_wrap "msm1_wrap"(double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_msm2_wrap "msm2_wrap"(double, double, double, double *, double *) nogil
+    cdef int _func_msm2_wrap "msm2_wrap"(double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_sem_wrap "sem_wrap"(double, double, double, double *, double *) nogil
+    cdef int _func_sem_wrap "sem_wrap"(double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_modified_fresnel_minus_wrap "modified_fresnel_minus_wrap"(double, double complex *, double complex *) nogil
+    cdef int _func_modified_fresnel_minus_wrap "modified_fresnel_minus_wrap"(double, double complex *, double complex *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_modified_fresnel_plus_wrap "modified_fresnel_plus_wrap"(double, double complex *, double complex *) nogil
+    cdef int _func_modified_fresnel_plus_wrap "modified_fresnel_plus_wrap"(double, double complex *, double complex *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_struve_l "struve_l"(double, double) nogil
+    cdef double _func_struve_l "struve_l"(double, double) noexcept nogil
 from ._legacy cimport nbdtr_unsafe as _func_nbdtr_unsafe
-ctypedef double _proto_nbdtr_unsafe_t(double, double, double) nogil
+ctypedef double _proto_nbdtr_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_nbdtr_unsafe_t *_proto_nbdtr_unsafe_t_var = &_func_nbdtr_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_nbdtr "nbdtr"(int, int, double) nogil
+    cdef double _func_nbdtr "nbdtr"(int, int, double) noexcept nogil
 from ._legacy cimport nbdtrc_unsafe as _func_nbdtrc_unsafe
-ctypedef double _proto_nbdtrc_unsafe_t(double, double, double) nogil
+ctypedef double _proto_nbdtrc_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_nbdtrc_unsafe_t *_proto_nbdtrc_unsafe_t_var = &_func_nbdtrc_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_nbdtrc "nbdtrc"(int, int, double) nogil
+    cdef double _func_nbdtrc "nbdtrc"(int, int, double) noexcept nogil
 from ._legacy cimport nbdtri_unsafe as _func_nbdtri_unsafe
-ctypedef double _proto_nbdtri_unsafe_t(double, double, double) nogil
+ctypedef double _proto_nbdtri_unsafe_t(double, double, double) noexcept nogil
 cdef _proto_nbdtri_unsafe_t *_proto_nbdtri_unsafe_t_var = &_func_nbdtri_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_nbdtri "nbdtri"(int, int, double) nogil
+    cdef double _func_nbdtri "nbdtri"(int, int, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfnbn2_wrap "cdfnbn2_wrap"(double, double, double) nogil
+    cdef double _func_cdfnbn2_wrap "cdfnbn2_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfnbn3_wrap "cdfnbn3_wrap"(double, double, double) nogil
+    cdef double _func_cdfnbn3_wrap "cdfnbn3_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdffnc1_wrap "cdffnc1_wrap"(double, double, double, double) nogil
+    cdef double _func_cdffnc1_wrap "cdffnc1_wrap"(double, double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdffnc2_wrap "cdffnc2_wrap"(double, double, double, double) nogil
+    cdef double _func_cdffnc2_wrap "cdffnc2_wrap"(double, double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdffnc4_wrap "cdffnc4_wrap"(double, double, double, double) nogil
+    cdef double _func_cdffnc4_wrap "cdffnc4_wrap"(double, double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdffnc3_wrap "cdffnc3_wrap"(double, double, double, double) nogil
+    cdef double _func_cdffnc3_wrap "cdffnc3_wrap"(double, double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdffnc5_wrap "cdffnc5_wrap"(double, double, double, double) nogil
+    cdef double _func_cdffnc5_wrap "cdffnc5_wrap"(double, double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdftnc1_wrap "cdftnc1_wrap"(double, double, double) nogil
+    cdef double _func_cdftnc1_wrap "cdftnc1_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdftnc3_wrap "cdftnc3_wrap"(double, double, double) nogil
+    cdef double _func_cdftnc3_wrap "cdftnc3_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdftnc4_wrap "cdftnc4_wrap"(double, double, double) nogil
+    cdef double _func_cdftnc4_wrap "cdftnc4_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdftnc2_wrap "cdftnc2_wrap"(double, double, double) nogil
+    cdef double _func_cdftnc2_wrap "cdftnc2_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_ndtr "ndtr"(double) nogil
+    cdef double _func_ndtr "ndtr"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_ndtri "ndtri"(double) nogil
+    cdef double _func_ndtri "ndtri"(double) noexcept nogil
 from ._ndtri_exp cimport ndtri_exp as _func_ndtri_exp
-ctypedef double _proto_ndtri_exp_t(double) nogil
+ctypedef double _proto_ndtri_exp_t(double) noexcept nogil
 cdef _proto_ndtri_exp_t *_proto_ndtri_exp_t_var = &_func_ndtri_exp
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfnor3_wrap "cdfnor3_wrap"(double, double, double) nogil
+    cdef double _func_cdfnor3_wrap "cdfnor3_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfnor4_wrap "cdfnor4_wrap"(double, double, double) nogil
+    cdef double _func_cdfnor4_wrap "cdfnor4_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_oblate_aswfa_nocv_wrap "oblate_aswfa_nocv_wrap"(double, double, double, double, double *) nogil
+    cdef double _func_oblate_aswfa_nocv_wrap "oblate_aswfa_nocv_wrap"(double, double, double, double, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_oblate_aswfa_wrap "oblate_aswfa_wrap"(double, double, double, double, double, double *, double *) nogil
+    cdef int _func_oblate_aswfa_wrap "oblate_aswfa_wrap"(double, double, double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_oblate_segv_wrap "oblate_segv_wrap"(double, double, double) nogil
+    cdef double _func_oblate_segv_wrap "oblate_segv_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_oblate_radial1_nocv_wrap "oblate_radial1_nocv_wrap"(double, double, double, double, double *) nogil
+    cdef double _func_oblate_radial1_nocv_wrap "oblate_radial1_nocv_wrap"(double, double, double, double, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_oblate_radial1_wrap "oblate_radial1_wrap"(double, double, double, double, double, double *, double *) nogil
+    cdef int _func_oblate_radial1_wrap "oblate_radial1_wrap"(double, double, double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_oblate_radial2_nocv_wrap "oblate_radial2_nocv_wrap"(double, double, double, double, double *) nogil
+    cdef double _func_oblate_radial2_nocv_wrap "oblate_radial2_nocv_wrap"(double, double, double, double, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_oblate_radial2_wrap "oblate_radial2_wrap"(double, double, double, double, double, double *, double *) nogil
+    cdef int _func_oblate_radial2_wrap "oblate_radial2_wrap"(double, double, double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_owens_t "owens_t"(double, double) nogil
+    cdef double _func_owens_t "owens_t"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_pbdv_wrap "pbdv_wrap"(double, double, double *, double *) nogil
+    cdef int _func_pbdv_wrap "pbdv_wrap"(double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_pbvv_wrap "pbvv_wrap"(double, double, double *, double *) nogil
+    cdef int _func_pbvv_wrap "pbvv_wrap"(double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_pbwa_wrap "pbwa_wrap"(double, double, double *, double *) nogil
+    cdef int _func_pbwa_wrap "pbwa_wrap"(double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_pdtr "pdtr"(double, double) nogil
+    cdef double _func_pdtr "pdtr"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_pdtrc "pdtrc"(double, double) nogil
+    cdef double _func_pdtrc "pdtrc"(double, double) noexcept nogil
 from ._legacy cimport pdtri_unsafe as _func_pdtri_unsafe
-ctypedef double _proto_pdtri_unsafe_t(double, double) nogil
+ctypedef double _proto_pdtri_unsafe_t(double, double) noexcept nogil
 cdef _proto_pdtri_unsafe_t *_proto_pdtri_unsafe_t_var = &_func_pdtri_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_pdtri "pdtri"(int, double) nogil
+    cdef double _func_pdtri "pdtri"(int, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdfpoi2_wrap "cdfpoi2_wrap"(double, double) nogil
+    cdef double _func_cdfpoi2_wrap "cdfpoi2_wrap"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_poch "poch"(double, double) nogil
+    cdef double _func_poch "poch"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_prolate_aswfa_nocv_wrap "prolate_aswfa_nocv_wrap"(double, double, double, double, double *) nogil
+    cdef double _func_prolate_aswfa_nocv_wrap "prolate_aswfa_nocv_wrap"(double, double, double, double, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_prolate_aswfa_wrap "prolate_aswfa_wrap"(double, double, double, double, double, double *, double *) nogil
+    cdef int _func_prolate_aswfa_wrap "prolate_aswfa_wrap"(double, double, double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_prolate_segv_wrap "prolate_segv_wrap"(double, double, double) nogil
+    cdef double _func_prolate_segv_wrap "prolate_segv_wrap"(double, double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_prolate_radial1_nocv_wrap "prolate_radial1_nocv_wrap"(double, double, double, double, double *) nogil
+    cdef double _func_prolate_radial1_nocv_wrap "prolate_radial1_nocv_wrap"(double, double, double, double, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_prolate_radial1_wrap "prolate_radial1_wrap"(double, double, double, double, double, double *, double *) nogil
+    cdef int _func_prolate_radial1_wrap "prolate_radial1_wrap"(double, double, double, double, double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_prolate_radial2_nocv_wrap "prolate_radial2_nocv_wrap"(double, double, double, double, double *) nogil
+    cdef double _func_prolate_radial2_nocv_wrap "prolate_radial2_nocv_wrap"(double, double, double, double, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_prolate_radial2_wrap "prolate_radial2_wrap"(double, double, double, double, double, double *, double *) nogil
+    cdef int _func_prolate_radial2_wrap "prolate_radial2_wrap"(double, double, double, double, double, double *, double *) noexcept nogil
 from ._convex_analysis cimport pseudo_huber as _func_pseudo_huber
-ctypedef double _proto_pseudo_huber_t(double, double) nogil
+ctypedef double _proto_pseudo_huber_t(double, double) noexcept nogil
 cdef _proto_pseudo_huber_t *_proto_pseudo_huber_t_var = &_func_pseudo_huber
 from ._digamma cimport cdigamma as _func_cdigamma
-ctypedef double complex _proto_cdigamma_t(double complex) nogil
+ctypedef double complex _proto_cdigamma_t(double complex) noexcept nogil
 cdef _proto_cdigamma_t *_proto_cdigamma_t_var = &_func_cdigamma
 from ._digamma cimport digamma as _func_digamma
-ctypedef double _proto_digamma_t(double) nogil
+ctypedef double _proto_digamma_t(double) noexcept nogil
 cdef _proto_digamma_t *_proto_digamma_t_var = &_func_digamma
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_radian "radian"(double, double, double) nogil
+    cdef double _func_radian "radian"(double, double, double) noexcept nogil
 from ._convex_analysis cimport rel_entr as _func_rel_entr
-ctypedef double _proto_rel_entr_t(double, double) nogil
+ctypedef double _proto_rel_entr_t(double, double) noexcept nogil
 cdef _proto_rel_entr_t *_proto_rel_entr_t_var = &_func_rel_entr
 from ._loggamma cimport crgamma as _func_crgamma
-ctypedef double complex _proto_crgamma_t(double complex) nogil
+ctypedef double complex _proto_crgamma_t(double complex) noexcept nogil
 cdef _proto_crgamma_t *_proto_crgamma_t_var = &_func_crgamma
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_rgamma "rgamma"(double) nogil
+    cdef double _func_rgamma "rgamma"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_round "round"(double) nogil
+    cdef double _func_round "round"(double) noexcept nogil
 from ._sici cimport cshichi as _func_cshichi
-ctypedef int _proto_cshichi_t(double complex, double complex *, double complex *) nogil
+ctypedef int _proto_cshichi_t(double complex, double complex *, double complex *) noexcept nogil
 cdef _proto_cshichi_t *_proto_cshichi_t_var = &_func_cshichi
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_shichi "shichi"(double, double *, double *) nogil
+    cdef int _func_shichi "shichi"(double, double *, double *) noexcept nogil
 from ._sici cimport csici as _func_csici
-ctypedef int _proto_csici_t(double complex, double complex *, double complex *) nogil
+ctypedef int _proto_csici_t(double complex, double complex *, double complex *) noexcept nogil
 cdef _proto_csici_t *_proto_csici_t_var = &_func_csici
 cdef extern from r"_ufuncs_defs.h":
-    cdef int _func_sici "sici"(double, double *, double *) nogil
+    cdef int _func_sici "sici"(double, double *, double *) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_sindg "sindg"(double) nogil
+    cdef double _func_sindg "sindg"(double) noexcept nogil
 from ._legacy cimport smirnov_unsafe as _func_smirnov_unsafe
-ctypedef double _proto_smirnov_unsafe_t(double, double) nogil
+ctypedef double _proto_smirnov_unsafe_t(double, double) noexcept nogil
 cdef _proto_smirnov_unsafe_t *_proto_smirnov_unsafe_t_var = &_func_smirnov_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_smirnov "smirnov"(int, double) nogil
+    cdef double _func_smirnov "smirnov"(int, double) noexcept nogil
 from ._legacy cimport smirnovi_unsafe as _func_smirnovi_unsafe
-ctypedef double _proto_smirnovi_unsafe_t(double, double) nogil
+ctypedef double _proto_smirnovi_unsafe_t(double, double) noexcept nogil
 cdef _proto_smirnovi_unsafe_t *_proto_smirnovi_unsafe_t_var = &_func_smirnovi_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_smirnovi "smirnovi"(int, double) nogil
+    cdef double _func_smirnovi "smirnovi"(int, double) noexcept nogil
 from ._spence cimport cspence as _func_cspence
-ctypedef double complex _proto_cspence_t(double complex) nogil
+ctypedef double complex _proto_cspence_t(double complex) noexcept nogil
 cdef _proto_cspence_t *_proto_cspence_t_var = &_func_cspence
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_spence "spence"(double) nogil
+    cdef double _func_spence "spence"(double) noexcept nogil
 from ._legacy cimport sph_harmonic_unsafe as _func_sph_harmonic_unsafe
-ctypedef double complex _proto_sph_harmonic_unsafe_t(double, double, double, double) nogil
+ctypedef double complex _proto_sph_harmonic_unsafe_t(double, double, double, double) noexcept nogil
 cdef _proto_sph_harmonic_unsafe_t *_proto_sph_harmonic_unsafe_t_var = &_func_sph_harmonic_unsafe
 from .sph_harm cimport sph_harmonic as _func_sph_harmonic
-ctypedef double complex _proto_sph_harmonic_t(int, int, double, double) nogil
+ctypedef double complex _proto_sph_harmonic_t(int, int, double, double) noexcept nogil
 cdef _proto_sph_harmonic_t *_proto_sph_harmonic_t_var = &_func_sph_harmonic
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdft1_wrap "cdft1_wrap"(double, double) nogil
+    cdef double _func_cdft1_wrap "cdft1_wrap"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdft3_wrap "cdft3_wrap"(double, double) nogil
+    cdef double _func_cdft3_wrap "cdft3_wrap"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cdft2_wrap "cdft2_wrap"(double, double) nogil
+    cdef double _func_cdft2_wrap "cdft2_wrap"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_struve_h "struve_h"(double, double) nogil
+    cdef double _func_struve_h "struve_h"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_tandg "tandg"(double) nogil
+    cdef double _func_tandg "tandg"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_tukeylambdacdf "tukeylambdacdf"(double, double) nogil
+    cdef double _func_tukeylambdacdf "tukeylambdacdf"(double, double) noexcept nogil
 from ._wright_bessel cimport wright_bessel_scalar as _func_wright_bessel_scalar
-ctypedef double _proto_wright_bessel_scalar_t(double, double, double) nogil
+ctypedef double _proto_wright_bessel_scalar_t(double, double, double) noexcept nogil
 cdef _proto_wright_bessel_scalar_t *_proto_wright_bessel_scalar_t_var = &_func_wright_bessel_scalar
 from ._xlogy cimport xlog1py as _func_xlog1py
-ctypedef double _proto_xlog1py_double__t(double, double) nogil
+ctypedef double _proto_xlog1py_double__t(double, double) noexcept nogil
 cdef _proto_xlog1py_double__t *_proto_xlog1py_double__t_var = &_func_xlog1py[double]
 from ._xlogy cimport xlog1py as _func_xlog1py
-ctypedef double complex _proto_xlog1py_double_complex__t(double complex, double complex) nogil
+ctypedef double complex _proto_xlog1py_double_complex__t(double complex, double complex) noexcept nogil
 cdef _proto_xlog1py_double_complex__t *_proto_xlog1py_double_complex__t_var = &_func_xlog1py[double_complex]
 from ._xlogy cimport xlogy as _func_xlogy
-ctypedef double _proto_xlogy_double__t(double, double) nogil
+ctypedef double _proto_xlogy_double__t(double, double) noexcept nogil
 cdef _proto_xlogy_double__t *_proto_xlogy_double__t_var = &_func_xlogy[double]
 from ._xlogy cimport xlogy as _func_xlogy
-ctypedef double complex _proto_xlogy_double_complex__t(double complex, double complex) nogil
+ctypedef double complex _proto_xlogy_double_complex__t(double complex, double complex) noexcept nogil
 cdef _proto_xlogy_double_complex__t *_proto_xlogy_double_complex__t_var = &_func_xlogy[double_complex]
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_y0 "y0"(double) nogil
+    cdef double _func_y0 "y0"(double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_y1 "y1"(double) nogil
+    cdef double _func_y1 "y1"(double) noexcept nogil
 from ._legacy cimport yn_unsafe as _func_yn_unsafe
-ctypedef double _proto_yn_unsafe_t(double, double) nogil
+ctypedef double _proto_yn_unsafe_t(double, double) noexcept nogil
 cdef _proto_yn_unsafe_t *_proto_yn_unsafe_t_var = &_func_yn_unsafe
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_yn "yn"(int, double) nogil
+    cdef double _func_yn "yn"(int, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesy_wrap "cbesy_wrap"(double, double complex) nogil
+    cdef double complex _func_cbesy_wrap "cbesy_wrap"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cbesy_wrap_real "cbesy_wrap_real"(double, double) nogil
+    cdef double _func_cbesy_wrap_real "cbesy_wrap_real"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double complex _func_cbesy_wrap_e "cbesy_wrap_e"(double, double complex) nogil
+    cdef double complex _func_cbesy_wrap_e "cbesy_wrap_e"(double, double complex) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_cbesy_wrap_e_real "cbesy_wrap_e_real"(double, double) nogil
+    cdef double _func_cbesy_wrap_e_real "cbesy_wrap_e_real"(double, double) noexcept nogil
 cdef extern from r"_ufuncs_defs.h":
-    cdef double _func_zetac "zetac"(double) nogil
+    cdef double _func_zetac "zetac"(double) noexcept nogil
 cdef np.PyUFuncGenericFunction ufunc__cosine_cdf_loops[2]
 cdef void *ufunc__cosine_cdf_ptr[4]
 cdef void *ufunc__cosine_cdf_data[2]
@@ -2387,6 +2389,71 @@ ufunc__riemann_zeta_ptr[2*1+1] = <void*>(<char*>"_riemann_zeta")
 ufunc__riemann_zeta_data[0] = &ufunc__riemann_zeta_ptr[2*0]
 ufunc__riemann_zeta_data[1] = &ufunc__riemann_zeta_ptr[2*1]
 _riemann_zeta = np.PyUFunc_FromFuncAndData(ufunc__riemann_zeta_loops, ufunc__riemann_zeta_data, ufunc__riemann_zeta_types, 2, 1, 1, 0, "_riemann_zeta", ufunc__riemann_zeta_doc, 0)
+
+cdef np.PyUFuncGenericFunction ufunc__scaled_exp1_loops[2]
+cdef void *ufunc__scaled_exp1_ptr[4]
+cdef void *ufunc__scaled_exp1_data[2]
+cdef char ufunc__scaled_exp1_types[4]
+cdef char *ufunc__scaled_exp1_doc = (
+    "_scaled_exp1(x, out=None):\n"
+    "\n"
+    "Compute the scaled exponential integral.\n"
+    "\n"
+    "This is a private function, subject to change or removal with no\n"
+    "deprecation.\n"
+    "\n"
+    "This function computes F(x), where F is the factor remaining in E_1(x)\n"
+    "when exp(-x)/x is factored out.  That is,::\n"
+    "\n"
+    "    E_1(x) = exp(-x)/x * F(x)\n"
+    "\n"
+    "or\n"
+    "\n"
+    "    F(x) = x * exp(x) * E_1(x)\n"
+    "\n"
+    "The function is defined for real x >= 0.  For x < 0, nan is returned.\n"
+    "\n"
+    "F has the properties:\n"
+    "\n"
+    "* F(0) = 0\n"
+    "* F(x) is increasing on [0, inf).\n"
+    "* The limit as x goes to infinity of F(x) is 1.\n"
+    "\n"
+    "Parameters\n"
+    "----------\n"
+    "x: array_like\n"
+    "    The input values. Must be real.  The implementation is limited to\n"
+    "    double precision floating point, so other types will be cast to\n"
+    "    to double precision.\n"
+    "out : ndarray, optional\n"
+    "    Optional output array for the function results\n"
+    "\n"
+    "Returns\n"
+    "-------\n"
+    "scalar or ndarray\n"
+    "    Values of the scaled exponential integral.\n"
+    "\n"
+    "See Also\n"
+    "--------\n"
+    "exp1 : exponential integral E_1\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    ">>> from scipy.special import _scaled_exp1\n"
+    ">>> _scaled_exp1([0, 0.1, 1, 10, 100])")
+ufunc__scaled_exp1_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
+ufunc__scaled_exp1_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
+ufunc__scaled_exp1_types[0] = <char>NPY_FLOAT
+ufunc__scaled_exp1_types[1] = <char>NPY_FLOAT
+ufunc__scaled_exp1_types[2] = <char>NPY_DOUBLE
+ufunc__scaled_exp1_types[3] = <char>NPY_DOUBLE
+ufunc__scaled_exp1_ptr[2*0] = <void*>_func_scaled_exp1
+ufunc__scaled_exp1_ptr[2*0+1] = <void*>(<char*>"_scaled_exp1")
+ufunc__scaled_exp1_ptr[2*1] = <void*>_func_scaled_exp1
+ufunc__scaled_exp1_ptr[2*1+1] = <void*>(<char*>"_scaled_exp1")
+ufunc__scaled_exp1_data[0] = &ufunc__scaled_exp1_ptr[2*0]
+ufunc__scaled_exp1_data[1] = &ufunc__scaled_exp1_ptr[2*1]
+_scaled_exp1 = np.PyUFunc_FromFuncAndData(ufunc__scaled_exp1_loops, ufunc__scaled_exp1_data, ufunc__scaled_exp1_types, 2, 1, 1, 0, "_scaled_exp1", ufunc__scaled_exp1_doc, 0)
 
 cdef np.PyUFuncGenericFunction ufunc__sf_error_test_function_loops[1]
 cdef void *ufunc__sf_error_test_function_ptr[2]
@@ -9421,7 +9488,26 @@ cdef char *ufunc_fdtridfd_doc = (
     "\n"
     "See Also\n"
     "--------\n"
-    "fdtr, fdtrc, fdtri")
+    "fdtr : F distribution cumulative distribution function\n"
+    "fdtrc : F distribution survival function\n"
+    "fdtri : F distribution quantile function\n"
+    "scipy.stats.f : F distribution\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "Compute the F distribution cumulative distribution function for one\n"
+    "parameter set.\n"
+    "\n"
+    ">>> from scipy.special import fdtridfd, fdtr\n"
+    ">>> dfn, dfd, x = 10, 5, 2\n"
+    ">>> cdf_value = fdtr(dfn, dfd, x)\n"
+    ">>> cdf_value\n"
+    "0.7700248806501017\n"
+    "\n"
+    "Verify that `fdtridfd` recovers the original value for `dfd`:\n"
+    "\n"
+    ">>> fdtridfd(dfn, cdf_value, x)\n"
+    "5.0")
 ufunc_fdtridfd_loops[0] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
 ufunc_fdtridfd_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
 ufunc_fdtridfd_types[0] = <char>NPY_FLOAT
@@ -11592,7 +11678,8 @@ cdef char *ufunc_i0e_doc = (
     "polynomial expansions used are the same as those in `i0`, but\n"
     "they are not multiplied by the dominant exponential factor.\n"
     "\n"
-    "This function is a wrapper for the Cephes [1]_ routine `i0e`.\n"
+    "This function is a wrapper for the Cephes [1]_ routine `i0e`. `i0e`\n"
+    "is useful for large arguments `x`: for these, `i0` quickly overflows.\n"
     "\n"
     "See also\n"
     "--------\n"
@@ -11606,13 +11693,15 @@ cdef char *ufunc_i0e_doc = (
     "\n"
     "Examples\n"
     "--------\n"
-    "Calculate the function at one point:\n"
+    "In the following example `i0` returns infinity whereas `i0e` still returns\n"
+    "a finite number.\n"
     "\n"
-    ">>> from scipy.special import i0e\n"
-    ">>> i0e(1.)\n"
-    "0.46575960759364043\n"
+    ">>> from scipy.special import i0, i0e\n"
+    ">>> i0(1000.), i0e(1000.)\n"
+    "(inf, 0.012617240455891257)\n"
     "\n"
-    "Calculate the function at several points:\n"
+    "Calculate the function at several points by providing a NumPy array or\n"
+    "list for `x`:\n"
     "\n"
     ">>> import numpy as np\n"
     ">>> i0e(np.array([-2., 0., 3.]))\n"
@@ -11625,16 +11714,7 @@ cdef char *ufunc_i0e_doc = (
     ">>> x = np.linspace(-10., 10., 1000)\n"
     ">>> y = i0e(x)\n"
     ">>> ax.plot(x, y)\n"
-    ">>> plt.show()\n"
-    "\n"
-    "Exponentially scaled Bessel functions are useful for large arguments for\n"
-    "which the unscaled Bessel functions overflow or lose precision. In the\n"
-    "following example `i0` returns infinity whereas `i0e` still returns\n"
-    "a finite number.\n"
-    "\n"
-    ">>> from scipy.special import i0\n"
-    ">>> i0(1000.), i0e(1000.)\n"
-    "(inf, 0.012617240455891257)")
+    ">>> plt.show()")
 ufunc_i0e_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
 ufunc_i0e_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
 ufunc_i0e_types[0] = <char>NPY_FLOAT
@@ -11764,7 +11844,8 @@ cdef char *ufunc_i1e_doc = (
     "polynomial expansions used are the same as those in `i1`, but\n"
     "they are not multiplied by the dominant exponential factor.\n"
     "\n"
-    "This function is a wrapper for the Cephes [1]_ routine `i1e`.\n"
+    "This function is a wrapper for the Cephes [1]_ routine `i1e`. `i1e`\n"
+    "is useful for large arguments `x`: for these, `i1` quickly overflows.\n"
     "\n"
     "See also\n"
     "--------\n"
@@ -11778,13 +11859,15 @@ cdef char *ufunc_i1e_doc = (
     "\n"
     "Examples\n"
     "--------\n"
-    "Calculate the function at one point:\n"
+    "In the following example `i1` returns infinity whereas `i1e` still returns\n"
+    "a finite number.\n"
     "\n"
-    ">>> from scipy.special import i1e\n"
-    ">>> i1e(1.)\n"
-    "0.2079104153497085\n"
+    ">>> from scipy.special import i1, i1e\n"
+    ">>> i1(1000.), i1e(1000.)\n"
+    "(inf, 0.01261093025692863)\n"
     "\n"
-    "Calculate the function at several points:\n"
+    "Calculate the function at several points by providing a NumPy array or\n"
+    "list for `x`:\n"
     "\n"
     ">>> import numpy as np\n"
     ">>> i1e(np.array([-2., 0., 6.]))\n"
@@ -11797,16 +11880,7 @@ cdef char *ufunc_i1e_doc = (
     ">>> x = np.linspace(-10., 10., 1000)\n"
     ">>> y = i1e(x)\n"
     ">>> ax.plot(x, y)\n"
-    ">>> plt.show()\n"
-    "\n"
-    "Exponentially scaled Bessel functions are useful for large arguments for\n"
-    "which the unscaled Bessel functions overflow or lose precision. In the\n"
-    "following example `i1` returns infinity whereas `i1e` still returns a\n"
-    "finite number.\n"
-    "\n"
-    ">>> from scipy.special import i1\n"
-    ">>> i1(1000.), i1e(1000.)\n"
-    "(inf, 0.01261093025692863)")
+    ">>> plt.show()")
 ufunc_i1e_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
 ufunc_i1e_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
 ufunc_i1e_types[0] = <char>NPY_FLOAT
@@ -12790,6 +12864,9 @@ cdef char *ufunc_ive_doc = (
     "is used, where :math:`K_v(z)` is the modified Bessel function of the\n"
     "second kind, evaluated using the AMOS routine `zbesk`.\n"
     "\n"
+    "`ive` is useful for large arguments `z`: for these, `iv` easily overflows,\n"
+    "while `ive` does not due to the exponential scaling.\n"
+    "\n"
     "See also\n"
     "--------\n"
     "iv: Modified Bessel function of the first kind\n"
@@ -12804,13 +12881,14 @@ cdef char *ufunc_ive_doc = (
     "\n"
     "Examples\n"
     "--------\n"
-    "Evaluate the function of order 0 at one point.\n"
+    "In the following example `iv` returns infinity whereas `ive` still returns\n"
+    "a finite number.\n"
     "\n"
-    ">>> import numpy as np\n"
     ">>> from scipy.special import iv, ive\n"
+    ">>> import numpy as np\n"
     ">>> import matplotlib.pyplot as plt\n"
-    ">>> ive(0, 1.)\n"
-    "0.4657596075936404\n"
+    ">>> iv(3, 1000.), ive(3, 1000.)\n"
+    "(inf, 0.01256056218254712)\n"
     "\n"
     "Evaluate the function at one point for different orders by\n"
     "providing a list or NumPy array as argument for the `v` parameter:\n"
@@ -12843,15 +12921,7 @@ cdef char *ufunc_ive_doc = (
     "...     ax.plot(x, ive(i, x), label=f'$I_{i!r}(z)\\cdot e^{{-|z|}}$')\n"
     ">>> ax.legend()\n"
     ">>> ax.set_xlabel(r\"$z$\")\n"
-    ">>> plt.show()\n"
-    "\n"
-    "Exponentially scaled Bessel functions are useful for large arguments for\n"
-    "which the unscaled Bessel functions over- or underflow. In the\n"
-    "following example `iv` returns infinity whereas `ive` still returns\n"
-    "a finite number.\n"
-    "\n"
-    ">>> iv(3, 1000.), ive(3, 1000.)\n"
-    "(inf, 0.01256056218254712)")
+    ">>> plt.show()")
 ufunc_ive_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_ive_loops[1] = <np.PyUFuncGenericFunction>loop_D_dD__As_fF_F
 ufunc_ive_loops[2] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
@@ -13429,7 +13499,8 @@ cdef char *ufunc_k0e_doc = (
     "The range is partitioned into the two intervals [0, 2] and (2, infinity).\n"
     "Chebyshev polynomial expansions are employed in each interval.\n"
     "\n"
-    "This function is a wrapper for the Cephes [1]_ routine `k0e`.\n"
+    "This function is a wrapper for the Cephes [1]_ routine `k0e`. `k0e` is\n"
+    "useful for large arguments: for these, `k0` easily underflows.\n"
     "\n"
     "See also\n"
     "--------\n"
@@ -13443,13 +13514,15 @@ cdef char *ufunc_k0e_doc = (
     "\n"
     "Examples\n"
     "--------\n"
-    "Calculate the function at one point:\n"
+    "In the following example `k0` returns 0 whereas `k0e` still returns a\n"
+    "useful finite number:\n"
     "\n"
-    ">>> from scipy.special import k0e\n"
-    ">>> k0e(1.)\n"
-    "1.1444630798068947\n"
+    ">>> from scipy.special import k0, k0e\n"
+    ">>> k0(1000.), k0e(1000)\n"
+    "(0., 0.03962832160075422)\n"
     "\n"
-    "Calculate the function at several points:\n"
+    "Calculate the function at several points by providing a NumPy array or\n"
+    "list for `x`:\n"
     "\n"
     ">>> import numpy as np\n"
     ">>> k0e(np.array([0.5, 2., 3.]))\n"
@@ -13462,19 +13535,7 @@ cdef char *ufunc_k0e_doc = (
     ">>> x = np.linspace(0., 10., 1000)\n"
     ">>> y = k0e(x)\n"
     ">>> ax.plot(x, y)\n"
-    ">>> plt.show()\n"
-    "\n"
-    "Exponentially scaled Bessel functions are useful for large arguments for\n"
-    "which the unscaled Bessel functions are not precise enough.\n"
-    "\n"
-    ">>> from scipy.special import k0\n"
-    ">>> k0(1000.)\n"
-    "0.\n"
-    "\n"
-    "While `k0` returns zero, `k0e` still returns a finite number:\n"
-    "\n"
-    ">>> k0e(1000.)\n"
-    "0.03962832160075422")
+    ">>> plt.show()")
 ufunc_k0e_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
 ufunc_k0e_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
 ufunc_k0e_types[0] = <char>NPY_FLOAT
@@ -13608,13 +13669,15 @@ cdef char *ufunc_k1e_doc = (
     "\n"
     "Examples\n"
     "--------\n"
-    "Calculate the function at one point:\n"
+    "In the following example `k1` returns 0 whereas `k1e` still returns a\n"
+    "useful floating point number.\n"
     "\n"
-    ">>> from scipy.special import k1e\n"
-    ">>> k1e(1.)\n"
-    "1.636153486263258\n"
+    ">>> from scipy.special import k1, k1e\n"
+    ">>> k1(1000.), k1e(1000.)\n"
+    "(0., 0.03964813081296021)\n"
     "\n"
-    "Calculate the function at several points:\n"
+    "Calculate the function at several points by providing a NumPy array or\n"
+    "list for `x`:\n"
     "\n"
     ">>> import numpy as np\n"
     ">>> k1e(np.array([0.5, 2., 3.]))\n"
@@ -13627,16 +13690,7 @@ cdef char *ufunc_k1e_doc = (
     ">>> x = np.linspace(0., 10., 1000)\n"
     ">>> y = k1e(x)\n"
     ">>> ax.plot(x, y)\n"
-    ">>> plt.show()\n"
-    "\n"
-    "Exponentially scaled Bessel functions are useful for large arguments for\n"
-    "which the unscaled Bessel functions are not precise enough. In the\n"
-    "following example `k1` returns zero whereas `k1e` still returns a\n"
-    "useful floating point number.\n"
-    "\n"
-    ">>> from scipy.special import k1\n"
-    ">>> k1(1000.), k1e(1000.)\n"
-    "(0., 0.03964813081296021)")
+    ">>> plt.show()")
 ufunc_k1e_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
 ufunc_k1e_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
 ufunc_k1e_types[0] = <char>NPY_FLOAT
@@ -14395,13 +14449,14 @@ cdef char *ufunc_kve_doc = (
     "\n"
     "Examples\n"
     "--------\n"
-    "Evaluate the function of order 0 at one point.\n"
+    "In the following example `kv` returns 0 whereas `kve` still returns\n"
+    "a useful finite number.\n"
     "\n"
     ">>> import numpy as np\n"
     ">>> from scipy.special import kv, kve\n"
     ">>> import matplotlib.pyplot as plt\n"
-    ">>> kve(0, 1.)\n"
-    "1.1444630798068949\n"
+    ">>> kv(3, 1000.), kve(3, 1000.)\n"
+    "(0.0, 0.03980696128440973)\n"
     "\n"
     "Evaluate the function at one point for different orders by\n"
     "providing a list or NumPy array as argument for the `v` parameter:\n"
@@ -14436,15 +14491,7 @@ cdef char *ufunc_kve_doc = (
     ">>> ax.set_xlabel(r\"$z$\")\n"
     ">>> ax.set_ylim(0, 4)\n"
     ">>> ax.set_xlim(0, 5)\n"
-    ">>> plt.show()\n"
-    "\n"
-    "Exponentially scaled Bessel functions are useful for large arguments for\n"
-    "which the unscaled Bessel functions over- or underflow. In the\n"
-    "following example `kv` returns 0 whereas `kve` still returns\n"
-    "a useful finite number.\n"
-    "\n"
-    ">>> kv(3, 1000.), kve(3, 1000.)\n"
-    "(0.0, 0.03980696128440973)")
+    ">>> plt.show()")
 ufunc_kve_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_kve_loops[1] = <np.PyUFuncGenericFunction>loop_D_dD__As_fF_F
 ufunc_kve_loops[2] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
@@ -14725,7 +14772,7 @@ cdef char *ufunc_loggamma_doc = (
     "Parameters\n"
     "----------\n"
     "z : array_like\n"
-    "    Values in the complex plain at which to compute ``loggamma``\n"
+    "    Values in the complex plane at which to compute ``loggamma``\n"
     "out : ndarray, optional\n"
     "    Output array for computed values of ``loggamma``\n"
     "\n"
@@ -15597,7 +15644,9 @@ cdef char *ufunc_nbdtr_doc = (
     "\n"
     "See also\n"
     "--------\n"
-    "nbdtrc\n"
+    "nbdtrc : Negative binomial survival function\n"
+    "nbdtrik : Negative binomial quantile function\n"
+    "scipy.stats.nbinom : Negative binomial distribution\n"
     "\n"
     "Notes\n"
     "-----\n"
@@ -15612,10 +15661,77 @@ cdef char *ufunc_nbdtr_doc = (
     "\n"
     "Wrapper for the Cephes [1]_ routine `nbdtr`.\n"
     "\n"
+    "The negative binomial distribution is also available as\n"
+    "`scipy.stats.nbinom`. Using `nbdtr` directly can improve performance\n"
+    "compared to the ``cdf`` method of `scipy.stats.nbinom` (see last example).\n"
+    "\n"
     "References\n"
     "----------\n"
     ".. [1] Cephes Mathematical Functions Library,\n"
-    "       http://www.netlib.org/cephes/")
+    "       http://www.netlib.org/cephes/\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "Compute the function for ``k=10`` and ``n=5`` at ``p=0.5``.\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import nbdtr\n"
+    ">>> nbdtr(10, 5, 0.5)\n"
+    "0.940765380859375\n"
+    "\n"
+    "Compute the function for ``n=10`` and ``p=0.5`` at several points by\n"
+    "providing a NumPy array or list for `k`.\n"
+    "\n"
+    ">>> nbdtr([5, 10, 15], 10, 0.5)\n"
+    "array([0.15087891, 0.58809853, 0.88523853])\n"
+    "\n"
+    "Plot the function for four different parameter sets.\n"
+    "\n"
+    ">>> import matplotlib.pyplot as plt\n"
+    ">>> k = np.arange(130)\n"
+    ">>> n_parameters = [20, 20, 20, 80]\n"
+    ">>> p_parameters = [0.2, 0.5, 0.8, 0.5]\n"
+    ">>> linestyles = ['solid', 'dashed', 'dotted', 'dashdot']\n"
+    ">>> parameters_list = list(zip(p_parameters, n_parameters,\n"
+    "...                            linestyles))\n"
+    ">>> fig, ax = plt.subplots(figsize=(8, 8))\n"
+    ">>> for parameter_set in parameters_list:\n"
+    "...     p, n, style = parameter_set\n"
+    "...     nbdtr_vals = nbdtr(k, n, p)\n"
+    "...     ax.plot(k, nbdtr_vals, label=rf\"$n={n},\\, p={p}$\",\n"
+    "...             ls=style)\n"
+    ">>> ax.legend()\n"
+    ">>> ax.set_xlabel(\"$k$\")\n"
+    ">>> ax.set_title(\"Negative binomial cumulative distribution function\")\n"
+    ">>> plt.show()\n"
+    "\n"
+    "The negative binomial distribution is also available as\n"
+    "`scipy.stats.nbinom`. Using `nbdtr` directly can be much faster than\n"
+    "calling the ``cdf`` method of `scipy.stats.nbinom`, especially for small\n"
+    "arrays or individual values. To get the same results one must use the\n"
+    "following parametrization: ``nbinom(n, p).cdf(k)=nbdtr(k, n, p)``.\n"
+    "\n"
+    ">>> from scipy.stats import nbinom\n"
+    ">>> k, n, p = 5, 3, 0.5\n"
+    ">>> nbdtr_res = nbdtr(k, n, p)  # this will often be faster than below\n"
+    ">>> stats_res = nbinom(n, p).cdf(k)\n"
+    ">>> stats_res, nbdtr_res  # test that results are equal\n"
+    "(0.85546875, 0.85546875)\n"
+    "\n"
+    "`nbdtr` can evaluate different parameter sets by providing arrays with\n"
+    "shapes compatible for broadcasting for `k`, `n` and `p`. Here we compute\n"
+    "the function for three different `k` at four locations `p`, resulting in\n"
+    "a 3x4 array.\n"
+    "\n"
+    ">>> k = np.array([[5], [10], [15]])\n"
+    ">>> p = np.array([0.3, 0.5, 0.7, 0.9])\n"
+    ">>> k.shape, p.shape\n"
+    "((3, 1), (4,))\n"
+    "\n"
+    ">>> nbdtr(k, 5, p)\n"
+    "array([[0.15026833, 0.62304687, 0.95265101, 0.9998531 ],\n"
+    "       [0.48450894, 0.94076538, 0.99932777, 0.99999999],\n"
+    "       [0.76249222, 0.99409103, 0.99999445, 1.        ]])")
 ufunc_nbdtr_loops[0] = <np.PyUFuncGenericFunction>loop_d_iid__As_lld_d
 ufunc_nbdtr_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
 ufunc_nbdtr_loops[2] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
@@ -15679,6 +15795,12 @@ cdef char *ufunc_nbdtrc_doc = (
     "    The probability of `k + 1` or more failures before `n` successes in a\n"
     "    sequence of events with individual success probability `p`.\n"
     "\n"
+    "See also\n"
+    "--------\n"
+    "nbdtr : Negative binomial cumulative distribution function\n"
+    "nbdtrik : Negative binomial percentile function\n"
+    "scipy.stats.nbinom : Negative binomial distribution\n"
+    "\n"
     "Notes\n"
     "-----\n"
     "If floating point values are passed for `k` or `n`, they will be truncated\n"
@@ -15692,10 +15814,77 @@ cdef char *ufunc_nbdtrc_doc = (
     "\n"
     "Wrapper for the Cephes [1]_ routine `nbdtrc`.\n"
     "\n"
+    "The negative binomial distribution is also available as\n"
+    "`scipy.stats.nbinom`. Using `nbdtrc` directly can improve performance\n"
+    "compared to the ``sf`` method of `scipy.stats.nbinom` (see last example).\n"
+    "\n"
     "References\n"
     "----------\n"
     ".. [1] Cephes Mathematical Functions Library,\n"
-    "       http://www.netlib.org/cephes/")
+    "       http://www.netlib.org/cephes/\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "Compute the function for ``k=10`` and ``n=5`` at ``p=0.5``.\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import nbdtrc\n"
+    ">>> nbdtrc(10, 5, 0.5)\n"
+    "0.059234619140624986\n"
+    "\n"
+    "Compute the function for ``n=10`` and ``p=0.5`` at several points by\n"
+    "providing a NumPy array or list for `k`.\n"
+    "\n"
+    ">>> nbdtrc([5, 10, 15], 10, 0.5)\n"
+    "array([0.84912109, 0.41190147, 0.11476147])\n"
+    "\n"
+    "Plot the function for four different parameter sets.\n"
+    "\n"
+    ">>> import matplotlib.pyplot as plt\n"
+    ">>> k = np.arange(130)\n"
+    ">>> n_parameters = [20, 20, 20, 80]\n"
+    ">>> p_parameters = [0.2, 0.5, 0.8, 0.5]\n"
+    ">>> linestyles = ['solid', 'dashed', 'dotted', 'dashdot']\n"
+    ">>> parameters_list = list(zip(p_parameters, n_parameters,\n"
+    "...                            linestyles))\n"
+    ">>> fig, ax = plt.subplots(figsize=(8, 8))\n"
+    ">>> for parameter_set in parameters_list:\n"
+    "...     p, n, style = parameter_set\n"
+    "...     nbdtrc_vals = nbdtrc(k, n, p)\n"
+    "...     ax.plot(k, nbdtrc_vals, label=rf\"$n={n},\\, p={p}$\",\n"
+    "...             ls=style)\n"
+    ">>> ax.legend()\n"
+    ">>> ax.set_xlabel(\"$k$\")\n"
+    ">>> ax.set_title(\"Negative binomial distribution survival function\")\n"
+    ">>> plt.show()\n"
+    "\n"
+    "The negative binomial distribution is also available as\n"
+    "`scipy.stats.nbinom`. Using `nbdtrc` directly can be much faster than\n"
+    "calling the ``sf`` method of `scipy.stats.nbinom`, especially for small\n"
+    "arrays or individual values. To get the same results one must use the\n"
+    "following parametrization: ``nbinom(n, p).sf(k)=nbdtrc(k, n, p)``.\n"
+    "\n"
+    ">>> from scipy.stats import nbinom\n"
+    ">>> k, n, p = 3, 5, 0.5\n"
+    ">>> nbdtr_res = nbdtrc(k, n, p)  # this will often be faster than below\n"
+    ">>> stats_res = nbinom(n, p).sf(k)\n"
+    ">>> stats_res, nbdtr_res  # test that results are equal\n"
+    "(0.6367187499999999, 0.6367187499999999)\n"
+    "\n"
+    "`nbdtrc` can evaluate different parameter sets by providing arrays with\n"
+    "shapes compatible for broadcasting for `k`, `n` and `p`. Here we compute\n"
+    "the function for three different `k` at four locations `p`, resulting in\n"
+    "a 3x4 array.\n"
+    "\n"
+    ">>> k = np.array([[5], [10], [15]])\n"
+    ">>> p = np.array([0.3, 0.5, 0.7, 0.9])\n"
+    ">>> k.shape, p.shape\n"
+    "((3, 1), (4,))\n"
+    "\n"
+    ">>> nbdtrc(k, 5, p)\n"
+    "array([[8.49731667e-01, 3.76953125e-01, 4.73489874e-02, 1.46902600e-04],\n"
+    "       [5.15491059e-01, 5.92346191e-02, 6.72234070e-04, 9.29610100e-09],\n"
+    "       [2.37507779e-01, 5.90896606e-03, 5.55025308e-06, 3.26346760e-13]])")
 ufunc_nbdtrc_loops[0] = <np.PyUFuncGenericFunction>loop_d_iid__As_lld_d
 ufunc_nbdtrc_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
 ufunc_nbdtrc_loops[2] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
@@ -15729,8 +15918,6 @@ cdef char ufunc_nbdtri_types[12]
 cdef char *ufunc_nbdtri_doc = (
     "nbdtri(k, n, y, out=None)\n"
     "\n"
-    "Inverse of `nbdtr` vs `p`.\n"
-    "\n"
     "Returns the inverse with respect to the parameter `p` of\n"
     "`y = nbdtr(k, n, p)`, the negative binomial cumulative distribution\n"
     "function.\n"
@@ -15755,17 +15942,80 @@ cdef char *ufunc_nbdtri_doc = (
     "See also\n"
     "--------\n"
     "nbdtr : Cumulative distribution function of the negative binomial.\n"
+    "nbdtrc : Negative binomial survival function.\n"
+    "scipy.stats.nbinom : negative binomial distribution.\n"
     "nbdtrik : Inverse with respect to `k` of `nbdtr(k, n, p)`.\n"
     "nbdtrin : Inverse with respect to `n` of `nbdtr(k, n, p)`.\n"
+    "scipy.stats.nbinom : Negative binomial distribution\n"
     "\n"
     "Notes\n"
     "-----\n"
     "Wrapper for the Cephes [1]_ routine `nbdtri`.\n"
     "\n"
+    "The negative binomial distribution is also available as\n"
+    "`scipy.stats.nbinom`. Using `nbdtri` directly can improve performance\n"
+    "compared to the ``ppf`` method of `scipy.stats.nbinom`.\n"
+    "\n"
     "References\n"
     "----------\n"
     ".. [1] Cephes Mathematical Functions Library,\n"
-    "       http://www.netlib.org/cephes/")
+    "       http://www.netlib.org/cephes/\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "`nbdtri` is the inverse of `nbdtr` with respect to `p`.\n"
+    "Up to floating point errors the following holds:\n"
+    "``nbdtri(k, n, nbdtr(k, n, p))=p``.\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import nbdtri, nbdtr\n"
+    ">>> k, n, y = 5, 10, 0.2\n"
+    ">>> cdf_val = nbdtr(k, n, y)\n"
+    ">>> nbdtri(k, n, cdf_val)\n"
+    "0.20000000000000004\n"
+    "\n"
+    "Compute the function for ``k=10`` and ``n=5`` at several points by\n"
+    "providing a NumPy array or list for `y`.\n"
+    "\n"
+    ">>> y = np.array([0.1, 0.4, 0.8])\n"
+    ">>> nbdtri(3, 5, y)\n"
+    "array([0.34462319, 0.51653095, 0.69677416])\n"
+    "\n"
+    "Plot the function for three different parameter sets.\n"
+    "\n"
+    ">>> import matplotlib.pyplot as plt\n"
+    ">>> n_parameters = [5, 20, 30, 30]\n"
+    ">>> k_parameters = [20, 20, 60, 80]\n"
+    ">>> linestyles = ['solid', 'dashed', 'dotted', 'dashdot']\n"
+    ">>> parameters_list = list(zip(n_parameters, k_parameters, linestyles))\n"
+    ">>> cdf_vals = np.linspace(0, 1, 1000)\n"
+    ">>> fig, ax = plt.subplots(figsize=(8, 8))\n"
+    ">>> for parameter_set in parameters_list:\n"
+    "...     n, k, style = parameter_set\n"
+    "...     nbdtri_vals = nbdtri(k, n, cdf_vals)\n"
+    "...     ax.plot(cdf_vals, nbdtri_vals, label=rf\"$k={k},\\ n={n}$\",\n"
+    "...             ls=style)\n"
+    ">>> ax.legend()\n"
+    ">>> ax.set_ylabel(\"$p$\")\n"
+    ">>> ax.set_xlabel(\"$CDF$\")\n"
+    ">>> title = \"nbdtri: inverse of negative binomial CDF with respect to $p$\"\n"
+    ">>> ax.set_title(title)\n"
+    ">>> plt.show()\n"
+    "\n"
+    "`nbdtri` can evaluate different parameter sets by providing arrays with\n"
+    "shapes compatible for broadcasting for `k`, `n` and `p`. Here we compute\n"
+    "the function for three different `k` at four locations `p`, resulting in\n"
+    "a 3x4 array.\n"
+    "\n"
+    ">>> k = np.array([[5], [10], [15]])\n"
+    ">>> y = np.array([0.3, 0.5, 0.7, 0.9])\n"
+    ">>> k.shape, y.shape\n"
+    "((3, 1), (4,))\n"
+    "\n"
+    ">>> nbdtri(k, 5, y)\n"
+    "array([[0.37258157, 0.45169416, 0.53249956, 0.64578407],\n"
+    "       [0.24588501, 0.30451981, 0.36778453, 0.46397088],\n"
+    "       [0.18362101, 0.22966758, 0.28054743, 0.36066188]])")
 ufunc_nbdtri_loops[0] = <np.PyUFuncGenericFunction>loop_d_iid__As_lld_d
 ufunc_nbdtri_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
 ufunc_nbdtri_loops[2] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
@@ -15799,7 +16049,7 @@ cdef char ufunc_nbdtrik_types[8]
 cdef char *ufunc_nbdtrik_doc = (
     "nbdtrik(y, n, p, out=None)\n"
     "\n"
-    "Inverse of `nbdtr` vs `k`.\n"
+    "Negative binomial percentile function.\n"
     "\n"
     "Returns the inverse with respect to the parameter `k` of\n"
     "`y = nbdtr(k, n, p)`, the negative binomial cumulative distribution\n"
@@ -15824,8 +16074,10 @@ cdef char *ufunc_nbdtrik_doc = (
     "See also\n"
     "--------\n"
     "nbdtr : Cumulative distribution function of the negative binomial.\n"
+    "nbdtrc : Survival function of the negative binomial.\n"
     "nbdtri : Inverse with respect to `p` of `nbdtr(k, n, p)`.\n"
     "nbdtrin : Inverse with respect to `n` of `nbdtr(k, n, p)`.\n"
+    "scipy.stats.nbinom : Negative binomial distribution\n"
     "\n"
     "Notes\n"
     "-----\n"
@@ -15849,7 +16101,53 @@ cdef char *ufunc_nbdtrik_doc = (
     "       Functions, Inverses, and Other Parameters.\n"
     ".. [2] Milton Abramowitz and Irene A. Stegun, eds.\n"
     "       Handbook of Mathematical Functions with Formulas,\n"
-    "       Graphs, and Mathematical Tables. New York: Dover, 1972.")
+    "       Graphs, and Mathematical Tables. New York: Dover, 1972.\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "Compute the negative binomial cumulative distribution function for an\n"
+    "exemplary parameter set.\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import nbdtr, nbdtrik\n"
+    ">>> k, n, p = 5, 2, 0.5\n"
+    ">>> cdf_value = nbdtr(k, n, p)\n"
+    ">>> cdf_value\n"
+    "0.9375\n"
+    "\n"
+    "Verify that `nbdtrik` recovers the original value for `k`.\n"
+    "\n"
+    ">>> nbdtrik(cdf_value, n, p)\n"
+    "5.0\n"
+    "\n"
+    "Plot the function for different parameter sets.\n"
+    "\n"
+    ">>> import matplotlib.pyplot as plt\n"
+    ">>> p_parameters = [0.2, 0.5, 0.7, 0.5]\n"
+    ">>> n_parameters = [30, 30, 30, 80]\n"
+    ">>> linestyles = ['solid', 'dashed', 'dotted', 'dashdot']\n"
+    ">>> parameters_list = list(zip(p_parameters, n_parameters, linestyles))\n"
+    ">>> cdf_vals = np.linspace(0, 1, 1000)\n"
+    ">>> fig, ax = plt.subplots(figsize=(8, 8))\n"
+    ">>> for parameter_set in parameters_list:\n"
+    "...     p, n, style = parameter_set\n"
+    "...     nbdtrik_vals = nbdtrik(cdf_vals, n, p)\n"
+    "...     ax.plot(cdf_vals, nbdtrik_vals, label=rf\"$n={n},\\ p={p}$\",\n"
+    "...             ls=style)\n"
+    ">>> ax.legend()\n"
+    ">>> ax.set_ylabel(\"$k$\")\n"
+    ">>> ax.set_xlabel(\"$CDF$\")\n"
+    ">>> ax.set_title(\"Negative binomial percentile function\")\n"
+    ">>> plt.show()\n"
+    "\n"
+    "The negative binomial distribution is also available as\n"
+    "`scipy.stats.nbinom`. The percentile function  method ``ppf``\n"
+    "returns the result of `nbdtrik` rounded up to integers:\n"
+    "\n"
+    ">>> from scipy.stats import nbinom\n"
+    ">>> q, n, p = 0.6, 5, 0.5\n"
+    ">>> nbinom.ppf(q, n, p), nbdtrik(q, n, p)\n"
+    "(5.0, 4.800428460273882)")
 ufunc_nbdtrik_loops[0] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
 ufunc_nbdtrik_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
 ufunc_nbdtrik_types[0] = <char>NPY_FLOAT
@@ -15925,7 +16223,24 @@ cdef char *ufunc_nbdtrin_doc = (
     "       Functions, Inverses, and Other Parameters.\n"
     ".. [2] Milton Abramowitz and Irene A. Stegun, eds.\n"
     "       Handbook of Mathematical Functions with Formulas,\n"
-    "       Graphs, and Mathematical Tables. New York: Dover, 1972.")
+    "       Graphs, and Mathematical Tables. New York: Dover, 1972.\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "Compute the negative binomial cumulative distribution function for an\n"
+    "exemplary parameter set.\n"
+    "\n"
+    ">>> from scipy.special import nbdtr, nbdtrin\n"
+    ">>> k, n, p = 5, 2, 0.5\n"
+    ">>> cdf_value = nbdtr(k, n, p)\n"
+    ">>> cdf_value\n"
+    "0.9375\n"
+    "\n"
+    "Verify that `nbdtrin` recovers the original value for `n` up to floating\n"
+    "point accuracy.\n"
+    "\n"
+    ">>> nbdtrin(k, cdf_value, p)\n"
+    "1.999999999998137")
 ufunc_nbdtrin_loops[0] = <np.PyUFuncGenericFunction>loop_d_ddd__As_fff_f
 ufunc_nbdtrin_loops[1] = <np.PyUFuncGenericFunction>loop_d_ddd__As_ddd_d
 ufunc_nbdtrin_types[0] = <char>NPY_FLOAT
@@ -16590,7 +16905,7 @@ cdef char ufunc_ndtr_types[8]
 cdef char *ufunc_ndtr_doc = (
     "ndtr(x, out=None)\n"
     "\n"
-    "Gaussian cumulative distribution function.\n"
+    "Cumulative distribution of the standard normal distribution.\n"
     "\n"
     "Returns the area under the standard Gaussian probability\n"
     "density function, integrated from minus infinity to `x`\n"
@@ -16613,7 +16928,35 @@ cdef char *ufunc_ndtr_doc = (
     "\n"
     "See Also\n"
     "--------\n"
-    "erf, erfc, scipy.stats.norm, log_ndtr")
+    "log_ndtr : Logarithm of ndtr\n"
+    "ndtri : Inverse of ndtr, standard normal percentile function\n"
+    "erf : Error function\n"
+    "erfc : 1 - erf\n"
+    "scipy.stats.norm : Normal distribution\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "Evaluate `ndtr` at one point.\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import ndtr\n"
+    ">>> ndtr(0.5)\n"
+    "0.6914624612740131\n"
+    "\n"
+    "Evaluate the function at several points by providing a NumPy array\n"
+    "or list for `x`.\n"
+    "\n"
+    ">>> ndtr([0, 0.5, 2])\n"
+    "array([0.5       , 0.69146246, 0.97724987])\n"
+    "\n"
+    "Plot the function.\n"
+    "\n"
+    ">>> import matplotlib.pyplot as plt\n"
+    ">>> x = np.linspace(-5, 5, 100)\n"
+    ">>> fig, ax = plt.subplots()\n"
+    ">>> ax.plot(x, ndtr(x))\n"
+    ">>> ax.set_title(\"Standard normal cumulative distribution function $\\Phi$\")\n"
+    ">>> plt.show()")
 ufunc_ndtr_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
 ufunc_ndtr_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
 ufunc_ndtr_loops[2] = <np.PyUFuncGenericFunction>loop_D_D__As_F_F
@@ -16649,7 +16992,7 @@ cdef char *ufunc_ndtri_doc = (
     "\n"
     "Inverse of `ndtr` vs x\n"
     "\n"
-    "Returns the argument x for which the area under the Gaussian\n"
+    "Returns the argument x for which the area under the standard normal\n"
     "probability density function (integrated from minus infinity to `x`)\n"
     "is equal to y.\n"
     "\n"
@@ -16667,7 +17010,35 @@ cdef char *ufunc_ndtri_doc = (
     "\n"
     "See Also\n"
     "--------\n"
-    "ndtr")
+    "ndtr : Standard normal cumulative probability distribution\n"
+    "ndtri_exp : Inverse of log_ndtr\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "`ndtri` is the percentile function of the standard normal distribution.\n"
+    "This means it returns the inverse of the cumulative density `ndtr`. First,\n"
+    "let us compute a cumulative density value.\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import ndtri, ndtr\n"
+    ">>> cdf_val = ndtr(2)\n"
+    ">>> cdf_val\n"
+    "0.9772498680518208\n"
+    "\n"
+    "Verify that `ndtri` yields the original value for `x` up to floating point\n"
+    "errors.\n"
+    "\n"
+    ">>> ndtri(cdf_val)\n"
+    "2.0000000000000004\n"
+    "\n"
+    "Plot the function. For that purpose, we provide a NumPy array as argument.\n"
+    "\n"
+    ">>> import matplotlib.pyplot as plt\n"
+    ">>> x = np.linspace(0.01, 1, 200)\n"
+    ">>> fig, ax = plt.subplots()\n"
+    ">>> ax.plot(x, ndtri(x))\n"
+    ">>> ax.set_title(\"Standard normal percentile function\")\n"
+    ">>> plt.show()")
 ufunc_ndtri_loops[0] = <np.PyUFuncGenericFunction>loop_d_d__As_f_f
 ufunc_ndtri_loops[1] = <np.PyUFuncGenericFunction>loop_d_d__As_d_d
 ufunc_ndtri_types[0] = <char>NPY_FLOAT
@@ -19512,11 +19883,11 @@ cdef char *ufunc_stdtr_doc = (
     "\n"
     "Student t distribution cumulative distribution function\n"
     "\n"
-    "Returns the integral from minus infinity to t of the Student t\n"
-    "distribution with df > 0 degrees of freedom::\n"
+    "Returns the integral:\n"
     "\n"
-    "   gamma((df+1)/2)/(sqrt(df*pi)*gamma(df/2)) *\n"
-    "   integral((1+x**2/df)**(-df/2-1/2), x=-inf..t)\n"
+    ".. math::\n"
+    "    \\frac{\\Gamma((df+1)/2)}{\\sqrt{\\pi df} \\Gamma(df/2)}\n"
+    "    \\int_{-\\infty}^t (1+x^2/df)^{-(df+1)/2}\\, dx\n"
     "\n"
     "Parameters\n"
     "----------\n"
@@ -19535,7 +19906,68 @@ cdef char *ufunc_stdtr_doc = (
     "See Also\n"
     "--------\n"
     "stdtridf : inverse of stdtr with respect to `df`\n"
-    "stdtrit : inverse of stdtr with respect to `t`")
+    "stdtrit : inverse of stdtr with respect to `t`\n"
+    "scipy.stats.t : student t distribution\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "The student t distribution is also available as `scipy.stats.t`.\n"
+    "Calling `stdtr` directly can improve performance compared to the\n"
+    "``cdf`` method of `scipy.stats.t` (see last example below).\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "Calculate the function for ``df=3`` at ``t=1``.\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import stdtr\n"
+    ">>> import matplotlib.pyplot as plt\n"
+    ">>> stdtr(3, 1)\n"
+    "0.8044988905221148\n"
+    "\n"
+    "Plot the function for three different degrees of freedom.\n"
+    "\n"
+    ">>> x = np.linspace(-10, 10, 1000)\n"
+    ">>> fig, ax = plt.subplots()\n"
+    ">>> parameters = [(1, \"solid\"), (3, \"dashed\"), (10, \"dotted\")]\n"
+    ">>> for (df, linestyle) in parameters:\n"
+    "...     ax.plot(x, stdtr(df, x), ls=linestyle, label=f\"$df={df}$\")\n"
+    ">>> ax.legend()\n"
+    ">>> ax.set_title(\"Student t distribution cumulative distribution function\")\n"
+    ">>> plt.show()\n"
+    "\n"
+    "The function can be computed for several degrees of freedom at the same\n"
+    "time by providing a NumPy array or list for `df`:\n"
+    "\n"
+    ">>> stdtr([1, 2, 3], 1)\n"
+    "array([0.75      , 0.78867513, 0.80449889])\n"
+    "\n"
+    "It is possible to calculate the function at several points for several\n"
+    "different degrees of freedom simultaneously by providing arrays for `df`\n"
+    "and `t` with shapes compatible for broadcasting. Compute `stdtr` at\n"
+    "4 points for 3 degrees of freedom resulting in an array of shape 3x4.\n"
+    "\n"
+    ">>> dfs = np.array([[1], [2], [3]])\n"
+    ">>> t = np.array([2, 4, 6, 8])\n"
+    ">>> dfs.shape, t.shape\n"
+    "((3, 1), (4,))\n"
+    "\n"
+    ">>> stdtr(dfs, t)\n"
+    "array([[0.85241638, 0.92202087, 0.94743154, 0.96041658],\n"
+    "       [0.90824829, 0.97140452, 0.98666426, 0.99236596],\n"
+    "       [0.93033702, 0.98599577, 0.99536364, 0.99796171]])\n"
+    "\n"
+    "The t distribution is also available as `scipy.stats.t`. Calling `stdtr`\n"
+    "directly can be much faster than calling the ``cdf`` method of\n"
+    "`scipy.stats.t`. To get the same results, one must use the following\n"
+    "parametrization: ``scipy.stats.t(df).cdf(x) = stdtr(df, x)``.\n"
+    "\n"
+    ">>> from scipy.stats import t\n"
+    ">>> df, x = 3, 1\n"
+    ">>> stdtr_result = stdtr(df, x)  # this can be faster than below\n"
+    ">>> stats_result = t(df).cdf(x)\n"
+    ">>> stats_result == stdtr_result  # test that results are equal\n"
+    "True")
 ufunc_stdtr_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_stdtr_loops[1] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
 ufunc_stdtr_types[0] = <char>NPY_FLOAT
@@ -19580,7 +20012,25 @@ cdef char *ufunc_stdtridf_doc = (
     "See Also\n"
     "--------\n"
     "stdtr : Student t CDF\n"
-    "stdtrit : inverse of stdtr with respect to `t`")
+    "stdtrit : inverse of stdtr with respect to `t`\n"
+    "scipy.stats.t : Student t distribution\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "Compute the student t cumulative distribution function for one\n"
+    "parameter set.\n"
+    "\n"
+    ">>> from scipy.special import stdtr, stdtridf\n"
+    ">>> df, x = 5, 2\n"
+    ">>> cdf_value = stdtr(df, x)\n"
+    ">>> cdf_value\n"
+    "0.9490302605850709\n"
+    "\n"
+    "Verify that `stdtridf` recovers the original value for `df` given\n"
+    "the CDF value and `x`.\n"
+    "\n"
+    ">>> stdtridf(cdf_value, x)\n"
+    "5.0")
 ufunc_stdtridf_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_stdtridf_loops[1] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
 ufunc_stdtridf_types[0] = <char>NPY_FLOAT
@@ -19604,7 +20054,10 @@ cdef char ufunc_stdtrit_types[6]
 cdef char *ufunc_stdtrit_doc = (
     "stdtrit(df, p, out=None)\n"
     "\n"
-    "Inverse of `stdtr` vs `t`\n"
+    "The `p`-th quantile of the student t distribution.\n"
+    "\n"
+    "This function is the inverse of the student t distribution cumulative\n"
+    "distribution function (CDF), returning `t` such that `stdtr(df, t) = p`.\n"
     "\n"
     "Returns the argument `t` such that stdtr(df, t) is equal to `p`.\n"
     "\n"
@@ -19625,7 +20078,75 @@ cdef char *ufunc_stdtrit_doc = (
     "See Also\n"
     "--------\n"
     "stdtr : Student t CDF\n"
-    "stdtridf : inverse of stdtr with respect to `df`")
+    "stdtridf : inverse of stdtr with respect to `df`\n"
+    "scipy.stats.t : Student t distribution\n"
+    "\n"
+    "Notes\n"
+    "-----\n"
+    "The student t distribution is also available as `scipy.stats.t`. Calling\n"
+    "`stdtrit` directly can improve performance compared to the ``ppf``\n"
+    "method of `scipy.stats.t` (see last example below).\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "`stdtrit` represents the inverse of the student t distribution CDF which\n"
+    "is available as `stdtr`. Here, we calculate the CDF for ``df`` at\n"
+    "``x=1``. `stdtrit` then returns ``1`` up to floating point errors\n"
+    "given the same value for `df` and the computed CDF value.\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import stdtr, stdtrit\n"
+    ">>> import matplotlib.pyplot as plt\n"
+    ">>> df = 3\n"
+    ">>> x = 1\n"
+    ">>> cdf_value = stdtr(df, x)\n"
+    ">>> stdtrit(df, cdf_value)\n"
+    "0.9999999994418539\n"
+    "\n"
+    "Plot the function for three different degrees of freedom.\n"
+    "\n"
+    ">>> x = np.linspace(0, 1, 1000)\n"
+    ">>> parameters = [(1, \"solid\"), (2, \"dashed\"), (5, \"dotted\")]\n"
+    ">>> fig, ax = plt.subplots()\n"
+    ">>> for (df, linestyle) in parameters:\n"
+    "...     ax.plot(x, stdtrit(df, x), ls=linestyle, label=f\"$df={df}$\")\n"
+    ">>> ax.legend()\n"
+    ">>> ax.set_ylim(-10, 10)\n"
+    ">>> ax.set_title(\"Student t distribution quantile function\")\n"
+    ">>> plt.show()\n"
+    "\n"
+    "The function can be computed for several degrees of freedom at the same\n"
+    "time by providing a NumPy array or list for `df`:\n"
+    "\n"
+    ">>> stdtrit([1, 2, 3], 0.7)\n"
+    "array([0.72654253, 0.6172134 , 0.58438973])\n"
+    "\n"
+    "It is possible to calculate the function at several points for several\n"
+    "different degrees of freedom simultaneously by providing arrays for `df`\n"
+    "and `p` with shapes compatible for broadcasting. Compute `stdtrit` at\n"
+    "4 points for 3 degrees of freedom resulting in an array of shape 3x4.\n"
+    "\n"
+    ">>> dfs = np.array([[1], [2], [3]])\n"
+    ">>> p = np.array([0.2, 0.4, 0.7, 0.8])\n"
+    ">>> dfs.shape, p.shape\n"
+    "((3, 1), (4,))\n"
+    "\n"
+    ">>> stdtrit(dfs, p)\n"
+    "array([[-1.37638192, -0.3249197 ,  0.72654253,  1.37638192],\n"
+    "       [-1.06066017, -0.28867513,  0.6172134 ,  1.06066017],\n"
+    "       [-0.97847231, -0.27667066,  0.58438973,  0.97847231]])\n"
+    "\n"
+    "The t distribution is also available as `scipy.stats.t`. Calling `stdtrit`\n"
+    "directly can be much faster than calling the ``ppf`` method of\n"
+    "`scipy.stats.t`. To get the same results, one must use the following\n"
+    "parametrization: ``scipy.stats.t(df).ppf(x) = stdtrit(df, x)``.\n"
+    "\n"
+    ">>> from scipy.stats import t\n"
+    ">>> df, x = 3, 0.5\n"
+    ">>> stdtrit_result = stdtrit(df, x)  # this can be faster than below\n"
+    ">>> stats_result = t(df).ppf(x)\n"
+    ">>> stats_result == stdtrit_result  # test that results are equal\n"
+    "True")
 ufunc_stdtrit_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_stdtrit_loops[1] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
 ufunc_stdtrit_types[0] = <char>NPY_FLOAT
@@ -19814,7 +20335,7 @@ cdef char ufunc_tklmbda_types[6]
 cdef char *ufunc_tklmbda_doc = (
     "tklmbda(x, lmbda, out=None)\n"
     "\n"
-    "Tukey-Lambda cumulative distribution function\n"
+    "Cumulative distribution function of the Tukey lambda distribution.\n"
     "\n"
     "Parameters\n"
     "----------\n"
@@ -19826,7 +20347,105 @@ cdef char *ufunc_tklmbda_doc = (
     "Returns\n"
     "-------\n"
     "cdf : scalar or ndarray\n"
-    "    Value of the Tukey-Lambda CDF")
+    "    Value of the Tukey lambda CDF\n"
+    "\n"
+    "See Also\n"
+    "--------\n"
+    "scipy.stats.tukeylambda : Tukey lambda distribution\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    ">>> import numpy as np\n"
+    ">>> import matplotlib.pyplot as plt\n"
+    ">>> from scipy.special import tklmbda, expit\n"
+    "\n"
+    "Compute the cumulative distribution function (CDF) of the Tukey lambda\n"
+    "distribution at several ``x`` values for `lmbda` = -1.5.\n"
+    "\n"
+    ">>> x = np.linspace(-2, 2, 9)\n"
+    ">>> x\n"
+    "array([-2. , -1.5, -1. , -0.5,  0. ,  0.5,  1. ,  1.5,  2. ])\n"
+    ">>> tklmbda(x, -1.5)\n"
+    "array([0.34688734, 0.3786554 , 0.41528805, 0.45629737, 0.5       ,\n"
+    "       0.54370263, 0.58471195, 0.6213446 , 0.65311266])\n"
+    "\n"
+    "When `lmbda` is 0, the function is the logistic sigmoid function,\n"
+    "which is implemented in `scipy.special` as `expit`.\n"
+    "\n"
+    ">>> tklmbda(x, 0)\n"
+    "array([0.11920292, 0.18242552, 0.26894142, 0.37754067, 0.5       ,\n"
+    "       0.62245933, 0.73105858, 0.81757448, 0.88079708])\n"
+    ">>> expit(x)\n"
+    "array([0.11920292, 0.18242552, 0.26894142, 0.37754067, 0.5       ,\n"
+    "       0.62245933, 0.73105858, 0.81757448, 0.88079708])\n"
+    "\n"
+    "When `lmbda` is 1, the Tukey lambda distribution is uniform on the\n"
+    "interval [-1, 1], so the CDF increases linearly.\n"
+    "\n"
+    ">>> t = np.linspace(-1, 1, 9)\n"
+    ">>> tklmbda(t, 1)\n"
+    "array([0.   , 0.125, 0.25 , 0.375, 0.5  , 0.625, 0.75 , 0.875, 1.   ])\n"
+    "\n"
+    "In the following, we generate plots for several values of `lmbda`.\n"
+    "\n"
+    "The first figure shows graphs for `lmbda` <= 0.\n"
+    "\n"
+    ">>> styles = ['-', '-.', '--', ':']\n"
+    ">>> fig, ax = plt.subplots()\n"
+    ">>> x = np.linspace(-12, 12, 500)\n"
+    ">>> for k, lmbda in enumerate([-1.0, -0.5, 0.0]):\n"
+    "...     y = tklmbda(x, lmbda)\n"
+    "...     ax.plot(x, y, styles[k], label=f'$\\lambda$ = {lmbda:-4.1f}')\n"
+    "\n"
+    ">>> ax.set_title('tklmbda(x, $\\lambda$)')\n"
+    ">>> ax.set_label('x')\n"
+    ">>> ax.legend(framealpha=1, shadow=True)\n"
+    ">>> ax.grid(True)\n"
+    "\n"
+    "The second figure shows graphs for `lmbda` > 0.  The dots in the\n"
+    "graphs show the bounds of the support of the distribution.\n"
+    "\n"
+    ">>> fig, ax = plt.subplots()\n"
+    ">>> x = np.linspace(-4.2, 4.2, 500)\n"
+    ">>> lmbdas = [0.25, 0.5, 1.0, 1.5]\n"
+    ">>> for k, lmbda in enumerate(lmbdas):\n"
+    "...     y = tklmbda(x, lmbda)\n"
+    "...     ax.plot(x, y, styles[k], label=f'$\\lambda$ = {lmbda}')\n"
+    "\n"
+    ">>> ax.set_prop_cycle(None)\n"
+    ">>> for lmbda in lmbdas:\n"
+    "...     ax.plot([-1/lmbda, 1/lmbda], [0, 1], '.', ms=8)\n"
+    "\n"
+    ">>> ax.set_title('tklmbda(x, $\\lambda$)')\n"
+    ">>> ax.set_xlabel('x')\n"
+    ">>> ax.legend(framealpha=1, shadow=True)\n"
+    ">>> ax.grid(True)\n"
+    "\n"
+    ">>> plt.tight_layout()\n"
+    ">>> plt.show()\n"
+    "\n"
+    "The CDF of the Tukey lambda distribution is also implemented as the\n"
+    "``cdf`` method of `scipy.stats.tukeylambda`.  In the following,\n"
+    "``tukeylambda.cdf(x, -0.5)`` and ``tklmbda(x, -0.5)`` compute the\n"
+    "same values:\n"
+    "\n"
+    ">>> from scipy.stats import tukeylambda\n"
+    ">>> x = np.linspace(-2, 2, 9)\n"
+    "\n"
+    ">>> tukeylambda.cdf(x, -0.5)\n"
+    "array([0.21995157, 0.27093858, 0.33541677, 0.41328161, 0.5       ,\n"
+    "       0.58671839, 0.66458323, 0.72906142, 0.78004843])\n"
+    "\n"
+    ">>> tklmbda(x, -0.5)\n"
+    "array([0.21995157, 0.27093858, 0.33541677, 0.41328161, 0.5       ,\n"
+    "       0.58671839, 0.66458323, 0.72906142, 0.78004843])\n"
+    "\n"
+    "The implementation in ``tukeylambda`` also provides location and scale\n"
+    "parameters, and other methods such as ``pdf()`` (the probability\n"
+    "density function) and ``ppf()`` (the inverse of the CDF), so for\n"
+    "working with the Tukey lambda distribution, ``tukeylambda`` is more\n"
+    "generally useful.  The primary advantage of ``tklmbda`` is that it is\n"
+    "significantly faster than ``tukeylambda.cdf``.")
 ufunc_tklmbda_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_tklmbda_loops[1] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
 ufunc_tklmbda_types[0] = <char>NPY_FLOAT
@@ -20240,7 +20859,44 @@ cdef char *ufunc_xlog1py_doc = (
     "Notes\n"
     "-----\n"
     "\n"
-    ".. versionadded:: 0.13.0")
+    ".. versionadded:: 0.13.0\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "This example shows how the function can be used to calculate the log of\n"
+    "the probability mass function for a geometric discrete random variable.\n"
+    "The probability mass function of the geometric distribution is defined\n"
+    "as follows:\n"
+    "\n"
+    ".. math:: f(k) = (1-p)^{k-1} p\n"
+    "\n"
+    "where :math:`p` is the probability of a single success\n"
+    "and :math:`1-p` is the probability of a single failure\n"
+    "and :math:`k` is the number of trials to get the first success.\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import xlog1py\n"
+    ">>> p = 0.5\n"
+    ">>> k = 100\n"
+    ">>> _pmf = np.power(1 - p, k - 1) * p\n"
+    ">>> _pmf\n"
+    "7.888609052210118e-31\n"
+    "\n"
+    "If we take k as a relatively large number the value of the probability\n"
+    "mass function can become very low. In such cases taking the log of the\n"
+    "pmf would be more suitable as the log function can change the values\n"
+    "to a scale that is more appropriate to work with.\n"
+    "\n"
+    ">>> _log_pmf = xlog1py(k - 1, -p) + np.log(p)\n"
+    ">>> _log_pmf\n"
+    "-69.31471805599453\n"
+    "\n"
+    "We can confirm that we get a value close to the original pmf value by\n"
+    "taking the exponential of the log pmf.\n"
+    "\n"
+    ">>> _orig_pmf = np.exp(_log_pmf)\n"
+    ">>> np.isclose(_pmf, _orig_pmf)\n"
+    "True")
 ufunc_xlog1py_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_xlog1py_loops[1] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
 ufunc_xlog1py_loops[2] = <np.PyUFuncGenericFunction>loop_D_DD__As_FF_F
@@ -20296,8 +20952,38 @@ cdef char *ufunc_xlogy_doc = (
     "\n"
     "Notes\n"
     "-----\n"
+    "The log function used in the computation is the natural log.\n"
     "\n"
-    ".. versionadded:: 0.13.0")
+    ".. versionadded:: 0.13.0\n"
+    "\n"
+    "Examples\n"
+    "--------\n"
+    "We can use this function to calculate the binary logistic loss also\n"
+    "known as the binary cross entropy. This loss function is used for\n"
+    "binary classification problems and is defined as:\n"
+    "\n"
+    ".. math::\n"
+    "    L = 1/n * \\sum_{i=0}^n -(y_i*log(y\\_pred_i) + (1-y_i)*log(1-y\\_pred_i))\n"
+    "\n"
+    "We can define the parameters `x` and `y` as y and y_pred respectively.\n"
+    "y is the array of the actual labels which over here can be either 0 or 1.\n"
+    "y_pred is the array of the predicted probabilities with respect to\n"
+    "the positive class (1).\n"
+    "\n"
+    ">>> import numpy as np\n"
+    ">>> from scipy.special import xlogy\n"
+    ">>> y = np.array([0, 1, 0, 1, 1, 0])\n"
+    ">>> y_pred = np.array([0.3, 0.8, 0.4, 0.7, 0.9, 0.2])\n"
+    ">>> n = len(y)\n"
+    ">>> loss = -(xlogy(y, y_pred) + xlogy(1 - y, 1 - y_pred)).sum()\n"
+    ">>> loss /= n\n"
+    ">>> loss\n"
+    "0.29597052165495025\n"
+    "\n"
+    "A lower loss is usually better as it indicates that the predictions are\n"
+    "similar to the actual labels. In this example since our predicted\n"
+    "probabilties are close to the actual labels, we get an overall loss\n"
+    "that is reasonably low and appropriate.")
 ufunc_xlogy_loops[0] = <np.PyUFuncGenericFunction>loop_d_dd__As_ff_f
 ufunc_xlogy_loops[1] = <np.PyUFuncGenericFunction>loop_d_dd__As_dd_d
 ufunc_xlogy_loops[2] = <np.PyUFuncGenericFunction>loop_D_DD__As_FF_F

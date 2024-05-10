@@ -1,7 +1,5 @@
 # distutils: language = c++
 
-DEF NPY_OLD = False
-
 from ._biasedurn cimport CFishersNCHypergeometric, StochasticLib3
 cimport numpy as np
 import numpy as np
@@ -12,24 +10,20 @@ np.import_array()
 cdef extern from "numpy/random/distributions.h" nogil:
     pass
 
-IF not NPY_OLD:
-    from numpy.random cimport bitgen_t
-    from cpython.pycapsule cimport PyCapsule_GetPointer, PyCapsule_IsValid
+from numpy.random cimport bitgen_t
+from cpython.pycapsule cimport PyCapsule_GetPointer, PyCapsule_IsValid
 
-    # If this were C code we could do this:
-    #     from numpy.random.c_distributions cimport random_normal
-    # But this is C++, so we need to wrap the include with an extern "C"
-    # to prevent name-mangling -- this is probably a Cython bug.
-    # (Note: the double curly braces are due to the use of a format
-    #  string in _generate_pyx.py for simple substitutions -- they will
-    #  be replaced by single curly braces in the generated pyx file)
-    cdef extern from *:
-        """
-        extern "C" {
-          #include "numpy/random/distributions.h"
-        }
-        """
-        double random_normal(bitgen_t*, double, double) nogil
+# If this were C code we could do this:
+#     from numpy.random.c_distributions cimport random_normal
+# But this is C++, so we need to wrap the include with an extern "C"
+# to prevent name-mangling -- this is probably a Cython bug.
+cdef extern from *:
+    """
+    extern "C" {
+      #include "numpy/random/distributions.h"
+    }
+    """
+    double random_normal(bitgen_t*, double, double) nogil
 
 cdef class _PyFishersNCHypergeometric:
     cdef unique_ptr[CFishersNCHypergeometric] c_fnch
@@ -79,42 +73,32 @@ cdef class _PyWalleniusNCHypergeometric:
         return mean, var
 
 
-IF NPY_OLD:
-    cdef object _glob_rng
-    cdef double next_double() nogil:
-        with gil:
-            return _glob_rng.uniform()
-    cdef double next_normal(const double m, const double s) nogil:
-        with gil:
-            return _glob_rng.normal(m, s)
-ELSE:
-    cdef bitgen_t* _glob_rng
-    cdef double next_double() nogil:
-        global _glob_rng
-        return _glob_rng.next_double(_glob_rng.state)
-    cdef double next_normal(const double m, const double s) nogil:
-        global _glob_rng
-        return random_normal(_glob_rng, m, s)
+cdef bitgen_t* _glob_rng
+cdef double next_double() noexcept nogil:
+    global _glob_rng
+    return _glob_rng.next_double(_glob_rng.state)
+cdef double next_normal(const double m, const double s) noexcept nogil:
+    global _glob_rng
+    return random_normal(_glob_rng, m, s)
 
-    cdef object make_rng(random_state=None):
-        # get a bit_generator object
-        if random_state is None or isinstance(random_state, int):
-            bg = np.random.RandomState(random_state)._bit_generator
-        elif isinstance(random_state, np.random.RandomState):
-            bg = random_state._bit_generator
-        elif isinstance(random_state, np.random.Generator):
-            bg = random_state.bit_generator
-        else:
-            raise ValueError('random_state is not one of None, int, RandomState, Generator')
-        capsule = bg.capsule
-        return capsule
+cdef object make_rng(random_state=None):
+    # get a bit_generator object
+    if random_state is None or isinstance(random_state, int):
+        bg = np.random.RandomState(random_state)._bit_generator
+    elif isinstance(random_state, np.random.RandomState):
+        bg = random_state._bit_generator
+    elif isinstance(random_state, np.random.Generator):
+        bg = random_state.bit_generator
+    else:
+        raise ValueError('random_state is not one of None, int, RandomState, Generator')
+    capsule = bg.capsule
+    return capsule
 
 
 cdef class _PyStochasticLib3:
     cdef unique_ptr[StochasticLib3] c_sl3
-    IF not NPY_OLD:
-        cdef object capsule
-        cdef bitgen_t* bit_generator
+    cdef object capsule
+    cdef bitgen_t* bit_generator
 
     def __cinit__(self):
         self.c_sl3 = unique_ptr[StochasticLib3](new StochasticLib3(0))
@@ -127,32 +111,16 @@ cdef class _PyStochasticLib3:
     def SetAccuracy(self, double accur):
         return self.c_sl3.get().SetAccuracy(accur)
 
-    IF NPY_OLD:
-        cdef void HandleRng(self, random_state=None):
-            # old numpy
-            if random_state is None or isinstance(random_state, int):
-                rng = np.random.RandomState(random_state)
-            elif isinstance(random_state, np.random.RandomState):
-                rng = random_state
-            elif hasattr(np.random, 'Generator') and isinstance(random_state, np.random.Generator):
-                # if we are building in a compatibility mode, we may need
-                # to resolve newer numpy Generator objects
-                rng = random_state
-            else:
-                raise TypeError('random_state is not one of None, int, RandomState, or Generator')
-            global _glob_rng
-            _glob_rng = rng
-    ELSE:
-        cdef void HandleRng(self, random_state=None):
-            self.capsule = make_rng(random_state)
+    cdef void HandleRng(self, random_state=None) noexcept:
+        self.capsule = make_rng(random_state)
 
-            # get the bitgen_t pointer
-            cdef const char *capsule_name = "BitGenerator"
-            if not PyCapsule_IsValid(self.capsule, capsule_name):
-                raise ValueError("Invalid pointer to anon_func_state")
-            self.bit_generator = <bitgen_t *> PyCapsule_GetPointer(self.capsule, capsule_name)
-            global _glob_rng
-            _glob_rng = self.bit_generator
+        # get the bitgen_t pointer
+        cdef const char *capsule_name = "BitGenerator"
+        if not PyCapsule_IsValid(self.capsule, capsule_name):
+            raise ValueError("Invalid pointer to anon_func_state")
+        self.bit_generator = <bitgen_t *> PyCapsule_GetPointer(self.capsule, capsule_name)
+        global _glob_rng
+        _glob_rng = self.bit_generator
 
     def rvs_fisher(self, int n, int m, int N, double odds, int size, random_state=None):
         # handle random state
