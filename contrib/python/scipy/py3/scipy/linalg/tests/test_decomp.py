@@ -1107,7 +1107,6 @@ class TestSVDVals:
         assert_(len(s) == 3)
         assert_(s[0] >= s[1] >= s[2])
 
-    @pytest.mark.skip
     @pytest.mark.slow
     def test_crash_2609(self):
         np.random.seed(1234)

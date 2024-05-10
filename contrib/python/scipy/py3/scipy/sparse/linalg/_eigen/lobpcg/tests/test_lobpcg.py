@@ -528,7 +528,6 @@ def test_maxit():
     assert_allclose(np.shape(r_h), np.shape(np.asarray(r_h)))
 
 
-@pytest.mark.skip
 @pytest.mark.slow
 @pytest.mark.parametrize("n", [15])
 @pytest.mark.parametrize("m", [1, 2])
