@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: types-protobuf
-Version: 4.24.0.20240302
+Version: 4.24.0.20240311
 Summary: Typing stubs for protobuf
 Home-page: https://github.com/python/typeshed
 License: Apache-2.0 license
@@ -38,6 +38,6 @@ If you find that annotations are missing, feel free to contribute and help compl
 
 
 See https://github.com/python/typeshed/blob/main/README.md for more details.
-This package was generated from typeshed commit `5e4483618a02b4bf182940e3b89e8178855e6f32` and was tested
-with mypy 1.8.0, pyright 1.1.350, and
+This package was generated from typeshed commit `3802899a01269df575ea32a21534c5400fb9218a` and was tested
+with mypy 1.9.0, pyright 1.1.350, and
 pytype 2024.2.27.
