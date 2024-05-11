@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.23.0
+Version: 8.24.0
 Summary: IPython: Productive Interactive Computing
 Author: The IPython Development Team
 Author-email: ipython-dev@python.org
@@ -34,7 +34,7 @@ Requires-Dist: pygments >=2.4.0
 Requires-Dist: stack-data
 Requires-Dist: traitlets >=5.13.0
 Requires-Dist: exceptiongroup ; python_version < "3.11"
-Requires-Dist: typing-extensions ; python_version < "3.12"
+Requires-Dist: typing-extensions >=4.6 ; python_version < "3.12"
 Requires-Dist: pexpect >4.3 ; sys_platform != "win32" and sys_platform != "emscripten"
 Requires-Dist: colorama ; sys_platform == "win32"
 Provides-Extra: all
@@ -71,7 +71,7 @@ Provides-Extra: qtconsole
 Requires-Dist: qtconsole ; extra == 'qtconsole'
 Provides-Extra: terminal
 Provides-Extra: test
-Requires-Dist: pytest <8 ; extra == 'test'
+Requires-Dist: pytest ; extra == 'test'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'test'
 Requires-Dist: testpath ; extra == 'test'
 Requires-Dist: pickleshare ; extra == 'test'

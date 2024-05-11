@@ -3654,10 +3654,17 @@ class InteractiveShell(SingletonConfigurable):
             make sense in all contexts, for example a terminal ipython can't
             display figures inline.
         """
+        from .pylabtools import _matplotlib_manages_backends
+
+        if not _matplotlib_manages_backends() and gui in (None, "auto"):
+            # Early import of backend_inline required for its side effect of
+            # calling _enable_matplotlib_integration()
+            import matplotlib_inline.backend_inline
+
         from IPython.core import pylabtools as pt
         gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
 
-        if gui != 'inline':
+        if gui != None:
             # If we have our first gui selection, store it
             if self.pylab_gui_select is None:
                 self.pylab_gui_select = gui

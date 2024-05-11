@@ -224,12 +224,18 @@ class TerminalInteractiveShell(InteractiveShell):
     simple_prompt = Bool(_use_simple_prompt,
         help="""Use `raw_input` for the REPL, without completion and prompt colors.
 
-            Useful when controlling IPython as a subprocess, and piping STDIN/OUT/ERR. Known usage are:
-            IPython own testing machinery, and emacs inferior-shell integration through elpy.
+            Useful when controlling IPython as a subprocess, and piping
+            STDIN/OUT/ERR. Known usage are: IPython's own testing machinery,
+            and emacs' inferior-python subprocess (assuming you have set
+            `python-shell-interpreter` to "ipython") available through the
+            built-in `M-x run-python` and third party packages such as elpy.
 
             This mode default to `True` if the `IPY_TEST_SIMPLE_PROMPT`
-            environment variable is set, or the current terminal is not a tty."""
-            ).tag(config=True)
+            environment variable is set, or the current terminal is not a tty.
+            Thus the Default value reported in --help-all, or config will often
+            be incorrectly reported.
+            """,
+    ).tag(config=True)
 
     @property
     def debugger_cls(self):
@@ -966,7 +972,7 @@ class TerminalInteractiveShell(InteractiveShell):
         if self._inputhook is not None and gui is None:
             self.active_eventloop = self._inputhook = None
 
-        if gui and (gui not in {"inline", "webagg"}):
+        if gui and (gui not in {None, "webagg"}):
             # This hook runs with each cycle of the `prompt_toolkit`'s event loop.
             self.active_eventloop, self._inputhook = get_inputhook_name_and_func(gui)
         else:
