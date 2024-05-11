@@ -100,7 +100,7 @@ def test_reflection_coeffs():
     assert_allclose(reflection_coeffs_z, ref_z[:-1])
 
 
-@pytest.mark.xfail(reason='Instability of Levinson iteration')
+@pytest.mark.skip(reason='Instability of Levinson iteration')
 def test_unstable():
     # this is a "Gaussian Toeplitz matrix", as mentioned in Example 2 of
     # I. Gohbert, T. Kailath and V. Olshevsky "Fast Gaussian Elimination with

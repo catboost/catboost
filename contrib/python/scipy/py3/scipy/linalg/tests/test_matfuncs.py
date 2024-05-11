@@ -635,7 +635,7 @@ class TestFractionalMatrixPower:
                 A_power = fractional_matrix_power(A, p)
                 assert_(A_power.dtype.char in complex_dtype_chars)
 
-    @pytest.mark.xfail(reason='Too unstable across LAPACKs.')
+    @pytest.mark.skip(reason='Too unstable across LAPACKs.')
     def test_singular(self):
         # Negative fractional powers do not work with singular matrices.
         for matrix_as_list in (

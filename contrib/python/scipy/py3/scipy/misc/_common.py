@@ -2,7 +2,7 @@
 Functions which are common and require SciPy Base and Level 1 SciPy
 (special, linalg)
 """
-
+import importlib.resources
 from scipy._lib.deprecation import _deprecated
 from scipy._lib._finite_differences import _central_diff_weights, _derivative
 from numpy import array, frombuffer, load
@@ -169,8 +169,7 @@ def ascent():
     """
     import pickle
     import os
-    fname = os.path.join(os.path.dirname(__file__),'ascent.dat')
-    with open(fname, 'rb') as f:
+    with (importlib.resources.files(__package__) / 'ascent.dat').open(mode='rb') as f:
         ascent = array(pickle.load(f))
     return ascent
 
@@ -220,7 +219,7 @@ def face(gray=False):
     """
     import bz2
     import os
-    with open(os.path.join(os.path.dirname(__file__), 'face.dat'), 'rb') as f:
+    with (importlib.resources.files(__package__) / 'face.dat').open(mode='rb') as f:
         rawdata = f.read()
     data = bz2.decompress(rawdata)
     face = frombuffer(data, dtype='uint8')
@@ -334,8 +333,8 @@ def electrocardiogram():
     >>> plt.show()
     """
     import os
-    file_path = os.path.join(os.path.dirname(__file__), "ecg.dat")
-    with load(file_path) as file:
+    file_path = (importlib.resources.files(__package__) / "ecg.dat")
+    with load(file_path.open(mode='rb')) as file:
         ecg = file["ecg"].astype(int)  # np.uint16 -> int
     # Convert raw output of ADC to mV: (ecg - adc_zero) / adc_gain
     ecg = (ecg - 1024) / 200.0

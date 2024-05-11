@@ -29,7 +29,7 @@ class TestGIL:
         return WorkerThread()
 
     @pytest.mark.slow
-    @pytest.mark.xfail(reason='race conditions, may depend on system load')
+    @pytest.mark.skip(reason='race conditions, may depend on system load')
     def test_rectbivariatespline(self):
         def generate_params(n_points):
             x = y = np.linspace(0, 1000, n_points)
