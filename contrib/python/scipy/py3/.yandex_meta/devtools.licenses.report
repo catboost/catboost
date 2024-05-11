@@ -1,0 +1,3227 @@
+# File format ($ symbol means the beginning of a line):
+#
+# $ # this message
+# $ # =======================
+# $     # comments (all commentaries should starts with some number of spaces and # symbol)
+# $ IGNORE_FILES {file1.ext1} {file2.ext2} - (optional) ignore listed files when generating license macro and credits
+# $ RENAME {original license id} TO {new license id} # user comments - (optional) use {new license id} instead {original license id} in ya.make files
+# $ # user comments
+# $
+# ${action} {license id} {license text hash}
+# $BELONGS ./ya/make/file/relative/path/1/ya.make ./ya/make/2/ya.make
+# ${all_file_action} filename
+# $ # user commentaries (many lines)
+# $ generated description - files with this license, license text... (some number of lines that starts with some number of spaces, do not modify)
+# ${action} {license spdx} {license text hash}
+# $BELONGS ./ya/make/file/relative/path/3/ya.make
+# ${all_file_action} filename
+# $    #    user commentaries
+# $ generated description
+# $ ...
+#
+# You can modify action, all_file_action and add commentaries
+# Available actions:
+# keep - keep license in contrib and use in credits
+# skip - skip license
+# remove - remove all files with this license
+# rename - save license text/links into licenses texts file, but not store SPDX into LINCENSE macro. You should store correct license id into devtools.license.spdx.txt file
+#
+# {all file action} records will be generated when license text contains filename that exists on filesystem (in contrib directory)
+# We suppose that that files can contain some license info
+# Available all file actions:
+# FILE_IGNORE - ignore file (do nothing)
+# FILE_INCLUDE - include all file data into licenses text file
+# =======================
+
+KEEP     BSD-3-Clause         007305567cba8f7c98b009e4bdd030f7
+BELONGS ya.make
+    License text:
+        License: Qhull license (BSD-like)
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 90.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [71:71]
+        scipy/LICENSES_bundled.txt [71:71]
+
+KEEP     BSD-3-Clause         02618eda709e98fed8f12ec08941558d
+BELONGS ya.make
+    License text:
+        License: BSD license
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [20:20]
+        scipy/LICENSES_bundled.txt [20:20]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 0277c4bc431c16dfe9e2d822ef058914
+BELONGS ya.make
+    License text:
+          For details, see scipy/stats/biasedurn/license.txt
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 45.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        LICENSES_bundled.txt [247:247]
+        scipy/LICENSES_bundled.txt [247:247]
+
+KEEP     MIT                  03a8a135263ed6eb4d2d940d708669d3
+BELONGS ya.make
+    License text:
+        /*    Available as open-source under the MIT License                     */
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/src/Highs.h [7:7]
+        scipy/_lib/highs/src/interfaces/OsiHiGHSSolverInterface.cpp [7:7]
+        scipy/_lib/highs/src/interfaces/OsiHiGHSSolverInterface.hpp [7:7]
+        scipy/_lib/highs/src/interfaces/highs_c_api.cpp [7:7]
+        scipy/_lib/highs/src/interfaces/highs_c_api.h [7:7]
+        scipy/_lib/highs/src/io/Filereader.cpp [7:7]
+        scipy/_lib/highs/src/io/Filereader.h [7:7]
+        scipy/_lib/highs/src/io/FilereaderEms.cpp [7:7]
+        scipy/_lib/highs/src/io/FilereaderEms.h [7:7]
+        scipy/_lib/highs/src/io/FilereaderLp.cpp [7:7]
+        scipy/_lib/highs/src/io/FilereaderLp.h [7:7]
+        scipy/_lib/highs/src/io/FilereaderMps.cpp [7:7]
+        scipy/_lib/highs/src/io/FilereaderMps.h [7:7]
+        scipy/_lib/highs/src/io/HMPSIO.cpp [7:7]
+        scipy/_lib/highs/src/io/HMPSIO.h [7:7]
+        scipy/_lib/highs/src/io/HMpsFF.cpp [7:7]
+        scipy/_lib/highs/src/io/HMpsFF.h [7:7]
+        scipy/_lib/highs/src/io/HighsIO.cpp [7:7]
+        scipy/_lib/highs/src/io/HighsIO.h [7:7]
+        scipy/_lib/highs/src/io/LoadOptions.cpp [7:7]
+        scipy/_lib/highs/src/io/LoadOptions.h [7:7]
+        scipy/_lib/highs/src/ipm/IpxSolution.h [7:7]
+        scipy/_lib/highs/src/ipm/IpxWrapper.cpp [7:7]
+        scipy/_lib/highs/src/ipm/IpxWrapper.h [7:7]
+        scipy/_lib/highs/src/lp_data/HConst.h [7:7]
+        scipy/_lib/highs/src/lp_data/HStruct.h [7:7]
+        scipy/_lib/highs/src/lp_data/Highs.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsAnalysis.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsDebug.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsDebug.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsDeprecated.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsInfo.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsInfo.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsInfoDebug.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsInfoDebug.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsInterface.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsLp.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsLp.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsLpSolverObject.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsLpUtils.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsLpUtils.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsModelUtils.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsModelUtils.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsOptions.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsOptions.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsRanging.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsRanging.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsRuntimeOptions.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsSolution.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsSolution.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsSolutionDebug.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsSolutionDebug.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsSolve.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsSolve.h [7:7]
+        scipy/_lib/highs/src/lp_data/HighsStatus.cpp [7:7]
+        scipy/_lib/highs/src/lp_data/HighsStatus.h [7:7]
+        scipy/_lib/highs/src/mip/HighsCliqueTable.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsCliqueTable.h [7:7]
+        scipy/_lib/highs/src/mip/HighsConflictPool.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsConflictPool.h [7:7]
+        scipy/_lib/highs/src/mip/HighsCutGeneration.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsCutGeneration.h [7:7]
+        scipy/_lib/highs/src/mip/HighsCutPool.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsCutPool.h [7:7]
+        scipy/_lib/highs/src/mip/HighsDebugSol.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsDebugSol.h [7:7]
+        scipy/_lib/highs/src/mip/HighsDomain.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsDomain.h [7:7]
+        scipy/_lib/highs/src/mip/HighsDomainChange.h [7:7]
+        scipy/_lib/highs/src/mip/HighsDynamicRowMatrix.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsDynamicRowMatrix.h [7:7]
+        scipy/_lib/highs/src/mip/HighsGFkSolve.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsGFkSolve.h [7:7]
+        scipy/_lib/highs/src/mip/HighsImplications.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsImplications.h [7:7]
+        scipy/_lib/highs/src/mip/HighsLpAggregator.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsLpAggregator.h [7:7]
+        scipy/_lib/highs/src/mip/HighsLpRelaxation.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsLpRelaxation.h [7:7]
+        scipy/_lib/highs/src/mip/HighsMipSolver.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsMipSolver.h [7:7]
+        scipy/_lib/highs/src/mip/HighsMipSolverData.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsMipSolverData.h [7:7]
+        scipy/_lib/highs/src/mip/HighsModkSeparator.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsModkSeparator.h [7:7]
+        scipy/_lib/highs/src/mip/HighsNodeQueue.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsNodeQueue.h [7:7]
+        scipy/_lib/highs/src/mip/HighsObjectiveFunction.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsObjectiveFunction.h [7:7]
+        scipy/_lib/highs/src/mip/HighsPathSeparator.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsPathSeparator.h [7:7]
+        scipy/_lib/highs/src/mip/HighsPrimalHeuristics.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsPrimalHeuristics.h [7:7]
+        scipy/_lib/highs/src/mip/HighsPseudocost.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsPseudocost.h [7:7]
+        scipy/_lib/highs/src/mip/HighsRedcostFixing.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsRedcostFixing.h [7:7]
+        scipy/_lib/highs/src/mip/HighsSearch.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsSearch.h [7:7]
+        scipy/_lib/highs/src/mip/HighsSeparation.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsSeparation.h [7:7]
+        scipy/_lib/highs/src/mip/HighsSeparator.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsSeparator.h [7:7]
+        scipy/_lib/highs/src/mip/HighsTableauSeparator.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsTableauSeparator.h [7:7]
+        scipy/_lib/highs/src/mip/HighsTransformedLp.cpp [7:7]
+        scipy/_lib/highs/src/mip/HighsTransformedLp.h [7:7]
+        scipy/_lib/highs/src/model/HighsHessian.cpp [7:7]
+        scipy/_lib/highs/src/model/HighsHessian.h [7:7]
+        scipy/_lib/highs/src/model/HighsHessianUtils.cpp [7:7]
+        scipy/_lib/highs/src/model/HighsHessianUtils.h [7:7]
+        scipy/_lib/highs/src/model/HighsModel.cpp [7:7]
+        scipy/_lib/highs/src/model/HighsModel.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsBinarySemaphore.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsCacheAlign.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsCombinable.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsMutex.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsParallel.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsSchedulerConstants.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsSpinMutex.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsSplitDeque.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsTask.h [7:7]
+        scipy/_lib/highs/src/parallel/HighsTaskExecutor.h [7:7]
+        scipy/_lib/highs/src/presolve/HPresolve.cpp [7:7]
+        scipy/_lib/highs/src/presolve/HPresolve.h [7:7]
+        scipy/_lib/highs/src/presolve/HighsPostsolveStack.cpp [7:7]
+        scipy/_lib/highs/src/presolve/HighsPostsolveStack.h [7:7]
+        scipy/_lib/highs/src/presolve/HighsSymmetry.cpp [7:7]
+        scipy/_lib/highs/src/presolve/HighsSymmetry.h [7:7]
+        scipy/_lib/highs/src/presolve/ICrash.cpp [7:7]
+        scipy/_lib/highs/src/presolve/ICrash.h [7:7]
+        scipy/_lib/highs/src/presolve/ICrashUtil.cpp [8:8]
+        scipy/_lib/highs/src/presolve/ICrashUtil.h [8:8]
+        scipy/_lib/highs/src/presolve/ICrashX.cpp [7:7]
+        scipy/_lib/highs/src/presolve/ICrashX.h [7:7]
+        scipy/_lib/highs/src/presolve/PresolveComponent.cpp [7:7]
+        scipy/_lib/highs/src/presolve/PresolveComponent.h [7:7]
+        scipy/_lib/highs/src/simplex/HApp.h [7:7]
+        scipy/_lib/highs/src/simplex/HEkk.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HEkk.h [7:7]
+        scipy/_lib/highs/src/simplex/HEkkControl.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HEkkDebug.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HEkkDual.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HEkkDual.h [7:7]
+        scipy/_lib/highs/src/simplex/HEkkDualMulti.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HEkkDualRHS.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HEkkDualRHS.h [7:7]
+        scipy/_lib/highs/src/simplex/HEkkDualRow.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HEkkDualRow.h [7:7]
+        scipy/_lib/highs/src/simplex/HEkkInterface.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HEkkPrimal.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HEkkPrimal.h [7:7]
+        scipy/_lib/highs/src/simplex/HSimplex.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HSimplex.h [7:7]
+        scipy/_lib/highs/src/simplex/HSimplexDebug.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HSimplexDebug.h [7:7]
+        scipy/_lib/highs/src/simplex/HSimplexNla.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HSimplexNla.h [7:7]
+        scipy/_lib/highs/src/simplex/HSimplexNlaDebug.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HSimplexNlaFreeze.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HSimplexNlaProductForm.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HSimplexReport.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HSimplexReport.h [7:7]
+        scipy/_lib/highs/src/simplex/HighsSimplexAnalysis.cpp [7:7]
+        scipy/_lib/highs/src/simplex/HighsSimplexAnalysis.h [7:7]
+        scipy/_lib/highs/src/simplex/SimplexConst.h [7:7]
+        scipy/_lib/highs/src/simplex/SimplexStruct.h [7:7]
+        scipy/_lib/highs/src/simplex/SimplexTimer.h [7:7]
+        scipy/_lib/highs/src/test/DevKkt.cpp [7:7]
+        scipy/_lib/highs/src/test/DevKkt.h [7:7]
+        scipy/_lib/highs/src/test/KktCh2.cpp [7:7]
+        scipy/_lib/highs/src/test/KktCh2.h [7:7]
+        scipy/_lib/highs/src/util/FactorTimer.h [7:7]
+        scipy/_lib/highs/src/util/HFactor.cpp [7:7]
+        scipy/_lib/highs/src/util/HFactor.h [7:7]
+        scipy/_lib/highs/src/util/HFactorConst.h [7:7]
+        scipy/_lib/highs/src/util/HFactorDebug.cpp [7:7]
+        scipy/_lib/highs/src/util/HFactorDebug.h [7:7]
+        scipy/_lib/highs/src/util/HFactorExtend.cpp [7:7]
+        scipy/_lib/highs/src/util/HFactorRefactor.cpp [7:7]
+        scipy/_lib/highs/src/util/HFactorUtils.cpp [7:7]
+        scipy/_lib/highs/src/util/HSet.cpp [7:7]
+        scipy/_lib/highs/src/util/HSet.h [7:7]
+        scipy/_lib/highs/src/util/HVector.h [7:7]
+        scipy/_lib/highs/src/util/HVectorBase.cpp [7:7]
+        scipy/_lib/highs/src/util/HVectorBase.h [7:7]
+        scipy/_lib/highs/src/util/HighsCDouble.h [7:7]
+        scipy/_lib/highs/src/util/HighsComponent.h [7:7]
+        scipy/_lib/highs/src/util/HighsDataStack.h [7:7]
+        scipy/_lib/highs/src/util/HighsDisjointSets.h [7:7]
+        scipy/_lib/highs/src/util/HighsHash.cpp [7:7]
+        scipy/_lib/highs/src/util/HighsHash.h [7:7]
+        scipy/_lib/highs/src/util/HighsInt.h [7:7]
+        scipy/_lib/highs/src/util/HighsIntegers.h [7:7]
+        scipy/_lib/highs/src/util/HighsLinearSumBounds.cpp [7:7]
+        scipy/_lib/highs/src/util/HighsLinearSumBounds.h [7:7]
+        scipy/_lib/highs/src/util/HighsMatrixPic.cpp [7:7]
+        scipy/_lib/highs/src/util/HighsMatrixPic.h [7:7]
+        scipy/_lib/highs/src/util/HighsMatrixSlice.h [7:7]
+        scipy/_lib/highs/src/util/HighsMatrixUtils.cpp [7:7]
+        scipy/_lib/highs/src/util/HighsMatrixUtils.h [7:7]
+        scipy/_lib/highs/src/util/HighsRandom.h [7:7]
+        scipy/_lib/highs/src/util/HighsRbTree.h [7:7]
+        scipy/_lib/highs/src/util/HighsSort.cpp [7:7]
+        scipy/_lib/highs/src/util/HighsSort.h [7:7]
+        scipy/_lib/highs/src/util/HighsSparseMatrix.cpp [7:7]
+        scipy/_lib/highs/src/util/HighsSparseMatrix.h [7:7]
+        scipy/_lib/highs/src/util/HighsSparseVectorSum.h [7:7]
+        scipy/_lib/highs/src/util/HighsSplay.h [7:7]
+        scipy/_lib/highs/src/util/HighsTimer.h [7:7]
+        scipy/_lib/highs/src/util/HighsUtils.cpp [7:7]
+        scipy/_lib/highs/src/util/HighsUtils.h [7:7]
+        scipy/_lib/highs/src/util/stringutil.cpp [7:7]
+        scipy/_lib/highs/src/util/stringutil.h [7:7]
+
+KEEP     MIT                  05e83595edbb805c69be776819f9619b
+BELONGS ya.make
+    License text:
+        $CopyrightHeaderLine4 = "/*    Available as open-source under the MIT License                     */";
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/docs/HiGHS_CopyrightHeader.pl [9:9]
+
+KEEP     BSD-3-Clause         05fab2ed281d73830fcdcdc2ee501ef0
+BELONGS ya.make
+    License text:
+            BSD License for PROPACK numerical software
+            http://www.opensource.org/licenses/bsd-license.php
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 30.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_propack/PROPACK/license.txt [1:2]
+
+KEEP     MIT                  06f46faba31ba125ff84860d90a9953a
+BELONGS ya.make
+    License text:
+                \# and placed under MIT licence by Enzo Michelangeli
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/tests/test_linprog.py [1165:1165]
+
+KEEP     MIT                  07056dc9c6a316252fc58ce2d224dedb
+BELONGS ya.make
+    License text:
+        /* MIT License
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_trlib/trlib.h [1:1]
+        scipy/optimize/_trlib/trlib/trlib_eigen_inverse.h [1:1]
+        scipy/optimize/_trlib/trlib/trlib_quadratic_zero.h [1:1]
+        scipy/optimize/_trlib/trlib/trlib_types.h [1:1]
+        scipy/optimize/_trlib/trlib_eigen_inverse.c [1:1]
+        scipy/optimize/_trlib/trlib_leftmost.c [1:1]
+        scipy/optimize/_trlib/trlib_private.h [1:1]
+        scipy/optimize/_trlib/trlib_quadratic_zero.c [1:1]
+
+KEEP     BSD-3-Clause         07243dae83565e9e1c5feac32b78c631
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/biasedurn/license.txt at line 11
+    License text:
+        You have my permission to use it in SciPy under the new BSD license. 
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/stats/biasedurn/license.txt [11:11]
+
+KEEP     LicenseRef-scancode-other-permissive 07dccbd2f54b608a9d1df5aa6e6e36dc
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/_hypotests.py at line 372, scipy/stats/_hypotests.py at line 421
+    License text:
+            function pCvM in the package goftest (v1.1.1), permission granted
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-other-permissive
+        Score           : 10.53
+        Match type      : NOTICE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/other-permissive.LICENSE
+    Files with this license:
+        scipy/stats/_hypotests.py [372:372]
+        scipy/stats/_hypotests.py [421:421]
+
+KEEP     BSD-3-Clause         081a05da32ce1b3f9886dd5a77a3957c
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/special/cephes/struve.c at line 59, scipy/special/cephes/struve.c at line 61
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/special/cephes/struve.c at line 65
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.52
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/special/cephes/struve.c [55:77]
+
+KEEP     BSD-3-Clause         08f781939bc876ac299932c99c56a5bd
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/sparse/linalg/_propack/PROPACK/license.txt at line 29, scipy/sparse/linalg/_propack/PROPACK/license.txt at line 33
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/sparse/linalg/_propack/PROPACK/license.txt at line 38
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 96.33
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_propack/PROPACK/license.txt [24:50]
+
+KEEP     BSL-1.0              093ae439aeb61fc546797364d04b50b8
+BELONGS ya.make
+    License text:
+        // Distributed under the Boost Software License, Version 1.0.
+        //   (See accompanying file LICENSE_1_0.txt or copy at
+        //        https://www.boost.org/LICENSE_1_0.txt)
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/_lib/highs/extern/catch.hpp [15312:15314]
+
+KEEP     Public-Domain        0e1fd42691f9f2c1211a4176cd45937d
+BELONGS ya.make
+    License text:
+         * I hereby release this code into the PUBLIC DOMAIN AS IS. There is no
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-public-domain
+        Score           : 70.00
+        Match type      : REFERENCE
+        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
+    Files with this license:
+        scipy/odr/__odrpack.c [3:3]
+
+KEEP     Public-Domain        0f9a0a4d851ade96fc575269fcd775f7
+BELONGS ya.make
+    License text:
+            http://www.public-domain-image.com/people-public-domain-images-pictures/
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-public-domain
+        Score           : 70.00
+        Match type      : REFERENCE
+        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
+    Files with this license:
+        scipy/datasets/_fetchers.py [40:40]
+        scipy/misc/_common.py [138:138]
+
+KEEP     GPL-3.0-only         10f3aa5b0ece605c0dce3d2c1ec48c8a
+BELONGS ya.make
+    License text:
+        include GPL-3 licensed code under our BSD-new license. Would you consider
+    Scancode info:
+        Original SPDX id: GPL-3.0-only
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.gnu.org/licenses/gpl-3.0-standalone.html, http://www.gnu.org/licenses/gpl-3.0.html, https://spdx.org/licenses/GPL-3.0-only
+    Files with this license:
+        scipy/stats/biasedurn/license.txt [21:21]
+
+KEEP     Public-Domain        115d1a9deddebbb781ac0f86436eea27
+BELONGS ya.make
+    License text:
+        \# This program is public domain
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-public-domain
+        Score           : 16.00
+        Match type      : TEXT
+        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
+    Files with this license:
+        scipy/signal/_czt.py [1:1]
+        scipy/signal/tests/test_czt.py [1:1]
+
+KEEP     Zlib                 135e0aedc3bb87de3365516f9430466b
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: Zlib
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.gzip.org/zlib/zlib_license.html, http://www.zlib.net/, https://spdx.org/licenses/Zlib
+    Files with this license:
+        scipy/_lib/highs/extern/pdqsort/pdqsort.h [6:19]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 1505d91658dc29a69410e118d8285116
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/_discrete_distns.py at line 1695, scipy/stats/_discrete_distns.py at line 1777
+    License text:
+            permission for it to be distributed under SciPy's license.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/stats/_discrete_distns.py [1695:1695]
+        scipy/stats/_discrete_distns.py [1777:1777]
+
+KEEP     BSD-3-Clause         151cc84520f2803f27b2805ba6036bea
+BELONGS ya.make
+    License text:
+                \# Original implementation in MATLAB by N. Shamsundar (BSD licensed), see
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/interpolate/_cubic.py [418:418]
+
+KEEP     BSD-3-Clause         187523c8a545552e45151824d032d67a
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/linalg/interpolative.pyf at line 10, scipy/linalg/interpolative.pyf at line 8
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/linalg/interpolative.pyf at line 15
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 98.03
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/linalg/interpolative.pyf [4:27]
+
+KEEP     BSD-3-Clause         192981323df980b1531353d83165aadc
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: scipy/signal/docs/signaltools.README at line 6
+FILE_INCLUDE scipy/LICENSE.txt found in files: scipy/signal/docs/signaltools.README at line 6
+FILE_INCLUDE scipy/ndimage/LICENSE.txt found in files: scipy/signal/docs/signaltools.README at line 6
+    License text:
+        \#Permission to use, modify, and distribute this software is given under the
+        \#terms of the SciPy (BSD style) license.  See LICENSE.txt that came with
+        \#this distribution for specifics.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 96.55
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/signal/docs/signaltools.README [5:7]
+
+KEEP     BSD-3-Clause         1b12e66afc6838a67360142aaf15cfe4
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/cluster/tests/test_hierarchy.py at line 12, scipy/cluster/tests/test_hierarchy.py at line 16, scipy/ndimage/__init__.py at line 129, scipy/ndimage/__init__.py at line 133, scipy/ndimage/_filters.py at line 12, scipy/ndimage/_filters.py at line 8, scipy/ndimage/_fourier.py at line 12, scipy/ndimage/_fourier.py at line 8, scipy/ndimage/_interpolation.py at line 12, scipy/ndimage/_interpolation.py at line 8, scipy/ndimage/_measurements.py at line 12, scipy/ndimage/_measurements.py at line 8, scipy/ndimage/_morphology.py at line 12, scipy/ndimage/_morphology.py at line 8, scipy/ndimage/_ni_support.py at line 12, scipy/ndimage/_ni_support.py at line 8, scipy/spatial/tests/test_distance.py at line 12, scipy/spatial/tests/test_distance.py at line 16
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/cluster/tests/test_hierarchy.py at line 21, scipy/ndimage/__init__.py at line 138, scipy/ndimage/_filters.py at line 17, scipy/ndimage/_fourier.py at line 17, scipy/ndimage/_interpolation.py at line 17, scipy/ndimage/_measurements.py at line 17, scipy/ndimage/_morphology.py at line 17, scipy/ndimage/_ni_support.py at line 17, scipy/spatial/tests/test_distance.py at line 21
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/cluster/tests/test_hierarchy.py [7:33]
+        scipy/ndimage/__init__.py [124:150]
+        scipy/ndimage/_filters.py [3:29]
+        scipy/ndimage/_fourier.py [3:29]
+        scipy/ndimage/_interpolation.py [3:29]
+        scipy/ndimage/_measurements.py [3:29]
+        scipy/ndimage/_morphology.py [3:29]
+        scipy/ndimage/_ni_support.py [3:29]
+        scipy/spatial/tests/test_distance.py [7:33]
+
+KEEP     BSD-3-Clause         1b286b6845f297e3c32b6363a9ff0439
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/ndimage/src/nd_image.c at line 12, scipy/ndimage/src/nd_image.c at line 8, scipy/ndimage/src/nd_image.h at line 12, scipy/ndimage/src/nd_image.h at line 8, scipy/ndimage/src/ni_filters.c at line 12, scipy/ndimage/src/ni_filters.c at line 8, scipy/ndimage/src/ni_filters.h at line 12, scipy/ndimage/src/ni_filters.h at line 8, scipy/ndimage/src/ni_fourier.c at line 12, scipy/ndimage/src/ni_fourier.c at line 8, scipy/ndimage/src/ni_fourier.h at line 12, scipy/ndimage/src/ni_fourier.h at line 8, scipy/ndimage/src/ni_interpolation.c at line 12, scipy/ndimage/src/ni_interpolation.c at line 8, scipy/ndimage/src/ni_interpolation.h at line 12, scipy/ndimage/src/ni_interpolation.h at line 8, scipy/ndimage/src/ni_measure.c at line 12, scipy/ndimage/src/ni_measure.c at line 8, scipy/ndimage/src/ni_measure.h at line 12, scipy/ndimage/src/ni_measure.h at line 8, scipy/ndimage/src/ni_morphology.c at line 12, scipy/ndimage/src/ni_morphology.c at line 8, scipy/ndimage/src/ni_morphology.h at line 12, scipy/ndimage/src/ni_morphology.h at line 8, scipy/ndimage/src/ni_support.c at line 12, scipy/ndimage/src/ni_support.c at line 8, scipy/ndimage/src/ni_support.h at line 12, scipy/ndimage/src/ni_support.h at line 8
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/ndimage/src/nd_image.c at line 17, scipy/ndimage/src/nd_image.h at line 17, scipy/ndimage/src/ni_filters.c at line 17, scipy/ndimage/src/ni_filters.h at line 17, scipy/ndimage/src/ni_fourier.c at line 17, scipy/ndimage/src/ni_fourier.h at line 17, scipy/ndimage/src/ni_interpolation.c at line 17, scipy/ndimage/src/ni_interpolation.h at line 17, scipy/ndimage/src/ni_measure.c at line 17, scipy/ndimage/src/ni_measure.h at line 17, scipy/ndimage/src/ni_morphology.c at line 17, scipy/ndimage/src/ni_morphology.h at line 17, scipy/ndimage/src/ni_support.c at line 17, scipy/ndimage/src/ni_support.h at line 17
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/ndimage/src/nd_image.c [3:29]
+        scipy/ndimage/src/nd_image.h [3:29]
+        scipy/ndimage/src/ni_filters.c [3:29]
+        scipy/ndimage/src/ni_filters.h [3:29]
+        scipy/ndimage/src/ni_fourier.c [3:29]
+        scipy/ndimage/src/ni_fourier.h [3:29]
+        scipy/ndimage/src/ni_interpolation.c [3:29]
+        scipy/ndimage/src/ni_interpolation.h [3:29]
+        scipy/ndimage/src/ni_measure.c [3:29]
+        scipy/ndimage/src/ni_measure.h [3:29]
+        scipy/ndimage/src/ni_morphology.c [3:29]
+        scipy/ndimage/src/ni_morphology.h [3:29]
+        scipy/ndimage/src/ni_support.c [3:29]
+        scipy/ndimage/src/ni_support.h [3:29]
+
+KEEP     BSD-3-Clause         1bd748b51af531c12bd29bc6c624a20f
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: LICENSES_bundled.txt at line 151, LICENSES_bundled.txt at line 154, scipy/LICENSES_bundled.txt at line 151, scipy/LICENSES_bundled.txt at line 154
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: LICENSES_bundled.txt at line 162, scipy/LICENSES_bundled.txt at line 162
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 92.17
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [146:174]
+        scipy/LICENSES_bundled.txt [146:174]
+
+KEEP     MIT                  1cd18c30305af21781bfc6bdcb664f42
+BELONGS ya.make
+    License text:
+            licensed under the MIT license. More information about the method can be
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/linalg/_basic.py [1830:1830]
+
+KEEP     BSD-2-Clause         1d6b9b4fbe80106a4e0a518695962dbc
+BELONGS ya.make
+    License text:
+        License: 2-clause BSD
+    Scancode info:
+        Original SPDX id: BSD-2-Clause
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://opensource.org/licenses/bsd-license.php, http://www.opensource.org/licenses/BSD-2-Clause, https://spdx.org/licenses/BSD-2-Clause
+    Files with this license:
+        LICENSES_bundled.txt [10:10]
+        scipy/LICENSES_bundled.txt [10:10]
+
+KEEP     BSD-3-Clause         1f497445f6b3e3f5db3a51ee0940d240
+BELONGS ya.make
+    License text:
+        PROPACK source is BSD licensed, and available at
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_svdp.py [12:12]
+
+KEEP     BSD-3-Clause         2077210e4bc524472a9f6c44eae89051
+BELONGS ya.make
+    License text:
+            BSD License for PROPACK numerical software
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_propack/PROPACK/license.txt [1:1]
+
+KEEP     BSL-1.0              209fe0c5f545209d47d738ef6d33f446
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: scipy/_lib/highs/extern/catch.hpp at line 8460
+FILE_INCLUDE scipy/LICENSE.txt found in files: scipy/_lib/highs/extern/catch.hpp at line 8460
+FILE_INCLUDE scipy/ndimage/LICENSE.txt found in files: scipy/_lib/highs/extern/catch.hpp at line 8460
+    License text:
+        // Distributed under the Boost Software License, Version 1.0. (See accompanying
+        // file LICENSE.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/_lib/highs/extern/catch.hpp [8459:8460]
+
+KEEP     BSD-3-Clause         21f16ea6db7540b9aa7fb95dcfff7f77
+BELONGS ya.make
+    License text:
+            the 3-clause BSD.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/stats/_qmc.py [477:477]
+        scipy/stats/_qmc.py [1781:1781]
+
+KEEP     MIT                  21f28c3a6e624b003c700fe2f35d31ff
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/_trlib/trlib/trlib_krylov.h at line 18, scipy/optimize/_trlib/trlib/trlib_leftmost.h at line 18, scipy/optimize/_trlib/trlib/trlib_tri_factor.h at line 18
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/_trlib/trlib/trlib_krylov.h at line 12, scipy/optimize/_trlib/trlib/trlib_leftmost.h at line 12, scipy/optimize/_trlib/trlib/trlib_tri_factor.h at line 12
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/_trlib/trlib/trlib_krylov.h at line 18, scipy/optimize/_trlib/trlib/trlib_leftmost.h at line 18, scipy/optimize/_trlib/trlib/trlib_tri_factor.h at line 18
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_trlib/trlib/trlib_krylov.h [5:21]
+        scipy/optimize/_trlib/trlib/trlib_leftmost.h [5:21]
+        scipy/optimize/_trlib/trlib/trlib_tri_factor.h [5:21]
+
+KEEP     BSD-3-Clause         243772a43bced069d17b0b0cd14c1c02
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: scipy/optimize/minpack.h at line 6
+FILE_INCLUDE scipy/LICENSE.txt found in files: scipy/optimize/minpack.h at line 6
+FILE_INCLUDE scipy/ndimage/LICENSE.txt found in files: scipy/optimize/minpack.h at line 6
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 97.50
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/optimize/minpack.h [5:9]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 267ece92502754a29615669d13c12808
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/extern/pdqsort/license.txt found in files: scipy/stats/biasedurn/erfres.cpp at line 26, scipy/stats/biasedurn/fnchyppr.cpp at line 22, scipy/stats/biasedurn/randomc.h at line 93, scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/stocc.h at line 197, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+FILE_INCLUDE scipy/_lib/unuran/license.txt found in files: scipy/stats/biasedurn/erfres.cpp at line 26, scipy/stats/biasedurn/fnchyppr.cpp at line 22, scipy/stats/biasedurn/randomc.h at line 93, scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/stocc.h at line 197, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/biasedurn/erfres.cpp at line 26, scipy/stats/biasedurn/fnchyppr.cpp at line 22, scipy/stats/biasedurn/randomc.h at line 93, scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/stocc.h at line 197, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+FILE_INCLUDE scipy/sparse/linalg/_propack/PROPACK/license.txt found in files: scipy/stats/biasedurn/erfres.cpp at line 26, scipy/stats/biasedurn/fnchyppr.cpp at line 22, scipy/stats/biasedurn/randomc.h at line 93, scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/stocc.h at line 197, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+FILE_INCLUDE scipy/stats/biasedurn/license.txt found in files: scipy/stats/biasedurn/erfres.cpp at line 26, scipy/stats/biasedurn/fnchyppr.cpp at line 22, scipy/stats/biasedurn/randomc.h at line 93, scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/stocc.h at line 197, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+    License text:
+        * Released under SciPy's license with permission of Agner Fog; see license.txt
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/stats/biasedurn/erfres.cpp [26:26]
+        scipy/stats/biasedurn/fnchyppr.cpp [22:22]
+        scipy/stats/biasedurn/randomc.h [93:93]
+        scipy/stats/biasedurn/stoc1.cpp [23:23]
+        scipy/stats/biasedurn/stoc3.cpp [27:27]
+        scipy/stats/biasedurn/stocc.h [197:197]
+        scipy/stats/biasedurn/wnchyppr.cpp [24:24]
+
+KEEP     BSD-3-Clause         2842f3ba71b39d0b59b8fdf783b94cc1
+BELONGS ya.make
+    License text:
+        Based on BSD licensed pypropack project:
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_svdp.py [8:8]
+
+KEEP     BSD-3-Clause         2a6c42c875358977844484151b75cf9a
+BELONGS ya.make
+    License text:
+                // and is released under the 3-clause BSD license with friendly
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/fft/_pocketfft/pocketfft_hdronly.h [2694:2694]
+
+KEEP     MIT                  2c3b2cffa2f346149bc805b14e12aa15
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/tnc/moduleTNC.c.old at line 20, scipy/optimize/tnc/tnc.c at line 21, scipy/optimize/tnc/tnc.h at line 21
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/tnc/moduleTNC.c.old at line 14, scipy/optimize/tnc/tnc.c at line 15, scipy/optimize/tnc/tnc.h at line 15
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/tnc/moduleTNC.c.old at line 20, scipy/optimize/tnc/tnc.c at line 21, scipy/optimize/tnc/tnc.h at line 21
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/tnc/moduleTNC.c.old [6:23]
+        scipy/optimize/tnc/tnc.c [7:24]
+        scipy/optimize/tnc/tnc.h [7:24]
+
+KEEP     BSL-1.0              2c7a3fa82e66676005cd4ee2608fd7d2
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/_lib/highs/extern/LICENCE_1_0.txt at line 11, scipy/special/tests/data/README at line 22
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/_lib/highs/extern/LICENCE_1_0.txt [1:23]
+        scipy/special/tests/data/README [12:34]
+
+KEEP     BSD-3-Clause         2d8d05be2321a3ef47c13050ca1cf4f4
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING at line 24, scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING at line 27, scipy/sparse/linalg/_eigen/arpack/README at line 70, scipy/sparse/linalg/_eigen/arpack/README at line 73
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING at line 33, scipy/sparse/linalg/_eigen/arpack/README at line 79
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.53
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING [19:45]
+        scipy/sparse/linalg/_eigen/arpack/README [65:91]
+
+KEEP     BSL-1.0              30e9a3b414bac9b98916d1d46ecc7d0b
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/special/cephes/scipy_iv.c at line 49
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/special/cephes/scipy_iv.c [38:61]
+
+KEEP     BSL-1.0              30fa13c28fef6e7f31db641b6260b22e
+BELONGS ya.make
+    License text:
+         *  Use, modification and distribution are subject to the
+         *  Boost Software License, Version 1.0. (See accompanying file
+         *  LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 96.88
+        Match type      : NOTICE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/special/cephes/lanczos.c [2:4]
+        scipy/special/cephes/lanczos.h [2:4]
+
+KEEP     BSD-3-Clause         3364d13737563ac1dab9f880f33ce313
+BELONGS ya.make
+    License text:
+         *   SPDX-License-Identifier: BSD-3-Clause                                   *
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/_lib/unuran/unuran/src/distr/cemp.c [20:20]
+        scipy/_lib/unuran/unuran/src/distr/cemp.h [20:20]
+        scipy/_lib/unuran/unuran/src/distr/condi.c [19:19]
+        scipy/_lib/unuran/unuran/src/distr/condi.h [21:21]
+        scipy/_lib/unuran/unuran/src/distr/cont.c [19:19]
+        scipy/_lib/unuran/unuran/src/distr/cont.h [20:20]
+        scipy/_lib/unuran/unuran/src/distr/corder.h [21:21]
+        scipy/_lib/unuran/unuran/src/distr/cvec.c [19:19]
+        scipy/_lib/unuran/unuran/src/distr/cvec.h [20:20]
+        scipy/_lib/unuran/unuran/src/distr/cvemp.c [20:20]
+        scipy/_lib/unuran/unuran/src/distr/cvemp.h [20:20]
+        scipy/_lib/unuran/unuran/src/distr/cxtrans.c [22:22]
+        scipy/_lib/unuran/unuran/src/distr/cxtrans.h [21:21]
+        scipy/_lib/unuran/unuran/src/distr/discr.c [19:19]
+        scipy/_lib/unuran/unuran/src/distr/discr.h [20:20]
+        scipy/_lib/unuran/unuran/src/distr/distr.c [21:21]
+        scipy/_lib/unuran/unuran/src/distr/distr.h [19:19]
+        scipy/_lib/unuran/unuran/src/distr/distr_info.c [15:15]
+        scipy/_lib/unuran/unuran/src/distr/distr_source.h [20:20]
+        scipy/_lib/unuran/unuran/src/distr/distr_struct.h [19:19]
+        scipy/_lib/unuran/unuran/src/distr/matr.c [19:19]
+        scipy/_lib/unuran/unuran/src/distr/matr.h [20:20]
+        scipy/_lib/unuran/unuran/src/distributions/c_F.c [32:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_beta.c [49:49]
+        scipy/_lib/unuran/unuran/src/distributions/c_beta_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_cauchy.c [32:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_chi.c [32:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_chi_gen.c [16:16]
+        scipy/_lib/unuran/unuran/src/distributions/c_chisquare.c [31:31]
+        scipy/_lib/unuran/unuran/src/distributions/c_exponential.c [45:45]
+        scipy/_lib/unuran/unuran/src/distributions/c_exponential_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_extremeI.c [51:51]
+        scipy/_lib/unuran/unuran/src/distributions/c_extremeII.c [53:53]
+        scipy/_lib/unuran/unuran/src/distributions/c_gamma.c [47:47]
+        scipy/_lib/unuran/unuran/src/distributions/c_gamma_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_gig.c [64:64]
+        scipy/_lib/unuran/unuran/src/distributions/c_gig2.c [52:52]
+        scipy/_lib/unuran/unuran/src/distributions/c_gig_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_hyperbolic.c [31:31]
+        scipy/_lib/unuran/unuran/src/distributions/c_laplace.c [45:45]
+        scipy/_lib/unuran/unuran/src/distributions/c_logistic.c [47:47]
+        scipy/_lib/unuran/unuran/src/distributions/c_lomax.c [32:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_pareto.c [32:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_rayleigh.c [31:31]
+        scipy/_lib/unuran/unuran/src/distributions/c_slash.c [31:31]
+        scipy/_lib/unuran/unuran/src/distributions/c_student_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_triangular.c [32:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_uniform.c [32:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_weibull.c [48:48]
+        scipy/_lib/unuran/unuran/src/distributions/d_binomial.c [32:32]
+        scipy/_lib/unuran/unuran/src/distributions/d_binomial_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/d_geometric.c [31:31]
+        scipy/_lib/unuran/unuran/src/distributions/d_hypergeometric.c [33:33]
+        scipy/_lib/unuran/unuran/src/distributions/d_hypergeometric_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/d_logarithmic.c [31:31]
+        scipy/_lib/unuran/unuran/src/distributions/d_logarithmic_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/d_negativebinomial.c [32:32]
+        scipy/_lib/unuran/unuran/src/distributions/d_poisson.c [31:31]
+        scipy/_lib/unuran/unuran/src/distributions/d_poisson_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/d_zipf.c [33:33]
+        scipy/_lib/unuran/unuran/src/distributions/d_zipf_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/m_correlation.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/unur_distributions.h [48:48]
+        scipy/_lib/unuran/unuran/src/distributions/unur_distributions_source.h [80:80]
+        scipy/_lib/unuran/unuran/src/distributions/unur_stddistr.h [16:16]
+        scipy/_lib/unuran/unuran/src/distributions/vc_copula.c [24:24]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multicauchy.c [45:45]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multiexponential.c [56:56]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multinormal.c [46:46]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multinormal_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multistudent.c [40:40]
+        scipy/_lib/unuran/unuran/src/methods/arou.c [20:20]
+        scipy/_lib/unuran/unuran/src/methods/arou.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/arou_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/ars.c [20:20]
+        scipy/_lib/unuran/unuran/src/methods/ars.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/ars_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/auto.c [15:15]
+        scipy/_lib/unuran/unuran/src/methods/auto.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/auto_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/cext.c [16:16]
+        scipy/_lib/unuran/unuran/src/methods/cext.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/cext_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/cstd.c [16:16]
+        scipy/_lib/unuran/unuran/src/methods/cstd.h [21:21]
+        scipy/_lib/unuran/unuran/src/methods/cstd_struct.h [18:18]
+        scipy/_lib/unuran/unuran/src/methods/dari.c [20:20]
+        scipy/_lib/unuran/unuran/src/methods/dari.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/dari_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/dau.c [22:22]
+        scipy/_lib/unuran/unuran/src/methods/dau.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/dau_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/dext.c [16:16]
+        scipy/_lib/unuran/unuran/src/methods/dext.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/dext_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/dgt.c [22:22]
+        scipy/_lib/unuran/unuran/src/methods/dgt.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/dgt_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/dsrou.c [28:28]
+        scipy/_lib/unuran/unuran/src/methods/dsrou.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/dsrou_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/dss.c [24:24]
+        scipy/_lib/unuran/unuran/src/methods/dss.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/dss_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/dstd.c [16:16]
+        scipy/_lib/unuran/unuran/src/methods/dstd.h [21:21]
+        scipy/_lib/unuran/unuran/src/methods/dstd_struct.h [18:18]
+        scipy/_lib/unuran/unuran/src/methods/empk.c [29:29]
+        scipy/_lib/unuran/unuran/src/methods/empk.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/empk_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/empl.c [25:25]
+        scipy/_lib/unuran/unuran/src/methods/empl.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/empl_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/gibbs.c [26:26]
+        scipy/_lib/unuran/unuran/src/methods/gibbs.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/gibbs_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/hinv.c [24:24]
+        scipy/_lib/unuran/unuran/src/methods/hinv.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/hinv_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/hist.c [23:23]
+        scipy/_lib/unuran/unuran/src/methods/hist.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/hist_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/hitro.c [26:26]
+        scipy/_lib/unuran/unuran/src/methods/hitro.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/hitro_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/hrb.c [24:24]
+        scipy/_lib/unuran/unuran/src/methods/hrb.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/hrb_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/hrd.c [22:22]
+        scipy/_lib/unuran/unuran/src/methods/hrd.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/hrd_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/hri.c [22:22]
+        scipy/_lib/unuran/unuran/src/methods/hri.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/hri_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/itdr.c [28:28]
+        scipy/_lib/unuran/unuran/src/methods/itdr.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/itdr_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/mcorr.c [19:19]
+        scipy/_lib/unuran/unuran/src/methods/mcorr.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/mcorr_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/mvstd.c [16:16]
+        scipy/_lib/unuran/unuran/src/methods/mvstd.h [21:21]
+        scipy/_lib/unuran/unuran/src/methods/mvstd_struct.h [18:18]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr.c [20:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_debug.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_info.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_init.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_newset.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_sample.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/ninv.c [22:22]
+        scipy/_lib/unuran/unuran/src/methods/ninv.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/ninv_debug.h [15:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_info.h [15:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_init.h [15:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_newset.h [15:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_newton.h [15:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_regula.h [15:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_sample.h [15:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/norta.c [19:19]
+        scipy/_lib/unuran/unuran/src/methods/norta.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/norta_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/nrou.c [28:28]
+        scipy/_lib/unuran/unuran/src/methods/nrou.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/nrou_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/pinv_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/srou.c [27:27]
+        scipy/_lib/unuran/unuran/src/methods/srou.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/srou_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/ssr.c [27:27]
+        scipy/_lib/unuran/unuran/src/methods/ssr.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/ssr_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/tabl.c [21:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/tabl_debug.h [21:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl_info.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/tabl_init.h [21:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl_newset.h [21:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl_sample.h [21:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/tdr.c [20:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_debug.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_gw_debug.h [19:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_gw_init.h [19:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_gw_sample.h [19:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_ia_sample.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_info.h [19:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_init.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_newset.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_ps_debug.h [19:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_ps_init.h [19:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_ps_sample.h [19:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_sample.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/unif.c [15:15]
+        scipy/_lib/unuran/unuran/src/methods/unif.h [21:21]
+        scipy/_lib/unuran/unuran/src/methods/unif_struct.h [18:18]
+        scipy/_lib/unuran/unuran/src/methods/unur_methods.h [16:16]
+        scipy/_lib/unuran/unuran/src/methods/unur_methods_source.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/utdr.c [37:37]
+        scipy/_lib/unuran/unuran/src/methods/utdr.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/utdr_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/vempk.c [26:26]
+        scipy/_lib/unuran/unuran/src/methods/vempk.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/vempk_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/vnrou.c [28:28]
+        scipy/_lib/unuran/unuran/src/methods/vnrou.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/vnrou_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/methods/x_gen.c [15:15]
+        scipy/_lib/unuran/unuran/src/methods/x_gen.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/x_gen_source.h [20:20]
+        scipy/_lib/unuran/unuran/src/methods/x_gen_struct.h [19:19]
+        scipy/_lib/unuran/unuran/src/parser/functparser.c [23:23]
+        scipy/_lib/unuran/unuran/src/parser/functparser_debug.h [15:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_deriv.h [15:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_eval.h [15:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_init.h [15:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_parser.h [15:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_scanner.h [15:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/parser/functparser_stringgen.h [15:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_struct.h [16:16]
+        scipy/_lib/unuran/unuran/src/parser/functparser_symbols.h [25:25]
+        scipy/_lib/unuran/unuran/src/parser/parser.c [20:20]
+        scipy/_lib/unuran/unuran/src/parser/parser.h [16:16]
+        scipy/_lib/unuran/unuran/src/parser/parser_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/parser/stringparser.c [111:111]
+        scipy/_lib/unuran/unuran/src/parser/stringparser_lists.h [31:31]
+        scipy/_lib/unuran/unuran/src/specfunct/unur_specfunct_source.h [17:17]
+        scipy/_lib/unuran/unuran/src/tests/chi2test.c [19:19]
+        scipy/_lib/unuran/unuran/src/tests/correlation.c [21:21]
+        scipy/_lib/unuran/unuran/src/tests/countpdf.c [15:15]
+        scipy/_lib/unuran/unuran/src/tests/counturn.c [15:15]
+        scipy/_lib/unuran/unuran/src/tests/moments.c [15:15]
+        scipy/_lib/unuran/unuran/src/tests/printsample.c [15:15]
+        scipy/_lib/unuran/unuran/src/tests/quantiles.c [15:15]
+        scipy/_lib/unuran/unuran/src/tests/tests.c [15:15]
+        scipy/_lib/unuran/unuran/src/tests/timing.c [15:15]
+        scipy/_lib/unuran/unuran/src/tests/unuran_tests.h [16:16]
+        scipy/_lib/unuran/unuran/src/unur_cookies.h [20:20]
+        scipy/_lib/unuran/unuran/src/unur_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/unur_struct.h [17:17]
+        scipy/_lib/unuran/unuran/src/unur_typedefs.h [17:17]
+        scipy/_lib/unuran/unuran/src/unuran_config.h [15:15]
+        scipy/_lib/unuran/unuran/src/urng/urng.c [15:15]
+        scipy/_lib/unuran/unuran/src/urng/urng.h [20:20]
+        scipy/_lib/unuran/unuran/src/urng/urng_default.c [16:16]
+        scipy/_lib/unuran/unuran/src/urng/urng_set.c [16:16]
+        scipy/_lib/unuran/unuran/src/urng/urng_source.h [15:15]
+        scipy/_lib/unuran/unuran/src/urng/urng_struct.h [15:15]
+        scipy/_lib/unuran/unuran/src/urng/urng_unuran.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/debug.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/debug.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/debug_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/eigensystem.c [22:22]
+        scipy/_lib/unuran/unuran/src/utils/error.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/error.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/error_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/fmax.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/fmax_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/hooke_source.h [17:17]
+        scipy/_lib/unuran/unuran/src/utils/lobatto_struct.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/mrou_rectangle.c [19:19]
+        scipy/_lib/unuran/unuran/src/utils/mrou_rectangle_source.h [18:18]
+        scipy/_lib/unuran/unuran/src/utils/mrou_rectangle_struct.h [18:18]
+        scipy/_lib/unuran/unuran/src/utils/slist.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/slist.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/slist_struct.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/stream.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/stream.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/stream_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/string.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/string_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/string_struct.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/umalloc.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/umalloc_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/umath.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/umath.h [17:17]
+        scipy/_lib/unuran/unuran/src/utils/umath_source.h [17:17]
+        scipy/_lib/unuran/unuran/src/utils/unur_errno.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/unur_fp.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/unur_fp_source.h [16:16]
+        scipy/_lib/unuran/unuran/src/utils/unur_math_source.h [17:17]
+        scipy/_lib/unuran/unuran/src/utils/vector.c [15:15]
+        scipy/_lib/unuran/unuran/src/utils/vector_source.h [15:15]
+        scipy/_lib/unuran/urng_default_mod.c [16:16]
+
+KEEP     LicenseRef-scancode-other-permissive 33762d30807691a752e35ca4b43a3009
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-other-permissive
+        Score           : 20.61
+        Match type      : TEXT
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/other-permissive.LICENSE
+    Files with this license:
+        scipy/special/amos/README.md [10:26]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 353bdb64191d70733dcc2f634e89516e
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/extern/pdqsort/license.txt found in files: scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h at line 1
+FILE_INCLUDE scipy/_lib/unuran/license.txt found in files: scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h at line 1
+FILE_INCLUDE scipy/sparse/linalg/_propack/PROPACK/license.txt found in files: scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h at line 1
+FILE_INCLUDE scipy/stats/biasedurn/license.txt found in files: scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h at line 1
+    License text:
+        // Copyright (c) 2018-2019 ERGO-Code. See license.txt for license.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc [1:1]
+        scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h [1:1]
+        scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc [1:1]
+        scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h [1:1]
+
+KEEP     BSD-3-Clause         354f8db56a24b0b8459605793151182f
+BELONGS ya.make
+    License text:
+        * to the Scipy project under it's BSD-style license.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/stats/mvndst.f [9:9]
+
+KEEP     BSD-3-Clause         35864a557f9a10e478ca8d73a8c6886e
+BELONGS ya.make
+    License text:
+        Classifier: License :: OSI Approved :: BSD License
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        .dist-info/METADATA [53:53]
+
+KEEP     MIT                  399584035c417b91040964779555dfac
+BELONGS ya.make
+    License text:
+        MIT License
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/LICENSE [1:1]
+        scipy/optimize/_trlib/trlib/trlib_krylov.h [1:1]
+        scipy/optimize/_trlib/trlib/trlib_leftmost.h [1:1]
+        scipy/optimize/_trlib/trlib/trlib_tri_factor.h [1:1]
+        scipy/optimize/_trlib/trlib_krylov.c [1:1]
+        scipy/optimize/_trlib/trlib_tri_factor.c [1:1]
+
+KEEP     BSD-Source-Code      3ab3dfffb7e68bf0e39d4a1dbb78c46c
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/linalg/src/id_dist/doc/doc.tex at line 53, scipy/linalg/src/id_dist/doc/doc.tex at line 55
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/linalg/src/id_dist/doc/doc.tex at line 59
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-Source-Code
+        Score           : 86.81
+        Match type      : TEXT
+        Links           : https://github.com/infusion/PHP/blob/master/TSRM/LICENSE, https://spdx.org/licenses/BSD-Source-Code
+    Files with this license:
+        scipy/linalg/src/id_dist/doc/doc.tex [47:74]
+
+KEEP     MIT                  3da80d64762de50e78a5aa8538e7fd8f
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/tnc/LICENSE at line 17
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/tnc/LICENSE at line 11
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/tnc/LICENSE at line 17
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/tnc/LICENSE [3:20]
+
+KEEP     Mozilla-GC           3ddb6d6769fbbcb378104aff2df1cd78
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-mozilla-gc
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.hboehm.info/gc/license.txt, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/mozilla-gc.LICENSE
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccopy_to_ucol.c [22:29]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcopy_to_ucol.c [22:29]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/heap_relax_snode.c [22:29]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/relax_snode.c [22:29]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scopy_to_ucol.c [22:29]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_coletree.c [22:29]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/util.c [22:29]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcopy_to_ucol.c [22:29]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrs.c [23:30]
+
+KEEP     MIT                  3f1c146042a4e4d33ffe9299896fb071
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/_tnc.py at line 20
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/_tnc.py at line 14
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/_tnc.py at line 20
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_tnc.py [6:23]
+
+KEEP     Zlib                 47ce4bb5f1a1bf74139d606a8dab3ea7
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: Zlib
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.gzip.org/zlib/zlib_license.html, http://www.zlib.net/, https://spdx.org/licenses/Zlib
+    Files with this license:
+        scipy/_lib/highs/extern/pdqsort/license.txt [3:16]
+
+KEEP     BSD-3-Clause         482eaca273a96ffd4c372a342c3d8665
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: LICENSES_bundled.txt at line 36, LICENSES_bundled.txt at line 39, scipy/LICENSES_bundled.txt at line 36, scipy/LICENSES_bundled.txt at line 39
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: LICENSES_bundled.txt at line 44, scipy/LICENSES_bundled.txt at line 44
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [32:56]
+        scipy/LICENSES_bundled.txt [32:56]
+
+KEEP     MIT                  48300792eeeaae2f4f062e70d1bc0fd2
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/io/_idl.py at line 25
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/io/_idl.py at line 19
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/io/_idl.py at line 25
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/io/_idl.py [12:28]
+
+KEEP     MIT                  48d41acc359e2f1fe7a9915d3fbb607a
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/_trlib/ctrlib.pxd at line 18
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/_trlib/ctrlib.pxd at line 12
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/_trlib/ctrlib.pxd at line 18
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_trlib/ctrlib.pxd [5:21]
+
+KEEP     LicenseRef-scancode-bsd-new-nomod 4bbf1462bc81f9870a49bbdc2be00997
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/stats/tests/data/_mvt.py at line 71, scipy/stats/tests/data/_mvt.py at line 73
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/tests/data/_mvt.py at line 78
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-bsd-new-nomod
+        Score           : 94.86
+        Match type      : TEXT
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/bsd-new-nomod.LICENSE
+    Files with this license:
+        scipy/stats/tests/data/_mvt.py [68:89]
+
+KEEP     BSD-3-Clause         4dd70d9ac46cb7efde0bd7b54c15ead9
+BELONGS ya.make
+    License text:
+            quote at least one of the references given below. This software is released
+            under the BSD License.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/optimize/_lbfgsb_py.py [159:160]
+
+KEEP     MIT                  50de5c77a2be4881e6db26ce5b6adf9d
+BELONGS ya.make
+    License text:
+              <projectLicense>MIT License</projectLicense>
+              <projectLicenseURL>https://opensource.org/licenses/MIT</projectLicenseURL>
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 77.78
+        Match type      : REFERENCE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/.coin-or/projDesc.xml [136:137]
+
+KEEP     MIT                  54575e81a786e9aa7d98337ec2e1ebb0
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/_lib/highs/LICENSE at line 21, scipy/_lib/highs/extern/filereaderlp/LICENSE at line 16
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/_lib/highs/LICENSE at line 15, scipy/_lib/highs/extern/filereaderlp/LICENSE at line 10
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/_lib/highs/LICENSE at line 21, scipy/_lib/highs/extern/filereaderlp/LICENSE at line 16
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/LICENSE [8:24]
+        scipy/_lib/highs/extern/filereaderlp/LICENSE [3:19]
+
+KEEP     BSL-1.0              56fac53209335bb060a155149bffef92
+BELONGS ya.make
+    License text:
+        // which uses the Boost Software License - Version 1.0
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/_lib/highs/extern/doctest.h [21:21]
+        scipy/_lib/highs/extern/doctest.h [35:35]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 576bef84752aa973f4ff8d023065d762
+BELONGS ya.make
+    License text:
+        2. The contributed code will be **licensed under SciPy's license**,
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        CONTRIBUTING.rst [20:20]
+
+KEEP     BSD-3-Clause         57771217731b49d457e87484b4ed1296
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: LICENSES_bundled.txt at line 213, LICENSES_bundled.txt at line 216, scipy/LICENSES_bundled.txt at line 213, scipy/LICENSES_bundled.txt at line 216
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: LICENSES_bundled.txt at line 221, scipy/LICENSES_bundled.txt at line 221
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [209:232]
+        scipy/LICENSES_bundled.txt [209:232]
+
+KEEP     BSL-1.0              582150d17c0dda2bd7701359f89d1b41
+BELONGS ya.make
+    License text:
+         * Use, modification and distribution are subject to the
+         * Boost Software License, Version 1.0. (See accompanying file
+         *  LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 96.88
+        Match type      : NOTICE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/special/cephes/igami.c [3:5]
+
+KEEP     LicenseRef-scancode-unknown-license-reference AND BSD-3-Clause 5c3a6923e32e232193cd4bebad9740ec
+BELONGS ya.make
+    License text:
+            LAPJVS.P on [1]_ and is licensed under the BSD-3 license, copyright
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 16.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/sparse/csgraph/_matching.pyx [528:528]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 90.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/csgraph/_matching.pyx [528:528]
+
+KEEP     LicenseRef-scancode-other-permissive 5ccc09ca398c9f4b0fd152616de7b5af
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-other-permissive
+        Score           : 92.86
+        Match type      : TEXT
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/other-permissive.LICENSE
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.c [69:75]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.h [43:49]
+
+KEEP     BSD-3-Clause         5ccc0ec42ccedfb66914a8141318087c
+BELONGS ya.make
+    License text:
+        License: 3-Clause BSD
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [189:189]
+        LICENSES_bundled.txt [194:194]
+        scipy/LICENSES_bundled.txt [189:189]
+        scipy/LICENSES_bundled.txt [194:194]
+
+KEEP     BSD-3-Clause         5f3750748b87f36d47bb1c46afc17425
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/fft/_pocketfft/LICENSE.md at line 10, scipy/fft/_pocketfft/LICENSE.md at line 8, scipy/fft/_pocketfft/pocketfft_hdronly.h at line 19, scipy/fft/_pocketfft/pocketfft_hdronly.h at line 21
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/fft/_pocketfft/LICENSE.md at line 14, scipy/fft/_pocketfft/pocketfft_hdronly.h at line 25
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/fft/_pocketfft/LICENSE.md [4:25]
+        scipy/fft/_pocketfft/pocketfft_hdronly.h [15:36]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 5ff19fdf9793a068b871b8e26e0f8022
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/extern/pdqsort/license.txt found in files: scipy/_lib/unuran/UNURAN_README.txt at line 12
+FILE_INCLUDE scipy/_lib/unuran/license.txt found in files: scipy/_lib/unuran/UNURAN_README.txt at line 12
+FILE_INCLUDE scipy/sparse/linalg/_propack/PROPACK/license.txt found in files: scipy/_lib/unuran/UNURAN_README.txt at line 12
+FILE_INCLUDE scipy/stats/biasedurn/license.txt found in files: scipy/_lib/unuran/UNURAN_README.txt at line 12
+    License text:
+        See license.txt for more details.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/_lib/unuran/UNURAN_README.txt [12:12]
+
+KEEP     BSD-3-Clause         5ff47784cf731cf34d738bf499796577
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: scipy/interpolate/_fitpack_impl.py at line 14
+FILE_INCLUDE scipy/LICENSE.txt found in files: scipy/interpolate/_fitpack_impl.py at line 14
+FILE_INCLUDE scipy/ndimage/LICENSE.txt found in files: scipy/interpolate/_fitpack_impl.py at line 14
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 97.50
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/interpolate/_fitpack_impl.py [13:17]
+
+KEEP     BSD-3-Clause AND BSD-3-Clause 606eada2c0454aa04c437579779cc120
+BELONGS ya.make
+    License text:
+        License: modified BSD license ("BSD-LBNL-License.doc")
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 16.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [136:136]
+        scipy/LICENSES_bundled.txt [136:136]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 95.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [136:136]
+        scipy/LICENSES_bundled.txt [136:136]
+
+KEEP     MIT                  61c035dfbda66a73f08e784ecbbce628
+BELONGS ya.make
+    License text:
+            Used in HiGHS under the MIT license.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/LICENSE [6:6]
+
+KEEP     BSD-3-Clause         62fd38913f5450fc346ca0447e553129
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/interpolate/_rbf.py at line 23, scipy/interpolate/_rbf.py at line 27
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/interpolate/_rbf.py at line 32
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.53
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/interpolate/_rbf.py [18:44]
+
+KEEP     BSD-3-Clause         648b9c8b94e0cfc2e7d64030b1467321
+BELONGS ya.make
+FILE_INCLUDE scipy/fft/_pocketfft/LICENSE.md found in files: scipy/fft/_pocketfft/pypocketfft.cxx at line 3
+    License text:
+         * Licensed under a 3-clause BSD style license - see LICENSE.md
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/fft/_pocketfft/pypocketfft.cxx [3:3]
+
+KEEP     BSD-3-Clause         64f5ff3111ec2e55fdca535fad831d99
+BELONGS ya.make
+    License text:
+        /* to the Scipy project under it's BSD-style license. */
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/stats/mvndst.c [36:36]
+
+KEEP     BSD-3-Clause         685caf840e7c543f716caf3ec7367158
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/cluster/hierarchy.py at line 109, scipy/cluster/hierarchy.py at line 111
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/cluster/hierarchy.py at line 116
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/cluster/hierarchy.py [104:128]
+
+SKIP     LPPL-1.3a            699a5d0f123fc6a6e909d3bd1af300cd
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LPPL-1.3a
+        Score           : 97.26
+        Match type      : NOTICE
+        Links           : http://www.latex-project.org/lppl/lppl-1-3a.txt, https://spdx.org/licenses/LPPL-1.3a
+    Files with this license:
+        scipy/linalg/src/id_dist/doc/supertabular.sty [13:21]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 6ea2b0ef6cc309ed7a5295431b794353
+BELONGS ya.make
+    License text:
+         *     Distributed under the same license as Scipy.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/special/cephes/scipy_iv.c [66:66]
+
+KEEP     BSD-3-Clause         7199320efec6e7915ae1803f971f059f
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: LICENSES_bundled.txt at line 29, scipy/LICENSES_bundled.txt at line 29
+    License text:
+          Distributed under 3-clause BSD license with permission from
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [29:29]
+        scipy/LICENSES_bundled.txt [29:29]
+
+KEEP     MIT                  73d4bbdacb9f0839a0f609e27e81c1cc
+BELONGS ya.make
+    License text:
+        License: MIT
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        LICENSES_bundled.txt [112:112]
+        LICENSES_bundled.txt [199:199]
+        LICENSES_bundled.txt [236:236]
+        scipy/LICENSES_bundled.txt [112:112]
+        scipy/LICENSES_bundled.txt [199:199]
+        scipy/LICENSES_bundled.txt [236:236]
+
+KEEP     MIT                  74d07af77a94daef1f3716ff26200f3a
+BELONGS ya.make
+    License text:
+        \# MIT License
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_trlib/ctrlib.pxd [1:1]
+
+KEEP     BSL-1.0              7542c596ab1218c27618c77149ca1f8d
+BELONGS ya.make
+    License text:
+         *     Use, modification and distribution are subject to the
+         *     Boost Software License, Version 1.0.
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/special/cephes/scipy_iv.c [35:36]
+
+KEEP     BSD-3-Clause AND BSD-3-Clause 7822e4c82767d4b13551af77bcf8c7a2
+BELONGS ya.make
+    License text:
+        The ARPACK license is the BSD 3-clause license ("New BSD License")
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_eigen/arpack/README [52:52]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_eigen/arpack/README [52:52]
+
+KEEP     MIT                  788e49ac01a614b48077be2090b8045f
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: LICENSES_bundled.txt at line 129, scipy/LICENSES_bundled.txt at line 129
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: LICENSES_bundled.txt at line 123, scipy/LICENSES_bundled.txt at line 123
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: LICENSES_bundled.txt at line 129, scipy/LICENSES_bundled.txt at line 129
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        LICENSES_bundled.txt [115:132]
+        scipy/LICENSES_bundled.txt [115:132]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 79a927b92221497c4ed8820183cf419e
+BELONGS ya.make
+    License text:
+        \# Distributed under the same license as Scipy.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/special/_digamma.pxd [5:5]
+        scipy/special/_loggamma.pxd [7:7]
+
+KEEP     BSL-1.0              7c3708b0bb3a264edde5713a56dc819d
+BELONGS ya.make
+    License text:
+        License: Boost Software License - Version 1.0
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 95.00
+        Match type      : REFERENCE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        LICENSES_bundled.txt [241:241]
+        scipy/LICENSES_bundled.txt [241:241]
+
+KEEP     MIT                  7c533bb0f34921bcc99025e5fbc7216f
+BELONGS ya.make
+    License text:
+        This program is distributed under the MIT License (see
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_direct/COPYING [9:9]
+
+KEEP     BSD-3-Clause         7d28fff34ccc5c41d1f9a3927e5733c3
+BELONGS ya.make
+    License text:
+         * Permission to copy and modified this file is granted under
+         * the revised BSD license. No warranty is expressed or IMPLIED
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 27.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/_superlumodule.c [10:11]
+
+KEEP     BSD-3-Clause AND BSD-3-Clause 7dd44ea4997afba2163c3c64f02bd87a
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/linalg/interpolative.py at line 10, scipy/linalg/interpolative.py at line 8, scipy/linalg/tests/test_interpolative.py at line 7, scipy/linalg/tests/test_interpolative.py at line 9
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/linalg/interpolative.py at line 15, scipy/linalg/tests/test_interpolative.py at line 14
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 92.59
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/linalg/_interpolative_backend.py [4:27]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 98.03
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/linalg/interpolative.py [4:27]
+        scipy/linalg/tests/test_interpolative.py [3:26]
+
+KEEP     BSD-3-Clause         7f8210bd6565fca112ac6a95467d7d15
+BELONGS ya.make
+    License text:
+        Note: the following version was re-licensed to the BSD license of SciPy.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/_lib/unuran/UNURAN_README.txt [11:11]
+
+KEEP     MIT                  8170e645039b0faccbfab15579a694d4
+BELONGS ya.make
+    License text:
+        Although HiGHS is freely available under the MIT license, we would be pleased to learn about users' experience and give advice via email sent to highsopt@gmail.com.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/.coin-or/projDesc.xml [83:83]
+        scipy/_lib/highs/README.md [14:14]
+
+KEEP     BSD-3-Clause         81eed431673b9fcb20579144a437137b
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/spatial/src/distance_impl.h at line 13, scipy/spatial/src/distance_impl.h at line 15, scipy/spatial/src/distance_wrap.c at line 13, scipy/spatial/src/distance_wrap.c at line 15
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/spatial/src/distance_impl.h at line 20, scipy/spatial/src/distance_wrap.c at line 20
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/spatial/src/distance_impl.h [8:32]
+        scipy/spatial/src/distance_wrap.c [8:32]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 84a487f6ad10798228e0716d44a63cf5
+BELONGS ya.make
+    License text:
+        \# Distributed under the same license as SciPy itself.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/special/tests/test_ellip_harm.py [3:3]
+        scipy/special/tests/test_lambertw.py [4:4]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 860557fa6b29333984fe5aab3664252c
+BELONGS ya.make
+    License text:
+            distributed under a non-free licence by Slicot under the name ``robpole``.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/signal/_ltisys.py [3179:3179]
+
+KEEP     Public-Domain        8641c34b1f4d207924aadae729e93357
+BELONGS ya.make
+    License text:
+            \# Released under a Public domain declaration.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-public-domain
+        Score           : 16.00
+        Match type      : NOTICE
+        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
+    Files with this license:
+        scipy/linalg/_solve_toeplitz.pyx [49:49]
+
+KEEP     Mozilla-GC           86e15117dc433d00ec267ae5cda8b9d0
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-mozilla-gc
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.hboehm.info/gc/license.txt, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/mozilla-gc.LICENSE
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_bmod.c [23:30]
+
+KEEP     BSD-3-Clause         8906536cadd04385bfe3879dee250400
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/sparse/linalg/_isolve/lsqr.py at line 22, scipy/sparse/linalg/_isolve/lsqr.py at line 26
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/sparse/linalg/_isolve/lsqr.py at line 31
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 96.41
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_isolve/lsqr.py [12:43]
+
+KEEP     X11-Hanson           8c711684dd3eaa00de947bfa2e44ae6f
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-x11-hanson
+        Score           : 87.62
+        Match type      : TEXT
+        Links           : http://www.research.microsoft.com/~drh/, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/x11-hanson.LICENSE
+    Files with this license:
+        scipy/_lib/unuran/unuran/src/utils/hooke.c [131:141]
+
+KEEP     Mozilla-GC           8c7d9d86a9410d6697566d5d70e84c57
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-mozilla-gc
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.hboehm.info/gc/license.txt, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/mozilla-gc.LICENSE
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrf.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpivotL.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpruneL.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cutil.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrf.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpivotL.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpruneL.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dutil.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrf.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spivotL.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spruneL.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sutil.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrf.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpivotL.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpruneL.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_bmod.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_dfs.c [23:30]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zutil.c [23:30]
+
+KEEP     MIT                  8c973a74416afb66f90e62ab2188c74b
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/_trlib/trlib_krylov.c at line 18, scipy/optimize/_trlib/trlib_tri_factor.c at line 18
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/_trlib/trlib_krylov.c at line 12, scipy/optimize/_trlib/trlib_tri_factor.c at line 12
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/_trlib/trlib_krylov.c at line 18, scipy/optimize/_trlib/trlib_tri_factor.c at line 18
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_trlib/trlib_krylov.c [5:21]
+        scipy/optimize/_trlib/trlib_tri_factor.c [5:21]
+
+KEEP     LicenseRef-scancode-unknown-license-reference AND BSD-3-Clause AND BSD-3-Clause 8e327caf72b0fa5f5c05b9ef39feaa3e
+BELONGS ya.make
+    License text:
+        \# Distributed under the same BSD license as Scipy.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/interpolate/interpnd.pyx [11:11]
+        scipy/spatial/_qhull.pxd [9:9]
+        scipy/spatial/_qhull.pyx [12:12]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/interpolate/interpnd.pyx [11:11]
+        scipy/spatial/_qhull.pxd [9:9]
+        scipy/spatial/_qhull.pyx [12:12]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 82.50
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/spatial/_hausdorff.pyx [12:12]
+        scipy/spatial/_voronoi.pyx [10:10]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 919e3fc248aeef0f98dcc5a6755b6921
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: scipy/interpolate/_rbf.py at line 10
+FILE_INCLUDE scipy/LICENSE.txt found in files: scipy/interpolate/_rbf.py at line 10
+FILE_INCLUDE scipy/ndimage/LICENSE.txt found in files: scipy/interpolate/_rbf.py at line 10
+    License text:
+        terms of the SciPy (BSD style) license. See LICENSE.txt that came with
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 90.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/interpolate/_rbf.py [10:10]
+
+KEEP     BSD-3-Clause         9326b82505bd50a423ab650464e5e7ee
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: LICENSES_bundled.txt at line 91, LICENSES_bundled.txt at line 93, scipy/LICENSES_bundled.txt at line 91, scipy/LICENSES_bundled.txt at line 93
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: LICENSES_bundled.txt at line 97, scipy/LICENSES_bundled.txt at line 97
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [88:108]
+        scipy/LICENSES_bundled.txt [88:108]
+
+KEEP     MIT                  93ea9dc7f276229cd912b0f1431e6374
+BELONGS ya.make
+    License text:
+                  license='MIT',
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/src/interfaces/highspy/setup.py [34:34]
+
+KEEP     BSD-3-Clause         95e8e4bdd6a545ea305837172a063f2b
+BELONGS ya.make
+    License text:
+        under the BSD licence. The following files have been removed from the original library:
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/_lib/unuran/license.txt [3:3]
+
+KEEP     BSD-3-Clause         9632c7c90e77b1a280dd37830204ce8b
+BELONGS ya.make
+    License text:
+        License 3-Clause BSD
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [246:246]
+        LICENSES_bundled.txt [251:251]
+        LICENSES_bundled.txt [256:256]
+        scipy/LICENSES_bundled.txt [246:246]
+        scipy/LICENSES_bundled.txt [251:251]
+        scipy/LICENSES_bundled.txt [256:256]
+
+KEEP     MIT                  9917dbf647607c4043b3a06f6ce19f65
+BELONGS ya.make
+    License text:
+                MIT License
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/stats/_qmc.py [2392:2392]
+
+KEEP     MIT                  99731b2e9d5021850834380822272229
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/cluster/_optimal_leaf_ordering.pyx at line 23
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/cluster/_optimal_leaf_ordering.pyx at line 17
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/cluster/_optimal_leaf_ordering.pyx at line 23
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/cluster/_optimal_leaf_ordering.pyx [10:26]
+
+KEEP     MIT                  9a16e8f44620012ae7bafd05584176c3
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/_lbfgsb_py.py at line 29
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/_lbfgsb_py.py at line 23
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/_lbfgsb_py.py at line 29
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_lbfgsb_py.py [16:32]
+
+KEEP     MIT                  9a24bb22f42958179485e8ca41bb13fc
+BELONGS ya.make
+    License text:
+                               "License :: OSI Approved :: MIT License"]
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/src/interfaces/highspy/setup.py [47:47]
+
+KEEP     BSD-3-Clause         9b2c7c849925d17f593d200d66339455
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/sparse/linalg/_dsolve/SuperLU/License.txt at line 11, scipy/sparse/linalg/_dsolve/SuperLU/License.txt at line 13
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/sparse/linalg/_dsolve/SuperLU/License.txt at line 17
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 95.02
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/License.txt [7:29]
+
+KEEP     BSD-3-Clause         9b2fd5519bfaedcfe0d21997266cb3ca
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/ndimage/LICENSE.txt at line 11, scipy/ndimage/LICENSE.txt at line 7
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/ndimage/LICENSE.txt at line 16
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/ndimage/LICENSE.txt [3:28]
+
+KEEP     LicenseRef-scancode-unknown 9e3537731b501bd8c96c1389d05cf013
+BELONGS ya.make
+    License text:
+        \# Released under the scipy license
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown
+        Score           : 12.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown.LICENSE
+    Files with this license:
+        scipy/spatial/_ckdtree.pyx [5:5]
+        scipy/spatial/_kdtree.py [2:2]
+        scipy/spatial/tests/test_kdtree.py [2:2]
+
+KEEP     Public-Domain        9eff80eb8ff108a0770f7b30fa51b9f9
+BELONGS ya.make
+    License text:
+        Both {\tt dfft.f} (version 4) and {\tt prini.f} are in the public domain.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-public-domain
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
+    Files with this license:
+        scipy/linalg/src/id_dist/doc/doc.tex [327:327]
+        scipy/linalg/src/id_dist/doc/doc.tex [353:353]
+
+KEEP     BSD-3-Clause-LBNL    9f9bbb6e661cccd211a8f5c06c7d35c7
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause-LBNL
+        Score           : 29.75
+        Match type      : TEXT
+        Links           : https://fedoraproject.org/wiki/Licensing:LBNLBSD?rd=Licensing/LBNLBSD, https://spdx.org/licenses/BSD-3-Clause-LBNL
+    Files with this license:
+        LICENSES_bundled.txt [176:185]
+        scipy/LICENSES_bundled.txt [176:185]
+
+KEEP     BSD-3-Clause         a125098c02e7e885614bf0848bb4f19c
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/stats/_qmvnt.py at line 14, scipy/stats/_qmvnt.py at line 16
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/_qmvnt.py at line 21
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 97.13
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/stats/_qmvnt.py [11:32]
+
+KEEP     BSL-1.0              a278da19dd81008292c5b23c381ae47a
+BELONGS ya.make
+    License text:
+         *  Distributed under the Boost Software License, Version 1.0. (See accompanying
+         *  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/_lib/highs/extern/catch.hpp [8:9]
+
+KEEP     MIT                  a29b1b76fc1a07fde69cb35dae274e08
+BELONGS ya.make
+    License text:
+            .. [5] geomstats, Github. MIT License. Accessed: 06.01.2023.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/stats/_multivariate.py [6284:6284]
+
+KEEP     BSD-3-Clause         a2db27b42ebd687c05411aa558b00a6a
+BELONGS ya.make
+    License text:
+        \# License: BSD, (C) 2011
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 95.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/csgraph/_min_spanning_tree.pyx [2:2]
+        scipy/sparse/csgraph/_shortest_path.pyx [11:11]
+
+KEEP     BSD-3-Clause         a30d1b157c16e5dc83f6dad26005c2dd
+BELONGS ya.make
+    License text:
+        BSD 3-Clause License
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/_lib/_uarray/LICENSE [1:1]
+
+KEEP     BSD-3-Clause         a49d772c1d5b921464db40458d78343b
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: .dist-info/METADATA at line 17, .dist-info/METADATA at line 21
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: .dist-info/METADATA at line 26
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 96.88
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        .dist-info/METADATA [9:38]
+
+KEEP     BSD-3-Clause-LBNL    a558be690cb574f82c49e6d07a0f4a99
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: scipy/special/cephes/dd_idefs.h at line 14, scipy/special/cephes/dd_real.c at line 14, scipy/special/cephes/dd_real.h at line 14, scipy/special/cephes/dd_real_idefs.h at line 14
+FILE_INCLUDE scipy/LICENSE.txt found in files: scipy/special/cephes/dd_idefs.h at line 14, scipy/special/cephes/dd_real.c at line 14, scipy/special/cephes/dd_real.h at line 14, scipy/special/cephes/dd_real_idefs.h at line 14
+FILE_INCLUDE scipy/ndimage/LICENSE.txt found in files: scipy/special/cephes/dd_idefs.h at line 14, scipy/special/cephes/dd_real.c at line 14, scipy/special/cephes/dd_real.h at line 14, scipy/special/cephes/dd_real_idefs.h at line 14
+    License text:
+         * By downloading or using this software you are agreeing to the modified
+         * BSD license "BSD-LBNL-License.doc" (see LICENSE.txt).
+    Scancode info:
+        Original SPDX id: BSD-3-Clause-LBNL
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : https://fedoraproject.org/wiki/Licensing:LBNLBSD?rd=Licensing/LBNLBSD, https://spdx.org/licenses/BSD-3-Clause-LBNL
+    Files with this license:
+        scipy/special/cephes/dd_idefs.h [13:14]
+        scipy/special/cephes/dd_real.c [13:14]
+        scipy/special/cephes/dd_real.h [13:14]
+        scipy/special/cephes/dd_real_idefs.h [13:14]
+
+KEEP     LGPL-2.0-or-later    a59e364b8fb6dfc9b5cc1429598028c9
+BELONGS ya.make
+    License text:
+                        could be incorporated into and LGPL package.  Placed remez
+    Scancode info:
+        Original SPDX id: LGPL-2.0-or-later
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.gnu.org/licenses/old-licenses/lgpl-2.0-standalone.html, http://www.gnu.org/licenses/old-licenses/lgpl-2.0.html, https://spdx.org/licenses/LGPL-2.0-or-later
+    Files with this license:
+        scipy/signal/docs/signaltools.README [91:91]
+
+KEEP     MIT                  a5c96493f9bf584be062cdf3b96ebc17
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/special/Faddeeva.cc at line 17, scipy/special/Faddeeva.hh at line 17
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/special/Faddeeva.cc at line 11, scipy/special/Faddeeva.hh at line 11
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/special/Faddeeva.cc at line 17, scipy/special/Faddeeva.hh at line 17
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/special/Faddeeva.cc [3:20]
+        scipy/special/Faddeeva.hh [3:20]
+
+KEEP     MIT                  a60a6c4256e715f1d1a3d8340ac4d8be
+BELONGS ya.make
+    License text:
+        This program is distributed under the MIT License (see
+        http://www.opensource.org/licenses/mit-license.php):
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 29.03
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_direct/COPYING [9:10]
+
+KEEP     BSD-3-Clause         a6391027fb9a1987b82ec34c73fa7f57
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/_lib/_uarray/LICENSE at line 10, scipy/_lib/_uarray/LICENSE at line 13
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/_lib/_uarray/LICENSE at line 18
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/_lib/_uarray/LICENSE [6:29]
+
+KEEP     BSD-3-Clause         a91a38905ece3b59a91fd77e02042dfa
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/sparse/linalg/_dsolve/SuperLU/scipychanges.patch at line 263, scipy/sparse/linalg/_dsolve/SuperLU/scipychanges.patch at line 266
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/sparse/linalg/_dsolve/SuperLU/scipychanges.patch at line 270
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/scipychanges.patch [259:281]
+
+KEEP     LicenseRef-scancode-unknown-license-reference ab332dd8acb5c2bf9b02cdbc3b2b1387
+BELONGS ya.make
+    License text:
+            \# test that p-values are uniformly distributed under the null hypothesis
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/stats/tests/test_stats.py [5385:5385]
+
+KEEP     MIT                  ac0b21ca42b343a07b5f589f0d830b2e
+BELONGS ya.make
+    License text:
+                       "Copyright (c) 2022 ERGO-Code under MIT licence terms\n");
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/src/io/HighsIO.cpp [31:31]
+
+KEEP     LicenseRef-scancode-unknown-license-reference ac3ecb48d1479fd735cf4eb7789ff43b
+BELONGS ya.make
+    License text:
+        \# Distributed under the same license as SciPy.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/optimize/_nonlin.py [2:2]
+        scipy/sparse/linalg/_isolve/_gcrotmk.py [2:2]
+        scipy/sparse/linalg/_isolve/lgmres.py [2:2]
+        scipy/special/_spherical_bessel.pxd [9:9]
+
+KEEP     BSD-3-Clause         aca2e0b7d11c9ec12ed09245bb6dfac5
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/stats/_rcont/logfactorial.c at line 11, scipy/stats/_rcont/logfactorial.c at line 15, scipy/stats/_rcont/logfactorial.h at line 11, scipy/stats/_rcont/logfactorial.h at line 15
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/_rcont/logfactorial.c at line 20, scipy/stats/_rcont/logfactorial.h at line 20
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.53
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/stats/_rcont/logfactorial.c [6:32]
+        scipy/stats/_rcont/logfactorial.h [6:32]
+
+KEEP     LicenseRef-scancode-free-unknown ada7950cedd72cc30a90b6677f896bf5
+BELONGS ya.make
+    License text:
+              <!--  http://www.opensource.org/licenses/eclipse-1.0           -->
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-free-unknown
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/free-unknown.LICENSE
+    Files with this license:
+        scipy/_lib/highs/.coin-or/projDesc.xml [131:131]
+
+KEEP     BSD-3-Clause         b23384f5667cc8043b21094d4c4ffa7b
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: scipy/interpolate/_rbf.py at line 10
+FILE_INCLUDE scipy/LICENSE.txt found in files: scipy/interpolate/_rbf.py at line 10
+FILE_INCLUDE scipy/ndimage/LICENSE.txt found in files: scipy/interpolate/_rbf.py at line 10
+    License text:
+        Permission to use, modify, and distribute this software is given under the
+        terms of the SciPy (BSD style) license. See LICENSE.txt that came with
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 84.86
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/interpolate/_rbf.py [9:10]
+
+KEEP     BSD-3-Clause         b3a4489ade2a58b486e413a8ccbd5d84
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: scipy/integrate/_odepackmodule.c at line 7
+FILE_INCLUDE scipy/LICENSE.txt found in files: scipy/integrate/_odepackmodule.c at line 7
+FILE_INCLUDE scipy/ndimage/LICENSE.txt found in files: scipy/integrate/_odepackmodule.c at line 7
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 97.50
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/integrate/_odepackmodule.c [6:10]
+
+KEEP     LicenseRef-scancode-other-permissive b6328387f405681ef8c70665f474980a
+BELONGS ya.make
+    License text:
+        Permission to use, copy, modify, and distribute this software without fee
+        is granted under the SciPy License.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-other-permissive
+        Score           : 54.17
+        Match type      : TEXT
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/other-permissive.LICENSE
+    Files with this license:
+        scipy/signal/_sigtoolsmodule.c [4:5]
+
+KEEP     LicenseRef-scancode-unknown-license-reference AND BSD-3-Clause b884921f9e32e294d9895bf8f86109d4
+BELONGS ya.make
+    License text:
+        \# Distributed under the same BSD license as SciPy.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/spatial/_spherical_voronoi.py [11:11]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/spatial/_spherical_voronoi.py [11:11]
+
+KEEP     MIT                  b913b5721a19c7e97156090bd16b43c4
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/_trlib/trlib/trlib_eigen_inverse.h at line 18, scipy/optimize/_trlib/trlib_leftmost.c at line 18, scipy/optimize/_trlib/trlib_quadratic_zero.c at line 18
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/_trlib/trlib/trlib_eigen_inverse.h at line 12, scipy/optimize/_trlib/trlib_leftmost.c at line 12, scipy/optimize/_trlib/trlib_quadratic_zero.c at line 12
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/_trlib/trlib/trlib_eigen_inverse.h at line 18, scipy/optimize/_trlib/trlib_leftmost.c at line 18, scipy/optimize/_trlib/trlib_quadratic_zero.c at line 18
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_trlib/trlib/trlib_eigen_inverse.h [5:21]
+        scipy/optimize/_trlib/trlib_leftmost.c [5:21]
+        scipy/optimize/_trlib/trlib_quadratic_zero.c [5:21]
+
+KEEP     LicenseRef-scancode-unknown-license-reference bda468b8668ddd7fed38590c239b32f5
+BELONGS ya.make
+    License text:
+        \# Distributed under the same license as SciPy
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/special/_lambertw.pxd [9:9]
+        scipy/special/_wright_bessel.pxd [10:10]
+
+KEEP     BSD-3-Clause         be6754c59f0f39b21e6623ce4fba8300
+BELONGS ya.make
+    License text:
+          quote at least one of the references given below. This software is released
+          under the BSD License.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/optimize/lbfgsb_src/README [25:26]
+
+KEEP     MIT                  beb2065db399cd1d46bfbbea5131325a
+BELONGS ya.make
+FILE_INCLUDE LICENSE.txt found in files: scipy/_lib/highs/extern/doctest.h at line 10
+FILE_INCLUDE scipy/LICENSE.txt found in files: scipy/_lib/highs/extern/doctest.h at line 10
+FILE_INCLUDE scipy/ndimage/LICENSE.txt found in files: scipy/_lib/highs/extern/doctest.h at line 10
+    License text:
+        // Distributed under the MIT Software License
+        // See accompanying file LICENSE.txt or copy at
+        // https://opensource.org/licenses/MIT
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 72.73
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/extern/doctest.h [9:11]
+
+KEEP     BSD-3-Clause         bf72981270dc2342c5761329006d157f
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/sparse/linalg/_dsolve/SuperLU/SRC/msc_stdint.h at line 10, scipy/sparse/linalg/_dsolve/SuperLU/SRC/msc_stdint.h at line 13
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/sparse/linalg/_dsolve/SuperLU/SRC/msc_stdint.h at line 17
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/msc_stdint.h [6:28]
+
+KEEP     LicenseRef-scancode-unknown c0a3879dae53b8cf2302a0170fd79ebc
+BELONGS ya.make
+    License text:
+        is granted under the SciPy License.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown
+        Score           : 12.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown.LICENSE
+    Files with this license:
+        scipy/signal/_sigtoolsmodule.c [5:5]
+
+KEEP     BSL-1.0              c16f2ec301a802e461c97907aeeebf6c
+BELONGS ya.make
+    License text:
+        // SPDX-License-Identifier: BSL-1.0
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/_lib/highs/extern/catch.hpp [15316:15316]
+
+KEEP     BSD-2-Clause         c17a83c1c481d6114d779fc63594ed22
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/special/_ellip_harm.pxd at line 10, scipy/special/_ellip_harm.pxd at line 13
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-2-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/bsd-license.php, http://www.opensource.org/licenses/BSD-2-Clause, https://spdx.org/licenses/BSD-2-Clause
+    Files with this license:
+        scipy/special/_ellip_harm.pxd [6:29]
+
+KEEP     BSL-1.0              c2c06b4b0401328c4a7db06845377814
+BELONGS ya.make
+    License text:
+        // Distributed under the Boost Software License, Version 1.0. (See accompanying
+        // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/_lib/highs/extern/catch.hpp [8428:8429]
+
+KEEP     BSD-2-Clause         c55f7dca0db1a3741e4752ce594eb134
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/_lib/decorator.py at line 11, scipy/_lib/decorator.py at line 13
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-2-Clause
+        Score           : 99.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/bsd-license.php, http://www.opensource.org/licenses/BSD-2-Clause, https://spdx.org/licenses/BSD-2-Clause
+    Files with this license:
+        scipy/_lib/decorator.py [6:28]
+
+KEEP     MIT AND LicenseRef-scancode-unknown-license-reference c6c6adb64d71ddb9d770a5d1598f4630
+BELONGS ya.make
+    License text:
+        The code is licensed under MIT license, see ../../LICENSE.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/extern/zstr/README [2:2]
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/_lib/highs/extern/zstr/README [2:2]
+
+KEEP     BSD-3-Clause         c79ff36721736578b5ee7c47fe02f637
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/special/_spfun_stats.py at line 11, scipy/special/_spfun_stats.py at line 13
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/special/_spfun_stats.py at line 17
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.06
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/special/_spfun_stats.py [7:30]
+
+KEEP     BSD-3-Clause         c9822165003efd7a537948bb286ce749
+BELONGS ya.make
+    License text:
+        \# License: BSD
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 95.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/optimize/tests/test_linear_assignment.py [2:2]
+
+KEEP     BSL-1.0              ca9f40f5baead7c31e93af8e4fe274c3
+BELONGS ya.make
+    License text:
+         * Use, modification and distribution are subject to the
+         * Boost Software License, Version 1.0. (See accompanying file
+         * LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 96.88
+        Match type      : NOTICE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        scipy/special/cephes/owens_t.c [3:5]
+        scipy/special/cephes/psi.c [62:64]
+
+KEEP     EPL-1.0              cb5ce91c731c42834b9b167179a238ee
+BELONGS ya.make
+    License text:
+              <!--  Eclipse Public License 1.0                               -->
+    Scancode info:
+        Original SPDX id: EPL-1.0
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.eclipse.org/legal/epl-v10.html, https://spdx.org/licenses/EPL-1.0
+    Files with this license:
+        scipy/_lib/highs/.coin-or/projDesc.xml [128:128]
+
+KEEP     LicenseRef-scancode-unknown-license-reference d32a2af730525672116d4c4348f42ab5
+BELONGS ya.make
+    License text:
+        Distributed under the same license as Scipy.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/special/_hyp2f1.pxd [22:22]
+
+KEEP     BSD-3-Clause         d3a995685515725752c3ee34abfd440b
+BELONGS ya.make
+    License text:
+        \# Copyright (C) Damian Eads, 2007-2008. New BSD License.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/cluster/hierarchy.py [93:93]
+        scipy/spatial/distance.py [73:73]
+
+KEEP     Public-Domain        d5157faa30c4ad126bc70c324dde17ce
+BELONGS ya.make
+    License text:
+            raccoon-procyon-lotor.jpg at http://www.public-domain-image.com
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-public-domain
+        Score           : 70.00
+        Match type      : REFERENCE
+        Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
+    Files with this license:
+        scipy/datasets/_fetchers.py [181:181]
+        scipy/misc/_common.py [185:185]
+
+KEEP     BSD-3-Clause         d613de2c567642f9d121a95c63be64a2
+BELONGS ya.make
+    License text:
+        \# License: BSD, (C) 2012
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 95.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/csgraph/_tools.pyx [6:6]
+        scipy/sparse/csgraph/_traversal.pyx [6:6]
+
+KEEP     LicenseRef-scancode-bsd-dpt d70facebcd0218e55d9a6589c172bdcf
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-bsd-dpt
+        Score           : 58.57
+        Match type      : TEXT
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/bsd-dpt.LICENSE
+    Files with this license:
+        scipy/stats/_stats_py.py [5:17]
+
+KEEP     MIT                  d893b8242eb5d7d632134efb8301fb73
+BELONGS ya.make
+    License text:
+        \# The MIT License (MIT)
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/cluster/_optimal_leaf_ordering.pyx [7:7]
+
+KEEP     BSD-3-Clause AND BSD-3-Clause dc84b9aeb2c7f1a02db3f1ec60387bf0
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/signal/_upfirdn_apply.pyx at line 14, scipy/signal/_upfirdn_apply.pyx at line 17, scipy/signal/tests/test_upfirdn.py at line 12, scipy/signal/tests/test_upfirdn.py at line 15
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/signal/_upfirdn_apply.pyx at line 22, scipy/signal/tests/test_upfirdn.py at line 20
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 98.13
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/signal/_upfirdn.py [7:32]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.53
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/signal/_upfirdn_apply.pyx [9:34]
+        scipy/signal/tests/test_upfirdn.py [7:32]
+
+KEEP     BSD-2-Clause         ddbc5f011b3f0f80d64e0bbc8316adab
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/_lib/_pep440.py at line 14, scipy/_lib/_pep440.py at line 17
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-2-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/bsd-license.php, http://www.opensource.org/licenses/BSD-2-Clause, https://spdx.org/licenses/BSD-2-Clause
+    Files with this license:
+        scipy/_lib/_pep440.py [10:30]
+
+KEEP     BSD-3-Clause         e0affc1c4d7a68badd33586ed0adf8e8
+BELONGS ya.make
+FILE_INCLUDE scipy/sparse/linalg/_dsolve/SuperLU/License.txt found in files: scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccopy_to_ucol.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cdiagonal.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgscon.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsequ.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsisx.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsitrf.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsrfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgssv.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgssvx.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrf.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/clacon2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/clangs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/claqgs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cldperm.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cmemory.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cmyblas2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpivotL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpivotgrowth.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpruneL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/creadhb.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/creadrb.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/creadtriple.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/csp_blas2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/csp_blas3.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/cutil.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcomplex.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcopy_to_ucol.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ddiagonal.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgscon.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsequ.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsisx.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsitrf.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsrfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgssv.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgssvx.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrf.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlacon2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlangs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlaqgs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dldperm.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dmach.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dmemory.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dmyblas2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpivotL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpivotgrowth.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpruneL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dreadhb.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dreadrb.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dreadtriple.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsp_blas2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsp_blas3.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dutil.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/dzsum1.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/get_perm_c.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/heap_relax_snode.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/html_mainpage.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/icmax1.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ccolumn_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ccopy_to_ucol.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_cdrop_row.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_cpanel_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_cpivotL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_csnode_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dcolumn_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dcopy_to_ucol.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ddrop_row.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dpanel_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dpivotL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dsnode_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_heap_relax_snode.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_relax_snode.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_scolumn_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_scopy_to_ucol.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_sdrop_row.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_spanel_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_spivotL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ssnode_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zcolumn_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zcopy_to_ucol.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zdrop_row.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zpanel_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zpivotL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zsnode_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/input_error.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/izmax1.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/mark_relax.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/memory.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/mmd.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/qselect.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/relax_snode.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/scomplex.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/scopy_to_ucol.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/scsum1.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sdiagonal.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgscon.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsequ.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsisx.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsitrf.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsrfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgssv.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgssvx.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrf.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slacon2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slangs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slaqgs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sldperm.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_Cnames.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_cdefs.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_dcomplex.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_ddefs.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_scomplex.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_sdefs.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_util.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_zdefs.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/smach.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/smemory.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/smyblas2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_coletree.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_ienv.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_preorder.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/spivotL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/spivotgrowth.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/spruneL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sreadhb.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sreadrb.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sreadtriple.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssp_blas2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssp_blas3.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/superlu_enum_consts.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/superlu_timer.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/supermatrix.h at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/sutil.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/util.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcopy_to_ucol.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zdiagonal.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgscon.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsequ.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsisx.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsitrf.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsrfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgssv.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgssvx.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrf.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlacon2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlangs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlaqgs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zldperm.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zmemory.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zmyblas2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpivotL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpivotgrowth.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpruneL.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zreadhb.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zreadrb.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zreadtriple.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_bmod.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_dfs.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsp_blas2.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsp_blas3.c at line 8, scipy/sparse/linalg/_dsolve/SuperLU/SRC/zutil.c at line 8
+    License text:
+        The source code is distributed under BSD license, see the file License.txt
+        at the top-level directory.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccopy_to_ucol.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cdiagonal.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgscon.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsequ.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsisx.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsitrf.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsrfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgssv.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgssvx.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrf.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/clacon2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/clangs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/claqgs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cldperm.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cmemory.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cmyblas2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpivotL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpivotgrowth.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpruneL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/creadhb.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/creadrb.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/creadtriple.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csp_blas2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csp_blas3.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cutil.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcomplex.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcopy_to_ucol.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ddiagonal.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgscon.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsequ.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsisx.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsitrf.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsrfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgssv.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgssvx.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrf.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlacon2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlangs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlaqgs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dldperm.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dmach.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dmemory.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dmyblas2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpivotL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpivotgrowth.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpruneL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dreadhb.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dreadrb.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dreadtriple.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsp_blas2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsp_blas3.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dutil.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dzsum1.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/get_perm_c.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/heap_relax_snode.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/html_mainpage.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/icmax1.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ccolumn_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ccopy_to_ucol.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_cdrop_row.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_cpanel_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_cpivotL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_csnode_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dcolumn_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dcopy_to_ucol.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ddrop_row.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dpanel_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dpivotL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dsnode_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_heap_relax_snode.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_relax_snode.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_scolumn_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_scopy_to_ucol.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_sdrop_row.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_spanel_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_spivotL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ssnode_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zcolumn_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zcopy_to_ucol.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zdrop_row.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zpanel_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zpivotL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zsnode_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/input_error.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/izmax1.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/mark_relax.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/memory.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/mmd.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/qselect.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/relax_snode.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scomplex.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scopy_to_ucol.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scsum1.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sdiagonal.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgscon.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsequ.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsisx.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsitrf.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsrfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgssv.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgssvx.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrf.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slacon2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slangs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slaqgs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sldperm.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_Cnames.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_cdefs.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_dcomplex.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_ddefs.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_scomplex.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_sdefs.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_util.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_zdefs.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/smach.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/smemory.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/smyblas2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_coletree.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_ienv.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_preorder.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spivotL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spivotgrowth.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spruneL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sreadhb.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sreadrb.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sreadtriple.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssp_blas2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssp_blas3.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/superlu_enum_consts.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/superlu_timer.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/supermatrix.h [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sutil.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/util.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcopy_to_ucol.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zdiagonal.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgscon.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsequ.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsisx.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsitrf.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsrfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgssv.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgssvx.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrf.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlacon2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlangs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlaqgs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zldperm.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zmemory.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zmyblas2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpivotL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpivotgrowth.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpruneL.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zreadhb.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zreadrb.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zreadtriple.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_bmod.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_dfs.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsp_blas2.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsp_blas3.c [8:9]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zutil.c [8:9]
+
+KEEP     BSD-3-Clause AND BSD-3-Clause e37b3329d15b36ce40afbe56ccaa6453
+BELONGS ya.make
+    License text:
+        C      BSD license, the ACM hereby releases this code under the BSD license.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.00
+        Match type      : REFERENCE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/optimize/slsqp/slsqp_optmz.f [19:19]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 90.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/optimize/slsqp/slsqp_optmz.f [19:19]
+
+KEEP     BSD-3-Clause         e4c63a8ba6c29ce2e71a3434d9ad4f68
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: LICENSES_bundled.txt at line 77, scipy/LICENSES_bundled.txt at line 77
+    License text:
+          Distributed under 3-clause BSD license with permission from the author,
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [77:77]
+        scipy/LICENSES_bundled.txt [77:77]
+
+KEEP     LicenseRef-scancode-proprietary-license e619d4dcc4167d76ad1a4f72305c9271
+BELONGS ya.make
+    License text:
+        forbidden under the terms of the IDL End User License Agreement
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-proprietary-license
+        Score           : 22.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/proprietary-license.LICENSE
+    Files with this license:
+        scipy/io/tests/data/array_float32_1d.sav [9:9]
+        scipy/io/tests/data/array_float32_2d.sav [9:9]
+        scipy/io/tests/data/array_float32_3d.sav [9:9]
+        scipy/io/tests/data/array_float32_4d.sav [9:9]
+        scipy/io/tests/data/array_float32_5d.sav [9:9]
+        scipy/io/tests/data/array_float32_6d.sav [9:9]
+        scipy/io/tests/data/array_float32_7d.sav [9:9]
+        scipy/io/tests/data/array_float32_8d.sav [9:9]
+        scipy/io/tests/data/array_float32_pointer_1d.sav [9:9]
+        scipy/io/tests/data/array_float32_pointer_2d.sav [9:9]
+        scipy/io/tests/data/array_float32_pointer_3d.sav [9:9]
+        scipy/io/tests/data/array_float32_pointer_4d.sav [9:9]
+        scipy/io/tests/data/array_float32_pointer_5d.sav [9:9]
+        scipy/io/tests/data/array_float32_pointer_6d.sav [9:9]
+        scipy/io/tests/data/array_float32_pointer_7d.sav [9:9]
+        scipy/io/tests/data/array_float32_pointer_8d.sav [9:9]
+        scipy/io/tests/data/null_pointer.sav [7:7]
+        scipy/io/tests/data/scalar_byte.sav [9:9]
+        scipy/io/tests/data/scalar_byte_descr.sav [9:9]
+        scipy/io/tests/data/scalar_complex32.sav [9:9]
+        scipy/io/tests/data/scalar_complex64.sav [9:9]
+        scipy/io/tests/data/scalar_float32.sav [9:9]
+        scipy/io/tests/data/scalar_float64.sav [9:9]
+        scipy/io/tests/data/scalar_heap_pointer.sav [9:9]
+        scipy/io/tests/data/scalar_int16.sav [9:9]
+        scipy/io/tests/data/scalar_int32.sav [9:9]
+        scipy/io/tests/data/scalar_int64.sav [9:9]
+        scipy/io/tests/data/scalar_string.sav [9:9]
+        scipy/io/tests/data/scalar_uint16.sav [9:9]
+        scipy/io/tests/data/scalar_uint32.sav [9:9]
+        scipy/io/tests/data/scalar_uint64.sav [9:9]
+        scipy/io/tests/data/struct_arrays.sav [9:9]
+        scipy/io/tests/data/struct_arrays_replicated.sav [9:9]
+        scipy/io/tests/data/struct_arrays_replicated_3d.sav [9:9]
+        scipy/io/tests/data/struct_inherit.sav [9:9]
+        scipy/io/tests/data/struct_pointer_arrays.sav [9:9]
+        scipy/io/tests/data/struct_pointer_arrays_replicated.sav [9:9]
+        scipy/io/tests/data/struct_pointer_arrays_replicated_3d.sav [9:9]
+        scipy/io/tests/data/struct_pointers.sav [9:9]
+        scipy/io/tests/data/struct_pointers_replicated.sav [9:9]
+        scipy/io/tests/data/struct_pointers_replicated_3d.sav [9:9]
+        scipy/io/tests/data/struct_scalars.sav [9:9]
+        scipy/io/tests/data/struct_scalars_replicated.sav [9:9]
+        scipy/io/tests/data/struct_scalars_replicated_3d.sav [9:9]
+
+KEEP     LicenseRef-scancode-warranty-disclaimer e986e0462e62fffb1d7d0a398c9b8190
+BELONGS ya.make
+    License text:
+         * the revised BSD license. No warranty is expressed or IMPLIED
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-warranty-disclaimer
+        Score           : 90.00
+        Match type      : TEXT
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/warranty-disclaimer.LICENSE
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/_superlumodule.c [11:11]
+
+KEEP     BSD-3-Clause         eb65663a7aed63f09b34bfae41545a3d
+BELONGS ya.make
+    License text:
+        License: 3-clause BSD
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSES_bundled.txt [15:15]
+        LICENSES_bundled.txt [25:25]
+        LICENSES_bundled.txt [61:61]
+        LICENSES_bundled.txt [66:66]
+        LICENSES_bundled.txt [76:76]
+        scipy/LICENSES_bundled.txt [15:15]
+        scipy/LICENSES_bundled.txt [25:25]
+        scipy/LICENSES_bundled.txt [61:61]
+        scipy/LICENSES_bundled.txt [66:66]
+        scipy/LICENSES_bundled.txt [76:76]
+
+KEEP     GPL-1.0-or-later     ec471324217f7f59c131002f74bb0a3d
+BELONGS ya.make
+    License text:
+        dnl (Valgrind is a GPL'd system for debugging and profiling x86-Linux programs)
+    Scancode info:
+        Original SPDX id: GPL-1.0-or-later
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.gnu.org/licenses/old-licenses/gpl-1.0-standalone.html, https://spdx.org/licenses/GPL-1.0-or-later
+    Files with this license:
+        scipy/_lib/unuran/unuran/configure.ac [249:249]
+
+KEEP     MIT                  ecf10c2628b658ad3ad675fffe129be5
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/_trlib/trlib.h at line 18, scipy/optimize/_trlib/trlib/trlib_quadratic_zero.h at line 18, scipy/optimize/_trlib/trlib/trlib_types.h at line 18, scipy/optimize/_trlib/trlib_eigen_inverse.c at line 18, scipy/optimize/_trlib/trlib_private.h at line 18
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/_trlib/trlib.h at line 12, scipy/optimize/_trlib/trlib/trlib_quadratic_zero.h at line 12, scipy/optimize/_trlib/trlib/trlib_types.h at line 12, scipy/optimize/_trlib/trlib_eigen_inverse.c at line 12, scipy/optimize/_trlib/trlib_private.h at line 12
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/_trlib/trlib.h at line 18, scipy/optimize/_trlib/trlib/trlib_quadratic_zero.h at line 18, scipy/optimize/_trlib/trlib/trlib_types.h at line 18, scipy/optimize/_trlib/trlib_eigen_inverse.c at line 18, scipy/optimize/_trlib/trlib_private.h at line 18
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_trlib/trlib.h [5:21]
+        scipy/optimize/_trlib/trlib/trlib_quadratic_zero.h [5:21]
+        scipy/optimize/_trlib/trlib/trlib_types.h [5:21]
+        scipy/optimize/_trlib/trlib_eigen_inverse.c [5:21]
+        scipy/optimize/_trlib/trlib_private.h [5:21]
+
+KEEP     MIT                  eda4392ff1ecb2e3afd880e12d2d1e8c
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/AUTHORS found in files: scipy/optimize/_direct/COPYING at line 25, scipy/optimize/lbfgsb_src/README at line 84
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/_direct/COPYING at line 19, scipy/optimize/lbfgsb_src/README at line 78
+FILE_INCLUDE scipy/optimize/_direct/AUTHORS found in files: scipy/optimize/_direct/COPYING at line 25, scipy/optimize/lbfgsb_src/README at line 84
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/optimize/_direct/COPYING [12:28]
+        scipy/optimize/lbfgsb_src/README [71:87]
+
+KEEP     LicenseRef-scancode-unknown-license-reference f0153c65a1255e86d117faf5d90c7ff7
+BELONGS ya.make
+    License text:
+        Distributed under the same license as SciPy
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        scipy/sparse/linalg/_isolve/tests/test_lsmr.py [3:3]
+        scipy/special/_ndtri_exp.pxd [7:7]
+
+KEEP     BSD-3-Clause         f0178d69ecf57e4c4c762f3ac9c9149f
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/special/wright.cc at line 31, scipy/special/wright.cc at line 34
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/special/wright.cc at line 39
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/special/wright.cc [27:50]
+
+KEEP     BSD-3-Clause AND BSD-3-Clause AND BSD-3-Clause f39d9270a78c2bd05f6d9828193e5059
+BELONGS ya.make
+FILE_INCLUDE scipy/integrate/quadpack/disclaimer found in files: scipy/optimize/rectangular_lsap/rectangular_lsap.cpp at line 11, scipy/optimize/rectangular_lsap/rectangular_lsap.cpp at line 7, scipy/optimize/rectangular_lsap/rectangular_lsap.h at line 11, scipy/optimize/rectangular_lsap/rectangular_lsap.h at line 7
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/optimize/rectangular_lsap/rectangular_lsap.cpp at line 16, scipy/optimize/rectangular_lsap/rectangular_lsap.h at line 16
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 96.41
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        LICENSE.txt [4:30]
+        scipy/LICENSE.txt [4:30]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 99.54
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/optimize/_lsap.c [2:28]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 93.91
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        scipy/optimize/rectangular_lsap/rectangular_lsap.cpp [2:28]
+        scipy/optimize/rectangular_lsap/rectangular_lsap.h [2:28]
+
+KEEP     LicenseRef-scancode-free-unknown f57887b690530f5cb85b5d7f8338c712
+BELONGS ya.make
+    License text:
+            in free/open-source software).
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-free-unknown
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/free-unknown.LICENSE
+    Files with this license:
+        scipy/special/Faddeeva.cc [67:67]
+
+KEEP     MIT                  f9f9ffaa804d39ff9615f82a03b62746
+BELONGS ya.make
+    License text:
+        Note that, under the terms of the MIT license, by contributing to HiGHS you assign away your rights to the content of your contribution.
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        scipy/_lib/highs/CONTRIBUTING.md [28:28]
+
+KEEP     LicenseRef-scancode-warranty-disclaimer fadfd32d5c78de46c05c40e5abd933e4
+BELONGS ya.make
+    License text:
+        NO WARRANTY IS EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-warranty-disclaimer
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/warranty-disclaimer.LICENSE
+    Files with this license:
+        scipy/interpolate/_rbf.py [13:13]

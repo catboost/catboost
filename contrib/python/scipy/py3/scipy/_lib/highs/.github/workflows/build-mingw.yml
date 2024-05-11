@@ -1,0 +1,58 @@
+name: build-mingw
+
+on: [push]
+
+jobs:
+  mingw:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        # Use MSYS2 as default shell
+        shell: msys2 {0}
+
+    strategy:
+      # Allow other runners in the matrix to continue if some fail
+      fail-fast: false
+
+      matrix:
+        msystem: [MINGW64, UCRT64, CLANG64]
+        build-type: [Release, Debug]
+        fast-build: [On, Off]
+        int64: [On, Off]
+        include:
+          - msystem: MINGW64
+            target-prefix: mingw-w64-x86_64
+          - msystem: UCRT64
+            target-prefix: mingw-w64-ucrt-x86_64
+          - msystem: CLANG64
+            target-prefix: mingw-w64-clang-x86_64
+        exclude:
+          - fast-build: On
+            int64: On
+
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        install: >-
+          base-devel
+          ${{ matrix.target-prefix }}-cmake
+          ${{ matrix.target-prefix }}-cc
+          ${{ matrix.target-prefix }}-ninja
+
+    - uses: actions/checkout@v3
+
+    - name: Configure CMake
+      run: |
+        mkdir build && cd build
+        cmake .. -DFAST_BUILD=${{ matrix.fast-build }} -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DHIGHSINT64=${{ matrix.int64 }}
+
+    - name: Build
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cd build && cmake --build . --config ${{ matrix.build-type }} --parallel
+
+    - name: Test
+      # Execute tests defined by the CMake configuration.
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: cd build && ctest --timeout 300 --output-on-failure -C ${{ matrix.build-type }}

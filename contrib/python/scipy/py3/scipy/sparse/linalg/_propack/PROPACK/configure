@@ -1,0 +1,153 @@
+#! /bin/csh -f
+#
+#     (C) Rasmus Munk Larsen, Stanford, 2004
+#
+
+set OS = `uname -s`
+set HW = `uname -m`
+set PLAT = UNKNOWN
+set SUB_PLAT
+
+@ i = 1
+while ($i <= $#argv )
+  set arg = $argv[$i]
+  switch("$arg")
+    case "-icc":
+    set ICC
+    breaksw
+  case "-openmp":
+    set OPENMP
+    set SUB_PLAT = _OMP
+    breaksw   
+  case "-keep":
+    set KEEP
+    breaksw   
+  default:
+    echo Unknown option '"'$arg'"'.
+    set ERROR
+  endsw
+  @ i++
+end
+
+if ( $?ERROR  ) then
+    echo "Usage: configure [-icc] [-openmp] [-keep]"
+    echo " -icc: Use the Intel compilers. Only availably on ia32 and ia64 systems."
+    echo " -openmp: Produce parallel executable using OpenMP. Only available on IRIX and IBM systems, and on ia32 and ia64 systems in conjuction with -icc."
+    echo " -keep: Do not delete .o files from a previous build, only update make options."
+    exit(0)
+endif
+
+
+switch ($OS)
+case AIX*
+        if ( $?OPENMP ) then
+          echo 'OPENMP = -qsmp=omp' > make.inc
+          echo 'SUB_PLAT = _OMP' >> make.inc
+        else
+          echo 'OPENMP =' > make.inc
+          echo 'SUB_PLAT = ' >> make.inc
+        endif
+        cat Make/make.ibm >> make.inc
+        endif
+        set PLAT = IBM$SUB_PLAT
+        breaksw
+case Darwin*
+        echo 'OPENMP =' > make.inc
+        echo 'SUB_PLAT = ' >> make.inc
+        set PLAT = DARWIN$SUB_PLAT
+        cat Make/make.darwin_xlf >> make.inc
+        breaksw
+case IRIX*
+        if ( $?OPENMP ) then
+	  echo 'OPENMP = -mp' > make.inc
+          echo 'SUB_PLAT = _OMP' >> make.inc
+        else
+	  echo 'OPENMP =' > make.inc
+	  echo 'SUB_PLAT = ' >> make.inc
+ 	endif
+        echo "CPUOPT = -Ofast="$HW >> make.inc
+    	cat Make/make.irix >> make.inc
+	endif
+        set PLAT = IRIX$SUB_PLAT
+	breaksw
+case Linux*
+        if ( $?OPENMP && ! $?ICC ) then
+          echo "OpenMP requires the Intel compiler. Adding option -icc."
+          set ICC
+        endif
+	if ( $?ICC ) then
+          if ( $?OPENMP ) then
+	    echo 'OPENMP = -openmp' > make.inc
+	    echo 'SUB_PLAT = _OMP' >> make.inc
+          else
+	    echo 'OPENMP =' > make.inc
+	    echo 'SUB_PLAT = ' >> make.inc
+ 	  endif
+          if ( $HW == "ia64" ) then
+            set PLAT = LINUX_ICC_IA64$SUB_PLAT
+	    cat Make/make.linux_icc_ia64 >> make.inc
+          else if ( $HW == "x86_64" ) then
+            set PLAT = LINUX_ICC_X86_64$SUB_PLAT	  
+	    if ( `cat /proc/cpuinfo | grep sse3 | wc -c` > 0 ) then
+              # Pentium 4/Xeon with SSE3?
+              echo "CPUOPT = -xP" >> make.inc
+	    else 
+              # Pentium 4/Xeon without SSE3?
+              echo "CPUOPT = -xW" >> make.inc
+            endif
+	    cat Make/make.linux_icc_x86_64 >> make.inc
+          else 
+	    if ( `cat /proc/cpuinfo | grep sse2 | wc -c` > 0 ) then
+              # Pentium 4?
+              echo "CPUOPT = -xN" >> make.inc
+	    else if ( `cat /proc/cpuinfo | grep sse | wc -c` > 0 ) then
+              # Pentium III?
+              echo "CPUOPT = -xK" >> make.inc
+            else
+              # Pentium II?
+              echo "CPUOPT = -xi" >> make.inc
+            endif
+            set PLAT = LINUX_ICC_IA32$SUB_PLAT
+	    cat Make/make.linux_icc_ia32 >> make.inc
+          endif
+ 	else
+          if ( $HW == "ia64" ) then
+            echo "*************************************************************"
+            echo WARNING: Using the GCC compiler for the Itanium architecture
+            echo produces very sub-optimal code. We recommend using the Intel
+            echo compilers if available. Rerun configure with option "-icc" if
+            echo the Intel compilers are installed on your system.
+            echo "*************************************************************"
+    	    set PLAT = LINUX_GCC_IA64
+	    cp Make/make.linux_gcc_ia64 make.inc
+          else if ( $HW == "x86_64" ) then
+            set PLAT = LINUX_GCC_X86_64$SUB_PLAT	  
+            echo "CPUOPT = -march=nocona -mfpmath=sse" > make.inc
+	    cat Make/make.linux_gcc_x86_64 >> make.inc
+ 	  else
+	    if ( `cat /proc/cpuinfo | grep sse2 | wc -c` > 0 ) then
+              # Pentium 4?
+              echo "CPUOPT = -march=pentium4 -mfpmath=sse" > make.inc
+	    else if ( `cat /proc/cpuinfo | grep sse | wc -c` > 0 ) then
+              # Pentium III?
+              echo "CPUOPT = -march=pentium3 -mfpmath=sse" > make.inc
+            else
+              # Pentium II?
+              echo "CPUOPT = -march=pentium2" > make.inc
+            endif
+    	    set PLAT = LINUX_GCC_IA32
+	    cat Make/make.linux_gcc_ia32 >> make.inc
+	  endif
+	endif
+	breaksw
+case SunOS*
+        cp Make/make.sunos make.inc
+        set PLAT = SUNOS
+	breaksw
+endsw
+if  ( ! $?KEEP ) then
+  echo "Removing .o and other temporary files from previous install."
+  make clean >& /dev/null
+endif
+
+echo Platform = $PLAT

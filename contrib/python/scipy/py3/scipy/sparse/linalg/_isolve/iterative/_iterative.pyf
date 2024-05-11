@@ -1,0 +1,421 @@
+!    -*- f90 -*-
+!
+! Iterative Package for SciPy
+! Hongze Liu, Travis E. Oliphant,
+! Brigham Young University
+! 2004
+!
+
+python module _iterative ! in 
+    interface  ! in :_iterative
+        subroutine sbicgrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:BiCG.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            real dimension(n) :: b
+            real dimension(n), intent(in,out) :: x
+            real intent(inout), dimension(ldw*6) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            real, intent(out) :: sclr1
+            real, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine sbicgrevcom
+
+        subroutine dbicgrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:BiCG.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double precision dimension(n) :: b
+            double precision dimension(n), intent(in,out) :: x
+            double precision intent(inout), dimension(ldw*6) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double precision, intent(out) :: sclr1
+            double precision, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine dbicgrevcom
+
+        subroutine cbicgrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:BiCG.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            complex dimension(n) :: b
+            complex dimension(n), intent(in,out) :: x
+            complex intent(inout), dimension(ldw*6) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            complex, intent(out) :: sclr1
+            complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine cbicgrevcom
+
+        subroutine zbicgrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:BiCG.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double complex dimension(n) :: b
+            double complex dimension(n), intent(in,out) :: x
+            double complex intent(inout), dimension(ldw*6) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double complex, intent(out) :: sclr1
+            double complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine zbicgrevcom
+
+
+        subroutine sbicgstabrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:BiCGSTAB.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            real dimension(n) :: b
+            real dimension(n), intent(in,out) :: x
+            real intent(inout), dimension(ldw*7) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            real, intent(out) :: sclr1
+            real, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine sbicgstabrevcom
+
+        subroutine dbicgstabrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:BiCGSTAB.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double precision dimension(n) :: b
+            double precision dimension(n), intent(in,out) :: x
+            double precision intent(inout), dimension(ldw*7) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double precision, intent(out) :: sclr1
+            double precision, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine dbicgstabrevcom
+
+        subroutine cbicgstabrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:BiCGSTAB.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            complex dimension(n) :: b
+            complex dimension(n), intent(in,out) :: x
+            complex intent(inout), dimension(ldw*7) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            complex, intent(out) :: sclr1
+            complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine cbicgstabrevcom
+
+        subroutine zbicgstabrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:BiCGSTAB.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double complex dimension(n) :: b
+            double complex dimension(n), intent(in,out) :: x
+            double complex intent(inout), dimension(ldw*7) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double complex, intent(out) :: sclr1
+            double complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine zbicgstabrevcom
+
+
+        subroutine scgrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:CG.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            real dimension(n) :: b
+            real dimension(n), intent(in,out) :: x
+            real intent(inout), dimension(ldw*4) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            real, intent(out) :: sclr1
+            real, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine scgrevcom
+
+        subroutine dcgrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:CG.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double precision dimension(n) :: b
+            double precision dimension(n), intent(in,out) :: x
+            double precision intent(inout), dimension(ldw*4) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double precision, intent(out) :: sclr1
+            double precision, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine dcgrevcom
+
+        subroutine ccgrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:CG.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            complex dimension(n) :: b
+            complex dimension(n), intent(in,out) :: x
+            complex intent(inout), dimension(ldw*4) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            complex, intent(out) :: sclr1
+            complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine ccgrevcom
+
+        subroutine zcgrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:CG.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double complex dimension(n) :: b
+            double complex dimension(n), intent(in,out) :: x
+            double complex intent(inout), dimension(ldw*4) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double complex, intent(out) :: sclr1
+            double complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine zcgrevcom
+
+
+        subroutine scgsrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:CGS.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            real dimension(n) :: b
+            real dimension(n), intent(in,out) :: x
+            real intent(inout), dimension(ldw*7) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            real, intent(out) :: sclr1
+            real, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine scgsrevcom
+
+        subroutine dcgsrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:CGS.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double precision dimension(n) :: b
+            double precision dimension(n), intent(in,out) :: x
+            double precision intent(inout), dimension(ldw*7) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double precision, intent(out) :: sclr1
+            double precision, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine dcgsrevcom
+
+        subroutine ccgsrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:CGS.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            complex dimension(n) :: b
+            complex dimension(n), intent(in,out) :: x
+            complex intent(inout), dimension(ldw*7) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            complex, intent(out) :: sclr1
+            complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine ccgsrevcom
+
+        subroutine zcgsrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:CGS.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double complex dimension(n) :: b
+            double complex dimension(n), intent(in,out) :: x
+            double complex intent(inout), dimension(ldw*7) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double complex, intent(out) :: sclr1
+            double complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine zcgsrevcom
+
+
+        subroutine sqmrrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:QMR.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            real dimension(n) :: b
+            real dimension(n), intent(in,out) :: x
+            real intent(inout), dimension(ldw*11) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            real, intent(out) :: sclr1
+            real, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine sqmrrevcom
+
+        subroutine dqmrrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:QMR.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double precision dimension(n) :: b
+            double precision dimension(n), intent(in,out) :: x
+            double precision intent(inout), dimension(ldw*11) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double precision, intent(out) :: sclr1
+            double precision, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine dqmrrevcom
+
+        subroutine cqmrrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:QMR.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            complex dimension(n) :: b
+            complex dimension(n), intent(in,out) :: x
+            complex intent(inout), dimension(ldw*11) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            real, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            complex, intent(out) :: sclr1
+            complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine cqmrrevcom
+
+        subroutine zqmrrevcom(n,b,x,work,ldw,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob) ! in :iterative:QMR.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double complex dimension(n) :: b
+            double complex dimension(n), intent(in,out) :: x
+            double complex intent(inout), dimension(ldw*11) :: work
+            integer, intent(hide), depend(n) :: ldw=MAX(1,n)
+            integer, intent(in,out) :: iter
+            double precision, intent(in,out) :: resid
+            integer, intent(in, out) :: info
+            integer, intent(in, out) :: ndx1
+            integer, intent(in, out) :: ndx2
+            double complex, intent(out) :: sclr1
+            double complex, intent(out) :: sclr2
+            integer, intent(in, out) :: ijob
+        end subroutine zqmrrevcom
+
+
+        subroutine sgmresrevcom(n,b,x,restrt,work,ldw,work2,ldw2,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob,tol) ! in :iterative:GMRESREVCOM.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            real dimension(n) :: b
+            real dimension(n), intent(in,out) :: x
+            integer, intent(in), depend(n), check((0<restrt) && (restrt<=n)) :: restrt
+            real intent(inout), dimension(ldw*(6+restrt)) :: work
+            integer intent(hide) :: ldw=MAX(1,n)
+            real intent(inout), depend(restrt,ldw2), dimension(ldw2*(2*restrt+2)) :: work2
+            integer intent(hide), depend(restrt) :: ldw2=MAX(2,restrt+1)
+            integer intent(in, out) :: iter
+            real, intent(in,out) :: resid
+            integer intent(in, out) :: info
+            integer intent(in, out) :: ndx1
+            integer intent(in, out) :: ndx2
+            real intent(out) :: sclr1
+            real intent(out) :: sclr2
+            integer intent(in, out) :: ijob
+            real, intent(in) :: tol
+        end subroutine sgmresrevcom
+
+        subroutine dgmresrevcom(n,b,x,restrt,work,ldw,work2,ldw2,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob,tol) ! in :iterative:GMRESREVCOM.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double precision dimension(n) :: b
+            double precision dimension(n), intent(in,out) :: x
+            integer, intent(in), depend(n), check((0<restrt) && (restrt<=n)) :: restrt
+            double precision intent(inout), dimension(ldw*(6+restrt)) :: work
+            integer intent(hide) :: ldw=MAX(1,n)
+            double precision intent(inout), depend(restrt,ldw2), dimension(ldw2*(2*restrt+2)) :: work2
+            integer intent(hide), depend(restrt) :: ldw2=MAX(2,restrt+1)
+            integer intent(in, out) :: iter
+            double precision, intent(in,out) :: resid
+            integer intent(in, out) :: info
+            integer intent(in, out) :: ndx1
+            integer intent(in, out) :: ndx2
+            double precision intent(out) :: sclr1
+            double precision intent(out) :: sclr2
+            integer intent(in, out) :: ijob
+            double precision, intent(in) :: tol
+        end subroutine dgmresrevcom
+
+        subroutine cgmresrevcom(n,b,x,restrt,work,ldw,work2,ldw2,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob,tol) ! in :iterative:GMRESREVCOM.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            complex dimension(n) :: b
+            complex dimension(n), intent(in,out) :: x
+            integer, intent(in), depend(n), check((0<restrt) && (restrt<=n)) :: restrt
+            complex intent(inout), dimension(ldw*(6+restrt)) :: work
+            integer intent(hide) :: ldw=MAX(1,n)
+            complex intent(inout), depend(restrt,ldw2), dimension(ldw2*(2*restrt+2)) :: work2
+            integer intent(hide), depend(restrt) :: ldw2=MAX(2,restrt+1)
+            integer intent(in, out) :: iter
+            real, intent(in,out) :: resid
+            integer intent(in, out) :: info
+            integer intent(in, out) :: ndx1
+            integer intent(in, out) :: ndx2
+            complex intent(out) :: sclr1
+            complex intent(out) :: sclr2
+            integer intent(in, out) :: ijob
+            real, intent(in) :: tol
+        end subroutine cgmresrevcom
+
+        subroutine zgmresrevcom(n,b,x,restrt,work,ldw,work2,ldw2,iter,resid,info,ndx1,ndx2,sclr1,sclr2,ijob,tol) ! in :iterative:GMRESREVCOM.f
+            integer, intent(hide), depend(b) :: n=len(b)
+            double complex dimension(n) :: b
+            double complex dimension(n), intent(in,out) :: x
+            integer, intent(in), depend(n), check((0<restrt) && (restrt<=n)) :: restrt
+            double complex intent(inout), dimension(ldw*(6+restrt)) :: work
+            integer intent(hide) :: ldw=MAX(1,n)
+            double complex intent(inout), depend(restrt,ldw2), dimension(ldw2*(2*restrt+2)) :: work2
+            integer intent(hide), depend(restrt) :: ldw2=MAX(2,restrt+1)
+            integer intent(in, out) :: iter
+            double precision, intent(in,out) :: resid
+            integer intent(in, out) :: info
+            integer intent(in, out) :: ndx1
+            integer intent(in, out) :: ndx2
+            double complex intent(out) :: sclr1
+            double complex intent(out) :: sclr2
+            integer intent(in, out) :: ijob
+            double precision, intent(in) :: tol
+        end subroutine zgmresrevcom
+
+
+    end interface 
+end python module _iterative
+
+! This file was auto-generated with f2py (version:2.39.235_1703).
+! See http://cens.ioc.ee/projects/f2py2e/

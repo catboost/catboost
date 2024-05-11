@@ -1,0 +1,23 @@
+###  Compiler flags for fortran and C modules.
+
+
+#   IRIX 
+
+PLAT = IRIX$(SUB_PLAT)
+
+OPT = $(CPUOPT)
+MAKE = gmake
+F77 = f77 -64 -col120
+FFLAGS_NOOPT =  -O0
+FFLAGS =  -g3 $(OPT) $(OPENMP)
+FFLAGS_ACCURATE = -g3 $(OPT) $(OPENMP)
+CC = cc -64
+CFLAGS = -g3 $(OPT) $(OPENMP)
+LINKER = f77 -64
+LINKFLAGS =  -g3  $(OPT) $(OPENMP)
+LIBPATH = 
+BLAS =  -lcomplib.sgimath
+RANLIB = echo
+MGS = mgs.risc
+MAKELIB = ar rc
+

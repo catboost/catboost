@@ -1,0 +1,71 @@
+name: Wheels
+
+on: [push]
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-10.15] #  windows-2019 ubuntu-20.04,
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Used to host cibuildwheel
+      - uses: actions/setup-python@v2
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==2.7.0
+
+      - name: Install pyomo pybind
+        run: python -m pip install pybind11 pyomo
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Create install dir
+        run: cmake -E make_directory ${{runner.workspace}}/install
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install/highs -DFAST_BUILD=ON
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        # Execute the build.  You can specify a specific target with "--target <NAME>"
+        run: |
+          cmake --build . --parallel 
+          cmake --install .
+
+      - name: Test
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        # Execute tests defined by the CMake configuration.
+        # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+        run: ctest --parallel 2 --timeout 300 --output-on-failure 
+
+      - name: Build wheels
+        run: |
+           cd  $GITHUB_WORKSPACE/src/interfaces/highspy
+           export REPAIR_LIBRARY_PATH=${{runner.workspace}}/install/highs/lib
+           export LD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH
+           export DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH
+           ls $REPAIR_LIBRARY_PATH
+           python -m cibuildwheel --output-dir wheelhouse
+
+           
+        # to supply options, put them in 'env', like:
+
+        env:
+          CIBW_ENVIRONMENT:  REPAIR_LIBRARY_PATH=${{runner.workspace}}/install/highs/lib LD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-listdeps {wheel} &&
+            DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl

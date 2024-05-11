@@ -1,0 +1,2751 @@
+# File format ($ symbol means the beginning of a line):
+#
+# $ # this message
+# $ # =======================
+# $     # comments (all commentaries should starts with some number of spaces and # symbol)
+# $ IGNORE_FILES {file1.ext1} {file2.ext2} - (optional) ignore listed files when generating license macro and credits
+# $ RENAME {original license id} TO {new license id} # user comments - (optional) use {new license id} instead {original license id} in ya.make files
+# $ # user comments
+# $
+# ${action} {license id} {license text hash}
+# $BELONGS ./ya/make/file/relative/path/1/ya.make ./ya/make/2/ya.make
+# ${all_file_action} filename
+# $ # user commentaries (many lines)
+# $ generated description - files with this license, license text... (some number of lines that starts with some number of spaces, do not modify)
+# ${action} {license spdx} {license text hash}
+# $BELONGS ./ya/make/file/relative/path/3/ya.make
+# ${all_file_action} filename
+# $    #    user commentaries
+# $ generated description
+# $ ...
+#
+# You can modify action, all_file_action and add commentaries
+# Available actions:
+# keep - keep license in contrib and use in credits
+# skip - skip license
+# remove - remove all files with this license
+# rename - save license text/links into licenses texts file, but not store SPDX into LINCENSE macro. You should store correct license id into devtools.license.spdx.txt file
+#
+# {all file action} records will be generated when license text contains filename that exists on filesystem (in contrib directory)
+# We suppose that that files can contain some license info
+# Available all file actions:
+# FILE_IGNORE - ignore file (do nothing)
+# FILE_INCLUDE - include all file data into licenses text file
+# =======================
+
+KEEP     COPYRIGHT_SERVICE_LABEL 019dcdf8c94abc00eb47b4add19811f7
+BELONGS ya.make
+    License text:
+          Copyright (C) Piers Lawrence.
+          All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/wright.cc [24:25]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 0427f273831bd0b29243590032601ac5
+BELONGS ya.make
+    License text:
+        /* Copyright 2000 by Alan Genz. */
+        /* Copyright 2004-2005 by Enthought, Inc. */
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/mvndst.c [31:32]
+        scipy/stats/mvndst.f [4:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 05fd399cf249e99987c204a65eb75fba
+BELONGS ya.make
+    License text:
+        (c) Copyright Bruno Lalande 2008
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 0badd7d098a7417e3787e765f958995d
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2004-2005, Jean-Sebastien Roy (js@jeannot.org)
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/optimize/_tnc.py [4:4]
+        scipy/optimize/tnc/moduleTNC.c.old [4:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 0e8d7f86727ec2757cc25cd2a9dc989c
+BELONGS ya.make
+    License text:
+        \# Copyright (C)  Tyler Reddy, Ross Hemsley, Edd Edmondson,
+        \#                Nikolai Nowaczyk, Joe Pitt-Francis, 2015.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/spatial/_spherical_voronoi.py [8:9]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 0f44c8870eb4f3e2e1d8e298f2375368
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/mvndst.c [34:36]
+        scipy/stats/mvndst.f [7:9]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 13343fa06cd1f68c449b3c11cdb0c2d6
+BELONGS ya.make
+    License text:
+        \# Copyright (C)  Tyler Reddy, 2016
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/spatial/_voronoi.pyx [8:8]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 14565da3967bd87fbe7d55d5d4d9575b
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/extern/pdqsort/license.txt found in files: scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h at line 1
+FILE_INCLUDE scipy/_lib/unuran/license.txt found in files: scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h at line 1
+FILE_INCLUDE scipy/sparse/linalg/_propack/PROPACK/license.txt found in files: scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h at line 1
+FILE_INCLUDE scipy/stats/biasedurn/license.txt found in files: scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc at line 1, scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h at line 1
+    License text:
+        // Copyright (c) 2018-2019 ERGO-Code. See license.txt for license.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.cc [1:1]
+        scipy/_lib/highs/src/ipm/ipx/src/diagonal_precond.h [1:1]
+        scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.cc [1:1]
+        scipy/_lib/highs/src/ipm/ipx/src/kkt_solver_diag.h [1:1]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 14b9bc9de62b4011f77e69849fb51570
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2012, Jaydeep P. Bardhan
+        \# Copyright (c) 2012, Matthew G. Knepley
+        \# Copyright (c) 2014, Janani Padmanabhan
+        \# All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/_ellip_harm.pxd [1:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 17331aa87a5c878d72d24790010d2373
+BELONGS ya.make
+    License text:
+         *  Copyright (C) 2019 Max-Planck-Society
+         *  Copyright (C) 2019 Peter Bell
+         *  \author Martin Reinecke
+         *  \author Peter Bell
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/fft/_pocketfft/pypocketfft.cxx [9:12]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 18d62b148d425cb57e7e4096d2babfb4
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2007, 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 18fad24fd7c8ab7c76e45180c5c5ff1c
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        LICENSES_bundled.txt [142:144]
+        scipy/LICENSES_bundled.txt [142:144]
+        scipy/special/cephes/dd_idefs.h [9:11]
+        scipy/special/cephes/dd_real.c [9:11]
+        scipy/special/cephes/dd_real.h [9:11]
+        scipy/special/cephes/dd_real_idefs.h [9:11]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 1a93e11c2572326c6a8b7cbe63d4f6a3
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2008
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 1b3fc74f361b9af0dad25968c75d5c73
+BELONGS ya.make
+    License text:
+        \# Copyright (C) 2003-2005 Peter J. Verveer
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/ndimage/LICENSE.txt [1:1]
+        scipy/ndimage/__init__.py [122:122]
+        scipy/ndimage/_filters.py [1:1]
+        scipy/ndimage/_fourier.py [1:1]
+        scipy/ndimage/_interpolation.py [1:1]
+        scipy/ndimage/_measurements.py [1:1]
+        scipy/ndimage/_morphology.py [1:1]
+        scipy/ndimage/_ni_support.py [1:1]
+        scipy/ndimage/src/nd_image.c [1:1]
+        scipy/ndimage/src/nd_image.h [1:1]
+        scipy/ndimage/src/ni_filters.c [1:1]
+        scipy/ndimage/src/ni_filters.h [1:1]
+        scipy/ndimage/src/ni_fourier.c [1:1]
+        scipy/ndimage/src/ni_fourier.h [1:1]
+        scipy/ndimage/src/ni_interpolation.c [1:1]
+        scipy/ndimage/src/ni_interpolation.h [1:1]
+        scipy/ndimage/src/ni_measure.c [1:1]
+        scipy/ndimage/src/ni_measure.h [1:1]
+        scipy/ndimage/src/ni_morphology.c [1:1]
+        scipy/ndimage/src/ni_morphology.h [1:1]
+        scipy/ndimage/src/ni_support.c [1:1]
+        scipy/ndimage/src/ni_support.h [1:1]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 1bdfd86b65f84158099e1b70325e4503
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/optimize/slsqp/slsqp_optmz.f [215:217]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 1f5615dbec5a88b1058e58875c519b93
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/extern/pdqsort/license.txt found in files: scipy/stats/biasedurn/randomc.h at line 93
+FILE_INCLUDE scipy/_lib/unuran/license.txt found in files: scipy/stats/biasedurn/randomc.h at line 93
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/biasedurn/randomc.h at line 93
+FILE_INCLUDE scipy/sparse/linalg/_propack/PROPACK/license.txt found in files: scipy/stats/biasedurn/randomc.h at line 93
+FILE_INCLUDE scipy/stats/biasedurn/license.txt found in files: scipy/stats/biasedurn/randomc.h at line 93
+    License text:
+        * Copyright 1997-2008 by Agner Fog. 
+        * Released under SciPy's license with permission of Agner Fog; see license.txt
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/biasedurn/randomc.h [92:93]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 217eef38f8c2246c78d204f3199b524f
+BELONGS ya.make
+    License text:
+        Copyright (c) 2006, Systems Optimization Laboratory
+        All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_isolve/lsqr.py [14:15]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 21a592d591e622e69adbefe2ca6db484
+BELONGS ya.make
+    License text:
+        Copyright ohn Maddock 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 2a6246dd9880e676689df43c1ce8035d
+BELONGS ya.make
+    License text:
+        Copyright (c) 2005-2022, NumPy Developers.
+        All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/_rcont/logfactorial.c [3:4]
+        scipy/stats/_rcont/logfactorial.h [3:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 2b3d1969180ed26e41444a00eb0d9caa
+BELONGS ya.make
+    License text:
+        \# Copyright (C)  Pauli Virtanen, 2010.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/interpolate/interpnd.pyx [9:9]
+        scipy/spatial/_qhull.pxd [7:7]
+        scipy/spatial/_qhull.pyx [10:10]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 2c88da1eba82b7c18508f07d9fe9961e
+BELONGS ya.make
+    License text:
+        Copyright Thijs van den Berg, 2008
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 2cddd5e115a1685ec934612a6964aeb6
+BELONGS ya.make
+    License text:
+        Copyright 2002 H Lohninger, TU Wein
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 2d5f4cfed3e5b32b63312a117e31a283
+BELONGS ya.make
+    License text:
+        (c) Copyright John Maddock 2010
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 2fed25b670c142362976d681e20983d0
+BELONGS ya.make
+    License text:
+        Copyright (c) 2006 John Maddock
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 318577927099d6e8a6d11b7f87ea7da3
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/unuran/unuran/src/methods/itdr.c [227:231]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 318bb438497d2ba56543f1344417bbec
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2010
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 3478176a89e2f3d959cab603fa18d0ff
+BELONGS ya.make
+    License text:
+        \# Copyright: Christian Lorentzen
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/_wright_bessel.pxd [8:8]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 3790b2f380ed5746f91d9f6f8e6a50b2
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2007
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 37d561346da37d21ad4b3296ed8a00a0
+BELONGS ya.make
+    License text:
+        Copyright (c) Benjamin Sobotta 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 3959375d23207bb679997771052de5cc
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2007-8
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 39eaafbaf15f5a54c930e22ad14569e5
+BELONGS ya.make
+    License text:
+        \# Author: Jake Vanderplas  -- <vanderplas@astro.washington.edu>
+        \# License: BSD, (C) 2011
+        import warnings
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/csgraph/_shortest_path.pyx [10:12]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 3b75bad5e98c8d9f323b8d665fe8b5e0
+BELONGS ya.make
+    License text:
+        Copyright Paul Bristow 2007, 2011
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 3b89c0137bb3fa8c9bb7a691aa8a4166
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2006, 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 3cf3ae57c13ae4bf7b24ea19d539f03d
+BELONGS ya.make
+    License text:
+        Copyright 2010 Paul A. Bristow
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 3e4f9bcec20af86d374d7a890d3f7588
+BELONGS ya.make
+    License text:
+        Copyright 1987-, A. Volgenant/Amsterdam School of Economics,
+                         University of Amsterdam
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        LICENSES_bundled.txt [26:27]
+        scipy/LICENSES_bundled.txt [26:27]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 4463ae776897db321067108ff27da4d7
+BELONGS ya.make
+    License text:
+         *    WinRand (c) 1995 Ernst Stadlober, Institut fuer Statistitk, TU Graz    *
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/unuran/unuran/src/distributions/c_beta_gen.c [151:151]
+        scipy/_lib/unuran/unuran/src/distributions/c_beta_gen.c [414:414]
+        scipy/_lib/unuran/unuran/src/distributions/c_chi_gen.c [119:119]
+        scipy/_lib/unuran/unuran/src/distributions/c_gamma_gen.c [129:129]
+        scipy/_lib/unuran/unuran/src/distributions/c_gamma_gen.c [216:216]
+        scipy/_lib/unuran/unuran/src/distributions/c_gig_gen.c [121:121]
+        scipy/_lib/unuran/unuran/src/distributions/c_student_gen.c [125:125]
+        scipy/_lib/unuran/unuran/src/distributions/c_student_gen.c [165:165]
+        scipy/_lib/unuran/unuran/src/distributions/d_binomial_gen.c [135:135]
+        scipy/_lib/unuran/unuran/src/distributions/d_hypergeometric_gen.c [138:138]
+        scipy/_lib/unuran/unuran/src/distributions/d_logarithmic_gen.c [129:129]
+        scipy/_lib/unuran/unuran/src/distributions/d_poisson_gen.c [145:145]
+        scipy/_lib/unuran/unuran/src/distributions/d_poisson_gen.c [502:502]
+        scipy/_lib/unuran/unuran/src/distributions/d_zipf_gen.c [133:133]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 458d13e6010c05b1dcca2572b1fc8217
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2010
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 45dc768a20d0f37523a58229e864f50d
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 47169e49c722695dc886ab8186a2ba5c
+BELONGS ya.make
+    License text:
+        Copyright 2011 Paul A. Bristow To
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 4915b20164f09b341694cc223cf83586
+BELONGS ya.make
+    License text:
+        Copyright 2006 Johan Rade
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 491c7dc231d499646705f7d9a2e5c7a8
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/csgraph/_matching.pyx [527:533]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 4d2d7b67e3b3bde10e874cf7ed68c647
+BELONGS ya.make
+    License text:
+        Copyright 2012 Paul A. Bristow
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 515aceb22bb82dbee15ff38e637e0f51
+BELONGS ya.make
+    License text:
+        /* Copyright 2000 by Alan Genz. */
+        /* Copyright 2004-2005 by Enthought, Inc. */
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/mvndst.c [31:32]
+        scipy/stats/mvndst.f [4:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5206def9eed1336535decd5bd64375c8
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2008, 2009
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5258d636b9c4711933b59bfd684ca614
+BELONGS ya.make
+    License text:
+        (c) Copyright John Maddock 2006-7
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5590712fa16f1db10e96906b165cfddb
+BELONGS ya.make
+    License text:
+                       "Copyright (c) 2022 ERGO-Code under MIT licence terms\n");
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/src/io/HighsIO.cpp [31:31]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 563bcc3c73f44cf88e7825e71c0daee1
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/extern/pdqsort/license.txt found in files: scipy/stats/biasedurn/fnchyppr.cpp at line 22
+FILE_INCLUDE scipy/_lib/unuran/license.txt found in files: scipy/stats/biasedurn/fnchyppr.cpp at line 22
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/biasedurn/fnchyppr.cpp at line 22
+FILE_INCLUDE scipy/sparse/linalg/_propack/PROPACK/license.txt found in files: scipy/stats/biasedurn/fnchyppr.cpp at line 22
+FILE_INCLUDE scipy/stats/biasedurn/license.txt found in files: scipy/stats/biasedurn/fnchyppr.cpp at line 22
+    License text:
+        * Copyright 2002-2014 by Agner Fog. 
+        * Released under SciPy's license with permission of Agner Fog; see license.txt
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/biasedurn/fnchyppr.cpp [21:22]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 564aec81dace698d743fd60e0b73b65b
+BELONGS ya.make
+    License text:
+          Copyright (c) 2012 Massachusetts Institute of Technology
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        LICENSES_bundled.txt [113:113]
+        scipy/LICENSES_bundled.txt [113:113]
+        scipy/special/Faddeeva.cc [1:1]
+        scipy/special/Faddeeva.hh [1:1]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 575773811ff587d545b0c47b5cd1e390
+BELONGS ya.make
+    License text:
+        /* Copyright Benjamin Sobotta 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/cephes/owens_t.c [1:1]
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5a7bb848f2930cfd2951934eeb59d4a9
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2007, 2008, Damian Eads
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/cluster/hierarchy.py [100:100]
+        scipy/spatial/src/distance_impl.h [5:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5b31871ac36f2d496b536c0456f470ba
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2005
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5b8ba83299809a23bd598fc687daa48d
+BELONGS ya.make
+    License text:
+        Copyright (C) 2010-2020 Max-Planck-Society
+        Copyright (C) 2019-2020 Peter Bell
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/fft/_pocketfft/pocketfft_hdronly.h [4:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5c3061ee40cb4b4da5bf21f41aa4b862
+BELONGS ya.make
+    License text:
+        Copyright (c) 2007 - Sébastien Fabbro (gentoo patch)
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING [17:17]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5d307d163f12c7bd50127b9dcc15e239
+BELONGS ya.make
+    License text:
+        \# Copyright (C) 2015, Pauli Virtanen <pav@iki.fi>
+        \# Distributed under the same license as SciPy.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_isolve/_gcrotmk.py [1:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5ece5dfc9ba88fbf7c7902cb5509df3d
+BELONGS ya.make
+    License text:
+        Copyright 2005 Travis Oliphant
+        Permission to use, copy, modify, and distribute this software without fee
+        is granted under the SciPy License.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/signal/_sigtoolsmodule.c [3:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 5edcc314b6c2f2931c185656b667e209
+BELONGS ya.make
+    License text:
+        \# Copyright: Yosef Meller, 2009
+        \# Author email: mellerf@netvision.net.il
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/_lambertw.pxd [6:7]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 63b47cee1e427ea46ab6109d1b589980
+BELONGS ya.make
+    License text:
+        Copyright \copyright\ 2014 by P.-G. Martinsson, V. Rokhlin,
+        Y. Shkolnisky, and M. Tygert.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/linalg/src/id_dist/doc/doc.tex [38:39]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 64a911bb512e5417a8a7b302022af5ca
+BELONGS ya.make
+    License text:
+        \# Copyright (C) Damian Eads, 2007-2008. New BSD License.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/cluster/hierarchy.py [93:93]
+        scipy/spatial/distance.py [73:73]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 665f8814c2686bf78952fe26ac391bce
+BELONGS ya.make
+    License text:
+        \## Copyright (c) 2004 David M. Cooke <cookedm@physics.mcmaster.ca>
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/optimize/_lbfgsb_py.py [14:14]
+        scipy/optimize/lbfgsb_src/README [69:69]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 6734bc04aa9ce5884c58e5fad684b75d
+BELONGS ya.make
+    License text:
+        Copyright (c) 2006-2007, Robert Hetland <hetland@tamu.edu>
+        Copyright (c) 2007, John Travers <jtravs@gmail.com>
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/interpolate/_rbf.py [15:16]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 677ea87f60c8286060cb326dfaeb8033
+BELONGS ya.make
+    License text:
+        ******** Copyright and license for the original Fortran DIRECT code ********
+        Copyright (c) 1999, 2000, 2001 North Carolina State University
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/optimize/_direct/COPYING [6:7]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 69a41ce63e19bfefb368fb24517abbc8
+BELONGS ya.make
+    License text:
+        \# Author: Jake Vanderplas  -- <vanderplas@astro.washington.edu>
+        \# License: BSD, (C) 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/csgraph/_tools.pyx [5:6]
+        scipy/sparse/csgraph/_traversal.pyx [5:6]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 6f522c25b81fd9005f9f0cdd69d03b25
+BELONGS ya.make
+    License text:
+        Copyright (c) 2011 John Maddock
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 70390334c1f7e98efe078b1c0e55e649
+BELONGS ya.make
+    License text:
+        Copyright Daryle Walker, Hubert Holin, John Maddock 2006 - 2007
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 70976ae5d85aa96bcd31709a7901b41b
+BELONGS ya.make
+    License text:
+        Copyright (c) 2002-2005, Jean-Sebastien Roy (js@jeannot.org)
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/optimize/tnc/LICENSE [1:1]
+        scipy/optimize/tnc/tnc.c [5:5]
+        scipy/optimize/tnc/tnc.h [5:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 7101336b4126e8c90bee962716b39492
+BELONGS ya.make
+    License text:
+        Copyright 2006 John Maddock
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 74ee4dff688ff710e2fd61ab32477159
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2006
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 753e000b06549f48add8bbc24597aa87
+BELONGS ya.make
+    License text:
+         *  Copyright (c) 2022 Two Blue Cubes Ltd. All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/extern/catch.hpp [6:6]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 75f02d40d4e7b2939f1cb6fd008a6c2e
+BELONGS ya.make
+    License text:
+          Copyright (c) 2016 Wenzel Jakob <wenzel.jakob@epfl.ch>, All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        LICENSES_bundled.txt [207:207]
+        scipy/LICENSES_bundled.txt [207:207]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 776fc8d1e1b67a7b70be1189944e3ad6
+BELONGS ya.make
+    License text:
+        Copyright (c) 2001-2002 Enthought, Inc. 2003-2023, SciPy Developers.
+        All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        .dist-info/METADATA [7:10]
+        LICENSE.txt [1:2]
+        scipy/LICENSE.txt [1:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 77b4f0f6c01c4e12998a076aa23a30f7
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2007, 2010
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 7b89f27d5360ecf0ad7ed6e76aed9560
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2007, 2009
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 7b959f13725c55d33cd822470b670dab
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2006-7
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 7d17bb2579336b337d87a036e9ce244b
+BELONGS ya.make
+    License text:
+         * (C) Copyright John Maddock 2006.
+         * Use, modification and distribution are subject to the
+         * Boost Software License, Version 1.0. (See accompanying file
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/cephes/igami.c [2:4]
+        scipy/special/cephes/lanczos.c [1:3]
+        scipy/special/cephes/lanczos.h [1:3]
+        scipy/special/cephes/psi.c [61:63]
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 7fa65e9655d05d128d63f2897341c431
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2008, 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 801131bc4f637be24eb7ec5c710761f2
+BELONGS ya.make
+    License text:
+        Copyright (c) 2001-2011 - Scilab Enterprises
+        Updated by Allan Cornet, Sylvestre Ledru.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING [12:13]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 80d4bf1784da743ad9ec1661dc92c360
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2006, 2011
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 817eb11435be26025bf50832c73b3a64
+BELONGS ya.make
+    License text:
+        Copyright Paul Bristow 2006, 2007
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 8208d49411272ae1603ba7fee14fe736
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/linalg/src/id_dist/doc/supertabular.sty [37:41]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 8293ac96dfd0aa64b8779e812c757078
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/mvndst.c [34:36]
+        scipy/stats/mvndst.f [7:9]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 847b6f5e21a9b18fb8f69e05483ed6a6
+BELONGS ya.make
+    License text:
+        Copyright (c) 2021 Orson Peters <orsonpeters@gmail.com>
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/extern/pdqsort/license.txt [1:1]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 84aa8f0944ff081c273a32083375f310
+BELONGS ya.make
+    License text:
+        Copyright (c) 2007 John Maddock
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 859b308d60b52af001520dcfc7f26516
+BELONGS ya.make
+    License text:
+         * Parts of the code are copyright:
+         *
+         *     Cephes Math Library Release 2.8:  June, 2000
+         *     Copyright 1984, 1987, 1988, 2000 by Stephen L. Moshier
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/cephes/scipy_iv.c [27:30]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 872b3508fc987604207e161fe7b25982
+BELONGS ya.make
+    License text:
+        Copyright (C) 2010-2019 Max-Planck-Society
+        All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/fft/_pocketfft/LICENSE.md [1:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 87a7c917e79bdde8efaf73068cfc2dae
+BELONGS ya.make
+    License text:
+        \# Copyright (C) 2008 Damian Eads
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/cluster/tests/test_hierarchy.py [5:5]
+        scipy/spatial/tests/test_distance.py [5:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 8a1418316416813702396d4aee11ee0f
+BELONGS ya.make
+    License text:
+        Copyright (c) 2018, Quansight-Labs
+        All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/_uarray/LICENSE [3:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 8b60e030cc6169d709dda601f461ab82
+BELONGS ya.make
+    License text:
+        Copyright 2008 Gautam Sewani
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 8d17906b204a2cc18be72559f1e52f7a
+BELONGS ya.make
+    License text:
+        Copyright Christopher Kormanyos 2013
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 8df3b48da7b43c15c1ba96354d5fbec1
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 8f7692fcf9333d1a1ddea5bba482c54c
+BELONGS ya.make
+    License text:
+        Copyright (c) 2002 Travis Oliphant all rights reserved
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/integrate/_odepackmodule.c [4:4]
+        scipy/optimize/minpack.h [3:3]
+        scipy/signal/docs/signaltools.README [3:3]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 902419db618c4a7aca08191abd8248a7
+BELONGS ya.make
+    License text:
+        Copyright (c) 2011 Paul A. Bristow
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9446f0c9cdb4862349eb824f1a88aa09
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2007, 2009, 2010, 2012
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 946b8b34907f389ece458f229c96d6d6
+BELONGS ya.make
+    License text:
+        Copyright (c) 2021 ERGO-Code
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/LICENSE [3:3]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 954f3610cb79f1efd63c426c21c6bc2a
+BELONGS ya.make
+    License text:
+        /* Copyright 1999 Travis Oliphant
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/_superlumodule.c [8:8]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9686293c54d341fe96969db2b86f8756
+BELONGS ya.make
+    License text:
+         * Parts of the code are copyright:
+         *
+         *     Cephes Math Library Release 2.8:  June, 2000
+         *     Copyright 1984, 1987, 1988, 2000 by Stephen L. Moshier
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/cephes/scipy_iv.c [27:30]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9909fe0cc911b8506fd64c72aa567bf5
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/extern/pdqsort/license.txt found in files: scipy/stats/biasedurn/stocc.h at line 197
+FILE_INCLUDE scipy/_lib/unuran/license.txt found in files: scipy/stats/biasedurn/stocc.h at line 197
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/biasedurn/stocc.h at line 197
+FILE_INCLUDE scipy/sparse/linalg/_propack/PROPACK/license.txt found in files: scipy/stats/biasedurn/stocc.h at line 197
+FILE_INCLUDE scipy/stats/biasedurn/license.txt found in files: scipy/stats/biasedurn/stocc.h at line 197
+    License text:
+        * Copyright 2004-2013 by Agner Fog. 
+        * Released under SciPy's license with permission of Agner Fog; see license.txt
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/biasedurn/stocc.h [196:197]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9a131db9bf1aecb3a8695cffc5e33d2d
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/unuran/unuran/src/utils/unur_fp.c [49:51]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9a4d4ee1b604467f67a8c0239382ef7f
+BELONGS ya.make
+    License text:
+        \# Copyright (C)  Tyler Reddy, Richard Gowers, and Max Linke, 2016
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/spatial/_hausdorff.pyx [10:10]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9bd3297174203078754f132a0b8e3f33
+BELONGS ya.make
+    License text:
+        \# Copyright 2002 Gary Strangman.  All rights reserved
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/_stats_py.py [1:1]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9d86b459bb4b9d4428f48cb16264bf4c
+BELONGS ya.make
+    License text:
+        \# Copyright (C) 2013, Alan Genz,  All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/_qmvnt.py [7:7]
+        scipy/stats/tests/data/_mvt.py [66:66]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9ee26fe9cb3c68e88830f205ee101693
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2011
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9f918eb9843d28f8ce27628978d28a33
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2013
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL a07a71223eb1d3aaa71b7e0f92e36125
+BELONGS ya.make
+    License text:
+         * Copyright (c) 1994 by Xerox Corporation.  All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccopy_to_ucol.c [19:20]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrf.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpivotL.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpruneL.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cutil.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcopy_to_ucol.c [19:20]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrf.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpivotL.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpruneL.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dutil.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/heap_relax_snode.c [20:20]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/relax_snode.c [20:20]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scopy_to_ucol.c [19:20]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrf.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_coletree.c [20:20]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spivotL.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spruneL.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sutil.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/util.c [20:20]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcopy_to_ucol.c [19:20]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrf.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpivotL.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpruneL.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_bmod.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_dfs.c [21:21]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zutil.c [21:21]
+
+KEEP     COPYRIGHT_SERVICE_LABEL a176a18776eb0b925036b27094a98988
+BELONGS ya.make
+    License text:
+        Copyright 2002 Pearu Peterson all rights reserved,
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/interpolate/_fitpack_impl.py [11:11]
+
+KEEP     COPYRIGHT_SERVICE_LABEL a3d766e0b5c2bde45d01fae065fdbe8c
+BELONGS ya.make
+    License text:
+        The Python code and wrapper are copyrighted 2004 by David M. Cooke
+        <cookedm@physics.mcmaster.ca>.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/optimize/lbfgsb_src/README [46:47]
+
+KEEP     COPYRIGHT_SERVICE_LABEL a590a9fedf08786a986bb5f448c71ca4
+BELONGS ya.make
+    License text:
+        (c) Copyright Hubert Holin 2003-2005
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL a5d372fd3c0e5cd52f716105b2882d87
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/extern/pdqsort/license.txt found in files: scipy/stats/biasedurn/erfres.cpp at line 26
+FILE_INCLUDE scipy/_lib/unuran/license.txt found in files: scipy/stats/biasedurn/erfres.cpp at line 26
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/biasedurn/erfres.cpp at line 26
+FILE_INCLUDE scipy/sparse/linalg/_propack/PROPACK/license.txt found in files: scipy/stats/biasedurn/erfres.cpp at line 26
+FILE_INCLUDE scipy/stats/biasedurn/license.txt found in files: scipy/stats/biasedurn/erfres.cpp at line 26
+    License text:
+        * Copyright 2004-2008 by Agner Fog. 
+        * Released under SciPy's license with permission of Agner Fog; see license.txt
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/biasedurn/erfres.cpp [25:26]
+
+KEEP     COPYRIGHT_SERVICE_LABEL a8a0fde68896fb291eda2cc4c89b4609
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2010 Thomas P. Robitaille
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/io/_idl.py [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL a9b4a8af8740e71fbd17c764d67bee5a
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL a9bfb4d7e896c9bdd0fb030201828835
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2016--2017 Felix Lenders
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/optimize/_trlib/ctrlib.pxd [3:3]
+        scipy/optimize/_trlib/trlib.h [3:3]
+        scipy/optimize/_trlib/trlib/trlib_eigen_inverse.h [3:3]
+        scipy/optimize/_trlib/trlib/trlib_krylov.h [3:3]
+        scipy/optimize/_trlib/trlib/trlib_leftmost.h [3:3]
+        scipy/optimize/_trlib/trlib/trlib_quadratic_zero.h [3:3]
+        scipy/optimize/_trlib/trlib/trlib_tri_factor.h [3:3]
+        scipy/optimize/_trlib/trlib/trlib_types.h [3:3]
+        scipy/optimize/_trlib/trlib_eigen_inverse.c [3:3]
+        scipy/optimize/_trlib/trlib_krylov.c [3:3]
+        scipy/optimize/_trlib/trlib_leftmost.c [3:3]
+        scipy/optimize/_trlib/trlib_private.h [3:3]
+        scipy/optimize/_trlib/trlib_quadratic_zero.c [3:3]
+        scipy/optimize/_trlib/trlib_tri_factor.c [3:3]
+
+KEEP     COPYRIGHT_SERVICE_LABEL aa2ee27a7e59b446f91a7e1ce9f20050
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2006
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL aca0a29ff28a8f3b9ad80b2254bacc25
+BELONGS ya.make
+    License text:
+         * Cephes Math Library Release 2.8:  June, 2000
+         * Copyright 1984, 1987, 1992, 2000 by Stephen L. Moshier
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/cephes/psi.c [54:55]
+
+KEEP     COPYRIGHT_SERVICE_LABEL ad8085e6a667fc3f1b2a22af829e16d1
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsisx.c [277:282]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsrfs.c [82:86]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgssvx.c [200:205]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/claqgs.c [71:73]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsisx.c [277:282]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsrfs.c [82:86]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgssvx.c [200:205]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlaqgs.c [71:73]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsisx.c [277:282]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsrfs.c [82:86]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgssvx.c [200:205]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slaqgs.c [71:73]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsisx.c [277:282]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsrfs.c [82:86]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgssvx.c [200:205]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlaqgs.c [71:73]
+
+KEEP     COPYRIGHT_SERVICE_LABEL af6c70e9dd87abb08f7f451fd9919657
+BELONGS ya.make
+    License text:
+        (c) Copyright Hubert Holin 2003
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL af7264cafbfd774e213f865d32c4de56
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2012, Jaydeep P. Bardhan
+        \# Copyright (c) 2012, Matthew G. Knepley
+        \# Copyright (c) 2014, Janani Padmanabhan
+        \# All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/_ellip_harm.pxd [1:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL b10f252f5a294322923ac73ab48fcb29
+BELONGS ya.make
+    License text:
+        // Copyright 2017 Two Blue Cubes Ltd. All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/extern/catch.hpp [8426:8426]
+
+KEEP     COPYRIGHT_SERVICE_LABEL b26a76493ef5fbfbc834d7d2128d2774
+BELONGS ya.make
+    License text:
+        \#   Copyright (C) 2013 Kenneth L. Ho
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/linalg/_interpolative_backend.py [2:2]
+        scipy/linalg/interpolative.py [2:2]
+        scipy/linalg/interpolative.pyf [2:2]
+        scipy/linalg/tests/test_interpolative.py [2:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL b316370eacf469e5bfff11880d4f02ab
+BELONGS ya.make
+    License text:
+          Copyright (C) 2003, 2007-14 Matteo Frigo
+          Copyright (C) 2003, 2007-14 Massachusetts Institute of Technology
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/fft/_pocketfft/pocketfft_hdronly.h [8:9]
+
+KEEP     COPYRIGHT_SERVICE_LABEL b31921f23042a6069bf5d4702ff84683
+BELONGS ya.make
+    License text:
+        Copyright Paul A. Bristow 2009, 2011
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL b51b582fd41e8d5e59edf0ea1f331e9d
+BELONGS ya.make
+    License text:
+        (c) Copyright Paul A. Bristow 2011
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL b6c1eee98628579f2748c43bbaa69035
+BELONGS ya.make
+    License text:
+        	Copyright (c) 1998-2003 by the University of Florida.
+        	All Rights Reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.c [66:67]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.h [40:41]
+
+KEEP     COPYRIGHT_SERVICE_LABEL b85fc3b662d75b6c8499a3f035f4deec
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2007
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL bac240e579219f480bc305a2c88612a3
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsisx.c [40:49]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsisx.c [151:159]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgssvx.c [39:48]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgssvx.c [86:94]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsisx.c [40:49]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsisx.c [151:159]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgssvx.c [39:48]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgssvx.c [86:94]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsisx.c [40:49]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsisx.c [151:159]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgssvx.c [39:48]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgssvx.c [86:94]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsisx.c [40:49]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsisx.c [151:159]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgssvx.c [39:48]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgssvx.c [86:94]
+
+KEEP     COPYRIGHT_SERVICE_LABEL bb17343149a36c684ba9e6f67a8113f6
+BELONGS ya.make
+    License text:
+        Copyright (c) 2006 Johan Rade
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL bdfbd5894a99f47aefa470620dff6405
+BELONGS ya.make
+    License text:
+        \# Copyright 2002-2016 The SciPy Developers
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/_stats_py.py [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL be462d6d6b4d420b27d90e6625813429
+BELONGS ya.make
+    License text:
+         * Copyright (c) 2007, Damian Eads. All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/spatial/src/distance_wrap.c [6:6]
+
+KEEP     COPYRIGHT_SERVICE_LABEL bfd4f5f4bb0018ebeeccbdad96a96de2
+BELONGS ya.make
+    License text:
+            Copyright (c) 2021 Orson Peters
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/extern/pdqsort/pdqsort.h [4:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c4137efe8efe6166db7a808f76f9d2a8
+BELONGS ya.make
+    License text:
+        \# Copyright (c) Donald Stufft and individual contributors.
+        \# All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/_pep440.py [7:8]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c4287d4c40d4c8887084a48b1743f256
+BELONGS ya.make
+FILE_INCLUDE scipy/_lib/highs/extern/pdqsort/license.txt found in files: scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+FILE_INCLUDE scipy/_lib/unuran/license.txt found in files: scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+FILE_INCLUDE scipy/integrate/quadpack/permission found in files: scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+FILE_INCLUDE scipy/sparse/linalg/_propack/PROPACK/license.txt found in files: scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+FILE_INCLUDE scipy/stats/biasedurn/license.txt found in files: scipy/stats/biasedurn/stoc1.cpp at line 23, scipy/stats/biasedurn/stoc3.cpp at line 27, scipy/stats/biasedurn/wnchyppr.cpp at line 24
+    License text:
+        * Copyright 2002-2008 by Agner Fog. 
+        * Released under SciPy's license with permission of Agner Fog; see license.txt
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/biasedurn/stoc1.cpp [22:23]
+        scipy/stats/biasedurn/stoc3.cpp [26:27]
+        scipy/stats/biasedurn/wnchyppr.cpp [23:24]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c4e94026ae64dc470e4759b64fb52e3b
+BELONGS ya.make
+    License text:
+        Copyright (c) 2010 - Jordi Gutiérrez Hermoso (Octave patch)
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING [15:15]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c5a645ab499234dd26314c7ff5711293
+BELONGS ya.make
+    License text:
+         *  Copyright (C) 2019 Max-Planck-Society
+         *  Copyright (C) 2019 Peter Bell
+         *  \author Martin Reinecke
+         *  \author Peter Bell
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/fft/_pocketfft/pypocketfft.cxx [9:12]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c5c6be313322a09316adc30827309fd6
+BELONGS ya.make
+    License text:
+        \# Python implementation is copyright (C) 2022, Robert Kern,  All rights
+        \# reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/_qmvnt.py [8:9]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c9195957c337d9bab713460fbad8acb1
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2005-2015, Michele Simionato
+        \# All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/decorator.py [3:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c953c666c472353191d17fcf9762e05c
+BELONGS ya.make
+    License text:
+        +//  Copyright (c) 2006-2008 Alexander Chemeris
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/msc_stdint.h [4:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/scipychanges.patch [257:257]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c9578ef977b668772b14081e0c239344
+BELONGS ya.make
+    License text:
+          Cephes Math Library Release 2.8:  June, 2000
+          Copyright 1984, 1995, 2000 by Stephen L. Moshier
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        LICENSES_bundled.txt [80:81]
+        scipy/LICENSES_bundled.txt [80:81]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c9e4e430fa0489d8cd917727438e43b1
+BELONGS ya.make
+    License text:
+        Copyright (C) 2010 David Fong and Michael Saunders
+        Distributed under the same license as SciPy
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_isolve/tests/test_lsmr.py [2:3]
+
+KEEP     COPYRIGHT_SERVICE_LABEL cb883bb4b6c2bf1ce7fdfa4d91e5ba14
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2006-7
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL ce6f8b53b5c5b7ea48ecb72b8940b466
+BELONGS ya.make
+    License text:
+        Copyright Gautam Sewani
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d1590eab04a45a911bd39132eb389903
+BELONGS ya.make
+    License text:
+        Copyright Xiaogang Zhang 2006
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d1f6ecb4db312e6a80b1a5c9dc400fd6
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/linalg/src/id_dist/doc/supertabular.sty [37:41]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d2076518feee911a4caec8a244497add
+BELONGS ya.make
+    License text:
+        Copyright (c) 2005, Rasmus Munk Larsen, Stanford University
+        All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_propack/PROPACK/license.txt [21:22]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d6cd0e7fc45e63b217854cc193972685
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2013
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d7369b8aa594e0b3dc161a249b283b86
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2006, 2007
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d7771712a9efcfa39f388f703f14eadf
+BELONGS ya.make
+    License text:
+            IPX and BASICLU, Copyright (c) 2018-2021  ERGO-Code
+            Used in HiGHS under the MIT license.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/LICENSE [5:6]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d7af28eeb118f025c4c7f84f9c8ef7b5
+BELONGS ya.make
+    License text:
+        Copyright (C) 2010-2020 Max-Planck-Society
+        Copyright (C) 2019-2020 Peter Bell
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/fft/_pocketfft/pocketfft_hdronly.h [4:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d85fe7f5ecf9ba8225eb31122c191ff7
+BELONGS ya.make
+    License text:
+        //              Copyright Catch2 Authors
+        // Distributed under the Boost Software License, Version 1.0.
+        //   (See accompanying file LICENSE_1_0.txt or copy at
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/extern/catch.hpp [15311:15313]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d8cce4fe06b7b6683725381595d5ac6e
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/spatial/_ckdtree.pyx [1:5]
+        scipy/spatial/_kdtree.py [1:3]
+        scipy/spatial/tests/test_kdtree.py [1:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL d91621ec696d85749c9faf27a1886100
+BELONGS ya.make
+    License text:
+        Copyright 2011 Paul A. Bristow
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL dbc8a9d9425021d169ac8f9d037174e1
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/unuran/license.txt [1:3]
+
+KEEP     COPYRIGHT_SERVICE_LABEL dda8deba7c7953f8446aac7c09f1a5cd
+BELONGS ya.make
+    License text:
+        // Copyright (c) 2016-2019 Viktor Kirilov
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/extern/doctest.h [7:7]
+
+KEEP     COPYRIGHT_SERVICE_LABEL e01f316a3a22f89d56f2a2bace851c26
+BELONGS ya.make
+    License text:
+        Copyright John Maddock 2009
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL e3adff0ee350b1ce3e1bf4597996eaa2
+BELONGS ya.make
+    License text:
+        (c) Copyright John Maddock 2007
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL e5f939b00700c1697e7938f4ee325201
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/unuran/unuran/src/distr/cemp.c [18:20]
+        scipy/_lib/unuran/unuran/src/distr/cemp.h [18:20]
+        scipy/_lib/unuran/unuran/src/distr/condi.c [17:19]
+        scipy/_lib/unuran/unuran/src/distr/condi.h [19:21]
+        scipy/_lib/unuran/unuran/src/distr/cont.c [17:19]
+        scipy/_lib/unuran/unuran/src/distr/cont.h [18:20]
+        scipy/_lib/unuran/unuran/src/distr/corder.h [19:21]
+        scipy/_lib/unuran/unuran/src/distr/cvec.c [17:19]
+        scipy/_lib/unuran/unuran/src/distr/cvec.h [18:20]
+        scipy/_lib/unuran/unuran/src/distr/cvemp.c [18:20]
+        scipy/_lib/unuran/unuran/src/distr/cvemp.h [18:20]
+        scipy/_lib/unuran/unuran/src/distr/cxtrans.c [20:22]
+        scipy/_lib/unuran/unuran/src/distr/cxtrans.h [19:21]
+        scipy/_lib/unuran/unuran/src/distr/discr.c [17:19]
+        scipy/_lib/unuran/unuran/src/distr/discr.h [18:20]
+        scipy/_lib/unuran/unuran/src/distr/distr.c [19:21]
+        scipy/_lib/unuran/unuran/src/distr/distr.h [17:19]
+        scipy/_lib/unuran/unuran/src/distr/distr_info.c [13:15]
+        scipy/_lib/unuran/unuran/src/distr/distr_source.h [18:20]
+        scipy/_lib/unuran/unuran/src/distr/distr_struct.h [17:19]
+        scipy/_lib/unuran/unuran/src/distr/matr.c [17:19]
+        scipy/_lib/unuran/unuran/src/distr/matr.h [18:20]
+        scipy/_lib/unuran/unuran/src/distributions/c_F.c [30:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_beta.c [47:49]
+        scipy/_lib/unuran/unuran/src/distributions/c_beta_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_cauchy.c [30:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_chi.c [30:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_chi_gen.c [14:16]
+        scipy/_lib/unuran/unuran/src/distributions/c_chisquare.c [29:31]
+        scipy/_lib/unuran/unuran/src/distributions/c_exponential.c [43:45]
+        scipy/_lib/unuran/unuran/src/distributions/c_exponential_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_extremeI.c [49:51]
+        scipy/_lib/unuran/unuran/src/distributions/c_extremeII.c [51:53]
+        scipy/_lib/unuran/unuran/src/distributions/c_gamma.c [45:47]
+        scipy/_lib/unuran/unuran/src/distributions/c_gamma_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_gig.c [62:64]
+        scipy/_lib/unuran/unuran/src/distributions/c_gig2.c [50:52]
+        scipy/_lib/unuran/unuran/src/distributions/c_gig_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_hyperbolic.c [29:31]
+        scipy/_lib/unuran/unuran/src/distributions/c_laplace.c [43:45]
+        scipy/_lib/unuran/unuran/src/distributions/c_logistic.c [45:47]
+        scipy/_lib/unuran/unuran/src/distributions/c_lomax.c [30:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_pareto.c [30:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_rayleigh.c [29:31]
+        scipy/_lib/unuran/unuran/src/distributions/c_slash.c [29:31]
+        scipy/_lib/unuran/unuran/src/distributions/c_student_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/c_triangular.c [30:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_uniform.c [30:32]
+        scipy/_lib/unuran/unuran/src/distributions/c_weibull.c [46:48]
+        scipy/_lib/unuran/unuran/src/distributions/d_binomial.c [30:32]
+        scipy/_lib/unuran/unuran/src/distributions/d_binomial_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/d_geometric.c [29:31]
+        scipy/_lib/unuran/unuran/src/distributions/d_hypergeometric.c [31:33]
+        scipy/_lib/unuran/unuran/src/distributions/d_hypergeometric_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/d_logarithmic.c [29:31]
+        scipy/_lib/unuran/unuran/src/distributions/d_logarithmic_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/d_negativebinomial.c [30:32]
+        scipy/_lib/unuran/unuran/src/distributions/d_poisson.c [29:31]
+        scipy/_lib/unuran/unuran/src/distributions/d_poisson_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/d_zipf.c [31:33]
+        scipy/_lib/unuran/unuran/src/distributions/d_zipf_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/m_correlation.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/unur_distributions.h [46:48]
+        scipy/_lib/unuran/unuran/src/distributions/unur_distributions_source.h [78:80]
+        scipy/_lib/unuran/unuran/src/distributions/unur_stddistr.h [14:16]
+        scipy/_lib/unuran/unuran/src/distributions/vc_copula.c [22:24]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multicauchy.c [43:45]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multiexponential.c [54:56]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multinormal.c [44:46]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multinormal_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/distributions/vc_multistudent.c [38:40]
+        scipy/_lib/unuran/unuran/src/methods/arou.c [18:20]
+        scipy/_lib/unuran/unuran/src/methods/arou.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/arou_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/ars.c [18:20]
+        scipy/_lib/unuran/unuran/src/methods/ars.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/ars_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/auto.c [13:15]
+        scipy/_lib/unuran/unuran/src/methods/auto.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/auto_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/cext.c [14:16]
+        scipy/_lib/unuran/unuran/src/methods/cext.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/cext_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/cstd.c [14:16]
+        scipy/_lib/unuran/unuran/src/methods/cstd.h [19:21]
+        scipy/_lib/unuran/unuran/src/methods/cstd_struct.h [16:18]
+        scipy/_lib/unuran/unuran/src/methods/dari.c [18:20]
+        scipy/_lib/unuran/unuran/src/methods/dari.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/dari_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/dau.c [20:22]
+        scipy/_lib/unuran/unuran/src/methods/dau.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/dau_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/dext.c [14:16]
+        scipy/_lib/unuran/unuran/src/methods/dext.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/dext_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/dgt.c [20:22]
+        scipy/_lib/unuran/unuran/src/methods/dgt.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/dgt_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/dsrou.c [26:28]
+        scipy/_lib/unuran/unuran/src/methods/dsrou.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/dsrou_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/dss.c [22:24]
+        scipy/_lib/unuran/unuran/src/methods/dss.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/dss_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/dstd.c [14:16]
+        scipy/_lib/unuran/unuran/src/methods/dstd.h [19:21]
+        scipy/_lib/unuran/unuran/src/methods/dstd_struct.h [16:18]
+        scipy/_lib/unuran/unuran/src/methods/empk.c [27:29]
+        scipy/_lib/unuran/unuran/src/methods/empk.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/empk_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/empl.c [23:25]
+        scipy/_lib/unuran/unuran/src/methods/empl.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/empl_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/gibbs.c [24:26]
+        scipy/_lib/unuran/unuran/src/methods/gibbs.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/gibbs_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/hinv.c [22:24]
+        scipy/_lib/unuran/unuran/src/methods/hinv.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/hinv_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/hist.c [21:23]
+        scipy/_lib/unuran/unuran/src/methods/hist.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/hist_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/hitro.c [24:26]
+        scipy/_lib/unuran/unuran/src/methods/hitro.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/hitro_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/hrb.c [22:24]
+        scipy/_lib/unuran/unuran/src/methods/hrb.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/hrb_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/hrd.c [20:22]
+        scipy/_lib/unuran/unuran/src/methods/hrd.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/hrd_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/hri.c [20:22]
+        scipy/_lib/unuran/unuran/src/methods/hri.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/hri_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/itdr.c [26:28]
+        scipy/_lib/unuran/unuran/src/methods/itdr.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/itdr_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/mcorr.c [17:19]
+        scipy/_lib/unuran/unuran/src/methods/mcorr.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/mcorr_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/mvstd.c [14:16]
+        scipy/_lib/unuran/unuran/src/methods/mvstd.h [19:21]
+        scipy/_lib/unuran/unuran/src/methods/mvstd_struct.h [16:18]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr.c [18:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_debug.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_info.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_init.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_newset.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_sample.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/mvtdr_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/ninv.c [20:22]
+        scipy/_lib/unuran/unuran/src/methods/ninv.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/ninv_debug.h [13:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_info.h [13:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_init.h [13:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_newset.h [13:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_newton.h [13:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_regula.h [13:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_sample.h [13:15]
+        scipy/_lib/unuran/unuran/src/methods/ninv_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/norta.c [17:19]
+        scipy/_lib/unuran/unuran/src/methods/norta.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/norta_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/nrou.c [26:28]
+        scipy/_lib/unuran/unuran/src/methods/nrou.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/nrou_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/pinv_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/srou.c [25:27]
+        scipy/_lib/unuran/unuran/src/methods/srou.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/srou_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/ssr.c [25:27]
+        scipy/_lib/unuran/unuran/src/methods/ssr.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/ssr_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/tabl.c [19:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/tabl_debug.h [19:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl_info.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/tabl_init.h [19:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl_newset.h [19:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl_sample.h [19:21]
+        scipy/_lib/unuran/unuran/src/methods/tabl_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/tdr.c [18:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_debug.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_gw_debug.h [17:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_gw_init.h [17:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_gw_sample.h [17:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_ia_sample.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_info.h [17:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_init.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_newset.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_ps_debug.h [17:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_ps_init.h [17:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_ps_sample.h [17:19]
+        scipy/_lib/unuran/unuran/src/methods/tdr_sample.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/tdr_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/unif.c [13:15]
+        scipy/_lib/unuran/unuran/src/methods/unif.h [19:21]
+        scipy/_lib/unuran/unuran/src/methods/unif_struct.h [16:18]
+        scipy/_lib/unuran/unuran/src/methods/unur_methods.h [14:16]
+        scipy/_lib/unuran/unuran/src/methods/unur_methods_source.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/utdr.c [35:37]
+        scipy/_lib/unuran/unuran/src/methods/utdr.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/utdr_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/vempk.c [24:26]
+        scipy/_lib/unuran/unuran/src/methods/vempk.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/vempk_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/vnrou.c [26:28]
+        scipy/_lib/unuran/unuran/src/methods/vnrou.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/vnrou_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/methods/x_gen.c [13:15]
+        scipy/_lib/unuran/unuran/src/methods/x_gen.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/x_gen_source.h [18:20]
+        scipy/_lib/unuran/unuran/src/methods/x_gen_struct.h [17:19]
+        scipy/_lib/unuran/unuran/src/parser/functparser.c [21:23]
+        scipy/_lib/unuran/unuran/src/parser/functparser_debug.h [13:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_deriv.h [13:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_eval.h [13:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_init.h [13:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_parser.h [13:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_scanner.h [13:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/parser/functparser_stringgen.h [13:15]
+        scipy/_lib/unuran/unuran/src/parser/functparser_struct.h [14:16]
+        scipy/_lib/unuran/unuran/src/parser/functparser_symbols.h [23:25]
+        scipy/_lib/unuran/unuran/src/parser/parser.c [18:20]
+        scipy/_lib/unuran/unuran/src/parser/parser.h [14:16]
+        scipy/_lib/unuran/unuran/src/parser/parser_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/parser/stringparser.c [109:111]
+        scipy/_lib/unuran/unuran/src/parser/stringparser_lists.h [29:31]
+        scipy/_lib/unuran/unuran/src/specfunct/unur_specfunct_source.h [15:17]
+        scipy/_lib/unuran/unuran/src/tests/chi2test.c [17:19]
+        scipy/_lib/unuran/unuran/src/tests/correlation.c [19:21]
+        scipy/_lib/unuran/unuran/src/tests/countpdf.c [13:15]
+        scipy/_lib/unuran/unuran/src/tests/counturn.c [13:15]
+        scipy/_lib/unuran/unuran/src/tests/moments.c [13:15]
+        scipy/_lib/unuran/unuran/src/tests/printsample.c [13:15]
+        scipy/_lib/unuran/unuran/src/tests/quantiles.c [13:15]
+        scipy/_lib/unuran/unuran/src/tests/tests.c [13:15]
+        scipy/_lib/unuran/unuran/src/tests/timing.c [13:15]
+        scipy/_lib/unuran/unuran/src/tests/unuran_tests.h [14:16]
+        scipy/_lib/unuran/unuran/src/unur_cookies.h [18:20]
+        scipy/_lib/unuran/unuran/src/unur_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/unur_struct.h [15:17]
+        scipy/_lib/unuran/unuran/src/unur_typedefs.h [15:17]
+        scipy/_lib/unuran/unuran/src/unuran_config.h [13:15]
+        scipy/_lib/unuran/unuran/src/urng/urng.c [13:15]
+        scipy/_lib/unuran/unuran/src/urng/urng.h [18:20]
+        scipy/_lib/unuran/unuran/src/urng/urng_default.c [14:16]
+        scipy/_lib/unuran/unuran/src/urng/urng_set.c [14:16]
+        scipy/_lib/unuran/unuran/src/urng/urng_source.h [13:15]
+        scipy/_lib/unuran/unuran/src/urng/urng_struct.h [13:15]
+        scipy/_lib/unuran/unuran/src/urng/urng_unuran.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/debug.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/debug.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/debug_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/eigensystem.c [20:22]
+        scipy/_lib/unuran/unuran/src/utils/error.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/error.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/error_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/fmax.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/fmax_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/hooke_source.h [15:17]
+        scipy/_lib/unuran/unuran/src/utils/lobatto_struct.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/mrou_rectangle.c [17:19]
+        scipy/_lib/unuran/unuran/src/utils/mrou_rectangle_source.h [16:18]
+        scipy/_lib/unuran/unuran/src/utils/mrou_rectangle_struct.h [16:18]
+        scipy/_lib/unuran/unuran/src/utils/slist.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/slist.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/slist_struct.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/stream.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/stream.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/stream_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/string.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/string_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/string_struct.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/umalloc.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/umalloc_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/umath.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/umath.h [15:17]
+        scipy/_lib/unuran/unuran/src/utils/umath_source.h [15:17]
+        scipy/_lib/unuran/unuran/src/utils/unur_errno.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/unur_fp.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/unur_fp_source.h [14:16]
+        scipy/_lib/unuran/unuran/src/utils/unur_math_source.h [15:17]
+        scipy/_lib/unuran/unuran/src/utils/vector.c [13:15]
+        scipy/_lib/unuran/unuran/src/utils/vector_source.h [13:15]
+        scipy/_lib/unuran/urng_default_mod.c [14:16]
+
+KEEP     COPYRIGHT_SERVICE_LABEL e639cdae504872492ce64d52c111c4b8
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2009, Motorola, Inc
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/signal/_upfirdn.py [3:3]
+        scipy/signal/_upfirdn_apply.pyx [5:5]
+        scipy/signal/tests/test_upfirdn.py [3:3]
+
+KEEP     COPYRIGHT_SERVICE_LABEL e80171613f032f58135bdc665c390801
+BELONGS ya.make
+    License text:
+        Copyright Paul Bristow 2007
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL e819bcd9ee009c07362ab6f305a86443
+BELONGS ya.make
+    License text:
+        Copyright (c) 2003, The Regents of the University of California, through
+        Lawrence Berkeley National Laboratory (subject to receipt of any required 
+        approvals from U.S. Dept. of Energy) 
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_dsolve/SuperLU/License.txt [1:3]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccolumn_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ccopy_to_ucol.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cdiagonal.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgscon.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsequ.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsisx.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsitrf.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgsrfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgssv.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgssvx.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrf.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cgstrs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/clacon2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/clangs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/claqgs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cldperm.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cmemory.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cmyblas2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/colamd.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpanel_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpivotL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpivotgrowth.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cpruneL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/creadhb.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/creadrb.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/creadtriple.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csnode_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csp_blas2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/csp_blas3.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/cutil.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcolumn_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcomplex.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dcopy_to_ucol.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ddiagonal.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgscon.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsequ.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsisx.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsitrf.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgsrfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgssv.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgssvx.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrf.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dgstrs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlacon2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlangs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dlaqgs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dldperm.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dmach.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dmemory.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dmyblas2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpanel_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpivotL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpivotgrowth.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dpruneL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dreadhb.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dreadrb.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dreadtriple.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsnode_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsp_blas2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dsp_blas3.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dutil.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/dzsum1.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/get_perm_c.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/heap_relax_snode.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/html_mainpage.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/icmax1.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ccolumn_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ccopy_to_ucol.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_cdrop_row.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_cpanel_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_cpivotL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_csnode_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dcolumn_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dcopy_to_ucol.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ddrop_row.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dpanel_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dpivotL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_dsnode_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_heap_relax_snode.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_relax_snode.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_scolumn_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_scopy_to_ucol.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_sdrop_row.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_spanel_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_spivotL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_ssnode_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zcolumn_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zcopy_to_ucol.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zdrop_row.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zpanel_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zpivotL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ilu_zsnode_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/input_error.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/izmax1.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/mark_relax.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/memory.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/mmd.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/qselect.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/relax_snode.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scolumn_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scomplex.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scopy_to_ucol.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/scsum1.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sdiagonal.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgscon.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsequ.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsisx.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsitrf.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgsrfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgssv.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgssvx.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrf.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sgstrs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slacon2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slangs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slaqgs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sldperm.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_Cnames.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_cdefs.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_dcomplex.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_ddefs.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_scomplex.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_sdefs.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_util.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/slu_zdefs.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/smach.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/smemory.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/smyblas2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_coletree.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_ienv.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sp_preorder.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spanel_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spivotL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spivotgrowth.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/spruneL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sreadhb.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sreadrb.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sreadtriple.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssnode_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssp_blas2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/ssp_blas3.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/superlu_enum_consts.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/superlu_timer.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/supermatrix.h [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/sutil.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/util.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcolumn_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zcopy_to_ucol.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zdiagonal.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgscon.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsequ.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsisx.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsitrf.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgsrfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgssv.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgssvx.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrf.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zgstrs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlacon2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlangs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zlaqgs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zldperm.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zmemory.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zmyblas2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpanel_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpivotL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpivotgrowth.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zpruneL.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zreadhb.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zreadrb.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zreadtriple.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_bmod.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsnode_dfs.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsp_blas2.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zsp_blas3.c [2:4]
+        scipy/sparse/linalg/_dsolve/SuperLU/SRC/zutil.c [2:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL e9878d9b9b6063ae5e2e02717b77c4d5
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2012, Jaydeep P. Bardhan
+        \# Copyright (c) 2012, Matthew G. Knepley
+        \# Copyright (c) 2014, Janani Padmanabhan
+        \# All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/_ellip_harm.pxd [1:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL eb149cf51068317e8653b442d05104b4
+BELONGS ya.make
+    License text:
+        Copyright (c) 1996-2008 Rice University.
+        Developed by D.C. Sorensen, R.B. Lehoucq, C. Yang, and K. Maschhoff.
+        All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/linalg/_eigen/arpack/ARPACK/COPYING [6:8]
+        scipy/sparse/linalg/_eigen/arpack/README [61:63]
+
+KEEP     COPYRIGHT_SERVICE_LABEL ebba543bd5dda2af63bad785609238b4
+BELONGS ya.make
+    License text:
+        Copyright (c) 2011 Paul A. Bristow To
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL eea0aa4dcbd81d8c73a142257dbfb9f3
+BELONGS ya.make
+    License text:
+        Copyright (c) 2006-2007, Robert Hetland <hetland@tamu.edu>
+        Copyright (c) 2007, John Travers <jtravs@gmail.com>
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/interpolate/_rbf.py [15:16]
+
+KEEP     COPYRIGHT_SERVICE_LABEL eecb78afaefe496a79bbf80901b75d05
+BELONGS ya.make
+    License text:
+        \# Author: Jake Vanderplas  -- <vanderplas@astro.washington.edu>
+        \# License: BSD, (C) 2011
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/sparse/csgraph/_min_spanning_tree.pyx [1:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL ef42b8d9d0fa8292b581be0deb9d8fe0
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2016 Adrian Veres
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/cluster/_optimal_leaf_ordering.pyx [8:8]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f0188f0b561e1db2900cca1caca97213
+BELONGS ya.make
+    License text:
+        Copyright (c) 2020 Michael Feldmeier
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/highs/extern/filereaderlp/LICENSE [1:1]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f09e9e346f6bdb226ae412ae2b25924a
+BELONGS ya.make
+    License text:
+         * UNURAN (c) 2007  W. Hoermann & J. Leydold, Institut f. Statistik, WU Wien *
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/unuran/unuran/src/distributions/vc_multinormal_gen.c [104:104]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f30d746d8ccdc43f8396322bb683a3c5
+BELONGS ya.make
+    License text:
+         *     Copyright (c) 2006 Xiaogang Zhang
+         *     Use, modification and distribution are subject to the
+         *     Boost Software License, Version 1.0.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/cephes/scipy_iv.c [34:36]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f32e830b17c7ca0507ef47aa41a97a5e
+BELONGS ya.make
+    License text:
+        \# Copyright (c) 2001, 2002 Enthought, Inc.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/_spfun_stats.py [3:3]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f46d471eb07a3b5f2c5b393f1c329f91
+BELONGS ya.make
+    License text:
+         *     Copyright (C) 2009 Pauli Virtanen
+         *     Distributed under the same license as Scipy.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/cephes/scipy_iv.c [65:66]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f47982b3636b4d0bbc02e275e7d10dd6
+BELONGS ya.make
+    License text:
+         *   Copyright 1984 - 1994 by Stephen L. Moshier                             *
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/_lib/unuran/unuran/src/specfunct/unur_specfunct_source.h [35:35]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f7aca342345f800d434b612d902bd4c5
+BELONGS ya.make
+    License text:
+                Copyright (c) 2021-04-21 Stéfan van der Walt
+                https://github.com/stefanv/lloyd
+                MIT License
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/stats/_qmc.py [2390:2392]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f7c20124c8f6949d2293707f0bd77309
+BELONGS ya.make
+    License text:
+         * Copyright (C) 2013  Pauli Virtanen
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/cephes/struve.c [53:53]
+
+KEEP     COPYRIGHT_SERVICE_LABEL fa88d979ae7da655ea505258fc5fedd5
+BELONGS ya.make
+    License text:
+        Copyright Gautam Sewani 2008
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL faef8c3be0a1612051d45827262d7799
+BELONGS ya.make
+    License text:
+        (c) Copyright John Maddock 2008
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL fb0c843abf394387c8df0eca1810bb44
+BELONGS ya.make
+    License text:
+        (c) Copyright John Maddock 2005
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL fcc437620e654f171c0d5148685b3b32
+BELONGS ya.make
+    License text:
+        \# Copyright (C) 2009, Pauli Virtanen <pav@iki.fi>
+        \# Distributed under the same license as SciPy.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/optimize/_nonlin.py [1:2]
+        scipy/sparse/linalg/_isolve/lgmres.py [1:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL fcfdbec1307d5ffcf9db180ed826a574
+BELONGS ya.make
+    License text:
+        Copyright: Albert Steppi
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/_ndtri_exp.pxd [5:5]
+
+KEEP     COPYRIGHT_SERVICE_LABEL fd5380c22a252a70adbffb6c0dcd9c9c
+BELONGS ya.make
+    License text:
+        %% Copyright (C) 1989-2004 Johannes Braams. All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/linalg/src/id_dist/doc/supertabular.sty [8:8]
+
+KEEP     COPYRIGHT_SERVICE_LABEL fdbb1c6a986ec640b67c7c8182fab0e0
+BELONGS ya.make
+    License text:
+        (c) Copyright Daryle Walker 2001, 2006
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL feb4886680228c28acaad0dc15d34454
+BELONGS ya.make
+    License text:
+        Copyright (c) 2012 Paul A. Bristow
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/special/tests/data/README [40:578]
+
+KEEP     COPYRIGHT_SERVICE_LABEL ffae6ae9514db53ae7929d70be0581d4
+BELONGS ya.make
+    License text:
+          Copyright (C) 2003, 2007-14 Matteo Frigo
+          Copyright (C) 2003, 2007-14 Massachusetts Institute of Technology
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        scipy/fft/_pocketfft/pocketfft_hdronly.h [8:9]

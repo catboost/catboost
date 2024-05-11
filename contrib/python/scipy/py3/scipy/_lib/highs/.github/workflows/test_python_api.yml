@@ -1,0 +1,56 @@
+name: test_python_api
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: [3.6, 3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Create Install Directory
+      run: cmake -E make_directory ${{runner.workspace}}/install
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DFAST_BUILD=OFF -DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: |
+         cmake --build . --parallel --config Release
+         make install
+         HIGHS_LIB_DIR=${{runner.workspace}}/install/lib
+         echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HIGHS_LIB_DIR" >> $GITHUB_ENV
+         echo "DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$HIGHS_LIB_DIR" >> $GITHUB_ENV
+
+    - name: Install correct python version
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python }}
+
+    - name: Install Python Dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pybind11 numpy pyomo nose pip
+
+    - name: Test Python Interface
+      shell: bash
+      working-directory: ${{runner.workspace}}
+      run: |
+         pip install -e ./HiGHS/src/interfaces/highspy/
+         nosetests -v ./HiGHS/src/interfaces/highspy/

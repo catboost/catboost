@@ -1,0 +1,30 @@
+###  Compiler flags for fortran and C modules.
+
+#  Platform postfix to use in naming executables and library files
+PLAT = LINUX_GCC_IA64
+
+# Select which set of optimization flags to use
+OPT = -O3 -funroll-all-loops -ffast-math
+OPT_ACCURATE = -O3 -funroll-all-loops
+NO_OPT = -O0
+
+# Compiler flags
+FFLAGS = -g -fno-second-underscore -Wall  $(OPT)
+FFLAGS_NOOPT = -g  -fno-second-underscore -Wall  $(NOOPT) 
+FFLAGS_ACCURATE = -g  -fno-second-underscore -Wall  $(OPT_ACCURATE) 
+CFLAGS = -g -Wall $(OPT) 
+LINKFLAGS = -g  -Wall $(OPT)
+
+# Which compilers and linker to use
+CC = gcc
+F77 = g77 
+LINKER = g77 
+MAKELIB = ar rc
+
+# Linker paths and flags
+LIBPATH =  -L/usr/local/lib
+BLAS = -lmkl_i2p -lguide  # Intel MKL library
+#fLIBPATH =  -L$(HOME)/lib/$(ARCH)
+#BLAS = -lgoto_it2-r0.94
+RANLIB = ranlib
+MGS = mgs.risc

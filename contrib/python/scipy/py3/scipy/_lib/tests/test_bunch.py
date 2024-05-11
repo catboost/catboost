@@ -83,7 +83,7 @@ class TestMakeTupleBunch:
             Result(x=1, y=2, z=3, w=123, beta=0.75, foo=999)
 
     def test_module(self):
-        m = '__tests__.test_bunch'
+        m = '__tests__.scipy._lib.tests.test_bunch'
         assert_equal(Result.__module__, m)
         assert_equal(self.result.__module__, m)
 

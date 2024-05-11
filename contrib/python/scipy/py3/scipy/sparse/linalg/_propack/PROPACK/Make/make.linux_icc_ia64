@@ -1,0 +1,35 @@
+###  Compiler flags for fortran and C modules.
+
+
+# Optimization flags
+OPTIMIZE =   -O3 -ipo -ipo_obj 
+OPTIMIZE_ACCURATE =   -mp -O3 -ipo -ipo_obj  
+NOOPT = -O0 
+
+# Compiler flags
+FFLAGS =  -w95 -cm -assume buffered_io $(OPTIMIZE) $(OPENMP)
+FFLAGS_NOOPT = -w95 -cm -assume buffered_io $(NOOPT) $(OPENMP)
+FFLAGS_ACCURATE =  -w95 -cm -assume buffered_io $(OPTIMIZE_ACCURATE)  $(OPENMP)
+CFLAGS = -cm $(OPTIMIZE) $(OPENMP)
+
+# Which compiler and linker to use
+F77 = ifort
+CC = icc
+LINKER = ifort
+
+
+# Linker paths and flags
+LINKFLAGS =   -cm -assume buffered_io -Vaxlib  $(OPTIMIZE) $(OPENMP)
+LIBPATH =  -L/usr/local/lib
+BLAS = -lmkl_i2p -lguide
+#LIBPATH =  -L$(HOME)/lib/LINUX
+#BLAS = -lgoto_it2-r0.94
+RANLIB = echo
+MGS = mgs.risc
+
+
+#  Platform postfix to use in naming executables and library files
+PLAT = LINUX_ICC_IA64$(SUB_PLAT)
+
+MAKELIB = xild -lib cru 
+

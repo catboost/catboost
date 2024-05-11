@@ -1,0 +1,31 @@
+###  Compiler flags for fortran and C modules.
+
+
+#   Apple Power Macintosh platform running Darwin/Mac OS X
+PLAT =	DARWIN$(SUB_PLAT)
+
+#
+# NOTE: O4 implies -qtune=auto -qarch=auto -qcache=auto -qhot -qipa
+#	It is recommended that you link with xlf90_r and specify the -qipa
+#	flag as well.
+#
+#
+
+FFLAG_CPP = 
+OPT  = -O4 -qstrict -qmaxmem=-1 -qarch=ppc970 -qalign=4k
+
+F77 = xlf90_r
+FFLAGS_NOOPT = -qextname -O0  -qfixed $(FFLAG_CPP) 
+FFLAGS =  $(OPT)  -qextname -qfixed  $(OPENMP) $(FFLAG_CPP)
+FFLAGS_ACCURATE =   -qextname $(OPT)  -qfixed  $(OPENMP) $(FFLAG_CPP)
+CC = cc
+CFLAGS =  $(OPT)  $(OPENMP) 
+LINKER = xlf90_r 
+LINKFLAGS =  $(OPT) $(OPENMP)
+LIBPATH = 
+LAPACK = 
+BLAS =   -Wl,-framework -Wl,vecLib
+RANLIB = ranlib -s
+MGS = mgs.risc
+
+MAKELIB = ar rc

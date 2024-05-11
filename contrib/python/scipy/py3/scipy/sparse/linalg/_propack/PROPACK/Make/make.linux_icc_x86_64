@@ -1,0 +1,35 @@
+# Optimization flags
+OPTIMIZE =  -O3 -ipo -ipo_obj $(CPUOPT)
+OPTIMIZE_ACCURATE = -mp -O3 -ipo -ipo_obj $(CPUOPT)
+NOOPT = -O0 
+# for debugging:
+#OPTIMIZE =  -O0 -C
+#OPTIMIZE_ACCURATE = -O0 -C
+
+# Compiler flags
+FFLAGS =  -w95 -cm -assume buffered_io -vec_report0 $(OPTIMIZE) $(OPENMP)
+FFLAGS_NOOPT =  -w95 -cm -assume buffered_io -vec_report0 $(NOOPT)  $(OPENMP)
+FFLAGS_ACCURATE =  -w95 -cm -assume buffered_io -vec_report0 $(OPTIMIZE_ACCURATE)  $(OPENMP)
+CFLAGS = -cm -assume buffered_io -vec_report0 $(OPTIMIZE)  $(OPENMP) 
+
+
+
+# Which compiler and linker to use
+F77 = ifort
+CC = icc
+LINKER = ifort
+MAKELIB = xild -lib cru 
+
+# Linker paths and flags
+LINKFLAGS = -cm -w95 -assume buffered_io -vec_report0 $(OPTIMIZE) -Vaxlib  $(OPENMP)
+#LIBPATH =  -L/usr/local/lib
+#BLAS = -lmkl_p4 -lguide
+LIBPATH =  -L$(HOME)/lib/$(ARCH)
+BLAS = -lgoto_p4-64_1024-r0.97
+#BLAS =  -lgoto_p4_512-r0.94 
+RANLIB = echo
+#MGS = mgs.pentium
+MGS = mgs.risc
+
+#  Platform postfix to use in naming executables and library files
+PLAT = LINUX_ICC_X86_64$(SUB_PLAT)
