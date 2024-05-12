@@ -1,5 +1,19 @@
 #!/usr/bin/env python3
 
+# This script has to be run in CI from CatBoost source tree root
+#
+# Environment variables used:
+#
+#  - MAKE_BUILD_CACHE_DIR (optional): Use build artifacts cache if specified
+#  - HOME (on Linux and macOS): To derive CMAKE_BUILD_ENV_ROOT path
+#  - USERPROFILE (on Windows): To derive CMAKE_BUILD_ENV_ROOT path
+#
+# Expects needed components installed in predefined places:
+#  - CUDA (on Linux and Windows)
+#  - JDK
+#  - Python development artifacts for specified PYTHON_VERSIONS
+#
+
 import argparse
 import distutils
 import hashlib
