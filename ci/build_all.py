@@ -4,6 +4,8 @@
 #
 # Environment variables used:
 #
+#  - CMAKE_BUILD_ENV_ROOT (optional):
+#    path to the root directory with platform-specific subdirectories with dependencies data for CMake
 #  - MAKE_BUILD_CACHE_DIR (optional): Use build artifacts cache if specified
 #  - HOME (on Linux and macOS): To derive CMAKE_BUILD_ENV_ROOT path
 #  - USERPROFILE (on Windows): To derive CMAKE_BUILD_ENV_ROOT path
@@ -36,14 +38,20 @@ PYTHON_VERSIONS = [
 
 
 if sys.platform == 'win32':
-    CMAKE_BUILD_ENV_ROOT = os.path.join(os.environ['USERPROFILE'], 'cmake_build_env_root')
+    CMAKE_BUILD_ENV_ROOT = os.environ.get(
+        'CMAKE_BUILD_ENV_ROOT',
+        os.path.join(os.environ['USERPROFILE'], 'cmake_build_env_root')
+    )
 
     # without C: because we use CMAKE_FIND_ROOT_PATH for speeding up build for many pythons
     CUDA_ROOT = '/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
 
     JAVA_HOME = '/Program Files/Eclipse Adoptium/jdk-8.0.362.9-hotspot/'
 else:
-    CMAKE_BUILD_ENV_ROOT = os.path.join(os.environ['HOME'], 'cmake_build_env_root')
+    CMAKE_BUILD_ENV_ROOT = os.environ.get(
+        'CMAKE_BUILD_ENV_ROOT',
+        os.path.join(os.environ['HOME'], 'cmake_build_env_root')
+    )
     if sys.platform == 'linux':
         CUDA_ROOT = '/usr/local/cuda-11'
         JAVA_HOME = '/opt/jdk/8'
