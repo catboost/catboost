@@ -15,7 +15,11 @@ TString CTimeR(const time_t* timer);
     #include <util/system/winint.h>
     #include <winsock2.h>
 
+// Convert FILETIME to timeval - seconds and microseconds.
 void FileTimeToTimeval(const FILETIME* ft, struct timeval* tv);
+
+// Convert FILETIME to timespec - seconds and nanoseconds.
+void FileTimeToTimespec(const FILETIME& ft, struct timespec* ts);
 
 // obtains the current time, expressed as seconds and microseconds since 00:00 UTC, January 1, 1970
 int gettimeofday(struct timeval* tp, void*);

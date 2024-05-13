@@ -5,15 +5,39 @@
 
 #ifdef _win_
 
+namespace {
+    // Number of 100 nanosecond units from 1/1/1601 to 1/1/1970
+    constexpr ui64 NUMBER_OF_100_NANO_BETWEEN_1601_1970 =
+        ULL(116444736000000000);
+    constexpr ui64 NUMBER_OF_100_NANO_IN_SECOND = ULL(10000000);
+
+    union TFTUnion {
+        ui64 FTScalar;
+        FILETIME FTStruct;
+    };
+} // namespace
+
 void FileTimeToTimeval(const FILETIME* ft, timeval* tv) {
-    const i64 NANOINTERVAL = LL(116444736000000000); // Number of 100 nanosecond units from 1/1/1601 to 1/1/1970
-    union {
-        ui64 ft_scalar;
-        FILETIME ft_struct;
-    } nt_time;
-    nt_time.ft_struct = *ft;
-    tv->tv_sec = (long)((nt_time.ft_scalar - NANOINTERVAL) / LL(10000000));
-    tv->tv_usec = (i32)((nt_time.ft_scalar / LL(10)) % LL(1000000));
+    Y_ASSERT(ft);
+    Y_ASSERT(tv);
+    TFTUnion ntTime;
+    ntTime.FTStruct = *ft;
+    ntTime.FTScalar -= NUMBER_OF_100_NANO_BETWEEN_1601_1970;
+    tv->tv_sec =
+        static_cast<long>(ntTime.FTScalar / NUMBER_OF_100_NANO_IN_SECOND);
+    tv->tv_usec = static_cast<long>(
+        (ntTime.FTScalar % NUMBER_OF_100_NANO_IN_SECOND) / LL(10));
+}
+
+void FileTimeToTimespec(const FILETIME& ft, struct timespec* ts) {
+    Y_ASSERT(ts);
+    TFTUnion ntTime;
+    ntTime.FTStruct = ft;
+    ntTime.FTScalar -= NUMBER_OF_100_NANO_BETWEEN_1601_1970;
+    ts->tv_sec =
+        static_cast<time_t>(ntTime.FTScalar / NUMBER_OF_100_NANO_IN_SECOND);
+    ts->tv_nsec = static_cast<long>(
+        (ntTime.FTScalar % NUMBER_OF_100_NANO_IN_SECOND) * LL(100));
 }
 
 int gettimeofday(timeval* tp, void*) {
