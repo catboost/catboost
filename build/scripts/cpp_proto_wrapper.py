@@ -5,7 +5,7 @@ import re
 import argparse
 
 
-FROM_RE = re.compile(u"((?:struct|class)\s+\S+\s+)final\s*:")
+FROM_RE = re.compile(u"((?:struct|class)\\s+\\S+\\s+)final\\s*:")
 TO_RE = "\\1:"
 
 
