@@ -1,6 +1,7 @@
 {
   ".":"catboost/github_toplevel/",
   ".gitattributes":"catboost/github_toplevel/.gitattributes",
+  ".github/workflows/add_mac_os_extra_env_to_cache.yaml":"catboost/github_toplevel/.github/workflows/add_mac_os_extra_env_to_cache.yaml",
   ".github/workflows/build.yaml":"catboost/github_toplevel/.github/workflows/build.yaml",
   ".github/workflows/check.yaml":"catboost/github_toplevel/.github/workflows/check.yaml",
   ".github/workflows/check_per_os.yaml":"catboost/github_toplevel/.github/workflows/check_per_os.yaml",

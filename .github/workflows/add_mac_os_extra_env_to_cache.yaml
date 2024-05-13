@@ -1,0 +1,33 @@
+on:
+  workflow_dispatch
+
+jobs:
+  add_macos_extra_env_to_cache:
+    name: Add MacOS extra env to cache
+    runs-on: macos-14
+    steps:
+      - name: Install pyenv and python versions and pack to zip file
+        run: |
+          brew update
+          brew install pyenv
+
+          pyenv install 3.7.17
+          cd $HOME/.pyenv/versions/ && ln -s 3.7.17 ./3.7
+          pyenv install 3.8.18
+          cd $HOME/.pyenv/versions/ && ln -s 3.8.18 ./3.8
+          pyenv install 3.9.19
+          cd $HOME/.pyenv/versions/ && ln -s 3.9.19 ./3.9
+          pyenv install 3.10.14
+          cd $HOME/.pyenv/versions/ && ln -s 3.10.14 ./3.10
+          pyenv install 3.11.9
+          cd $HOME/.pyenv/versions/ && ln -s 3.11.9 ./3.11
+          pyenv install 3.12.3
+          cd $HOME/.pyenv/versions/ && ln -s 3.12.3 ./3.12
+          cd $HOME/.pyenv/versions/ && zip -r -y ${{ github.workspace }}/python_versions_macos_arm64.zip *
+
+      - name: Save to cache
+        uses: actions/cache/save@v4
+        with:
+          enableCrossOsArchive: true # to be used on macOS x86_64
+          path: python_versions_macos_arm64.zip
+          key: python_versions_macos_arm64-${{ github.run_id }} # Can use time based key as well
