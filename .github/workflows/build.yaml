@@ -116,3 +116,106 @@ jobs:
       #with:
       #  name: catboost4j-prediction_resources-${{ inputs.arfifacts_version }}
       #  path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
+
+  build-for-macos:
+    if: inputs.runs-on_value == 'macos-12'
+    runs-on: macos-12
+    env:
+      CATBOOST_PACKAGE_NAME: ${{ inputs.catboost_package_name }}
+      CATBOOST_PACKAGE_VERSION: ${{ inputs.catboost_package_version }}
+      CMAKE_BUILD_CACHE_DIR: cmake_build_cache
+      CMAKE_BUILD_ENV_ROOT: cmake_build_env_root
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Get python_versions_macos_arm64 from cache
+        uses: actions/cache/restore@v4
+        with:
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+          path: python_versions_macos_arm64.zip
+          key: python_versions_macos_arm64-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            python_versions_macos_arm64
+
+      - name: Env setup
+        run: |
+          python3 -m pip install -U conan==1.62.0 setuptools wheel jupyterlab==3.0.6 build
+
+          brew update
+          brew install ninja
+
+          npm install --global rimraf
+
+          export CMAKE_BUILD_ENV_ROOT=${{ github.workspace }}/cmake_build_env_root
+
+          mkdir -p $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
+
+          # JDK
+          cd $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
+          mkdir -p Library/Java/JavaVirtualMachines
+          cd Library/Java/JavaVirtualMachines
+          ln -s /Library/Java/JavaVirtualMachines/Temurin-Hotspot-8.jdk ./jdk-8
+
+          # Python
+          cd $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
+          mkdir -p Python
+          cd Python
+          ln -s $RUNNER_TOOL_CACHE/Python/3.7.17/x64 ./3.7
+          ln -s $RUNNER_TOOL_CACHE/Python/3.8.18/x64 ./3.8
+          ln -s $RUNNER_TOOL_CACHE/Python/3.9.19/x64 ./3.9
+          ln -s $RUNNER_TOOL_CACHE/Python/3.10.14/x64 ./3.10
+          ln -s $RUNNER_TOOL_CACHE/Python/3.11.9/x64 ./3.11
+          ln -s $RUNNER_TOOL_CACHE/Python/3.12.3/x64 ./3.12
+
+          for PY_VER in 3.7 3.8 3.9 3.10 3.11 3.12
+          do
+              $CMAKE_BUILD_ENV_ROOT/darwin-x86_64/$PY_VER/bin/python -m pip install --upgrade pip setuptools wheel
+          done
+
+          mkdir -p $CMAKE_BUILD_ENV_ROOT/darwin-arm64
+
+          # JDK
+          cd $CMAKE_BUILD_ENV_ROOT/darwin-arm64
+          mkdir -p Library/Java/JavaVirtualMachines
+          cd Library/Java/JavaVirtualMachines
+          wget https://cdn.azul.com/zulu/bin/zulu8.78.0.19-ca-jdk8.0.412-macosx_aarch64.tar.gz
+          tar xzvf zulu8.78.0.19-ca-jdk8.0.412-macosx_aarch64.tar.gz
+          ln -s ./zulu8.78.0.19-ca-jdk8.0.412-macosx_aarch64/zulu-8.jdk ./jdk-8
+
+          # Python
+          cd $CMAKE_BUILD_ENV_ROOT/darwin-arm64
+          mkdir -p Python
+          cd Python
+          unzip ${{ github.workspace }}/python_versions_macos_arm64
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: catboost
+
+      - name: Update CMake build cache on every commit
+        uses: actions/cache@v4
+        with:
+          path: cmake_build_cache.zip
+          key: cmake_build_cache-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            cmake_build_cache-${{ runner.os }}
+
+      - name: Uncompress cache
+        run: |
+          [ -r ./cmake_build_cache.zip ] && unzip ./cmake_build_cache.zip
+          mkdir -p ./cmake_build_cache
+
+      - name: Fixup python package version
+        run: cd catboost && python3 ./ci/fixup_python_version.py
+
+      - name: Build all
+        run: |
+          export CMAKE_BUILD_ENV_ROOT=${{ github.workspace }}/cmake_build_env_root
+          export CMAKE_BUILD_CACHE_DIR=${{ github.workspace }}/cmake_build_cache
+          cd catboost && python3 ./ci/build_all.py
+
+      - name: Compress cache
+        run: zip -ur ./cmake_build_cache.zip ./cmake_build_cache

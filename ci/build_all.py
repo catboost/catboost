@@ -2,8 +2,12 @@
 
 # This script has to be run in CI from CatBoost source tree root
 #
+# For python3.12 it requires 'setuptools' package to be installed (for 'distutils')
+#
 # Environment variables used:
 #
+#  - GITHUB_ACTION: if it is defined it means this script is run inside GitHub action.
+#    Used to adjust standard paths to dependencies
 #  - CMAKE_BUILD_ENV_ROOT (optional):
 #    path to the root directory with platform-specific subdirectories with dependencies data for CMake
 #  - MAKE_BUILD_CACHE_DIR (optional): Use build artifacts cache if specified
@@ -26,6 +30,8 @@ import sys
 import tarfile
 from typing import List, Tuple
 
+
+IS_IN_GITHUB_ACTION = 'GITHUB_ACTION' in os.environ
 
 PYTHON_VERSIONS = [
     (3,7),
@@ -88,8 +94,12 @@ def get_python_root_dir(py_ver: Tuple[int, int])-> str:
         # pyenv installs x.y.z versions but we've created x.y aliases for convinience
         return os.path.join('.pyenv', 'pyenv-win', 'versions', f'{py_ver[0]}.{py_ver[1]}')
     if sys.platform == 'darwin':
-        # pyenv installs x.y.z versions but we've created x.y aliases for convinience
-        return os.path.join('.pyenv', 'versions', f'{py_ver[0]}.{py_ver[1]}')
+        if IS_IN_GITHUB_ACTION:
+            # we've created x.y aliases for convinience
+            return os.path.join('Python', f'{py_ver[0]}.{py_ver[1]}')
+        else:
+            # pyenv installs x.y.z versions but we've created x.y aliases for convinience
+            return os.path.join('.pyenv', 'versions', f'{py_ver[0]}.{py_ver[1]}')
     if sys.platform == 'linux':
         py_ver_str = f'{py_ver[0]}{py_ver[1]}'
         # manylinux2014 image conventions
