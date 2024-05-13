@@ -1977,6 +1977,7 @@ class ConjectureData:
         self.extra_information = ExtraInformation()
 
         self.ir_tree_nodes = ir_tree_prefix
+        self._node_index = 0
         self.start_example(TOP_LABEL)
 
     def __repr__(self):
@@ -2274,10 +2275,11 @@ class ConjectureData:
     def _pop_ir_tree_node(self, ir_type: IRTypeName, kwargs: IRKWargsType) -> IRNode:
         assert self.ir_tree_nodes is not None
 
-        if self.ir_tree_nodes == []:
+        if self._node_index == len(self.ir_tree_nodes):
             self.mark_overrun()
 
-        node = self.ir_tree_nodes.pop(0)
+        node = self.ir_tree_nodes[self._node_index]
+        self._node_index += 1
         # If we're trying to draw a different ir type at the same location, then
         # this ir tree has become badly misaligned. We don't have many good/simple
         # options here for realigning beyond giving up.

@@ -908,9 +908,9 @@ def _collection_ish_functions():
             np.diag,
             # bonus undocumented functions from tab-completion:
             np.asarray_chkfinite,
-            np.asfarray,
             np.asfortranarray,
         ]
+
     return funcs
 
 

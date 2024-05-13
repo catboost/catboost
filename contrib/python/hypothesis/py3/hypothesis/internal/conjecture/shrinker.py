@@ -922,7 +922,7 @@ class Shrinker:
                 new_blocks[i] = int_to_bytes(v + o, len(blocked[i]))
             return self.incorporate_new_buffer(b"".join(new_blocks))
 
-        Integer.shrink(offset, reoffset, random=self.random)
+        Integer.shrink(offset, reoffset)
         self.clear_change_tracking()
 
     def clear_change_tracking(self):
@@ -1193,7 +1193,6 @@ class Shrinker:
         Lexical.shrink(
             block,
             lambda b: self.try_shrinking_blocks(targets, b),
-            random=self.random,
         )
 
     @defines_shrink_pass()
@@ -1236,7 +1235,6 @@ class Shrinker:
                 + [node.copy(with_value=sign * val)]
                 + self.nodes[node.index + 1 :]
             ),
-            random=self.random,
             node=node,
         )
 
@@ -1362,7 +1360,6 @@ class Shrinker:
         Lexical.shrink(
             self.shrink_target.buffer[u:v],
             lambda b: self.try_shrinking_blocks((i,), b),
-            random=self.random,
         )
 
         if self.shrink_target is not initial:
@@ -1459,7 +1456,6 @@ class Shrinker:
                     ],
                 )
             ),
-            random=self.random,
             key=lambda i: st.buffer[examples[i].start : examples[i].end],
         )
 

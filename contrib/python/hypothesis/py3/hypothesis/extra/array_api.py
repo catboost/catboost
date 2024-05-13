@@ -282,7 +282,7 @@ def _from_dtype(
         if allow_subnormal is not None:
             kw["allow_subnormal"] = allow_subnormal
         else:
-            subnormal = next_down(finfo.smallest_normal, width=finfo.bits)
+            subnormal = next_down(float(finfo.smallest_normal), width=finfo.bits)
             ftz = bool(xp.asarray(subnormal, dtype=dtype) == 0)
             if ftz:
                 kw["allow_subnormal"] = False
@@ -303,7 +303,7 @@ def _from_dtype(
         # complex array, in case complex arrays have different FTZ behaviour
         # than arrays of the respective composite float.
         if allow_subnormal is None:
-            subnormal = next_down(finfo.smallest_normal, width=finfo.bits)
+            subnormal = next_down(float(finfo.smallest_normal), width=finfo.bits)
             x = xp.asarray(complex(subnormal, subnormal), dtype=dtype)
             builtin_x = complex(x)
             allow_subnormal = builtin_x.real != 0 and builtin_x.imag != 0
