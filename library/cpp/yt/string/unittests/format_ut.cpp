@@ -208,6 +208,13 @@ TEST(TFormatTest, LazyMultiValueFormatter)
     EXPECT_EQ("int: 1, string: hello, range: [1, 2, 3]", Format("%v", lazyFormatter));
 }
 
+TEST(TFormatTest, VectorArg)
+{
+    std::vector<TString> params = {"a", "b", "c"};
+
+    EXPECT_EQ(FormatVector("a is %v, b is %v, c is %v", params), "a is a, b is b, c is c");
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace

@@ -733,6 +733,33 @@ struct TArgFormatterImpl<IndexBase, THeadArg, TTailArgs...>
     }
 };
 
+template <typename TVectorElement>
+struct TSpanArgFormatterImpl
+{
+    explicit TSpanArgFormatterImpl(std::span<TVectorElement> v)
+        : Span_(v)
+    { }
+
+    explicit TSpanArgFormatterImpl(const std::vector<TVectorElement>& v)
+        : Span_(v.begin(), v.size())
+    { }
+
+    explicit TSpanArgFormatterImpl(const TVector<TVectorElement>& v)
+        : Span_(v.begin(), v.size())
+    { }
+
+    std::span<const TVectorElement> Span_;
+
+    void operator() (size_t index, TStringBuilderBase* builder, TStringBuf format) const
+    {
+        if (index >= Span_.size()) {
+            builder->AppendString(TStringBuf("<missing argument>"));
+        } else {
+            FormatValue(builder, *(Span_.begin() + index), format);
+        }
+    }
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 
 template <size_t Length, class... TArgs>
@@ -771,6 +798,46 @@ TString Format(
 {
     TStringBuilder builder;
     Format(&builder, format, std::forward<TArgs>(args)...);
+    return builder.Flush();
+}
+
+template <size_t Length, class TVector>
+void FormatVector(
+    TStringBuilderBase* builder,
+    const char (&format)[Length],
+    const TVector& vec)
+{
+    TSpanArgFormatterImpl formatter(vec);
+    NYT::NDetail::FormatImpl(builder, format, formatter);
+}
+
+template <class TVector>
+void FormatVector(
+    TStringBuilderBase* builder,
+    TStringBuf format,
+    const TVector& vec)
+{
+    TSpanArgFormatterImpl formatter(vec);
+    NYT::NDetail::FormatImpl(builder, format, formatter);
+}
+
+template <size_t Length, class TVector>
+TString FormatVector(
+    const char (&format)[Length],
+    const TVector& vec)
+{
+    TStringBuilder builder;
+    FormatVector(&builder, format, vec);
+    return builder.Flush();
+}
+
+template <class TVector>
+TString FormatVector(
+    TStringBuf format,
+    const TVector& vec)
+{
+    TStringBuilder builder;
+    FormatVector(&builder, format, vec);
     return builder.Flush();
 }
 
