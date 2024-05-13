@@ -2,7 +2,7 @@ import os
 
 import yatest.common
 
-from test_whl import prepare_all
+from . test_whl import prepare_all
 
 TEST_SCRIPT = yatest.common.source_path(os.path.join("catboost/python-package/ut/medium/test.py"))
 
