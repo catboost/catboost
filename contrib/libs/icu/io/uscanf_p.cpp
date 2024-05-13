@@ -457,7 +457,7 @@ u_scanf_double_handler(UFILE        *input,
     format = u_locbund_getNumberFormat(&input->str.fBundle, UNUM_DECIMAL);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* Skip the positive prefix. ICU normally can't handle this due to strict parsing. */
@@ -528,7 +528,7 @@ u_scanf_scientific_handler(UFILE        *input,
     format = u_locbund_getNumberFormat(&input->str.fBundle, UNUM_SCIENTIFIC);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* set the appropriate flags on the formatter */
@@ -635,7 +635,7 @@ u_scanf_scidbl_handler(UFILE        *input,
     genericFormat = u_locbund_getNumberFormat(&input->str.fBundle, UNUM_DECIMAL);
 
     /* handle error */
-    if(scientificFormat == 0 || genericFormat == 0)
+    if (scientificFormat == nullptr || genericFormat == nullptr)
         return 0;
 
     /* Skip the positive prefix. ICU normally can't handle this due to strict parsing. */
@@ -720,7 +720,7 @@ u_scanf_integer_handler(UFILE       *input,
     format = u_locbund_getNumberFormat(&input->str.fBundle, UNUM_DECIMAL);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* for integer types, do not attempt to parse fractions */
@@ -806,7 +806,7 @@ u_scanf_percent_handler(UFILE       *input,
     format = u_locbund_getNumberFormat(&input->str.fBundle, UNUM_PERCENT);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* Skip the positive prefix. ICU normally can't handle this due to strict parsing. */
@@ -1040,7 +1040,7 @@ u_scanf_spellout_handler(UFILE          *input,
     format = u_locbund_getNumberFormat(&input->str.fBundle, UNUM_SPELLOUT);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* Skip the positive prefix. ICU normally can't handle this due to strict parsing. */
@@ -1430,8 +1430,7 @@ u_scanf_parse(UFILE     *f,
 
             /* call the handler function */
             handler = g_u_scanf_infos[ handlerNum ].handler;
-            if(handler != 0) {
-
+            if (handler != nullptr) {
                 /* reset count to 1 so that += for alias works. */
                 count = 1;
 

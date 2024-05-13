@@ -176,7 +176,7 @@ u_vfprintf(    UFILE        *f,
     /* convert from the default codepage to Unicode */
     if (size >= MAX_UCHAR_BUFFER_SIZE(buffer)) {
         pattern = (char16_t *)uprv_malloc(size * sizeof(char16_t));
-        if(pattern == 0) {
+        if (pattern == nullptr) {
             return 0;
         }
     }

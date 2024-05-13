@@ -301,7 +301,7 @@ u_printf_double_handler(const u_printf_stream_handler  *handler,
     format = u_locbund_getNumberFormat(formatBundle, UNUM_DECIMAL);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* save the formatter's state */
@@ -329,7 +329,7 @@ u_printf_double_handler(const u_printf_stream_handler  *handler,
     }
 
     /* format the number */
-    resultLen = unum_formatDouble(format, num, result, UPRINTF_BUFFER_SIZE, 0, &status);
+    resultLen = unum_formatDouble(format, num, result, UPRINTF_BUFFER_SIZE, nullptr, &status);
 
     if (U_FAILURE(status)) {
         resultLen = 0;
@@ -378,7 +378,7 @@ u_printf_integer_handler(const u_printf_stream_handler  *handler,
     format = u_locbund_getNumberFormat(formatBundle, UNUM_DECIMAL);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* set the appropriate flags on the formatter */
@@ -396,7 +396,7 @@ u_printf_integer_handler(const u_printf_stream_handler  *handler,
     }
 
     /* format the number */
-    resultLen = unum_formatInt64(format, num, result, UPRINTF_BUFFER_SIZE, 0, &status);
+    resultLen = unum_formatInt64(format, num, result, UPRINTF_BUFFER_SIZE, nullptr, &status);
 
     if (U_FAILURE(status)) {
         resultLen = 0;
@@ -511,7 +511,7 @@ u_printf_uinteger_handler(const u_printf_stream_handler *handler,
     format = u_locbund_getNumberFormat(formatBundle, UNUM_DECIMAL);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* set the appropriate flags on the formatter */
@@ -526,7 +526,7 @@ u_printf_uinteger_handler(const u_printf_stream_handler *handler,
     /* To mirror other stdio implementations, we ignore the sign argument */
 
     /* format the number */
-    resultLen = unum_formatInt64(format, num, result, UPRINTF_BUFFER_SIZE, 0, &status);
+    resultLen = unum_formatInt64(format, num, result, UPRINTF_BUFFER_SIZE, nullptr, &status);
 
     if (U_FAILURE(status)) {
         resultLen = 0;
@@ -587,7 +587,7 @@ u_printf_scientific_handler(const u_printf_stream_handler  *handler,
     format = u_locbund_getNumberFormat(formatBundle, UNUM_SCIENTIFIC);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* set the appropriate flags on the formatter */
@@ -649,7 +649,7 @@ u_printf_scientific_handler(const u_printf_stream_handler  *handler,
     }
 
     /* format the number */
-    resultLen = unum_formatDouble(format, num, result, UPRINTF_BUFFER_SIZE, 0, &status);
+    resultLen = unum_formatDouble(format, num, result, UPRINTF_BUFFER_SIZE, nullptr, &status);
 
     if (U_FAILURE(status)) {
         resultLen = 0;
@@ -704,7 +704,7 @@ u_printf_percent_handler(const u_printf_stream_handler  *handler,
     format = u_locbund_getNumberFormat(formatBundle, UNUM_PERCENT);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* save the formatter's state */
@@ -732,7 +732,7 @@ u_printf_percent_handler(const u_printf_stream_handler  *handler,
     }
 
     /* format the number */
-    resultLen = unum_formatDouble(format, num, result, UPRINTF_BUFFER_SIZE, 0, &status);
+    resultLen = unum_formatDouble(format, num, result, UPRINTF_BUFFER_SIZE, nullptr, &status);
 
     if (U_FAILURE(status)) {
         resultLen = 0;
@@ -907,7 +907,7 @@ u_printf_spellout_handler(const u_printf_stream_handler *handler,
     format = u_locbund_getNumberFormat(formatBundle, UNUM_SPELLOUT);
 
     /* handle error */
-    if(format == 0)
+    if (format == nullptr)
         return 0;
 
     /* save the formatter's state */
@@ -935,7 +935,7 @@ u_printf_spellout_handler(const u_printf_stream_handler *handler,
     }
 
     /* format the number */
-    resultLen = unum_formatDouble(format, num, result, UPRINTF_BUFFER_SIZE, 0, &status);
+    resultLen = unum_formatDouble(format, num, result, UPRINTF_BUFFER_SIZE, nullptr, &status);
 
     if (U_FAILURE(status)) {
         resultLen = 0;
@@ -1582,7 +1582,7 @@ u_printf_parse(const u_printf_stream_handler *streamHandler,
 
             /* call the handler function */
             handler = g_u_printf_infos[ handlerNum ].handler;
-            if(handler != 0) {
+            if (handler != nullptr) {
                 *written += (*handler)(streamHandler, context, formatBundle, info, &args);
             }
             else {

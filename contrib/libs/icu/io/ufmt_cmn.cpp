@@ -230,17 +230,16 @@ ufmt_defaultCPToUnicode(const char *s, int32_t sSize,
     char16_t *alias;
     UErrorCode status = U_ZERO_ERROR;
     UConverter *defConverter = u_getDefaultConverter(&status);
-    
-    if(U_FAILURE(status) || defConverter == 0)
-        return 0;
+
+    if (U_FAILURE(status) || defConverter == nullptr)
+        return nullptr;
 
     if(sSize <= 0) {
         sSize = static_cast<int32_t>(uprv_strlen(s)) + 1;
     }
     
     /* perform the conversion in one swoop */
-    if(target != 0) {
-        
+    if (target != nullptr) {
         alias = target;
         ucnv_toUnicode(defConverter, &alias, alias + tSize, &s, s + sSize - 1, 
             nullptr, true, &status);

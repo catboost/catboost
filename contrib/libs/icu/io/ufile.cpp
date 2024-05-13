@@ -69,11 +69,11 @@ finit_owner(FILE         *f,
     UErrorCode status = U_ZERO_ERROR;
     UFILE     *result;
     if(f == nullptr) {
-        return 0;
+        return nullptr;
     }
     result = (UFILE*) uprv_malloc(sizeof(UFILE));
     if(result == nullptr) {
-        return 0;
+        return nullptr;
     }
 
     uprv_memset(result, 0, sizeof(UFILE));
@@ -86,10 +86,10 @@ finit_owner(FILE         *f,
 
 #if !UCONFIG_NO_FORMATTING
         /* if locale is 0, use the default */
-        if(u_locbund_init(&result->str.fBundle, locale) == 0) {
+        if (u_locbund_init(&result->str.fBundle, locale) == nullptr) {
             /* DO NOT FCLOSE HERE! */
             uprv_free(result);
-            return 0;
+            return nullptr;
         }
 #endif
 
@@ -138,8 +138,8 @@ u_fopen(const char    *filename,
 {
     UFILE     *result;
     FILE     *systemFile = fopen(filename, perm);
-    if(systemFile == 0) {
-        return 0;
+    if (systemFile == nullptr) {
+        return nullptr;
     }
 
     result = finit_owner(systemFile, locale, codepage, true);
@@ -238,10 +238,10 @@ u_fstropen(char16_t *stringBuf,
 
 #if !UCONFIG_NO_FORMATTING
     /* if locale is 0, use the default */
-    if(u_locbund_init(&result->str.fBundle, locale) == 0) {
+    if (u_locbund_init(&result->str.fBundle, locale) == nullptr) {
         /* DO NOT FCLOSE HERE! */
         uprv_free(result);
-        return 0;
+        return nullptr;
     }
 #endif
 
@@ -330,7 +330,7 @@ u_fsetlocale(UFILE      *file,
 {
     u_locbund_close(&file->str.fBundle);
 
-    return u_locbund_init(&file->str.fBundle, locale) == 0 ? -1 : 0;
+    return u_locbund_init(&file->str.fBundle, locale) == nullptr ? -1 : 0;
 }
 
 #endif
@@ -344,7 +344,7 @@ u_fgetcodepage(UFILE        *file)
     if (file->fConverter) {
         codepage = ucnv_getName(file->fConverter, &status);
         if(U_FAILURE(status))
-            return 0;
+            return nullptr;
     }
     return codepage;
 }

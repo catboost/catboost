@@ -53,7 +53,7 @@ operator<<(STD_OSTREAM& stream, const UnicodeString& str)
             do {
                 errorCode = U_ZERO_ERROR;
                 s = buffer;
-                ucnv_fromUnicode(converter, &s, sLimit, &us, uLimit, 0, false, &errorCode);
+                ucnv_fromUnicode(converter, &s, sLimit, &us, uLimit, nullptr, false, &errorCode);
                 *s = 0;
 
                 // write this chunk
@@ -114,7 +114,7 @@ operator>>(STD_ISTREAM& stream, UnicodeString& str)
             this code won't work on stateful encodings like ISO-2022 or an EBCDIC stateful encoding.
             We flush on the last byte to ensure that we output truncated multibyte characters.
             */
-            ucnv_toUnicode(converter, &us, uLimit, &s, sLimit, 0, !continueReading, &errorCode);
+            ucnv_toUnicode(converter, &us, uLimit, &s, sLimit, nullptr, !continueReading, &errorCode);
             if(U_FAILURE(errorCode)) {
                 /* Something really bad happened. setstate() isn't always an available API */
                 stream.clear(stream.failbit);
