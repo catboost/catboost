@@ -102,8 +102,10 @@ def _download_dataset(url, md5, dataset_name, train_file, test_file, cache=False
             os.remove(file_path)
     # move files for safe delete of temp dir
     if not cache:
-        new_train_path = tempfile.mktemp()
-        new_test_path = tempfile.mktemp()
+        fd_new_train, new_train_path = tempfile.mkstemp()
+        fd_new_test, new_test_path = tempfile.mkstemp()
+        os.close(fd_new_train)
+        os.close(fd_new_test)
         os.rename(train_path, new_train_path)
         os.rename(test_path, new_test_path)
         shutil.rmtree(dir_path)
@@ -288,14 +290,16 @@ def adult():
         'https://proxy.sandbox.yandex-team.ru/779118052',
         'https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data', )
     train_md5 = '5d7c39d7b8804f071cdd1f2a7c460872'
-    train_path = tempfile.mktemp()
+    fd_train, train_path = tempfile.mkstemp()
+    os.close(fd_train)
     _cached_download(train_urls, train_md5, train_path)
 
     test_urls = (
         'https://proxy.sandbox.yandex-team.ru/779120000',
         'https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test', )
     test_md5 = '35238206dfdf7f1fe215bbb874adecdc'
-    test_path = tempfile.mktemp()
+    fd_test, train_path = tempfile.mkstemp()
+    os.close(fd_test)
     _cached_download(test_urls, test_md5, test_path)
 
     train_df = pd.read_csv(train_path, names=names, header=None, sep=r',\s*', na_values=['?'], engine='python')
