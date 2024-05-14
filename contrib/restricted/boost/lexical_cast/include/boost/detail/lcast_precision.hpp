@@ -15,12 +15,6 @@
 #include <boost/config.hpp>
 #include <boost/integer_traits.hpp>
 
-#ifndef BOOST_NO_IS_ABSTRACT
-// Fix for SF:1358600 - lexical_cast & pure virtual functions & VC 8 STL
-#include <boost/type_traits/conditional.hpp>
-#include <boost/type_traits/is_abstract.hpp>
-#endif
-
 namespace boost { namespace detail {
 
 class lcast_abstract_stub {};
@@ -31,15 +25,7 @@ class lcast_abstract_stub {};
 template<class T>
 struct lcast_precision
 {
-#ifdef BOOST_NO_IS_ABSTRACT
-    typedef std::numeric_limits<T> limits; // No fix for SF:1358600.
-#else
-    typedef typename boost::conditional<
-        boost::is_abstract<T>::value
-      , std::numeric_limits<lcast_abstract_stub>
-      , std::numeric_limits<T>
-      >::type limits;
-#endif
+    using limits = std::numeric_limits<T>;
 
     BOOST_STATIC_CONSTANT(bool, use_default_precision =
             !limits::is_specialized || limits::is_exact

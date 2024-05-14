@@ -1,6 +1,6 @@
 // Copyright Kevlin Henney, 2000-2005.
 // Copyright Alexander Nasonov, 2006-2010.
-// Copyright Antony Polukhin, 2011-2023.
+// Copyright Antony Polukhin, 2011-2024.
 //
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
@@ -100,32 +100,25 @@ namespace boost {
         }
 
         template <class CharT, class T>
-        bool put_inf_nan_impl(CharT* begin, CharT*& end, const T& value
+        const CharT* get_inf_nan_impl(T value
                          , const CharT* lc_nan
-                         , const CharT* lc_infinity) noexcept
+                         , const CharT* lc_minus_nan
+                         , const CharT* lc_infinity
+                         , const CharT* lc_minus_infinity) noexcept
         {
-            const CharT minus = lcast_char_constants<CharT>::minus;
             if (boost::core::isnan(value)) {
                 if (boost::core::signbit(value)) {
-                    *begin = minus;
-                    ++ begin;
+                    return lc_minus_nan;
                 }
-
-                std::memcpy(begin, lc_nan, 3 * sizeof(CharT));
-                end = begin + 3;
-                return true;
+                return lc_nan;
             } else if (boost::core::isinf(value)) {
                 if (boost::core::signbit(value)) {
-                    *begin = minus;
-                    ++ begin;
+                    return lc_minus_infinity;
                 }
-
-                std::memcpy(begin, lc_infinity, 3 * sizeof(CharT));
-                end = begin + 3;
-                return true;
+                return lc_infinity;
             }
 
-            return false;
+            return nullptr;
         }
 
 
@@ -139,8 +132,8 @@ namespace boost {
         }
 
         template <class T>
-        bool put_inf_nan(wchar_t* begin, wchar_t*& end, const T& value) noexcept {
-            return put_inf_nan_impl(begin, end, value, L"nan", L"infinity");
+        const wchar_t* get_inf_nan(T value, wchar_t) noexcept {
+            return detail::get_inf_nan_impl(value, L"nan", L"-nan", L"inf", L"-inf");
         }
 
 #endif
@@ -154,8 +147,8 @@ namespace boost {
         }
 
         template <class T>
-        bool put_inf_nan(char16_t* begin, char16_t*& end, const T& value) noexcept {
-            return put_inf_nan_impl(begin, end, value, u"nan", u"infinity");
+        const char16_t* get_inf_nan(T value, char16_t) noexcept {
+            return detail::get_inf_nan_impl(value, u"nan", u"-nan", u"inf", u"-inf");
         }
 #endif
 #if !defined(BOOST_NO_CXX11_CHAR32_T) && !defined(BOOST_NO_CXX11_UNICODE_LITERALS)
@@ -168,8 +161,8 @@ namespace boost {
         }
 
         template <class T>
-        bool put_inf_nan(char32_t* begin, char32_t*& end, const T& value) noexcept {
-            return put_inf_nan_impl(begin, end, value, U"nan", U"infinity");
+        const char32_t* get_inf_nan(T value, char32_t) noexcept {
+            return detail::get_inf_nan_impl(value, U"nan", U"-nan", U"inf", U"-inf");
         }
 #endif
 
@@ -181,9 +174,9 @@ namespace boost {
                                , '(', ')');
         }
 
-        template <class CharT, class T>
-        bool put_inf_nan(CharT* begin, CharT*& end, const T& value) noexcept {
-            return put_inf_nan_impl(begin, end, value, "nan", "infinity");
+        template <class T>
+        const char* get_inf_nan(T value, char) noexcept {
+            return detail::get_inf_nan_impl(value, "nan", "-nan", "inf", "-inf");
         }
     }
 } // namespace boost

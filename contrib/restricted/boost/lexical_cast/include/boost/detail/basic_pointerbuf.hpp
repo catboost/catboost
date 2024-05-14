@@ -18,7 +18,9 @@
 # pragma once
 #endif
 
-#include "boost/config.hpp"
+#include <boost/config.hpp>
+#include <boost/integer.hpp>
+
 #include <streambuf>
 
 namespace boost { namespace detail {
