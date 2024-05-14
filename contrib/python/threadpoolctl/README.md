@@ -332,23 +332,39 @@ https://github.com/xianyi/OpenBLAS/issues/2985).
 
 To make a release:
 
-Bump the version number (`__version__`) in `threadpoolctl.py`.
+- Bump the version number (`__version__`) in `threadpoolctl.py` and update the
+  release date in `CHANGES.md`.
 
-Build the distribution archives:
+- Build the distribution archives:
 
 ```bash
 pip install flit
 flit build
 ```
 
-Check the contents of `dist/`.
+and check the contents of `dist/`.
 
-If everything is fine, make a commit for the release, tag it, push the
-tag to github and then:
+- If everything is fine, make a commit for the release, tag it and push the
+tag to github:
 
 ```bash
-flit publish
+git tag -a X.Y.Z
+git push git@github.com:joblib/threadpoolctl.git X.Y.Z
 ```
+
+- Upload the wheels and source distribution to PyPI using flit. Since PyPI doesn't
+  allow password authentication anymore, the username needs to be changed to the
+  generic name `__token__`:
+
+```bash
+FLIT_USERNAME=__token__ flit publish
+```
+
+  and a PyPI token has to be passed in place of the password.
+
+- Create a PR for the release on the [conda-forge feedstock](https://github.com/conda-forge/threadpoolctl-feedstock) (or wait for the bot to make it).
+
+- Publish the release on github.
 
 ### Credits
 
