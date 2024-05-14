@@ -118,8 +118,8 @@ jobs:
       #  path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
 
   build-for-macos:
-    if: inputs.runs-on_value == 'macos-12'
-    runs-on: macos-12
+    if: inputs.runs-on_value == 'macos-13'
+    runs-on: macos-13
     env:
       CATBOOST_PACKAGE_NAME: ${{ inputs.catboost_package_name }}
       CATBOOST_PACKAGE_VERSION: ${{ inputs.catboost_package_version }}

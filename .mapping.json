@@ -1414,6 +1414,7 @@
   "ci/fixup_python_version.py":"catboost/github_toplevel/ci/fixup_python_version.py",
   "ci/fixups_for_freebsd.sh":"catboost/github_toplevel/ci/fixups_for_freebsd.sh",
   "ci/prepare_release_artifacts.py":"catboost/github_toplevel/ci/prepare_release_artifacts.py",
+  "ci/toolchains/brew_clang_15.toolchain":"catboost/github_toplevel/ci/toolchains/brew_clang_15.toolchain",
   "ci/toolchains/clangs.toolchain":"catboost/github_toplevel/ci/toolchains/clangs.toolchain",
   "ci/toolchains/dockcross.manylinux2014_aarch64.clangs.toolchain":"catboost/github_toplevel/ci/toolchains/dockcross.manylinux2014_aarch64.clangs.toolchain",
   "ci/webdav_upload.py":"catboost/github_toplevel/ci/webdav_upload.py",
