@@ -63,6 +63,9 @@ class FileLockContext:
     #: The mode for the lock files
     mode: int
 
+    #: Whether the lock should be blocking or not
+    blocking: bool
+
     #: The file descriptor for the *_lock_file* as it is returned by the os.open() function, not None when lock held
     lock_file_fd: int | None = None
 
@@ -86,6 +89,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         mode: int = 0o644,
         thread_local: bool = True,  # noqa: ARG003, FBT001, FBT002
         *,
+        blocking: bool = True,  # noqa: ARG003
         is_singleton: bool = False,
         **kwargs: dict[str, Any],  # capture remaining kwargs for subclasses  # noqa: ARG003
     ) -> Self:
@@ -115,6 +119,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         mode: int = 0o644,
         thread_local: bool = True,  # noqa: FBT001, FBT002
         *,
+        blocking: bool = True,
         is_singleton: bool = False,
     ) -> None:
         """
@@ -127,6 +132,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         :param mode: file permissions for the lockfile
         :param thread_local: Whether this object's internal context should be thread local or not. If this is set to \
             ``False`` then the lock will be reentrant across threads.
+        :param blocking: whether the lock should be blocking or not
         :param is_singleton: If this is set to ``True`` then only one instance of this class will be created \
             per lock file. This is useful if you want to use the lock object for reentrant locking without needing \
             to pass the same object around.
@@ -135,12 +141,13 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         self._is_thread_local = thread_local
         self._is_singleton = is_singleton
 
-        # Create the context. Note that external code should not work with the context directly  and should instead use
+        # Create the context. Note that external code should not work with the context directly and should instead use
         # properties of this class.
         kwargs: dict[str, Any] = {
             "lock_file": os.fspath(lock_file),
             "timeout": timeout,
             "mode": mode,
+            "blocking": blocking,
         }
         self._context: FileLockContext = (ThreadLocalFileContext if thread_local else FileLockContext)(**kwargs)
 
@@ -176,6 +183,21 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
 
         """
         self._context.timeout = float(value)
+
+    @property
+    def blocking(self) -> bool:
+        """:return: whether the locking is blocking or not"""
+        return self._context.blocking
+
+    @blocking.setter
+    def blocking(self, value: bool) -> None:
+        """
+        Change the default blocking value.
+
+        :param value: the new value as bool
+
+        """
+        self._context.blocking = value
 
     @property
     def mode(self) -> int:
@@ -215,7 +237,7 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         poll_interval: float = 0.05,
         *,
         poll_intervall: float | None = None,
-        blocking: bool = True,
+        blocking: bool | None = None,
     ) -> AcquireReturnProxy:
         """
         Try to acquire the file lock.
@@ -251,6 +273,9 @@ class BaseFileLock(ABC, contextlib.ContextDecorator):
         # Use the default timeout, if no timeout is provided.
         if timeout is None:
             timeout = self._context.timeout
+
+        if blocking is None:
+            blocking = self._context.blocking
 
         if poll_intervall is not None:
             msg = "use poll_interval instead of poll_intervall"
