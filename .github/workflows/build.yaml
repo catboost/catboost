@@ -129,6 +129,16 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: Get python_3.7_macos_x86_64 from cache
+        uses: actions/cache/restore@v4
+        with:
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
+          path: python_3.7_macos_x86_64.zip
+          key: python_3.7_macos_x86_64-${{ github.run_id }} # Can use time based key as well
+          restore-keys: |
+            python_3.7_macos_x86_64
+
       - name: Get python_versions_macos_arm64 from cache
         uses: actions/cache/restore@v4
         with:
@@ -162,7 +172,7 @@ jobs:
           cd $CMAKE_BUILD_ENV_ROOT/darwin-x86_64
           mkdir -p Python
           cd Python
-          ln -s $RUNNER_TOOL_CACHE/Python/3.7.17/x64 ./3.7
+          unzip ${{ github.workspace }}/python_3.7_macos_x86_64.zip
           ln -s $RUNNER_TOOL_CACHE/Python/3.8.18/x64 ./3.8
           ln -s $RUNNER_TOOL_CACHE/Python/3.9.19/x64 ./3.9
           ln -s $RUNNER_TOOL_CACHE/Python/3.10.14/x64 ./3.10
