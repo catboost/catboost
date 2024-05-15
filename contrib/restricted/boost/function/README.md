@@ -7,9 +7,9 @@ into the C++11 standard as [`std::function`](https://en.cppreference.com/w/cpp/u
 
 ## Currently supported compilers
 
-* g++ 4.8 or later
+* g++ 4.7 or later
 * clang++ 3.9 or later
-* Visual Studio 2005-2022
+* Visual Studio 2013-2022
 
 Tested on [Github Actions](https://github.com/boostorg/function/actions) and [Appveyor](https://ci.appveyor.com/project/pdimov/function/).
 
