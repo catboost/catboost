@@ -1119,7 +1119,7 @@ void TStochasticRankError::CalcMonteCarloEstimateForSingleQueryPermutation(
     TVector<double> cumSum(count + 1);
     TVector<double> cumSumUp(count + 1);
     TVector<double> cumSumLow(count + 1);
-    int firstRelevPos, secondRelevPos;
+    int firstRelevPos = -1, secondRelevPos = -1; // avoid passing uninitialized values
     if (EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG, ELossFunction::FilteredDCG)) {
         CalcDCGCumulativeStatistics(targets, order, posWeights, scores, cumSum, cumSumUp, cumSumLow);
     } else if (TargetMetric == ELossFunction::PFound) {
