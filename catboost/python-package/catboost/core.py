@@ -13,6 +13,7 @@ from collections import OrderedDict, defaultdict
 
 from six import iteritems, string_types, integer_types
 
+import textwrap
 import warnings
 import numpy as np
 import ctypes
@@ -3406,7 +3407,16 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
         if not isinstance(fname, PATH_TYPES):
             raise CatBoostError("Invalid fname type={}: must be str() or pathlib.Path().".format(type(fname)))
-        if pool is not None and not isinstance(pool, Pool):
+        if pool is None:
+            if format in ["cpp", "json", "python"]:
+                warn_msg = textwrap.dedent("""
+                    The "pool" parameter is required if the model contains categorical features \
+                    and the output format is cpp, python, or JSON. \
+                    Otherwise, hashes of the categorical values cannot be stored.
+                    Details: https://catboost.ai/en/docs/concepts/python-reference_catboostclassifier_save_model#pool
+                """)
+                warnings.warn(warn_msg)
+        elif not isinstance(pool, Pool):
             pool = Pool(
                 data=pool,
                 cat_features=self._get_cat_feature_indices() if not isinstance(pool, FeaturesData) else None,
