@@ -2,7 +2,6 @@
 // ya-bin dump vcs-info > vcs.json
 // python build/scripts/vcs_info.py vcs.json out.c build/scripts/c_templates/svn_interface.c <any_prefix>library/cpp/svnversion<any_suffix>
 
-
 #include "build/scripts/c_templates/svnversion.h"
 
 #define STR1(x) #x
@@ -10,15 +9,15 @@
 
 const char* GetProgramSvnVersion() {
 #if defined(REVISION)
-// for package systems generating from svn export but providing REVISION macro
-#define STRREVISION STR2(REVISION)
-#define REVISIONINFO "r" STRREVISION
-#if defined(PROGRAM_VERSION)
+    // for package systems generating from svn export but providing REVISION macro
+    #define STRREVISION STR2(REVISION)
+    #define REVISIONINFO "r" STRREVISION
+    #if defined(PROGRAM_VERSION)
     return PROGRAM_VERSION "\n\n" REVISIONINFO;
-#else
+    #else
     return REVISIONINFO " "__DATE__
                         " "__TIME__;
-#endif
+    #endif
 #elif defined(PROGRAM_VERSION)
     return PROGRAM_VERSION;
 #else
@@ -157,7 +156,6 @@ int GetProgramBuildTimestamp() {
     return 0;
 #endif
 }
-
 
 const char* GetVCS() {
 #if defined(VCS)
