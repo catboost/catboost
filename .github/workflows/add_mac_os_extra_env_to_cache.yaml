@@ -3,7 +3,28 @@ on:
 
 jobs:
   add_macos_extra_env_to_cache:
-    name: Add MacOS extra env to cache
+    name: Add MacOS x86_64 extra env to cache
+    runs-on: macos-13
+    steps:
+      - name: Install pyenv and python 3.7 and pack to zip file
+        run: |
+          brew update
+          brew install pyenv
+
+          pyenv install 3.7.17
+          cd $HOME/.pyenv/versions/ && ln -s 3.7.17 ./3.7
+          cd $HOME/.pyenv/versions/ && zip -r -y ${{ github.workspace }}/python_3.7_macos_x86_64.zip *
+
+      - name: Save to cache
+        uses: actions/cache/save@v4
+        with:
+          enableCrossOsArchive: true # to be used on macOS arm64 as well
+          path: python_3.7_macos_x86_64.zip
+          key: python_3.7_macos_x86_64-${{ github.run_id }} # Can use time based key as well
+
+
+  add_macos_arm64_extra_env_to_cache:
+    name: Add MacOS Arm64 extra env to cache
     runs-on: macos-14
     steps:
       - name: Install pyenv and python versions and pack to zip file
@@ -28,6 +49,6 @@ jobs:
       - name: Save to cache
         uses: actions/cache/save@v4
         with:
-          enableCrossOsArchive: true # to be used on macOS x86_64
+          enableCrossOsArchive: true # to be used on macOS x86_64 as well
           path: python_versions_macos_arm64.zip
           key: python_versions_macos_arm64-${{ github.run_id }} # Can use time based key as well
