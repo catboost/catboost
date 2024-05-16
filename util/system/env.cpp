@@ -1,5 +1,6 @@
 #include "env.h"
 
+#include <util/generic/maybe.h>
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
 
@@ -21,13 +22,13 @@
  *  - https://a.yandex-team.ru/review/108892/details
  */
 
-TString GetEnv(const TString& key, const TString& def) {
+TMaybe<TString> TryGetEnv(const TString& key) {
 #ifdef _win_
     size_t len = GetEnvironmentVariableA(key.data(), nullptr, 0);
 
     if (len == 0) {
         if (GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
-            return def;
+            return Nothing();
         }
         return TString{};
     }
@@ -45,8 +46,19 @@ TString GetEnv(const TString& key, const TString& def) {
     return TString(buffer.data(), len);
 #else
     const char* env = getenv(key.data());
-    return env ? TString(env) : def;
+    if (!env) {
+        return Nothing();
+    }
+    return TString(env);
 #endif
+}
+
+TString GetEnv(const TString& key, const TString& def) {
+    TMaybe<TString> value = TryGetEnv(key);
+    if (value.Defined()) {
+        return *std::move(value);
+    }
+    return def;
 }
 
 void SetEnv(const TString& key, const TString& value) {
@@ -64,4 +76,18 @@ void SetEnv(const TString& key, const TString& value) {
     }
 #endif
     Y_ENSURE_EX(isOk, TSystemError() << "failed to SetEnv with error-code " << errorCode);
+}
+
+void UnsetEnv(const TString& key) {
+    bool notFound = false;
+#ifdef _win_
+    bool ok = SetEnvironmentVariable(key.c_str(), NULL);
+    notFound = !ok && (GetLastError() == ERROR_ENVVAR_NOT_FOUND);
+#else
+    bool ok = (0 == unsetenv(key.c_str()));
+    #if defined(_darwin_)
+    notFound = !ok && (errno == EINVAL);
+    #endif
+#endif
+    Y_ENSURE_EX(ok || notFound, TSystemError() << "failed to unset environment variable " << key.Quote());
 }
