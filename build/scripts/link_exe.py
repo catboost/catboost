@@ -325,7 +325,7 @@ def rename_syms(where, ret, libs):
     p = 'py2_'
 
     # join libs
-    run(where + 'llvm-ar', 'qL', ret, *libs)
+    run(where + 'llvm-ar', 'qLc', ret, *libs)
 
     # find symbols to rename
     syms = run(where + 'llvm-nm', '--extern-only', '--defined-only', '-A', ret)
