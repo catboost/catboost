@@ -1,0 +1,25 @@
+on:
+  workflow_dispatch
+
+jobs:
+  check_run_python_script:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-13, windows-2019]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - if: ${{ matrix.os }} == 'ubuntu-latest'
+        name: on ubuntu
+        run: |
+          python -c "print ('Hello ubuntu!')"
+
+      - if: ${{ matrix.os }} == 'macos-13'
+        name: on macOS
+        run: |
+          python -c "print ('Hello macos-13!')"
+
+      - if: ${{ matrix.os }} == 'windows-2019'
+        name: on Windows
+        run: |
+          python -c "print ('Hello windows-2019!')"
+ 
