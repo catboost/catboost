@@ -22,7 +22,6 @@ jobs:
       CATBOOST_PACKAGE_NAME: ${{ inputs.catboost_package_name }}
       CATBOOST_PACKAGE_VERSION: ${{ inputs.catboost_package_version }}
       CMAKE_BUILD_CACHE_DIR: cmake_build_cache
-      CMAKE_BUILD_ENV_ROOT: cmake_build_env_root # used only on macOS
     defaults:
       run:
         shell: bash
