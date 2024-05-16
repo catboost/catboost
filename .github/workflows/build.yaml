@@ -16,18 +16,19 @@ on:
         type: string
 
 jobs:
-  build-for-linux:
-    if: inputs.runs-on_value == 'ubuntu-latest'
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ inputs.runs-on_value }}
     env:
       CATBOOST_PACKAGE_NAME: ${{ inputs.catboost_package_name }}
       CATBOOST_PACKAGE_VERSION: ${{ inputs.catboost_package_version }}
       CMAKE_BUILD_CACHE_DIR: cmake_build_cache
+      CMAKE_BUILD_ENV_ROOT: cmake_build_env_root # used only on macOS
     defaults:
       run:
         shell: bash
     steps:
-      - name: Maximize build space
+      - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: Maximize build space
         uses: easimon/maximize-build-space@master
         with:
           root-reserve-mb: 36000  # needed for docker image
@@ -37,99 +38,8 @@ jobs:
           remove-haskell: 'true'
           remove-codeql: 'true'
 
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          path: catboost
-
-      - name: Update cache on every commit
-        uses: actions/cache@v4
-        with:
-          path: cmake_build_cache.zip
-          key: cmake_build_cache-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
-          restore-keys: |
-            cmake_build_cache-${{ runner.os }}
-
-      - name: Uncompress cache
-        run: |
-          [ -r ./cmake_build_cache.zip ] && unzip ./cmake_build_cache.zip
-          mkdir -p ./cmake_build_cache
-
-      - name: Fixup python package version
-        run: cd catboost && python3 ./ci/fixup_python_version.py
-
-      - name: Build all
-        run: |
-          mkdir -p ${{ github.workspace }}/catboost_build_home
-          rm -fr ${{ github.workspace }}/catboost_build_home/*
-          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan $HOME/  && cd /src/catboost && ./ci/build_all.py"
-
-      - name: Compress cache
-        run: zip -ur ./cmake_build_cache.zip ./cmake_build_cache
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost-cli-linux-x86_64-${{ inputs.arfifacts_version }}
-      #  path: build_native_root/have_cuda/linux-x86_64/catboost/app/catboost
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost-cli-linux-aarch64-${{ inputs.arfifacts_version }}
-      #  path: build_native_root/have_cuda/linux-aarch64/catboost/app/catboost
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost-python-package-dist-linux-${{ inputs.arfifacts_version }}
-      #  path: catboost/python-package/dist/*.whl
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost-python-package-dist-src-${{ inputs.arfifacts_version }}
-      #  path: catboost/python-package/dist/*.tar.gz
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost-R-package-linux-x86_64-${{ inputs.arfifacts_version }}
-      #  path: catboost/R-package/catboost-R-linux-x86_64.tgz
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost-R-package-linux-aarch64-${{ inputs.arfifacts_version }}
-      #  path: catboost/R-package/catboost-R-linux-aarch64.tgz
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost-model-interface-linux-x86_64-${{ inputs.arfifacts_version }}
-      #  path: build_native_root/have_cuda/linux-x86_64/catboost/libs/model_interface/libcatboostmodel.*
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost-model-interface-linux-aarch64-${{ inputs.arfifacts_version }}
-      #  path: build_native_root/have_cuda/linux-aarch64/catboost/libs/model_interface/libcatboostmodel.*
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost4j-spark_core_resources_classes-${{ inputs.arfifacts_version }}
-      #  path: catboost/spark/catboost4j-spark/core/src/main/resources/ru
-
-      #- uses: actions/upload-artifact@v4
-      #with:
-      #  name: catboost4j-prediction_resources-${{ inputs.arfifacts_version }}
-      #  path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
-
-  build-for-macos:
-    if: inputs.runs-on_value == 'macos-13'
-    runs-on: macos-13
-    env:
-      CATBOOST_PACKAGE_NAME: ${{ inputs.catboost_package_name }}
-      CATBOOST_PACKAGE_VERSION: ${{ inputs.catboost_package_version }}
-      CMAKE_BUILD_CACHE_DIR: cmake_build_cache
-      CMAKE_BUILD_ENV_ROOT: cmake_build_env_root
-    defaults:
-      run:
-        shell: bash
-    steps:
-      - name: Get python_3.7_macos_x86_64 from cache
+      - if: inputs.runs-on_value == 'macos-13'
+        name: Get python_3.7_macos_x86_64 from cache
         uses: actions/cache/restore@v4
         with:
           enableCrossOsArchive: true
@@ -139,7 +49,8 @@ jobs:
           restore-keys: |
             python_3.7_macos_x86_64
 
-      - name: Get python_versions_macos_arm64 from cache
+      - if: inputs.runs-on_value == 'macos-13'
+        name: Get python_versions_macos_arm64 from cache
         uses: actions/cache/restore@v4
         with:
           enableCrossOsArchive: true
@@ -149,7 +60,8 @@ jobs:
           restore-keys: |
             python_versions_macos_arm64
 
-      - name: Env setup
+      - if: inputs.runs-on_value == 'macos-13'
+        name: Env setup on macOS
         run: |
           python3 -m pip install -U conan==1.62.0 setuptools wheel jupyterlab==3.0.6 build
 
@@ -225,7 +137,15 @@ jobs:
       - name: Fixup python package version
         run: cd catboost && python3 ./ci/fixup_python_version.py
 
-      - name: Build all
+      - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: Build all on Linux
+        run: |
+          mkdir -p ${{ github.workspace }}/catboost_build_home
+          rm -fr ${{ github.workspace }}/catboost_build_home/*
+          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan $HOME/  && cd /src/catboost && ./ci/build_all.py"
+
+      - if: inputs.runs-on_value == 'macos-13'
+        name: Build all on macOS
         run: |
           export CMAKE_BUILD_ENV_ROOT=${{ github.workspace }}/cmake_build_env_root
           export CMAKE_BUILD_CACHE_DIR=${{ github.workspace }}/cmake_build_cache
@@ -233,3 +153,53 @@ jobs:
 
       - name: Compress cache
         run: zip -ur ./cmake_build_cache.zip ./cmake_build_cache
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost-cli-linux-x86_64-${{ inputs.arfifacts_version }}
+      #  path: build_native_root/have_cuda/linux-x86_64/catboost/app/catboost
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost-cli-linux-aarch64-${{ inputs.arfifacts_version }}
+      #  path: build_native_root/have_cuda/linux-aarch64/catboost/app/catboost
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost-python-package-dist-linux-${{ inputs.arfifacts_version }}
+      #  path: catboost/python-package/dist/*.whl
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost-python-package-dist-src-${{ inputs.arfifacts_version }}
+      #  path: catboost/python-package/dist/*.tar.gz
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost-R-package-linux-x86_64-${{ inputs.arfifacts_version }}
+      #  path: catboost/R-package/catboost-R-linux-x86_64.tgz
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost-R-package-linux-aarch64-${{ inputs.arfifacts_version }}
+      #  path: catboost/R-package/catboost-R-linux-aarch64.tgz
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost-model-interface-linux-x86_64-${{ inputs.arfifacts_version }}
+      #  path: build_native_root/have_cuda/linux-x86_64/catboost/libs/model_interface/libcatboostmodel.*
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost-model-interface-linux-aarch64-${{ inputs.arfifacts_version }}
+      #  path: build_native_root/have_cuda/linux-aarch64/catboost/libs/model_interface/libcatboostmodel.*
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost4j-spark_core_resources_classes-${{ inputs.arfifacts_version }}
+      #  path: catboost/spark/catboost4j-spark/core/src/main/resources/ru
+
+      #- uses: actions/upload-artifact@v4
+      #with:
+      #  name: catboost4j-prediction_resources-${{ inputs.arfifacts_version }}
+      #  path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
