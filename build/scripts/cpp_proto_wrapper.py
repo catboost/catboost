@@ -5,8 +5,8 @@ import re
 import argparse
 
 
-FROM_RE = re.compile(u"((?:struct|class)\\s+\\S+\\s+)final\\s*:")
-TO_RE = "\\1:"
+FROM_RE = re.compile(r"((?:struct|class)\s+\S+\s+)final\s*:")
+TO_RE = r"\1:"
 
 
 def parse_args() -> argparse.Namespace:
