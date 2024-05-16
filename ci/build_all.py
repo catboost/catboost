@@ -50,9 +50,12 @@ if sys.platform == 'win32':
     )
 
     # without C: because we use CMAKE_FIND_ROOT_PATH for speeding up build for many pythons
-    CUDA_ROOT = '/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
-
-    JAVA_HOME = '/Program Files/Eclipse Adoptium/jdk-8.0.362.9-hotspot/'
+    if IS_IN_GITHUB_ACTION:
+        CUDA_ROOT = '/CUDA/v11.8'
+        JAVA_HOME = '/jdk-8'
+    else:
+        CUDA_ROOT = '/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8'
+        JAVA_HOME = '/Program Files/Eclipse Adoptium/jdk-8.0.362.9-hotspot/'
 else:
     CMAKE_BUILD_ENV_ROOT = os.environ.get(
         'CMAKE_BUILD_ENV_ROOT',
@@ -91,8 +94,12 @@ def get_python_root_dir(py_ver: Tuple[int, int])-> str:
     # returns python_root_dir relative to CMAKE_FIND_ROOT_PATH
 
     if sys.platform == 'win32':
-        # pyenv installs x.y.z versions but we've created x.y aliases for convinience
-        return os.path.join('.pyenv', 'pyenv-win', 'versions', f'{py_ver[0]}.{py_ver[1]}')
+        if IS_IN_GITHUB_ACTION:
+            # we've created x.y aliases for convinience
+            return os.path.join('Python', f'{py_ver[0]}.{py_ver[1]}')
+        else:
+            # pyenv installs x.y.z versions but we've created x.y aliases for convinience
+            return os.path.join('.pyenv', 'pyenv-win', 'versions', f'{py_ver[0]}.{py_ver[1]}')
     if sys.platform == 'darwin':
         if IS_IN_GITHUB_ACTION:
             # we've created x.y aliases for convinience

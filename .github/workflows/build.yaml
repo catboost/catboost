@@ -116,6 +116,57 @@ jobs:
           cd Python
           unzip ${{ github.workspace }}/python_versions_macos_arm64
 
+      - if: matrix.os == 'windows-2019'
+        name: Install CUDA on Windows
+        uses: Jimver/cuda-toolkit@v0.2.15
+        id: cuda-toolkit
+        with:
+          cuda: '11.8.0'
+          method: 'network'
+          sub-packages: '["nvcc","cudart"]'
+
+      - if: inputs.runs-on_value == 'windows-2019'
+        name: Env setup on Windows
+        run: |
+          python -m pip install -U conan==1.62.0 setuptools wheel jupyterlab==3.0.6 build
+
+          choco install ninja
+
+          npm install --global rimraf
+
+          $CMAKE_BUILD_ENV_ROOT="${{ github.workspace }}\cmake_build_env_root"
+
+          New-Item $CMAKE_BUILD_ENV_ROOT\windows-x86_64 -ItemType Directory
+
+          # JDK
+          Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
+          New-Item -Path .\jdk-8 -ItemType SymbolicLink -Value $Env:JAVA_HOME_8_X64
+
+          # Python
+          Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
+          New-Item -Path Python -ItemType Directory
+          Set-Location -Path .\Python
+          New-Item -Path .\3.7 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.7.9\x64"
+          New-Item -Path .\3.8 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.8.10\x64"
+          New-Item -Path .\3.9 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.9.13\x64"
+          New-Item -Path .\3.10 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.10.11\x64"
+          New-Item -Path .\3.11 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.11.9\x64"
+          New-Item -Path .\3.12 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.12.3\x64"
+
+          foreach($PY_VER in '3.7','3.8','3.9','3.10','3.11','3.12') {
+            & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools wheel
+          }
+
+          # CUDA
+          Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
+          New-Item -Path CUDA -ItemType Directory
+          New-Item -Path .\CUDA\v11.8 -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
+
+          # MSVC toolset
+          $VS_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
+          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "$VS_DIR" --channelId VisualStudio.16.Release --add Microsoft.VisualStudio.Component.VC.14.28.16.9.x86.x64 --downloadThenInstall --quiet --norestart --nocache
+
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -130,29 +181,44 @@ jobs:
             cmake_build_cache-${{ runner.os }}
 
       - name: Uncompress cache
+        shell: pwsh
         run: |
-          [ -r ./cmake_build_cache.zip ] && unzip ./cmake_build_cache.zip
-          mkdir -p ./cmake_build_cache
+          if (Test-Path cmake_build_cache.zip) {
+            Expand-Archive -Path cmake_build_cache.zip -DestinationPath cmake_build_cache
+          } else {
+            New-Item -Path cmake_build_cache -ItemType Directory
+          }
 
       - name: Fixup python package version
-        run: cd catboost && python3 ./ci/fixup_python_version.py
+        shell: pwsh
+        run: |
+          Set-Location -Path catboost
+          python ./ci/fixup_python_version.py
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
-        name: Build all on Linux
+        name: Build all in container
         run: |
           mkdir -p ${{ github.workspace }}/catboost_build_home
           rm -fr ${{ github.workspace }}/catboost_build_home/*
           docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan $HOME/  && cd /src/catboost && ./ci/build_all.py"
 
-      - if: inputs.runs-on_value == 'macos-13'
-        name: Build all on macOS
+      - if: inputs.runs-on_value != 'ubuntu-latest'
+        name: Build all without container
+        shell: pwsh
         run: |
-          export CMAKE_BUILD_ENV_ROOT=${{ github.workspace }}/cmake_build_env_root
-          export CMAKE_BUILD_CACHE_DIR=${{ github.workspace }}/cmake_build_cache
-          cd catboost && python3 ./ci/build_all.py
+          $Env:CMAKE_BUILD_ENV_ROOT = Join-Path ${{ github.workspace }} cmake_build_env_root
+          $Env:CMAKE_BUILD_CACHE_DIR = Join-Path ${{ github.workspace }} cmake_build_cache
+          Set-Location -Path catboost
+          python ./ci/build_all.py
 
       - name: Compress cache
-        run: zip -ur ./cmake_build_cache.zip ./cmake_build_cache
+        shell: pwsh
+        run: |
+          if (Test-Path cmake_build_cache.zip) {
+            Compress-Archive -Path cmake_build_cache/* -Update -DestinationPath cmake_build_cache.zip
+          } else {
+            Compress-Archive -Path cmake_build_cache/* -DestinationPath cmake_build_cache.zip
+          }
 
       #- uses: actions/upload-artifact@v4
       #with:
