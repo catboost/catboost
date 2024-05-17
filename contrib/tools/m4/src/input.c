@@ -60,7 +60,7 @@
    accordingly.  */
 
 #ifdef ENABLE_CHANGEWORD
-#include <contrib/tools/bison/gnulib/src/regex.h>
+#include "regex.h"
 #endif
 
 enum input_type

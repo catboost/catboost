@@ -27,7 +27,7 @@
 #include "execute.h"
 #include "memchr2.h"
 #include "progname.h"
-#include <contrib/tools/bison/gnulib/src/regex.h>
+#include "regex.h"
 #include "spawn-pipe.h"
 #include "wait-process.h"
 
