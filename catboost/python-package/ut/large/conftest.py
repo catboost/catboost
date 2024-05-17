@@ -23,7 +23,7 @@ def unpack_deps(dst_path, py_ver):
 
     try:
 
-        os.mkdir(dst_path)
+        os.makedirs(dst_path, exist_ok=True)
         os.chdir(dst_path)
         deps_dir = "deps"
 
@@ -125,7 +125,8 @@ def pytest_sessionstart(session):
                     "-DCFLAGS=-DCATBOOST_OPENSOURCE=yes",
                     "--host-platform-flag", "CATBOOST_OPENSOURCE=yes",
                     "--host-platform-flag", "CFLAGS=-DCATBOOST_OPENSOURCE=yes",
-                    "--build-widget=no"
+                    "--build-widget=no",
+                    "--build-system", "YA",
                 ],
                 cwd=whl_dir,
                 env=mk_wheel_env,

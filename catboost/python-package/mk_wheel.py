@@ -241,7 +241,8 @@ def make_record(dir_path, dist_info_dir):
 
 
 def make_wheel(wheel_name, pkg_name, ver, build_system, arc_root, dst_so_modules, should_build_widget):
-    with tempfile.TemporaryDirectory() as dir_path:
+    dir_path = tempfile.mkdtemp()
+    try:
         # Create py files
         os.makedirs(os.path.join(dir_path, pkg_name))
 
@@ -324,6 +325,8 @@ def make_wheel(wheel_name, pkg_name, ver, build_system, arc_root, dst_so_modules
         # Create wheel
         shutil.make_archive(wheel_name, 'zip', dir_path)
         shutil.move(wheel_name + '.zip', wheel_name)
+    finally:
+        shutil.rmtree(dir_path)
 
 
 def build_widget(arc_root):
@@ -378,7 +381,8 @@ def build(build_system, arc_root, out_root, tail_args, should_build_widget, shou
 
 if __name__ == '__main__':
     arc_root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-    with tempfile.TemporaryDirectory() as out_root:
+    out_root = tempfile.mkdtemp()
+    try:
         args_parser = ArgumentParser()
         args_parser.add_argument('--build-with-cuda', choices=['yes', 'no'], default='yes')
         args_parser.add_argument('--build-widget', choices=['yes', 'no'], default='yes')
@@ -389,3 +393,5 @@ if __name__ == '__main__':
 
         wheel_name = build(build_system, arc_root, out_root, tail_args, args.build_widget == 'yes', args.build_with_cuda == 'yes')
         print(wheel_name)
+    finally:
+        shutil.rmtree(out_root)
