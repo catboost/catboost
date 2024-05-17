@@ -4,7 +4,7 @@
    :target: https://badge.fury.io/py/joblib
    :alt: Joblib version
 
-.. |Azure| image:: https://dev.azure.com/joblib/joblib/_apis/build/status/joblib.joblib?branchName=master
+.. |Azure| image:: https://dev.azure.com/joblib/joblib/_apis/build/status/joblib.joblib?branchName=main
    :target: https://dev.azure.com/joblib/joblib/_build?definitionId=3&_a=summary&branchFilter=40
    :alt: Azure CI status
 
@@ -12,7 +12,7 @@
     :target: https://joblib.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. |Codecov| image:: https://codecov.io/gh/joblib/joblib/branch/master/graph/badge.svg
+.. |Codecov| image:: https://codecov.io/gh/joblib/joblib/branch/main/graph/badge.svg
    :target: https://codecov.io/gh/joblib/joblib
    :alt: Codecov coverage
 
@@ -29,7 +29,7 @@ To get the latest code using git, simply type::
     git clone https://github.com/joblib/joblib.git
 
 If you don't have git installed, you can download a zip
-of the latest code: https://github.com/joblib/joblib/archive/refs/heads/master.zip
+of the latest code: https://github.com/joblib/joblib/archive/refs/heads/main.zip
 
 Installing
 ==========

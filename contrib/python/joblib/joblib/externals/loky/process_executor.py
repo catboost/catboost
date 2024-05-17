@@ -494,7 +494,7 @@ def _process_worker(
                     # The GC managed to free the memory: everything is fine.
                     continue
 
-                # The process is leaking memory: let the master process
+                # The process is leaking memory: let the main process
                 # know that we need to start a new worker.
                 mp.util.info("Memory leak detected: shutting down worker")
                 result_queue.put(pid)

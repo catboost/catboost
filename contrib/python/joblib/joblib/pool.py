@@ -265,11 +265,11 @@ class MemmappingPool(PicklingPool):
         Memmapping mode for numpy arrays passed to workers.
         See 'max_nbytes' parameter documentation for more details.
     forward_reducers: dictionary, optional
-        Reducers used to pickle objects passed from master to worker
+        Reducers used to pickle objects passed from main process to worker
         processes: see below.
     backward_reducers: dictionary, optional
         Reducers used to pickle return values from workers back to the
-        master process.
+        main process.
     verbose: int, optional
         Make it possible to monitor how the communication of numpy arrays
         with the subprocess is handled (pickling or memmapping)
