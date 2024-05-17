@@ -112,7 +112,7 @@ jobs:
           cd Python
           unzip ${{ github.workspace }}/python_versions_macos_arm64
 
-      - if: matrix.os == 'windows-2019'
+      - if: inputs.runs-on_value == 'windows-2019'
         name: Install CUDA on Windows
         uses: Jimver/cuda-toolkit@v0.2.15
         id: cuda-toolkit
