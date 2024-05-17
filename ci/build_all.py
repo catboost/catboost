@@ -25,6 +25,7 @@ import distutils
 import hashlib
 import logging
 import os
+import platform
 import subprocess
 import sys
 import tarfile
@@ -85,7 +86,10 @@ def get_primary_platform_name():
 
 def get_native_platform_name():
     system_name = 'windows' if sys.platform == 'win32' else sys.platform
-    return system_name + '-x86_64'
+    arch = platform.machine()
+    if arch == 'AMD64':
+        arch = 'x86_64'
+    return system_name + '-' + arch
 
 
 # Unfortunately CMake's FindPython does not work reliably in all cases so we have to recreate similar logic here.

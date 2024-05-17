@@ -41,6 +41,7 @@
   "build/scripts/split_unittest.py":"",
   "build/toolchains/clang.toolchain":"catboost/github_toplevel/build/toolchains/clang.toolchain",
   "build/toolchains/cross-build.host.darwin.target.arm64-darwin-default.clang.toolchain":"catboost/github_toplevel/build/toolchains/cross-build.host.darwin.target.arm64-darwin-default.clang.toolchain",
+  "build/toolchains/cross-build.host.darwin.target.x86_64-darwin-default.clang.toolchain":"catboost/github_toplevel/build/toolchains/cross-build.host.darwin.target.x86_64-darwin-default.clang.toolchain",
   "build/toolchains/cross-build.host.linux.target.aarch64-linux-gnu.clang.toolchain":"catboost/github_toplevel/build/toolchains/cross-build.host.linux.target.aarch64-linux-gnu.clang.toolchain",
   "build/toolchains/default.toolchain":"catboost/github_toplevel/build/toolchains/default.toolchain",
   "catboost/CMakeLists.android-arm.txt":"",
