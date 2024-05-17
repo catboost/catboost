@@ -44,7 +44,7 @@
 
 #include "uniqstr.h"
 
-#include <contrib/tools/bison/bison/arcadia_root.h>
+#include <contrib/tools/bison/arcadia_root.h>
 
 #ifndef M4
 #define M4 (m4_path)
