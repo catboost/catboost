@@ -142,6 +142,21 @@ def setup_logging(log_path, level=logging.DEBUG, *other_logs):
         root_logger.addHandler(file_handler)
 
 
+class YaHookspec:
+    @pytest.hookspec(firstresult=True)
+    def pytest_ya_summarize_error(self, report):
+        pass
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_ya_summarize_error(report):
+    return get_formatted_error(report)
+
+
+def pytest_addhooks(pluginmanager):
+    pluginmanager.add_hookspecs(YaHookspec)
+
+
 def pytest_addoption(parser):
     parser.addoption("--build-root", action="store", dest="build_root", default="", help="path to the build root")
     parser.addoption("--dep-root", action="append", dest="dep_roots", default=[], help="path to the dep build roots")
@@ -698,7 +713,9 @@ class TestItem(object):
     def set_error(self, entry, marker='bad'):
         assert entry != ""
         if isinstance(entry, _pytest.reports.BaseReport):
-            self._error = get_formatted_error(entry)
+            self._error = pytest_config.pluginmanager.hook.pytest_ya_summarize_error(
+                report=entry
+            )
         else:
             self._error = "[[{}]]{}".format(yatest_lib.tools.to_str(marker), yatest_lib.tools.to_str(entry))
 
