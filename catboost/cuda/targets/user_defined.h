@@ -37,7 +37,15 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(Targets, Weights, Predictions);
+        inline void Load(IInputStream* s) {
+            Y_UNUSED(s);
+            ythrow TCatBoostException() << "Distributed training and evaluation is not supported with user defined metrics";
+        }
+
+        inline void Save(IOutputStream* s) const {
+            Y_UNUSED(s);
+            ythrow TCatBoostException() << "Distributed training and evaluation is not supported with user defined metrics";
+        }
 
         void Run(const TCudaStream& stream) const {    
             auto target_ptr = TConstArrayRef<float>(Targets.Get(), Targets.ObjectCount());
