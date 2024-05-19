@@ -100,6 +100,7 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
             Nothing(),
             Nothing(),
             Nothing(),
+            Nothing(),
             dataProviders,
             /*initModel*/ Nothing(),
             /*initLearnProgress*/ nullptr,
@@ -111,6 +112,7 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
             TrainModel(
                 plainFitParams,
                 nullptr,
+                Nothing(),
                 Nothing(),
                 Nothing(),
                 Nothing(),
