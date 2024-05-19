@@ -455,19 +455,19 @@ void TFsPath::ForceDelete() const {
         }
     }
 
-    ClearLastSystemError();
+    bool succ;
     if (stat.IsDir()) {
         TVector<TFsPath> children;
         List(children);
         for (auto& i : children) {
             i.ForceDelete();
         }
-        ::rmdir(this->c_str());
+        succ = ::rmdir(this->c_str()) == 0;
     } else {
-        ::unlink(this->c_str());
+        succ = ::unlink(this->c_str()) == 0;
     }
 
-    if (LastSystemError()) {
+    if (!succ && LastSystemError()) {
         ythrow TIoException() << "failed to delete " << Path_;
     }
 }
