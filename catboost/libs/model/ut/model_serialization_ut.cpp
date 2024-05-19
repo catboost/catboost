@@ -81,6 +81,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
             Nothing(),
             Nothing(),
             Nothing(),
+            Nothing(),
             dataProviders,
             Nothing(),
             &learnProgress,

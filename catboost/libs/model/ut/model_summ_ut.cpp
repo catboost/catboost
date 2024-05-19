@@ -28,6 +28,7 @@ static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider, bool change
         Nothing(),
         Nothing(),
         Nothing(),
+        Nothing(),
         dataProviders,
         Nothing(),
         &learnProgress,
@@ -148,6 +149,7 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
                 Nothing(),
                 Nothing(),
                 Nothing(),
+                Nothing(),
                 dataProviders,
                 Nothing(),
                 &learnProgress,
@@ -189,6 +191,7 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
             TrainModel(
                 params,
                 nullptr,
+                Nothing(),
                 Nothing(),
                 Nothing(),
                 Nothing(),
