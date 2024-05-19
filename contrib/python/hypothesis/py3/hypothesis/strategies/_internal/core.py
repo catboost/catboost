@@ -83,6 +83,7 @@ from hypothesis.internal.compat import (
     is_typed_named_tuple,
 )
 from hypothesis.internal.conjecture.utils import calc_label_from_cls, check_sample
+from hypothesis.internal.coverage import IN_COVERAGE_TESTS, description_stack
 from hypothesis.internal.entropy import get_seeder_and_restorer
 from hypothesis.internal.floats import float_of
 from hypothesis.internal.observability import TESTCASE_CALLBACKS
@@ -1757,8 +1758,22 @@ class CompositeStrategy(SearchStrategy):
         self.args = args
         self.kwargs = kwargs
 
-    def do_draw(self, data):
-        return self.definition(data.draw, *self.args, **self.kwargs)
+    if IN_COVERAGE_TESTS:
+        # We do a bit of a dance here to ensure that whatever 'outer' description
+        # stack we might have, doesn't affect the validation code internal to the
+        # strategy we're drawing from.  Otherwise, we'd get flaky fails like #3968.
+        def do_draw(self, data):
+            prev = description_stack[:]
+            try:
+                description_stack.clear()
+                return self.definition(data.draw, *self.args, **self.kwargs)
+            finally:
+                description_stack[:] = prev
+
+    else:  # pragma: no cover
+
+        def do_draw(self, data):
+            return self.definition(data.draw, *self.args, **self.kwargs)
 
     def calc_label(self):
         return calc_label_from_cls(self.definition)
@@ -1810,7 +1825,7 @@ def _composite(f):
         )
     if params[0].default is not sig.empty:
         raise InvalidArgument("A default value for initial argument will never be used")
-    if not is_first_param_referenced_in_function(f):
+    if not (f is typing._overload_dummy or is_first_param_referenced_in_function(f)):
         note_deprecation(
             "There is no reason to use @st.composite on a function which "
             "does not call the provided draw() function internally.",

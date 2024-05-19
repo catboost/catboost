@@ -27,8 +27,9 @@ from keyword import iskeyword
 from random import _inst as global_random_instance
 from tokenize import COMMENT, detect_encoding, generate_tokens, untokenize
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, MutableMapping
 from unittest.mock import _patch as PatchType
+from weakref import WeakKeyDictionary
 
 from hypothesis.errors import HypothesisWarning
 from hypothesis.internal.compat import PYPY, is_typed_named_tuple
@@ -39,6 +40,7 @@ if TYPE_CHECKING:
     from hypothesis.strategies._internal.strategies import T
 
 READTHEDOCS = os.environ.get("READTHEDOCS", None) == "True"
+LAMBDA_SOURCE_CACHE: MutableMapping[Callable, str] = WeakKeyDictionary()
 
 
 def is_mock(obj):
@@ -303,7 +305,7 @@ SPACE_FOLLOWS_OPEN_BRACKET = re.compile(r"\( ")
 SPACE_PRECEDES_CLOSE_BRACKET = re.compile(r" \)")
 
 
-def extract_lambda_source(f):
+def _extract_lambda_source(f):
     """Extracts a single lambda expression from the string source. Returns a
     string indicating an unknown body if it gets confused in any way.
 
@@ -439,6 +441,17 @@ def extract_lambda_source(f):
     return source.strip()
 
 
+def extract_lambda_source(f):
+    try:
+        return LAMBDA_SOURCE_CACHE[f]
+    except KeyError:
+        pass
+
+    source = _extract_lambda_source(f)
+    LAMBDA_SOURCE_CACHE[f] = source
+    return source
+
+
 def get_pretty_function_description(f):
     if isinstance(f, partial):
         return pretty(f)
@@ -492,7 +505,7 @@ def repr_call(f, args, kwargs, *, reorder=True):
     if repr_len > 30000:
         warnings.warn(
             "Generating overly large repr. This is an expensive operation, and with "
-            f"a length of {repr_len//1000} kB is is unlikely to be useful. Use -Wignore "
+            f"a length of {repr_len//1000} kB is unlikely to be useful. Use -Wignore "
             "to ignore the warning, or -Werror to get a traceback.",
             HypothesisWarning,
             stacklevel=2,
