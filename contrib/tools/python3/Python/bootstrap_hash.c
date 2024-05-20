@@ -120,11 +120,6 @@ py_getrandom(void *buffer, Py_ssize_t size, int blocking, int raise)
         else {
             n = getrandom(dest, n, flags);
         }
-#  ifdef _Py_MEMORY_SANITIZER
-        if (n > 0) {
-             __msan_unpoison(dest, n);
-        }
-#  endif
 #else
         /* On Linux, use the syscall() function because the GNU libc doesn't
            expose the Linux getrandom() syscall yet. See:
