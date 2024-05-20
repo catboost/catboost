@@ -1,8 +1,34 @@
 #include "source_location.h"
 
+#include <library/cpp/yt/string/format.h>
+
 #include <string.h>
 
 namespace NYT {
+
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef __cpp_lib_source_location
+
+void FormatValue(TStringBuilderBase* builder, const std::source_location& location, TStringBuf /*format*/)
+{
+    if (location.file_name() != nullptr) {
+        builder->AppendFormat(
+            "%v:%v:%v",
+            location.file_name(),
+            location.line(),
+            location.column());
+    } else {
+        builder->AppendString("<unknown>");
+    }
+}
+
+TString ToString(const std::source_location& location)
+{
+    return ToStringViaBuilder(location);
+}
+
+#endif // __cpp_lib_source_location
 
 ////////////////////////////////////////////////////////////////////////////////
 
