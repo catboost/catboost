@@ -3,19 +3,19 @@
     ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     Lexers for Minecraft related languages.
-    
+
     SNBT. A data communication format used in Minecraft.
     wiki: https://minecraft.wiki/w/NBT_format
-    
+
     MCFunction. The Function file for Minecraft Data packs and Add-ons.
     official: https://learn.microsoft.com/en-us/minecraft/creator/documents/functionsintroduction
     wiki: https://minecraft.wiki/w/Function
-    
+
     MCSchema. A kind of data Schema for Minecraft Add-on Development.
     official: https://learn.microsoft.com/en-us/minecraft/creator/reference/content/schemasreference/
     community example: https://www.mcbe-dev.net/addons/data-driven/manifest.html
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -28,8 +28,6 @@ __all__ = ['SNBTLexer', 'MCFunctionLexer', 'MCSchemaLexer']
 
 class SNBTLexer(RegexLexer):
     """Lexer for stringified NBT, a data format used in Minecraft
-
-    .. versionadded:: 2.12.0
     """
 
     name = "SNBT"
@@ -37,6 +35,7 @@ class SNBTLexer(RegexLexer):
     aliases = ["snbt"]
     filenames = ["*.snbt"]
     mimetypes = ["text/snbt"]
+    version_added = '2.12'
 
     tokens = {
         "root": [
@@ -102,8 +101,6 @@ class SNBTLexer(RegexLexer):
 class MCFunctionLexer(RegexLexer):
     """Lexer for the mcfunction scripting language used in Minecraft
     Modelled somewhat after the `GitHub mcfunction grammar <https://github.com/Arcensoth/language-mcfunction>`_.
-
-    .. versionadded:: 2.12.0
     """
 
     name = "MCFunction"
@@ -111,6 +108,7 @@ class MCFunctionLexer(RegexLexer):
     aliases = ["mcfunction", "mcf"]
     filenames = ["*.mcfunction"]
     mimetypes = ["text/mcfunction"]
+    version_added = '2.12'
 
     # Used to denotate the start of a block comment, borrowed from Github's mcfunction
     _block_comment_prefix = "[>!]"
@@ -218,26 +216,26 @@ class MCFunctionLexer(RegexLexer):
         "selectors": [
             (r"@[a-z]", Name.Variable),
         ],
- 
+
 
         ## Generic Property Container
         # There are several, differing instances where the language accepts
         #  specific contained keys or contained key, value pairings.
-        # 
+        #
         # Property Maps:
         # - Starts with either `[` or `{`
         # - Key separated by `:` or `=`
         # - Deliminated by `,`
-        # 
+        #
         # Property Lists:
         # - Starts with `[`
         # - Deliminated by `,`
-        # 
+        #
         # For simplicity, these patterns match a generic, nestable structure
         #  which follow a key, value pattern. For normal lists, there's only keys.
         # This allow some "illegal" structures, but we'll accept those for
         #  sake of simplicity
-        # 
+        #
         # Examples:
         # - `[facing=up, powered=true]` (blockstate)
         # - `[name="hello world", nbt={key: 1b}]` (selector + nbt)
@@ -298,7 +296,7 @@ class MCFunctionLexer(RegexLexer):
         ],
         "property.delimiter": [
             include("whitespace"),
-            
+
             (r"[:=]!?", Punctuation, "property.value"),
             (r",", Punctuation),
 
@@ -321,15 +319,14 @@ class MCFunctionLexer(RegexLexer):
 
 class MCSchemaLexer(RegexLexer):
     """Lexer for Minecraft Add-ons data Schemas, an interface structure standard used in Minecraft
-
-    .. versionadded:: 2.14.0
     """
-    
+
     name = 'MCSchema'
     url = 'https://learn.microsoft.com/en-us/minecraft/creator/reference/content/schemasreference/'
     aliases = ['mcschema']
     filenames = ['*.mcschema']
     mimetypes = ['text/mcschema']
+    version_added = '2.14'
 
     tokens = {
         'commentsandwhitespace': [
@@ -360,35 +357,35 @@ class MCSchemaLexer(RegexLexer):
         'root': [
             (r'^(?=\s|/|<!--)', Text, 'slashstartsregex'),
             include('commentsandwhitespace'),
-            
+
             # keywords for optional word and field types
             (r'(?<=: )opt', Operator.Word),
             (r'(?<=\s)[\w-]*(?=(\s+"|\n))', Keyword.Declaration),
-            
+
             # numeric literals
             (r'0[bB][01]+', Number.Bin),
             (r'0[oO]?[0-7]+', Number.Oct),
             (r'0[xX][0-9a-fA-F]+', Number.Hex),
             (r'\d+', Number.Integer),
             (r'(\.\d+|\d+\.\d*|\d+)([eE][-+]?\d+)?', Number.Float),
-            
+
             # possible punctuations
             (r'\.\.\.|=>', Punctuation),
             (r'\+\+|--|~|\?\?=?|\?|:|\\(?=\n)|'
              r'(<<|>>>?|==?|!=?|(?:\*\*|\|\||&&|[-<>+*%&|^/]))=?', Operator, 'slashstartsregex'),
             (r'[{(\[;,]', Punctuation, 'slashstartsregex'),
             (r'[})\].]', Punctuation),
-            
+
             # strings
             (r"'", String.Single, 'singlestring'),
             (r'"', String.Double, 'doublestring'),
-            
+
             # title line
             (r'[\w-]*?(?=:\{?\n)', String.Symbol),
             # title line with a version code, formatted
             # `major.minor.patch-prerelease+buildmeta`
             (r'([\w-]*?)(:)(\d+)(?:(\.)(\d+)(?:(\.)(\d+)(?:(\-)((?:[^\W_]|-)*(?:\.(?:[^\W_]|-)*)*))?(?:(\+)((?:[^\W_]|-)+(?:\.(?:[^\W_]|-)+)*))?)?)?(?=:\{?\n)', bygroups(String.Symbol, Operator, Number.Integer, Operator, Number.Integer, Operator, Number.Integer, Operator, String, Operator, String)),
-            
+
             (r'.*\n', Text),
         ]
     }

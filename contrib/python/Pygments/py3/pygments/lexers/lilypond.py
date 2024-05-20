@@ -4,7 +4,7 @@
 
     Lexer for LilyPond.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -51,14 +51,13 @@ class LilyPondLexer(SchemeLexer):
     .. important::
 
        This lexer is meant to be used in conjunction with the ``lilypond`` style.
-
-    .. versionadded:: 2.11
     """
     name = 'LilyPond'
     url = 'https://lilypond.org'
     aliases = ['lilypond']
     filenames = ['*.ly']
     mimetypes = []
+    version_added = '2.11'
 
     flags = re.DOTALL | re.MULTILINE
 

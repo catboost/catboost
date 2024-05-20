@@ -13,7 +13,7 @@
     https://tools.ietf.org/html/rfc5429
     https://tools.ietf.org/html/rfc8580
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -27,12 +27,12 @@ __all__ = ["SieveLexer"]
 class SieveLexer(RegexLexer):
     """
     Lexer for sieve format.
-
-    .. versionadded:: 2.6
     """
     name = 'Sieve'
     filenames = ['*.siv', '*.sieve']
     aliases = ['sieve']
+    url = 'https://en.wikipedia.org/wiki/Sieve_(mail_filtering_language)'
+    version_added = '2.6'
 
     tokens = {
         'root': [

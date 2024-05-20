@@ -2,10 +2,9 @@
     pygments.lexers.slash
     ~~~~~~~~~~~~~~~~~~~~~
 
-    Lexer for the `Slash <https://github.com/arturadib/Slash-A>`_ programming
-    language.
+    Lexer for the Slash programming language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -171,13 +170,13 @@ class SlashLanguageLexer(ExtendedRegexLexer):
 class SlashLexer(DelegatingLexer):
     """
     Lexer for the Slash programming language.
-
-    .. versionadded:: 2.4
     """
 
     name = 'Slash'
     aliases = ['slash']
     filenames = ['*.sla']
+    url = 'https://github.com/arturadib/Slash-A'
+    version_added = '2.4'
 
     def __init__(self, **options):
         from pygments.lexers.web import HtmlLexer

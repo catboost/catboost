@@ -4,7 +4,7 @@
 
     Lexer for QVT Operational language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,11 +18,11 @@ __all__ = ['QVToLexer']
 
 class QVToLexer(RegexLexer):
     """
-    For the `QVT Operational Mapping language <http://www.omg.org/spec/QVT/1.1/>`_.
+    For the QVT Operational Mapping language.
 
     Reference for implementing this: «Meta Object Facility (MOF) 2.0
     Query/View/Transformation Specification», Version 1.1 - January 2011
-    (http://www.omg.org/spec/QVT/1.1/), see §8.4, «Concrete Syntax» in
+    (https://www.omg.org/spec/QVT/1.1/), see §8.4, «Concrete Syntax» in
     particular.
 
     Notable tokens assignments:
@@ -41,6 +41,8 @@ class QVToLexer(RegexLexer):
     name = 'QVTO'
     aliases = ['qvto', 'qvt']
     filenames = ['*.qvto']
+    url = 'https://www.omg.org/spec/QVT/1.1'
+    version_added = ''
 
     tokens = {
         'root': [

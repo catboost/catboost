@@ -4,7 +4,7 @@
 
     Lexer for the Felix language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,8 +19,6 @@ __all__ = ['FelixLexer']
 class FelixLexer(RegexLexer):
     """
     For Felix source code.
-
-    .. versionadded:: 1.2
     """
 
     name = 'Felix'
@@ -28,6 +26,7 @@ class FelixLexer(RegexLexer):
     aliases = ['felix', 'flx']
     filenames = ['*.flx', '*.flxh']
     mimetypes = ['text/x-felix']
+    version_added = '1.2'
 
     preproc = (
         'elif', 'else', 'endif', 'if', 'ifdef', 'ifndef',
@@ -128,13 +127,13 @@ class FelixLexer(RegexLexer):
 
             # IntegerLiteral
             # -- Binary
-            (r'0[Bb][01_]+%s' % decimal_suffixes, Number.Bin),
+            (rf'0[Bb][01_]+{decimal_suffixes}', Number.Bin),
             # -- Octal
-            (r'0[0-7_]+%s' % decimal_suffixes, Number.Oct),
+            (rf'0[0-7_]+{decimal_suffixes}', Number.Oct),
             # -- Hexadecimal
-            (r'0[xX][0-9a-fA-F_]+%s' % decimal_suffixes, Number.Hex),
+            (rf'0[xX][0-9a-fA-F_]+{decimal_suffixes}', Number.Hex),
             # -- Decimal
-            (r'(0|[1-9][0-9_]*)%s' % decimal_suffixes, Number.Integer),
+            (rf'(0|[1-9][0-9_]*){decimal_suffixes}', Number.Integer),
 
             # Strings
             ('([rR][cC]?|[cC][rR])"""', String, 'tdqs'),
@@ -153,8 +152,8 @@ class FelixLexer(RegexLexer):
             (r'[a-zA-Z_]\w*:>', Name.Label),
 
             # Identifiers
-            (r'(%s)\b' % '|'.join(name_builtins), Name.Builtin),
-            (r'(%s)\b' % '|'.join(name_pseudo), Name.Builtin.Pseudo),
+            (r'({})\b'.format('|'.join(name_builtins)), Name.Builtin),
+            (r'({})\b'.format('|'.join(name_pseudo)), Name.Builtin.Pseudo),
             (r'[a-zA-Z_]\w*', Name),
         ],
         'whitespace': [
@@ -169,7 +168,7 @@ class FelixLexer(RegexLexer):
             (r'#', Comment.Preproc, 'macro'),
         ],
         'operators': [
-            (r'(%s)\b' % '|'.join(operator_words), Operator.Word),
+            (r'({})\b'.format('|'.join(operator_words)), Operator.Word),
             (r'!=|==|<<|>>|\|\||&&|[-~+/*%=<>&^|.$]', Operator),
         ],
         'comment': [

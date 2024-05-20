@@ -6,7 +6,7 @@
 
     Derived from pygments/lexers/algebra.py.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,13 +22,12 @@ class MaximaLexer(RegexLexer):
     """
     A Maxima lexer.
     Derived from pygments.lexers.MuPADLexer.
-
-    .. versionadded:: 2.11
     """
     name = 'Maxima'
     url = 'http://maxima.sourceforge.net'
     aliases = ['maxima', 'macsyma']
     filenames = ['*.mac', '*.max']
+    version_added = '2.11'
 
     keywords = ('if', 'then', 'else', 'elseif',
                 'do', 'while', 'repeat', 'until',

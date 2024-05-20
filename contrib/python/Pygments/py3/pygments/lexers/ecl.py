@@ -4,7 +4,7 @@
 
     Lexers for the ECL language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,8 +20,6 @@ __all__ = ['ECLLexer']
 class ECLLexer(RegexLexer):
     """
     Lexer for the declarative big-data ECL language.
-
-    .. versionadded:: 1.5
     """
 
     name = 'ECL'
@@ -29,6 +27,7 @@ class ECLLexer(RegexLexer):
     aliases = ['ecl']
     filenames = ['*.ecl']
     mimetypes = ['application/x-ecl']
+    version_added = '1.5'
 
     flags = re.IGNORECASE | re.MULTILINE
 

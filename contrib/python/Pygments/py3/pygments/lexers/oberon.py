@@ -4,7 +4,7 @@
 
     Lexers for Oberon family languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,13 +20,13 @@ __all__ = ['ComponentPascalLexer']
 class ComponentPascalLexer(RegexLexer):
     """
     For Component Pascal source code.
-
-    .. versionadded:: 2.1
     """
     name = 'Component Pascal'
     aliases = ['componentpascal', 'cp']
     filenames = ['*.cp', '*.cps']
     mimetypes = ['text/x-component-pascal']
+    url = 'https://blackboxframework.org'
+    version_added = '2.1'
 
     flags = re.MULTILINE | re.DOTALL
 

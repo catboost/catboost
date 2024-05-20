@@ -4,7 +4,7 @@
 
     Lexer for the Vyper Smart Contract language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,13 +17,12 @@ __all__ = ['VyperLexer']
 
 class VyperLexer(RegexLexer):
     """For the Vyper smart contract language.
-    
-    .. versionadded:: 2.17
     """
     name = 'Vyper'
     aliases = ['vyper']
     filenames = ['*.vy']
     url = "https://vyper.readthedocs.io"
+    version_added = '2.17'
 
     tokens = {
         'root': [

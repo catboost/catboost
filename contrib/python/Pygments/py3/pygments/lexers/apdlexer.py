@@ -4,7 +4,7 @@
 
     Lexers for ANSYS Parametric Design Language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,12 +20,13 @@ __all__ = ['apdlexer']
 class apdlexer(RegexLexer):
     """
     For APDL source code.
-
-    .. versionadded:: 2.9
     """
     name = 'ANSYS parametric design language'
     aliases = ['ansys', 'apdl']
     filenames = ['*.ans']
+    url = 'https://www.ansys.com'
+    version_added = '2.9'
+
     flags = re.IGNORECASE
 
     # list of elements

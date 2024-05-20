@@ -4,7 +4,7 @@
 
     Lexers for Objective-C family languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -201,6 +201,7 @@ class ObjectiveCLexer(objective(CLexer)):
     aliases = ['objective-c', 'objectivec', 'obj-c', 'objc']
     filenames = ['*.m', '*.h']
     mimetypes = ['text/x-objective-c']
+    version_added = ''
     priority = 0.05    # Lower than C
 
 
@@ -213,20 +214,20 @@ class ObjectiveCppLexer(objective(CppLexer)):
     aliases = ['objective-c++', 'objectivec++', 'obj-c++', 'objc++']
     filenames = ['*.mm', '*.hh']
     mimetypes = ['text/x-objective-c++']
+    version_added = ''
     priority = 0.05    # Lower than C++
 
 
 class LogosLexer(ObjectiveCppLexer):
     """
     For Logos + Objective-C source code with preprocessor directives.
-
-    .. versionadded:: 1.6
     """
 
     name = 'Logos'
     aliases = ['logos']
     filenames = ['*.x', '*.xi', '*.xm', '*.xmi']
     mimetypes = ['text/x-logos']
+    version_added = '1.6'
     priority = 0.25
 
     tokens = {
@@ -283,14 +284,13 @@ class LogosLexer(ObjectiveCppLexer):
 class SwiftLexer(RegexLexer):
     """
     For Swift source.
-
-    .. versionadded:: 2.0
     """
     name = 'Swift'
     url = 'https://www.swift.org/'
     filenames = ['*.swift']
     aliases = ['swift']
     mimetypes = ['text/x-swift']
+    version_added = '2.0'
 
     tokens = {
         'root': [
@@ -403,6 +403,7 @@ class SwiftLexer(RegexLexer):
              r'\.[0-9_]*|[eE][+\-]?[0-9_]+)', Number.Float),
             (r'[0-9][0-9_]*', Number.Integer),
             # String Literal
+            (r'"""', String, 'string-multi'),
             (r'"', String, 'string'),
 
             # Operators and Punctuation
@@ -477,8 +478,15 @@ class SwiftLexer(RegexLexer):
             include('root')
         ],
         'string': [
-            (r'\\\(', String.Interpol, 'string-intp'),
             (r'"', String, '#pop'),
+            include("string-common"),
+        ],
+        'string-multi': [
+            (r'"""', String, '#pop'),
+            include("string-common"),
+        ],
+        'string-common': [
+            (r'\\\(', String.Interpol, 'string-intp'),
             (r"""\\['"\\nrt]|\\x[0-9a-fA-F]{2}|\\[0-7]{1,3}"""
              r"""|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8}""", String.Escape),
             (r'[^\\"]+', String),

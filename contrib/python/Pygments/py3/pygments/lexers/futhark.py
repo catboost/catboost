@@ -4,7 +4,7 @@
 
     Lexer for the Futhark language
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,14 +19,13 @@ __all__ = ['FutharkLexer']
 class FutharkLexer(RegexLexer):
     """
     A Futhark lexer
-
-    .. versionadded:: 2.8
     """
     name = 'Futhark'
     url = 'https://futhark-lang.org/'
     aliases = ['futhark']
     filenames = ['*.fut']
     mimetypes = ['text/x-futhark']
+    version_added = '2.8'
 
     num_types = ('i8', 'i16', 'i32', 'i64', 'u8', 'u16', 'u32', 'u64', 'f32', 'f64')
 
@@ -42,7 +41,7 @@ class FutharkLexer(RegexLexer):
              'DC[1-4]', 'NAK', 'SYN', 'ETB', 'CAN',
              'EM', 'SUB', 'ESC', '[FGRU]S', 'SP', 'DEL')
 
-    num_postfix = r'(%s)?' % '|'.join(num_types)
+    num_postfix = r'({})?'.format('|'.join(num_types))
 
     identifier_re = '[a-zA-Z_][a-zA-Z_0-9\']*'
 
@@ -53,12 +52,12 @@ class FutharkLexer(RegexLexer):
             (r'--(.*?)$', Comment.Single),
             (r'\s+', Whitespace),
             (r'\(\)', Punctuation),
-            (r'\b(%s)(?!\')\b' % '|'.join(reserved), Keyword.Reserved),
-            (r'\b(%s)(?!\')\b' % '|'.join(num_types + other_types), Keyword.Type),
+            (r'\b({})(?!\')\b'.format('|'.join(reserved)), Keyword.Reserved),
+            (r'\b({})(?!\')\b'.format('|'.join(num_types + other_types)), Keyword.Type),
 
             # Identifiers
             (r'#\[([a-zA-Z_\(\) ]*)\]', Comment.Preproc),
-            (r'[#!]?(%s\.)*%s' % (identifier_re, identifier_re), Name),
+            (rf'[#!]?({identifier_re}\.)*{identifier_re}', Name),
 
             (r'\\', Operator),
             (r'[-+/%=!><|&*^][-+/%=!><|&*^.]*', Operator),

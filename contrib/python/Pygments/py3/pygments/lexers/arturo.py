@@ -4,7 +4,7 @@
 
     Lexer for the Arturo language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -24,14 +24,13 @@ class ArturoLexer(RegexLexer):
 
     See `Arturo's Github <https://github.com/arturo-lang/arturo>`_
     and `Arturo's Website <https://arturo-lang.io/>`_.
-
-    .. versionadded:: 2.14.0
     """
 
     name = 'Arturo'
     aliases = ['arturo', 'art']
     filenames = ['*.art']
     url = 'https://arturo-lang.io/'
+    version_added = '2.14'
 
     def __init__(self, **options):
         self.handle_annotateds = get_bool_opt(options, 'handle_annotateds',

@@ -4,7 +4,7 @@
 
     Lexers for Ada family languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,14 +22,14 @@ __all__ = ['AdaLexer']
 class AdaLexer(RegexLexer):
     """
     For Ada source code.
-
-    .. versionadded:: 1.3
     """
 
     name = 'Ada'
     aliases = ['ada', 'ada95', 'ada2005']
     filenames = ['*.adb', '*.ads', '*.ada']
     mimetypes = ['text/x-ada']
+    url = 'https://www.adaic.org'
+    version_added = '1.3'
 
     flags = re.MULTILINE | re.IGNORECASE
 

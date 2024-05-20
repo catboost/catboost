@@ -4,7 +4,7 @@
 
     Lexers for Varnish configuration
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,13 +19,13 @@ __all__ = ['VCLLexer', 'VCLSnippetLexer']
 class VCLLexer(RegexLexer):
     """
     For Varnish Configuration Language (VCL).
-
-    .. versionadded:: 2.2
     """
     name = 'VCL'
     aliases = ['vcl']
     filenames = ['*.vcl']
     mimetypes = ['text/x-vclsrc']
+    url = 'https://www.varnish-software.com/developers/tutorials/varnish-configuration-language-vcl'
+    version_added = '2.2'
 
     def analyse_text(text):
         # If the very first line is 'vcl 4.0;' it's pretty much guaranteed
@@ -160,13 +160,13 @@ class VCLLexer(RegexLexer):
 class VCLSnippetLexer(VCLLexer):
     """
     For Varnish Configuration Language snippets.
-
-    .. versionadded:: 2.2
     """
     name = 'VCLSnippets'
     aliases = ['vclsnippets', 'vclsnippet']
     mimetypes = ['text/x-vclsnippet']
     filenames = []
+    url = 'https://www.varnish-software.com/developers/tutorials/varnish-configuration-language-vcl'
+    version_added = '2.2'
 
     def analyse_text(text):
         # override method inherited from VCLLexer

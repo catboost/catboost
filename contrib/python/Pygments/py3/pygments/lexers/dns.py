@@ -4,7 +4,7 @@
 
     Pygments lexers for DNS
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -31,8 +31,6 @@ class DnsZoneLexer(RegexLexer):
 
     """
     Lexer for DNS zone file
-
-    .. versionadded:: 2.16
     """
 
     flags = re.MULTILINE
@@ -42,6 +40,7 @@ class DnsZoneLexer(RegexLexer):
     filenames = [ "*.zone" ]
     url = "https://datatracker.ietf.org/doc/html/rfc1035"
     mimetypes = ['text/dns']
+    version_added = '2.16'
 
     tokens = {
        'root': [
@@ -73,22 +72,26 @@ class DnsZoneLexer(RegexLexer):
         'values': [
             (r'\n', Whitespace, "#pop"),
             (r'\(', Punctuation, 'nested'),
-            include('simple-values'),
+            include('simple-value'),
         ],
         # Parsing nested values (...):
         'nested': [
             (r'\)', Punctuation, "#pop"),
-            include('simple-values'),
+            include('multiple-simple-values'),
         ],
         # Parsing values:
-        'simple-values': [
-            (r'(;.*)(\n)', bygroups(Comment.Single, Whitespace)),
+        'simple-value': [
+            (r'(;.*)', bygroups(Comment.Single)),
             (r'[ \t]+', Whitespace),
             (r"@\b", Operator),
             ('"', String, 'string'),
             (r'[0-9]+[smhdw]?$', Number.Integer),
             (r'([0-9]+[smhdw]?)([ \t]+)', bygroups(Number.Integer, Whitespace)),
             (r'\S+', Literal),
+        ],
+        'multiple-simple-values': [
+            include('simple-value'),
+            (r'[\n]+', Whitespace),
         ],
         'include': [
             (r'([ \t]+)([^ \t\n]+)([ \t]+)([-\._a-zA-Z]+)([ \t]+)(;.*)?$',

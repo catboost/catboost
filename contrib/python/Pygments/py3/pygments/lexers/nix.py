@@ -4,7 +4,7 @@
 
     Lexers for the NixOS Nix language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,8 +20,6 @@ __all__ = ['NixLexer']
 class NixLexer(RegexLexer):
     """
     For the Nix language.
-
-    .. versionadded:: 2.0
     """
 
     name = 'Nix'
@@ -29,6 +27,7 @@ class NixLexer(RegexLexer):
     aliases = ['nixos', 'nix']
     filenames = ['*.nix']
     mimetypes = ['text/x-nix']
+    version_added = '2.0'
 
     keywords = ['rec', 'with', 'let', 'in', 'inherit', 'assert', 'if',
                 'else', 'then', '...']
@@ -51,10 +50,10 @@ class NixLexer(RegexLexer):
             (r'\s+', Text),
 
             # keywords
-            ('(%s)' % '|'.join(re.escape(entry) + '\\b' for entry in keywords), Keyword),
+            ('({})'.format('|'.join(re.escape(entry) + '\\b' for entry in keywords)), Keyword),
 
             # highlight the builtins
-            ('(%s)' % '|'.join(re.escape(entry) + '\\b' for entry in builtins),
+            ('({})'.format('|'.join(re.escape(entry) + '\\b' for entry in builtins)),
              Name.Builtin),
 
             (r'\b(true|false|null)\b', Name.Constant),
@@ -71,7 +70,7 @@ class NixLexer(RegexLexer):
             (r'\<[\w.+-]+(\/[\w.+-]+)*\>', Literal),
 
             # operators
-            ('(%s)' % '|'.join(re.escape(entry) for entry in operators),
+            ('({})'.format('|'.join(re.escape(entry) for entry in operators)),
              Operator),
 
             # word operators
@@ -80,7 +79,7 @@ class NixLexer(RegexLexer):
             (r'\{', Punctuation, 'block'),
 
             # punctuations
-            ('(%s)' % '|'.join(re.escape(entry) for entry in punctuations), Punctuation),
+            ('({})'.format('|'.join(re.escape(entry) for entry in punctuations)), Punctuation),
 
             # strings
             (r'"', String.Double, 'doublequote'),

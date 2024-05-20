@@ -4,7 +4,7 @@
 
     Lexers for the Julia language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -27,8 +27,6 @@ operator_suffixes = r'[²³¹ʰʲʳʷʸˡˢˣᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹ�
 class JuliaLexer(RegexLexer):
     """
     For Julia source code.
-
-    .. versionadded:: 1.6
     """
 
     name = 'Julia'
@@ -36,6 +34,7 @@ class JuliaLexer(RegexLexer):
     aliases = ['julia', 'jl']
     filenames = ['*.jl']
     mimetypes = ['text/x-julia', 'application/x-julia']
+    version_added = '1.6'
 
     tokens = {
         'root': [
@@ -247,11 +246,11 @@ class JuliaLexer(RegexLexer):
 class JuliaConsoleLexer(Lexer):
     """
     For Julia console sessions. Modeled after MatlabSessionLexer.
-
-    .. versionadded:: 1.6
     """
     name = 'Julia console'
     aliases = ['jlcon', 'julia-repl']
+    url = 'https://julialang.org/'
+    version_added = '1.6'
 
     def get_tokens_unprocessed(self, text):
         jllexer = JuliaLexer(**self.options)

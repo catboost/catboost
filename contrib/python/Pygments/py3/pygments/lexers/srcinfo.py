@@ -7,7 +7,7 @@
     The description of the format can be found in the wiki:
     https://wiki.archlinux.org/title/.SRCINFO
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -34,13 +34,13 @@ architecture_dependent_keywords = (
 
 class SrcinfoLexer(RegexLexer):
     """Lexer for .SRCINFO files used by Arch Linux Packages.
-
-    .. versionadded:: 2.11
     """
 
     name = 'Srcinfo'
     aliases = ['srcinfo']
     filenames = ['.SRCINFO']
+    url = 'https://wiki.archlinux.org/title/.SRCINFO'
+    version_added = '2.11'
 
     tokens = {
         'root': [

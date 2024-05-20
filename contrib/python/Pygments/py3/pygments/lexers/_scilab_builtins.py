@@ -4,7 +4,7 @@
 
     Builtin list for the ScilabLexer.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -3060,10 +3060,10 @@ if __name__ == '__main__':  # pragma: no cover
     def extract_completion(var_type):
         s = subprocess.Popen(['scilab', '-nwni'], stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output = s.communicate('''\
+        output = s.communicate(f'''\
 fd = mopen("/dev/stderr", "wt");
-mputl(strcat(completion("", "%s"), "||"), fd);
-mclose(fd)\n''' % var_type)
+mputl(strcat(completion("", "{var_type}"), "||"), fd);
+mclose(fd)\n''')
         if '||' not in output[1]:
             raise Exception(output[0])
         # Invalid DISPLAY causes this to be output:

@@ -9,7 +9,7 @@
     TODO: perl/python script in Asymptote SVN similar to asy-list.pl but only
     for function and variable names.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

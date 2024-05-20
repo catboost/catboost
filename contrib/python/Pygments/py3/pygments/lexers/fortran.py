@@ -4,7 +4,7 @@
 
     Lexers for Fortran languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,14 +20,13 @@ __all__ = ['FortranLexer', 'FortranFixedLexer']
 class FortranLexer(RegexLexer):
     """
     Lexer for FORTRAN 90 code.
-
-    .. versionadded:: 0.10
     """
     name = 'Fortran'
     url = 'https://fortran-lang.org/'
     aliases = ['fortran', 'f90']
     filenames = ['*.f03', '*.f90', '*.F03', '*.F90']
     mimetypes = ['text/x-fortran']
+    version_added = '0.10'
     flags = re.IGNORECASE | re.MULTILINE
 
     # Data Types: INTEGER, REAL, COMPLEX, LOGICAL, CHARACTER and DOUBLE PRECISION
@@ -173,12 +172,12 @@ class FortranLexer(RegexLexer):
 class FortranFixedLexer(RegexLexer):
     """
     Lexer for fixed format Fortran.
-
-    .. versionadded:: 2.1
     """
     name = 'FortranFixed'
     aliases = ['fortranfixed']
     filenames = ['*.f', '*.F']
+    url = 'https://fortran-lang.org/'
+    version_added = '2.1'
 
     flags = re.IGNORECASE
 

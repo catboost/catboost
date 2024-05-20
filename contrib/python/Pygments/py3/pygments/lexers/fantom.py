@@ -4,7 +4,7 @@
 
     Lexer for the Fantom language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,13 +21,13 @@ __all__ = ['FantomLexer']
 class FantomLexer(RegexLexer):
     """
     For Fantom source code.
-
-    .. versionadded:: 1.5
     """
     name = 'Fantom'
     aliases = ['fan']
     filenames = ['*.fan']
     mimetypes = ['application/x-fantom']
+    url = 'https://www.fantom.org'
+    version_added = '1.5'
 
     # often used regexes
     def s(str):

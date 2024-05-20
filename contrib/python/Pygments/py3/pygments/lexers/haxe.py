@@ -4,7 +4,7 @@
 
     Lexers for Haxe and related stuff.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,8 +21,6 @@ __all__ = ['HaxeLexer', 'HxmlLexer']
 class HaxeLexer(ExtendedRegexLexer):
     """
     For Haxe source code.
-
-    .. versionadded:: 1.3
     """
 
     name = 'Haxe'
@@ -30,6 +28,7 @@ class HaxeLexer(ExtendedRegexLexer):
     aliases = ['haxe', 'hxsl', 'hx']
     filenames = ['*.hx', '*.hxsl']
     mimetypes = ['text/haxe', 'text/x-haxe', 'text/x-hx']
+    version_added = '1.3'
 
     # keywords extracted from lexer.mll in the haxe compiler source
     keyword = (r'(?:function|class|static|var|if|else|while|do|for|'
@@ -898,13 +897,12 @@ class HaxeLexer(ExtendedRegexLexer):
 class HxmlLexer(RegexLexer):
     """
     Lexer for haXe build files.
-
-    .. versionadded:: 1.6
     """
     name = 'Hxml'
     url = 'https://haxe.org/manual/compiler-usage-hxml.html'
     aliases = ['haxeml', 'hxml']
     filenames = ['*.hxml']
+    version_added = '1.6'
 
     tokens = {
         'root': [

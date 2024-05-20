@@ -4,7 +4,7 @@
 
     Lexer for the Blueprint UI markup language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -28,8 +28,6 @@ __all__ = ["BlueprintLexer"]
 class BlueprintLexer(RegexLexer):
     """
     For Blueprint UI markup.
-
-    .. versionadded:: 2.16
     """
 
     name = "Blueprint"
@@ -37,6 +35,7 @@ class BlueprintLexer(RegexLexer):
     filenames = ["*.blp"]
     mimetypes = ["text/x-blueprint"]
     url = "https://gitlab.gnome.org/jwestman/blueprint-compiler"
+    version_added = '2.16'
 
     flags = re.IGNORECASE
     tokens = {

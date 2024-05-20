@@ -4,7 +4,7 @@
 
     Lexers for hexadecimal dumps.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -33,11 +33,11 @@ class HexdumpLexer(RegexLexer):
     * ``od -t x1z FILE``
     * ``xxd FILE``
     * ``DEBUG.EXE FILE.COM`` and entering ``d`` to the prompt.
-
-    .. versionadded:: 2.1
     """
     name = 'Hexdump'
     aliases = ['hexdump']
+    url = 'https://en.wikipedia.org/wiki/Hex_dump'
+    version_added = '2.1'
 
     hd = r'[0-9A-Ha-h]'
 

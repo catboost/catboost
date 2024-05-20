@@ -10,7 +10,7 @@
 
     Run with `python -I` to regenerate.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -230,7 +230,7 @@ if __name__ == '__main__':  # pragma: no cover
                 return m.groups()[0]
 
     def get_lua_functions(version):
-        f = urlopen('http://www.lua.org/manual/%s/' % version)
+        f = urlopen(f'http://www.lua.org/manual/{version}/')
         r = re.compile(r'^<A HREF="manual.html#pdf-(?!lua|LUA)([^:]+)">\1</A>')
         functions = []
         for line in f:
@@ -258,14 +258,14 @@ if __name__ == '__main__':  # pragma: no cover
 
         with open(filename, 'w', encoding='utf-8') as fp:
             fp.write(header)
-            fp.write('MODULES = %s\n\n' % pprint.pformat(modules))
+            fp.write(f'MODULES = {pprint.pformat(modules)}\n\n')
             fp.write(footer)
 
     def run():
         version = get_newest_version()
         functions = set()
         for v in ('5.2', version):
-            print('> Downloading function index for Lua %s' % v)
+            print(f'> Downloading function index for Lua {v}')
             f = get_lua_functions(v)
             print('> %d functions found, %d new:' %
                   (len(f), len(set(f) - functions)))
@@ -275,7 +275,7 @@ if __name__ == '__main__':  # pragma: no cover
 
         modules = {}
         for full_function_name in functions:
-            print('>> %s' % full_function_name)
+            print(f'>> {full_function_name}')
             m = get_function_module(full_function_name)
             modules.setdefault(m, []).append(full_function_name)
         modules = {k: tuple(v) for k, v in modules.items()}

@@ -4,10 +4,11 @@
 
     Just export previously exported lexers.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
+# ruff: noqa: F401
 from pygments.lexers.html import HtmlLexer, DtdLexer, XmlLexer, XsltLexer, \
     HamlLexer, ScamlLexer, JadeLexer
 from pygments.lexers.css import CssLexer, SassLexer, ScssLexer

@@ -4,7 +4,7 @@
 
     Lexer for the BARE schema.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,13 +17,12 @@ __all__ = ['BareLexer']
 class BareLexer(RegexLexer):
     """
     For BARE schema source.
-
-    .. versionadded:: 2.7
     """
     name = 'BARE'
     url = 'https://baremessages.org'
     filenames = ['*.bare']
     aliases = ['bare']
+    version_added = '2.7'
 
     keywords = [
         'type',

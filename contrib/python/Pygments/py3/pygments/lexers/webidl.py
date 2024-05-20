@@ -4,7 +4,7 @@
 
     Lexers for Web IDL, including some extensions.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -39,14 +39,13 @@ _string = r'"[^"]*"'
 class WebIDLLexer(RegexLexer):
     """
     For Web IDL.
-
-    .. versionadded:: 2.6
     """
 
     name = 'Web IDL'
     url = 'https://www.w3.org/wiki/Web_IDL'
     aliases = ['webidl']
     filenames = ['*.webidl']
+    version_added = '2.6'
 
     tokens = {
         'common': [

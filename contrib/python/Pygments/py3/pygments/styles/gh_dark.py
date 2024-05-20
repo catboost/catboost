@@ -5,7 +5,7 @@
     Github's Dark-Colorscheme based theme for Pygments
     Colors extracted from https://github.com/primer/primitives
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

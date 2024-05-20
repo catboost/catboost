@@ -4,7 +4,7 @@
 
     Lexers for .net languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 import re
@@ -50,6 +50,7 @@ class CSharpLexer(RegexLexer):
     aliases = ['csharp', 'c#', 'cs']
     filenames = ['*.cs']
     mimetypes = ['text/x-csharp']  # inferred
+    version_added = ''
 
     flags = re.MULTILINE | re.DOTALL
 
@@ -164,8 +165,6 @@ class NemerleLexer(RegexLexer):
         ``Lo`` category has more than 40,000 characters in it!
 
       The default value is ``basic``.
-
-    .. versionadded:: 1.5
     """
 
     name = 'Nemerle'
@@ -173,6 +172,7 @@ class NemerleLexer(RegexLexer):
     aliases = ['nemerle']
     filenames = ['*.n']
     mimetypes = ['text/x-nemerle']  # inferred
+    version_added = '1.5'
 
     flags = re.MULTILINE | re.DOTALL
 
@@ -333,6 +333,7 @@ class BooLexer(RegexLexer):
     aliases = ['boo']
     filenames = ['*.boo']
     mimetypes = ['text/x-boo']
+    version_added = ''
 
     tokens = {
         'root': [
@@ -399,9 +400,10 @@ class VbNetLexer(RegexLexer):
 
     name = 'VB.net'
     url = 'https://docs.microsoft.com/en-us/dotnet/visual-basic/'
-    aliases = ['vb.net', 'vbnet', 'lobas', 'oobas', 'sobas']
+    aliases = ['vb.net', 'vbnet', 'lobas', 'oobas', 'sobas', 'visual-basic', 'visualbasic']
     filenames = ['*.vb', '*.bas']
     mimetypes = ['text/x-vbnet', 'text/x-vba']  # (?)
+    version_added = ''
 
     uni_name = '[_' + uni.combine('Ll', 'Lt', 'Lm', 'Nl') + ']' + \
                '[' + uni.combine('Ll', 'Lt', 'Lm', 'Nl', 'Nd', 'Pc',
@@ -510,6 +512,7 @@ class GenericAspxLexer(RegexLexer):
     name = 'aspx-gen'
     filenames = []
     mimetypes = []
+    url = 'https://dotnet.microsoft.com/en-us/apps/aspnet'
 
     flags = re.DOTALL
 
@@ -535,6 +538,8 @@ class CSharpAspxLexer(DelegatingLexer):
     aliases = ['aspx-cs']
     filenames = ['*.aspx', '*.asax', '*.ascx', '*.ashx', '*.asmx', '*.axd']
     mimetypes = []
+    url = 'https://dotnet.microsoft.com/en-us/apps/aspnet'
+    version_added = ''
 
     def __init__(self, **options):
         super().__init__(CSharpLexer, GenericAspxLexer, **options)
@@ -555,6 +560,8 @@ class VbNetAspxLexer(DelegatingLexer):
     aliases = ['aspx-vb']
     filenames = ['*.aspx', '*.asax', '*.ascx', '*.ashx', '*.asmx', '*.axd']
     mimetypes = []
+    url = 'https://dotnet.microsoft.com/en-us/apps/aspnet'
+    version_added = ''
 
     def __init__(self, **options):
         super().__init__(VbNetLexer, GenericAspxLexer, **options)
@@ -570,8 +577,6 @@ class VbNetAspxLexer(DelegatingLexer):
 class FSharpLexer(RegexLexer):
     """
     For the F# language (version 3.0).
-
-    .. versionadded:: 1.5
     """
 
     name = 'F#'
@@ -579,6 +584,7 @@ class FSharpLexer(RegexLexer):
     aliases = ['fsharp', 'f#']
     filenames = ['*.fs', '*.fsi', '*.fsx']
     mimetypes = ['text/x-fsharp']
+    version_added = '1.5'
 
     keywords = [
         'abstract', 'as', 'assert', 'base', 'begin', 'class', 'default',
@@ -649,12 +655,12 @@ class FSharpLexer(RegexLexer):
              bygroups(Keyword, Whitespace, Name.Class)),
             (r'\b(member|override)(\s+)(\w+)(\.)(\w+)',
              bygroups(Keyword, Whitespace, Name, Punctuation, Name.Function)),
-            (r'\b(%s)\b' % '|'.join(keywords), Keyword),
+            (r'\b({})\b'.format('|'.join(keywords)), Keyword),
             (r'``([^`\n\r\t]|`[^`\n\r\t])+``', Name),
-            (r'(%s)' % '|'.join(keyopts), Operator),
-            (r'(%s|%s)?%s' % (infix_syms, prefix_syms, operators), Operator),
-            (r'\b(%s)\b' % '|'.join(word_operators), Operator.Word),
-            (r'\b(%s)\b' % '|'.join(primitives), Keyword.Type),
+            (r'({})'.format('|'.join(keyopts)), Operator),
+            (rf'({infix_syms}|{prefix_syms})?{operators}', Operator),
+            (r'\b({})\b'.format('|'.join(word_operators)), Operator.Word),
+            (r'\b({})\b'.format('|'.join(primitives)), Keyword.Type),
             (r'(#)([ \t]*)(if|endif|else|line|nowarn|light|\d+)\b(.*?)(\n)',
              bygroups(Comment.Preproc, Whitespace, Comment.Preproc,
                       Comment.Preproc, Whitespace)),
@@ -733,21 +739,20 @@ class XppLexer(RegexLexer):
 
     """
     For X++ source code. This is based loosely on the CSharpLexer
-
-    .. versionadded:: 2.15
     """
 
     name = 'X++'
     url = 'https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/dev-ref/xpp-language-reference'
     aliases = ['xpp', 'x++']
     filenames = ['*.xpp']
+    version_added = '2.15'
 
     flags = re.MULTILINE
 
     XPP_CHARS = ('@?(?:_|[^' +
                  uni.allexcept('Lu', 'Ll', 'Lt', 'Lm', 'Lo', 'Nl') + '])' +
                  '[^' + uni.allexcept('Lu', 'Ll', 'Lt', 'Lm', 'Lo', 'Nl',
-                                      'Nd', 'Pc', 'Cf', 'Mn', 'Mc') + ']*');
+                                      'Nd', 'Pc', 'Cf', 'Mn', 'Mc') + ']*')
     # Temporary, see
     # https://github.com/thatch/regexlint/pull/49
     XPP_CHARS = XPP_CHARS.replace('\x00', '\x01')

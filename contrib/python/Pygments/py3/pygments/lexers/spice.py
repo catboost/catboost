@@ -4,7 +4,7 @@
 
     Lexers for the Spice programming language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,14 +18,13 @@ __all__ = ['SpiceLexer']
 class SpiceLexer(RegexLexer):
     """
     For Spice source.
-
-    .. versionadded:: 2.11
     """
     name = 'Spice'
     url = 'https://www.spicelang.com'
     filenames = ['*.spice']
     aliases = ['spice', 'spicelang']
     mimetypes = ['text/x-spice']
+    version_added = '2.11'
 
     tokens = {
         'root': [
@@ -39,12 +38,13 @@ class SpiceLexer(RegexLexer):
             # keywords
             (r'(import|as)\b', Keyword.Namespace),
             (r'(f|p|type|struct|interface|enum|alias|operator)\b', Keyword.Declaration),
-            (words(('if', 'else', 'for', 'foreach', 'do', 'while', 'break',
-                    'continue', 'return', 'assert', 'unsafe', 'ext'), suffix=r'\b'), Keyword),
-            (words(('const', 'signed', 'unsigned', 'inline', 'public', 'heap'),
+            (words(('if', 'else', 'switch', 'case', 'default', 'for', 'foreach', 'do',
+                    'while', 'break', 'continue', 'fallthrough', 'return', 'assert',
+                    'unsafe', 'ext'), suffix=r'\b'), Keyword),
+            (words(('const', 'signed', 'unsigned', 'inline', 'public', 'heap', 'compose'),
                    suffix=r'\b'), Keyword.Pseudo),
-            (words(('new', 'switch', 'case', 'yield', 'stash', 'pick', 'sync',
-                    'class'), suffix=r'\b'), Keyword.Reserved),
+            (words(('new', 'yield', 'stash', 'pick', 'sync', 'class'), suffix=r'\b'),
+                   Keyword.Reserved),
             (r'(true|false|nil)\b', Keyword.Constant),
             (words(('double', 'int', 'short', 'long', 'byte', 'char', 'string',
                     'bool', 'dyn'), suffix=r'\b'), Keyword.Type),

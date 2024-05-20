@@ -4,7 +4,7 @@
 
     Lexers for the JSLT language
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,14 +22,13 @@ _WORD_END = r'(?=[^0-9A-Z_a-z-])'
 class JSLTLexer(RegexLexer):
     """
     For JSLT source.
-
-    .. versionadded:: 2.10
     """
     name = 'JSLT'
     url = 'https://github.com/schibsted/jslt'
     filenames = ['*.jslt']
     aliases = ['jslt']
     mimetypes = ['text/x-jslt']
+    version_added = '2.10'
 
     tokens = {
         'root': [

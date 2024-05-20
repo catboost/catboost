@@ -4,7 +4,7 @@
 
     Lexers for the OpenSCAD languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -16,14 +16,13 @@ __all__ = ['OpenScadLexer']
 
 class OpenScadLexer(RegexLexer):
     """For openSCAD code.
-
-    .. versionadded:: 2.16
     """
     name = "OpenSCAD"
     url = "https://openscad.org/"
     aliases = ["openscad"]
     filenames = ["*.scad"]
     mimetypes = ["application/x-openscad"]
+    version_added = '2.16'
 
     tokens = {
         "root": [

@@ -4,7 +4,7 @@
 
     Lexers for interactive fiction languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,14 +22,13 @@ __all__ = ['Inform6Lexer', 'Inform6TemplateLexer', 'Inform7Lexer',
 class Inform6Lexer(RegexLexer):
     """
     For Inform 6 source code.
-
-    .. versionadded:: 2.0
     """
 
     name = 'Inform 6'
     url = 'http://inform-fiction.org/'
     aliases = ['inform6', 'i6']
     filenames = ['*.inf']
+    version_added = '2.0'
 
     flags = re.MULTILINE | re.DOTALL
 
@@ -45,13 +44,13 @@ class Inform6Lexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\A(!%%[^%s]*[%s])+' % (_newline, _newline), Comment.Preproc,
+            (rf'\A(!%[^{_newline}]*[{_newline}])+', Comment.Preproc,
              'directive'),
             default('directive')
         ],
         '_whitespace': [
             (r'\s+', Text),
-            (r'![^%s]*' % _newline, Comment.Single)
+            (rf'![^{_newline}]*', Comment.Single)
         ],
         'default': [
             include('_whitespace'),
@@ -65,20 +64,20 @@ class Inform6Lexer(RegexLexer):
         '_expression': [
             include('_whitespace'),
             (r'(?=sp\b)', Text, '#pop'),
-            (r'(?=[%s%s$0-9#a-zA-Z_])' % (_dquote, _squote), Text,
+            (rf'(?=[{_dquote}{_squote}$0-9#a-zA-Z_])', Text,
              ('#pop', 'value')),
-            (r'\+\+|[%s]{1,2}(?!>)|~~?' % _dash, Operator),
-            (r'(?=[()\[%s,?@{:;])' % _dash, Text, '#pop')
+            (rf'\+\+|[{_dash}]{{1,2}}(?!>)|~~?', Operator),
+            (rf'(?=[()\[{_dash},?@{{:;])', Text, '#pop')
         ],
         'expression': [
             include('_whitespace'),
             (r'\(', Punctuation, ('expression', '_expression')),
             (r'\)', Punctuation, '#pop'),
             (r'\[', Punctuation, ('#pop', 'statements', 'locals')),
-            (r'>(?=(\s+|(![^%s]*))*[>;])' % _newline, Punctuation),
-            (r'\+\+|[%s]{2}(?!>)' % _dash, Operator),
+            (rf'>(?=(\s+|(![^{_newline}]*))*[>;])', Punctuation),
+            (rf'\+\+|[{_dash}]{{2}}(?!>)', Operator),
             (r',', Punctuation, '_expression'),
-            (r'&&?|\|\|?|[=~><]?=|[%s]{1,2}>?|\.\.?[&#]?|::|[<>+*/%%]' % _dash,
+            (rf'&&?|\|\|?|[=~><]?=|[{_dash}]{{1,2}}>?|\.\.?[&#]?|::|[<>+*/%]',
              Operator, '_expression'),
             (r'(has|hasnt|in|notin|ofclass|or|provides)\b', Operator.Word,
              '_expression'),
@@ -90,7 +89,7 @@ class Inform6Lexer(RegexLexer):
         '_assembly-expression': [
             (r'\(', Punctuation, ('#push', '_expression')),
             (r'[\[\]]', Punctuation),
-            (r'[%s]>' % _dash, Punctuation, '_expression'),
+            (rf'[{_dash}]>', Punctuation, '_expression'),
             (r'sp\b', Keyword.Pseudo),
             (r';', Punctuation, '#pop:3'),
             include('expression')
@@ -117,25 +116,25 @@ class Inform6Lexer(RegexLexer):
         'value': [
             include('_whitespace'),
             # Strings
-            (r'[%s][^@][%s]' % (_squote, _squote), String.Char, '#pop'),
-            (r'([%s])(@\{[0-9a-fA-F]*\})([%s])' % (_squote, _squote),
+            (rf'[{_squote}][^@][{_squote}]', String.Char, '#pop'),
+            (rf'([{_squote}])(@\{{[0-9a-fA-F]*\}})([{_squote}])',
              bygroups(String.Char, String.Escape, String.Char), '#pop'),
-            (r'([%s])(@.{2})([%s])' % (_squote, _squote),
+            (rf'([{_squote}])(@.{{2}})([{_squote}])',
              bygroups(String.Char, String.Escape, String.Char), '#pop'),
-            (r'[%s]' % _squote, String.Single, ('#pop', 'dictionary-word')),
-            (r'[%s]' % _dquote, String.Double, ('#pop', 'string')),
+            (rf'[{_squote}]', String.Single, ('#pop', 'dictionary-word')),
+            (rf'[{_dquote}]', String.Double, ('#pop', 'string')),
             # Numbers
-            (r'\$[<>]?[+%s][0-9]*\.?[0-9]*([eE][+%s]?[0-9]+)?' % (_dash, _dash),
+            (rf'\$[<>]?[+{_dash}][0-9]*\.?[0-9]*([eE][+{_dash}]?[0-9]+)?',
              Number.Float, '#pop'),
             (r'\$[0-9a-fA-F]+', Number.Hex, '#pop'),
             (r'\$\$[01]+', Number.Bin, '#pop'),
             (r'[0-9]+', Number.Integer, '#pop'),
             # Values prefixed by hashes
-            (r'(##|#a\$)(%s)' % _name, bygroups(Operator, Name), '#pop'),
-            (r'(#g\$)(%s)' % _name,
+            (rf'(##|#a\$)({_name})', bygroups(Operator, Name), '#pop'),
+            (rf'(#g\$)({_name})',
              bygroups(Operator, Name.Variable.Global), '#pop'),
             (r'#[nw]\$', Operator, ('#pop', 'obsolete-dictionary-word')),
-            (r'(#r\$)(%s)' % _name, bygroups(Operator, Name.Function), '#pop'),
+            (rf'(#r\$)({_name})', bygroups(Operator, Name.Function), '#pop'),
             (r'#', Name.Builtin, ('#pop', 'system-constant')),
             # System functions
             (words((
@@ -182,32 +181,31 @@ class Inform6Lexer(RegexLexer):
         ],
         # Strings
         'dictionary-word': [
-            (r'[~^]+', String.Escape),
-            (r'[^~^\\@({%s]+' % _squote, String.Single),
-            (r'[({]', String.Single),
+            (rf'[~^]+|//[^{_squote}]*', String.Escape),
+            (rf'[^~^/\\@({{{_squote}]+', String.Single),
+            (r'[/({]', String.Single),
             (r'@\{[0-9a-fA-F]*\}', String.Escape),
             (r'@.{2}', String.Escape),
-            (r'[%s]' % _squote, String.Single, '#pop')
+            (rf'[{_squote}]', String.Single, '#pop')
         ],
         'string': [
             (r'[~^]+', String.Escape),
-            (r'[^~^\\@({%s]+' % _dquote, String.Double),
+            (rf'[^~^\\@({{{_dquote}]+', String.Double),
             (r'[({]', String.Double),
             (r'\\', String.Escape),
-            (r'@(\\\s*[%s]\s*)*@((\\\s*[%s]\s*)*[0-9])*' %
-             (_newline, _newline), String.Escape),
-            (r'@(\\\s*[%s]\s*)*[({]((\\\s*[%s]\s*)*[0-9a-zA-Z_])*'
-             r'(\\\s*[%s]\s*)*[)}]' % (_newline, _newline, _newline),
+            (rf'@(\\\s*[{_newline}]\s*)*@((\\\s*[{_newline}]\s*)*[0-9])*', String.Escape),
+            (rf'@(\\\s*[{_newline}]\s*)*[({{]((\\\s*[{_newline}]\s*)*[0-9a-zA-Z_])*'
+             rf'(\\\s*[{_newline}]\s*)*[)}}]',
              String.Escape),
-            (r'@(\\\s*[%s]\s*)*.(\\\s*[%s]\s*)*.' % (_newline, _newline),
+            (rf'@(\\\s*[{_newline}]\s*)*.(\\\s*[{_newline}]\s*)*.',
              String.Escape),
-            (r'[%s]' % _dquote, String.Double, '#pop')
+            (rf'[{_dquote}]', String.Double, '#pop')
         ],
         'plain-string': [
-            (r'[^~^\\({\[\]%s]+' % _dquote, String.Double),
+            (rf'[^~^\\({{\[\]{_dquote}]+', String.Double),
             (r'[~^({\[\]]', String.Double),
             (r'\\', String.Escape),
-            (r'[%s]' % _dquote, String.Double, '#pop')
+            (rf'[{_dquote}]', String.Double, '#pop')
         ],
         # Names
         '_constant': [
@@ -326,7 +324,7 @@ class Inform6Lexer(RegexLexer):
             default('#pop')
         ],
         '_object-head': [
-            (r'[%s]>' % _dash, Punctuation),
+            (rf'[{_dash}]>', Punctuation),
             (r'(class|has|private|with)\b', Keyword.Declaration, '#pop'),
             include('_global')
         ],
@@ -356,7 +354,7 @@ class Inform6Lexer(RegexLexer):
             include('_whitespace'),
             (r';', Punctuation, '#pop'),
             (r'[/*]', Punctuation),
-            (r'[%s]>' % _dash, Punctuation, 'value'),
+            (rf'[{_dash}]>', Punctuation, 'value'),
             (r'(noun|scope)\b', Keyword, '=routine'),
             default('_directive-keyword')
         ],
@@ -376,12 +374,12 @@ class Inform6Lexer(RegexLexer):
         # Include, Link, Message
         'diagnostic': [
             include('_whitespace'),
-            (r'[%s]' % _dquote, String.Double, ('#pop', 'message-string')),
+            (rf'[{_dquote}]', String.Double, ('#pop', 'message-string')),
             default(('#pop', 'before-plain-string?', 'directive-keyword?'))
         ],
         'before-plain-string?': [
             include('_whitespace'),
-            (r'[%s]' % _dquote, String.Double, ('#pop', 'plain-string')),
+            (rf'[{_dquote}]', String.Double, ('#pop', 'plain-string')),
             default('#pop')
         ],
         'message-string': [
@@ -400,7 +398,7 @@ class Inform6Lexer(RegexLexer):
                 'terminating', 'time', 'topic', 'warning', 'with'), suffix=r'\b'),
              Keyword, '#pop'),
             (r'static\b', Keyword),
-            (r'[%s]{1,2}>|[+=]' % _dash, Punctuation, '#pop')
+            (rf'[{_dash}]{{1,2}}>|[+=]', Punctuation, '#pop')
         ],
         '_directive-keyword': [
             include('_directive-keyword!'),
@@ -413,7 +411,7 @@ class Inform6Lexer(RegexLexer):
         'property-keyword*': [
             include('_whitespace'),
             (words(('additive', 'individual', 'long'),
-                suffix=r'\b(?=(\s*|(![^%s]*[%s]))*[_a-zA-Z])' % (_newline, _newline)),
+                suffix=rf'\b(?=(\s*|(![^{_newline}]*[{_newline}]))*[_a-zA-Z])'),
              Keyword),
             default('#pop')
         ],
@@ -445,7 +443,7 @@ class Inform6Lexer(RegexLexer):
             (r'(jump|save|restore)\b', Keyword, ('default', 'label?')),
             (r'objectloop\b', Keyword,
              ('_keyword-expression', 'variable?', '(?')),
-            (r'print(_ret)?\b|(?=[%s])' % _dquote, Keyword, 'print-list'),
+            (rf'print(_ret)?\b|(?=[{_dquote}])', Keyword, 'print-list'),
             (r'\.', Name.Label, 'label?'),
             (r'@', Keyword, 'opcode'),
             (r'#(?![agrnw]\$|#)', Punctuation, 'directive'),
@@ -459,9 +457,9 @@ class Inform6Lexer(RegexLexer):
             (r'(bold|fixed|from|near|off|on|reverse|roman|to|underline)\b',
              Keyword, '#pop'),
             (r'(a|A|an|address|char|name|number|object|property|string|the|'
-             r'The)\b(?=(\s+|(![^%s]*))*\))' % _newline, Keyword.Pseudo,
+             rf'The)\b(?=(\s+|(![^{_newline}]*))*\))', Keyword.Pseudo,
              '#pop'),
-            (r'%s(?=(\s+|(![^%s]*))*\))' % (_name, _newline), Name.Function,
+            (rf'{_name}(?=(\s+|(![^{_newline}]*))*\))', Name.Function,
              '#pop'),
             default('#pop')
         ],
@@ -490,7 +488,8 @@ class Inform6Lexer(RegexLexer):
         # Assembly
         'opcode': [
             include('_whitespace'),
-            (r'[%s]' % _dquote, String.Double, ('operands', 'plain-string')),
+            (rf'[{_dquote}]', String.Double, ('operands', 'plain-string')),
+            (rf'[{_dash}]{{1,2}}>', Punctuation, 'operands'),
             (_name, Keyword, 'operands')
         ],
         'operands': [
@@ -543,21 +542,20 @@ class Inform6Lexer(RegexLexer):
 class Inform7Lexer(RegexLexer):
     """
     For Inform 7 source code.
-
-    .. versionadded:: 2.0
     """
 
     name = 'Inform 7'
     url = 'http://inform7.com/'
     aliases = ['inform7', 'i7']
     filenames = ['*.ni', '*.i7x']
+    version_added = '2.0'
 
     flags = re.MULTILINE | re.DOTALL
 
     _dash = Inform6Lexer._dash
     _dquote = Inform6Lexer._dquote
     _newline = Inform6Lexer._newline
-    _start = r'\A|(?<=[%s])' % _newline
+    _start = rf'\A|(?<=[{_newline}])'
 
     # There are three variants of Inform 7, differing in how to
     # interpret at signs and braces in I6T. In top-level inclusions, at
@@ -571,47 +569,46 @@ class Inform7Lexer(RegexLexer):
         tokens[level] = {
             '+i6-root': list(Inform6Lexer.tokens['root']),
             '+i6t-root': [  # For Inform6TemplateLexer
-                (r'[^%s]*' % Inform6Lexer._newline, Comment.Preproc,
+                (rf'[^{Inform6Lexer._newline}]*', Comment.Preproc,
                  ('directive', '+p'))
             ],
             'root': [
                 (r'(\|?\s)+', Text),
                 (r'\[', Comment.Multiline, '+comment'),
-                (r'[%s]' % _dquote, Generic.Heading,
+                (rf'[{_dquote}]', Generic.Heading,
                  ('+main', '+titling', '+titling-string')),
                 default(('+main', '+heading?'))
             ],
             '+titling-string': [
-                (r'[^%s]+' % _dquote, Generic.Heading),
-                (r'[%s]' % _dquote, Generic.Heading, '#pop')
+                (rf'[^{_dquote}]+', Generic.Heading),
+                (rf'[{_dquote}]', Generic.Heading, '#pop')
             ],
             '+titling': [
                 (r'\[', Comment.Multiline, '+comment'),
-                (r'[^%s.;:|%s]+' % (_dquote, _newline), Generic.Heading),
-                (r'[%s]' % _dquote, Generic.Heading, '+titling-string'),
-                (r'[%s]{2}|(?<=[\s%s])\|[\s%s]' % (_newline, _dquote, _dquote),
+                (rf'[^{_dquote}.;:|{_newline}]+', Generic.Heading),
+                (rf'[{_dquote}]', Generic.Heading, '+titling-string'),
+                (rf'[{_newline}]{{2}}|(?<=[\s{_dquote}])\|[\s{_dquote}]',
                  Text, ('#pop', '+heading?')),
-                (r'[.;:]|(?<=[\s%s])\|' % _dquote, Text, '#pop'),
-                (r'[|%s]' % _newline, Generic.Heading)
+                (rf'[.;:]|(?<=[\s{_dquote}])\|', Text, '#pop'),
+                (rf'[|{_newline}]', Generic.Heading)
             ],
             '+main': [
-                (r'(?i)[^%s:a\[(|%s]+' % (_dquote, _newline), Text),
-                (r'[%s]' % _dquote, String.Double, '+text'),
+                (rf'(?i)[^{_dquote}:a\[(|{_newline}]+', Text),
+                (rf'[{_dquote}]', String.Double, '+text'),
                 (r':', Text, '+phrase-definition'),
                 (r'(?i)\bas\b', Text, '+use-option'),
                 (r'\[', Comment.Multiline, '+comment'),
-                (r'(\([%s])(.*?)([%s]\))' % (_dash, _dash),
+                (rf'(\([{_dash}])(.*?)([{_dash}]\))',
                  bygroups(Punctuation,
                           using(this, state=('+i6-root', 'directive'),
                                 i6t='+i6t-not-inline'), Punctuation)),
-                (r'(%s|(?<=[\s;:.%s]))\|\s|[%s]{2,}' %
-                 (_start, _dquote, _newline), Text, '+heading?'),
-                (r'(?i)[a(|%s]' % _newline, Text)
+                (rf'({_start}|(?<=[\s;:.{_dquote}]))\|\s|[{_newline}]{{2,}}', Text, '+heading?'),
+                (rf'(?i)[a(|{_newline}]', Text)
             ],
             '+phrase-definition': [
                 (r'\s+', Text),
                 (r'\[', Comment.Multiline, '+comment'),
-                (r'(\([%s])(.*?)([%s]\))' % (_dash, _dash),
+                (rf'(\([{_dash}])(.*?)([{_dash}]\))',
                  bygroups(Punctuation,
                           using(this, state=('+i6-root', 'directive',
                                              'default', 'statements'),
@@ -621,7 +618,7 @@ class Inform7Lexer(RegexLexer):
             '+use-option': [
                 (r'\s+', Text),
                 (r'\[', Comment.Multiline, '+comment'),
-                (r'(\([%s])(.*?)([%s]\))' % (_dash, _dash),
+                (rf'(\([{_dash}])(.*?)([{_dash}]\))',
                  bygroups(Punctuation,
                           using(this, state=('+i6-root', 'directive'),
                                 i6t='+i6t-use-option'), Punctuation), '#pop'),
@@ -633,16 +630,16 @@ class Inform7Lexer(RegexLexer):
                 (r'\]', Comment.Multiline, '#pop')
             ],
             '+text': [
-                (r'[^\[%s]+' % _dquote, String.Double),
+                (rf'[^\[{_dquote}]+', String.Double),
                 (r'\[.*?\]', String.Interpol),
-                (r'[%s]' % _dquote, String.Double, '#pop')
+                (rf'[{_dquote}]', String.Double, '#pop')
             ],
             '+heading?': [
                 (r'(\|?\s)+', Text),
                 (r'\[', Comment.Multiline, '+comment'),
-                (r'[%s]{4}\s+' % _dash, Text, '+documentation-heading'),
-                (r'[%s]{1,3}' % _dash, Text),
-                (r'(?i)(volume|book|part|chapter|section)\b[^%s]*' % _newline,
+                (rf'[{_dash}]{{4}}\s+', Text, '+documentation-heading'),
+                (rf'[{_dash}]{{1,3}}', Text),
+                (rf'(?i)(volume|book|part|chapter|section)\b[^{_newline}]*',
                  Generic.Heading, '#pop'),
                 default('#pop')
             ],
@@ -655,25 +652,24 @@ class Inform7Lexer(RegexLexer):
             '+documentation-heading2': [
                 (r'\s+', Text),
                 (r'\[', Comment.Multiline, '+comment'),
-                (r'[%s]{4}\s' % _dash, Text, '+documentation'),
+                (rf'[{_dash}]{{4}}\s', Text, '+documentation'),
                 default('#pop:2')
             ],
             '+documentation': [
-                (r'(?i)(%s)\s*(chapter|example)\s*:[^%s]*' %
-                 (_start, _newline), Generic.Heading),
-                (r'(?i)(%s)\s*section\s*:[^%s]*' % (_start, _newline),
+                (rf'(?i)({_start})\s*(chapter|example)\s*:[^{_newline}]*', Generic.Heading),
+                (rf'(?i)({_start})\s*section\s*:[^{_newline}]*',
                  Generic.Subheading),
-                (r'((%s)\t.*?[%s])+' % (_start, _newline),
+                (rf'(({_start})\t.*?[{_newline}])+',
                  using(this, state='+main')),
-                (r'[^%s\[]+|[%s\[]' % (_newline, _newline), Text),
+                (rf'[^{_newline}\[]+|[{_newline}\[]', Text),
                 (r'\[', Comment.Multiline, '+comment'),
             ],
             '+i6t-not-inline': [
-                (r'(%s)@c( .*?)?([%s]|\Z)' % (_start, _newline),
+                (rf'({_start})@c( .*?)?([{_newline}]|\Z)',
                  Comment.Preproc),
-                (r'(%s)@([%s]+|Purpose:)[^%s]*' % (_start, _dash, _newline),
+                (rf'({_start})@([{_dash}]+|Purpose:)[^{_newline}]*',
                  Comment.Preproc),
-                (r'(%s)@p( .*?)?([%s]|\Z)' % (_start, _newline),
+                (rf'({_start})@p( .*?)?([{_newline}]|\Z)',
                  Generic.Heading, '+p')
             ],
             '+i6t-use-option': [
@@ -686,12 +682,12 @@ class Inform7Lexer(RegexLexer):
                           Punctuation))
             ],
             '+i6t': [
-                (r'(\{[%s])(![^}]*)(\}?)' % _dash,
+                (rf'(\{{[{_dash}])(![^}}]*)(\}}?)',
                  bygroups(Punctuation, Comment.Single, Punctuation)),
-                (r'(\{[%s])(lines)(:)([^}]*)(\}?)' % _dash,
+                (rf'(\{{[{_dash}])(lines)(:)([^}}]*)(\}}?)',
                  bygroups(Punctuation, Keyword, Punctuation, Text,
                           Punctuation), '+lines'),
-                (r'(\{[%s])([^:}]*)(:?)([^}]*)(\}?)' % _dash,
+                (rf'(\{{[{_dash}])([^:}}]*)(:?)([^}}]*)(\}}?)',
                  bygroups(Punctuation, Keyword, Punctuation, Text,
                           Punctuation)),
                 (r'(\(\+)(.*?)(\+\)|\Z)',
@@ -700,25 +696,25 @@ class Inform7Lexer(RegexLexer):
             ],
             '+p': [
                 (r'[^@]+', Comment.Preproc),
-                (r'(%s)@c( .*?)?([%s]|\Z)' % (_start, _newline),
+                (rf'({_start})@c( .*?)?([{_newline}]|\Z)',
                  Comment.Preproc, '#pop'),
-                (r'(%s)@([%s]|Purpose:)' % (_start, _dash), Comment.Preproc),
-                (r'(%s)@p( .*?)?([%s]|\Z)' % (_start, _newline),
+                (rf'({_start})@([{_dash}]|Purpose:)', Comment.Preproc),
+                (rf'({_start})@p( .*?)?([{_newline}]|\Z)',
                  Generic.Heading),
                 (r'@', Comment.Preproc)
             ],
             '+lines': [
-                (r'(%s)@c( .*?)?([%s]|\Z)' % (_start, _newline),
+                (rf'({_start})@c( .*?)?([{_newline}]|\Z)',
                  Comment.Preproc),
-                (r'(%s)@([%s]|Purpose:)[^%s]*' % (_start, _dash, _newline),
+                (rf'({_start})@([{_dash}]|Purpose:)[^{_newline}]*',
                  Comment.Preproc),
-                (r'(%s)@p( .*?)?([%s]|\Z)' % (_start, _newline),
+                (rf'({_start})@p( .*?)?([{_newline}]|\Z)',
                  Generic.Heading, '+p'),
-                (r'(%s)@\w*[ %s]' % (_start, _newline), Keyword),
-                (r'![^%s]*' % _newline, Comment.Single),
-                (r'(\{)([%s]endlines)(\})' % _dash,
+                (rf'({_start})@\w*[ {_newline}]', Keyword),
+                (rf'![^{_newline}]*', Comment.Single),
+                (rf'(\{{)([{_dash}]endlines)(\}})',
                  bygroups(Punctuation, Keyword, Punctuation), '#pop'),
-                (r'[^@!{]+?([%s]|\Z)|.' % _newline, Text)
+                (rf'[^@!{{]+?([{_newline}]|\Z)|.', Text)
             ]
         }
         # Inform 7 can include snippets of Inform 6 template language,
@@ -747,13 +743,12 @@ class Inform7Lexer(RegexLexer):
 class Inform6TemplateLexer(Inform7Lexer):
     """
     For Inform 6 template code.
-
-    .. versionadded:: 2.0
     """
 
     name = 'Inform 6 template'
     aliases = ['i6t']
     filenames = ['*.i6t']
+    version_added = '2.0'
 
     def get_tokens_unprocessed(self, text, stack=('+i6t-root',)):
         return Inform7Lexer.get_tokens_unprocessed(self, text, stack)
@@ -767,6 +762,8 @@ class Tads3Lexer(RegexLexer):
     name = 'TADS 3'
     aliases = ['tads3']
     filenames = ['*.t']
+    url = 'https://www.tads.org'
+    version_added = ''
 
     flags = re.DOTALL | re.MULTILINE
 
@@ -778,55 +775,50 @@ class Tads3Lexer(RegexLexer):
     _no_quote = r'(?=\s|\\?>)'
     _operator = (r'(?:&&|\|\||\+\+|--|\?\?|::|[.,@\[\]~]|'
                  r'(?:[=+\-*/%!&|^]|<<?|>>?>?)=?)')
-    _ws = r'(?:\\|\s|%s|%s)' % (_comment_single, _comment_multiline)
-    _ws_pp = r'(?:\\\n|[^\S\n]|%s|%s)' % (_comment_single, _comment_multiline)
+    _ws = rf'(?:\\|\s|{_comment_single}|{_comment_multiline})'
+    _ws_pp = rf'(?:\\\n|[^\S\n]|{_comment_single}|{_comment_multiline})'
 
     def _make_string_state(triple, double, verbatim=None, _escape=_escape):
         if verbatim:
-            verbatim = ''.join(['(?:%s|%s)' % (re.escape(c.lower()),
-                                               re.escape(c.upper()))
+            verbatim = ''.join([f'(?:{re.escape(c.lower())}|{re.escape(c.upper())})'
                                 for c in verbatim])
         char = r'"' if double else r"'"
         token = String.Double if double else String.Single
-        escaped_quotes = r'+|%s(?!%s{2})' % (char, char) if triple else r''
-        prefix = '%s%s' % ('t' if triple else '', 'd' if double else 's')
-        tag_state_name = '%sqt' % prefix
+        escaped_quotes = rf'+|{char}(?!{char}{{2}})' if triple else r''
+        prefix = '{}{}'.format('t' if triple else '', 'd' if double else 's')
+        tag_state_name = f'{prefix}qt'
         state = []
         if triple:
             state += [
-                (r'%s{3,}' % char, token, '#pop'),
-                (r'\\%s+' % char, String.Escape),
+                (rf'{char}{{3,}}', token, '#pop'),
+                (rf'\\{char}+', String.Escape),
                 (char, token)
             ]
         else:
             state.append((char, token, '#pop'))
         state += [
             include('s/verbatim'),
-            (r'[^\\<&{}%s]+' % char, token)
+            (rf'[^\\<&{{}}{char}]+', token)
         ]
         if verbatim:
             # This regex can't use `(?i)` because escape sequences are
             # case-sensitive. `<\XMP>` works; `<\xmp>` doesn't.
-            state.append((r'\\?<(/|\\\\|(?!%s)\\)%s(?=[\s=>])' %
-                          (_escape, verbatim),
-                          Name.Tag, ('#pop', '%sqs' % prefix, tag_state_name)))
+            state.append((rf'\\?<(/|\\\\|(?!{_escape})\\){verbatim}(?=[\s=>])',
+                          Name.Tag, ('#pop', f'{prefix}qs', tag_state_name)))
         else:
             state += [
-                (r'\\?<!([^><\\%s]|<(?!<)|\\%s%s|%s|\\.)*>?' %
-                 (char, char, escaped_quotes, _escape), Comment.Multiline),
+                (rf'\\?<!([^><\\{char}]|<(?!<)|\\{char}{escaped_quotes}|{_escape}|\\.)*>?', Comment.Multiline),
                 (r'(?i)\\?<listing(?=[\s=>]|\\>)', Name.Tag,
-                 ('#pop', '%sqs/listing' % prefix, tag_state_name)),
+                 ('#pop', f'{prefix}qs/listing', tag_state_name)),
                 (r'(?i)\\?<xmp(?=[\s=>]|\\>)', Name.Tag,
-                 ('#pop', '%sqs/xmp' % prefix, tag_state_name)),
-                (r'\\?<([^\s=><\\%s]|<(?!<)|\\%s%s|%s|\\.)*' %
-                 (char, char, escaped_quotes, _escape), Name.Tag,
+                 ('#pop', f'{prefix}qs/xmp', tag_state_name)),
+                (rf'\\?<([^\s=><\\{char}]|<(?!<)|\\{char}{escaped_quotes}|{_escape}|\\.)*', Name.Tag,
                  tag_state_name),
                 include('s/entity')
             ]
         state += [
             include('s/escape'),
-            (r'\{([^}<\\%s]|<(?!<)|\\%s%s|%s|\\.)*\}' %
-             (char, char, escaped_quotes, _escape), String.Interpol),
+            (rf'\{{([^}}<\\{char}]|<(?!<)|\\{char}{escaped_quotes}|{_escape}|\\.)*\}}', String.Interpol),
             (r'[\\&{}<]', token)
         ]
         return state
@@ -834,22 +826,20 @@ class Tads3Lexer(RegexLexer):
     def _make_tag_state(triple, double, _escape=_escape):
         char = r'"' if double else r"'"
         quantifier = r'{3,}' if triple else r''
-        state_name = '%s%sqt' % ('t' if triple else '', 'd' if double else 's')
+        state_name = '{}{}qt'.format('t' if triple else '', 'd' if double else 's')
         token = String.Double if double else String.Single
-        escaped_quotes = r'+|%s(?!%s{2})' % (char, char) if triple else r''
+        escaped_quotes = rf'+|{char}(?!{char}{{2}})' if triple else r''
         return [
-            (r'%s%s' % (char, quantifier), token, '#pop:2'),
+            (rf'{char}{quantifier}', token, '#pop:2'),
             (r'(\s|\\\n)+', Text),
             (r'(=)(\\?")', bygroups(Punctuation, String.Double),
-             'dqs/%s' % state_name),
+             f'dqs/{state_name}'),
             (r"(=)(\\?')", bygroups(Punctuation, String.Single),
-             'sqs/%s' % state_name),
-            (r'=', Punctuation, 'uqs/%s' % state_name),
+             f'sqs/{state_name}'),
+            (r'=', Punctuation, f'uqs/{state_name}'),
             (r'\\?>', Name.Tag, '#pop'),
-            (r'\{([^}<\\%s]|<(?!<)|\\%s%s|%s|\\.)*\}' %
-             (char, char, escaped_quotes, _escape), String.Interpol),
-            (r'([^\s=><\\%s]|<(?!<)|\\%s%s|%s|\\.)+' %
-             (char, char, escaped_quotes, _escape), Name.Attribute),
+            (rf'\{{([^}}<\\{char}]|<(?!<)|\\{char}{escaped_quotes}|{_escape}|\\.)*\}}', String.Interpol),
+            (rf'([^\s=><\\{char}]|<(?!<)|\\{char}{escaped_quotes}|{_escape}|\\.)+', Name.Attribute),
             include('s/escape'),
             include('s/verbatim'),
             include('s/entity'),
@@ -863,16 +853,15 @@ class Tads3Lexer(RegexLexer):
         host_char = r'"' if host_double else r"'"
         host_quantifier = r'{3,}' if host_triple else r''
         host_token = String.Double if host_double else String.Single
-        escaped_quotes = (r'+|%s(?!%s{2})' % (host_char, host_char)
+        escaped_quotes = (rf'+|{host_char}(?!{host_char}{{2}})'
                           if host_triple else r'')
         return [
-            (r'%s%s' % (host_char, host_quantifier), host_token, '#pop:3'),
-            (r'%s%s' % (r'' if token is String.Other else r'\\?', terminator),
+            (rf'{host_char}{host_quantifier}', host_token, '#pop:3'),
+            (r'{}{}'.format(r'' if token is String.Other else r'\\?', terminator),
              token, '#pop'),
             include('s/verbatim'),
             include('s/entity'),
-            (r'\{([^}<\\%s]|<(?!<)|\\%s%s|%s|\\.)*\}' %
-             (host_char, host_char, escaped_quotes, _escape), String.Interpol),
+            (rf'\{{([^}}<\\{host_char}]|<(?!<)|\\{host_char}{escaped_quotes}|{_escape}|\\.)*\}}', String.Interpol),
             (r'([^\s"\'<%s{}\\&])+' % (r'>' if token is String.Other else r''),
              token),
             include('s/escape'),
@@ -888,7 +877,7 @@ class Tads3Lexer(RegexLexer):
              r'delegated|do|else|for|foreach|finally|goto|if|inherited|'
              r'invokee|local|nil|new|operator|replaced|return|self|switch|'
              r'targetobj|targetprop|throw|true|try|while)\b)', Text, 'block'),
-            (r'(%s)(%s*)(\()' % (_name, _ws),
+            (rf'({_name})({_ws}*)(\()',
              bygroups(Name.Function, using(this, state='whitespace'),
                       Punctuation),
              ('block?/root', 'more/parameters', 'main/parameters')),
@@ -911,24 +900,24 @@ class Tads3Lexer(RegexLexer):
             (r'\{', Punctuation, '#push'),
             (r'\}', Punctuation, '#pop'),
             (r':', Punctuation, ('classes', 'class')),
-            (r'(%s?)(%s*)(\()' % (_name, _ws),
+            (rf'({_name}?)({_ws}*)(\()',
              bygroups(Name.Function, using(this, state='whitespace'),
                       Punctuation),
              ('block?', 'more/parameters', 'main/parameters')),
-            (r'(%s)(%s*)(\{)' % (_name, _ws),
+            (rf'({_name})({_ws}*)(\{{)',
              bygroups(Name.Function, using(this, state='whitespace'),
                       Punctuation), 'block'),
-            (r'(%s)(%s*)(:)' % (_name, _ws),
+            (rf'({_name})({_ws}*)(:)',
              bygroups(Name.Variable, using(this, state='whitespace'),
                       Punctuation),
              ('object-body/no-braces', 'classes', 'class')),
             include('whitespace'),
-            (r'->|%s' % _operator, Punctuation, 'main'),
+            (rf'->|{_operator}', Punctuation, 'main'),
             default('main/object-body')
         ],
         'main/object-body': [
             include('main/basic'),
-            (r'(%s)(%s*)(=?)' % (_name, _ws),
+            (rf'({_name})({_ws}*)(=?)',
              bygroups(Name.Variable, using(this, state='whitespace'),
                       Punctuation), ('#pop', 'more', 'main')),
             default('#pop:2')
@@ -951,7 +940,7 @@ class Tads3Lexer(RegexLexer):
             (r'\{', Punctuation, '#push'),
             (r'\}', Punctuation, '#pop'),
             (r'default\b', Keyword.Reserved),
-            (r'(%s)(%s*)(:)' % (_name, _ws),
+            (rf'({_name})({_ws}*)(:)',
              bygroups(Name.Label, using(this, state='whitespace'),
                       Punctuation)),
             include('whitespace')
@@ -986,23 +975,23 @@ class Tads3Lexer(RegexLexer):
             (r'R"', String.Regex, ('#pop', 'dqr')),
             (r"R'", String.Regex, ('#pop', 'sqr')),
             # Two-token keywords
-            (r'(extern)(%s+)(object\b)' % _ws,
+            (rf'(extern)({_ws}+)(object\b)',
              bygroups(Keyword.Reserved, using(this, state='whitespace'),
                       Keyword.Reserved)),
-            (r'(function|method)(%s*)(\()' % _ws,
+            (rf'(function|method)({_ws}*)(\()',
              bygroups(Keyword.Reserved, using(this, state='whitespace'),
                       Punctuation),
              ('#pop', 'block?', 'more/parameters', 'main/parameters')),
-            (r'(modify)(%s+)(grammar\b)' % _ws,
+            (rf'(modify)({_ws}+)(grammar\b)',
              bygroups(Keyword.Reserved, using(this, state='whitespace'),
                       Keyword.Reserved),
              ('#pop', 'object-body/no-braces', ':', 'grammar')),
-            (r'(new)(%s+(?=(?:function|method)\b))' % _ws,
+            (rf'(new)({_ws}+(?=(?:function|method)\b))',
              bygroups(Keyword.Reserved, using(this, state='whitespace'))),
-            (r'(object)(%s+)(template\b)' % _ws,
+            (rf'(object)({_ws}+)(template\b)',
              bygroups(Keyword.Reserved, using(this, state='whitespace'),
                       Keyword.Reserved), ('#pop', 'template')),
-            (r'(string)(%s+)(template\b)' % _ws,
+            (rf'(string)({_ws}+)(template\b)',
              bygroups(Keyword, using(this, state='whitespace'),
                       Keyword.Reserved), ('#pop', 'function-name')),
             # Keywords
@@ -1039,7 +1028,7 @@ class Tads3Lexer(RegexLexer):
             (r'self\b', Name.Builtin.Pseudo, '#pop'),
             (r'template\b', Keyword.Reserved, ('#pop', 'template')),
             # Operators
-            (r'(__objref|defined)(%s*)(\()' % _ws,
+            (rf'(__objref|defined)({_ws}*)(\()',
              bygroups(Operator.Word, using(this, state='whitespace'),
                       Operator), ('#pop', 'more/__objref', 'main')),
             (r'delegated\b', Operator.Word),
@@ -1065,7 +1054,7 @@ class Tads3Lexer(RegexLexer):
             include('whitespace'),
             (_operator, Operator, 'main'),
             (r'\?', Operator, ('main', 'more/conditional', 'main')),
-            (r'(is|not)(%s+)(in\b)' % _ws,
+            (rf'(is|not)({_ws}+)(in\b)',
              bygroups(Operator.Word, using(this, state='whitespace'),
                       Operator.Word)),
             (r'[^\s!"%-_a-z{-~]+', Error)  # Averts an infinite loop
@@ -1112,9 +1101,9 @@ class Tads3Lexer(RegexLexer):
         ],
         # Parameter list
         'main/parameters': [
-            (r'(%s)(%s*)(?=:)' % (_name, _ws),
+            (rf'({_name})({_ws}*)(?=:)',
              bygroups(Name.Variable, using(this, state='whitespace')), '#pop'),
-            (r'(%s)(%s+)(%s)' % (_name, _ws, _name),
+            (rf'({_name})({_ws}+)({_name})',
              bygroups(Name.Class, using(this, state='whitespace'),
                       Name.Variable), '#pop'),
             (r'\[+', Punctuation),
@@ -1123,7 +1112,7 @@ class Tads3Lexer(RegexLexer):
             default('#pop')
         ],
         'more/parameters': [
-            (r'(:)(%s*(?=[?=,:)]))' % _ws,
+            (rf'(:)({_ws}*(?=[?=,:)]))',
              bygroups(Punctuation, using(this, state='whitespace'))),
             (r'[?\]]+', Punctuation),
             (r'[:)]', Punctuation, ('#pop', 'multimethod?')),
@@ -1181,10 +1170,10 @@ class Tads3Lexer(RegexLexer):
         'grammar-rules': [
             include('string'),
             include('whitespace'),
-            (r'(\[)(%s*)(badness)' % _ws,
+            (rf'(\[)({_ws}*)(badness)',
              bygroups(Punctuation, using(this, state='whitespace'), Keyword),
              'main'),
-            (r'->|%s|[()]' % _operator, Punctuation),
+            (rf'->|{_operator}|[()]', Punctuation),
             (_name, Name.Constant),
             default('#pop:2')
         ],
@@ -1193,7 +1182,7 @@ class Tads3Lexer(RegexLexer):
         ],
         'function-name': [
             (r'(<<([^>]|>>>|>(?!>))*>>)+', String.Interpol),
-            (r'(?=%s?%s*[({])' % (_name, _ws), Text, '#pop'),
+            (rf'(?={_name}?{_ws}*[({{])', Text, '#pop'),
             (_name, Name.Function, '#pop'),
             include('whitespace')
         ],
@@ -1219,7 +1208,7 @@ class Tads3Lexer(RegexLexer):
             include('string'),
             (r'inherited\b', Keyword.Reserved),
             include('whitespace'),
-            (r'->|\?|%s' % _operator, Punctuation),
+            (rf'->|\?|{_operator}', Punctuation),
             (_name, Name.Variable)
         ],
 
@@ -1259,11 +1248,11 @@ class Tads3Lexer(RegexLexer):
 
         # Whitespace and comments
         'whitespace': [
-            (r'^%s*#(%s|[^\n]|(?<=\\)\n)*\n?' % (_ws_pp, _comment_multiline),
+            (rf'^{_ws_pp}*#({_comment_multiline}|[^\n]|(?<=\\)\n)*\n?',
              Comment.Preproc),
             (_comment_single, Comment.Single),
             (_comment_multiline, Comment.Multiline),
-            (r'\\+\n+%s*#?|\n+|([^\S\n]|\\)+' % _ws_pp, Text)
+            (rf'\\+\n+{_ws_pp}*#?|\n+|([^\S\n]|\\)+', Text)
         ],
 
         # Strings
@@ -1274,15 +1263,15 @@ class Tads3Lexer(RegexLexer):
             (r"'", String.Single, 'sqs')
         ],
         's/escape': [
-            (r'\{\{|\}\}|%s' % _escape, String.Escape)
+            (rf'\{{\{{|\}}\}}|{_escape}', String.Escape)
         ],
         's/verbatim': [
             (r'<<\s*(as\s+decreasingly\s+likely\s+outcomes|cycling|else|end|'
              r'first\s+time|one\s+of|only|or|otherwise|'
              r'(sticky|(then\s+)?(purely\s+)?at)\s+random|stopping|'
              r'(then\s+)?(half\s+)?shuffled|\|\|)\s*>>', String.Interpol),
-            (r'<<(%%(_(%s|\\?.)|[\-+ ,#]|\[\d*\]?)*\d*\.?\d*(%s|\\?.)|'
-             r'\s*((else|otherwise)\s+)?(if|unless)\b)?' % (_escape, _escape),
+            (rf'<<(%(_({_escape}|\\?.)|[\-+ ,#]|\[\d*\]?)*\d*\.?\d*({_escape}|\\?.)|'
+             r'\s*((else|otherwise)\s+)?(if|unless)\b)?',
              String.Interpol, ('block/embed', 'more/embed', 'main'))
         ],
         's/entity': [
@@ -1345,23 +1334,22 @@ class Tads3Lexer(RegexLexer):
     }
 
     def get_tokens_unprocessed(self, text, **kwargs):
-        pp = r'^%s*#%s*' % (self._ws_pp, self._ws_pp)
+        pp = rf'^{self._ws_pp}*#{self._ws_pp}*'
         if_false_level = 0
         for index, token, value in (
             RegexLexer.get_tokens_unprocessed(self, text, **kwargs)):
             if if_false_level == 0:  # Not in a false #if
                 if (token is Comment.Preproc and
-                    re.match(r'%sif%s+(0|nil)%s*$\n?' %
-                             (pp, self._ws_pp, self._ws_pp), value)):
+                    re.match(rf'{pp}if{self._ws_pp}+(0|nil){self._ws_pp}*$\n?', value)):
                     if_false_level = 1
             else:  # In a false #if
                 if token is Comment.Preproc:
                     if (if_false_level == 1 and
-                          re.match(r'%sel(if|se)\b' % pp, value)):
+                          re.match(rf'{pp}el(if|se)\b', value)):
                         if_false_level = 0
-                    elif re.match(r'%sif' % pp, value):
+                    elif re.match(rf'{pp}if', value):
                         if_false_level += 1
-                    elif re.match(r'%sendif\b' % pp, value):
+                    elif re.match(rf'{pp}endif\b', value):
                         if_false_level -= 1
                 else:
                     token = Comment

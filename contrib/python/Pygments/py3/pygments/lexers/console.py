@@ -4,7 +4,7 @@
 
     Lexers for misc console output.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,13 +19,13 @@ class VCTreeStatusLexer(RegexLexer):
     """
     For colorizing output of version control status commands, like "hg
     status" or "svn status".
-
-    .. versionadded:: 2.0
     """
     name = 'VCTreeStatus'
     aliases = ['vctreestatus']
     filenames = []
     mimetypes = []
+    url = ""
+    version_added = '2.0'
 
     tokens = {
         'root': [
@@ -45,13 +45,13 @@ class VCTreeStatusLexer(RegexLexer):
 class PyPyLogLexer(RegexLexer):
     """
     Lexer for PyPy log files.
-
-    .. versionadded:: 1.5
     """
     name = "PyPy Log"
     aliases = ["pypylog", "pypy"]
     filenames = ["*.pypylog"]
     mimetypes = ['application/x-pypylog']
+    url = 'pypy.org'
+    version_added = '1.5'
 
     tokens = {
         "root": [

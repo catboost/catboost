@@ -4,7 +4,7 @@
 
     Lexers for the AMDGPU ISA assembly.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,12 +19,12 @@ __all__ = ['AMDGPULexer']
 class AMDGPULexer(RegexLexer):
     """
     For AMD GPU assembly.
-
-    .. versionadded:: 2.8
     """
     name = 'AMDGPU'
     aliases = ['amdgpu']
     filenames = ['*.isa']
+    url = 'https://gpuopen.com/amd-isa-documentation'
+    version_added = '2.8'
 
     flags = re.IGNORECASE
 

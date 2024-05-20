@@ -4,7 +4,7 @@
 
     Lexer for the Clean language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -26,6 +26,7 @@ class CleanLexer(ExtendedRegexLexer):
     url = 'http://clean.cs.ru.nl/Clean'
     aliases = ['clean']
     filenames = ['*.icl', '*.dcl']
+    version_added = ''
 
     keywords = (
         'case', 'ccall', 'class', 'code', 'code inline', 'derive', 'export',

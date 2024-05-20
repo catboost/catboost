@@ -4,7 +4,7 @@
 
     Lexer for Robot Framework.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -57,14 +57,13 @@ class RobotFrameworkLexer(Lexer):
     For Robot Framework test data.
 
     Supports both space and pipe separated plain text formats.
-
-    .. versionadded:: 1.6
     """
     name = 'RobotFramework'
     url = 'http://robotframework.org'
     aliases = ['robotframework']
     filenames = ['*.robot', '*.resource']
     mimetypes = ['text/x-robotframework']
+    version_added = '1.6'
 
     def __init__(self, **options):
         options['tabsize'] = 2

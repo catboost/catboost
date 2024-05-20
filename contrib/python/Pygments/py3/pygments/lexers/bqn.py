@@ -4,7 +4,7 @@
 
     Lexer for BQN.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,14 +18,13 @@ __all__ = ['BQNLexer']
 class BQNLexer(RegexLexer):
     """
     A simple BQN lexer.
-
-    .. versionadded:: 2.16
     """
     name = 'BQN'
     url = 'https://mlochbaum.github.io/BQN/index.html'
     aliases = ['bqn']
     filenames = ['*.bqn']
     mimetypes = []
+    version_added = '2.16'
 
     tokens = {
         'root': [

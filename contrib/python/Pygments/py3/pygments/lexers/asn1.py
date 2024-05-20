@@ -4,7 +4,7 @@
 
     Pygments lexers for ASN.1.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -118,8 +118,6 @@ class Asn1Lexer(RegexLexer):
 
     """
     Lexer for ASN.1 module definition
-
-    .. versionadded:: 2.16
     """
 
     flags = re.MULTILINE
@@ -128,6 +126,7 @@ class Asn1Lexer(RegexLexer):
     aliases = ['asn1']
     filenames = ["*.asn1"]
     url = "https://www.itu.int/ITU-T/studygroups/com17/languages/X.680-0207.pdf"
+    version_added = '2.16'
 
     tokens = {
        'root': [

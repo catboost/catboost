@@ -4,7 +4,7 @@
 
     Lexers for graph query languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,13 +23,12 @@ class CypherLexer(RegexLexer):
     For Cypher Query Language
 
     For the Cypher version in Neo4j 3.3
-
-    .. versionadded:: 2.0
     """
     name = 'Cypher'
     url = 'https://neo4j.com/docs/developer-manual/3.3/cypher/'
     aliases = ['cypher']
     filenames = ['*.cyp', '*.cypher']
+    version_added = '2.0'
 
     flags = re.MULTILINE | re.IGNORECASE
 

@@ -4,7 +4,7 @@
 
     Lexers for Haskell and related languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -24,14 +24,13 @@ __all__ = ['HaskellLexer', 'HspecLexer', 'IdrisLexer', 'AgdaLexer', 'CryptolLexe
 class HaskellLexer(RegexLexer):
     """
     A Haskell lexer based on the lexemes defined in the Haskell 98 Report.
-
-    .. versionadded:: 0.8
     """
     name = 'Haskell'
     url = 'https://www.haskell.org/'
     aliases = ['haskell', 'hs']
     filenames = ['*.hs']
     mimetypes = ['text/x-haskell']
+    version_added = '0.8'
 
     reserved = ('case', 'class', 'data', 'default', 'deriving', 'do', 'else',
                 'family', 'if', 'in', 'infix[lr]?', 'instance',
@@ -53,7 +52,7 @@ class HaskellLexer(RegexLexer):
             (r'\bimport\b', Keyword.Reserved, 'import'),
             (r'\bmodule\b', Keyword.Reserved, 'module'),
             (r'\berror\b', Name.Exception),
-            (r'\b(%s)(?!\')\b' % '|'.join(reserved), Keyword.Reserved),
+            (r'\b({})(?!\')\b'.format('|'.join(reserved)), Keyword.Reserved),
             (r"'[^\\]'", String.Char),  # this has to come before the TH quote
             (r'^[_' + uni.Ll + r'][\w\']*', Name.Function),
             (r"'?[_" + uni.Ll + r"][\w']*", Name),
@@ -157,14 +156,13 @@ class HaskellLexer(RegexLexer):
 class HspecLexer(HaskellLexer):
     """
     A Haskell lexer with support for Hspec constructs.
-
-    .. versionadded:: 2.4.0
     """
 
     name = 'Hspec'
     aliases = ['hspec']
     filenames = ['*Spec.hs']
     mimetypes = []
+    version_added = '2.4'
 
     tokens = {
         'root': [
@@ -181,14 +179,13 @@ class IdrisLexer(RegexLexer):
     A lexer for the dependently typed programming language Idris.
 
     Based on the Haskell and Agda Lexer.
-
-    .. versionadded:: 2.0
     """
     name = 'Idris'
     url = 'https://www.idris-lang.org/'
     aliases = ['idris', 'idr']
     filenames = ['*.idr']
     mimetypes = ['text/x-idris']
+    version_added = '2.0'
 
     reserved = ('case', 'class', 'data', 'default', 'using', 'do', 'else',
                 'if', 'in', 'infix[lr]?', 'instance', 'rewrite', 'auto',
@@ -211,7 +208,7 @@ class IdrisLexer(RegexLexer):
     tokens = {
         'root': [
             # Comments
-            (r'^(\s*)(%%(%s))' % '|'.join(directives),
+            (r'^(\s*)(%({}))'.format('|'.join(directives)),
              bygroups(Whitespace, Keyword.Reserved)),
             (r'(\s*)(--(?![!#$%&*+./<=>?@^|_~:\\]).*?)$', bygroups(Whitespace, Comment.Single)),
             (r'(\s*)(\|{3}.*?)$', bygroups(Whitespace, Comment.Single)),
@@ -220,7 +217,7 @@ class IdrisLexer(RegexLexer):
             (r'^(\s*)([^\s(){}]+)(\s*)(:)(\s*)',
              bygroups(Whitespace, Name.Function, Whitespace, Operator.Word, Whitespace)),
             #  Identifiers
-            (r'\b(%s)(?!\')\b' % '|'.join(reserved), Keyword.Reserved),
+            (r'\b({})(?!\')\b'.format('|'.join(reserved)), Keyword.Reserved),
             (r'(import|module)(\s+)', bygroups(Keyword.Reserved, Whitespace), 'module'),
             (r"('')?[A-Z][\w\']*", Keyword.Type),
             (r'[a-z][\w\']*', Text),
@@ -292,8 +289,6 @@ class AgdaLexer(RegexLexer):
     """
     For the Agda dependently typed functional programming language and
     proof assistant.
-
-    .. versionadded:: 2.0
     """
 
     name = 'Agda'
@@ -301,6 +296,7 @@ class AgdaLexer(RegexLexer):
     aliases = ['agda']
     filenames = ['*.agda']
     mimetypes = ['text/x-agda']
+    version_added = '2.0'
 
     reserved = (
         'abstract', 'codata', 'coinductive', 'constructor', 'data', 'do',
@@ -325,7 +321,7 @@ class AgdaLexer(RegexLexer):
             (r'\{!', Comment.Directive, 'hole'),
             # Lexemes:
             #  Identifiers
-            (r'\b(%s)(?!\')\b' % '|'.join(reserved), Keyword.Reserved),
+            (r'\b({})(?!\')\b'.format('|'.join(reserved)), Keyword.Reserved),
             (r'(import|module)(\s+)', bygroups(Keyword.Reserved, Whitespace),
              'module'),
             (r'\b(Set|Prop)[\u2080-\u2089]*\b', Keyword.Type),
@@ -365,13 +361,13 @@ class AgdaLexer(RegexLexer):
 class CryptolLexer(RegexLexer):
     """
     FIXME: A Cryptol2 lexer based on the lexemes defined in the Haskell 98 Report.
-
-    .. versionadded:: 2.0
     """
     name = 'Cryptol'
     aliases = ['cryptol', 'cry']
     filenames = ['*.cry']
     mimetypes = ['text/x-cryptol']
+    url = 'https://www.cryptol.net'
+    version_added = '2.0'
 
     reserved = ('Arith', 'Bit', 'Cmp', 'False', 'Inf', 'True', 'else',
                 'export', 'extern', 'fin', 'if', 'import', 'inf', 'lg2',
@@ -394,7 +390,7 @@ class CryptolLexer(RegexLexer):
             (r'\bimport\b', Keyword.Reserved, 'import'),
             (r'\bmodule\b', Keyword.Reserved, 'module'),
             (r'\berror\b', Name.Exception),
-            (r'\b(%s)(?!\')\b' % '|'.join(reserved), Keyword.Reserved),
+            (r'\b({})(?!\')\b'.format('|'.join(reserved)), Keyword.Reserved),
             (r'^[_a-z][\w\']*', Name.Function),
             (r"'?[_a-z][\w']*", Name),
             (r"('')?[A-Z][\w\']*", Keyword.Type),
@@ -573,13 +569,13 @@ class LiterateHaskellLexer(LiterateLexer):
         If given, must be ``"bird"`` or ``"latex"``.  If not given, the style
         is autodetected: if the first non-whitespace character in the source
         is a backslash or percent character, LaTeX is assumed, else Bird.
-
-    .. versionadded:: 0.9
     """
     name = 'Literate Haskell'
     aliases = ['literate-haskell', 'lhaskell', 'lhs']
     filenames = ['*.lhs']
     mimetypes = ['text/x-literate-haskell']
+    url = 'https://wiki.haskell.org/Literate_programming'
+    version_added = '0.9'
 
     def __init__(self, **options):
         hslexer = HaskellLexer(**options)
@@ -596,13 +592,13 @@ class LiterateIdrisLexer(LiterateLexer):
         If given, must be ``"bird"`` or ``"latex"``.  If not given, the style
         is autodetected: if the first non-whitespace character in the source
         is a backslash or percent character, LaTeX is assumed, else Bird.
-
-    .. versionadded:: 2.0
     """
     name = 'Literate Idris'
     aliases = ['literate-idris', 'lidris', 'lidr']
     filenames = ['*.lidr']
     mimetypes = ['text/x-literate-idris']
+    url = 'https://idris2.readthedocs.io/en/latest/reference/literate.html'
+    version_added = '2.0'
 
     def __init__(self, **options):
         hslexer = IdrisLexer(**options)
@@ -619,13 +615,13 @@ class LiterateAgdaLexer(LiterateLexer):
         If given, must be ``"bird"`` or ``"latex"``.  If not given, the style
         is autodetected: if the first non-whitespace character in the source
         is a backslash or percent character, LaTeX is assumed, else Bird.
-
-    .. versionadded:: 2.0
     """
     name = 'Literate Agda'
     aliases = ['literate-agda', 'lagda']
     filenames = ['*.lagda']
     mimetypes = ['text/x-literate-agda']
+    url = 'https://agda.readthedocs.io/en/latest/tools/literate-programming.html'
+    version_added = '2.0'
 
     def __init__(self, **options):
         agdalexer = AgdaLexer(**options)
@@ -642,13 +638,13 @@ class LiterateCryptolLexer(LiterateLexer):
         If given, must be ``"bird"`` or ``"latex"``.  If not given, the style
         is autodetected: if the first non-whitespace character in the source
         is a backslash or percent character, LaTeX is assumed, else Bird.
-
-    .. versionadded:: 2.0
     """
     name = 'Literate Cryptol'
     aliases = ['literate-cryptol', 'lcryptol', 'lcry']
     filenames = ['*.lcry']
     mimetypes = ['text/x-literate-cryptol']
+    url = 'https://www.cryptol.net'
+    version_added = '2.0'
 
     def __init__(self, **options):
         crylexer = CryptolLexer(**options)
@@ -658,8 +654,6 @@ class LiterateCryptolLexer(LiterateLexer):
 class KokaLexer(RegexLexer):
     """
     Lexer for the Koka language.
-
-    .. versionadded:: 1.6
     """
 
     name = 'Koka'
@@ -667,6 +661,7 @@ class KokaLexer(RegexLexer):
     aliases = ['koka']
     filenames = ['*.kk', '*.kki']
     mimetypes = ['text/x-koka']
+    version_added = '1.6'
 
     keywords = [
         'infix', 'infixr', 'infixl',
@@ -726,7 +721,7 @@ class KokaLexer(RegexLexer):
              'alias-type'),
             (r'(struct)(\s+)([a-z]\w*)?', bygroups(Keyword, Whitespace, tokenTypeDef),
              'struct-type'),
-            ((r'(%s)' % '|'.join(typeStartKeywords)) +
+            ((r'({})'.format('|'.join(typeStartKeywords))) +
              r'(\s+)([a-z]\w*)?', bygroups(Keyword, Whitespace, tokenTypeDef),
              'type'),
 
@@ -748,9 +743,9 @@ class KokaLexer(RegexLexer):
              bygroups(Keyword, Whitespace, Keyword, Whitespace, Keyword, Whitespace, Name.Function)),
 
             # keywords
-            (r'(%s)' % '|'.join(typekeywords) + boundary, Keyword.Type),
-            (r'(%s)' % '|'.join(keywords) + boundary, Keyword),
-            (r'(%s)' % '|'.join(builtin) + boundary, Keyword.Pseudo),
+            (r'({})'.format('|'.join(typekeywords)) + boundary, Keyword.Type),
+            (r'({})'.format('|'.join(keywords)) + boundary, Keyword),
+            (r'({})'.format('|'.join(builtin)) + boundary, Keyword.Pseudo),
             (r'::?|:=|\->|[=.]' + sboundary, Keyword),
 
             # names
@@ -811,8 +806,8 @@ class KokaLexer(RegexLexer):
             include('whitespace'),
 
             # keywords
-            (r'(%s)' % '|'.join(typekeywords) + boundary, Keyword),
-            (r'(?=((%s)' % '|'.join(keywords) + boundary + '))',
+            (r'({})'.format('|'.join(typekeywords)) + boundary, Keyword),
+            (r'(?=(({})'.format('|'.join(keywords)) + boundary + '))',
              Keyword, '#pop'),  # need to match because names overlap...
 
             # kinds

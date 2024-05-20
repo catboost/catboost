@@ -4,7 +4,7 @@
 
     Pygments lexer for the Meson build system
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,8 +22,6 @@ class MesonLexer(RegexLexer):
     https://mesonbuild.com/Syntax.html#grammar for version 0.58.
     Some of those definitions are improperly transcribed, so the Meson++
     implementation was also checked: https://github.com/dcbaker/meson-plus-plus.
-
-    .. versionadded:: 2.10
     """
 
     # TODO String interpolation @VARNAME@ inner matches
@@ -34,6 +32,7 @@ class MesonLexer(RegexLexer):
     aliases = ['meson', 'meson.build']
     filenames = ['meson.build', 'meson_options.txt']
     mimetypes = ['text/x-meson']
+    version_added = '2.10'
 
     tokens = {
         'root': [

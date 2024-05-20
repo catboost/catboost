@@ -4,7 +4,7 @@
 
     Special lexers.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -26,6 +26,9 @@ class TextLexer(Lexer):
     aliases = ['text']
     filenames = ['*.txt']
     mimetypes = ['text/plain']
+    url = ""
+    version_added = ''
+
     priority = 0.01
 
     def get_tokens_unprocessed(self, text):
@@ -38,11 +41,11 @@ class TextLexer(Lexer):
 class OutputLexer(Lexer):
     """
     Simple lexer that highlights everything as ``Token.Generic.Output``.
-
-    .. versionadded:: 2.10
     """
     name = 'Text output'
     aliases = ['output']
+    url = ""
+    version_added = '2.10'
 
     def get_tokens_unprocessed(self, text):
         yield 0, Generic.Output, text
@@ -65,6 +68,8 @@ class RawTokenLexer(Lexer):
     aliases = []
     filenames = []
     mimetypes = ['application/x-pygments-tokens']
+    url = 'https://pygments.org/docs/formatters/#RawTokenFormatter'
+    version_added = ''
 
     def __init__(self, **options):
         self.compress = get_choice_opt(options, 'compress',

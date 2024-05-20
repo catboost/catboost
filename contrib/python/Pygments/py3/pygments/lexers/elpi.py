@@ -4,7 +4,7 @@
 
     Lexer for the `Elpi <http://github.com/LPCIC/elpi>`_ programming language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,8 +18,6 @@ __all__ = ['ElpiLexer']
 class ElpiLexer(RegexLexer):
     """
     Lexer for the Elpi programming language.
-
-    .. versionadded:: 2.11
     """
 
     name = 'Elpi'
@@ -27,19 +25,20 @@ class ElpiLexer(RegexLexer):
     aliases = ['elpi']
     filenames = ['*.elpi']
     mimetypes = ['text/x-elpi']
+    version_added = '2.11'
 
     lcase_re = r"[a-z]"
     ucase_re = r"[A-Z]"
     digit_re = r"[0-9]"
     schar2_re = r"([+*^?/<>`'@#~=&!])"
-    schar_re = r"({}|-|\$|_)".format(schar2_re)
-    idchar_re = r"({}|{}|{}|{})".format(lcase_re,ucase_re,digit_re,schar_re)
-    idcharstarns_re = r"({}*(\.({}|{}){}*)*)".format(idchar_re, lcase_re, ucase_re, idchar_re)
-    symbchar_re = r"({}|{}|{}|{}|:)".format(lcase_re, ucase_re, digit_re, schar_re)
-    constant_re = r"({}{}*|{}{}|{}{}*|_{}+)".format(ucase_re, idchar_re, lcase_re, idcharstarns_re, schar2_re, symbchar_re, idchar_re)
+    schar_re = rf"({schar2_re}|-|\$|_)"
+    idchar_re = rf"({lcase_re}|{ucase_re}|{digit_re}|{schar_re})"
+    idcharstarns_re = rf"({idchar_re}*(\.({lcase_re}|{ucase_re}){idchar_re}*)*)"
+    symbchar_re = rf"({lcase_re}|{ucase_re}|{digit_re}|{schar_re}|:)"
+    constant_re = rf"({ucase_re}{idchar_re}*|{lcase_re}{idcharstarns_re}|{schar2_re}{symbchar_re}*|_{idchar_re}+)"
     symbol_re = r"(,|<=>|->|:-|;|\?-|->|&|=>|\bas\b|\buvar\b|<|=<|=|==|>=|>|\bi<|\bi=<|\bi>=|\bi>|\bis\b|\br<|\br=<|\br>=|\br>|\bs<|\bs=<|\bs>=|\bs>|@|::|\[\]|`->|`:|`:=|\^|-|\+|\bi-|\bi\+|r-|r\+|/|\*|\bdiv\b|\bi\*|\bmod\b|\br\*|~|\bi~|\br~)"
-    escape_re = r"\(({}|{})\)".format(constant_re,symbol_re)
-    const_sym_re = r"({}|{}|{})".format(constant_re,symbol_re,escape_re)
+    escape_re = rf"\(({constant_re}|{symbol_re})\)"
+    const_sym_re = rf"({constant_re}|{symbol_re}|{escape_re})"
 
     tokens = {
         'root': [
@@ -54,35 +53,35 @@ class ElpiLexer(RegexLexer):
              'elpi-string'),
             (r"(:index)(\s*\()", bygroups(Keyword.Mode, Text.Whitespace),
              'elpi-indexing-expr'),
-            (r"\b(external pred|pred)(\s+)({})".format(const_sym_re),
+            (rf"\b(external pred|pred)(\s+)({const_sym_re})",
              bygroups(Keyword.Declaration, Text.Whitespace, Name.Function),
              'elpi-pred-item'),
-            (r"\b(external type|type)(\s+)(({}(,\s*)?)+)".format(const_sym_re),
+            (rf"\b(external type|type)(\s+)(({const_sym_re}(,\s*)?)+)",
              bygroups(Keyword.Declaration, Text.Whitespace, Name.Function),
              'elpi-type'),
-            (r"\b(kind)(\s+)(({}|,)+)".format(const_sym_re),
+            (rf"\b(kind)(\s+)(({const_sym_re}|,)+)",
              bygroups(Keyword.Declaration, Text.Whitespace, Name.Function),
              'elpi-type'),
-            (r"\b(typeabbrev)(\s+)({})".format(const_sym_re),
+            (rf"\b(typeabbrev)(\s+)({const_sym_re})",
              bygroups(Keyword.Declaration, Text.Whitespace, Name.Function),
              'elpi-type'),
             (r"\b(accumulate)(\s+)(\")",
              bygroups(Keyword.Declaration, Text.Whitespace, String.Double),
              'elpi-string'),
-            (r"\b(accumulate|namespace|local)(\s+)({})".format(constant_re),
+            (rf"\b(accumulate|namespace|local)(\s+)({constant_re})",
              bygroups(Keyword.Declaration, Text.Whitespace, Text)),
-            (r"\b(shorten)(\s+)({}\.)".format(constant_re),
+            (rf"\b(shorten)(\s+)({constant_re}\.)",
              bygroups(Keyword.Declaration, Text.Whitespace, Text)),
             (r"\b(pi|sigma)(\s+)([a-zA-Z][A-Za-z0-9_ ]*)(\\)",
              bygroups(Keyword.Declaration, Text.Whitespace, Name.Variable, Text)),
-            (r"\b(constraint)(\s+)(({}(\s+)?)+)".format(const_sym_re),
+            (rf"\b(constraint)(\s+)(({const_sym_re}(\s+)?)+)",
              bygroups(Keyword.Declaration, Text.Whitespace, Name.Function),
              'elpi-chr-rule-start'),
 
-            (r"(?=[A-Z_]){}".format(constant_re), Name.Variable),
-            (r"(?=[a-z_]){}\\".format(constant_re), Name.Variable),
+            (rf"(?=[A-Z_]){constant_re}", Name.Variable),
+            (rf"(?=[a-z_]){constant_re}\\", Name.Variable),
             (r"_", Name.Variable),
-            (r"({}|!|=>|;)".format(symbol_re), Keyword.Declaration),
+            (rf"({symbol_re}|!|=>|;)", Keyword.Declaration),
             (constant_re, Text),
             (r"\[|\]|\||=>", Keyword.Declaration),
             (r'"', String.Double, 'elpi-string'),
@@ -155,7 +154,7 @@ class ElpiLexer(RegexLexer):
         'elpi-quote': [
             (r'\{\{', Punctuation, '#push'),
             (r'\}\}', Punctuation, '#pop'),
-            (r"(lp:)((?=[A-Z_]){})".format(constant_re), bygroups(Keyword, Name.Variable)),
+            (rf"(lp:)((?=[A-Z_]){constant_re})", bygroups(Keyword, Name.Variable)),
             (r"[^l\}]+", Text),
             (r"l|\}", Text),
         ],

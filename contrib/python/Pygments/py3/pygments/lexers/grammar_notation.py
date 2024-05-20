@@ -4,7 +4,7 @@
 
     Lexers for grammar notations like BNF.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -39,14 +39,14 @@ class BnfLexer(RegexLexer):
 
     Though these decision making might cause too minimal highlighting
     and you might be disappointed, but it is reasonable for us.
-
-    .. versionadded:: 2.1
     """
 
     name = 'BNF'
     aliases = ['bnf']
     filenames = ['*.bnf']
     mimetypes = ['text/x-bnf']
+    url = 'https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form'
+    version_added = '2.1'
 
     tokens = {
         'root': [
@@ -68,8 +68,6 @@ class AbnfLexer(RegexLexer):
     Lexer for IETF 7405 ABNF.
 
     (Updates `5234 <http://www.ietf.org/rfc/rfc5234.txt>`_) grammars.
-
-    .. versionadded:: 2.1
     """
 
     name = 'ABNF'
@@ -77,6 +75,7 @@ class AbnfLexer(RegexLexer):
     aliases = ['abnf']
     filenames = ['*.abnf']
     mimetypes = ['text/x-abnf']
+    version_added = '2.1'
 
     _core_rules = (
         'ALPHA', 'BIT', 'CHAR', 'CR', 'CRLF', 'CTL', 'DIGIT',
@@ -133,14 +132,13 @@ class AbnfLexer(RegexLexer):
 class JsgfLexer(RegexLexer):
     """
     For JSpeech Grammar Format grammars.
-
-    .. versionadded:: 2.2
     """
     name = 'JSGF'
     url = 'https://www.w3.org/TR/jsgf/'
     aliases = ['jsgf']
     filenames = ['*.jsgf']
     mimetypes = ['application/jsgf', 'application/x-jsgf', 'text/jsgf']
+    version_added = '2.2'
 
     tokens = {
         'root': [
@@ -224,8 +222,6 @@ class PegLexer(RegexLexer):
     * A single `a-z` character immediately before a string, or
       multiple `a-z` characters following a string, are part of the
       string (e.g., `r"..."` or `"..."ilmsuxa`).
-
-    .. versionadded:: 2.6
     """
 
     name = 'PEG'
@@ -233,6 +229,7 @@ class PegLexer(RegexLexer):
     aliases = ['peg']
     filenames = ['*.peg']
     mimetypes = ['text/x-peg']
+    version_added = '2.6'
 
     tokens = {
         'root': [

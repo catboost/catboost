@@ -4,7 +4,7 @@
 
     Lexers for semantic web and RDF query languages and markup.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,14 +19,14 @@ __all__ = ['SparqlLexer', 'TurtleLexer', 'ShExCLexer']
 
 class SparqlLexer(RegexLexer):
     """
-    Lexer for `SPARQL <https://www.w3.org/TR/sparql11-query/>`_ query language.
-
-    .. versionadded:: 2.0
+    Lexer for SPARQL query language.
     """
     name = 'SPARQL'
     aliases = ['sparql']
     filenames = ['*.rq', '*.sparql']
     mimetypes = ['application/sparql-query']
+    url = 'https://www.w3.org/TR/sparql11-query'
+    version_added = '2.0'
 
     # character group definitions ::
 
@@ -177,14 +177,14 @@ class SparqlLexer(RegexLexer):
 
 class TurtleLexer(RegexLexer):
     """
-    Lexer for `Turtle <http://www.w3.org/TR/turtle/>`_ data language.
-
-    .. versionadded:: 2.1
+    Lexer for Turtle data language.
     """
     name = 'Turtle'
     aliases = ['turtle']
     filenames = ['*.ttl']
     mimetypes = ['text/turtle', 'application/x-turtle']
+    url = 'https://www.w3.org/TR/turtle'
+    version_added = '2.1'
 
     # character group definitions ::
     PN_CHARS_BASE_GRP = ('a-zA-Z'
@@ -243,10 +243,10 @@ class TurtleLexer(RegexLexer):
             (r'\s+', Text),
 
             # Base / prefix
-            (r'(@base|BASE)(\s+)%(IRIREF)s(\s*)(\.?)' % patterns,
+            (r'(@base|BASE)(\s+){IRIREF}(\s*)(\.?)'.format(**patterns),
              bygroups(Keyword, Whitespace, Name.Variable, Whitespace,
                       Punctuation)),
-            (r'(@prefix|PREFIX)(\s+)%(PNAME_NS)s(\s+)%(IRIREF)s(\s*)(\.?)' % patterns,
+            (r'(@prefix|PREFIX)(\s+){PNAME_NS}(\s+){IRIREF}(\s*)(\.?)'.format(**patterns),
              bygroups(Keyword, Whitespace, Name.Namespace, Whitespace,
                       Name.Variable, Whitespace, Punctuation)),
 
@@ -254,7 +254,7 @@ class TurtleLexer(RegexLexer):
             (r'(?<=\s)a(?=\s)', Keyword.Type),
 
             # IRIREF
-            (r'%(IRIREF)s' % patterns, Name.Variable),
+            (r'{IRIREF}'.format(**patterns), Name.Variable),
 
             # PrefixedName
             (r'(' + PN_PREFIX + r')?(\:)(' + PN_LOCAL + r')?',
@@ -305,7 +305,7 @@ class TurtleLexer(RegexLexer):
             (r'(@)([a-zA-Z]+(?:-[a-zA-Z0-9]+)*)',
              bygroups(Operator, Generic.Emph), '#pop:2'),
 
-            (r'(\^\^)%(IRIREF)s' % patterns, bygroups(Operator, Generic.Emph), '#pop:2'),
+            (r'(\^\^){IRIREF}'.format(**patterns), bygroups(Operator, Generic.Emph), '#pop:2'),
 
             default('#pop:2'),
 
@@ -316,18 +316,20 @@ class TurtleLexer(RegexLexer):
     # but each has a recognizable and distinct syntax.
     def analyse_text(text):
         for t in ('@base ', 'BASE ', '@prefix ', 'PREFIX '):
-            if re.search(r'^\s*%s' % t, text):
+            if re.search(rf'^\s*{t}', text):
                 return 0.80
 
 
 class ShExCLexer(RegexLexer):
     """
-    Lexer for `ShExC <https://shex.io/shex-semantics/#shexc>`_ shape expressions language syntax.
+    Lexer for ShExC shape expressions language syntax.
     """
     name = 'ShExC'
     aliases = ['shexc', 'shex']
     filenames = ['*.shex']
     mimetypes = ['text/shex']
+    url = 'https://shex.io/shex-semantics/#shexc'
+    version_added = ''
 
     # character group definitions ::
 

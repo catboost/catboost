@@ -4,7 +4,7 @@
 
     Lexers for Inferno os and all the related stuff.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -24,14 +24,13 @@ class LimboLexer(RegexLexer):
     TODO:
         - maybe implement better var declaration highlighting
         - some simple syntax error highlighting
-
-    .. versionadded:: 2.0
     """
     name = 'Limbo'
     url = 'http://www.vitanuova.com/inferno/limbo.html'
     aliases = ['limbo']
     filenames = ['*.b']
     mimetypes = ['text/limbo']
+    version_added = '2.0'
 
     tokens = {
         'whitespace': [

@@ -8,7 +8,7 @@
     More information:
     https://graphql.org/
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -57,13 +57,12 @@ KEYWORDS = (
 class GraphQLLexer(RegexLexer):
     """
     Lexer for GraphQL syntax
-
-    .. versionadded:: 2.16
     """
     name = "GraphQL"
     aliases = ["graphql"]
     filenames = ["*.graphql"]
     url = "https://graphql.org"
+    version_added = '2.16'
 
     tokens = {
         "ignored_tokens": [

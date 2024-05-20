@@ -4,7 +4,7 @@
 
     Lexers for the Io language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,14 +18,13 @@ __all__ = ['IoLexer']
 class IoLexer(RegexLexer):
     """
     For Io (a small, prototype-based programming language) source.
-
-    .. versionadded:: 0.10
     """
     name = 'Io'
     url = 'http://iolanguage.com/'
     filenames = ['*.io']
     aliases = ['io']
     mimetypes = ['text/x-iosrc']
+    version_added = '0.10'
     tokens = {
         'root': [
             (r'\n', Whitespace),

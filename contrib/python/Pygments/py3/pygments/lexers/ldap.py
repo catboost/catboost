@@ -4,7 +4,7 @@
 
     Pygments lexers for LDAP.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,8 +22,6 @@ class LdifLexer(RegexLexer):
 
     """
     Lexer for LDIF
-
-    .. versionadded:: 2.17
     """
 
     name = 'LDIF'
@@ -31,6 +29,7 @@ class LdifLexer(RegexLexer):
     filenames = ['*.ldif']
     mimetypes = ["text/x-ldif"]
     url = "https://datatracker.ietf.org/doc/html/rfc2849"
+    version_added = '2.17'
 
     tokens = {
         'root': [
@@ -106,8 +105,6 @@ class LdifLexer(RegexLexer):
 class LdaprcLexer(RegexLexer):
     """
     Lexer for OpenLDAP configuration files.
-
-    .. versionadded:: 2.17
     """
 
     name = 'LDAP configuration file'
@@ -115,6 +112,7 @@ class LdaprcLexer(RegexLexer):
     filenames = ['.ldaprc', 'ldaprc', 'ldap.conf']
     mimetypes = ["text/x-ldapconf"]
     url = 'https://www.openldap.org/software//man.cgi?query=ldap.conf&sektion=5&apropos=0&manpath=OpenLDAP+2.4-Release'
+    version_added = '2.17'
 
     _sasl_keywords = r'SASL_(?:MECH|REALM|AUTHCID|AUTHZID|CBINDING)'
     _tls_keywords = r'TLS_(?:CACERT|CACERTDIR|CERT|ECNAME|KEY|CIPHER_SUITE|PROTOCOL_MIN|RANDFILE|CRLFILE)'

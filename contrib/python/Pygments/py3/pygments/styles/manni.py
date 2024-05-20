@@ -7,7 +7,7 @@
     This is a port of the style used in the `php port`_ of pygments
     by Manni. The style is called 'default' there.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

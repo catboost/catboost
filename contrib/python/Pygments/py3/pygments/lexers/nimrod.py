@@ -4,7 +4,7 @@
 
     Lexer for the Nim language (formerly known as Nimrod).
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,8 +20,6 @@ __all__ = ['NimrodLexer']
 class NimrodLexer(RegexLexer):
     """
     For Nim source code.
-
-    .. versionadded:: 1.5
     """
 
     name = 'Nimrod'
@@ -29,6 +27,7 @@ class NimrodLexer(RegexLexer):
     aliases = ['nimrod', 'nim']
     filenames = ['*.nim', '*.nimrod']
     mimetypes = ['text/x-nim']
+    version_added = '1.5'
 
     flags = re.MULTILINE | re.IGNORECASE
 
@@ -97,15 +96,15 @@ class NimrodLexer(RegexLexer):
             ("'", String.Char, 'chars'),
 
             # Keywords
-            (r'(%s)\b' % underscorize(opWords), Operator.Word),
+            (rf'({underscorize(opWords)})\b', Operator.Word),
             (r'(proc|func|method|macro|template)(\s)(?![(\[\]])',
              bygroups(Keyword, Text.Whitespace), 'funcname'),
-            (r'(%s)\b' % underscorize(keywords), Keyword),
-            (r'(%s)\b' % underscorize(['from', 'import', 'include', 'export']),
+            (rf'({underscorize(keywords)})\b', Keyword),
+            (r'({})\b'.format(underscorize(['from', 'import', 'include', 'export'])),
              Keyword.Namespace),
             (r'(v_?a_?r)\b', Keyword.Declaration),
-            (r'(%s)\b' % underscorize(types), Name.Builtin),
-            (r'(%s)\b' % underscorize(keywordsPseudo), Keyword.Pseudo),
+            (rf'({underscorize(types)})\b', Name.Builtin),
+            (rf'({underscorize(keywordsPseudo)})\b', Keyword.Pseudo),
 
             # Identifiers
             (r'\b((?![_\d])\w)(((?!_)\w)|(_(?!_)\w))*', Name),

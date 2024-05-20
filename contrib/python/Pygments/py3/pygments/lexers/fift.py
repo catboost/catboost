@@ -4,7 +4,7 @@
 
     Lexers for fift.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,6 +23,7 @@ class FiftLexer(RegexLexer):
     aliases = ['fift', 'fif']
     filenames = ['*.fif']
     url = 'https://ton-blockchain.github.io/docs/fiftbase.pdf'
+    version_added = ''
 
     tokens = {
         'root': [

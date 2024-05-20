@@ -4,7 +4,7 @@
 
     Lexers for Pascal family languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -12,12 +12,12 @@ import re
 
 from pygments.lexer import Lexer
 from pygments.util import get_bool_opt, get_list_opt
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
+from pygments.token import Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Error, Whitespace
 from pygments.scanner import Scanner
 
 # compatibility import
-from pygments.lexers.modula2 import Modula2Lexer
+from pygments.lexers.modula2 import Modula2Lexer # noqa: F401
 
 __all__ = ['DelphiLexer', 'PortugolLexer']
 
@@ -29,6 +29,7 @@ class PortugolLexer(Lexer):
     filenames = ['*.alg', '*.portugol']
     mimetypes = []
     url = "https://www.apoioinformatica.inf.br/produtos/visualg/linguagem"
+    version_added = ''
 
     def __init__(self, **options):
         Lexer.__init__(self, **options)
@@ -60,6 +61,8 @@ class DelphiLexer(Lexer):
     aliases = ['delphi', 'pas', 'pascal', 'objectpascal']
     filenames = ['*.pas', '*.dpr']
     mimetypes = ['text/x-pascal']
+    url = 'https://www.embarcadero.com/products/delphi'
+    version_added = ''
 
     TURBO_PASCAL_KEYWORDS = (
         'absolute', 'and', 'array', 'asm', 'begin', 'break', 'case',

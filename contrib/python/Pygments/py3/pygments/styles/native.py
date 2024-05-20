@@ -4,7 +4,7 @@
 
     pygments version of my "native" vim theme.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -56,15 +56,15 @@ class NativeStyle(Style):
 
         Generic.Heading:    'bold #ffffff',
         Generic.Subheading: 'underline #ffffff',
-        Generic.Deleted:    '#d22323',
+        Generic.Deleted:    '#ff3a3a',
         Generic.Inserted:   '#589819',
-        Generic.Error:      '#d22323',
+        Generic.Error:      '#ff3a3a',
         Generic.Emph:       'italic',
         Generic.Strong:     'bold',
         Generic.EmphStrong: 'bold italic',
         Generic.Prompt:     '#aaaaaa',
         Generic.Output:     '#cccccc',
-        Generic.Traceback:  '#d22323',
+        Generic.Traceback:  '#ff3a3a',
 
         Error:              'bg:#e3d2d2 #a61717'
     }

@@ -4,7 +4,7 @@
 
     Lexer for Crystal.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -27,8 +27,6 @@ CRYSTAL_OPERATORS = [
 class CrystalLexer(ExtendedRegexLexer):
     """
     For Crystal source code.
-
-    .. versionadded:: 2.2
     """
 
     name = 'Crystal'
@@ -36,6 +34,7 @@ class CrystalLexer(ExtendedRegexLexer):
     aliases = ['cr', 'crystal']
     filenames = ['*.cr']
     mimetypes = ['text/x-crystal']
+    version_added = '2.2'
 
     flags = re.DOTALL | re.MULTILINE
 
@@ -107,7 +106,7 @@ class CrystalLexer(ExtendedRegexLexer):
                                 ('backtick', String.Backtick, '`'):
             states['simple-'+name] = [
                 include('string-escaped' if name == 'sym' else 'string-intp-escaped'),
-                (r'[^\\%s#]+' % end, ttype),
+                (rf'[^\\{end}#]+', ttype),
                 (r'[\\#]', ttype),
                 (end, ttype, '#pop'),
             ]

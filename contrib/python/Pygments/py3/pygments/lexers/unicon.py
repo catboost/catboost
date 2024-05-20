@@ -4,7 +4,7 @@
 
     Lexers for the Icon and Unicon languages, including ucode VM.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,14 +20,14 @@ __all__ = ['IconLexer', 'UcodeLexer', 'UniconLexer']
 class UniconLexer(RegexLexer):
     """
     For Unicon source code.
-
-    .. versionadded:: 2.4
     """
 
     name = 'Unicon'
     aliases = ['unicon']
     filenames = ['*.icn']
     mimetypes = ['text/unicon']
+    url = 'https://www.unicon.org'
+    version_added = '2.4'
 
     flags = re.MULTILINE
 
@@ -166,13 +166,14 @@ class UniconLexer(RegexLexer):
 class IconLexer(RegexLexer):
     """
     Lexer for Icon.
-
-    .. versionadded:: 1.6
     """
     name = 'Icon'
     aliases = ['icon']
     filenames = ['*.icon', '*.ICON']
     mimetypes = []
+    url = 'https://www2.cs.arizona.edu/icon'
+    version_added = '1.6'
+
     flags = re.MULTILINE
 
     tokens = {
@@ -306,13 +307,14 @@ class IconLexer(RegexLexer):
 class UcodeLexer(RegexLexer):
     """
     Lexer for Icon ucode files.
-
-    .. versionadded:: 2.4
     """
     name = 'ucode'
     aliases = ['ucode']
     filenames = ['*.u', '*.u1', '*.u2']
     mimetypes = []
+    url = 'http://www.unicon.org'
+    version_added = '2.4'
+
     flags = re.MULTILINE
 
     tokens = {

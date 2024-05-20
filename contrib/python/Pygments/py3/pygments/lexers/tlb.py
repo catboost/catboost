@@ -4,7 +4,7 @@
 
     Lexers for TL-b.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,6 +23,8 @@ class TlbLexer(RegexLexer):
     name = 'Tl-b'
     aliases = ['tlb']
     filenames = ['*.tlb']
+    url = 'https://docs.ton.org/#/overviews/TL-B'
+    version_added = ''
 
     tokens = {
         'root': [

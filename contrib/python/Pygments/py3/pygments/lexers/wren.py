@@ -4,7 +4,7 @@
 
     Lexer for Wren.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -12,20 +12,19 @@ import re
 
 from pygments.lexer import include, RegexLexer, words
 from pygments.token import Whitespace, Punctuation, Keyword, Name, Comment, \
-    Operator, Number, String, Error
+    Operator, Number, String
 
 __all__ = ['WrenLexer']
 
 class WrenLexer(RegexLexer):
     """
     For Wren source code, version 0.4.0.
-
-    .. versionadded:: 2.14.0
     """
     name = 'Wren'
     url = 'https://wren.io'
     aliases = ['wren']
     filenames = ['*.wren']
+    version_added = '2.14'
 
     flags = re.MULTILINE | re.DOTALL
 

@@ -4,7 +4,7 @@
 
     Lexers for PHP and related languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -25,14 +25,13 @@ class ZephirLexer(RegexLexer):
 
     Zephir is a compiled high level language aimed
     to the creation of C-extensions for PHP.
-
-    .. versionadded:: 2.0
     """
 
     name = 'Zephir'
     url = 'http://zephir-lang.com/'
     aliases = ['zephir']
     filenames = ['*.zep']
+    version_added = '2.0'
 
     zephir_keywords = ['fetch', 'echo', 'isset', 'empty']
     zephir_type = ['bit', 'bits', 'string']
@@ -97,12 +96,11 @@ class PsyshConsoleLexer(Lexer):
         => Closure($name): string {#2371 …3}
         >>> $greeting('World')
         => "Hello, World"
-
-    .. versionadded:: 2.7
     """
     name = 'PsySH console session for PHP'
     url = 'https://psysh.org/'
     aliases = ['psysh']
+    version_added = '2.7'
 
     def __init__(self, **options):
         options['startinline'] = True
@@ -172,6 +170,7 @@ class PhpLexer(RegexLexer):
     aliases = ['php', 'php3', 'php4', 'php5']
     filenames = ['*.php', '*.php[345]', '*.inc']
     mimetypes = ['text/x-php']
+    version_added = ''
 
     # Note that a backslash is included, PHP uses a backslash as a namespace
     # separator.

@@ -4,7 +4,7 @@
 
     Lexer for SAS.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,8 +19,6 @@ __all__ = ['SASLexer']
 class SASLexer(RegexLexer):
     """
     For SAS files.
-
-    .. versionadded:: 2.2
     """
     # Syntax from syntax/sas.vim by James Kidd <james.kidd@covance.com>
 
@@ -28,6 +26,8 @@ class SASLexer(RegexLexer):
     aliases   = ['sas']
     filenames = ['*.SAS', '*.sas']
     mimetypes = ['text/x-sas', 'text/sas', 'application/x-sas']
+    url = 'https://en.wikipedia.org/wiki/SAS_(software)'
+    version_added = '2.2'
     flags     = re.IGNORECASE | re.MULTILINE
 
     builtins_macros = (

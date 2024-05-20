@@ -4,7 +4,7 @@
 
     Lexer for resource definition files.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,14 +18,13 @@ __all__ = ['ResourceLexer']
 
 
 class ResourceLexer(RegexLexer):
-    """Lexer for `ICU Resource bundles
-    <http://userguide.icu-project.org/locale/resources>`_.
-
-    .. versionadded:: 2.0
+    """Lexer for ICU Resource bundles.
     """
     name = 'ResourceBundle'
     aliases = ['resourcebundle', 'resource']
     filenames = []
+    url = 'https://unicode-org.github.io/icu/userguide/locale/resources.html'
+    version_added = '2.0'
 
     _types = (':table', ':array', ':string', ':bin', ':import', ':intvector',
               ':int', ':alias')
@@ -37,7 +36,7 @@ class ResourceLexer(RegexLexer):
             (r'"', String, 'string'),
             (r'-?\d+', Number.Integer),
             (r'[,{}]', Operator),
-            (r'([^\s{:]+)(\s*)(%s?)' % '|'.join(_types),
+            (r'([^\s{{:]+)(\s*)({}?)'.format('|'.join(_types)),
              bygroups(Name, Text, Keyword)),
             (r'\s+', Text),
             (words(_types), Keyword),

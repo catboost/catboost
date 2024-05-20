@@ -4,7 +4,7 @@
 
     Lexers for other C-like languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,19 +20,18 @@ from pygments.lexers import _mql_builtins
 
 __all__ = ['PikeLexer', 'NesCLexer', 'ClayLexer', 'ECLexer', 'ValaLexer',
            'CudaLexer', 'SwigLexer', 'MqlLexer', 'ArduinoLexer', 'CharmciLexer',
-           'OmgIdlLexer']
+           'OmgIdlLexer', 'PromelaLexer']
 
 
 class PikeLexer(CppLexer):
     """
     For `Pike <http://pike.lysator.liu.se/>`_ source code.
-
-    .. versionadded:: 2.0
     """
     name = 'Pike'
     aliases = ['pike']
     filenames = ['*.pike', '*.pmod']
     mimetypes = ['text/x-pike']
+    version_added = '2.0'
 
     tokens = {
         'statements': [
@@ -68,13 +67,12 @@ class NesCLexer(CLexer):
     """
     For `nesC <https://github.com/tinyos/nesc>`_ source code with preprocessor
     directives.
-
-    .. versionadded:: 2.0
     """
     name = 'nesC'
     aliases = ['nesc']
     filenames = ['*.nc']
     mimetypes = ['text/x-nescsrc']
+    version_added = '2.0'
 
     tokens = {
         'statements': [
@@ -95,14 +93,15 @@ class NesCLexer(CLexer):
 
 class ClayLexer(RegexLexer):
     """
-    For `Clay <http://claylabs.com/clay/>`_ source.
-
-    .. versionadded:: 2.0
+    For Clay source.
     """
     name = 'Clay'
     filenames = ['*.clay']
     aliases = ['clay']
     mimetypes = ['text/x-clay']
+    url = 'http://claylabs.com/clay'
+    version_added = '2.0'
+
     tokens = {
         'root': [
             (r'\s+', Whitespace),
@@ -147,13 +146,13 @@ class ClayLexer(RegexLexer):
 class ECLexer(CLexer):
     """
     For eC source code with preprocessor directives.
-
-    .. versionadded:: 1.5
     """
     name = 'eC'
     aliases = ['ec']
     filenames = ['*.ec', '*.eh']
     mimetypes = ['text/x-echdr', 'text/x-ecsrc']
+    url = 'https://ec-lang.org'
+    version_added = '1.5'
 
     tokens = {
         'statements': [
@@ -180,13 +179,13 @@ class ECLexer(CLexer):
 class ValaLexer(RegexLexer):
     """
     For Vala source code with preprocessor directives.
-
-    .. versionadded:: 1.1
     """
     name = 'Vala'
     aliases = ['vala', 'vapi']
     filenames = ['*.vala', '*.vapi']
     mimetypes = ['text/x-vala']
+    url = 'https://vala.dev'
+    version_added = '1.1'
 
     tokens = {
         'whitespace': [
@@ -277,15 +276,14 @@ class ValaLexer(RegexLexer):
 
 class CudaLexer(CLexer):
     """
-    For NVIDIA `CUDA™ <http://developer.nvidia.com/category/zone/cuda-zone>`_
-    source.
-
-    .. versionadded:: 1.6
+    For NVIDIA CUDA™ source.
     """
     name = 'CUDA'
     filenames = ['*.cu', '*.cuh']
     aliases = ['cuda', 'cu']
     mimetypes = ['text/x-cuda']
+    url = 'https://developer.nvidia.com/category/zone/cuda-zone'
+    version_added = '1.6'
 
     function_qualifiers = {'__device__', '__global__', '__host__',
                            '__noinline__', '__forceinline__'}
@@ -326,13 +324,12 @@ class CudaLexer(CLexer):
 class SwigLexer(CppLexer):
     """
     For `SWIG <http://www.swig.org/>`_ source code.
-
-    .. versionadded:: 2.0
     """
     name = 'SWIG'
     aliases = ['swig']
     filenames = ['*.swg', '*.i']
     mimetypes = ['text/swig']
+    version_added = '2.0'
     priority = 0.04  # Lower than C/C++ and Objective C/C++
 
     tokens = {
@@ -393,13 +390,12 @@ class MqlLexer(CppLexer):
     """
     For `MQL4 <http://docs.mql4.com/>`_ and
     `MQL5 <http://www.mql5.com/en/docs>`_ source code.
-
-    .. versionadded:: 2.0
     """
     name = 'MQL'
     aliases = ['mql', 'mq4', 'mq5', 'mql4', 'mql5']
     filenames = ['*.mq4', '*.mq5', '*.mqh']
     mimetypes = ['text/x-mql']
+    version_added = '2.0'
 
     tokens = {
         'statements': [
@@ -420,14 +416,13 @@ class ArduinoLexer(CppLexer):
 
     This is an extension of the CppLexer, as the Arduino® Language is a superset
     of C++
-
-    .. versionadded:: 2.1
     """
 
     name = 'Arduino'
     aliases = ['arduino']
     filenames = ['*.ino']
     mimetypes = ['text/x-arduino']
+    version_added = '2.1'
 
     # Language sketch main structure functions
     structure = {'setup', 'loop'}
@@ -545,13 +540,12 @@ class ArduinoLexer(CppLexer):
 class CharmciLexer(CppLexer):
     """
     For `Charm++ <https://charm.cs.illinois.edu>`_ interface files (.ci).
-
-    .. versionadded:: 2.4
     """
 
     name = 'Charmci'
     aliases = ['charmci']
     filenames = ['*.ci']
+    version_added = '2.4'
 
     mimetypes = []
 
@@ -575,8 +569,6 @@ class CharmciLexer(CppLexer):
 class OmgIdlLexer(CLexer):
     """
     Lexer for Object Management Group Interface Definition Language.
-
-    .. versionadded:: 2.9
     """
 
     name = 'OMG Interface Definition Language'
@@ -584,6 +576,7 @@ class OmgIdlLexer(CLexer):
     aliases = ['omg-idl']
     filenames = ['*.idl', '*.pidl']
     mimetypes = []
+    version_added = '2.9'
 
     scoped_name = r'((::)?\w+)+'
 
@@ -662,5 +655,84 @@ class OmgIdlLexer(CLexer):
             (r'[\(\)]', Punctuation),
             include('values'),
             include('annotation_appl'),
+        ],
+    }
+
+
+class PromelaLexer(CLexer):
+    """
+    For the Promela language used with SPIN.
+    """
+    
+    name = 'Promela'
+    aliases = ['promela']
+    filenames = ['*.pml', '*.prom', '*.prm', '*.promela', '*.pr', '*.pm']
+    mimetypes = ['text/x-promela']
+    url = 'https://spinroot.com/spin/whatispin.html'
+    version_added = '2.18'
+
+    # Promela's language reference:
+    # https://spinroot.com/spin/Man/promela.html
+    # Promela's grammar definition:
+    # https://spinroot.com/spin/Man/grammar.html
+
+    tokens = {
+        'statements': [
+            (r'(\[\]|<>|/\\|\\/)|(U|W|V)\b', Operator), # LTL Operators
+            (r'@', Punctuation), #remoterefs
+            (r'(\.)([a-zA-Z_]\w*)', bygroups(Operator, Name.Attribute)),
+            inherit
+        ],
+        'types': [
+            # Predefined (data types)
+            (words((
+                'bit', 'bool', 'byte', 'pid', 'short', 'int', 'unsigned'),
+                suffix=r'\b'),
+             Keyword.Type),
+        ],
+        'keywords': [
+            # ControlFlow
+            (words((
+                'atomic', 'break', 'd_step', 'do', 'od', 'for', 'in', 'goto',
+                'if', 'fi', 'unless'), suffix=r'\b'),
+             Keyword),
+            # BasicStatements
+            (words((
+                'assert', 'get_priority', 'printf', 'printm', 'set_priority'),
+                suffix=r'\b'),
+             Name.Function),
+            # Embedded C Code
+            (words((
+                'c_code', 'c_decl', 'c_expr', 'c_state', 'c_track'),
+                suffix=r'\b'),
+             Keyword),
+            # Predefined (local/global variables)
+            (words((
+                '_', '_last', '_nr_pr', '_pid', '_priority', 'else', 'np_',
+                'STDIN'), suffix=r'\b'),
+             Name.Builtin),
+            # Predefined (functions)
+            (words((
+                'empty', 'enabled', 'eval', 'full', 'len', 'nempty', 'nfull',
+                'pc_value'), suffix=r'\b'),
+             Name.Function),
+            # Predefined (operators)
+            (r'run\b', Operator.Word),
+            # Declarators
+            (words((
+                'active', 'chan', 'D_proctype', 'hidden', 'init', 'local',
+                'mtype', 'never', 'notrace', 'proctype', 'show', 'trace',
+                'typedef', 'xr', 'xs'), suffix=r'\b'),
+             Keyword.Declaration),
+            # Declarators (suffixes)
+            (words((
+                'priority', 'provided'), suffix=r'\b'),
+             Keyword),
+            # MetaTerms (declarators)
+            (words((
+                'inline', 'ltl', 'select'), suffix=r'\b'),
+             Keyword.Declaration),
+            # MetaTerms (keywords)
+            (r'skip\b', Keyword),
         ],
     }

@@ -4,7 +4,7 @@
 
     Lexers for Ruby and related languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -36,6 +36,7 @@ class RubyLexer(ExtendedRegexLexer):
     filenames = ['*.rb', '*.rbw', 'Rakefile', '*.rake', '*.gemspec',
                  '*.rbx', '*.duby', 'Gemfile', 'Vagrantfile']
     mimetypes = ['text/x-ruby', 'application/x-ruby']
+    version_added = ''
 
     flags = re.DOTALL | re.MULTILINE
 
@@ -124,7 +125,7 @@ class RubyLexer(ExtendedRegexLexer):
                                 ('backtick', String.Backtick, '`'):
             states['simple-'+name] = [
                 include('string-intp-escaped'),
-                (r'[^\\%s#]+' % end, ttype),
+                (rf'[^\\{end}#]+', ttype),
                 (r'[\\#]', ttype),
                 (end, ttype, '#pop'),
             ]
@@ -399,6 +400,8 @@ class RubyConsoleLexer(Lexer):
     name = 'Ruby irb session'
     aliases = ['rbcon', 'irb']
     mimetypes = ['text/x-ruby-shellsession']
+    url = 'https://www.ruby-lang.org'
+    version_added = ''
     _example = 'rbcon/console'
 
     _prompt_re = re.compile(r'irb\([a-zA-Z_]\w*\):\d{3}:\d+[>*"\'] '
@@ -436,14 +439,13 @@ class FancyLexer(RegexLexer):
     Fancy is a self-hosted, pure object-oriented, dynamic,
     class-based, concurrent general-purpose programming language
     running on Rubinius, the Ruby VM.
-
-    .. versionadded:: 1.5
     """
     name = 'Fancy'
     url = 'https://github.com/bakkdoor/fancy'
     filenames = ['*.fy', '*.fancypack']
     aliases = ['fancy', 'fy']
     mimetypes = ['text/x-fancysrc']
+    version_added = '1.5'
 
     tokens = {
         # copied from PerlLexer:

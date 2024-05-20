@@ -4,7 +4,7 @@
 
     Lexers for the X10 programming language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,8 +17,6 @@ __all__ = ['X10Lexer']
 class X10Lexer(RegexLexer):
     """
     For the X10 language.
-
-    .. versionadded:: 2.2
     """
 
     name = 'X10'
@@ -26,6 +24,7 @@ class X10Lexer(RegexLexer):
     aliases = ['x10', 'xten']
     filenames = ['*.x10']
     mimetypes = ['text/x-x10']
+    version_added = '2.2'
 
     keywords = (
         'as', 'assert', 'async', 'at', 'athome', 'ateach', 'atomic',
@@ -56,10 +55,10 @@ class X10Lexer(RegexLexer):
             (r'[^\S\n]+', Text),
             (r'//.*?\n', Comment.Single),
             (r'/\*(.|\n)*?\*/', Comment.Multiline),
-            (r'\b(%s)\b' % '|'.join(keywords), Keyword),
-            (r'\b(%s)\b' % '|'.join(types), Keyword.Type),
-            (r'\b(%s)\b' % '|'.join(values), Keyword.Constant),
-            (r'\b(%s)\b' % '|'.join(modifiers), Keyword.Declaration),
+            (r'\b({})\b'.format('|'.join(keywords)), Keyword),
+            (r'\b({})\b'.format('|'.join(types)), Keyword.Type),
+            (r'\b({})\b'.format('|'.join(values)), Keyword.Constant),
+            (r'\b({})\b'.format('|'.join(modifiers)), Keyword.Declaration),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String),
             (r"'\\.'|'[^\\]'|'\\u[0-9a-fA-F]{4}'", String.Char),
             (r'.', Text)

@@ -4,7 +4,7 @@
 
     Lexer for ParaSail.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,8 +20,6 @@ __all__ = ['ParaSailLexer']
 class ParaSailLexer(RegexLexer):
     """
     For ParaSail source code.
-
-    .. versionadded:: 2.1
     """
 
     name = 'ParaSail'
@@ -29,6 +27,7 @@ class ParaSailLexer(RegexLexer):
     aliases = ['parasail']
     filenames = ['*.psi', '*.psl']
     mimetypes = ['text/x-parasail']
+    version_added = '2.1'
 
     flags = re.MULTILINE
 

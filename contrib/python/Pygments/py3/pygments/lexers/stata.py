@@ -4,7 +4,7 @@
 
     Lexer for Stata
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,8 +21,6 @@ __all__ = ['StataLexer']
 class StataLexer(RegexLexer):
     """
     For Stata do files.
-
-    .. versionadded:: 2.2
     """
     # Syntax based on
     # - http://fmwww.bc.edu/RePEc/bocode/s/synlightlist.ado
@@ -31,6 +29,7 @@ class StataLexer(RegexLexer):
 
     name = 'Stata'
     url = 'http://www.stata.com/'
+    version_added = '2.2'
     aliases   = ['stata', 'do']
     filenames = ['*.do', '*.ado']
     mimetypes = ['text/x-stata', 'text/stata', 'application/x-stata']

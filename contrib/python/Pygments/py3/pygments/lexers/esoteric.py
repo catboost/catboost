@@ -4,7 +4,7 @@
 
     Lexers for esoteric languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -26,6 +26,7 @@ class BrainfuckLexer(RegexLexer):
     aliases = ['brainfuck', 'bf']
     filenames = ['*.bf', '*.b']
     mimetypes = ['application/x-brainfuck']
+    version_added = ''
 
     tokens = {
         'common': [
@@ -76,14 +77,13 @@ class BrainfuckLexer(RegexLexer):
 class BefungeLexer(RegexLexer):
     """
     Lexer for the esoteric Befunge language.
-
-    .. versionadded:: 0.7
     """
     name = 'Befunge'
     url = 'http://en.wikipedia.org/wiki/Befunge'
     aliases = ['befunge']
     filenames = ['*.befunge']
     mimetypes = ['application/x-befunge']
+    version_added = '0.7'
 
     tokens = {
         'root': [
@@ -106,18 +106,17 @@ class BefungeLexer(RegexLexer):
 class CAmkESLexer(RegexLexer):
     """
     Basic lexer for the input language for the CAmkES component platform.
-
-    .. versionadded:: 2.1
     """
     name = 'CAmkES'
     url = 'https://sel4.systems/CAmkES/'
     aliases = ['camkes', 'idl4']
     filenames = ['*.camkes', '*.idl4']
+    version_added = '2.1'
 
     tokens = {
         'root': [
             # C pre-processor directive
-            (r'^(\s*)(#.*)(\n)', bygroups(Whitespace, Comment.Preproc, 
+            (r'^(\s*)(#.*)(\n)', bygroups(Whitespace, Comment.Preproc,
                 Whitespace)),
 
             # Whitespace, comments
@@ -181,13 +180,12 @@ class CapDLLexer(RegexLexer):
     shadow type names, but these instances are currently incorrectly
     highlighted as types. Supporting this would need a stateful lexer that is
     considered unnecessarily complex for now.
-
-    .. versionadded:: 2.2
     """
     name = 'CapDL'
     url = 'https://ssrg.nicta.com.au/publications/nictaabstracts/Kuz_KLW_10.abstract.pml'
     aliases = ['capdl']
     filenames = ['*.cdl']
+    version_added = '2.2'
 
     tokens = {
         'root': [
@@ -235,12 +233,12 @@ class RedcodeLexer(RegexLexer):
     """
     A simple Redcode lexer based on ICWS'94.
     Contributed by Adam Blinkinsop <blinks@acm.org>.
-
-    .. versionadded:: 0.8
     """
     name = 'Redcode'
     aliases = ['redcode']
     filenames = ['*.cw']
+    url = 'https://en.wikipedia.org/wiki/Core_War'
+    version_added = '0.8'
 
     opcodes = ('DAT', 'MOV', 'ADD', 'SUB', 'MUL', 'DIV', 'MOD',
                'JMP', 'JMZ', 'JMN', 'DJN', 'CMP', 'SLT', 'SPL',
@@ -254,8 +252,8 @@ class RedcodeLexer(RegexLexer):
             (r';.*$', Comment.Single),
             # Lexemes:
             #  Identifiers
-            (r'\b(%s)\b' % '|'.join(opcodes), Name.Function),
-            (r'\b(%s)\b' % '|'.join(modifiers), Name.Decorator),
+            (r'\b({})\b'.format('|'.join(opcodes)), Name.Function),
+            (r'\b({})\b'.format('|'.join(modifiers)), Name.Decorator),
             (r'[A-Za-z_]\w+', Name),
             #  Operators
             (r'[-+*/%]', Operator),
@@ -276,6 +274,7 @@ class AheuiLexer(RegexLexer):
     url = 'http://aheui.github.io/'
     aliases = ['aheui']
     filenames = ['*.aheui']
+    version_added = ''
 
     tokens = {
         'root': [

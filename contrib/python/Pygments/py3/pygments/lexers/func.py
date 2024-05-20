@@ -4,7 +4,7 @@
 
     Lexers for FunC.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,6 +23,8 @@ class FuncLexer(RegexLexer):
     name = 'FunC'
     aliases = ['func', 'fc']
     filenames = ['*.fc', '*.func']
+    url = 'https://docs.ton.org/develop/func/overview'
+    version_added = ''
 
     # 1. Does not start from "
     # 2. Can start from ` and end with `, containing any character

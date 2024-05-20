@@ -4,7 +4,7 @@
 
     Lexers for Solidity.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,14 +18,14 @@ __all__ = ['SolidityLexer']
 class SolidityLexer(RegexLexer):
     """
     For Solidity source code.
-
-    .. versionadded:: 2.5
     """
 
     name = 'Solidity'
     aliases = ['solidity']
     filenames = ['*.sol']
     mimetypes = []
+    url = 'https://soliditylang.org'
+    version_added = '2.5'
 
     datatype = (
         r'\b(address|bool|(?:(?:bytes|hash|int|string|uint)(?:8|16|24|32|40|48|56|64'

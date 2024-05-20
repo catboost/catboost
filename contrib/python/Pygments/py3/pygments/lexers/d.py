@@ -4,7 +4,7 @@
 
     Lexers for D languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,14 +18,13 @@ __all__ = ['DLexer', 'CrocLexer', 'MiniDLexer']
 class DLexer(RegexLexer):
     """
     For D source.
-
-    .. versionadded:: 1.2
     """
     name = 'D'
     url = 'https://dlang.org/'
     filenames = ['*.d', '*.di']
     aliases = ['d']
     mimetypes = ['text/x-dsrc']
+    version_added = '1.2'
 
     tokens = {
         'root': [
@@ -194,6 +193,7 @@ class CrocLexer(RegexLexer):
     filenames = ['*.croc']
     aliases = ['croc']
     mimetypes = ['text/x-crocsrc']
+    version_added = ''
 
     tokens = {
         'root': [
@@ -256,3 +256,4 @@ class MiniDLexer(CrocLexer):
     filenames = []  # don't lex .md as MiniD, reserve for Markdown
     aliases = ['minid']
     mimetypes = ['text/x-minidsrc']
+    version_added = ''

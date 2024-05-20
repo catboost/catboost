@@ -6,7 +6,7 @@
 
     http://www.monokai.nl/blog/2006/07/15/textmate-color-theme/
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

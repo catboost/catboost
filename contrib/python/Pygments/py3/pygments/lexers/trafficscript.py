@@ -4,7 +4,7 @@
 
     Lexer for RiverBed's TrafficScript (RTS) language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,12 +17,12 @@ __all__ = ['RtsLexer']
 class RtsLexer(RegexLexer):
     """
     For Riverbed Stingray Traffic Manager
-
-    .. versionadded:: 2.1
     """
     name = 'TrafficScript'
     aliases = ['trafficscript', 'rts']
     filenames = ['*.rts']
+    url = 'https://riverbed.com'
+    version_added = '2.1'
 
     tokens = {
         'root' : [

@@ -4,7 +4,7 @@
 
     Lexers for JavaScript and related languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -41,6 +41,7 @@ class JavascriptLexer(RegexLexer):
     filenames = ['*.js', '*.jsm', '*.mjs', '*.cjs']
     mimetypes = ['application/javascript', 'application/x-javascript',
                  'text/x-javascript', 'text/javascript']
+    version_added = ''
 
     flags = re.DOTALL | re.MULTILINE
 
@@ -137,8 +138,6 @@ class JavascriptLexer(RegexLexer):
 class TypeScriptLexer(JavascriptLexer):
     """
     For TypeScript source code.
-
-    .. versionadded:: 1.6
     """
 
     name = 'TypeScript'
@@ -146,6 +145,7 @@ class TypeScriptLexer(JavascriptLexer):
     aliases = ['typescript', 'ts']
     filenames = ['*.ts']
     mimetypes = ['application/x-typescript', 'text/x-typescript']
+    version_added = '1.6'
 
     # Higher priority than the TypoScriptLexer, as TypeScript is far more
     # common these days
@@ -175,8 +175,6 @@ class TypeScriptLexer(JavascriptLexer):
 class KalLexer(RegexLexer):
     """
     For Kal source code.
-
-    .. versionadded:: 2.0
     """
 
     name = 'Kal'
@@ -184,6 +182,7 @@ class KalLexer(RegexLexer):
     aliases = ['kal']
     filenames = ['*.kal']
     mimetypes = ['text/kal', 'application/kal']
+    version_added = '2.0'
 
     flags = re.DOTALL
     tokens = {
@@ -309,8 +308,6 @@ class KalLexer(RegexLexer):
 class LiveScriptLexer(RegexLexer):
     """
     For LiveScript source code.
-
-    .. versionadded:: 1.6
     """
 
     name = 'LiveScript'
@@ -318,6 +315,7 @@ class LiveScriptLexer(RegexLexer):
     aliases = ['livescript', 'live-script']
     filenames = ['*.ls']
     mimetypes = ['text/livescript']
+    version_added = '1.6'
 
     flags = re.DOTALL
     tokens = {
@@ -422,8 +420,6 @@ class LiveScriptLexer(RegexLexer):
 class DartLexer(RegexLexer):
     """
     For Dart source code.
-
-    .. versionadded:: 1.5
     """
 
     name = 'Dart'
@@ -431,6 +427,7 @@ class DartLexer(RegexLexer):
     aliases = ['dart']
     filenames = ['*.dart']
     mimetypes = ['text/x-dart']
+    version_added = '1.5'
 
     flags = re.MULTILINE | re.DOTALL
 
@@ -537,15 +534,16 @@ class LassoLexer(RegexLexer):
     `requiredelimiters`
         If given and ``True``, only highlight code between delimiters as Lasso
         (default: ``False``).
-
-    .. versionadded:: 1.6
     """
 
     name = 'Lasso'
     aliases = ['lasso', 'lassoscript']
     filenames = ['*.lasso', '*.lasso[89]']
+    version_added = '1.6'
     alias_filenames = ['*.incl', '*.inc', '*.las']
     mimetypes = ['text/x-lasso']
+    url = 'https://www.lassosoft.com'
+
     flags = re.IGNORECASE | re.DOTALL | re.MULTILINE
 
     tokens = {
@@ -790,14 +788,14 @@ class LassoLexer(RegexLexer):
 class ObjectiveJLexer(RegexLexer):
     """
     For Objective-J source code with preprocessor directives.
-
-    .. versionadded:: 1.3
     """
 
     name = 'Objective-J'
     aliases = ['objective-j', 'objectivej', 'obj-j', 'objj']
     filenames = ['*.j']
     mimetypes = ['text/x-objective-j']
+    url = 'https://www.cappuccino.dev/learn/objective-j.html'
+    version_added = '1.3'
 
     #: optional Comment or Whitespace
     _ws = r'(?:\s|//[^\n]*\n|/[*](?:[^*]|[*][^/])*[*]/)*'
@@ -1013,8 +1011,6 @@ class ObjectiveJLexer(RegexLexer):
 class CoffeeScriptLexer(RegexLexer):
     """
     For CoffeeScript source code.
-
-    .. versionadded:: 1.3
     """
 
     name = 'CoffeeScript'
@@ -1022,6 +1018,7 @@ class CoffeeScriptLexer(RegexLexer):
     aliases = ['coffeescript', 'coffee-script', 'coffee']
     filenames = ['*.coffee']
     mimetypes = ['text/coffeescript']
+    version_added = '1.3'
 
     _operator_re = (
         r'\+\+|~|&&|\band\b|\bor\b|\bis\b|\bisnt\b|\bnot\b|\?|:|'
@@ -1127,14 +1124,13 @@ class CoffeeScriptLexer(RegexLexer):
 class MaskLexer(RegexLexer):
     """
     For Mask markup.
-
-    .. versionadded:: 2.0
     """
     name = 'Mask'
     url = 'https://github.com/atmajs/MaskJS'
     aliases = ['mask']
     filenames = ['*.mask']
     mimetypes = ['text/x-mask']
+    version_added = '2.0'
 
     flags = re.MULTILINE | re.IGNORECASE | re.DOTALL
     tokens = {
@@ -1255,6 +1251,8 @@ class EarlGreyLexer(RegexLexer):
     aliases = ['earl-grey', 'earlgrey', 'eg']
     filenames = ['*.eg']
     mimetypes = ['text/x-earl-grey']
+    url = 'https://github.com/breuleux/earl-grey'
+    version_added = ''
 
     tokens = {
         'root': [
@@ -1461,8 +1459,6 @@ class EarlGreyLexer(RegexLexer):
 class JuttleLexer(RegexLexer):
     """
     For Juttle source code.
-
-    .. versionadded:: 2.2
     """
 
     name = 'Juttle'
@@ -1471,6 +1467,7 @@ class JuttleLexer(RegexLexer):
     filenames = ['*.juttle']
     mimetypes = ['application/juttle', 'application/x-juttle',
                  'text/x-juttle', 'text/juttle']
+    version_added = '2.2'
 
     flags = re.DOTALL | re.MULTILINE
 
@@ -1548,6 +1545,8 @@ class NodeConsoleLexer(Lexer):
     name = 'Node.js REPL console session'
     aliases = ['nodejsrepl', ]
     mimetypes = ['text/x-nodejsrepl', ]
+    url = 'https://nodejs.org'
+    version_added = ''
 
     def get_tokens_unprocessed(self, text):
         jslexer = JavascriptLexer(**self.options)

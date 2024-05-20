@@ -4,7 +4,7 @@
 
     Lexers for the Smithy IDL.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,13 +18,12 @@ __all__ = ['SmithyLexer']
 class SmithyLexer(RegexLexer):
     """
     For Smithy IDL
-
-    .. versionadded:: 2.10
     """
     name = 'Smithy'
     url = 'https://awslabs.github.io/smithy/'
     filenames = ['*.smithy']
     aliases = ['smithy']
+    version_added = '2.10'
 
     unquoted = r'[A-Za-z0-9_\.#$-]+'
     identifier = r"[A-Za-z0-9_\.#$-]+"

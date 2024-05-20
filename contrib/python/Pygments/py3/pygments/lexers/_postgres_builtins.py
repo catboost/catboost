@@ -6,7 +6,7 @@
 
     Run with `python -I` to update itself.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -683,7 +683,8 @@ if __name__ == '__main__':  # pragma: no cover
                         for t in tmp.split(']') if "(" not in t]:
                 for t in tmp.split(','):
                     t = t.strip()
-                    if not t: continue
+                    if not t:
+                        continue
                     dt.add(" ".join(t.split()))
 
         dt = list(dt)
@@ -724,11 +725,10 @@ if __name__ == '__main__':  # pragma: no cover
             data = f.read()
 
         # Line to start/end inserting
-        re_match = re.compile(r'^%s\s*=\s*\($.*?^\s*\)$' % constname, re.M | re.S)
+        re_match = re.compile(rf'^{constname}\s*=\s*\($.*?^\s*\)$', re.M | re.S)
         m = re_match.search(data)
         if not m:
-            raise ValueError('Could not find existing definition for %s' %
-                             (constname,))
+            raise ValueError(f'Could not find existing definition for {constname}')
 
         new_block = format_lines(constname, content)
         data = data[:m.start()] + new_block + data[m.end():]

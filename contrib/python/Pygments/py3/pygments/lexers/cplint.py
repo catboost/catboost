@@ -4,7 +4,7 @@
 
     Lexer for the cplint language
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,14 +19,13 @@ class CplintLexer(PrologLexer):
     """
     Lexer for cplint files, including CP-logic, Logic Programs with Annotated
     Disjunctions, Distributional Clauses syntax, ProbLog, DTProbLog.
-
-    .. versionadded:: 2.12
     """
     name = 'cplint'
     url = 'https://cplint.eu'
     aliases = ['cplint']
     filenames = ['*.ecl', '*.prolog', '*.pro', '*.pl', '*.P', '*.lpad', '*.cpl']
     mimetypes = ['text/x-cplint']
+    version_added = '2.12'
 
     tokens = {
         'root': [

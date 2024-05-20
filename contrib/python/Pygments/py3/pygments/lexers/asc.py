@@ -4,7 +4,7 @@
 
     Lexer for various ASCII armored files.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 import re
@@ -19,8 +19,6 @@ class AscLexer(RegexLexer):
     """
     Lexer for ASCII armored files, containing `-----BEGIN/END ...-----` wrapped
     base64 data.
-
-    .. versionadded:: 2.10
     """
     name = 'ASCII armored'
     aliases = ['asc', 'pem']
@@ -32,6 +30,8 @@ class AscLexer(RegexLexer):
     ]
     mimetypes = ['application/pgp-keys', 'application/pgp-encrypted',
                  'application/pgp-signature', 'application/pem-certificate-chain']
+    url = 'https://www.openpgp.org'
+    version_added = '2.10'
 
     flags = re.MULTILINE
 

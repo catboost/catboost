@@ -4,7 +4,7 @@
 
     Lexers for MIPS assembly.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -24,10 +24,12 @@ class MIPSLexer(RegexLexer):
 
     name = 'MIPS'
     aliases = ['mips']
+    version_added = ''
     # TODO: add '*.s' and '*.asm', which will require designing an analyse_text
     # method for this lexer and refactoring those from Gas and Nasm in order to
     # have relatively reliable detection
     filenames = ['*.mips', '*.MIPS']
+    url = 'https://mips.com'
 
     keywords = [
         # Arithmetic insturctions

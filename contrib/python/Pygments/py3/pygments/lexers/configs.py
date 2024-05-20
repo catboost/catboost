@@ -4,7 +4,7 @@
 
     Lexers for configuration file formats.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -36,6 +36,8 @@ class IniLexer(RegexLexer):
         '*.ini', '*.cfg', '*.inf', '.editorconfig',
     ]
     mimetypes = ['text/x-ini', 'text/inf']
+    url = 'https://en.wikipedia.org/wiki/INI_file'
+    version_added = ''
 
     tokens = {
         'root': [
@@ -71,14 +73,14 @@ class IniLexer(RegexLexer):
 class DesktopLexer(RegexLexer):
     """
     Lexer for .desktop files.
-
-    .. versionadded:: 2.16
     """
 
     name = 'Desktop file'
     url = "https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html"
     aliases = ['desktop']
     filenames = ['*.desktop']
+    mimetypes = ['application/x-desktop']
+    version_added = '2.16'
 
     tokens = {
         'root': [
@@ -101,8 +103,6 @@ class DesktopLexer(RegexLexer):
 class SystemdLexer(RegexLexer):
     """
     Lexer for systemd unit files.
-
-    .. versionadded:: 2.16
     """
 
     name = 'Systemd'
@@ -112,6 +112,7 @@ class SystemdLexer(RegexLexer):
         '*.service', '*.socket', '*.device', '*.mount', '*.automount',
         '*.swap', '*.target', '*.path', '*.timer', '*.slice', '*.scope',
     ]
+    version_added = '2.16'
 
     tokens = {
         'root': [
@@ -146,8 +147,6 @@ class SystemdLexer(RegexLexer):
 class RegeditLexer(RegexLexer):
     """
     Lexer for Windows Registry files produced by regedit.
-
-    .. versionadded:: 1.6
     """
 
     name = 'reg'
@@ -155,6 +154,7 @@ class RegeditLexer(RegexLexer):
     aliases = ['registry']
     filenames = ['*.reg']
     mimetypes = ['text/x-windows-registry']
+    version_added = '1.6'
 
     tokens = {
         'root': [
@@ -191,14 +191,14 @@ class PropertiesLexer(RegexLexer):
     Lexer for configuration files in Java's properties format.
 
     Note: trailing whitespace counts as part of the value as per spec
-
-    .. versionadded:: 1.4
     """
 
     name = 'Properties'
     aliases = ['properties', 'jproperties']
     filenames = ['*.properties']
     mimetypes = ['text/x-java-properties']
+    url = 'https://en.wikipedia.org/wiki/.properties'
+    version_added = '1.4'
 
     tokens = {
         'root': [
@@ -258,29 +258,30 @@ def _rx_indent(level):
     if level == 1:
         level_repeat = ''
     else:
-        level_repeat = '{%s}' % level
-    return r'(?:\t| %s\t| {%s})%s.*\n' % (space_repeat, tab_width, level_repeat)
+        level_repeat = f'{{{level}}}'
+    return rf'(?:\t| {space_repeat}\t| {{{tab_width}}}){level_repeat}.*\n'
 
 
 class KconfigLexer(RegexLexer):
     """
     For Linux-style Kconfig files.
-
-    .. versionadded:: 1.6
     """
 
     name = 'Kconfig'
     aliases = ['kconfig', 'menuconfig', 'linux-config', 'kernel-config']
+    version_added = '1.6'
     # Adjust this if new kconfig file names appear in your environment
     filenames = ['Kconfig*', '*Config.in*', 'external.in*',
                  'standard-modules.in']
     mimetypes = ['text/x-kconfig']
+    url = 'https://www.kernel.org/doc/html/latest/kbuild/kconfig-language.html'
+
     # No re.MULTILINE, indentation-aware help text needs line-by-line handling
     flags = 0
 
     def call_indent(level):
         # If indentation >= {level} is detected, enter state 'indent{level}'
-        return (_rx_indent(level), String.Doc, 'indent%s' % level)
+        return (_rx_indent(level), String.Doc, f'indent{level}')
 
     def do_indent(level):
         # Print paragraphs of indentation level >= {level} as String.Doc,
@@ -342,8 +343,6 @@ class KconfigLexer(RegexLexer):
 class Cfengine3Lexer(RegexLexer):
     """
     Lexer for CFEngine3 policy files.
-
-    .. versionadded:: 1.5
     """
 
     name = 'CFEngine3'
@@ -351,6 +350,7 @@ class Cfengine3Lexer(RegexLexer):
     aliases = ['cfengine3', 'cf3']
     filenames = ['*.cf']
     mimetypes = []
+    version_added = '1.5'
 
     tokens = {
         'root': [
@@ -405,14 +405,14 @@ class ApacheConfLexer(RegexLexer):
     """
     Lexer for configuration files following the Apache config file
     format.
-
-    .. versionadded:: 0.6
     """
 
     name = 'ApacheConf'
     aliases = ['apacheconf', 'aconf', 'apache']
     filenames = ['.htaccess', 'apache.conf', 'apache2.conf']
     mimetypes = ['text/x-apacheconf']
+    url = 'https://httpd.apache.org/docs/current/configuring.html'
+    version_added = '0.6'
     flags = re.MULTILINE | re.IGNORECASE
 
     tokens = {
@@ -447,8 +447,6 @@ class ApacheConfLexer(RegexLexer):
 class SquidConfLexer(RegexLexer):
     """
     Lexer for squid configuration files.
-
-    .. versionadded:: 0.9
     """
 
     name = 'SquidConf'
@@ -456,6 +454,7 @@ class SquidConfLexer(RegexLexer):
     aliases = ['squidconf', 'squid.conf', 'squid']
     filenames = ['squid.conf']
     mimetypes = ['text/x-squidconf']
+    version_added = '0.9'
     flags = re.IGNORECASE
 
     keywords = (
@@ -577,14 +576,13 @@ class SquidConfLexer(RegexLexer):
 class NginxConfLexer(RegexLexer):
     """
     Lexer for Nginx configuration files.
-
-    .. versionadded:: 0.11
     """
     name = 'Nginx configuration file'
     url = 'http://nginx.net/'
     aliases = ['nginx']
     filenames = ['nginx.conf']
     mimetypes = ['text/x-nginx-conf']
+    version_added = '0.11'
 
     tokens = {
         'root': [
@@ -624,14 +622,13 @@ class NginxConfLexer(RegexLexer):
 class LighttpdConfLexer(RegexLexer):
     """
     Lexer for Lighttpd configuration files.
-
-    .. versionadded:: 0.11
     """
     name = 'Lighttpd configuration file'
     url = 'http://lighttpd.net/'
     aliases = ['lighttpd', 'lighty']
     filenames = ['lighttpd.conf']
     mimetypes = ['text/x-lighttpd-conf']
+    version_added = '0.11'
 
     tokens = {
         'root': [
@@ -653,14 +650,13 @@ class LighttpdConfLexer(RegexLexer):
 class DockerLexer(RegexLexer):
     """
     Lexer for Docker configuration files.
-
-    .. versionadded:: 2.0
     """
     name = 'Docker'
     url = 'http://docker.io'
     aliases = ['docker', 'dockerfile']
     filenames = ['Dockerfile', '*.docker']
     mimetypes = ['text/x-dockerfile-config']
+    version_added = '2.0'
 
     _keywords = (r'(?:MAINTAINER|EXPOSE|WORKDIR|USER|STOPSIGNAL)')
     _bash_keywords = (r'(?:RUN|CMD|ENTRYPOINT|ENV|ARG|LABEL|ADD|COPY)')
@@ -672,15 +668,15 @@ class DockerLexer(RegexLexer):
             (r'#.*', Comment),
             (r'(FROM)([ \t]*)(\S*)([ \t]*)(?:(AS)([ \t]*)(\S*))?',
              bygroups(Keyword, Whitespace, String, Whitespace, Keyword, Whitespace, String)),
-            (r'(ONBUILD)(\s+)(%s)' % (_lb,), bygroups(Keyword, Whitespace, using(BashLexer))),
-            (r'(HEALTHCHECK)(\s+)((%s--\w+=\w+%s)*)' % (_lb, _lb),
+            (rf'(ONBUILD)(\s+)({_lb})', bygroups(Keyword, Whitespace, using(BashLexer))),
+            (rf'(HEALTHCHECK)(\s+)(({_lb}--\w+=\w+{_lb})*)',
                 bygroups(Keyword, Whitespace, using(BashLexer))),
-            (r'(VOLUME|ENTRYPOINT|CMD|SHELL)(\s+)(%s)(\[.*?\])' % (_lb,),
+            (rf'(VOLUME|ENTRYPOINT|CMD|SHELL)(\s+)({_lb})(\[.*?\])',
                 bygroups(Keyword, Whitespace, using(BashLexer), using(JsonLexer))),
-            (r'(LABEL|ENV|ARG)(\s+)((%s\w+=\w+%s)*)' % (_lb, _lb),
+            (rf'(LABEL|ENV|ARG)(\s+)(({_lb}\w+=\w+{_lb})*)',
                 bygroups(Keyword, Whitespace, using(BashLexer))),
-            (r'(%s|VOLUME)\b(\s+)(.*)' % (_keywords), bygroups(Keyword, Whitespace, String)),
-            (r'(%s)(\s+)' % (_bash_keywords,), bygroups(Keyword, Whitespace)),
+            (rf'({_keywords}|VOLUME)\b(\s+)(.*)', bygroups(Keyword, Whitespace, String)),
+            (rf'({_bash_keywords})(\s+)', bygroups(Keyword, Whitespace)),
             (r'(.*\\\n)*.+', using(BashLexer)),
         ]
     }
@@ -689,8 +685,6 @@ class DockerLexer(RegexLexer):
 class TerraformLexer(ExtendedRegexLexer):
     """
     Lexer for terraformi ``.tf`` files.
-
-    .. versionadded:: 2.1
     """
 
     name = 'Terraform'
@@ -698,6 +692,7 @@ class TerraformLexer(ExtendedRegexLexer):
     aliases = ['terraform', 'tf', 'hcl']
     filenames = ['*.tf', '*.hcl']
     mimetypes = ['application/x-tf', 'application/x-terraform']
+    version_added = '2.1'
 
     classes = ('backend', 'data', 'module', 'output', 'provider',
                'provisioner', 'resource', 'variable')
@@ -861,13 +856,13 @@ class TermcapLexer(RegexLexer):
     Lexer for termcap database source.
 
     This is very simple and minimal.
-
-    .. versionadded:: 2.1
     """
     name = 'Termcap'
     aliases = ['termcap']
     filenames = ['termcap', 'termcap.src']
     mimetypes = []
+    url = 'https://en.wikipedia.org/wiki/Termcap'
+    version_added = '2.1'
 
     # NOTE:
     #   * multiline with trailing backslash
@@ -908,13 +903,13 @@ class TerminfoLexer(RegexLexer):
     Lexer for terminfo database source.
 
     This is very simple and minimal.
-
-    .. versionadded:: 2.1
     """
     name = 'Terminfo'
     aliases = ['terminfo']
     filenames = ['terminfo', 'terminfo.src']
     mimetypes = []
+    url = 'https://en.wikipedia.org/wiki/Terminfo'
+    version_added = '2.1'
 
     # NOTE:
     #   * multiline with leading whitespace
@@ -954,8 +949,6 @@ class PkgConfigLexer(RegexLexer):
     """
     Lexer for pkg-config
     (see also `manual page <http://linux.die.net/man/1/pkg-config>`_).
-
-    .. versionadded:: 2.1
     """
 
     name = 'PkgConfig'
@@ -963,6 +956,7 @@ class PkgConfigLexer(RegexLexer):
     aliases = ['pkgconfig']
     filenames = ['*.pc']
     mimetypes = []
+    version_added = '2.1'
 
     tokens = {
         'root': [
@@ -1023,8 +1017,6 @@ class PacmanConfLexer(RegexLexer):
         VerbosePkgLists
 
     These are flags to switch on.
-
-    .. versionadded:: 2.1
     """
 
     name = 'PacmanConf'
@@ -1032,6 +1024,7 @@ class PacmanConfLexer(RegexLexer):
     aliases = ['pacmanconf']
     filenames = ['pacman.conf']
     mimetypes = []
+    version_added = '2.1'
 
     tokens = {
         'root': [
@@ -1069,13 +1062,12 @@ class PacmanConfLexer(RegexLexer):
 class AugeasLexer(RegexLexer):
     """
     Lexer for Augeas.
-
-    .. versionadded:: 2.4
     """
     name = 'Augeas'
     url = 'http://augeas.net'
     aliases = ['augeas']
     filenames = ['*.aug']
+    version_added = '2.4'
 
     tokens = {
         'root': [
@@ -1114,8 +1106,6 @@ class AugeasLexer(RegexLexer):
 class TOMLLexer(RegexLexer):
     """
     Lexer for TOML, a simple language for config files.
-
-    .. versionadded:: 2.4
     """
 
     name = 'TOML'
@@ -1123,6 +1113,7 @@ class TOMLLexer(RegexLexer):
     filenames = ['*.toml', 'Pipfile', 'poetry.lock']
     mimetypes = ['application/toml']
     url = 'https://toml.io'
+    version_added = '2.4'
 
     # Based on the TOML spec: https://toml.io/en/v1.0.0
 
@@ -1284,8 +1275,6 @@ class NestedTextLexer(RegexLexer):
     """
     Lexer for *NextedText*, a human-friendly data format.
 
-    .. versionadded:: 2.9
-
     .. versionchanged:: 2.16
         Added support for *NextedText* v3.0.
     """
@@ -1294,6 +1283,7 @@ class NestedTextLexer(RegexLexer):
     url = 'https://nestedtext.org'
     aliases = ['nestedtext', 'nt']
     filenames = ['*.nt']
+    version_added = '2.9'
 
     tokens = {
         'root': [
@@ -1366,14 +1356,13 @@ class NestedTextLexer(RegexLexer):
 class SingularityLexer(RegexLexer):
     """
     Lexer for Singularity definition files.
-
-    .. versionadded:: 2.6
     """
 
     name = 'Singularity'
     url = 'https://www.sylabs.io/guides/3.0/user-guide/definition_files.html'
     aliases = ['singularity']
     filenames = ['*.def', 'Singularity']
+    version_added = '2.6'
     flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
 
     _headers = r'^(\s*)(bootstrap|from|osversion|mirrorurl|include|registry|namespace|includecmd)(:)'
@@ -1415,13 +1404,13 @@ class UnixConfigLexer(RegexLexer):
     * ``/etc/group``
     * ``/etc/passwd``
     * ``/etc/shadow``
-
-    .. versionadded:: 2.12
     """
 
     name = 'Unix/Linux config files'
     aliases = ['unixconfig', 'linuxconfig']
     filenames = []
+    url = 'https://en.wikipedia.org/wiki/Configuration_file#Unix_and_Unix-like_operating_systems'
+    version_added = '2.12'
 
     tokens = {
         'root': [

@@ -4,7 +4,7 @@
 
     Lexer for the Q programming language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,14 +17,14 @@ __all__ = ["KLexer", "QLexer"]
 
 class KLexer(RegexLexer):
     """
-    For `K <https://code.kx.com/>`_ source code.
-
-    .. versionadded:: 2.12
+    For K source code.
     """
 
     name = "K"
     aliases = ["k"]
     filenames = ["*.k"]
+    url = "https://code.kx.com"
+    version_added = '2.12'
 
     tokens = {
         "whitespace": [
@@ -152,13 +152,12 @@ class KLexer(RegexLexer):
 class QLexer(KLexer):
     """
     For `Q <https://code.kx.com/>`_ source code.
-
-    .. versionadded:: 2.12
     """
 
     name = "Q"
     aliases = ["q"]
     filenames = ["*.q"]
+    version_added = '2.12'
 
     tokens = {
         "root": [

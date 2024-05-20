@@ -4,7 +4,7 @@
 
     Lexer for Praat
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,14 +18,13 @@ __all__ = ['PraatLexer']
 class PraatLexer(RegexLexer):
     """
     For Praat scripts.
-
-    .. versionadded:: 2.1
     """
 
     name = 'Praat'
     url = 'http://www.praat.org'
     aliases = ['praat']
     filenames = ['*.praat', '*.proc', '*.psc']
+    version_added = '2.1'
 
     keywords = (
         'if', 'then', 'else', 'elsif', 'elif', 'endif', 'fi', 'for', 'from', 'to',

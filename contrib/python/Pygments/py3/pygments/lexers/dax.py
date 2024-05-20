@@ -4,7 +4,7 @@
 
     Lexer for LilyPond.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,14 +19,13 @@ class DaxLexer(RegexLexer):
     """
     Lexer for Power BI DAX
     Referenced from: https://github.com/sql-bi/SyntaxHighlighterBrushDax
-
-    .. versionadded:: 2.15
     """
     name = 'Dax'
     aliases = ['dax']
     filenames = ['*.dax']
     url = 'https://learn.microsoft.com/en-us/dax/dax-function-reference'
     mimetypes = []
+    version_added = '2.15'
 
     tokens = {
         'root': [

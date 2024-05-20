@@ -4,7 +4,7 @@
 
     Lexers for Pony and related languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,13 +18,13 @@ __all__ = ['PonyLexer']
 class PonyLexer(RegexLexer):
     """
     For Pony source code.
-
-    .. versionadded:: 2.4
     """
 
     name = 'Pony'
     aliases = ['pony']
     filenames = ['*.pony']
+    url = 'https://www.ponylang.io'
+    version_added = '2.4'
 
     _caps = r'(iso|trn|ref|val|box|tag)'
 

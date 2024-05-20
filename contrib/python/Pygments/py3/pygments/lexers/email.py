@@ -4,7 +4,7 @@
 
     Lexer for the raw E-mail.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -119,14 +119,14 @@ class EmailLexer(DelegatingLexer):
     `highlight-X-header`
         Highlight the fields of ``X-`` user-defined email header. (default:
         ``False``).
-
-    .. versionadded:: 2.5
     """
 
     name = "E-mail"
     aliases = ["email", "eml"]
     filenames = ["*.eml"]
     mimetypes = ["message/rfc822"]
+    url = "https://en.wikipedia.org/wiki/Email#Message_format"
+    version_added = '2.5'
 
     def __init__(self, **options):
         super().__init__(EmailHeaderLexer, MIMELexer, Comment, **options)

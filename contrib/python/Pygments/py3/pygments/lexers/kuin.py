@@ -4,7 +4,7 @@
 
     Lexers for the Kuin language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,13 +18,12 @@ __all__ = ['KuinLexer']
 class KuinLexer(RegexLexer):
     """
     For Kuin source code.
-
-    .. versionadded:: 2.9
     """
     name = 'Kuin'
     url = 'https://github.com/kuina/Kuin'
     aliases = ['kuin']
     filenames = ['*.kn']
+    version_added = '2.9'
 
     tokens = {
         'root': [

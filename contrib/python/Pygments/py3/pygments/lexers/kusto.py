@@ -4,7 +4,7 @@
 
     Lexers for Kusto Query Language (KQL).
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -43,14 +43,13 @@ KUSTO_PUNCTUATION = [
 
 class KustoLexer(RegexLexer):
     """For Kusto Query Language source code.
-
-    .. versionadded:: 2.17
     """
 
     name = "Kusto"
     aliases = ["kql", "kusto"]
     filenames = ["*.kql", "*.kusto", ".csl"]
     url = "https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query"
+    version_added = '2.17'
 
     tokens = {
         "root": [

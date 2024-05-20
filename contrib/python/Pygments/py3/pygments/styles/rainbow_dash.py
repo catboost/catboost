@@ -6,7 +6,7 @@
 
     .. _theme: http://sanssecours.github.io/Rainbow-Dash.tmbundle
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -46,48 +46,48 @@ class RainbowDashStyle(Style):
     background_color = WHITE
 
     styles = {
-        Comment: 'italic {}'.format(BLUE_LIGHT),
+        Comment: f'italic {BLUE_LIGHT}',
         Comment.Preproc: 'noitalic',
         Comment.Special: 'bold',
 
-        Error: 'bg:{} {}'.format(RED, WHITE),
+        Error: f'bg:{RED} {WHITE}',
 
-        Generic.Deleted: 'border:{} bg:{}'.format(RED_DARK, RED_LIGHT),
+        Generic.Deleted: f'border:{RED_DARK} bg:{RED_LIGHT}',
         Generic.Emph: 'italic',
         Generic.Error: RED_BRIGHT,
-        Generic.Heading: 'bold {}'.format(BLUE),
-        Generic.Inserted: 'border:{} bg:{}'.format(GREEN_NEON, GREEN_LIGHT),
+        Generic.Heading: f'bold {BLUE}',
+        Generic.Inserted: f'border:{GREEN_NEON} bg:{GREEN_LIGHT}',
         Generic.Output: GREY,
-        Generic.Prompt: 'bold {}'.format(BLUE),
+        Generic.Prompt: f'bold {BLUE}',
         Generic.Strong: 'bold',
         Generic.EmphStrong: 'bold italic',
-        Generic.Subheading: 'bold {}'.format(BLUE),
+        Generic.Subheading: f'bold {BLUE}',
         Generic.Traceback: RED_DARK,
 
-        Keyword: 'bold {}'.format(BLUE),
+        Keyword: f'bold {BLUE}',
         Keyword.Pseudo: 'nobold',
         Keyword.Type: PURPLE,
 
-        Name.Attribute: 'italic {}'.format(BLUE),
-        Name.Builtin: 'bold {}'.format(PURPLE),
+        Name.Attribute: f'italic {BLUE}',
+        Name.Builtin: f'bold {PURPLE}',
         Name.Class: 'underline',
         Name.Constant: TURQUOISE,
-        Name.Decorator: 'bold {}'.format(ORANGE),
-        Name.Entity: 'bold {}'.format(PURPLE),
-        Name.Exception: 'bold {}'.format(PURPLE),
-        Name.Function: 'bold {}'.format(ORANGE),
-        Name.Tag: 'bold {}'.format(BLUE),
+        Name.Decorator: f'bold {ORANGE}',
+        Name.Entity: f'bold {PURPLE}',
+        Name.Exception: f'bold {PURPLE}',
+        Name.Function: f'bold {ORANGE}',
+        Name.Tag: f'bold {BLUE}',
 
-        Number: 'bold {}'.format(PURPLE),
+        Number: f'bold {PURPLE}',
 
         Operator: BLUE,
         Operator.Word: 'bold',
 
         String: GREEN,
         String.Doc: 'italic',
-        String.Escape: 'bold {}'.format(RED_DARK),
+        String.Escape: f'bold {RED_DARK}',
         String.Other: TURQUOISE,
-        String.Symbol: 'bold {}'.format(RED_DARK),
+        String.Symbol: f'bold {RED_DARK}',
 
         Text: GREY_DARK,
 

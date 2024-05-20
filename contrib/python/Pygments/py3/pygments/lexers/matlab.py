@@ -4,7 +4,7 @@
 
     Lexers for Matlab and related languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,13 +23,13 @@ __all__ = ['MatlabLexer', 'MatlabSessionLexer', 'OctaveLexer', 'ScilabLexer']
 class MatlabLexer(RegexLexer):
     """
     For Matlab source code.
-
-    .. versionadded:: 0.10
     """
     name = 'Matlab'
     aliases = ['matlab']
     filenames = ['*.m']
     mimetypes = ['text/matlab']
+    url = 'https://www.mathworks.com/products/matlab.html'
+    version_added = '0.10'
 
     _operators = r'-|==|~=|<=|>=|<|>|&&|&|~|\|\|?|\.\*|\*|\+|\.\^|\.\\|\./|/|\\'
 
@@ -41,8 +41,8 @@ class MatlabLexer(RegexLexer):
             # numbers (must come before punctuation to handle `.5`; cannot use
             # `\b` due to e.g. `5. + .5`).  The negative lookahead on operators
             # avoids including the dot in `1./x` (the dot is part of `./`).
-            (r'(?<!\w)((\d+\.\d+)|(\d*\.\d+)|(\d+\.(?!%s)))'
-             r'([eEf][+-]?\d+)?(?!\w)' % _operators, Number.Float),
+            (rf'(?<!\w)((\d+\.\d+)|(\d*\.\d+)|(\d+\.(?!{_operators})))'
+             r'([eEf][+-]?\d+)?(?!\w)', Number.Float),
             (r'\b\d+[eEf][+-]?[0-9]+\b', Number.Float),
             (r'\b\d+\b', Number.Integer),
 
@@ -2665,7 +2665,7 @@ class MatlabLexer(RegexLexer):
             # `cd ./ foo`.).  Here, the regex checks that the first word in the
             # line is not followed by <spaces> and then
             # (equal | open-parenthesis | <operator><space> | <space>).
-            (r'(?:^|(?<=;))(\s*)(\w+)(\s+)(?!=|\(|%s\s|\s)' % _operators,
+            (rf'(?:^|(?<=;))(\s*)(\w+)(\s+)(?!=|\(|{_operators}\s|\s)',
              bygroups(Whitespace, Name, Whitespace), 'commandargs'),
 
             include('expressions')
@@ -2742,11 +2742,11 @@ class MatlabSessionLexer(Lexer):
     """
     For Matlab sessions.  Modeled after PythonConsoleLexer.
     Contributed by Ken Schutte <kschutte@csail.mit.edu>.
-
-    .. versionadded:: 0.10
     """
     name = 'Matlab session'
     aliases = ['matlabsession']
+    url = 'https://www.mathworks.com/products/matlab.html'
+    version_added = '0.10'
 
     def get_tokens_unprocessed(self, text):
         mlexer = MatlabLexer(**self.options)
@@ -2811,14 +2811,13 @@ class MatlabSessionLexer(Lexer):
 class OctaveLexer(RegexLexer):
     """
     For GNU Octave source code.
-
-    .. versionadded:: 1.5
     """
     name = 'Octave'
     url = 'https://www.gnu.org/software/octave/index'
     aliases = ['octave']
     filenames = ['*.m']
     mimetypes = ['text/octave']
+    version_added = '1.5'
 
     # These lists are generated automatically.
     # Run the following in bash shell:
@@ -3229,14 +3228,13 @@ class OctaveLexer(RegexLexer):
 class ScilabLexer(RegexLexer):
     """
     For Scilab source code.
-
-    .. versionadded:: 1.5
     """
     name = 'Scilab'
     url = 'https://www.scilab.org/'
     aliases = ['scilab']
     filenames = ['*.sci', '*.sce', '*.tst']
     mimetypes = ['text/scilab']
+    version_added = '1.5'
 
     tokens = {
         'root': [

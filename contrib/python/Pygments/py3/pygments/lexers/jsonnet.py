@@ -4,7 +4,7 @@
 
     Lexer for Jsonnet data templating language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,7 +20,7 @@ jsonnet_function_token = jsonnet_token + r'(?=\()'
 
 def string_rules(quote_mark):
     return [
-        (r"[^{}\\]".format(quote_mark), String),
+        (rf"[^{quote_mark}\\]", String),
         (r"\\.", String.Escape),
         (quote_mark, String, '#pop'),
     ]
@@ -28,7 +28,7 @@ def string_rules(quote_mark):
 
 def quoted_field_name(quote_mark):
     return [
-        (r'([^{quote}\\]|\\.)*{quote}'.format(quote=quote_mark),
+        (rf'([^{quote_mark}\\]|\\.)*{quote_mark}',
          Name.Variable, 'field_separator')
     ]
 
@@ -40,6 +40,7 @@ class JsonnetLexer(RegexLexer):
     aliases = ['jsonnet']
     filenames = ['*.jsonnet', '*.libsonnet']
     url = "https://jsonnet.org"
+    version_added = ''
     tokens = {
         # Not used by itself
         '_comments': [

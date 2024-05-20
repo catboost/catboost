@@ -4,7 +4,7 @@
 
     Lexer for the Monte programming language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -78,13 +78,12 @@ _safeScope = [
 class MonteLexer(RegexLexer):
     """
     Lexer for the Monte programming language.
-
-    .. versionadded:: 2.2
     """
     name = 'Monte'
     url = 'https://monte.readthedocs.io/'
     aliases = ['monte']
     filenames = ['*.mt']
+    version_added = '2.2'
 
     tokens = {
         'root': [

@@ -4,7 +4,7 @@
 
     Lexers for Makefiles and similar.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -31,6 +31,8 @@ class MakefileLexer(Lexer):
     aliases = ['make', 'makefile', 'mf', 'bsdmake']
     filenames = ['*.mak', '*.mk', 'Makefile', 'makefile', 'Makefile.*', 'GNUmakefile']
     mimetypes = ['text/x-makefile']
+    url = 'https://en.wikipedia.org/wiki/Make_(software)'
+    version_added = ''
 
     r_special = re.compile(
         r'^(?:'
@@ -67,14 +69,14 @@ class MakefileLexer(Lexer):
 class BaseMakefileLexer(RegexLexer):
     """
     Lexer for simple Makefiles (no preprocessing).
-
-    .. versionadded:: 0.10
     """
 
     name = 'Base Makefile'
     aliases = ['basemake']
     filenames = []
     mimetypes = []
+    url = 'https://en.wikipedia.org/wiki/Make_(software)'
+    version_added = '0.10'
 
     tokens = {
         'root': [
@@ -129,14 +131,13 @@ class BaseMakefileLexer(RegexLexer):
 class CMakeLexer(RegexLexer):
     """
     Lexer for CMake files.
-
-    .. versionadded:: 1.2
     """
     name = 'CMake'
     url = 'https://cmake.org/documentation/'
     aliases = ['cmake']
     filenames = ['*.cmake', 'CMakeLists.txt']
     mimetypes = ['text/x-cmake']
+    version_added = '1.2'
 
     tokens = {
         'root': [

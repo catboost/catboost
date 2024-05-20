@@ -4,7 +4,7 @@
 
     Lexers for computer graphics and plotting related languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,13 +20,13 @@ __all__ = ['GLShaderLexer', 'PostScriptLexer', 'AsymptoteLexer', 'GnuplotLexer',
 class GLShaderLexer(RegexLexer):
     """
     GLSL (OpenGL Shader) lexer.
-
-    .. versionadded:: 1.1
     """
     name = 'GLSL'
     aliases = ['glsl']
     filenames = ['*.vert', '*.frag', '*.geo']
     mimetypes = ['text/x-glslsrc']
+    url = 'https://www.khronos.org/api/opengl'
+    version_added = '1.1'
 
     tokens = {
         'root': [
@@ -151,13 +151,13 @@ class GLShaderLexer(RegexLexer):
 class HLSLShaderLexer(RegexLexer):
     """
     HLSL (Microsoft Direct3D Shader) lexer.
-
-    .. versionadded:: 2.3
     """
     name = 'HLSL'
     aliases = ['hlsl']
     filenames = ['*.hlsl', '*.hlsli']
     mimetypes = ['text/x-hlsl']
+    url = 'https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl'
+    version_added = '2.3'
 
     tokens = {
         'root': [
@@ -305,20 +305,19 @@ class HLSLShaderLexer(RegexLexer):
 class PostScriptLexer(RegexLexer):
     """
     Lexer for PostScript files.
-
-    .. versionadded:: 1.4
     """
     name = 'PostScript'
     url = 'https://en.wikipedia.org/wiki/PostScript'
     aliases = ['postscript', 'postscr']
     filenames = ['*.ps', '*.eps']
     mimetypes = ['application/postscript']
+    version_added = '1.4'
 
     delimiter = r'()<>\[\]{}/%\s'
-    delimiter_end = r'(?=[%s])' % delimiter
+    delimiter_end = rf'(?=[{delimiter}])'
 
-    valid_name_chars = r'[^%s]' % delimiter
-    valid_name = r"%s+%s" % (valid_name_chars, delimiter_end)
+    valid_name_chars = rf'[^{delimiter}]'
+    valid_name = rf"{valid_name_chars}+{delimiter_end}"
 
     tokens = {
         'root': [
@@ -343,7 +342,7 @@ class PostScriptLexer(RegexLexer):
             (r'(\-|\+)?[0-9]+' + delimiter_end, Number.Integer),
 
             # References
-            (r'\/%s' % valid_name, Name.Variable),
+            (rf'\/{valid_name}', Name.Variable),
 
             # Names
             (valid_name, Name.Function),      # Anything else is executed
@@ -400,14 +399,13 @@ class PostScriptLexer(RegexLexer):
 class AsymptoteLexer(RegexLexer):
     """
     For Asymptote source code.
-
-    .. versionadded:: 1.2
     """
     name = 'Asymptote'
     url = 'http://asymptote.sf.net/'
     aliases = ['asymptote', 'asy']
     filenames = ['*.asy']
     mimetypes = ['text/x-asymptote']
+    version_added = '1.2'
 
     #: optional Comment or Whitespace
     _ws = r'(?:\s|//.*?\n|/\*.*?\*/)+'
@@ -528,8 +526,6 @@ def _shortened_many(*words):
 class GnuplotLexer(RegexLexer):
     """
     For Gnuplot plotting scripts.
-
-    .. versionadded:: 0.11
     """
 
     name = 'Gnuplot'
@@ -537,6 +533,7 @@ class GnuplotLexer(RegexLexer):
     aliases = ['gnuplot']
     filenames = ['*.plot', '*.plt']
     mimetypes = ['text/x-gnuplot']
+    version_added = '0.11'
 
     tokens = {
         'root': [
@@ -689,14 +686,13 @@ class GnuplotLexer(RegexLexer):
 class PovrayLexer(RegexLexer):
     """
     For Persistence of Vision Raytracer files.
-
-    .. versionadded:: 0.11
     """
     name = 'POVRay'
     url = 'http://www.povray.org/'
     aliases = ['pov']
     filenames = ['*.pov', '*.inc']
     mimetypes = ['text/x-povray']
+    version_added = '0.11'
 
     tokens = {
         'root': [

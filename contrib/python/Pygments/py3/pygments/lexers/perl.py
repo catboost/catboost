@@ -4,7 +4,7 @@
 
     Lexers for Perl, Raku and related languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -29,6 +29,7 @@ class PerlLexer(RegexLexer):
     aliases = ['perl', 'pl']
     filenames = ['*.pl', '*.pm', '*.t', '*.perl']
     mimetypes = ['text/x-perl', 'application/x-perl']
+    version_added = ''
 
     flags = re.DOTALL | re.MULTILINE
     # TODO: give this to a perl guy who knows how to parse perl...
@@ -225,8 +226,6 @@ class PerlLexer(RegexLexer):
 class Perl6Lexer(ExtendedRegexLexer):
     """
     For Raku (a.k.a. Perl 6) source code.
-
-    .. versionadded:: 2.0
     """
 
     name = 'Perl6'
@@ -236,6 +235,7 @@ class Perl6Lexer(ExtendedRegexLexer):
                  '*.6pm', '*.p6m', '*.pm6', '*.t', '*.raku', '*.rakumod',
                  '*.rakutest', '*.rakudoc']
     mimetypes = ['text/x-perl6', 'application/x-perl6']
+    version_added = '2.0'
     flags = re.MULTILINE | re.DOTALL
 
     PERL6_IDENTIFIER_RANGE = r"['\w:-]"

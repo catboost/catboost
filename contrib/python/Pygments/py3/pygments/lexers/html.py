@@ -4,7 +4,7 @@
 
     Lexers for HTML, XML and related markup.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -36,6 +36,7 @@ class HtmlLexer(RegexLexer):
     aliases = ['html']
     filenames = ['*.html', '*.htm', '*.xhtml', '*.xslt']
     mimetypes = ['text/html', 'application/xhtml+xml']
+    version_added = ''
 
     flags = re.IGNORECASE | re.DOTALL
     tokens = {
@@ -106,8 +107,6 @@ class HtmlLexer(RegexLexer):
 class DtdLexer(RegexLexer):
     """
     A lexer for DTDs (Document Type Definitions).
-
-    .. versionadded:: 1.5
     """
 
     flags = re.MULTILINE | re.DOTALL
@@ -116,6 +115,8 @@ class DtdLexer(RegexLexer):
     aliases = ['dtd']
     filenames = ['*.dtd']
     mimetypes = ['application/xml-dtd']
+    url = 'https://en.wikipedia.org/wiki/Document_type_definition'
+    version_added = '1.5'
 
     tokens = {
         'root': [
@@ -204,6 +205,8 @@ class XmlLexer(RegexLexer):
                  '*.wsdl', '*.wsf']
     mimetypes = ['text/xml', 'application/xml', 'image/svg+xml',
                  'application/rss+xml', 'application/atom+xml']
+    url = 'https://www.w3.org/XML'
+    version_added = ''
 
     tokens = {
         'root': [
@@ -238,14 +241,14 @@ class XmlLexer(RegexLexer):
 class XsltLexer(XmlLexer):
     """
     A lexer for XSLT.
-
-    .. versionadded:: 0.10
     """
 
     name = 'XSLT'
     aliases = ['xslt']
     filenames = ['*.xsl', '*.xslt', '*.xpl']  # xpl is XProc
     mimetypes = ['application/xsl+xml', 'application/xslt+xml']
+    url = 'https://www.w3.org/TR/xslt-30'
+    version_added = '0.10'
 
     EXTRA_KEYWORDS = {
         'apply-imports', 'apply-templates', 'attribute',
@@ -275,14 +278,14 @@ class XsltLexer(XmlLexer):
 class HamlLexer(ExtendedRegexLexer):
     """
     For Haml markup.
-
-    .. versionadded:: 1.3
     """
 
     name = 'Haml'
     aliases = ['haml']
     filenames = ['*.haml']
     mimetypes = ['text/x-haml']
+    url = 'https://haml.info'
+    version_added = '1.3'
 
     flags = re.IGNORECASE
     # Haml can include " |\n" anywhere,
@@ -385,15 +388,15 @@ class HamlLexer(ExtendedRegexLexer):
 
 class ScamlLexer(ExtendedRegexLexer):
     """
-    For `Scaml markup <http://scalate.fusesource.org/>`_.  Scaml is Haml for Scala.
-
-    .. versionadded:: 1.4
+    For Scaml markup.  Scaml is Haml for Scala.
     """
 
     name = 'Scaml'
     aliases = ['scaml']
     filenames = ['*.scaml']
     mimetypes = ['text/x-scaml']
+    url = 'https://scalate.github.io/scalate/'
+    version_added = '1.4'
 
     flags = re.IGNORECASE
     # Scaml does not yet support the " |\n" notation to
@@ -500,14 +503,14 @@ class PugLexer(ExtendedRegexLexer):
     For Pug markup.
     Pug is a variant of Scaml, see:
     http://scalate.fusesource.org/documentation/scaml-reference.html
-
-    .. versionadded:: 1.4
     """
 
     name = 'Pug'
     aliases = ['pug', 'jade']
     filenames = ['*.pug', '*.jade']
     mimetypes = ['text/x-pug', 'text/x-jade']
+    url = 'https://pugjs.org'
+    version_added = '1.4'
 
     flags = re.IGNORECASE
     _dot = r'.'
@@ -608,13 +611,13 @@ JadeLexer = PugLexer  # compat
 class UrlEncodedLexer(RegexLexer):
     """
     Lexer for urlencoded data
-
-    .. versionadded:: 2.16
     """
 
     name = 'urlencoded'
     aliases = ['urlencoded']
     mimetypes = ['application/x-www-form-urlencoded']
+    url = 'https://en.wikipedia.org/wiki/Percent-encoding'
+    version_added = '2.16'
 
     tokens = {
         'root': [

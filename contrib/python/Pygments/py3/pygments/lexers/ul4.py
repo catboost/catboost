@@ -4,9 +4,7 @@
 
     Lexer for the UL4 templating language.
 
-    More information: https://python.livinglogic.de/UL4.html
-
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -25,8 +23,6 @@ __all__ = ['UL4Lexer', 'HTMLUL4Lexer', 'XMLUL4Lexer', 'CSSUL4Lexer',
 class UL4Lexer(RegexLexer):
     """
     Generic lexer for UL4.
-
-    .. versionadded:: 2.12
     """
 
     flags = re.MULTILINE | re.DOTALL
@@ -34,6 +30,8 @@ class UL4Lexer(RegexLexer):
     name = 'UL4'
     aliases = ['ul4']
     filenames = ['*.ul4']
+    url = 'https://python.livinglogic.de/UL4.html'
+    version_added = '2.12'
 
     tokens = {
         "root": [
@@ -54,9 +52,23 @@ class UL4Lexer(RegexLexer):
             ),
             (
                 # Comment:
+                # ``<?note?>...<?end note?>``
+                r"<\?\s*note\s*\?>",
+                Comment,
+                "note", # Switch to "note" mode
+            ),
+            (
+                # Comment:
                 # ``<?note foobar?>``
                 r"<\?\s*note\s.*?\?>",
                 Comment,
+            ),
+            (
+                # Template documentation:
+                # ``<?doc?>...<?end doc?>``
+                r"<\?\s*doc\s*\?>",
+                String.Doc,
+                "doc",
             ),
             (
                 # Template documentation:
@@ -112,6 +124,26 @@ class UL4Lexer(RegexLexer):
             # Everything else
             (r"[^<]+", Comment),
             (r".", Comment),
+        ],
+        # Note mode ignores everything upto the matching ``<?end note?>`` tag
+        "note": [
+            # Nested ``<?note?>`` tag
+            (r"<\?\s*note\s*\?>", Comment, "#push"),
+            # ``<?end note?>`` tag
+            (r"<\?\s*end\s+note\s*\?>", Comment, "#pop"),
+            # Everything else
+            (r"[^<]+", Comment),
+            (r".", Comment),
+        ],
+        # Doc mode ignores everything upto the matching ``<?end doc?>`` tag
+        "doc": [
+            # Nested ``<?doc?>`` tag
+            (r"<\?\s*doc\s*\?>", String.Doc, "#push"),
+            # ``<?end doc?>`` tag
+            (r"<\?\s*end\s+doc\s*\?>", String.Doc, "#pop"),
+            # Everything else
+            (r"[^<]+", String.Doc),
+            (r".", String.Doc),
         ],
         # UL4 expressions
         "ul4": [
@@ -210,6 +242,8 @@ class HTMLUL4Lexer(DelegatingLexer):
     name = 'HTML+UL4'
     aliases = ['html+ul4']
     filenames = ['*.htmlul4']
+    url = 'https://python.livinglogic.de/UL4.html'
+    version_added = ''
 
     def __init__(self, **options):
         super().__init__(HtmlLexer, UL4Lexer, **options)
@@ -223,6 +257,8 @@ class XMLUL4Lexer(DelegatingLexer):
     name = 'XML+UL4'
     aliases = ['xml+ul4']
     filenames = ['*.xmlul4']
+    url = 'https://python.livinglogic.de/UL4.html'
+    version_added = ''
 
     def __init__(self, **options):
         super().__init__(XmlLexer, UL4Lexer, **options)
@@ -236,6 +272,8 @@ class CSSUL4Lexer(DelegatingLexer):
     name = 'CSS+UL4'
     aliases = ['css+ul4']
     filenames = ['*.cssul4']
+    url = 'https://python.livinglogic.de/UL4.html'
+    version_added = ''
 
     def __init__(self, **options):
         super().__init__(CssLexer, UL4Lexer, **options)
@@ -249,6 +287,8 @@ class JavascriptUL4Lexer(DelegatingLexer):
     name = 'Javascript+UL4'
     aliases = ['js+ul4']
     filenames = ['*.jsul4']
+    url = 'https://python.livinglogic.de/UL4.html'
+    version_added = ''
 
     def __init__(self, **options):
         super().__init__(JavascriptLexer, UL4Lexer, **options)
@@ -262,6 +302,8 @@ class PythonUL4Lexer(DelegatingLexer):
     name = 'Python+UL4'
     aliases = ['py+ul4']
     filenames = ['*.pyul4']
+    url = 'https://python.livinglogic.de/UL4.html'
+    version_added = ''
 
     def __init__(self, **options):
         super().__init__(PythonLexer, UL4Lexer, **options)

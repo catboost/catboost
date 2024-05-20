@@ -4,7 +4,7 @@
 
     Lexer for Prometheus Query Language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -29,6 +29,7 @@ class PromQLLexer(RegexLexer):
     url = 'https://prometheus.io/docs/prometheus/latest/querying/basics/'
     aliases = ["promql"]
     filenames = ["*.promql"]
+    version_added = ''
 
     base_keywords = (
         words(

@@ -4,11 +4,11 @@
 
     Lexer for the WebGPU Shading Language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
-from pygments.lexer import RegexLexer, include, bygroups, words, default
+from pygments.lexer import RegexLexer, include, words, default
 from pygments.token import Comment, Operator, Keyword, Name, \
     Number, Punctuation, Whitespace
 from pygments import unistring as uni
@@ -27,20 +27,19 @@ NotLineEndRE = '[^' + "".join(LineEndCodePoints) + ']'
 LineEndRE = '[' + "".join(LineEndCodePoints) + ']'
 
 # https://www.w3.org/TR/WGSL/#syntax-ident_pattern_token
-ident_pattern_token = '([{}][{}]+)|[{}]'.format(uni.xid_start,uni.xid_continue,uni.xid_start)
+ident_pattern_token = f'([{uni.xid_start}][{uni.xid_continue}]+)|[{uni.xid_start}]'
 
 
 class WgslLexer(RegexLexer):
     """
     Lexer for the WebGPU Shading Language.
-
-    .. versionadded:: 2.15
     """
     name = 'WebGPU Shading Language'
     url = 'https://www.w3.org/TR/WGSL/'
     aliases = ['wgsl']
     filenames = ['*.wgsl']
     mimetypes = ['text/wgsl']
+    version_added = '2.15'
 
     # https://www.w3.org/TR/WGSL/#var-and-value
     keyword_decl = (words('var let const override'.split(),suffix=r'\b'), Keyword.Declaration)
@@ -323,8 +322,8 @@ class WgslLexer(RegexLexer):
         'comments': [
             # Line ending comments
             # Match up CR/LF pair first.
-            (r'//{}*{}{}'.format(NotLineEndRE,CR,LF), Comment.Single),
-            (r'//{}*{}'.format(NotLineEndRE,LineEndRE), Comment.Single),
+            (rf'//{NotLineEndRE}*{CR}{LF}', Comment.Single),
+            (rf'//{NotLineEndRE}*{LineEndRE}', Comment.Single),
             (r'/\*', Comment.Multiline, 'block_comment'),
         ],
         'attribute': [

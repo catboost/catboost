@@ -4,7 +4,7 @@
 
     Lexer for scripting and embedded languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -16,7 +16,7 @@ from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
     Number, Punctuation, Error, Whitespace, Other
 from pygments.util import get_bool_opt, get_list_opt
 
-__all__ = ['LuaLexer', 'MoonScriptLexer', 'ChaiscriptLexer', 'LSLLexer',
+__all__ = ['LuaLexer', 'LuauLexer', 'MoonScriptLexer', 'ChaiscriptLexer', 'LSLLexer',
            'AppleScriptLexer', 'RexxLexer', 'MOOCodeLexer', 'HybrisLexer',
            'EasytrieveLexer', 'JclLexer', 'MiniScriptLexer']
 
@@ -49,11 +49,12 @@ class LuaLexer(RegexLexer):
     aliases = ['lua']
     filenames = ['*.lua', '*.wlua']
     mimetypes = ['text/x-lua', 'application/x-lua']
+    version_added = ''
 
     _comment_multiline = r'(?:--\[(?P<level>=*)\[[\w\W]*?\](?P=level)\])'
     _comment_single = r'(?:--.*$)'
     _space = r'(?:\s+)'
-    _s = r'(?:%s|%s|%s)' % (_comment_multiline, _comment_single, _space)
+    _s = rf'(?:{_comment_multiline}|{_comment_single}|{_space})'
     _name = r'(?:[^\W\d]\w*)'
 
     tokens = {
@@ -101,7 +102,7 @@ class LuaLexer(RegexLexer):
         'funcname': [
             include('ws'),
             (r'[.:]', Punctuation),
-            (r'%s(?=%s*[.:])' % (_name, _s), Name.Class),
+            (rf'{_name}(?={_s}*[.:])', Name.Class),
             (_name, Name.Function, '#pop'),
             # inline function
             (r'\(', Punctuation, '#pop'),
@@ -162,11 +163,324 @@ class LuaLexer(RegexLexer):
                     continue
             yield index, token, value
 
+def _luau_make_expression(should_pop, _s):
+    temp_list = [
+        (r'0[xX][\da-fA-F_]*', Number.Hex, '#pop'),
+        (r'0[bB][\d_]*', Number.Bin, '#pop'),
+        (r'\.?\d[\d_]*(?:\.[\d_]*)?(?:[eE][+-]?[\d_]+)?', Number.Float, '#pop'),
+
+        (words((
+            'true', 'false', 'nil'
+        ), suffix=r'\b'), Keyword.Constant, '#pop'),
+
+        (r'\[(=*)\[[.\n]*?\]\1\]', String, '#pop'),
+
+        (r'(\.)([a-zA-Z_]\w*)(?=%s*[({"\'])', bygroups(Punctuation, Name.Function), '#pop'),
+        (r'(\.)([a-zA-Z_]\w*)', bygroups(Punctuation, Name.Variable), '#pop'),
+
+        (rf'[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*(?={_s}*[({{"\'])', Name.Other, '#pop'),
+        (r'[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*', Name, '#pop'),
+    ]
+    if should_pop:
+        return temp_list
+    return [entry[:2] for entry in temp_list]
+
+def _luau_make_expression_special(should_pop):
+    temp_list = [
+        (r'\{', Punctuation, ('#pop', 'closing_brace_base', 'expression')),
+        (r'\(', Punctuation, ('#pop', 'closing_parenthesis_base', 'expression')),
+
+        (r'::?', Punctuation, ('#pop', 'type_end', 'type_start')),
+
+        (r"'", String.Single, ('#pop', 'string_single')),
+        (r'"', String.Double, ('#pop', 'string_double')),
+        (r'`', String.Backtick, ('#pop', 'string_interpolated')),
+    ]
+    if should_pop:
+        return temp_list
+    return [(entry[0], entry[1], entry[2][1:]) for entry in temp_list]
+
+class LuauLexer(RegexLexer):
+    """
+    For Luau source code.
+
+    Additional options accepted:
+
+    `include_luau_builtins`
+        If given and ``True``, automatically highlight Luau builtins
+        (default: ``True``).
+    `include_roblox_builtins`
+        If given and ``True``, automatically highlight Roblox-specific builtins
+        (default: ``False``).
+    `additional_builtins`
+        If given, must be a list of additional builtins to highlight.
+    `disabled_builtins`
+        If given, must be a list of builtins that will not be highlighted.
+    """
+
+    name = 'Luau'
+    url = 'https://luau-lang.org/'
+    aliases = ['luau']
+    filenames = ['*.luau']
+    version_added = '2.18'
+
+    _comment_multiline = r'(?:--\[(?P<level>=*)\[[\w\W]*?\](?P=level)\])'
+    _comment_single = r'(?:--.*$)'
+    _s = r'(?:{}|{}|{})'.format(_comment_multiline, _comment_single, r'\s+')
+
+    tokens = {
+        'root': [
+            (r'#!.*', Comment.Hashbang, 'base'),
+            default('base'),
+        ],
+
+        'ws': [
+            (_comment_multiline, Comment.Multiline),
+            (_comment_single, Comment.Single),
+            (r'\s+', Whitespace),
+        ],
+
+        'base': [
+            include('ws'),
+
+            *_luau_make_expression_special(False),
+            (r'\.\.\.', Punctuation),
+
+            (rf'type\b(?={_s}+[a-zA-Z_])', Keyword.Reserved, 'type_declaration'),
+            (rf'export\b(?={_s}+[a-zA-Z_])', Keyword.Reserved),
+
+            (r'(?:\.\.|//|[+\-*\/%^<>=])=?', Operator, 'expression'),
+            (r'~=', Operator, 'expression'),
+
+            (words((
+                'and', 'or', 'not'
+            ), suffix=r'\b'), Operator.Word, 'expression'),
+
+            (words((
+                'elseif', 'for', 'if', 'in', 'repeat', 'return', 'until',
+                'while'), suffix=r'\b'), Keyword.Reserved, 'expression'),
+            (r'local\b', Keyword.Declaration, 'expression'),
+
+            (r'function\b', Keyword.Reserved, ('expression', 'func_name')),
+
+            (r'[\])};]+', Punctuation),
+
+            include('expression_static'),
+            *_luau_make_expression(False, _s),
+
+            (r'[\[.,]', Punctuation, 'expression'),
+        ],
+        'expression_static': [
+            (words((
+                'break', 'continue', 'do', 'else', 'elseif', 'end', 'for',
+                'if', 'in', 'repeat', 'return', 'then', 'until', 'while'),
+                suffix=r'\b'), Keyword.Reserved),
+        ],
+        'expression': [
+            include('ws'),
+
+            (r'if\b', Keyword.Reserved, ('ternary', 'expression')),
+
+            (r'local\b', Keyword.Declaration),
+            *_luau_make_expression_special(True),
+            (r'\.\.\.', Punctuation, '#pop'),
+
+            (r'function\b', Keyword.Reserved, 'func_name'),
+
+            include('expression_static'),
+            *_luau_make_expression(True, _s),
+
+            default('#pop'),
+        ],
+        'ternary': [
+            include('ws'),
+
+            (r'else\b', Keyword.Reserved, '#pop'),
+            (words((
+                'then', 'elseif',
+            ), suffix=r'\b'), Operator.Reserved, 'expression'),
+
+            default('#pop'),
+        ],
+
+        'closing_brace_pop': [
+            (r'\}', Punctuation, '#pop'),
+        ],
+        'closing_parenthesis_pop': [
+            (r'\)', Punctuation, '#pop'),
+        ],
+        'closing_gt_pop': [
+            (r'>', Punctuation, '#pop'),
+        ],
+
+        'closing_parenthesis_base': [
+            include('closing_parenthesis_pop'),
+            include('base'),
+        ],
+        'closing_parenthesis_type': [
+            include('closing_parenthesis_pop'),
+            include('type'),
+        ],
+        'closing_brace_base': [
+            include('closing_brace_pop'),
+            include('base'),
+        ],
+        'closing_brace_type': [
+            include('closing_brace_pop'),
+            include('type'),
+        ],
+        'closing_gt_type': [
+            include('closing_gt_pop'),
+            include('type'),
+        ],
+
+        'string_escape': [
+            (r'\\z\s*', String.Escape),
+            (r'\\(?:[abfnrtvz\\"\'`\{\n])|[\r\n]{1,2}|x[\da-fA-F]{2}|\d{1,3}|'
+             r'u\{\}[\da-fA-F]*\}', String.Escape),
+        ],
+        'string_single': [
+            include('string_escape'),
+
+            (r"'", String.Single, "#pop"),
+            (r"[^\\']+", String.Single),
+        ],
+        'string_double': [
+            include('string_escape'),
+
+            (r'"', String.Double, "#pop"),
+            (r'[^\\"]+', String.Double),
+        ],
+        'string_interpolated': [
+            include('string_escape'),
+
+            (r'\{', Punctuation, ('closing_brace_base', 'expression')),
+
+            (r'`', String.Backtick, "#pop"),
+            (r'[^\\`\{]+', String.Backtick),
+        ],
+
+        'func_name': [
+            include('ws'),
+
+            (r'[.:]', Punctuation),
+            (rf'[a-zA-Z_]\w*(?={_s}*[.:])', Name.Class),
+            (r'[a-zA-Z_]\w*', Name.Function),
+
+            (r'<', Punctuation, 'closing_gt_type'),
+
+            (r'\(', Punctuation, '#pop'),
+        ],
+
+        'type': [
+            include('ws'),
+
+            (r'\(', Punctuation, 'closing_parenthesis_type'),
+            (r'\{', Punctuation, 'closing_brace_type'),
+            (r'<', Punctuation, 'closing_gt_type'),
+
+            (r"'", String.Single, 'string_single'),
+            (r'"', String.Double, 'string_double'),
+
+            (r'[|&\.,\[\]:=]+', Punctuation),
+            (r'->', Punctuation),
+
+            (r'typeof\(', Name.Builtin, ('closing_parenthesis_base',
+                                         'expression')),
+            (r'[a-zA-Z_]\w*', Name.Class),
+        ],
+        'type_start': [
+            include('ws'),
+
+            (r'\(', Punctuation, ('#pop', 'closing_parenthesis_type')),
+            (r'\{', Punctuation, ('#pop', 'closing_brace_type')),
+            (r'<', Punctuation, ('#pop', 'closing_gt_type')),
+
+            (r"'", String.Single, ('#pop', 'string_single')),
+            (r'"', String.Double, ('#pop', 'string_double')),
+
+            (r'typeof\(', Name.Builtin, ('#pop', 'closing_parenthesis_base',
+                                         'expression')),
+            (r'[a-zA-Z_]\w*', Name.Class, '#pop'),
+        ],
+        'type_end': [
+            include('ws'),
+
+            (r'[|&\.]', Punctuation, 'type_start'),
+            (r'->', Punctuation, 'type_start'),
+
+            (r'<', Punctuation, 'closing_gt_type'),
+
+            default('#pop'),
+        ],
+        'type_declaration': [
+            include('ws'),
+
+            (r'[a-zA-Z_]\w*', Name.Class),
+            (r'<', Punctuation, 'closing_gt_type'),
+
+            (r'=', Punctuation, ('#pop', 'type_end', 'type_start')),
+        ],
+    }
+
+    def __init__(self, **options):
+        self.include_luau_builtins = get_bool_opt(
+            options, 'include_luau_builtins', True)
+        self.include_roblox_builtins = get_bool_opt(
+            options, 'include_roblox_builtins', False)
+        self.additional_builtins = get_list_opt(options, 'additional_builtins', [])
+        self.disabled_builtins = get_list_opt(options, 'disabled_builtins', [])
+
+        self._builtins = set(self.additional_builtins)
+        if self.include_luau_builtins:
+            from pygments.lexers._luau_builtins import LUAU_BUILTINS
+            self._builtins.update(LUAU_BUILTINS)
+        if self.include_roblox_builtins:
+            from pygments.lexers._luau_builtins import ROBLOX_BUILTINS
+            self._builtins.update(ROBLOX_BUILTINS)
+        if self.additional_builtins:
+            self._builtins.update(self.additional_builtins)
+        self._builtins.difference_update(self.disabled_builtins)
+
+        RegexLexer.__init__(self, **options)
+
+    def get_tokens_unprocessed(self, text):
+        for index, token, value in \
+                RegexLexer.get_tokens_unprocessed(self, text):
+            if token is Name or token is Name.Other:
+                split_value = value.split('.')
+                complete_value = []
+                new_index = index
+                for position in range(len(split_value), 0, -1):
+                    potential_string = '.'.join(split_value[:position])
+                    if potential_string in self._builtins:
+                        yield index, Name.Builtin, potential_string
+                        new_index += len(potential_string)
+
+                        if complete_value:
+                            yield new_index, Punctuation, '.'
+                            new_index += 1
+                        break
+                    complete_value.insert(0, split_value[position - 1])
+
+                for position, substring in enumerate(complete_value):
+                    if position + 1 == len(complete_value):
+                        if token is Name:
+                            yield new_index, Name.Variable, substring
+                            continue
+                        yield new_index, Name.Function, substring
+                        continue
+                    yield new_index, Name.Variable, substring
+                    new_index += len(substring)
+                    yield new_index, Punctuation, '.'
+                    new_index += 1
+
+                continue
+            yield index, token, value
+
 class MoonScriptLexer(LuaLexer):
     """
     For MoonScript source code.
-
-    .. versionadded:: 1.5
     """
 
     name = 'MoonScript'
@@ -174,6 +488,7 @@ class MoonScriptLexer(LuaLexer):
     aliases = ['moonscript', 'moon']
     filenames = ['*.moon']
     mimetypes = ['text/x-moonscript', 'application/x-moonscript']
+    version_added = '1.5'
 
     tokens = {
         'root': [
@@ -234,8 +549,6 @@ class MoonScriptLexer(LuaLexer):
 class ChaiscriptLexer(RegexLexer):
     """
     For ChaiScript source code.
-
-    .. versionadded:: 2.0
     """
 
     name = 'ChaiScript'
@@ -243,6 +556,7 @@ class ChaiscriptLexer(RegexLexer):
     aliases = ['chaiscript', 'chai']
     filenames = ['*.chai']
     mimetypes = ['text/x-chaiscript', 'application/x-chaiscript']
+    version_added = '2.0'
 
     flags = re.DOTALL | re.MULTILINE
 
@@ -301,14 +615,14 @@ class ChaiscriptLexer(RegexLexer):
 class LSLLexer(RegexLexer):
     """
     For Second Life's Linden Scripting Language source code.
-
-    .. versionadded:: 2.0
     """
 
     name = 'LSL'
     aliases = ['lsl']
     filenames = ['*.lsl']
     mimetypes = ['text/x-lsl']
+    url = 'https://wiki.secondlife.com/wiki/Linden_Scripting_Language'
+    version_added = '2.0'
 
     flags = re.MULTILINE
 
@@ -389,14 +703,13 @@ class AppleScriptLexer(RegexLexer):
     <http://developer.apple.com/documentation/AppleScript/
     Reference/StudioReference>`_.
     Contributed by Andreas Amann <aamann@mac.com>.
-
-    .. versionadded:: 1.0
     """
 
     name = 'AppleScript'
     url = 'https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html'
     aliases = ['applescript']
     filenames = ['*.applescript']
+    version_added = '1.0'
 
     flags = re.MULTILINE | re.DOTALL
 
@@ -672,26 +985,26 @@ class AppleScriptLexer(RegexLexer):
              r'numeric strings|punctuation|white space)',
              bygroups(Keyword, Name.Builtin)),
             (r'(-|\*|\+|&|≠|>=?|<=?|=|≥|≤|/|÷|\^)', Operator),
-            (r"\b(%s)\b" % '|'.join(Operators), Operator.Word),
+            (r"\b({})\b".format('|'.join(Operators)), Operator.Word),
             (r'^(\s*(?:on|end)\s+)'
-             r'(%s)' % '|'.join(StudioEvents[::-1]),
+             r'({})'.format('|'.join(StudioEvents[::-1])),
              bygroups(Keyword, Name.Function)),
             (r'^(\s*)(in|on|script|to)(\s+)', bygroups(Text, Keyword, Text)),
-            (r'\b(as )(%s)\b' % '|'.join(Classes),
+            (r'\b(as )({})\b'.format('|'.join(Classes)),
              bygroups(Keyword, Name.Class)),
-            (r'\b(%s)\b' % '|'.join(Literals), Name.Constant),
-            (r'\b(%s)\b' % '|'.join(Commands), Name.Builtin),
-            (r'\b(%s)\b' % '|'.join(Control), Keyword),
-            (r'\b(%s)\b' % '|'.join(Declarations), Keyword),
-            (r'\b(%s)\b' % '|'.join(Reserved), Name.Builtin),
-            (r'\b(%s)s?\b' % '|'.join(BuiltIn), Name.Builtin),
-            (r'\b(%s)\b' % '|'.join(HandlerParams), Name.Builtin),
-            (r'\b(%s)\b' % '|'.join(StudioProperties), Name.Attribute),
-            (r'\b(%s)s?\b' % '|'.join(StudioClasses), Name.Builtin),
-            (r'\b(%s)\b' % '|'.join(StudioCommands), Name.Builtin),
-            (r'\b(%s)\b' % '|'.join(References), Name.Builtin),
+            (r'\b({})\b'.format('|'.join(Literals)), Name.Constant),
+            (r'\b({})\b'.format('|'.join(Commands)), Name.Builtin),
+            (r'\b({})\b'.format('|'.join(Control)), Keyword),
+            (r'\b({})\b'.format('|'.join(Declarations)), Keyword),
+            (r'\b({})\b'.format('|'.join(Reserved)), Name.Builtin),
+            (r'\b({})s?\b'.format('|'.join(BuiltIn)), Name.Builtin),
+            (r'\b({})\b'.format('|'.join(HandlerParams)), Name.Builtin),
+            (r'\b({})\b'.format('|'.join(StudioProperties)), Name.Attribute),
+            (r'\b({})s?\b'.format('|'.join(StudioClasses)), Name.Builtin),
+            (r'\b({})\b'.format('|'.join(StudioCommands)), Name.Builtin),
+            (r'\b({})\b'.format('|'.join(References)), Name.Builtin),
             (r'"(\\\\|\\[^\\]|[^"\\])*"', String.Double),
-            (r'\b(%s)\b' % Identifiers, Name.Variable),
+            (rf'\b({Identifiers})\b', Name.Variable),
             (r'[-+]?(\d+\.\d*|\d*\.\d+)(E[-+][0-9]+)?', Number.Float),
             (r'[-+]?\d+', Number.Integer),
         ],
@@ -710,14 +1023,13 @@ class RexxLexer(RegexLexer):
     a wide range of different platforms with its roots found on mainframe
     systems. It is popular for I/O- and data based tasks and can act as glue
     language to bind different applications together.
-
-    .. versionadded:: 2.0
     """
     name = 'Rexx'
     url = 'http://www.rexxinfo.org/'
     aliases = ['rexx', 'arexx']
     filenames = ['*.rexx', '*.rex', '*.rx', '*.arexx']
     mimetypes = ['text/x-rexx']
+    version_added = '2.0'
     flags = re.IGNORECASE
 
     tokens = {
@@ -781,7 +1093,8 @@ class RexxLexer(RegexLexer):
         ]
     }
 
-    _c = lambda s: re.compile(s, re.MULTILINE)
+    def _c(s):
+        return re.compile(s, re.MULTILINE)
     _ADDRESS_COMMAND_PATTERN = _c(r'^\s*address\s+command\b')
     _ADDRESS_PATTERN = _c(r'^\s*address\s+')
     _DO_WHILE_PATTERN = _c(r'^\s*do\s+while\b')
@@ -821,14 +1134,13 @@ class RexxLexer(RegexLexer):
 class MOOCodeLexer(RegexLexer):
     """
     For MOOCode (the MOO scripting language).
-
-    .. versionadded:: 0.9
     """
     name = 'MOOCode'
     url = 'http://www.moo.mud.org/'
     filenames = ['*.moo']
     aliases = ['moocode', 'moo']
     mimetypes = ['text/x-moocode']
+    version_added = '0.9'
 
     tokens = {
         'root': [
@@ -864,14 +1176,14 @@ class MOOCodeLexer(RegexLexer):
 class HybrisLexer(RegexLexer):
     """
     For Hybris source code.
-
-    .. versionadded:: 1.4
     """
 
     name = 'Hybris'
-    aliases = ['hybris', 'hy']
-    filenames = ['*.hy', '*.hyb']
+    aliases = ['hybris']
+    filenames = ['*.hyb']
     mimetypes = ['text/x-hybris', 'application/x-hybris']
+    url = 'https://github.com/evilsocket/hybris'
+    version_added = '1.4'
 
     flags = re.MULTILINE | re.DOTALL
 
@@ -962,13 +1274,13 @@ class EasytrieveLexer(RegexLexer):
     converting sequential data. Furthermore it can layout data for reports.
     It is mainly used on mainframe platforms and can access several of the
     mainframe's native file formats. It is somewhat comparable to awk.
-
-    .. versionadded:: 2.1
     """
     name = 'Easytrieve'
     aliases = ['easytrieve']
     filenames = ['*.ezt', '*.mac']
     mimetypes = ['text/x-easytrieve']
+    url = 'https://www.broadcom.com/products/mainframe/application-development/easytrieve-report-generator'
+    version_added = '2.1'
     flags = 0
 
     # Note: We cannot use r'\b' at the start and end of keywords because
@@ -1154,13 +1466,14 @@ class JclLexer(RegexLexer):
     is a scripting language used on mainframe platforms to instruct the system
     on how to run a batch job or start a subsystem. It is somewhat
     comparable to MS DOS batch and Unix shell scripts.
-
-    .. versionadded:: 2.1
     """
     name = 'JCL'
     aliases = ['jcl']
     filenames = ['*.jcl']
     mimetypes = ['text/x-jcl']
+    url = 'https://en.wikipedia.org/wiki/Job_Control_Language'
+    version_added = '2.1'
+
     flags = re.IGNORECASE
 
     tokens = {
@@ -1234,8 +1547,6 @@ class JclLexer(RegexLexer):
 class MiniScriptLexer(RegexLexer):
     """
     For MiniScript source code.
-
-    .. versionadded:: 2.6
     """
 
     name = 'MiniScript'
@@ -1243,6 +1554,7 @@ class MiniScriptLexer(RegexLexer):
     aliases = ['miniscript', 'ms']
     filenames = ['*.ms']
     mimetypes = ['text/x-minicript', 'application/x-miniscript']
+    version_added = '2.6'
 
     tokens = {
         'root': [

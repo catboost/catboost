@@ -3,9 +3,8 @@
     ~~~~~~~~~~~~~~~~~~~
 
     Lexer for BDD(Behavior-driven development).
-    More information: https://en.wikipedia.org/wiki/Behavior-driven_development
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,14 +18,14 @@ class BddLexer(RegexLexer):
     """
     Lexer for BDD(Behavior-driven development), which highlights not only
     keywords, but also comments, punctuations, strings, numbers, and variables.
-
-    .. versionadded:: 2.11
     """
 
     name = 'Bdd'
     aliases = ['bdd']
     filenames = ['*.feature']
     mimetypes = ['text/x-bdd']
+    url = 'https://en.wikipedia.org/wiki/Behavior-driven_development'
+    version_added = '2.11'
 
     step_keywords = (r'Given|When|Then|Add|And|Feature|Scenario Outline|'
                      r'Scenario|Background|Examples|But')

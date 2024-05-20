@@ -4,7 +4,7 @@
 
     Lexers for NCAR Command Language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,13 +20,14 @@ __all__ = ['NCLLexer']
 class NCLLexer(RegexLexer):
     """
     Lexer for NCL code.
-
-    .. versionadded:: 2.2
     """
     name = 'NCL'
     aliases = ['ncl']
     filenames = ['*.ncl']
     mimetypes = ['text/ncl']
+    url = 'https://www.ncl.ucar.edu'
+    version_added = '2.2'
+
     flags = re.MULTILINE
 
     tokens = {

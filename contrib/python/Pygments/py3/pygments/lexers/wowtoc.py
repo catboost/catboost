@@ -6,7 +6,7 @@
 
     TOC files describe game addons.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -46,13 +46,13 @@ def _create_tag_line_token(inner_pattern, inner_token, ignore_case=False):
 class WoWTocLexer(RegexLexer):
     """
     Lexer for World of Warcraft TOC files.
-
-    .. versionadded:: 2.14
     """
 
     name = "World of Warcraft TOC"
     aliases = ["wowtoc"]
     filenames = ["*.toc"]
+    url = 'https://wowpedia.fandom.com/wiki/TOC_format'
+    version_added = '2.14'
 
     tokens = {
         "root": [

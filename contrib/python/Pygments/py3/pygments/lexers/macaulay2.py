@@ -4,7 +4,7 @@
 
     Lexer for Macaulay2.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -13,7 +13,7 @@ from pygments.token import Comment, Keyword, Name, String, Text
 
 __all__ = ['Macaulay2Lexer']
 
-# Auto-generated for Macaulay2-1.22. Do not modify this file manually.
+# Auto-generated for Macaulay2-1.23. Do not modify this file manually.
 
 M2KEYWORDS = (
     "and",
@@ -60,6 +60,7 @@ M2DATATYPES = (
     "AngleBarList",
     "Array",
     "AssociativeExpression",
+    "AtomicInt",
     "Bag",
     "BasicList",
     "BettiTally",
@@ -222,6 +223,7 @@ M2DATATYPES = (
     "Sequence",
     "Set",
     "SheafExpression",
+    "SheafMap",
     "SheafOfRings",
     "SMALL",
     "SPAN",
@@ -334,6 +336,7 @@ M2FUNCTIONS = (
     "borel",
     "cacheValue",
     "cancelTask",
+    "canonicalBundle",
     "capture",
     "ceiling",
     "centerString",
@@ -369,6 +372,7 @@ M2FUNCTIONS = (
     "commonest",
     "commonRing",
     "comodule",
+    "compareExchange",
     "complement",
     "complete",
     "components",
@@ -459,6 +463,7 @@ M2FUNCTIONS = (
     "even",
     "EXAMPLE",
     "examples",
+    "exchange",
     "exec",
     "exp",
     "expectedReesIdeal",
@@ -624,6 +629,7 @@ M2FUNCTIONS = (
     "isInputFile",
     "isIsomorphic",
     "isIsomorphism",
+    "isLiftable",
     "isLinearType",
     "isListener",
     "isLLL",
@@ -638,6 +644,7 @@ M2FUNCTIONS = (
     "isPrimary",
     "isPrime",
     "isPrimitive",
+    "isProjective",
     "isPseudoprime",
     "isQuotientModule",
     "isQuotientOf",
@@ -846,7 +853,9 @@ M2FUNCTIONS = (
     "prune",
     "pseudocode",
     "pseudoRemainder",
+    "pullback",
     "pushForward",
+    "pushout",
     "QQParser",
     "QRDecomposition",
     "quotient",
@@ -857,6 +866,7 @@ M2FUNCTIONS = (
     "randomKRationalPoint",
     "randomMutableMatrix",
     "rank",
+    "rays",
     "read",
     "readDirectory",
     "readlink",
@@ -939,6 +949,7 @@ M2FUNCTIONS = (
     "setupEmacs",
     "sheaf",
     "sheafHom",
+    "sheafMap",
     "show",
     "showHtml",
     "showTex",
@@ -968,6 +979,7 @@ M2FUNCTIONS = (
     "standardPairs",
     "stashValue",
     "status",
+    "store",
     "style",
     "sub",
     "sublists",
@@ -1075,10 +1087,12 @@ M2FUNCTIONS = (
     )
 
 M2CONSTANTS = (
+    "A1BrouwerDegrees",
     "AbstractToricVarieties",
     "Acknowledgement",
     "AdditionalPaths",
     "AdjointIdeal",
+    "AdjunctionForSurfaces",
     "AfterEval",
     "AfterNoPrint",
     "AfterPrint",
@@ -1097,6 +1111,7 @@ M2CONSTANTS = (
     "AuxiliaryFiles",
     "backtrace",
     "Bareiss",
+    "Base",
     "BaseFunction",
     "baseRings",
     "BaseRow",
@@ -1279,6 +1294,7 @@ M2CONSTANTS = (
     "globalAssignmentHooks",
     "GlobalHookStore",
     "GlobalReleaseHook",
+    "GlobalSectionLimit",
     "Gorenstein",
     "GradedLieAlgebras",
     "GraphicalModels",
@@ -1389,6 +1405,7 @@ M2CONSTANTS = (
     "MapleInterface",
     "Markov",
     "MatchingFields",
+    "MatrixSchubert",
     "Matroids",
     "maxAllowableThreads",
     "maxExponent",
@@ -1449,6 +1466,8 @@ M2CONSTANTS = (
     "NumericalLinearAlgebra",
     "NumericalSchubertCalculus",
     "NumericSolutions",
+    "numTBBThreads",
+    "OIGroebnerBases",
     "OldPolyhedra",
     "OldToricVectorBundles",
     "OnlineLookup",
@@ -1471,6 +1490,8 @@ M2CONSTANTS = (
     "PackageTemplate",
     "PairLimit",
     "PairsRemaining",
+    "ParallelF4",
+    "ParallelizeByDegree",
     "Parametrization",
     "Parsing",
     "path",
@@ -1480,6 +1501,7 @@ M2CONSTANTS = (
     "PhylogeneticTrees",
     "pi",
     "PieriMaps",
+    "PlaneCurveLinearSeries",
     "PlaneCurveSingularities",
     "Points",
     "Polyhedra",
@@ -1515,9 +1537,12 @@ M2CONSTANTS = (
     "pruningMap",
     "PseudomonomialPrimaryDecomposition",
     "Pullback",
+    "pullbackMaps",
     "PushForward",
+    "pushoutMaps",
     "Python",
     "QthPower",
+    "QuadraticIdealExamplesByRoos",
     "Quasidegrees",
     "QuaternaryQuartics",
     "QuillenSuslin",
@@ -1568,6 +1593,7 @@ M2CONSTANTS = (
     "Reverse",
     "RevLex",
     "Right",
+    "RInterface",
     "rootPath",
     "rootURI",
     "RunDirectory",
@@ -1575,6 +1601,7 @@ M2CONSTANTS = (
     "RunExternalM2",
     "SagbiGbDetection",
     "Saturation",
+    "SaturationMap",
     "Schubert2",
     "SchurComplexes",
     "SchurFunctors",
@@ -1647,6 +1674,7 @@ M2CONSTANTS = (
     "TangentCone",
     "TateOnProducts",
     "TensorComplexes",
+    "TerraciniLoci",
     "Test",
     "testExample",
     "TestIdeals",
@@ -1664,6 +1692,7 @@ M2CONSTANTS = (
     "ToricTopology",
     "ToricVectorBundles",
     "Torsion",
+    "TorsionFree",
     "TotalPairs",
     "Tree",
     "TriangularSets",
@@ -1690,9 +1719,11 @@ M2CONSTANTS = (
     "UseHilbertFunction",
     "UserMode",
     "UseSyzygies",
+    "Valuations",
     "Variable",
     "VariableBaseName",
     "Variables",
+    "Varieties",
     "Vasconcelos",
     "VectorFields",
     "VectorGraphics",
@@ -1709,6 +1740,7 @@ M2CONSTANTS = (
     "WebApp",
     "Weights",
     "WeylAlgebra",
+    "WeylAlgebras",
     "WeylGroups",
     "WhitneyStratifications",
     "Wrap",
@@ -1722,6 +1754,7 @@ class Macaulay2Lexer(RegexLexer):
     url = 'https://macaulay2.com/'
     aliases = ['macaulay2']
     filenames = ['*.m2']
+    version_added = '2.12'
 
     tokens = {
         'root': [

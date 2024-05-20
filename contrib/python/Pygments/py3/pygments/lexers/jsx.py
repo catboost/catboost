@@ -4,7 +4,7 @@
 
     Lexers for JSX (React).
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,8 +20,6 @@ __all__ = ['JsxLexer']
 
 class JsxLexer(JavascriptLexer):
     """For JavaScript Syntax Extension (JSX).
-
-    .. versionadded:: 2.17
     """
 
     name = "JSX"
@@ -29,6 +27,7 @@ class JsxLexer(JavascriptLexer):
     filenames = ["*.jsx", "*.react"]
     mimetypes = ["text/jsx", "text/typescript-jsx"]
     url = "https://facebook.github.io/jsx/"
+    version_added = '2.17'
 
     flags = re.MULTILINE | re.DOTALL
 

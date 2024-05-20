@@ -4,7 +4,7 @@
 
     Lexers for the JMESPath language
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,6 +23,7 @@ class JMESPathLexer(RegexLexer):
     url = 'https://jmespath.org'
     filenames = ['*.jp']
     aliases = ['jmespath', 'jp']
+    version_added = ''
 
     tokens = {
         'string': [

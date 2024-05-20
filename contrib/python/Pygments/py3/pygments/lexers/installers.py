@@ -4,7 +4,7 @@
 
     Lexers for installer/packager DSLs and formats.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,14 +21,13 @@ __all__ = ['NSISLexer', 'RPMSpecLexer', 'SourcesListLexer',
 class NSISLexer(RegexLexer):
     """
     For NSIS scripts.
-
-    .. versionadded:: 1.6
     """
     name = 'NSIS'
     url = 'http://nsis.sourceforge.net/'
     aliases = ['nsis', 'nsi', 'nsh']
     filenames = ['*.nsi', '*.nsh']
     mimetypes = ['text/x-nsis']
+    version_added = '1.6'
 
     flags = re.IGNORECASE
 
@@ -147,14 +146,14 @@ class NSISLexer(RegexLexer):
 class RPMSpecLexer(RegexLexer):
     """
     For RPM ``.spec`` files.
-
-    .. versionadded:: 1.6
     """
 
     name = 'RPMSpec'
     aliases = ['spec']
     filenames = ['*.spec']
     mimetypes = ['text/x-rpm-spec']
+    url = 'https://rpm-software-management.github.io/rpm/manual/spec.html'
+    version_added = '1.6'
 
     _directives = ('(?:package|prep|build|install|clean|check|pre[a-z]*|'
                    'post[a-z]*|trigger[a-z]*|files)')
@@ -221,14 +220,14 @@ class RPMSpecLexer(RegexLexer):
 class SourcesListLexer(RegexLexer):
     """
     Lexer that highlights debian sources.list files.
-
-    .. versionadded:: 0.7
     """
 
     name = 'Debian Sourcelist'
     aliases = ['debsources', 'sourceslist', 'sources.list']
     filenames = ['sources.list']
+    version_added = '0.7'
     mimetype = ['application/x-debian-sourceslist']
+    url = 'https://wiki.debian.org/SourcesList'
 
     tokens = {
         'root': [
@@ -269,13 +268,12 @@ class SourcesListLexer(RegexLexer):
 class DebianControlLexer(RegexLexer):
     """
     Lexer for Debian ``control`` files and ``apt-cache show <pkg>`` outputs.
-
-    .. versionadded:: 0.9
     """
     name = 'Debian Control file'
     url = 'https://www.debian.org/doc/debian-policy/ch-controlfields.html'
     aliases = ['debcontrol', 'control']
     filenames = ['control']
+    version_added = '0.9'
 
     tokens = {
         'root': [

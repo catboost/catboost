@@ -4,7 +4,7 @@
 
     Lexers for "business-oriented" languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,13 +23,14 @@ __all__ = ['CobolLexer', 'CobolFreeformatLexer', 'ABAPLexer', 'OpenEdgeLexer',
 class CobolLexer(RegexLexer):
     """
     Lexer for OpenCOBOL code.
-
-    .. versionadded:: 1.6
     """
     name = 'COBOL'
     aliases = ['cobol']
     filenames = ['*.cob', '*.COB', '*.cpy', '*.CPY']
     mimetypes = ['text/x-cobol']
+    url = 'https://en.wikipedia.org/wiki/COBOL'
+    version_added = '1.6'
+
     flags = re.IGNORECASE | re.MULTILINE
 
     # Data Types: by PICTURE and USAGE
@@ -221,13 +222,14 @@ class CobolLexer(RegexLexer):
 class CobolFreeformatLexer(CobolLexer):
     """
     Lexer for Free format OpenCOBOL code.
-
-    .. versionadded:: 1.6
     """
     name = 'COBOLFree'
     aliases = ['cobolfree']
     filenames = ['*.cbl', '*.CBL']
     mimetypes = []
+    url = 'https://opencobol.add1tocobol.com'
+    version_added = '1.6'
+
     flags = re.IGNORECASE | re.MULTILINE
 
     tokens = {
@@ -240,13 +242,13 @@ class CobolFreeformatLexer(CobolLexer):
 class ABAPLexer(RegexLexer):
     """
     Lexer for ABAP, SAP's integrated language.
-
-    .. versionadded:: 1.1
     """
     name = 'ABAP'
     aliases = ['abap']
     filenames = ['*.abap', '*.ABAP']
     mimetypes = ['text/x-abap']
+    url = 'https://community.sap.com/topics/abap'
+    version_added = '1.1'
 
     flags = re.IGNORECASE | re.MULTILINE
 
@@ -448,15 +450,14 @@ class ABAPLexer(RegexLexer):
 
 class OpenEdgeLexer(RegexLexer):
     """
-    Lexer for `OpenEdge ABL (formerly Progress)
-    <http://web.progress.com/en/openedge/abl.html>`_ source code.
-
-    .. versionadded:: 1.5
+    Lexer for OpenEdge ABL (formerly Progress) source code.
     """
     name = 'OpenEdge ABL'
     aliases = ['openedge', 'abl', 'progress']
     filenames = ['*.p', '*.cls']
     mimetypes = ['text/x-openedge', 'application/x-openedge']
+    url = 'https://www.progress.com/openedge/features/abl'
+    version_added = '1.5'
 
     types = (r'(?i)(^|(?<=[^\w\-]))(CHARACTER|CHAR|CHARA|CHARAC|CHARACT|CHARACTE|'
              r'COM-HANDLE|DATE|DATETIME|DATETIME-TZ|'
@@ -517,20 +518,20 @@ class OpenEdgeLexer(RegexLexer):
 
 class GoodDataCLLexer(RegexLexer):
     """
-    Lexer for `GoodData-CL
-    <https://github.com/gooddata/GoodData-CL/raw/master/cli/src/main/resources/\
-com/gooddata/processor/COMMANDS.txt>`_
-    script files.
-
-    .. versionadded:: 1.4
+    Lexer for GoodData-CL script files.
     """
 
     name = 'GoodData-CL'
     aliases = ['gooddata-cl']
     filenames = ['*.gdc']
     mimetypes = ['text/x-gooddata-cl']
+    url = 'https://github.com/gooddata/GoodData-CL'
+    version_added = '1.4'
 
     flags = re.IGNORECASE
+
+    # Syntax:
+    # https://github.com/gooddata/GoodData-CL/raw/master/cli/src/main/resources/com/gooddata/processor/COMMANDS.txt
     tokens = {
         'root': [
             # Comments
@@ -564,17 +565,15 @@ com/gooddata/processor/COMMANDS.txt>`_
 
 class MaqlLexer(RegexLexer):
     """
-    Lexer for `GoodData MAQL
-    <https://secure.gooddata.com/docs/html/advanced.metric.tutorial.html>`_
-    scripts.
-
-    .. versionadded:: 1.4
+    Lexer for GoodData MAQL scripts.
     """
 
     name = 'MAQL'
     aliases = ['maql']
     filenames = ['*.maql']
     mimetypes = ['text/x-gooddata-maql', 'application/x-gooddata-maql']
+    url = 'https://help.gooddata.com/doc/enterprise/en/dashboards-and-insights/maql-analytical-query-language'
+    version_added = '1.4'
 
     flags = re.IGNORECASE
     tokens = {

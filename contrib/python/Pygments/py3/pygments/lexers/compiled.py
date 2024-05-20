@@ -4,10 +4,11 @@
 
     Just export lexer classes previously contained in this module.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
+# ruff: noqa: F401
 from pygments.lexers.jvm import JavaLexer, ScalaLexer
 from pygments.lexers.c_cpp import CLexer, CppLexer
 from pygments.lexers.d import DLexer

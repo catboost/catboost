@@ -4,7 +4,7 @@
 
     Lexer for the qlik scripting language
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,13 +22,13 @@ __all__ = ["QlikLexer"]
 class QlikLexer(RegexLexer):
     """
     Lexer for qlik code, including .qvs files
-
-    .. versionadded:: 2.12
     """
 
     name = "Qlik"
     aliases = ["qlik", "qlikview", "qliksense", "qlikscript"]
     filenames = ["*.qvs", "*.qvw"]
+    url = "https://qlik.com"
+    version_added = '2.12'
 
     flags = re.IGNORECASE
 

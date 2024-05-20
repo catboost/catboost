@@ -6,7 +6,7 @@
 
     Derived from pygments/lexers/reason.py.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,14 +19,14 @@ __all__ = ['SophiaLexer']
 class SophiaLexer(RegexLexer):
     """
     A Sophia lexer.
-
-    .. versionadded:: 2.11
     """
 
     name = 'Sophia'
     aliases = ['sophia']
     filenames = ['*.aes']
     mimetypes = []
+    url = 'https://docs.aeternity.com/aesophia'
+    version_added = '2.11'
 
     keywords = (
         'contract', 'include', 'let', 'switch', 'type', 'record', 'datatype',
@@ -100,4 +100,3 @@ class SophiaLexer(RegexLexer):
             default('#pop'),
         ],
     }
-

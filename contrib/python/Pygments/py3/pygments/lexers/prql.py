@@ -4,7 +4,7 @@
 
     Lexer for the PRQL query language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,8 +19,6 @@ class PrqlLexer(RegexLexer):
     """
     For PRQL source code.
 
-    .. versionadded:: 2.17
-
     grammar: https://github.com/PRQL/prql/tree/main/grammars
     """
 
@@ -29,6 +27,7 @@ class PrqlLexer(RegexLexer):
     aliases = ['prql']
     filenames = ['*.prql']
     mimetypes = ['application/prql', 'application/x-prql']
+    version_added = '2.17'
 
     builtinTypes = words((
         "bool",

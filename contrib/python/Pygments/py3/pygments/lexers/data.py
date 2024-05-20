@@ -4,7 +4,7 @@
 
     Lexers for data file format.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -31,8 +31,6 @@ class YamlLexer(ExtendedRegexLexer):
     """
     Lexer for YAML, a human-friendly data serialization
     language.
-
-    .. versionadded:: 0.11
     """
 
     name = 'YAML'
@@ -40,6 +38,7 @@ class YamlLexer(ExtendedRegexLexer):
     aliases = ['yaml']
     filenames = ['*.yaml', '*.yml']
     mimetypes = ['text/x-yaml']
+    version_added = '0.11'
 
     def something(token_class):
         """Do not produce empty tokens."""
@@ -443,8 +442,6 @@ class JsonLexer(Lexer):
     This allows users to highlight JSON as it is used in the wild.
 
     No validation is performed on the input JSON document.
-
-    .. versionadded:: 1.5
     """
 
     name = 'JSON'
@@ -452,6 +449,7 @@ class JsonLexer(Lexer):
     aliases = ['json', 'json-object']
     filenames = ['*.json', '*.jsonl', '*.ndjson', 'Pipfile.lock']
     mimetypes = ['application/json', 'application/json-object', 'application/x-ndjson', 'application/jsonl', 'application/json-seq']
+    version_added = '1.5'
 
     # No validation of integers, floats, or constants is done.
     # As long as the characters are members of the following
@@ -704,8 +702,6 @@ class JsonBareObjectLexer(JsonLexer):
     """
     For JSON data structures (with missing object curly braces).
 
-    .. versionadded:: 2.2
-
     .. deprecated:: 2.8.0
 
        Behaves the same as `JsonLexer` now.
@@ -715,13 +711,12 @@ class JsonBareObjectLexer(JsonLexer):
     aliases = []
     filenames = []
     mimetypes = []
+    version_added = '2.2'
 
 
 class JsonLdLexer(JsonLexer):
     """
     For JSON-LD linked data.
-
-    .. versionadded:: 2.0
     """
 
     name = 'JSON-LD'
@@ -729,9 +724,10 @@ class JsonLdLexer(JsonLexer):
     aliases = ['jsonld', 'json-ld']
     filenames = ['*.jsonld']
     mimetypes = ['application/ld+json']
+    version_added = '2.0'
 
     json_ld_keywords = {
-        '"@%s"' % keyword
+        f'"@{keyword}"'
         for keyword in (
             'base',
             'container',

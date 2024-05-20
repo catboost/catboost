@@ -4,7 +4,7 @@
 
     Lexers for APL.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,8 +18,6 @@ __all__ = ['APLLexer']
 class APLLexer(RegexLexer):
     """
     A simple APL lexer.
-
-    .. versionadded:: 2.0
     """
     name = 'APL'
     url = 'https://en.m.wikipedia.org/wiki/APL_(programming_language)'
@@ -28,6 +26,7 @@ class APLLexer(RegexLexer):
         '*.apl', '*.aplf', '*.aplo', '*.apln',  
         '*.aplc', '*.apli', '*.dyalog',
     ]
+    version_added = '2.0'
 
     tokens = {
         'root': [

@@ -7,7 +7,7 @@
 
     File may be also used as standalone generator for above.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':  # pragma: no cover
                 with open(headerFilePath, encoding='utf-8') as f:
                     content = f.read()
             except UnicodeDecodeError:
-                print("Decoding error for file: {0}".format(headerFilePath))
+                print(f"Decoding error for file: {headerFilePath}")
                 continue
                 
             res = re.findall(r'(?<=@interface )\w+', content)

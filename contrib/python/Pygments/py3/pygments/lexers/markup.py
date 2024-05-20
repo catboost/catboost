@@ -4,7 +4,7 @@
 
     Lexers for non-HTML markup languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,25 +19,26 @@ from pygments.lexers.data import JsonLexer
 from pygments.lexer import RegexLexer, DelegatingLexer, include, bygroups, \
     using, this, do_insertions, default, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Generic, Other, Whitespace
+    Number, Punctuation, Generic, Other, Whitespace, Literal
 from pygments.util import get_bool_opt, ClassNotFound
 
 __all__ = ['BBCodeLexer', 'MoinWikiLexer', 'RstLexer', 'TexLexer', 'GroffLexer',
            'MozPreprocHashLexer', 'MozPreprocPercentLexer',
            'MozPreprocXulLexer', 'MozPreprocJavascriptLexer',
-           'MozPreprocCssLexer', 'MarkdownLexer', 'TiddlyWiki5Lexer', 'WikitextLexer']
+           'MozPreprocCssLexer', 'MarkdownLexer', 'OrgLexer', 'TiddlyWiki5Lexer',
+           'WikitextLexer']
 
 
 class BBCodeLexer(RegexLexer):
     """
     A lexer that highlights BBCode(-like) syntax.
-
-    .. versionadded:: 0.6
     """
 
     name = 'BBCode'
     aliases = ['bbcode']
     mimetypes = ['text/x-bbcode']
+    url = 'https://www.bbcode.org/'
+    version_added = '0.6'
 
     tokens = {
         'root': [
@@ -64,14 +65,15 @@ class BBCodeLexer(RegexLexer):
 class MoinWikiLexer(RegexLexer):
     """
     For MoinMoin (and Trac) Wiki markup.
-
-    .. versionadded:: 0.7
     """
 
     name = 'MoinMoin/Trac Wiki markup'
     aliases = ['trac-wiki', 'moin']
     filenames = []
     mimetypes = ['text/x-trac-wiki']
+    url = 'https://moinmo.in'
+    version_added = '0.7'
+
     flags = re.MULTILINE | re.IGNORECASE
 
     tokens = {
@@ -110,8 +112,6 @@ class RstLexer(RegexLexer):
     """
     For reStructuredText markup.
 
-    .. versionadded:: 0.7
-
     Additional options accepted:
 
     `handlecodeblocks`
@@ -127,6 +127,7 @@ class RstLexer(RegexLexer):
     aliases = ['restructuredtext', 'rst', 'rest']
     filenames = ['*.rst', '*.rest']
     mimetypes = ["text/x-rst", "text/prs.fallenstein.rst"]
+    version_added = '0.7'
     flags = re.MULTILINE
 
     def _handle_sourcecode(self, match):
@@ -172,9 +173,7 @@ class RstLexer(RegexLexer):
     # from docutils.parsers.rst.states
     closers = '\'")]}>\u2019\u201d\xbb!?'
     unicode_delimiters = '\u2010\u2011\u2012\u2013\u2014\u00a0'
-    end_string_suffix = (r'((?=$)|(?=[-/:.,; \n\x00%s%s]))'
-                         % (re.escape(unicode_delimiters),
-                            re.escape(closers)))
+    end_string_suffix = (rf'((?=$)|(?=[-/:.,; \n\x00{re.escape(unicode_delimiters)}{re.escape(closers)}]))')
 
     tokens = {
         'root': [
@@ -222,7 +221,7 @@ class RstLexer(RegexLexer):
              bygroups(Punctuation, Text, Name.Tag, Text, Operator.Word,
                       Punctuation, Text, using(this, state='inline'))),
             # Comments
-            (r'^ *\.\..*(\n( +.*\n|\n)+)?', Comment.Preproc),
+            (r'^ *\.\..*(\n( +.*\n|\n)+)?', Comment),
             # Field list marker
             (r'^( *)(:(?:\\\\|\\:|[^:\n])+:(?=\s))([ \t]*)',
              bygroups(Text, Name.Class, Text)),
@@ -283,6 +282,8 @@ class TexLexer(RegexLexer):
     aliases = ['tex', 'latex']
     filenames = ['*.tex', '*.aux', '*.toc']
     mimetypes = ['text/x-tex', 'text/x-latex']
+    url = 'https://tug.org'
+    version_added = ''
 
     tokens = {
         'general': [
@@ -295,13 +296,13 @@ class TexLexer(RegexLexer):
             (r'\\\(', String, 'inlinemath'),
             (r'\$\$', String.Backtick, 'displaymath'),
             (r'\$', String, 'inlinemath'),
-            (r'\\([a-zA-Z]+|.)', Keyword, 'command'),
+            (r'\\([a-zA-Z@_:]+|\S?)', Keyword, 'command'),
             (r'\\$', Keyword),
             include('general'),
             (r'[^\\$%&_^{}]+', Text),
         ],
         'math': [
-            (r'\\([a-zA-Z]+|.)', Name.Variable),
+            (r'\\([a-zA-Z]+|\S?)', Name.Variable),
             include('general'),
             (r'[0-9]+', Number),
             (r'[-=!+*/()\[\]]', Operator),
@@ -336,14 +337,14 @@ class GroffLexer(RegexLexer):
     """
     Lexer for the (g)roff typesetting language, supporting groff
     extensions. Mainly useful for highlighting manpage sources.
-
-    .. versionadded:: 0.6
     """
 
     name = 'Groff'
     aliases = ['groff', 'nroff', 'man']
     filenames = ['*.[1-9]', '*.man', '*.1p', '*.3pm']
     mimetypes = ['application/x-troff', 'text/troff']
+    url = 'https://www.gnu.org/software/groff'
+    version_added = '0.6'
 
     tokens = {
         'root': [
@@ -393,13 +394,13 @@ class MozPreprocHashLexer(RegexLexer):
     Lexer for Mozilla Preprocessor files (with '#' as the marker).
 
     Other data is left untouched.
-
-    .. versionadded:: 2.0
     """
     name = 'mozhashpreproc'
     aliases = [name]
     filenames = []
     mimetypes = []
+    url = 'https://firefox-source-docs.mozilla.org/build/buildsystem/preprocessor.html'
+    version_added = '2.0'
 
     tokens = {
         'root': [
@@ -434,13 +435,13 @@ class MozPreprocPercentLexer(MozPreprocHashLexer):
     Lexer for Mozilla Preprocessor files (with '%' as the marker).
 
     Other data is left untouched.
-
-    .. versionadded:: 2.0
     """
     name = 'mozpercentpreproc'
     aliases = [name]
     filenames = []
     mimetypes = []
+    url = 'https://firefox-source-docs.mozilla.org/build/buildsystem/preprocessor.html'
+    version_added = '2.0'
 
     tokens = {
         'root': [
@@ -454,13 +455,13 @@ class MozPreprocXulLexer(DelegatingLexer):
     """
     Subclass of the `MozPreprocHashLexer` that highlights unlexed data with the
     `XmlLexer`.
-
-    .. versionadded:: 2.0
     """
     name = "XUL+mozpreproc"
     aliases = ['xul+mozpreproc']
     filenames = ['*.xul.in']
     mimetypes = []
+    url = 'https://firefox-source-docs.mozilla.org/build/buildsystem/preprocessor.html'
+    version_added = '2.0'
 
     def __init__(self, **options):
         super().__init__(XmlLexer, MozPreprocHashLexer, **options)
@@ -470,13 +471,13 @@ class MozPreprocJavascriptLexer(DelegatingLexer):
     """
     Subclass of the `MozPreprocHashLexer` that highlights unlexed data with the
     `JavascriptLexer`.
-
-    .. versionadded:: 2.0
     """
     name = "Javascript+mozpreproc"
     aliases = ['javascript+mozpreproc']
     filenames = ['*.js.in']
     mimetypes = []
+    url = 'https://firefox-source-docs.mozilla.org/build/buildsystem/preprocessor.html'
+    version_added = '2.0'
 
     def __init__(self, **options):
         super().__init__(JavascriptLexer, MozPreprocHashLexer, **options)
@@ -486,13 +487,13 @@ class MozPreprocCssLexer(DelegatingLexer):
     """
     Subclass of the `MozPreprocHashLexer` that highlights unlexed data with the
     `CssLexer`.
-
-    .. versionadded:: 2.0
     """
     name = "CSS+mozpreproc"
     aliases = ['css+mozpreproc']
     filenames = ['*.css.in']
     mimetypes = []
+    url = 'https://firefox-source-docs.mozilla.org/build/buildsystem/preprocessor.html'
+    version_added = '2.0'
 
     def __init__(self, **options):
         super().__init__(CssLexer, MozPreprocPercentLexer, **options)
@@ -501,14 +502,13 @@ class MozPreprocCssLexer(DelegatingLexer):
 class MarkdownLexer(RegexLexer):
     """
     For Markdown markup.
-
-    .. versionadded:: 2.2
     """
     name = 'Markdown'
     url = 'https://daringfireball.net/projects/markdown/'
     aliases = ['markdown', 'md']
     filenames = ['*.md', '*.markdown']
     mimetypes = ["text/x-markdown"]
+    version_added = '2.2'
     flags = re.MULTILINE
 
     def _handle_codeblock(self, match):
@@ -618,18 +618,125 @@ class MarkdownLexer(RegexLexer):
         self.handlecodeblocks = get_bool_opt(options, 'handlecodeblocks', True)
         RegexLexer.__init__(self, **options)
 
+class OrgLexer(RegexLexer):
+    """
+    For Org Mode markup.
+    """
+    name = 'Org Mode'
+    url = 'https://orgmode.org'
+    aliases = ['org', 'orgmode', 'org-mode']
+    filenames = ['*.org']
+    mimetypes = ["text/org"]
+    version_added = '2.18'
+
+    def _inline(start, end):
+        return rf'(?<!\w){start}(.|\n(?!\n))+?{end}(?!\w)'
+
+    tokens = {
+        'root': [
+            (r'^# .*', Comment.Single),
+
+            # Headings
+            (r'^(\* )(COMMENT)( .*)',
+             bygroups(Generic.Heading, Comment.Preproc, Generic.Heading)),
+            (r'^(\*\*+ )(COMMENT)( .*)',
+             bygroups(Generic.Subheading, Comment.Preproc, Generic.Subheading)),
+            (r'^(\* )(DONE)( .*)',
+             bygroups(Generic.Heading, Generic.Deleted, Generic.Heading)),
+            (r'^(\*\*+ )(DONE)( .*)',
+             bygroups(Generic.Subheading, Generic.Deleted, Generic.Subheading)),
+            (r'^(\* )(TODO)( .*)',
+             bygroups(Generic.Heading, Generic.Error, Generic.Heading)),
+            (r'^(\*\*+ )(TODO)( .*)',
+             bygroups(Generic.Subheading, Generic.Error, Generic.Subheading)),
+
+            (r'^(\* .+?)( :[a-zA-Z0-9_@:]+:)?$', bygroups(Generic.Heading, Generic.Emph)),
+            (r'^(\*\*+ .+?)( :[a-zA-Z0-9_@:]+:)?$', bygroups(Generic.Subheading, Generic.Emph)),
+
+            # Unordered lists items, including TODO items and description items
+            (r'^(?:( *)([+-] )|( +)(\* ))(\[[ X-]\])?(.+ ::)?',
+             bygroups(Whitespace, Keyword, Whitespace, Keyword, Generic.Prompt, Name.Label)),
+
+            # Ordered list items
+            (r'^( *)([0-9]+[.)])( \[@[0-9]+\])?', bygroups(Whitespace, Keyword, Generic.Emph)),
+
+            # Dynamic blocks
+            (r'(?i)^( *#\+begin: *)((?:.|\n)*?)(^ *#\+end: *$)',
+             bygroups(Operator.Word, using(this), Operator.Word)),
+
+            # Comment blocks
+            (r'(?i)^( *#\+begin_comment *\n)((?:.|\n)*?)(^ *#\+end_comment *$)',
+             bygroups(Operator.Word, Comment.Multiline, Operator.Word)),
+
+            # Source code blocks
+            # TODO: language-dependent syntax highlighting (see Markdown lexer)
+            (r'(?i)^( *#\+begin_src .*)((?:.|\n)*?)(^ *#\+end_src *$)',
+             bygroups(Operator.Word, Text, Operator.Word)),
+
+            # Other blocks
+            (r'(?i)^( *#\+begin_\w+)( *\n)((?:.|\n)*?)(^ *#\+end_\w+)( *$)',
+             bygroups(Operator.Word, Whitespace, Text, Operator.Word, Whitespace)),
+
+            # Keywords
+            (r'^(#\+\w+:)(.*)$', bygroups(Name.Namespace, Text)),
+
+            # Properties and drawers
+            (r'(?i)^( *:\w+: *\n)((?:.|\n)*?)(^ *:end: *$)',
+             bygroups(Name.Decorator, Comment.Special, Name.Decorator)),
+
+            # Line break operator
+            (r'\\\\$', Operator),
+
+            # Deadline, Scheduled, CLOSED
+            (r'(?i)^( *(?:DEADLINE|SCHEDULED): )(<.+?> *)$',
+             bygroups(Generic.Error, Literal.Date)),
+            (r'(?i)^( *CLOSED: )(\[.+?\] *)$',
+             bygroups(Generic.Deleted, Literal.Date)),
+
+            # Bold
+            (_inline(r'\*', r'\*+'), Generic.Strong),
+            # Italic
+            (_inline(r'/', r'/'), Generic.Emph),
+            # Verbatim
+            (_inline(r'=', r'='), String), # TODO token
+            # Code
+            (_inline(r'~', r'~'), String),
+            # Strikethrough
+            (_inline(r'\+', r'\+'), Generic.Deleted),
+            # Underline
+            (_inline(r'_', r'_+'), Generic.EmphStrong),
+
+            # Dates
+            (r'<.+?>', Literal.Date),
+            # Macros
+            (r'\{\{\{.+?\}\}\}', Comment.Preproc),
+            # Footnotes
+            (r'(?<!\[)\[fn:.+?\]', Name.Tag),
+            # Links
+            (r'(?s)(\[\[)(.*?)(\]\[)(.*?)(\]\])',
+             bygroups(Punctuation, Name.Attribute, Punctuation, Name.Tag, Punctuation)),
+            (r'(?s)(\[\[)(.+?)(\]\])', bygroups(Punctuation, Name.Attribute, Punctuation)),
+            (r'(<<)(.+?)(>>)', bygroups(Punctuation, Name.Attribute, Punctuation)),
+
+            # Tables
+            (r'^( *)(\|[ -].*?[ -]\|)$', bygroups(Whitespace, String)),
+
+            # Any other text
+            (r'[^#*+\-0-9:\\/=~_<{\[|\n]+', Text),
+            (r'[#*+\-0-9:\\/=~_<{\[|\n]', Text),
+        ],
+    }
 
 class TiddlyWiki5Lexer(RegexLexer):
     """
     For TiddlyWiki5 markup.
-
-    .. versionadded:: 2.7
     """
     name = 'tiddler'
     url = 'https://tiddlywiki.com/#TiddlerFiles'
     aliases = ['tid']
     filenames = ['*.tid']
     mimetypes = ["text/vnd.tiddlywiki"]
+    version_added = '2.7'
     flags = re.MULTILINE
 
     def _handle_codeblock(self, match):
@@ -786,19 +893,18 @@ class WikitextLexer(RegexLexer):
     installations, so we only highlight common syntaxes (built-in or from
     popular extensions), and also assume templates produce no unbalanced
     syntaxes.
-
-    .. versionadded:: 2.15
     """
     name = 'Wikitext'
     url = 'https://www.mediawiki.org/wiki/Wikitext'
     aliases = ['wikitext', 'mediawiki']
     filenames = []
     mimetypes = ['text/x-wiki']
+    version_added = '2.15'
     flags = re.MULTILINE
 
     def nowiki_tag_rules(tag_name):
         return [
-            (r'(?i)(</)({})(\s*)(>)'.format(tag_name), bygroups(Punctuation,
+            (rf'(?i)(</)({tag_name})(\s*)(>)', bygroups(Punctuation,
              Name.Tag, Whitespace, Punctuation), '#pop'),
             include('entity'),
             include('text'),
@@ -806,15 +912,15 @@ class WikitextLexer(RegexLexer):
 
     def plaintext_tag_rules(tag_name):
         return [
-            (r'(?si)(.*?)(</)({})(\s*)(>)'.format(tag_name), bygroups(Text,
+            (rf'(?si)(.*?)(</)({tag_name})(\s*)(>)', bygroups(Text,
              Punctuation, Name.Tag, Whitespace, Punctuation), '#pop'),
         ]
 
-    def delegate_tag_rules(tag_name, lexer):
+    def delegate_tag_rules(tag_name, lexer, **lexer_kwargs):
         return [
-            (r'(?i)(</)({})(\s*)(>)'.format(tag_name), bygroups(Punctuation,
+            (rf'(?i)(</)({tag_name})(\s*)(>)', bygroups(Punctuation,
              Name.Tag, Whitespace, Punctuation), '#pop'),
-            (r'(?si).+?(?=</{}\s*>)'.format(tag_name), using(lexer)),
+            (rf'(?si).+?(?=</{tag_name}\s*>)', using(lexer, **lexer_kwargs)),
         ]
 
     def text_rules(token):
@@ -946,8 +1052,6 @@ class WikitextLexer(RegexLexer):
         'sh-latn', 'sh-cyrl',
         # KuConverter.php
         'ku', 'ku-arab', 'ku-latn',
-        # KkConverter.php
-        'kk', 'kk-cyrl', 'kk-latn', 'kk-arab', 'kk-kz', 'kk-tr', 'kk-cn',
         # IuConverter.php
         'iu', 'ike-cans', 'ike-latn',
         # GanConverter.php
@@ -1020,7 +1124,7 @@ class WikitextLexer(RegexLexer):
             (r'(?i)\b(?:{}){}{}*'.format('|'.join(protocols),
              link_address, link_char_class), Name.Label),
             # Magic links
-            (r'\b(?:RFC|PMID){}+[0-9]+\b'.format(nbsp_char),
+            (rf'\b(?:RFC|PMID){nbsp_char}+[0-9]+\b',
              Name.Function.Magic),
             (r"""(?x)
                 \bISBN {nbsp_char}
@@ -1035,7 +1139,7 @@ class WikitextLexer(RegexLexer):
         'redirect-inner': [
             (r'(\]\])(\s*?\n)', bygroups(Punctuation, Whitespace), '#pop'),
             (r'(\#)([^#]*?)', bygroups(Punctuation, Name.Label)),
-            (r'(?i)[{}]+'.format(title_char), Name.Tag),
+            (rf'(?i)[{title_char}]+', Name.Tag),
         ],
         'list': [
             # Description lists
@@ -1062,9 +1166,9 @@ class WikitextLexer(RegexLexer):
                 r"""(?xi)
                 (\[\[)
                     (File|Image) (:)
-                    ((?: [%s] | \{{2,3}[^{}]*?\}{2,3} | <!--[\s\S]*?--> )*)
-                    (?: (\#) ([%s]*?) )?
-                """ % (title_char, f'{title_char}#'),
+                    ((?: [{}] | \{{{{2,3}}[^{{}}]*?\}}{{2,3}} | <!--[\s\S]*?--> )*)
+                    (?: (\#) ([{}]*?) )?
+                """.format(title_char, f'{title_char}#'),
                 bygroups(Punctuation, Name.Namespace,  Punctuation,
                          using(this, state=['wikilink-name']), Punctuation, Name.Label),
                 'medialink-inner'
@@ -1072,24 +1176,24 @@ class WikitextLexer(RegexLexer):
             # Wikilinks
             (
                 r"""(?xi)
-                (\[\[)(?!%s) # Should not contain URLs
-                    (?: ([%s]*) (:))?
-                    ((?: [%s] | \{{2,3}[^{}]*?\}{2,3} | <!--[\s\S]*?--> )*?)
-                    (?: (\#) ([%s]*?) )?
+                (\[\[)(?!{}) # Should not contain URLs
+                    (?: ([{}]*) (:))?
+                    ((?: [{}] | \{{{{2,3}}[^{{}}]*?\}}{{2,3}} | <!--[\s\S]*?--> )*?)
+                    (?: (\#) ([{}]*?) )?
                 (\]\])
-                """ % ('|'.join(protocols), title_char.replace('/', ''),
+                """.format('|'.join(protocols), title_char.replace('/', ''),
                        title_char, f'{title_char}#'),
                 bygroups(Punctuation, Name.Namespace,  Punctuation,
                          using(this, state=['wikilink-name']), Punctuation, Name.Label, Punctuation)
             ),
             (
                 r"""(?xi)
-                (\[\[)(?!%s)
-                    (?: ([%s]*) (:))?
-                    ((?: [%s] | \{{2,3}[^{}]*?\}{2,3} | <!--[\s\S]*?--> )*?)
-                    (?: (\#) ([%s]*?) )?
+                (\[\[)(?!{})
+                    (?: ([{}]*) (:))?
+                    ((?: [{}] | \{{{{2,3}}[^{{}}]*?\}}{{2,3}} | <!--[\s\S]*?--> )*?)
+                    (?: (\#) ([{}]*?) )?
                     (\|)
-                """ % ('|'.join(protocols), title_char.replace('/', ''),
+                """.format('|'.join(protocols), title_char.replace('/', ''),
                        title_char, f'{title_char}#'),
                 bygroups(Punctuation, Name.Namespace,  Punctuation,
                          using(this, state=['wikilink-name']), Punctuation, Name.Label, Punctuation),
@@ -1192,7 +1296,7 @@ class WikitextLexer(RegexLexer):
                 r"""(?xi)
                 (-\{{) # Use {{ to escape format()
                     ([^|]) (\|)
-                    (?: 
+                    (?:
                         (?: ([^;]*?) (=>))?
                         (\s* (?:{variants}) \s*) (:)
                     )?
@@ -1322,9 +1426,9 @@ class WikitextLexer(RegexLexer):
                 'parameter-inner',
             ),
             # Magic variables
-            (r'(?i)(\{\{)(\s*)(%s)(\s*)(\}\})' % '|'.join(magic_vars_i),
+            (r'(?i)(\{{\{{)(\s*)({})(\s*)(\}}\}})'.format('|'.join(magic_vars_i)),
              bygroups(Punctuation, Whitespace, Name.Function, Whitespace, Punctuation)),
-            (r'(\{\{)(\s*)(%s)(\s*)(\}\})' % '|'.join(magic_vars),
+            (r'(\{{\{{)(\s*)({})(\s*)(\}}\}})'.format('|'.join(magic_vars)),
                 bygroups(Punctuation, Whitespace, Name.Function, Whitespace, Punctuation)),
             # Parser functions & templates
             (r'\{\{', Punctuation, 'template-begin-space'),
@@ -1350,17 +1454,17 @@ class WikitextLexer(RegexLexer):
             (r'\s+', Whitespace),
             # Parser functions
             (
-                r'(?i)(\#[%s]*?|%s)(:)' % (title_char,
+                r'(?i)(\#[{}]*?|{})(:)'.format(title_char,
                                            '|'.join(parser_functions_i)),
                 bygroups(Name.Function, Punctuation), ('#pop', 'template-inner')
             ),
             (
-                r'(%s)(:)' % ('|'.join(parser_functions)),
+                r'({})(:)'.format('|'.join(parser_functions)),
                 bygroups(Name.Function, Punctuation), ('#pop', 'template-inner')
             ),
             # Templates
             (
-                r'(?i)([%s]*?)(:)' % title_char,
+                rf'(?i)([{title_char}]*?)(:)',
                 bygroups(Name.Namespace, Punctuation), ('#pop', 'template-name')
             ),
             default(('#pop', 'template-name'),),
@@ -1539,9 +1643,9 @@ class WikitextLexer(RegexLexer):
         'tag-gallery': plaintext_tag_rules('gallery'),
         'tag-graph': plaintext_tag_rules('graph'),
         'tag-rss': plaintext_tag_rules('rss'),
-        'tag-math': delegate_tag_rules('math', TexLexer),
-        'tag-chem': delegate_tag_rules('chem', TexLexer),
-        'tag-ce': delegate_tag_rules('ce', TexLexer),
+        'tag-math': delegate_tag_rules('math', TexLexer, state='math'),
+        'tag-chem': delegate_tag_rules('chem', TexLexer, state='math'),
+        'tag-ce': delegate_tag_rules('ce', TexLexer, state='math'),
         'tag-templatedata': delegate_tag_rules('templatedata', JsonLexer),
         'text-italic': text_rules(Generic.Emph),
         'text-bold': text_rules(Generic.Strong),

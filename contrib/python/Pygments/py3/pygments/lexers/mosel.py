@@ -5,7 +5,7 @@
     Lexers for the mosel language.
     http://www.fico.com/en/products/fico-xpress-optimization
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -391,12 +391,12 @@ FUNCTIONS = (
 class MoselLexer(RegexLexer):
     """
     For the Mosel optimization language.
-
-    .. versionadded:: 2.6
     """
     name = 'Mosel'
     aliases = ['mosel']
     filenames = ['*.mos']
+    url = 'https://www.fico.com/fico-xpress-optimization/docs/latest/mosel/mosel_lang/dhtml/moselreflang.html'
+    version_added = '2.6'
 
     tokens = {
         'root': [

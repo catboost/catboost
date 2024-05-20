@@ -4,7 +4,7 @@
 
     Lexers for Phix.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,8 +21,6 @@ class PhixLexer(RegexLexer):
     """
     Pygments Lexer for Phix files (.exw).
     See http://phix.x10.mx
-
-    .. versionadded:: 2.14.0
     """
 
     name = 'Phix'
@@ -30,6 +28,7 @@ class PhixLexer(RegexLexer):
     aliases = ['phix']
     filenames = ['*.exw']
     mimetypes = ['text/x-phix']
+    version_added = '2.14'
 
     flags = re.MULTILINE    # nb: **NOT** re.DOTALL! (totally spanners comment handling)
 

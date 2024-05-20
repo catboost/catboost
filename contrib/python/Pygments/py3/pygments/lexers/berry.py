@@ -4,7 +4,7 @@
 
     Lexer for Berry.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,14 +17,14 @@ __all__ = ['BerryLexer']
 
 class BerryLexer(RegexLexer):
     """
-    For `berry <http://github.com/berry-lang/berry>`_ source code.
-
-    .. versionadded:: 2.12.0
+    For Berry source code.
     """
     name = 'Berry'
     aliases = ['berry', 'be']
     filenames = ['*.be']
     mimetypes = ['text/x-berry', 'application/x-berry']
+    url = 'https://berry-lang.github.io'
+    version_added = '2.12'
 
     _name = r'\b[^\W\d]\w*'
 

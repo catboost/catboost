@@ -4,7 +4,7 @@
 
     Lexers for Csound languages.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -136,13 +136,12 @@ class CsoundLexer(RegexLexer):
 class CsoundScoreLexer(CsoundLexer):
     """
     For `Csound <https://csound.com>`_ scores.
-
-    .. versionadded:: 2.1
     """
 
     name = 'Csound Score'
     aliases = ['csound-score', 'csound-sco']
     filenames = ['*.sco']
+    version_added = '2.1'
 
     tokens = {
         'root': [
@@ -202,13 +201,12 @@ class CsoundScoreLexer(CsoundLexer):
 class CsoundOrchestraLexer(CsoundLexer):
     """
     For `Csound <https://csound.com>`_ orchestras.
-
-    .. versionadded:: 2.1
     """
 
     name = 'Csound Orchestra'
     aliases = ['csound', 'csound-orc']
     filenames = ['*.orc', '*.udo']
+    version_added = '2.1'
 
     user_defined_opcodes = set()
 
@@ -411,14 +409,14 @@ class CsoundOrchestraLexer(CsoundLexer):
 
 class CsoundDocumentLexer(RegexLexer):
     """
-    For `Csound <https://csound.com>`_ documents.
-
-    .. versionadded:: 2.1
+    For Csound documents.
     """
 
     name = 'Csound Document'
     aliases = ['csound-document', 'csound-csd']
     filenames = ['*.csd']
+    url = 'https://csound.com'
+    version_added = '2.1'
 
     # These tokens are based on those in XmlLexer in pygments/lexers/html.py. Making
     # CsoundDocumentLexer a subclass of XmlLexer rather than RegexLexer may seem like a

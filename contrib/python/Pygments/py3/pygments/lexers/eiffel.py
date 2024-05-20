@@ -4,7 +4,7 @@
 
     Lexer for the Eiffel language.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,14 +18,13 @@ __all__ = ['EiffelLexer']
 class EiffelLexer(RegexLexer):
     """
     For Eiffel source code.
-
-    .. versionadded:: 2.0
     """
     name = 'Eiffel'
     url = 'https://www.eiffel.com'
     aliases = ['eiffel']
     filenames = ['*.e']
     mimetypes = ['text/x-eiffel']
+    version_added = '2.0'
 
     tokens = {
         'root': [

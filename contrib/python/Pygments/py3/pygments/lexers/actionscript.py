@@ -4,7 +4,7 @@
 
     Lexers for ActionScript and MXML.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,8 +20,6 @@ __all__ = ['ActionScriptLexer', 'ActionScript3Lexer', 'MxmlLexer']
 class ActionScriptLexer(RegexLexer):
     """
     For ActionScript source code.
-
-    .. versionadded:: 0.9
     """
 
     name = 'ActionScript'
@@ -29,6 +27,8 @@ class ActionScriptLexer(RegexLexer):
     filenames = ['*.as']
     mimetypes = ['application/x-actionscript', 'text/x-actionscript',
                  'text/actionscript']
+    url = 'https://en.wikipedia.org/wiki/ActionScript'
+    version_added = '0.9'
 
     flags = re.DOTALL
     tokens = {
@@ -118,8 +118,6 @@ class ActionScriptLexer(RegexLexer):
 class ActionScript3Lexer(RegexLexer):
     """
     For ActionScript 3 source code.
-
-    .. versionadded:: 0.11
     """
 
     name = 'ActionScript 3'
@@ -128,6 +126,7 @@ class ActionScript3Lexer(RegexLexer):
     filenames = ['*.as']
     mimetypes = ['application/x-actionscript3', 'text/x-actionscript3',
                  'text/actionscript3']
+    version_added = '0.11'
 
     identifier = r'[$a-zA-Z_]\w*'
     typeidentifier = identifier + r'(?:\.<\w+>)?'
@@ -205,14 +204,13 @@ class MxmlLexer(RegexLexer):
     """
     For MXML markup.
     Nested AS3 in <script> tags is highlighted by the appropriate lexer.
-
-    .. versionadded:: 1.1
     """
     flags = re.MULTILINE | re.DOTALL
     name = 'MXML'
     aliases = ['mxml']
     filenames = ['*.mxml']
-    mimetimes = ['text/xml', 'application/xml']
+    url = 'https://en.wikipedia.org/wiki/MXML'
+    version_added = '1.1'
 
     tokens = {
         'root': [

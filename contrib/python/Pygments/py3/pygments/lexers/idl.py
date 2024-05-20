@@ -4,7 +4,7 @@
 
     Lexers for IDL.
 
-    :copyright: Copyright 2006-2023 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2024 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -20,14 +20,13 @@ __all__ = ['IDLLexer']
 class IDLLexer(RegexLexer):
     """
     Pygments Lexer for IDL (Interactive Data Language).
-
-    .. versionadded:: 1.6
     """
     name = 'IDL'
     url = 'https://www.l3harrisgeospatial.com/Software-Technology/IDL'
     aliases = ['idl']
     filenames = ['*.pro']
     mimetypes = ['text/idl']
+    version_added = '1.6'
 
     flags = re.IGNORECASE | re.MULTILINE
 
