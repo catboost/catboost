@@ -25,10 +25,35 @@ if six.PY2:
 data_dir = yatest.common.build_path("library/python/archive/test/data")
 
 
-def extract_tar(filename, dirname, strip_components=None):
+def extract_tar(filename, dirname, strip_components=None, apply_mtime=False, entry_filter=None):
     if os.path.exists(dirname):
         shutil.rmtree(dirname)
-    return archive.extract_tar(filename, dirname, strip_components)
+    return archive.extract_tar(filename, dirname, strip_components, apply_mtime=apply_mtime, entry_filter=entry_filter)
+
+
+def test_get_filenames():
+    filenames = archive.get_archive_filenames(os.path.join(data_dir, "sample.tar"))
+    assert sorted(filenames) == sorted(["1.txt", "2/2.txt", "executable.sh"])
+
+
+@pytest.mark.parametrize("apply_mtime", [True, False])
+def test_extract_mtime(apply_mtime):
+    out_tar = yatest.common.output_path("out_tar")
+    extract_tar(os.path.join(data_dir, "sample.tar"), out_tar, apply_mtime=apply_mtime)
+    with tarfile.open(os.path.join(data_dir, "sample.tar"), 'r') as tar:
+        for fn in ["1.txt", "2/2.txt", "executable.sh"]:
+            assert (os.path.getmtime(os.path.join(out_tar, fn)) == tar.getmember(fn).mtime) == apply_mtime
+
+
+def test_extract_entry_filter():
+    def _entry_filter(entry):
+        return entry.pathname == "2/2.txt"
+
+    out_tar = yatest.common.output_path("out_tar")
+    extract_tar(os.path.join(data_dir, "sample.tar"), out_tar, entry_filter=_entry_filter)
+    assert os.path.exists(os.path.join(out_tar, "2/2.txt"))
+    for fn in ["1.txt", "executable.sh"]:
+        assert not os.path.exists(os.path.join(out_tar, fn))
 
 
 def test_is_empty():

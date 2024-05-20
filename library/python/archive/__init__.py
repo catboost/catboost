@@ -60,11 +60,18 @@ def encode(value, encoding):
     return value.encode(encoding)
 
 
-def extract_tar(tar_file_path, output_dir, strip_components=None, fail_on_duplicates=True):
+def extract_tar(
+    tar_file_path, output_dir, strip_components=None, fail_on_duplicates=True, apply_mtime=True, entry_filter=None
+):
+    """
+    entry_filter: function that takes a libarchive.Entry and returns True if the entry should be extracted
+    """
     output_dir = encode(output_dir, ENCODING)
     _make_dirs(output_dir)
     with libarchive.Archive(tar_file_path, mode="rb") as tarfile:
         for e in tarfile:
+            if entry_filter and not entry_filter(e):
+                continue
             p = _strip_prefix(e.pathname, strip_components)
             if not p:
                 continue
@@ -99,6 +106,8 @@ def extract_tar(tar_file_path, output_dir, strip_components=None, fail_on_duplic
                     tarfile._a,
                     f.fileno(),
                 )
+            if apply_mtime:
+                os.utime(dest, (e.mtime, e.mtime))
 
 
 def _strip_prefix(path, strip_components):
@@ -272,3 +281,8 @@ def get_archive_filter_name(filename):
     if len(filters) == 2:
         return filters[0]
     raise Exception("Archive has chain of filter: {}".format(filters))
+
+
+def get_archive_filenames(filename):
+    with libarchive.Archive(filename) as archive:
+        return [entry.pathname for entry in archive]
