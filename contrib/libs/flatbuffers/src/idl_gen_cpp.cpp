@@ -444,7 +444,7 @@ class CppGenerator : public BaseGenerator {
     code_ += "#include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>";
     if (parser_.uses_flexbuffers_) {
       code_ += "#include <contrib/libs/flatbuffers/include/flatbuffers/flexbuffers.h>";
-      code_ += "#include \"flatbuffers/flex_flat_util.h\"";
+      code_ += "#include <contrib/libs/flatbuffers/include/flatbuffers/flex_flat_util.h>";
     }
     code_ += "";
     GenFlatbuffersVersionCheck();
