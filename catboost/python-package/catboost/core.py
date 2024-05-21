@@ -4010,7 +4010,7 @@ class CatBoost(_CatBoostBase):
             return self._plot_oblivious_tree(splits, leaf_values)
         else:
             step_nodes = self._get_tree_step_nodes(tree_idx)
-            node_to_leaf = self._get_tree_node_to_leaf(tree_idx)
+            node_to_leaf = [int(entry / len(self.n_classes)) for entry in self._get_tree_node_to_leaf(tree_idx)]
             return self._plot_nonsymmetric_tree(splits, leaf_values, step_nodes, node_to_leaf)
 
     def _tune_hyperparams(self, param_grid, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
