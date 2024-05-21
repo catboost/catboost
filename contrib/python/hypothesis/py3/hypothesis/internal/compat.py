@@ -14,6 +14,7 @@ import dataclasses
 import inspect
 import platform
 import sys
+import sysconfig
 import typing
 from functools import partial
 from typing import Any, ForwardRef, List, Optional, get_args
@@ -43,6 +44,8 @@ else:
 PYPY = platform.python_implementation() == "PyPy"
 GRAALPY = platform.python_implementation() == "GraalVM"
 WINDOWS = platform.system() == "Windows"
+# First defined in CPython 3.13, defaults to False
+FREE_THREADED_CPYTHON = bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
 
 
 def add_note(exc, note):

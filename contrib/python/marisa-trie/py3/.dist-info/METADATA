@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: marisa-trie
-Version: 1.1.0
+Version: 1.1.1
 Summary: Static memory-efficient and fast Trie-like structures for Python.
 Home-page: https://github.com/pytries/marisa-trie
 Author: Mikhail Korobov
@@ -92,6 +92,11 @@ LGPL and BSD 2-clause license.
 
 CHANGES
 =======
+
+1.1.1 (2024-05-06)
+------------------
+
+* Publish Linux aarch64 wheels (#101).
 
 1.1.0 (2023-10-06)
 ------------------

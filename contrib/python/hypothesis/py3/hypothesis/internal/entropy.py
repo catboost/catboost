@@ -19,7 +19,7 @@ from weakref import WeakValueDictionary
 
 import hypothesis.core
 from hypothesis.errors import HypothesisWarning, InvalidArgument
-from hypothesis.internal.compat import GRAALPY, PYPY
+from hypothesis.internal.compat import FREE_THREADED_CPYTHON, GRAALPY, PYPY
 
 if TYPE_CHECKING:
     from typing import Protocol
@@ -116,7 +116,7 @@ def register_random(r: RandomLike) -> None:
         return
 
     if not (PYPY or GRAALPY):  # pragma: no branch
-        # PYPY and GRAALPY do not have `sys.getrefcount`
+        # PYPY and GRAALPY do not have `sys.getrefcount`.
         gc.collect()
         if not gc.get_referrers(r):
             if sys.getrefcount(r) <= _PLATFORM_REF_COUNT:
@@ -127,7 +127,12 @@ def register_random(r: RandomLike) -> None:
                     "PRNG. See the docs for `register_random` for more "
                     "details."
                 )
-            else:
+            elif not FREE_THREADED_CPYTHON:
+                # On CPython, check for the free-threaded build because
+                # gc.get_referrers() ignores objects with immortal refcounts
+                # and objects are immortalized in the Python 3.13
+                # free-threading implementation at runtime.
+
                 warnings.warn(
                     "It looks like `register_random` was passed an object that could "
                     "be garbage collected immediately after `register_random` creates "
