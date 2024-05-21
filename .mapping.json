@@ -1428,6 +1428,7 @@
   "cmake/conan-profiles/linux.aarch64.profile":"",
   "cmake/conan-profiles/linux.ppc64le.profile":"",
   "cmake/conan-profiles/macos.arm64.profile":"",
+  "cmake/conan-profiles/macos.x86_64.profile":"",
   "cmake/conan.cmake":"",
   "cmake/cuda.cmake":"",
   "cmake/cython.cmake":"",
