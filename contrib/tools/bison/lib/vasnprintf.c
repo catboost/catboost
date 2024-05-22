@@ -54,7 +54,7 @@
 # include <config.h>
 #endif
 #ifndef IN_LIBINTL
-# include "palloca.h"
+# include <alloca.h>
 #endif
 
 /* Specification.  */

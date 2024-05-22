@@ -38,7 +38,7 @@
    modifications that are under control of the IN_GCC preprocessor
    variable.  The !IN_GCC part of this file is specific to Bison.  */
 
-# include "bison-system.h"
+# include "../src/system.h"
 # if HAVE_SYS_TIME_H
 #  include <sys/time.h>
 # endif
