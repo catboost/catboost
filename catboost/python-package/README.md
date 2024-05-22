@@ -8,10 +8,8 @@ Installation
 For stable version, please install using pip:
 -  ``pip install catboost``
 
-For up-to-date version, please install from github.
--  To make the python module, type ``ya make -DUSE_ARCADIA_PYTHON=no`` from this directory
--  Add this directory to the system PYTHONPATH
-   ``export PYTHONPATH=$PYTHONPATH:$(pwd)``
+For the latest version from GitHub:
+- [Build python package from source](https://catboost.ai/en/docs/installation/python-installation-method-build-from-source)
 
 
 Examples

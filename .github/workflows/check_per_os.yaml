@@ -1,33 +1,35 @@
 on:
-  workflow_call:
-    inputs:
-      runs-on_value:
-        required: true
-        type: string
-      artifacts_version:
-        required: true
-        type: string
-      catboost_package_version:
-        required: true
-        type: string
+  push:
+    branches:
+      - master
+
+env:
+  catboost_package_version: 1.2.3post0
 
 jobs:
+  checkout:
+    name: Checkout sources
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout catboost
+        uses: actions/checkout@v3
+        with:
+          path: catboost
+          fetch-depth: 0
+
   build:
     name: Build
-    uses: ./.github/workflows/build.yaml
+    runs-on: ubuntu-latest
+    needs:
+      - checkout
     with:
-      runs-on_value: ${{ inputs.runs-on_value }}
       artifacts_version: ${{ github.sha }}
-      catboost_package_version: ${{ inputs.catboost_package_version }}
+      catboost_package_version: $catboost_package_version
+    uses: ./.github/workflows/build.yaml
 
-  #test:
-  #  name: Test
-  #  runs-on: ${{ inputs.runs-on_value }}
-  #  uses: ./.github/workflows/test.yaml
-  #  needs:
-  #    - build
-  #  with:
-  #    runs-on_value: ${{ inputs.runs-on_value }}
-  #    artifacts_version: ${{ github.sha }}
-  #    catboost_package_version: ${{ inputs.catboost_package_version }}
-
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    uses: ./.github/workflows/test.yaml
