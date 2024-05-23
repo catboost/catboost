@@ -7,6 +7,7 @@ import subprocess as sp
 import tarfile
 import zipfile
 import sys
+import platform
 
 import process_command_files as pcf
 
@@ -24,6 +25,33 @@ def parse_args(args):
     parser.add_argument('srcs', nargs="*")
     args = parser.parse_args(args)
     return args, args.srcs
+
+
+def check_call_command_file(cmd, wrapped_args, **kwargs):
+    is_win = platform.system() == 'Windows'
+
+    args = cmd
+    args_to_wrap = wrapped_args
+    if is_win:
+        args = [cmd[0]]
+        args_to_wrap = cmd[1:] + args_to_wrap
+
+    commands_file = 'wrapped.args'
+    with open(commands_file, 'w') as f:
+        f.write(' '.join(wrapped_args))
+
+    if is_win:
+        # Windows has troubles with running cmd lines with `@` without shell=True
+        kwargs['shell'] = True
+
+    try:
+        return sp.check_call(
+            args + ["@" + commands_file],
+            **kwargs
+        )
+    except Exception as e:
+        e.args = tuple(args) + ("Original command: {} {}".format(cmd, wrapped_args), )
+        raise
 
 
 def mkdir_p(directory):
@@ -77,12 +105,10 @@ def main():
             ts.write(' '.join(srcs))
 
     if ktsrcs:
-        temp_kt_sources_file = 'temp.kt.sources.list'
-        with open(temp_kt_sources_file, 'w') as ts:
-            ts.write(' '.join(ktsrcs + srcs))
         kt_classes_dir = 'kt_cls'
         mkdir_p(kt_classes_dir)
-        sp.check_call(
+
+        check_call_command_file(
             [
                 opts.java_bin,
                 '-Didea.max.content.load.filesize=30720',
@@ -93,16 +119,16 @@ def main():
                 '-d',
                 kt_classes_dir,
             ]
-            + ktc_opts
-            + ['@' + temp_kt_sources_file]
+            + ktc_opts,
+            wrapped_args=ktsrcs + srcs,
         )
         classpath = os.pathsep.join([kt_classes_dir, classpath])
 
     if srcs:
-        sp.check_call(
+        check_call_command_file(
             [opts.javac_bin, '-nowarn', '-g', '-classpath', classpath, '-encoding', 'UTF-8', '-d', classes_dir]
-            + javac_opts
-            + ['@' + temp_sources_file]
+            + javac_opts,
+            wrapped_args=srcs,
         )
 
     for s in jsrcs:
