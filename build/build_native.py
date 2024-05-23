@@ -18,7 +18,7 @@ else:
 
 MSVS_TO_DEFAULT_MSVC_TOOLSET = {
     '2019': '14.28.29333',
-    '2022': '14.39.33519'
+    '2022': '14.29.30133'
 }
 
 class Target(object):
