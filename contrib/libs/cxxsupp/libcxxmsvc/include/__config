@@ -34,7 +34,7 @@
 #elif defined(_MSC_VER)
 #define _LIBCPP_COMPILER_MSVC
 
-#if _MSVC_LANG == 201705L
+#if _MSVC_LANG >= 201705L
 #  define _LIBCPP_STD_VER 20
 #elif _MSVC_LANG == 201703L
 #  define _LIBCPP_STD_VER 17

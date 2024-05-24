@@ -20,6 +20,7 @@ target_compile_options(restricted-google-benchmark PUBLIC
 )
 
 target_compile_options(restricted-google-benchmark PRIVATE
+  -DBENCHMARK_VERSION="v0.0.0"
   -DHAVE_POSIX_REGEX
   -DHAVE_PTHREAD_AFFINITY
   -DHAVE_STD_REGEX

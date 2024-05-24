@@ -102,7 +102,8 @@ double MakeTime(thread_basic_info_data_t const& info) {
 #endif
 #if defined(CLOCK_PROCESS_CPUTIME_ID) || defined(CLOCK_THREAD_CPUTIME_ID)
 double MakeTime(struct timespec const& ts) {
-  return ts.tv_sec + (static_cast<double>(ts.tv_nsec) * 1e-9);
+  return static_cast<double>(ts.tv_sec) +
+         (static_cast<double>(ts.tv_nsec) * 1e-9);
 }
 #endif
 
@@ -181,6 +182,9 @@ double ThreadCPUUsage() {
   // RTEMS doesn't support CLOCK_THREAD_CPUTIME_ID. See
   // https://github.com/RTEMS/rtems/blob/master/cpukit/posix/src/clockgettime.c
   return ProcessCPUUsage();
+#elif defined(BENCHMARK_OS_ZOS)
+  // z/OS doesn't support CLOCK_THREAD_CPUTIME_ID.
+  return ProcessCPUUsage();
 #elif defined(BENCHMARK_OS_SOLARIS)
   struct rusage ru;
   if (getrusage(RUSAGE_LWP, &ru) == 0) return MakeTime(ru);
@@ -241,9 +245,9 @@ std::string LocalDateTimeString() {
       tz_offset_sign = '-';
     }
 
-    tz_len =
+    tz_len = static_cast<size_t>(
         ::snprintf(tz_offset, sizeof(tz_offset), "%c%02li:%02li",
-                   tz_offset_sign, offset_minutes / 100, offset_minutes % 100);
+                   tz_offset_sign, offset_minutes / 100, offset_minutes % 100));
     BM_CHECK(tz_len == kTzOffsetLen);
     ((void)tz_len);  // Prevent unused variable warning in optimized build.
   } else {
