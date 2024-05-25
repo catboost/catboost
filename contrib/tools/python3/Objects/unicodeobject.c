@@ -1896,11 +1896,6 @@ PyUnicode_FromStringAndSize(const char *u, Py_ssize_t size)
 PyObject *
 PyUnicode_FromString(const char *u)
 {
-#if defined(__has_feature)
-#  if __has_feature(memory_sanitizer)
-    __msan_unpoison_string(u);
-#  endif
-#endif
     size_t size = strlen(u);
     if (size > PY_SSIZE_T_MAX) {
         PyErr_SetString(PyExc_OverflowError, "input too long");

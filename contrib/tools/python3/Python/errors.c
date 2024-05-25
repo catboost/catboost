@@ -1265,11 +1265,6 @@ PyErr_NewException(const char *name, PyObject *base, PyObject *dict)
     PyObject *bases = NULL;
     PyObject *result = NULL;
 
-#if defined(__has_feature)
-#  if __has_feature(memory_sanitizer)
-    __msan_unpoison_string(name);
-#  endif
-#endif
     const char *dot = strrchr(name, '.');
     if (dot == NULL) {
         _PyErr_SetString(tstate, PyExc_SystemError,
