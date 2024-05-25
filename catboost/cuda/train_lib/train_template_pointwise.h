@@ -22,7 +22,6 @@ namespace NCatboostCuda {
                                                        NPar::ILocalExecutor* localExecutor,
                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                       const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
                                                        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
             using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
@@ -43,7 +42,6 @@ namespace NCatboostCuda {
                                     localExecutor,
                                     testMultiApprox,
                                     metricsAndTimeHistory,
-                                    evalGpuMetricDescriptor,
                                     evalMetricDescriptor);
 
         } else {
@@ -61,7 +59,6 @@ namespace NCatboostCuda {
                                                localExecutor,
                                                testMultiApprox,
                                                metricsAndTimeHistory,
-                                               evalGpuMetricDescriptor,
                                                evalMetricDescriptor);
         }
     };
@@ -103,7 +100,6 @@ namespace NCatboostCuda {
                                                                         NPar::ILocalExecutor* localExecutor,
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                        const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
                                                                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) const {
             return Train<TTargetTemplate>(featuresManager,
                                           internalOptions,
@@ -118,7 +114,6 @@ namespace NCatboostCuda {
                                           localExecutor,
                                           testMultiApprox,
                                           metricsAndTimeHistory,
-                                          evalGpuMetricDescriptor,
                                           evalMetricDescriptor);
         };
 

@@ -12,7 +12,6 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 namespace NCatboostCuda {
-
     class IGpuMetric {
     public:
         virtual ~IGpuMetric() {

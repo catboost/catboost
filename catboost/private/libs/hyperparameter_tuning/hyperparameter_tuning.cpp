@@ -1033,7 +1033,6 @@ namespace {
                     catBoostOptions,
                     outputFileOptions,
                     objectiveDescriptor,
-                    Nothing(),
                     evalMetricDescriptor,
                     trainTestData,
                     /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),

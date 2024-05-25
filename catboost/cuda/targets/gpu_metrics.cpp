@@ -766,6 +766,7 @@ namespace NCatboostCuda {
             }
         }
         usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());
+
         for (auto&& metric : createdObjectiveMetrics) {
             const TString& description = metric->GetCpuMetric().GetDescription();
             if (!usedDescriptions.contains(description)) {

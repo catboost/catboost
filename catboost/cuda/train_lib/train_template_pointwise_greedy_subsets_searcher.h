@@ -28,7 +28,6 @@ namespace NCatboostCuda {
                                                                             NPar::ILocalExecutor* localExecutor,
                                                                             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                            const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
                                                                             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
                                                                             ) const {
                 CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
@@ -59,7 +58,6 @@ namespace NCatboostCuda {
                                                         localExecutor,
                                                         testMultiApprox,
                                                         metricsAndTimeHistory,
-                                                        evalGpuMetricDescriptor,
                                                         evalMetricDescriptor);
                 if constexpr (std::is_same<TModel, TObliviousTreeModel>::value || std::is_same<TModel, TNonSymmetricTree>::value) {
                     return resultModel;

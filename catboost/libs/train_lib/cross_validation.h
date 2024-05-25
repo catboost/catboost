@@ -214,7 +214,6 @@ void Train(
     const NCatboostOptions::TCatBoostOptions& catboostOption,
     const TString& trainDir,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-    const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     const TLabelConverter& labelConverter,
     const TVector<THolder<IMetric>>& metrics,

@@ -6,8 +6,7 @@
 void CheckFitParams(
     const NJson::TJsonValue& plainOptions,
     const TCustomObjectiveDescriptor* objectiveDescriptor,
-    const TCustomMetricDescriptor* evalMetricDescriptor,
-    const TCustomGpuMetricDescriptor* evalGpuMetricDescriptor
+    const TCustomMetricDescriptor* evalMetricDescriptor
 ) {
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputJsonOptions;
@@ -24,7 +23,7 @@ void CheckFitParams(
     }
 
     if (options.MetricOptions->EvalMetric.IsSet() && IsUserDefined(options.MetricOptions->EvalMetric->GetLossFunction())) {
-        CB_ENSURE((evalGpuMetricDescriptor != nullptr) || (evalMetricDescriptor != nullptr), "Error: provide eval metric descriptor for custom eval metric");
+        CB_ENSURE(evalMetricDescriptor != nullptr, "Error: provide eval metric descriptor for custom eval metric");
     }
 
     const auto& penaltiesOptions = options.ObliviousTreeOptions->FeaturePenalties;

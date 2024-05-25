@@ -25,7 +25,6 @@ Y_UNIT_TEST_SUITE(TShrinkModel) {
             Nothing(),
             Nothing(),
             Nothing(),
-            Nothing(),
             TDataProviders{pool, {pool}},
             /*initModel*/ Nothing(),
             /*initLearnProgress*/ nullptr,
@@ -36,7 +35,6 @@ Y_UNIT_TEST_SUITE(TShrinkModel) {
         TrainModel(
             params,
             nullptr,
-            Nothing(),
             Nothing(),
             Nothing(),
             Nothing(),

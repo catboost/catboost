@@ -57,7 +57,6 @@ namespace NCatboostCuda {
         ITrainingCallbacks* trainingCallbacks,
         bool hasWeights,
         TMaybe<ui32> learnAndTestCheckSum,
-        const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
     ) {
         return TBoostingProgressTracker(catBoostOptions,
@@ -69,7 +68,6 @@ namespace NCatboostCuda {
             hasWeights,
             learnAndTestCheckSum,
             trainingCallbacks,
-            evalGpuMetricDescriptor,
             evalMetricDescriptor);
     }
 
@@ -87,7 +85,6 @@ namespace NCatboostCuda {
                                                                          NPar::ILocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                         const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
                                                                          const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
         auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
 
@@ -107,7 +104,6 @@ namespace NCatboostCuda {
             trainingCallbacks,
             learn.MetaInfo.HasWeights,
             learnAndTestCheckSum,
-            evalGpuMetricDescriptor,
             evalMetricDescriptor);
 
         boosting.SetBoostingProgressTracker(&progressTracker);
@@ -167,7 +163,6 @@ namespace NCatboostCuda {
             defaultTrainingCallcbacks.Get(),
             learn.MetaInfo.HasWeights,
             /*learnAndTestCheckSum*/ Nothing(),
-            Nothing(),
             Nothing());
 
         boosting.SetBoostingProgressTracker(&progressTracker);
