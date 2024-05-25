@@ -20,8 +20,6 @@
 #ifndef UNIQSTR_H_
 # define UNIQSTR_H_
 
-#include "system.h"
-
 /*-----------------------------------------.
 | Pointers to unique copies of C strings.  |
 `-----------------------------------------*/
@@ -47,8 +45,6 @@ int uniqstr_cmp (uniqstr u1, uniqstr u2);
 /* Die if STR is not a uniqstr.  */
 void uniqstr_assert (char const *str);
 
-#if 0
-	// msvc still does not support __VA_ARGS__
 /*----------------.
 | Concatenation.  |
 `----------------*/
@@ -86,7 +82,6 @@ void uniqstr_assert (char const *str);
   F1  F2  F3  F4  F5  F6  F7  F8  F9  F10                       \
   F11 F12 F13 F14 F15 F16 F17 F18 F19 F20
 
-#endif
 /*--------------------.
 | Table of uniqstrs.  |
 `--------------------*/

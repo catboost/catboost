@@ -967,7 +967,7 @@
 char *strsignal (int signum);
 
 /* Define to 1 if `decimal_point' is a member of `struct lconv'. */
-#define HAVE_STRUCT_LCONV_DECIMAL_POINT 1
+/* #undef HAVE_STRUCT_LCONV_DECIMAL_POINT */
 
 /* Define to 1 if `sa_sigaction' is a member of `struct sigaction'. */
 /* #undef HAVE_STRUCT_SIGACTION_SA_SIGACTION */

@@ -24,7 +24,6 @@
 #include <hash.h>
 #include <quotearg.h>
 #include <stdarg.h>
-#include <xmalloca.h>
 
 #include "uniqstr.h"
 
@@ -44,7 +43,7 @@ static struct hash_table *uniqstrs_table = NULL;
 uniqstr
 uniqstr_new (char const *str)
 {
-  uniqstr res = (uniqstr) hash_lookup (uniqstrs_table, str);
+  uniqstr res = hash_lookup (uniqstrs_table, str);
   if (!res)
     {
       /* First insertion in the hash. */
@@ -60,19 +59,15 @@ uniqstr_vsprintf (char const *format, ...)
 {
   va_list args;
   size_t length;
-  char* res;
-  uniqstr str;
   va_start (args, format);
   length = vsnprintf (NULL, 0, format, args);
   va_end (args);
 
-  res = xmalloca(length + 1);
+  char res[length + 1];
   va_start (args, format);
   vsprintf (res, format, args);
   va_end (args);
-  str = uniqstr_new (res);
-  freea(res);
-  return str;
+  return uniqstr_new (res);
 }
 
 /*------------------------------.
