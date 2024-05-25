@@ -33,8 +33,7 @@ namespace NCatboostCuda {
                                  ui32 cpuApproxDim,
                                  bool hasWeights,
                                  TMaybe<ui32> learnAndTestCheckSum,
-                                 ITrainingCallbacks* trainingCallbacks, 
-                                 const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
+                                 ITrainingCallbacks* trainingCallbacks,
                                  const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor);
 
         const TErrorTracker& GetErrorTracker() const {
@@ -107,7 +106,6 @@ namespace NCatboostCuda {
                 HasWeights,
                 LearnAndTestQuantizedFeaturesCheckSum,
                 TrainingCallbacks,
-                Nothing(),
                 Nothing()
             );
         }

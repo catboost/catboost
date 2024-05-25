@@ -563,7 +563,6 @@ namespace NCatboostCuda {
 
     double TGpuCustomMetric::GetFinalError(TMetricHolder &&metricHolder) const
     {
-        // CB_ENSURE(false, "Calling custom get final error from gpu metric!\n");
         return (*(Descriptor.GetFinalErrorFunc))(metricHolder, Descriptor.CustomData);
     }
 
@@ -699,7 +698,7 @@ namespace NCatboostCuda {
     }
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
-                                                  ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
+                                                  ui32 cpuApproxDim, bool hasWeights,
                                                   const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
         CB_ENSURE(metricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
         const NCatboostOptions::TLossDescription& objectiveMetricDescription = metricOptions->ObjectiveMetric.Get();
@@ -726,9 +725,9 @@ namespace NCatboostCuda {
         THashSet<TString> usedDescriptions;
 
         if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
-            if (evalGpuMetricDescriptor.Defined()) {
+            if (evalMetricDescriptor.Defined()) {
                 metrics.emplace_back(new TGpuCustomMetric(
-                    evalGpuMetricDescriptor.GetRef(),
+                    evalMetricDescriptor.GetRef(),
                     evalMetricDescription,
                     cpuApproxDim
                 ));
@@ -760,6 +759,7 @@ namespace NCatboostCuda {
             }
         }
         usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());
+
         for (auto&& metric : createdObjectiveMetrics) {
             const TString& description = metric->GetCpuMetric().GetDescription();
             if (!usedDescriptions.contains(description)) {

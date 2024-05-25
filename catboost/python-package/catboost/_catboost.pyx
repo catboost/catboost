@@ -625,28 +625,6 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
         size_t treeIdx
     ) nogil except +ProcessException
 
-
-cdef extern from "catboost/libs/metrics/metric.h":
-    cdef cppclass TCustomGpuMetricDescriptor:
-
-        ctypedef void (*TEvalFuncPtr)(
-            TConstArrayRef[float] approx,
-            TConstArrayRef[float]  target,
-            TConstArrayRef[float]  weight,
-            TConstArrayRef[float]  result,
-            TConstArrayRef[float]  resultWeight,
-            int begin,
-            int end,
-            void* customData,
-            void* cudaStream)  with gil
-
-        void* CustomData
-        TMaybe[TEvalFuncPtr] EvalFunc
-
-        # bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
-        double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) except * with gil
-
-
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
         void* CustomData
@@ -657,6 +635,18 @@ cdef extern from "catboost/libs/metrics/metric.h":
             TConstArrayRef[float] weight,
             int begin, int end, void* customData) with gil
 
+        ctypedef void (*TGpuEvalFuncPtr)(
+            TConstArrayRef[float] approx,
+            TConstArrayRef[float]  target,
+            TConstArrayRef[float]  weight,
+            TConstArrayRef[float]  result,
+            TConstArrayRef[float]  resultWeight,
+            int begin,
+            int end,
+            void* customData,
+            void* cudaStream)  with gil
+
+
         ctypedef TMetricHolder (*TEvalMultiTargetFuncPtr)(
             TConstArrayRef[TConstArrayRef[double]] approx,
             TConstArrayRef[TConstArrayRef[float]] target,
@@ -664,6 +654,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
             int begin, int end, void* customData) with gil
 
         TMaybe[TEvalFuncPtr] EvalFunc
+        TMaybe[TGpuEvalFuncPtr] GpuEvalFunc
         TMaybe[TEvalMultiTargetFuncPtr] EvalMultiTargetFunc
 
         TString (*GetDescriptionFunc)(void *customData) except * with gil
@@ -731,8 +722,7 @@ cdef extern from "catboost/private/libs/options/check_train_options.h":
     cdef void CheckFitParams(
         const TJsonValue& tree,
         const TCustomObjectiveDescriptor* objectiveDescriptor,
-        const TCustomMetricDescriptor* evalMetricDescriptor,
-        const TCustomGpuMetricDescriptor* evalGpuMetricDescriptor,
+        const TCustomMetricDescriptor* evalMetricDescriptor
     ) nogil except +ProcessException
 
 cdef extern from "catboost/private/libs/options/json_helper.h":
@@ -751,7 +741,6 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         TJsonValue params,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
-        const TMaybe[TCustomGpuMetricDescriptor]& evalGpuMetricDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         const TMaybe[TCustomCallbackDescriptor]& callbackDescriptor,
         TDataProviders pools,
@@ -1765,11 +1754,11 @@ cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(
     descriptor.EvalFunc = &_RandomDistGen
     return descriptor
 
-cdef TCustomGpuMetricDescriptor _BuildCustomGpuMetricDescriptor(object metricObject):
-    cdef TCustomGpuMetricDescriptor descriptor
+cdef TCustomMetricDescriptor _BuildCustomGpuMetricDescriptor(object metricObject):
+    cdef TCustomMetricDescriptor descriptor
     _try_jit_methods(metricObject, custom_gpu_metric_methods_to_optimize, isCuda=True)
     descriptor.CustomData = <void*>metricObject
-    descriptor.EvalFunc = &_GpuMetricEval
+    descriptor.GpuEvalFunc = &_GpuMetricEval
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 
@@ -1864,7 +1853,6 @@ cdef class _PreprocessParams:
     cdef TJsonValue tree
     cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
     cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
-    cdef TMaybe[TCustomGpuMetricDescriptor] customGpuMetricDescriptor
     cdef TMaybe[TCustomCallbackDescriptor] customCallbackDescriptor
     def __init__(self, dict params):
         eval_metric = params.get("eval_metric")
@@ -1912,7 +1900,7 @@ cdef class _PreprocessParams:
 
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             if params.get("task_type") == "GPU" and hasattr(params['eval_metric'], custom_gpu_metric_methods_to_optimize[0]):
-                self.customGpuMetricDescriptor = _BuildCustomGpuMetricDescriptor(params['eval_metric'])
+                self.customMetricDescriptor = _BuildCustomGpuMetricDescriptor(params['eval_metric'])
             else:
                 self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
             is_multitarget_metric = issubclass(params["eval_metric"].__class__, MultiTargetCustomMetric)
@@ -4983,7 +4971,6 @@ cdef class _CatBoost:
                     prep_params.tree,
                     quantizedFeaturesInfo,
                     prep_params.customObjectiveDescriptor,
-                    prep_params.customGpuMetricDescriptor,
                     prep_params.customMetricDescriptor,
                     prep_params.customCallbackDescriptor,
                     dataProviders,
@@ -6516,8 +6503,7 @@ cpdef _check_train_params(dict params):
     CheckFitParams(
         prep_params.tree,
         prep_params.customObjectiveDescriptor.Get(),
-        prep_params.customMetricDescriptor.Get(),
-        prep_params.customGpuMetricDescriptor.Get())
+        prep_params.customMetricDescriptor.Get())
 
 
 cpdef _get_gpu_device_count():

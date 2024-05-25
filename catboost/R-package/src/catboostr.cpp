@@ -538,7 +538,6 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
             Nothing(),
             Nothing(),
             Nothing(),
-            Nothing(),
             pools,
             /*initModel*/ Nothing(),
             /*initLearnProgress*/ nullptr,
@@ -551,7 +550,6 @@ EXPORT_FUNCTION CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitP
         TrainModel(
             fitParams,
             nullptr,
-            Nothing(),
             Nothing(),
             Nothing(),
             Nothing(),

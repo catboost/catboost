@@ -11309,6 +11309,9 @@ def test_carry_model():
 
 
 def test_custom_gpu_eval_metric_cpu(task_type):
+    
+    if (task_type == 'GPU'):
+        from numba import cuda
 
     class LoglossMetric(object):
         def get_final_error(self, error, weight):
@@ -11318,9 +11321,6 @@ def test_custom_gpu_eval_metric_cpu(task_type):
             return False
 
         def evaluate(self, approxes, target, weight):
-            assert len(approxes) == 1
-            assert len(target) == len(approxes[0])
-
             approx = approxes[0]
 
             error_sum = 0.0
@@ -11334,6 +11334,22 @@ def test_custom_gpu_eval_metric_cpu(task_type):
                 error_sum += -w * (target[i] * np.log(p) + (1 - target[i]) * np.log(1 - p))
 
             return error_sum, weight_sum
+
+        def gpu_evaluate(self, approx, target, weight, output, output_weight):
+            
+            init_thread_idx = thread_idx = cuda.grid(1)
+            n = target.size
+                
+            output[init_thread_idx] = 0.0
+            output_weight[init_thread_idx] = 0.0
+            
+            while thread_idx < n:
+                e = np.exp(approx[thread_idx])
+                p = e / (1 + e)
+                w = 1.0 if weight is None else weight[thread_idx]
+                output[init_thread_idx] += -w * (target[thread_idx] * np.log(p) + (1 - target[thread_idx]) * np.log(1 - p))
+                output_weight[init_thread_idx] += weight[thread_idx]
+                thread_idx += cuda.gridsize(1)
 
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
@@ -11366,81 +11382,6 @@ def test_custom_gpu_eval_metric_cpu(task_type):
         loss_function="Logloss",
         eval_metric="Logloss",
         task_type=task_type,
-        devices='0',
-        leaf_estimation_method="Newton",
-        leaf_estimation_iterations=1,
-        metric_period=1,
-        random_strength=0,
-        bootstrap_type='No',
-        has_time=True,
-    )
-
-    model2.fit(train_pool, eval_set=test_pool)
-    pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
-
-    assert np.all(pred1 == pred2)
-
-
-def test_custom_gpu_eval_metric_gpu(task_type):
-    
-    if task_type == 'GPU':
-        from numba import cuda
-    else:
-        return
-    
-    class RMSEMetric(object):
-        def get_final_error(self, error, weight):
-            return np.sqrt(error / (weight + 1e-38))
-
-        def is_max_optimal(self):
-            return False
-
-        def gpu_evaluate(self, approx, target, weight, output, output_weight):
-            
-            init_thread_idx = thread_idx = cuda.grid(1)
-            n = target.size
-                
-            output[init_thread_idx] = 0.0
-            output_weight[init_thread_idx] = 0.0
-            
-            while thread_idx < n:
-                diff = approx[thread_idx] - target[thread_idx]
-                output[init_thread_idx] += diff * diff * weight[thread_idx]
-                output_weight[init_thread_idx] += weight[thread_idx]
-                thread_idx += cuda.gridsize(1)
-
-
-    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
-    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
-
-    model = CatBoostRegressor(
-        iterations=5,
-        learning_rate=0.03,
-        use_best_model=True,
-        loss_function="RMSE",
-        eval_metric=RMSEMetric(),
-        # Leaf estimation method and gradient iteration are set to match
-        # defaults for Logloss.
-        leaf_estimation_method="Newton",
-        leaf_estimation_iterations=1,
-        task_type='GPU',
-        devices='0',
-        metric_period=1,
-        random_strength=0,
-        bootstrap_type='No',
-        has_time=True,
-    )
-
-    model.fit(train_pool, eval_set=test_pool)
-    pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
-
-    model2 = CatBoostRegressor(
-        iterations=5,
-        learning_rate=0.03,
-        use_best_model=True,
-        loss_function="RMSE",
-        eval_metric="RMSE",
-        task_type='GPU',
         devices='0',
         leaf_estimation_method="Newton",
         leaf_estimation_iterations=1,

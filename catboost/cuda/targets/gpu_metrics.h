@@ -12,7 +12,6 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 namespace NCatboostCuda {
-
     class IGpuMetric {
     public:
         virtual ~IGpuMetric() {
@@ -122,10 +121,10 @@ namespace NCatboostCuda {
     };
 
     class TGpuCustomMetric : public IGpuMetric {
-        TCustomGpuMetricDescriptor Descriptor;
+        TCustomMetricDescriptor Descriptor;
     public:
         explicit TGpuCustomMetric(
-            const TCustomGpuMetricDescriptor& metricDescriptor,
+            const TCustomMetricDescriptor& metricDescriptor,
             const NCatboostOptions::TLossDescription& config,
             ui32 approxDim
         ) : IGpuMetric(config, approxDim), Descriptor(metricDescriptor)
@@ -157,6 +156,6 @@ namespace NCatboostCuda {
     };
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
-                                                  const ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomGpuMetricDescriptor>& evalGpuMetricDescriptor,
+                                                  const ui32 cpuApproxDim, bool hasWeights,
                                                   const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor);
 }

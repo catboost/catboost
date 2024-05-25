@@ -996,7 +996,6 @@ static void EvaluateFeaturesImpl(
                 dataSpecificOptions,
                 JoinFsPaths(topLevelTrainDir, foldDir),
                 objectiveDescriptor,
-                Nothing(),
                 evalMetricDescriptor,
                 labelConverter,
                 metrics,

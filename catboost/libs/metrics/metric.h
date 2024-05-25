@@ -103,31 +103,6 @@ private:
     bool Ignored = false;
 };
 
-struct TCustomGpuMetricDescriptor {
-
-        using TEvalFuncPtr = void (*)(
-            TConstArrayRef<float> approx,
-            TConstArrayRef<float> target,
-            TConstArrayRef<float> weight,
-            TConstArrayRef<float> result,
-            TConstArrayRef<float> resultWeight,
-            int begin,
-            int end,
-            void* customData,
-            void* cudaStream,
-            size_t blockSize,
-            size_t numBlocks);
-
-        using TGetFinalErrorFuncPtr = double (*)(const TMetricHolder& error, void* customData);
-
-        void* CustomData = nullptr;
-        TMaybe<TEvalFuncPtr> EvalFunc;
-
-        // TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
-        TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
-
-};
-
 struct TCustomMetricDescriptor {
     using TEvalFuncPtr = TMetricHolder (*)(
         TConstArrayRef<TConstArrayRef<double>>& approx,
@@ -136,6 +111,19 @@ struct TCustomMetricDescriptor {
         int begin,
         int end,
         void* customData);
+    
+    using TGpuEvalFuncPtr = void (*)(
+        TConstArrayRef<float> approx,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<float> result,
+        TConstArrayRef<float> resultWeight,
+        int begin,
+        int end,
+        void* customData,
+        void* cudaStream,
+        size_t blockSize,
+        size_t numBlocks);
 
     using TEvalMultiTargetFuncPtr = TMetricHolder (*)(
         TConstArrayRef<TConstArrayRef<double>> approx,
@@ -152,6 +140,7 @@ struct TCustomMetricDescriptor {
 
     void* CustomData = nullptr;
     TMaybe<TEvalFuncPtr> EvalFunc;
+    TMaybe<TGpuEvalFuncPtr> GpuEvalFunc;
     TMaybe<TEvalMultiTargetFuncPtr> EvalMultiTargetFunc;
     TGetDescriptionFuncPtr GetDescriptionFunc = nullptr;
     TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;

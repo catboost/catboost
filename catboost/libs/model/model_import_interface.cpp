@@ -26,9 +26,8 @@ namespace NCB {
         // We are defining those stubs only for deserialized model params checks, so it should be safe
         TCustomObjectiveDescriptor objectiveDescriptorStub;
         TCustomMetricDescriptor metricDescriptorStub;
-        TCustomGpuMetricDescriptor gpuMetricDescriptorStub;
         try {
-            CheckFitParams(params, &objectiveDescriptorStub, &metricDescriptorStub, &gpuMetricDescriptorStub);
+            CheckFitParams(params, &objectiveDescriptorStub, &metricDescriptorStub);
             return params;
         } catch (...) {
             CATBOOST_WARNING_LOG << "There are invalid params and some of them will be ignored." << Endl;
@@ -39,7 +38,7 @@ namespace NCB {
             result[param.first] = param.second;
 
             try {
-                CheckFitParams(result, &objectiveDescriptorStub, &metricDescriptorStub, &gpuMetricDescriptorStub);
+                CheckFitParams(result, &objectiveDescriptorStub, &metricDescriptorStub);
             } catch (...) {
                 result.EraseValue(param.first);
 

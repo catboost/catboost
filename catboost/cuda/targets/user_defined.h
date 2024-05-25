@@ -12,7 +12,7 @@ namespace NKernelHost {
         TCudaBufferPtr<const float> Predictions;
         TCudaBufferPtr<const float> Results;
         TCudaBufferPtr<const float> ResultsWeight;
-        const TCustomGpuMetricDescriptor Descriptor;
+        const TCustomMetricDescriptor Descriptor;
 
     public:
 
@@ -26,7 +26,7 @@ namespace NKernelHost {
                                  TCudaBufferPtr<const float> predictions,
                                  TCudaBufferPtr<const float> results,
                                  TCudaBufferPtr<const float> results_weight,
-                                 const TCustomGpuMetricDescriptor& descriptor
+                                 const TCustomMetricDescriptor& descriptor
         )
         : Targets(targets)
         , Weights(weights)
@@ -39,12 +39,12 @@ namespace NKernelHost {
 
         inline void Load(IInputStream* s) {
             Y_UNUSED(s);
-            ythrow TCatBoostException() << "Distributed training and evaluation is not supported with user defined metrics";
+            CB_ENSURE(false, "Distributed training and evaluation is not supported with user defined metrics");
         }
 
         inline void Save(IOutputStream* s) const {
             Y_UNUSED(s);
-            ythrow TCatBoostException() << "Distributed training and evaluation is not supported with user defined metrics";
+            CB_ENSURE(false, "Distributed training and evaluation is not supported with user defined metrics");
         }
 
         void Run(const TCudaStream& stream) const {    
@@ -53,7 +53,7 @@ namespace NKernelHost {
             auto cursor_ptr = TConstArrayRef<float>(Predictions.Get(), Predictions.ObjectCount());
             auto result_ptr = TConstArrayRef<float>(Results.Get(), Results.ObjectCount());
             auto result_weight_ptr = TConstArrayRef<float>(ResultsWeight.Get(), ResultsWeight.ObjectCount());
-            (*(Descriptor.EvalFunc))(cursor_ptr, target_ptr, weights_ptr, result_ptr, result_weight_ptr, 0, target_ptr.size(), Descriptor.CustomData, stream.GetStream(), BlockSize, NumBlocks);
+            (*(Descriptor.GpuEvalFunc))(cursor_ptr, target_ptr, weights_ptr, result_ptr, result_weight_ptr, 0, target_ptr.size(), Descriptor.CustomData, stream.GetStream(), BlockSize, NumBlocks);
         }
     };
 }
