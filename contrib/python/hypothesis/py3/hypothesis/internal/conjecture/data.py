@@ -136,6 +136,7 @@ IRKWargsType: TypeAlias = Union[
     IntegerKWargs, FloatKWargs, StringKWargs, BytesKWargs, BooleanKWargs
 ]
 IRTypeName: TypeAlias = Literal["integer", "string", "boolean", "float", "bytes"]
+InvalidAt: TypeAlias = Tuple[IRTypeName, IRKWargsType]
 
 
 class ExtraInformation:
@@ -956,6 +957,9 @@ class DataObserver:
     ) -> None:
         pass
 
+    def mark_invalid(self, invalid_at: InvalidAt) -> None:
+        pass
+
 
 @attr.s(slots=True, repr=False, eq=False)
 class IRNode:
@@ -1048,6 +1052,16 @@ class IRNode:
             and self.was_forced == other.was_forced
         )
 
+    def __hash__(self):
+        return hash(
+            (
+                self.ir_type,
+                ir_value_key(self.ir_type, self.value),
+                ir_kwargs_key(self.ir_type, self.kwargs),
+                self.was_forced,
+            )
+        )
+
     def __repr__(self):
         # repr to avoid "BytesWarning: str() on a bytes instance" for bytes nodes
         forced_marker = " [forced]" if self.was_forced else ""
@@ -1087,22 +1101,36 @@ def ir_value_permitted(value, ir_type, kwargs):
     raise NotImplementedError(f"unhandled type {type(value)} of ir value {value}")
 
 
+def ir_value_key(ir_type, v):
+    if ir_type == "float":
+        return float_to_int(v)
+    return v
+
+
+def ir_kwargs_key(ir_type, kwargs):
+    if ir_type == "float":
+        return (
+            float_to_int(kwargs["min_value"]),
+            float_to_int(kwargs["max_value"]),
+            kwargs["allow_nan"],
+            kwargs["smallest_nonzero_magnitude"],
+        )
+    if ir_type == "integer":
+        return (
+            kwargs["min_value"],
+            kwargs["max_value"],
+            None if kwargs["weights"] is None else tuple(kwargs["weights"]),
+            kwargs["shrink_towards"],
+        )
+    return tuple(kwargs[key] for key in sorted(kwargs))
+
+
 def ir_value_equal(ir_type, v1, v2):
-    if ir_type != "float":
-        return v1 == v2
-    return float_to_int(v1) == float_to_int(v2)
+    return ir_value_key(ir_type, v1) == ir_value_key(ir_type, v2)
 
 
 def ir_kwargs_equal(ir_type, kwargs1, kwargs2):
-    if ir_type != "float":
-        return kwargs1 == kwargs2
-    return (
-        float_to_int(kwargs1["min_value"]) == float_to_int(kwargs2["min_value"])
-        and float_to_int(kwargs1["max_value"]) == float_to_int(kwargs2["max_value"])
-        and kwargs1["allow_nan"] == kwargs2["allow_nan"]
-        and kwargs1["smallest_nonzero_magnitude"]
-        == kwargs2["smallest_nonzero_magnitude"]
-    )
+    return ir_kwargs_key(ir_type, kwargs1) == ir_kwargs_key(ir_type, kwargs2)
 
 
 @dataclass_transform()
@@ -1125,6 +1153,7 @@ class ConjectureResult:
     examples: Examples = attr.ib(repr=False)
     arg_slices: Set[Tuple[int, int]] = attr.ib(repr=False)
     slice_comments: Dict[Tuple[int, int], str] = attr.ib(repr=False)
+    invalid_at: Optional[InvalidAt] = attr.ib(repr=False)
 
     index: int = attr.ib(init=False)
 
@@ -1977,6 +2006,7 @@ class ConjectureData:
         self.extra_information = ExtraInformation()
 
         self.ir_tree_nodes = ir_tree_prefix
+        self.invalid_at: Optional[InvalidAt] = None
         self._node_index = 0
         self.start_example(TOP_LABEL)
 
@@ -2279,7 +2309,6 @@ class ConjectureData:
             self.mark_overrun()
 
         node = self.ir_tree_nodes[self._node_index]
-        self._node_index += 1
         # If we're trying to draw a different ir type at the same location, then
         # this ir tree has become badly misaligned. We don't have many good/simple
         # options here for realigning beyond giving up.
@@ -2292,14 +2321,21 @@ class ConjectureData:
         # (in fact, it is possible that giving up early here results in more time
         # for useful shrinks to run).
         if node.ir_type != ir_type:
+            invalid_at = (ir_type, kwargs)
+            self.invalid_at = invalid_at
+            self.observer.mark_invalid(invalid_at)
             self.mark_invalid(f"(internal) want a {ir_type} but have a {node.ir_type}")
 
         # if a node has different kwargs (and so is misaligned), but has a value
         # that is allowed by the expected kwargs, then we can coerce this node
         # into an aligned one by using its value. It's unclear how useful this is.
         if not ir_value_permitted(node.value, node.ir_type, kwargs):
+            invalid_at = (ir_type, kwargs)
+            self.invalid_at = invalid_at
+            self.observer.mark_invalid(invalid_at)
             self.mark_invalid(f"(internal) got a {ir_type} but outside the valid range")
 
+        self._node_index += 1
         return node
 
     def as_result(self) -> Union[ConjectureResult, _Overrun]:
@@ -2328,6 +2364,7 @@ class ConjectureData:
                 forced_indices=frozenset(self.forced_indices),
                 arg_slices=self.arg_slices,
                 slice_comments=self.slice_comments,
+                invalid_at=self.invalid_at,
             )
             assert self.__result is not None
             self.blocks.transfer_ownership(self.__result)
@@ -2475,7 +2512,34 @@ class ConjectureData:
         self.frozen = True
 
         self.buffer = bytes(self.buffer)
-        self.observer.conclude_test(self.status, self.interesting_origin)
+
+        # if we were invalid because of a misalignment in the tree, we don't
+        # want to tell the DataTree that. Doing so would lead to inconsistent behavior.
+        # Given an empty DataTree
+        #               ┌──────┐
+        #               │ root │
+        #               └──────┘
+        # and supposing the very first draw is misaligned, concluding here would
+        # tell the datatree that the *only* possibility at the root node is Status.INVALID:
+        #               ┌──────┐
+        #               │ root │
+        #               └──┬───┘
+        #      ┌───────────┴───────────────┐
+        #      │ Conclusion(Status.INVALID)│
+        #      └───────────────────────────┘
+        # when in fact this is only the case when we try to draw a misaligned node.
+        # For instance, suppose we come along in the second test case and try a
+        # valid node as the first draw from the root. The DataTree thinks this
+        # is flaky (because root must lead to Status.INVALID in the tree) while
+        # in fact nothing in the test function has changed and the only change
+        # is in the ir tree prefix we are supplying.
+        #
+        # From the perspective of DataTree, it is safe to not conclude here. This
+        # tells the datatree that we don't know what happens after this node - which
+        # is true! We are aborting early here because the ir tree became misaligned,
+        # which is a semantically different invalidity than an assume or filter failing.
+        if self.invalid_at is None:
+            self.observer.conclude_test(self.status, self.interesting_origin)
 
     def choice(
         self,

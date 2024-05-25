@@ -24,6 +24,7 @@ from hypothesis.internal.conjecture.data import (
     DataObserver,
     FloatKWargs,
     IntegerKWargs,
+    InvalidAt,
     IRKWargsType,
     IRType,
     IRTypeName,
@@ -422,6 +423,8 @@ class TreeNode:
     #   be explored when generating novel prefixes)
     transition: Union[None, Branch, Conclusion, Killed] = attr.ib(default=None)
 
+    invalid_at: Optional[InvalidAt] = attr.ib(default=None)
+
     # A tree node is exhausted if every possible sequence of draws below it has
     # been explored. We only update this when performing operations that could
     # change the answer.
@@ -475,6 +478,8 @@ class TreeNode:
         del self.ir_types[i:]
         del self.values[i:]
         del self.kwargs[i:]
+        # we have a transition now, so we don't need to carry around invalid_at.
+        self.invalid_at = None
         assert len(self.values) == len(self.kwargs) == len(self.ir_types) == i
 
     def check_exhausted(self):
@@ -811,6 +816,9 @@ class DataTree:
         node = self.root
 
         def draw(ir_type, kwargs, *, forced=None):
+            if ir_type == "float" and forced is not None:
+                forced = int_to_float(forced)
+
             draw_func = getattr(data, f"draw_{ir_type}")
             value = draw_func(**kwargs, forced=forced)
 
@@ -832,6 +840,13 @@ class DataTree:
                     t = node.transition
                     data.conclude_test(t.status, t.interesting_origin)
                 elif node.transition is None:
+                    if node.invalid_at is not None:
+                        (ir_type, kwargs) = node.invalid_at
+                        try:
+                            draw(ir_type, kwargs)
+                        except StopTest:
+                            if data.invalid_at is not None:
+                                raise
                     raise PreviouslyUnseenBehaviour
                 elif isinstance(node.transition, Branch):
                     v = draw(node.transition.ir_type, node.transition.kwargs)
@@ -976,6 +991,9 @@ class TreeRecordingObserver(DataObserver):
         self, value: bool, *, was_forced: bool, kwargs: BooleanKWargs
     ) -> None:
         self.draw_value("boolean", value, was_forced=was_forced, kwargs=kwargs)
+
+    def mark_invalid(self, invalid_at: InvalidAt) -> None:
+        self.__current_node.invalid_at = invalid_at
 
     def draw_value(
         self,

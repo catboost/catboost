@@ -34,6 +34,8 @@ from hypothesis.internal.conjecture.data import (
     Overrun,
     PrimitiveProvider,
     Status,
+    ir_kwargs_key,
+    ir_value_key,
 )
 from hypothesis.internal.conjecture.datatree import DataTree, PreviouslyUnseenBehaviour
 from hypothesis.internal.conjecture.junkdrawer import clamp, ensure_free_stackframes
@@ -186,6 +188,7 @@ class ConjectureRunner:
         # shrinking where we need to know about the structure of the
         # executed test case.
         self.__data_cache = LRUReusedCache(CACHE_SIZE)
+        self.__data_cache_ir = LRUReusedCache(CACHE_SIZE)
 
         self.__pending_call_explanation = None
         self._switch_to_hypothesis_provider = False
@@ -239,10 +242,70 @@ class ConjectureRunner:
                     # correct engine.
                     raise
 
-    def ir_tree_to_data(self, ir_tree_nodes):
-        data = ConjectureData.for_ir_tree(ir_tree_nodes)
-        self.__stoppable_test_function(data)
-        return data
+    def _cache_key_ir(self, *, nodes=None, data=None):
+        assert (nodes is not None) ^ (data is not None)
+        extension = []
+        if data is not None:
+            nodes = data.examples.ir_tree_nodes
+            if data.invalid_at is not None:
+                # if we're invalid then we should have at least one node left (the invalid one).
+                assert data._node_index < len(data.ir_tree_nodes)
+                extension = [data.ir_tree_nodes[data._node_index]]
+
+        # intentionally drop was_forced from equality here, because the was_forced
+        # of node prefixes on ConjectureData has no impact on that data's result
+        return tuple(
+            (
+                node.ir_type,
+                ir_value_key(node.ir_type, node.value),
+                ir_kwargs_key(node.ir_type, node.kwargs),
+            )
+            for node in nodes + extension
+        )
+
+    def _cache(self, data):
+        result = data.as_result()
+        # when we shrink, we try out of bounds things, which can lead to the same
+        # data.buffer having multiple outcomes. eg data.buffer=b'' is Status.OVERRUN
+        # in normal circumstances, but a data with
+        # ir_nodes=[integer -5 {min_value: 0, max_value: 10}] will also have
+        # data.buffer=b'' but will be Status.INVALID instead. We do not want to
+        # change the cached value to INVALID in this case.
+        #
+        # We handle this specially for the ir cache by keying off the misaligned node
+        # as well, but we cannot do the same for buffers as we do not know ahead of
+        # time what buffer a node maps to. I think it's largely fine that we don't
+        # write to the buffer cache here as we move more things to the ir cache.
+        if data.invalid_at is None:
+            self.__data_cache[data.buffer] = result
+        key = self._cache_key_ir(data=data)
+        self.__data_cache_ir[key] = result
+
+    def cached_test_function_ir(self, nodes):
+        key = self._cache_key_ir(nodes=nodes)
+        try:
+            return self.__data_cache_ir[key]
+        except KeyError:
+            pass
+
+        try:
+            trial_data = self.new_conjecture_data_ir(nodes)
+            self.tree.simulate_test_function(trial_data)
+        except PreviouslyUnseenBehaviour:
+            pass
+        else:
+            trial_data.freeze()
+            key = self._cache_key_ir(data=trial_data)
+            try:
+                return self.__data_cache_ir[key]
+            except KeyError:
+                pass
+
+        data = self.new_conjecture_data_ir(nodes)
+        # note that calling test_function caches `data` for us, for both an ir
+        # tree key and a buffer key.
+        self.test_function(data)
+        return data.as_result()
 
     def test_function(self, data):
         if self.__pending_call_explanation is not None:
@@ -274,7 +337,7 @@ class ConjectureRunner:
                     ),
                 }
                 self.stats_per_test_case.append(call_stats)
-                self.__data_cache[data.buffer] = data.as_result()
+                self._cache(data)
 
         self.debug_data(data)
 
@@ -321,8 +384,9 @@ class ConjectureRunner:
 
                 # drive the ir tree through the test function to convert it
                 # to a buffer
-                data = self.ir_tree_to_data(data.examples.ir_tree_nodes)
-                self.__data_cache[data.buffer] = data.as_result()
+                data = ConjectureData.for_ir_tree(data.examples.ir_tree_nodes)
+                self.__stoppable_test_function(data)
+                self._cache(data)
 
             key = data.interesting_origin
             changed = False
@@ -982,6 +1046,18 @@ class ConjectureRunner:
         with self._log_phase_statistics("shrink"):
             self.shrink_interesting_examples()
         self.exit_with(ExitReason.finished)
+
+    def new_conjecture_data_ir(self, ir_tree_prefix, *, observer=None):
+        provider = (
+            HypothesisProvider if self._switch_to_hypothesis_provider else self.provider
+        )
+        observer = observer or self.tree.new_observer()
+        if self.settings.backend != "hypothesis":
+            observer = DataObserver()
+
+        return ConjectureData.for_ir_tree(
+            ir_tree_prefix, observer=observer, provider=provider
+        )
 
     def new_conjecture_data(self, prefix, max_length=BUFFER_SIZE, observer=None):
         provider = (
