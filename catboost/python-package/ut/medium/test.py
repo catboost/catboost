@@ -11308,7 +11308,7 @@ def test_carry_model():
     assert np.max((uplift_pool_predict - uplift_model_predict) ** 2)**0.5 < 1e-8, 'Wrong uplift model predict'
 
 
-def test_custom_gpu_eval_metric_cpu(task_type):
+def test_custom_gpu_eval_metric(task_type):
     
     if (task_type == 'GPU'):
         from numba import cuda
@@ -11336,7 +11336,7 @@ def test_custom_gpu_eval_metric_cpu(task_type):
             return error_sum, weight_sum
 
         def gpu_evaluate(self, approx, target, weight, output, output_weight):
-            
+            print(1 / 0)
             init_thread_idx = thread_idx = cuda.grid(1)
             n = target.size
                 
@@ -11344,10 +11344,10 @@ def test_custom_gpu_eval_metric_cpu(task_type):
             output_weight[init_thread_idx] = 0.0
             
             while thread_idx < n:
-                e = np.exp(approx[thread_idx])
+                e = math.exp(approx[thread_idx])
                 p = e / (1 + e)
                 w = 1.0 if weight is None else weight[thread_idx]
-                output[init_thread_idx] += -w * (target[thread_idx] * np.log(p) + (1 - target[thread_idx]) * np.log(1 - p))
+                output[init_thread_idx] += -w * (target[thread_idx] * math.log(p) + (1 - target[thread_idx]) * math.log(1 - p))
                 output_weight[init_thread_idx] += weight[thread_idx]
                 thread_idx += cuda.gridsize(1)
 
