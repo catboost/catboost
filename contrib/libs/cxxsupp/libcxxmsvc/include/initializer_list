@@ -47,7 +47,13 @@ template<class E> const E* end(initializer_list<E> il) noexcept; // constexpr in
 
 #if defined(_LIBCPP_COMPILER_MSVC) && !defined(__clang__)
 
+// save __cpp_lib_concepts because it can be redefined inside MSVC standard headers
+#pragma push_macro("__cpp_lib_concepts")
+
 #include Y_MSVC_INCLUDE_NEXT(yvals.h)
+
+#pragma pop_macro("__cpp_lib_concepts")
+
 #include Y_MSVC_INCLUDE_NEXT(initializer_list)
 
 #else
