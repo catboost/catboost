@@ -265,20 +265,37 @@ def all_children(ir_type, kwargs):
         min_value = kwargs["min_value"]
         max_value = kwargs["max_value"]
         weights = kwargs["weights"]
-        # it's a bit annoying (but completely feasible) to implement the cases
-        # other than "both sides bounded" here. We haven't needed to yet because
-        # in practice we don't struggle with unbounded integer generation.
-        assert min_value is not None
-        assert max_value is not None
 
-        if weights is None:
-            yield from range(min_value, max_value + 1)
+        if min_value is None and max_value is None:
+            # full 128 bit range.
+            yield from range(-(2**127) + 1, 2**127 - 1)
+
+        elif min_value is not None and max_value is not None:
+            if weights is None:
+                yield from range(min_value, max_value + 1)
+            else:
+                # skip any values with a corresponding weight of 0 (can never be drawn).
+                for weight, n in zip(weights, range(min_value, max_value + 1)):
+                    if weight == 0:
+                        continue
+                    yield n
         else:
-            # skip any values with a corresponding weight of 0 (can never be drawn).
-            for weight, n in zip(weights, range(min_value, max_value + 1)):
-                if weight == 0:
-                    continue
-                yield n
+            # hard case: only one bound was specified. Here we probe either upwards
+            # or downwards with our full 128 bit generation, but only half of these
+            # (plus one for the case of generating zero) result in a probe in the
+            # direction we want. ((2**128 - 1) // 2) + 1 == a range of 2 ** 127.
+            #
+            # strictly speaking, I think this is not actually true: if
+            # max_value > shrink_towards then our range is ((-2**127) + 1, max_value),
+            # and it only narrows when max_value < shrink_towards. But it
+            # really doesn't matter for this case because (even half) unbounded
+            # integers generation is hit extremely rarely.
+            assert (min_value is None) ^ (max_value is None)
+            if min_value is None:
+                yield from range(max_value - (2**127) + 1, max_value)
+            else:
+                assert max_value is None
+                yield from range(min_value, min_value + (2**127) - 1)
 
     if ir_type == "boolean":
         p = kwargs["p"]

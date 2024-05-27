@@ -10,7 +10,7 @@
 
 import math
 from collections import defaultdict
-from typing import TYPE_CHECKING, Callable, Dict, Optional
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Union
 
 import attr
 
@@ -268,10 +268,12 @@ class Shrinker:
     def __init__(
         self,
         engine: "ConjectureRunner",
-        initial: ConjectureData,
-        predicate: Optional[Callable[..., bool]],
+        initial: Union[ConjectureData, ConjectureResult],
+        predicate: Optional[Callable[[ConjectureData], bool]],
         *,
-        allow_transition: bool,
+        allow_transition: Optional[
+            Callable[[Union[ConjectureData, ConjectureResult], ConjectureData], bool]
+        ],
         explain: bool,
         in_target_phase: bool = False,
     ):
@@ -1652,7 +1654,7 @@ class ShrinkPass:
         return True
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.run_with_chooser.__name__
 
 

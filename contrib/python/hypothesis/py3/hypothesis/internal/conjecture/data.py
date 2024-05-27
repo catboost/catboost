@@ -98,7 +98,7 @@ INTEGER_WEIGHTED_DISTRIBUTION = calc_label_from_name(
 InterestingOrigin = Tuple[
     Type[BaseException], str, int, Tuple[Any, ...], Tuple[Tuple[Any, ...], ...]
 ]
-TargetObservations = Dict[Optional[str], Union[int, float]]
+TargetObservations = Dict[str, Union[int, float]]
 
 T = TypeVar("T")
 

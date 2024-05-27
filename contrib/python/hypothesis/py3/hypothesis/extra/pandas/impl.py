@@ -534,7 +534,6 @@ def data_frames(
             def rows_only(draw):
                 index = draw(index_strategy)
 
-                @check_function
                 def row():
                     result = draw(rows)
                     check_type(abc.Iterable, result, "draw(row)")

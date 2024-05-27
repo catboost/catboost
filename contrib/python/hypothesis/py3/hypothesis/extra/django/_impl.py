@@ -104,6 +104,7 @@ def from_model(
         if (
             name not in field_strategies
             and not field.auto_created
+            and not isinstance(field, dm.AutoField)
             and field.default is dm.fields.NOT_PROVIDED
         ):
             field_strategies[name] = from_field(field)

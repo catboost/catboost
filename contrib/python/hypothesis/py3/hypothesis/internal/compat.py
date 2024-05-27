@@ -17,7 +17,7 @@ import sys
 import sysconfig
 import typing
 from functools import partial
-from typing import Any, ForwardRef, List, Optional, get_args
+from typing import Any, ForwardRef, List, Optional, TypedDict as TypedDict, get_args
 
 try:
     BaseExceptionGroup = BaseExceptionGroup
@@ -28,18 +28,52 @@ except NameError:
         ExceptionGroup as ExceptionGroup,
     )
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from typing_extensions import Concatenate as Concatenate, ParamSpec as ParamSpec
+    from typing_extensions import (
+        Concatenate as Concatenate,
+        NotRequired as NotRequired,
+        ParamSpec as ParamSpec,
+        TypeAlias as TypeAlias,
+        TypedDict as TypedDict,
+        override as override,
+    )
 else:
+    # In order to use NotRequired, we need the version of TypedDict included in Python 3.11+.
+    if sys.version_info[:2] >= (3, 11):
+        from typing import NotRequired as NotRequired, TypedDict as TypedDict
+    else:
+        try:
+            from typing_extensions import (
+                NotRequired as NotRequired,
+                TypedDict as TypedDict,
+            )
+        except ImportError:
+            # We can use the old TypedDict from Python 3.8+ at runtime.
+            class NotRequired:
+                """A runtime placeholder for the NotRequired type, which is not available in Python <3.11."""
+
+                def __class_getitem__(cls, item):
+                    return cls
+
     try:
-        from typing import Concatenate as Concatenate, ParamSpec as ParamSpec
+        from typing import (
+            Concatenate as Concatenate,
+            ParamSpec as ParamSpec,
+            TypeAlias as TypeAlias,
+            override as override,
+        )
     except ImportError:
         try:
             from typing_extensions import (
                 Concatenate as Concatenate,
                 ParamSpec as ParamSpec,
+                TypeAlias as TypeAlias,
+                override as override,
             )
         except ImportError:
             Concatenate, ParamSpec = None, None
+            TypeAlias = None
+            override = lambda f: f
+
 
 PYPY = platform.python_implementation() == "PyPy"
 GRAALPY = platform.python_implementation() == "GraalVM"
