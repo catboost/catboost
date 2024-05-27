@@ -167,6 +167,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: catboost
+          fetch-depth: 0
 
       - name: Update CMake build cache on every commit
         uses: actions/cache@v4
@@ -176,11 +177,22 @@ jobs:
           restore-keys: |
             cmake_build_cache-${{ runner.os }}
 
-      - name: Uncompress cache
+      - name: Prepare CMake build cache
         shell: pwsh
         run: |
           if (Test-Path cmake_build_cache.zip) {
             Expand-Archive -Path cmake_build_cache.zip -DestinationPath cmake_build_cache
+            if (Test-Path cmake_build_cache/git_commit_sha) {
+              # Set timestamps such as that only files changed after the commit in cache are newer than its files
+              Set-Location -LiteralPath ${{ github.workspace }}/catboost
+              git checkout (Get-Content ${{ github.workspace }}/cmake_build_cache/git_commit_sha)
+              Start-Sleep -Seconds 2  # to make sure timestamps are different
+              Set-Location -LiteralPath ${{ github.workspace }}/cmake_build_cache
+              dir -R | foreach { $_.LastWriteTime = [System.DateTime]::Now }
+              Start-Sleep -Seconds 2  # to make sure timestamps are different
+              Set-Location -LiteralPath ${{ github.workspace }}/catboost
+              git checkout ${{ github.sha }}
+            }
           } else {
             New-Item -Path cmake_build_cache -ItemType Directory
           }
@@ -207,9 +219,10 @@ jobs:
           Set-Location -Path catboost
           python ./ci/build_all.py
 
-      - name: Compress cache
+      - name: Save commit id and compress CMake build cache
         shell: pwsh
         run: |
+          Set-Content -Path cmake_build_cache/git_commit_sha -Value ${{ github.sha }}
           if (Test-Path cmake_build_cache.zip) {
             Compress-Archive -Path cmake_build_cache/* -Update -DestinationPath cmake_build_cache.zip
           } else {
