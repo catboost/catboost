@@ -243,7 +243,12 @@
 #elif _MSC_VER
     #define __TBB_CPP14_VARIABLE_TEMPLATES_PRESENT (_MSC_FULL_VER >= 190023918 && (!__INTEL_COMPILER || __INTEL_COMPILER >= 1700))
     #define __TBB_CPP17_DEDUCTION_GUIDES_PRESENT   (_MSC_VER >= 1914 && __TBB_LANG >= 201703L && (!__INTEL_COMPILER || __INTEL_COMPILER > 2021))
-    #define __TBB_CPP20_CONCEPTS_PRESENT           (_MSC_VER >= 1923 && __TBB_LANG >= 202002L) // TODO: INTEL_COMPILER?
+    #if !defined(__cpp_lib_concepts)
+        // TBB's concepts use STL's concepts
+        #define __TBB_CPP20_CONCEPTS_PRESENT       0
+    #else
+        #define __TBB_CPP20_CONCEPTS_PRESENT       (_MSC_VER >= 1923 && __TBB_LANG >= 202002L) // TODO: INTEL_COMPILER?
+    #endif
 #else
     #define __TBB_CPP14_VARIABLE_TEMPLATES_PRESENT (__TBB_LANG >= 201402L)
     #define __TBB_CPP17_DEDUCTION_GUIDES_PRESENT   (__TBB_LANG >= 201703L)
