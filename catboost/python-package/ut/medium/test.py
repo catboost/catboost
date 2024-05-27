@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import json
+import io
 from catboost import (
     CatBoost,
     CatBoostClassifier,
@@ -11432,3 +11433,53 @@ def test_allow_const_label(task_type, problem_type, allow_const_label):
     else:
         with pytest.raises(CatBoostError):
             model.fit(features, labels, group_id=group_id)
+
+
+def test_text_features_missing_border_for_feature_github_2657(task_type):
+    csv_content = """idx,ad_text,latitude,log_closed_price
+    0,"Amazing Freehold With No Condo Fees! This Sought After 2 Story Freehold Unit Town Offers 3 Generous Sized Bedrooms And 3.5 Baths \
+In A Family Friendly Neighborhood That Is Close To Parks, Schools, Shopping Amenities, And Highway Access. Enjoy The Bright Open Concept \
+Kitchen, Living, And Dining Room Provides Plenty Of Room For Relaxing Or Entertaining, Where The Kitchen Includes S.S Appliances, Quartz \
+Countertops And A Great Island. Main Level Includes A 2-piece Bath and Sliding Glass Doors That Open To A Spacious Back Deck With Great \
+Views Of The Park. The Second Level Features A Primary Bedroom With Walk-In Closet And 4-Piece Ensuite, Other 2 Spacious Bedrooms, A 4-Piece \
+Bath And Upper Level Laundry. Downstairs You Will fully Appreciate An Amazing Family Room With 3-Pc Washroom And An Abundance Of Light From \
+The Large Window And Sliding Glass Doors Walk-Out To The Oversize Private Backyard.<br/><br/><b>EXTRAS:</b> ",43.213356300000,13.652991628466498
+    1,"Charming Big Cedar Lake Cottage! Not much comes for sale on this pristine lake. 100ft of clean waterfront and west sunsets! Year \
+round cottage/home with 3 bedrooms, 2 bathrooms plus bunkie. Open concept kitchen and dining with woodstove and walkout to private \
+lakeside deck. Bright lakeview living room with cozy propane fireplace. Beautiful primary bedroom with 2pc ensuite and walk-in closet. \
+Lower level laundry and workshop space with walkout to lakeside yard. Mature trees offering great privacy, lakeside firepit, large dock, \
+brand new septic 2020 and spacious parking off year round road with garbage & recycling pickup. Around 20 min to the amenities of Lakefield \
+or Apsley. Stunning views, clean waterfront, west sunsets and year round living on sought after Big Cedar Lake!!<br/><br/><b>EXTRAS:</b> ",44.600458100000,13.455257792677658
+    2,"Prepare to be amazed! Absolutely stunning 1 Bedroom + 1 Den corner unit with extremely rare 10 ft ceilings - only offered on the \
+ultra exclusive top 3 floors at The Bond condos! Perfectly designed and elegantly appointed open concept living space highlighted by \
+incredible floor to ceiling wrap around windows which allow natural light to cascade throughout the entire unit all day long! Ideal layout \
+maximizing every sq ft with beautiful floors and soaring 10 ft ceilings! The open concept kitchen finished with quartz counters and integrated \
+appliances sits overlooking the spacious living/dining room with walk out to private balcony. Enjoy unobstructed, and truly jaw dropping, south/west \
+views of Toronto's skyline, CN Tower and even Lake Ontario! Large primary bedroom with two, yes two, fully organized double closets offers incredible \
+storage space.Impressive separate Den with sliding glass door is the perfect home office that can easily function as a second bedroom. Spa like \
+washroom with over sized shower and en suite laundry nicely tucked away from the main living space. 5 star building amenities - roof top pool, \
+exterior and interior party room, impressive fitness centre, 24 Hour Concierge, Visitor/Public Parking, Billiards Room, Bbq Area, Guest Suites and \
+more! Perfect Location (100 Walk Score & Transit Score) surrounded by delicious restaurants, excellent shopping, TTC, P.A.T.H. system, Tiff, U of T, \
+and all Toronto has to offer! This is the Toronto condo you have been waiting for, don't miss out!<br/><br/><b>EXTRAS:</b> Sophisticated luxury in the \
+heart of the entertainment district surrounded by Toronto's most iconic landmarks! Amazing location, perfect corner unit layout, 10ft ceilings & private \
+balcony w/ stunning south west views! This one has it all!",43.647939900000,13.53843866462451
+    3,"Welcome to Westbeach Boutique Condos in the Beaches! Enjoy this 1 bedroom 524 sqft Penthouse Unit With 9 Ft Ceilings, Floor to Ceiling Windows \
+With Walk Out to Private 260 Sqft Terrace Oasis with Gas line and Lush Views. Open Concept with White Modern Kitchen With Quartz Countertops and \
+Luxury Finishes. Enjoy Vibrant Living Steps to the Beach, Bars, Restaurants, Movie Theatres, LCBO, Waterfront parks, Leslieville. Amenities include: \
+Fitness center, Party room, Pet Washing Station, Outdoor Rooftop Terrace, BBQ & more!<br/><br/><b>EXTRAS:</b> All Window Coverings, All Electrical Light \
+Fixtures, Stainless Steel Appliances; Fridge, Stove, Microwave Range. Built-In Dishwasher, Washer And Dryer.",43.666660000000,13.199324418540456
+    4,"Welcome To This Exquisite Home Nestled In The Heart Of North Oshawa Offering Approximately 2500 Sq Ft Of Finished Livable Space! Step Inside To \
+Discover An Inviting Open-Concept Main Floor Adorned With Soaring Cathedral Ceilings In The Foyer, Setting A Grand Tone. The Spacious Recently Updated \
+Eat-In Kitchen Overlooks The Cozy Living Room Featuring A Built-In Media Wall And A Gas Fireplace, Perfect For Gatherings And Relaxation. Entertain \
+Outdoor With Ease On The Private Deck In The Backyard. Discover Three Generously Sized Bedrooms On The Second Floor, With The Primary Room Boasting A \
+Luxurious Walk-In Closet And A Lavish 5pc Ensuite, Providing Comfort And Convenience. Finished Recreational Space In The Basement Offering Additional \
+Entertainment Space. Close To Multiple Amenities, Schools, Parks & Trails. Don't Miss The Opportunity To Make This Stunning Residence Your \
+Own!<br/><br/><b>EXTRAS:</b> ",43.936883800000,13.815509557963773"""
+
+    df = pd.read_csv(io.StringIO(csv_content))
+    params = {'task_type': task_type, 'iterations': 10, }
+    X_train, y_train = df[['idx', 'latitude', 'ad_text']], df[['log_closed_price']]
+
+    model = CatBoostRegressor(text_features=['ad_text'], **params)
+    train_pool = Pool(data=X_train, label=y_train, text_features=['ad_text'])
+    model.fit(train_pool)
