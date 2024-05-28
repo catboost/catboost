@@ -116,7 +116,7 @@ jobs:
           cd Python
           unzip ${{ github.workspace }}/python_versions_macos_arm64
 
-      - if: inputs.runs-on_value == 'windows-2019'
+      - if: inputs.runs-on_value == 'windows-2022'
         name: Install CUDA on Windows
         uses: Jimver/cuda-toolkit@v0.2.15
         id: cuda-toolkit
@@ -125,7 +125,7 @@ jobs:
           method: 'network'
           sub-packages: '["nvcc","cudart"]'
 
-      - if: inputs.runs-on_value == 'windows-2019'
+      - if: inputs.runs-on_value == 'windows-2022'
         name: Env setup on Windows
         run: |
           python -m pip install -U conan==1.62.0 setuptools wheel jupyterlab==3.0.6 build
@@ -352,28 +352,28 @@ jobs:
           path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
           retention-days: inputs.artifact_retention_days
 
-      - if: inputs.runs-on_value == 'windows-2019'
+      - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-cli-windows-x86_64-${{ inputs.arfifacts_version }}
           path: build_native_root/have_cuda/windows-x86_64/catboost/app/catboost.exe
           retention-days: inputs.artifact_retention_days
 
-      - if: inputs.runs-on_value == 'windows-2019'
+      - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-python-package-dist-windows-${{ inputs.arfifacts_version }}
           path: catboost/python-package/dist/*.whl
           retention-days: inputs.artifact_retention_days
 
-      - if: inputs.runs-on_value == 'windows-2019'
+      - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-R-package-windows-x86_64-${{ inputs.arfifacts_version }}
           path: catboost/R-package/catboost-R-windows-x86_64.tgz
           retention-days: inputs.artifact_retention_days
 
-      - if: inputs.runs-on_value == 'windows-2019'
+      - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-model-interface-windows-x86_64-${{ inputs.arfifacts_version }}
@@ -382,14 +382,14 @@ jobs:
             build_native_root/have_cuda/windows-x86_64/catboost/libs/model_interface/catboostmodel.lib
           retention-days: inputs.artifact_retention_days
 
-      - if: inputs.runs-on_value == 'windows-2019'
+      - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources-windows-${{ inputs.arfifacts_version }}
           path: catboost/spark/catboost4j-spark/core/src/main/resources/win*
           retention-days: inputs.artifact_retention_days
 
-      - if: inputs.runs-on_value == 'windows-2019'
+      - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-prediction_resources-windows-${{ inputs.arfifacts_version }}

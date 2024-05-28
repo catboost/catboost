@@ -43,6 +43,9 @@ PYTHON_VERSIONS = [
     (3,12)
 ]
 
+MSVS_VERSION = '2022'
+MSVC_TOOLSET = '14.29.30133'
+
 
 if sys.platform == 'win32':
     CMAKE_BUILD_ENV_ROOT = os.environ.get(
@@ -449,12 +452,6 @@ def build_all_for_one_platform(
                 'have_cuda' if have_cuda else 'no_cuda',
                 platform_name
             )
-        if have_cuda:
-            msvs_version = '2019'
-            msvc_toolset = '14.28.29333'
-        else:
-            msvs_version = '2022'
-            msvc_toolset = '14.39.33519'
 
         build_native.build(
             dry_run=dry_run,
@@ -466,8 +463,8 @@ def build_all_for_one_platform(
             have_cuda=have_cuda,
             cuda_root_dir=CUDA_ROOT if have_cuda else None,
             target_platform=target_platform,
-            msvs_version=msvs_version,
-            msvc_toolset=msvc_toolset,
+            msvs_version=MSVS_VERSION,
+            msvc_toolset=MSVC_TOOLSET,
             macos_universal_binaries=macos_universal_binaries,
             native_built_tools_root_dir=native_built_tools_root_dir,
             cmake_extra_args=default_cmake_extra_args + cmake_extra_args,
