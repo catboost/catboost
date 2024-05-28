@@ -53,6 +53,7 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/datetime/base.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/constants.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/cputimer.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/process_uptime.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/systime.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/uptime.cpp
 )

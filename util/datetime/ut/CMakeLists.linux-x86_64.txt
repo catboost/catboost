@@ -39,6 +39,7 @@ target_sources(util-datetime-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/cputimer_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/parser_deprecated_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/parser_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/datetime/process_uptime_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/uptime_ut.cpp
 )
 
