@@ -291,14 +291,18 @@ def get_constraints_filter_map():
 
 
 def _get_constraints(args: Tuple[Any, ...]) -> Iterator["at.BaseMetadata"]:
-    if at := sys.modules.get("annotated_types"):
-        for arg in args:
-            if isinstance(arg, at.BaseMetadata):
-                yield arg
-            elif getattr(arg, "__is_annotated_types_grouped_metadata__", False):
-                yield from arg
-            elif isinstance(arg, slice) and arg.step in (1, None):
-                yield from at.Len(arg.start or 0, arg.stop)
+    at = sys.modules.get("annotated_types")
+    for arg in args:
+        if at and isinstance(arg, at.BaseMetadata):
+            yield arg
+        elif getattr(arg, "__is_annotated_types_grouped_metadata__", False):
+            for subarg in arg:
+                if getattr(subarg, "__is_annotated_types_grouped_metadata__", False):
+                    yield from _get_constraints(tuple(subarg))
+                else:
+                    yield subarg
+        elif at and isinstance(arg, slice) and arg.step in (1, None):
+            yield from at.Len(arg.start or 0, arg.stop)
 
 
 def _flat_annotated_repr_parts(annotated_type):
@@ -341,16 +345,18 @@ def find_annotated_strategy(annotated_type):
             return arg
 
     filter_conditions = []
-    if "annotated_types" in sys.modules:
-        unsupported = []
-        for constraint in _get_constraints(metadata):
-            if convert := get_constraints_filter_map().get(type(constraint)):
-                filter_conditions.append(convert(constraint))
-            else:
-                unsupported.append(constraint)
-        if unsupported:
-            msg = f"Ignoring unsupported {', '.join(map(repr, unsupported))}"
-            warnings.warn(msg, HypothesisWarning, stacklevel=2)
+    unsupported = []
+    constraints_map = get_constraints_filter_map()
+    for constraint in _get_constraints(metadata):
+        if isinstance(constraint, st.SearchStrategy):
+            return constraint
+        if convert := constraints_map.get(type(constraint)):
+            filter_conditions.append(convert(constraint))
+        else:
+            unsupported.append(constraint)
+    if unsupported:
+        msg = f"Ignoring unsupported {', '.join(map(repr, unsupported))}"
+        warnings.warn(msg, HypothesisWarning, stacklevel=2)
 
     base_strategy = st.from_type(annotated_type.__origin__)
     for filter_condition in filter_conditions:

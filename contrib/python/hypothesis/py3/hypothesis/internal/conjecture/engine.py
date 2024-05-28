@@ -1072,20 +1072,23 @@ class ConjectureRunner:
                     failed_mutations += 1
                     continue
 
-                assert isinstance(new_data, ConjectureResult)
-                if (
-                    new_data.status >= data.status
-                    and data.buffer != new_data.buffer
-                    and all(
-                        k in new_data.target_observations
-                        and new_data.target_observations[k] >= v
-                        for k, v in data.target_observations.items()
-                    )
-                ):
-                    data = new_data
-                    failed_mutations = 0
+                if new_data is Overrun:
+                    failed_mutations += 1  # pragma: no cover # annoying case
                 else:
-                    failed_mutations += 1
+                    assert isinstance(new_data, ConjectureResult)
+                    if (
+                        new_data.status >= data.status
+                        and data.buffer != new_data.buffer
+                        and all(
+                            k in new_data.target_observations
+                            and new_data.target_observations[k] >= v
+                            for k, v in data.target_observations.items()
+                        )
+                    ):
+                        data = new_data
+                        failed_mutations = 0
+                    else:
+                        failed_mutations += 1
 
     def optimise_targets(self) -> None:
         """If any target observations have been made, attempt to optimise them
