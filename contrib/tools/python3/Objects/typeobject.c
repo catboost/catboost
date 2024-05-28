@@ -4140,6 +4140,11 @@ _PyType_FromMetaclass_impl(
                 tp_doc = NULL;
             }
             else {
+#if defined(__has_feature)
+#  if __has_feature(memory_sanitizer)
+                __msan_unpoison_string(slot->pfunc);
+#  endif
+#endif
                 size_t len = strlen(slot->pfunc)+1;
                 tp_doc = PyObject_Malloc(len);
                 if (tp_doc == NULL) {
@@ -4160,6 +4165,12 @@ _PyType_FromMetaclass_impl(
         goto finally;
     }
 
+
+#if defined(__has_feature)
+#  if __has_feature(memory_sanitizer)
+    __msan_unpoison_string(spec->name);
+#  endif
+#endif
     const char *s = strrchr(spec->name, '.');
     if (s == NULL) {
         s = spec->name;

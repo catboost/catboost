@@ -197,6 +197,11 @@ PyCapsule_Import(const char *name, int no_block)
     PyObject *object = NULL;
     void *return_value = NULL;
     char *trace;
+#if defined(__has_feature)
+#  if __has_feature(memory_sanitizer)
+    __msan_unpoison_string(name);
+#  endif
+#endif
     size_t name_length = (strlen(name) + 1) * sizeof(char);
     char *name_dup = (char *)PyMem_Malloc(name_length);
 

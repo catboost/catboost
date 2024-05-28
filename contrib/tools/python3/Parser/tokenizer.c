@@ -823,6 +823,11 @@ static char *
 translate_newlines(const char *s, int exec_input, int preserve_crlf,
                    struct tok_state *tok) {
     int skip_next_lf = 0;
+#if defined(__has_feature)
+#  if __has_feature(memory_sanitizer)
+    __msan_unpoison_string(s);
+#  endif
+#endif
     size_t needed_length = strlen(s) + 2, final_length;
     char *buf, *current;
     char c = '\0';
