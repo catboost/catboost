@@ -8,6 +8,8 @@ import pipes
 
 from process_whole_archive_option import ProcessWholeArchiveOption
 
+from fix_py2_protobuf import fix_py2
+
 
 def shlex_join(cmd):
     # equivalent to shlex.join() in python 3
@@ -225,6 +227,7 @@ if __name__ == '__main__':
 
     cmd = fix_blas_resolving(args)
     cmd = fix_cmd(opts.arch, cmd)
+    cmd = fix_py2(cmd)
 
     if opts.musl:
         cmd = fix_cmd_for_musl(cmd)

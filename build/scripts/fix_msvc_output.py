@@ -4,6 +4,8 @@ import sys
 import process_command_files as pcf
 import process_whole_archive_option as pwa
 
+from fix_py2_protobuf import fix_py2
+
 
 def out2err(cmd):
     return subprocess.Popen(cmd, stdout=sys.stderr).wait()
@@ -40,4 +42,6 @@ if __name__ == '__main__':
     if mode in ('cl', 'ml'):
         # First line of cl.exe and ml64.exe stdout is useless: it prints input file
         run = out2err_cut_first_line
+    if mode == 'link':
+        cmd = fix_py2(cmd, have_comand_files=True, prefix='', suffix='lib')
     sys.exit(run(cmd))
