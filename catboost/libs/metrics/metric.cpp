@@ -6220,6 +6220,7 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
             AppendTemporaryMetricsVector(TMAPKMetric::Create(config), &result);
             break;
         case ELossFunction::UserPerObjMetric:
+        case ELossFunction::PythonUserDefinedPerObject:
             AppendTemporaryMetricsVector(TUserDefinedPerObjectMetric::Create(config), &result);
             break;
         case ELossFunction::UserQuerywiseMetric:

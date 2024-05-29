@@ -11309,6 +11309,9 @@ def test_carry_model():
 
 
 def test_custom_gpu_eval_metric(task_type):
+    
+    if (task_type == 'GPU'):
+        from numba import cuda
 
     class LoglossMetric(object):
         def get_final_error(self, error, weight):
@@ -11318,9 +11321,6 @@ def test_custom_gpu_eval_metric(task_type):
             return False
 
         def evaluate(self, approxes, target, weight):
-            assert len(approxes) == 1
-            assert len(target) == len(approxes[0])
-
             approx = approxes[0]
 
             error_sum = 0.0
@@ -11334,6 +11334,22 @@ def test_custom_gpu_eval_metric(task_type):
                 error_sum += -w * (target[i] * np.log(p) + (1 - target[i]) * np.log(1 - p))
 
             return error_sum, weight_sum
+
+        def gpu_evaluate(self, approx, target, weight, output, output_weight):
+            print(1 / 0)
+            init_thread_idx = thread_idx = cuda.grid(1)
+            n = target.size
+                
+            output[init_thread_idx] = 0.0
+            output_weight[init_thread_idx] = 0.0
+            
+            while thread_idx < n:
+                e = math.exp(approx[thread_idx])
+                p = e / (1 + e)
+                w = 1.0 if weight is None else weight[thread_idx]
+                output[init_thread_idx] += -w * (target[thread_idx] * math.log(p) + (1 - target[thread_idx]) * math.log(1 - p))
+                output_weight[init_thread_idx] += weight[thread_idx]
+                thread_idx += cuda.gridsize(1)
 
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)

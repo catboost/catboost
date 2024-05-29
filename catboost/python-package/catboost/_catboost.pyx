@@ -138,6 +138,10 @@ custom_metric_methods_to_optimize = [
     'get_final_error'
 ]
 
+custom_gpu_metric_methods_to_optimize = [
+    'gpu_evaluate',
+]
+
 from catboost.private.libs.cython cimport *
 from catboost.libs.helpers.cython cimport *
 from catboost.libs.data.cython cimport *
@@ -631,6 +635,17 @@ cdef extern from "catboost/libs/metrics/metric.h":
             TConstArrayRef[float] weight,
             int begin, int end, void* customData) with gil
 
+        ctypedef void (*TGpuEvalFuncPtr)(
+            TConstArrayRef[float] approx,
+            TConstArrayRef[float] target,
+            TConstArrayRef[float] weight,
+            TConstArrayRef[float] result,
+            TConstArrayRef[float] resultWeight,
+            int begin,
+            int end,
+            void* customData,
+            void* cudaStream)  with gil
+
         ctypedef TMetricHolder (*TEvalMultiTargetFuncPtr)(
             TConstArrayRef[TConstArrayRef[double]] approx,
             TConstArrayRef[TConstArrayRef[float]] target,
@@ -638,6 +653,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
             int begin, int end, void* customData) with gil
 
         TMaybe[TEvalFuncPtr] EvalFunc
+        TMaybe[TGpuEvalFuncPtr] GpuEvalFunc
         TMaybe[TEvalMultiTargetFuncPtr] EvalMultiTargetFunc
 
         TString (*GetDescriptionFunc)(void *customData) except * with gil
@@ -1404,6 +1420,39 @@ cdef _ToPythonObjArrayOfArraysOfFloats(const TConstArrayRef[float]* values, int 
     # using tuple as in _ToPythonObjArrayOfArraysOfDoubles
     return tuple(_CreateNumpyFloatArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
 
+cdef _ToPythonObjArrayRefOnGpu(size_t size, uint64_t data):
+    from numba import cuda as numba_cuda
+    return numba_cuda.from_cuda_array_interface({
+        'shape' : size,
+        'typestr' : 'f4',
+        'data' : (data, True),
+        'version' : 2
+    })  
+
+cdef void _GpuMetricEval(
+    TConstArrayRef[float] approx,
+    TConstArrayRef[float] target,
+    TConstArrayRef[float] weight,
+    TConstArrayRef[float] result,
+    TConstArrayRef[float] resultWeight,
+    int begin,
+    int end,
+    void* customData,
+    void* cudaStream,
+    size_t blockSize,
+    size_t numBlocks
+) with gil:
+    from numba import cuda as numba_cuda
+    approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
+    target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
+    weight_gpu = _ToPythonObjArrayRefOnGpu(weight.size(), <uint64_t>weight.data())
+    result_gpu = _ToPythonObjArrayRefOnGpu(result.size(), <uint64_t>result.data())
+    result_weight_gpu = _ToPythonObjArrayRefOnGpu(resultWeight.size(), <uint64_t>resultWeight.data());
+    cuda_stream = numba_cuda.external_stream(<uint64_t>cudaStream)
+    metric_object = <object>customData
+
+    (<object>(metric_object.gpu_evaluate))[numBlocks, blockSize, cuda_stream](0, approx_gpu, target_gpu, weight_gpu, result_gpu, result_weight_gpu)
+
 cdef TMetricHolder _MetricEval(
     TConstArrayRef[TConstArrayRef[double]]& approx,
     TConstArrayRef[float] target,
@@ -1603,54 +1652,76 @@ def _is_self_unused_in_method(method):
 def _check_object_and_class_methods_match(object_method, class_method):
     return inspect.getsource(object_method) == inspect.getsource(class_method)
 
-def _try_jit_method(obj, method_name):
-    import numba
-
+def _jit_common_checks(obj, method_name):
+    
     object_method = getattr(obj, method_name, None)
     class_method = getattr(obj.__class__, method_name, None)
 
     if not object_method:
         warnings.warn("Can't find method \"{}\" in the passed object".format(method_name))
-        return
+        return False
     if not class_method:
         warnings.warn("Can't find method \"{}\" in the class of the passed object".format(method_name))
-        return
+        return False
     if type(object_method) != types.MethodType:
         warnings.warn("Got unexpected type for method \"{}\" in the passed object: {}".format(method_name, type(object_method)))
-        return
+        return False
     if not _check_object_and_class_methods_match(object_method, class_method):
         warnings.warn("Methods \"{}\" in the passed object and its class don't match".format(method_name))
-        return
+        return False
     if not _is_self_unused_in_method(object_method):
         warnings.warn("Can't optimze method \"{}\" because self argument is used".format(method_name))
+        return False
+
+    return True
+
+def _cpu_jit_method_wrap(optimizedMethod, objectMethod, methodName):
+
+    import numba
+    def new_method(*args):
+        if not new_method.initialized:
+            try:
+                value = optimizedMethod(0, *args)
+                return value
+            except numba.core.errors.NumbaError as err:
+                warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(methodName, err))
+                new_method.use_optimized = False
+                return objectMethod(*args)
+            finally:
+                new_method.initialized = True
+        elif new_method.use_optimized:
+            return optimizedMethod(0, *args)
+        else:
+            return objectMethod(*args)
+
+    setattr(new_method, "initialized", False)
+    setattr(new_method, "use_optimized", True)
+    return new_method
+
+def _try_jit_method(obj, method_name, isCuda=False):
+
+    import numba
+    if isCuda:
+        from numba import cuda as numba_cuda
+
+    if not _jit_common_checks(obj, method_name):
         return
 
+    object_method = getattr(obj, method_name, None)
+    class_method = getattr(obj.__class__, method_name, None)
+    optimizer = numba_cuda.jit if isCuda else numba.njit
+    
     try:
-        optimized = numba.njit(class_method)
+        optimized = optimizer(class_method)
     except numba.core.errors.NumbaError as err:
         warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(method_name, err))
         return
 
-    def new_method(*args):
-        if not new_method.initialized:
-            try:
-                value = optimized(0, *args)
-                return value
-            except numba.core.errors.NumbaError as err:
-                warnings.warn("Failed to optimize method \"{}\" in the passed object:\n{}".format(method_name, err))
-                new_method.use_optimized = False
-                return object_method(*args)
-            finally:
-                new_method.initialized = True
-        elif new_method.use_optimized:
-            return optimized(0, *args)
-        else:
-            return object_method(*args)
-    setattr(new_method, "initialized", False)
-    setattr(new_method, "use_optimized", True)
-    setattr(obj, method_name, new_method)
+    if not isCuda:
+        optimized = _cpu_jit_method_wrap(optimized, object_method, method_name)
+    setattr(obj, method_name, optimized)
 
-def _try_jit_methods(obj, method_names):
+def _try_jit_methods(obj, method_names, isCuda=False):
     if hasattr(obj, "no_jit"):
         return
 
@@ -1665,16 +1736,29 @@ def _try_jit_methods(obj, method_names):
         warnings.warn('Failed to import numba for optimizing custom metrics and objectives')
         return
 
+    if isCuda:
+        try:
+            from numba import cuda as numba_cuda
+        except:
+            warnings.warn('Failed to import numba.cuda for optimizing custom gpu metrics')
+
     for method_name in method_names:
         if hasattr(obj, method_name):
-            _try_jit_method(obj, method_name)
-
+            _try_jit_method(obj, method_name, isCuda)
 
 # customGenerator should have method rvs()
 cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(object customGenerator):
     cdef TCustomRandomDistributionGenerator descriptor
     descriptor.CustomData = <void*>customGenerator
     descriptor.EvalFunc = &_RandomDistGen
+    return descriptor
+
+cdef TCustomMetricDescriptor _BuildCustomGpuMetricDescriptor(object metricObject):
+    cdef TCustomMetricDescriptor descriptor
+    _try_jit_methods(metricObject, custom_gpu_metric_methods_to_optimize, isCuda=True)
+    descriptor.CustomData = <void*>metricObject
+    descriptor.GpuEvalFunc = &_GpuMetricEval
+    descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
@@ -1814,7 +1898,10 @@ cdef class _PreprocessParams:
                 params_to_json["loss_function"] = "PythonUserDefinedMultiTarget"
 
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
-            self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
+            if params.get("task_type") == "GPU" and hasattr(params['eval_metric'], custom_gpu_metric_methods_to_optimize[0]):
+                self.customMetricDescriptor = _BuildCustomGpuMetricDescriptor(params['eval_metric'])
+            else:
+                self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
             is_multitarget_metric = issubclass(params["eval_metric"].__class__, MultiTargetCustomMetric)
             if is_multitarget_objective(params_to_json["loss_function"]):
                 assert is_multitarget_metric, \
