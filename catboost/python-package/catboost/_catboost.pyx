@@ -24,7 +24,6 @@ import os
 import traceback
 import types
 
-
 import sys
 if sys.version_info >= (3, 3):
     from collections.abc import Iterable, Sequence
@@ -624,6 +623,7 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
         const TFullModel& model,
         size_t treeIdx
     ) nogil except +ProcessException
+
 
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:

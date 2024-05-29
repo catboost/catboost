@@ -7,7 +7,6 @@ namespace NJson {
 struct TCustomMetricDescriptor;
 struct TCustomObjectiveDescriptor;
 struct TCustomCallbackDescriptor;
-struct TCustomGpuMetricDescriptor;
 
 void CheckFitParams(const NJson::TJsonValue& plainOptions,
                     const TCustomObjectiveDescriptor* objectiveDescriptor = nullptr,
