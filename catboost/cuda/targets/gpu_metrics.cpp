@@ -522,30 +522,34 @@ namespace NCatboostCuda {
                            *localExecutor);
     }
 
-    TMetricHolder TGpuCustomMetric::Eval(const TStripeBuffer<const float>& target,
-                        const TStripeBuffer<const float>& weights,
-                        const TStripeBuffer<const float>& cursor,
-                        TScopedCacheHolder* cache,
-                        ui32 stream) const {
-                            return EvalImpl<TStripeMapping>(target, weights, cursor, cache, stream);
-                        }
+    TMetricHolder TGpuCustomMetric::Eval(
+        const TStripeBuffer<const float>& target,
+        const TStripeBuffer<const float>& weights,
+        const TStripeBuffer<const float>& cursor,
+        TScopedCacheHolder* cache,
+        ui32 stream
+    ) const {
+        return EvalImpl<TStripeMapping>(target, weights, cursor, cache, stream);
+    }
 
-    TMetricHolder TGpuCustomMetric::Eval(const TMirrorBuffer<const float>& target,
-                        const TMirrorBuffer<const float>& weights,
-                        const TMirrorBuffer<const float>& cursor,
-                        TScopedCacheHolder* cache,
-                        ui32 stream) const {
-                            return EvalImpl<TMirrorMapping>(target, weights, cursor, cache, stream);
-                        }
+    TMetricHolder TGpuCustomMetric::Eval(
+        const TMirrorBuffer<const float>& target,
+        const TMirrorBuffer<const float>& weights,
+        const TMirrorBuffer<const float>& cursor,
+        TScopedCacheHolder* cache,
+        ui32 stream
+    ) const {
+        return EvalImpl<TMirrorMapping>(target, weights, cursor, cache, stream);
+    }
 
     template<class TMapping>
     TMetricHolder TGpuCustomMetric::EvalImpl(
-                           const TCudaBuffer<const float, TMapping>& target,
-                           const TCudaBuffer<const float, TMapping>& weights,
-                           const TCudaBuffer<const float, TMapping>& cursor,
-                           TScopedCacheHolder* cache,
-                           ui32 stream) const{
-
+        const TCudaBuffer<const float, TMapping>& target,
+        const TCudaBuffer<const float, TMapping>& weights,
+        const TCudaBuffer<const float, TMapping>& cursor,
+        TScopedCacheHolder* cache,
+        ui32 stream
+    ) const {
         using TKernel = NKernelHost::TUserDefinedMetricKernel;
         using TVec = TCudaBuffer<float, TMapping>;
         Y_UNUSED(cache);
@@ -561,8 +565,7 @@ namespace NCatboostCuda {
         return MakeSimpleAdditiveStatistic(DotProduct(resultTmp, onesTmp), DotProduct(resultWeightsTmp, onesTmp));
     }
 
-    double TGpuCustomMetric::GetFinalError(TMetricHolder &&metricHolder) const
-    {
+    double TGpuCustomMetric::GetFinalError(TMetricHolder &&metricHolder) const {
         return (*(Descriptor.GetFinalErrorFunc))(metricHolder, Descriptor.CustomData);
     }
 
@@ -697,9 +700,12 @@ namespace NCatboostCuda {
                !metric->GetUseWeights().IsIgnored();
     }
 
-    TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
-                                                  ui32 cpuApproxDim, bool hasWeights,
-                                                  const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
+    TVector<THolder<IGpuMetric>> CreateGpuMetrics(
+        const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
+        ui32 cpuApproxDim,
+        bool hasWeights,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+    ) {
         CB_ENSURE(metricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
         const NCatboostOptions::TLossDescription& objectiveMetricDescription = metricOptions->ObjectiveMetric.Get();
         const bool haveEvalMetricFromUser = metricOptions->EvalMetric.IsSet();

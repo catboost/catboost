@@ -24,7 +24,6 @@ import os
 import traceback
 import types
 
-
 import sys
 if sys.version_info >= (3, 3):
     from collections.abc import Iterable, Sequence
@@ -625,6 +624,7 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
         size_t treeIdx
     ) nogil except +ProcessException
 
+
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
         void* CustomData
@@ -637,15 +637,14 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
         ctypedef void (*TGpuEvalFuncPtr)(
             TConstArrayRef[float] approx,
-            TConstArrayRef[float]  target,
-            TConstArrayRef[float]  weight,
-            TConstArrayRef[float]  result,
-            TConstArrayRef[float]  resultWeight,
+            TConstArrayRef[float] target,
+            TConstArrayRef[float] weight,
+            TConstArrayRef[float] result,
+            TConstArrayRef[float] resultWeight,
             int begin,
             int end,
             void* customData,
             void* cudaStream)  with gil
-
 
         ctypedef TMetricHolder (*TEvalMultiTargetFuncPtr)(
             TConstArrayRef[TConstArrayRef[double]] approx,
