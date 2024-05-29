@@ -238,140 +238,140 @@ jobs:
         with:
           name: catboost-cli-linux-x86_64-${{ inputs.arfifacts_version }}
           path: build_native_root/have_cuda/linux-x86_64/catboost/app/catboost
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-cli-linux-aarch64-${{ inputs.arfifacts_version }}
           path: build_native_root/have_cuda/linux-aarch64/catboost/app/catboost
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-python-package-dist-linux-${{ inputs.arfifacts_version }}
           path: catboost/python-package/dist/*.whl
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-python-package-dist-src-${{ inputs.arfifacts_version }}
           path: catboost/python-package/dist/*.tar.gz
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-R-package-linux-x86_64-${{ inputs.arfifacts_version }}
           path: catboost/R-package/catboost-R-linux-x86_64.tgz
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-R-package-linux-aarch64-${{ inputs.arfifacts_version }}
           path: catboost/R-package/catboost-R-linux-aarch64.tgz
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-model-interface-linux-x86_64-${{ inputs.arfifacts_version }}
           path: build_native_root/have_cuda/linux-x86_64/catboost/libs/model_interface/libcatboostmodel.*
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-model-interface-linux-aarch64-${{ inputs.arfifacts_version }}
           path: build_native_root/have_cuda/linux-aarch64/catboost/libs/model_interface/libcatboostmodel.*
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources_classes-${{ inputs.arfifacts_version }}
           path: catboost/spark/catboost4j-spark/core/src/main/resources/ru
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources-linux-${{ inputs.arfifacts_version }}
           path: catboost/spark/catboost4j-spark/core/src/main/resources/linux*
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-prediction_resources-linux-${{ inputs.arfifacts_version }}
           path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-cli-darwin-universal2-${{ inputs.arfifacts_version }}
           path: build_native_root/no_cuda/darwin-universal2/catboost/app/catboost
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-python-package-dist-darwin-${{ inputs.arfifacts_version }}
           path: catboost/python-package/dist/*.whl
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-R-package-darwin-universal2-${{ inputs.arfifacts_version }}
           path: catboost/R-package/catboost-R-darwin-universal2.tgz
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-model-interface-darwin-universal2-${{ inputs.arfifacts_version }}
           path: build_native_root/no_cuda/darwin-universal2/catboost/libs/model_interface/libcatboostmodel.*
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources-darwin-${{ inputs.arfifacts_version }}
           path: catboost/spark/catboost4j-spark/core/src/main/resources/darwin*
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-prediction_resources-darwin-${{ inputs.arfifacts_version }}
           path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-cli-windows-x86_64-${{ inputs.arfifacts_version }}
           path: build_native_root/have_cuda/windows-x86_64/catboost/app/catboost.exe
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-python-package-dist-windows-${{ inputs.arfifacts_version }}
           path: catboost/python-package/dist/*.whl
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-R-package-windows-x86_64-${{ inputs.arfifacts_version }}
           path: catboost/R-package/catboost-R-windows-x86_64.tgz
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
@@ -380,18 +380,18 @@ jobs:
           path: |
             build_native_root/have_cuda/windows-x86_64/catboost/libs/model_interface/catboostmodel.dll
             build_native_root/have_cuda/windows-x86_64/catboost/libs/model_interface/catboostmodel.lib
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources-windows-${{ inputs.arfifacts_version }}
           path: catboost/spark/catboost4j-spark/core/src/main/resources/win*
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-prediction_resources-windows-${{ inputs.arfifacts_version }}
           path: catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
-          retention-days: inputs.artifact_retention_days
+          retention-days: ${{ inputs.artifact_retention_days }}
