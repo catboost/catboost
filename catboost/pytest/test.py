@@ -2350,6 +2350,27 @@ def test_text_ignored_features(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+def test_ignore_text_feature():
+    cd_path = data_file('rotten_tomatoes_small_with_embeddings', 'cd_binclass')
+    train_path = data_file('rotten_tomatoes_small_with_embeddings', 'train')
+    output_path = yatest.common.test_output_path('output.txt')
+
+    cmd_fit = ('--loss-function', 'Logloss',
+               '--cd', cd_path,
+               '-f', train_path,
+               '-i', '5',
+               '-T', '1',
+               '--learn-err-log', output_path,
+               '-I', '7',
+               )
+
+    execute_catboost_fit('CPU', cmd_fit)
+
+    return [
+        local_canonical_file(output_path),
+    ]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_embedding_ignored_features(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')

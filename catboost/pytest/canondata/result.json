@@ -4965,6 +4965,11 @@
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
         }
     ],
+    "test.test_ignore_text_feature": [
+        {
+            "uri": "file://test.test_ignore_text_feature/output.txt"
+        }
+    ],
     "test.test_ignored_features[Ordered]": [
         {
             "uri": "file://test.test_ignored_features_Ordered_/test.eval"

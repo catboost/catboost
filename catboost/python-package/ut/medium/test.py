@@ -3736,7 +3736,7 @@ def test_cv_with_text(problem_type):
 
     preds_path = test_output_path(CV_CSV_PATH)
     result.to_csv(preds_path)
-    return local_canonical_file(preds_path, diff_tool=get_limited_precision_json_diff_tool(1.e-6))
+    return local_canonical_file(preds_path)
 
 
 def test_cv_with_save_snapshot(task_type):

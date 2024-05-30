@@ -283,10 +283,8 @@ namespace NCB {
             TMaybeOwningConstArrayHolder<TText> constTextData
                 = TMaybeOwningConstArrayHolder<TText>::CreateOwning(*textData, textData.GetResourceHolder());
             return MakeIntrusive<TTextDataSet>(std::move(constTextData), dictionary);
-        } else {
-            CB_ENSURE_INTERNAL(false, "CreateTextDataSet: unsupported column type");
         }
-        Y_UNREACHABLE();
+        CB_ENSURE_INTERNAL(false, "CreateTextDataSet: unsupported column type");
     }
 
     static TEmbeddingDataSetPtr CreateEmbeddingDataSet(
@@ -346,12 +344,11 @@ namespace NCB {
 
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
 
-        const ui32 sourceTextsCount = learnDataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers().GetSourceTextsCount();
         bool needLearnTarget = false;
-        pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
+        quantizedFeaturesInfo->GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Text>(
             [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
                 const ui32 tokenizedFeatureIdx = tokenizedTextFeatureIdx.Idx;
-                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount];
+                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx];
                 needLearnTarget = needLearnTarget || HasOnlineEstimators(featureDescription.FeatureEstimators.Get());
             }
         );
@@ -367,6 +364,7 @@ namespace NCB {
 
         if (quantizedFeaturesInfo->GetFeaturesLayout()->GetTextFeatureCount()) {
 
+            const ui32 sourceTextsCount = quantizedFeaturesInfo->GetFeaturesLayout()->GetTextFeatureCount();
             pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
                 [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
 
