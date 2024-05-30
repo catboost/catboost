@@ -11336,7 +11336,7 @@ def test_custom_gpu_eval_metric(task_type):
             return error_sum, weight_sum
 
         def gpu_evaluate(self, approx, target, weight, output, output_weight):
-            print(1 / 0)
+
             init_thread_idx = thread_idx = cuda.grid(1)
             n = target.size
                 
