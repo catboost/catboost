@@ -12,7 +12,7 @@ from collections import defaultdict
 from random import Random
 from typing import Callable, Dict, Iterable, List, Optional, Sequence
 
-from hypothesis.internal.conjecture.junkdrawer import LazySequenceCopy, pop_random
+from hypothesis.internal.conjecture.junkdrawer import LazySequenceCopy
 
 
 def prefix_selection_order(
@@ -41,7 +41,8 @@ def random_selection_order(random: Random) -> Callable[[int, int], Iterable[int]
     def selection_order(depth: int, n: int) -> Iterable[int]:
         pending = LazySequenceCopy(range(n))
         while pending:
-            yield pop_random(random, pending)
+            i = random.randrange(0, len(pending))
+            yield pending.pop(i)
 
     return selection_order
 

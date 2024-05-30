@@ -287,12 +287,8 @@ class UniqueSampledListStrategy(UniqueListStrategy):
         remaining = LazySequenceCopy(self.element_strategy.elements)
 
         while remaining and should_draw.more():
-            i = len(remaining) - 1
-            j = data.draw_integer(0, i)
-            if j != i:
-                remaining[i], remaining[j] = remaining[j], remaining[i]
-            value = self.element_strategy._transform(remaining.pop())
-
+            j = data.draw_integer(0, len(remaining) - 1)
+            value = self.element_strategy._transform(remaining.pop(j))
             if value is not filter_not_satisfied and all(
                 key(value) not in seen for key, seen in zip(self.keys, seen_sets)
             ):

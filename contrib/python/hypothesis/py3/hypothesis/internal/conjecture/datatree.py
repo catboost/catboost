@@ -755,7 +755,14 @@ class DataTree:
                     attempts = 0
                     while True:
                         if attempts <= 10:
-                            (v, buf) = self._draw(ir_type, kwargs, random=random)
+                            try:
+                                (v, buf) = self._draw(ir_type, kwargs, random=random)
+                            except StopTest:  # pragma: no cover
+                                # it is possible that drawing from a fresh data can
+                                # overrun BUFFER_SIZE, due to eg unlucky rejection sampling
+                                # of integer probes. Retry these cases.
+                                attempts += 1
+                                continue
                         else:
                             (v, buf) = self._draw_from_cache(
                                 ir_type, kwargs, key=id(current_node), random=random
@@ -781,9 +788,13 @@ class DataTree:
                 attempts = 0
                 while True:
                     if attempts <= 10:
-                        (v, buf) = self._draw(
-                            branch.ir_type, branch.kwargs, random=random
-                        )
+                        try:
+                            (v, buf) = self._draw(
+                                branch.ir_type, branch.kwargs, random=random
+                            )
+                        except StopTest:  # pragma: no cover
+                            attempts += 1
+                            continue
                     else:
                         (v, buf) = self._draw_from_cache(
                             branch.ir_type, branch.kwargs, key=id(branch), random=random
