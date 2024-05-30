@@ -11418,13 +11418,13 @@ def test_eval_metric_correct_selection(task_type, add_evaluate, add_gpu_evaluate
         
     class EvaluationMetricMockEval(EvaluationMetricMockBase):
         
-        # The evaluation metric at each step should be 1.0, if this is called
+        # The evaluation metric at each step should be 2.0, if this is called
         def evaluate(self, approxes, target, weight):
             return 2.0, 1.0
 
     class EvaluationMetricMockGpuEval(EvaluationMetricMockBase):
         
-        # The evaluation metric at each step should be 2.0, if this is called
+        # The evaluation metric at each step should be 3.0, if this is called
         def gpu_evaluate(self, approx, target, weight, output, output_weight):
             init_thread_idx = cuda.grid(1)                
             output[init_thread_idx] = 3.0
