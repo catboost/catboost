@@ -30,7 +30,6 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
-  /D__SSSE3__=1
 )
 
 set_property(
@@ -39,6 +38,5 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
-  /D__SSSE3__=1
 )
 

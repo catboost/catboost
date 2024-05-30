@@ -46,6 +46,5 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
-  -fno-lto
 )
 

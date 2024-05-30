@@ -30,8 +30,6 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
-  -march=armv8-a
-  -std=c11
 )
 
 set_property(
@@ -40,7 +38,5 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
-  -march=armv8-a
-  -std=c11
 )
 

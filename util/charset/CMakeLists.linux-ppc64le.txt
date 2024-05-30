@@ -31,7 +31,6 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
-  -DSSE41_STUB
 )
 
 target_joined_source(util-charset
