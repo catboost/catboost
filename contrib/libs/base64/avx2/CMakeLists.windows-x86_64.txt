@@ -30,6 +30,7 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
+  -mavx2
 )
 
 set_property(
@@ -38,5 +39,6 @@ set_property(
   APPEND
   PROPERTY
   COMPILE_OPTIONS
+  -mavx2
 )
 
