@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+#include "re2/set.h"
+
 #include <stddef.h>
-#include <string>
-#include <vector>
+
 #include <utility>
+#include <vector>
 
 #include "gtest/gtest.h"
-#include "util/logging.h"
 #include "re2/re2.h"
-#include "re2/set.h"
 
 namespace re2 {
 

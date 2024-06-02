@@ -50,10 +50,10 @@
 // supplied pattern exactly.
 //
 // Example: successful match
-//    CHECK(RE2::FullMatch("hello", "h.*o"));
+//    ABSL_CHECK(RE2::FullMatch("hello", "h.*o"));
 //
 // Example: unsuccessful match (requires full match):
-//    CHECK(!RE2::FullMatch("hello", "e"));
+//    ABSL_CHECK(!RE2::FullMatch("hello", "e"));
 //
 // -----------------------------------------------------------------------
 // UTF-8 AND THE MATCHING INTERFACE:
@@ -62,8 +62,9 @@
 // The RE2::Latin1 option causes them to be interpreted as Latin-1.
 //
 // Example:
-//    CHECK(RE2::FullMatch(utf8_string, RE2(utf8_pattern)));
-//    CHECK(RE2::FullMatch(latin1_string, RE2(latin1_pattern, RE2::Latin1)));
+//    ABSL_CHECK(RE2::FullMatch(utf8_string, RE2(utf8_pattern)));
+//    ABSL_CHECK(RE2::FullMatch(latin1_string, RE2(latin1_pattern,
+//                                                 RE2::Latin1)));
 //
 // -----------------------------------------------------------------------
 // SUBMATCH EXTRACTION:
@@ -83,27 +84,27 @@
 // Example: extracts "ruby" into "s" and 1234 into "i"
 //    int i;
 //    std::string s;
-//    CHECK(RE2::FullMatch("ruby:1234", "(\\w+):(\\d+)", &s, &i));
+//    ABSL_CHECK(RE2::FullMatch("ruby:1234", "(\\w+):(\\d+)", &s, &i));
 //
 // Example: extracts "ruby" into "s" and no value into "i"
 //    absl::optional<int> i;
 //    std::string s;
-//    CHECK(RE2::FullMatch("ruby", "(\\w+)(?::(\\d+))?", &s, &i));
+//    ABSL_CHECK(RE2::FullMatch("ruby", "(\\w+)(?::(\\d+))?", &s, &i));
 //
 // Example: fails because string cannot be stored in integer
-//    CHECK(!RE2::FullMatch("ruby", "(.*)", &i));
+//    ABSL_CHECK(!RE2::FullMatch("ruby", "(.*)", &i));
 //
 // Example: fails because there aren't enough sub-patterns
-//    CHECK(!RE2::FullMatch("ruby:1234", "\\w+:\\d+", &s));
+//    ABSL_CHECK(!RE2::FullMatch("ruby:1234", "\\w+:\\d+", &s));
 //
 // Example: does not try to extract any extra sub-patterns
-//    CHECK(RE2::FullMatch("ruby:1234", "(\\w+):(\\d+)", &s));
+//    ABSL_CHECK(RE2::FullMatch("ruby:1234", "(\\w+):(\\d+)", &s));
 //
 // Example: does not try to extract into NULL
-//    CHECK(RE2::FullMatch("ruby:1234", "(\\w+):(\\d+)", NULL, &i));
+//    ABSL_CHECK(RE2::FullMatch("ruby:1234", "(\\w+):(\\d+)", NULL, &i));
 //
 // Example: integer overflow causes failure
-//    CHECK(!RE2::FullMatch("ruby:1234567891234", "\\w+:(\\d+)", &i));
+//    ABSL_CHECK(!RE2::FullMatch("ruby:1234567891234", "\\w+:(\\d+)", &i));
 //
 // NOTE(rsc): Asking for submatches slows successful matches quite a bit.
 // This may get a little faster in the future, but right now is slower
@@ -117,12 +118,12 @@
 // to match any substring of the text.
 //
 // Example: simple search for a string:
-//      CHECK(RE2::PartialMatch("hello", "ell"));
+//      ABSL_CHECK(RE2::PartialMatch("hello", "ell"));
 //
 // Example: find first number in a string
 //      int number;
-//      CHECK(RE2::PartialMatch("x*100 + 20", "(\\d+)", &number));
-//      CHECK_EQ(number, 100);
+//      ABSL_CHECK(RE2::PartialMatch("x*100 + 20", "(\\d+)", &number));
+//      ABSL_CHECK_EQ(number, 100);
 //
 // -----------------------------------------------------------------------
 // PRE-COMPILED REGULAR EXPRESSIONS
@@ -203,12 +204,13 @@
 //
 // Example:
 //   int a, b, c, d;
-//   CHECK(RE2::FullMatch("100 40 0100 0x40", "(.*) (.*) (.*) (.*)",
+//   ABSL_CHECK(RE2::FullMatch("100 40 0100 0x40", "(.*) (.*) (.*) (.*)",
 //         RE2::Octal(&a), RE2::Hex(&b), RE2::CRadix(&c), RE2::CRadix(&d));
 // will leave 64 in a, b, c, and d.
 
 #include <stddef.h>
 #include <stdint.h>
+
 #include <algorithm>
 #include <map>
 #include <string>
@@ -216,14 +218,14 @@
 #include <vector>
 #include <util/generic/string.h>
 
-#if defined(__APPLE__)
-#include <TargetConditionals.h>
-#endif
-
 #include "absl/base/call_once.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
 #include "re2/stringpiece.h"
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
 
 namespace re2 {
 class Prog;
@@ -472,7 +474,7 @@ class RE2 {
   // text.  E.g.,
   //
   //   std::string s = "yabba dabba doo";
-  //   CHECK(RE2::Replace(&s, "b+", "d"));
+  //   ABSL_CHECK(RE2::Replace(&s, "b+", "d"));
   //
   // will leave "s" containing "yada dabba doo"
   //
@@ -494,7 +496,7 @@ class RE2 {
   // of the pattern in the string with the rewrite. E.g.
   //
   //   std::string s = "yabba dabba doo";
-  //   CHECK(RE2::GlobalReplace(&s, "b+", "d"));
+  //   ABSL_CHECK(RE2::GlobalReplace(&s, "b+", "d"));
   //
   // will leave "s" containing "yada dada doo"
   // Replacements are not subject to re-matching.
@@ -936,14 +938,12 @@ class RE2::Arg {
       re2_internal::Parse4ary<T>::value,
       int>::type;
 
-#if !defined(_MSC_VER)
   template <typename T>
   using CanParseFrom = typename std::enable_if<
       std::is_member_function_pointer<
           decltype(static_cast<bool (T::*)(const char*, size_t)>(
               &T::ParseFrom))>::value,
       int>::type;
-#endif
 
  public:
   Arg() : Arg(nullptr) {}
@@ -955,10 +955,8 @@ class RE2::Arg {
   template <typename T, CanParse4ary<T> = 0>
   Arg(T* ptr) : arg_(ptr), parser_(DoParse4ary<T>) {}
 
-#if !defined(_MSC_VER)
   template <typename T, CanParseFrom<T> = 0>
   Arg(T* ptr) : arg_(ptr), parser_(DoParseFrom<T>) {}
-#endif
 
   typedef bool (*Parser)(const char* str, size_t n, void* dest);
 
@@ -984,13 +982,11 @@ class RE2::Arg {
     return re2_internal::Parse(str, n, reinterpret_cast<T*>(dest), 10);
   }
 
-#if !defined(_MSC_VER)
   template <typename T>
   static bool DoParseFrom(const char* str, size_t n, void* dest) {
     if (dest == NULL) return true;
     return reinterpret_cast<T*>(dest)->ParseFrom(str, n);
   }
-#endif
 
   void*         arg_;
   Parser        parser_;

@@ -4,14 +4,15 @@
 
 // Test parse.cc, dump.cc, and tostring.cc.
 
+#include "re2/regexp.h"
+
 #include <stddef.h>
+
 #include <map>
 #include <string>
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "util/logging.h"
-#include "re2/regexp.h"
 
 namespace re2 {
 

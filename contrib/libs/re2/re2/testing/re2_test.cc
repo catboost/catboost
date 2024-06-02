@@ -5,25 +5,29 @@
 
 // TODO: Test extractions for PartialMatch/Consume
 
+#include "re2/re2.h"
+
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
-#if !defined(_MSC_VER) && !defined(__CYGWIN__) && !defined(__MINGW32__)
-#include <sys/mman.h>
-#include <unistd.h>  /* for sysconf */
-#endif
 
 #include "absl/base/macros.h"
+#include "absl/log/absl_log.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "gtest/gtest.h"
-#include "util/logging.h"
-#include "re2/re2.h"
 #include "re2/regexp.h"
+
+#if !defined(_MSC_VER) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+#include <sys/mman.h>
+#include <unistd.h>
+#endif
 
 namespace re2 {
 
@@ -773,7 +777,7 @@ TEST(RE2, NULTerminated) {
   v = static_cast<char*>(mmap(NULL, 2*pagesize, PROT_READ|PROT_WRITE,
                               MAP_ANONYMOUS|MAP_PRIVATE, -1, 0));
   ASSERT_TRUE(v != reinterpret_cast<char*>(-1));
-  LOG(INFO) << "Memory at " << (void*)v;
+  ABSL_LOG(INFO) << "Memory at " << reinterpret_cast<void*>(v);
   ASSERT_EQ(munmap(v + pagesize, pagesize), 0) << " error " << errno;
   v[pagesize - 1] = '1';
 
@@ -1562,7 +1566,7 @@ TEST(RE2, Bug18391750) {
 
 TEST(RE2, Bug18458852) {
   // Bug in parser accepting invalid (too large) rune,
-  // causing compiler to fail in DCHECK in UTF-8
+  // causing compiler to fail in ABSL_DCHECK() in UTF-8
   // character class code.
   const char b[] = {
       (char)0x28, (char)0x05, (char)0x05, (char)0x41, (char)0x41, (char)0x28,
@@ -1598,7 +1602,7 @@ TEST(RE2, Bug18523943) {
 
 TEST(RE2, Bug21371806) {
   // Bug in parser accepting Unicode groups in Latin-1 mode,
-  // causing compiler to fail in DCHECK in prog.cc.
+  // causing compiler to fail in ABSL_DCHECK() in prog.cc.
 
   RE2::Options opt;
   opt.set_encoding(RE2::Options::EncodingLatin1);

@@ -34,6 +34,7 @@ target_link_libraries(contrib-libs-re2 PUBLIC
   abseil-cpp-absl-base
   abseil-cpp-absl-container
   abseil-cpp-absl-hash
+  abseil-cpp-absl-log
   abseil-cpp-absl-strings
   abseil-cpp-absl-synchronization
   cpp-sanitizer-include

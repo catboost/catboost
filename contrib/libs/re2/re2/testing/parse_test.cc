@@ -4,11 +4,13 @@
 
 // Test parse.cc, dump.cc, and tostring.cc.
 
+#include <stddef.h>
+
 #include <string>
 
 #include "absl/base/macros.h"
+#include "absl/log/absl_log.h"
 #include "gtest/gtest.h"
-#include "util/logging.h"
 #include "re2/regexp.h"
 
 namespace re2 {
@@ -520,7 +522,7 @@ TEST(TestToString, EquivalentParse) {
       std::string ss = nre->Dump();
       std::string tt = nre->ToString();
       if (s != ss || t != tt)
-        LOG(INFO) << "ToString(" << tests[i].regexp << ") = " << t;
+        ABSL_LOG(INFO) << "ToString(" << tests[i].regexp << ") = " << t;
       EXPECT_EQ(s, ss);
       EXPECT_EQ(t, tt);
       nre->Decref();

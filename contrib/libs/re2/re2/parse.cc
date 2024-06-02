@@ -16,24 +16,25 @@
 // and recognizes the Perl escape sequences \d, \s, \w, \D, \S, and \W.
 // See regexp.h for rationale.
 
-#include <ctype.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+
 #include <algorithm>
-#include <map>
 #include <string>
 #include <vector>
 
+#include "absl/base/attributes.h"
 #include "absl/base/macros.h"
+#include "absl/log/absl_log.h"
 #include "absl/strings/ascii.h"
-#include "util/logging.h"
-#include "util/utf.h"
+#include "absl/strings/string_view.h"
 #include "re2/pod_array.h"
 #include "re2/regexp.h"
 #include "re2/unicode_casefold.h"
 #include "re2/unicode_groups.h"
 #include "re2/walker-inl.h"
+#include "util/utf.h"
 
 #if defined(RE2_USE_ICU)
 #error #include "unicode/uniset.h"
@@ -360,7 +361,7 @@ static void AddFoldedRange(CharClassBuilder* cc, Rune lo, Rune hi, int depth) {
   // current Unicode tables.  make_unicode_casefold.py checks that
   // the cycles are not too long, and we double-check here using depth.
   if (depth > 10) {
-    LOG(DFATAL) << "AddFoldedRange recurses too much.";
+    ABSL_LOG(DFATAL) << "AddFoldedRange recurses too much.";
     return;
   }
 
@@ -579,7 +580,7 @@ int RepetitionWalker::PostVisit(Regexp* re, int parent_arg, int pre_arg,
 int RepetitionWalker::ShortVisit(Regexp* re, int parent_arg) {
   // Should never be called: we use Walk(), not WalkExponential().
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-  LOG(DFATAL) << "RepetitionWalker::ShortVisit called";
+  ABSL_LOG(DFATAL) << "RepetitionWalker::ShortVisit called";
 #endif
   return 0;
 }
@@ -867,7 +868,7 @@ void Regexp::RemoveLeadingString(Regexp* re, int n) {
         case 0:
         case 1:
           // Impossible.
-          LOG(DFATAL) << "Concat of " << re->nsub();
+          ABSL_LOG(DFATAL) << "Concat of " << re->nsub();
           re->submany_ = NULL;
           re->op_ = kRegexpEmptyMatch;
           break;
@@ -997,7 +998,7 @@ int Regexp::FactorAlternation(Regexp** sub, int nsub, ParseFlags flags) {
             i += iter->nsub;
             break;
           default:
-            LOG(DFATAL) << "unknown round: " << round;
+            ABSL_LOG(DFATAL) << "unknown round: " << round;
             break;
         }
         // If we are done, copy until the end of sub.
@@ -1036,7 +1037,7 @@ int Regexp::FactorAlternation(Regexp** sub, int nsub, ParseFlags flags) {
           continue;
         }
       default:
-        LOG(DFATAL) << "unknown round: " << round;
+        ABSL_LOG(DFATAL) << "unknown round: " << round;
         break;
     }
 
@@ -1213,8 +1214,8 @@ void FactorAlternationImpl::Round3(Regexp** sub, int nsub,
             ccb.AddRangeFlags(re->rune(), re->rune(), re->parse_flags());
           }
         } else {
-          LOG(DFATAL) << "RE2: unexpected op: " << re->op() << " "
-                      << re->ToString();
+          ABSL_LOG(DFATAL) << "RE2: unexpected op: " << re->op() << " "
+                           << re->ToString();
         }
         re->Decref();
       }
@@ -1475,7 +1476,7 @@ static int UnHex(int c) {
     return c - 'A' + 10;
   if ('a' <= c && c <= 'f')
     return c - 'a' + 10;
-  LOG(DFATAL) << "Bad hex digit " << c;
+  ABSL_LOG(DFATAL) << "Bad hex digit " << c;
   return 0;
 }
 
@@ -2095,7 +2096,7 @@ bool Regexp::ParseState::ParsePerlFlags(absl::string_view* s) {
   // Caller is supposed to check this.
   if (!(flags_ & PerlX) || t.size() < 2 || t[0] != '(' || t[1] != '?') {
     status_->set_code(kRegexpInternalError);
-    LOG(DFATAL) << "Bad call to ParseState::ParsePerlFlags";
+    ABSL_LOG(DFATAL) << "Bad call to ParseState::ParsePerlFlags";
     return false;
   }
 
