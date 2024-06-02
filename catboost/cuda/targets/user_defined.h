@@ -3,6 +3,7 @@
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
+#include <catboost/cuda/cuda_util/kernel/fill.cuh>
 
 namespace NKernelHost {
 
@@ -57,7 +58,7 @@ namespace NKernelHost {
             auto der2_results_ptr = TConstArrayRef<float>(Der2Results.Get(), Der2Results.ObjectCount());
             size_t totalObjects = Targets.ObjectCount();
             size_t NumBlocks = (totalObjects + BlockSize - 1) / BlockSize;
-            (*(Descriptor.GpuCalcDersRange))(predictions_ptr, target_ptr, weights_ptr, der1_results_ptr, der2_results_ptr, totalObjects, 0, stream.GetStream(), BlockSize, NumBlocks);
+            (*(Descriptor.GpuCalcDersRange))(predictions_ptr, target_ptr, weights_ptr, val_results_ptr, der1_results_ptr, der2_results_ptr, totalObjects, Descriptor.CustomData, stream.GetStream(), BlockSize, NumBlocks);
         }
 
     };

@@ -22,6 +22,7 @@ struct TCustomObjectiveDescriptor {
         TConstArrayRef<float> approx,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
+        TConstArrayRef<float> value,
         TConstArrayRef<float> der1Result,
         TConstArrayRef<float> der2Result,
         size_t length,

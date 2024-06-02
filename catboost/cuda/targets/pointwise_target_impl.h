@@ -48,6 +48,7 @@ namespace NCatboostCuda {
             , Alpha(target.GetAlpha())
             , Border(target.GetBorder())
             , MetricName(target.ScoreMetricName())
+            , ObjectiveDescriptor(target.GetObjectiveDescriptor())
         {
         }
 
@@ -57,6 +58,7 @@ namespace NCatboostCuda {
             , Alpha(target.GetAlpha())
             , Border(target.GetBorder())
             , MetricName(target.ScoreMetricName())
+            , ObjectiveDescriptor(target.GetObjectiveDescriptor())
         {
         }
 
@@ -69,6 +71,7 @@ namespace NCatboostCuda {
             , Alpha(basedOn.GetAlpha())
             , Border(basedOn.GetBorder())
             , MetricName(basedOn.ScoreMetricName())
+            , ObjectiveDescriptor(basedOn.GetObjectiveDescriptor())
         {
         }
 
@@ -78,6 +81,7 @@ namespace NCatboostCuda {
             , Alpha(other.GetAlpha())
             , Border(other.GetBorder())
             , MetricName(other.ScoreMetricName())
+            , ObjectiveDescriptor(other.GetObjectiveDescriptor())
         {
         }
 
@@ -252,6 +256,10 @@ namespace NCatboostCuda {
             return 1;
         }
 
+        TMaybe<TCustomObjectiveDescriptor> GetObjectiveDescriptor() const {
+            return ObjectiveDescriptor;
+        }
+
     private:
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             Type = targetOptions.GetLossFunction();
@@ -358,11 +366,11 @@ namespace NCatboostCuda {
 
     private:
         ELossFunction Type = ELossFunction::PythonUserDefinedPerObject;
-        TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor = {};
         double Alpha = 0;
         double Border = 0;
         double VariancePower = 1.5;
         TString MetricName;
+        TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor = {};
     };
 
 }

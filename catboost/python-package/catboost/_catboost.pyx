@@ -678,6 +678,7 @@ cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor
             TConstArrayRef[float] approx,
             TConstArrayRef[float] target,
             TConstArrayRef[float] weight,
+            TConstArrayRef[float] values,
             TConstArrayRef[float] der1Result,
             TConstArrayRef[float] der2Result,
             size_t length,
@@ -1453,6 +1454,7 @@ cdef void _GpuObjectiveCalcDersRange(
     TConstArrayRef[float] approx,
     TConstArrayRef[float] target,
     TConstArrayRef[float] weight,
+    TConstArrayRef[float] value,
     TConstArrayRef[float] der1Result,
     TConstArrayRef[float] der2Result,
     size_t length,
@@ -1465,12 +1467,16 @@ cdef void _GpuObjectiveCalcDersRange(
     approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
     target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
     weight_gpu = _ToPythonObjArrayRefOnGpu(weight.size(), <uint64_t>weight.data())
+    value_gpu = _ToPythonObjArrayRefOnGpu(value.size(), <uint64_t>value.data())
     der1Result_gpu = _ToPythonObjArrayRefOnGpu(der1Result.size(), <uint64_t>der1Result.data())
     der2Result_gpu = _ToPythonObjArrayRefOnGpu(der2Result.size(), <uint64_t>der2Result.data())
     cuda_stream = numba_cuda.external_stream(<uint64_t>cudaStream)
     metric_object = <object> customData
 
-    (<object>(metric_object.calc_ders_range_gpu))[numBlocks, blockSize, cuda_stream](0, approx_gpu, target_gpu, weight_gpu, der1Result_gpu, der2Result_gpu)
+    if len(value_gpu):
+        value_gpu[0] = 0.0
+
+    (<object>(metric_object.calc_ders_range_gpu))[numBlocks, blockSize, cuda_stream](0, approx_gpu, target_gpu, weight_gpu, value_gpu, der1Result_gpu, der2Result_gpu)
 
 cdef void _GpuMetricEval(
     TConstArrayRef[float] approx,
