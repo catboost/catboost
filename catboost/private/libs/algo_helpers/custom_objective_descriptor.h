@@ -18,6 +18,18 @@ struct TCustomObjectiveDescriptor {
         TDers* ders,
         void* customData);
 
+    using TGpuCaclDersRangePtr = void(*)(
+        TConstArrayRef<float> approx,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<float> der1Result,
+        TConstArrayRef<float> der2Result,
+        size_t length,
+        void* customData,
+        void* cudaStream,
+        size_t blockSize,
+        size_t numBlocks);
+
     using TCalcDersMultiClassPtr = void (*)(
         const TVector<double>& approx,
         float target,
@@ -36,6 +48,7 @@ struct TCustomObjectiveDescriptor {
 
 public:
     void* CustomData = nullptr;
+    TGpuCaclDersRangePtr GpuCalcDersRange = nullptr;
     TCalcDersRangePtr CalcDersRange = nullptr;
     TCalcDersMultiClassPtr CalcDersMultiClass = nullptr;
     TCalcDersMultiTargetPtr CalcDersMultiTarget = nullptr;

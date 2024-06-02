@@ -19,6 +19,7 @@ namespace NCatboostCuda {
                                                                NPar::ILocalExecutor* localExecutor,
                                                                TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                                                               const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                                                const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
         CB_ENSURE(catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
                   "NonDiag learning works with doc-parallel learning");
@@ -39,6 +40,7 @@ namespace NCatboostCuda {
                                            localExecutor,
                                            testMultiApprox,
                                            metricsAndTimeHistory,
+                                           objectiveDescriptor,
                                            evalMetricDescriptor);
     };
 
@@ -85,6 +87,7 @@ namespace NCatboostCuda {
                                                                         NPar::ILocalExecutor* localExecutor,
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                                                                        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                                                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) const {
             return TrainPairwise<TTargetTemplate>(featuresManager,
                                                   internalOptions,
@@ -99,6 +102,7 @@ namespace NCatboostCuda {
                                                   localExecutor,
                                                   testMultiApprox,
                                                   metricsAndTimeHistory,
+                                                  objectiveDescriptor,
                                                   evalMetricDescriptor);
         };
 

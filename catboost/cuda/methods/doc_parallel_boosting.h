@@ -10,6 +10,7 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/targets/target_func.h>
+#include <catboost/cuda/targets/pointwise_target_impl.h>
 
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/progress_helper.h>
@@ -50,6 +51,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TModelBasedEvalOptions& ModelBasedEvalConfig;
         const NCatboostOptions::TLossDescription& TargetOptions;
+        const TMaybe<TCustomObjectiveDescriptor>& ObjectiveDescriptor;
 
         NPar::ILocalExecutor* LocalExecutor;
 
@@ -289,9 +291,19 @@ namespace NCatboostCuda {
         }
 
         THolder<TObjective> CreateTarget(const TDocParallelDataSet& dataSet) const {
-            return MakeHolder<TObjective>(dataSet,
-                                  Random,
-                                  TargetOptions);
+            if constexpr (std::is_same<TPointwiseTargetsImpl<NCudaLib::TStripeMapping>, TObjective>::value) {
+                return MakeHolder<TObjective>(
+                    dataSet,
+                    Random,
+                    ObjectiveDescriptor,
+                    TargetOptions
+                );
+            } else {
+                return MakeHolder<TObjective>(
+                    dataSet,
+                    Random,
+                    TargetOptions);
+            }
         }
 
         //TODO(noxoomo): remove overhead of multiple target for permutation datasets
@@ -443,6 +455,7 @@ namespace NCatboostCuda {
                   const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                   EGpuCatFeaturesStorage,
                   TGpuAwareRandom& random,
+                  const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                   NPar::ILocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , Random(random)
@@ -451,6 +464,7 @@ namespace NCatboostCuda {
             , Config(catBoostOptions.BoostingOptions)
             , ModelBasedEvalConfig(catBoostOptions.ModelBasedEvalOptions)
             , TargetOptions(catBoostOptions.LossFunctionDescription)
+            , ObjectiveDescriptor(objectiveDescriptor)
             , LocalExecutor(localExecutor)
         {
         }

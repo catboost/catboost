@@ -9,6 +9,7 @@
 #include <catboost/cuda/cuda_util/algorithm.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 
 namespace NCatboostCuda {
     template <class TDocLayout>
@@ -78,6 +79,17 @@ namespace NCatboostCuda {
             , Border(other.GetBorder())
             , MetricName(other.ScoreMetricName())
         {
+        }
+
+        template <class TDataSet>
+        TPointwiseTargetsImpl(const TDataSet& dataSet,
+                              TGpuAwareRandom& random,
+                              const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                              const NCatboostOptions::TLossDescription& targetOptions)
+            : TParent(dataSet,
+                      random)
+            , ObjectiveDescriptor(objectiveDescriptor) {
+            Init(targetOptions);
         }
 
         using TParent::GetTarget;
@@ -244,6 +256,7 @@ namespace NCatboostCuda {
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             Type = targetOptions.GetLossFunction();
             switch (targetOptions.GetLossFunction()) {
+                case ELossFunction::PythonUserDefinedPerObject:
                 case ELossFunction::Poisson:
                 case ELossFunction::MAPE:
                 case ELossFunction::RMSE:
@@ -304,6 +317,17 @@ namespace NCatboostCuda {
             CB_ENSURE(der2Row == 0);
 
             switch (Type) {
+                case ELossFunction::PythonUserDefinedPerObject: {
+                    ApproximateUserDefined(target,
+                                           weights,
+                                           point,
+                                           value,
+                                           der,
+                                           der2,
+                                           *ObjectiveDescriptor,
+                                           stream);
+                    break;
+                }
                 case ELossFunction::CrossEntropy:
                 case ELossFunction::Logloss: {
                     ApproximateCrossEntropy(target,
@@ -334,6 +358,7 @@ namespace NCatboostCuda {
 
     private:
         ELossFunction Type = ELossFunction::PythonUserDefinedPerObject;
+        TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor = {};
         double Alpha = 0;
         double Border = 0;
         double VariancePower = 1.5;

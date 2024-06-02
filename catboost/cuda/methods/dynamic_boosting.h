@@ -504,6 +504,7 @@ namespace NCatboostCuda {
                          const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                          EGpuCatFeaturesStorage catFeaturesStorage,
                          TGpuAwareRandom& random,
+                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                          NPar::ILocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , CatFeaturesStorage(catFeaturesStorage)
@@ -513,6 +514,7 @@ namespace NCatboostCuda {
             , TargetOptions(catBoostOptions.LossFunctionDescription)
             , LocalExecutor(localExecutor)
         {
+            Y_UNUSED(objectiveDescriptor);
         }
 
         virtual ~TDynamicBoosting() = default;

@@ -14,12 +14,14 @@ namespace NCatboostCuda {
         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
         TBinarizedFeaturesManager* featureManager,
         TGpuAwareRandom* random,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         NPar::ILocalExecutor* localExecutor
     ) {
         TBoosting boosting(*featureManager,
                            catBoostOptions,
                            catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage,
                            *random,
+                           objectiveDescriptor,
                            localExecutor);
         return boosting;
     }
@@ -85,8 +87,9 @@ namespace NCatboostCuda {
                                                                          NPar::ILocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                                                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                                                          const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
-        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, objectiveDescriptor, localExecutor);
 
         boosting.SetDataProvider(learn, featureEstimators, test);
 
@@ -148,7 +151,7 @@ namespace NCatboostCuda {
                                TGpuAwareRandom& random,
                                ui32 approxDimension,
                                NPar::ILocalExecutor* localExecutor) {
-        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, localExecutor);
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, Nothing(), localExecutor);
 
         //TODO(noxoomo): support estimators in MBE
         NCB::TFeatureEstimators estimators;

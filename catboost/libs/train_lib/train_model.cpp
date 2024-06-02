@@ -793,7 +793,6 @@ namespace {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress
         ) const override {
-
             if (!internalOptions.CalcMetricsOnly) {
                 if (dstModel != nullptr) {
                     CB_ENSURE(
