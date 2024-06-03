@@ -31,4 +31,3 @@ TCaseInsensitiveString EscapeC(const TCaseInsensitiveString& str) {
     const auto result = EscapeC(str.data(), str.size());
     return {result.data(), result.size()};
 }
-
