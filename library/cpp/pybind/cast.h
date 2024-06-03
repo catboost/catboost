@@ -44,6 +44,25 @@ namespace NPyBind {
     template <typename TKey, typename TVal>
     PyObject* BuildPyObject(const THashMap<TKey, TVal>& val);
 
+    template <typename... Ts>
+    PyObject* BuildPyObject(const std::tuple<Ts...>& val) {
+        TPyObjectPtr res(PyTuple_New(std::tuple_size_v<std::tuple<Ts...>>), true);
+        auto tryAddItem = [&](int i, PyObject* item) {
+            if (!item) {
+                return false;
+            }
+            PyTuple_SetItem(res.Get(), i, item);
+            return true;
+        };
+        bool success = std::apply(
+            [&](const auto&... v) {
+                int i = 0;
+                return (... && tryAddItem(i++, BuildPyObject(v)));
+            },
+            val);
+        return success ? res.RefGet() : nullptr;
+    }
+
     template <typename T1, typename T2>
     PyObject* BuildPyObject(const std::pair<T1, T2>& val) {
         TPyObjectPtr first(BuildPyObject(val.first), true);
