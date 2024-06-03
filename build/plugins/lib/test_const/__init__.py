@@ -384,6 +384,19 @@ class TestSize(Enum):
         raise Exception("Unknown test size '{}'".format(size))
 
 
+class ModuleLang(Enum):
+    ABSENT = "absent"
+    NUMEROUS = "numerous"
+    UNKNOWN = "unknown"
+    CPP = "cpp"
+    DOCS = "docs"
+    GO = "go"
+    JAVA = "java"
+    KOTLIN = "kotlin"
+    PY = "py"
+    TS = "ts"
+
+
 class TestRunExitCode(Enum):
     Skipped = 2
     Failed = 3
