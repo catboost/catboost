@@ -7,6 +7,7 @@
 #include <catboost/private/libs/options/metric_options.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
 
@@ -119,6 +120,50 @@ namespace NCatboostCuda {
                            NPar::ILocalExecutor* localExecutor) const;
     };
 
-    TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
-                                                  const ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor);
+    class TGpuCustomMetric : public IGpuMetric {
+        TCustomMetricDescriptor Descriptor;
+    public:
+        explicit TGpuCustomMetric(
+            const TCustomMetricDescriptor& metricDescriptor,
+            const NCatboostOptions::TLossDescription& config,
+            ui32 approxDim
+        ) : IGpuMetric(config, approxDim), Descriptor(metricDescriptor)
+        {
+        }
+
+        TMetricHolder Eval(
+            const TStripeBuffer<const float>& target,
+            const TStripeBuffer<const float>& weights,
+            const TStripeBuffer<const float>& cursor,
+            TScopedCacheHolder* cache,
+            ui32 stream = 0
+        ) const;
+
+        TMetricHolder Eval(
+            const TMirrorBuffer<const float>& target,
+            const TMirrorBuffer<const float>& weights,
+            const TMirrorBuffer<const float>& cursor,
+            TScopedCacheHolder* cache,
+            ui32 stream = 0
+        ) const;
+
+
+        template<class TMapping>
+        TMetricHolder EvalImpl(
+            const TCudaBuffer<const float, TMapping>& target,
+            const TCudaBuffer<const float, TMapping>& weights,
+            const TCudaBuffer<const float, TMapping>& cursor,
+            TScopedCacheHolder* cache,
+            ui32 stream
+        ) const;
+
+        double GetFinalError(TMetricHolder&& metricHolder) const;
+    };
+
+    TVector<THolder<IGpuMetric>> CreateGpuMetrics(
+        const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+        const ui32 cpuApproxDim,
+        bool hasWeights,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+    );
 }

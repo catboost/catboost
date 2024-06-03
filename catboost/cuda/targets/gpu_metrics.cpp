@@ -13,7 +13,7 @@
 #include <catboost/cuda/gpu_data/kernels.h>
 #include <catboost/cuda/gpu_data/querywise_helper.h>
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
-
+#include <catboost/cuda/targets/user_defined.h>
 #include <catboost/libs/helpers/math_utils.h>
 
 using namespace NCudaLib;
@@ -522,6 +522,53 @@ namespace NCatboostCuda {
                            *localExecutor);
     }
 
+    TMetricHolder TGpuCustomMetric::Eval(
+        const TStripeBuffer<const float>& target,
+        const TStripeBuffer<const float>& weights,
+        const TStripeBuffer<const float>& cursor,
+        TScopedCacheHolder* cache,
+        ui32 stream
+    ) const {
+        return EvalImpl<TStripeMapping>(target, weights, cursor, cache, stream);
+    }
+
+    TMetricHolder TGpuCustomMetric::Eval(
+        const TMirrorBuffer<const float>& target,
+        const TMirrorBuffer<const float>& weights,
+        const TMirrorBuffer<const float>& cursor,
+        TScopedCacheHolder* cache,
+        ui32 stream
+    ) const {
+        return EvalImpl<TMirrorMapping>(target, weights, cursor, cache, stream);
+    }
+
+    template<class TMapping>
+    TMetricHolder TGpuCustomMetric::EvalImpl(
+        const TCudaBuffer<const float, TMapping>& target,
+        const TCudaBuffer<const float, TMapping>& weights,
+        const TCudaBuffer<const float, TMapping>& cursor,
+        TScopedCacheHolder* cache,
+        ui32 stream
+    ) const {
+        using TKernel = NKernelHost::TUserDefinedMetricKernel;
+        using TVec = TCudaBuffer<float, TMapping>;
+        Y_UNUSED(cache);
+
+        const size_t tmpArraySize = TKernel::BlockSize * TKernel::NumBlocks;
+        auto resultTmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(tmpArraySize));
+        auto resultWeightsTmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(tmpArraySize));
+
+        auto onesTmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(tmpArraySize));
+        FillBuffer(onesTmp, 1.0f);
+
+        LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, cursor, resultTmp, resultWeightsTmp, Descriptor);
+        return MakeSimpleAdditiveStatistic(DotProduct(resultTmp, onesTmp), DotProduct(resultWeightsTmp, onesTmp));
+    }
+
+    double TGpuCustomMetric::GetFinalError(TMetricHolder &&metricHolder) const {
+        return (*(Descriptor.GetFinalErrorFunc))(metricHolder, Descriptor.CustomData);
+    }
+
     static THolder<IMetric> CreateSingleMetric(ELossFunction metric, const TLossParams& params, int approxDimension) {
         THolder<IMetric> metricHolder = std::move(CreateMetric(metric, params, approxDimension)[0]);
         return metricHolder;
@@ -654,8 +701,12 @@ namespace NCatboostCuda {
                !metric->GetUseWeights().IsIgnored();
     }
 
-    TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
-                                                  ui32 cpuApproxDim, bool hasWeights, const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
+    TVector<THolder<IGpuMetric>> CreateGpuMetrics(
+        const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& metricOptions,
+        ui32 cpuApproxDim,
+        bool hasWeights,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+    ) {
         CB_ENSURE(metricOptions->ObjectiveMetric.IsSet(), "Objective metric must be set.");
         const NCatboostOptions::TLossDescription& objectiveMetricDescription = metricOptions->ObjectiveMetric.Get();
         const bool haveEvalMetricFromUser = metricOptions->EvalMetric.IsSet();
@@ -681,10 +732,18 @@ namespace NCatboostCuda {
         THashSet<TString> usedDescriptions;
 
         if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
-            metrics.emplace_back(new TCpuFallbackMetric(
-                MakeCustomMetric(evalMetricDescriptor.GetRef()),
-                evalMetricDescription
-            ));
+            if (evalMetricDescriptor.Defined() && evalMetricDescriptor.GetRef().GpuEvalFunc.Defined()) {
+                metrics.emplace_back(new TGpuCustomMetric(
+                    evalMetricDescriptor.GetRef(),
+                    evalMetricDescription,
+                    cpuApproxDim
+                ));
+            } else {
+                metrics.emplace_back(new TCpuFallbackMetric(
+                    MakeCustomMetric(evalMetricDescriptor.GetRef()),
+                    evalMetricDescription
+                ));
+            }
         } else {
             metrics = CreateGpuMetricFromDescription(
                     objectiveMetricDescription.GetLossFunction(),
