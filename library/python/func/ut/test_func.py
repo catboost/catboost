@@ -3,6 +3,7 @@ import multiprocessing
 import random
 import threading
 import time
+import six
 
 import library.python.func as func
 
@@ -133,6 +134,32 @@ def test_flatten_dict():
     assert func.flatten_dict({}) == {}
     assert func.flatten_dict({"a": 1, "b": {"c": {"d": 2}}}) == {"a": 1, "b.c.d": 2}
     assert func.flatten_dict({"a": 1, "b": {"c": {"d": 2}}}, separator="/") == {"a": 1, "b/c/d": 2}
+
+
+def test_threadsafe_singleton():
+    class ShouldBeSingle(six.with_metaclass(func.Singleton, object)):
+        def __new__(cls, *args, **kwargs):
+            time.sleep(0.1)
+            return super(ShouldBeSingle, cls).__new__(cls, *args, **kwargs)
+
+    threads_count = 100
+    threads = [None] * threads_count
+    results = [None] * threads_count
+
+    def class_factory(results, i):
+        time.sleep(0.1)
+        results[i] = ShouldBeSingle()
+
+    for i in range(threads_count):
+        threads[i] = threading.Thread(target=class_factory, args=(results, i))
+
+    for i in range(threads_count):
+        threads[i].start()
+
+    for i in range(threads_count):
+        threads[i].join()
+
+    assert len(set(results)) == 1
 
 
 def test_memoize_thread_local():

@@ -150,12 +150,25 @@ def compose(*functions):
 
 
 class Singleton(type):
-    _instances = {}
+    __instances = {}
+    __lock = threading.Lock()
+
+    class _LockedObj:
+        def __init__(self, obj, lock):
+            self.obj = obj
+            self.lock = lock
 
     def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+        if cls not in cls.__instances:
+            with cls.__lock:
+                if cls not in cls.__instances:
+                    cls.__instances[cls] = cls._LockedObj(None, threading.Lock())
+
+        if not cls.__instances[cls].obj:
+            with cls.__instances[cls].lock:
+                if not cls.__instances[cls].obj:
+                    cls.__instances[cls].obj = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls.__instances[cls].obj
 
 
 def stable_uniq(it):
