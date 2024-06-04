@@ -39,6 +39,20 @@ include(CMakeParseArguments)
 
 function(_get_msvc_ide_version result)
     set(${result} "" PARENT_SCOPE)
+
+    # VisualStudioVersion is set by vcvars*.bat
+    if(DEFINED ENV{VisualStudioVersion})
+        string(REGEX MATCH "([0-9]+)\.0" _ $ENV{VisualStudioVersion})
+        if(CMAKE_MATCH_COUNT EQUAL 1)
+            set(${result} ${CMAKE_MATCH_1} PARENT_SCOPE)
+            return()
+        else()
+            message(FATAL_ERROR "Conan: Unexpected env variable VisualStudioVersion format [$ENV{VisualStudioVersion}]")
+        endif()
+    endif()
+
+    # fallback to MSVC_VERSION which is set only based on _MSC_VER and can differ from the really installed
+    # Visual Studio version if non-standard toolset is used
     if(NOT MSVC_VERSION VERSION_LESS 1400 AND MSVC_VERSION VERSION_LESS 1500)
         set(${result} 8 PARENT_SCOPE)
     elseif(NOT MSVC_VERSION VERSION_LESS 1500 AND MSVC_VERSION VERSION_LESS 1600)
