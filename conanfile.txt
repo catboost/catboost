@@ -1,5 +1,5 @@
 [requires]
-openssl/1.1.1t
+openssl/1.1.1w
 
 [tool_requires]
 ragel/6.10
