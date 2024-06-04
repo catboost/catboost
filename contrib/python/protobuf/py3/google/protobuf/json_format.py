@@ -698,7 +698,7 @@ class _Parser(object):
             value[key], value_field)
 
 
-def _ConvertScalarFieldValue(value, field, require_str=False):
+def _ConvertScalarFieldValue(value, field, require_str=False, path=None):
   """Convert a single scalar field value.
 
   Args:
