@@ -18,7 +18,7 @@ struct TCustomObjectiveDescriptor {
         TDers* ders,
         void* customData);
 
-    using TGpuCaclDersRangePtr = void(*)(
+    using TGpuCalcDersRangePtr = void(*)(
         TConstArrayRef<float> approx,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -49,7 +49,7 @@ struct TCustomObjectiveDescriptor {
 
 public:
     void* CustomData = nullptr;
-    TGpuCaclDersRangePtr GpuCalcDersRange = nullptr;
+    TGpuCalcDersRangePtr GpuCalcDersRange = nullptr;
     TCalcDersRangePtr CalcDersRange = nullptr;
     TCalcDersMultiClassPtr CalcDersMultiClass = nullptr;
     TCalcDersMultiTargetPtr CalcDersMultiTarget = nullptr;

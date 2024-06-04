@@ -720,7 +720,7 @@ namespace NCatboostCuda {
                 objectiveMetricDescription,
                 cpuApproxDim);
         }
-        
+
         if (hasWeights) {
             for (auto&& metric : createdObjectiveMetrics) {
                 const auto& useWeights = metric->GetUseWeights();

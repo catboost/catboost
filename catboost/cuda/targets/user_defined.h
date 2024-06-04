@@ -8,7 +8,7 @@
 namespace NKernelHost {
 
     class TUserDefinedObjectiveKernel: public TStatelessKernel {
-    private:    
+    private:
         TCudaBufferPtr<const float> Targets;
         TCudaBufferPtr<const float> Weights;
         TCudaBufferPtr<const float> Predictions;
@@ -20,7 +20,7 @@ namespace NKernelHost {
         static const size_t BlockSize = 1024;
 
         TUserDefinedObjectiveKernel() = default;
-        
+
         TUserDefinedObjectiveKernel(TCudaBufferPtr<const float> targets,
                                     TCudaBufferPtr<const float> weights,
                                     TCudaBufferPtr<const float> predictions,
@@ -49,7 +49,7 @@ namespace NKernelHost {
             CB_ENSURE(false, "Distributed training and evaluation is not supported with user defined metrics");
         }
 
-        void Run(const TCudaStream& stream) const {    
+        void Run(const TCudaStream& stream) const {
             auto target_ptr = TConstArrayRef<float>(Targets.Get(), Targets.ObjectCount());
             auto weights_ptr = TConstArrayRef<float>(Weights.Get(), Weights.ObjectCount());
             auto predictions_ptr = TConstArrayRef<float>(Predictions.Get(), Predictions.ObjectCount());
@@ -60,7 +60,6 @@ namespace NKernelHost {
             size_t NumBlocks = (totalObjects + BlockSize - 1) / BlockSize;
             (*(Descriptor.GpuCalcDersRange))(predictions_ptr, target_ptr, weights_ptr, val_results_ptr, der1_results_ptr, der2_results_ptr, totalObjects, Descriptor.CustomData, stream.GetStream(), BlockSize, NumBlocks);
         }
-
     };
 
     class TUserDefinedMetricKernel: public TStatelessKernel {

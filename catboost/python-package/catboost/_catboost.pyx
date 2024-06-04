@@ -650,7 +650,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
             void* customData,
             void* cudaStream,
             size_t numBlocks,
-            size_t blockSize)  with gil
+            size_t blockSize) with gil
 
         ctypedef TMetricHolder (*TEvalMultiTargetFuncPtr)(
             TConstArrayRef[TConstArrayRef[double]] approx,
@@ -685,7 +685,7 @@ cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor
             void* customData,
             void* cudaStream,
             size_t blockSize,
-            size_t numBlocks   
+            size_t numBlocks
         ) with gil
 
         void (*CalcDersRange)(
@@ -1461,7 +1461,7 @@ cdef void _GpuObjectiveCalcDersRange(
     void* customData,
     void* cudaStream,
     size_t blockSize,
-    size_t numBlocks   
+    size_t numBlocks
 ) with gil:
     from numba import cuda as numba_cuda
     approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())

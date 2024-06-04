@@ -863,7 +863,6 @@ inline void ApproximateUserDefined(const TCudaBuffer<const float, TMapping>& tar
     LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, point, value, weightedDer, weightedDer2, objectiveDescriptor);
 }
 
-
 template <class TMapping>
 inline void ApproximateCrossEntropy(const TCudaBuffer<const float, TMapping>& target,
                                     const TCudaBuffer<const float, TMapping>& weights,

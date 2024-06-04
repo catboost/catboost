@@ -11316,31 +11316,31 @@ def test_custom_gpu_objective_metric():
         return
 
     class GPURMSEObjective(object):
-        
+
         def calc_ders_range_gpu(self, approxes, target, weights, value_output, der1_output, der2_output):
-            
+
             init_thread_idx = cuda.grid(1)
             if (init_thread_idx >= len(approxes)):
                 return
-            
+
             der1_curr = target[init_thread_idx] - approxes[init_thread_idx]
             der2_curr = 1.0
             val_curr = - der1_curr * der1_curr
-            
+
             if len(weights):
                 der1_curr *= weights[init_thread_idx]
                 der2_curr *= weights[init_thread_idx]
                 val_curr *= weights[init_thread_idx]
-            
+
             if len(value_output):
                 cuda.atomic.add(value_output, 0, val_curr)
 
             if len(der1_output):
                 der1_output[init_thread_idx] = der1_curr
-            
+
             if len(der2_output):
                 der2_output[init_thread_idx] = der2_curr
-    
+
     model1 = CatBoostRegressor(
         iterations=10,
         learning_rate=0.03,
@@ -11357,7 +11357,7 @@ def test_custom_gpu_objective_metric():
         has_time=True,
         boost_from_average=False
     )
-    
+
     model2 = CatBoostRegressor(
         iterations=10,
         learning_rate=0.03,
@@ -11374,13 +11374,13 @@ def test_custom_gpu_objective_metric():
         has_time=True,
         boost_from_average=False
     )
-    
+
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
 
     model1.fit(train_pool, eval_set=test_pool)
     model2.fit(train_pool, eval_set=test_pool)
-    
+
     pred1 = model1.predict(test_pool, prediction_type='RawFormulaVal')
     pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
 
