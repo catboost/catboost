@@ -176,7 +176,7 @@ jobs:
       - name: Update CMake build cache on every commit
         uses: actions/cache@v4
         with:
-          path: cmake_build_cache.zip
+          path: cmake_build_cache
           key: cmake_build_cache-${{ runner.os }}-${{ github.run_id }} # Can use time based key as well
           restore-keys: |
             cmake_build_cache-${{ runner.os }}
@@ -184,8 +184,7 @@ jobs:
       - name: Prepare CMake build cache
         shell: pwsh
         run: |
-          if (Test-Path cmake_build_cache.zip) {
-            Expand-Archive -Path cmake_build_cache.zip -DestinationPath cmake_build_cache
+          if (Test-Path cmake_build_cache) {
             if (Test-Path cmake_build_cache/git_commit_sha) {
               # Set timestamps such as that only files changed after the commit in cache are newer than its files
               Set-Location -LiteralPath ${{ github.workspace }}/catboost
@@ -223,15 +222,10 @@ jobs:
           Set-Location -Path catboost
           python ./ci/build_all.py
 
-      - name: Save commit id and compress CMake build cache
+      - name: Save commit id to CMake build cache
         shell: pwsh
         run: |
           Set-Content -Path cmake_build_cache/git_commit_sha -Value ${{ github.sha }}
-          if (Test-Path cmake_build_cache.zip) {
-            Compress-Archive -Path cmake_build_cache/* -Update -DestinationPath cmake_build_cache.zip
-          } else {
-            Compress-Archive -Path cmake_build_cache/* -DestinationPath cmake_build_cache.zip
-          }
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
