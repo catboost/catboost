@@ -20,6 +20,7 @@
 #include <util/generic/xrange.h>
 #include <util/generic/yexception.h>
 #include <util/generic/ylimits.h>
+#include <util/stream/buffer.h>
 #include <util/stream/file.h>
 #include <util/stream/format.h>
 #include <util/stream/labeled.h>
@@ -303,40 +304,51 @@ namespace NHnsw {
         {
         }
 
-        void MaybeSaveSnapshot(size_t buildEnd) {
-            if (Opts.SnapshotFile == "") {
+        void SaveSnapshotToStream(size_t buildEnd, IOutputStream& out) {
+            size_t numItems = ItemStorage.GetNumItems();
+            size_t maxNeighbors = Opts.MaxNeighbors;
+            size_t levelSizeDecay = Opts.LevelSizeDecay;
+
+            ::SaveMany(&out, numItems, maxNeighbors, levelSizeDecay, buildEnd, Levels);
+            out.Finish();
+
+            HNSW_LOG << "\nSaved " << buildEnd << " items to snapshot" << Endl;
+        }
+
+        void MaybeSaveSnapshot(size_t buildEnd, const bool isModifiable = false) {
+            if (isModifiable && (Levels.front().GetNeighborsCount() != Opts.MaxNeighbors || buildEnd == 0)) {
                 return;
             }
 
-            TString tempName = Opts.SnapshotFile + "_" + CreateGuidAsString() + ".tmp";
-            try {
-                TOFStream out(tempName);
+            if (!Opts.SnapshotFile.empty()) {
+                TString tempName = Opts.SnapshotFile + "_" + CreateGuidAsString() + ".tmp";
+                try {
+                    HNSW_LOG << "\nSaving to snapshot file: " << Opts.SnapshotFile << Endl;
+                    TOFStream out(tempName);
+                    SaveSnapshotToStream(buildEnd, out);
+                    NFs::Rename(tempName, Opts.SnapshotFile);
+                } catch (...) {
+                    HNSW_LOG << "\nCan't save snapshot. Exception: " << CurrentExceptionMessage() << Endl;
+                    if (NFs::Exists(tempName)) {
+                        NFs::Remove(tempName);
+                    }
+                }
+            }
 
-                size_t numItems = ItemStorage.GetNumItems();
-                size_t maxNeighbors = Opts.MaxNeighbors;
-                size_t levelSizeDecay = Opts.LevelSizeDecay;
-
-                ::SaveMany(&out, numItems, maxNeighbors, levelSizeDecay, buildEnd, Levels);
-                out.Finish();
-
-                NFs::Rename(tempName, Opts.SnapshotFile);
-                HNSW_LOG << "\nSnapshot saved to " << Opts.SnapshotFile << Endl;
-            } catch(...) {
-                HNSW_LOG << "\nCan't save snapshot. Exception: " << CurrentExceptionMessage() << Endl;
-                if (NFs::Exists(tempName)) {
-                    NFs::Remove(tempName);
+            if (Opts.SnapshotBlobPtr) {
+                try {
+                    HNSW_LOG << "\nSaving to snapshot blob" << Endl;
+                    TBufferOutput out;
+                    SaveSnapshotToStream(buildEnd, out);
+                    *Opts.SnapshotBlobPtr = TBlob::FromBuffer(out.Buffer());
+                } catch (...) {
+                    HNSW_LOG << "\nCan't save snapshot. Exception: " << CurrentExceptionMessage() << Endl;
                 }
             }
         }
 
-        void TryRestoreFromSnapshot(size_t* builtSize, const bool isModifiable = false) {
-            if (Opts.SnapshotFile == "" || !NFs::Exists(Opts.SnapshotFile)) {
-                return;
-            }
-
+        void TryRestoreFromSnapshotFromStream(size_t* builtSize, IInputStream& in, const bool isModifiable = false) {
             try {
-                TIFStream in(Opts.SnapshotFile);
-
                 size_t restoredNumItems;
                 size_t restoredMaxNeighbors;
                 size_t restoredLevelSizeDecay;
@@ -351,17 +363,32 @@ namespace NHnsw {
                 Y_ENSURE(restoredMaxNeighbors == Opts.MaxNeighbors, "Different MaxNeighbors in snapshot");
                 Y_ENSURE(restoredLevelSizeDecay == Opts.LevelSizeDecay, "Different LevelSizeDecay in snapshot");
 
-                HNSW_LOG << "Restored from " << Opts.SnapshotFile << Endl;
+                HNSW_LOG << "Restored " << *builtSize << " items" << Endl;
             } catch (...) {
                 HNSW_LOG << "Can't restore from snapshot. Exception: " << CurrentExceptionMessage() << Endl;
                 throw;
             }
         }
 
+        void TryRestoreFromSnapshot(size_t* builtSize, const bool isModifiable = false) {
+            if (!Opts.SnapshotFile.empty() && NFs::Exists(Opts.SnapshotFile)) {
+                HNSW_LOG << "\nTrying to restore from snapshot file: " << Opts.SnapshotFile << Endl;
+                TIFStream in(Opts.SnapshotFile);
+                TryRestoreFromSnapshotFromStream(builtSize, in, isModifiable);
+            }
+
+            if (!*builtSize && Opts.SnapshotBlobPtr && !Opts.SnapshotBlobPtr->Empty()) {
+                // Restore from blob only if nothing was restored from file.
+                HNSW_LOG << "\nTrying to restore from snapshot blob!" << Endl;
+                TMemoryInput in(Opts.SnapshotBlobPtr->AsStringBuf());
+                TryRestoreFromSnapshotFromStream(builtSize, in, isModifiable);
+            }
+        }
+
         THnswIndexData BuildForUpdates() {
             Y_ENSURE(Opts.MaxNeighbors < Opts.BatchSize, LabeledOutput(Opts.MaxNeighbors, Opts.BatchSize));
             Y_ENSURE(Opts.LevelSizeDecay > ItemStorage.GetNumItems(), LabeledOutput(Opts.LevelSizeDecay, ItemStorage.GetNumItems()));
-            Y_ENSURE(Opts.SnapshotFile != "");
+            Y_ENSURE(Opts.SnapshotFile != "" || Opts.SnapshotBlobPtr);
             return BuildImpl(true);
         }
 
@@ -534,7 +561,7 @@ namespace NHnsw {
             CheckInterrupted(); // check after long-lasting operation
         }
 
-        void BuildLevel(size_t levelSize, size_t builtLevelSize, size_t batchSize) {
+        void BuildLevel(size_t levelSize, size_t builtLevelSize, size_t batchSize, bool isModifiable = false) {
             auto& level = Levels.front();
             if (Levels.size() > 1 && builtLevelSize == 0) {
                 // copy previous level to new empty one
@@ -550,6 +577,10 @@ namespace NHnsw {
             double lastSaveSnapshotTime = GlobalWatch.Passed();
             for (size_t batchBegin = builtLevelSize; batchBegin < levelSize;) {
                 const size_t curBatchSize = Min(levelSize - batchBegin, batchSize);
+                if (isModifiable && curBatchSize != batchSize) {
+                    // Save the last complete batch. If all batches are complete save after the loop.
+                    MaybeSaveSnapshot(batchBegin, isModifiable);
+                }
                 const size_t batchEnd = batchBegin + curBatchSize;
                 ProcessBatch(batchBegin, batchEnd, &level);
                 batchBegin = batchEnd;
@@ -569,11 +600,13 @@ namespace NHnsw {
                     HNSW_LOG << Endl << batchEnd << '\t' << localWatch.Passed() / numProcessed << '\t' << numProcessed / localWatch.Passed() << Endl;
                 }
                 if (GlobalWatch.Passed() - lastSaveSnapshotTime > Opts.SnapshotInterval) {
-                    MaybeSaveSnapshot(batchEnd);
+                    MaybeSaveSnapshot(batchEnd, isModifiable);
                     lastSaveSnapshotTime = GlobalWatch.Passed();
                 }
             }
-            MaybeSaveSnapshot(levelSize);
+            if (!isModifiable || levelSize % batchSize == 0) {
+                MaybeSaveSnapshot(levelSize, isModifiable);
+            }
         }
 
     private:
@@ -599,13 +632,13 @@ namespace NHnsw {
                 size_t batchSize = level == 0 ? Opts.BatchSize : Opts.UpperLevelBatchSize;
                 size_t buildStart = alreadyBuilt;
                 if (Levels.size() < levelSizes.size() - level) {
-                    Levels.emplace_front(Min(Opts.MaxNeighbors, levelSizes[level] - 1),levelSizes[level]);
+                    Levels.emplace_front(Min(Opts.MaxNeighbors, levelSizes[level] - 1), levelSizes[level]);
                     buildStart = 0;
                 }
                 if (isModifiable) {
                     Levels.front().Reserve(numItems);
                 }
-                BuildLevel(levelSizes[level], buildStart, batchSize);
+                BuildLevel(levelSizes[level], buildStart, batchSize, isModifiable);
             }
 
             if (Opts.ReportProgress) {

@@ -46,7 +46,7 @@ namespace NHnsw {
                                         const TItemStorage& itemStorage,
                                         const TDistance& distance = {},
                                         const TDistanceLess& distanceLess = {}) {
-        Y_ENSURE(opts.SnapshotFile != "", "SnapshotFile is empty");
+        Y_ENSURE(opts.SnapshotFile != "" || opts.SnapshotBlobPtr, "SnapshotFile is empty and SnapshotBlobPtr == nullptr");
         TDistanceTraits<TDistance, TDistanceResult, TDistanceLess> distanceTraits(distance, distanceLess);
         const THnswInternalBuildOptions internalOpts(opts);
         return BuildForUpdatesIndexWithTraits(internalOpts, distanceTraits, itemStorage);
