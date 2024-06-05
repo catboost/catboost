@@ -440,7 +440,7 @@ _Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ e
 
 Metric denominator type.
 
-_Default_: {{ error-function__dcg__denominator__default }}.
+_Default_: {{ error-function__ndcg__denominator__default }}.
 _Possible values_: `{{ error-function__ndcg__denominator__LogPosition }}`, `{{ error-function__ndcg__denominator__Position }}`.
 
 {% endcut %}
