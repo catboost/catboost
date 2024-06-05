@@ -28,40 +28,40 @@ template <class T, unsigned Align = sizeof(T)>
 class TUnalignedMemoryIterator {
 public:
     inline TUnalignedMemoryIterator(const void* buf, size_t len)
-        : C_((const unsigned char*)buf)
-        , E_(C_ + len)
-        , L_(E_ - (len % Align))
+        : Current_((const unsigned char*)buf)
+        , End_(Current_ + len)
+        , AlignedEnd_(End_ - (len % Align))
     {
         Y_FAKE_READ(buf);
     }
 
     inline bool AtEnd() const noexcept {
-        return C_ == L_;
+        return Current_ == AlignedEnd_;
     }
 
     inline T Cur() const noexcept {
-        Y_ASSERT(C_ < L_ || sizeof(T) < Align);
-        return ::ReadUnaligned<T>(C_);
+        Y_ASSERT(Current_ < AlignedEnd_ || sizeof(T) < Align);
+        return ::ReadUnaligned<T>(Current_);
     }
 
     inline T Next() noexcept {
         T ret(Cur());
 
-        C_ += sizeof(T);
+        Current_ += sizeof(T);
 
         return ret;
     }
 
     inline const unsigned char* Last() const noexcept {
-        return C_;
+        return Current_;
     }
 
     inline size_t Left() const noexcept {
-        return E_ - C_;
+        return End_ - Current_;
     }
 
 private:
-    const unsigned char* C_;
-    const unsigned char* E_;
-    const unsigned char* L_;
+    const unsigned char* Current_;
+    const unsigned char* End_;
+    const unsigned char* AlignedEnd_;
 };
