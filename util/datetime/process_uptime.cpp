@@ -32,14 +32,20 @@ TDuration ProcessUptime() {
     TUnbufferedFileInput statFile(statPath);
     auto statStr = statFile.ReadAll();
     const auto completeStatsSize = 20; // First two fields skipped to ignore variations of parentheses
-    TVector<TString> stats = StringSplitter(TStringBuf{statStr}.RAfter(')').After(' ')).Split(' ').Take(completeStatsSize);
+    const TVector<TStringBuf> stats = StringSplitter(TStringBuf{statStr}.RAfter(')').After(' ')).Split(' ').Take(completeStatsSize);
     ui64 startTimeTicks = 0;
     Y_THROW_UNLESS(stats.size() == completeStatsSize, "Broken format of " << statPath);
     if (!TryFromString<ui64>(stats.back(), startTimeTicks)) {
         ythrow yexception() << "Failed to extract process starttime value from " << statPath;
     }
-    auto startTimeSeconds = startTimeTicks / sysconf(_SC_CLK_TCK);
-    return Uptime() - TDuration::Seconds(startTimeSeconds);
+    long ticksPerSecond = sysconf(_SC_CLK_TCK);
+    Y_THROW_UNLESS_EX(ticksPerSecond != -1, TSystemError() << "Failed to get _SC_CLK_TCK");
+    Y_THROW_UNLESS(ticksPerSecond > 0, "Invalid value of the _SC_CLK_TCK variable: " << ticksPerSecond);
+    const ui64 startTimeSeconds = startTimeTicks / ticksPerSecond;
+    const ui64 fractionTicks = startTimeTicks % ticksPerSecond;
+    const TDuration startTimeFractionSeconds = TDuration::MicroSeconds(1'000'000u * fractionTicks / ticksPerSecond);
+    const TDuration startTime = TDuration::Seconds(startTimeSeconds) + startTimeFractionSeconds;
+    return Uptime() - startTime;
 #else
     ythrow yexception() << "unimplemented";
 #endif
