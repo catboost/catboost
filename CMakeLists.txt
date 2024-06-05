@@ -15,6 +15,10 @@
 
 
 cmake_minimum_required(VERSION 3.15)
+if (POLICY CMP0132)
+  cmake_policy(SET CMP0132 NEW)
+endif()
+
 project(CATBOOST LANGUAGES C CXX ASM)
 
 set(BUILD_SHARED_LIBS Off)
