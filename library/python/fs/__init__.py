@@ -290,7 +290,10 @@ def copy_tree(src, dst, copy_function=shutil.copy2):
 # Throws OSError
 @errorfix_win
 def read_file(path, binary=True):
-    with open(path, 'r' + ('b' if binary else '')) as f:
+    kwargs = {}
+    if not binary and six.PY3:
+        kwargs['encoding'] = sys.getfilesystemencoding()
+    with open(path, 'r' + ('b' if binary else ''), **kwargs) as f:
         return f.read()
 
 
