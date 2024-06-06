@@ -249,14 +249,14 @@ namespace NCatboostCuda {
                                         dataProvider,
                                         testProvider,
                                         featureEstimators,
+                                        objectiveDescriptor,
+                                        evalMetricDescriptor,
                                         random,
                                         approxDimension,
                                         trainingCallbacks,
                                         localExecutor,
                                         testMultiApprox,
-                                        metricsAndTimeHistory,
-                                        objectiveDescriptor,
-                                        evalMetricDescriptor);
+                                        metricsAndTimeHistory);
         } else {
             ythrow TCatBoostException() << "Error: optimization scheme is not supported for GPU learning " << optimizationImplementation;
         }

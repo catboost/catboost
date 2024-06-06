@@ -34,9 +34,12 @@ namespace NCatboostCuda {
         template <class TDataSet>
         TPointwiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
-                              const NCatboostOptions::TLossDescription& targetOptions)
+                              const NCatboostOptions::TLossDescription& targetOptions,
+                              const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor = Nothing())
             : TParent(dataSet,
-                      random) {
+                      random)
+            , ObjectiveDescriptor(objectiveDescriptor) 
+        {
             Init(targetOptions);
         }
 
@@ -83,17 +86,6 @@ namespace NCatboostCuda {
             , MetricName(other.ScoreMetricName())
             , ObjectiveDescriptor(other.GetObjectiveDescriptor())
         {
-        }
-
-        template <class TDataSet>
-        TPointwiseTargetsImpl(const TDataSet& dataSet,
-                              TGpuAwareRandom& random,
-                              const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                              const NCatboostOptions::TLossDescription& targetOptions)
-            : TParent(dataSet,
-                      random)
-            , ObjectiveDescriptor(objectiveDescriptor) {
-            Init(targetOptions);
         }
 
         using TParent::GetTarget;
@@ -329,10 +321,10 @@ namespace NCatboostCuda {
                     ApproximateUserDefined(target,
                                            weights,
                                            point,
+                                           *ObjectiveDescriptor,
                                            value,
                                            der,
                                            der2,
-                                           *ObjectiveDescriptor,
                                            stream);
                     break;
                 }

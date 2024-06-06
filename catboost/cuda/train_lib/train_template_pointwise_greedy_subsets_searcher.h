@@ -22,14 +22,14 @@ namespace NCatboostCuda {
                                                                             const NCB::TTrainingDataProvider& learn,
                                                                             const NCB::TTrainingDataProvider* test,
                                                                             const NCB::TFeatureEstimators& featureEstimators,
+                                                                            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                                                                            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                                                                             TGpuAwareRandom& random,
                                                                             ui32 approxDimension,
                                                                             ITrainingCallbacks* trainingCallbacks,
                                                                             NPar::ILocalExecutor* localExecutor,
                                                                             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-                                                                            TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                                                                            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor
+                                                                            TMetricsAndTimeLeftHistory* metricsAndTimeHistory
                                                                             ) const {
                 CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
                 using TWeakLearner = TGreedySubsetsSearcher<TModel>;
@@ -53,14 +53,14 @@ namespace NCatboostCuda {
                                                         learn,
                                                         test,
                                                         featureEstimators,
+                                                        objectiveDescriptor,
+                                                        evalMetricDescriptor,
                                                         random,
                                                         approxDimension,
                                                         trainingCallbacks,
                                                         localExecutor,
                                                         testMultiApprox,
-                                                        metricsAndTimeHistory,
-                                                        objectiveDescriptor,
-                                                        evalMetricDescriptor);
+                                                        metricsAndTimeHistory);
                 if constexpr (std::is_same<TModel, TObliviousTreeModel>::value || std::is_same<TModel, TNonSymmetricTree>::value) {
                     return resultModel;
                 } else {

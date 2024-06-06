@@ -10,7 +10,6 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/targets/target_func.h>
-#include <catboost/cuda/targets/pointwise_target_impl.h>
 
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/progress_helper.h>
@@ -291,19 +290,11 @@ namespace NCatboostCuda {
         }
 
         THolder<TObjective> CreateTarget(const TDocParallelDataSet& dataSet) const {
-            if constexpr (std::is_same<TPointwiseTargetsImpl<NCudaLib::TStripeMapping>, TObjective>::value) {
-                return MakeHolder<TObjective>(
-                    dataSet,
-                    Random,
-                    ObjectiveDescriptor,
-                    TargetOptions
-                );
-            } else {
-                return MakeHolder<TObjective>(
-                    dataSet,
-                    Random,
-                    TargetOptions);
-            }
+            return MakeHolder<TObjective>(
+                dataSet,
+                Random,
+                TargetOptions,
+                ObjectiveDescriptor);
         }
 
         //TODO(noxoomo): remove overhead of multiple target for permutation datasets
@@ -453,9 +444,9 @@ namespace NCatboostCuda {
     public:
         TBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
                   const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                  const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                   EGpuCatFeaturesStorage,
                   TGpuAwareRandom& random,
-                  const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                   NPar::ILocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , Random(random)

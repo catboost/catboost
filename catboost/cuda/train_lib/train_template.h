@@ -12,16 +12,16 @@ namespace NCatboostCuda {
     template <class TBoosting>
     inline TBoosting MakeBoosting(
         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         TBinarizedFeaturesManager* featureManager,
         TGpuAwareRandom* random,
-        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         NPar::ILocalExecutor* localExecutor
     ) {
         TBoosting boosting(*featureManager,
                            catBoostOptions,
+                           objectiveDescriptor,
                            catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage,
                            *random,
-                           objectiveDescriptor,
                            localExecutor);
         return boosting;
     }
@@ -81,15 +81,15 @@ namespace NCatboostCuda {
                                                                          const NCB::TTrainingDataProvider& learn,
                                                                          const NCB::TTrainingDataProvider* test,
                                                                          const NCB::TFeatureEstimators& featureEstimators,
+                                                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                                                                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                                                                          TGpuAwareRandom& random,
                                                                          ui32 approxDimension,
                                                                          ITrainingCallbacks* trainingCallbacks,
                                                                          NPar::ILocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
-                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                                                                         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
-        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, objectiveDescriptor, localExecutor);
+                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, objectiveDescriptor, &featureManager, &random, localExecutor);
 
         boosting.SetDataProvider(learn, featureEstimators, test);
 
@@ -151,7 +151,7 @@ namespace NCatboostCuda {
                                TGpuAwareRandom& random,
                                ui32 approxDimension,
                                NPar::ILocalExecutor* localExecutor) {
-        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &random, Nothing(), localExecutor);
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, Nothing(), &featureManager, &random, localExecutor);
 
         //TODO(noxoomo): support estimators in MBE
         NCB::TFeatureEstimators estimators;

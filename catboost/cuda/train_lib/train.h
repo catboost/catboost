@@ -34,14 +34,14 @@ namespace NCatboostCuda {
             const NCB::TTrainingDataProvider& learn,
             const NCB::TTrainingDataProvider* test,
             const NCB::TFeatureEstimators& featureEstimators,
+            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             TGpuAwareRandom& random,
             ui32 approxDimension,
             ITrainingCallbacks* trainingCallbacks,
             NPar::ILocalExecutor* localExecutor,
             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-            TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) const = 0;
+            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
 
         virtual void ModelBasedEval(
             TBinarizedFeaturesManager& featureManager,

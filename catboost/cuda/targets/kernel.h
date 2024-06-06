@@ -854,13 +854,13 @@ template <class TMapping>
 inline void ApproximateUserDefined(const TCudaBuffer<const float, TMapping>& target,
                                    const TCudaBuffer<const float, TMapping>& weights,
                                    const TCudaBuffer<const float, TMapping>& point,
+                                   const TCustomObjectiveDescriptor& objectiveDescriptor,
                                    TCudaBuffer<float, TMapping>* value,
                                    TCudaBuffer<float, TMapping>* weightedDer,
                                    TCudaBuffer<float, TMapping>* weightedDer2,
-                                   const TCustomObjectiveDescriptor& objectiveDescriptor,
                                    ui32 stream = 0) {
     using TKernel = NKernelHost::TUserDefinedObjectiveKernel;
-    LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, target, weights, point, value, weightedDer, weightedDer2, objectiveDescriptor);
+    LaunchKernels<TKernel>(target.NonEmptyDevices(), stream, objectiveDescriptor, target, weights, point, value, weightedDer, weightedDer2);
 }
 
 template <class TMapping>

@@ -502,9 +502,9 @@ namespace NCatboostCuda {
     public:
         TDynamicBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
                          const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                          EGpuCatFeaturesStorage catFeaturesStorage,
                          TGpuAwareRandom& random,
-                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                          NPar::ILocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , CatFeaturesStorage(catFeaturesStorage)
@@ -514,7 +514,7 @@ namespace NCatboostCuda {
             , TargetOptions(catBoostOptions.LossFunctionDescription)
             , LocalExecutor(localExecutor)
         {
-            Y_UNUSED(objectiveDescriptor);
+            CB_ENSURE(!objectiveDescriptor.Defined(), "Dynamic boosting for user-defined loss is not supported");
         }
 
         virtual ~TDynamicBoosting() = default;

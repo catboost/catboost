@@ -34,9 +34,12 @@ namespace NCatboostCuda {
         template <class TDataSet>
         TQuerywiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
-                              const NCatboostOptions::TLossDescription& targetOptions)
+                              const NCatboostOptions::TLossDescription& targetOptions,
+                              const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor = Nothing())
             : TParent(dataSet,
-                      random) {
+                      random)
+        {
+            CB_ENSURE(!objectiveDescriptor.Defined(), "Querywise target is not supported for custom loss");
             Init(targetOptions);
         }
 

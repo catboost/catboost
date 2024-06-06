@@ -21,13 +21,13 @@ namespace NKernelHost {
 
         TUserDefinedObjectiveKernel() = default;
 
-        TUserDefinedObjectiveKernel(TCudaBufferPtr<const float> targets,
+        TUserDefinedObjectiveKernel(const TCustomObjectiveDescriptor descriptor,
+                                    TCudaBufferPtr<const float> targets,
                                     TCudaBufferPtr<const float> weights,
                                     TCudaBufferPtr<const float> predictions,
                                     TCudaBufferPtr<const float> valResult,
                                     TCudaBufferPtr<const float> der1Result,
-                                    TCudaBufferPtr<const float> der2Result,
-                                    const TCustomObjectiveDescriptor descriptor
+                                    TCudaBufferPtr<const float> der2Result
         )
         : Targets(targets)
         , Weights(weights)
@@ -94,13 +94,11 @@ namespace NKernelHost {
         {
         }
 
-        inline void Load(IInputStream* s) {
-            Y_UNUSED(s);
+        inline void Load(IInputStream*) {
             CB_ENSURE(false, "Distributed training and evaluation is not supported with user defined metrics");
         }
 
-        inline void Save(IOutputStream* s) const {
-            Y_UNUSED(s);
+        inline void Save(IOutputStream*) const {
             CB_ENSURE(false, "Distributed training and evaluation is not supported with user defined metrics");
         }
 

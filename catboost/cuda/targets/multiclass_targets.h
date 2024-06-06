@@ -10,6 +10,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/mapfindptr.h>
@@ -32,9 +33,11 @@ namespace NCatboostCuda {
         template <class TDataSet>
         TMultiClassificationTargets(const TDataSet& dataSet,
                                     TGpuAwareRandom& random,
-                                    const NCatboostOptions::TLossDescription& targetOptions)
+                                    const NCatboostOptions::TLossDescription& targetOptions,
+                                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor)
             : TParent(dataSet,
                       random) {
+            CB_ENSURE(!objectiveDescriptor.Defined());
             Init(targetOptions, dataSet.GetDataProvider());
         }
 

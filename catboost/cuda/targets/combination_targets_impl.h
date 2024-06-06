@@ -63,9 +63,11 @@ namespace NCatboostCuda {
         TCombinationTargetsImpl(
             const TDataSet& dataSet,
             TGpuAwareRandom& random,
-            const NCatboostOptions::TLossDescription& targetOptions)
+            const NCatboostOptions::TLossDescription& targetOptions,
+            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor = Nothing())
         : TParent(dataSet, random)
         {
+            CB_ENSURE(!objectiveDescriptor.Defined());
             CreateLosses(targetOptions);
 
             const auto createQuerywiseTarget = [&] (const auto& weightAndLoss) {
