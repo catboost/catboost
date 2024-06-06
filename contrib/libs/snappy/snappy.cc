@@ -1793,6 +1793,10 @@ bool GetUncompressedLength(Source* source, uint32_t* result) {
   return decompressor.ReadUncompressedLength(result);
 }
 
+size_t Compress(Source* reader, Sink* writer) {
+  return Compress(reader, writer, CompressionOptions{});
+}
+
 size_t Compress(Source* reader, Sink* writer, CompressionOptions options) {
   assert(options.level == 1 || options.level == 2);
   int token = 0;
@@ -2314,6 +2318,12 @@ bool IsValidCompressed(Source* compressed) {
 }
 
 void RawCompress(const char* input, size_t input_length, char* compressed,
+                 size_t* compressed_length) {
+  RawCompress(input, input_length, compressed, compressed_length,
+              CompressionOptions{});
+}
+
+void RawCompress(const char* input, size_t input_length, char* compressed,
                  size_t* compressed_length, CompressionOptions options) {
   ByteArraySource reader(input, input_length);
   UncheckedByteArraySink writer(compressed);
@@ -2321,6 +2331,12 @@ void RawCompress(const char* input, size_t input_length, char* compressed,
 
   // Compute how many bytes were added
   *compressed_length = (writer.CurrentDestination() - compressed);
+}
+
+void RawCompressFromIOVec(const struct iovec* iov, size_t uncompressed_length,
+                          char* compressed, size_t* compressed_length) {
+  RawCompressFromIOVec(iov, uncompressed_length, compressed, compressed_length,
+                       CompressionOptions{});
 }
 
 void RawCompressFromIOVec(const struct iovec* iov, size_t uncompressed_length,
@@ -2334,6 +2350,11 @@ void RawCompressFromIOVec(const struct iovec* iov, size_t uncompressed_length,
   *compressed_length = writer.CurrentDestination() - compressed;
 }
 
+size_t Compress(const char* input, size_t input_length,
+                std::string* compressed) {
+  return Compress(input, input_length, compressed, CompressionOptions{});
+}
+
 size_t Compress(const char* input, size_t input_length, std::string* compressed,
                 CompressionOptions options) {
   // Pre-grow the buffer to the max length of the compressed output
@@ -2344,6 +2365,11 @@ size_t Compress(const char* input, size_t input_length, std::string* compressed,
               &compressed_length, options);
   compressed->erase(compressed_length);
   return compressed_length;
+}
+
+size_t CompressFromIOVec(const struct iovec* iov, size_t iov_cnt,
+                         std::string* compressed) {
+  return CompressFromIOVec(iov, iov_cnt, compressed, CompressionOptions{});
 }
 
 size_t CompressFromIOVec(const struct iovec* iov, size_t iov_cnt,
@@ -2365,14 +2391,12 @@ size_t CompressFromIOVec(const struct iovec* iov, size_t iov_cnt,
   return compressed_length;
 }
 
-size_t Compress(const char* input, size_t input_length,
-                TString* compressed, CompressionOptions options) {
+size_t Compress(const char* input, size_t input_length, TString* compressed) {
   // Pre-grow the buffer to the max length of the compressed output
   compressed->ReserveAndResize(MaxCompressedLength(input_length));
 
   size_t compressed_length;
-  RawCompress(input, input_length, compressed->begin(),
-              &compressed_length, options);
+  RawCompress(input, input_length, compressed->begin(), &compressed_length);
   compressed->resize(compressed_length);
   return compressed_length;
 }
