@@ -36,6 +36,9 @@ namespace {
 
         inline void Finish() noexcept {
             FinishStarted_.store(true);
+            if (ExitHandlersDisabled_.load()) {
+                return;
+            }
 
             auto guard = Guard(Lock_);
 
@@ -69,11 +72,16 @@ namespace {
             return FinishStarted_.load();
         }
 
+        inline void DisableExitHandlers() {
+            ExitHandlersDisabled_.store(true);
+        }
+
     private:
         TAdaptiveLock Lock_;
         std::atomic<bool> FinishStarted_;
         TDeque<TFunc> Store_;
         TPriorityQueue<TFunc*, TVector<TFunc*>, TCmp> Items_;
+        std::atomic<bool> ExitHandlersDisabled_{false};
     };
 
     static TAdaptiveLock atExitLock;
@@ -133,4 +141,8 @@ void AtExit(TTraditionalAtExitFunc func) {
 
 void AtExit(TTraditionalAtExitFunc func, size_t priority) {
     AtExit(TraditionalCloser, reinterpret_cast<void*>(func), priority);
+}
+
+void DisableExitHandlers() {
+    Instance()->DisableExitHandlers();
 }
