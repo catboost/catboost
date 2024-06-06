@@ -49,6 +49,16 @@ namespace NPrivate {
             Cache.Update(key, value);
         }
 
+        const TPtr GetOrNull(TArgs... args) {
+            Key key = Callbacks.GetKey(args...);
+            TReadGuard r(Mutex);
+            auto iter = Cache.Find(key);
+            if (iter == Cache.End()) {
+                return nullptr;
+            }
+            return iter.Value();
+        }
+
         const TPtr Get(TArgs... args) const {
             return GetValue<true>(args...);
         }

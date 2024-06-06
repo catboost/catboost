@@ -513,6 +513,27 @@ Y_UNIT_TEST_SUITE(TThreadSafeCacheTest) {
         UNIT_ASSERT(callbacks.Creations == 0);
         UNIT_ASSERT(*item == "hjk");
     }
+
+    Y_UNIT_TEST(GetOrNullTest) {
+        TCallbacks callbacks;
+        TCache cache(callbacks, 10);
+        i32 expectedCreations = 0;
+
+        auto item = cache.GetOrNull(0);
+        UNIT_ASSERT(item == nullptr);
+        UNIT_ASSERT(callbacks.Creations == expectedCreations);
+        UNIT_ASSERT(cache.TotalSize() == 0);
+
+        item = cache.Get(0);
+        UNIT_ASSERT(*item == "abcd");
+        UNIT_ASSERT(callbacks.Creations == ++expectedCreations);
+        UNIT_ASSERT(cache.TotalSize() == 1);
+
+        item = cache.GetOrNull(0);
+        UNIT_ASSERT(*item == "abcd");
+        UNIT_ASSERT(callbacks.Creations == expectedCreations);
+        UNIT_ASSERT(cache.TotalSize() == 1);
+    }
 }
 
 Y_UNIT_TEST_SUITE(TThreadSafeCacheUnsafeTest) {
