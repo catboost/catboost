@@ -24,9 +24,10 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   |Condition|Minimum version|
   |---------|---------|
-  | Target OS is Windows | 3.21 |
+  | Target OS is Windows, build without CUDA support | 3.24 |
+  | Target OS is Windows, build with CUDA support | 3.21 |
   | Target OS is Android | 3.21 |
-  | CUDA support is enabled | 3.18 |
+  | CUDA support, target OS is not Windows | 3.18 |
   | None of the above | 3.15 |
 
 ### [Android NDK](https://developer.android.com/ndk/downloads) (only for Android target platform)
