@@ -388,7 +388,12 @@ def is_generic_type(type_):
     )
 
 
-def _try_import_forward_ref(thing, bound):  # pragma: no cover
+__EVAL_TYPE_TAKES_TYPE_PARAMS = (
+    "type_params" in inspect.signature(typing._eval_type).parameters  # type: ignore
+)
+
+
+def _try_import_forward_ref(thing, bound, *, type_params):  # pragma: no cover
     """
     Tries to import a real bound type from ``TypeVar`` bound to a ``ForwardRef``.
 
@@ -397,7 +402,10 @@ def _try_import_forward_ref(thing, bound):  # pragma: no cover
     because we can only cover each path in a separate python version.
     """
     try:
-        return typing._eval_type(bound, vars(sys.modules[thing.__module__]), None)
+        kw = {"globalns": vars(sys.modules[thing.__module__]), "localns": None}
+        if __EVAL_TYPE_TAKES_TYPE_PARAMS:
+            kw["type_params"] = type_params
+        return typing._eval_type(bound, **kw)
     except (KeyError, AttributeError, NameError):
         # We fallback to `ForwardRef` instance, you can register it as a type as well:
         # >>> from typing import ForwardRef
@@ -1030,7 +1038,9 @@ def resolve_TypeVar(thing):
     if getattr(thing, "__bound__", None) is not None:
         bound = thing.__bound__
         if isinstance(bound, typing.ForwardRef):
-            bound = _try_import_forward_ref(thing, bound)
+            # TODO: on Python 3.13 and later, we should work out what type_params
+            #       could be part of this type, and pass them in here.
+            bound = _try_import_forward_ref(thing, bound, type_params=())
         strat = unwrap_strategies(st.from_type(bound))
         if not isinstance(strat, OneOfStrategy):
             return strat
