@@ -382,20 +382,31 @@ namespace NKernel {
 
         const ui32 maxBlocksPerSm = 4;
         const ui32 smCount = TArchProps::SMCount();
-        const int blockSize = 256;
+        const ui32 gridSize = maxBlocksPerSm * smCount;
+        const int blockSize = docCount / gridSize + 1;
 
         FillBuffer(qidCursor, 0, 1, stream);
         if (functionValue) {
             FillBuffer(functionValue, 0.0f, 1, stream);
         }
 
-        QueryCrossEntropyImpl<blockSize> <<<maxBlocksPerSm * smCount, blockSize, 0, stream>>>(qidCursor, qCount, alpha,
-                                                                                             targets, weights, values,
-                                                                                            (int*)qids, isSingleClassQueries, qOffsets,
-                                                                                             approxScale, defaultScale, approxScaleSize,
-                                                                                             trueClassCount, docCount,
-                                                                                             functionValue,
-                                                                                             ders, ders2llp, ders2llmax, groupDers2);
+        #define RUN_KERNEL(N) QueryCrossEntropyImpl<N> <<<gridSize, N, 0, stream>>>( \
+                qidCursor, qCount, alpha, \
+                targets, weights, values, \
+                (int*)qids, isSingleClassQueries, qOffsets, \
+                approxScale, defaultScale, approxScaleSize, \
+                trueClassCount, docCount, \
+                functionValue, \
+                ders, ders2llp, ders2llmax, groupDers2);
+
+        if (blockSize < 256) {
+            RUN_KERNEL(256)
+        } else if (blockSize < 512) {
+            RUN_KERNEL(512)
+        } else {
+            RUN_KERNEL(1024)
+        }
+        #undef RUN_KERNEL
     }
 
 
