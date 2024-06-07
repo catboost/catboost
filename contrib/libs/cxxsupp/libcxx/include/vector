@@ -2051,6 +2051,18 @@ vector<_Tp, _Allocator>::resize(size_type __sz)
         this->__destruct_at_end(this->__begin_ + __sz);
 }
 
+template <class _Tp, class _Allocator>
+_LIBCPP_CONSTEXPR_SINCE_CXX20
+void
+vector<_Tp, _Allocator>::resize(size_type __sz, const_reference __x)
+{
+    size_type __cs = size();
+    if (__cs < __sz)
+        this->__append(__sz - __cs, __x);
+    else if (__cs > __sz)
+        this->__destruct_at_end(this->__begin_ + __sz);
+}
+
 #if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
 
 template <class _Tp, class _Allocator>
@@ -2070,18 +2082,6 @@ vector<_Tp, _Allocator>::resize_uninitialized(size_type __sz)
 }
 
 #endif
-
-template <class _Tp, class _Allocator>
-_LIBCPP_CONSTEXPR_SINCE_CXX20
-void
-vector<_Tp, _Allocator>::resize(size_type __sz, const_reference __x)
-{
-    size_type __cs = size();
-    if (__cs < __sz)
-        this->__append(__sz - __cs, __x);
-    else if (__cs > __sz)
-        this->__destruct_at_end(this->__begin_ + __sz);
-}
 
 template <class _Tp, class _Allocator>
 _LIBCPP_CONSTEXPR_SINCE_CXX20
