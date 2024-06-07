@@ -10,7 +10,7 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static_assert(TFormatTraits<TGuid>::HasCustomFormatValue);
+static_assert(CFormattable<TGuid>);
 
 TString CanonicalToString(TGuid value)
 {

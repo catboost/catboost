@@ -12,8 +12,8 @@ namespace {
 
 // Some compile-time sanity checks.
 DEFINE_ENUM(ESample, (One)(Two));
-static_assert(TFormatTraits<ESample>::HasCustomFormatValue);
-static_assert(TFormatTraits<TEnumIndexedArray<ESample, int>>::HasCustomFormatValue);
+static_assert(CFormattable<ESample>);
+static_assert(CFormattable<TEnumIndexedArray<ESample, int>>);
 
 DEFINE_ENUM(EColor,
     (Red)

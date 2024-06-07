@@ -1,5 +1,7 @@
 #pragma once
 
+#include <util/generic/strbuf.h>
+
 #include <concepts>
 #include <utility>
 

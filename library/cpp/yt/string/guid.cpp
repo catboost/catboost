@@ -11,11 +11,6 @@ void FormatValue(TStringBuilderBase* builder, TGuid value, TStringBuf /*format*/
     builder->Advance(end - begin);
 }
 
-TString ToString(TGuid guid)
-{
-    return ToStringViaBuilder(guid);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT

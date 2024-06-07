@@ -6,6 +6,8 @@
 
 #include <library/cpp/yt/assert/assert.h>
 
+#include <util/stream/str.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,13 +83,13 @@ inline void TStringBuilderBase::Reset()
 template <class... TArgs>
 void TStringBuilderBase::AppendFormat(TStringBuf format, TArgs&& ... args)
 {
-    Format(this, format, std::forward<TArgs>(args)...);
+    Format(this, TRuntimeFormat{format}, std::forward<TArgs>(args)...);
 }
 
 template <size_t Length, class... TArgs>
 void TStringBuilderBase::AppendFormat(const char (&format)[Length], TArgs&& ... args)
 {
-    Format(this, format, std::forward<TArgs>(args)...);
+    Format(this, TRuntimeFormat{format}, std::forward<TArgs>(args)...);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -131,4 +133,52 @@ TString ToStringViaBuilder(const T& value, TStringBuf spec)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// Compatibility for users of NYT::ToString(nyt_type).
+template <CFormattable T>
+TString ToString(const T& t)
+{
+    return ToStringViaBuilder(t);
+}
+
+// Sometime we want to implement
+// FormatValue using util's ToString
+// However, if we inside the FormatValue
+// we cannot just call the ToString since
+// in this scope T is already CFormattable
+// and ToString will call the very
+// FormatValue we are implementing,
+// causing an infinite recursion loop.
+// This method is basically a call to
+// util's ToString default implementation.
+template <class T>
+TString ToStringIgnoringFormatValue(const T& t)
+{
+    TString s;
+    ::TStringOutput o(s);
+    o << t;
+    return s;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
+
+#include <util/string/cast.h>
+
+// util/string/cast.h extension for yt types only
+// TODO(arkady-e1ppa): Abolish ::ToString in
+// favour of either NYT::ToString or
+// automatic formatting wherever it is needed.
+namespace NPrivate {
+
+template <class T>
+    requires (NYT::NDetail::CYtName<T> && NYT::CFormattable<T>)
+struct TToString<T, false>
+{
+    static TString Cvt(const T& t)
+    {
+        return NYT::ToStringViaBuilder(t);
+    }
+};
+
+} // namespace NPrivate

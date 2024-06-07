@@ -13,7 +13,11 @@
 
 #include <library/cpp/yt/containers/enum_indexed_array.h>
 
+#include <library/cpp/yt/misc/concepts.h>
 #include <library/cpp/yt/misc/enum.h>
+#include <library/cpp/yt/misc/wrapper_traits.h>
+
+#include <util/generic/maybe.h>
 
 #include <util/system/platform.h>
 
@@ -21,28 +25,241 @@
 #include <optional>
 #include <span>
 
+#if __cplusplus >= 202302L
+    #include <filesystem>
+#endif
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static constexpr char GenericSpecSymbol = 'v';
+// Helper functions for formatting.
+namespace NDetail {
+
+constexpr inline char IntroductorySymbol = '%';
+constexpr inline char GenericSpecSymbol = 'v';
 
 inline bool IsQuotationSpecSymbol(char symbol)
 {
     return symbol == 'Q' || symbol == 'q';
 }
 
-// TStringBuf
-inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBuf format)
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TValue>
+void FormatValueViaSprintf(
+    TStringBuilderBase* builder,
+    TValue value,
+    TStringBuf spec,
+    TStringBuf genericSpec);
+
+template <class TValue>
+void FormatIntValue(
+    TStringBuilderBase* builder,
+    TValue value,
+    TStringBuf spec,
+    TStringBuf genericSpec);
+
+void FormatPointerValue(
+    TStringBuilderBase* builder,
+    const void* value,
+    TStringBuf spec);
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Helper concepts for matching the correct overload.
+// NB(arkady-e1ppa): We prefer to hardcode the known types
+// so that someone doesn't accidentally implement the
+// "SimpleRange" concept and have a non-trivial
+// formatting procedure at the same time.
+
+template <class R>
+concept CKnownRange =
+    requires (R r) { [] <class... Ts> (std::vector<Ts...>) { } (r); } ||
+    requires (R r) { [] <class T, size_t E> (std::span<T, E>) { } (r); } ||
+    requires (R r) { [] <class T, size_t N> (TCompactVector<T, N>) { } (r); } ||
+    requires (R r) { [] <class... Ts> (std::set<Ts...>) { } (r); } ||
+    requires (R r) { [] <class... Ts> (THashSet<Ts...>) { } (r); } ||
+    requires (R r) { [] <class... Ts> (THashMultiSet<Ts...>) { } (r); };
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class R>
+concept CKnownKVRange =
+    requires (R r) { [] <class... Ts> (std::map<Ts...>) { } (r); } ||
+    requires (R r) { [] <class... Ts> (std::multimap<Ts...>) { } (r); } ||
+    requires (R r) { [] <class... Ts> (THashMap<Ts...>) { } (r); } ||
+    requires (R r) { [] <class... Ts> (THashMultiMap<Ts...>) { } (r); };
+
+} // namespace NDetail
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TRange, class TFormatter>
+void FormatRange(TStringBuilderBase* builder, const TRange& range, const TFormatter& formatter, size_t limit = std::numeric_limits<size_t>::max())
 {
-    if (!format) {
+    builder->AppendChar('[');
+    size_t index = 0;
+    for (const auto& item : range) {
+        if (index > 0) {
+            builder->AppendString(DefaultJoinToStringDelimiter);
+        }
+        if (index == limit) {
+            builder->AppendString(DefaultRangeEllipsisFormat);
+            break;
+        }
+        formatter(builder, item);
+        ++index;
+    }
+    builder->AppendChar(']');
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TRange, class TFormatter>
+void FormatKeyValueRange(TStringBuilderBase* builder, const TRange& range, const TFormatter& formatter, size_t limit = std::numeric_limits<size_t>::max())
+{
+    builder->AppendChar('{');
+    size_t index = 0;
+    for (const auto& item : range) {
+        if (index > 0) {
+            builder->AppendString(DefaultJoinToStringDelimiter);
+        }
+        if (index == limit) {
+            builder->AppendString(DefaultRangeEllipsisFormat);
+            break;
+        }
+        formatter(builder, item.first);
+        builder->AppendString(DefaultKeyValueDelimiter);
+        formatter(builder, item.second);
+        ++index;
+    }
+    builder->AppendChar('}');
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class R>
+concept CFormattableRange =
+    NDetail::CKnownRange<R> &&
+    CFormattable<typename R::value_type>;
+
+template <class R>
+concept CFormattableKVRange =
+    NDetail::CKnownKVRange<R> &&
+    CFormattable<typename R::key_type> &&
+    CFormattable<typename R::value_type>;
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TRange, class TFormatter>
+typename TFormattableView<TRange, TFormatter>::TBegin TFormattableView<TRange, TFormatter>::begin() const
+{
+    return RangeBegin;
+}
+
+template <class TRange, class TFormatter>
+typename TFormattableView<TRange, TFormatter>::TEnd TFormattableView<TRange, TFormatter>::end() const
+{
+    return RangeEnd;
+}
+
+template <class TRange, class TFormatter>
+TFormattableView<TRange, TFormatter> MakeFormattableView(
+    const TRange& range,
+    TFormatter&& formatter)
+{
+    return TFormattableView<TRange, std::decay_t<TFormatter>>{range.begin(), range.end(), std::forward<TFormatter>(formatter)};
+}
+
+template <class TRange, class TFormatter>
+TFormattableView<TRange, TFormatter> MakeShrunkFormattableView(
+    const TRange& range,
+    TFormatter&& formatter,
+    size_t limit)
+{
+    return TFormattableView<TRange, std::decay_t<TFormatter>>{
+        range.begin(),
+        range.end(),
+        std::forward<TFormatter>(formatter),
+        limit};
+}
+
+template <class TFormatter>
+TFormatterWrapper<TFormatter> MakeFormatterWrapper(
+    TFormatter&& formatter)
+{
+    return TFormatterWrapper<TFormatter>{
+        .Formatter = std::move(formatter)
+    };
+}
+
+template <class... TArgs>
+TLazyMultiValueFormatter<TArgs...>::TLazyMultiValueFormatter(
+    TStringBuf format,
+    TArgs&&... args)
+    : Format_(format)
+    , Args_(std::forward<TArgs>(args)...)
+{ }
+
+template <class... TArgs>
+auto MakeLazyMultiValueFormatter(TStringBuf format, TArgs&&... args)
+{
+    return TLazyMultiValueFormatter<TArgs...>(format, std::forward<TArgs>(args)...);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Non-container objects.
+
+#define XX(valueType, castType, genericSpec) \
+    inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf spec) \
+    { \
+        NYT::NDetail::FormatIntValue(builder, static_cast<castType>(value), spec, genericSpec); \
+    }
+
+XX(i8,                  i32,      TStringBuf("d"))
+XX(ui8,                 ui32,     TStringBuf("u"))
+XX(i16,                 i32,      TStringBuf("d"))
+XX(ui16,                ui32,     TStringBuf("u"))
+XX(i32,                 i32,      TStringBuf("d"))
+XX(ui32,                ui32,     TStringBuf("u"))
+XX(long,                i64,      TStringBuf(PRIdLEAST64))
+XX(long long,           i64,      TStringBuf(PRIdLEAST64))
+XX(unsigned long,       ui64,     TStringBuf(PRIuLEAST64))
+XX(unsigned long long,  ui64,     TStringBuf(PRIuLEAST64))
+
+#undef XX
+
+#define XX(valueType, castType, genericSpec) \
+    inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf spec) \
+    { \
+        NYT::NDetail::FormatValueViaSprintf(builder, static_cast<castType>(value), spec, genericSpec); \
+    }
+
+XX(double,              double,   TStringBuf("lf"))
+XX(float,               float,    TStringBuf("f"))
+
+#undef XX
+
+// Pointer
+template <class T>
+void FormatValue(TStringBuilderBase* builder, T* value, TStringBuf spec)
+{
+    NYT::NDetail::FormatPointerValue(builder, static_cast<const void*>(value), spec);
+}
+
+// TStringBuf
+inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBuf spec)
+{
+    if (!spec) {
         builder->AppendString(value);
         return;
     }
 
     // Parse alignment.
     bool alignLeft = false;
-    const char* current = format.begin();
+    const char* current = spec.begin();
     if (*current == '-') {
         alignLeft = true;
         ++current;
@@ -75,7 +292,7 @@ inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBu
     bool singleQuotes = false;
     bool doubleQuotes = false;
     bool escape = false;
-    while (current < format.end()) {
+    while (current < spec.end()) {
         switch (*current++) {
             case 'q':
                 singleQuotes = true;
@@ -123,40 +340,66 @@ inline void FormatValue(TStringBuilderBase* builder, TStringBuf value, TStringBu
 }
 
 // TString
-inline void FormatValue(TStringBuilderBase* builder, const TString& value, TStringBuf format)
+inline void FormatValue(TStringBuilderBase* builder, const TString& value, TStringBuf spec)
 {
-    FormatValue(builder, TStringBuf(value), format);
+    FormatValue(builder, TStringBuf(value), spec);
 }
 
 // const char*
-inline void FormatValue(TStringBuilderBase* builder, const char* value, TStringBuf format)
+inline void FormatValue(TStringBuilderBase* builder, const char* value, TStringBuf spec)
 {
-    FormatValue(builder, TStringBuf(value), format);
+    FormatValue(builder, TStringBuf(value), spec);
+}
+
+template <size_t N>
+inline void FormatValue(TStringBuilderBase* builder, const char (&value)[N], TStringBuf spec)
+{
+    FormatValue(builder, TStringBuf(value), spec);
 }
 
 // char*
-inline void FormatValue(TStringBuilderBase* builder, char* value, TStringBuf format)
+inline void FormatValue(TStringBuilderBase* builder, char* value, TStringBuf spec)
 {
-    FormatValue(builder, TStringBuf(value), format);
+    FormatValue(builder, TStringBuf(value), spec);
 }
 
-// char
-inline void FormatValue(TStringBuilderBase* builder, char value, TStringBuf format)
+// std::string
+inline void FormatValue(TStringBuilderBase* builder, const std::string& value, TStringBuf spec)
 {
-    FormatValue(builder, TStringBuf(&value, 1), format);
+    FormatValue(builder, TStringBuf(value), spec);
+}
+
+// std::string_view
+inline void FormatValue(TStringBuilderBase* builder, const std::string_view& value, TStringBuf spec)
+{
+    FormatValue(builder, TStringBuf(value), spec);
+}
+
+#if __cplusplus >= 202302L
+// std::filesystem::path
+inline void FormatValue(TStringBuilderBase* builder, const std::filesystem::path& value, TStringBuf spec)
+{
+    FormatValue(builder, std::string(value), spec);
+}
+#endif
+
+// char
+inline void FormatValue(TStringBuilderBase* builder, char value, TStringBuf spec)
+{
+    FormatValue(builder, TStringBuf(&value, 1), spec);
 }
 
 // bool
-inline void FormatValue(TStringBuilderBase* builder, bool value, TStringBuf format)
+inline void FormatValue(TStringBuilderBase* builder, bool value, TStringBuf spec)
 {
     // Parse custom flags.
     bool lowercase = false;
-    const char* current = format.begin();
-    while (current != format.end()) {
+    const char* current = spec.begin();
+    while (current != spec.end()) {
         if (*current == 'l') {
             ++current;
             lowercase = true;
-        } else if (IsQuotationSpecSymbol(*current)) {
+        } else if (NYT::NDetail::IsQuotationSpecSymbol(*current)) {
             ++current;
         } else
             break;
@@ -169,399 +412,316 @@ inline void FormatValue(TStringBuilderBase* builder, bool value, TStringBuf form
     builder->AppendString(str);
 }
 
-// Fallback to ToString
-struct TToStringFallbackValueFormatterTag
-{ };
-
-template <class TValue, class = void>
-struct TValueFormatter
-{
-    static TToStringFallbackValueFormatterTag Do(TStringBuilderBase* builder, const TValue& value, TStringBuf format)
-    {
-        using ::ToString;
-        FormatValue(builder, ToString(value), format);
-        return {};
-    }
-};
-
-// Enum
-template <class TEnum>
-struct TValueFormatter<TEnum, typename std::enable_if<TEnumTraits<TEnum>::IsEnum>::type>
-{
-    static void Do(TStringBuilderBase* builder, TEnum value, TStringBuf format)
-    {
-        // Parse custom flags.
-        bool lowercase = false;
-        const char* current = format.begin();
-        while (current != format.end()) {
-            if (*current == 'l') {
-                ++current;
-                lowercase = true;
-            } else if (IsQuotationSpecSymbol(*current)) {
-                ++current;
-            } else {
-                break;
-            }
-        }
-
-        FormatEnum(builder, value, lowercase);
-    }
-};
-
-template <class TRange, class TFormatter>
-typename TFormattableView<TRange, TFormatter>::TBegin TFormattableView<TRange, TFormatter>::begin() const
-{
-    return RangeBegin;
-}
-
-template <class TRange, class TFormatter>
-typename TFormattableView<TRange, TFormatter>::TEnd TFormattableView<TRange, TFormatter>::end() const
-{
-    return RangeEnd;
-}
-
-template <class TRange, class TFormatter>
-TFormattableView<TRange, TFormatter> MakeFormattableView(
-    const TRange& range,
-    TFormatter&& formatter)
-{
-    return TFormattableView<TRange, std::decay_t<TFormatter>>{range.begin(), range.end(), std::forward<TFormatter>(formatter)};
-}
-
-template <class TRange, class TFormatter>
-TFormattableView<TRange, TFormatter> MakeShrunkFormattableView(
-    const TRange& range,
-    TFormatter&& formatter,
-    size_t limit)
-{
-    return TFormattableView<TRange, std::decay_t<TFormatter>>{range.begin(), range.end(), std::forward<TFormatter>(formatter), limit};
-}
-
-template <class TRange, class TFormatter>
-void FormatRange(TStringBuilderBase* builder, const TRange& range, const TFormatter& formatter, size_t limit = std::numeric_limits<size_t>::max())
-{
-    builder->AppendChar('[');
-    size_t index = 0;
-    for (const auto& item : range) {
-        if (index > 0) {
-            builder->AppendString(DefaultJoinToStringDelimiter);
-        }
-        if (index == limit) {
-            builder->AppendString(DefaultRangeEllipsisFormat);
-            break;
-        }
-        formatter(builder, item);
-        ++index;
-    }
-    builder->AppendChar(']');
-}
-
-template <class TRange, class TFormatter>
-void FormatKeyValueRange(TStringBuilderBase* builder, const TRange& range, const TFormatter& formatter, size_t limit = std::numeric_limits<size_t>::max())
-{
-    builder->AppendChar('{');
-    size_t index = 0;
-    for (const auto& item : range) {
-        if (index > 0) {
-            builder->AppendString(DefaultJoinToStringDelimiter);
-        }
-        if (index == limit) {
-            builder->AppendString(DefaultRangeEllipsisFormat);
-            break;
-        }
-        formatter(builder, item.first);
-        builder->AppendString(DefaultKeyValueDelimiter);
-        formatter(builder, item.second);
-        ++index;
-    }
-    builder->AppendChar('}');
-}
-
-// TFormattableView
-template <class TRange, class TFormatter>
-struct TValueFormatter<TFormattableView<TRange, TFormatter>>
-{
-    static void Do(TStringBuilderBase* builder, const TFormattableView<TRange, TFormatter>& range, TStringBuf /*format*/)
-    {
-        FormatRange(builder, range, range.Formatter, range.Limit);
-    }
-};
-
-template <class TFormatter>
-TFormatterWrapper<TFormatter> MakeFormatterWrapper(
-    TFormatter&& formatter)
-{
-    return TFormatterWrapper<TFormatter>{
-        .Formatter = std::move(formatter)
-    };
-}
-
-// TFormatterWrapper
-template <class TFormatter>
-struct TValueFormatter<TFormatterWrapper<TFormatter>>
-{
-    static void Do(TStringBuilderBase* builder, const TFormatterWrapper<TFormatter>& wrapper, TStringBuf /*format*/)
-    {
-        wrapper.Formatter(builder);
-    }
-};
-
-// std::vector
-template <class T, class TAllocator>
-struct TValueFormatter<std::vector<T, TAllocator>>
-{
-    static void Do(TStringBuilderBase* builder, const std::vector<T, TAllocator>& collection, TStringBuf /*format*/)
-    {
-        FormatRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// std::span
-template <class T, size_t Extent>
-struct TValueFormatter<std::span<T, Extent>>
-{
-    static void Do(TStringBuilderBase* builder, const std::span<T, Extent>& collection, TStringBuf /*format*/)
-    {
-        FormatRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// TCompactVector
-template <class T, unsigned N>
-struct TValueFormatter<TCompactVector<T, N>>
-{
-    static void Do(TStringBuilderBase* builder, const TCompactVector<T, N>& collection, TStringBuf /*format*/)
-    {
-        FormatRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// std::set
-template <class T>
-struct TValueFormatter<std::set<T>>
-{
-    static void Do(TStringBuilderBase* builder, const std::set<T>& collection, TStringBuf /*format*/)
-    {
-        FormatRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// std::map
-template <class K, class V>
-struct TValueFormatter<std::map<K, V>>
-{
-    static void Do(TStringBuilderBase* builder, const std::map<K, V>& collection, TStringBuf /*format*/)
-    {
-        FormatKeyValueRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// std::multimap
-template <class K, class V>
-struct TValueFormatter<std::multimap<K, V>>
-{
-    static void Do(TStringBuilderBase* builder, const std::multimap<K, V>& collection, TStringBuf /*format*/)
-    {
-        FormatKeyValueRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// THashSet
-template <class T>
-struct TValueFormatter<THashSet<T>>
-{
-    static void Do(TStringBuilderBase* builder, const THashSet<T>& collection, TStringBuf /*format*/)
-    {
-        FormatRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// THashMultiSet
-template <class T>
-struct TValueFormatter<THashMultiSet<T>>
-{
-    static void Do(TStringBuilderBase* builder, const THashMultiSet<T>& collection, TStringBuf /*format*/)
-    {
-        FormatRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// THashMap
-template <class K, class V>
-struct TValueFormatter<THashMap<K, V>>
-{
-    static void Do(TStringBuilderBase* builder, const THashMap<K, V>& collection, TStringBuf /*format*/)
-    {
-        FormatKeyValueRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// THashMultiMap
-template <class K, class V>
-struct TValueFormatter<THashMultiMap<K, V>>
-{
-    static void Do(TStringBuilderBase* builder, const THashMultiMap<K, V>& collection, TStringBuf /*format*/)
-    {
-        FormatKeyValueRange(builder, collection, TDefaultFormatter());
-    }
-};
-
-// TEnumIndexedArray
-template <class E, class T>
-struct TValueFormatter<TEnumIndexedArray<E, T>>
-{
-    static void Do(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& collection, TStringBuf format)
-    {
-        builder->AppendChar('{');
-        bool firstItem = true;
-        for (const auto& index : TEnumTraits<E>::GetDomainValues()) {
-            if (!firstItem) {
-                builder->AppendString(DefaultJoinToStringDelimiter);
-            }
-            FormatValue(builder, index, format);
-            builder->AppendString(": ");
-            FormatValue(builder, collection[index], format);
-            firstItem = false;
-        }
-        builder->AppendChar('}');
-    }
-};
-
-// std::pair
-template <class T1, class T2>
-struct TValueFormatter<std::pair<T1, T2>>
-{
-    static void Do(TStringBuilderBase* builder, const std::pair<T1, T2>& value, TStringBuf format)
-    {
-        builder->AppendChar('{');
-        FormatValue(builder, value.first, format);
-        builder->AppendString(TStringBuf(", "));
-        FormatValue(builder, value.second, format);
-        builder->AppendChar('}');
-    }
-};
-
-// std::optional
-inline void FormatValue(TStringBuilderBase* builder, std::nullopt_t, TStringBuf /*format*/)
-{
-    builder->AppendString(TStringBuf("<null>"));
-}
-
-template <class T>
-struct TValueFormatter<std::optional<T>>
-{
-    static void Do(TStringBuilderBase* builder, const std::optional<T>& value, TStringBuf format)
-    {
-        if (value) {
-            FormatValue(builder, *value, format);
-        } else {
-            FormatValue(builder, std::nullopt, format);
-        }
-    }
-};
-
-template <class TValue>
-auto FormatValue(TStringBuilderBase* builder, const TValue& value, TStringBuf format) ->
-    decltype(TValueFormatter<TValue>::Do(builder, value, format))
-{
-    return TValueFormatter<TValue>::Do(builder, value, format);
-}
-
-namespace NDetail {
-
-template <class TValue>
-void FormatValueViaSprintf(
-    TStringBuilderBase* builder,
-    TValue value,
-    TStringBuf format,
-    TStringBuf genericSpec);
-
-template <class TValue>
-void FormatIntValue(
-    TStringBuilderBase* builder,
-    TValue value,
-    TStringBuf format,
-    TStringBuf genericSpec);
-
-void FormatPointerValue(
-    TStringBuilderBase* builder,
-    const void* value,
-    TStringBuf format);
-
-} // namespace NDetail
-
-#define XX(valueType, castType, genericSpec) \
-    inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf format) \
-    { \
-        NYT::NDetail::FormatIntValue(builder, static_cast<castType>(value), format, genericSpec); \
-    }
-
-XX(i8,                  i32,      TStringBuf("d"))
-XX(ui8,                 ui32,     TStringBuf("u"))
-XX(i16,                 i32,      TStringBuf("d"))
-XX(ui16,                ui32,     TStringBuf("u"))
-XX(i32,                 i32,      TStringBuf("d"))
-XX(ui32,                ui32,     TStringBuf("u"))
-#ifdef _win_
-XX(long long,           i64,      TStringBuf("lld"))
-XX(unsigned long long,  ui64,     TStringBuf("llu"))
-#else
-XX(long,                i64,      TStringBuf("ld"))
-XX(unsigned long,       ui64,     TStringBuf("lu"))
-#endif
-
-#undef XX
-
-#define XX(valueType, castType, genericSpec) \
-    inline void FormatValue(TStringBuilderBase* builder, valueType value, TStringBuf format) \
-    { \
-        NYT::NDetail::FormatValueViaSprintf(builder, static_cast<castType>(value), format, genericSpec); \
-    }
-
-XX(double,              double,   TStringBuf("lf"))
-XX(float,               float,    TStringBuf("f"))
-
-#undef XX
-
-// Pointer
-template <class T>
-void FormatValue(TStringBuilderBase* builder, T* value, TStringBuf format)
-{
-    NYT::NDetail::FormatPointerValue(builder, static_cast<const void*>(value), format);
-}
-
-// TDuration (specialize for performance reasons)
-inline void FormatValue(TStringBuilderBase* builder, TDuration value, TStringBuf /*format*/)
+// TDuration
+inline void FormatValue(TStringBuilderBase* builder, TDuration value, TStringBuf /*spec*/)
 {
     builder->AppendFormat("%vus", value.MicroSeconds());
 }
 
-// TInstant (specialize for TFormatTraits)
-inline void FormatValue(TStringBuilderBase* builder, TInstant value, TStringBuf format)
+// TInstant
+inline void FormatValue(TStringBuilderBase* builder, TInstant value, TStringBuf spec)
 {
-    // TODO(babenko): optimize
-    builder->AppendFormat("%v", ToString(value), format);
+    // TODO(babenko): Optimize.
+    FormatValue(builder, NYT::ToStringIgnoringFormatValue(value), spec);
+}
+
+// Enum
+template <class TEnum>
+    requires (TEnumTraits<TEnum>::IsEnum)
+void FormatValue(TStringBuilderBase* builder, TEnum value, TStringBuf spec)
+{
+    // Parse custom flags.
+    bool lowercase = false;
+    const char* current = spec.begin();
+    while (current != spec.end()) {
+        if (*current == 'l') {
+            ++current;
+            lowercase = true;
+        } else if (NYT::NDetail::IsQuotationSpecSymbol(*current)) {
+            ++current;
+        } else {
+            break;
+        }
+    }
+
+    FormatEnum(builder, value, lowercase);
+}
+
+template <class TArcadiaEnum>
+    requires (std::is_enum_v<TArcadiaEnum> && !TEnumTraits<TArcadiaEnum>::IsEnum)
+void FormatValue(TStringBuilderBase* builder, TArcadiaEnum value, TStringBuf /*spec*/)
+{
+    // NB(arkady-e1ppa): This can catch normal enums which
+    // just want to be serialized as numbers.
+    // Unfortunately, we have no way of determining that other than
+    // marking every relevant arcadia enum in the code by trait
+    // or writing their complete trait and placing such trait in
+    // every single file where it is formatted.
+    // We gotta figure something out but until that
+    // we will just have to make a string for such enums.
+    // If only arcadia enums provided compile-time check
+    // if enum is serializable :(((((.
+    builder->AppendString(NYT::ToStringIgnoringFormatValue(value));
+}
+
+// Container objects.
+// NB(arkady-e1ppa): In order to support container combinations
+// we forward-declare them before defining.
+
+// TMaybe
+template <class T, class TPolicy>
+void FormatValue(TStringBuilderBase* builder, const TMaybe<T, TPolicy>& value, TStringBuf spec);
+
+// std::optional
+template <class T>
+void FormatValue(TStringBuilderBase* builder, const std::optional<T>& value, TStringBuf spec);
+
+// std::pair
+template <class A, class B>
+void FormatValue(TStringBuilderBase* builder, const std::pair<A, B>& value, TStringBuf spec);
+
+// std::tuple
+template <class... Ts>
+void FormatValue(TStringBuilderBase* builder, const std::tuple<Ts...>& value, TStringBuf spec);
+
+// TEnumIndexedArray
+template <class E, class T>
+void FormatValue(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& collection, TStringBuf spec);
+
+// One-valued ranges
+template <CFormattableRange TRange>
+void FormatValue(TStringBuilderBase* builder, const TRange& collection, TStringBuf spec);
+
+// Two-valued ranges
+template <CFormattableKVRange TRange>
+void FormatValue(TStringBuilderBase* builder, const TRange& collection, TStringBuf spec);
+
+// FormattableView
+template <class TRange, class TFormatter>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TFormattableView<TRange, TFormatter>& formattableView,
+    TStringBuf spec);
+
+// TFormatterWrapper
+template <class TFormatter>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TFormatterWrapper<TFormatter>& wrapper,
+    TStringBuf spec);
+
+// TLazyMultiValueFormatter
+template <class... TArgs>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TLazyMultiValueFormatter<TArgs...>& value,
+    TStringBuf /*spec*/);
+
+// TMaybe
+template <class T, class TPolicy>
+void FormatValue(TStringBuilderBase* builder, const TMaybe<T, TPolicy>& value, TStringBuf spec)
+{
+    FormatValue(builder, NYT::ToStringIgnoringFormatValue(value), spec);
+}
+
+// std::optional: nullopt
+inline void FormatValue(TStringBuilderBase* builder, std::nullopt_t, TStringBuf /*spec*/)
+{
+    builder->AppendString(TStringBuf("<null>"));
+}
+
+// std::optional: generic T
+template <class T>
+void FormatValue(TStringBuilderBase* builder, const std::optional<T>& value, TStringBuf spec)
+{
+    if (value.has_value()) {
+        FormatValue(builder, *value, spec);
+    } else {
+        FormatValue(builder, std::nullopt, spec);
+    }
+}
+
+// std::pair
+template <class A, class B>
+void FormatValue(TStringBuilderBase* builder, const std::pair<A, B>& value, TStringBuf spec)
+{
+    builder->AppendChar('{');
+    FormatValue(builder, value.first, spec);
+    builder->AppendString(TStringBuf(", "));
+    FormatValue(builder, value.second, spec);
+    builder->AppendChar('}');
+}
+
+// std::tuple
+template <class... Ts>
+void FormatValue(TStringBuilderBase* builder, const std::tuple<Ts...>& value, TStringBuf spec)
+{
+    builder->AppendChar('{');
+
+    [&] <size_t... Idx> (std::index_sequence<Idx...>) {
+        ([&] {
+            FormatValue(builder, std::get<Idx>(value), spec);
+            if constexpr (Idx != sizeof...(Ts)) {
+                builder->AppendString(TStringBuf(", "));
+            }
+        } (), ...);
+    } (std::index_sequence_for<Ts...>());
+
+    builder->AppendChar('}');
+}
+
+// TEnumIndexedArray
+template <class E, class T>
+void FormatValue(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& collection, TStringBuf spec)
+{
+    builder->AppendChar('{');
+    bool firstItem = true;
+    for (const auto& index : TEnumTraits<E>::GetDomainValues()) {
+        if (!firstItem) {
+            builder->AppendString(DefaultJoinToStringDelimiter);
+        }
+        FormatValue(builder, index, spec);
+        builder->AppendString(": ");
+        FormatValue(builder, collection[index], spec);
+        firstItem = false;
+    }
+    builder->AppendChar('}');
+}
+
+// One-valued ranges
+template <CFormattableRange TRange>
+void FormatValue(TStringBuilderBase* builder, const TRange& collection, TStringBuf /*spec*/)
+{
+    NYT::FormatRange(builder, collection, TDefaultFormatter());
+}
+
+// Two-valued ranges
+template <CFormattableKVRange TRange>
+void FormatValue(TStringBuilderBase* builder, const TRange& collection, TStringBuf /*spec*/)
+{
+    NYT::FormatKeyValueRange(builder, collection, TDefaultFormatter());
+}
+
+// FormattableView
+template <class TRange, class TFormatter>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TFormattableView<TRange, TFormatter>& formattableView,
+    TStringBuf /*spec*/)
+{
+    NYT::FormatRange(builder, formattableView, formattableView.Formatter, formattableView.Limit);
+}
+
+// TFormatterWrapper
+template <class TFormatter>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TFormatterWrapper<TFormatter>& wrapper,
+    TStringBuf /*spec*/)
+{
+    wrapper.Formatter(builder);
+}
+
+// TLazyMultiValueFormatter
+template <class... TArgs>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TLazyMultiValueFormatter<TArgs...>& value,
+    TStringBuf /*spec*/)
+{
+    std::apply(
+        [&] <class... TInnerArgs> (TInnerArgs&&... args) {
+            builder->AppendFormat(value.Format_, std::forward<TInnerArgs>(args)...);
+        },
+        value.Args_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace NDetail {
 
-template <class TArgFormatter>
-void FormatImpl(
+template <size_t HeadPos, class... TArgs>
+class TValueFormatter;
+
+template <size_t HeadPos>
+class TValueFormatter<HeadPos>
+{
+public:
+    void operator() (size_t /*index*/, TStringBuilderBase* builder, TStringBuf /*spec*/) const
+    {
+        builder->AppendString(TStringBuf("<missing argument>"));
+    }
+};
+
+template <size_t HeadPos, class THead, class... TTail>
+class TValueFormatter<HeadPos, THead, TTail...>
+{
+public:
+    explicit TValueFormatter(const THead& head, const TTail&... tail) noexcept
+        : Head_(head)
+        , TailFormatter_(tail...)
+    { }
+
+    void operator() (size_t index, TStringBuilderBase* builder, TStringBuf spec) const
+    {
+        YT_ASSERT(index >= HeadPos);
+        if (index == HeadPos) {
+            FormatValue(builder, Head_, spec);
+        } else {
+            TailFormatter_(index, builder, spec);
+        }
+    }
+
+private:
+    const THead& Head_;
+    TValueFormatter<HeadPos + 1, TTail...> TailFormatter_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TRangeValue>
+class TRangeFormatter
+{
+public:
+    template <class... TArgs>
+        requires std::constructible_from<std::span<const TRangeValue>, TArgs...>
+    explicit TRangeFormatter(TArgs&&... args) noexcept
+        : Span_(std::forward<TArgs>(args)...)
+    { }
+
+    void operator() (size_t index, TStringBuilderBase* builder, TStringBuf spec) const
+    {
+        if (index >= Span_.size()) {
+            builder->AppendString(TStringBuf("<missing argument>"));
+        } else {
+            FormatValue(builder, *(Span_.begin() + index), spec);
+        }
+    }
+
+private:
+    std::span<const TRangeValue> Span_;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class T>
+concept CFormatter = CInvocable<T, void(size_t, TStringBuilderBase*, TStringBuf)>;
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <CFormatter TFormatter>
+void RunFormatter(
     TStringBuilderBase* builder,
-    TStringBuf format,
-    const TArgFormatter& argFormatter)
+    TStringBuf fmt,
+    const TFormatter& formatter)
 {
     size_t argIndex = 0;
-    auto current = format.begin();
+    auto current = std::begin(fmt);
+    auto end = std::end(fmt);
     while (true) {
         // Scan verbatim part until stop symbol.
         auto verbatimBegin = current;
-        auto verbatimEnd = verbatimBegin;
-        while (verbatimEnd != format.end() && *verbatimEnd != '%') {
-            ++verbatimEnd;
-        }
+        auto verbatimEnd = std::find(current, end, IntroductorySymbol);
 
         // Copy verbatim part, if any.
         size_t verbatimSize = verbatimEnd - verbatimBegin;
@@ -571,85 +731,86 @@ void FormatImpl(
 
         // Handle stop symbol.
         current = verbatimEnd;
-        if (current == format.end()) {
+        if (current == end) {
             break;
         }
 
-        YT_ASSERT(*current == '%');
+        YT_ASSERT(*current == IntroductorySymbol);
         ++current;
 
-        if (*current == '%') {
+        if (*current == IntroductorySymbol) {
             // Verbatim %.
-            builder->AppendChar('%');
+            builder->AppendChar(IntroductorySymbol);
             ++current;
-        } else {
-            // Scan format part until stop symbol.
-            auto argFormatBegin = current;
-            auto argFormatEnd = argFormatBegin;
-            bool singleQuotes = false;
-            bool doubleQuotes = false;
-
-            while (
-                argFormatEnd != format.end() &&
-                *argFormatEnd != GenericSpecSymbol &&     // value in generic format
-                *argFormatEnd != 'd' &&                   // others are standard specifiers supported by printf
-                *argFormatEnd != 'i' &&
-                *argFormatEnd != 'u' &&
-                *argFormatEnd != 'o' &&
-                *argFormatEnd != 'x' &&
-                *argFormatEnd != 'X' &&
-                *argFormatEnd != 'f' &&
-                *argFormatEnd != 'F' &&
-                *argFormatEnd != 'e' &&
-                *argFormatEnd != 'E' &&
-                *argFormatEnd != 'g' &&
-                *argFormatEnd != 'G' &&
-                *argFormatEnd != 'a' &&
-                *argFormatEnd != 'A' &&
-                *argFormatEnd != 'c' &&
-                *argFormatEnd != 's' &&
-                *argFormatEnd != 'p' &&
-                *argFormatEnd != 'n')
-            {
-                switch (*argFormatEnd) {
-                    case 'q':
-                        singleQuotes = true;
-                        break;
-                    case 'Q':
-                        doubleQuotes = true;
-                        break;
-                    case 'h':
-                        break;
-                }
-                ++argFormatEnd;
-            }
-
-            // Handle end of format string.
-            if (argFormatEnd != format.end()) {
-                ++argFormatEnd;
-            }
-
-            // 'n' means 'nothing'; skip the argument.
-            if (*argFormatBegin != 'n') {
-                // Format argument.
-                TStringBuf argFormat(argFormatBegin, argFormatEnd);
-                if (singleQuotes) {
-                    builder->AppendChar('\'');
-                }
-                if (doubleQuotes) {
-                    builder->AppendChar('"');
-                }
-                argFormatter(argIndex++, builder, argFormat);
-                if (singleQuotes) {
-                    builder->AppendChar('\'');
-                }
-                if (doubleQuotes) {
-                    builder->AppendChar('"');
-                }
-            }
-
-            current = argFormatEnd;
+            continue;
         }
+
+        // Scan format part until stop symbol.
+        auto argFormatBegin = current;
+        auto argFormatEnd = argFormatBegin;
+        bool singleQuotes = false;
+        bool doubleQuotes = false;
+
+        while (
+            argFormatEnd != end &&
+            *argFormatEnd != GenericSpecSymbol &&     // value in generic format
+            *argFormatEnd != 'd' &&                   // others are standard specifiers supported by printf
+            *argFormatEnd != 'i' &&
+            *argFormatEnd != 'u' &&
+            *argFormatEnd != 'o' &&
+            *argFormatEnd != 'x' &&
+            *argFormatEnd != 'X' &&
+            *argFormatEnd != 'f' &&
+            *argFormatEnd != 'F' &&
+            *argFormatEnd != 'e' &&
+            *argFormatEnd != 'E' &&
+            *argFormatEnd != 'g' &&
+            *argFormatEnd != 'G' &&
+            *argFormatEnd != 'a' &&
+            *argFormatEnd != 'A' &&
+            *argFormatEnd != 'c' &&
+            *argFormatEnd != 's' &&
+            *argFormatEnd != 'p' &&
+            *argFormatEnd != 'n')
+        {
+            switch (*argFormatEnd) {
+                case 'q':
+                    singleQuotes = true;
+                    break;
+                case 'Q':
+                    doubleQuotes = true;
+                    break;
+                case 'h':
+                    break;
+            }
+            ++argFormatEnd;
+        }
+
+        // Handle end of format string.
+        if (argFormatEnd != end) {
+            ++argFormatEnd;
+        }
+
+        // 'n' means 'nothing'; skip the argument.
+        if (*argFormatBegin != 'n') {
+            // Format argument.
+            TStringBuf argFormat(argFormatBegin, argFormatEnd);
+            if (singleQuotes) {
+                builder->AppendChar('\'');
+            }
+            if (doubleQuotes) {
+                builder->AppendChar('"');
+            }
+            formatter(argIndex++, builder, argFormat);
+            if (singleQuotes) {
+                builder->AppendChar('\'');
+            }
+            if (doubleQuotes) {
+                builder->AppendChar('"');
+            }
+        }
+
+        current = argFormatEnd;
     }
 }
 
@@ -658,186 +819,86 @@ void FormatImpl(
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class... TArgs>
-TLazyMultiValueFormatter<TArgs...>::TLazyMultiValueFormatter(
-    TStringBuf format,
-    TArgs&&... args)
-    : Format_(format)
-    , Args_(std::forward<TArgs>(args)...)
-{ }
-
-template <class... TArgs>
-void FormatValue(
-    TStringBuilderBase* builder,
-    const TLazyMultiValueFormatter<TArgs...>& value,
-    TStringBuf /*format*/)
+void Format(TStringBuilderBase* builder, TStaticFormat<TArgs...> fmt, TArgs&&... args)
 {
-    std::apply(
-        [&] <class... TInnerArgs> (TInnerArgs&&... args) {
-            builder->AppendFormat(value.Format_, std::forward<TInnerArgs>(args)...);
-        },
-        value.Args_);
+    NYT::NDetail::TValueFormatter<0, TArgs...> formatter(args...);
+    NYT::NDetail::RunFormatter(builder, fmt.Get(), formatter);
 }
 
 template <class... TArgs>
-auto MakeLazyMultiValueFormatter(TStringBuf format, TArgs&&... args)
+void Format(TStringBuilderBase* builder, TRuntimeFormat fmt, TArgs&&... args)
 {
-    return TLazyMultiValueFormatter<TArgs...>(format, std::forward<TArgs>(args)...);
-}
+    // NB(arkady-e1ppa): StaticFormat performs the
+    // formattability check of the args in a way
+    // that provides more useful information
+    // than a simple static_assert with conjunction.
+    // Additionally, the latter doesn't work properly
+    // for older clang version.
+    static constexpr auto argsChecker = [] {
+        TStaticFormat<TArgs...>::CheckFormattability();
+        return 42;
+    } ();
+    Y_UNUSED(argsChecker);
 
-////////////////////////////////////////////////////////////////////////////////
-
-template <class T>
-struct TFormatTraits
-{
-    static constexpr bool HasCustomFormatValue = !std::is_same_v<
-        decltype(FormatValue(
-            static_cast<TStringBuilderBase*>(nullptr),
-            *static_cast<const T*>(nullptr),
-            TStringBuf())),
-        TToStringFallbackValueFormatterTag>;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-template <size_t IndexBase, class... TArgs>
-struct TArgFormatterImpl;
-
-template <size_t IndexBase>
-struct TArgFormatterImpl<IndexBase>
-{
-    void operator() (size_t /*index*/, TStringBuilderBase* builder, TStringBuf /*format*/) const
-    {
-        builder->AppendString(TStringBuf("<missing argument>"));
-    }
-};
-
-template <size_t IndexBase, class THeadArg, class... TTailArgs>
-struct TArgFormatterImpl<IndexBase, THeadArg, TTailArgs...>
-{
-    explicit TArgFormatterImpl(const THeadArg& headArg, const TTailArgs&... tailArgs)
-        : HeadArg(headArg)
-        , TailFormatter(tailArgs...)
-    { }
-
-    const THeadArg& HeadArg;
-    TArgFormatterImpl<IndexBase + 1, TTailArgs...> TailFormatter;
-
-    void operator() (size_t index, TStringBuilderBase* builder, TStringBuf format) const
-    {
-        YT_ASSERT(index >= IndexBase);
-        if (index == IndexBase) {
-            FormatValue(builder, HeadArg, format);
-        } else {
-            TailFormatter(index, builder, format);
-        }
-    }
-};
-
-template <typename TVectorElement>
-struct TSpanArgFormatterImpl
-{
-    explicit TSpanArgFormatterImpl(std::span<TVectorElement> v)
-        : Span_(v)
-    { }
-
-    explicit TSpanArgFormatterImpl(const std::vector<TVectorElement>& v)
-        : Span_(v.begin(), v.size())
-    { }
-
-    explicit TSpanArgFormatterImpl(const TVector<TVectorElement>& v)
-        : Span_(v.begin(), v.size())
-    { }
-
-    std::span<const TVectorElement> Span_;
-
-    void operator() (size_t index, TStringBuilderBase* builder, TStringBuf format) const
-    {
-        if (index >= Span_.size()) {
-            builder->AppendString(TStringBuf("<missing argument>"));
-        } else {
-            FormatValue(builder, *(Span_.begin() + index), format);
-        }
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-template <size_t Length, class... TArgs>
-void Format(
-    TStringBuilderBase* builder,
-    const char (&format)[Length],
-    TArgs&&... args)
-{
-    Format(builder, TStringBuf(format, Length - 1), std::forward<TArgs>(args)...);
+    NYT::NDetail::TValueFormatter<0, TArgs...> formatter(args...);
+    NYT::NDetail::RunFormatter(builder, fmt.Get(), formatter);
 }
 
 template <class... TArgs>
-void Format(
-    TStringBuilderBase* builder,
-    TStringBuf format,
-    TArgs&&... args)
-{
-    TArgFormatterImpl<0, TArgs...> argFormatter(args...);
-    NYT::NDetail::FormatImpl(builder, format, argFormatter);
-}
-
-template <size_t Length, class... TArgs>
-TString Format(
-    const char (&format)[Length],
-    TArgs&&... args)
+TString Format(TStaticFormat<TArgs...> fmt, TArgs&&... args)
 {
     TStringBuilder builder;
-    Format(&builder, format, std::forward<TArgs>(args)...);
+    Format(&builder, fmt, std::forward<TArgs>(args)...);
     return builder.Flush();
 }
 
 template <class... TArgs>
-TString Format(
-    TStringBuf format,
-    TArgs&&... args)
+TString Format(TRuntimeFormat fmt, TArgs&&... args)
 {
     TStringBuilder builder;
-    Format(&builder, format, std::forward<TArgs>(args)...);
+    Format(&builder, fmt, std::forward<TArgs>(args)...);
     return builder.Flush();
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 template <size_t Length, class TVector>
 void FormatVector(
     TStringBuilderBase* builder,
-    const char (&format)[Length],
+    const char (&fmt)[Length],
     const TVector& vec)
 {
-    TSpanArgFormatterImpl formatter(vec);
-    NYT::NDetail::FormatImpl(builder, format, formatter);
+    NYT::NDetail::TRangeFormatter<typename TVector::value_type> formatter(vec);
+    NYT::NDetail::RunFormatter(builder, fmt, formatter);
 }
 
 template <class TVector>
 void FormatVector(
     TStringBuilderBase* builder,
-    TStringBuf format,
+    TStringBuf fmt,
     const TVector& vec)
 {
-    TSpanArgFormatterImpl formatter(vec);
-    NYT::NDetail::FormatImpl(builder, format, formatter);
+    NYT::NDetail::TRangeFormatter<typename TVector::value_type> formatter(vec);
+    NYT::NDetail::RunFormatter(builder, fmt, formatter);
 }
 
 template <size_t Length, class TVector>
 TString FormatVector(
-    const char (&format)[Length],
+    const char (&fmt)[Length],
     const TVector& vec)
 {
     TStringBuilder builder;
-    FormatVector(&builder, format, vec);
+    FormatVector(&builder, fmt, vec);
     return builder.Flush();
 }
 
 template <class TVector>
 TString FormatVector(
-    TStringBuf format,
+    TStringBuf fmt,
     const TVector& vec)
 {
     TStringBuilder builder;
-    FormatVector(&builder, format, vec);
+    FormatVector(&builder, fmt, vec);
     return builder.Flush();
 }
 

@@ -6,6 +6,8 @@
 
 #include <library/cpp/yt/misc/port.h>
 
+#include <library/cpp/yt/string/format.h>
+
 #include <util/system/info.h>
 #include <util/system/align.h>
 
@@ -304,24 +306,24 @@ TSharedMutableRef TSharedMutableRef::MakeCopy(TRef ref, TRefCountedTypeCookie ta
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TString ToString(TRef ref)
+void FormatValue(TStringBuilderBase* builder, const TRef& ref, TStringBuf spec)
 {
-    return TString(ref.Begin(), ref.End());
+    FormatValue(builder, TStringBuf{ref.Begin(), ref.End()}, spec);
 }
 
-TString ToString(const TMutableRef& ref)
+void FormatValue(TStringBuilderBase* builder, const TMutableRef& ref, TStringBuf spec)
 {
-    return ToString(TRef(ref));
+    FormatValue(builder, TRef(ref), spec);
 }
 
-TString ToString(const TSharedRef& ref)
+void FormatValue(TStringBuilderBase* builder, const TSharedRef& ref, TStringBuf spec)
 {
-    return ToString(TRef(ref));
+    FormatValue(builder, TRef(ref), spec);
 }
 
-TString ToString(const TSharedMutableRef& ref)
+void FormatValue(TStringBuilderBase* builder, const TSharedMutableRef& ref, TStringBuf spec)
 {
-    return ToString(TRef(ref));
+    FormatValue(builder, TRef(ref), spec);
 }
 
 size_t GetPageSize()

@@ -4,6 +4,8 @@
 
 #include <library/cpp/yt/memory/ref.h>
 
+#include <library/cpp/yt/string/format.h>
+
 #include <variant>
 
 namespace NYT::NYson {
@@ -134,8 +136,8 @@ bool operator != (const TYsonString& lhs, const TYsonStringBuf& rhs);
 bool operator != (const TYsonStringBuf& lhs, const TYsonString& rhs);
 bool operator != (const TYsonStringBuf& lhs, const TYsonStringBuf& rhs);
 
-TString ToString(const TYsonString& yson);
-TString ToString(const TYsonStringBuf& yson);
+void FormatValue(TStringBuilderBase* builder, const TYsonString& yson, TStringBuf spec);
+void FormatValue(TStringBuilderBase* builder, const TYsonStringBuf& yson, TStringBuf spec);
 
 ////////////////////////////////////////////////////////////////////////////////
 

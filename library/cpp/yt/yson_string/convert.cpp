@@ -234,7 +234,8 @@ TString ParseStringFromYsonString(const TYsonStringBuf& str)
         throw TYsonLiteralParseException(ex, "Failed to decode string length");
     }
     if (length < 0) {
-        throw TYsonLiteralParseException(Format("Negative string length ",
+        throw TYsonLiteralParseException(Format(
+            "Negative string length %v",
             length));
     }
     if (static_cast<i64>(input.Avail()) != length) {

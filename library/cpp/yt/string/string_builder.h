@@ -1,5 +1,7 @@
 #pragma once
 
+#include "format_string.h"
+
 #include <util/generic/string.h>
 
 namespace NYT {
@@ -11,10 +13,10 @@ class TStringBuilderBase;
 class TStringBuilder;
 class TDelimitedStringBuilderWrapper;
 
-template <size_t Length, class... TArgs>
-void Format(TStringBuilderBase* builder, const char (&format)[Length], TArgs&&... args);
 template <class... TArgs>
-void Format(TStringBuilderBase* builder, TStringBuf format, TArgs&&... args);
+void Format(TStringBuilderBase* builder, TStaticFormat<TArgs...> fmt, TArgs&&... args);
+template <class... TArgs>
+void Format(TStringBuilderBase* builder, TRuntimeFormat fmt, TArgs&&... args);
 
 ////////////////////////////////////////////////////////////////////////////////
 
