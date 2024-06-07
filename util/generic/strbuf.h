@@ -134,6 +134,12 @@ public:
     {
     }
 
+    template <typename TCharTraits>
+    constexpr TBasicStringBuf(TBasicStringBuf<TCharType, TCharTraits> sb) noexcept
+        : TStringView(sb)
+    {
+    }
+
     constexpr inline TBasicStringBuf() noexcept {
         /*
          * WARN:
