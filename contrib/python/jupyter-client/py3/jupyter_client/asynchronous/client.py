@@ -33,7 +33,7 @@ class AsyncKernelClient(KernelClient):
     raising :exc:`queue.Empty` if no message arrives within ``timeout`` seconds.
     """
 
-    context = Instance(zmq.asyncio.Context)
+    context = Instance(zmq.asyncio.Context)  # type:ignore[arg-type]
 
     def _context_default(self) -> zmq.asyncio.Context:
         self._created_context = True

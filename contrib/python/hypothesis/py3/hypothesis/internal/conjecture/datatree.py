@@ -555,16 +555,13 @@ class TreeNode:
                 p.text(_node_pretty(ir_type, value, kwargs, forced=i in self.forced))
             indent += 2
 
-        if isinstance(self.transition, Branch):
+        with p.indent(indent):
             if len(self.values) > 0:
                 p.break_()
-            p.pretty(self.transition)
-
-        if isinstance(self.transition, (Killed, Conclusion)):
-            with p.indent(indent):
-                if len(self.values) > 0:
-                    p.break_()
+            if self.transition is not None:
                 p.pretty(self.transition)
+            else:
+                p.text("unknown")
 
 
 class DataTree:
@@ -843,8 +840,8 @@ class DataTree:
         tree. This will likely change in future."""
         node = self.root
 
-        def draw(ir_type, kwargs, *, forced=None):
-            if ir_type == "float" and forced is not None:
+        def draw(ir_type, kwargs, *, forced=None, convert_forced=True):
+            if ir_type == "float" and forced is not None and convert_forced:
                 forced = int_to_float(forced)
 
             draw_func = getattr(data, f"draw_{ir_type}")
@@ -869,9 +866,9 @@ class DataTree:
                     data.conclude_test(t.status, t.interesting_origin)
                 elif node.transition is None:
                     if node.invalid_at is not None:
-                        (ir_type, kwargs) = node.invalid_at
+                        (ir_type, kwargs, forced) = node.invalid_at
                         try:
-                            draw(ir_type, kwargs)
+                            draw(ir_type, kwargs, forced=forced, convert_forced=False)
                         except StopTest:
                             if data.invalid_at is not None:
                                 raise
@@ -1021,7 +1018,8 @@ class TreeRecordingObserver(DataObserver):
         self.draw_value("boolean", value, was_forced=was_forced, kwargs=kwargs)
 
     def mark_invalid(self, invalid_at: InvalidAt) -> None:
-        self.__current_node.invalid_at = invalid_at
+        if self.__current_node.transition is None:
+            self.__current_node.invalid_at = invalid_at
 
     def draw_value(
         self,

@@ -223,9 +223,8 @@ class ZMQSocketChannel:
     def get_msg(self, timeout: t.Optional[float] = None) -> t.Dict[str, t.Any]:
         """Gets a message if there is one that is ready."""
         assert self.socket is not None
-        if timeout is not None:
-            timeout *= 1000  # seconds to ms
-        ready = self.socket.poll(timeout)
+        timeout_ms = None if timeout is None else int(timeout * 1000)  # seconds to ms
+        ready = self.socket.poll(timeout_ms)
         if ready:
             res = self._recv()
             return res
@@ -305,9 +304,8 @@ class AsyncZMQSocketChannel(ZMQSocketChannel):
     ) -> t.Dict[str, t.Any]:
         """Gets a message if there is one that is ready."""
         assert self.socket is not None
-        if timeout is not None:
-            timeout *= 1000  # seconds to ms
-        ready = await self.socket.poll(timeout)
+        timeout_ms = None if timeout is None else int(timeout * 1000)  # seconds to ms
+        ready = await self.socket.poll(timeout_ms)
         if ready:
             res = await self._recv()
             return res

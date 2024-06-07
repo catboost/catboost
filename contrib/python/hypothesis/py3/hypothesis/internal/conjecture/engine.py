@@ -207,6 +207,7 @@ class ConjectureRunner:
         self.shrinks: int = 0
         self.finish_shrinking_deadline: Optional[float] = None
         self.call_count: int = 0
+        self.misaligned_count: int = 0
         self.valid_examples: int = 0
         self.random: Random = random or Random(getrandbits(128))
         self.database_key: Optional[bytes] = database_key
@@ -418,6 +419,8 @@ class ConjectureRunner:
                 }
                 self.stats_per_test_case.append(call_stats)
                 self._cache(data)
+                if data.invalid_at is not None:  # pragma: no branch # coverage bug?
+                    self.misaligned_count += 1
 
         self.debug_data(data)
 

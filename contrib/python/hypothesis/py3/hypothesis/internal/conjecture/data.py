@@ -136,7 +136,8 @@ IRKWargsType: TypeAlias = Union[
     IntegerKWargs, FloatKWargs, StringKWargs, BytesKWargs, BooleanKWargs
 ]
 IRTypeName: TypeAlias = Literal["integer", "string", "boolean", "float", "bytes"]
-InvalidAt: TypeAlias = Tuple[IRTypeName, IRKWargsType]
+# ir_type, kwargs, forced
+InvalidAt: TypeAlias = Tuple[IRTypeName, IRKWargsType, Optional[IRType]]
 
 
 class ExtraInformation:
@@ -2084,7 +2085,7 @@ class ConjectureData:
         )
 
         if self.ir_tree_nodes is not None and observe:
-            node = self._pop_ir_tree_node("integer", kwargs)
+            node = self._pop_ir_tree_node("integer", kwargs, forced=forced)
             if forced is None:
                 assert isinstance(node.value, int)
                 forced = node.value
@@ -2141,7 +2142,7 @@ class ConjectureData:
         )
 
         if self.ir_tree_nodes is not None and observe:
-            node = self._pop_ir_tree_node("float", kwargs)
+            node = self._pop_ir_tree_node("float", kwargs, forced=forced)
             if forced is None:
                 assert isinstance(node.value, float)
                 forced = node.value
@@ -2183,7 +2184,7 @@ class ConjectureData:
             },
         )
         if self.ir_tree_nodes is not None and observe:
-            node = self._pop_ir_tree_node("string", kwargs)
+            node = self._pop_ir_tree_node("string", kwargs, forced=forced)
             if forced is None:
                 assert isinstance(node.value, str)
                 forced = node.value
@@ -2219,7 +2220,7 @@ class ConjectureData:
         kwargs: BytesKWargs = self._pooled_kwargs("bytes", {"size": size})
 
         if self.ir_tree_nodes is not None and observe:
-            node = self._pop_ir_tree_node("bytes", kwargs)
+            node = self._pop_ir_tree_node("bytes", kwargs, forced=forced)
             if forced is None:
                 assert isinstance(node.value, bytes)
                 forced = node.value
@@ -2261,7 +2262,7 @@ class ConjectureData:
         kwargs: BooleanKWargs = self._pooled_kwargs("boolean", {"p": p})
 
         if self.ir_tree_nodes is not None and observe:
-            node = self._pop_ir_tree_node("boolean", kwargs)
+            node = self._pop_ir_tree_node("boolean", kwargs, forced=forced)
             if forced is None:
                 assert isinstance(node.value, bool)
                 forced = node.value
@@ -2302,7 +2303,9 @@ class ConjectureData:
             POOLED_KWARGS_CACHE[key] = kwargs
             return kwargs
 
-    def _pop_ir_tree_node(self, ir_type: IRTypeName, kwargs: IRKWargsType) -> IRNode:
+    def _pop_ir_tree_node(
+        self, ir_type: IRTypeName, kwargs: IRKWargsType, *, forced: Optional[IRType]
+    ) -> IRNode:
         assert self.ir_tree_nodes is not None
 
         if self._node_index == len(self.ir_tree_nodes):
@@ -2321,7 +2324,7 @@ class ConjectureData:
         # (in fact, it is possible that giving up early here results in more time
         # for useful shrinks to run).
         if node.ir_type != ir_type:
-            invalid_at = (ir_type, kwargs)
+            invalid_at = (ir_type, kwargs, forced)
             self.invalid_at = invalid_at
             self.observer.mark_invalid(invalid_at)
             self.mark_invalid(f"(internal) want a {ir_type} but have a {node.ir_type}")
@@ -2330,7 +2333,7 @@ class ConjectureData:
         # that is allowed by the expected kwargs, then we can coerce this node
         # into an aligned one by using its value. It's unclear how useful this is.
         if not ir_value_permitted(node.value, node.ir_type, kwargs):
-            invalid_at = (ir_type, kwargs)
+            invalid_at = (ir_type, kwargs, forced)
             self.invalid_at = invalid_at
             self.observer.mark_invalid(invalid_at)
             self.mark_invalid(f"(internal) got a {ir_type} but outside the valid range")

@@ -306,6 +306,7 @@ class Shrinker:
         # it's time to stop shrinking.
         self.max_stall = 200
         self.initial_calls = self.engine.call_count
+        self.initial_misaligned = self.engine.misaligned_count
         self.calls_at_last_shrink = self.initial_calls
 
         self.passes_by_name: Dict[str, ShrinkPass] = {}
@@ -382,6 +383,10 @@ class Shrinker:
         """Return the number of calls that have been made to the underlying
         test function."""
         return self.engine.call_count
+
+    @property
+    def misaligned(self):
+        return self.engine.misaligned_count
 
     def check_calls(self):
         if self.calls - self.calls_at_last_shrink >= self.max_stall:
@@ -501,13 +506,14 @@ class Shrinker:
 
                 total_deleted = self.initial_size - len(self.shrink_target.buffer)
                 calls = self.engine.call_count - self.initial_calls
+                misaligned = self.engine.misaligned_count - self.initial_misaligned
 
                 self.debug(
                     "---------------------\n"
                     "Shrink pass profiling\n"
                     "---------------------\n\n"
                     f"Shrinking made a total of {calls} call{s(calls)} of which "
-                    f"{self.shrinks} shrank. This deleted {total_deleted} bytes out "
+                    f"{self.shrinks} shrank and {misaligned} were misaligned. This deleted {total_deleted} bytes out "
                     f"of {self.initial_size}."
                 )
                 for useful in [True, False]:
@@ -527,16 +533,9 @@ class Shrinker:
                             continue
 
                         self.debug(
-                            "  * %s made %d call%s of which "
-                            "%d shrank, deleting %d byte%s."
-                            % (
-                                p.name,
-                                p.calls,
-                                s(p.calls),
-                                p.shrinks,
-                                p.deletions,
-                                s(p.deletions),
-                            )
+                            f"  * {p.name} made {p.calls} call{s(p.calls)} of which "
+                            f"{p.shrinks} shrank and {p.misaligned} were misaligned, "
+                            f"deleting {p.deletions} byte{s(p.deletions)}."
                         )
                 self.debug("")
         self.explain()
@@ -1321,7 +1320,7 @@ class Shrinker:
 
     @defines_shrink_pass()
     def lower_blocks_together(self, chooser):
-        block = chooser.choose(self.blocks, lambda b: not b.all_zero)
+        block = chooser.choose(self.blocks, lambda b: not b.trivial)
 
         # Choose the next block to be up to eight blocks onwards. We don't
         # want to go too far (to avoid quadratic time) but it's worth a
@@ -1330,7 +1329,7 @@ class Shrinker:
         next_block = self.blocks[
             chooser.choose(
                 range(block.index + 1, min(len(self.blocks), block.index + 9)),
-                lambda j: not self.blocks[j].all_zero,
+                lambda j: not self.blocks[j].trivial,
             )
         ]
 
@@ -1623,6 +1622,7 @@ class ShrinkPass:
     last_prefix = attr.ib(default=())
     successes = attr.ib(default=0)
     calls = attr.ib(default=0)
+    misaligned = attr.ib(default=0)
     shrinks = attr.ib(default=0)
     deletions = attr.ib(default=0)
 
@@ -1633,6 +1633,7 @@ class ShrinkPass:
 
         initial_shrinks = self.shrinker.shrinks
         initial_calls = self.shrinker.calls
+        initial_misaligned = self.shrinker.misaligned
         size = len(self.shrinker.shrink_target.buffer)
         self.shrinker.engine.explain_next_call_as(self.name)
 
@@ -1648,6 +1649,7 @@ class ShrinkPass:
             )
         finally:
             self.calls += self.shrinker.calls - initial_calls
+            self.misaligned += self.shrinker.misaligned - initial_misaligned
             self.shrinks += self.shrinker.shrinks - initial_shrinks
             self.deletions += size - len(self.shrinker.shrink_target.buffer)
             self.shrinker.engine.clear_call_explanation()
