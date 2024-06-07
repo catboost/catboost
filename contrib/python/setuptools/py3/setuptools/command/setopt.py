@@ -5,7 +5,8 @@ import distutils
 import os
 import configparser
 
-from setuptools import Command
+from .. import Command
+from ..unicode_utils import _cfg_read_utf8_with_fallback
 
 __all__ = ['config_file', 'edit_config', 'option_base', 'setopt']
 
@@ -36,7 +37,8 @@ def edit_config(filename, settings, dry_run=False):
     log.debug("Reading configuration from %s", filename)
     opts = configparser.RawConfigParser()
     opts.optionxform = lambda x: x
-    opts.read([filename])
+    _cfg_read_utf8_with_fallback(opts, filename)
+
     for section, options in settings.items():
         if options is None:
             log.info("Deleting section [%s] from %s", section, filename)
@@ -62,7 +64,7 @@ def edit_config(filename, settings, dry_run=False):
 
     log.info("Writing %s", filename)
     if not dry_run:
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding="utf-8") as f:
             opts.write(f)
 
 

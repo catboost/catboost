@@ -108,6 +108,10 @@ def read_configuration(
     if not asdict or not (project_table or setuptools_table):
         return {}  # User is not using pyproject to configure setuptools
 
+    if "setuptools" in asdict.get("tools", {}):
+        # let the user know they probably have a typo in their metadata
+        _ToolsTypoInMetadata.emit()
+
     if "distutils" in tool_table:
         _ExperimentalConfiguration.emit(subject="[tool.distutils]")
 
@@ -438,4 +442,10 @@ class _ExperimentalConfiguration(SetuptoolsWarning):
     _SUMMARY = (
         "`{subject}` in `pyproject.toml` is still *experimental* "
         "and likely to change in future releases."
+    )
+
+
+class _ToolsTypoInMetadata(SetuptoolsWarning):
+    _SUMMARY = (
+        "Ignoring [tools.setuptools] in pyproject.toml, did you mean [tool.setuptools]?"
     )

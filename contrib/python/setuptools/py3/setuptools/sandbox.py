@@ -309,9 +309,9 @@ class AbstractSandbox:
 
         return wrap
 
-    for name in ["rename", "link", "symlink"]:
-        if hasattr(_os, name):
-            locals()[name] = _mk_dual_path_wrapper(name)
+    for __name in ["rename", "link", "symlink"]:
+        if hasattr(_os, __name):
+            locals()[__name] = _mk_dual_path_wrapper(__name)
 
     def _mk_single_path_wrapper(name: str, original=None):  # type: ignore[misc] # https://github.com/pypa/setuptools/pull/4099
         original = original or getattr(_os, name)
@@ -326,7 +326,7 @@ class AbstractSandbox:
     if _file:
         _file = _mk_single_path_wrapper('file', _file)
     _open = _mk_single_path_wrapper('open', _open)
-    for name in [
+    for __name in [
         "stat",
         "listdir",
         "chdir",
@@ -347,8 +347,8 @@ class AbstractSandbox:
         "pathconf",
         "access",
     ]:
-        if hasattr(_os, name):
-            locals()[name] = _mk_single_path_wrapper(name)
+        if hasattr(_os, __name):
+            locals()[__name] = _mk_single_path_wrapper(__name)
 
     def _mk_single_with_return(name: str):  # type: ignore[misc] # https://github.com/pypa/setuptools/pull/4099
         original = getattr(_os, name)
@@ -361,9 +361,9 @@ class AbstractSandbox:
 
         return wrap
 
-    for name in ['readlink', 'tempnam']:
-        if hasattr(_os, name):
-            locals()[name] = _mk_single_with_return(name)
+    for __name in ['readlink', 'tempnam']:
+        if hasattr(_os, __name):
+            locals()[__name] = _mk_single_with_return(__name)
 
     def _mk_query(name: str):  # type: ignore[misc] # https://github.com/pypa/setuptools/pull/4099
         original = getattr(_os, name)
@@ -376,9 +376,9 @@ class AbstractSandbox:
 
         return wrap
 
-    for name in ['getcwd', 'tmpnam']:
-        if hasattr(_os, name):
-            locals()[name] = _mk_query(name)
+    for __name in ['getcwd', 'tmpnam']:
+        if hasattr(_os, __name):
+            locals()[__name] = _mk_query(__name)
 
     def _validate_path(self, path):
         """Called to remap or validate any path, whether input or output"""

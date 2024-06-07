@@ -1,6 +1,7 @@
 """PyPI and direct package downloading."""
 
 import sys
+import subprocess
 import os
 import re
 import io
@@ -39,6 +40,8 @@ from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
 from setuptools.extern.more_itertools import unique_everseen
+
+from .unicode_utils import _read_utf8_with_fallback, _cfg_read_utf8_with_fallback
 
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
@@ -419,9 +422,9 @@ class PackageIndex(Environment):
         list(itertools.starmap(self.scan_egg_link, egg_links))
 
     def scan_egg_link(self, path, entry):
-        with open(os.path.join(path, entry)) as raw_lines:
-            # filter non-empty lines
-            lines = list(filter(None, map(str.strip, raw_lines)))
+        content = _read_utf8_with_fallback(os.path.join(path, entry))
+        # filter non-empty lines
+        lines = list(filter(None, map(str.strip, content.splitlines())))
 
         if len(lines) != 2:
             # format is not recognized; punt
@@ -585,7 +588,7 @@ class PackageIndex(Environment):
             scheme = URL_SCHEME(spec)
             if scheme:
                 # It's a url, download it to tmpdir
-                found = self._download_url(scheme.group(1), spec, tmpdir)
+                found = self._download_url(spec, tmpdir)
                 base, fragment = egg_info_for_url(spec)
                 if base.endswith('.py'):
                     found = self.gen_setup(found, fragment, tmpdir)
@@ -714,7 +717,7 @@ class PackageIndex(Environment):
                     shutil.copy2(filename, dst)
                     filename = dst
 
-            with open(os.path.join(tmpdir, 'setup.py'), 'w') as file:
+            with open(os.path.join(tmpdir, 'setup.py'), 'w', encoding="utf-8") as file:
                 file.write(
                     "from setuptools import setup\n"
                     "setup(name=%r, version=%r, py_modules=[%r])\n"
@@ -814,7 +817,7 @@ class PackageIndex(Environment):
             else:
                 raise DistutilsError("Download error for %s: %s" % (url, v)) from v
 
-    def _download_url(self, scheme, url, tmpdir):
+    def _download_url(self, url, tmpdir):
         # Determine download filename
         #
         name, fragment = egg_info_for_url(url)
@@ -829,19 +832,59 @@ class PackageIndex(Environment):
 
         filename = os.path.join(tmpdir, name)
 
-        # Download the file
-        #
-        if scheme == 'svn' or scheme.startswith('svn+'):
-            return self._download_svn(url, filename)
-        elif scheme == 'git' or scheme.startswith('git+'):
-            return self._download_git(url, filename)
-        elif scheme.startswith('hg+'):
-            return self._download_hg(url, filename)
-        elif scheme == 'file':
-            return urllib.request.url2pathname(urllib.parse.urlparse(url)[2])
-        else:
-            self.url_ok(url, True)  # raises error if not allowed
-            return self._attempt_download(url, filename)
+        return self._download_vcs(url, filename) or self._download_other(url, filename)
+
+    @staticmethod
+    def _resolve_vcs(url):
+        """
+        >>> rvcs = PackageIndex._resolve_vcs
+        >>> rvcs('git+http://foo/bar')
+        'git'
+        >>> rvcs('hg+https://foo/bar')
+        'hg'
+        >>> rvcs('git:myhost')
+        'git'
+        >>> rvcs('hg:myhost')
+        >>> rvcs('http://foo/bar')
+        """
+        scheme = urllib.parse.urlsplit(url).scheme
+        pre, sep, post = scheme.partition('+')
+        # svn and git have their own protocol; hg does not
+        allowed = set(['svn', 'git'] + ['hg'] * bool(sep))
+        return next(iter({pre} & allowed), None)
+
+    def _download_vcs(self, url, spec_filename):
+        vcs = self._resolve_vcs(url)
+        if not vcs:
+            return
+        if vcs == 'svn':
+            raise DistutilsError(
+                f"Invalid config, SVN download is not supported: {url}"
+            )
+
+        filename, _, _ = spec_filename.partition('#')
+        url, rev = self._vcs_split_rev_from_url(url)
+
+        self.info(f"Doing {vcs} clone from {url} to {filename}")
+        subprocess.check_call([vcs, 'clone', '--quiet', url, filename])
+
+        co_commands = dict(
+            git=[vcs, '-C', filename, 'checkout', '--quiet', rev],
+            hg=[vcs, '--cwd', filename, 'up', '-C', '-r', rev, '-q'],
+        )
+        if rev is not None:
+            self.info(f"Checking out {rev}")
+            subprocess.check_call(co_commands[vcs])
+
+        return filename
+
+    def _download_other(self, url, filename):
+        scheme = urllib.parse.urlsplit(url).scheme
+        if scheme == 'file':  # pragma: no cover
+            return urllib.request.url2pathname(urllib.parse.urlparse(url).path)
+        # raise error if not allowed
+        self.url_ok(url, True)
+        return self._attempt_download(url, filename)
 
     def scan_url(self, url):
         self.process_url(url, True)
@@ -857,64 +900,37 @@ class PackageIndex(Environment):
         os.unlink(filename)
         raise DistutilsError(f"Unexpected HTML page found at {url}")
 
-    def _download_svn(self, url, _filename):
-        raise DistutilsError(f"Invalid config, SVN download is not supported: {url}")
-
     @staticmethod
-    def _vcs_split_rev_from_url(url, pop_prefix=False):
-        scheme, netloc, path, query, frag = urllib.parse.urlsplit(url)
+    def _vcs_split_rev_from_url(url):
+        """
+        Given a possible VCS URL, return a clean URL and resolved revision if any.
 
-        scheme = scheme.split('+', 1)[-1]
+        >>> vsrfu = PackageIndex._vcs_split_rev_from_url
+        >>> vsrfu('git+https://github.com/pypa/setuptools@v69.0.0#egg-info=setuptools')
+        ('https://github.com/pypa/setuptools', 'v69.0.0')
+        >>> vsrfu('git+https://github.com/pypa/setuptools#egg-info=setuptools')
+        ('https://github.com/pypa/setuptools', None)
+        >>> vsrfu('http://foo/bar')
+        ('http://foo/bar', None)
+        """
+        parts = urllib.parse.urlsplit(url)
+
+        clean_scheme = parts.scheme.split('+', 1)[-1]
 
         # Some fragment identification fails
-        path = path.split('#', 1)[0]
+        no_fragment_path, _, _ = parts.path.partition('#')
 
-        rev = None
-        if '@' in path:
-            path, rev = path.rsplit('@', 1)
+        pre, sep, post = no_fragment_path.rpartition('@')
+        clean_path, rev = (pre, post) if sep else (post, None)
 
-        # Also, discard fragment
-        url = urllib.parse.urlunsplit((scheme, netloc, path, query, ''))
+        resolved = parts._replace(
+            scheme=clean_scheme,
+            path=clean_path,
+            # discard the fragment
+            fragment='',
+        ).geturl()
 
-        return url, rev
-
-    def _download_git(self, url, filename):
-        filename = filename.split('#', 1)[0]
-        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
-
-        self.info("Doing git clone from %s to %s", url, filename)
-        os.system("git clone --quiet %s %s" % (url, filename))
-
-        if rev is not None:
-            self.info("Checking out %s", rev)
-            os.system(
-                "git -C %s checkout --quiet %s"
-                % (
-                    filename,
-                    rev,
-                )
-            )
-
-        return filename
-
-    def _download_hg(self, url, filename):
-        filename = filename.split('#', 1)[0]
-        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
-
-        self.info("Doing hg clone from %s to %s", url, filename)
-        os.system("hg clone --quiet %s %s" % (url, filename))
-
-        if rev is not None:
-            self.info("Updating to %s", rev)
-            os.system(
-                "hg --cwd %s up -C -r %s -q"
-                % (
-                    filename,
-                    rev,
-                )
-            )
-
-        return filename
+        return resolved, rev
 
     def debug(self, msg, *args):
         log.debug(msg, *args)
@@ -1011,7 +1027,7 @@ class PyPIConfig(configparser.RawConfigParser):
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
-            self.read(rc)
+            _cfg_read_utf8_with_fallback(self, rc)
 
     @property
     def creds_by_repository(self):
@@ -1114,8 +1130,7 @@ def local_open(url):
         for f in os.listdir(filename):
             filepath = os.path.join(filename, f)
             if f == 'index.html':
-                with open(filepath, 'r') as fp:
-                    body = fp.read()
+                body = _read_utf8_with_fallback(filepath)
                 break
             elif os.path.isdir(filepath):
                 f += '/'

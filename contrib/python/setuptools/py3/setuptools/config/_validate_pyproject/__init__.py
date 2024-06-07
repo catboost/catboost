@@ -30,5 +30,5 @@ def validate(data: Any) -> bool:
     """
     with detailed_errors():
         _validate(data, custom_formats=FORMAT_FUNCTIONS)
-    reduce(lambda acc, fn: fn(acc), EXTRA_VALIDATIONS, data)
+        reduce(lambda acc, fn: fn(acc), EXTRA_VALIDATIONS, data)
     return True

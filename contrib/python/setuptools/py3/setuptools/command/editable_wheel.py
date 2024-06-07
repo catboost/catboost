@@ -505,7 +505,7 @@ class _TopLevelFinder:
         self.dist = dist
         self.name = name
 
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+    def template_vars(self) -> Tuple[str, str, Dict[str, str], Dict[str, List[str]]]:
         src_root = self.dist.src_root or os.curdir
         top_level = chain(_find_packages(self.dist), _find_top_level_modules(self.dist))
         package_dir = self.dist.package_dir or {}
@@ -519,7 +519,7 @@ class _TopLevelFinder:
         )
 
         legacy_namespaces = {
-            pkg: find_package_path(pkg, roots, self.dist.src_root or "")
+            cast(str, pkg): find_package_path(pkg, roots, self.dist.src_root or "")
             for pkg in self.dist.namespace_packages or []
         }
 
@@ -530,11 +530,20 @@ class _TopLevelFinder:
 
         name = f"__editable__.{self.name}.finder"
         finder = _normalization.safe_identifier(name)
+        return finder, name, mapping, namespaces_
+
+    def get_implementation(self) -> Iterator[Tuple[str, bytes]]:
+        finder, name, mapping, namespaces_ = self.template_vars()
+
         content = bytes(_finder_template(name, mapping, namespaces_), "utf-8")
-        wheel.writestr(f"{finder}.py", content)
+        yield (f"{finder}.py", content)
 
         content = _encode_pth(f"import {finder}; {finder}.install()")
-        wheel.writestr(f"__editable__.{self.name}.pth", content)
+        yield (f"__editable__.{self.name}.pth", content)
+
+    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+        for file, content in self.get_implementation():
+            wheel.writestr(file, content)
 
     def __enter__(self):
         msg = "Editable install will be performed using a meta path finder.\n"
@@ -556,7 +565,8 @@ def _encode_pth(content: str) -> bytes:
     This function tries to simulate this behaviour without having to create an
     actual file, in a way that supports a range of active Python versions.
     (There seems to be some variety in the way different version of Python handle
-    ``encoding=None``, not all of them use ``locale.getpreferredencoding(False)``).
+    ``encoding=None``, not all of them use ``locale.getpreferredencoding(False)``
+    or ``locale.getencoding()``).
     """
     with io.BytesIO() as buffer:
         wrapper = io.TextIOWrapper(buffer, encoding=py39.LOCALE_ENCODING)
@@ -784,6 +794,7 @@ class _NamespaceInstaller(namespaces.Installer):
 
 
 _FINDER_TEMPLATE = """\
+from __future__ import annotations
 import sys
 from importlib.machinery import ModuleSpec, PathFinder
 from importlib.machinery import all_suffixes as module_suffixes
@@ -791,16 +802,14 @@ from importlib.util import spec_from_file_location
 from itertools import chain
 from pathlib import Path
 
-MAPPING = {mapping!r}
-NAMESPACES = {namespaces!r}
+MAPPING: dict[str, str] = {mapping!r}
+NAMESPACES: dict[str, list[str]] = {namespaces!r}
 PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 
 
 class _EditableFinder:  # MetaPathFinder
     @classmethod
-    def find_spec(cls, fullname, path=None, target=None):
-        extra_path = []
-
+    def find_spec(cls, fullname: str, _path=None, _target=None) -> ModuleSpec | None:
         # Top-level packages and modules (we know these exist in the FS)
         if fullname in MAPPING:
             pkg_path = MAPPING[fullname]
@@ -811,35 +820,42 @@ class _EditableFinder:  # MetaPathFinder
         # to the importlib.machinery implementation.
         parent, _, child = fullname.rpartition(".")
         if parent and parent in MAPPING:
-            return PathFinder.find_spec(fullname, path=[MAPPING[parent], *extra_path])
+            return PathFinder.find_spec(fullname, path=[MAPPING[parent]])
 
         # Other levels of nesting should be handled automatically by importlib
         # using the parent path.
         return None
 
     @classmethod
-    def _find_spec(cls, fullname, candidate_path):
+    def _find_spec(cls, fullname: str, candidate_path: Path) -> ModuleSpec | None:
         init = candidate_path / "__init__.py"
         candidates = (candidate_path.with_suffix(x) for x in module_suffixes())
         for candidate in chain([init], candidates):
             if candidate.exists():
                 return spec_from_file_location(fullname, candidate)
+        return None
 
 
 class _EditableNamespaceFinder:  # PathEntryFinder
     @classmethod
-    def _path_hook(cls, path):
+    def _path_hook(cls, path) -> type[_EditableNamespaceFinder]:
         if path == PATH_PLACEHOLDER:
             return cls
         raise ImportError
 
     @classmethod
-    def _paths(cls, fullname):
-        # Ensure __path__ is not empty for the spec to be considered a namespace.
-        return NAMESPACES[fullname] or MAPPING.get(fullname) or [PATH_PLACEHOLDER]
+    def _paths(cls, fullname: str) -> list[str]:
+        paths = NAMESPACES[fullname]
+        if not paths and fullname in MAPPING:
+            paths = [MAPPING[fullname]]
+        # Always add placeholder, for 2 reasons:
+        # 1. __path__ cannot be empty for the spec to be considered namespace.
+        # 2. In the case of nested namespaces, we need to force
+        #    import machinery to query _EditableNamespaceFinder again.
+        return [*paths, PATH_PLACEHOLDER]
 
     @classmethod
-    def find_spec(cls, fullname, target=None):
+    def find_spec(cls, fullname: str, _target=None) -> ModuleSpec | None:
         if fullname in NAMESPACES:
             spec = ModuleSpec(fullname, None, is_package=True)
             spec.submodule_search_locations = cls._paths(fullname)
@@ -847,7 +863,7 @@ class _EditableNamespaceFinder:  # PathEntryFinder
         return None
 
     @classmethod
-    def find_module(cls, fullname):
+    def find_module(cls, _fullname) -> None:
         return None
 
 

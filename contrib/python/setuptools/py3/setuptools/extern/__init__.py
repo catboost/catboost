@@ -70,16 +70,22 @@ class VendorImporter:
             sys.meta_path.append(self)
 
 
+# [[[cog
+# import cog
+# from tools.vendored import yield_top_level
+# names = "\n".join(f"    {x!r}," for x in yield_top_level('setuptools'))
+# cog.outl(f"names = (\n{names}\n)")
+# ]]]
 names = (
-    'packaging',
-    'ordered_set',
-    'more_itertools',
+    'backports',
     'importlib_metadata',
-    'zipp',
     'importlib_resources',
     'jaraco',
-    'typing_extensions',
+    'more_itertools',
+    'ordered_set',
+    'packaging',
     'tomli',
-    'backports',
+    'zipp',
 )
+# [[[end]]]
 VendorImporter(__name__, names, 'setuptools._vendor').install()

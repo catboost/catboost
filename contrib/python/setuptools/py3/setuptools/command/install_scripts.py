@@ -57,10 +57,10 @@ class install_scripts(orig.install_scripts):
         target = os.path.join(self.install_dir, script_name)
         self.outfiles.append(target)
 
+        encoding = None if "b" in mode else "utf-8"
         mask = current_umask()
         if not self.dry_run:
             ensure_directory(target)
-            f = open(target, "w" + mode)
-            f.write(contents)
-            f.close()
+            with open(target, "w" + mode, encoding=encoding) as f:
+                f.write(contents)
             chmod(target, 0o777 - mask)

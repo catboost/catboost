@@ -17,7 +17,8 @@ def ensure_valid(ep):
     """
     try:
         ep.extras
-    except AttributeError as ex:
+    except (AttributeError, AssertionError) as ex:
+        # Why both? See https://github.com/python/importlib_metadata/issues/488
         msg = (
             f"Problems to parse {ep}.\nPlease ensure entry-point follows the spec: "
             "https://packaging.python.org/en/latest/specifications/entry-points/"

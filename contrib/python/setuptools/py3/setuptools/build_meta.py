@@ -2,7 +2,7 @@
 
 Previously, when a user or a command line tool (let's call it a "frontend")
 needed to make a request of setuptools to take a certain action, for
-example, generating a list of installation requirements, the frontend would
+example, generating a list of installation requirements, the frontend
 would call "setup.py egg_info" or "setup.py bdist_wheel" on the command line.
 
 PEP 517 defines a different method of interfacing with setuptools. Rather

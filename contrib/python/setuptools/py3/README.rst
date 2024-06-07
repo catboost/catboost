@@ -1,31 +1,33 @@
-.. image:: https://img.shields.io/pypi/v/setuptools.svg
+.. |pypi-version| image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: https://pypi.org/project/setuptools
 
-.. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
+.. |py-version| image:: https://img.shields.io/pypi/pyversions/setuptools.svg
 
-.. image:: https://github.com/pypa/setuptools/actions/workflows/main.yml/badge.svg
+.. |test-badge| image:: https://github.com/pypa/setuptools/actions/workflows/main.yml/badge.svg
    :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22
    :alt: tests
 
-.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json
-    :target: https://github.com/astral-sh/ruff
-    :alt: Ruff
+.. |ruff-badge| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json
+   :target: https://github.com/astral-sh/ruff
+   :alt: Ruff
 
-.. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
-    :target: https://setuptools.pypa.io
+.. |docs-badge| image:: https://img.shields.io/readthedocs/setuptools/latest.svg
+   :target: https://setuptools.pypa.io
 
-.. image:: https://img.shields.io/badge/skeleton-2024-informational
+.. |skeleton-badge| image:: https://img.shields.io/badge/skeleton-2024-informational
    :target: https://blog.jaraco.com/skeleton
 
-.. image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg?logo=codecov&logoColor=white
+.. |codecov-badge| image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg?logo=codecov&logoColor=white
    :target: https://codecov.io/gh/pypa/setuptools
 
-.. image:: https://tidelift.com/badges/github/pypa/setuptools?style=flat
+.. |tidelift-badge| image:: https://tidelift.com/badges/github/pypa/setuptools?style=flat
    :target: https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=readme
 
-.. image:: https://img.shields.io/discord/803025117553754132
+.. |discord-badge| image:: https://img.shields.io/discord/803025117553754132
    :target: https://discord.com/channels/803025117553754132/815945031150993468
    :alt: Discord
+
+|pypi-version| |py-version| |test-badge| |ruff-badge| |docs-badge| |skeleton-badge| |codecov-badge| |discord-badge|
 
 See the `Quickstart <https://setuptools.pypa.io/en/latest/userguide/quickstart.html>`_
 and the `User's Guide <https://setuptools.pypa.io/en/latest/userguide/>`_ for

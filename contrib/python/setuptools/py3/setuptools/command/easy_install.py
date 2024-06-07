@@ -873,7 +873,9 @@ class easy_install(Command):
         ensure_directory(target)
         if os.path.exists(target):
             os.unlink(target)
-        with open(target, "w" + mode) as f:  # TODO: is it safe to use utf-8?
+
+        encoding = None if "b" in mode else "utf-8"
+        with open(target, "w" + mode, encoding=encoding) as f:
             f.write(contents)
         chmod(target, 0o777 - mask)
 
@@ -1017,12 +1019,11 @@ class easy_install(Command):
 
         # Write EGG-INFO/PKG-INFO
         if not os.path.exists(pkg_inf):
-            f = open(pkg_inf, 'w')  # TODO: probably it is safe to use utf-8
-            f.write('Metadata-Version: 1.0\n')
-            for k, v in cfg.items('metadata'):
-                if k != 'target_version':
-                    f.write('%s: %s\n' % (k.replace('_', '-').title(), v))
-            f.close()
+            with open(pkg_inf, 'w', encoding="utf-8") as f:
+                f.write('Metadata-Version: 1.0\n')
+                for k, v in cfg.items('metadata'):
+                    if k != 'target_version':
+                        f.write('%s: %s\n' % (k.replace('_', '-').title(), v))
         script_dir = os.path.join(_egg_info, 'scripts')
         # delete entry-point scripts to avoid duping
         self.delete_blockers([
@@ -1088,9 +1089,8 @@ class easy_install(Command):
             if locals()[name]:
                 txt = os.path.join(egg_tmp, 'EGG-INFO', name + '.txt')
                 if not os.path.exists(txt):
-                    f = open(txt, 'w')  # TODO: probably it is safe to use utf-8
-                    f.write('\n'.join(locals()[name]) + '\n')
-                    f.close()
+                    with open(txt, 'w', encoding="utf-8") as f:
+                        f.write('\n'.join(locals()[name]) + '\n')
 
     def install_wheel(self, wheel_path, tmpdir):
         wheel = Wheel(wheel_path)
