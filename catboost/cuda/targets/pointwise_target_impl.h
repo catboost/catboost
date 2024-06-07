@@ -24,10 +24,12 @@ namespace NCatboostCuda {
         TPointwiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
                               TSlice slice,
-                              const NCatboostOptions::TLossDescription& targetOptions)
+                              const NCatboostOptions::TLossDescription& targetOptions,
+                              const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor = Nothing())
             : TParent(dataSet,
                       random,
-                      slice) {
+                      slice)
+            , ObjectiveDescriptor(objectiveDescriptor) {
             Init(targetOptions);
         }
 
