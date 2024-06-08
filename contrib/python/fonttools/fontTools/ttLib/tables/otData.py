@@ -3169,6 +3169,25 @@ otData = [
         ],
     ),
     (
+        "ConditionList",
+        [
+            (
+                "uint32",
+                "ConditionCount",
+                None,
+                None,
+                "Number of condition tables in the ConditionTable array",
+            ),
+            (
+                "LOffset",
+                "ConditionTable",
+                "ConditionCount",
+                0,
+                "Array of offset to condition tables, from the beginning of the ConditionList table.",
+            ),
+        ],
+    ),
+    (
         "ConditionSet",
         [
             (
@@ -3183,7 +3202,7 @@ otData = [
                 "ConditionTable",
                 "ConditionCount",
                 0,
-                "Array of condition tables.",
+                "Array of offset to condition tables, from the beginning of the ConditionSet table.",
             ),
         ],
     ),
@@ -3211,6 +3230,79 @@ otData = [
                 None,
                 None,
                 "Maximum value that satisfies this condition.",
+            ),
+        ],
+    ),
+    (
+        "ConditionTableFormat2",
+        [
+            ("uint16", "Format", None, None, "Format, = 2"),
+            (
+                "int16",
+                "DefaultValue",
+                None,
+                None,
+                "Value at default instance.",
+            ),
+            (
+                "uint32",
+                "VarIdx",
+                None,
+                None,
+                "Variation index to vary the value based on current designspace location.",
+            ),
+        ],
+    ),
+    (
+        "ConditionTableFormat3",
+        [
+            ("uint16", "Format", None, None, "Format, = 3"),
+            (
+                "uint8",
+                "ConditionCount",
+                None,
+                None,
+                "Index for the variation axis within the fvar table, base 0.",
+            ),
+            (
+                "Offset24",
+                "ConditionTable",
+                "ConditionCount",
+                0,
+                "Array of condition tables for this conjunction (AND) expression.",
+            ),
+        ],
+    ),
+    (
+        "ConditionTableFormat4",
+        [
+            ("uint16", "Format", None, None, "Format, = 4"),
+            (
+                "uint8",
+                "ConditionCount",
+                None,
+                None,
+                "Index for the variation axis within the fvar table, base 0.",
+            ),
+            (
+                "Offset24",
+                "ConditionTable",
+                "ConditionCount",
+                0,
+                "Array of condition tables for this disjunction (OR) expression.",
+            ),
+        ],
+    ),
+    (
+        "ConditionTableFormat5",
+        [
+            ("uint16", "Format", None, None, "Format, = 5"),
+            (
+                "Offset24",
+                "ConditionTable",
+                None,
+                None,
+                "Condition to negate.",
             ),
         ],
     ),
@@ -3320,6 +3412,78 @@ otData = [
             ("uint8", "EntryFormat", None, None, ""),  # Automatically computed
             ("uint32", "MappingCount", None, None, ""),  # Automatically computed
             ("VarIdxMapValue", "mapping", "", 0, "Array of compressed data"),
+        ],
+    ),
+    # MultiVariationStore
+    (
+        "SparseVarRegionAxis",
+        [
+            ("uint16", "AxisIndex", None, None, ""),
+            ("F2Dot14", "StartCoord", None, None, ""),
+            ("F2Dot14", "PeakCoord", None, None, ""),
+            ("F2Dot14", "EndCoord", None, None, ""),
+        ],
+    ),
+    (
+        "SparseVarRegion",
+        [
+            ("uint16", "SparseRegionCount", None, None, ""),
+            ("struct", "SparseVarRegionAxis", "SparseRegionCount", 0, ""),
+        ],
+    ),
+    (
+        "SparseVarRegionList",
+        [
+            ("uint16", "RegionCount", None, None, ""),
+            ("LOffsetTo(SparseVarRegion)", "Region", "RegionCount", 0, ""),
+        ],
+    ),
+    (
+        "MultiVarData",
+        [
+            ("uint8", "Format", None, None, "Set to 1."),
+            ("uint16", "VarRegionCount", None, None, ""),
+            ("uint16", "VarRegionIndex", "VarRegionCount", 0, ""),
+            ("TupleList", "Item", "", 0, ""),
+        ],
+    ),
+    (
+        "MultiVarStore",
+        [
+            ("uint16", "Format", None, None, "Set to 1."),
+            ("LOffset", "SparseVarRegionList", None, None, ""),
+            ("uint16", "MultiVarDataCount", None, None, ""),
+            ("LOffset", "MultiVarData", "MultiVarDataCount", 0, ""),
+        ],
+    ),
+    # VariableComposites
+    (
+        "VARC",
+        [
+            (
+                "Version",
+                "Version",
+                None,
+                None,
+                "Version of the HVAR table-initially = 0x00010000",
+            ),
+            ("LOffset", "Coverage", None, None, ""),
+            ("LOffset", "MultiVarStore", None, None, "(may be NULL)"),
+            ("LOffset", "ConditionList", None, None, "(may be NULL)"),
+            ("LOffset", "AxisIndicesList", None, None, "(may be NULL)"),
+            ("LOffset", "VarCompositeGlyphs", None, None, ""),
+        ],
+    ),
+    (
+        "AxisIndicesList",
+        [
+            ("TupleList", "Item", "", 0, ""),
+        ],
+    ),
+    (
+        "VarCompositeGlyphs",
+        [
+            ("VarCompositeGlyphList", "VarCompositeGlyph", "", None, ""),
         ],
     ),
     # Glyph advance variations

@@ -4,7 +4,12 @@ from fontTools.misc.configTools import AbstractConfig
 from fontTools.misc.textTools import Tag, byteord, tostr
 from fontTools.misc.loggingTools import deprecateArgument
 from fontTools.ttLib import TTLibError
-from fontTools.ttLib.ttGlyphSet import _TTGlyph, _TTGlyphSetCFF, _TTGlyphSetGlyf
+from fontTools.ttLib.ttGlyphSet import (
+    _TTGlyph,
+    _TTGlyphSetCFF,
+    _TTGlyphSetGlyf,
+    _TTGlyphSetVARC,
+)
 from fontTools.ttLib.sfnt import SFNTReader, SFNTWriter
 from io import BytesIO, StringIO, UnsupportedOperation
 import os
@@ -537,7 +542,7 @@ class TTFont(object):
                 #
                 # Not enough names found in the 'post' table.
                 # Can happen when 'post' format 1 is improperly used on a font that
-                # has more than 258 glyphs (the lenght of 'standardGlyphOrder').
+                # has more than 258 glyphs (the length of 'standardGlyphOrder').
                 #
                 log.warning(
                     "Not enough names found in the 'post' table, generating them from cmap instead"
@@ -764,12 +769,16 @@ class TTFont(object):
             location = None
         if location and not normalized:
             location = self.normalizeLocation(location)
+        glyphSet = None
         if ("CFF " in self or "CFF2" in self) and (preferCFF or "glyf" not in self):
-            return _TTGlyphSetCFF(self, location)
+            glyphSet = _TTGlyphSetCFF(self, location)
         elif "glyf" in self:
-            return _TTGlyphSetGlyf(self, location, recalcBounds=recalcBounds)
+            glyphSet = _TTGlyphSetGlyf(self, location, recalcBounds=recalcBounds)
         else:
             raise TTLibError("Font contains no outlines")
+        if "VARC" in self:
+            glyphSet = _TTGlyphSetVARC(self, location, glyphSet)
+        return glyphSet
 
     def normalizeLocation(self, location):
         """Normalize a ``location`` from the font's defined axes space (also
@@ -781,26 +790,15 @@ class TTFont(object):
 
         Raises ``TTLibError`` if the font is not a variable font.
         """
-        from fontTools.varLib.models import normalizeLocation, piecewiseLinearMap
+        from fontTools.varLib.models import normalizeLocation
 
         if "fvar" not in self:
             raise TTLibError("Not a variable font")
 
-        axes = {
-            a.axisTag: (a.minValue, a.defaultValue, a.maxValue)
-            for a in self["fvar"].axes
-        }
+        axes = self["fvar"].getAxes()
         location = normalizeLocation(location, axes)
         if "avar" in self:
-            avar = self["avar"]
-            avarSegments = avar.segments
-            mappedLocation = {}
-            for axisTag, value in location.items():
-                avarMapping = avarSegments.get(axisTag, None)
-                if avarMapping is not None:
-                    value = piecewiseLinearMap(value, avarMapping)
-                mappedLocation[axisTag] = value
-            location = mappedLocation
+            location = self["avar"].renormalizeLocation(location, self)
         return location
 
     def getBestCmap(

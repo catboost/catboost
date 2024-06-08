@@ -10,6 +10,13 @@ def buildVarRegionAxis(axisSupport):
     return self
 
 
+def buildSparseVarRegionAxis(axisIndex, axisSupport):
+    self = ot.SparseVarRegionAxis()
+    self.AxisIndex = axisIndex
+    self.StartCoord, self.PeakCoord, self.EndCoord = [float(v) for v in axisSupport]
+    return self
+
+
 def buildVarRegion(support, axisTags):
     assert all(tag in axisTags for tag in support.keys()), (
         "Unknown axis tag found.",
@@ -23,12 +30,40 @@ def buildVarRegion(support, axisTags):
     return self
 
 
+def buildSparseVarRegion(support, axisTags):
+    assert all(tag in axisTags for tag in support.keys()), (
+        "Unknown axis tag found.",
+        support,
+        axisTags,
+    )
+    self = ot.SparseVarRegion()
+    self.SparseVarRegionAxis = []
+    for i, tag in enumerate(axisTags):
+        if tag not in support:
+            continue
+        self.SparseVarRegionAxis.append(
+            buildSparseVarRegionAxis(i, support.get(tag, (0, 0, 0)))
+        )
+    self.SparseRegionCount = len(self.SparseVarRegionAxis)
+    return self
+
+
 def buildVarRegionList(supports, axisTags):
     self = ot.VarRegionList()
     self.RegionAxisCount = len(axisTags)
     self.Region = []
     for support in supports:
         self.Region.append(buildVarRegion(support, axisTags))
+    self.RegionCount = len(self.Region)
+    return self
+
+
+def buildSparseVarRegionList(supports, axisTags):
+    self = ot.SparseVarRegionList()
+    self.RegionAxisCount = len(axisTags)
+    self.Region = []
+    for support in supports:
+        self.Region.append(buildSparseVarRegion(support, axisTags))
     self.RegionCount = len(self.Region)
     return self
 
@@ -127,6 +162,29 @@ def buildVarStore(varRegionList, varDataList):
     self.VarRegionList = varRegionList
     self.VarData = list(varDataList)
     self.VarDataCount = len(self.VarData)
+    return self
+
+
+def buildMultiVarData(varRegionIndices, items):
+    self = ot.MultiVarData()
+    self.Format = 1
+    self.VarRegionIndex = list(varRegionIndices)
+    regionCount = self.VarRegionCount = len(self.VarRegionIndex)
+    records = self.Item = []
+    if items:
+        for item in items:
+            assert len(item) == regionCount
+            records.append(list(item))
+    self.ItemCount = len(self.Item)
+    return self
+
+
+def buildMultiVarStore(varRegionList, multiVarDataList):
+    self = ot.MultiVarStore()
+    self.Format = 1
+    self.SparseVarRegionList = varRegionList
+    self.MultiVarData = list(multiVarDataList)
+    self.MultiVarDataCount = len(self.MultiVarData)
     return self
 
 

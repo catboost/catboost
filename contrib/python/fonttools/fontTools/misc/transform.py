@@ -422,6 +422,19 @@ class DecomposedTransform:
     tCenterX: float = 0
     tCenterY: float = 0
 
+    def __bool__(self):
+        return (
+            self.translateX != 0
+            or self.translateY != 0
+            or self.rotation != 0
+            or self.scaleX != 1
+            or self.scaleY != 1
+            or self.skewX != 0
+            or self.skewY != 0
+            or self.tCenterX != 0
+            or self.tCenterY != 0
+        )
+
     @classmethod
     def fromTransform(self, transform):
         # Adapted from an answer on

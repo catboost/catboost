@@ -1017,8 +1017,6 @@ class WOFF2GlyfTable(getTableClass("glyf")):
             return
         elif glyph.isComposite():
             self._encodeComponents(glyph)
-        elif glyph.isVarComposite():
-            raise NotImplementedError
         else:
             self._encodeCoordinates(glyph)
             self._encodeOverlapSimpleFlag(glyph, glyphID)

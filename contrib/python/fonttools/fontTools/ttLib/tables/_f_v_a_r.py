@@ -110,6 +110,9 @@ class table__f_v_a_r(DefaultTable.DefaultTable):
             instance.fromXML(name, attrs, content, ttFont)
             self.instances.append(instance)
 
+    def getAxes(self):
+        return {a.axisTag: (a.minValue, a.defaultValue, a.maxValue) for a in self.axes}
+
 
 class Axis(object):
     def __init__(self):

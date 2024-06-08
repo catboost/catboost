@@ -749,22 +749,27 @@ def main(args=None):
             if "gvar" in font:
                 # Is variable font
 
-                axisMapping = {}
                 fvar = font["fvar"]
+                axisMapping = {}
                 for axis in fvar.axes:
                     axisMapping[axis.axisTag] = {
                         -1: axis.minValue,
                         0: axis.defaultValue,
                         1: axis.maxValue,
                     }
+                normalized = False
                 if "avar" in font:
                     avar = font["avar"]
-                    for axisTag, segments in avar.segments.items():
-                        fvarMapping = axisMapping[axisTag].copy()
-                        for location, value in segments.items():
-                            axisMapping[axisTag][value] = piecewiseLinearMap(
-                                location, fvarMapping
-                            )
+                    if getattr(avar.table, "VarStore", None):
+                        axisMapping = {tag: {-1: -1, 0: 0, 1: 1} for tag in axisMapping}
+                        normalized = True
+                    else:
+                        for axisTag, segments in avar.segments.items():
+                            fvarMapping = axisMapping[axisTag].copy()
+                            for location, value in segments.items():
+                                axisMapping[axisTag][value] = piecewiseLinearMap(
+                                    location, fvarMapping
+                                )
 
                 gvar = font["gvar"]
                 glyf = font["glyf"]
@@ -811,6 +816,8 @@ def main(args=None):
                         )
                         + "'"
                     )
+                    if normalized:
+                        name += " (normalized)"
                     names.append(name)
                     fonts.append(glyphsets[locTuple])
                     locations.append(dict(locTuple))

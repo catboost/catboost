@@ -880,8 +880,13 @@ class Builder(object):
             # l.lookup_index will be None when a lookup is not needed
             # for the table under construction. For example, substitution
             # rules will have no lookup_index while building GPOS tables.
+            # We also deduplicate lookup indices, as they only get applied once
+            # within a given feature:
+            # https://github.com/fonttools/fonttools/issues/2946
             lookup_indices = tuple(
-                [l.lookup_index for l in lookups if l.lookup_index is not None]
+                dict.fromkeys(
+                    l.lookup_index for l in lookups if l.lookup_index is not None
+                )
             )
 
             size_feature = tag == "GPOS" and feature_tag == "size"

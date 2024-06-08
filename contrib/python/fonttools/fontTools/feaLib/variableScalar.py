@@ -75,10 +75,11 @@ class VariableScalar:
         return self.values[key]
 
     def value_at_location(self, location, model_cache=None, avar=None):
-        loc = location
+        loc = Location(location)
         if loc in self.values.keys():
             return self.values[loc]
         values = list(self.values.values())
+        loc = dict(self._normalized_location(loc))
         return self.model(model_cache, avar).interpolateFromMasters(loc, values)
 
     def model(self, model_cache=None, avar=None):

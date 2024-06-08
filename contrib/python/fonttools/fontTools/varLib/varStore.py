@@ -32,7 +32,7 @@ class OnlineVarStoreBuilder(object):
         self._supports = None
         self._varDataIndices = {}
         self._varDataCaches = {}
-        self._cache = {}
+        self._cache = None
 
     def setModel(self, model):
         self.setSupports(model.supports)
@@ -43,7 +43,7 @@ class OnlineVarStoreBuilder(object):
         self._supports = list(supports)
         if not self._supports[0]:
             del self._supports[0]  # Drop base master support
-        self._cache = {}
+        self._cache = None
         self._data = None
 
     def finish(self, optimize=True):
@@ -54,7 +54,7 @@ class OnlineVarStoreBuilder(object):
             data.calculateNumShorts(optimize=optimize)
         return self._store
 
-    def _add_VarData(self):
+    def _add_VarData(self, num_items=1):
         regionMap = self._regionMap
         regionList = self._regionList
 
@@ -76,7 +76,7 @@ class OnlineVarStoreBuilder(object):
             self._outer = varDataIdx
             self._data = self._store.VarData[varDataIdx]
             self._cache = self._varDataCaches[key]
-            if len(self._data.Item) == 0xFFFF:
+            if len(self._data.Item) + num_items > 0xFFFF:
                 # This is full.  Need new one.
                 varDataIdx = None
 
@@ -94,6 +94,14 @@ class OnlineVarStoreBuilder(object):
         base = deltas.pop(0)
         return base, self.storeDeltas(deltas, round=noRound)
 
+    def storeMastersMany(self, master_values_list, *, round=round):
+        deltas_list = [
+            self._model.getDeltas(master_values, round=round)
+            for master_values in master_values_list
+        ]
+        base_list = [deltas.pop(0) for deltas in deltas_list]
+        return base_list, self.storeDeltasMany(deltas_list, round=noRound)
+
     def storeDeltas(self, deltas, *, round=round):
         deltas = [round(d) for d in deltas]
         if len(deltas) == len(self._supports) + 1:
@@ -102,21 +110,49 @@ class OnlineVarStoreBuilder(object):
             assert len(deltas) == len(self._supports)
             deltas = tuple(deltas)
 
+        if not self._data:
+            self._add_VarData()
+
         varIdx = self._cache.get(deltas)
         if varIdx is not None:
             return varIdx
 
-        if not self._data:
-            self._add_VarData()
         inner = len(self._data.Item)
         if inner == 0xFFFF:
             # Full array. Start new one.
             self._add_VarData()
-            return self.storeDeltas(deltas)
+            return self.storeDeltas(deltas, round=noRound)
         self._data.addItem(deltas, round=noRound)
 
         varIdx = (self._outer << 16) + inner
         self._cache[deltas] = varIdx
+        return varIdx
+
+    def storeDeltasMany(self, deltas_list, *, round=round):
+        deltas_list = [[round(d) for d in deltas] for deltas in deltas_list]
+        deltas_list = tuple(tuple(deltas) for deltas in deltas_list)
+
+        if not self._data:
+            self._add_VarData(len(deltas_list))
+
+        varIdx = self._cache.get(deltas_list)
+        if varIdx is not None:
+            return varIdx
+
+        inner = len(self._data.Item)
+        if inner + len(deltas_list) > 0xFFFF:
+            # Full array. Start new one.
+            self._add_VarData(len(deltas_list))
+            return self.storeDeltasMany(deltas_list, round=noRound)
+        for i, deltas in enumerate(deltas_list):
+            self._data.addItem(deltas, round=noRound)
+
+            varIdx = (self._outer << 16) + inner + i
+            self._cache[deltas] = varIdx
+
+        varIdx = (self._outer << 16) + inner
+        self._cache[deltas_list] = varIdx
+
         return varIdx
 
 
@@ -210,26 +246,29 @@ class VarStoreInstancer(object):
 
 
 def VarStore_subset_varidxes(
-    self, varIdxes, optimize=True, retainFirstMap=False, advIdxes=set()
+    self,
+    varIdxes,
+    optimize=True,
+    retainFirstMap=False,
+    advIdxes=set(),
+    *,
+    VarData="VarData",
 ):
     # Sort out used varIdxes by major/minor.
-    used = {}
+    used = defaultdict(set)
     for varIdx in varIdxes:
         if varIdx == NO_VARIATION_INDEX:
             continue
         major = varIdx >> 16
         minor = varIdx & 0xFFFF
-        d = used.get(major)
-        if d is None:
-            d = used[major] = set()
-        d.add(minor)
+        used[major].add(minor)
     del varIdxes
 
     #
     # Subset VarData
     #
 
-    varData = self.VarData
+    varData = getattr(self, VarData)
     newVarData = []
     varDataMap = {NO_VARIATION_INDEX: NO_VARIATION_INDEX}
     for major, data in enumerate(varData):
@@ -260,10 +299,11 @@ def VarStore_subset_varidxes(
         data.Item = newItems
         data.ItemCount = len(data.Item)
 
-        data.calculateNumShorts(optimize=optimize)
+        if VarData == "VarData":
+            data.calculateNumShorts(optimize=optimize)
 
-    self.VarData = newVarData
-    self.VarDataCount = len(self.VarData)
+    setattr(self, VarData, newVarData)
+    setattr(self, VarData + "Count", len(newVarData))
 
     self.prune_regions()
 
@@ -273,7 +313,7 @@ def VarStore_subset_varidxes(
 ot.VarStore.subset_varidxes = VarStore_subset_varidxes
 
 
-def VarStore_prune_regions(self):
+def VarStore_prune_regions(self, *, VarData="VarData", VarRegionList="VarRegionList"):
     """Remove unused VarRegions."""
     #
     # Subset VarRegionList
@@ -281,10 +321,10 @@ def VarStore_prune_regions(self):
 
     # Collect.
     usedRegions = set()
-    for data in self.VarData:
+    for data in getattr(self, VarData):
         usedRegions.update(data.VarRegionIndex)
     # Subset.
-    regionList = self.VarRegionList
+    regionList = getattr(self, VarRegionList)
     regions = regionList.Region
     newRegions = []
     regionMap = {}
@@ -294,7 +334,7 @@ def VarStore_prune_regions(self):
     regionList.Region = newRegions
     regionList.RegionCount = len(regionList.Region)
     # Map.
-    for data in self.VarData:
+    for data in getattr(self, VarData):
         data.VarRegionIndex = [regionMap[i] for i in data.VarRegionIndex]
 
 

@@ -21,10 +21,7 @@ class table__l_o_c_a(DefaultTable.DefaultTable):
         if sys.byteorder != "big":
             locations.byteswap()
         if not longFormat:
-            l = array.array("I")
-            for i in range(len(locations)):
-                l.append(locations[i] * 2)
-            locations = l
+            locations = array.array("I", (2 * l for l in locations))
         if len(locations) < (ttFont["maxp"].numGlyphs + 1):
             log.warning(
                 "corrupt 'loca' table, or wrong numGlyphs in 'maxp': %d %d",

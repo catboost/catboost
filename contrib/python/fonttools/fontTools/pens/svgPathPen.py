@@ -2,7 +2,7 @@ from typing import Callable
 from fontTools.pens.basePen import BasePen
 
 
-def pointToString(pt, ntos=str):
+def pointToString(pt, ntos):
     return " ".join(ntos(i) for i in pt)
 
 
@@ -37,7 +37,13 @@ class SVGPathPen(BasePen):
             print(tpen.getCommands())
     """
 
-    def __init__(self, glyphSet, ntos: Callable[[float], str] = str):
+    def __init__(
+        self,
+        glyphSet,
+        ntos: Callable[[float], str] = (
+            lambda x: ("%.2f" % x) if x != int(x) else str(int(x))
+        ),
+    ):
         BasePen.__init__(self, glyphSet)
         self._commands = []
         self._lastCommand = None

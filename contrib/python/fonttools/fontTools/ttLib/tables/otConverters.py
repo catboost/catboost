@@ -6,8 +6,10 @@ from fontTools.misc.fixedTools import (
     ensureVersionIsLong as fi2ve,
     versionToFixed as ve2fi,
 )
+from fontTools.ttLib.tables.TupleVariation import TupleVariation
 from fontTools.misc.roundTools import nearestMultipleShortestRepr, otRound
 from fontTools.misc.textTools import bytesjoin, tobytes, tostr, pad, safeEval
+from fontTools.misc.lazyTools import LazyList
 from fontTools.ttLib import getSearchRange
 from .otBase import (
     CountReference,
@@ -18,6 +20,7 @@ from .otBase import (
 )
 from .otTables import (
     lookupTypes,
+    VarCompositeGlyph,
     AATStateTable,
     AATState,
     AATAction,
@@ -29,8 +32,9 @@ from .otTables import (
     CompositeMode as _CompositeMode,
     NO_VARIATION_INDEX,
 )
-from itertools import zip_longest
+from itertools import zip_longest, accumulate
 from functools import partial
+from types import SimpleNamespace
 import re
 import struct
 from typing import Optional
@@ -78,7 +82,7 @@ def buildConverters(tableSpec, tableNamespace):
         conv = converterClass(name, repeat, aux, description=descr)
 
         if conv.tableClass:
-            # A "template" such as OffsetTo(AType) knowss the table class already
+            # A "template" such as OffsetTo(AType) knows the table class already
             tableClass = conv.tableClass
         elif tp in ("MortChain", "MortSubtable", "MorxChain"):
             tableClass = tableNamespace.get(tp)
@@ -103,46 +107,6 @@ def buildConverters(tableSpec, tableNamespace):
         assert name not in convertersByName, name
         convertersByName[name] = conv
     return converters, convertersByName
-
-
-class _MissingItem(tuple):
-    __slots__ = ()
-
-
-try:
-    from collections import UserList
-except ImportError:
-    from UserList import UserList
-
-
-class _LazyList(UserList):
-    def __getslice__(self, i, j):
-        return self.__getitem__(slice(i, j))
-
-    def __getitem__(self, k):
-        if isinstance(k, slice):
-            indices = range(*k.indices(len(self)))
-            return [self[i] for i in indices]
-        item = self.data[k]
-        if isinstance(item, _MissingItem):
-            self.reader.seek(self.pos + item[0] * self.recordSize)
-            item = self.conv.read(self.reader, self.font, {})
-            self.data[k] = item
-        return item
-
-    def __add__(self, other):
-        if isinstance(other, _LazyList):
-            other = list(other)
-        elif isinstance(other, list):
-            pass
-        else:
-            return NotImplemented
-        return list(self) + other
-
-    def __radd__(self, other):
-        if not isinstance(other, list):
-            return NotImplemented
-        return other + list(self)
 
 
 class BaseConverter(object):
@@ -176,6 +140,7 @@ class BaseConverter(object):
             "AxisCount",
             "BaseGlyphRecordCount",
             "LayerRecordCount",
+            "AxisIndicesList",
         ]
         self.description = description
 
@@ -192,14 +157,21 @@ class BaseConverter(object):
                 l.append(self.read(reader, font, tableDict))
             return l
         else:
-            l = _LazyList()
-            l.reader = reader.copy()
-            l.pos = l.reader.pos
-            l.font = font
-            l.conv = self
-            l.recordSize = recordSize
-            l.extend(_MissingItem([i]) for i in range(count))
+
+            def get_read_item():
+                reader_copy = reader.copy()
+                pos = reader.pos
+
+                def read_item(i):
+                    reader_copy.seek(pos + i * recordSize)
+                    return self.read(reader_copy, font, {})
+
+                return read_item
+
+            read_item = get_read_item()
+            l = LazyList(read_item for i in range(count))
             reader.advance(count * recordSize)
+
             return l
 
     def getRecordSize(self, reader):
@@ -1833,6 +1805,169 @@ class VarDataValue(BaseConverter):
         return safeEval(attrs["value"])
 
 
+class TupleValues:
+    def read(self, data, font):
+        return TupleVariation.decompileDeltas_(None, data)[0]
+
+    def write(self, writer, font, tableDict, values, repeatIndex=None):
+        return bytes(TupleVariation.compileDeltaValues_(values))
+
+    def xmlRead(self, attrs, content, font):
+        return safeEval(attrs["value"])
+
+    def xmlWrite(self, xmlWriter, font, value, name, attrs):
+        xmlWriter.simpletag(name, attrs + [("value", value)])
+        xmlWriter.newline()
+
+
+class CFF2Index(BaseConverter):
+    def __init__(
+        self,
+        name,
+        repeat,
+        aux,
+        tableClass=None,
+        *,
+        itemClass=None,
+        itemConverterClass=None,
+        description="",
+    ):
+        BaseConverter.__init__(
+            self, name, repeat, aux, tableClass, description=description
+        )
+        self._itemClass = itemClass
+        self._converter = (
+            itemConverterClass() if itemConverterClass is not None else None
+        )
+
+    def read(self, reader, font, tableDict):
+        count = reader.readULong()
+        if count == 0:
+            return []
+        offSize = reader.readUInt8()
+
+        def getReadArray(reader, offSize):
+            return {
+                1: reader.readUInt8Array,
+                2: reader.readUShortArray,
+                3: reader.readUInt24Array,
+                4: reader.readULongArray,
+            }[offSize]
+
+        readArray = getReadArray(reader, offSize)
+
+        lazy = font.lazy is not False and count > 8
+        if not lazy:
+            offsets = readArray(count + 1)
+            items = []
+            lastOffset = offsets.pop(0)
+            reader.readData(lastOffset - 1)  # In case first offset is not 1
+
+            for offset in offsets:
+                assert lastOffset <= offset
+                item = reader.readData(offset - lastOffset)
+
+                if self._itemClass is not None:
+                    obj = self._itemClass()
+                    obj.decompile(item, font, reader.localState)
+                    item = obj
+                elif self._converter is not None:
+                    item = self._converter.read(item, font)
+
+                items.append(item)
+                lastOffset = offset
+            return items
+        else:
+
+            def get_read_item():
+                reader_copy = reader.copy()
+                offset_pos = reader.pos
+                data_pos = offset_pos + (count + 1) * offSize - 1
+                readArray = getReadArray(reader_copy, offSize)
+
+                def read_item(i):
+                    reader_copy.seek(offset_pos + i * offSize)
+                    offsets = readArray(2)
+                    reader_copy.seek(data_pos + offsets[0])
+                    item = reader_copy.readData(offsets[1] - offsets[0])
+
+                    if self._itemClass is not None:
+                        obj = self._itemClass()
+                        obj.decompile(item, font, reader_copy.localState)
+                        item = obj
+                    elif self._converter is not None:
+                        item = self._converter.read(item, font)
+                    return item
+
+                return read_item
+
+            read_item = get_read_item()
+            l = LazyList([read_item] * count)
+
+            # TODO: Advance reader
+
+            return l
+
+    def write(self, writer, font, tableDict, values, repeatIndex=None):
+        items = values
+
+        writer.writeULong(len(items))
+        if not len(items):
+            return
+
+        if self._itemClass is not None:
+            items = [item.compile(font) for item in items]
+        elif self._converter is not None:
+            items = [
+                self._converter.write(writer, font, tableDict, item, i)
+                for i, item in enumerate(items)
+            ]
+
+        offsets = [len(item) for item in items]
+        offsets = list(accumulate(offsets, initial=1))
+
+        lastOffset = offsets[-1]
+        offSize = (
+            1
+            if lastOffset < 0x100
+            else 2 if lastOffset < 0x10000 else 3 if lastOffset < 0x1000000 else 4
+        )
+        writer.writeUInt8(offSize)
+
+        writeArray = {
+            1: writer.writeUInt8Array,
+            2: writer.writeUShortArray,
+            3: writer.writeUInt24Array,
+            4: writer.writeULongArray,
+        }[offSize]
+
+        writeArray(offsets)
+        for item in items:
+            writer.writeData(item)
+
+    def xmlRead(self, attrs, content, font):
+        if self._itemClass is not None:
+            obj = self._itemClass()
+            obj.fromXML(None, attrs, content, font)
+            return obj
+        elif self._converter is not None:
+            return self._converter.xmlRead(attrs, content, font)
+        else:
+            raise NotImplementedError()
+
+    def xmlWrite(self, xmlWriter, font, value, name, attrs):
+        if self._itemClass is not None:
+            for i, item in enumerate(value):
+                item.toXML(xmlWriter, font, [("index", i)], name)
+        elif self._converter is not None:
+            for i, item in enumerate(value):
+                self._converter.xmlWrite(
+                    xmlWriter, font, item, name, attrs + [("index", i)]
+                )
+        else:
+            raise NotImplementedError()
+
+
 class LookupFlag(UShort):
     def xmlWrite(self, xmlWriter, font, value, name, attrs):
         xmlWriter.simpletag(name, attrs + [("value", value)])
@@ -1910,6 +2045,8 @@ converterMapping = {
     "ExtendMode": ExtendMode,
     "CompositeMode": CompositeMode,
     "STATFlags": STATFlags,
+    "TupleList": partial(CFF2Index, itemConverterClass=TupleValues),
+    "VarCompositeGlyphList": partial(CFF2Index, itemClass=VarCompositeGlyph),
     # AAT
     "CIDGlyphMap": CIDGlyphMap,
     "GlyphCIDMap": GlyphCIDMap,

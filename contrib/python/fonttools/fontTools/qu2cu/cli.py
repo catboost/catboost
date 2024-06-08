@@ -42,7 +42,7 @@ def _font_to_cubic(input_path, output_path=None, **kwargs):
     font.save(output_path)
 
 
-def main(args=None):
+def _main(args=None):
     """Convert an OpenType font from quadratic to cubic curves"""
     parser = argparse.ArgumentParser(prog="qu2cu")
     parser.add_argument("--version", action="version", version=fontTools.__version__)

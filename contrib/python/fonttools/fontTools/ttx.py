@@ -375,7 +375,7 @@ def guessFileType(fileName):
 
 
 def parseOptions(args):
-    rawOptions, files = getopt.getopt(
+    rawOptions, files = getopt.gnu_getopt(
         args,
         "ld:o:fvqht:x:sgim:z:baey:",
         [

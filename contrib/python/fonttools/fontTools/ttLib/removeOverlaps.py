@@ -226,6 +226,8 @@ def removeOverlaps(
 
 
 def main(args=None):
+    """Simplify glyphs in TTFont by merging overlapping contours."""
+
     import sys
 
     if args is None:

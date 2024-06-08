@@ -1146,7 +1146,10 @@ class BaseTable(object):
         except KeyError:
             raise  # XXX on KeyError, raise nice error
         value = conv.xmlRead(attrs, content, font)
-        if conv.repeat:
+        # Some manually-written tables have a conv.repeat of ""
+        # to represent lists. Hence comparing to None here to
+        # allow those lists to be read correctly from XML.
+        if conv.repeat is not None:
             seq = getattr(self, conv.name, None)
             if seq is None:
                 seq = []

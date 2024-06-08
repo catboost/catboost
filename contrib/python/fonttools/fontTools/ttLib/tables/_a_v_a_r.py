@@ -6,6 +6,9 @@ from fontTools.misc.fixedTools import (
     strToFixedToFloat as str2fl,
 )
 from fontTools.misc.textTools import bytesjoin, safeEval
+from fontTools.misc.roundTools import otRound
+from fontTools.varLib.models import piecewiseLinearMap
+from fontTools.varLib.varStore import VarStoreInstancer, NO_VARIATION_INDEX
 from fontTools.ttLib import TTLibError
 from . import DefaultTable
 from . import otTables
@@ -74,9 +77,10 @@ class table__a_v_a_r(BaseTTXConverter):
 
     def decompile(self, data, ttFont):
         super().decompile(data, ttFont)
-        assert self.table.Version >= 0x00010000
         self.majorVersion = self.table.Version >> 16
         self.minorVersion = self.table.Version & 0xFFFF
+        if self.majorVersion not in (1, 2):
+            raise NotImplementedError("Unknown avar table version")
         axisTags = [axis.axisTag for axis in ttFont["fvar"].axes]
         for axis in axisTags:
             self.segments[axis] = {}
@@ -136,3 +140,48 @@ class table__a_v_a_r(BaseTTXConverter):
                         segment[fromValue] = toValue
         else:
             super().fromXML(name, attrs, content, ttFont)
+
+    def renormalizeLocation(self, location, font):
+
+        if self.majorVersion not in (1, 2):
+            raise NotImplementedError("Unknown avar table version")
+
+        avarSegments = self.segments
+        mappedLocation = {}
+        for axisTag, value in location.items():
+            avarMapping = avarSegments.get(axisTag, None)
+            if avarMapping is not None:
+                value = piecewiseLinearMap(value, avarMapping)
+            mappedLocation[axisTag] = value
+
+        if self.majorVersion < 2:
+            return mappedLocation
+
+        # Version 2
+
+        varIdxMap = self.table.VarIdxMap
+        varStore = self.table.VarStore
+        axes = font["fvar"].axes
+        if varStore is not None:
+            instancer = VarStoreInstancer(varStore, axes, mappedLocation)
+
+        coords = list(fl2fi(mappedLocation.get(axis.axisTag, 0), 14) for axis in axes)
+
+        out = []
+        for varIdx, v in enumerate(coords):
+
+            if varIdxMap is not None:
+                varIdx = varIdxMap[varIdx]
+
+            if varStore is not None:
+                delta = instancer[varIdx]
+                v += otRound(delta)
+                v = min(max(v, -(1 << 14)), +(1 << 14))
+
+            out.append(v)
+
+        mappedLocation = {
+            axis.axisTag: fi2fl(v, 14) for v, axis in zip(out, axes) if v != 0
+        }
+
+        return mappedLocation

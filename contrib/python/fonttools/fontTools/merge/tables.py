@@ -225,7 +225,7 @@ def merge(self, m, tables):
                 g.removeHinting()
             # Expand composite glyphs to load their
             # composite glyph names.
-            if g.isComposite() or g.isVarComposite():
+            if g.isComposite():
                 g.expand(table)
     return DefaultTable.merge(self, m, tables)
 
@@ -294,6 +294,8 @@ def merge(self, m, tables):
                 extractor.execute(c)
                 width = extractor.width
                 if width is not defaultWidthXToken:
+                    # The following will be wrong if the width is added
+                    # by a subroutine. Ouch!
                     c.program.pop(0)
                 else:
                     width = defaultWidthX

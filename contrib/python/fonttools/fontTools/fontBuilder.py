@@ -656,11 +656,7 @@ class FontBuilder(object):
 
         if validateGlyphFormat and self.font["head"].glyphDataFormat == 0:
             for name, g in glyphs.items():
-                if g.isVarComposite():
-                    raise ValueError(
-                        f"Glyph {name!r} is a variable composite, but glyphDataFormat=0"
-                    )
-                elif g.numberOfContours > 0 and any(f & flagCubic for f in g.flags):
+                if g.numberOfContours > 0 and any(f & flagCubic for f in g.flags):
                     raise ValueError(
                         f"Glyph {name!r} has cubic Bezier outlines, but glyphDataFormat=0; "
                         "either convert to quadratics with cu2qu or set glyphDataFormat=1."

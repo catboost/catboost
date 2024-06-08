@@ -20,7 +20,8 @@ def main():
             continue
         try:
             description = imports.main.__doc__
-            if description:
+            # Cython modules seem to return "main()" as the docstring
+            if description and description != "main()":
                 pkg = pkg.replace("fontTools.", "").replace(".__main__", "")
                 # show the docstring's first line only
                 descriptions[pkg] = description.splitlines()[0]

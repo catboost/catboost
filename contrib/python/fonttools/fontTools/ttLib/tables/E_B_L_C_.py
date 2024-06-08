@@ -298,9 +298,9 @@ class BitmapSizeTable(object):
     # cares about in terms of XML creation.
     def _getXMLMetricNames(self):
         dataNames = sstruct.getformat(bitmapSizeTableFormatPart1)[1]
-        dataNames = dataNames + sstruct.getformat(bitmapSizeTableFormatPart2)[1]
+        dataNames = {**dataNames, **sstruct.getformat(bitmapSizeTableFormatPart2)[1]}
         # Skip the first 3 data names because they are byte offsets and counts.
-        return dataNames[3:]
+        return list(dataNames.keys())[3:]
 
     def toXML(self, writer, ttFont):
         writer.begintag("bitmapSizeTable")

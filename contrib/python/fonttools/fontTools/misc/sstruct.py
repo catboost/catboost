@@ -64,7 +64,10 @@ def pack(fmt, obj):
     elements = []
     if not isinstance(obj, dict):
         obj = obj.__dict__
-    for name in names:
+    string_index = formatstring
+    if formatstring.startswith(">"):
+        string_index = formatstring[1:]
+    for ix, name in enumerate(names.keys()):
         value = obj[name]
         if name in fixes:
             # fixed point conversion
@@ -72,6 +75,13 @@ def pack(fmt, obj):
         elif isinstance(value, str):
             value = tobytes(value)
         elements.append(value)
+        # Check it fits
+        try:
+            struct.pack(names[name], value)
+        except Exception as e:
+            raise ValueError(
+                "Value %s does not fit in format %s for %s" % (value, names[name], name)
+            ) from e
     data = struct.pack(*(formatstring,) + tuple(elements))
     return data
 
@@ -87,7 +97,7 @@ def unpack(fmt, data, obj=None):
         d = obj.__dict__
     elements = struct.unpack(formatstring, data)
     for i in range(len(names)):
-        name = names[i]
+        name = list(names.keys())[i]
         value = elements[i]
         if name in fixes:
             # fixed point conversion
@@ -141,7 +151,7 @@ def getformat(fmt, keep_pad_byte=False):
     except KeyError:
         lines = re.split("[\n;]", fmt)
         formatstring = ""
-        names = []
+        names = {}
         fixes = {}
         for line in lines:
             if _emptyRE.match(line):
@@ -158,7 +168,7 @@ def getformat(fmt, keep_pad_byte=False):
                 name = m.group(1)
                 formatchar = m.group(2)
                 if keep_pad_byte or formatchar != "x":
-                    names.append(name)
+                    names[name] = formatchar
                 if m.group(3):
                     # fixed point
                     before = int(m.group(3))
@@ -167,9 +177,10 @@ def getformat(fmt, keep_pad_byte=False):
                     if bits not in [8, 16, 32]:
                         raise Error("fixed point must be 8, 16 or 32 bits long")
                     formatchar = _fixedpointmappings[bits]
+                    names[name] = formatchar
                     assert m.group(5) == "F"
                     fixes[name] = after
-            formatstring = formatstring + formatchar
+            formatstring += formatchar
         _formatcache[fmt] = formatstring, names, fixes
     return formatstring, names, fixes
 

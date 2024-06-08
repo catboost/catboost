@@ -75,7 +75,7 @@ def normalizeValue(v, triple, extrapolate=False):
         return (v - default) / (upper - default)
 
 
-def normalizeLocation(location, axes, extrapolate=False):
+def normalizeLocation(location, axes, extrapolate=False, *, validate=False):
     """Normalizes location based on axis min/default/max values from axes.
 
     >>> axes = {"wght": (100, 400, 900)}
@@ -114,6 +114,10 @@ def normalizeLocation(location, axes, extrapolate=False):
     >>> normalizeLocation({"wght": 1001}, axes)
     {'wght': 0.0}
     """
+    if validate:
+        assert set(location.keys()) <= set(axes.keys()), set(location.keys()) - set(
+            axes.keys()
+        )
     out = {}
     for tag, triple in axes.items():
         v = location.get(tag, triple[1])
@@ -453,7 +457,10 @@ class VariationModel(object):
             self.deltaWeights.append(deltaWeight)
 
     def getDeltas(self, masterValues, *, round=noRound):
-        assert len(masterValues) == len(self.deltaWeights)
+        assert len(masterValues) == len(self.deltaWeights), (
+            len(masterValues),
+            len(self.deltaWeights),
+        )
         mapping = self.reverseMapping
         out = []
         for i, weights in enumerate(self.deltaWeights):

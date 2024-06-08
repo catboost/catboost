@@ -64,7 +64,7 @@ def _copytree(input_path, output_path):
     shutil.copytree(input_path, output_path)
 
 
-def main(args=None):
+def _main(args=None):
     """Convert a UFO font from cubic to quadratic curves"""
     parser = argparse.ArgumentParser(prog="cu2qu")
     parser.add_argument("--version", action="version", version=fontTools.__version__)

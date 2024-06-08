@@ -77,7 +77,7 @@ def main(args=None):
     outFile = options.output
     lazy = options.lazy
     flavor = options.flavor
-    tables = options.table if options.table is not None else []
+    tables = options.table if options.table is not None else ["*"]
 
     fonts = []
     for f in options.font:
@@ -88,9 +88,10 @@ def main(args=None):
             collection = TTCollection(f, lazy=lazy)
             fonts.extend(collection.fonts)
 
-    for font in fonts:
-        for table in tables if "*" not in tables else font.keys():
-            font[table]  # Decompiles
+    if lazy is False:
+        for font in fonts:
+            for table in tables if "*" not in tables else font.keys():
+                font[table]  # Decompiles
 
     if outFile is not None:
         if len(fonts) == 1:

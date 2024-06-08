@@ -127,7 +127,7 @@ class table__m_a_x_p(DefaultTable.DefaultTable):
         formatstring, names, fixes = sstruct.getformat(maxpFormat_0_5)
         if self.tableVersion != 0x00005000:
             formatstring, names_1_0, fixes = sstruct.getformat(maxpFormat_1_0_add)
-            names = names + names_1_0
+            names = {**names, **names_1_0}
         for name in names:
             value = getattr(self, name)
             if name == "tableVersion":

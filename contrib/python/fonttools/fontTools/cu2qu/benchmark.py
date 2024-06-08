@@ -45,7 +45,6 @@ def run_benchmark(module, function, setup_suffix="", repeat=5, number=1000):
 
 
 def main():
-    """Benchmark the cu2qu algorithm performance."""
     run_benchmark("cu2qu", "curve_to_quadratic")
     run_benchmark("cu2qu", "curves_to_quadratic")
 

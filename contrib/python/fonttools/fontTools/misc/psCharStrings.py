@@ -275,6 +275,24 @@ def encodeFloat(f):
         s = s[1:]
     elif s[:3] == "-0.":
         s = "-" + s[2:]
+    elif s.endswith("000"):
+        significantDigits = s.rstrip("0")
+        s = "%sE%d" % (significantDigits, len(s) - len(significantDigits))
+    else:
+        dotIndex = s.find(".")
+        eIndex = s.find("E")
+        if dotIndex != -1 and eIndex != -1:
+            integerPart = s[:dotIndex]
+            fractionalPart = s[dotIndex + 1 : eIndex]
+            exponent = int(s[eIndex + 1 :])
+            newExponent = exponent - len(fractionalPart)
+            if newExponent == 1:
+                s = "%s%s0" % (integerPart, fractionalPart)
+            else:
+                s = "%s%sE%d" % (integerPart, fractionalPart, newExponent)
+    if s.startswith((".0", "-.0")):
+        sign, s = s.split(".", 1)
+        s = "%s%sE-%d" % (sign, s.lstrip("0"), len(s))
     nibbles = []
     while s:
         c = s[0]
@@ -285,6 +303,8 @@ def encodeFloat(f):
                 s = s[1:]
                 c = "E-"
             elif c2 == "+":
+                s = s[1:]
+            if s.startswith("0"):
                 s = s[1:]
         nibbles.append(realNibblesDict[c])
     nibbles.append(0xF)

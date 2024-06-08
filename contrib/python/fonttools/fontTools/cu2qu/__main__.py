@@ -1,5 +1,5 @@
 import sys
-from .cli import main
+from .cli import _main as main
 
 
 if __name__ == "__main__":

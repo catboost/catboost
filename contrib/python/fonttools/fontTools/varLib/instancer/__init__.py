@@ -89,7 +89,7 @@ from fontTools.misc.fixedTools import (
     otRound,
 )
 from fontTools.varLib.models import normalizeValue, piecewiseLinearMap
-from fontTools.ttLib import TTFont
+from fontTools.ttLib import TTFont, newTable
 from fontTools.ttLib.tables.TupleVariation import TupleVariation
 from fontTools.ttLib.tables import _g_l_y_f
 from fontTools import varLib
@@ -97,6 +97,13 @@ from fontTools import varLib
 # we import the `subset` module because we use the `prune_lookups` method on the GSUB
 # table class, and that method is only defined dynamically upon importing `subset`
 from fontTools import subset  # noqa: F401
+from fontTools.cffLib import privateDictOperators2
+from fontTools.cffLib.specializer import (
+    programToCommands,
+    commandsToProgram,
+    specializeCommands,
+    generalizeCommands,
+)
 from fontTools.varLib import builder
 from fontTools.varLib.mvar import MVAR_ENTRIES
 from fontTools.varLib.merger import MutatorMerger
@@ -104,6 +111,7 @@ from fontTools.varLib.instancer import names
 from .featureVars import instantiateFeatureVariations
 from fontTools.misc.cliTools import makeOutputFileName
 from fontTools.varLib.instancer import solver
+from fontTools.ttLib.tables.otTables import VarComponentFlags
 import collections
 import dataclasses
 from contextlib import contextmanager
@@ -458,6 +466,42 @@ class OverlapMode(IntEnum):
     REMOVE_AND_IGNORE_ERRORS = 3
 
 
+def instantiateVARC(varfont, axisLimits):
+    log.info("Instantiating VARC tables")
+
+    # TODO(behdad) My confidence in this function is rather low;
+    # It needs more testing. Specially with partial-instancing,
+    # I don't think it currently works.
+
+    varc = varfont["VARC"].table
+    fvarAxes = varfont["fvar"].axes if "fvar" in varfont else []
+
+    location = axisLimits.pinnedLocation()
+    axisMap = [i for i, axis in enumerate(fvarAxes) if axis.axisTag not in location]
+    reverseAxisMap = {i: j for j, i in enumerate(axisMap)}
+
+    if varc.AxisIndicesList:
+        axisIndicesList = varc.AxisIndicesList.Item
+        for i, axisIndices in enumerate(axisIndicesList):
+            if any(fvarAxes[j].axisTag in axisLimits for j in axisIndices):
+                raise NotImplementedError(
+                    "Instancing across VarComponent axes is not supported."
+                )
+            axisIndicesList[i] = [reverseAxisMap[j] for j in axisIndices]
+
+    store = varc.MultiVarStore
+    if store:
+        for region in store.SparseVarRegionList.Region:
+            newRegionAxis = []
+            for regionRecord in region.SparseVarRegionAxis:
+                tag = fvarAxes[regionRecord.AxisIndex].axisTag
+                if tag in axisLimits:
+                    raise NotImplementedError(
+                        "Instancing across VarComponent axes is not supported."
+                    )
+                regionRecord.AxisIndex = reverseAxisMap[regionRecord.AxisIndex]
+
+
 def instantiateTupleVariationStore(
     variations, axisLimits, origCoords=None, endPts=None
 ):
@@ -566,6 +610,259 @@ def changeTupleVariationAxisLimit(var, axisTag, axisLimit):
     return out
 
 
+def instantiateCFF2(
+    varfont,
+    axisLimits,
+    *,
+    round=round,
+    specialize=True,
+    generalize=False,
+    downgrade=False,
+):
+    # The algorithm here is rather simple:
+    #
+    # Take all blend operations and store their deltas in the (otherwise empty)
+    # CFF2 VarStore. Then, instantiate the VarStore with the given axis limits,
+    # and read back the new deltas. This is done for both the CharStrings and
+    # the Private dicts.
+    #
+    # Then prune unused things and possibly drop the VarStore if it's empty.
+    # In which case, downgrade to CFF table if requested.
+
+    log.info("Instantiating CFF2 table")
+
+    fvarAxes = varfont["fvar"].axes
+
+    cff = varfont["CFF2"].cff
+    topDict = cff.topDictIndex[0]
+    varStore = topDict.VarStore.otVarStore
+    if not varStore:
+        if downgrade:
+            from fontTools.cffLib.CFF2ToCFF import convertCFF2ToCFF
+
+            convertCFF2ToCFF(varfont)
+        return
+
+    cff.desubroutinize()
+
+    def getNumRegions(vsindex):
+        return varStore.VarData[vsindex if vsindex is not None else 0].VarRegionCount
+
+    charStrings = topDict.CharStrings.values()
+
+    # Gather all unique private dicts
+    uniquePrivateDicts = set()
+    privateDicts = []
+    for fd in topDict.FDArray:
+        if fd.Private not in uniquePrivateDicts:
+            uniquePrivateDicts.add(fd.Private)
+            privateDicts.append(fd.Private)
+
+    allCommands = []
+    for cs in charStrings:
+        assert cs.private.vstore.otVarStore is varStore  # Or in many places!!
+        commands = programToCommands(cs.program, getNumRegions=getNumRegions)
+        if generalize:
+            commands = generalizeCommands(commands)
+        if specialize:
+            commands = specializeCommands(commands, generalizeFirst=not generalize)
+        allCommands.append(commands)
+
+    def storeBlendsToVarStore(arg):
+        if not isinstance(arg, list):
+            return
+
+        if any(isinstance(subarg, list) for subarg in arg[:-1]):
+            raise NotImplementedError("Nested blend lists not supported (yet)")
+
+        count = arg[-1]
+        assert (len(arg) - 1) % count == 0
+        nRegions = (len(arg) - 1) // count - 1
+        assert nRegions == getNumRegions(vsindex)
+        for i in range(count, len(arg) - 1, nRegions):
+            deltas = arg[i : i + nRegions]
+            assert len(deltas) == nRegions
+            varData = varStore.VarData[vsindex]
+            varData.Item.append(deltas)
+            varData.ItemCount += 1
+
+    def fetchBlendsFromVarStore(arg):
+        if not isinstance(arg, list):
+            return [arg]
+
+        if any(isinstance(subarg, list) for subarg in arg[:-1]):
+            raise NotImplementedError("Nested blend lists not supported (yet)")
+
+        count = arg[-1]
+        assert (len(arg) - 1) % count == 0
+        numRegions = getNumRegions(vsindex)
+        newDefaults = []
+        newDeltas = []
+        for i in range(count):
+            defaultValue = arg[i]
+
+            major = vsindex
+            minor = varDataCursor[major]
+            varDataCursor[major] += 1
+
+            varIdx = (major << 16) + minor
+
+            defaultValue += round(defaultDeltas[varIdx])
+            newDefaults.append(defaultValue)
+
+            varData = varStore.VarData[major]
+            deltas = varData.Item[minor]
+            assert len(deltas) == numRegions
+            newDeltas.extend(deltas)
+
+        if not numRegions:
+            return newDefaults  # No deltas, just return the defaults
+
+        return [newDefaults + newDeltas + [count]]
+
+    # Check VarData's are empty
+    for varData in varStore.VarData:
+        assert varData.Item == []
+        assert varData.ItemCount == 0
+
+    # Add charstring blend lists to VarStore so we can instantiate them
+    for commands in allCommands:
+        vsindex = 0
+        for command in commands:
+            if command[0] == "vsindex":
+                vsindex = command[1][0]
+                continue
+            for arg in command[1]:
+                storeBlendsToVarStore(arg)
+
+    # Add private blend lists to VarStore so we can instantiate values
+    vsindex = 0
+    for opcode, name, arg_type, default, converter in privateDictOperators2:
+        if arg_type not in ("number", "delta", "array"):
+            continue
+
+        vsindex = 0
+        for private in privateDicts:
+            if not hasattr(private, name):
+                continue
+            values = getattr(private, name)
+
+            if name == "vsindex":
+                vsindex = values[0]
+                continue
+
+            if arg_type == "number":
+                values = [values]
+
+            for value in values:
+                if not isinstance(value, list):
+                    continue
+
+                assert len(value) % (getNumRegions(vsindex) + 1) == 0
+                count = len(value) // (getNumRegions(vsindex) + 1)
+                storeBlendsToVarStore(value + [count])
+
+    # Instantiate VarStore
+    defaultDeltas = instantiateItemVariationStore(varStore, fvarAxes, axisLimits)
+
+    # Read back new charstring blends from the instantiated VarStore
+    varDataCursor = [0] * len(varStore.VarData)
+    for commands in allCommands:
+        vsindex = 0
+        for command in commands:
+            if command[0] == "vsindex":
+                vsindex = command[1][0]
+                continue
+            newArgs = []
+            for arg in command[1]:
+                newArgs.extend(fetchBlendsFromVarStore(arg))
+            command[1][:] = newArgs
+
+    # Read back new private blends from the instantiated VarStore
+    for opcode, name, arg_type, default, converter in privateDictOperators2:
+        if arg_type not in ("number", "delta", "array"):
+            continue
+
+        for private in privateDicts:
+            if not hasattr(private, name):
+                continue
+            values = getattr(private, name)
+            if arg_type == "number":
+                values = [values]
+
+            newValues = []
+            for value in values:
+                if not isinstance(value, list):
+                    newValues.append(value)
+                    continue
+
+                value.append(1)
+                value = fetchBlendsFromVarStore(value)
+                newValues.extend(v[:-1] if isinstance(v, list) else v for v in value)
+
+            if arg_type == "number":
+                newValues = newValues[0]
+
+            setattr(private, name, newValues)
+
+    # Empty out the VarStore
+    for i, varData in enumerate(varStore.VarData):
+        assert varDataCursor[i] == varData.ItemCount, (
+            varDataCursor[i],
+            varData.ItemCount,
+        )
+        varData.Item = []
+        varData.ItemCount = 0
+
+    # Remove vsindex commands that are no longer needed, collect those that are.
+    usedVsindex = set()
+    for commands in allCommands:
+        if any(isinstance(arg, list) for command in commands for arg in command[1]):
+            vsindex = 0
+            for command in commands:
+                if command[0] == "vsindex":
+                    vsindex = command[1][0]
+                    continue
+                if any(isinstance(arg, list) for arg in command[1]):
+                    usedVsindex.add(vsindex)
+        else:
+            commands[:] = [command for command in commands if command[0] != "vsindex"]
+
+    # Remove unused VarData and update vsindex values
+    vsindexMapping = {v: i for i, v in enumerate(sorted(usedVsindex))}
+    varStore.VarData = [
+        varData for i, varData in enumerate(varStore.VarData) if i in usedVsindex
+    ]
+    varStore.VarDataCount = len(varStore.VarData)
+    for commands in allCommands:
+        for command in commands:
+            if command[0] == "vsindex":
+                command[1][0] = vsindexMapping[command[1][0]]
+
+    # Remove initial vsindex commands that are implied
+    for commands in allCommands:
+        if commands and commands[0] == ("vsindex", [0]):
+            commands.pop(0)
+
+    # Ship the charstrings!
+    for cs, commands in zip(charStrings, allCommands):
+        cs.program = commandsToProgram(commands)
+
+    # Remove empty VarStore
+    if not varStore.VarData:
+        if "VarStore" in topDict.rawDict:
+            del topDict.rawDict["VarStore"]
+        del topDict.VarStore
+        del topDict.CharStrings.varStore
+        for private in privateDicts:
+            del private.vstore
+
+        if downgrade:
+            from fontTools.cffLib.CFF2ToCFF import convertCFF2ToCFF
+
+            convertCFF2ToCFF(varfont)
+
+
 def _instantiateGvarGlyph(
     glyphname, glyf, gvar, hMetrics, vMetrics, axisLimits, optimize=True
 ):
@@ -582,23 +879,6 @@ def _instantiateGvarGlyph(
 
         if defaultDeltas:
             coordinates += _g_l_y_f.GlyphCoordinates(defaultDeltas)
-
-    glyph = glyf[glyphname]
-    if glyph.isVarComposite():
-        for component in glyph.components:
-            newLocation = {}
-            for tag, loc in component.location.items():
-                if tag not in axisLimits:
-                    newLocation[tag] = loc
-                    continue
-                if component.flags & _g_l_y_f.VarComponentFlags.AXES_HAVE_VARIATION:
-                    raise NotImplementedError(
-                        "Instancing accross VarComposite axes with variation is not supported."
-                    )
-                limits = axisLimits[tag]
-                loc = limits.renormalizeValue(loc, extrapolate=False)
-                newLocation[tag] = loc
-            component.location = newLocation
 
     # _setCoordinates also sets the hmtx/vmtx advance widths and sidebearings from
     # the four phantom points and glyph bounding boxes.
@@ -650,7 +930,7 @@ def instantiateGvar(varfont, axisLimits, optimize=True):
         key=lambda name: (
             (
                 glyf[name].getCompositeMaxpValues(glyf).maxComponentDepth
-                if glyf[name].isComposite() or glyf[name].isVarComposite()
+                if glyf[name].isComposite()
                 else 0
             ),
             name,
@@ -765,22 +1045,57 @@ def _remapVarIdxMap(table, attrName, varIndexMapping, glyphOrder):
 
 
 # TODO(anthrotype) Add support for HVAR/VVAR in CFF2
-def _instantiateVHVAR(varfont, axisLimits, tableFields):
+def _instantiateVHVAR(varfont, axisLimits, tableFields, *, round=round):
     location = axisLimits.pinnedLocation()
     tableTag = tableFields.tableTag
     fvarAxes = varfont["fvar"].axes
-    # Deltas from gvar table have already been applied to the hmtx/vmtx. For full
-    # instances (i.e. all axes pinned), we can simply drop HVAR/VVAR and return
-    if set(location).issuperset(axis.axisTag for axis in fvarAxes):
-        log.info("Dropping %s table", tableTag)
-        del varfont[tableTag]
-        return
 
     log.info("Instantiating %s table", tableTag)
     vhvar = varfont[tableTag].table
     varStore = vhvar.VarStore
-    # since deltas were already applied, the return value here is ignored
-    instantiateItemVariationStore(varStore, fvarAxes, axisLimits)
+
+    if "glyf" in varfont:
+        # Deltas from gvar table have already been applied to the hmtx/vmtx. For full
+        # instances (i.e. all axes pinned), we can simply drop HVAR/VVAR and return
+        if set(location).issuperset(axis.axisTag for axis in fvarAxes):
+            log.info("Dropping %s table", tableTag)
+            del varfont[tableTag]
+            return
+
+    defaultDeltas = instantiateItemVariationStore(varStore, fvarAxes, axisLimits)
+
+    if "glyf" not in varfont:
+        # CFF2 fonts need hmtx/vmtx updated here. For glyf fonts, the instantiateGvar
+        # function already updated the hmtx/vmtx from phantom points. Maybe remove
+        # that and do it here for both CFF2 and glyf fonts?
+        #
+        # Specially, if a font has glyf but not gvar, the hmtx/vmtx will not have been
+        # updated by instantiateGvar. Though one can call that a faulty font.
+        metricsTag = "vmtx" if tableTag == "VVAR" else "hmtx"
+        if metricsTag in varfont:
+            advMapping = getattr(vhvar, tableFields.advMapping)
+            metricsTable = varfont[metricsTag]
+            metrics = metricsTable.metrics
+            for glyphName, (advanceWidth, sb) in metrics.items():
+                if advMapping:
+                    varIdx = advMapping.mapping[glyphName]
+                else:
+                    varIdx = varfont.getGlyphID(glyphName)
+                metrics[glyphName] = (advanceWidth + round(defaultDeltas[varIdx]), sb)
+
+            if (
+                tableTag == "VVAR"
+                and getattr(vhvar, tableFields.vOrigMapping) is not None
+            ):
+                log.warning(
+                    "VORG table not yet updated to reflect changes in VVAR table"
+                )
+
+            # For full instances (i.e. all axes pinned), we can simply drop HVAR/VVAR and return
+            if set(location).issuperset(axis.axisTag for axis in fvarAxes):
+                log.info("Dropping %s table", tableTag)
+                del varfont[tableTag]
+                return
 
     if varStore.VarRegionList.Region:
         # Only re-optimize VarStore if the HVAR/VVAR already uses indirect AdvWidthMap
@@ -923,6 +1238,8 @@ def instantiateItemVariationStore(itemVarStore, fvarAxes, axisLimits):
     newItemVarStore = tupleVarStore.asItemVarStore()
 
     itemVarStore.VarRegionList = newItemVarStore.VarRegionList
+    if not hasattr(itemVarStore, "VarDataCount"):  # Happens fromXML
+        itemVarStore.VarDataCount = len(newItemVarStore.VarData)
     assert itemVarStore.VarDataCount == newItemVarStore.VarDataCount
     itemVarStore.VarData = newItemVarStore.VarData
 
@@ -1019,7 +1336,11 @@ def _isValidAvarSegmentMap(axisTag, segmentMap):
 def instantiateAvar(varfont, axisLimits):
     # 'axisLimits' dict must contain user-space (non-normalized) coordinates.
 
-    segments = varfont["avar"].segments
+    avar = varfont["avar"]
+    if getattr(avar, "majorVersion", 1) >= 2 and avar.table.VarStore:
+        raise NotImplementedError("avar table with VarStore is not supported")
+
+    segments = avar.segments
 
     # drop table if we instantiate all the axes
     pinnedAxes = set(axisLimits.pinnedLocation())
@@ -1080,7 +1401,7 @@ def instantiateAvar(varfont, axisLimits):
             newSegments[axisTag] = newMapping
         else:
             newSegments[axisTag] = mapping
-    varfont["avar"].segments = newSegments
+    avar.segments = newSegments
 
 
 def isInstanceWithinAxisRanges(location, axisRanges):
@@ -1218,9 +1539,6 @@ def sanityCheckVariableTables(varfont):
     if "gvar" in varfont:
         if "glyf" not in varfont:
             raise ValueError("Can't have gvar without glyf")
-    # TODO(anthrotype) Remove once we do support partial instancing CFF2
-    if "CFF2" in varfont:
-        raise NotImplementedError("Instancing CFF2 variable fonts is not supported yet")
 
 
 def instantiateVariableFont(
@@ -1230,6 +1548,8 @@ def instantiateVariableFont(
     optimize=True,
     overlap=OverlapMode.KEEP_AND_SET_FLAGS,
     updateFontNames=False,
+    *,
+    downgradeCFF2=False,
 ):
     """Instantiate variable font, either fully or partially.
 
@@ -1269,6 +1589,11 @@ def instantiateVariableFont(
             in the head and OS/2 table will be updated so they conform to the R/I/B/BI
             model. If the STAT table is missing or an Axis Value table is missing for
             a given axis coordinate, a ValueError will be raised.
+        downgradeCFF2 (bool): if True, downgrade the CFF2 table to CFF table when possible
+            ie. full instancing of all axes. This is useful for compatibility with older
+            software that does not support CFF2. Defaults to False. Note that this
+            operation also removes overlaps within glyph shapes, as CFF does not support
+            overlaps but CFF2 does.
     """
     # 'overlap' used to be bool and is now enum; for backward compat keep accepting bool
     overlap = OverlapMode(int(overlap))
@@ -1292,6 +1617,12 @@ def instantiateVariableFont(
     if updateFontNames:
         log.info("Updating name table")
         names.updateNameTable(varfont, axisLimits)
+
+    if "VARC" in varfont:
+        instantiateVARC(varfont, normalizedLimits)
+
+    if "CFF2" in varfont:
+        instantiateCFF2(varfont, normalizedLimits, downgrade=downgradeCFF2)
 
     if "gvar" in varfont:
         instantiateGvar(varfont, normalizedLimits, optimize=optimize)
@@ -1485,6 +1816,11 @@ def parseArgs(args):
         "a STAT table with Axis Value Tables",
     )
     parser.add_argument(
+        "--downgrade-cff2",
+        action="store_true",
+        help="If all axes are pinned, downgrade CFF2 to CFF table format",
+    )
+    parser.add_argument(
         "--no-recalc-timestamp",
         dest="recalc_timestamp",
         action="store_false",
@@ -1545,7 +1881,7 @@ def main(args=None):
     )
 
     isFullInstance = {
-        axisTag for axisTag, limit in axisLimits.items() if not isinstance(limit, tuple)
+        axisTag for axisTag, limit in axisLimits.items() if limit[0] == limit[2]
     }.issuperset(axis.axisTag for axis in varfont["fvar"].axes)
 
     instantiateVariableFont(
@@ -1555,6 +1891,7 @@ def main(args=None):
         optimize=options.optimize,
         overlap=options.overlap,
         updateFontNames=options.update_name_table,
+        downgradeCFF2=options.downgrade_cff2,
     )
 
     suffix = "-instance" if isFullInstance else "-partial"

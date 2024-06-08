@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.51.0
+Version: 4.52.1
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -374,6 +374,33 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.52.1 (released 2024-05-24)
+----------------------------
+
+- Fixed a small syntax error in the reStructuredText-formatted NEWS.rst file
+  which caused the upload to PyPI to fail for 4.52.0. No other code changes.
+
+4.52.0 (released 2024-05-24)
+----------------------------
+
+- Added support for the new ``VARC`` (Variable Composite) table that is being
+  proposed to OpenType spec (#3395). For more info:
+  https://github.com/harfbuzz/boring-expansion-spec/blob/main/VARC.md
+- [ttLib.__main__] Fixed decompiling all tables (90fed08).
+- [feaLib] Don't reference the same lookup index multiple times within the same
+  feature record, it is only applied once anyway (#3520).
+- [cffLib] Moved methods to desubroutinize, remove hints and unused subroutines
+  from subset module to cffLib (#3517).
+- [varLib.instancer] Added support for partial-instancing CFF2 tables! Also, added
+  method to down-convert from CFF2 to CFF 1.0, and CLI entry points to convert
+  CFF<->CFF2 (#3506).
+- [subset] Prune unused user name IDs even with --name-IDs='*' (#3410).
+- [ttx] use GNU-style getopt to intermix options and positional arguments (#3509).
+- [feaLib.variableScalar] Fixed ``value_at_location()`` method (#3491)
+- [psCharStrings] Shorten output of ``encodeFloat`` (#3492).
+- [bezierTools] Fix infinite-recursion in ``calcCubicArcLength`` (#3502).
+- [avar2] Implement ``avar2`` support in ``TTFont.getGlyphSet()`` (#3473).
 
 4.51.0 (released 2024-04-05)
 ----------------------------

@@ -10,8 +10,10 @@ import fontTools.ttLib.tables.otTables as otTables
 from fontTools.cffLib import VarStoreData
 import fontTools.cffLib.specializer as cffSpecializer
 from fontTools.varLib import builder  # for VarData.calculateNumShorts
+from fontTools.varLib.multiVarStore import OnlineMultiVarStoreBuilder
+from fontTools.misc.vector import Vector
 from fontTools.misc.fixedTools import otRound
-from fontTools.ttLib.tables._g_l_y_f import VarComponentFlags
+from fontTools.misc.iterTools import batched
 
 
 __all__ = ["scale_upem", "ScalerVisitor"]
@@ -123,13 +125,6 @@ def visit(visitor, obj, attr, glyphs):
                 component.y = visitor.scale(component.y)
             continue
 
-        if g.isVarComposite():
-            for component in g.components:
-                for attr in ("translateX", "translateY", "tCenterX", "tCenterY"):
-                    v = getattr(component.transform, attr)
-                    setattr(component.transform, attr, visitor.scale(v))
-            continue
-
         if hasattr(g, "coordinates"):
             coordinates = g.coordinates
             for i, (x, y) in enumerate(coordinates):
@@ -138,57 +133,105 @@ def visit(visitor, obj, attr, glyphs):
 
 @ScalerVisitor.register_attr(ttLib.getTableClass("gvar"), "variations")
 def visit(visitor, obj, attr, variations):
-    # VarComposites are a pain to handle :-(
     glyfTable = visitor.font["glyf"]
 
     for glyphName, varlist in variations.items():
         glyph = glyfTable[glyphName]
-        isVarComposite = glyph.isVarComposite()
         for var in varlist:
             coordinates = var.coordinates
-
-            if not isVarComposite:
-                for i, xy in enumerate(coordinates):
-                    if xy is None:
-                        continue
-                    coordinates[i] = visitor.scale(xy[0]), visitor.scale(xy[1])
-                continue
-
-            # VarComposite glyph
-
-            i = 0
-            for component in glyph.components:
-                if component.flags & VarComponentFlags.AXES_HAVE_VARIATION:
-                    i += len(component.location)
-                if component.flags & (
-                    VarComponentFlags.HAVE_TRANSLATE_X
-                    | VarComponentFlags.HAVE_TRANSLATE_Y
-                ):
-                    xy = coordinates[i]
-                    coordinates[i] = visitor.scale(xy[0]), visitor.scale(xy[1])
-                    i += 1
-                if component.flags & VarComponentFlags.HAVE_ROTATION:
-                    i += 1
-                if component.flags & (
-                    VarComponentFlags.HAVE_SCALE_X | VarComponentFlags.HAVE_SCALE_Y
-                ):
-                    i += 1
-                if component.flags & (
-                    VarComponentFlags.HAVE_SKEW_X | VarComponentFlags.HAVE_SKEW_Y
-                ):
-                    i += 1
-                if component.flags & (
-                    VarComponentFlags.HAVE_TCENTER_X | VarComponentFlags.HAVE_TCENTER_Y
-                ):
-                    xy = coordinates[i]
-                    coordinates[i] = visitor.scale(xy[0]), visitor.scale(xy[1])
-                    i += 1
-
-            # Phantom points
-            assert i + 4 == len(coordinates)
-            for i in range(i, len(coordinates)):
-                xy = coordinates[i]
+            for i, xy in enumerate(coordinates):
+                if xy is None:
+                    continue
                 coordinates[i] = visitor.scale(xy[0]), visitor.scale(xy[1])
+
+
+@ScalerVisitor.register_attr(ttLib.getTableClass("VARC"), "table")
+def visit(visitor, obj, attr, varc):
+    # VarComposite variations are a pain
+
+    fvar = visitor.font["fvar"]
+    fvarAxes = [a.axisTag for a in fvar.axes]
+
+    store = varc.MultiVarStore
+    storeBuilder = OnlineMultiVarStoreBuilder(fvarAxes)
+
+    for g in varc.VarCompositeGlyphs.VarCompositeGlyph:
+        for component in g.components:
+            t = component.transform
+            t.translateX = visitor.scale(t.translateX)
+            t.translateY = visitor.scale(t.translateY)
+            t.tCenterX = visitor.scale(t.tCenterX)
+            t.tCenterY = visitor.scale(t.tCenterY)
+
+            if component.axisValuesVarIndex != otTables.NO_VARIATION_INDEX:
+                varIdx = component.axisValuesVarIndex
+                # TODO Move this code duplicated below to MultiVarStore.__getitem__,
+                # or a getDeltasAndSupports().
+                if varIdx != otTables.NO_VARIATION_INDEX:
+                    major = varIdx >> 16
+                    minor = varIdx & 0xFFFF
+                    varData = store.MultiVarData[major]
+                    vec = varData.Item[minor]
+                    storeBuilder.setSupports(store.get_supports(major, fvar.axes))
+                    if vec:
+                        m = len(vec) // varData.VarRegionCount
+                        vec = list(batched(vec, m))
+                        vec = [Vector(v) for v in vec]
+                        component.axisValuesVarIndex = storeBuilder.storeDeltas(vec)
+                    else:
+                        component.axisValuesVarIndex = otTables.NO_VARIATION_INDEX
+
+            if component.transformVarIndex != otTables.NO_VARIATION_INDEX:
+                varIdx = component.transformVarIndex
+                if varIdx != otTables.NO_VARIATION_INDEX:
+                    major = varIdx >> 16
+                    minor = varIdx & 0xFFFF
+                    vec = varData.Item[varIdx & 0xFFFF]
+                    major = varIdx >> 16
+                    minor = varIdx & 0xFFFF
+                    varData = store.MultiVarData[major]
+                    vec = varData.Item[minor]
+                    storeBuilder.setSupports(store.get_supports(major, fvar.axes))
+                    if vec:
+                        m = len(vec) // varData.VarRegionCount
+                        flags = component.flags
+                        vec = list(batched(vec, m))
+                        newVec = []
+                        for v in vec:
+                            v = list(v)
+                            i = 0
+                            ## Scale translate & tCenter
+                            if flags & otTables.VarComponentFlags.HAVE_TRANSLATE_X:
+                                v[i] = visitor.scale(v[i])
+                                i += 1
+                            if flags & otTables.VarComponentFlags.HAVE_TRANSLATE_Y:
+                                v[i] = visitor.scale(v[i])
+                                i += 1
+                            if flags & otTables.VarComponentFlags.HAVE_ROTATION:
+                                i += 1
+                            if flags & otTables.VarComponentFlags.HAVE_SCALE_X:
+                                i += 1
+                            if flags & otTables.VarComponentFlags.HAVE_SCALE_Y:
+                                i += 1
+                            if flags & otTables.VarComponentFlags.HAVE_SKEW_X:
+                                i += 1
+                            if flags & otTables.VarComponentFlags.HAVE_SKEW_Y:
+                                i += 1
+                            if flags & otTables.VarComponentFlags.HAVE_TCENTER_X:
+                                v[i] = visitor.scale(v[i])
+                                i += 1
+                            if flags & otTables.VarComponentFlags.HAVE_TCENTER_Y:
+                                v[i] = visitor.scale(v[i])
+                                i += 1
+
+                            newVec.append(Vector(v))
+                        vec = newVec
+
+                        component.transformVarIndex = storeBuilder.storeDeltas(vec)
+                    else:
+                        component.transformVarIndex = otTables.NO_VARIATION_INDEX
+
+    varc.MultiVarStore = storeBuilder.finish()
 
 
 @ScalerVisitor.register_attr(ttLib.getTableClass("kern"), "kernTables")
