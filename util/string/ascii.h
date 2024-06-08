@@ -167,7 +167,7 @@ inline ::NPrivate::TDereferenced<T> AsciiToUpper(T c) noexcept {
  * @return                              true iff @c s1 ans @c s2 are case-insensitively equal.
  */
 static inline bool AsciiEqualsIgnoreCase(const char* s1, const char* s2) noexcept {
-    return stricmp(s1, s2) == 0;
+    return ::stricmp(s1, s2) == 0;
 }
 
 /**
@@ -186,7 +186,7 @@ static inline bool AsciiEqualsIgnoreCase(const TStringBuf s1, const TStringBuf s
     if (s1.empty()) {
         return true;
     }
-    return strnicmp(s1.data(), s2.data(), s1.size()) == 0;
+    return ::strnicmp(s1.data(), s2.data(), s1.size()) == 0;
 }
 
 /**
@@ -201,7 +201,7 @@ static inline bool AsciiEqualsIgnoreCase(const TStringBuf s1, const TStringBuf s
  *                                      (same value as @c stricmp does).
  */
 static inline int AsciiCompareIgnoreCase(const char* s1, const char* s2) noexcept {
-    return stricmp(s1, s2);
+    return ::stricmp(s1, s2);
 }
 
 /**
@@ -239,7 +239,7 @@ static inline bool AsciiHasPrefix(const TStringBuf s1, const TStringBuf s2) noex
  * @return                              true iff @c s2 are case-insensitively prefix of @c s1.
  */
 static inline bool AsciiHasPrefixIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
-    return (s1.size() >= s2.size()) && strnicmp(s1.data(), s2.data(), s2.size()) == 0;
+    return (s1.size() >= s2.size()) && ::strnicmp(s1.data(), s2.data(), s2.size()) == 0;
 }
 
 /**
@@ -249,5 +249,5 @@ static inline bool AsciiHasPrefixIgnoreCase(const TStringBuf s1, const TStringBu
  * @return                              true iff @c s2 are case-insensitively suffix of @c s1.
  */
 static inline bool AsciiHasSuffixIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
-    return (s1.size() >= s2.size()) && strnicmp((s1.data() + (s1.size() - s2.size())), s2.data(), s2.size()) == 0;
+    return (s1.size() >= s2.size()) && ::strnicmp((s1.data() + (s1.size() - s2.size())), s2.data(), s2.size()) == 0;
 }
