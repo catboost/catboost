@@ -1,5 +1,7 @@
-#include <benchmark/benchmark.h>
 #include <library/cpp/case_insensitive_string/case_insensitive_string.h>
+#include <library/cpp/case_insensitive_string/ut_gtest/util/locale_guard.h>
+
+#include <benchmark/benchmark.h>
 #include <library/cpp/digest/murmur/murmur.h>
 
 #include <util/generic/hash_table.h>
@@ -102,30 +104,38 @@ namespace {
     Y_FORCE_INLINE size_t DefaultHash(TCaseInsensitiveStringBuf str) {
         return ComputeHash(str);
     }
+
+    Y_FORCE_INLINE size_t DefaultHashAscii(TCaseInsensitiveAsciiStringBuf str) {
+        return ComputeHash(str);
+    }
 }
 
-template <auto Impl>
+template <auto Impl, typename TTraits = TCaseInsensitiveCharTraits>
 void CaseInsensitiveHash(benchmark::State& state) {
+    TLocaleGuard loc("C");
+    Y_ABORT_IF(loc.Error());
     SetRandomSeed(123 + state.range());
-    TCaseInsensitiveString str;
+    TBasicString<char, TTraits> str;
     for (int i = 0; i < state.range(); ++i) {
         str.push_back(RandomNumber<unsigned char>());
     }
-    Y_ENSURE(Impl(str) == NaiveHash(str));
+    Y_ENSURE(Impl(str) == NaiveHash(str), "Hashes differ: got " << Impl(str) << ", expected " <<  NaiveHash(str));
     for (auto _ : state) {
         size_t hash = Impl(str);
         benchmark::DoNotOptimize(hash);
     }
 }
 
-template <auto Impl>
+template <auto Impl, typename TTraits = TCaseInsensitiveCharTraits>
 void CaseInsensitiveHashRandomSizes(benchmark::State& state) {
+    TLocaleGuard loc("C");
+    Y_ABORT_IF(loc.Error());
     SetRandomSeed(123);
     size_t minStrLen = static_cast<size_t>(state.range(0));
     size_t maxStrLen = static_cast<size_t>(state.range(1));
     static constexpr size_t nStrings = 64;
     TVector<TString> stringStorage(Reserve(nStrings));
-    std::array<TCaseInsensitiveStringBuf, nStrings> strings;
+    std::array<TBasicStringBuf<char, TTraits>, nStrings> strings;
     for (size_t i = 0; i < nStrings; ++i) {
         auto& str = stringStorage.emplace_back();
         size_t strLen = minStrLen + RandomNumber(maxStrLen - minStrLen + 1);
@@ -153,6 +163,8 @@ BENCHMARK(CaseInsensitiveHash<OptimizedHashDuplicateTailLoopInFunc>)->BENCH_ARGS
 BENCHMARK(CaseInsensitiveHash<OptimizedHashTailLoopInFunc>)->BENCH_ARGS;
 #endif
 
+BENCHMARK(CaseInsensitiveHash<DefaultHashAscii, TCaseInsensitiveAsciiCharTraits>)->BENCH_ARGS;
+
 #undef BENCH_ARGS
 
 #define BENCH_ARGS \
@@ -163,5 +175,7 @@ BENCHMARK(CaseInsensitiveHash<OptimizedHashTailLoopInFunc>)->BENCH_ARGS;
 
 BENCHMARK(CaseInsensitiveHashRandomSizes<NaiveHash>)->BENCH_ARGS;
 BENCHMARK(CaseInsensitiveHashRandomSizes<DefaultHash>)->BENCH_ARGS;
+
+BENCHMARK(CaseInsensitiveHashRandomSizes<DefaultHashAscii, TCaseInsensitiveAsciiCharTraits>)->BENCH_ARGS;
 
 #undef BENCH_ARGS
