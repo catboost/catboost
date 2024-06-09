@@ -3949,10 +3949,9 @@ static void
 unexpected_end (boundary start, char const *msgid, char const *token_end)
 {
   location loc;
-  size_t i;
   loc.start = start;
   loc.end = scanner_cursor;
-  i = strlen (token_end);
+  size_t i = strlen (token_end);
 
 /* Adjust scanner cursor so that any later message does not count
      the characters about to be inserted.  */

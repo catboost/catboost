@@ -121,10 +121,9 @@ symbol_list_prepend (symbol_list *list, symbol_list *node)
 symbol_list *
 symbol_list_append (symbol_list *list, symbol_list *node)
 {
-  symbol_list* next;
   if (!list)
     return node;
-  next = list;
+  symbol_list *next = list;
   while (next->next)
     next = next->next;
   next->next = node;

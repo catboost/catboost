@@ -1000,12 +1000,11 @@ static void
 init_prec_nodes (void)
 {
   int i;
-  symgraph* s;
   prec_nodes = xcalloc (nsyms, sizeof *prec_nodes);
   for (i = 0; i < nsyms; ++i)
     {
       prec_nodes[i] = xmalloc (sizeof *prec_nodes[i]);
-      s = prec_nodes[i];
+      symgraph *s = prec_nodes[i];
       s->id = i;
       s->succ = 0;
       s->pred = 0;

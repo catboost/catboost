@@ -70,9 +70,9 @@ static uniqstr
 muscle_name (char const *var, char const *field)
 {
   if (field)
-	return uniqstr_vsprintf("percent_define_%s(%s)", field, var);
+    return UNIQSTR_CONCAT ("percent_define_", field, "(", var, ")");
   else
-	return uniqstr_vsprintf("percent_define(%s)", var);
+    return UNIQSTR_CONCAT ("percent_define(", var, ")");
 }
 
 /* An obstack used to create some entries.  */
@@ -459,8 +459,6 @@ muscle_percent_variable_update (char const *variable, location variable_loc,
       { NULL, NULL, }
     };
   conversion_type const *c;
-  char* res;
-  char* eq2;
   for (c = conversion; c->obsolete; ++c)
     {
       char const *eq = strchr (c->obsolete, '=');
@@ -474,9 +472,9 @@ muscle_percent_variable_update (char const *variable, location variable_loc,
           deprecated_directive (&variable_loc, old, upd);
           free (old);
           free (upd);
-          res = xstrdup (c->updated);
+          char *res = xstrdup (c->updated);
           {
-            eq2 = strchr (res, '=');
+            char *eq2 = strchr (res, '=');
             if (eq2)
               {
                 *eq2 = '\0';
@@ -502,7 +500,6 @@ muscle_percent_define_insert (char const *var, location variable_loc,
   uniqstr syncline_name = muscle_name (variable, "syncline");
   uniqstr how_name = muscle_name (variable, "how");
   uniqstr kind_name = muscle_name (variable, "kind");
-  location loc;
 
   /* Command-line options are processed before the grammar file.  */
   if (how == MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE
@@ -516,7 +513,7 @@ muscle_percent_define_insert (char const *var, location variable_loc,
                        _("%%define variable %s redefined"),
                        quote (variable));
       i += SUB_INDENT;
-      loc = muscle_percent_define_get_loc (variable);
+      location loc = muscle_percent_define_get_loc (variable);
       complain_indent (&loc, complaint, &i, _("previous definition"));
     }
 
@@ -648,7 +645,6 @@ muscle_percent_define_flag_if (char const *variable)
 {
   uniqstr invalid_boolean_name = muscle_name (variable, "invalid_boolean");
   bool result = false;
-  location loc;
 
   if (muscle_percent_define_ifdef (variable))
     {
@@ -661,7 +657,7 @@ muscle_percent_define_flag_if (char const *variable)
       else if (!muscle_find_const (invalid_boolean_name))
         {
           muscle_insert (invalid_boolean_name, "");
-          loc = muscle_percent_define_get_loc (variable);
+          location loc = muscle_percent_define_get_loc (variable);
           complain (&loc, complaint,
                     _("invalid value for %%define Boolean variable %s"),
                     quote (variable));
@@ -741,7 +737,7 @@ void
 muscle_percent_code_grow (char const *qualifier, location qualifier_loc,
                           char const *code, location code_loc)
 {
-  char const *name = uniqstr_vsprintf("percent_code(%s)", qualifier);
+  char const *name = UNIQSTR_CONCAT ("percent_code(", qualifier, ")");
   muscle_code_grow (name, code, code_loc);
   muscle_user_name_list_grow ("percent_code_user_qualifiers", qualifier,
                                qualifier_loc);

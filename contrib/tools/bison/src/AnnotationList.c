@@ -228,15 +228,14 @@ AnnotationList__computePredecessorAnnotations (AnnotationList *self, state *s,
                                                  *annotations_obstackp)
 {
   state **predecessor;
-  bitset *lookaheads;
   for (predecessor = predecessors[s->number]; *predecessor; ++predecessor)
     {
       AnnotationList *annotation_node =
         AnnotationList__alloc_on_obstack (
           self->inadequacyNode->contributionCount, annotations_obstackp);
-      bool potential_contribution = false;
       annotation_node->inadequacyNode = self->inadequacyNode;
-      lookaheads = NULL;
+      bool potential_contribution = false;
+      bitset *lookaheads = NULL;
       {
         ContributionIndex ci;
         for (ci = 0; ci < self->inadequacyNode->contributionCount; ++ci)

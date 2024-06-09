@@ -30,7 +30,7 @@
 #include <ctype.h>
 
 /* Get mbstate_t, mbrtowc(), mbsinit(), wcwidth().  */
-#include "wchar--.h"
+#include <wchar.h>
 
 /* Get iswcntrl().  */
 #include <wctype.h>
