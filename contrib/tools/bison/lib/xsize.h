@@ -27,9 +27,6 @@
 # include <stdint.h>
 #endif
 
-#ifndef _GL_INLINE_HEADER_BEGIN
- #error "Please include config.h first."
-#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef XSIZE_INLINE
 # define XSIZE_INLINE _GL_INLINE

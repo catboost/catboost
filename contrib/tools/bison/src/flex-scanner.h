@@ -21,8 +21,6 @@
 # error "FLEX_PREFIX not defined"
 #endif
 
-#include <obstack.h>
-
 /* Flex full version as a number.  */
 #define FLEX_VERSION                    \
   ((YY_FLEX_MAJOR_VERSION) * 1000000    \

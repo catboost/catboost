@@ -14,17 +14,16 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+/* Many stdio implementations have the same logic and therefore can share
+   the same implementation of stdio extension API, except that some fields
+   have different naming conventions, or their access requires some casts.  */
+
 /* Glibc 2.28 made _IO_IN_BACKUP private.  For now, work around this
    problem by defining it ourselves.  FIXME: Do not rely on glibc
    internals.  */
 #if !defined _IO_IN_BACKUP && defined _IO_EOF_SEEN
 # define _IO_IN_BACKUP 0x100
 #endif
-
-/* Many stdio implementations have the same logic and therefore can share
-   the same implementation of stdio extension API, except that some fields
-   have different naming conventions, or their access requires some casts.  */
-
 
 /* BSD stdio derived implementations.  */
 
@@ -64,7 +63,7 @@
 #  define fp_ fp
 # endif
 
-# if (defined __NetBSD__ && __NetBSD_Version__ >= 105270000) || defined __OpenBSD__ || defined __ANDROID__ /* NetBSD >= 1.5ZA, OpenBSD, Android */
+# if (defined __NetBSD__ && __NetBSD_Version__ >= 105270000) || defined __OpenBSD__ /* NetBSD >= 1.5ZA, OpenBSD */
   /* See <http://cvsweb.netbsd.org/bsdweb.cgi/src/lib/libc/stdio/fileext.h?rev=HEAD&content-type=text/x-cvsweb-markup>
      and <http://www.openbsd.org/cgi-bin/cvsweb/src/lib/libc/stdio/fileext.h?rev=HEAD&content-type=text/x-cvsweb-markup> */
   struct __sfileext

@@ -21,7 +21,6 @@
 # define MUSCLE_TAB_H_
 
 # include <quotearg.h>
-# include <obstack.h>
 
 # include "location.h"
 

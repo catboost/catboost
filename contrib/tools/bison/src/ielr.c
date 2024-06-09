@@ -1032,9 +1032,9 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
      lookahead sets.  */
   if (!annotation_lists)
     {
-      state_list *node;
       timevar_push (TV_IELR_PHASE4);
       initialize_LA ();
+      state_list *node;
       for (node = first_state; node; node = node->next)
         if (!node->state->consistent)
           {
