@@ -1,6 +1,8 @@
 import os
 import sys
 
+import tempfile
+
 import pytest
 
 sys.path += [
@@ -31,6 +33,27 @@ class CanonicalProcessor(object):
         item.obj = get_wrapper(item.obj)
         yield
 
+class WorkdirProcessor(object):
+    @pytest.hookimpl(hookwrapper=True)
+    def pytest_runtest_call(self, item):  # noqa
+        def get_wrapper(obj):
+            def wrapper(*args, **kwargs):
+                test_output_path = yatest.common.test_output_path()
+                with tempfile.TemporaryDirectory(dir=test_output_path, prefix='work_dir') as work_dir:
+                    prev_cwd = None
+                    try:
+                        prev_cwd = os.getcwd()
+                    except Exception:
+                        pass
+                    os.chdir(work_dir)
+                    obj(*args, **kwargs)
+                    if prev_cwd:
+                        os.chdir(prev_cwd)
+            return wrapper
+
+        item.obj = get_wrapper(item.obj)
+        yield
+
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_configure(config):
@@ -44,6 +67,9 @@ def pytest_configure(config):
     config.sanitizer_extra_checks = False
     yatest.common.runtime._set_ya_config(config=config)
 
+    config.pluginmanager.register(
+        WorkdirProcessor()
+    )
     config.pluginmanager.register(
         CanonicalProcessor()
     )
