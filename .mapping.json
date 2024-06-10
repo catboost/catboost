@@ -39,6 +39,7 @@
   "build/scripts/generate_vcs_info.py":"",
   "build/scripts/re_replace.py":"",
   "build/scripts/split_unittest.py":"",
+  "build/swig.exe.manifest":"catboost/github_toplevel/build/swig.exe.manifest",
   "build/toolchains/clang.toolchain":"catboost/github_toplevel/build/toolchains/clang.toolchain",
   "build/toolchains/cross-build.host.darwin.target.arm64-darwin-default.clang.toolchain":"catboost/github_toplevel/build/toolchains/cross-build.host.darwin.target.arm64-darwin-default.clang.toolchain",
   "build/toolchains/cross-build.host.darwin.target.x86_64-darwin-default.clang.toolchain":"catboost/github_toplevel/build/toolchains/cross-build.host.darwin.target.x86_64-darwin-default.clang.toolchain",

@@ -568,6 +568,19 @@ def build(
 
     cmd_runner.run(cmake_cmd, env=build_environ)
 
+    # Manifest is necessary to enable long paths on Windows
+    # https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+    if platform.system().lower() == 'windows':
+        # use cmake -E copy as a cross-platform copy command that can be run through cmd_runner
+        # for uniformity
+        copy_swig_manifest_cmd = [
+            'cmake',
+            '-E', 'copy',
+            os.path.join(source_root_dir, 'build', 'swig.exe.manifest'),
+            os.path.join(opts.build_root_dir, 'bin')
+        ]
+        cmd_runner.run(copy_swig_manifest_cmd, env=build_environ)
+
     if opts.rebuild:
         ninja_clean_cmd = [
             'ninja',
