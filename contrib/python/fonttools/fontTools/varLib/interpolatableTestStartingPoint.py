@@ -49,7 +49,9 @@ def test_starting_point(glyph0, glyph1, ix, tolerance, matching):
                 meanY = vector[2]
                 stddevX = vector[3] * 0.5
                 stddevY = vector[4] * 0.5
-                correlation = vector[5] / abs(vector[0])
+                correlation = vector[5]
+                if correlation:
+                    correlation /= abs(vector[0])
 
                 # https://cookierobotics.com/007/
                 a = stddevX * stddevX  # VarianceX

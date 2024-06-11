@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.52.1
+Version: 4.52.4
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -374,6 +374,27 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.52.4 (released 2024-05-27)
+----------------------------
+
+- [varLib.cff] Restore and deprecate convertCFFtoCFF2 that was removed in 4.52.0
+  release as it is used by downstream projects (#3535).
+
+4.52.3 (released 2024-05-27)
+----------------------------
+
+- Fixed a small syntax error in the reStructuredText-formatted NEWS.rst file
+  which caused the upload to PyPI to fail for 4.52.2. No other code changes.
+
+4.52.2 (released 2024-05-27)
+----------------------------
+
+- [varLib.interpolatable] Ensure that scipy/numpy output is JSON-serializable
+  (#3522, #3526).
+- [housekeeping] Regenerate table lists, to fix pyinstaller packaging of the new
+  ``VARC`` table (#3531, #3529).
+- [cffLib] Make CFFToCFF2 and CFF2ToCFF more robust (#3521, #3525).
 
 4.52.1 (released 2024-05-24)
 ----------------------------

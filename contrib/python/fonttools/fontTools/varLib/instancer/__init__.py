@@ -1559,7 +1559,6 @@ def instantiateVariableFont(
 
     Args:
         varfont: a TTFont instance, which must contain at least an 'fvar' table.
-            Note that variable fonts with 'CFF2' table are not supported yet.
         axisLimits: a dict keyed by axis tags (str) containing the coordinates (float)
             along one or more axes where the desired instance will be located.
             If the value is `None`, the default coordinate as per 'fvar' table for

@@ -15,6 +15,7 @@ __all__ = ["MomentsPen"]
 
 
 class MomentsPen(BasePen):
+
     def __init__(self, glyphset=None):
         BasePen.__init__(self, glyphset)
 
@@ -26,17 +27,17 @@ class MomentsPen(BasePen):
         self.momentYY = 0
 
     def _moveTo(self, p0):
-        self.__startPoint = p0
+        self._startPoint = p0
 
     def _closePath(self):
         p0 = self._getCurrentPoint()
-        if p0 != self.__startPoint:
-            self._lineTo(self.__startPoint)
+        if p0 != self._startPoint:
+            self._lineTo(self._startPoint)
 
     def _endPath(self):
         p0 = self._getCurrentPoint()
-        if p0 != self.__startPoint:
-            raise OpenContourError("Glyph statistics not defined on open contours.")
+        if p0 != self._startPoint:
+            raise OpenContourError("Glyph statistics is not defined on open contours.")
 
     @cython.locals(r0=cython.double)
     @cython.locals(r1=cython.double)

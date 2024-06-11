@@ -16,6 +16,7 @@ from fontTools.cffLib.specializer import specializeCommands, commandsToProgram
 from fontTools.ttLib import newTable
 from fontTools import varLib
 from fontTools.varLib.models import allEqual
+from fontTools.misc.loggingTools import deprecateFunction
 from fontTools.misc.roundTools import roundFunc
 from fontTools.misc.psCharStrings import T2CharString, T2OutlineExtractor
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -47,6 +48,13 @@ def addCFFVarStore(varFont, varModel, varDataList, masterSupports):
         for fontDict in fdArray:
             if hasattr(fontDict, "Private"):
                 fontDict.Private.vstore = topDict.VarStore
+
+
+@deprecateFunction("Use fontTools.cffLib.CFFToCFF2.convertCFFToCFF2 instead.")
+def convertCFFtoCFF2(varFont):
+    from fontTools.cffLib.CFFToCFF2 import convertCFFToCFF2
+
+    return convertCFFToCFF2(varFont)
 
 
 def conv_to_int(num):

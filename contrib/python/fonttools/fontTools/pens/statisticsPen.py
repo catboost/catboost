@@ -123,7 +123,7 @@ class StatisticsControlPen(StatisticsBase, BasePen):
 
     def _endPath(self):
         p0 = self._getCurrentPoint()
-        if p0 != self.__startPoint:
+        if p0 != self._startPoint:
             raise OpenContourError("Glyph statistics not defined on open contours.")
 
     def _update(self):

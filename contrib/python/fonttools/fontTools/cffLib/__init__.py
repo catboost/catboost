@@ -1470,7 +1470,7 @@ class CharsetConverter(SimpleConverter):
         else:  # offset == 0 -> no charset data.
             if isCID or "CharStrings" not in parent.rawDict:
                 # We get here only when processing fontDicts from the FDArray of
-                # CFF-CID fonts. Only the real topDict references the chrset.
+                # CFF-CID fonts. Only the real topDict references the charset.
                 assert value == 0
                 charset = None
             elif value == 0:

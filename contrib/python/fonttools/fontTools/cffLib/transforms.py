@@ -342,7 +342,7 @@ def _cs_drop_hints(charstring):
     del charstring._hints
 
 
-def remove_hints(cff):
+def remove_hints(cff, *, removeUnusedSubrs: bool = True):
     for fontname in cff.keys():
         font = cff[fontname]
         cs = font.CharStrings
@@ -404,7 +404,8 @@ def remove_hints(cff):
             ]:
                 if hasattr(priv, k):
                     setattr(priv, k, None)
-    remove_unused_subroutines(cff)
+    if removeUnusedSubrs:
+        remove_unused_subroutines(cff)
 
 
 def _pd_delete_empty_subrs(private_dict):
