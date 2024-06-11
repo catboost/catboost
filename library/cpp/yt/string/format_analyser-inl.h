@@ -16,7 +16,7 @@ consteval bool Contains(std::string_view sv, char symbol)
 }
 
 template <class... TArgs>
-consteval void TFormatAnalyser::ValidateFormat(std::string_view fmt)
+consteval void TFormatAnalyser::ValidateFormat(std::string_view format)
 {
     std::array<std::string_view, sizeof...(TArgs)> markers = {};
     std::array<TSpecifiers, sizeof...(TArgs)> specifiers{GetSpecifiers<TArgs>()...};
@@ -24,14 +24,14 @@ consteval void TFormatAnalyser::ValidateFormat(std::string_view fmt)
     int markerCount = 0;
     int currentMarkerStart = -1;
 
-    for (int idx = 0; idx < std::ssize(fmt); ++idx) {
-        auto symbol = fmt[idx];
+    for (int index = 0; index < std::ssize(format); ++index) {
+        auto symbol = format[index];
 
         // Parse verbatim text.
         if (currentMarkerStart == -1) {
             if (symbol == IntroductorySymbol) {
                 // Marker maybe begins.
-                currentMarkerStart = idx;
+                currentMarkerStart = index;
             }
             continue;
         }
@@ -41,7 +41,7 @@ consteval void TFormatAnalyser::ValidateFormat(std::string_view fmt)
         // we need markerCount to be within range of our
         // specifier array.
         if (symbol == IntroductorySymbol) {
-            if (currentMarkerStart + 1 != idx) {
+            if (currentMarkerStart + 1 != index) {
                 // '%a% detected'
                 CrashCompilerWrongTermination("You may not terminate flag sequence other than %% with \'%\' symbol");
                 return;
@@ -62,7 +62,7 @@ consteval void TFormatAnalyser::ValidateFormat(std::string_view fmt)
             // Marker has finished.
 
             markers[markerCount]
-                = std::string_view(fmt.begin() + currentMarkerStart, idx - currentMarkerStart + 1);
+                = std::string_view(format.begin() + currentMarkerStart, index - currentMarkerStart + 1);
             currentMarkerStart = -1;
             ++markerCount;
 

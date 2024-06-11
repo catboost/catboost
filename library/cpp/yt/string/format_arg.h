@@ -35,10 +35,10 @@ struct TFormatArgBase
 public:
     // TODO(arkady-e1ppa): Consider more strict formatting rules.
     static constexpr std::array ConversionSpecifiers = {
-            'v', '1', 'c', 's', 'd', 'i', 'o',
-            'x', 'X', 'u', 'f', 'F', 'e', 'E',
-            'a', 'A', 'g', 'G', 'n', 'p'
-        };
+        'v', '1', 'c', 's', 'd', 'i', 'o',
+        'x', 'X', 'u', 'f', 'F', 'e', 'E',
+        'a', 'A', 'g', 'G', 'n', 'p'
+    };
 
     static constexpr std::array FlagSpecifiers = {
         '-', '+', ' ', '#', '0',

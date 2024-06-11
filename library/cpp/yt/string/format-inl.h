@@ -712,12 +712,12 @@ concept CFormatter = CInvocable<T, void(size_t, TStringBuilderBase*, TStringBuf)
 template <CFormatter TFormatter>
 void RunFormatter(
     TStringBuilderBase* builder,
-    TStringBuf fmt,
+    TStringBuf format,
     const TFormatter& formatter)
 {
     size_t argIndex = 0;
-    auto current = std::begin(fmt);
-    auto end = std::end(fmt);
+    auto current = std::begin(format);
+    auto end = std::end(format);
     while (true) {
         // Scan verbatim part until stop symbol.
         auto verbatimBegin = current;
@@ -819,14 +819,14 @@ void RunFormatter(
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class... TArgs>
-void Format(TStringBuilderBase* builder, TStaticFormat<TArgs...> fmt, TArgs&&... args)
+void Format(TStringBuilderBase* builder, TStaticFormat<TArgs...> format, TArgs&&... args)
 {
     NYT::NDetail::TValueFormatter<0, TArgs...> formatter(args...);
-    NYT::NDetail::RunFormatter(builder, fmt.Get(), formatter);
+    NYT::NDetail::RunFormatter(builder, format.Get(), formatter);
 }
 
 template <class... TArgs>
-void Format(TStringBuilderBase* builder, TRuntimeFormat fmt, TArgs&&... args)
+void Format(TStringBuilderBase* builder, TRuntimeFormat format, TArgs&&... args)
 {
     // NB(arkady-e1ppa): StaticFormat performs the
     // formattability check of the args in a way
@@ -841,22 +841,22 @@ void Format(TStringBuilderBase* builder, TRuntimeFormat fmt, TArgs&&... args)
     Y_UNUSED(argsChecker);
 
     NYT::NDetail::TValueFormatter<0, TArgs...> formatter(args...);
-    NYT::NDetail::RunFormatter(builder, fmt.Get(), formatter);
+    NYT::NDetail::RunFormatter(builder, format.Get(), formatter);
 }
 
 template <class... TArgs>
-TString Format(TStaticFormat<TArgs...> fmt, TArgs&&... args)
+TString Format(TStaticFormat<TArgs...> format, TArgs&&... args)
 {
     TStringBuilder builder;
-    Format(&builder, fmt, std::forward<TArgs>(args)...);
+    Format(&builder, format, std::forward<TArgs>(args)...);
     return builder.Flush();
 }
 
 template <class... TArgs>
-TString Format(TRuntimeFormat fmt, TArgs&&... args)
+TString Format(TRuntimeFormat format, TArgs&&... args)
 {
     TStringBuilder builder;
-    Format(&builder, fmt, std::forward<TArgs>(args)...);
+    Format(&builder, format, std::forward<TArgs>(args)...);
     return builder.Flush();
 }
 
@@ -865,40 +865,40 @@ TString Format(TRuntimeFormat fmt, TArgs&&... args)
 template <size_t Length, class TVector>
 void FormatVector(
     TStringBuilderBase* builder,
-    const char (&fmt)[Length],
+    const char (&format)[Length],
     const TVector& vec)
 {
     NYT::NDetail::TRangeFormatter<typename TVector::value_type> formatter(vec);
-    NYT::NDetail::RunFormatter(builder, fmt, formatter);
+    NYT::NDetail::RunFormatter(builder, format, formatter);
 }
 
 template <class TVector>
 void FormatVector(
     TStringBuilderBase* builder,
-    TStringBuf fmt,
+    TStringBuf format,
     const TVector& vec)
 {
     NYT::NDetail::TRangeFormatter<typename TVector::value_type> formatter(vec);
-    NYT::NDetail::RunFormatter(builder, fmt, formatter);
+    NYT::NDetail::RunFormatter(builder, format, formatter);
 }
 
 template <size_t Length, class TVector>
 TString FormatVector(
-    const char (&fmt)[Length],
+    const char (&format)[Length],
     const TVector& vec)
 {
     TStringBuilder builder;
-    FormatVector(&builder, fmt, vec);
+    FormatVector(&builder, format, vec);
     return builder.Flush();
 }
 
 template <class TVector>
 TString FormatVector(
-    TStringBuf fmt,
+    TStringBuf format,
     const TVector& vec)
 {
     TStringBuilder builder;
-    FormatVector(&builder, fmt, vec);
+    FormatVector(&builder, format, vec);
     return builder.Flush();
 }
 
