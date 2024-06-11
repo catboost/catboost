@@ -27,6 +27,13 @@ constexpr bool IsNYTName()
     return qualidName.find("NYT::") == 0;
 }
 
+template <class T>
+constexpr bool IsStdName()
+{
+    constexpr auto qualidName = QualidName<T>();
+    return qualidName.find("std::") == 0;
+}
+
 } // namespace NDetail
 
 ////////////////////////////////////////////////////////////////////////////////

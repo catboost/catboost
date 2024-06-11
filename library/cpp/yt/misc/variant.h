@@ -12,10 +12,7 @@ class TStringBuilderBase;
 template <class... Ts>
 void FormatValue(TStringBuilderBase* builder, const std::variant<Ts...>& variant, TStringBuf spec);
 
-void FormatValue(TStringBuilderBase* builder, const std::monostate&, TStringBuf /*format*/);
-
-template <class... Ts>
-TString ToString(const std::variant<Ts...>& variant);
+void FormatValue(TStringBuilderBase* builder, const std::monostate&, TStringBuf /*spec*/);
 
 ////////////////////////////////////////////////////////////////////////////////
 

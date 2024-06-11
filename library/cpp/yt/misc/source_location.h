@@ -15,8 +15,7 @@ namespace NYT {
 
 class TStringBuilderBase;
 
-void FormatValue(TStringBuilderBase* builder, const std::source_location& location, TStringBuf /*format*/);
-TString ToString(const std::source_location& location);
+void FormatValue(TStringBuilderBase* builder, const std::source_location& location, TStringBuf /*spec*/);
 
 #endif // __cpp_lib_source_location
 

@@ -118,7 +118,7 @@ inline void TStringBuilder::DoReserve(size_t newLength)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-inline void FormatValue(TStringBuilderBase* builder, const TStringBuilder& value, TStringBuf /*format*/)
+inline void FormatValue(TStringBuilderBase* builder, const TStringBuilder& value, TStringBuf /*spec*/)
 {
     builder->AppendString(value.GetBuffer());
 }
@@ -165,14 +165,17 @@ TString ToStringIgnoringFormatValue(const T& t)
 
 #include <util/string/cast.h>
 
-// util/string/cast.h extension for yt types only
+// util/string/cast.h extension for yt and std types only
 // TODO(arkady-e1ppa): Abolish ::ToString in
 // favour of either NYT::ToString or
 // automatic formatting wherever it is needed.
 namespace NPrivate {
 
 template <class T>
-    requires (NYT::NDetail::CYtName<T> && NYT::CFormattable<T>)
+    requires (
+        (NYT::NDetail::IsNYTName<T>() ||
+        NYT::NDetail::IsStdName<T>()) &&
+        NYT::CFormattable<T>)
 struct TToString<T, false>
 {
     static TString Cvt(const T& t)

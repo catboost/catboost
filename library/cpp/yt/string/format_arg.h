@@ -21,9 +21,6 @@ constexpr std::string_view QualidName();
 template <class T>
 constexpr bool IsNYTName();
 
-template <class T>
-concept CYtName = IsNYTName<T>();
-
 } // namespace NDetail
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -56,13 +56,6 @@ public:
 
 private:
     T Underlying_;
-
-    //! NB: Hidden friend definition to make this name accessible only via ADL.
-    friend TString ToString(const TStrongTypedef& value)
-        requires requires (T value) { { ToString(value) } -> std::same_as<TString>; }
-    {
-        return ToString(value.Underlying_);
-    }
 };
 
 #define YT_DEFINE_STRONG_TYPEDEF(T, TUnderlying) \

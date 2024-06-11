@@ -473,19 +473,19 @@ template <class T, class TPolicy>
 void FormatValue(TStringBuilderBase* builder, const TMaybe<T, TPolicy>& value, TStringBuf spec);
 
 // std::optional
-template <class T>
+template <CFormattable T>
 void FormatValue(TStringBuilderBase* builder, const std::optional<T>& value, TStringBuf spec);
 
 // std::pair
-template <class A, class B>
+template <CFormattable A, CFormattable B>
 void FormatValue(TStringBuilderBase* builder, const std::pair<A, B>& value, TStringBuf spec);
 
 // std::tuple
-template <class... Ts>
+template <CFormattable... Ts>
 void FormatValue(TStringBuilderBase* builder, const std::tuple<Ts...>& value, TStringBuf spec);
 
 // TEnumIndexedArray
-template <class E, class T>
+template <class E, CFormattable T>
 void FormatValue(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& collection, TStringBuf spec);
 
 // One-valued ranges
@@ -531,7 +531,7 @@ inline void FormatValue(TStringBuilderBase* builder, std::nullopt_t, TStringBuf 
 }
 
 // std::optional: generic T
-template <class T>
+template <CFormattable T>
 void FormatValue(TStringBuilderBase* builder, const std::optional<T>& value, TStringBuf spec)
 {
     if (value.has_value()) {
@@ -542,7 +542,7 @@ void FormatValue(TStringBuilderBase* builder, const std::optional<T>& value, TSt
 }
 
 // std::pair
-template <class A, class B>
+template <CFormattable A, CFormattable B>
 void FormatValue(TStringBuilderBase* builder, const std::pair<A, B>& value, TStringBuf spec)
 {
     builder->AppendChar('{');
@@ -553,7 +553,7 @@ void FormatValue(TStringBuilderBase* builder, const std::pair<A, B>& value, TStr
 }
 
 // std::tuple
-template <class... Ts>
+template <CFormattable... Ts>
 void FormatValue(TStringBuilderBase* builder, const std::tuple<Ts...>& value, TStringBuf spec)
 {
     builder->AppendChar('{');
@@ -571,7 +571,7 @@ void FormatValue(TStringBuilderBase* builder, const std::tuple<Ts...>& value, TS
 }
 
 // TEnumIndexedArray
-template <class E, class T>
+template <class E, CFormattable T>
 void FormatValue(TStringBuilderBase* builder, const TEnumIndexedArray<E, T>& collection, TStringBuf spec)
 {
     builder->AppendChar('{');
