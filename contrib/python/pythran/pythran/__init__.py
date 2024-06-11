@@ -9,7 +9,7 @@ This package provides several entry points
        * compile_pythranfile: python (file) to so/cpp, returns output filename
        * import_pythrancode: python (str) to module, returns loaded module
        * import_pythranfile: python (file) to module, returns loaded module
-       * test_compile: passthrough compile test, raises CompileError Exception.
+       * test_compile: passthrough compile test, raises PythranCompileError Exception.
 
 Basic scenario is to turn a Python AST into C++ code:
 >>> code = "def foo(x): return x * 2"

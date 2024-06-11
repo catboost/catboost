@@ -6,6 +6,7 @@
 #include "pythonic/numpy/array.hpp"
 #include "pythonic/numpy/transpose.hpp"
 #include "pythonic/types/ndarray.hpp"
+#include "pythonic/utils/allocate.hpp"
 
 #include "pythonic/operator_/iadd.hpp"
 #include "pythonic/operator_/iand.hpp"
@@ -145,12 +146,12 @@ namespace types
   numpy_texpr_2<E>::fast(F const &filter) const
   {
     long sz = filter.template shape<0>();
-    long *raw = (long *)malloc(sz * sizeof(long));
+    long *raw = utils::allocate<long>(sz);
     long n = 0;
     for (long i = 0; i < sz; ++i)
       if (filter.fast(i))
         raw[n++] = i;
-    // realloc(raw, n * sizeof(long));
+    // reallocate(raw, n);
     return this->fast(ndarray<long, pshape<long>>(raw, pshape<long>(n),
                                                   types::ownership::owned));
   }

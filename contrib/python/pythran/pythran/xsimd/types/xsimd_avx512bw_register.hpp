@@ -26,7 +26,6 @@ namespace xsimd
     {
         static constexpr bool supported() noexcept { return XSIMD_WITH_AVX512BW; }
         static constexpr bool available() noexcept { return true; }
-        static constexpr unsigned version() noexcept { return generic::version(3, 4, 0); }
         static constexpr char const* name() noexcept { return "avx512bw"; }
     };
 

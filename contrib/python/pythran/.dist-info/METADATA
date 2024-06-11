@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pythran
-Version: 0.15.0
+Version: 0.16.1
 Summary: Ahead of Time compiler for numeric kernels
 Author-email: Serge Guelton <serge.guelton@telecom-bretagne.eu>
 License: Copyright (c) 2012, HPC Project and Serge Guelton
@@ -67,6 +67,7 @@ Requires-Dist: ipython ; extra == 'test'
 Requires-Dist: nbval ; extra == 'test'
 Requires-Dist: cython ; extra == 'test'
 Requires-Dist: wheel ; extra == 'test'
+Requires-Dist: packaging ; extra == 'test'
 
 Pythran
 #######

@@ -23,124 +23,130 @@
 // Wrap intrinsics so we can pass them as function pointers
 // - OP: intrinsics name prefix, e.g., vorrq
 // - RT: type traits to deduce intrinsics return types
-#define WRAP_BINARY_INT_EXCLUDING_64(OP, RT)                                \
-    namespace wrap                                                          \
-    {                                                                       \
-        inline RT<uint8x16_t> OP##_u8(uint8x16_t a, uint8x16_t b) noexcept  \
-        {                                                                   \
-            return ::OP##_u8(a, b);                                         \
-        }                                                                   \
-        inline RT<int8x16_t> OP##_s8(int8x16_t a, int8x16_t b) noexcept     \
-        {                                                                   \
-            return ::OP##_s8(a, b);                                         \
-        }                                                                   \
-        inline RT<uint16x8_t> OP##_u16(uint16x8_t a, uint16x8_t b) noexcept \
-        {                                                                   \
-            return ::OP##_u16(a, b);                                        \
-        }                                                                   \
-        inline RT<int16x8_t> OP##_s16(int16x8_t a, int16x8_t b) noexcept    \
-        {                                                                   \
-            return ::OP##_s16(a, b);                                        \
-        }                                                                   \
-        inline RT<uint32x4_t> OP##_u32(uint32x4_t a, uint32x4_t b) noexcept \
-        {                                                                   \
-            return ::OP##_u32(a, b);                                        \
-        }                                                                   \
-        inline RT<int32x4_t> OP##_s32(int32x4_t a, int32x4_t b) noexcept    \
-        {                                                                   \
-            return ::OP##_s32(a, b);                                        \
-        }                                                                   \
+#define WRAP_BINARY_UINT_EXCLUDING_64(OP, RT)                                     \
+    namespace wrap                                                                \
+    {                                                                             \
+        XSIMD_INLINE RT<uint8x16_t> OP##_u8(uint8x16_t a, uint8x16_t b) noexcept  \
+        {                                                                         \
+            return ::OP##_u8(a, b);                                               \
+        }                                                                         \
+        XSIMD_INLINE RT<uint16x8_t> OP##_u16(uint16x8_t a, uint16x8_t b) noexcept \
+        {                                                                         \
+            return ::OP##_u16(a, b);                                              \
+        }                                                                         \
+        XSIMD_INLINE RT<uint32x4_t> OP##_u32(uint32x4_t a, uint32x4_t b) noexcept \
+        {                                                                         \
+            return ::OP##_u32(a, b);                                              \
+        }                                                                         \
     }
 
-#define WRAP_BINARY_INT(OP, RT)                                             \
-    WRAP_BINARY_INT_EXCLUDING_64(OP, RT)                                    \
-    namespace wrap                                                          \
-    {                                                                       \
-        inline RT<uint64x2_t> OP##_u64(uint64x2_t a, uint64x2_t b) noexcept \
-        {                                                                   \
-            return ::OP##_u64(a, b);                                        \
-        }                                                                   \
-        inline RT<int64x2_t> OP##_s64(int64x2_t a, int64x2_t b) noexcept    \
-        {                                                                   \
-            return ::OP##_s64(a, b);                                        \
-        }                                                                   \
-    }
-
-#define WRAP_BINARY_FLOAT(OP, RT)                                              \
+#define WRAP_BINARY_INT_EXCLUDING_64(OP, RT)                                   \
+    WRAP_BINARY_UINT_EXCLUDING_64(OP, RT)                                      \
     namespace wrap                                                             \
     {                                                                          \
-        inline RT<float32x4_t> OP##_f32(float32x4_t a, float32x4_t b) noexcept \
+        XSIMD_INLINE RT<int8x16_t> OP##_s8(int8x16_t a, int8x16_t b) noexcept  \
         {                                                                      \
-            return ::OP##_f32(a, b);                                           \
+            return ::OP##_s8(a, b);                                            \
+        }                                                                      \
+        XSIMD_INLINE RT<int16x8_t> OP##_s16(int16x8_t a, int16x8_t b) noexcept \
+        {                                                                      \
+            return ::OP##_s16(a, b);                                           \
+        }                                                                      \
+        XSIMD_INLINE RT<int32x4_t> OP##_s32(int32x4_t a, int32x4_t b) noexcept \
+        {                                                                      \
+            return ::OP##_s32(a, b);                                           \
         }                                                                      \
     }
 
-#define WRAP_UNARY_INT_EXCLUDING_64(OP)                   \
-    namespace wrap                                        \
-    {                                                     \
-        inline uint8x16_t OP##_u8(uint8x16_t a) noexcept  \
-        {                                                 \
-            return ::OP##_u8(a);                          \
-        }                                                 \
-        inline int8x16_t OP##_s8(int8x16_t a) noexcept    \
-        {                                                 \
-            return ::OP##_s8(a);                          \
-        }                                                 \
-        inline uint16x8_t OP##_u16(uint16x8_t a) noexcept \
-        {                                                 \
-            return ::OP##_u16(a);                         \
-        }                                                 \
-        inline int16x8_t OP##_s16(int16x8_t a) noexcept   \
-        {                                                 \
-            return ::OP##_s16(a);                         \
-        }                                                 \
-        inline uint32x4_t OP##_u32(uint32x4_t a) noexcept \
-        {                                                 \
-            return ::OP##_u32(a);                         \
-        }                                                 \
-        inline int32x4_t OP##_s32(int32x4_t a) noexcept   \
-        {                                                 \
-            return ::OP##_s32(a);                         \
-        }                                                 \
+#define WRAP_BINARY_INT(OP, RT)                                                   \
+    WRAP_BINARY_INT_EXCLUDING_64(OP, RT)                                          \
+    namespace wrap                                                                \
+    {                                                                             \
+        XSIMD_INLINE RT<uint64x2_t> OP##_u64(uint64x2_t a, uint64x2_t b) noexcept \
+        {                                                                         \
+            return ::OP##_u64(a, b);                                              \
+        }                                                                         \
+        XSIMD_INLINE RT<int64x2_t> OP##_s64(int64x2_t a, int64x2_t b) noexcept    \
+        {                                                                         \
+            return ::OP##_s64(a, b);                                              \
+        }                                                                         \
     }
 
-#define WRAP_UNARY_INT(OP)                                \
-    WRAP_UNARY_INT_EXCLUDING_64(OP)                       \
-    namespace wrap                                        \
-    {                                                     \
-        inline uint64x2_t OP##_u64(uint64x2_t a) noexcept \
-        {                                                 \
-            return ::OP##_u64(a);                         \
-        }                                                 \
-        inline int64x2_t OP##_s64(int64x2_t a) noexcept   \
-        {                                                 \
-            return ::OP##_s64(a);                         \
-        }                                                 \
+#define WRAP_BINARY_FLOAT(OP, RT)                                                    \
+    namespace wrap                                                                   \
+    {                                                                                \
+        XSIMD_INLINE RT<float32x4_t> OP##_f32(float32x4_t a, float32x4_t b) noexcept \
+        {                                                                            \
+            return ::OP##_f32(a, b);                                                 \
+        }                                                                            \
     }
 
-#define WRAP_UNARY_FLOAT(OP)                                \
-    namespace wrap                                          \
-    {                                                       \
-        inline float32x4_t OP##_f32(float32x4_t a) noexcept \
-        {                                                   \
-            return ::OP##_f32(a);                           \
-        }                                                   \
+#define WRAP_UNARY_INT_EXCLUDING_64(OP)                         \
+    namespace wrap                                              \
+    {                                                           \
+        XSIMD_INLINE uint8x16_t OP##_u8(uint8x16_t a) noexcept  \
+        {                                                       \
+            return ::OP##_u8(a);                                \
+        }                                                       \
+        XSIMD_INLINE int8x16_t OP##_s8(int8x16_t a) noexcept    \
+        {                                                       \
+            return ::OP##_s8(a);                                \
+        }                                                       \
+        XSIMD_INLINE uint16x8_t OP##_u16(uint16x8_t a) noexcept \
+        {                                                       \
+            return ::OP##_u16(a);                               \
+        }                                                       \
+        XSIMD_INLINE int16x8_t OP##_s16(int16x8_t a) noexcept   \
+        {                                                       \
+            return ::OP##_s16(a);                               \
+        }                                                       \
+        XSIMD_INLINE uint32x4_t OP##_u32(uint32x4_t a) noexcept \
+        {                                                       \
+            return ::OP##_u32(a);                               \
+        }                                                       \
+        XSIMD_INLINE int32x4_t OP##_s32(int32x4_t a) noexcept   \
+        {                                                       \
+            return ::OP##_s32(a);                               \
+        }                                                       \
+    }
+
+#define WRAP_UNARY_INT(OP)                                      \
+    WRAP_UNARY_INT_EXCLUDING_64(OP)                             \
+    namespace wrap                                              \
+    {                                                           \
+        XSIMD_INLINE uint64x2_t OP##_u64(uint64x2_t a) noexcept \
+        {                                                       \
+            return ::OP##_u64(a);                               \
+        }                                                       \
+        XSIMD_INLINE int64x2_t OP##_s64(int64x2_t a) noexcept   \
+        {                                                       \
+            return ::OP##_s64(a);                               \
+        }                                                       \
+    }
+
+#define WRAP_UNARY_FLOAT(OP)                                      \
+    namespace wrap                                                \
+    {                                                             \
+        XSIMD_INLINE float32x4_t OP##_f32(float32x4_t a) noexcept \
+        {                                                         \
+            return ::OP##_f32(a);                                 \
+        }                                                         \
     }
 
 // Dummy identity caster to ease coding
-inline uint8x16_t vreinterpretq_u8_u8(uint8x16_t arg) noexcept { return arg; }
-inline int8x16_t vreinterpretq_s8_s8(int8x16_t arg) noexcept { return arg; }
-inline uint16x8_t vreinterpretq_u16_u16(uint16x8_t arg) noexcept { return arg; }
-inline int16x8_t vreinterpretq_s16_s16(int16x8_t arg) noexcept { return arg; }
-inline uint32x4_t vreinterpretq_u32_u32(uint32x4_t arg) noexcept { return arg; }
-inline int32x4_t vreinterpretq_s32_s32(int32x4_t arg) noexcept { return arg; }
-inline uint64x2_t vreinterpretq_u64_u64(uint64x2_t arg) noexcept { return arg; }
-inline int64x2_t vreinterpretq_s64_s64(int64x2_t arg) noexcept { return arg; }
-inline float32x4_t vreinterpretq_f32_f32(float32x4_t arg) noexcept { return arg; }
+XSIMD_INLINE uint8x16_t vreinterpretq_u8_u8(uint8x16_t arg) noexcept { return arg; }
+XSIMD_INLINE int8x16_t vreinterpretq_s8_s8(int8x16_t arg) noexcept { return arg; }
+XSIMD_INLINE uint16x8_t vreinterpretq_u16_u16(uint16x8_t arg) noexcept { return arg; }
+XSIMD_INLINE int16x8_t vreinterpretq_s16_s16(int16x8_t arg) noexcept { return arg; }
+XSIMD_INLINE uint32x4_t vreinterpretq_u32_u32(uint32x4_t arg) noexcept { return arg; }
+XSIMD_INLINE int32x4_t vreinterpretq_s32_s32(int32x4_t arg) noexcept { return arg; }
+XSIMD_INLINE uint64x2_t vreinterpretq_u64_u64(uint64x2_t arg) noexcept { return arg; }
+XSIMD_INLINE int64x2_t vreinterpretq_s64_s64(int64x2_t arg) noexcept { return arg; }
+XSIMD_INLINE float32x4_t vreinterpretq_f32_f32(float32x4_t arg) noexcept { return arg; }
 
 namespace xsimd
 {
-    template <class batch_type, bool... Values>
+    template <typename T, class A, bool... Values>
     struct batch_bool_constant;
 
     namespace kernel
@@ -203,6 +209,10 @@ namespace xsimd
                                                                     uint16x8_t, int16x8_t,
                                                                     uint32x4_t, int32x4_t,
                                                                     float32x4_t>;
+
+            using excluding_int64f32_dispatcher = neon_dispatcher_impl<uint8x16_t, int8x16_t,
+                                                                       uint16x8_t, int16x8_t,
+                                                                       uint32x4_t, int32x4_t>;
 
             /**************************
              * comparison dispatchers *
@@ -296,55 +306,55 @@ namespace xsimd
          *************/
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
         {
             return vdupq_n_u8(uint8_t(val));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
         {
             return vdupq_n_s8(int8_t(val));
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
         {
             return vdupq_n_u16(uint16_t(val));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
         {
             return vdupq_n_s16(int16_t(val));
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
         {
             return vdupq_n_u32(uint32_t(val));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
         {
             return vdupq_n_s32(int32_t(val));
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
         {
             return vdupq_n_u64(uint64_t(val));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 8> = 0>
-        inline batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> broadcast(T val, requires_arch<neon>) noexcept
         {
             return vdupq_n_s64(int64_t(val));
         }
 
         template <class A>
-        inline batch<float, A> broadcast(float val, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> broadcast(float val, requires_arch<neon>) noexcept
         {
             return vdupq_n_f32(val);
         }
@@ -354,13 +364,13 @@ namespace xsimd
          *******/
 
         template <class A, class T, class... Args, detail::enable_integral_t<T> = 0>
-        inline batch<T, A> set(batch<T, A> const&, requires_arch<neon>, Args... args) noexcept
+        XSIMD_INLINE batch<T, A> set(batch<T, A> const&, requires_arch<neon>, Args... args) noexcept
         {
             return xsimd::types::detail::neon_vector_type<T> { args... };
         }
 
         template <class A, class T, class... Args, detail::enable_integral_t<T> = 0>
-        inline batch_bool<T, A> set(batch_bool<T, A> const&, requires_arch<neon>, Args... args) noexcept
+        XSIMD_INLINE batch_bool<T, A> set(batch_bool<T, A> const&, requires_arch<neon>, Args... args) noexcept
         {
             using register_type = typename batch_bool<T, A>::register_type;
             using unsigned_type = as_unsigned_integer_t<T>;
@@ -368,22 +378,22 @@ namespace xsimd
         }
 
         template <class A>
-        inline batch<float, A> set(batch<float, A> const&, requires_arch<neon>, float f0, float f1, float f2, float f3) noexcept
+        XSIMD_INLINE batch<float, A> set(batch<float, A> const&, requires_arch<neon>, float f0, float f1, float f2, float f3) noexcept
         {
             return float32x4_t { f0, f1, f2, f3 };
         }
 
         template <class A>
-        inline batch<std::complex<float>, A> set(batch<std::complex<float>, A> const&, requires_arch<neon>,
-                                                 std::complex<float> c0, std::complex<float> c1,
-                                                 std::complex<float> c2, std::complex<float> c3) noexcept
+        XSIMD_INLINE batch<std::complex<float>, A> set(batch<std::complex<float>, A> const&, requires_arch<neon>,
+                                                       std::complex<float> c0, std::complex<float> c1,
+                                                       std::complex<float> c2, std::complex<float> c3) noexcept
         {
             return batch<std::complex<float>, A>(float32x4_t { c0.real(), c1.real(), c2.real(), c3.real() },
                                                  float32x4_t { c0.imag(), c1.imag(), c2.imag(), c3.imag() });
         }
 
         template <class A, class... Args>
-        inline batch_bool<float, A> set(batch_bool<float, A> const&, requires_arch<neon>, Args... args) noexcept
+        XSIMD_INLINE batch_bool<float, A> set(batch_bool<float, A> const&, requires_arch<neon>, Args... args) noexcept
         {
             using register_type = typename batch_bool<float, A>::register_type;
             using unsigned_type = as_unsigned_integer_t<float>;
@@ -395,55 +405,55 @@ namespace xsimd
          *************/
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return vandq_u8(arg, vdupq_n_u8(1));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return vandq_s8(reinterpret_cast<int8x16_t>(arg.data), vdupq_n_s8(1));
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return vandq_u16(arg, vdupq_n_u16(1));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return vandq_s16(reinterpret_cast<int16x8_t>(arg.data), vdupq_n_s16(1));
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return vandq_u32(arg, vdupq_n_u32(1));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return vandq_s32(reinterpret_cast<int32x4_t>(arg.data), vdupq_n_s32(1));
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return vandq_u64(arg, vdupq_n_u64(1));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 8> = 0>
-        inline batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> from_bool(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return vandq_s64(reinterpret_cast<int64x2_t>(arg.data), vdupq_n_s64(1));
         }
 
         template <class A>
-        inline batch<float, A> from_bool(batch_bool<float, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> from_bool(batch_bool<float, A> const& arg, requires_arch<neon>) noexcept
         {
             return vreinterpretq_f32_u32(vandq_u32(arg, vreinterpretq_u32_f32(vdupq_n_f32(1.f))));
         }
@@ -463,50 +473,50 @@ namespace xsimd
 #endif
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return xsimd_aligned_load(vld1q_u8, uint8_t*, src);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return xsimd_aligned_load(vld1q_s8, int8_t*, src);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return xsimd_aligned_load(vld1q_u16, uint16_t*, src);
         }
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return xsimd_aligned_load(vld1q_s16, int16_t*, src);
         }
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return xsimd_aligned_load(vld1q_u32, uint32_t*, src);
         }
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return xsimd_aligned_load(vld1q_s32, int32_t*, src);
         }
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return xsimd_aligned_load(vld1q_u64, uint64_t*, src);
         }
         template <class A, class T, detail::enable_sized_signed_t<T, 8> = 0>
-        inline batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_aligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return xsimd_aligned_load(vld1q_s64, int64_t*, src);
         }
 
         template <class A>
-        inline batch<float, A> load_aligned(float const* src, convert<float>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> load_aligned(float const* src, convert<float>, requires_arch<neon>) noexcept
         {
             return xsimd_aligned_load(vld1q_f32, float*, src);
         }
@@ -514,50 +524,50 @@ namespace xsimd
 #undef xsimd_aligned_load
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return vld1q_u8((uint8_t*)src);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return vld1q_s8((int8_t*)src);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return vld1q_u16((uint16_t*)src);
         }
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return vld1q_s16((int16_t*)src);
         }
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return vld1q_u32((uint32_t*)src);
         }
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return vld1q_s32((int32_t*)src);
         }
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return vld1q_u64((uint64_t*)src);
         }
         template <class A, class T, detail::enable_sized_signed_t<T, 8> = 0>
-        inline batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> load_unaligned(T const* src, convert<T>, requires_arch<neon>) noexcept
         {
             return vld1q_s64((int64_t*)src);
         }
 
         template <class A>
-        inline batch<float, A> load_unaligned(float const* src, convert<float>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> load_unaligned(float const* src, convert<float>, requires_arch<neon>) noexcept
         {
             return vld1q_f32(src);
         }
@@ -567,61 +577,61 @@ namespace xsimd
          *********/
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
         {
             vst1q_u8((uint8_t*)dst, src);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
         {
             vst1q_s8((int8_t*)dst, src);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
         {
             vst1q_u16((uint16_t*)dst, src);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
         {
             vst1q_s16((int16_t*)dst, src);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
         {
             vst1q_u32((uint32_t*)dst, src);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
         {
             vst1q_s32((int32_t*)dst, src);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
         {
             vst1q_u64((uint64_t*)dst, src);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 8> = 0>
-        inline void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_aligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
         {
             vst1q_s64((int64_t*)dst, src);
         }
 
         template <class A>
-        inline void store_aligned(float* dst, batch<float, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_aligned(float* dst, batch<float, A> const& src, requires_arch<neon>) noexcept
         {
             vst1q_f32(dst, src);
         }
 
         template <class A, class T>
-        inline void store_unaligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_unaligned(T* dst, batch<T, A> const& src, requires_arch<neon>) noexcept
         {
             store_aligned<A>(dst, src, A {});
         }
@@ -631,7 +641,7 @@ namespace xsimd
          ****************/
 
         template <class A>
-        inline batch<std::complex<float>, A> load_complex_aligned(std::complex<float> const* mem, convert<std::complex<float>>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<std::complex<float>, A> load_complex_aligned(std::complex<float> const* mem, convert<std::complex<float>>, requires_arch<neon>) noexcept
         {
             using real_batch = batch<float, A>;
             const float* buf = reinterpret_cast<const float*>(mem);
@@ -642,7 +652,7 @@ namespace xsimd
         }
 
         template <class A>
-        inline batch<std::complex<float>, A> load_complex_unaligned(std::complex<float> const* mem, convert<std::complex<float>> cvt, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<std::complex<float>, A> load_complex_unaligned(std::complex<float> const* mem, convert<std::complex<float>> cvt, requires_arch<neon>) noexcept
         {
             return load_complex_aligned<A>(mem, cvt, A {});
         }
@@ -652,7 +662,7 @@ namespace xsimd
          *****************/
 
         template <class A>
-        inline void store_complex_aligned(std::complex<float>* dst, batch<std::complex<float>, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_complex_aligned(std::complex<float>* dst, batch<std::complex<float>, A> const& src, requires_arch<neon>) noexcept
         {
             float32x4x2_t tmp;
             tmp.val[0] = src.real();
@@ -662,7 +672,7 @@ namespace xsimd
         }
 
         template <class A>
-        inline void store_complex_unaligned(std::complex<float>* dst, batch<std::complex<float>, A> const& src, requires_arch<neon>) noexcept
+        XSIMD_INLINE void store_complex_unaligned(std::complex<float>* dst, batch<std::complex<float>, A> const& src, requires_arch<neon>) noexcept
         {
             store_complex_aligned(dst, src, A {});
         }
@@ -672,55 +682,55 @@ namespace xsimd
          *******/
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vreinterpretq_u8_s8(vnegq_s8(vreinterpretq_s8_u8(rhs)));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vnegq_s8(rhs);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vreinterpretq_u16_s16(vnegq_s16(vreinterpretq_s16_u16(rhs)));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vnegq_s16(rhs);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vreinterpretq_u32_s32(vnegq_s32(vreinterpretq_s32_u32(rhs)));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vnegq_s32(rhs);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return batch<T, A> { -rhs.get(0), -rhs.get(1) };
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 8> = 0>
-        inline batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> neg(batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return batch<T, A> { -rhs.get(0), -rhs.get(1) };
         }
 
         template <class A>
-        inline batch<float, A> neg(batch<float, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> neg(batch<float, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vnegq_f32(rhs);
         }
@@ -733,13 +743,45 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vaddq, detail::identity_return_type)
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> add(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> add(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::neon_dispatcher::binary dispatcher = {
                 std::make_tuple(wrap::vaddq_u8, wrap::vaddq_s8, wrap::vaddq_u16, wrap::vaddq_s16,
                                 wrap::vaddq_u32, wrap::vaddq_s32, wrap::vaddq_u64, wrap::vaddq_s64,
                                 wrap::vaddq_f32)
+            };
+            return dispatcher.apply(register_type(lhs), register_type(rhs));
+        }
+
+        /*******
+         * avg *
+         *******/
+
+        WRAP_BINARY_UINT_EXCLUDING_64(vhaddq, detail::identity_return_type)
+
+        template <class A, class T, class = typename std::enable_if<(std::is_unsigned<T>::value && sizeof(T) != 8), void>::type>
+        XSIMD_INLINE batch<T, A> avg(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        {
+            using register_type = typename batch<T, A>::register_type;
+            const detail::neon_dispatcher_impl<uint8x16_t, uint16x8_t, uint32x4_t>::binary dispatcher = {
+                std::make_tuple(wrap::vhaddq_u8, wrap::vhaddq_u16, wrap::vhaddq_u32)
+            };
+            return dispatcher.apply(register_type(lhs), register_type(rhs));
+        }
+
+        /********
+         * avgr *
+         ********/
+
+        WRAP_BINARY_UINT_EXCLUDING_64(vrhaddq, detail::identity_return_type)
+
+        template <class A, class T, class = typename std::enable_if<(std::is_unsigned<T>::value && sizeof(T) != 8), void>::type>
+        XSIMD_INLINE batch<T, A> avgr(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        {
+            using register_type = typename batch<T, A>::register_type;
+            const detail::neon_dispatcher_impl<uint8x16_t, uint16x8_t, uint32x4_t>::binary dispatcher = {
+                std::make_tuple(wrap::vrhaddq_u8, wrap::vrhaddq_u16, wrap::vrhaddq_u32)
             };
             return dispatcher.apply(register_type(lhs), register_type(rhs));
         }
@@ -751,7 +793,7 @@ namespace xsimd
         WRAP_BINARY_INT(vqaddq, detail::identity_return_type)
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> sadd(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> sadd(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::neon_dispatcher::binary dispatcher = {
@@ -770,7 +812,7 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vsubq, detail::identity_return_type)
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> sub(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> sub(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::neon_dispatcher::binary dispatcher = {
@@ -788,7 +830,7 @@ namespace xsimd
         WRAP_BINARY_INT(vqsubq, detail::identity_return_type)
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> ssub(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> ssub(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::neon_dispatcher::binary dispatcher = {
@@ -807,7 +849,7 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vmulq, detail::identity_return_type)
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch<T, A> mul(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> mul(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::excluding_int64_dispatcher::binary dispatcher = {
@@ -823,20 +865,20 @@ namespace xsimd
 
 #if defined(XSIMD_FAST_INTEGER_DIVISION)
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> div(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> div(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vcvtq_s32_f32(vcvtq_f32_s32(lhs) / vcvtq_f32_s32(rhs));
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> div(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> div(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vcvtq_u32_f32(vcvtq_f32_u32(lhs) / vcvtq_f32_u32(rhs));
         }
 #endif
 
         template <class A>
-        inline batch<float, A> div(batch<float, A> const& lhs, batch<float, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> div(batch<float, A> const& lhs, batch<float, A> const& rhs, requires_arch<neon>) noexcept
         {
             // from stackoverflow & https://projectne10.github.io/Ne10/doc/NE10__divc_8neon_8c_source.html
             // get an initial estimate of 1/b.
@@ -860,7 +902,7 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vceqq, detail::comp_return_type)
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch_bool<T, A> eq(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> eq(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::excluding_int64_comp_dispatcher::binary dispatcher = {
@@ -871,7 +913,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch_bool<T, A> eq(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> eq(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch_bool<T, A>::register_type;
             using dispatcher_type = detail::neon_comp_dispatcher_impl<uint8x16_t, uint16x8_t, uint32x4_t>::binary;
@@ -882,13 +924,13 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
-        inline batch_bool<T, A> eq(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> eq(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return batch_bool<T, A>({ lhs.get(0) == rhs.get(0), lhs.get(1) == rhs.get(1) });
         }
 
         template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
-        inline batch_bool<T, A> eq(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> eq(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return batch_bool<T, A>({ lhs.get(0) == rhs.get(0), lhs.get(1) == rhs.get(1) });
         }
@@ -900,25 +942,25 @@ namespace xsimd
         namespace detail
         {
             template <class A>
-            inline batch<float, A> fast_cast(batch<int32_t, A> const& self, batch<float, A> const&, requires_arch<neon>) noexcept
+            XSIMD_INLINE batch<float, A> fast_cast(batch<int32_t, A> const& self, batch<float, A> const&, requires_arch<neon>) noexcept
             {
                 return vcvtq_f32_s32(self);
             }
 
             template <class A>
-            inline batch<float, A> fast_cast(batch<uint32_t, A> const& self, batch<float, A> const&, requires_arch<neon>) noexcept
+            XSIMD_INLINE batch<float, A> fast_cast(batch<uint32_t, A> const& self, batch<float, A> const&, requires_arch<neon>) noexcept
             {
                 return vcvtq_f32_u32(self);
             }
 
             template <class A>
-            inline batch<int32_t, A> fast_cast(batch<float, A> const& self, batch<int32_t, A> const&, requires_arch<neon>) noexcept
+            XSIMD_INLINE batch<int32_t, A> fast_cast(batch<float, A> const& self, batch<int32_t, A> const&, requires_arch<neon>) noexcept
             {
                 return vcvtq_s32_f32(self);
             }
 
             template <class A>
-            inline batch<uint32_t, A> fast_cast(batch<float, A> const& self, batch<uint32_t, A> const&, requires_arch<neon>) noexcept
+            XSIMD_INLINE batch<uint32_t, A> fast_cast(batch<float, A> const& self, batch<uint32_t, A> const&, requires_arch<neon>) noexcept
             {
                 return vcvtq_u32_f32(self);
             }
@@ -933,7 +975,7 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vcltq, detail::comp_return_type)
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch_bool<T, A> lt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> lt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::excluding_int64_comp_dispatcher::binary dispatcher = {
@@ -944,7 +986,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
-        inline batch_bool<T, A> lt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> lt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return batch_bool<T, A>({ lhs.get(0) < rhs.get(0), lhs.get(1) < rhs.get(1) });
         }
@@ -957,7 +999,7 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vcleq, detail::comp_return_type)
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch_bool<T, A> le(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> le(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::excluding_int64_comp_dispatcher::binary dispatcher = {
@@ -968,7 +1010,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
-        inline batch_bool<T, A> le(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> le(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return batch_bool<T, A>({ lhs.get(0) <= rhs.get(0), lhs.get(1) <= rhs.get(1) });
         }
@@ -981,7 +1023,7 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vcgtq, detail::comp_return_type)
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch_bool<T, A> gt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> gt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::excluding_int64_comp_dispatcher::binary dispatcher = {
@@ -992,7 +1034,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
-        inline batch_bool<T, A> gt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> gt(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return batch_bool<T, A>({ lhs.get(0) > rhs.get(0), lhs.get(1) > rhs.get(1) });
         }
@@ -1005,7 +1047,7 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vcgeq, detail::comp_return_type)
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch_bool<T, A> ge(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> ge(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::excluding_int64_comp_dispatcher::binary dispatcher = {
@@ -1016,7 +1058,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
-        inline batch_bool<T, A> ge(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> ge(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return batch_bool<T, A>({ lhs.get(0) >= rhs.get(0), lhs.get(1) >= rhs.get(1) });
         }
@@ -1026,7 +1068,7 @@ namespace xsimd
          *******************/
 
         template <class A, class T_out, class T_in>
-        inline batch_bool<T_out, A> batch_bool_cast(batch_bool<T_in, A> const& self, batch_bool<T_out, A> const&, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T_out, A> batch_bool_cast(batch_bool<T_in, A> const& self, batch_bool<T_out, A> const&, requires_arch<neon>) noexcept
         {
             using register_type = typename batch_bool<T_out, A>::register_type;
             return register_type(self);
@@ -1040,7 +1082,7 @@ namespace xsimd
 
         namespace detail
         {
-            inline float32x4_t bitwise_and_f32(float32x4_t lhs, float32x4_t rhs) noexcept
+            XSIMD_INLINE float32x4_t bitwise_and_f32(float32x4_t lhs, float32x4_t rhs) noexcept
             {
                 return vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(lhs),
                                                        vreinterpretq_u32_f32(rhs)));
@@ -1059,14 +1101,14 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> bitwise_and(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_and(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             return detail::bitwise_and_neon(register_type(lhs), register_type(rhs));
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch_bool<T, A> bitwise_and(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> bitwise_and(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch_bool<T, A>::register_type;
             return detail::bitwise_and_neon(register_type(lhs), register_type(rhs));
@@ -1080,14 +1122,14 @@ namespace xsimd
 
         namespace detail
         {
-            inline float32x4_t bitwise_or_f32(float32x4_t lhs, float32x4_t rhs) noexcept
+            XSIMD_INLINE float32x4_t bitwise_or_f32(float32x4_t lhs, float32x4_t rhs) noexcept
             {
                 return vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(lhs),
                                                        vreinterpretq_u32_f32(rhs)));
             }
 
             template <class V>
-            inline V bitwise_or_neon(V const& lhs, V const& rhs) noexcept
+            XSIMD_INLINE V bitwise_or_neon(V const& lhs, V const& rhs) noexcept
             {
                 const neon_dispatcher::binary dispatcher = {
                     std::make_tuple(wrap::vorrq_u8, wrap::vorrq_s8, wrap::vorrq_u16, wrap::vorrq_s16,
@@ -1099,14 +1141,14 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> bitwise_or(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_or(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             return detail::bitwise_or_neon(register_type(lhs), register_type(rhs));
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch_bool<T, A> bitwise_or(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> bitwise_or(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch_bool<T, A>::register_type;
             return detail::bitwise_or_neon(register_type(lhs), register_type(rhs));
@@ -1120,14 +1162,14 @@ namespace xsimd
 
         namespace detail
         {
-            inline float32x4_t bitwise_xor_f32(float32x4_t lhs, float32x4_t rhs) noexcept
+            XSIMD_INLINE float32x4_t bitwise_xor_f32(float32x4_t lhs, float32x4_t rhs) noexcept
             {
                 return vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(lhs),
                                                        vreinterpretq_u32_f32(rhs)));
             }
 
             template <class V>
-            inline V bitwise_xor_neon(V const& lhs, V const& rhs) noexcept
+            XSIMD_INLINE V bitwise_xor_neon(V const& lhs, V const& rhs) noexcept
             {
                 const neon_dispatcher::binary dispatcher = {
                     std::make_tuple(wrap::veorq_u8, wrap::veorq_s8, wrap::veorq_u16, wrap::veorq_s16,
@@ -1139,14 +1181,14 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> bitwise_xor(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_xor(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             return detail::bitwise_xor_neon(register_type(lhs), register_type(rhs));
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch_bool<T, A> bitwise_xor(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> bitwise_xor(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch_bool<T, A>::register_type;
             return detail::bitwise_xor_neon(register_type(lhs), register_type(rhs));
@@ -1157,7 +1199,7 @@ namespace xsimd
          *******/
 
         template <class A, class T>
-        inline batch_bool<T, A> neq(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> neq(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return bitwise_xor(lhs, rhs, A {});
         }
@@ -1170,23 +1212,23 @@ namespace xsimd
 
         namespace detail
         {
-            inline int64x2_t bitwise_not_s64(int64x2_t arg) noexcept
+            XSIMD_INLINE int64x2_t bitwise_not_s64(int64x2_t arg) noexcept
             {
                 return vreinterpretq_s64_s32(vmvnq_s32(vreinterpretq_s32_s64(arg)));
             }
 
-            inline uint64x2_t bitwise_not_u64(uint64x2_t arg) noexcept
+            XSIMD_INLINE uint64x2_t bitwise_not_u64(uint64x2_t arg) noexcept
             {
                 return vreinterpretq_u64_u32(vmvnq_u32(vreinterpretq_u32_u64(arg)));
             }
 
-            inline float32x4_t bitwise_not_f32(float32x4_t arg) noexcept
+            XSIMD_INLINE float32x4_t bitwise_not_f32(float32x4_t arg) noexcept
             {
                 return vreinterpretq_f32_u32(vmvnq_u32(vreinterpretq_u32_f32(arg)));
             }
 
             template <class V>
-            inline V bitwise_not_neon(V const& arg) noexcept
+            XSIMD_INLINE V bitwise_not_neon(V const& arg) noexcept
             {
                 const neon_dispatcher::unary dispatcher = {
                     std::make_tuple(wrap::vmvnq_u8, wrap::vmvnq_s8, wrap::vmvnq_u16, wrap::vmvnq_s16,
@@ -1199,14 +1241,14 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> bitwise_not(batch<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_not(batch<T, A> const& arg, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             return detail::bitwise_not_neon(register_type(arg));
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch_bool<T, A> bitwise_not(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> bitwise_not(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             using register_type = typename batch_bool<T, A>::register_type;
             return detail::bitwise_not_neon(register_type(arg));
@@ -1220,13 +1262,13 @@ namespace xsimd
 
         namespace detail
         {
-            inline float32x4_t bitwise_andnot_f32(float32x4_t lhs, float32x4_t rhs) noexcept
+            XSIMD_INLINE float32x4_t bitwise_andnot_f32(float32x4_t lhs, float32x4_t rhs) noexcept
             {
                 return vreinterpretq_f32_u32(vbicq_u32(vreinterpretq_u32_f32(lhs), vreinterpretq_u32_f32(rhs)));
             }
 
             template <class V>
-            inline V bitwise_andnot_neon(V const& lhs, V const& rhs) noexcept
+            XSIMD_INLINE V bitwise_andnot_neon(V const& lhs, V const& rhs) noexcept
             {
                 const detail::neon_dispatcher::binary dispatcher = {
                     std::make_tuple(wrap::vbicq_u8, wrap::vbicq_s8, wrap::vbicq_u16, wrap::vbicq_s16,
@@ -1238,14 +1280,14 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> bitwise_andnot(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_andnot(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             return detail::bitwise_andnot_neon(register_type(lhs), register_type(rhs));
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch_bool<T, A> bitwise_andnot(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<T, A> bitwise_andnot(batch_bool<T, A> const& lhs, batch_bool<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch_bool<T, A>::register_type;
             return detail::bitwise_andnot_neon(register_type(lhs), register_type(rhs));
@@ -1259,7 +1301,7 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vminq, detail::identity_return_type)
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch<T, A> min(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> min(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::excluding_int64_dispatcher::binary dispatcher = {
@@ -1270,7 +1312,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
-        inline batch<T, A> min(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> min(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return { std::min(lhs.get(0), rhs.get(0)), std::min(lhs.get(1), rhs.get(1)) };
         }
@@ -1283,7 +1325,7 @@ namespace xsimd
         WRAP_BINARY_FLOAT(vmaxq, detail::identity_return_type)
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch<T, A> max(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> max(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::excluding_int64_dispatcher::binary dispatcher = {
@@ -1294,7 +1336,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
-        inline batch<T, A> max(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> max(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return { std::max(lhs.get(0), rhs.get(0)), std::max(lhs.get(1), rhs.get(1)) };
         }
@@ -1305,32 +1347,32 @@ namespace xsimd
 
         namespace wrap
         {
-            inline int8x16_t vabsq_s8(int8x16_t a) noexcept { return ::vabsq_s8(a); }
-            inline int16x8_t vabsq_s16(int16x8_t a) noexcept { return ::vabsq_s16(a); }
-            inline int32x4_t vabsq_s32(int32x4_t a) noexcept { return ::vabsq_s32(a); }
+            XSIMD_INLINE int8x16_t vabsq_s8(int8x16_t a) noexcept { return ::vabsq_s8(a); }
+            XSIMD_INLINE int16x8_t vabsq_s16(int16x8_t a) noexcept { return ::vabsq_s16(a); }
+            XSIMD_INLINE int32x4_t vabsq_s32(int32x4_t a) noexcept { return ::vabsq_s32(a); }
         }
         WRAP_UNARY_FLOAT(vabsq)
 
         namespace detail
         {
-            inline uint8x16_t abs_u8(uint8x16_t arg) noexcept
+            XSIMD_INLINE uint8x16_t abs_u8(uint8x16_t arg) noexcept
             {
                 return arg;
             }
 
-            inline uint16x8_t abs_u16(uint16x8_t arg) noexcept
+            XSIMD_INLINE uint16x8_t abs_u16(uint16x8_t arg) noexcept
             {
                 return arg;
             }
 
-            inline uint32x4_t abs_u32(uint32x4_t arg) noexcept
+            XSIMD_INLINE uint32x4_t abs_u32(uint32x4_t arg) noexcept
             {
                 return arg;
             }
         }
 
         template <class A, class T, detail::exclude_int64_neon_t<T> = 0>
-        inline batch<T, A> abs(batch<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> abs(batch<T, A> const& arg, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::excluding_int64_dispatcher::unary dispatcher = {
@@ -1345,7 +1387,7 @@ namespace xsimd
          ********/
 
         template <class A>
-        inline batch<float, A> rsqrt(batch<float, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> rsqrt(batch<float, A> const& arg, requires_arch<neon>) noexcept
         {
             return vrsqrteq_f32(arg);
         }
@@ -1355,7 +1397,7 @@ namespace xsimd
          ********/
 
         template <class A>
-        inline batch<float, A> sqrt(batch<float, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> sqrt(batch<float, A> const& arg, requires_arch<neon>) noexcept
         {
             batch<float, A> sqrt_reciprocal = vrsqrteq_f32(arg);
             // one iter
@@ -1371,13 +1413,13 @@ namespace xsimd
 
 #ifdef __ARM_FEATURE_FMA
         template <class A>
-        inline batch<float, A> fma(batch<float, A> const& x, batch<float, A> const& y, batch<float, A> const& z, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> fma(batch<float, A> const& x, batch<float, A> const& y, batch<float, A> const& z, requires_arch<neon>) noexcept
         {
             return vfmaq_f32(z, x, y);
         }
 
         template <class A>
-        inline batch<float, A> fms(batch<float, A> const& x, batch<float, A> const& y, batch<float, A> const& z, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> fms(batch<float, A> const& x, batch<float, A> const& y, batch<float, A> const& z, requires_arch<neon>) noexcept
         {
             return vfmaq_f32(-z, x, y);
         }
@@ -1388,7 +1430,7 @@ namespace xsimd
          *********/
 
         template <class A>
-        inline batch<float, A> haddp(const batch<float, A>* row, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> haddp(const batch<float, A>* row, requires_arch<neon>) noexcept
         {
             // row = (a,b,c,d)
             float32x2_t tmp1, tmp2, tmp3;
@@ -1413,7 +1455,7 @@ namespace xsimd
          **************/
 
         template <class A>
-        inline batch<float, A>
+        XSIMD_INLINE batch<float, A>
         reciprocal(const batch<float, A>& x,
                    kernel::requires_arch<neon>) noexcept
         {
@@ -1425,55 +1467,55 @@ namespace xsimd
          **********/
 
         template <class A, class T, size_t I, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
         {
             return vsetq_lane_u8(val, self, I);
         }
 
         template <class A, class T, size_t I, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
         {
             return vsetq_lane_s8(val, self, I);
         }
 
         template <class A, class T, size_t I, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
         {
             return vsetq_lane_u16(val, self, I);
         }
 
         template <class A, class T, size_t I, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<int16_t, A> insert(batch<int16_t, A> const& self, int16_t val, index<I>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<int16_t, A> insert(batch<int16_t, A> const& self, int16_t val, index<I>, requires_arch<neon>) noexcept
         {
             return vsetq_lane_s16(val, self, I);
         }
 
         template <class A, class T, size_t I, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
         {
             return vsetq_lane_u32(val, self, I);
         }
 
         template <class A, class T, size_t I, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
         {
             return vsetq_lane_s32(val, self, I);
         }
 
         template <class A, class T, size_t I, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
         {
             return vsetq_lane_u64(val, self, I);
         }
 
         template <class A, class T, size_t I, detail::enable_sized_signed_t<T, 8> = 0>
-        inline batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<neon>) noexcept
         {
             return vsetq_lane_s64(val, self, I);
         }
 
         template <class A, size_t I>
-        inline batch<float, A> insert(batch<float, A> const& self, float val, index<I>, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> insert(batch<float, A> const& self, float val, index<I>, requires_arch<neon>) noexcept
         {
             return vsetq_lane_f32(val, self, I);
         }
@@ -1483,8 +1525,8 @@ namespace xsimd
          *******************/
 
         template <class A>
-        inline batch<int32_t, A> nearbyint_as_int(batch<float, A> const& self,
-                                                  requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<int32_t, A> nearbyint_as_int(batch<float, A> const& self,
+                                                        requires_arch<neon>) noexcept
         {
             /* origin: https://github.com/DLTcollab/sse2neon/blob/cad518a93b326f0f644b7972d488d04eaa2b0475/sse2neon.h#L4028-L4047 */
             //  Contributors to this work are:
@@ -1553,7 +1595,7 @@ namespace xsimd
         namespace detail
         {
             template <class T, class A, class V>
-            inline T sum_batch(V const& arg) noexcept
+            XSIMD_INLINE T sum_batch(V const& arg) noexcept
             {
                 T res = T(0);
                 for (std::size_t i = 0; i < batch<T, A>::size; ++i)
@@ -1565,7 +1607,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
         {
             uint8x8_t tmp = vpadd_u8(vget_low_u8(arg), vget_high_u8(arg));
             tmp = vpadd_u8(tmp, tmp);
@@ -1575,7 +1617,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
         {
             int8x8_t tmp = vpadd_s8(vget_low_s8(arg), vget_high_s8(arg));
             tmp = vpadd_s8(tmp, tmp);
@@ -1585,7 +1627,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
         {
             uint16x4_t tmp = vpadd_u16(vget_low_u16(arg), vget_high_u16(arg));
             tmp = vpadd_u16(tmp, tmp);
@@ -1594,7 +1636,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
         {
             int16x4_t tmp = vpadd_s16(vget_low_s16(arg), vget_high_s16(arg));
             tmp = vpadd_s16(tmp, tmp);
@@ -1603,7 +1645,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
         {
             uint32x2_t tmp = vpadd_u32(vget_low_u32(arg), vget_high_u32(arg));
             tmp = vpadd_u32(tmp, tmp);
@@ -1611,7 +1653,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
         {
             int32x2_t tmp = vpadd_s32(vget_low_s32(arg), vget_high_s32(arg));
             tmp = vpadd_s32(tmp, tmp);
@@ -1619,13 +1661,13 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_integral_t<T, 8> = 0>
-        inline typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE typename batch<T, A>::value_type reduce_add(batch<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return arg.get(0) + arg.get(1);
         }
 
         template <class A>
-        inline float reduce_add(batch<float, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE float reduce_add(batch<float, A> const& arg, requires_arch<neon>) noexcept
         {
             float32x2_t tmp = vpadd_f32(vget_low_f32(arg), vget_high_f32(arg));
             tmp = vpadd_f32(tmp, tmp);
@@ -1652,15 +1694,15 @@ namespace xsimd
 
         namespace wrap
         {
-            inline uint8x16_t vbslq_u8(uint8x16_t a, uint8x16_t b, uint8x16_t c) noexcept { return ::vbslq_u8(a, b, c); }
-            inline int8x16_t vbslq_s8(uint8x16_t a, int8x16_t b, int8x16_t c) noexcept { return ::vbslq_s8(a, b, c); }
-            inline uint16x8_t vbslq_u16(uint16x8_t a, uint16x8_t b, uint16x8_t c) noexcept { return ::vbslq_u16(a, b, c); }
-            inline int16x8_t vbslq_s16(uint16x8_t a, int16x8_t b, int16x8_t c) noexcept { return ::vbslq_s16(a, b, c); }
-            inline uint32x4_t vbslq_u32(uint32x4_t a, uint32x4_t b, uint32x4_t c) noexcept { return ::vbslq_u32(a, b, c); }
-            inline int32x4_t vbslq_s32(uint32x4_t a, int32x4_t b, int32x4_t c) noexcept { return ::vbslq_s32(a, b, c); }
-            inline uint64x2_t vbslq_u64(uint64x2_t a, uint64x2_t b, uint64x2_t c) noexcept { return ::vbslq_u64(a, b, c); }
-            inline int64x2_t vbslq_s64(uint64x2_t a, int64x2_t b, int64x2_t c) noexcept { return ::vbslq_s64(a, b, c); }
-            inline float32x4_t vbslq_f32(uint32x4_t a, float32x4_t b, float32x4_t c) noexcept { return ::vbslq_f32(a, b, c); }
+            XSIMD_INLINE uint8x16_t vbslq_u8(uint8x16_t a, uint8x16_t b, uint8x16_t c) noexcept { return ::vbslq_u8(a, b, c); }
+            XSIMD_INLINE int8x16_t vbslq_s8(uint8x16_t a, int8x16_t b, int8x16_t c) noexcept { return ::vbslq_s8(a, b, c); }
+            XSIMD_INLINE uint16x8_t vbslq_u16(uint16x8_t a, uint16x8_t b, uint16x8_t c) noexcept { return ::vbslq_u16(a, b, c); }
+            XSIMD_INLINE int16x8_t vbslq_s16(uint16x8_t a, int16x8_t b, int16x8_t c) noexcept { return ::vbslq_s16(a, b, c); }
+            XSIMD_INLINE uint32x4_t vbslq_u32(uint32x4_t a, uint32x4_t b, uint32x4_t c) noexcept { return ::vbslq_u32(a, b, c); }
+            XSIMD_INLINE int32x4_t vbslq_s32(uint32x4_t a, int32x4_t b, int32x4_t c) noexcept { return ::vbslq_s32(a, b, c); }
+            XSIMD_INLINE uint64x2_t vbslq_u64(uint64x2_t a, uint64x2_t b, uint64x2_t c) noexcept { return ::vbslq_u64(a, b, c); }
+            XSIMD_INLINE int64x2_t vbslq_s64(uint64x2_t a, int64x2_t b, int64x2_t c) noexcept { return ::vbslq_s64(a, b, c); }
+            XSIMD_INLINE float32x4_t vbslq_f32(uint32x4_t a, float32x4_t b, float32x4_t c) noexcept { return ::vbslq_f32(a, b, c); }
         }
 
         namespace detail
@@ -1688,7 +1730,7 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> select(batch_bool<T, A> const& cond, batch<T, A> const& a, batch<T, A> const& b, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> select(batch_bool<T, A> const& cond, batch<T, A> const& a, batch<T, A> const& b, requires_arch<neon>) noexcept
         {
             using bool_register_type = typename batch_bool<T, A>::register_type;
             using register_type = typename batch<T, A>::register_type;
@@ -1701,7 +1743,7 @@ namespace xsimd
         }
 
         template <class A, class T, bool... b, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> select(batch_bool_constant<batch<T, A>, b...> const&, batch<T, A> const& true_br, batch<T, A> const& false_br, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> select(batch_bool_constant<T, A, b...> const&, batch<T, A> const& true_br, batch<T, A> const& false_br, requires_arch<neon>) noexcept
         {
             return select(batch_bool<T, A> { b... }, true_br, false_br, neon {});
         }
@@ -1711,61 +1753,61 @@ namespace xsimd
          **********/
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             uint8x8x2_t tmp = vzip_u8(vget_low_u8(lhs), vget_low_u8(rhs));
             return vcombine_u8(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             int8x8x2_t tmp = vzip_s8(vget_low_s8(lhs), vget_low_s8(rhs));
             return vcombine_s8(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             uint16x4x2_t tmp = vzip_u16(vget_low_u16(lhs), vget_low_u16(rhs));
             return vcombine_u16(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             int16x4x2_t tmp = vzip_s16(vget_low_s16(lhs), vget_low_s16(rhs));
             return vcombine_s16(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             uint32x2x2_t tmp = vzip_u32(vget_low_u32(lhs), vget_low_u32(rhs));
             return vcombine_u32(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             int32x2x2_t tmp = vzip_s32(vget_low_s32(lhs), vget_low_s32(rhs));
             return vcombine_s32(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vcombine_u64(vget_low_u64(lhs), vget_low_u64(rhs));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 8> = 0>
-        inline batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_lo(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vcombine_s64(vget_low_s64(lhs), vget_low_s64(rhs));
         }
 
         template <class A>
-        inline batch<float, A> zip_lo(batch<float, A> const& lhs, batch<float, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> zip_lo(batch<float, A> const& lhs, batch<float, A> const& rhs, requires_arch<neon>) noexcept
         {
             float32x2x2_t tmp = vzip_f32(vget_low_f32(lhs), vget_low_f32(rhs));
             return vcombine_f32(tmp.val[0], tmp.val[1]);
@@ -1776,61 +1818,61 @@ namespace xsimd
          **********/
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             uint8x8x2_t tmp = vzip_u8(vget_high_u8(lhs), vget_high_u8(rhs));
             return vcombine_u8(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             int8x8x2_t tmp = vzip_s8(vget_high_s8(lhs), vget_high_s8(rhs));
             return vcombine_s8(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             uint16x4x2_t tmp = vzip_u16(vget_high_u16(lhs), vget_high_u16(rhs));
             return vcombine_u16(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             int16x4x2_t tmp = vzip_s16(vget_high_s16(lhs), vget_high_s16(rhs));
             return vcombine_s16(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             uint32x2x2_t tmp = vzip_u32(vget_high_u32(lhs), vget_high_u32(rhs));
             return vcombine_u32(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             int32x2x2_t tmp = vzip_s32(vget_high_s32(lhs), vget_high_s32(rhs));
             return vcombine_s32(tmp.val[0], tmp.val[1]);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vcombine_u64(vget_high_u64(lhs), vget_high_u64(rhs));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 8> = 0>
-        inline batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> zip_hi(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vcombine_s64(vget_high_s64(lhs), vget_high_s64(rhs));
         }
 
         template <class A>
-        inline batch<float, A> zip_hi(batch<float, A> const& lhs, batch<float, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<float, A> zip_hi(batch<float, A> const& lhs, batch<float, A> const& rhs, requires_arch<neon>) noexcept
         {
             float32x2x2_t tmp = vzip_f32(vget_high_f32(lhs), vget_high_f32(rhs));
             return vcombine_f32(tmp.val[0], tmp.val[1]);
@@ -1843,14 +1885,14 @@ namespace xsimd
         namespace detail
         {
             template <class A, class T>
-            inline batch<T, A> extract_pair(batch<T, A> const&, batch<T, A> const& /*rhs*/, std::size_t, ::xsimd::detail::index_sequence<>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const&, batch<T, A> const& /*rhs*/, std::size_t, ::xsimd::detail::index_sequence<>) noexcept
             {
                 assert(false && "extract_pair out of bounds");
                 return batch<T, A> {};
             }
 
             template <class A, class T, size_t I, size_t... Is, detail::enable_sized_unsigned_t<T, 1> = 0>
-            inline batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -1863,7 +1905,7 @@ namespace xsimd
             }
 
             template <class A, class T, size_t I, size_t... Is, detail::enable_sized_signed_t<T, 1> = 0>
-            inline batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -1876,7 +1918,7 @@ namespace xsimd
             }
 
             template <class A, class T, size_t I, size_t... Is, detail::enable_sized_unsigned_t<T, 2> = 0>
-            inline batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -1889,7 +1931,7 @@ namespace xsimd
             }
 
             template <class A, class T, size_t I, size_t... Is, detail::enable_sized_signed_t<T, 2> = 0>
-            inline batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -1902,7 +1944,7 @@ namespace xsimd
             }
 
             template <class A, class T, size_t I, size_t... Is, detail::enable_sized_unsigned_t<T, 4> = 0>
-            inline batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -1915,7 +1957,7 @@ namespace xsimd
             }
 
             template <class A, class T, size_t I, size_t... Is, detail::enable_sized_signed_t<T, 4> = 0>
-            inline batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -1928,7 +1970,7 @@ namespace xsimd
             }
 
             template <class A, class T, size_t I, size_t... Is, detail::enable_sized_unsigned_t<T, 8> = 0>
-            inline batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -1941,7 +1983,7 @@ namespace xsimd
             }
 
             template <class A, class T, size_t I, size_t... Is, detail::enable_sized_signed_t<T, 8> = 0>
-            inline batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -1954,7 +1996,7 @@ namespace xsimd
             }
 
             template <class A, size_t I, size_t... Is>
-            inline batch<float, A> extract_pair(batch<float, A> const& lhs, batch<float, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<float, A> extract_pair(batch<float, A> const& lhs, batch<float, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -1967,7 +2009,7 @@ namespace xsimd
             }
 
             template <class A, class T, size_t... Is>
-            inline batch<T, A> extract_pair_impl(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<0, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> extract_pair_impl(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, ::xsimd::detail::index_sequence<0, Is...>) noexcept
             {
                 if (n == 0)
                 {
@@ -1981,7 +2023,7 @@ namespace xsimd
         }
 
         template <class A, class T>
-        inline batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& lhs, batch<T, A> const& rhs, std::size_t n, requires_arch<neon>) noexcept
         {
             constexpr std::size_t size = batch<T, A>::size;
             assert(n < size && "index in bounds");
@@ -1995,14 +2037,14 @@ namespace xsimd
         namespace detail
         {
             template <class A, class T>
-            inline batch<T, A> bitwise_lshift(batch<T, A> const& /*lhs*/, int /*n*/, ::xsimd::detail::int_sequence<>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& /*lhs*/, int /*n*/, ::xsimd::detail::int_sequence<>) noexcept
             {
                 assert(false && "bitwise_lshift out of bounds");
                 return batch<T, A> {};
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_unsigned_t<T, 1> = 0>
-            inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2015,7 +2057,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_signed_t<T, 1> = 0>
-            inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2028,7 +2070,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_unsigned_t<T, 2> = 0>
-            inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2041,7 +2083,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_signed_t<T, 2> = 0>
-            inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2054,7 +2096,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_unsigned_t<T, 4> = 0>
-            inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2067,7 +2109,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_signed_t<T, 4> = 0>
-            inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2080,7 +2122,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_unsigned_t<T, 8> = 0>
-            inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2093,7 +2135,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_signed_t<T, 8> = 0>
-            inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2106,7 +2148,7 @@ namespace xsimd
             }
 
             template <class A, class T, int... Is>
-            inline batch<T, A> bitwise_lshift_impl(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<0, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_lshift_impl(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<0, Is...>) noexcept
             {
                 if (n == 0)
                 {
@@ -2120,7 +2162,7 @@ namespace xsimd
         }
 
         template <class A, class T>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, int n, requires_arch<neon>) noexcept
         {
             constexpr int size = sizeof(typename batch<T, A>::value_type) * 8;
             assert(0 <= n && n < size && "index in bounds");
@@ -2128,49 +2170,49 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_u8(lhs, rhs);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_s8(lhs, rhs);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_u16(lhs, rhs);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_s16(lhs, rhs);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_u32(lhs, rhs);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_s32(lhs, rhs);
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 8> = 0>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_u64(lhs, rhs);
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 8> = 0>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_s64(lhs, rhs);
         }
@@ -2182,14 +2224,14 @@ namespace xsimd
         namespace detail
         {
             template <class A, class T>
-            inline batch<T, A> bitwise_rshift(batch<T, A> const& /*lhs*/, int /*n*/, ::xsimd::detail::int_sequence<>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& /*lhs*/, int /*n*/, ::xsimd::detail::int_sequence<>) noexcept
             {
                 assert(false && "bitwise_rshift out of bounds");
                 return batch<T, A> {};
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_unsigned_t<T, 1> = 0>
-            inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2202,7 +2244,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_signed_t<T, 1> = 0>
-            inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2215,7 +2257,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_unsigned_t<T, 2> = 0>
-            inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2228,7 +2270,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_signed_t<T, 2> = 0>
-            inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2241,7 +2283,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_unsigned_t<T, 4> = 0>
-            inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2254,7 +2296,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_signed_t<T, 4> = 0>
-            inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2267,7 +2309,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_unsigned_t<T, 8> = 0>
-            inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2280,7 +2322,7 @@ namespace xsimd
             }
 
             template <class A, class T, int I, int... Is, detail::enable_sized_signed_t<T, 8> = 0>
-            inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<I, Is...>) noexcept
             {
                 if (n == I)
                 {
@@ -2293,7 +2335,7 @@ namespace xsimd
             }
 
             template <class A, class T, int... Is>
-            inline batch<T, A> bitwise_rshift_impl(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<0, Is...>) noexcept
+            XSIMD_INLINE batch<T, A> bitwise_rshift_impl(batch<T, A> const& lhs, int n, ::xsimd::detail::int_sequence<0, Is...>) noexcept
             {
                 if (n == 0)
                 {
@@ -2307,7 +2349,7 @@ namespace xsimd
         }
 
         template <class A, class T>
-        inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, int n, requires_arch<neon>) noexcept
         {
             constexpr int size = sizeof(typename batch<T, A>::value_type) * 8;
             assert(0 <= n && n < size && "index in bounds");
@@ -2315,37 +2357,37 @@ namespace xsimd
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 1> = 0>
-        inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_u8(lhs, vnegq_s8(rhs));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 1> = 0>
-        inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_s8(lhs, vnegq_s8(rhs));
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 2> = 0>
-        inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_u16(lhs, vnegq_s16(rhs));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 2> = 0>
-        inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_s16(lhs, vnegq_s16(rhs));
         }
 
         template <class A, class T, detail::enable_sized_unsigned_t<T, 4> = 0>
-        inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<as_signed_integer_t<T>, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_u32(lhs, vnegq_s32(rhs));
         }
 
         template <class A, class T, detail::enable_sized_signed_t<T, 4> = 0>
-        inline batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& lhs, batch<T, A> const& rhs, requires_arch<neon>) noexcept
         {
             return vshlq_s32(lhs, vnegq_s32(rhs));
         }
@@ -2357,26 +2399,26 @@ namespace xsimd
          *******/
 
         template <class A, class T, detail::enable_sized_t<T, 8> = 0>
-        inline bool all(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE bool all(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             uint64x1_t tmp = vand_u64(vget_low_u64(arg), vget_high_u64(arg));
             return vget_lane_u64(tmp, 0) == ~0ULL;
         }
 
         template <class A, class T, detail::enable_sized_t<T, 1> = 0>
-        inline bool all(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE bool all(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return all(batch_bool<uint64_t, A>(vreinterpretq_u64_u8(arg)), neon {});
         }
 
         template <class A, class T, detail::enable_sized_t<T, 2> = 0>
-        inline bool all(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE bool all(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return all(batch_bool<uint64_t, A>(vreinterpretq_u64_u16(arg)), neon {});
         }
 
         template <class A, class T, detail::enable_sized_t<T, 4> = 0>
-        inline bool all(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE bool all(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return all(batch_bool<uint64_t, A>(vreinterpretq_u64_u32(arg)), neon {});
         }
@@ -2386,26 +2428,26 @@ namespace xsimd
          *******/
 
         template <class A, class T, detail::enable_sized_t<T, 8> = 0>
-        inline bool any(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE bool any(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             uint32x2_t tmp = vqmovn_u64(arg);
             return vget_lane_u64(vreinterpret_u64_u32(tmp), 0) != 0;
         }
 
         template <class A, class T, detail::enable_sized_t<T, 1> = 0>
-        inline bool any(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE bool any(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return any(batch_bool<uint64_t, A>(vreinterpretq_u64_u8(arg)), neon {});
         }
 
         template <class A, class T, detail::enable_sized_t<T, 2> = 0>
-        inline bool any(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE bool any(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return any(batch_bool<uint64_t, A>(vreinterpretq_u64_u16(arg)), neon {});
         }
 
         template <class A, class T, detail::enable_sized_t<T, 4> = 0>
-        inline bool any(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE bool any(batch_bool<T, A> const& arg, requires_arch<neon>) noexcept
         {
             return any(batch_bool<uint64_t, A>(vreinterpretq_u64_u32(arg)), neon {});
         }
@@ -2414,45 +2456,45 @@ namespace xsimd
          * bitwise_cast *
          ****************/
 
-#define WRAP_CAST(SUFFIX, TYPE)                                          \
-    namespace wrap                                                       \
-    {                                                                    \
-        inline TYPE vreinterpretq_##SUFFIX##_u8(uint8x16_t a) noexcept   \
-        {                                                                \
-            return ::vreinterpretq_##SUFFIX##_u8(a);                     \
-        }                                                                \
-        inline TYPE vreinterpretq_##SUFFIX##_s8(int8x16_t a) noexcept    \
-        {                                                                \
-            return ::vreinterpretq_##SUFFIX##_s8(a);                     \
-        }                                                                \
-        inline TYPE vreinterpretq_##SUFFIX##_u16(uint16x8_t a) noexcept  \
-        {                                                                \
-            return ::vreinterpretq_##SUFFIX##_u16(a);                    \
-        }                                                                \
-        inline TYPE vreinterpretq_##SUFFIX##_s16(int16x8_t a) noexcept   \
-        {                                                                \
-            return ::vreinterpretq_##SUFFIX##_s16(a);                    \
-        }                                                                \
-        inline TYPE vreinterpretq_##SUFFIX##_u32(uint32x4_t a) noexcept  \
-        {                                                                \
-            return ::vreinterpretq_##SUFFIX##_u32(a);                    \
-        }                                                                \
-        inline TYPE vreinterpretq_##SUFFIX##_s32(int32x4_t a) noexcept   \
-        {                                                                \
-            return ::vreinterpretq_##SUFFIX##_s32(a);                    \
-        }                                                                \
-        inline TYPE vreinterpretq_##SUFFIX##_u64(uint64x2_t a) noexcept  \
-        {                                                                \
-            return ::vreinterpretq_##SUFFIX##_u64(a);                    \
-        }                                                                \
-        inline TYPE vreinterpretq_##SUFFIX##_s64(int64x2_t a) noexcept   \
-        {                                                                \
-            return ::vreinterpretq_##SUFFIX##_s64(a);                    \
-        }                                                                \
-        inline TYPE vreinterpretq_##SUFFIX##_f32(float32x4_t a) noexcept \
-        {                                                                \
-            return ::vreinterpretq_##SUFFIX##_f32(a);                    \
-        }                                                                \
+#define WRAP_CAST(SUFFIX, TYPE)                                                \
+    namespace wrap                                                             \
+    {                                                                          \
+        XSIMD_INLINE TYPE vreinterpretq_##SUFFIX##_u8(uint8x16_t a) noexcept   \
+        {                                                                      \
+            return ::vreinterpretq_##SUFFIX##_u8(a);                           \
+        }                                                                      \
+        XSIMD_INLINE TYPE vreinterpretq_##SUFFIX##_s8(int8x16_t a) noexcept    \
+        {                                                                      \
+            return ::vreinterpretq_##SUFFIX##_s8(a);                           \
+        }                                                                      \
+        XSIMD_INLINE TYPE vreinterpretq_##SUFFIX##_u16(uint16x8_t a) noexcept  \
+        {                                                                      \
+            return ::vreinterpretq_##SUFFIX##_u16(a);                          \
+        }                                                                      \
+        XSIMD_INLINE TYPE vreinterpretq_##SUFFIX##_s16(int16x8_t a) noexcept   \
+        {                                                                      \
+            return ::vreinterpretq_##SUFFIX##_s16(a);                          \
+        }                                                                      \
+        XSIMD_INLINE TYPE vreinterpretq_##SUFFIX##_u32(uint32x4_t a) noexcept  \
+        {                                                                      \
+            return ::vreinterpretq_##SUFFIX##_u32(a);                          \
+        }                                                                      \
+        XSIMD_INLINE TYPE vreinterpretq_##SUFFIX##_s32(int32x4_t a) noexcept   \
+        {                                                                      \
+            return ::vreinterpretq_##SUFFIX##_s32(a);                          \
+        }                                                                      \
+        XSIMD_INLINE TYPE vreinterpretq_##SUFFIX##_u64(uint64x2_t a) noexcept  \
+        {                                                                      \
+            return ::vreinterpretq_##SUFFIX##_u64(a);                          \
+        }                                                                      \
+        XSIMD_INLINE TYPE vreinterpretq_##SUFFIX##_s64(int64x2_t a) noexcept   \
+        {                                                                      \
+            return ::vreinterpretq_##SUFFIX##_s64(a);                          \
+        }                                                                      \
+        XSIMD_INLINE TYPE vreinterpretq_##SUFFIX##_f32(float32x4_t a) noexcept \
+        {                                                                      \
+            return ::vreinterpretq_##SUFFIX##_f32(a);                          \
+        }                                                                      \
     }
 
         WRAP_CAST(u8, uint8x16_t)
@@ -2485,7 +2527,7 @@ namespace xsimd
             };
 
             template <class R, class... T>
-            inline const bitwise_caster_impl<R, T...> make_bitwise_caster_impl(R (*... arg)(T)) noexcept
+            XSIMD_INLINE const bitwise_caster_impl<R, T...> make_bitwise_caster_impl(R (*... arg)(T)) noexcept
             {
                 return { std::make_tuple(arg...) };
             }
@@ -2524,7 +2566,7 @@ namespace xsimd
         }
 
         template <class A, class T, class R>
-        inline batch<R, A> bitwise_cast(batch<T, A> const& arg, batch<R, A> const&, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<R, A> bitwise_cast(batch<T, A> const& arg, batch<R, A> const&, requires_arch<neon>) noexcept
         {
             const detail::neon_bitwise_caster caster = {
                 std::make_tuple(
@@ -2566,7 +2608,7 @@ namespace xsimd
          *********/
 
         template <class A>
-        inline batch_bool<float, A> isnan(batch<float, A> const& arg, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch_bool<float, A> isnan(batch<float, A> const& arg, requires_arch<neon>) noexcept
         {
             return !(arg == arg);
         }
@@ -2578,7 +2620,7 @@ namespace xsimd
             struct slider_left
             {
                 template <class A, class T>
-                inline batch<T, A> operator()(batch<T, A> const& x, requires_arch<neon>) noexcept
+                XSIMD_INLINE batch<T, A> operator()(batch<T, A> const& x, requires_arch<neon>) noexcept
                 {
                     const auto left = vdupq_n_u8(0);
                     const auto right = bitwise_cast<uint8_t>(x).data;
@@ -2591,7 +2633,7 @@ namespace xsimd
             struct slider_left<0>
             {
                 template <class A, class T>
-                inline batch<T, A> operator()(batch<T, A> const& x, requires_arch<neon>) noexcept
+                XSIMD_INLINE batch<T, A> operator()(batch<T, A> const& x, requires_arch<neon>) noexcept
                 {
                     return x;
                 }
@@ -2599,7 +2641,7 @@ namespace xsimd
         } // namespace detail
 
         template <size_t N, class A, class T>
-        inline batch<T, A> slide_left(batch<T, A> const& x, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> slide_left(batch<T, A> const& x, requires_arch<neon>) noexcept
         {
             return detail::slider_left<N> {}(x, A {});
         }
@@ -2611,7 +2653,7 @@ namespace xsimd
             struct slider_right
             {
                 template <class A, class T>
-                inline batch<T, A> operator()(batch<T, A> const& x, requires_arch<neon>) noexcept
+                XSIMD_INLINE batch<T, A> operator()(batch<T, A> const& x, requires_arch<neon>) noexcept
                 {
                     const auto left = bitwise_cast<uint8_t>(x).data;
                     const auto right = vdupq_n_u8(0);
@@ -2624,7 +2666,7 @@ namespace xsimd
             struct slider_right<16>
             {
                 template <class A, class T>
-                inline batch<T, A> operator()(batch<T, A> const&, requires_arch<neon>) noexcept
+                XSIMD_INLINE batch<T, A> operator()(batch<T, A> const&, requires_arch<neon>) noexcept
                 {
                     return batch<T, A> {};
                 }
@@ -2632,7 +2674,7 @@ namespace xsimd
         } // namespace detail
 
         template <size_t N, class A, class T>
-        inline batch<T, A> slide_right(batch<T, A> const& x, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> slide_right(batch<T, A> const& x, requires_arch<neon>) noexcept
         {
             return detail::slider_right<N> {}(x, A {});
         }
@@ -2643,27 +2685,27 @@ namespace xsimd
         namespace wrap
         {
             template <size_t N>
-            inline uint8x16_t rotate_right_u8(uint8x16_t a, uint8x16_t b) noexcept { return vextq_u8(a, b, N); }
+            XSIMD_INLINE uint8x16_t rotate_right_u8(uint8x16_t a, uint8x16_t b) noexcept { return vextq_u8(a, b, N); }
             template <size_t N>
-            inline int8x16_t rotate_right_s8(int8x16_t a, int8x16_t b) noexcept { return vextq_s8(a, b, N); }
+            XSIMD_INLINE int8x16_t rotate_right_s8(int8x16_t a, int8x16_t b) noexcept { return vextq_s8(a, b, N); }
             template <size_t N>
-            inline uint16x8_t rotate_right_u16(uint16x8_t a, uint16x8_t b) noexcept { return vextq_u16(a, b, N); }
+            XSIMD_INLINE uint16x8_t rotate_right_u16(uint16x8_t a, uint16x8_t b) noexcept { return vextq_u16(a, b, N); }
             template <size_t N>
-            inline int16x8_t rotate_right_s16(int16x8_t a, int16x8_t b) noexcept { return vextq_s16(a, b, N); }
+            XSIMD_INLINE int16x8_t rotate_right_s16(int16x8_t a, int16x8_t b) noexcept { return vextq_s16(a, b, N); }
             template <size_t N>
-            inline uint32x4_t rotate_right_u32(uint32x4_t a, uint32x4_t b) noexcept { return vextq_u32(a, b, N); }
+            XSIMD_INLINE uint32x4_t rotate_right_u32(uint32x4_t a, uint32x4_t b) noexcept { return vextq_u32(a, b, N); }
             template <size_t N>
-            inline int32x4_t rotate_right_s32(int32x4_t a, int32x4_t b) noexcept { return vextq_s32(a, b, N); }
+            XSIMD_INLINE int32x4_t rotate_right_s32(int32x4_t a, int32x4_t b) noexcept { return vextq_s32(a, b, N); }
             template <size_t N>
-            inline uint64x2_t rotate_right_u64(uint64x2_t a, uint64x2_t b) noexcept { return vextq_u64(a, b, N); }
+            XSIMD_INLINE uint64x2_t rotate_right_u64(uint64x2_t a, uint64x2_t b) noexcept { return vextq_u64(a, b, N); }
             template <size_t N>
-            inline int64x2_t rotate_right_s64(int64x2_t a, int64x2_t b) noexcept { return vextq_s64(a, b, N); }
+            XSIMD_INLINE int64x2_t rotate_right_s64(int64x2_t a, int64x2_t b) noexcept { return vextq_s64(a, b, N); }
             template <size_t N>
-            inline float32x4_t rotate_right_f32(float32x4_t a, float32x4_t b) noexcept { return vextq_f32(a, b, N); }
+            XSIMD_INLINE float32x4_t rotate_right_f32(float32x4_t a, float32x4_t b) noexcept { return vextq_f32(a, b, N); }
         }
 
         template <size_t N, class A, class T, detail::enable_neon_type_t<T> = 0>
-        inline batch<T, A> rotate_right(batch<T, A> const& a, requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> rotate_right(batch<T, A> const& a, requires_arch<neon>) noexcept
         {
             using register_type = typename batch<T, A>::register_type;
             const detail::neon_dispatcher::binary dispatcher = {
@@ -2675,7 +2717,7 @@ namespace xsimd
         }
     }
 
-    template <class batch_type, typename batch_type::value_type... Values>
+    template <typename T, class A, T... Values>
     struct batch_constant;
 
     namespace kernel
@@ -2685,9 +2727,9 @@ namespace xsimd
          ***********/
 
         template <class A, class T, class I, I... idx>
-        inline batch<T, A> swizzle(batch<T, A> const& self,
-                                   batch_constant<batch<I, A>, idx...>,
-                                   requires_arch<neon>) noexcept
+        XSIMD_INLINE batch<T, A> swizzle(batch<T, A> const& self,
+                                         batch_constant<I, A, idx...>,
+                                         requires_arch<neon>) noexcept
         {
             static_assert(batch<T, A>::size == sizeof...(idx), "valid swizzle indices");
             std::array<T, batch<T, A>::size> data;

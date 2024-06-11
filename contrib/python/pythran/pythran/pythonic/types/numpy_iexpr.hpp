@@ -3,20 +3,21 @@
 
 #include "pythonic/include/types/numpy_iexpr.hpp"
 
-#include "pythonic/types/nditerator.hpp"
-#include "pythonic/types/tuple.hpp"
-#include "pythonic/utils/array_helper.hpp"
-#include "pythonic/utils/broadcast_copy.hpp"
 #include "pythonic/include/types/raw_array.hpp"
 #include "pythonic/types/ndarray.hpp" // we should remove that dep during a refactoring :-)
+#include "pythonic/types/nditerator.hpp"
+#include "pythonic/types/tuple.hpp"
+#include "pythonic/utils/allocate.hpp"
+#include "pythonic/utils/array_helper.hpp"
+#include "pythonic/utils/broadcast_copy.hpp"
 
 #include "pythonic/operator_/iadd.hpp"
 #include "pythonic/operator_/iand.hpp"
 #include "pythonic/operator_/idiv.hpp"
 #include "pythonic/operator_/imul.hpp"
 #include "pythonic/operator_/ior.hpp"
-#include "pythonic/operator_/ixor.hpp"
 #include "pythonic/operator_/isub.hpp"
+#include "pythonic/operator_/ixor.hpp"
 
 #include <numeric>
 
@@ -26,8 +27,7 @@ namespace types
 {
 
   template <class Arg>
-  numpy_iexpr<Arg>::numpy_iexpr()
-      : buffer(nullptr)
+  numpy_iexpr<Arg>::numpy_iexpr() : buffer(nullptr)
   {
   }
 
@@ -306,12 +306,12 @@ namespace types
   numpy_iexpr<Arg>::fast(F const &filter) const
   {
     long sz = filter.template shape<0>();
-    long *raw = (long *)malloc(sz * sizeof(long));
+    long *raw = utils::allocate<long>(sz);
     long n = 0;
     for (long i = 0; i < sz; ++i)
       if (filter.fast(i))
         raw[n++] = i;
-    // realloc(raw, n * sizeof(long));
+    // reallocate(raw, n);
     long shp[1] = {n};
     return this->fast(
         ndarray<long, pshape<long>>(raw, shp, types::ownership::owned));
@@ -321,7 +321,7 @@ namespace types
   template <class Arg>
   template <class vectorizer>
   typename numpy_iexpr<Arg>::simd_iterator
-      numpy_iexpr<Arg>::vbegin(vectorizer) const
+  numpy_iexpr<Arg>::vbegin(vectorizer) const
   {
     return {buffer};
   }
@@ -329,7 +329,7 @@ namespace types
   template <class Arg>
   template <class vectorizer>
   typename numpy_iexpr<Arg>::simd_iterator
-      numpy_iexpr<Arg>::vend(vectorizer) const
+  numpy_iexpr<Arg>::vend(vectorizer) const
   {
     using vector_type = typename xsimd::batch<dtype>;
     static const std::size_t vector_size = vector_type::size;
@@ -346,7 +346,7 @@ namespace types
   }
 
   template <class Arg>
-      auto numpy_iexpr<Arg>::operator[](long i) & -> decltype(this->fast(i))
+  auto numpy_iexpr<Arg>::operator[](long i) & -> decltype(this->fast(i))
   {
     if (i < 0)
       i += size();
@@ -354,8 +354,8 @@ namespace types
   }
 
   template <class Arg>
-      auto numpy_iexpr<Arg>::operator[](long i) &&
-      -> decltype(std::move(*this).fast(i))
+  auto
+  numpy_iexpr<Arg>::operator[](long i) && -> decltype(std::move(*this).fast(i))
   {
     if (i < 0)
       i += size();
@@ -366,8 +366,7 @@ namespace types
   template <class Sp>
   typename std::enable_if<is_slice<Sp>::value,
                           numpy_gexpr<numpy_iexpr<Arg>, normalize_t<Sp>>>::type
-      numpy_iexpr<Arg>::
-      operator[](Sp const &s0) const
+  numpy_iexpr<Arg>::operator[](Sp const &s0) const
   {
     return make_gexpr(*this, s0);
   }
@@ -377,8 +376,7 @@ namespace types
   typename std::enable_if<
       is_slice<Sp>::value,
       numpy_gexpr<numpy_iexpr<Arg>, normalize_t<Sp>, normalize_t<S>...>>::type
-      numpy_iexpr<Arg>::
-      operator()(Sp const &s0, S const &... s) const
+  numpy_iexpr<Arg>::operator()(Sp const &s0, S const &...s) const
   {
     return make_gexpr(*this, s0, s...);
   }
@@ -388,8 +386,7 @@ namespace types
   typename std::enable_if<
       is_numexpr_arg<F>::value && std::is_same<bool, typename F::dtype>::value,
       numpy_vexpr<numpy_iexpr<Arg>, ndarray<long, pshape<long>>>>::type
-      numpy_iexpr<Arg>::
-      operator[](F const &filter) const
+  numpy_iexpr<Arg>::operator[](F const &filter) const
   {
     return fast(filter);
   }
@@ -406,18 +403,17 @@ namespace types
                         T1 const &shape, std::integral_constant<long, I>)
   {
     return compute_offset(
-        offset +
-            (std::get<I - 1>(indices) < 0
-                 ? std::get<I - 1>(indices) + shape.template shape<I>()
-                 : std::get<I - 1>(indices)) *
-                mult,
+        offset + (std::get<I - 1>(indices) < 0
+                      ? std::get<I - 1>(indices) + shape.template shape<I>()
+                      : std::get<I - 1>(indices)) *
+                     mult,
         mult * shape.template shape<I>(), indices, shape,
         std::integral_constant<long, I - 1>());
   }
 
   template <class Arg>
-  typename numpy_iexpr<Arg>::dtype const &numpy_iexpr<Arg>::
-  operator[](array<long, value> const &indices) const
+  typename numpy_iexpr<Arg>::dtype const &
+  numpy_iexpr<Arg>::operator[](array<long, value> const &indices) const
   {
     return buffer[compute_offset(indices[value - 1] < 0
                                      ? indices[value - 1] +
@@ -428,8 +424,8 @@ namespace types
   }
 
   template <class Arg>
-  typename numpy_iexpr<Arg>::dtype &numpy_iexpr<Arg>::
-  operator[](array<long, value> const &indices)
+  typename numpy_iexpr<Arg>::dtype &
+  numpy_iexpr<Arg>::operator[](array<long, value> const &indices)
   {
     return const_cast<dtype &>(const_cast<numpy_iexpr const &>(*this)[indices]);
   }
@@ -504,7 +500,7 @@ namespace types
   {
     return e.buffer[i * e.template strides<T::value - 1>()];
   }
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

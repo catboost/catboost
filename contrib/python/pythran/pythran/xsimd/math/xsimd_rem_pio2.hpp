@@ -217,7 +217,7 @@ namespace xsimd
          *
          */
 
-        inline int32_t __kernel_rem_pio2(double* x, double* y, int32_t e0, int32_t nx, int32_t prec, const int32_t* ipio2) noexcept
+        XSIMD_INLINE int32_t __kernel_rem_pio2(double* x, double* y, int32_t e0, int32_t nx, int32_t prec, const int32_t* ipio2) noexcept
         {
             static const int32_t init_jk[] = { 2, 3, 4, 6 }; /* initial value for jk */
 
@@ -450,7 +450,7 @@ namespace xsimd
             return n & 7;
         }
 
-        inline std::int32_t __ieee754_rem_pio2(double x, double* y) noexcept
+        XSIMD_INLINE std::int32_t __ieee754_rem_pio2(double x, double* y) noexcept
         {
             static const std::int32_t two_over_pi[] = {
                 0xA2F983,

@@ -5,6 +5,7 @@
 #include "pythonic/include/types/empty_iterator.hpp"
 #include "pythonic/include/types/tuple.hpp"
 
+#include "pythonic/include/utils/allocate.hpp"
 #include "pythonic/include/utils/iterator.hpp"
 #include "pythonic/include/utils/reserve.hpp"
 #include "pythonic/include/utils/shared_ref.hpp"
@@ -14,7 +15,6 @@
 #include <algorithm>
 #include <iterator>
 #include <limits>
-#include <memory>
 #include <unordered_map>
 #include <utility>
 
@@ -104,7 +104,9 @@ namespace types
         typename std::remove_cv<typename std::remove_reference<K>::type>::type;
     using _value_type =
         typename std::remove_cv<typename std::remove_reference<V>::type>::type;
-    using container_type = std::unordered_map<_key_type, _value_type>;
+    using container_type = std::unordered_map<
+        _key_type, _value_type, std::hash<_key_type>, std::equal_to<_key_type>,
+        utils::allocator<std::pair<const _key_type, _value_type>>>;
 
     utils::shared_ref<container_type> data;
     template <class Kp, class Vp>

@@ -81,7 +81,7 @@ namespace xsimd
      * @return true if the alignment requirements are met
      */
     template <class Arch = default_arch>
-    inline bool is_aligned(void const* ptr)
+    XSIMD_INLINE bool is_aligned(void const* ptr)
     {
         return (reinterpret_cast<uintptr_t>(ptr) % static_cast<uintptr_t>(Arch::alignment())) == 0;
     }

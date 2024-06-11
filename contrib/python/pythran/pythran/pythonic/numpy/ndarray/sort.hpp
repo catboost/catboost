@@ -4,12 +4,12 @@
 #include "pythonic/include/numpy/ndarray/sort.hpp"
 
 #include <algorithm>
-#include <memory>
 
-#include "pythonic/utils/functor.hpp"
+#include "pythonic/numpy/array.hpp"
 #include "pythonic/types/ndarray.hpp"
 #include "pythonic/types/str.hpp"
-#include "pythonic/numpy/array.hpp"
+#include "pythonic/utils/allocate.hpp"
+#include "pythonic/utils/functor.hpp"
 #include "pythonic/utils/pdqsort.hpp"
 
 PYTHONIC_NS_BEGIN
@@ -22,7 +22,7 @@ namespace numpy
     {
       struct quicksorter {
         template <class... Args>
-        void operator()(Args &&... args)
+        void operator()(Args &&...args)
         {
           pdqsort(std::forward<Args>(args)...);
         }
@@ -41,14 +41,14 @@ namespace numpy
       };
       struct heapsorter {
         template <class... Args>
-        void operator()(Args &&... args)
+        void operator()(Args &&...args)
         {
           return std::sort_heap(std::forward<Args>(args)...);
         }
       };
       struct stablesorter {
         template <class... Args>
-        void operator()(Args &&... args)
+        void operator()(Args &&...args)
         {
           return std::stable_sort(std::forward<Args>(args)...);
         }
@@ -102,11 +102,11 @@ namespace numpy
           const long stepper = step / out_shape[axis];
           const long n = flat_size / out_shape[axis];
           long ith = 0, nth = 0;
-          std::unique_ptr<T[]> buffer{new T[buffer_size]};
+          T *buffer = utils::allocate<T>(buffer_size);
           for (long i = 0; i < n; i++) {
             for (long j = 0; j < buffer_size; ++j)
               buffer[j] = out.buffer[ith + j * stepper];
-            sorter(buffer.get(), buffer.get() + buffer_size, comparator<T>{});
+            sorter(buffer, buffer + buffer_size, comparator<T>{});
             for (long j = 0; j < buffer_size; ++j)
               out.buffer[ith + j * stepper] = buffer[j];
 
@@ -115,9 +115,10 @@ namespace numpy
               ith = ++nth;
             }
           }
+          utils::deallocate(buffer);
         }
       }
-    }
+    } // namespace
 
     template <class E>
     types::none_type sort(E &&expr, long axis, types::none_type)
@@ -146,8 +147,8 @@ namespace numpy
         _sort(expr, axis, stablesorter());
       return {};
     }
-  }
-}
+  } // namespace ndarray
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

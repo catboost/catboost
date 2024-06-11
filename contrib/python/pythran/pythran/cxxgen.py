@@ -355,6 +355,17 @@ class StatementWithComments(object):
             yield s
 
 
+class InstrumentedStatement(object):
+    def __init__(self, stmt,instrumentation):
+        self.stmt = stmt
+        self.instrumentation = instrumentation
+
+    def generate(self):
+        yield self.instrumentation
+        for s in self.stmt.generate():
+            yield s
+
+
 class ReturnStatement(Statement):
     def generate(self):
         yield "return " + self.text + ";"
@@ -476,6 +487,7 @@ class PythonModule(object):
         self.global_vars = []
         self.implems = []
         self.capsules = []
+        self.ufuncs = {}
         self.python_implems = []
         self.wrappers = []
         self.docstrings = docstrings
@@ -501,6 +513,12 @@ class PythonModule(object):
 
     def add_capsule(self, func, ptrname, sig):
         self.capsules.append((ptrname, sig))
+        self.implems.append(func)
+
+    def add_ufunc(self, func, funcname, funcobject, functypes, signature):
+        self.ufuncs.setdefault(funcname, []).append(
+                            (funcobject, functypes, signature)
+                            )
         self.implems.append(func)
 
     def add_function(self, func, name, types, signature):
@@ -630,6 +648,45 @@ class PythonModule(object):
                          sig=sig)
             theextraobjects.append(capsule)
 
+        for fname, overloads in self.ufuncs.items():
+            fdoc = self.docstring(self.docstrings.get(fname, ''))
+            funcs = []
+            types = []
+            for wrapper_name, wrapper_types, overload in overloads:
+                funcs.append("pythonic::types::ufunc_wrapper<{}, {}>".format(
+                    wrapper_name, ", ".join(wrapper_types)))
+                types.extend(overload)
+
+            ufunc = '''
+            {{
+            static PyUFuncGenericFunction funcs [] = {{{funcs}}};
+            static char types[] = {{{types}}};
+            PyModule_AddObject(
+                theModule,
+                "{name}",
+                PyUFunc_FromFuncAndData(
+                    funcs,
+                    NULL,
+                    types,
+                    {noverloads}, {ninputs}, {noutputs},
+                    PyUFunc_None,
+                    "{name}",
+                    {doc},
+                    0
+                )
+            );
+            }}
+            '''.format(name=fname,
+                       funcs=", ".join(['reinterpret_cast<PyUFuncGenericFunction>(&{})'.format(f) for f in
+                                        funcs]),
+                       types=", ".join(types),
+                       noverloads=len(overloads),
+                       ninputs=len(types) // len(funcs) - 1,
+                       noutputs=1,
+                       doc=fdoc
+                       )
+            theextraobjects.append(ufunc)
+
         methods = dedent('''
             static PyMethodDef Methods[] = {{
                 {methods}
@@ -667,7 +724,8 @@ class PythonModule(object):
             ;
             PyMODINIT_FUNC
             PYTHRAN_MODULE_INIT({name})(void) {{
-                import_array()
+                import_array();
+                {import_umath}
                 #if PY_MAJOR_VERSION >= 3
                 PyObject* theModule = PyModule_Create(&moduledef);
                 #else
@@ -691,6 +749,7 @@ class PythonModule(object):
                 PYTHRAN_RETURN;
             }}
             '''.format(name=self.name,
+                       import_umath="import_umath();" if self.ufuncs else "",
                        extraobjects='\n'.join(theextraobjects),
                        **self.metadata))
 

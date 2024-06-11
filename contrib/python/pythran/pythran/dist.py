@@ -4,6 +4,8 @@ This modules contains a distutils extension mechanism for Pythran
 '''
 
 import pythran.config as cfg
+from pythran.tables import blas_requires
+from pythran.utils import cxxid
 
 from collections import defaultdict
 try:
@@ -12,6 +14,7 @@ except ImportError:
     from collections import Iterable
 import os.path
 import os
+import re
 
 try:
     from distutils.command.build_ext import build_ext as LegacyBuildExt
@@ -140,23 +143,50 @@ class PythranBuildExt(PythranBuildExtMixIn, LegacyBuildExt, metaclass=PythranBui
     pass
 
 
+blas_requirements = {"/".join(map(cxxid, elem)) for elem in blas_requires}
+
+includes_matcher = re.compile(r'^#include <pythonic/include/(.*)\.hpp>$',
+                              re.MULTILINE)
+
+def requires_blas(source):
+    if not os.path.exists(source) or os.path.splitext(source)[1] != ".cpp":
+        return False  # conservative
+
+    with open(source) as fd:
+        content = fd.read()
+
+    return not blas_requirements.isdisjoint(includes_matcher.findall(content))
+
+
 class PythranExtension(Extension):
     '''
     Description of a Pythran extension
 
-    Similar to distutils.core.Extension except that the sources are .py files
+    Similar to setuptools.extension.Extension except that the sources are .py files
     They must be processable by pythran, of course.
 
     The compilation process ends up in a native Python module.
     '''
 
     def __init__(self, name, sources, *args, **kwargs):
+        self._kwargs = kwargs.copy()
+
+        if all(not requires_blas(source) for source in sources):
+            # Inserting at head so that user-specified config in CLI takes
+            # precedence.
+            kwargs['config'] = ['compiler.blas=none'] + kwargs.get('config', [])
+
         cfg_ext = cfg.make_extension(python=True, **kwargs)
         self.cxx = cfg_ext.pop('cxx', None)
         self.cc = cfg_ext.pop('cc', None)
-        self._sources = sources
         Extension.__init__(self, name, sources, *args, **cfg_ext)
         self.__dict__.pop("sources", None)
+
+    def _update_blas_requirements(self, source):
+        if requires_blas(source):
+            cfg_ext = cfg.make_extension(python=True, **self._kwargs)
+            for k, v in cfg_ext.items():
+                setattr(self, k, v)
 
     @property
     def sources(self):
@@ -178,9 +208,13 @@ class PythranExtension(Extension):
                     module_name = self.name
                 tc.compile_pythranfile(source, output_file,
                                        module_name, cpponly=True)
+
+            self._update_blas_requirements(output_file)
             cxx_sources.append(output_file)
         return cxx_sources
 
     @sources.setter
     def sources(self, sources):
         self._sources = sources
+        for source in sources:
+            self._update_blas_requirements(source)

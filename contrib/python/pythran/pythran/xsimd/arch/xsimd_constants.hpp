@@ -24,34 +24,34 @@ namespace xsimd
 
 #define XSIMD_DEFINE_CONSTANT(NAME, SINGLE, DOUBLE) \
     template <class T>                              \
-    inline T NAME() noexcept                        \
+    XSIMD_INLINE T NAME() noexcept                  \
     {                                               \
         return T(NAME<typename T::value_type>());   \
     }                                               \
     template <>                                     \
-    inline float NAME<float>() noexcept             \
+    XSIMD_INLINE float NAME<float>() noexcept       \
     {                                               \
         return SINGLE;                              \
     }                                               \
     template <>                                     \
-    inline double NAME<double>() noexcept           \
+    XSIMD_INLINE double NAME<double>() noexcept     \
     {                                               \
         return DOUBLE;                              \
     }
 
 #define XSIMD_DEFINE_CONSTANT_HEX(NAME, SINGLE, DOUBLE) \
     template <class T>                                  \
-    inline T NAME() noexcept                            \
+    XSIMD_INLINE T NAME() noexcept                      \
     {                                                   \
         return T(NAME<typename T::value_type>());       \
     }                                                   \
     template <>                                         \
-    inline float NAME<float>() noexcept                 \
+    XSIMD_INLINE float NAME<float>() noexcept           \
     {                                                   \
         return bit_cast<float>((uint32_t)SINGLE);       \
     }                                                   \
     template <>                                         \
-    inline double NAME<double>() noexcept               \
+    XSIMD_INLINE double NAME<double>() noexcept         \
     {                                                   \
         return bit_cast<double>((uint64_t)DOUBLE);      \
     }
@@ -168,7 +168,7 @@ namespace xsimd
         }
 
         template <class T>
-        inline constexpr T allbits() noexcept
+        XSIMD_INLINE constexpr T allbits() noexcept
         {
             return T(detail::allbits_impl<typename T::value_type>::get_value());
         }
@@ -178,19 +178,19 @@ namespace xsimd
          *****************************/
 
         template <class T>
-        inline constexpr as_integer_t<T> mask1frexp() noexcept
+        XSIMD_INLINE constexpr as_integer_t<T> mask1frexp() noexcept
         {
             return as_integer_t<T>(mask1frexp<typename T::value_type>());
         }
 
         template <>
-        inline constexpr int32_t mask1frexp<float>() noexcept
+        XSIMD_INLINE constexpr int32_t mask1frexp<float>() noexcept
         {
             return 0x7f800000;
         }
 
         template <>
-        inline constexpr int64_t mask1frexp<double>() noexcept
+        XSIMD_INLINE constexpr int64_t mask1frexp<double>() noexcept
         {
             return 0x7ff0000000000000;
         }
@@ -200,19 +200,19 @@ namespace xsimd
          *****************************/
 
         template <class T>
-        inline constexpr as_integer_t<T> mask2frexp() noexcept
+        XSIMD_INLINE constexpr as_integer_t<T> mask2frexp() noexcept
         {
             return as_integer_t<T>(mask2frexp<typename T::value_type>());
         }
 
         template <>
-        inline constexpr int32_t mask2frexp<float>() noexcept
+        XSIMD_INLINE constexpr int32_t mask2frexp<float>() noexcept
         {
             return 0x3f000000;
         }
 
         template <>
-        inline constexpr int64_t mask2frexp<double>() noexcept
+        XSIMD_INLINE constexpr int64_t mask2frexp<double>() noexcept
         {
             return 0x3fe0000000000000;
         }
@@ -222,19 +222,19 @@ namespace xsimd
          ******************************/
 
         template <class T>
-        inline constexpr as_integer_t<T> maxexponent() noexcept
+        XSIMD_INLINE constexpr as_integer_t<T> maxexponent() noexcept
         {
             return as_integer_t<T>(maxexponent<typename T::value_type>());
         }
 
         template <>
-        inline constexpr int32_t maxexponent<float>() noexcept
+        XSIMD_INLINE constexpr int32_t maxexponent<float>() noexcept
         {
             return 127;
         }
 
         template <>
-        inline constexpr int64_t maxexponent<double>() noexcept
+        XSIMD_INLINE constexpr int64_t maxexponent<double>() noexcept
         {
             return 1023;
         }
@@ -244,19 +244,19 @@ namespace xsimd
          ******************************/
 
         template <class T>
-        inline constexpr as_integer_t<T> maxexponentm1() noexcept
+        XSIMD_INLINE constexpr as_integer_t<T> maxexponentm1() noexcept
         {
             return as_integer_t<T>(maxexponentm1<typename T::value_type>());
         }
 
         template <>
-        inline constexpr int32_t maxexponentm1<float>() noexcept
+        XSIMD_INLINE constexpr int32_t maxexponentm1<float>() noexcept
         {
             return 126;
         }
 
         template <>
-        inline constexpr int64_t maxexponentm1<double>() noexcept
+        XSIMD_INLINE constexpr int64_t maxexponentm1<double>() noexcept
         {
             return 1022;
         }
@@ -266,19 +266,19 @@ namespace xsimd
          **********************/
 
         template <class T>
-        inline constexpr int32_t nmb() noexcept
+        XSIMD_INLINE constexpr int32_t nmb() noexcept
         {
             return nmb<typename T::value_type>();
         }
 
         template <>
-        inline constexpr int32_t nmb<float>() noexcept
+        XSIMD_INLINE constexpr int32_t nmb<float>() noexcept
         {
             return 23;
         }
 
         template <>
-        inline constexpr int32_t nmb<double>() noexcept
+        XSIMD_INLINE constexpr int32_t nmb<double>() noexcept
         {
             return 52;
         }
@@ -288,7 +288,7 @@ namespace xsimd
          ***********************/
 
         template <class T>
-        inline constexpr T zero() noexcept
+        XSIMD_INLINE constexpr T zero() noexcept
         {
             return T(typename T::value_type(0));
         }
@@ -353,7 +353,7 @@ namespace xsimd
             template <>
             struct minvalue_impl<float>
             {
-                inline static float get_value() noexcept
+                XSIMD_INLINE static float get_value() noexcept
                 {
                     return bit_cast<float>((uint32_t)0xff7fffff);
                 }
@@ -362,7 +362,7 @@ namespace xsimd
             template <>
             struct minvalue_impl<double>
             {
-                inline static double get_value() noexcept
+                XSIMD_INLINE static double get_value() noexcept
                 {
                     return bit_cast<double>((uint64_t)0xffefffffffffffff);
                 }

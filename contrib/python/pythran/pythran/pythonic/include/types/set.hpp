@@ -5,18 +5,18 @@
 #include "pythonic/include/types/empty_iterator.hpp"
 #include "pythonic/include/types/list.hpp"
 
+#include "pythonic/include/utils/allocate.hpp"
 #include "pythonic/include/utils/iterator.hpp"
 #include "pythonic/include/utils/reserve.hpp"
 #include "pythonic/include/utils/shared_ref.hpp"
 
 #include "pythonic/include/builtins/in.hpp"
 
-#include <set>
-#include <memory>
-#include <utility>
-#include <limits>
 #include <algorithm>
 #include <iterator>
+#include <limits>
+#include <set>
+#include <utility>
 
 PYTHONIC_NS_BEGIN
 namespace types
@@ -26,7 +26,7 @@ namespace types
 
   template <class T>
   class set;
-}
+} // namespace types
 PYTHONIC_NS_END
 
 /* type inference stuff  {*/
@@ -127,7 +127,8 @@ namespace types
     // data holder
     using _type =
         typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-    using container_type = std::set<_type>;
+    using container_type =
+        std::set<_type, std::less<_type>, utils::allocator<_type>>;
     utils::shared_ref<container_type> data;
 
   public:
@@ -206,30 +207,30 @@ namespace types
 
     template <typename U, typename... Types>
     typename __combined<set<T>, U, Types...>::type
-    union_(U &&other, Types &&... others) const;
+    union_(U &&other, Types &&...others) const;
 
     template <typename... Types>
-    none_type update(Types &&... others);
+    none_type update(Types &&...others);
 
     set<T> intersection() const;
 
     template <typename U, typename... Types>
     typename __combined<set<T>, U, Types...>::type
-    intersection(U const &other, Types const &... others) const;
+    intersection(U const &other, Types const &...others) const;
 
     template <typename... Types>
-    void intersection_update(Types const &... others);
+    void intersection_update(Types const &...others);
 
     set<T> difference() const;
 
     template <typename U, typename... Types>
-    set<T> difference(U const &other, Types const &... others) const;
+    set<T> difference(U const &other, Types const &...others) const;
 
     template <class V>
     bool contains(V const &v) const;
 
     template <typename... Types>
-    void difference_update(Types const &... others);
+    void difference_update(Types const &...others);
 
     template <typename U>
     set<typename __combined<T, U>::type>
@@ -319,7 +320,7 @@ namespace types
       return 0;
     }
   };
-}
+} // namespace types
 
 template <class T>
 struct assignable<types::set<T>> {

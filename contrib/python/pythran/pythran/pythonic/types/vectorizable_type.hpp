@@ -104,7 +104,7 @@ namespace types
   struct is_vector_op {
 
     // vectorize everything but these ops. They require special handling for
-    // vectorization, && SG did not invest enough time in those
+    // vectorization, and SG did not invest enough time in those
     static const bool value =
         !std::is_same<O, operator_::functor::mod>::value &&
         (!std::is_same<O, operator_::functor::div>::value ||

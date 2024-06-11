@@ -51,6 +51,7 @@
 #endif
 
 #include "config/xsimd_config.hpp"
+#include "config/xsimd_inline.hpp"
 
 #include "arch/xsimd_scalar.hpp"
 #include "memory/xsimd_aligned_allocator.hpp"

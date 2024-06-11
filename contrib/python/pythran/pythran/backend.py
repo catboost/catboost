@@ -14,7 +14,7 @@ from pythran.cxxgen import Statement, Block, AnnotatedStatement, Typedef, Label
 from pythran.cxxgen import Value, FunctionDeclaration, EmptyStatement, Nop
 from pythran.cxxgen import FunctionBody, Line, ReturnStatement, Struct, Assign
 from pythran.cxxgen import For, While, TryExcept, ExceptHandler, If, AutoFor
-from pythran.cxxgen import StatementWithComments
+from pythran.cxxgen import StatementWithComments, InstrumentedStatement
 from pythran.openmp import OMPDirective
 from pythran.passmanager import Backend
 from pythran.syntax import PythranSyntaxError
@@ -227,7 +227,11 @@ class CxxFunction(ast.NodeVisitor):
         if isinstance(node, ast.FunctionDef):
             head, tail = cxx_node
             return head, [StatementWithComments(t, line) for t in tail]
-        return StatementWithComments(cxx_node, line)
+        if cfg.get('backend', 'annotation_kind') == 'lineno':
+            return InstrumentedStatement(cxx_node,
+                    'pythran_trace_lineno({});'.format(node.lineno))
+        else:
+            return StatementWithComments(cxx_node, line)
 
     def skip_line_info(self, node, cxx_node):
         return cxx_node

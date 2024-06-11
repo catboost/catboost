@@ -1,10 +1,10 @@
 #ifndef PYTHONIC_TYPES_RAW_ARRAY_HPP
 #define PYTHONIC_TYPES_RAW_ARRAY_HPP
 
-#include "pythonic/include/types/raw_array.hpp"
 #include "pythonic/builtins/MemoryError.hpp"
+#include "pythonic/include/types/raw_array.hpp"
+#include "pythonic/utils/allocate.hpp"
 
-#include <cstdlib>
 #include <sstream>
 
 PYTHONIC_NS_BEGIN
@@ -16,14 +16,13 @@ namespace types
    * for internal use only, meant to be stored in a shared_ptr
    */
   template <class T>
-  raw_array<T>::raw_array()
-      : data(nullptr), external(false)
+  raw_array<T>::raw_array() : data(nullptr), external(false)
   {
   }
 
   template <class T>
   raw_array<T>::raw_array(size_t n)
-      : data((T *)malloc(n * sizeof(T))), external(false)
+      : data(utils::allocate<T>(n)), external(false)
   {
     if (!data) {
       std::ostringstream oss;
@@ -39,8 +38,7 @@ namespace types
   }
 
   template <class T>
-  raw_array<T>::raw_array(raw_array<T> &&d)
-      : data(d.data), external(d.external)
+  raw_array<T>::raw_array(raw_array<T> &&d) : data(d.data), external(d.external)
   {
     d.data = nullptr;
   }
@@ -49,7 +47,7 @@ namespace types
   raw_array<T>::~raw_array()
   {
     if (data && !external)
-      free(data);
+      utils::deallocate(data);
   }
 
   template <class T>
@@ -57,7 +55,7 @@ namespace types
   {
     external = true;
   }
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

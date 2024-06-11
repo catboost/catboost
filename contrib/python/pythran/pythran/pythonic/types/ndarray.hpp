@@ -9,6 +9,7 @@
 
 #include "pythonic/builtins/ValueError.hpp"
 
+#include "pythonic/utils/allocate.hpp"
 #include "pythonic/utils/broadcast_copy.hpp"
 #include "pythonic/utils/int_.hpp"
 #include "pythonic/utils/nested_container.hpp"
@@ -734,26 +735,27 @@ namespace types
   /* extended slice indexing */
   template <class T, class pS>
   template <class S0, class... S>
-  auto
-  ndarray<T, pS>::operator()(S0 const &s0, S const &...s) const & -> decltype(
-      extended_slice<count_new_axis<S0, S...>::value>{}((*this), s0, s...))
+  auto ndarray<T, pS>::operator()(S0 const &s0, S const &...s) const
+      & -> decltype(extended_slice<count_new_axis<S0, S...>::value>{}((*this),
+                                                                      s0, s...))
   {
     return extended_slice<count_new_axis<S0, S...>::value>{}((*this), s0, s...);
   }
 
   template <class T, class pS>
   template <class S0, class... S>
-  auto ndarray<T, pS>::operator()(S0 const &s0, S const &...s) & -> decltype(
-      extended_slice<count_new_axis<S0, S...>::value>{}((*this), s0, s...))
+  auto ndarray<T, pS>::operator()(S0 const &s0, S const &...s)
+      & -> decltype(extended_slice<count_new_axis<S0, S...>::value>{}((*this),
+                                                                      s0, s...))
   {
     return extended_slice<count_new_axis<S0, S...>::value>{}((*this), s0, s...);
   }
 
   template <class T, class pS>
   template <class S0, class... S>
-  auto ndarray<T, pS>::operator()(S0 const &s0, S const &...s) && -> decltype(
-      extended_slice<count_new_axis<S0, S...>::value>{}(std::move(*this), s0,
-                                                        s...))
+  auto ndarray<T, pS>::operator()(S0 const &s0, S const &...s)
+      && -> decltype(extended_slice<count_new_axis<S0, S...>::value>{}(
+          std::move(*this), s0, s...))
   {
     return extended_slice<count_new_axis<S0, S...>::value>{}(std::move(*this),
                                                              s0, s...);
@@ -770,12 +772,12 @@ namespace types
   ndarray<T, pS>::fast(F const &filter) const
   {
     long sz = filter.template shape<0>();
-    long *raw = (long *)malloc(sz * sizeof(long));
+    long *raw = utils::allocate<long>(sz);
     long n = 0;
     for (long i = 0; i < sz; ++i)
       if (filter.fast(i))
         raw[n++] = i;
-    // realloc(raw, n * sizeof(long));
+    // reallocate(raw, n);
     return this->fast(ndarray<long, pshape<long>>(raw, pshape<long>(n),
                                                   types::ownership::owned));
   }
@@ -1093,8 +1095,9 @@ namespace builtins
     }
 
     template <class E, class... S>
-    types::numpy_gexpr<E, types::normalize_t<S>...>
+    auto
     _build_gexpr<1>::operator()(E const &a, S const &...slices)
+    -> decltype(E(a)(slices...))
     {
       return E(a)(slices...);
     }
@@ -1115,7 +1118,7 @@ namespace builtins
       using stype = typename types::is_complex<typename E::dtype>::type;
       auto new_shape = sutils::getshape(a);
       std::get<E::value - 1>(new_shape) *= 2;
-      // this is tricky && dangerous!
+      // this is tricky and dangerous!
       auto translated_mem =
           reinterpret_cast<utils::shared_ref<types::raw_array<stype>> const &>(
               a.mem);
@@ -1124,6 +1127,7 @@ namespace builtins
       return _build_gexpr<E::value>{}(
           translated, types::slice{0, std::get<E::value - 1>(new_shape), 2});
     }
+
     template <class Op, class... Args>
     auto _make_real(types::numpy_expr<Op, Args...> const &a, utils::int_<1>)
         -> decltype(_make_real(
@@ -1138,13 +1142,34 @@ namespace builtins
     }
 
     template <class E>
+    auto _make_real(types::numpy_iexpr<E> const &a, utils::int_<1>)
+        -> decltype(_build_gexpr<types::numpy_iexpr<E>::value>{}(
+            std::declval<types::ndarray<typename types::is_complex<typename types::numpy_iexpr<E>::dtype>::type,
+                           types::array<long, types::numpy_iexpr<E>::value + 1>>>(),
+            long(), types::slice()))
+    {
+      constexpr size_t value = types::numpy_iexpr<E>::value;
+      using stype = typename types::is_complex<typename types::numpy_iexpr<E>::dtype>::type;
+      auto new_shape = sutils::getshape(a.arg);
+      std::get<value>(new_shape) *= 2;
+      // this is tricky and dangerous!
+      auto translated_mem =
+          reinterpret_cast<utils::shared_ref<types::raw_array<stype>> const &>(
+              a.arg.mem);
+      types::ndarray<stype, types::array<long, value + 1>> translated{
+          translated_mem, new_shape};
+      long offset = (a.buffer - a.arg.buffer) / a.arg.template strides<0>();
+      return _build_gexpr<value>{}(
+          translated, offset, types::slice{0, std::get<value>(new_shape), 2});
+    }
+
+    template <class E>
     types::ndarray<typename E::dtype, typename E::shape_t>
     _make_imag(E const &a, utils::int_<0>)
     {
       // cannot use numpy.zero: forward declaration issue
-      return {
-          (typename E::dtype *)calloc(a.flat_size(), sizeof(typename E::dtype)),
-          sutils::getshape(a), types::ownership::owned};
+      return {utils::callocate<typename E::dtype>(a.flat_size()),
+              sutils::getshape(a), types::ownership::owned};
     }
 
     template <class Op, class... Args>
@@ -1161,6 +1186,28 @@ namespace builtins
     }
 
     template <class E>
+    auto _make_imag(types::numpy_iexpr<E> const &a, utils::int_<1>)
+        -> decltype(_build_gexpr<types::numpy_iexpr<E>::value>{}(
+            std::declval<types::ndarray<typename types::is_complex<typename types::numpy_iexpr<E>::dtype>::type,
+                           types::array<long, types::numpy_iexpr<E>::value + 1>>>(),
+            long(), types::slice()))
+    {
+      constexpr size_t value = types::numpy_iexpr<E>::value;
+      using stype = typename types::is_complex<typename types::numpy_iexpr<E>::dtype>::type;
+      auto new_shape = sutils::getshape(a.arg);
+      std::get<types::numpy_iexpr<E>::value>(new_shape) *= 2;
+      // this is tricky and dangerous!
+      auto translated_mem =
+          reinterpret_cast<utils::shared_ref<types::raw_array<stype>> const &>(
+              a.arg.mem);
+      types::ndarray<stype, types::array<long, value + 1>> translated{
+          translated_mem, new_shape};
+      long offset = (a.buffer - a.arg.buffer) / a.arg.template strides<0>();
+      return _build_gexpr<value>{}(
+          translated, offset, types::slice{1, std::get<value>(new_shape), 2});
+    }
+
+    template <class E>
     auto _make_imag(E const &a, utils::int_<1>)
         -> decltype(_build_gexpr<E::value>{}(
             types::ndarray<typename types::is_complex<typename E::dtype>::type,
@@ -1170,7 +1217,7 @@ namespace builtins
       using stype = typename types::is_complex<typename E::dtype>::type;
       auto new_shape = sutils::getshape(a);
       std::get<E::value - 1>(new_shape) *= 2;
-      // this is tricky && dangerous!
+      // this is tricky and dangerous!
       auto translated_mem =
           reinterpret_cast<utils::shared_ref<types::raw_array<stype>> const &>(
               a.mem);
@@ -1249,6 +1296,17 @@ namespace builtins
     return details::_make_real(a, utils::int_<types::is_complex<T>::value>{});
   }
 
+  template <class E>
+  auto getattr(types::attr::REAL, types::numpy_iexpr<E> const &e)
+      -> decltype(details::_make_real(
+          e, utils::int_<types::is_complex<
+                 typename types::numpy_iexpr<E>::dtype>::value>{}))
+  {
+    return details::_make_real(
+        e, utils::int_<types::is_complex<
+               typename types::numpy_iexpr<E>::dtype>::value>{});
+  }
+
   template <class Op, class... Args>
   auto getattr(types::attr::REAL, types::numpy_expr<Op, Args...> const &a)
       -> decltype(details::_make_real(
@@ -1261,8 +1319,9 @@ namespace builtins
   }
 
   template <class E>
-  auto getattr(types::attr::REAL, types::numpy_texpr<E> const &a) -> decltype(
-      types::numpy_texpr<decltype(getattr(types::attr::REAL{}, a.arg))>{
+  auto getattr(types::attr::REAL, types::numpy_texpr<E> const &a)
+      -> decltype(types::numpy_texpr<decltype(getattr(types::attr::REAL{},
+                                                      a.arg))>{
           getattr(types::attr::REAL{}, a.arg)})
   {
     auto ta = getattr(types::attr::REAL{}, a.arg);
@@ -1289,8 +1348,9 @@ namespace builtins
   }
 
   template <class E>
-  auto getattr(types::attr::IMAG, types::numpy_texpr<E> const &a) -> decltype(
-      types::numpy_texpr<decltype(getattr(types::attr::IMAG{}, a.arg))>{
+  auto getattr(types::attr::IMAG, types::numpy_texpr<E> const &a)
+      -> decltype(types::numpy_texpr<decltype(getattr(types::attr::IMAG{},
+                                                      a.arg))>{
           getattr(types::attr::IMAG{}, a.arg)})
   {
     auto ta = getattr(types::attr::IMAG{}, a.arg);
@@ -1471,6 +1531,7 @@ PyObject *to_python<types::numpy_gexpr<Arg, S...>>::convert(
                                          : ::to_python(v.slices);
   PyObject *base = ::to_python(v.arg);
   PyObject *res = PyObject_GetItem(base, slices);
+  Py_DECREF(slices);
   Py_DECREF(base);
   if (transpose) {
     PyObject *Transposed =

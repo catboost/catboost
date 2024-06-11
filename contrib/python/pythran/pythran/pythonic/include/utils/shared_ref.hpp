@@ -1,7 +1,6 @@
 #ifndef PYTHONIC_INCLUDE_UTILS_SHARED_REF_HPP
 #define PYTHONIC_INCLUDE_UTILS_SHARED_REF_HPP
 
-#include <memory>
 #include <unordered_map>
 #include <utility>
 #ifdef _OPENMP
@@ -49,7 +48,7 @@ namespace utils
       extern_type foreign;
       template <class... Types>
       memory(Types &&...args);
-    } * mem;
+    } *mem;
 
     template <class Tp>
     friend class shared_ref;
@@ -61,7 +60,7 @@ namespace utils
     // Uninitialized ctor (rvalue ref)
     shared_ref(no_memory &&) noexcept;
 
-    // Ctor allocate T && forward all arguments to T ctor
+    // Ctor allocate T and forward all arguments to T ctor
     template <class... Types>
     shared_ref(Types &&...args);
 

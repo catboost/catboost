@@ -9,12 +9,8 @@ from numpy import floating, integer, complexfloating
 
 from pythran.tables import MODULES, attributes
 import pythran.typing as typing
-from pythran.syntax import PythranSyntaxError
+from pythran.errors import PythranSyntaxError, PythranTypeError
 from pythran.utils import isnum
-
-
-class PythranTypeError(PythranSyntaxError):
-    "A new type to distinguish general syntax errors from typing issues"
 
 
 class InferenceError(Exception):

@@ -21,10 +21,10 @@
 
 namespace xsimd
 {
-    template <class batch_type, typename batch_type::value_type... Values>
+    template <typename T, class A, T... Values>
     struct batch_constant;
 
-    template <class batch_type, bool... Values>
+    template <typename T, class A, bool... Values>
     struct batch_bool_constant;
 
     namespace kernel
@@ -36,7 +36,7 @@ namespace xsimd
         namespace detail
         {
             template <class IT, class A, class I, size_t... Is>
-            inline batch<IT, A> create_compress_swizzle_mask(I bitmask, ::xsimd::detail::index_sequence<Is...>)
+            XSIMD_INLINE batch<IT, A> create_compress_swizzle_mask(I bitmask, ::xsimd::detail::index_sequence<Is...>)
             {
                 batch<IT, A> swizzle_mask(IT(0));
                 alignas(A::alignment()) IT mask_buffer[batch<IT, A>::size] = { Is... };
@@ -49,7 +49,7 @@ namespace xsimd
         }
 
         template <typename A, typename T>
-        inline batch<T, A>
+        XSIMD_INLINE batch<T, A>
         compress(batch<T, A> const& x, batch_bool<T, A> const& mask,
                  kernel::requires_arch<generic>) noexcept
         {
@@ -65,7 +65,7 @@ namespace xsimd
         namespace detail
         {
             template <class IT, class A, class I, size_t... Is>
-            inline batch<IT, A> create_expand_swizzle_mask(I bitmask, ::xsimd::detail::index_sequence<Is...>)
+            XSIMD_INLINE batch<IT, A> create_expand_swizzle_mask(I bitmask, ::xsimd::detail::index_sequence<Is...>)
             {
                 batch<IT, A> swizzle_mask(IT(0));
                 IT j = 0;
@@ -75,7 +75,7 @@ namespace xsimd
         }
 
         template <typename A, typename T>
-        inline batch<T, A>
+        XSIMD_INLINE batch<T, A>
         expand(batch<T, A> const& x, batch_bool<T, A> const& mask,
                kernel::requires_arch<generic>) noexcept
         {
@@ -88,7 +88,7 @@ namespace xsimd
 
         // extract_pair
         template <class A, class T>
-        inline batch<T, A> extract_pair(batch<T, A> const& self, batch<T, A> const& other, std::size_t i, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> extract_pair(batch<T, A> const& self, batch<T, A> const& other, std::size_t i, requires_arch<generic>) noexcept
         {
             constexpr std::size_t size = batch<T, A>::size;
             assert(i < size && "index in bounds");
@@ -115,6 +115,7 @@ namespace xsimd
         // gather
         namespace detail
         {
+            // Not using XSIMD_INLINE here as it makes msvc hand got ever on avx512
             template <size_t N, typename T, typename A, typename U, typename V, typename std::enable_if<N == 0, int>::type = 0>
             inline batch<T, A> gather(U const* src, batch<V, A> const& index,
                                       ::xsimd::index<N> I) noexcept
@@ -134,7 +135,7 @@ namespace xsimd
         } // namespace detail
 
         template <typename T, typename A, typename V>
-        inline batch<T, A>
+        XSIMD_INLINE batch<T, A>
         gather(batch<T, A> const&, T const* src, batch<V, A> const& index,
                kernel::requires_arch<generic>) noexcept
         {
@@ -146,7 +147,7 @@ namespace xsimd
 
         // Gather with runtime indexes and mismatched strides.
         template <typename T, typename A, typename U, typename V>
-        inline detail::sizes_mismatch_t<T, U, batch<T, A>>
+        XSIMD_INLINE detail::sizes_mismatch_t<T, U, batch<T, A>>
         gather(batch<T, A> const&, U const* src, batch<V, A> const& index,
                kernel::requires_arch<generic>) noexcept
         {
@@ -158,7 +159,7 @@ namespace xsimd
 
         // Gather with runtime indexes and matching strides.
         template <typename T, typename A, typename U, typename V>
-        inline detail::stride_match_t<T, U, batch<T, A>>
+        XSIMD_INLINE detail::stride_match_t<T, U, batch<T, A>>
         gather(batch<T, A> const&, U const* src, batch<V, A> const& index,
                kernel::requires_arch<generic>) noexcept
         {
@@ -170,7 +171,7 @@ namespace xsimd
 
         // insert
         template <class A, class T, size_t I>
-        inline batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> insert(batch<T, A> const& self, T val, index<I>, requires_arch<generic>) noexcept
         {
             struct index_mask
             {
@@ -180,12 +181,12 @@ namespace xsimd
                 }
             };
             batch<T, A> tmp(val);
-            return select(make_batch_bool_constant<batch<T, A>, index_mask>(), self, tmp);
+            return select(make_batch_bool_constant<T, A, index_mask>(), self, tmp);
         }
 
         // get
         template <class A, size_t I, class T>
-        inline T get(batch<T, A> const& self, ::xsimd::index<I>, requires_arch<generic>) noexcept
+        XSIMD_INLINE T get(batch<T, A> const& self, ::xsimd::index<I>, requires_arch<generic>) noexcept
         {
             alignas(A::alignment()) T buffer[batch<T, A>::size];
             self.store_aligned(&buffer[0]);
@@ -193,7 +194,7 @@ namespace xsimd
         }
 
         template <class A, size_t I, class T>
-        inline T get(batch_bool<T, A> const& self, ::xsimd::index<I>, requires_arch<generic>) noexcept
+        XSIMD_INLINE T get(batch_bool<T, A> const& self, ::xsimd::index<I>, requires_arch<generic>) noexcept
         {
             alignas(A::alignment()) T buffer[batch_bool<T, A>::size];
             self.store_aligned(&buffer[0]);
@@ -201,7 +202,7 @@ namespace xsimd
         }
 
         template <class A, size_t I, class T>
-        inline auto get(batch<std::complex<T>, A> const& self, ::xsimd::index<I>, requires_arch<generic>) noexcept -> typename batch<std::complex<T>, A>::value_type
+        XSIMD_INLINE auto get(batch<std::complex<T>, A> const& self, ::xsimd::index<I>, requires_arch<generic>) noexcept -> typename batch<std::complex<T>, A>::value_type
         {
             alignas(A::alignment()) T buffer[batch<std::complex<T>, A>::size];
             self.store_aligned(&buffer[0]);
@@ -209,7 +210,7 @@ namespace xsimd
         }
 
         template <class A, class T>
-        inline T get(batch<T, A> const& self, std::size_t i, requires_arch<generic>) noexcept
+        XSIMD_INLINE T get(batch<T, A> const& self, std::size_t i, requires_arch<generic>) noexcept
         {
             alignas(A::alignment()) T buffer[batch<T, A>::size];
             self.store_aligned(&buffer[0]);
@@ -217,7 +218,7 @@ namespace xsimd
         }
 
         template <class A, class T>
-        inline T get(batch_bool<T, A> const& self, std::size_t i, requires_arch<generic>) noexcept
+        XSIMD_INLINE T get(batch_bool<T, A> const& self, std::size_t i, requires_arch<generic>) noexcept
         {
             alignas(A::alignment()) bool buffer[batch_bool<T, A>::size];
             self.store_aligned(&buffer[0]);
@@ -225,7 +226,7 @@ namespace xsimd
         }
 
         template <class A, class T>
-        inline auto get(batch<std::complex<T>, A> const& self, std::size_t i, requires_arch<generic>) noexcept -> typename batch<std::complex<T>, A>::value_type
+        XSIMD_INLINE auto get(batch<std::complex<T>, A> const& self, std::size_t i, requires_arch<generic>) noexcept -> typename batch<std::complex<T>, A>::value_type
         {
             using T2 = typename batch<std::complex<T>, A>::value_type;
             alignas(A::alignment()) T2 buffer[batch<std::complex<T>, A>::size];
@@ -237,14 +238,14 @@ namespace xsimd
         namespace detail
         {
             template <class A, class T_in, class T_out>
-            inline batch<T_out, A> load_aligned(T_in const* mem, convert<T_out>, requires_arch<generic>, with_fast_conversion) noexcept
+            XSIMD_INLINE batch<T_out, A> load_aligned(T_in const* mem, convert<T_out>, requires_arch<generic>, with_fast_conversion) noexcept
             {
                 using batch_type_in = batch<T_in, A>;
                 using batch_type_out = batch<T_out, A>;
                 return fast_cast(batch_type_in::load_aligned(mem), batch_type_out(), A {});
             }
             template <class A, class T_in, class T_out>
-            inline batch<T_out, A> load_aligned(T_in const* mem, convert<T_out>, requires_arch<generic>, with_slow_conversion) noexcept
+            XSIMD_INLINE batch<T_out, A> load_aligned(T_in const* mem, convert<T_out>, requires_arch<generic>, with_slow_conversion) noexcept
             {
                 static_assert(!std::is_same<T_in, T_out>::value, "there should be a direct load for this type combination");
                 using batch_type_out = batch<T_out, A>;
@@ -254,7 +255,7 @@ namespace xsimd
             }
         }
         template <class A, class T_in, class T_out>
-        inline batch<T_out, A> load_aligned(T_in const* mem, convert<T_out> cvt, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T_out, A> load_aligned(T_in const* mem, convert<T_out> cvt, requires_arch<generic>) noexcept
         {
             return detail::load_aligned<A>(mem, cvt, A {}, detail::conversion_type<A, T_in, T_out> {});
         }
@@ -263,7 +264,7 @@ namespace xsimd
         namespace detail
         {
             template <class A, class T_in, class T_out>
-            inline batch<T_out, A> load_unaligned(T_in const* mem, convert<T_out>, requires_arch<generic>, with_fast_conversion) noexcept
+            XSIMD_INLINE batch<T_out, A> load_unaligned(T_in const* mem, convert<T_out>, requires_arch<generic>, with_fast_conversion) noexcept
             {
                 using batch_type_in = batch<T_in, A>;
                 using batch_type_out = batch<T_out, A>;
@@ -271,21 +272,21 @@ namespace xsimd
             }
 
             template <class A, class T_in, class T_out>
-            inline batch<T_out, A> load_unaligned(T_in const* mem, convert<T_out> cvt, requires_arch<generic>, with_slow_conversion) noexcept
+            XSIMD_INLINE batch<T_out, A> load_unaligned(T_in const* mem, convert<T_out> cvt, requires_arch<generic>, with_slow_conversion) noexcept
             {
                 static_assert(!std::is_same<T_in, T_out>::value, "there should be a direct load for this type combination");
                 return load_aligned<A>(mem, cvt, generic {}, with_slow_conversion {});
             }
         }
         template <class A, class T_in, class T_out>
-        inline batch<T_out, A> load_unaligned(T_in const* mem, convert<T_out> cvt, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T_out, A> load_unaligned(T_in const* mem, convert<T_out> cvt, requires_arch<generic>) noexcept
         {
             return detail::load_unaligned<A>(mem, cvt, generic {}, detail::conversion_type<A, T_in, T_out> {});
         }
 
         // rotate_left
         template <size_t N, class A, class T>
-        inline batch<T, A> rotate_left(batch<T, A> const& self, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> rotate_left(batch<T, A> const& self, requires_arch<generic>) noexcept
         {
             struct rotate_generator
             {
@@ -295,18 +296,18 @@ namespace xsimd
                 }
             };
 
-            return swizzle(self, make_batch_constant<batch<as_unsigned_integer_t<T>, A>, rotate_generator>(), A {});
+            return swizzle(self, make_batch_constant<as_unsigned_integer_t<T>, A, rotate_generator>(), A {});
         }
 
         template <size_t N, class A, class T>
-        inline batch<std::complex<T>, A> rotate_left(batch<std::complex<T>, A> const& self, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T>, A> rotate_left(batch<std::complex<T>, A> const& self, requires_arch<generic>) noexcept
         {
             return { rotate_left<N>(self.real()), rotate_left<N>(self.imag()) };
         }
 
         // rotate_right
         template <size_t N, class A, class T>
-        inline batch<T, A> rotate_right(batch<T, A> const& self, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> rotate_right(batch<T, A> const& self, requires_arch<generic>) noexcept
         {
             struct rotate_generator
             {
@@ -316,11 +317,11 @@ namespace xsimd
                 }
             };
 
-            return swizzle(self, make_batch_constant<batch<as_unsigned_integer_t<T>, A>, rotate_generator>(), A {});
+            return swizzle(self, make_batch_constant<as_unsigned_integer_t<T>, A, rotate_generator>(), A {});
         }
 
         template <size_t N, class A, class T>
-        inline batch<std::complex<T>, A> rotate_right(batch<std::complex<T>, A> const& self, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T>, A> rotate_right(batch<std::complex<T>, A> const& self, requires_arch<generic>) noexcept
         {
             return { rotate_right<N>(self.real()), rotate_right<N>(self.imag()) };
         }
@@ -329,15 +330,15 @@ namespace xsimd
         namespace detail
         {
             template <size_t N, typename T, typename A, typename U, typename V, typename std::enable_if<N == 0, int>::type = 0>
-            inline void scatter(batch<T, A> const& src, U* dst,
-                                batch<V, A> const& index,
-                                ::xsimd::index<N> I) noexcept
+            XSIMD_INLINE void scatter(batch<T, A> const& src, U* dst,
+                                      batch<V, A> const& index,
+                                      ::xsimd::index<N> I) noexcept
             {
                 dst[index.get(I)] = static_cast<U>(src.get(I));
             }
 
             template <size_t N, typename T, typename A, typename U, typename V, typename std::enable_if<N != 0, int>::type = 0>
-            inline void
+            XSIMD_INLINE void
             scatter(batch<T, A> const& src, U* dst, batch<V, A> const& index,
                     ::xsimd::index<N> I) noexcept
             {
@@ -350,7 +351,7 @@ namespace xsimd
         } // namespace detail
 
         template <typename A, typename T, typename V>
-        inline void
+        XSIMD_INLINE void
         scatter(batch<T, A> const& src, T* dst,
                 batch<V, A> const& index,
                 kernel::requires_arch<generic>) noexcept
@@ -362,7 +363,7 @@ namespace xsimd
         }
 
         template <typename A, typename T, typename U, typename V>
-        inline detail::sizes_mismatch_t<T, U, void>
+        XSIMD_INLINE detail::sizes_mismatch_t<T, U, void>
         scatter(batch<T, A> const& src, U* dst,
                 batch<V, A> const& index,
                 kernel::requires_arch<generic>) noexcept
@@ -374,7 +375,7 @@ namespace xsimd
         }
 
         template <typename A, typename T, typename U, typename V>
-        inline detail::stride_match_t<T, U, void>
+        XSIMD_INLINE detail::stride_match_t<T, U, void>
         scatter(batch<T, A> const& src, U* dst,
                 batch<V, A> const& index,
                 kernel::requires_arch<generic>) noexcept
@@ -412,6 +413,12 @@ namespace xsimd
                 return true;
             }
 
+            template <typename ITy>
+            constexpr bool is_zip_lo(size_t, ITy)
+            {
+                return false;
+            }
+
             template <typename ITy0, typename ITy1, typename... ITys>
             constexpr bool is_zip_lo(size_t bsize, ITy0 index0, ITy1 index1, ITys... indices)
             {
@@ -421,6 +428,12 @@ namespace xsimd
             constexpr bool is_zip_hi(size_t)
             {
                 return true;
+            }
+
+            template <typename ITy>
+            constexpr bool is_zip_hi(size_t, ITy)
+            {
+                return false;
             }
 
             template <typename ITy0, typename ITy1, typename... ITys>
@@ -443,19 +456,19 @@ namespace xsimd
         }
 
         template <class A, typename T, typename ITy, ITy... Indices>
-        inline batch<T, A> shuffle(batch<T, A> const& x, batch<T, A> const& y, batch_constant<batch<ITy, A>, Indices...>, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> shuffle(batch<T, A> const& x, batch<T, A> const& y, batch_constant<ITy, A, Indices...>, requires_arch<generic>) noexcept
         {
             constexpr size_t bsize = sizeof...(Indices);
 
             // Detect common patterns
             XSIMD_IF_CONSTEXPR(detail::is_swizzle_fst(bsize, Indices...))
             {
-                return swizzle(x, batch_constant<batch<ITy, A>, ((Indices >= bsize) ? 0 /* never happens */ : Indices)...>());
+                return swizzle(x, batch_constant<ITy, A, ((Indices >= bsize) ? 0 /* never happens */ : Indices)...>());
             }
 
             XSIMD_IF_CONSTEXPR(detail::is_swizzle_snd(bsize, Indices...))
             {
-                return swizzle(y, batch_constant<batch<ITy, A>, ((Indices >= bsize) ? (Indices - bsize) : 0 /* never happens */)...>());
+                return swizzle(y, batch_constant<ITy, A, ((Indices >= bsize) ? (Indices - bsize) : 0 /* never happens */)...>());
             }
 
             XSIMD_IF_CONSTEXPR(detail::is_zip_lo(bsize, Indices...))
@@ -470,7 +483,7 @@ namespace xsimd
 
             XSIMD_IF_CONSTEXPR(detail::is_select(bsize, Indices...))
             {
-                return select(batch_bool_constant<batch<T, A>, (Indices < bsize)...>(), x, y);
+                return select(batch_bool_constant<T, A, (Indices < bsize)...>(), x, y);
             }
 
 #if defined(__has_builtin)
@@ -491,16 +504,16 @@ namespace xsimd
 #else
             // Use a generic_pattern. It is suboptimal but clang optimizes this
             // pretty well.
-            batch<T, A> x_lane = swizzle(x, batch_constant<batch<ITy, A>, ((Indices >= bsize) ? (Indices - bsize) : Indices)...>());
-            batch<T, A> y_lane = swizzle(y, batch_constant<batch<ITy, A>, ((Indices >= bsize) ? (Indices - bsize) : Indices)...>());
-            batch_bool_constant<batch<T, A>, (Indices < bsize)...> select_x_lane;
+            batch<T, A> x_lane = swizzle(x, batch_constant<ITy, A, ((Indices >= bsize) ? (Indices - bsize) : Indices)...>());
+            batch<T, A> y_lane = swizzle(y, batch_constant<ITy, A, ((Indices >= bsize) ? (Indices - bsize) : Indices)...>());
+            batch_bool_constant<T, A, (Indices < bsize)...> select_x_lane;
             return select(select_x_lane, x_lane, y_lane);
 #endif
         }
 
         // store
         template <class T, class A>
-        inline void store(batch_bool<T, A> const& self, bool* mem, requires_arch<generic>) noexcept
+        XSIMD_INLINE void store(batch_bool<T, A> const& self, bool* mem, requires_arch<generic>) noexcept
         {
             using batch_type = batch<T, A>;
             constexpr auto size = batch_bool<T, A>::size;
@@ -512,7 +525,7 @@ namespace xsimd
 
         // store_aligned
         template <class A, class T_in, class T_out>
-        inline void store_aligned(T_out* mem, batch<T_in, A> const& self, requires_arch<generic>) noexcept
+        XSIMD_INLINE void store_aligned(T_out* mem, batch<T_in, A> const& self, requires_arch<generic>) noexcept
         {
             static_assert(!std::is_same<T_in, T_out>::value, "there should be a direct store for this type combination");
             alignas(A::alignment()) T_in buffer[batch<T_in, A>::size];
@@ -522,7 +535,7 @@ namespace xsimd
 
         // store_unaligned
         template <class A, class T_in, class T_out>
-        inline void store_unaligned(T_out* mem, batch<T_in, A> const& self, requires_arch<generic>) noexcept
+        XSIMD_INLINE void store_unaligned(T_out* mem, batch<T_in, A> const& self, requires_arch<generic>) noexcept
         {
             static_assert(!std::is_same<T_in, T_out>::value, "there should be a direct store for this type combination");
             return store_aligned<A>(mem, self, generic {});
@@ -530,13 +543,13 @@ namespace xsimd
 
         // swizzle
         template <class A, class T, class ITy, ITy... Vs>
-        inline batch<std::complex<T>, A> swizzle(batch<std::complex<T>, A> const& self, batch_constant<batch<ITy, A>, Vs...> mask, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T>, A> swizzle(batch<std::complex<T>, A> const& self, batch_constant<ITy, A, Vs...> mask, requires_arch<generic>) noexcept
         {
             return { swizzle(self.real(), mask), swizzle(self.imag(), mask) };
         }
 
         template <class A, class T, class ITy>
-        inline batch<T, A> swizzle(batch<T, A> const& self, batch<ITy, A> mask, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> swizzle(batch<T, A> const& self, batch<ITy, A> mask, requires_arch<generic>) noexcept
         {
             constexpr size_t size = batch<T, A>::size;
             alignas(A::alignment()) T self_buffer[size];
@@ -552,7 +565,7 @@ namespace xsimd
         }
 
         template <class A, class T, class ITy>
-        inline batch<std::complex<T>, A> swizzle(batch<std::complex<T>, A> const& self, batch<ITy, A> mask, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T>, A> swizzle(batch<std::complex<T>, A> const& self, batch<ITy, A> mask, requires_arch<generic>) noexcept
         {
             return { swizzle(self.real(), mask), swizzle(self.imag(), mask) };
         }
@@ -561,26 +574,26 @@ namespace xsimd
         namespace detail
         {
             template <class A, class T>
-            inline batch<std::complex<T>, A> load_complex(batch<T, A> const& /*hi*/, batch<T, A> const& /*lo*/, requires_arch<generic>) noexcept
+            XSIMD_INLINE batch<std::complex<T>, A> load_complex(batch<T, A> const& /*hi*/, batch<T, A> const& /*lo*/, requires_arch<generic>) noexcept
             {
                 static_assert(std::is_same<T, void>::value, "load_complex not implemented for the required architecture");
             }
 
             template <class A, class T>
-            inline batch<T, A> complex_high(batch<std::complex<T>, A> const& /*src*/, requires_arch<generic>) noexcept
+            XSIMD_INLINE batch<T, A> complex_high(batch<std::complex<T>, A> const& /*src*/, requires_arch<generic>) noexcept
             {
                 static_assert(std::is_same<T, void>::value, "complex_high not implemented for the required architecture");
             }
 
             template <class A, class T>
-            inline batch<T, A> complex_low(batch<std::complex<T>, A> const& /*src*/, requires_arch<generic>) noexcept
+            XSIMD_INLINE batch<T, A> complex_low(batch<std::complex<T>, A> const& /*src*/, requires_arch<generic>) noexcept
             {
                 static_assert(std::is_same<T, void>::value, "complex_low not implemented for the required architecture");
             }
         }
 
         template <class A, class T_out, class T_in>
-        inline batch<std::complex<T_out>, A> load_complex_aligned(std::complex<T_in> const* mem, convert<std::complex<T_out>>, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T_out>, A> load_complex_aligned(std::complex<T_in> const* mem, convert<std::complex<T_out>>, requires_arch<generic>) noexcept
         {
             using real_batch = batch<T_out, A>;
             T_in const* buffer = reinterpret_cast<T_in const*>(mem);
@@ -591,7 +604,7 @@ namespace xsimd
 
         // load_complex_unaligned
         template <class A, class T_out, class T_in>
-        inline batch<std::complex<T_out>, A> load_complex_unaligned(std::complex<T_in> const* mem, convert<std::complex<T_out>>, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T_out>, A> load_complex_unaligned(std::complex<T_in> const* mem, convert<std::complex<T_out>>, requires_arch<generic>) noexcept
         {
             using real_batch = batch<T_out, A>;
             T_in const* buffer = reinterpret_cast<T_in const*>(mem);
@@ -602,7 +615,7 @@ namespace xsimd
 
         // store_complex_aligned
         template <class A, class T_out, class T_in>
-        inline void store_complex_aligned(std::complex<T_out>* dst, batch<std::complex<T_in>, A> const& src, requires_arch<generic>) noexcept
+        XSIMD_INLINE void store_complex_aligned(std::complex<T_out>* dst, batch<std::complex<T_in>, A> const& src, requires_arch<generic>) noexcept
         {
             using real_batch = batch<T_in, A>;
             real_batch hi = detail::complex_high(src, A {});
@@ -614,7 +627,7 @@ namespace xsimd
 
         // store_compelx_unaligned
         template <class A, class T_out, class T_in>
-        inline void store_complex_unaligned(std::complex<T_out>* dst, batch<std::complex<T_in>, A> const& src, requires_arch<generic>) noexcept
+        XSIMD_INLINE void store_complex_unaligned(std::complex<T_out>* dst, batch<std::complex<T_in>, A> const& src, requires_arch<generic>) noexcept
         {
             using real_batch = batch<T_in, A>;
             real_batch hi = detail::complex_high(src, A {});

@@ -8,10 +8,8 @@ import os
 import sys
 
 import pythran
-import pythran.types.tog
 
-import setuptools
-from distutils.errors import CompileError
+from pythran.errors import PythranSyntaxError, PythranTypeError, PythranCompileError
 
 logger = logging.getLogger("pythran")
 
@@ -128,10 +126,20 @@ def run():
                         action='store_true',
                         help='report time spent in each optimization/transformation')
 
+    parser.add_argument('--trace-allocations', dest='trace_allocations',
+                        action='store_true',
+                        help='instrument execution to trace memory allocations')
+
     parser.convert_arg_line_to_args = convert_arg_line_to_args
 
     args, extra = parser.parse_known_args(sys.argv[1:])
     args.extra_flags = extra
+
+    if args.trace_allocations:
+        args.defines.append('PYTHRAN_TRACE_ALLOCATION')
+        args.config.append("backend.annotate=1")
+        args.config.append("backend.annotation_kind=lineno")
+
 
     if args.raw_translate_only:
         args.translate_only = True
@@ -194,15 +202,15 @@ def run():
         logger.critical("Chair to keyboard interface error\n"
                         "E: " + str(e))
         sys.exit(1)
-    except pythran.types.tog.PythranTypeError as e:
+    except PythranTypeError as e:
         logger.critical("You shall not pass!\n"
                         "E: " + str(e))
         sys.exit(1)
-    except pythran.syntax.PythranSyntaxError as e:
+    except PythranSyntaxError as e:
         logger.critical("I am in trouble. Your input file does not seem "
                         "to match Pythran's constraints...\n" + str(e))
         sys.exit(1)
-    except CompileError as e:
+    except PythranCompileError as e:
         logger.critical("Cover me Jack. Jack? Jaaaaack!!!!\n"
                         "E: " + str(e))
         sys.exit(1)

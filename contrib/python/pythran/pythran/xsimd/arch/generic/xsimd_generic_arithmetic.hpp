@@ -28,7 +28,7 @@ namespace xsimd
 
         // bitwise_lshift
         template <class A, class T, class /*=typename std::enable_if<std::is_integral<T>::value, void>::type*/>
-        inline batch<T, A> bitwise_lshift(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_lshift(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
         {
             return detail::apply([](T x, T y) noexcept
                                  { return x << y; },
@@ -37,7 +37,7 @@ namespace xsimd
 
         // bitwise_rshift
         template <class A, class T, class /*=typename std::enable_if<std::is_integral<T>::value, void>::type*/>
-        inline batch<T, A> bitwise_rshift(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> bitwise_rshift(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
         {
             return detail::apply([](T x, T y) noexcept
                                  { return x >> y; },
@@ -46,21 +46,21 @@ namespace xsimd
 
         // decr
         template <class A, class T>
-        inline batch<T, A> decr(batch<T, A> const& self, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> decr(batch<T, A> const& self, requires_arch<generic>) noexcept
         {
             return self - T(1);
         }
 
         // decr_if
         template <class A, class T, class Mask>
-        inline batch<T, A> decr_if(batch<T, A> const& self, Mask const& mask, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> decr_if(batch<T, A> const& self, Mask const& mask, requires_arch<generic>) noexcept
         {
             return select(mask, decr(self), self);
         }
 
         // div
         template <class A, class T, class = typename std::enable_if<std::is_integral<T>::value, void>::type>
-        inline batch<T, A> div(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> div(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
         {
             return detail::apply([](T x, T y) noexcept -> T
                                  { return x / y; },
@@ -69,13 +69,13 @@ namespace xsimd
 
         // fma
         template <class A, class T>
-        inline batch<T, A> fma(batch<T, A> const& x, batch<T, A> const& y, batch<T, A> const& z, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> fma(batch<T, A> const& x, batch<T, A> const& y, batch<T, A> const& z, requires_arch<generic>) noexcept
         {
             return x * y + z;
         }
 
         template <class A, class T>
-        inline batch<std::complex<T>, A> fma(batch<std::complex<T>, A> const& x, batch<std::complex<T>, A> const& y, batch<std::complex<T>, A> const& z, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T>, A> fma(batch<std::complex<T>, A> const& x, batch<std::complex<T>, A> const& y, batch<std::complex<T>, A> const& z, requires_arch<generic>) noexcept
         {
             auto res_r = fms(x.real(), y.real(), fms(x.imag(), y.imag(), z.real()));
             auto res_i = fma(x.real(), y.imag(), fma(x.imag(), y.real(), z.imag()));
@@ -84,13 +84,13 @@ namespace xsimd
 
         // fms
         template <class A, class T>
-        inline batch<T, A> fms(batch<T, A> const& x, batch<T, A> const& y, batch<T, A> const& z, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> fms(batch<T, A> const& x, batch<T, A> const& y, batch<T, A> const& z, requires_arch<generic>) noexcept
         {
             return x * y - z;
         }
 
         template <class A, class T>
-        inline batch<std::complex<T>, A> fms(batch<std::complex<T>, A> const& x, batch<std::complex<T>, A> const& y, batch<std::complex<T>, A> const& z, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T>, A> fms(batch<std::complex<T>, A> const& x, batch<std::complex<T>, A> const& y, batch<std::complex<T>, A> const& z, requires_arch<generic>) noexcept
         {
             auto res_r = fms(x.real(), y.real(), fma(x.imag(), y.imag(), z.real()));
             auto res_i = fma(x.real(), y.imag(), fms(x.imag(), y.real(), z.imag()));
@@ -99,13 +99,13 @@ namespace xsimd
 
         // fnma
         template <class A, class T>
-        inline batch<T, A> fnma(batch<T, A> const& x, batch<T, A> const& y, batch<T, A> const& z, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> fnma(batch<T, A> const& x, batch<T, A> const& y, batch<T, A> const& z, requires_arch<generic>) noexcept
         {
             return -x * y + z;
         }
 
         template <class A, class T>
-        inline batch<std::complex<T>, A> fnma(batch<std::complex<T>, A> const& x, batch<std::complex<T>, A> const& y, batch<std::complex<T>, A> const& z, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T>, A> fnma(batch<std::complex<T>, A> const& x, batch<std::complex<T>, A> const& y, batch<std::complex<T>, A> const& z, requires_arch<generic>) noexcept
         {
             auto res_r = -fms(x.real(), y.real(), fma(x.imag(), y.imag(), z.real()));
             auto res_i = -fma(x.real(), y.imag(), fms(x.imag(), y.real(), z.imag()));
@@ -114,13 +114,13 @@ namespace xsimd
 
         // fnms
         template <class A, class T>
-        inline batch<T, A> fnms(batch<T, A> const& x, batch<T, A> const& y, batch<T, A> const& z, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> fnms(batch<T, A> const& x, batch<T, A> const& y, batch<T, A> const& z, requires_arch<generic>) noexcept
         {
             return -x * y - z;
         }
 
         template <class A, class T>
-        inline batch<std::complex<T>, A> fnms(batch<std::complex<T>, A> const& x, batch<std::complex<T>, A> const& y, batch<std::complex<T>, A> const& z, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<std::complex<T>, A> fnms(batch<std::complex<T>, A> const& x, batch<std::complex<T>, A> const& y, batch<std::complex<T>, A> const& z, requires_arch<generic>) noexcept
         {
             auto res_r = -fms(x.real(), y.real(), fms(x.imag(), y.imag(), z.real()));
             auto res_i = -fma(x.real(), y.imag(), fma(x.imag(), y.real(), z.imag()));
@@ -129,7 +129,7 @@ namespace xsimd
 
         // hadd
         template <class A, class T, class /*=typename std::enable_if<std::is_integral<T>::value, void>::type*/>
-        inline T hadd(batch<T, A> const& self, requires_arch<generic>) noexcept
+        XSIMD_INLINE T hadd(batch<T, A> const& self, requires_arch<generic>) noexcept
         {
             alignas(A::alignment()) T buffer[batch<T, A>::size];
             self.store_aligned(buffer);
@@ -143,21 +143,21 @@ namespace xsimd
 
         // incr
         template <class A, class T>
-        inline batch<T, A> incr(batch<T, A> const& self, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> incr(batch<T, A> const& self, requires_arch<generic>) noexcept
         {
             return self + T(1);
         }
 
         // incr_if
         template <class A, class T, class Mask>
-        inline batch<T, A> incr_if(batch<T, A> const& self, Mask const& mask, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> incr_if(batch<T, A> const& self, Mask const& mask, requires_arch<generic>) noexcept
         {
             return select(mask, incr(self), self);
         }
 
         // mul
         template <class A, class T, class /*=typename std::enable_if<std::is_integral<T>::value, void>::type*/>
-        inline batch<T, A> mul(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> mul(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
         {
             return detail::apply([](T x, T y) noexcept -> T
                                  { return x * y; },
@@ -166,7 +166,7 @@ namespace xsimd
 
         // rotl
         template <class A, class T, class STy>
-        inline batch<T, A> rotl(batch<T, A> const& self, STy other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> rotl(batch<T, A> const& self, STy other, requires_arch<generic>) noexcept
         {
             constexpr auto N = std::numeric_limits<T>::digits;
             return (self << other) | (self >> (N - other));
@@ -174,7 +174,7 @@ namespace xsimd
 
         // rotr
         template <class A, class T, class STy>
-        inline batch<T, A> rotr(batch<T, A> const& self, STy other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> rotr(batch<T, A> const& self, STy other, requires_arch<generic>) noexcept
         {
             constexpr auto N = std::numeric_limits<T>::digits;
             return (self >> other) | (self << (N - other));
@@ -182,12 +182,12 @@ namespace xsimd
 
         // sadd
         template <class A>
-        inline batch<float, A> sadd(batch<float, A> const& self, batch<float, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<float, A> sadd(batch<float, A> const& self, batch<float, A> const& other, requires_arch<generic>) noexcept
         {
             return add(self, other); // no saturated arithmetic on floating point numbers
         }
         template <class A, class T, class /*=typename std::enable_if<std::is_integral<T>::value, void>::type*/>
-        inline batch<T, A> sadd(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> sadd(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
         {
             if (std::is_signed<T>::value)
             {
@@ -204,19 +204,19 @@ namespace xsimd
             }
         }
         template <class A>
-        inline batch<double, A> sadd(batch<double, A> const& self, batch<double, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<double, A> sadd(batch<double, A> const& self, batch<double, A> const& other, requires_arch<generic>) noexcept
         {
             return add(self, other); // no saturated arithmetic on floating point numbers
         }
 
         // ssub
         template <class A>
-        inline batch<float, A> ssub(batch<float, A> const& self, batch<float, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<float, A> ssub(batch<float, A> const& self, batch<float, A> const& other, requires_arch<generic>) noexcept
         {
             return sub(self, other); // no saturated arithmetic on floating point numbers
         }
         template <class A, class T, class /*=typename std::enable_if<std::is_integral<T>::value, void>::type*/>
-        inline batch<T, A> ssub(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<T, A> ssub(batch<T, A> const& self, batch<T, A> const& other, requires_arch<generic>) noexcept
         {
             if (std::is_signed<T>::value)
             {
@@ -229,7 +229,7 @@ namespace xsimd
             }
         }
         template <class A>
-        inline batch<double, A> ssub(batch<double, A> const& self, batch<double, A> const& other, requires_arch<generic>) noexcept
+        XSIMD_INLINE batch<double, A> ssub(batch<double, A> const& self, batch<double, A> const& other, requires_arch<generic>) noexcept
         {
             return sub(self, other); // no saturated arithmetic on floating point numbers
         }

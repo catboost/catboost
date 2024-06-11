@@ -4,6 +4,7 @@
 #include "pythonic/include/types/numpy_expr.hpp"
 
 #include "pythonic/types/nditerator.hpp"
+#include "pythonic/utils/allocate.hpp"
 #include "pythonic/utils/meta.hpp"
 
 #include "pythonic/builtins/ValueError.hpp"
@@ -314,12 +315,12 @@ namespace types
   numpy_expr<Op, Args...>::fast(F const &filter) const
   {
     long sz = filter.template shape<0>();
-    long *raw = (long *)malloc(sz * sizeof(long));
+    long *raw = utils::allocate<long>(sz);
     long n = 0;
     for (long i = 0; i < sz; ++i)
       if (filter.fast(i))
         raw[n++] = i;
-    // realloc(raw, n * sizeof(long));
+    // reallocate(raw, n);
     long shp[1] = {n};
     return this->fast(
         ndarray<long, pshape<long>>(raw, shp, types::ownership::owned));

@@ -33,6 +33,11 @@ PYTYPE_TO_CTYPE_TABLE = {
     complex128: 'std::complex<double>',
     complex64: 'std::complex<float>',
 }
+try:
+    from numpy import bool_ as npy_bool
+    PYTYPE_TO_CTYPE_TABLE[npy_bool] = 'bool'
+except ImportError:
+    pass
 
 try:
     from numpy import float128, complex256

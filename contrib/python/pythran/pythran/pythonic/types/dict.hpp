@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <iterator>
 #include <limits>
-#include <memory>
 #include <utility>
 
 PYTHONIC_NS_BEGIN

@@ -67,6 +67,7 @@ class Intrinsic(object):
                                        lambda call: UNKNOWN_RANGE)
         self.return_range_content = kwargs.get("return_range_content",
                                                lambda c: UNKNOWN_RANGE)
+        self.requires_blas = kwargs.get("requires_blas", False)
 
     def isliteral(self):
         return False

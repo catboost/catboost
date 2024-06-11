@@ -9,42 +9,42 @@
  * The full license is in the file LICENSE, distributed with this software. *
  ****************************************************************************/
 
-#ifndef XSIMD_AVX512VNNI_AVX512VBMI_REGISTER_HPP
-#define XSIMD_AVX512VNNI_AVX512VBMI_REGISTER_HPP
+#ifndef XSIMD_I8MM_NEON64_REGISTER_HPP
+#define XSIMD_I8MM_NEON64_REGISTER_HPP
 
-#include "./xsimd_avx512vbmi_register.hpp"
+#include "./xsimd_neon64_register.hpp"
 
 namespace xsimd
 {
     template <typename arch>
-    struct avx512vnni;
+    struct i8mm;
 
     /**
      * @ingroup architectures
      *
-     * AVX512VNNI instructions
+     * Neon64 + i8mm instructions
      */
     template <>
-    struct avx512vnni<avx512vbmi> : avx512vbmi
+    struct i8mm<neon64> : neon64
     {
-        static constexpr bool supported() noexcept { return XSIMD_WITH_AVX512VNNI_AVX512VBMI; }
+        static constexpr bool supported() noexcept { return XSIMD_WITH_I8MM_NEON64; }
         static constexpr bool available() noexcept { return true; }
-        static constexpr char const* name() noexcept { return "avx512vnni+avx512vbmi"; }
+        static constexpr char const* name() noexcept { return "i8mm+neon64"; }
     };
 
-#if XSIMD_WITH_AVX512VNNI_AVX512VBMI
-
+#if XSIMD_WITH_I8MM_NEON64
     namespace types
     {
+
+        XSIMD_DECLARE_SIMD_REGISTER_ALIAS(i8mm<neon64>, neon64);
+
         template <class T>
-        struct get_bool_simd_register<T, avx512vnni<avx512vbmi>>
+        struct get_bool_simd_register<T, i8mm<neon64>>
+            : detail::neon_bool_simd_register<T, i8mm<neon64>>
         {
-            using type = simd_avx512_bool_register<T>;
         };
-
-        XSIMD_DECLARE_SIMD_REGISTER_ALIAS(avx512vnni<avx512vbmi>, avx512vbmi);
-
     }
 #endif
+
 }
 #endif

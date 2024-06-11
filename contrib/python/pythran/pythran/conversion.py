@@ -137,7 +137,7 @@ def to_ast(value):
     if any(value is t for t in (bool, int, float)):
         return builtin_folding(value)
     elif isinstance(value, np.generic):
-        return to_ast(value.item())
+        raise ToNotEval()
     elif isinstance(value, (numbers.Number, str, bool, type(None))):
         iinfo = np.iinfo(int)
         if isinstance(value, int) and not (iinfo.min <= value <= iinfo.max):

@@ -33,7 +33,6 @@ namespace xsimd
     {
         static constexpr bool supported() noexcept { return false; }
         static constexpr bool available() noexcept { return false; }
-        static constexpr unsigned version() noexcept { return 0; }
         static constexpr std::size_t alignment() noexcept { return 0; }
         static constexpr bool requires_alignment() noexcept { return false; }
         static constexpr char const* name() noexcept { return "<none>"; }
@@ -57,34 +56,14 @@ namespace xsimd
         {
         };
 
-        template <unsigned... Vals>
-        struct is_sorted;
-
-        template <>
-        struct is_sorted<> : std::true_type
-        {
-        };
-
-        template <unsigned Val>
-        struct is_sorted<Val> : std::true_type
-        {
-        };
-
-        template <unsigned V0, unsigned V1, unsigned... Vals>
-        struct is_sorted<V0, V1, Vals...>
-            : std::conditional<(V0 >= V1), is_sorted<V1, Vals...>,
-                               std::false_type>::type
-        {
-        };
-
         template <typename T>
-        inline constexpr T max_of(T value) noexcept
+        XSIMD_INLINE constexpr T max_of(T value) noexcept
         {
             return value;
         }
 
         template <typename T, typename... Ts>
-        inline constexpr T max_of(T head0, T head1, Ts... tail) noexcept
+        XSIMD_INLINE constexpr T max_of(T head0, T head1, Ts... tail) noexcept
         {
             return max_of((head0 > head1 ? head0 : head1), tail...);
         }
@@ -106,15 +85,10 @@ namespace xsimd
 
     } // namespace detail
 
-    // An arch_list is a list of architectures, sorted by version number.
+    // An arch_list is a list of architectures.
     template <class... Archs>
     struct arch_list
     {
-#ifndef NDEBUG
-        static_assert(detail::is_sorted<Archs::version()...>::value,
-                      "architecture list must be sorted by version");
-#endif
-
         using best = typename detail::head<Archs...>::type;
 
         template <class Arch>
@@ -130,7 +104,7 @@ namespace xsimd
         }
 
         template <class F>
-        static inline void for_each(F&& f) noexcept
+        static XSIMD_INLINE void for_each(F&& f) noexcept
         {
             (void)std::initializer_list<bool> { (f(Archs {}), true)... };
         }
@@ -187,9 +161,6 @@ namespace xsimd
         };
     } // namespace detail
 
-    struct unsupported
-    {
-    };
     using all_x86_architectures = arch_list<
         avx512vnni<avx512vbmi>, avx512vbmi, avx512ifma, avx512pf, avx512vnni<avx512bw>, avx512bw, avx512er, avx512dq, avx512cd, avx512f,
         avxvnni, fma3<avx2>, avx2, fma3<avx>, avx, fma4, fma3<sse4_2>,
@@ -197,7 +168,7 @@ namespace xsimd
 
     using all_sve_architectures = arch_list<detail::sve<512>, detail::sve<256>, detail::sve<128>>;
     using all_rvv_architectures = arch_list<detail::rvv<512>, detail::rvv<256>, detail::rvv<128>>;
-    using all_arm_architectures = typename detail::join<all_sve_architectures, arch_list<neon64, neon>>::type;
+    using all_arm_architectures = typename detail::join<all_sve_architectures, arch_list<i8mm<neon64>, neon64, neon>>::type;
     using all_riscv_architectures = all_rvv_architectures;
     using all_wasm_architectures = arch_list<wasm>;
     using all_architectures = typename detail::join<all_riscv_architectures, all_wasm_architectures, all_arm_architectures, all_x86_architectures>::type;
@@ -221,34 +192,34 @@ namespace xsimd
         class dispatcher
         {
 
-            const unsigned best_arch_found;
+            const decltype(available_architectures()) availables_archs;
             F functor;
 
             template <class Arch, class... Tys>
-            inline auto walk_archs(arch_list<Arch>, Tys&&... args) noexcept -> decltype(functor(Arch {}, std::forward<Tys>(args)...))
+            XSIMD_INLINE auto walk_archs(arch_list<Arch>, Tys&&... args) noexcept -> decltype(functor(Arch {}, std::forward<Tys>(args)...))
             {
                 assert(Arch::available() && "At least one arch must be supported during dispatch");
                 return functor(Arch {}, std::forward<Tys>(args)...);
             }
 
             template <class Arch, class ArchNext, class... Archs, class... Tys>
-            inline auto walk_archs(arch_list<Arch, ArchNext, Archs...>, Tys&&... args) noexcept -> decltype(functor(Arch {}, std::forward<Tys>(args)...))
+            XSIMD_INLINE auto walk_archs(arch_list<Arch, ArchNext, Archs...>, Tys&&... args) noexcept -> decltype(functor(Arch {}, std::forward<Tys>(args)...))
             {
-                if (Arch::version() <= best_arch_found)
+                if (availables_archs.has(Arch {}))
                     return functor(Arch {}, std::forward<Tys>(args)...);
                 else
                     return walk_archs(arch_list<ArchNext, Archs...> {}, std::forward<Tys>(args)...);
             }
 
         public:
-            inline dispatcher(F f) noexcept
-                : best_arch_found(available_architectures().best)
+            XSIMD_INLINE dispatcher(F f) noexcept
+                : availables_archs(available_architectures())
                 , functor(f)
             {
             }
 
             template <class... Tys>
-            inline auto operator()(Tys&&... args) noexcept -> decltype(functor(default_arch {}, std::forward<Tys>(args)...))
+            XSIMD_INLINE auto operator()(Tys&&... args) noexcept -> decltype(functor(default_arch {}, std::forward<Tys>(args)...))
             {
                 return walk_archs(ArchList {}, std::forward<Tys>(args)...);
             }
@@ -257,7 +228,7 @@ namespace xsimd
 
     // Generic function dispatch, à la ifunc
     template <class ArchList = supported_architectures, class F>
-    inline detail::dispatcher<F, ArchList> dispatch(F&& f) noexcept
+    XSIMD_INLINE detail::dispatcher<F, ArchList> dispatch(F&& f) noexcept
     {
         return { std::forward<F>(f) };
     }

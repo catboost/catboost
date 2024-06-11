@@ -25,17 +25,24 @@ namespace xsimd
      * @tparam batch_type the type of the associated batch values.
      * @tparam Values boolean constant represented by this batch
      **/
-    template <class batch_type, bool... Values>
+    template <typename T, class A, bool... Values>
     struct batch_bool_constant
     {
-
-    public:
+        using batch_type = batch_bool<T, A>;
         static constexpr std::size_t size = sizeof...(Values);
-        using arch_type = typename batch_type::arch_type;
         using value_type = bool;
         static_assert(sizeof...(Values) == batch_type::size, "consistent batch size");
 
-        constexpr operator batch_bool<typename batch_type::value_type, arch_type>() const noexcept { return { Values... }; }
+    public:
+        /**
+         * @brief Generate a batch of @p batch_type from this @p batch_bool_constant
+         */
+        constexpr batch_type as_batch_bool() const noexcept { return { Values... }; }
+
+        /**
+         * @brief Generate a batch of @p batch_type from this @p batch_bool_constant
+         */
+        constexpr operator batch_type() const noexcept { return as_batch_bool(); }
 
         constexpr bool get(size_t i) const noexcept
         {
@@ -70,14 +77,14 @@ namespace xsimd
         };
 
         template <class F, class SelfPack, class OtherPack, size_t... Indices>
-        static constexpr batch_bool_constant<batch_type, F()(std::tuple_element<Indices, SelfPack>::type::value, std::tuple_element<Indices, OtherPack>::type::value)...>
+        static constexpr batch_bool_constant<T, A, F()(std::tuple_element<Indices, SelfPack>::type::value, std::tuple_element<Indices, OtherPack>::type::value)...>
         apply(detail::index_sequence<Indices...>)
         {
             return {};
         }
 
         template <class F, bool... OtherValues>
-        static constexpr auto apply(batch_bool_constant<batch_type, Values...>, batch_bool_constant<batch_type, OtherValues...>)
+        static constexpr auto apply(batch_bool_constant<T, A, Values...>, batch_bool_constant<T, A, OtherValues...>)
             -> decltype(apply<F, std::tuple<std::integral_constant<bool, Values>...>, std::tuple<std::integral_constant<bool, OtherValues>...>>(detail::make_index_sequence<sizeof...(Values)>()))
         {
             static_assert(sizeof...(Values) == sizeof...(OtherValues), "compatible constant batches");
@@ -85,12 +92,12 @@ namespace xsimd
         }
 
     public:
-#define MAKE_BINARY_OP(OP, NAME)                                                            \
-    template <bool... OtherValues>                                                          \
-    constexpr auto operator OP(batch_bool_constant<batch_type, OtherValues...> other) const \
-        -> decltype(apply<NAME>(*this, other))                                              \
-    {                                                                                       \
-        return apply<NAME>(*this, other);                                                   \
+#define MAKE_BINARY_OP(OP, NAME)                                                      \
+    template <bool... OtherValues>                                                    \
+    constexpr auto operator OP(batch_bool_constant<T, A, OtherValues...> other) const \
+        -> decltype(apply<NAME>(*this, other))                                        \
+    {                                                                                 \
+        return apply<NAME>(*this, other);                                             \
     }
 
         MAKE_BINARY_OP(|, logical_or)
@@ -101,12 +108,12 @@ namespace xsimd
 
 #undef MAKE_BINARY_OP
 
-        constexpr batch_bool_constant<batch_type, !Values...> operator!() const
+        constexpr batch_bool_constant<T, A, !Values...> operator!() const
         {
             return {};
         }
 
-        constexpr batch_bool_constant<batch_type, !Values...> operator~() const
+        constexpr batch_bool_constant<T, A, !Values...> operator~() const
         {
             return {};
         }
@@ -120,88 +127,93 @@ namespace xsimd
      * @tparam batch_type the type of the associated batch values.
      * @tparam Values constants represented by this batch
      **/
-    template <class batch_type, typename batch_type::value_type... Values>
+    template <typename T, class A, T... Values>
     struct batch_constant
     {
         static constexpr std::size_t size = sizeof...(Values);
-        using arch_type = typename batch_type::arch_type;
+        using batch_type = batch<T, A>;
         using value_type = typename batch_type::value_type;
         static_assert(sizeof...(Values) == batch_type::size, "consistent batch size");
 
         /**
          * @brief Generate a batch of @p batch_type from this @p batch_constant
          */
-        inline operator batch_type() const noexcept { return { Values... }; }
+        XSIMD_INLINE batch_type as_batch() const noexcept { return { Values... }; }
+
+        /**
+         * @brief Generate a batch of @p batch_type from this @p batch_constant
+         */
+        XSIMD_INLINE operator batch_type() const noexcept { return as_batch(); }
 
         /**
          * @brief Get the @p i th element of this @p batch_constant
          */
-        constexpr value_type get(size_t i) const noexcept
+        constexpr T get(size_t i) const noexcept
         {
-            return get(i, std::array<value_type, size> { Values... });
+            return get(i, std::array<T, size> { Values... });
         }
 
     private:
-        constexpr value_type get(size_t i, std::array<value_type, size> const& values) const noexcept
+        constexpr T get(size_t i, std::array<T, size> const& values) const noexcept
         {
             return values[i];
         }
 
         struct arithmetic_add
         {
-            constexpr value_type operator()(value_type x, value_type y) const { return x + y; }
+            constexpr T operator()(T x, T y) const { return x + y; }
         };
         struct arithmetic_sub
         {
-            constexpr value_type operator()(value_type x, value_type y) const { return x - y; }
+            constexpr T operator()(T x, T y) const { return x - y; }
         };
         struct arithmetic_mul
         {
-            constexpr value_type operator()(value_type x, value_type y) const { return x * y; }
+            constexpr T operator()(T x, T y) const { return x * y; }
         };
         struct arithmetic_div
         {
-            constexpr value_type operator()(value_type x, value_type y) const { return x / y; }
+            constexpr T operator()(T x, T y) const { return x / y; }
         };
         struct arithmetic_mod
         {
-            constexpr value_type operator()(value_type x, value_type y) const { return x % y; }
+            constexpr T operator()(T x, T y) const { return x % y; }
         };
         struct binary_and
         {
-            constexpr value_type operator()(value_type x, value_type y) const { return x & y; }
+            constexpr T operator()(T x, T y) const { return x & y; }
         };
         struct binary_or
         {
-            constexpr value_type operator()(value_type x, value_type y) const { return x | y; }
+            constexpr T operator()(T x, T y) const { return x | y; }
         };
         struct binary_xor
         {
-            constexpr value_type operator()(value_type x, value_type y) const { return x ^ y; }
+            constexpr T operator()(T x, T y) const { return x ^ y; }
         };
 
         template <class F, class SelfPack, class OtherPack, size_t... Indices>
-        static constexpr batch_constant<batch_type, F()(std::tuple_element<Indices, SelfPack>::type::value, std::tuple_element<Indices, OtherPack>::type::value)...>
+        static constexpr batch_constant<T, A, F()(std::tuple_element<Indices, SelfPack>::type::value, std::tuple_element<Indices, OtherPack>::type::value)...>
         apply(detail::index_sequence<Indices...>)
         {
             return {};
         }
 
-        template <class F, value_type... OtherValues>
-        static constexpr auto apply(batch_constant<batch_type, Values...>, batch_constant<batch_type, OtherValues...>)
-            -> decltype(apply<F, std::tuple<std::integral_constant<value_type, Values>...>, std::tuple<std::integral_constant<value_type, OtherValues>...>>(detail::make_index_sequence<sizeof...(Values)>()))
+        template <class F, T... OtherValues>
+        static constexpr auto apply(batch_constant<T, A, Values...>, batch_constant<T, A, OtherValues...>)
+            -> decltype(apply<F, std::tuple<std::integral_constant<T, Values>...>, std::tuple<std::integral_constant<T, OtherValues>...>>(detail::make_index_sequence<sizeof...(Values)>()))
         {
             static_assert(sizeof...(Values) == sizeof...(OtherValues), "compatible constant batches");
-            return apply<F, std::tuple<std::integral_constant<value_type, Values>...>, std::tuple<std::integral_constant<value_type, OtherValues>...>>(detail::make_index_sequence<sizeof...(Values)>());
+            return apply<F, std::tuple<std::integral_constant<T, Values>...>, std::tuple<std::integral_constant<T, OtherValues>...>>(detail::make_index_sequence<sizeof...(Values)>());
         }
 
     public:
-#define MAKE_BINARY_OP(OP, NAME)                                                       \
-    template <value_type... OtherValues>                                               \
-    constexpr auto operator OP(batch_constant<batch_type, OtherValues...> other) const \
-        -> decltype(apply<NAME>(*this, other))                                         \
-    {                                                                                  \
-        return apply<NAME>(*this, other);                                              \
+#define MAKE_BINARY_OP(OP, NAME)                                                 \
+    template <T... OtherValues>                                                  \
+    constexpr auto operator OP(batch_constant<T, A, OtherValues...> other) const \
+        -> decltype(apply<NAME>(*this, other))                                   \
+    {                                                                            \
+        return apply<NAME>(*this, other);                                        \
     }
 
         MAKE_BINARY_OP(+, arithmetic_add)
@@ -215,17 +227,17 @@ namespace xsimd
 
 #undef MAKE_BINARY_OP
 
-        constexpr batch_constant<batch_type, (value_type)-Values...> operator-() const
+        constexpr batch_constant<T, A, (T)-Values...> operator-() const
         {
             return {};
         }
 
-        constexpr batch_constant<batch_type, (value_type) + Values...> operator+() const
+        constexpr batch_constant<T, A, (T) + Values...> operator+() const
         {
             return {};
         }
 
-        constexpr batch_constant<batch_type, (value_type)~Values...> operator~() const
+        constexpr batch_constant<T, A, (T)~Values...> operator~() const
         {
             return {};
         }
@@ -233,15 +245,15 @@ namespace xsimd
 
     namespace detail
     {
-        template <class batch_type, class G, std::size_t... Is>
-        inline constexpr auto make_batch_constant(detail::index_sequence<Is...>) noexcept
-            -> batch_constant<batch_type, (typename batch_type::value_type)G::get(Is, sizeof...(Is))...>
+        template <typename T, class A, class G, std::size_t... Is>
+        XSIMD_INLINE constexpr auto make_batch_constant(detail::index_sequence<Is...>) noexcept
+            -> batch_constant<T, A, (T)G::get(Is, sizeof...(Is))...>
         {
             return {};
         }
-        template <class batch_type, class G, std::size_t... Is>
-        inline constexpr auto make_batch_bool_constant(detail::index_sequence<Is...>) noexcept
-            -> batch_bool_constant<batch_type, G::get(Is, sizeof...(Is))...>
+        template <typename T, class A, class G, std::size_t... Is>
+        XSIMD_INLINE constexpr auto make_batch_bool_constant(detail::index_sequence<Is...>) noexcept
+            -> batch_bool_constant<T, A, G::get(Is, sizeof...(Is))...>
         {
             return {};
         }
@@ -268,19 +280,19 @@ namespace xsimd
      * };
      * @endcode
      */
-    template <class batch_type, class G>
-    inline constexpr auto make_batch_constant() noexcept -> decltype(detail::make_batch_constant<batch_type, G>(detail::make_index_sequence<batch_type::size>()))
+    template <typename T, class A, class G>
+    XSIMD_INLINE constexpr auto make_batch_constant() noexcept -> decltype(detail::make_batch_constant<T, A, G>(detail::make_index_sequence<batch<T, A>::size>()))
     {
-        return detail::make_batch_constant<batch_type, G>(detail::make_index_sequence<batch_type::size>());
+        return detail::make_batch_constant<T, A, G>(detail::make_index_sequence<batch<T, A>::size>());
     }
 
-    template <class batch_type, class G>
-    inline constexpr auto make_batch_bool_constant() noexcept
-        -> decltype(detail::make_batch_bool_constant<batch_type, G>(
-            detail::make_index_sequence<batch_type::size>()))
+    template <typename T, class A, class G>
+    XSIMD_INLINE constexpr auto make_batch_bool_constant() noexcept
+        -> decltype(detail::make_batch_bool_constant<T, A, G>(
+            detail::make_index_sequence<batch<T, A>::size>()))
     {
-        return detail::make_batch_bool_constant<batch_type, G>(
-            detail::make_index_sequence<batch_type::size>());
+        return detail::make_batch_bool_constant<T, A, G>(
+            detail::make_index_sequence<batch<T, A>::size>());
     }
 
 } // namespace xsimd

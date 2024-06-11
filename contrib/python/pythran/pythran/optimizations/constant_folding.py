@@ -135,7 +135,7 @@ class ConstEval(ast.NodeVisitor):
             else:
                 raise ValueError("invalid binary op")
         elif isinstance(node.target, ast.Subscript):
-            subscript = self.visit(node.target.subscript)
+            subscript = self.visit(node.target.slice)
             if ty is ast.Add:
                 self.visit(node.target.value)[subscript] += value
             elif ty is ast.Sub:

@@ -32,7 +32,6 @@ namespace xsimd
         static constexpr bool available() noexcept { return true; }
         static constexpr bool requires_alignment() noexcept { return true; }
         static constexpr std::size_t alignment() noexcept { return 16; }
-        static constexpr unsigned version() noexcept { return generic::version(7, 0, 0); }
         static constexpr char const* name() noexcept { return "arm32+neon"; }
     };
 

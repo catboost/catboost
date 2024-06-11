@@ -1,6 +1,8 @@
 #ifndef PYTHONIC_TYPES_NUMPY_VEXPR_HPP
 #define PYTHONIC_TYPES_NUMPY_VEXPR_HPP
 
+#include "pythonic/utils/allocate.hpp"
+
 PYTHONIC_NS_BEGIN
 
 namespace types
@@ -9,8 +11,7 @@ namespace types
   template <class T, class F>
   template <class E>
   typename std::enable_if<is_iterable<E>::value, numpy_vexpr<T, F> &>::type
-      numpy_vexpr<T, F>::
-      operator=(E const &expr)
+  numpy_vexpr<T, F>::operator=(E const &expr)
   {
     // TODO: avoid the tmp copy when no aliasing
     typename assignable<E>::type tmp{expr};
@@ -21,8 +22,7 @@ namespace types
   template <class T, class F>
   template <class E>
   typename std::enable_if<!is_iterable<E>::value, numpy_vexpr<T, F> &>::type
-      numpy_vexpr<T, F>::
-      operator=(E const &expr)
+  numpy_vexpr<T, F>::operator=(E const &expr)
   {
     for (long i = 0, n = shape<0>(); i < n; ++i)
       (*this).fast(i) = expr;
@@ -60,7 +60,7 @@ namespace types
   }
   template <class T, class F>
   template <class... S>
-  auto numpy_vexpr<T, F>::operator()(S const &... slices) const
+  auto numpy_vexpr<T, F>::operator()(S const &...slices) const
       -> decltype(ndarray<dtype, array<long, value>>{*this}(slices...))
   {
     return ndarray<dtype, array<long, value>>{*this}(slices...);
@@ -69,7 +69,7 @@ namespace types
   template <class T, class F>
   template <class vectorizer>
   typename numpy_vexpr<T, F>::simd_iterator
-      numpy_vexpr<T, F>::vbegin(vectorizer) const
+  numpy_vexpr<T, F>::vbegin(vectorizer) const
   {
     return {*this, 0};
   }
@@ -77,7 +77,7 @@ namespace types
   template <class T, class F>
   template <class vectorizer>
   typename numpy_vexpr<T, F>::simd_iterator
-      numpy_vexpr<T, F>::vend(vectorizer) const
+  numpy_vexpr<T, F>::vend(vectorizer) const
   {
     return {*this, 0};
   }
@@ -94,12 +94,12 @@ namespace types
   numpy_vexpr<T, F>::fast(E const &filter) const
   {
     long sz = filter.template shape<0>();
-    long *raw = (long *)malloc(sz * sizeof(long));
+    long *raw = utils::allocate<long>(sz);
     long n = 0;
     for (long i = 0; i < sz; ++i)
       if (filter.fast(i))
         raw[n++] = i;
-    // realloc(raw, n * sizeof(long));
+    // reallocate(raw, n);
     long shp[1] = {n};
     return this->fast(
         ndarray<long, pshape<long>>(raw, shp, types::ownership::owned));
@@ -112,8 +112,7 @@ namespace types
           std::is_same<bool, typename E::dtype>::value &&
           !is_pod_array<F>::value,
       numpy_vexpr<numpy_vexpr<T, F>, ndarray<long, pshape<long>>>>::type
-      numpy_vexpr<T, F>::
-      operator[](E const &filter) const
+  numpy_vexpr<T, F>::operator[](E const &filter) const
   {
     return fast(filter);
   }
@@ -125,8 +124,7 @@ namespace types
                               !std::is_same<bool, typename E::dtype>::value &&
                               !is_pod_array<F>::value,
                           numpy_vexpr<numpy_vexpr<T, F>, E>>::type
-      numpy_vexpr<T, F>::
-      operator[](E const &filter) const
+  numpy_vexpr<T, F>::operator[](E const &filter) const
   {
     return {*this, filter};
   }
@@ -208,7 +206,7 @@ namespace types
   {
     return update_<pythonic::operator_::functor::ixor>(expr);
   }
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

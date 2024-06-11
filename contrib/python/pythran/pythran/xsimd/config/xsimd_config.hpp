@@ -12,9 +12,9 @@
 #ifndef XSIMD_CONFIG_HPP
 #define XSIMD_CONFIG_HPP
 
-#define XSIMD_VERSION_MAJOR 12
-#define XSIMD_VERSION_MINOR 1
-#define XSIMD_VERSION_PATCH 1
+#define XSIMD_VERSION_MAJOR 13
+#define XSIMD_VERSION_MINOR 0
+#define XSIMD_VERSION_PATCH 0
 
 /**
  * high level free functions
@@ -347,6 +347,17 @@
 #else
 #define XSIMD_WITH_NEON 0
 #define XSIMD_WITH_NEON64 0
+#endif
+
+/**
+ * @ingroup xsimd_config_macro
+ *
+ * Set to 1 if i8mm neon64 extension is available at compile-time, to 0 otherwise.
+ */
+#if defined(__ARM_FEATURE_MATMUL_INT8)
+#define XSIMD_WITH_I8MM_NEON64 1
+#else
+#define XSIMD_WITH_I8MM_NEON64 0
 #endif
 
 /**

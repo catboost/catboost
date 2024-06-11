@@ -2,8 +2,8 @@
 #define PYTHONIC_UTILS_SHARED_REF_HPP
 
 #include "pythonic/include/utils/shared_ref.hpp"
+#include "pythonic/utils/allocate.hpp"
 
-#include <memory>
 #include <unordered_map>
 #include <utility>
 #ifdef _OPENMP
@@ -39,7 +39,8 @@ namespace utils
   template <class T>
   template <class... Types>
   shared_ref<T>::shared_ref(Types &&...args)
-      : mem(new (std::nothrow) memory(std::forward<Types>(args)...))
+      : mem(new(utils::allocate<memory>(1))
+                memory(std::forward<Types>(args)...))
   {
   }
 
@@ -143,7 +144,8 @@ namespace utils
         Py_DECREF(mem->foreign);
       }
 #endif
-      delete mem;
+      mem->~memory();
+      utils::deallocate(mem);
       mem = nullptr;
     }
   }

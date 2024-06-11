@@ -37,7 +37,6 @@ namespace xsimd
             static constexpr bool available() noexcept { return true; }
             static constexpr bool requires_alignment() noexcept { return true; }
             static constexpr std::size_t alignment() noexcept { return 16; }
-            static constexpr unsigned version() noexcept { return generic::version(1, 0, 0, /*multiplier=*/1000); }
             static constexpr char const* name() noexcept { return "riscv+rvv"; }
         };
     }
@@ -89,14 +88,14 @@ namespace xsimd
         using byte_type = XSIMD_RVV_TYPE(u, 8, vmul);                                     \
         using fixed_type = type __attribute__((riscv_rvv_vector_bits(width)));            \
         template <class U>                                                                \
-        static inline type bitcast(U x) noexcept                                          \
+        static XSIMD_INLINE type bitcast(U x) noexcept                                    \
         {                                                                                 \
             const auto words = XSIMD_RVV_JOINT5(__riscv_vreinterpret_, u, s, m, vmul)(x); \
             return XSIMD_RVV_JOINT5(__riscv_vreinterpret_, t, s, m, vmul)(words);         \
         }                                                                                 \
         template <>                                                                       \
-        inline type bitcast<type>(type x) noexcept { return x; }                          \
-        static inline byte_type as_bytes(type x) noexcept                                 \
+        XSIMD_INLINE type bitcast<type>(type x) noexcept { return x; }                    \
+        static XSIMD_INLINE byte_type as_bytes(type x) noexcept                           \
         {                                                                                 \
             const auto words = XSIMD_RVV_JOINT5(__riscv_vreinterpret_, u, s, m, vmul)(x); \
             return XSIMD_RVV_JOINT5(__riscv_vreinterpret_, u, 8, m, vmul)(words);         \
@@ -268,17 +267,17 @@ namespace xsimd
             //
             template <size_t>
             struct rvv_bool_info;
-#define XSIMD_RVV_MAKE_BOOL_TYPE(i)                                                       \
-    template <>                                                                           \
-    struct rvv_bool_info<i>                                                               \
-    {                                                                                     \
-        using type = XSIMD_RVV_JOINT(vbool, i, _t);                                       \
-        template <class T>                                                                \
-        static inline type bitcast(T value) noexcept                                      \
-        {                                                                                 \
-            return XSIMD_RVV_JOINT(__riscv_vreinterpret_b, i, )(value);                   \
-        }                                                                                 \
-        /*template <> static inline type bitcast(type value) noexcept { return value; }*/ \
+#define XSIMD_RVV_MAKE_BOOL_TYPE(i)                                                             \
+    template <>                                                                                 \
+    struct rvv_bool_info<i>                                                                     \
+    {                                                                                           \
+        using type = XSIMD_RVV_JOINT(vbool, i, _t);                                             \
+        template <class T>                                                                      \
+        static XSIMD_INLINE type bitcast(T value) noexcept                                      \
+        {                                                                                       \
+            return XSIMD_RVV_JOINT(__riscv_vreinterpret_b, i, )(value);                         \
+        }                                                                                       \
+        /*template <> static XSIMD_INLINE type bitcast(type value) noexcept { return value; }*/ \
     };
             XSIMD_RVV_MAKE_BOOL_TYPE(1);
             XSIMD_RVV_MAKE_BOOL_TYPE(2);
@@ -411,6 +410,8 @@ namespace xsimd
             using type = detail::rvv_bool_simd_register<T>;
         };
     } // namespace types
+#else
+    using rvv = detail::rvv<0xFFFFFFFF>;
 #endif
 } // namespace xsimd
 

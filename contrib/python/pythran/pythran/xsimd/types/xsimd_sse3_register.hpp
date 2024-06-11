@@ -29,7 +29,6 @@ namespace xsimd
     {
         static constexpr bool supported() noexcept { return XSIMD_WITH_SSE3; }
         static constexpr bool available() noexcept { return true; }
-        static constexpr unsigned version() noexcept { return generic::version(1, 3, 0); }
         static constexpr char const* name() noexcept { return "sse3"; }
     };
 
