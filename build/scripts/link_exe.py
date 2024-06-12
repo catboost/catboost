@@ -32,6 +32,7 @@ CUDA_LIBRARIES = {
     '-lcudart_static': '-lcudart',
     '-lcudnn_static': '-lcudnn',
     '-lcufft_static_nocallback': '-lcufft',
+    '-lcupti_static': '-lcupti',
     '-lcurand_static': '-lcurand',
     '-lcusolver_static': '-lcusolver',
     '-lcusparse_static': '-lcusparse',
@@ -83,6 +84,7 @@ class CUDAManager:
     def _known_fatbin_libs(self, libs):
         libs_wo_device_code = {
             '-lcudart_static',
+            '-lcupti_static',
             '-lnppc_static',
         }
         return set(libs) - libs_wo_device_code
