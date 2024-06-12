@@ -1,18 +1,35 @@
 import sys
 import subprocess
 import os
+import platform
 import collections
 import re
 import tempfile
 
 
+def fix_win_bin_name(name):
+    res = os.path.normpath(name)
+    if not os.path.splitext(name)[1]:
+        return res + '.exe'
+    return res
+
+def find_compiler_bindir(command):
+    for idx, word in enumerate(command):
+        if '--compiler-bindir' in word:
+            return idx
+    return None
+
 def is_clang(command):
-    for word in command:
-        if '--compiler-bindir' in word and 'clang' in word:
-            return True
+    cmplr_dir_idx = find_compiler_bindir(command)
+    return cmplr_dir_idx is not None and 'clang' in command[cmplr_dir_idx]
 
-    return False
-
+def fix_win(command, flags):
+    if platform.system().lower() == "windows":
+        command[0] = fix_win_bin_name(command[0])
+        cmplr_dir_idx = find_compiler_bindir(command)
+        if cmplr_dir_idx is not None:
+            key, value = command[cmplr_dir_idx].split('=')
+            command[cmplr_dir_idx] = key + '=' + fix_win_bin_name(value)
 
 def main():
     try:
@@ -34,6 +51,8 @@ def main():
     if '--y_dump_args' in command:
         command.remove('--y_dump_args')
         dump_args = True
+
+    fix_win(command, cflags)
 
     executable = command[0]
     if not os.path.exists(executable):
