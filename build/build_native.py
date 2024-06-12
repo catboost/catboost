@@ -56,6 +56,11 @@ class Targets(object):
         'rescompiler',
         'triecompiler'
     ]
+    test_tools = {
+        'limited_precision_dsv_diff': Target(None, need_pic=False, macos_binaries_paths=['catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff']),
+        'limited_precision_json_diff': Target(None, need_pic=False, macos_binaries_paths=['catboost/tools/limited_precision_json_diff/limited_precision_json_diff']),
+        'model_comparator': Target(None, need_pic=False, macos_binaries_paths=['catboost/tools/model_comparator/model_comparator']),
+    }
 
 
 class Option(object):
@@ -181,8 +186,9 @@ def mkdir_if_not_exists(dir, verbose, dry_run):
         os.makedirs(dir, exist_ok=True)
 
 def lipo(opts : Opts, cmd_runner: CmdRunner):
+    all_targets_specs = {**Targets.catboost, **Targets.test_tools}
     for target in opts.targets:
-        for target_binary_sub_path in Targets.catboost[target].macos_binaries_paths:
+        for target_binary_sub_path in all_targets_specs[target].macos_binaries_paths:
             dst_path = os.path.join(opts.build_root_dir, target_binary_sub_path)
             mkdir_if_not_exists(os.path.dirname(dst_path), opts.verbose, opts.dry_run)
             cmd = ['lipo', '-create', '-output', dst_path]

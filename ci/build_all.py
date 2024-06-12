@@ -182,7 +182,7 @@ def run_with_native_python_with_version_in_python_package_dir(
     )
 
 
-def patch_sources(src_root_dir: str, dry_run:bool = False, verbose:bool = False):
+def patch_sources(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = False, verbose:bool = False):
     # TODO(akhropov): Remove when system cuda.cmake is updated for Linux cross-build
     distutils.file_util.copy_file(
         src=os.path.join(src_root_dir, 'ci', 'cmake', 'cuda.cmake'),
@@ -342,6 +342,7 @@ def copy_built_artifacts_to_canonical_place(
     with_cuda:bool,
     build_native_root_dir:str,
     built_output_root_dir:str,
+    build_test_tools:bool,
     dry_run:bool,
     verbose: bool
 ):
@@ -366,6 +367,14 @@ def copy_built_artifacts_to_canonical_place(
         (os.path.join('catboost', 'libs', 'model_interface', 'static'), get_static_lib_files(system, 'catboostmodel_static')),
         (os.path.join('catboost', 'libs', 'train_interface'), get_shared_lib_files(system, 'catboost')),
     ]
+
+    if build_test_tools:
+        artifacts += [
+            (os.path.join('catboost', 'tools', 'limited_precision_dsv_diff'), get_exe_files(system, 'limited_precision_dsv_diff')),
+            (os.path.join('catboost', 'tools', 'limited_precision_json_diff'), get_exe_files(system, 'limited_precision_json_diff')),
+            (os.path.join('catboost', 'tools', 'model_comparator'), get_exe_files(system, 'model_comparator')),
+        ]
+
 
     for sub_path, files in artifacts:
         for f in files:
@@ -397,6 +406,7 @@ def build_all_for_one_platform(
     cmake_target_toolchain:str=None,
     conan_host_profile:str=None,
     cmake_extra_args:List[str]=None,
+    build_test_tools:bool=False,
     dry_run:bool=False,
     verbose:bool=False):
 
@@ -412,11 +422,10 @@ def build_all_for_one_platform(
 
     # exclude python-dependent targets that will be built for concrete python
     # and SWIG (which is always w/o CUDA) and includes JVM-only 'catboost4j-spark-impl'
-    all_targets_except_python_and_spark=[
+    all_catboost_targets_except_python_and_spark=[
         target for target in build_native.Targets.catboost.keys()
         if target not in ['_hnsw', '_catboost', 'catboost4j-spark-impl', 'catboost4j-spark-impl-cpp']
     ]
-
 
     build_with_cuda_for_main_targets = need_to_build_with_cuda_for_main_targets(platform_name)
 
@@ -497,16 +506,21 @@ def build_all_for_one_platform(
             macos_universal_binaries=False
         )
 
-    # build Spark native part w/o CUDA
+    targets_wo_cuda = ['catboost4j-spark-impl-cpp']
+    if build_test_tools:
+        targets_wo_cuda += build_native.Targets.test_tools.keys()
+
+
+    # build Spark native part and test tools w/o CUDA
     call_build_native(
-        targets=['catboost4j-spark-impl-cpp'],
+        targets=targets_wo_cuda,
         have_cuda=False,
         native_built_tools_root_dir=native_built_tools_root_dir
     )
 
     # build all non python-version specific variants
     call_build_native(
-        targets=all_targets_except_python_and_spark,
+        targets=all_catboost_targets_except_python_and_spark,
         have_cuda=build_with_cuda_for_main_targets,
         native_built_tools_root_dir=native_built_tools_root_dir
     )
@@ -517,6 +531,7 @@ def build_all_for_one_platform(
             build_with_cuda_for_main_targets,
             build_native_root_dir,
             built_output_root_dir,
+            build_test_tools=build_test_tools,
             dry_run=dry_run,
             verbose=verbose
         )
@@ -595,7 +610,7 @@ def build_all_for_one_platform(
             [bdist_wheel_cmd]
         )
 
-def build_all(src_root_dir: str, dry_run:bool = False, verbose:bool = False):
+def build_all(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = False, verbose:bool = False):
     run_in_python_package_dir(
         src_root_dir,
         dry_run,
@@ -620,6 +635,7 @@ def build_all(src_root_dir: str, dry_run:bool = False, verbose:bool = False):
         built_output_root_dir=build_native_root_dir,
         platform_name=platform_name,
         cmake_target_toolchain=cmake_target_toolchain,
+        build_test_tools=build_test_tools,
         dry_run=dry_run,
         verbose=verbose
     )
@@ -634,6 +650,7 @@ def build_all(src_root_dir: str, dry_run:bool = False, verbose:bool = False):
             platform_name='linux-aarch64',
             cmake_target_toolchain=os.path.join(src_root_dir, 'ci', 'toolchains', 'dockcross.manylinux2014_aarch64.clangs.toolchain'),
             conan_host_profile=os.path.join(src_root_dir, 'ci', 'conan-profiles', 'dockcross.manylinux2014_aarch64.profile'),
+            build_test_tools=build_test_tools,
             dry_run=dry_run,
             verbose=verbose,
             native_built_tools_root_dir=os.path.join(
@@ -658,7 +675,18 @@ if __name__ == '__main__':
     )
     args_parser.add_argument('--dry-run', action='store_true', help='Only print, not execute commands')
     args_parser.add_argument('--verbose', action='store_true', help='Verbose output')
+    args_parser.add_argument('--build-test-tools', action='store_true', help='Build tools for tests')
     parsed_args = args_parser.parse_args()
 
-    patch_sources(os.path.abspath(os.getcwd()), parsed_args.dry_run, parsed_args.verbose)
-    build_all(os.path.abspath(os.getcwd()), parsed_args.dry_run, parsed_args.verbose)
+    patch_sources(
+        os.path.abspath(os.getcwd()),
+        parsed_args.build_test_tools,
+        parsed_args.dry_run,
+        parsed_args.verbose
+    )
+    build_all(
+        os.path.abspath(os.getcwd()),
+        parsed_args.build_test_tools,
+        parsed_args.dry_run,
+        parsed_args.verbose
+    )
