@@ -54,21 +54,24 @@ TEST(CaseInsensitiveAsciiString, CompareAsciiWithoutNullBytes) {
     }
 }
 
-TEST(CaseInsensitiveAsciiString, MaySupportLocales) {
+TEST(CaseInsensitiveAsciiString, UnspecifiedBehaviorForNonAsciiStrings) {
     TLocaleGuard loc("ru_RU.CP1251");
     if (loc.Error()) {
         GTEST_SKIP() << "ru_RU.CP1251 locale is not available: " << loc.Error();
     }
-    // strncasecmp is locale-dependent, not sure about strnicmp
+    // - strncasecmp in glibc is locale-dependent.
+    // - not sure about strnicmp (probably also locale-dependent).
+    // - strncasecmp in musl and bionic ignores locales.
+    // - ASan interceptor for strncasecmp ignores locales
     {
-        TCaseInsensitiveStringBuf s1 = "\xc0\xc1\xc2";  // "АБВ"
-        TCaseInsensitiveStringBuf s2 = "\xe0\xe1\xe2";  // "абв"
-        EXPECT_EQ(s1, s2);
+        TCaseInsensitiveAsciiStringBuf s1 = "\xc0\xc1\xc2";  // "АБВ"
+        TCaseInsensitiveAsciiStringBuf s2 = "\xe0\xe1\xe2";  // "абв"
+        EXPECT_TRUE(s1 == s2 || s1 < s2);
     }
     {
-        TCaseInsensitiveStringBuf s1 = "\xc0\xc1\xc3";  // "АБГ"
-        TCaseInsensitiveStringBuf s2 = "\xe0\xe1\xe2";  // "абв"
-        EXPECT_GT(s1, s2);
+        TCaseInsensitiveAsciiStringBuf s1 = "\xc0\xc1\xc3";  // "АБГ"
+        TCaseInsensitiveAsciiStringBuf s2 = "\xe0\xe1\xe2";  // "абв"
+        EXPECT_TRUE(s1 > s2 || s1 < s2);
     }
 }
 
