@@ -439,6 +439,7 @@ static int running_on_valgrind = -1;
  *
  * You shouldn't change this unless you know what you are doing.
  */
+
 #if SIZEOF_VOID_P > 4
 #define ALIGNMENT              16               /* must be 2^N */
 #define ALIGNMENT_SHIFT         4

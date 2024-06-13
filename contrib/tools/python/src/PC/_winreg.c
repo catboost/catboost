@@ -322,19 +322,19 @@ PyDoc_STRVAR(SetValueEx_doc,
 
 PyDoc_STRVAR(DisableReflectionKey_doc,
 "Disables registry reflection for 32-bit processes running on a 64-bit\n"
-"Operating System.  Will generally raise NotImplemented if executed on\n"
+"Operating System.  Will generally raise NotImplementedError if executed on\n"
 "a 32-bit Operating System.\n"
 "If the key is not on the reflection list, the function succeeds but has no effect.\n"
 "Disabling reflection for a key does not affect reflection of any subkeys.");
 
 PyDoc_STRVAR(EnableReflectionKey_doc,
 "Restores registry reflection for the specified disabled key.\n"
-"Will generally raise NotImplemented if executed on a 32-bit Operating System.\n"
+"Will generally raise NotImplementedError if executed on a 32-bit Operating System.\n"
 "Restoring reflection for a key does not affect reflection of any subkeys.");
 
 PyDoc_STRVAR(QueryReflectionKey_doc,
 "bool = QueryReflectionKey(hkey) - Determines the reflection state for the specified key.\n"
-"Will generally raise NotImplemented if executed on a 32-bit Operating System.\n");
+"Will generally raise NotImplementedError if executed on a 32-bit Operating System.\n");
 
 /* PyHKEY docstrings */
 PyDoc_STRVAR(PyHKEY_doc,
@@ -727,7 +727,7 @@ fixupMultiSZ(char **str, char *data, int len)
     Q = data + len;
     for (P = data, i = 0; P < Q && *P != '\0'; P++, i++) {
         str[i] = P;
-        for(; *P != '\0'; P++)
+        for (; P < Q && *P != '\0'; P++)
             ;
     }
 }
