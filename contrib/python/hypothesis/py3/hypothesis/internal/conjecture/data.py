@@ -779,10 +779,6 @@ class Blocks:
         """Equivalent to self[i].end."""
         return self.endpoints[i]
 
-    def bounds(self, i: int) -> Tuple[int, int]:
-        """Equivalent to self[i].bounds."""
-        return (self.start(i), self.end(i))
-
     def all_bounds(self) -> Iterable[Tuple[int, int]]:
         """Equivalent to [(b.start, b.end) for b in self]."""
         prev = 0
@@ -970,7 +966,12 @@ class IRNode:
     was_forced: bool = attr.ib()
     index: Optional[int] = attr.ib(default=None)
 
-    def copy(self, *, with_value: IRType) -> "IRNode":
+    def copy(
+        self,
+        *,
+        with_value: Optional[IRType] = None,
+        with_kwargs: Optional[IRKWargsType] = None,
+    ) -> "IRNode":
         # we may want to allow this combination in the future, but for now it's
         # a footgun.
         assert not self.was_forced, "modifying a forced node doesn't make sense"
@@ -979,8 +980,8 @@ class IRNode:
         # after copying.
         return IRNode(
             ir_type=self.ir_type,
-            value=with_value,
-            kwargs=self.kwargs,
+            value=self.value if with_value is None else with_value,
+            kwargs=self.kwargs if with_kwargs is None else with_kwargs,
             was_forced=self.was_forced,
         )
 
@@ -1071,9 +1072,17 @@ class IRNode:
 
 def ir_value_permitted(value, ir_type, kwargs):
     if ir_type == "integer":
-        if kwargs["min_value"] is not None and value < kwargs["min_value"]:
+        min_value = kwargs["min_value"]
+        max_value = kwargs["max_value"]
+        shrink_towards = kwargs["shrink_towards"]
+        if min_value is not None and value < min_value:
             return False
-        if kwargs["max_value"] is not None and value > kwargs["max_value"]:
+        if max_value is not None and value > max_value:
+            return False
+
+        if (max_value is None or min_value is None) and (
+            value - shrink_towards
+        ).bit_length() >= 128:
             return False
 
         return True
@@ -1144,14 +1153,22 @@ class ConjectureResult:
     status: Status = attr.ib()
     interesting_origin: Optional[InterestingOrigin] = attr.ib()
     buffer: bytes = attr.ib()
-    blocks: Blocks = attr.ib()
+    # some ConjectureDatas pass through the ir and some pass through buffers.
+    # the ir does not drive its result through the buffer, which means blocks/examples
+    # may differ (I think for forced values?) even when the buffer is the same.
+    # I don't *think* anything was relying on anything but .buffer for result equality,
+    # though that assumption may be leaning on flakiness detection invariants.
+    #
+    # If we consider blocks or examples in equality checks, multiple semantically equal
+    # results get stored in e.g. the pareto front.
+    blocks: Blocks = attr.ib(eq=False)
     output: str = attr.ib()
     extra_information: Optional[ExtraInformation] = attr.ib()
     has_discards: bool = attr.ib()
     target_observations: TargetObservations = attr.ib()
     tags: FrozenSet[StructuralCoverageTag] = attr.ib()
     forced_indices: FrozenSet[int] = attr.ib(repr=False)
-    examples: Examples = attr.ib(repr=False)
+    examples: Examples = attr.ib(repr=False, eq=False)
     arg_slices: Set[Tuple[int, int]] = attr.ib(repr=False)
     slice_comments: Dict[Tuple[int, int], str] = attr.ib(repr=False)
     invalid_at: Optional[InvalidAt] = attr.ib(repr=False)

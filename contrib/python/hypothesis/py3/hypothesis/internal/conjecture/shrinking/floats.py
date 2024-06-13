@@ -11,7 +11,6 @@
 import math
 import sys
 
-from hypothesis.internal.conjecture.data import ir_value_permitted
 from hypothesis.internal.conjecture.floats import float_to_lex
 from hypothesis.internal.conjecture.shrinking.common import Shrinker
 from hypothesis.internal.conjecture.shrinking.integer import Integer
@@ -20,16 +19,9 @@ MAX_PRECISE_INTEGER = 2**53
 
 
 class Float(Shrinker):
-    def setup(self, node):
+    def setup(self):
         self.NAN = math.nan
         self.debugging_enabled = True
-        self.node = node
-
-    def consider(self, value):
-        if not ir_value_permitted(value, "float", self.node.kwargs):
-            self.debug(f"rejecting {value} as disallowed for {self.node.kwargs}")
-            return False
-        return super().consider(value)
 
     def make_immutable(self, f):
         f = float(f)
@@ -60,11 +52,16 @@ class Float(Shrinker):
         if not math.isfinite(self.current):
             return True
 
-        # If its too large to represent as an integer, bail out here. It's
-        # better to try shrinking it in the main representation.
-        return self.current >= MAX_PRECISE_INTEGER
-
     def run_step(self):
+        # above MAX_PRECISE_INTEGER, all floats are integers. Shrink like one.
+        # TODO_BETTER_SHRINK: at 2 * MAX_PRECISE_INTEGER, n - 1 == n - 2, and
+        # Integer.shrink will likely perform badly. We should have a specialized
+        # big-float shrinker, which mostly follows Integer.shrink but replaces
+        # n - 1 with next_down(n).
+        if self.current > MAX_PRECISE_INTEGER:
+            self.delegate(Integer, convert_to=int, convert_from=float)
+            return
+
         # Finally we get to the important bit: Each of these is a small change
         # to the floating point number that corresponds to a large change in
         # the lexical representation. Trying these ensures that our floating
