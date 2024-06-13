@@ -66,12 +66,12 @@ def recover_core_dump_file(binary_path, cwd, pid, core_pattern=None):
         if core_pattern and not core_pattern.startswith("|"):
             default_pattern.mask = os.path.basename(core_pattern)
         else:
-            core_uses_pid = int(_read_file("/proc/sys/kernel/core_uses_pid"))
-            logger.debug("core_uses_pid = '%d'", core_uses_pid)
-            if core_uses_pid == 0:
-                default_pattern.mask = "core"
-            else:
-                default_pattern.mask = "core.%p"
+            default_pattern.mask = "core"
+
+        core_uses_pid = int(_read_file("/proc/sys/kernel/core_uses_pid"))
+        logger.debug("core_uses_pid = '%d'", core_uses_pid)
+        if core_uses_pid == 1 and "%p" not in re.split(r"(%.)", default_pattern.mask):
+            default_pattern.mask += ".%p"
 
         # widely distributed core dump dir and mask (see DEVTOOLS-4408)
         yandex_pattern = CoreFilePattern('/coredumps', '%e.%p.%s')
