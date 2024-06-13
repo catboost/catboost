@@ -12,17 +12,32 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// Explicitly create TRuntimeFormat if you wish to
+// use runtime/non-literal value as format.
+class TRuntimeFormat
+{
+public:
+    explicit TRuntimeFormat(TStringBuf fmt);
+
+    TStringBuf Get() const noexcept;
+
+private:
+    TStringBuf Format_;
+};
+
 // This class used to properly bind to
 // string literals and allow compile-time parsing/checking
 // of those. If you need a runtime format, use TRuntimeFormat
 template <class... TArgs>
-class TBasicStaticFormat
+class TBasicFormatString
 {
 public:
     // Can be used to perform compile-time check of format.
     template <class T>
         requires std::constructible_from<std::string_view, T>
-    consteval TBasicStaticFormat(const T& fmt);
+    consteval TBasicFormatString(const T& fmt);
+
+    TBasicFormatString(TRuntimeFormat fmt);
 
     TStringBuf Get() const noexcept;
 
@@ -35,22 +50,9 @@ private:
     static void CrashCompilerClassIsNotFormattable();
 };
 
-// Explicitly create TRuntimeFormat if you wish to
-// use runtime/non-literal value as format.
-class TRuntimeFormat
-{
-public:
-    inline explicit TRuntimeFormat(TStringBuf fmt);
-
-    inline TStringBuf Get() const noexcept;
-
-private:
-    TStringBuf Format_;
-};
-
 // Used to properly infer template arguments if Format.
 template <class... TArgs>
-using TStaticFormat = TBasicStaticFormat<std::type_identity_t<TArgs>...>;
+using TFormatString = TBasicFormatString<std::type_identity_t<TArgs>...>;
 
 ////////////////////////////////////////////////////////////////////////////////
 

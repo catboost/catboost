@@ -55,14 +55,9 @@ namespace NYT {
  */
 
 template <class... TArgs>
-void Format(TStringBuilderBase* builder, TStaticFormat<TArgs...> format, TArgs&&... args);
+void Format(TStringBuilderBase* builder, TFormatString<TArgs...> format, TArgs&&... args);
 template <class... TArgs>
-void Format(TStringBuilderBase* builder, TRuntimeFormat format, TArgs&&... args);
-
-template <class... TArgs>
-TString Format(TStaticFormat<TArgs...> format, TArgs&&... args);
-template <class... TArgs>
-TString Format(TRuntimeFormat format, TArgs&&... args);
+TString Format(TFormatString<TArgs...> format, TArgs&&... args);
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -217,6 +217,12 @@ TEST(TFormatTest, VectorArg)
     EXPECT_EQ(FormatVector("a is %v, b is %v, c is %v", params), "a is a, b is b, c is c");
 }
 
+TEST(TFormatTest, RuntimeFormat)
+{
+    TString format = "Hello %v";
+    EXPECT_EQ(Format(TRuntimeFormat(format), "World"), "Hello World");
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace

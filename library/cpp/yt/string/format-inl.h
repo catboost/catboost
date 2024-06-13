@@ -819,41 +819,23 @@ void RunFormatter(
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class... TArgs>
-void Format(TStringBuilderBase* builder, TStaticFormat<TArgs...> format, TArgs&&... args)
+void Format(TStringBuilderBase* builder, TFormatString<TArgs...> format, TArgs&&... args)
 {
-    NYT::NDetail::TValueFormatter<0, TArgs...> formatter(args...);
-    NYT::NDetail::RunFormatter(builder, format.Get(), formatter);
+    // NB(arkady-e1ppa): "if constexpr" is done in order to prevent
+    // compiler from emitting "No matching function to call"
+    // when arguments are not formattable.
+    // Compiler would crash in TFormatString ctor
+    // anyway (e.g. program would not compile) but
+    // for some reason it does look ahead and emits
+    // a second error.
+    if constexpr ((CFormattable<TArgs> && ...)) {
+        NYT::NDetail::TValueFormatter<0, TArgs...> formatter(args...);
+        NYT::NDetail::RunFormatter(builder, format.Get(), formatter);
+    }
 }
 
 template <class... TArgs>
-void Format(TStringBuilderBase* builder, TRuntimeFormat format, TArgs&&... args)
-{
-    // NB(arkady-e1ppa): StaticFormat performs the
-    // formattability check of the args in a way
-    // that provides more useful information
-    // than a simple static_assert with conjunction.
-    // Additionally, the latter doesn't work properly
-    // for older clang version.
-    static constexpr auto argsChecker = [] {
-        TStaticFormat<TArgs...>::CheckFormattability();
-        return 42;
-    } ();
-    Y_UNUSED(argsChecker);
-
-    NYT::NDetail::TValueFormatter<0, TArgs...> formatter(args...);
-    NYT::NDetail::RunFormatter(builder, format.Get(), formatter);
-}
-
-template <class... TArgs>
-TString Format(TStaticFormat<TArgs...> format, TArgs&&... args)
-{
-    TStringBuilder builder;
-    Format(&builder, format, std::forward<TArgs>(args)...);
-    return builder.Flush();
-}
-
-template <class... TArgs>
-TString Format(TRuntimeFormat format, TArgs&&... args)
+TString Format(TFormatString<TArgs...> format, TArgs&&... args)
 {
     TStringBuilder builder;
     Format(&builder, format, std::forward<TArgs>(args)...);

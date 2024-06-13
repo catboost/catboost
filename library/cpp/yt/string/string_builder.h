@@ -14,9 +14,7 @@ class TStringBuilder;
 class TDelimitedStringBuilderWrapper;
 
 template <class... TArgs>
-void Format(TStringBuilderBase* builder, TStaticFormat<TArgs...> fmt, TArgs&&... args);
-template <class... TArgs>
-void Format(TStringBuilderBase* builder, TRuntimeFormat fmt, TArgs&&... args);
+void Format(TStringBuilderBase* builder, TFormatString<TArgs...> fmt, TArgs&&... args);
 
 ////////////////////////////////////////////////////////////////////////////////
 

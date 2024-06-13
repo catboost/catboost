@@ -207,7 +207,7 @@ Format(fmtGood2, "World!"); // Hello, World
 
 ### Static analysis (since clang-16)
 
-If format string can bind to `TStaticFormat` (that is, it is a constexpr string_view or a literal) then static analysis on supplied args is performed.
+If format string can bind to `TFormatString` (that is, it is a constexpr string_view or a literal) then static analysis on supplied args is performed.
 
 #### How to disable
 
