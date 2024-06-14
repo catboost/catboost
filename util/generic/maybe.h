@@ -395,12 +395,20 @@ public:
         return Defined() ? *Data() : elseValue;
     }
 
+    constexpr T&& GetOrElse(T&& elseValue Y_LIFETIME_BOUND) && Y_LIFETIME_BOUND {
+        return Defined() ? std::move(*Data()) : std::move(elseValue);
+    }
+
     constexpr const TMaybe& OrElse(const TMaybe& elseValue Y_LIFETIME_BOUND) const noexcept Y_LIFETIME_BOUND {
         return Defined() ? *this : elseValue;
     }
 
     constexpr TMaybe& OrElse(TMaybe& elseValue Y_LIFETIME_BOUND) Y_LIFETIME_BOUND {
         return Defined() ? *this : elseValue;
+    }
+
+    constexpr TMaybe&& OrElse(TMaybe&& elseValue Y_LIFETIME_BOUND) && Y_LIFETIME_BOUND {
+        return Defined() ? std::move(*this) : std::move(elseValue);
     }
 
     template <typename F>
