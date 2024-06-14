@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/build.yaml
     with:
       runs-on_value: ${{ inputs.runs-on_value }}
-      artifacts_version: ${{ github.sha }}
+      artifacts_version: ${{ inputs.artifacts_version }}
       catboost_package_version: ${{ inputs.catboost_package_version }}
 
   #test:
@@ -28,5 +28,5 @@ jobs:
   #    - build
   #  with:
   #    runs-on_value: ${{ inputs.runs-on_value }}
-  #    artifacts_version: ${{ github.sha }}
+  #    artifacts_version: ${{ inputs.artifacts_version }}
   #    catboost_package_version: ${{ inputs.catboost_package_version }}
