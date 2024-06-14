@@ -30,7 +30,7 @@ class Filter(metaclass=ABCMeta):
         """
         Chaining of filters using the & operator.
         """
-        assert isinstance(other, Filter), "Expecting filter, got %r" % other
+        assert isinstance(other, Filter), f"Expecting filter, got {other!r}"
 
         if isinstance(other, Always):
             return self
@@ -48,7 +48,7 @@ class Filter(metaclass=ABCMeta):
         """
         Chaining of filters using the | operator.
         """
-        assert isinstance(other, Filter), "Expecting filter, got %r" % other
+        assert isinstance(other, Filter), f"Expecting filter, got {other!r}"
 
         if isinstance(other, Always):
             return other
@@ -193,7 +193,7 @@ class _Invert(Filter):
         return not self.filter()
 
     def __repr__(self) -> str:
-        return "~%r" % self.filter
+        return f"~{self.filter!r}"
 
 
 class Always(Filter):
@@ -206,6 +206,9 @@ class Always(Filter):
 
     def __or__(self, other: Filter) -> Filter:
         return self
+
+    def __and__(self, other: Filter) -> Filter:
+        return other
 
     def __invert__(self) -> Never:
         return Never()
@@ -221,6 +224,9 @@ class Never(Filter):
 
     def __and__(self, other: Filter) -> Filter:
         return self
+
+    def __or__(self, other: Filter) -> Filter:
+        return other
 
     def __invert__(self) -> Always:
         return Always()
@@ -248,7 +254,7 @@ class Condition(Filter):
         return self.func()
 
     def __repr__(self) -> str:
-        return "Condition(%r)" % self.func
+        return f"Condition({self.func!r})"
 
 
 # Often used as type annotation.

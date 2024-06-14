@@ -2,6 +2,7 @@
 Formatter classes for the progress bar.
 Each progress bar consists of a list of these formatters.
 """
+
 from __future__ import annotations
 
 import datetime
@@ -130,7 +131,7 @@ class Percentage(Formatter):
     Display the progress as a percentage.
     """
 
-    template = "<percentage>{percentage:>5}%</percentage>"
+    template = HTML("<percentage>{percentage:>5}%</percentage>")
 
     def format(
         self,
@@ -138,7 +139,7 @@ class Percentage(Formatter):
         progress: ProgressBarCounter[object],
         width: int,
     ) -> AnyFormattedText:
-        return HTML(self.template).format(percentage=round(progress.percentage, 1))
+        return self.template.format(percentage=round(progress.percentage, 1))
 
     def get_width(self, progress_bar: ProgressBar) -> AnyDimension:
         return D.exact(6)
@@ -149,7 +150,9 @@ class Bar(Formatter):
     Display the progress bar itself.
     """
 
-    template = "<bar>{start}<bar-a>{bar_a}</bar-a><bar-b>{bar_b}</bar-b><bar-c>{bar_c}</bar-c>{end}</bar>"
+    template = HTML(
+        "<bar>{start}<bar-a>{bar_a}</bar-a><bar-b>{bar_b}</bar-b><bar-c>{bar_c}</bar-c>{end}</bar>"
+    )
 
     def __init__(
         self,
@@ -202,7 +205,7 @@ class Bar(Formatter):
         bar_b = sym_b
         bar_c = sym_c * (width - pb_a)
 
-        return HTML(self.template).format(
+        return self.template.format(
             start=self.start, end=self.end, bar_a=bar_a, bar_b=bar_b, bar_c=bar_c
         )
 
@@ -215,7 +218,7 @@ class Progress(Formatter):
     Display the progress as text.  E.g. "8/20"
     """
 
-    template = "<current>{current:>3}</current>/<total>{total:>3}</total>"
+    template = HTML("<current>{current:>3}</current>/<total>{total:>3}</total>")
 
     def format(
         self,
@@ -223,7 +226,7 @@ class Progress(Formatter):
         progress: ProgressBarCounter[object],
         width: int,
     ) -> AnyFormattedText:
-        return HTML(self.template).format(
+        return self.template.format(
             current=progress.items_completed, total=progress.total or "?"
         )
 
@@ -250,6 +253,8 @@ class TimeElapsed(Formatter):
     Display the elapsed time.
     """
 
+    template = HTML("<time-elapsed>{time_elapsed}</time-elapsed>")
+
     def format(
         self,
         progress_bar: ProgressBar,
@@ -257,9 +262,7 @@ class TimeElapsed(Formatter):
         width: int,
     ) -> AnyFormattedText:
         text = _format_timedelta(progress.time_elapsed).rjust(width)
-        return HTML("<time-elapsed>{time_elapsed}</time-elapsed>").format(
-            time_elapsed=text
-        )
+        return self.template.format(time_elapsed=text)
 
     def get_width(self, progress_bar: ProgressBar) -> AnyDimension:
         all_values = [
@@ -275,7 +278,7 @@ class TimeLeft(Formatter):
     Display the time left.
     """
 
-    template = "<time-left>{time_left}</time-left>"
+    template = HTML("<time-left>{time_left}</time-left>")
     unknown = "?:??:??"
 
     def format(
@@ -290,7 +293,7 @@ class TimeLeft(Formatter):
         else:
             formatted_time_left = self.unknown
 
-        return HTML(self.template).format(time_left=formatted_time_left.rjust(width))
+        return self.template.format(time_left=formatted_time_left.rjust(width))
 
     def get_width(self, progress_bar: ProgressBar) -> AnyDimension:
         all_values = [
@@ -307,7 +310,7 @@ class IterationsPerSecond(Formatter):
     Display the iterations per second.
     """
 
-    template = (
+    template = HTML(
         "<iterations-per-second>{iterations_per_second:.2f}</iterations-per-second>"
     )
 
@@ -318,7 +321,7 @@ class IterationsPerSecond(Formatter):
         width: int,
     ) -> AnyFormattedText:
         value = progress.items_completed / progress.time_elapsed.total_seconds()
-        return HTML(self.template.format(iterations_per_second=value))
+        return self.template.format(iterations_per_second=value)
 
     def get_width(self, progress_bar: ProgressBar) -> AnyDimension:
         all_values = [
@@ -335,6 +338,7 @@ class SpinningWheel(Formatter):
     Display a spinning wheel.
     """
 
+    template = HTML("<spinning-wheel>{0}</spinning-wheel>")
     characters = r"/-\|"
 
     def format(
@@ -344,9 +348,7 @@ class SpinningWheel(Formatter):
         width: int,
     ) -> AnyFormattedText:
         index = int(time.time() * 3) % len(self.characters)
-        return HTML("<spinning-wheel>{0}</spinning-wheel>").format(
-            self.characters[index]
-        )
+        return self.template.format(self.characters[index])
 
     def get_width(self, progress_bar: ProgressBar) -> AnyDimension:
         return D.exact(1)

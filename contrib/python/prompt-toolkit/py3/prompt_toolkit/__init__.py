@@ -13,6 +13,7 @@ See the examples directory to learn about the usage.
 Probably, to get started, you might also want to have a look at
 `prompt_toolkit.shortcuts.prompt`.
 """
+
 from __future__ import annotations
 
 import re
@@ -27,7 +28,7 @@ from .formatted_text import ANSI, HTML
 from .shortcuts import PromptSession, print_formatted_text, prompt
 
 # Don't forget to update in `docs/conf.py`!
-__version__ = "3.0.43"
+__version__ = "3.0.45"
 
 assert pep440.match(__version__)
 
