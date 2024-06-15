@@ -14,7 +14,7 @@ from IPython.utils.decorators import flag_calls
 
 
 # Matplotlib backend resolution functionality moved from IPython to Matplotlib
-# in IPython 8.24 and Matplotlib 3.9.1. Need to keep `backends` and `backend2gui`
+# in IPython 8.24 and Matplotlib 3.9.0. Need to keep `backends` and `backend2gui`
 # here for earlier Matplotlib and for external backend libraries such as
 # mplcairo that might rely upon it.
 _deprecated_backends = {
@@ -224,7 +224,7 @@ def mpl_runner(safe_execfile):
         import matplotlib
         import matplotlib.pyplot as plt
 
-        #print '*** Matplotlib runner ***' # dbg
+        # print('*** Matplotlib runner ***')  # dbg
         # turn off rendering until end of script
         with matplotlib.rc_context({"interactive": False}):
             safe_execfile(fname, *where, **kw)
@@ -345,8 +345,10 @@ def find_gui_and_backend(gui=None, gui_select=None):
             backend = matplotlib.rcParamsOrig["backend"]
             backend, gui = backend_registry.resolve_backend(backend)
         else:
+            gui = _convert_gui_to_matplotlib(gui)
             backend, gui = backend_registry.resolve_gui_or_backend(gui)
 
+        gui = _convert_gui_from_matplotlib(gui)
         return gui, backend
 
     # Fallback to previous behaviour (Matplotlib < 3.9)
@@ -485,6 +487,10 @@ def _matplotlib_manages_backends() -> bool:
     matplotlib.backends.registry.backend_registry is available along with
     member functions resolve_gui_or_backend, resolve_backend, list_all, and
     list_gui_frameworks.
+
+    This function can be removed as it will always return True when Python
+    3.12, the latest version supported by Matplotlib < 3.9, reaches
+    end-of-life in late 2028.
     """
     global _matplotlib_manages_backends_value
     if _matplotlib_manages_backends_value is None:
@@ -509,10 +515,28 @@ def _list_matplotlib_backends_and_gui_loops() -> list[str]:
     if _matplotlib_manages_backends():
         from matplotlib.backends.registry import backend_registry
 
-        ret = backend_registry.list_all() + backend_registry.list_gui_frameworks()
+        ret = backend_registry.list_all() + [
+            _convert_gui_from_matplotlib(gui)
+            for gui in backend_registry.list_gui_frameworks()
+        ]
     else:
         from IPython.core import pylabtools
 
         ret = list(pylabtools.backends.keys())
 
     return sorted(["auto"] + ret)
+
+
+# Matplotlib and IPython do not always use the same gui framework name.
+# Always use the approprate one of these conversion functions when passing a
+# gui framework name to/from Matplotlib.
+def _convert_gui_to_matplotlib(gui: str | None) -> str | None:
+    if gui and gui.lower() == "osx":
+        return "macosx"
+    return gui
+
+
+def _convert_gui_from_matplotlib(gui: str | None) -> str | None:
+    if gui and gui.lower() == "macosx":
+        return "osx"
+    return gui
