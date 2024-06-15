@@ -1880,7 +1880,9 @@ def main(args=None):
     )
 
     isFullInstance = {
-        axisTag for axisTag, limit in axisLimits.items() if limit[0] == limit[2]
+        axisTag
+        for axisTag, limit in axisLimits.items()
+        if limit is None or limit[0] == limit[2]
     }.issuperset(axis.axisTag for axis in varfont["fvar"].axes)
 
     instantiateVariableFont(
