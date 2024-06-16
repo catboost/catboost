@@ -418,7 +418,7 @@ TYPE_CHECKING = typing.TYPE_CHECKING
 
 
 if sys.version_info >= (3, 13, 0, "beta"):
-    from typing import ContextManager, AsyncContextManager, Generator, AsyncGenerator
+    from typing import AsyncContextManager, AsyncGenerator, ContextManager, Generator
 else:
     def _is_dunder(attr):
         return attr.startswith('__') and attr.endswith('__')
@@ -739,8 +739,8 @@ else:
         not their type signatures!
         """
         if not issubclass(cls, typing.Generic) or not getattr(cls, '_is_protocol', False):
-            raise TypeError('@runtime_checkable can be only applied to protocol classes,'
-                            ' got %r' % cls)
+            raise TypeError(f'@runtime_checkable can be only applied to protocol classes,'
+                            f' got {cls!r}')
         cls._is_runtime_protocol = True
 
         # typing.Protocol classes on <=3.11 break if we execute this block,
@@ -942,7 +942,13 @@ else:
                 tp_dict.__orig_bases__ = bases
 
             annotations = {}
-            own_annotations = ns.get('__annotations__', {})
+            if "__annotations__" in ns:
+                own_annotations = ns["__annotations__"]
+            elif "__annotate__" in ns:
+                # TODO: Use inspect.VALUE here, and make the annotations lazily evaluated
+                own_annotations = ns["__annotate__"](1)
+            else:
+                own_annotations = {}
             msg = "TypedDict('Name', {f0: t0, f1: t1, ...}); each t must be a type"
             if _TAKES_MODULE:
                 own_annotations = {
@@ -1265,7 +1271,7 @@ else:
 
         def __reduce__(self):
             return operator.getitem, (
-                Annotated, (self.__origin__,) + self.__metadata__
+                Annotated, (self.__origin__, *self.__metadata__)
             )
 
         def __eq__(self, other):
@@ -1391,7 +1397,7 @@ else:
             get_args(Callable[[], T][int]) == ([], int)
         """
         if isinstance(tp, _AnnotatedAlias):
-            return (tp.__origin__,) + tp.__metadata__
+            return (tp.__origin__, *tp.__metadata__)
         if isinstance(tp, (typing._GenericAlias, _typing_GenericAlias)):
             if getattr(tp, "_special", False):
                 return ()
@@ -1805,7 +1811,7 @@ def _concatenate_getitem(self, parameters):
 # 3.10+
 if hasattr(typing, 'Concatenate'):
     Concatenate = typing.Concatenate
-    _ConcatenateGenericAlias = typing._ConcatenateGenericAlias  # noqa: F811
+    _ConcatenateGenericAlias = typing._ConcatenateGenericAlias
 # 3.9
 elif sys.version_info[:2] >= (3, 9):
     @_ExtensionsSpecialForm
@@ -2952,9 +2958,9 @@ def _has_generic_or_protocol_as_origin() -> bool:
     except AttributeError:
         return False  # err on the side of leniency
     else:
-        return frame.f_locals.get("origin") in {
+        return frame.f_locals.get("origin") in (
             typing.Generic, Protocol, typing.Protocol
-        }
+        )
 
 
 _TYPEVARTUPLE_TYPES = {TypeVarTuple, getattr(typing, "TypeVarTuple", None)}
@@ -3104,7 +3110,13 @@ else:
                     raise TypeError(
                         'can only inherit from a NamedTuple type and Generic')
             bases = tuple(tuple if base is _NamedTuple else base for base in bases)
-            types = ns.get('__annotations__', {})
+            if "__annotations__" in ns:
+                types = ns["__annotations__"]
+            elif "__annotate__" in ns:
+                # TODO: Use inspect.VALUE here, and make the annotations lazily evaluated
+                types = ns["__annotate__"](1)
+            else:
+                types = {}
             default_names = []
             for field_name in types:
                 if field_name in ns:
@@ -3236,7 +3248,7 @@ else:
 if hasattr(collections.abc, "Buffer"):
     Buffer = collections.abc.Buffer
 else:
-    class Buffer(abc.ABC):
+    class Buffer(abc.ABC):  # noqa: B024
         """Base class for classes that implement the buffer protocol.
 
         The buffer protocol allows Python objects to expose a low-level

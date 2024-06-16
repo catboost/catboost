@@ -365,6 +365,15 @@ FEATURE is a list of comma separated words that can include:\n\
       /* Don't output this redundant message for English locales.
          Note we still output for 'C' so that it gets included in the
          man page.  */
+      const char *lc_messages = setlocale (LC_MESSAGES, NULL);
+      if (lc_messages && !STREQ (lc_messages, "en_"))
+        /* TRANSLATORS: Replace LANG_CODE in this URL with your language
+           code <http://translationproject.org/team/LANG_CODE.html> to
+           form one of the URLs at http://translationproject.org/team/.
+           Otherwise, replace the entire URL with your translation team's
+           email address.  */
+        fputs (_("Report translation bugs to "
+                 "<http://translationproject.org/team/>.\n"), stdout);
       fputs (_("For complete documentation, run: info bison.\n"), stdout);
     }
 
@@ -388,7 +397,7 @@ version (void)
 
   fprintf (stdout,
            _("Copyright (C) %d Free Software Foundation, Inc.\n"),
-           2013);
+           PACKAGE_COPYRIGHT_YEAR);
 
   fputs (_("\
 This is free software; see the source for copying conditions.  There is NO\n\
@@ -476,8 +485,8 @@ enum
   LOCATIONS_OPTION = CHAR_MAX + 1,
   PRINT_LOCALEDIR_OPTION,
   PRINT_DATADIR_OPTION,
-  REPORT_FILE_OPTION,
-  M4_PATH
+  M4_PATH,
+  REPORT_FILE_OPTION
 };
 
 static struct option const long_options[] =
@@ -696,11 +705,9 @@ getargs (int argc, char *argv[])
                                       command_line_location (), true);
         break;
 
-#if 0
       case PRINT_LOCALEDIR_OPTION:
         printf ("%s\n", LOCALEDIR);
         exit (EXIT_SUCCESS);
-#endif
 
       case PRINT_DATADIR_OPTION:
         printf ("%s\n", pkgdatadir ());
