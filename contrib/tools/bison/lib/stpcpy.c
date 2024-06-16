@@ -23,7 +23,7 @@
 #include <string.h>
 
 #undef __stpcpy
-#if defined(_LIBC) || (defined(__MACH__) && defined(stpcpy))
+#ifdef _LIBC
 # undef stpcpy
 #endif
 

@@ -26,8 +26,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-int obstack_vprintf(struct obstack *obs, const char *format, va_list args);
-
 /* Grow an obstack with formatted output.  Return the number of bytes
    added to OBS.  No trailing nul byte is added, and the object should
    be closed with obstack_finish before use.

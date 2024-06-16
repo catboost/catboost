@@ -26,9 +26,5 @@
 size_t
 __fpending (FILE *fp)
 {
-#if defined(PENDING_OUTPUT_N_BYTES)
   return PENDING_OUTPUT_N_BYTES;
-#endif
-
-  return 0;
 }

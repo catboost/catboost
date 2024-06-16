@@ -511,8 +511,4 @@ __extension__                                                           \
 }       /* C++ */
 #endif
 
-#if !defined(obstack_printf)
-int obstack_printf(struct obstack *obs, const char *format, ...);
-#endif
-
 #endif /* obstack.h */

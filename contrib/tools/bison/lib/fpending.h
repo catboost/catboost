@@ -20,10 +20,11 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#if HAVE_STDIO_EXT_H
-# include <stdio_ext.h>
-#endif
 
-#ifndef __fpending
+#if HAVE_DECL___FPENDING
+# if HAVE_STDIO_EXT_H
+#  include <stdio_ext.h>
+# endif
+#else
 size_t __fpending (FILE *);
 #endif
