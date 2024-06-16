@@ -28,8 +28,6 @@
 #include <quotearg.h>
 #include <stdio-safer.h>
 #include <xstrndup.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "complain.h"
 #include "files.h"
@@ -163,20 +161,20 @@ compute_exts_from_gf (const char *ext)
   if (STREQ (ext, ".y"))
     {
       src_extension = xstrdup (language->src_extension);
-	  /* header_extension = xstrdup (language->header_extension); */
-	  header_extension = xstrdup(".h");
+      /* header_extension = xstrdup (language->header_extension); */
+      header_extension = xstrdup(".h");
     }
   else
     {
       src_extension = xstrdup (ext);
-	  /*
+      /*
       header_extension = xstrdup (ext);
       tr (src_extension, 'y', 'c');
       tr (src_extension, 'Y', 'C');
       tr (header_extension, 'y', 'h');
       tr (header_extension, 'Y', 'H');
-	  */
-	  header_extension = xstrdup(".h");
+      */
+      header_extension = xstrdup(".h");
     }
 }
 

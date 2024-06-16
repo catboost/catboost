@@ -4870,7 +4870,7 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
 #endif
                   *fbp = dp->conversion;
 #if USE_SNPRINTF
-# if !defined(__APPLE__) && !(((__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 3)) && !defined __UCLIBC__) || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__))
+# if !(((__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 3)) && !defined __UCLIBC__) || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__))
                 fbp[1] = '%';
                 fbp[2] = 'n';
                 fbp[3] = '\0';
@@ -5575,10 +5575,7 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
     if (buf_malloced != NULL)
       free (buf_malloced);
     CLEANUP ();
-#if (defined _MSC_VER) && (_MSC_VER < 1800)
-#else
     errno = EOVERFLOW;
-#endif
     return NULL;
 #endif
 

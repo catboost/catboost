@@ -29,7 +29,7 @@ fseterr (FILE *fp)
   /* Most systems provide FILE as a struct and the necessary bitmask in
      <stdio.h>, because they need it for implementing getc() and putc() as
      fast macros.  */
-#if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
+#if defined _IO_EOF_SEEN || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
   fp->_flags |= _IO_ERR_SEEN;
 #elif defined __sferror || defined __DragonFly__ /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin */
   fp_->_flags |= __SERR;
@@ -39,7 +39,7 @@ fseterr (FILE *fp)
   fp->_flags |= _IOERR;
 #elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, mingw, NonStop Kernel */
   fp_->_flag |= _IOERR;
-#elif WIN_SDK10
+#elif _MSC_VER
   ((TWinSdk10File*)fp)->_flags |= WIN_SDK10_IOERROR;
 #elif defined __UCLIBC__            /* uClibc */
   fp->__modeflags |= __FLAG_ERROR;

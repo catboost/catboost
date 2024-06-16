@@ -27,7 +27,6 @@
 #include <signal.h>
 #include <unistd.h>
 
-#include "penviron.h"
 #include "error.h"
 #include "fatal-signal.h"
 #include "unistd-safer.h"
@@ -54,6 +53,9 @@
 #undef open
 #undef close
 
+#if defined(__FreeBSD__) || defined(__MACH__)
+    extern char** environ;
+#endif
 
 #ifdef EINTR
 

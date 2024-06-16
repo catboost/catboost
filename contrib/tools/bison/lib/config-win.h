@@ -1,8 +1,6 @@
 /* lib/config.h.  Generated from config.hin by configure.  */
 /* lib/config.hin.  Generated from configure.ac by autoheader.  */
 
-#include <contrib/tools/bison/lib/win_sdk10.h>
-
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
@@ -1228,7 +1226,7 @@ char *strsignal (int signum);
 /* #undef PACKAGE_PACKAGER_VERSION */
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU M4 3.0.0"
+#define PACKAGE_STRING "GNU Bison 3.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "m4"
@@ -1237,14 +1235,7 @@ char *strsignal (int signum);
 #define PACKAGE_URL "http://www.gnu.org/software/m4/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.0.0"
-
-/* the number of pending output bytes on stream 'fp' */
-#if WIN_SDK10
-#define PENDING_OUTPUT_N_BYTES ((TWinSdk10File*)fp)->_ptr - ((TWinSdk10File*)fp)->_base
-#else
-#define PENDING_OUTPUT_N_BYTES fp->_ptr - fp->_base
-#endif
+#define PACKAGE_VERSION "3.0"
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 /* #undef PRI_MACROS_BROKEN */
@@ -1407,7 +1398,7 @@ char *strsignal (int signum);
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "3.0.0"
+#define VERSION "3.0"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 /* #undef VOID_UNSETENV */
@@ -1712,3 +1703,46 @@ char *strsignal (int signum);
 
 #define PACKAGE_COPYRIGHT_YEAR 2013
 #define LC_MESSAGES LC_ALL
+
+// Since Windows SDK 10 FILE is an internal opaque structure with no backward compatibility.
+// This code has been transplanted from Windows SDK
+// corecrt_internal_stdio.h
+
+// __crt_stdio_stream_data
+//
+// These will be used in fseterr.c to set FILE into an error state.
+typedef struct {
+    union {
+        void* _public_file;
+        char* _ptr;
+    };
+
+    char* _base;
+    int _cnt;
+    long _flags;
+    long _file;
+    int _charbuf;
+    int _bufsiz;
+    char* _tmpfname;
+    //CRITICAL_SECTION _lock;
+} TWinSdk10File;
+
+enum EWinSdk10ModeBits {
+    WIN_SDK10_IOREAD = 0x0001,
+    WIN_SDK10_IOWRITE = 0x0002,
+    WIN_SDK10_IOUPDATE = 0x0004,
+    WIN_SDK10_IOEOF = 0x0008,
+    WIN_SDK10_IOERROR = 0x0010,
+    WIN_SDK10_IOCTRLZ = 0x0020,
+    WIN_SDK10_IOBUFFER_CRT = 0x0040,
+    WIN_SDK10_IOBUFFER_USER = 0x0080,
+    WIN_SDK10_IOBUFFER_SETVBUF = 0x0100,
+    WIN_SDK10_IOBUFFER_STBUF = 0x0200,
+    WIN_SDK10_IOBUFFER_NONE = 0x0400,
+    WIN_SDK10_IOCOMMIT = 0x0800,
+    WIN_SDK10_IOSTRING = 0x1000,
+    WIN_SDK10_IOALLOCATED = 0x2000,
+};
+
+#define PENDING_OUTPUT_N_BYTES (((TWinSdk10File*)fp)->_ptr - ((TWinSdk10File*)fp)->_base)
+
