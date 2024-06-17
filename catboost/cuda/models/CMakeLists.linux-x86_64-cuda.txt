@@ -42,8 +42,7 @@ target_sources(models PRIVATE
 target_cuda_cflags(models)
 
 target_cuda_flags(models
-  -gencode
-  arch=compute_35,code=sm_35
+  -gencode=arch=compute_35,code=sm_35
   -gencode
   arch=compute_50,code=compute_50
   -gencode

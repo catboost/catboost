@@ -61,8 +61,7 @@ target_sources(catboost-cuda-targets PRIVATE
 target_cuda_cflags(catboost-cuda-targets)
 
 target_cuda_flags(catboost-cuda-targets
-  -gencode
-  arch=compute_35,code=sm_35
+  -gencode=arch=compute_35,code=sm_35
   -gencode
   arch=compute_50,code=compute_50
   -gencode
