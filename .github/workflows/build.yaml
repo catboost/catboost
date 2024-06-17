@@ -93,7 +93,7 @@ jobs:
           ln -s $RUNNER_TOOL_CACHE/Python/3.9.19/x64 ./3.9
           ln -s $RUNNER_TOOL_CACHE/Python/3.10.14/x64 ./3.10
           ln -s $RUNNER_TOOL_CACHE/Python/3.11.9/x64 ./3.11
-          ln -s $RUNNER_TOOL_CACHE/Python/3.12.3/x64 ./3.12
+          ln -s $RUNNER_TOOL_CACHE/Python/3.12.4/x64 ./3.12
 
           for PY_VER in 3.7 3.8 3.9 3.10 3.11 3.12
           do
