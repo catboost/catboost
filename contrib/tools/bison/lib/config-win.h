@@ -1701,9 +1701,6 @@ char *strsignal (int signum);
 /* Define as a macro for copying va_list variables. */
 #define va_copy gl_va_copy
 
-#define PACKAGE_COPYRIGHT_YEAR 2013
-#define LC_MESSAGES LC_ALL
-
 // Since Windows SDK 10 FILE is an internal opaque structure with no backward compatibility.
 // This code has been transplanted from Windows SDK
 // corecrt_internal_stdio.h
@@ -1745,4 +1742,3 @@ enum EWinSdk10ModeBits {
 };
 
 #define PENDING_OUTPUT_N_BYTES (((TWinSdk10File*)fp)->_ptr - ((TWinSdk10File*)fp)->_base)
-

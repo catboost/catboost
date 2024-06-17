@@ -1804,5 +1804,3 @@
 
 /* Define as a macro for copying va_list variables. */
 /* #undef va_copy */
-
-#define PACKAGE_COPYRIGHT_YEAR 2013
