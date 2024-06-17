@@ -219,7 +219,7 @@ jobs:
           $Env:CMAKE_BUILD_ENV_ROOT = Join-Path ${{ github.workspace }} cmake_build_env_root
           $Env:CMAKE_BUILD_CACHE_DIR = Join-Path ${{ github.workspace }} cmake_build_cache
           Set-Location -Path catboost
-          python ./ci/build_all.py
+          python ./ci/build_all.py --build-test-tools
 
       - name: Save commit id to CMake build cache
         shell: pwsh
@@ -303,6 +303,26 @@ jobs:
           path: catboost/catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
           retention-days: ${{ inputs.artifact_retention_days }}
 
+      - if: inputs.runs-on_value == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: catboost-test-tools-linux-x86_64-${{ inputs.artifacts_version }}
+          path: |
+            catboost/build_native_root/no_cuda/linux-x86_64/catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff
+            catboost/build_native_root/no_cuda/linux-x86_64/catboost/tools/limited_precision_json_diff/limited_precision_json_diff
+            catboost/build_native_root/no_cuda/linux-x86_64/catboost/tools/model_comparator/model_comparator
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - if: inputs.runs-on_value == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: catboost-test-tools-linux-aarch64-${{ inputs.artifacts_version }}
+          path: |
+            catboost/build_native_root/no_cuda/linux-aarch64/catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff
+            catboost/build_native_root/no_cuda/linux-aarch64/catboost/tools/limited_precision_json_diff/limited_precision_json_diff
+            catboost/build_native_root/no_cuda/linux-aarch64/catboost/tools/model_comparator/model_comparator
+          retention-days: ${{ inputs.artifact_retention_days }}
+
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/upload-artifact@v4
         with:
@@ -343,6 +363,16 @@ jobs:
         with:
           name: catboost4j-prediction_resources-darwin-${{ inputs.artifacts_version }}
           path: catboost/catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - if: inputs.runs-on_value == 'macos-13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: catboost-test-tools-darwin-universal2-${{ inputs.artifacts_version }}
+          path: |
+            catboost/build_native_root/no_cuda/darwin-universal2/catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff
+            catboost/build_native_root/no_cuda/darwin-universal2/catboost/tools/limited_precision_json_diff/limited_precision_json_diff
+            catboost/build_native_root/no_cuda/darwin-universal2/catboost/tools/model_comparator/model_comparator
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
@@ -387,4 +417,14 @@ jobs:
         with:
           name: catboost4j-prediction_resources-windows-${{ inputs.artifacts_version }}
           path: catboost/catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - if: inputs.runs-on_value == 'windows-2022'
+        uses: actions/upload-artifact@v4
+        with:
+          name: catboost-test-tools-windows-x86_64-${{ inputs.artifacts_version }}
+          path: |
+            catboost/build_native_root/no_cuda/windows-x86_64/catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff.exe
+            catboost/build_native_root/no_cuda/windows-x86_64/catboost/tools/limited_precision_json_diff/limited_precision_json_diff.exe
+            catboost/build_native_root/no_cuda/windows-x86_64/catboost/tools/model_comparator/model_comparator.exe
           retention-days: ${{ inputs.artifact_retention_days }}
