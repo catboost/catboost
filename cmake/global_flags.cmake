@@ -1,5 +1,5 @@
-set(CMAKE_C_FLAGS "")
-set(CMAKE_CXX_FLAGS "")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_INIT}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_INIT}")
 
 # workaround when old NDK toolchain that does not set CMAKE_ANDROID_NDK_VERSION is used
 # See for details: https://gitlab.kitware.com/cmake/cmake/-/issues/24386
