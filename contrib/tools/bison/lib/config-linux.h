@@ -1804,3 +1804,5 @@
 
 /* Define as a macro for copying va_list variables. */
 /* #undef va_copy */
+
+#define M4_GNU_OPTION "--gnu"

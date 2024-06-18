@@ -1742,3 +1742,4 @@ enum EWinSdk10ModeBits {
 };
 
 #define PENDING_OUTPUT_N_BYTES (((TWinSdk10File*)fp)->_ptr - ((TWinSdk10File*)fp)->_base)
+#define M4_GNU_OPTION "--gnu"

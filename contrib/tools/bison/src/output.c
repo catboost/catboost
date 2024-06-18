@@ -563,8 +563,6 @@ muscles_output (FILE *out)
 | Call the skeleton parser.  |
 `---------------------------*/
 
-#define M4_GNU_OPTION "--gnu"
-
 static void
 output_skeleton (void)
 {

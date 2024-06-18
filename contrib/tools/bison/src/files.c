@@ -161,7 +161,6 @@ compute_exts_from_gf (const char *ext)
   if (STREQ (ext, ".y"))
     {
       src_extension = xstrdup (language->src_extension);
-      /* header_extension = xstrdup (language->header_extension); */
       header_extension = xstrdup(".h");
     }
   else

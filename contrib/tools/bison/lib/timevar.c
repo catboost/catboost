@@ -22,17 +22,11 @@
 
 #if IN_GCC
 
-#include "system.h"
+#error #include "system.h"
 #include "intl.h"
 #include "rtl.h"
 
 #else
-
-#if defined(_musl_)
-    #define HAVE_SYS_TIMES_H 1
-    #define HAVE_STRUCT_TMS 1
-    #define HAVE_CLOCK_T 1
-#endif
 
 /* This source file is taken from the GCC source code, with slight
    modifications that are under control of the IN_GCC preprocessor
