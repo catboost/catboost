@@ -64,30 +64,36 @@ For each feature the value represents the difference between the loss value of t
 {% cut "{{ title__fstr__calculation-principle }}" %}
 
 
-Depend on the conditions for achieving the best metric value to ensure that the more important is a feature, the higher is the corresponding importance value.
-- Minimum/maximum best value metric:
+The value of {{ title__regular-feature-importance-LossFunctionChange }} is defined so that the more important is the feature, the higher is its importance value.
 
-    $feature\_importance_{i} = \pm (metric E_{i}v) - metric(v))$
+- Minimum best value objective metric:
 
-- Exact best value metric:
+    $feature\_importance_{i} = metric (E_{i}v)) - metric(v)$
 
-    $feature\_importance_{i} = abs(metric(E_{i}v) - best\_value) - abs(metric(v) - best\_value)$
+- Maximum best value objective metric:
+
+    $feature\_importance_{i} = metric(v) - metric(E_{i}v)$
+
+- Exact best value objective metric:
+
+    $feature\_importance_{i} = |metric(E_{i}v) - best\_value| - |metric(v) - best\_value|$
 
 In general, the value of {{ title__regular-feature-importance-LossFunctionChange }} can be negative.
 
 Variables description:
-- $E_{i}v$ is the mathematical expectation of the formula value without the $i$-th feature. If the feature $i$ is on the path to a leaf, the new leaf value is set to the weighted average of values of leaves that have different paths by feature value. Weights represent the total weight of objects in the corresponding leaf. This weight is equal to the number of objects in each leaf if weights are not specified for the dataset.
 
-    For feature combinations ($F = (f_{1}, ..., f_{n})$) the average value on a leaf is calculated as follows:
+- $E_{i}v$ is the mathematical expectation of the formula value without the $i$-th feature. If the feature $i$ is on the path to a leaf, the new leaf value is set to the weighted average of values of leaves that have different paths by feature value. Weights represent the total weight of objects in the corresponding leaf. This weight is equal to the number of objects in each leaf, if weights are not specified in the dataset.
 
-    $E_fv = \displaystyle\left(\frac{(n - 1) v + E_{f}v}{n}\right)$
+    For feature combinations $F = (f_{1}, ..., f_{n})$, the average value in a leaf is calculated as follows:
+    $E_{f_i}v = \displaystyle\left(\frac{(n - 1) v + E_{F}v}{n}\right)$
 
-- $v$ is the vector with formula values for the dataset. The values of the training dataset are used if both training and validation datasets are provided.
-- metric is the loss function specified in the training parameters.
+- $v$ is the vector with formula values for the dataset. The training dataset are used, if both training and validation datasets are provided.
 
-The pool random subset size used for calculation is determined as follows:
+- $metric$ is the loss function specified in the training parameters.
 
-$subset\_size = min(documentCount, max(2e5, \frac{2e9}{featureCount}))$
+The size of the random subsample used for calculation is determined as follows:
+
+$subsamples\_count = \min(samples_count, \max(2\cdot 10^5, \frac{2\cdot 10^9}{features\_count}))$
 
 {% endcut %}
 
@@ -95,11 +101,9 @@ $subset\_size = min(documentCount, max(2e5, \frac{2e9}{featureCount}))$
 {% cut "{{ title__fstr__complexity }}" %}
 
 
-$O(trees\_count \cdot (depth + sub\_samples\_count) \cdot 2 ^ {depth} +$
+$O(trees\_count \cdot (2 ^ {depth} + subsamples\_count) \cdot depth +$
 
-$+ Eval\_metric\_complexity(model, sub\_samples\_count) \cdot features\_count) { ,}$
-
-$sub\_samples\_count = Min(samples\_count, Max(10^5, 10^9 / features\_count))$
+$+ Eval\_metric\_complexity(model, subsamples\_count) \cdot features\_count)$
 
 {% endcut %}
 
