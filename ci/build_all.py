@@ -362,21 +362,21 @@ def copy_built_artifacts_to_canonical_place(
     cuda_status_prefix = 'have_cuda' if with_cuda else 'no_cuda'
 
     artifacts = [
-        (os.path.join('catboost', 'app'), get_exe_files(system, 'catboost')),
-        (os.path.join('catboost', 'libs', 'model_interface'), get_shared_lib_files(system, 'catboostmodel')),
-        (os.path.join('catboost', 'libs', 'model_interface', 'static'), get_static_lib_files(system, 'catboostmodel_static')),
-        (os.path.join('catboost', 'libs', 'train_interface'), get_shared_lib_files(system, 'catboost')),
+        (cuda_status_prefix, os.path.join('catboost', 'app'), get_exe_files(system, 'catboost')),
+        (cuda_status_prefix, os.path.join('catboost', 'libs', 'model_interface'), get_shared_lib_files(system, 'catboostmodel')),
+        (cuda_status_prefix, os.path.join('catboost', 'libs', 'model_interface', 'static'), get_static_lib_files(system, 'catboostmodel_static')),
+        (cuda_status_prefix, os.path.join('catboost', 'libs', 'train_interface'), get_shared_lib_files(system, 'catboost')),
     ]
 
     if build_test_tools:
         artifacts += [
-            (os.path.join('catboost', 'tools', 'limited_precision_dsv_diff'), get_exe_files(system, 'limited_precision_dsv_diff')),
-            (os.path.join('catboost', 'tools', 'limited_precision_json_diff'), get_exe_files(system, 'limited_precision_json_diff')),
-            (os.path.join('catboost', 'tools', 'model_comparator'), get_exe_files(system, 'model_comparator')),
+            ('no_cuda', os.path.join('catboost', 'tools', 'limited_precision_dsv_diff'), get_exe_files(system, 'limited_precision_dsv_diff')),
+            ('no_cuda', os.path.join('catboost', 'tools', 'limited_precision_json_diff'), get_exe_files(system, 'limited_precision_json_diff')),
+            ('no_cuda', os.path.join('catboost', 'tools', 'model_comparator'), get_exe_files(system, 'model_comparator')),
         ]
 
 
-    for sub_path, files in artifacts:
+    for cuda_status_prefix, sub_path, files in artifacts:
         for f in files:
             src = os.path.join(build_native_root_dir, cuda_status_prefix, platform_name, sub_path, f)
             dst = os.path.join(built_output_root_dir, cuda_status_prefix, platform_name, sub_path, f)
