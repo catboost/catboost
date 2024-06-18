@@ -87,11 +87,11 @@ namespace {
         return year % 400 == 0;
     }
 
-    constexpr ui16 YEAR_PER_YEAR = 365;
-    constexpr ui16 YEAR_PER_LEAP_YEAR = 366;
+    constexpr ui16 DAYS_IN_YEAR = 365;
+    constexpr ui16 DAYS_IN_LEAP_YEAR = 366;
 
     constexpr ui16 YearSize(int year) {
-        return IsLeapYear(year) ? YEAR_PER_LEAP_YEAR : YEAR_PER_YEAR;
+        return IsLeapYear(year) ? DAYS_IN_LEAP_YEAR : DAYS_IN_YEAR;
     }
 
     constexpr ui64 FOUR_CENTURIES = (400 * 365 + 100 - 3);
