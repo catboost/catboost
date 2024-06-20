@@ -446,6 +446,12 @@ bool TFileHandle::FallocateNoResize(i64 length) noexcept {
     }
 #if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21)
     return !fallocate(Fd_, FALLOC_FL_KEEP_SIZE, 0, length);
+#elif defined(_win_)
+    FILE_ALLOCATION_INFO allocInfo = {};
+    allocInfo.AllocationSize.QuadPart = length;
+
+    return SetFileInformationByHandle(Fd_, FileAllocationInfo, &allocInfo,
+                                      sizeof(FILE_ALLOCATION_INFO));
 #else
     Y_UNUSED(length);
     return true;
