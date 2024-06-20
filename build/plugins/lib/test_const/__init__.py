@@ -397,6 +397,13 @@ class ModuleLang(Enum):
     TS = "ts"
 
 
+class NodeType(Enum):
+    TEST = "test"
+    TEST_AUX = "test-aux"
+    TEST_RESULTS = "test-results"
+    DOWNLOAD = "download"
+
+
 class TestRunExitCode(Enum):
     Skipped = 2
     Failed = 3
