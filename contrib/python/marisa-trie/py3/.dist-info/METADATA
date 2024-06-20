@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: marisa-trie
-Version: 1.1.1
+Version: 1.2.0
 Summary: Static memory-efficient and fast Trie-like structures for Python.
 Home-page: https://github.com/pytries/marisa-trie
 Author: Mikhail Korobov
@@ -19,6 +19,7 @@ Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Scientific/Engineering :: Information Analysis
@@ -92,6 +93,12 @@ LGPL and BSD 2-clause license.
 
 CHANGES
 =======
+
+1.2.0 (2024-06-05)
+------------------
+
+* Added Python 3.13 support (#105).
+* Rebuild Cython wrapper with Cython 3.0.10 (#105).
 
 1.1.1 (2024-05-06)
 ------------------

@@ -44,7 +44,11 @@ from hypothesis.errors import Frozen, InvalidArgument, StopTest
 from hypothesis.internal.cache import LRUReusedCache
 from hypothesis.internal.compat import add_note, floor, int_from_bytes, int_to_bytes
 from hypothesis.internal.conjecture.floats import float_to_lex, lex_to_float
-from hypothesis.internal.conjecture.junkdrawer import IntList, uniform
+from hypothesis.internal.conjecture.junkdrawer import (
+    IntList,
+    gc_cumulative_time,
+    uniform,
+)
 from hypothesis.internal.conjecture.utils import (
     INT_SIZES,
     INT_SIZES_SAMPLER,
@@ -1980,6 +1984,7 @@ class ConjectureData:
         self.testcounter = global_test_counter
         global_test_counter += 1
         self.start_time = time.perf_counter()
+        self.gc_start_time = gc_cumulative_time()
         self.events: Dict[str, Union[str, int, float]] = {}
         self.forced_indices: "Set[int]" = set()
         self.interesting_origin: Optional[InterestingOrigin] = None
@@ -2420,6 +2425,7 @@ class ConjectureData:
             # where we cache something expensive, this led to Flaky deadline errors!
             # See https://github.com/HypothesisWorks/hypothesis/issues/2108
             start_time = time.perf_counter()
+            gc_start_time = gc_cumulative_time()
 
         strategy.validate()
 
@@ -2443,7 +2449,10 @@ class ConjectureData:
                 try:
                     return strategy.do_draw(self)
                 finally:
-                    self.draw_times[key] = time.perf_counter() - start_time
+                    # Subtract the time spent in GC to avoid overcounting, as it is
+                    # accounted for at the overall example level.
+                    in_gctime = gc_cumulative_time() - gc_start_time
+                    self.draw_times[key] = time.perf_counter() - start_time - in_gctime
             except Exception as err:
                 add_note(err, f"while generating {key[9:]!r} from {strategy!r}")
                 raise
@@ -2520,6 +2529,7 @@ class ConjectureData:
             assert isinstance(self.buffer, bytes)
             return
         self.finish_time = time.perf_counter()
+        self.gc_finish_time = gc_cumulative_time()
         assert len(self.buffer) == self.index
 
         # Always finish by closing all remaining examples so that we have a

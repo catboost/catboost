@@ -77,7 +77,10 @@ from hypothesis.internal.compat import (
 )
 from hypothesis.internal.conjecture.data import ConjectureData, Status
 from hypothesis.internal.conjecture.engine import BUFFER_SIZE, ConjectureRunner
-from hypothesis.internal.conjecture.junkdrawer import ensure_free_stackframes
+from hypothesis.internal.conjecture.junkdrawer import (
+    ensure_free_stackframes,
+    gc_cumulative_time,
+)
 from hypothesis.internal.conjecture.shrinker import sort_key
 from hypothesis.internal.entropy import deterministic_PRNG
 from hypothesis.internal.escalation import (
@@ -820,21 +823,34 @@ class StateForActualGivenExecution:
         self._string_repr = ""
         text_repr = None
         if self.settings.deadline is None and not TESTCASE_CALLBACKS:
-            test = self.test
+
+            @proxies(self.test)
+            def test(*args, **kwargs):
+                with ensure_free_stackframes():
+                    return self.test(*args, **kwargs)
+
         else:
 
             @proxies(self.test)
             def test(*args, **kwargs):
                 arg_drawtime = math.fsum(data.draw_times.values())
+                arg_stateful = math.fsum(data._stateful_run_times.values())
+                arg_gctime = gc_cumulative_time()
                 start = time.perf_counter()
                 try:
-                    result = self.test(*args, **kwargs)
+                    with ensure_free_stackframes():
+                        result = self.test(*args, **kwargs)
                 finally:
                     finish = time.perf_counter()
                     in_drawtime = math.fsum(data.draw_times.values()) - arg_drawtime
-                    runtime = datetime.timedelta(seconds=finish - start - in_drawtime)
+                    in_stateful = (
+                        math.fsum(data._stateful_run_times.values()) - arg_stateful
+                    )
+                    in_gctime = gc_cumulative_time() - arg_gctime
+                    runtime = finish - start - in_drawtime - in_stateful - in_gctime
                     self._timing_features = {
-                        "execute:test": finish - start - in_drawtime,
+                        "execute:test": runtime,
+                        "overall:gc": in_gctime,
                         **data.draw_times,
                         **data._stateful_run_times,
                     }
@@ -842,8 +858,10 @@ class StateForActualGivenExecution:
                 if (current_deadline := self.settings.deadline) is not None:
                     if not is_final:
                         current_deadline = (current_deadline // 4) * 5
-                    if runtime >= current_deadline:
-                        raise DeadlineExceeded(runtime, self.settings.deadline)
+                    if runtime >= current_deadline.total_seconds():
+                        raise DeadlineExceeded(
+                            datetime.timedelta(seconds=runtime), self.settings.deadline
+                        )
                 return result
 
         def run(data):

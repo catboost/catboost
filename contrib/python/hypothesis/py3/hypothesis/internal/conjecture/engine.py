@@ -168,6 +168,7 @@ class CallStats(TypedDict):
     status: str
     runtime: float
     drawtime: float
+    gctime: float
     events: List[str]
 
 
@@ -298,7 +299,9 @@ class ConjectureRunner:
         """
         # We ensure that the test has this much stack space remaining, no
         # matter the size of the stack when called, to de-flake RecursionErrors
-        # (#2494, #3671).
+        # (#2494, #3671). Note, this covers the data generation part of the test;
+        # the actual test execution is additionally protected at the call site
+        # in hypothesis.core.execute_once.
         with ensure_free_stackframes():
             try:
                 self._test_function(data)
@@ -430,6 +433,7 @@ class ConjectureRunner:
                     "status": data.status.name.lower(),
                     "runtime": data.finish_time - data.start_time,
                     "drawtime": math.fsum(data.draw_times.values()),
+                    "gctime": data.gc_finish_time - data.gc_start_time,
                     "events": sorted(
                         k if v == "" else f"{k}: {v}" for k, v in data.events.items()
                     ),

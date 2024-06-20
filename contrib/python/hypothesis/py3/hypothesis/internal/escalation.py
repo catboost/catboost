@@ -87,9 +87,12 @@ def get_trimmed_traceback(exception=None):
     else:
         tb = exception.__traceback__
     # Avoid trimming the traceback if we're in verbose mode, or the error
-    # was raised inside Hypothesis
+    # was raised inside Hypothesis. Additionally, the environment variable
+    # HYPOTHESIS_NO_TRACEBACK_TRIM is respected if nonempty, because verbose
+    # mode is prohibitively slow when debugging strategy recursion errors.
     if (
         tb is None
+        or os.environ.get("HYPOTHESIS_NO_TRACEBACK_TRIM", None)
         or hypothesis.settings.default.verbosity >= hypothesis.Verbosity.debug
         or is_hypothesis_file(traceback.extract_tb(tb)[-1][0])
         and not isinstance(exception, _Trimmable)

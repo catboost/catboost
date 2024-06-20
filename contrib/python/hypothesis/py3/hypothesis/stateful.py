@@ -50,6 +50,7 @@ from hypothesis.errors import InvalidArgument, InvalidDefinition
 from hypothesis.internal.compat import add_note
 from hypothesis.internal.conjecture import utils as cu
 from hypothesis.internal.conjecture.engine import BUFFER_SIZE
+from hypothesis.internal.conjecture.junkdrawer import gc_cumulative_time
 from hypothesis.internal.healthcheck import fail_health_check
 from hypothesis.internal.observability import TESTCASE_CALLBACKS
 from hypothesis.internal.reflection import (
@@ -158,6 +159,7 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_step
                     must_stop = True
 
                 start_draw = perf_counter()
+                start_gc = gc_cumulative_time()
                 if cd.draw_boolean(p=2**-16, forced=must_stop):
                     break
                 steps_run += 1
@@ -175,7 +177,8 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_step
                     rule, data = cd.draw(machine._rules_strategy)
                 draw_label = f"generate:rule:{rule.function.__name__}"
                 cd.draw_times.setdefault(draw_label, 0.0)
-                cd.draw_times[draw_label] += perf_counter() - start_draw
+                in_gctime = gc_cumulative_time() - start_gc
+                cd.draw_times[draw_label] += perf_counter() - start_draw - in_gctime
 
                 # Pretty-print the values this rule was called with *before* calling
                 # _add_result_to_targets, to avoid printing arguments which are also
@@ -196,8 +199,10 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_step
 
                     label = f"execute:rule:{rule.function.__name__}"
                     start = perf_counter()
+                    start_gc = gc_cumulative_time()
                     result = rule.function(machine, **data)
-                    cd._stateful_run_times[label] += perf_counter() - start
+                    in_gctime = gc_cumulative_time() - start_gc
+                    cd._stateful_run_times[label] += perf_counter() - start - in_gctime
 
                     if rule.targets:
                         if isinstance(result, MultipleResults):

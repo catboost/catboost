@@ -13,7 +13,9 @@ obviously belong anywhere else. If you spot a better home for
 anything that lives here, please move it."""
 
 import array
+import gc
 import sys
+import time
 import warnings
 from random import Random
 from typing import (
@@ -413,3 +415,52 @@ class SelfOrganisingList(Generic[T]):
                 self.__values.append(value)
                 return value
         raise NotFound("No values satisfying condition")
+
+
+_gc_initialized = False
+_gc_start = 0
+_gc_cumulative_time = 0
+
+
+def gc_cumulative_time() -> float:
+    global _gc_initialized
+    if not _gc_initialized:
+        if hasattr(gc, "callbacks"):
+            # CPython
+            def gc_callback(phase, info):
+                global _gc_start, _gc_cumulative_time
+                try:
+                    now = time.perf_counter()
+                    if phase == "start":
+                        _gc_start = now
+                    elif phase == "stop" and _gc_start > 0:
+                        _gc_cumulative_time += now - _gc_start  # pragma: no cover # ??
+                except RecursionError:  # pragma: no cover
+                    # Avoid flakiness via UnraisableException, which is caught and
+                    # warned by pytest. The actual callback (this function) is
+                    # validated to never trigger a RecursionError itself when
+                    # when called by gc.collect.
+                    # Anyway, we should hit the same error on "start"
+                    # and "stop", but to ensure we don't get out of sync we just
+                    # signal that there is no matching start.
+                    _gc_start = 0
+                    return
+
+            gc.callbacks.insert(0, gc_callback)
+        elif hasattr(gc, "hooks"):  # pragma: no cover  # pypy only
+            # PyPy
+            def hook(stats):
+                global _gc_cumulative_time
+                try:
+                    _gc_cumulative_time += stats.duration
+                except RecursionError:
+                    pass
+
+            if gc.hooks.on_gc_minor is None:
+                gc.hooks.on_gc_minor = hook
+            if gc.hooks.on_gc_collect_step is None:
+                gc.hooks.on_gc_collect_step = hook
+
+        _gc_initialized = True
+
+    return _gc_cumulative_time
