@@ -153,6 +153,10 @@ char* Base64EncodeUrl(char* outstr, const unsigned char* instr, size_t len) {
     return Base64EncodeImpl<true>(outstr, instr, len);
 }
 
+char* Base64EncodeNoPadding(char* outstr, const unsigned char* instr, size_t len) {
+    return Base64EncodeImpl<false, false>(outstr, instr, len);
+}
+
 char* Base64EncodeUrlNoPadding(char* outstr, const unsigned char* instr, size_t len) {
     return Base64EncodeImpl<true, false>(outstr, instr, len);
 }
