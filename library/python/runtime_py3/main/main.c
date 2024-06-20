@@ -75,11 +75,26 @@ static int RunModule(const char* modname)
 }
 
 static int pymain(int argc, char** argv) {
+    PyStatus status;
+
     if (IsYaIdeVenv()) {
         return Py_BytesMain(argc, argv);
     }
 
-    PyStatus status = _PyRuntime_Initialize();
+    status = _PyRuntime_Initialize();
+    if (PyStatus_Exception(status)) {
+        Py_ExitStatusException(status);
+    }
+
+    PyPreConfig preconfig;
+    PyPreConfig_InitPythonConfig(&preconfig);
+    // Enable UTF-8 mode for all (DEVTOOLSSUPPORT-46624)
+    preconfig.utf8_mode = 1;
+#ifdef MS_WINDOWS
+    preconfig.legacy_windows_fs_encoding = 0;
+#endif
+
+    status = Py_PreInitialize(&preconfig);
     if (PyStatus_Exception(status)) {
         Py_ExitStatusException(status);
     }
