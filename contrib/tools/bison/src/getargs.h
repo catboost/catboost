@@ -43,7 +43,6 @@ extern bool yacc_flag;                  /* for -y */
 
 extern const char *m4_path;
 
-
 /* GLR_PARSER is true if the input file says to use the GLR
    (Generalized LR) parser, and to output some additional information
    used by the GLR algorithm.  */

@@ -388,7 +388,7 @@ version (void)
 
   fprintf (stdout,
            _("Copyright (C) %d Free Software Foundation, Inc.\n"),
-           2013);
+           PACKAGE_COPYRIGHT_YEAR);
 
   fputs (_("\
 This is free software; see the source for copying conditions.  There is NO\n\

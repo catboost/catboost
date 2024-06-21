@@ -46,11 +46,9 @@
 
 #include <contrib/tools/bison/arcadia_root.h>
 
-#ifndef M4
+#undef M4
 #define M4 (m4_path)
-#endif
 
-#ifndef PKGDATADIR
 #define STR(a) XSTR(a)
 #define XSTR(a) #a
 
@@ -62,8 +60,8 @@ default_pkgdatadir()
         arc_path = ArcadiaRoot();
     return uniqstr_vsprintf("%s/" STR(BISON_DATA_DIR), arc_path);
 }
+#undef PKGDATADIR
 #define PKGDATADIR (default_pkgdatadir())
-#endif
 
 static struct obstack format_obstack;
 
