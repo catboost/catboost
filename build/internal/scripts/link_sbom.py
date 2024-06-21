@@ -58,7 +58,7 @@ def main():
         {'name': 'arcadia_module_subdir', 'value': args.mod_path}
     ]
     if vcs.get('DIRTY', '') == 'dirty':
-        res["properties"].append({'name': 'has_uncommited_changes', 'value': True})
+        res["properties"].append({'name': 'has_uncommitted_changes', 'value': True})
 
     json.dump(res, args.output)
     args.output.close()
