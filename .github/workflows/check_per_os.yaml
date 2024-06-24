@@ -20,13 +20,12 @@ jobs:
       artifacts_version: ${{ inputs.artifacts_version }}
       catboost_package_version: ${{ inputs.catboost_package_version }}
 
-  #test:
-  #  name: Test
-  #  runs-on: ${{ inputs.runs-on_value }}
-  #  uses: ./.github/workflows/test.yaml
-  #  needs:
-  #    - build
-  #  with:
-  #    runs-on_value: ${{ inputs.runs-on_value }}
-  #    artifacts_version: ${{ inputs.artifacts_version }}
-  #    catboost_package_version: ${{ inputs.catboost_package_version }}
+  test:
+    name: Test
+    uses: ./.github/workflows/test.yaml
+    needs:
+      - build
+    with:
+      runs-on_value: ${{ inputs.runs-on_value }}
+      artifacts_version: ${{ inputs.artifacts_version }}
+      catboost_package_version: ${{ inputs.catboost_package_version }}
