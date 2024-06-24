@@ -142,6 +142,10 @@ custom_gpu_metric_methods_to_optimize = [
     'gpu_evaluate',
 ]
 
+custom_gpu_objective_methods_to_optimize = [
+    'calc_ders_range_gpu'
+]
+
 from catboost.private.libs.cython cimport *
 from catboost.libs.helpers.cython cimport *
 from catboost.libs.data.cython cimport *
@@ -644,7 +648,9 @@ cdef extern from "catboost/libs/metrics/metric.h":
             int begin,
             int end,
             void* customData,
-            void* cudaStream)  with gil
+            void* cudaStream,
+            size_t numBlocks,
+            size_t blockSize) with gil
 
         ctypedef TMetricHolder (*TEvalMultiTargetFuncPtr)(
             TConstArrayRef[TConstArrayRef[double]] approx,
@@ -667,6 +673,20 @@ cdef extern from "catboost/libs/metrics/metric.h":
 cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor.h":
     cdef cppclass TCustomObjectiveDescriptor:
         void* CustomData
+
+        void (*GpuCalcDersRange)(
+            TConstArrayRef[float] approx,
+            TConstArrayRef[float] target,
+            TConstArrayRef[float] weight,
+            TConstArrayRef[float] values,
+            TConstArrayRef[float] der1Result,
+            TConstArrayRef[float] der2Result,
+            size_t length,
+            void* customData,
+            void* cudaStream,
+            size_t blockSize,
+            size_t numBlocks
+        ) with gil
 
         void (*CalcDersRange)(
             int count,
@@ -1429,6 +1449,35 @@ cdef _ToPythonObjArrayRefOnGpu(size_t size, uint64_t data):
         'version' : 2
     })  
 
+
+cdef void _GpuObjectiveCalcDersRange(
+    TConstArrayRef[float] approx,
+    TConstArrayRef[float] target,
+    TConstArrayRef[float] weight,
+    TConstArrayRef[float] value,
+    TConstArrayRef[float] der1Result,
+    TConstArrayRef[float] der2Result,
+    size_t length,
+    void* customData,
+    void* cudaStream,
+    size_t blockSize,
+    size_t numBlocks
+) with gil:
+    from numba import cuda as numba_cuda
+    approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
+    target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
+    weight_gpu = _ToPythonObjArrayRefOnGpu(weight.size(), <uint64_t>weight.data())
+    value_gpu = _ToPythonObjArrayRefOnGpu(value.size(), <uint64_t>value.data())
+    der1Result_gpu = _ToPythonObjArrayRefOnGpu(der1Result.size(), <uint64_t>der1Result.data())
+    der2Result_gpu = _ToPythonObjArrayRefOnGpu(der2Result.size(), <uint64_t>der2Result.data())
+    cuda_stream = numba_cuda.external_stream(<uint64_t>cudaStream)
+    metric_object = <object> customData
+
+    if len(value_gpu):
+        value_gpu[0] = 0.0
+
+    (<object>(metric_object.calc_ders_range_gpu))[numBlocks, blockSize, cuda_stream](0, approx_gpu, target_gpu, weight_gpu, value_gpu, der1Result_gpu, der2Result_gpu)
+
 cdef void _GpuMetricEval(
     TConstArrayRef[float] approx,
     TConstArrayRef[float] target,
@@ -1790,6 +1839,12 @@ cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objective
     descriptor.CalcDersMultiClass = &_ObjectiveCalcDersMultiClass
     return descriptor
 
+cdef TCustomObjectiveDescriptor _BuildCustomGpuObjectiveDescriptor(object objectiveObject):
+    cdef TCustomObjectiveDescriptor descriptor
+    _try_jit_methods(objectiveObject, custom_gpu_objective_methods_to_optimize, isCuda=True)
+    descriptor.CustomData = <void*>objectiveObject
+    descriptor.GpuCalcDersRange = &_GpuObjectiveCalcDersRange
+    return descriptor
 
 cdef EPredictionType string_to_prediction_type(prediction_type_str) except *:
     cdef EPredictionType prediction_type
@@ -1872,8 +1927,8 @@ cdef class _PreprocessParams:
         params_to_json = params
 
         if is_custom_objective or is_custom_eval_metric or is_custom_callback:
-            if params.get("task_type") == "GPU" and (is_custom_objective or is_custom_callback):
-                raise CatBoostError("User defined loss functions and callbacks are not supported for GPU")
+            if params.get("task_type") == "GPU" and is_custom_callback:
+                raise CatBoostError("User defined callbacks are not supported for GPU")
             keys_to_replace = set()
             if is_custom_objective:
                 keys_to_replace.add("loss_function")
@@ -1893,7 +1948,10 @@ cdef class _PreprocessParams:
                 params_to_json[k] = "PythonUserDefinedPerObject"
 
         if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
-            self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
+            if params.get("task_type") == "GPU":
+                self.customObjectiveDescriptor = _BuildCustomGpuObjectiveDescriptor(params["loss_function"])
+            else:
+                self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
             if (issubclass(params["loss_function"].__class__, MultiTargetCustomObjective)):
                 params_to_json["loss_function"] = "PythonUserDefinedMultiTarget"
 

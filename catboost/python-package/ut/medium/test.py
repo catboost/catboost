@@ -11309,6 +11309,89 @@ def test_carry_model():
     assert np.max((uplift_pool_predict - uplift_model_predict) ** 2)**0.5 < 1e-8, 'Wrong uplift model predict'
 
 
+def test_custom_gpu_objective_metric(task_type):
+
+    if (task_type == 'CPU'):
+        return
+
+    if (task_type == 'GPU'):
+        try:
+            from numba import cuda
+        except ImportError:
+            return
+
+    class GPURMSEObjective(object):
+
+        def calc_ders_range_gpu(self, approxes, target, weights, value_output, der1_output, der2_output):
+
+            init_thread_idx = cuda.grid(1)
+            if (init_thread_idx >= len(approxes)):
+                return
+
+            der1_curr = target[init_thread_idx] - approxes[init_thread_idx]
+            der2_curr = 1.0
+            val_curr = - der1_curr * der1_curr
+
+            if len(weights):
+                der1_curr *= weights[init_thread_idx]
+                der2_curr *= weights[init_thread_idx]
+                val_curr *= weights[init_thread_idx]
+
+            if len(value_output):
+                cuda.atomic.add(value_output, 0, val_curr)
+
+            if len(der1_output):
+                der1_output[init_thread_idx] = der1_curr
+
+            if len(der2_output):
+                der2_output[init_thread_idx] = der2_curr
+
+    model1 = CatBoostRegressor(
+        iterations=10,
+        learning_rate=0.03,
+        use_best_model=True,
+        loss_function=GPURMSEObjective(),
+        eval_metric='MAE',
+        leaf_estimation_method="Newton",
+        leaf_estimation_iterations=1,
+        task_type=task_type,
+        devices='0',
+        metric_period=1,
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True,
+        boost_from_average=False
+    )
+
+    model2 = CatBoostRegressor(
+        iterations=10,
+        learning_rate=0.03,
+        use_best_model=True,
+        loss_function='RMSE',
+        eval_metric='MAE',
+        leaf_estimation_method="Newton",
+        leaf_estimation_iterations=1,
+        task_type=task_type,
+        devices='0',
+        metric_period=1,
+        random_strength=0,
+        bootstrap_type='No',
+        has_time=True,
+        boost_from_average=False
+    )
+
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+
+    model1.fit(train_pool, eval_set=test_pool)
+    model2.fit(train_pool, eval_set=test_pool)
+
+    pred1 = model1.predict(test_pool, prediction_type='RawFormulaVal')
+    pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
+
+    assert np.allclose(pred1, pred2)
+
+
 def test_custom_gpu_eval_metric(task_type):
 
     if (task_type == 'GPU'):

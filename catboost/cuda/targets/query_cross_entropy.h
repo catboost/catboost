@@ -13,6 +13,7 @@
 #include <catboost/private/libs/options/bootstrap_options.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
@@ -35,9 +36,11 @@ namespace NCatboostCuda {
         template <class TDataSet>
         TQueryCrossEntropy(const TDataSet& dataSet,
                            TGpuAwareRandom& random,
-                           const NCatboostOptions::TLossDescription& targetOptions)
+                           const NCatboostOptions::TLossDescription& targetOptions,
+                           const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor)
             : TParent(dataSet,
                       random) {
+            CB_ENSURE(!objectiveDescriptor.Defined());
             Init(targetOptions);
         }
 

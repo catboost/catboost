@@ -16,13 +16,14 @@ namespace NCatboostCuda {
                                                        const NCB::TTrainingDataProvider& learn,
                                                        const NCB::TTrainingDataProvider* test,
                                                        const NCB::TFeatureEstimators& featureEstimators,
+                                                       const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                                                       const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                                                        TGpuAwareRandom& random,
                                                        ui32 approxDimension,
                                                        ITrainingCallbacks* trainingCallbacks,
                                                        NPar::ILocalExecutor* localExecutor,
                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-                                                       TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                       const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) {
+                                                       TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
             using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
             using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner>;
@@ -36,13 +37,14 @@ namespace NCatboostCuda {
                                     learn,
                                     test,
                                     featureEstimators,
+                                    objectiveDescriptor,
+                                    evalMetricDescriptor,
                                     random,
                                     approxDimension,
                                     trainingCallbacks,
                                     localExecutor,
                                     testMultiApprox,
-                                    metricsAndTimeHistory,
-                                    evalMetricDescriptor);
+                                    metricsAndTimeHistory);
 
         } else {
             using TDocParallelBoosting = TBoosting<TTargetTemplate, TDocParallelObliviousTree>;
@@ -53,13 +55,14 @@ namespace NCatboostCuda {
                                                learn,
                                                test,
                                                featureEstimators,
+                                               objectiveDescriptor,
+                                               evalMetricDescriptor,
                                                random,
                                                approxDimension,
                                                trainingCallbacks,
                                                localExecutor,
                                                testMultiApprox,
-                                               metricsAndTimeHistory,
-                                               evalMetricDescriptor);
+                                               metricsAndTimeHistory);
         }
     };
 
@@ -88,19 +91,20 @@ namespace NCatboostCuda {
     template <template <class> class TTargetTemplate>
     class TGpuTrainer: public IGpuTrainer {
         virtual TGpuTrainResult TrainModel(TBinarizedFeaturesManager& featuresManager,
-                                                                        const TTrainModelInternalOptions& internalOptions,
-                                                                        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-                                                                        const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                                        const NCB::TTrainingDataProvider& learn,
-                                                                        const NCB::TTrainingDataProvider* test,
-                                                                        const NCB::TFeatureEstimators& featureEstimators,
-                                                                        TGpuAwareRandom& random,
-                                                                        ui32 approxDimension,
-                                                                        ITrainingCallbacks* trainingCallbacks,
-                                                                        NPar::ILocalExecutor* localExecutor,
-                                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-                                                                        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                                                                        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor) const {
+                                           const TTrainModelInternalOptions& internalOptions,
+                                           const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                           const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                           const NCB::TTrainingDataProvider& learn,
+                                           const NCB::TTrainingDataProvider* test,
+                                           const NCB::TFeatureEstimators& featureEstimators,
+                                           const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                                           const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+                                           TGpuAwareRandom& random,
+                                           ui32 approxDimension,
+                                           ITrainingCallbacks* trainingCallbacks,
+                                           NPar::ILocalExecutor* localExecutor,
+                                           TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
+                                           TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             return Train<TTargetTemplate>(featuresManager,
                                           internalOptions,
                                           catBoostOptions,
@@ -108,13 +112,14 @@ namespace NCatboostCuda {
                                           learn,
                                           test,
                                           featureEstimators,
+                                          objectiveDescriptor,
+                                          evalMetricDescriptor,
                                           random,
                                           approxDimension,
                                           trainingCallbacks,
                                           localExecutor,
                                           testMultiApprox,
-                                          metricsAndTimeHistory,
-                                          evalMetricDescriptor);
+                                          metricsAndTimeHistory);
         };
 
         virtual void ModelBasedEval(TBinarizedFeaturesManager& featuresManager,
