@@ -66,39 +66,6 @@ BUILD_FLAGS_ALLOWED_IN_CONTEXT = {
     'USE_SYSTEM_PYTHON',
 }
 
-STYLE_TEST_TYPES = [
-    "classpath.clash",
-    "clang_tidy",
-    "eslint",
-    "gofmt",
-    "govet",
-    "java.style",
-    "ktlint",
-    "py2_flake8",
-    "flake8",
-    "black",
-    "ruff",
-    "tsc_typecheck",
-]
-
-REGULAR_TEST_TYPES = [
-    "benchmark",
-    "boost_test",
-    "exectest",
-    "fuzz",
-    "g_benchmark",
-    "go_bench",
-    "go_test",
-    "gtest",
-    "hermione",
-    "java",
-    "jest",
-    "py2test",
-    "py3test",
-    "pytest",
-    "unittest",
-]
-
 TEST_NODE_OUTPUT_RESULTS = [TESTING_OUT_TAR_NAME, YT_RUN_TEST_TAR_NAME]
 
 # kvm
@@ -237,6 +204,12 @@ class Enum(object):
     @classmethod
     def enumerate(cls):
         return [v for k, v in cls.__dict__.items() if not k.startswith("_")]
+
+
+class SuiteClassType(Enum):
+    UNCLASSIFIED = '0'
+    REGULAR = '1'
+    STYLE = '2'
 
 
 class TestRequirements(Enum):
