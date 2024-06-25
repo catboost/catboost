@@ -10937,3 +10937,52 @@ def test_bow_multilogoss():
     return [
         local_canonical_file(output_path),
     ]
+
+
+def test_apply_multiple_models():
+    dataset = 'cloudness_small'
+    train = data_file(dataset, 'train_small')
+    cd = data_file(dataset, 'train.cd')
+    common_train_params = (
+        '-f', train,
+        '--cd', cd,
+        '-i', '5',
+        '-T', '1',
+    )
+    model_paths = [
+        yatest.common.test_output_path('m1.bin'),
+        yatest.common.test_output_path('m2.bin'),
+        yatest.common.test_output_path('m3.bin'),
+    ]
+    objectives = [
+        'MultiClass',
+        'MultiClass',
+        'RMSE',
+    ]
+    for model, objective in zip(model_paths, objectives):
+        execute_catboost_fit(
+            'CPU',
+            common_train_params + ('-m', model) + ('--loss-function', objective)
+        )
+
+    eval_path = yatest.common.test_output_path('output.tsv')
+
+    output_columns = [
+        'SampleId,Class',
+        'Probability',
+        'RawFormulaVal',
+    ]
+    calc_cmd = (
+        (
+            CATBOOST_PATH,
+            'calc',
+            '--input-path', train,
+            '--cd', cd,
+            '--output-path', eval_path,
+        )
+        + sum(tuple(('-m', m) for m in model_paths), ())
+        + sum(tuple(('--output-columns', c) for c in output_columns), ())
+    )
+
+    yatest.common.execute(calc_cmd)
+    return [local_canonical_file(eval_path)]

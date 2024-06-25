@@ -130,7 +130,8 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     params.DatasetReadingParams.ForceUnitAutoPairWeights = false;
     params.DatasetReadingParams.ValidatePoolParams();
 
-    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
+    CB_ENSURE(params.ModelFileName.size() == 1, "Metrics evaluation requires exactly one model");
+    TFullModel model = ReadModel(params.ModelFileName[0], params.ModelFormat);
     CB_ENSURE(
         model.GetUsedCatFeaturesCount() == 0 || params.DatasetReadingParams.ColumnarPoolFormatParams.CdFilePath.Inited(),
         "Model has categorical features. Specify column_description file with correct categorical features.");

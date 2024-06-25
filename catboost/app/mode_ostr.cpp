@@ -17,7 +17,7 @@ using namespace NCB;
 
 
 struct TObjectImportancesParams {
-    TString ModelFileName;
+    TVector<TString> ModelFileName;
     EModelType ModelFormat = EModelType::CatboostBinary;
     TString OutputPath;
     TPathWithScheme LearnSetPath;
@@ -62,7 +62,8 @@ int mode_ostr(int argc, const char* argv[]) {
     NCatboostOptions::ValidatePoolParams(params.LearnSetPath, params.ColumnarPoolFormatParams);
     NCatboostOptions::ValidatePoolParams(params.TestSetPath, params.ColumnarPoolFormatParams);
 
-    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
+    CB_ENSURE(params.ModelFileName.size() == 1, "Fstr calculation requires exactly one model");
+    TFullModel model = ReadModel(params.ModelFileName[0], params.ModelFormat);
 
     //TODO(eermishkina): support non symmetric trees
     CB_ENSURE(model.IsOblivious(), "Object importance is supported only for symmetric trees");

@@ -38,6 +38,7 @@ target_link_libraries(private-libs-app_helpers PUBLIC
   catboost-libs-model
   catboost-libs-train_lib
   private-libs-options
+  library-cpp-expression
   cpp-getopt-small
   library-cpp-grid_creator
   library-cpp-json

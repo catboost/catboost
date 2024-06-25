@@ -540,6 +540,11 @@
             "uri": "file://test.test_apply_multiclass_labels_from_data_RawFormulaVal_/eval.txt"
         }
     ],
+    "test.test_apply_multiple_models": [
+        {
+            "uri": "file://test.test_apply_multiple_models/output.tsv"
+        }
+    ],
     "test.test_averagegain[Ordered]": [
         {
             "uri": "file://test.test_averagegain_Ordered_/learn_error.tsv"

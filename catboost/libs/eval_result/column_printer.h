@@ -278,13 +278,14 @@ namespace NCB {
         EPredictionType PredictionType;
         TString Header;
         TVector<double> Approx;
-        const TExternalLabelsHelper& VisibleLabelsHelper;
+        TExternalLabelsHelper VisibleLabelsHelper;
     };
 
     void PushBackEvalPrinters(
         const TVector<TVector<TVector<double>>>& rawValues,
         const EPredictionType predictionType,
         const TString& lossFunctionName,
+        const TMaybe<TString>& modelName,
         bool isMultiTarget,
         size_t ensemblesCount,
         const TExternalLabelsHelper& visibleLabelsHelper,
@@ -447,6 +448,7 @@ namespace NCB {
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TString& lossFunctionName,
+        const TMaybe<TString>& modelName,
         size_t ensemblesCount,
         ui32 startTreeIndex = 0,
         std::pair<size_t, size_t>* evalParameters = nullptr

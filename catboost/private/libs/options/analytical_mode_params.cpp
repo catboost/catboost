@@ -33,15 +33,13 @@ void NCB::TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser
         .StoreResult(&ThreadCount);
 }
 
-void NCB::BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat) {
-    parser->AddLongOption('m', "model-file", "model file name")
+void NCB::BindModelFileParams(NLastGetopt::TOpts* parser, TVector<TString>* modelFileName, EModelType* modelFormat) {
+    parser->AddLongOption('m', "model-file", "model file name (may be repeated multiple times)")
             .AddLongName("model-path")
             .RequiredArgument("PATH")
-            .StoreResult(modelFileName)
             .Handler1T<TString>([modelFileName, modelFormat](const TString& path) {
-                *modelFileName = path;
+                modelFileName->push_back(path);
                 *modelFormat = NCatboostOptions::DefineModelFormat(path);
-
             })
             .DefaultValue("model.bin");
     parser->AddLongOption("model-format")

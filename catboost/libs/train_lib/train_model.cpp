@@ -1291,7 +1291,7 @@ void TrainModel(
             );
 
             ValidateColumnOutput(
-                outputColumns,
+                {outputColumns},
                 testPool,
                 loadOptions.CvParams.FoldCount > 0
             );

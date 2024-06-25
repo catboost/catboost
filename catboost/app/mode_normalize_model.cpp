@@ -27,7 +27,7 @@ using namespace NCB;
 namespace {
 
     struct TModeParams {
-        TString ModelFileName;
+        TVector<TString> ModelFileName;
         EModelType ModelType = EModelType::CatboostBinary;
         TString OutputModelFileName;
         TMaybe<EModelType> OutputModelType;
@@ -95,7 +95,8 @@ namespace {
             TModeParams modeParams(argc, argv);
             TSetLogging inThisScope(modeParams.LoggingLevel);
 
-            TFullModel model = ReadModel(modeParams.ModelFileName, modeParams.ModelType);
+            CB_ENSURE(modeParams.ModelFileName.size() == 1, "Model normalization requires exactly one model");
+            TFullModel model = ReadModel(modeParams.ModelFileName[0], modeParams.ModelType);
             CB_ENSURE(model.GetTreeCount() > 0, "Cannot normalize empty model");
             CB_ENSURE(model.GetDimensionsCount() == 1, "No sense in normalizing a multiclass/multitarget model");
             TScaleAndBias inputScaleAndBias = model.GetScaleAndBias();
@@ -127,7 +128,7 @@ namespace {
                         << " bias " << model.GetScaleAndBias().GetOneDimensionalBiasOrZero()
                         << Endl;
                 }
-                const TString& outputModelFileName = modeParams.OutputModelFileName ? modeParams.OutputModelFileName : modeParams.ModelFileName;
+                const TString& outputModelFileName = modeParams.OutputModelFileName ? modeParams.OutputModelFileName : modeParams.ModelFileName[0];
                 const EModelType outputModelType = modeParams.OutputModelType.GetOrElse(modeParams.ModelType);
                 ExportModel(model, outputModelFileName, outputModelType);
             }

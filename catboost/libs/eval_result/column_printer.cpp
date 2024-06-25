@@ -14,6 +14,7 @@ namespace NCB {
         const TVector<TVector<TVector<double>>>& rawValues,
         const EPredictionType predictionType,
         const TString& lossFunctionName,
+        const TMaybe<TString>& modelName,
         bool isMultiTarget,
         size_t ensemblesCount,
         const TExternalLabelsHelper& visibleLabelsHelper,
@@ -43,6 +44,7 @@ namespace NCB {
                 predictionType,
                 visibleLabelsHelper,
                 lossFunctionName,
+                modelName,
                 ensemblesCount,
                 begin,
                 evalParameters.Get()
@@ -67,6 +69,7 @@ namespace NCB {
     TVector<TString> CreatePredictionTypeHeaderForUncertainty(
         EPredictionType predictionType,
         TMaybe<ELossFunction> lossFunction,
+        const TMaybe<TString>& modelName,
         const TExternalLabelsHelper& visibleLabelsHelper,
         ui32 approxDimension,
         size_t ensemblesCount,
@@ -101,6 +104,9 @@ namespace NCB {
             for (ui32 dimId  = 0; dimId  < predictionDim; ++dimId ) {
                 for (const auto &name: uncertaintyHeaders) {
                     TStringBuilder str;
+                    if (modelName.Defined()) {
+                        str << *modelName << ":";
+                    }
                     str << predictionType << ":" << name;
                     if (predictionDim > 1) {
                         str << (isMultiTarget && !isMultiLabel ? ":Dim=" : ":Class=")
@@ -123,6 +129,7 @@ namespace NCB {
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TString& lossFunctionName,
+        const TMaybe<TString>& modelName,
         size_t ensemblesCount,
         ui32 startTreeIndex,
         std::pair<size_t, size_t>* evalParameters
@@ -139,6 +146,7 @@ namespace NCB {
             return CreatePredictionTypeHeaderForUncertainty(
                 predictionType,
                 lossFunction,
+                modelName,
                 visibleLabelsHelper,
                 approxDimension,
                 ensemblesCount,
@@ -153,6 +161,9 @@ namespace NCB {
         headers.reserve(classCount);
         for (ui32 classId = 0; classId < classCount; ++classId) {
             TStringBuilder str;
+            if (modelName.Defined()) {
+                str << *modelName << ":";
+            }
             str << predictionType;
             if (classCount > 1) {
                 if (lossFunction == ELossFunction::RMSEWithUncertainty) {

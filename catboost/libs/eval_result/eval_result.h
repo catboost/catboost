@@ -42,7 +42,7 @@ namespace NCB {
     };
 
     void ValidateColumnOutput(
-        const TVector<TString>& outputColumns,
+        const TVector<TVector<TString>>& outputColumns,
         const TDataProvider& pool,
         bool cvMode=false);
 
@@ -52,12 +52,16 @@ namespace NCB {
         const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo = {}
     );
 
+    struct TEvalColumnsInfo {
+        TVector<NCB::TEvalResult> Approxes; // [modelIdx]
+        TVector<TExternalLabelsHelper> LabelHelpers; // [modelIdx]
+        TVector<TString> LossFunctions; // [modelIdx]
+    };
+
     TVector<THolder<IColumnPrinter>> InitializeColumnWriter(
-        const TEvalResult& evalResult,
+        const TEvalColumnsInfo& evalColumnsInfo,
         NPar::ILocalExecutor* executor,
-        const TVector<TString>& outputColumns,
-        const TString& lossFunctionName,
-        const TExternalLabelsHelper& visibleLabelsHelper,
+        const TVector<TVector<TString>>& outputColumns, // [modelIdx]
         const TDataProvider& pool,
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
@@ -66,21 +70,21 @@ namespace NCB {
         TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>(),
         double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 
+    // evaluate multiple models
     void OutputEvalResultToFile(
-        const TEvalResult& evalResult,
+        const TEvalColumnsInfo& evalColumnsInfo,
         NPar::ILocalExecutor* executor,
-        const TVector<TString>& outputColumns,
-        const TString& lossFunctionName,
-        const TExternalLabelsHelper& visibleLabelsHelper,
+        const TVector<TVector<TString>>& outputColumns, // [modelIdx]
         const TDataProvider& pool,
         IOutputStream* outputStream,
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
         bool writeHeader = true,
         ui64 docIdOffset = 0,
-        TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>(),
+        TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>(), // evalPeriod, iterationsLimit
         double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 
+    // evaluate single model
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
         NPar::ILocalExecutor* executor,

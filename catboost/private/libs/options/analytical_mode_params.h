@@ -17,25 +17,27 @@ namespace NCB {
     struct TAnalyticalModeCommonParams {
         NCatboostOptions::TDatasetReadingParams DatasetReadingParams;
 
-        TString ModelFileName;
+        TVector<TString> ModelFileName; // [modelIdx]
         EModelType ModelFormat = EModelType::CatboostBinary;
         NCB::TPathWithScheme OutputPath;
 
         int Verbose;
 
-        TVector<EPredictionType> PredictionTypes = {EPredictionType::RawFormulaVal};
         bool IsUncertaintyPrediction = false;
-        TVector<TString> OutputColumnsIds = {"SampleId", "RawFormulaVal"};
+        bool ForceSingleModel = false; // true, if prediction-type is used
+        TVector<TVector<TString>> OutputColumnsIds; // [modelIdx]
         EFstrType FstrType = EFstrType::FeatureImportance;
         int ThreadCount = NSystemInfo::CachedNumberOfCpus();
 
         ECalcTypeShapValues ShapCalcType = ECalcTypeShapValues::Regular;
         TMaybe<double> BinClassLogitThreshold;
 
+        TString BlendingExpression;
+
         void BindParserOpts(NLastGetopt::TOpts& parser);
     };
 
     TString BuildModelFormatHelpMessage();
 
-    void BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat);
+    void BindModelFileParams(NLastGetopt::TOpts* parser, TVector<TString>* modelFileName, EModelType* modelFormat);
 }

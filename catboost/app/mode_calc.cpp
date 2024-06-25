@@ -17,10 +17,10 @@ namespace {
             NCB::PrepareCalcModeParamsParser(&params, &iterationsLimit, &evalPeriod, &virtualEnsemblesCount, &parser);
             NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
-            TFullModel model;
-            ReadModelAndUpdateParams(&params, &iterationsLimit, &evalPeriod, &model);
+            TVector<TFullModel> allModels;
+            ReadModelAndUpdateParams(&params, &iterationsLimit, &evalPeriod, &allModels);
 
-            NCB::CalcModelSingleHost(params, iterationsLimit, evalPeriod, virtualEnsemblesCount, std::move(model));
+            NCB::CalcModelSingleHost(params, iterationsLimit, evalPeriod, virtualEnsemblesCount, std::move(allModels));
 
             return 0;
         }

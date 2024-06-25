@@ -16,7 +16,7 @@
 
 
 struct TCommonMetaInfoParams {
-    TString ModelPath;
+    TVector<TString> ModelPath;
     EModelType ModelFormat = EModelType::CatboostBinary;
     TFullModel Model;
 
@@ -25,7 +25,8 @@ struct TCommonMetaInfoParams {
     }
 
     void LoadModel() {
-        Model = ReadModel(ModelPath, ModelFormat);
+        CB_ENSURE(ModelPath.size() == 1, "Metadata manipulation requires exactly one model");
+        Model = ReadModel(ModelPath[0], ModelFormat);
     }
 };
 
@@ -60,7 +61,8 @@ int set_key(int argc, const char* argv[]) {
     params.LoadModel();
     params.Model.ModelInfo[key] = value;
     if (outputModelPath.empty()) {
-        NCB::ExportModel(params.Model, params.ModelPath, outputModelFormat);
+        CB_ENSURE(params.ModelPath.size() == 1, "Metadata manipulation requires exactly one model");
+        NCB::ExportModel(params.Model, params.ModelPath[0], outputModelFormat);
     } else {
         NCB::ExportModel(params.Model, outputModelPath, outputModelFormat);
     }
