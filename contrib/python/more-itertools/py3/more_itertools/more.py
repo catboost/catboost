@@ -1,3 +1,4 @@
+import math
 import warnings
 
 from collections import Counter, defaultdict, deque, abc
@@ -6,6 +7,7 @@ from functools import cached_property, partial, reduce, wraps
 from heapq import heapify, heapreplace, heappop
 from itertools import (
     chain,
+    combinations,
     compress,
     count,
     cycle,
@@ -19,7 +21,7 @@ from itertools import (
     zip_longest,
     product,
 )
-from math import exp, factorial, floor, log, perm, comb
+from math import comb, e, exp, factorial, floor, fsum, log, perm, tau
 from queue import Empty, Queue
 from random import random, randrange, uniform
 from operator import itemgetter, mul, sub, gt, lt, ge, le
@@ -61,11 +63,13 @@ __all__ = [
     'consumer',
     'count_cycle',
     'countable',
+    'dft',
     'difference',
     'distinct_combinations',
     'distinct_permutations',
     'distribute',
     'divide',
+    'doublestarmap',
     'duplicates_everseen',
     'duplicates_justseen',
     'classify_unique',
@@ -77,6 +81,7 @@ __all__ = [
     'groupby_transform',
     'ichunked',
     'iequals',
+    'idft',
     'ilen',
     'interleave',
     'interleave_evenly',
@@ -86,6 +91,7 @@ __all__ = [
     'islice_extended',
     'iterate',
     'iter_suppress',
+    'join_mappings',
     'last',
     'locate',
     'longest_common_prefix',
@@ -109,6 +115,7 @@ __all__ = [
     'partitions',
     'peekable',
     'permutation_index',
+    'powerset_of_sets',
     'product_index',
     'raise_',
     'repeat_each',
@@ -147,6 +154,9 @@ __all__ = [
     'zip_equal',
     'zip_offset',
 ]
+
+# math.sumprod is available for Python 3.12+
+_fsumprod = getattr(math, 'sumprod', lambda x, y: fsum(map(mul, x, y)))
 
 
 def chunked(iterable, n, strict=False):
@@ -550,10 +560,10 @@ def one(iterable, too_short=None, too_long=None):
 
     try:
         first_value = next(it)
-    except StopIteration as e:
+    except StopIteration as exc:
         raise (
             too_short or ValueError('too few items in iterable (expected 1)')
-        ) from e
+        ) from exc
 
     try:
         second_value = next(it)
@@ -840,26 +850,31 @@ def windowed(seq, n, fillvalue=None, step=1):
     if n < 0:
         raise ValueError('n must be >= 0')
     if n == 0:
-        yield tuple()
+        yield ()
         return
     if step < 1:
         raise ValueError('step must be >= 1')
 
-    window = deque(maxlen=n)
-    i = n
-    for _ in map(window.append, seq):
-        i -= 1
-        if not i:
-            i = step
-            yield tuple(window)
+    iterable = iter(seq)
 
-    size = len(window)
-    if size == 0:
+    # Generate first window
+    window = deque(islice(iterable, n), maxlen=n)
+
+    # Deal with the first window not being full
+    if not window:
         return
-    elif size < n:
-        yield tuple(chain(window, repeat(fillvalue, n - size)))
-    elif 0 < i < min(step, n):
-        window += (fillvalue,) * i
+    if len(window) < n:
+        yield tuple(window) + ((fillvalue,) * (n - len(window)))
+        return
+    yield tuple(window)
+
+    # Create the filler for the next windows. The padding ensures
+    # we have just enough elements to fill the last window.
+    padding = (fillvalue,) * (n - 1 if step >= n else step - 1)
+    filler = map(window.append, chain(iterable, padding))
+
+    # Generate the rest of the windows
+    for _ in islice(filler, step - 1, None, step):
         yield tuple(window)
 
 
@@ -1151,8 +1166,8 @@ def interleave_evenly(iterables, lengths=None):
 
         # those iterables for which the error is negative are yielded
         # ("diagonal step" in Bresenham)
-        for i, e in enumerate(errors):
-            if e < 0:
+        for i, e_ in enumerate(errors):
+            if e_ < 0:
                 yield next(iters_secondary[i])
                 to_yield -= 1
                 errors[i] += delta_primary
@@ -1184,26 +1199,38 @@ def collapse(iterable, base_type=None, levels=None):
     ['a', ['b'], 'c', ['d']]
 
     """
+    stack = deque()
+    # Add our first node group, treat the iterable as a single node
+    stack.appendleft((0, repeat(iterable, 1)))
 
-    def walk(node, level):
-        if (
-            ((levels is not None) and (level > levels))
-            or isinstance(node, (str, bytes))
-            or ((base_type is not None) and isinstance(node, base_type))
-        ):
-            yield node
-            return
+    while stack:
+        node_group = stack.popleft()
+        level, nodes = node_group
 
-        try:
-            tree = iter(node)
-        except TypeError:
-            yield node
-            return
-        else:
-            for child in tree:
-                yield from walk(child, level + 1)
+        # Check if beyond max level
+        if levels is not None and level > levels:
+            yield from nodes
+            continue
 
-    yield from walk(iterable, 0)
+        for node in nodes:
+            # Check if done iterating
+            if isinstance(node, (str, bytes)) or (
+                (base_type is not None) and isinstance(node, base_type)
+            ):
+                yield node
+            # Otherwise try to create child nodes
+            else:
+                try:
+                    tree = iter(node)
+                except TypeError:
+                    yield node
+                else:
+                    # Save our current location
+                    stack.appendleft(node_group)
+                    # Append the new child node
+                    stack.appendleft((level + 1, tree))
+                    # Break to process child node
+                    break
 
 
 def side_effect(func, iterable, chunk_size=None, before=None, after=None):
@@ -1516,28 +1543,41 @@ def padded(iterable, fillvalue=None, n=None, next_multiple=False):
         [1, 2, 3, '?', '?']
 
     If *next_multiple* is ``True``, *fillvalue* will be emitted until the
-    number of items emitted is a multiple of *n*::
+    number of items emitted is a multiple of *n*:
 
         >>> list(padded([1, 2, 3, 4], n=3, next_multiple=True))
         [1, 2, 3, 4, None, None]
 
     If *n* is ``None``, *fillvalue* will be emitted indefinitely.
 
+    To create an *iterable* of exactly size *n*, you can truncate with
+    :func:`islice`.
+
+        >>> list(islice(padded([1, 2, 3], '?'), 5))
+        [1, 2, 3, '?', '?']
+        >>> list(islice(padded([1, 2, 3, 4, 5, 6, 7, 8], '?'), 5))
+        [1, 2, 3, 4, 5]
+
     """
-    it = iter(iterable)
+    iterable = iter(iterable)
+    iterable_with_repeat = chain(iterable, repeat(fillvalue))
+
     if n is None:
-        yield from chain(it, repeat(fillvalue))
+        return iterable_with_repeat
     elif n < 1:
         raise ValueError('n must be at least 1')
-    else:
-        item_count = 0
-        for item in it:
-            yield item
-            item_count += 1
+    elif next_multiple:
 
-        remaining = (n - item_count) % n if next_multiple else n - item_count
-        for _ in range(remaining):
-            yield fillvalue
+        def slice_generator():
+            for first in iterable:
+                yield (first,)
+                yield islice(iterable_with_repeat, n - 1)
+
+        # While elements exist produce slices of size n
+        return chain.from_iterable(slice_generator())
+    else:
+        # Ensure the first batch is at least size n then iterate
+        return chain(islice(iterable_with_repeat, n), iterable)
 
 
 def repeat_each(iterable, n=2):
@@ -1592,7 +1632,9 @@ def distribute(n, iterable):
         [[1], [2], [3], [], []]
 
     This function uses :func:`itertools.tee` and may require significant
-    storage. If you need the order items in the smaller iterables to match the
+    storage.
+
+    If you need the order items in the smaller iterables to match the
     original iterable, see :func:`divide`.
 
     """
@@ -1840,9 +1882,9 @@ def divide(n, iterable):
         >>> [list(c) for c in children]
         [[1], [2], [3], [], []]
 
-    This function will exhaust the iterable before returning and may require
-    significant storage. If order is not important, see :func:`distribute`,
-    which does not first pull the iterable into memory.
+    This function will exhaust the iterable before returning.
+    If order is not important, see :func:`distribute`, which does not first
+    pull the iterable into memory.
 
     """
     if n < 1:
@@ -3296,25 +3338,38 @@ def only(iterable, default=None, too_long=None):
     return first_value
 
 
-class _IChunk:
-    def __init__(self, iterable, n):
-        self._it = islice(iterable, n)
-        self._cache = deque()
+def _ichunk(iterable, n):
+    cache = deque()
+    chunk = islice(iterable, n)
 
-    def fill_cache(self):
-        self._cache.extend(self._it)
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        try:
-            return next(self._it)
-        except StopIteration:
-            if self._cache:
-                return self._cache.popleft()
+    def generator():
+        while True:
+            if cache:
+                yield cache.popleft()
             else:
-                raise
+                try:
+                    item = next(chunk)
+                except StopIteration:
+                    return
+                else:
+                    yield item
+
+    def materialize_next(n=1):
+        # if n not specified materialize everything
+        if n is None:
+            cache.extend(chunk)
+            return len(cache)
+
+        to_cache = n - len(cache)
+
+        # materialize up to n
+        if to_cache > 0:
+            cache.extend(islice(chunk, to_cache))
+
+        # return number materialized up to n
+        return min(n, len(cache))
+
+    return (generator(), materialize_next)
 
 
 def ichunked(iterable, n):
@@ -3338,19 +3393,19 @@ def ichunked(iterable, n):
     [8, 9, 10, 11]
 
     """
-    source = peekable(iter(iterable))
-    ichunk_marker = object()
+    iterable = iter(iterable)
     while True:
+        # Create new chunk
+        chunk, materialize_next = _ichunk(iterable, n)
+
         # Check to see whether we're at the end of the source iterable
-        item = source.peek(ichunk_marker)
-        if item is ichunk_marker:
+        if not materialize_next():
             return
 
-        chunk = _IChunk(source, n)
         yield chunk
 
-        # Advance the source iterable and fill previous chunk's cache
-        chunk.fill_cache()
+        # Fill previous chunk's cache
+        materialize_next(None)
 
 
 def iequals(*iterables):
@@ -3864,15 +3919,13 @@ def nth_permutation(iterable, r, index):
         raise ValueError
     else:
         c = perm(n, r)
+    assert c > 0  # factortial(n)>0, and r<n so perm(n,r) is never zero
 
     if index < 0:
         index += c
 
     if not 0 <= index < c:
         raise IndexError
-
-    if c == 0:
-        return tuple()
 
     result = [0] * r
     q = index * factorial(n) // c if r < n else index
@@ -3946,6 +3999,12 @@ def value_chain(*args):
         >>> list(value_chain('12', '34', ['56', '78']))
         ['12', '34', '56', '78']
 
+    Pre- or postpend a single element to an iterable:
+
+        >>> list(value_chain(1, [2, 3, 4, 5, 6]))
+        [1, 2, 3, 4, 5, 6]
+        >>> list(value_chain([1, 2, 3, 4, 5], 6))
+        [1, 2, 3, 4, 5, 6]
 
     Multiple levels of nesting are not flattened.
 
@@ -4154,53 +4213,41 @@ def chunked_even(iterable, n):
     [[1, 2, 3], [4, 5, 6], [7]]
 
     """
+    iterable = iter(iterable)
 
-    len_method = getattr(iterable, '__len__', None)
+    # Initialize a buffer to process the chunks while keeping
+    # some back to fill any underfilled chunks
+    min_buffer = (n - 1) * (n - 2)
+    buffer = list(islice(iterable, min_buffer))
 
-    if len_method is None:
-        return _chunked_even_online(iterable, n)
-    else:
-        return _chunked_even_finite(iterable, len_method(), n)
+    # Append items until we have a completed chunk
+    for _ in islice(map(buffer.append, iterable), n, None, n):
+        yield buffer[:n]
+        del buffer[:n]
 
-
-def _chunked_even_online(iterable, n):
-    buffer = []
-    maxbuf = n + (n - 2) * (n - 1)
-    for x in iterable:
-        buffer.append(x)
-        if len(buffer) == maxbuf:
-            yield buffer[:n]
-            buffer = buffer[n:]
-    yield from _chunked_even_finite(buffer, len(buffer), n)
-
-
-def _chunked_even_finite(iterable, N, n):
-    if N < 1:
+    # Check if any chunks need addition processing
+    if not buffer:
         return
+    length = len(buffer)
 
-    # Lists are either size `full_size <= n` or `partial_size = full_size - 1`
-    q, r = divmod(N, n)
+    # Chunks are either size `full_size <= n` or `partial_size = full_size - 1`
+    q, r = divmod(length, n)
     num_lists = q + (1 if r > 0 else 0)
-    q, r = divmod(N, num_lists)
+    q, r = divmod(length, num_lists)
     full_size = q + (1 if r > 0 else 0)
     partial_size = full_size - 1
-    num_full = N - partial_size * num_lists
-    num_partial = num_lists - num_full
+    num_full = length - partial_size * num_lists
 
-    # Yield num_full lists of full_size
+    # Yield chunks of full size
     partial_start_idx = num_full * full_size
     if full_size > 0:
         for i in range(0, partial_start_idx, full_size):
-            yield list(islice(iterable, i, i + full_size))
+            yield buffer[i : i + full_size]
 
-    # Yield num_partial lists of partial_size
+    # Yield chunks of partial size
     if partial_size > 0:
-        for i in range(
-            partial_start_idx,
-            partial_start_idx + (num_partial * partial_size),
-            partial_size,
-        ):
-            yield list(islice(iterable, i, i + partial_size))
+        for i in range(partial_start_idx, length, partial_size):
+            yield buffer[i : i + partial_size]
 
 
 def zip_broadcast(*objects, scalar_types=(str, bytes), strict=False):
@@ -4419,12 +4466,12 @@ def minmax(iterable_or_value, *others, key=None, default=_marker):
 
     try:
         lo = hi = next(it)
-    except StopIteration as e:
+    except StopIteration as exc:
         if default is _marker:
             raise ValueError(
                 '`minmax()` argument is an empty iterable. '
                 'Provide a `default` value to suppress this error.'
-            ) from e
+            ) from exc
         return default
 
     # Different branches depending on the presence of key. This saves a lot
@@ -4654,3 +4701,106 @@ def filter_map(func, iterable):
         y = func(x)
         if y is not None:
             yield y
+
+
+def powerset_of_sets(iterable):
+    """Yields all possible subsets of the iterable.
+
+        >>> list(powerset_of_sets([1, 2, 3]))  # doctest: +SKIP
+        [set(), {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 3}, {1, 2, 3}]
+        >>> list(powerset_of_sets([1, 1, 0]))  # doctest: +SKIP
+        [set(), {1}, {0}, {0, 1}]
+
+    :func:`powerset_of_sets` takes care to minimize the number
+    of hash operations performed.
+    """
+    sets = tuple(map(set, dict.fromkeys(map(frozenset, zip(iterable)))))
+    for r in range(len(sets) + 1):
+        yield from starmap(set().union, combinations(sets, r))
+
+
+def join_mappings(**field_to_map):
+    """
+    Joins multiple mappings together using their common keys.
+
+    >>> user_scores = {'elliot': 50, 'claris': 60}
+    >>> user_times = {'elliot': 30, 'claris': 40}
+    >>> join_mappings(score=user_scores, time=user_times)
+    {'elliot': {'score': 50, 'time': 30}, 'claris': {'score': 60, 'time': 40}}
+    """
+    ret = defaultdict(dict)
+
+    for field_name, mapping in field_to_map.items():
+        for key, value in mapping.items():
+            ret[key][field_name] = value
+
+    return dict(ret)
+
+
+def _complex_sumprod(v1, v2):
+    """High precision sumprod() for complex numbers.
+    Used by :func:`dft` and :func:`idft`.
+    """
+
+    r1 = chain((p.real for p in v1), (-p.imag for p in v1))
+    r2 = chain((q.real for q in v2), (q.imag for q in v2))
+    i1 = chain((p.real for p in v1), (p.imag for p in v1))
+    i2 = chain((q.imag for q in v2), (q.real for q in v2))
+    return complex(_fsumprod(r1, r2), _fsumprod(i1, i2))
+
+
+def dft(xarr):
+    """Discrete Fourier Tranform. *xarr* is a sequence of complex numbers.
+    Yields the components of the corresponding transformed output vector.
+
+    >>> import cmath
+    >>> xarr = [1, 2-1j, -1j, -1+2j]
+    >>> Xarr = [2, -2-2j, -2j, 4+4j]
+    >>> all(map(cmath.isclose, dft(xarr), Xarr))
+    True
+
+    See :func:`idft` for the inverse Discrete Fourier Transform.
+    """
+    N = len(xarr)
+    roots_of_unity = [e ** (n / N * tau * -1j) for n in range(N)]
+    for k in range(N):
+        coeffs = [roots_of_unity[k * n % N] for n in range(N)]
+        yield _complex_sumprod(xarr, coeffs)
+
+
+def idft(Xarr):
+    """Inverse Discrete Fourier Tranform. *Xarr* is a sequence of
+    complex numbers. Yields the components of the corresponding
+    inverse-transformed output vector.
+
+    >>> import cmath
+    >>> xarr = [1, 2-1j, -1j, -1+2j]
+    >>> Xarr = [2, -2-2j, -2j, 4+4j]
+    >>> all(map(cmath.isclose, idft(Xarr), xarr))
+    True
+
+    See :func:`dft` for the Discrete Fourier Transform.
+    """
+    N = len(Xarr)
+    roots_of_unity = [e ** (n / N * tau * 1j) for n in range(N)]
+    for k in range(N):
+        coeffs = [roots_of_unity[k * n % N] for n in range(N)]
+        yield _complex_sumprod(Xarr, coeffs) / N
+
+
+def doublestarmap(func, iterable):
+    """Apply *func* to every item of *iterable* by dictionary unpacking
+    the item into *func*.
+
+    The difference between :func:`itertools.starmap` and :func:`doublestarmap`
+    parallels the distinction between ``func(*a)`` and ``func(**a)``.
+
+    >>> iterable = [{'a': 1, 'b': 2}, {'a': 40, 'b': 60}]
+    >>> list(doublestarmap(lambda a, b: a + b, iterable))
+    [3, 100]
+
+    ``TypeError`` will be raised if *func*'s signature doesn't match the
+    mapping contained in *iterable* or if *iterable* does not contain mappings.
+    """
+    for item in iterable:
+        yield func(**item)

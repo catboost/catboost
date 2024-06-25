@@ -1,3 +1,4 @@
+import cmath
 import warnings
 
 from collections import Counter, abc
@@ -23,7 +24,7 @@ from itertools import (
 )
 from operator import add, mul, itemgetter
 from pickle import loads, dumps
-from random import seed, Random
+from random import Random, random, randrange, seed
 from statistics import mean
 from string import ascii_letters
 from sys import version_info
@@ -771,6 +772,11 @@ class WindowedTests(TestCase):
     def test_negative(self):
         with self.assertRaises(ValueError):
             list(mi.windowed([1, 2, 3, 4, 5], -1))
+
+    def test_empty_seq(self):
+        actual = list(mi.windowed([], 3))
+        expected = []
+        self.assertEqual(actual, expected)
 
 
 class SubstringsTests(TestCase):
@@ -2121,9 +2127,9 @@ class SortTogetherTest(TestCase):
             mi.sort_together(
                 iterables,
                 key_list=(0, 2),
-                key=lambda state, number: number
-                if state == 'CT'
-                else 2 * number,
+                key=lambda state, number: (
+                    number if state == 'CT' else 2 * number
+                ),
             ),
             [
                 ('CT', 'GA', 'CT', 'CT', 'GA', 'GA'),
@@ -3984,22 +3990,41 @@ class IchunkedTests(TestCase):
         self.assertRaises(RuntimeError, next, it)
 
     def test_memory_in_order(self):
-        # No items should be kept in memory when a chunk is produced
-        all_chunks = mi.ichunked(count(), 4)
+        gen_numbers = []
+
+        def gen():
+            for gen_number in count():
+                gen_numbers.append(gen_number)
+                yield gen_number
+
+        # No items should be kept in memory when a ichunked is first called
+        all_chunks = mi.ichunked(gen(), 4)
+        self.assertEqual(gen_numbers, [])
+
+        # The first item of each chunk should be generated on chunk generation
         first_chunk = next(all_chunks)
-        self.assertEqual(len(first_chunk._cache), 0)
+        self.assertEqual(gen_numbers, [0])
 
         # If we don't read a chunk before getting its successor, its contents
         # will be cached
         second_chunk = next(all_chunks)
-        self.assertEqual(len(first_chunk._cache), 4)
+        self.assertEqual(gen_numbers, [0, 1, 2, 3, 4])
 
-        # If we read in order, there again should be nothing cached
-        mi.consume(first_chunk)
-        mi.consume(second_chunk)
+        # Check if we can read in cached values
+        self.assertEqual(list(first_chunk), [0, 1, 2, 3])
+        self.assertEqual(list(second_chunk), [4, 5, 6, 7])
+
+        # Again only the most recent chunk should have an item cached
         third_chunk = next(all_chunks)
-        for chunk in (first_chunk, second_chunk, third_chunk):
-            self.assertEqual(len(chunk._cache), 0)
+        self.assertEqual(len(gen_numbers), 9)
+
+        # No new item should be cached when reading past the first number
+        next(third_chunk)
+        self.assertEqual(len(gen_numbers), 9)
+
+        # we should not be able to read spent chunks
+        self.assertEqual(list(first_chunk), [])
+        self.assertEqual(list(second_chunk), [])
 
 
 class DistinctCombinationsTests(TestCase):
@@ -5489,6 +5514,10 @@ class ConstrainedBatchesTests(TestCase):
             [(record_3, record_5), (record_10,), (record_2,)],
         )
 
+    def test_bad_max(self):
+        with self.assertRaises(ValueError):
+            list(mi.constrained_batches([], 0))
+
 
 class GrayProductTests(TestCase):
     def test_basic(self):
@@ -5732,4 +5761,108 @@ class FilterMapTests(TestCase):
             )
         )
         expected = [1, 2, 3]
+        self.assertEqual(actual, expected)
+
+
+class PowersetOfSetsTests(TestCase):
+    def test_simple(self):
+        iterable = [0, 1, 2]
+        actual = list(mi.powerset_of_sets(iterable))
+        expected = [set(), {0}, {1}, {2}, {0, 1}, {0, 2}, {1, 2}, {0, 1, 2}]
+        self.assertEqual(actual, expected)
+
+    def test_hash_count(self):
+        hash_count = 0
+
+        class Str(str):
+            def __hash__(true_self):
+                nonlocal hash_count
+                hash_count += 1
+                return super.__hash__(true_self)
+
+        iterable = map(Str, 'ABBBCDD')
+        self.assertEqual(len(list(mi.powerset_of_sets(iterable))), 128)
+        self.assertLessEqual(hash_count, 14)
+
+
+class JoinMappingTests(TestCase):
+    def test_basic(self):
+        salary_map = {'e1': 12, 'e2': 23, 'e3': 34}
+        dept_map = {'e1': 'eng', 'e2': 'sales', 'e3': 'eng'}
+        service_map = {'e1': 5, 'e2': 9, 'e3': 2}
+        field_to_map = {
+            'salary': salary_map,
+            'dept': dept_map,
+            'service': service_map,
+        }
+        expected = {
+            'e1': {'salary': 12, 'dept': 'eng', 'service': 5},
+            'e2': {'salary': 23, 'dept': 'sales', 'service': 9},
+            'e3': {'salary': 34, 'dept': 'eng', 'service': 2},
+        }
+        self.assertEqual(dict(mi.join_mappings(**field_to_map)), expected)
+
+    def test_empty(self):
+        self.assertEqual(dict(mi.join_mappings()), {})
+
+
+class DiscreteFourierTransformTests(TestCase):
+    def test_basic(self):
+        # Example calculation from:
+        # https://en.wikipedia.org/wiki/Discrete_Fourier_transform#Example
+        xarr = [1, 2 - 1j, -1j, -1 + 2j]
+        Xarr = [2, -2 - 2j, -2j, 4 + 4j]
+        self.assertTrue(all(map(cmath.isclose, mi.dft(xarr), Xarr)))
+        self.assertTrue(all(map(cmath.isclose, mi.idft(Xarr), xarr)))
+
+    def test_roundtrip(self):
+        for _ in range(1_000):
+            N = randrange(35)
+            xarr = [complex(random(), random()) for i in range(N)]
+            Xarr = list(mi.dft(xarr))
+            assert all(map(cmath.isclose, mi.idft(Xarr), xarr))
+
+
+class DoubleStarMapTests(TestCase):
+    def test_construction(self):
+        iterable = [{'price': 1.23}, {'price': 42}, {'price': 0.1}]
+        actual = list(mi.doublestarmap('{price:.2f}'.format, iterable))
+        expected = ['1.23', '42.00', '0.10']
+        self.assertEqual(actual, expected)
+
+    def test_identity(self):
+        iterable = [{'x': 1}, {'x': 2}, {'x': 3}]
+        actual = list(mi.doublestarmap(lambda x: x, iterable))
+        expected = [1, 2, 3]
+        self.assertEqual(actual, expected)
+
+    def test_adding(self):
+        iterable = [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]
+        actual = list(mi.doublestarmap(lambda a, b: a + b, iterable))
+        expected = [3, 7]
+        self.assertEqual(actual, expected)
+
+    def test_mismatch_function_smaller(self):
+        iterable = [{'a': 1, 'b': 2}, {'a': 3, 'b': 4}]
+        with self.assertRaises(TypeError):
+            list(mi.doublestarmap(lambda a: a, iterable))
+
+    def test_mismatch_function_different(self):
+        iterable = [{'a': 1}, {'a': 2}]
+        with self.assertRaises(TypeError):
+            list(mi.doublestarmap(lambda x: x, iterable))
+
+    def test_mismatch_function_larger(self):
+        iterable = [{'a': 1}, {'a': 2}]
+        with self.assertRaises(TypeError):
+            list(mi.doublestarmap(lambda a, b: a + b, iterable))
+
+    def test_no_mapping(self):
+        iterable = [1, 2, 3, 4]
+        with self.assertRaises(TypeError):
+            list(mi.doublestarmap(lambda x: x, iterable))
+
+    def test_empty(self):
+        actual = list(mi.doublestarmap(lambda x: x, []))
+        expected = []
         self.assertEqual(actual, expected)

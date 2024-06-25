@@ -1,4 +1,5 @@
 """Stubs for more_itertools.more"""
+
 from __future__ import annotations
 
 from types import TracebackType
@@ -9,8 +10,10 @@ from typing import (
     ContextManager,
     Generic,
     Hashable,
+    Mapping,
     Iterable,
     Iterator,
+    Mapping,
     overload,
     Reversible,
     Sequence,
@@ -602,6 +605,7 @@ class countable(Generic[_T], Iterator[_T]):
     def __init__(self, iterable: Iterable[_T]) -> None: ...
     def __iter__(self) -> countable[_T]: ...
     def __next__(self) -> _T: ...
+    items_seen: int
 
 def chunked_even(iterable: Iterable[_T], n: int) -> Iterator[list[_T]]: ...
 def zip_broadcast(
@@ -693,3 +697,13 @@ def filter_map(
     func: Callable[[_T], _V | None],
     iterable: Iterable[_T],
 ) -> Iterator[_V]: ...
+def powerset_of_sets(iterable: Iterable[_T]) -> Iterator[set[_T]]: ...
+def join_mappings(
+    **field_to_map: Mapping[_T, _V]
+) -> dict[_T, dict[str, _V]]: ...
+def doublestarmap(
+    func: Callable[..., _T],
+    iterable: Iterable[Mapping[str, Any]],
+) -> Iterator[_T]: ...
+def dft(xarr: Sequence[complex]) -> Iterator[complex]: ...
+def idft(Xarr: Sequence[complex]) -> Iterator[complex]: ...
