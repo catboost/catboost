@@ -76,13 +76,13 @@ GeneratorContext::~GeneratorContext() {}
 
 io::ZeroCopyOutputStream* GeneratorContext::OpenForAppend(
     const TProtoStringType& filename) {
-  return NULL;
+  return nullptr;
 }
 
 io::ZeroCopyOutputStream* GeneratorContext::OpenForInsert(
     const TProtoStringType& filename, const TProtoStringType& insertion_point) {
   GOOGLE_LOG(FATAL) << "This GeneratorContext does not support insertion.";
-  return NULL;  // make compiler happy
+  return nullptr;  // make compiler happy
 }
 
 io::ZeroCopyOutputStream* GeneratorContext::OpenForInsertWithGeneratedCodeInfo(

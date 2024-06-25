@@ -52,12 +52,12 @@
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/arena.h>
-#include <google/protobuf/explicitly_constructed.h>
-#include <google/protobuf/metadata_lite.h>
 #include <google/protobuf/stubs/once.h>
 #include <google/protobuf/port.h>
 #include <google/protobuf/stubs/strutil.h>
-
+#include <google/protobuf/explicitly_constructed.h>
+#include <google/protobuf/metadata_lite.h>
+#include <google/protobuf/stubs/hash.h>  // TODO(b/211442718): cleanup
 
 // clang-format off
 #include <google/protobuf/port_def.inc>
@@ -88,12 +88,6 @@ class ZeroCopyOutputStream;
 namespace internal {
 
 class SwapFieldHelper;
-
-// Tag type used to invoke the constinit constructor overload of some classes.
-// Such constructors are internal implementation details of the library.
-struct ConstantInitialized {
-  explicit ConstantInitialized() = default;
-};
 
 // See parse_context.h for explanation
 class ParseContext;
@@ -136,8 +130,9 @@ inline int ToIntSize(size_t size) {
 }
 
 // Default empty string object. Don't use this directly. Instead, call
-// GetEmptyString() to get the reference.
-PROTOBUF_EXPORT extern ExplicitlyConstructed<TProtoStringType>
+// GetEmptyString() to get the reference. This empty string is aligned with a
+// minimum alignment of 8 bytes to match the requirement of ArenaStringPtr.
+PROTOBUF_EXPORT extern ExplicitlyConstructedArenaString
     fixed_address_empty_string;
 
 
@@ -193,8 +188,8 @@ class PROTOBUF_EXPORT MessageLite {
   // if arena is a nullptr.
   virtual MessageLite* New(Arena* arena) const = 0;
 
-  // Same as GetOwningArena.
-  Arena* GetArena() const { return GetOwningArena(); }
+  // Returns user-owned arena; nullptr if it's message owned.
+  Arena* GetArena() const { return _internal_metadata_.user_arena(); }
 
   // Clear all fields of the message and set them to their default values.
   // Clear() avoids freeing memory, assuming that any memory allocated
@@ -428,6 +423,8 @@ class PROTOBUF_EXPORT MessageLite {
     return nullptr;
   }
 
+  virtual void OnDemandRegisterArenaDtor(Arena* /*arena*/) {}
+
  protected:
   template <typename T>
   static T* CreateMaybeMessage(Arena* arena) {
@@ -486,9 +483,6 @@ class PROTOBUF_EXPORT MessageLite {
   #endif
 
  private:
-  // TODO(gerbens) make this a pure abstract function
-  virtual const void* InternalGetTable() const { return nullptr; }
-
   friend class FastReflectionMessageMutator;
   friend class FastReflectionStringSetter;
   friend class Message;

@@ -39,6 +39,7 @@
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 
+// Must be included last.
 #include <google/protobuf/port_def.inc>
 
 namespace google {
@@ -53,6 +54,16 @@ template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<arc_ui64>;
 template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<float>;
 template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedField<double>;
 template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedPtrField<TProtoStringType>;
+
+namespace internal {
+template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedIterator<bool>;
+template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedIterator<arc_i32>;
+template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedIterator<arc_ui32>;
+template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedIterator<arc_i64>;
+template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedIterator<arc_ui64>;
+template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedIterator<float>;
+template class PROTOBUF_EXPORT_TEMPLATE_DEFINE RepeatedIterator<double>;
+}  // namespace internal
 
 }  // namespace protobuf
 }  // namespace google

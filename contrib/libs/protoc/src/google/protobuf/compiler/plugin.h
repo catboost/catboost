@@ -65,6 +65,7 @@
 #include <string>
 #include <google/protobuf/stubs/port.h>
 
+// Must be included last.
 #include <google/protobuf/port_def.inc>
 
 namespace google {

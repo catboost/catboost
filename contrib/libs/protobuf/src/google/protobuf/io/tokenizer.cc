@@ -92,8 +92,8 @@
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/stringprintf.h>
 #include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/stringprintf.h>
 #include <google/protobuf/io/strtod.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/stubs/stl_util.h>
@@ -681,13 +681,12 @@ bool Tokenizer::Next() {
         ConsumeString('\'');
         current_.type = TYPE_STRING;
       } else {
-        // Check if the high order bit is set.
         // The tokenizer is used to parse tomita grammars with non-ascii utf8 chars
         // if (current_char_ & 0x80) {
         //   error_collector_->AddError(
         //       line_, column_,
         //       StringPrintf("Interpreting non ascii codepoint %d.",
-        //                    static_cast<unsigned char>(current_char_)));
+        //                       static_cast<unsigned char>(current_char_)));
         // }
         NextChar();
         current_.type = TYPE_SYMBOL;

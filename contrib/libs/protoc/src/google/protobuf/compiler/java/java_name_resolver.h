@@ -123,7 +123,6 @@ class ClassNameResolver {
   TProtoStringType GetDowngradedFileClassName(const FileDescriptor* file);
   TProtoStringType GetDowngradedClassName(const Descriptor* descriptor);
 
- private:
   // Get the full name of a Java class by prepending the Java package name
   // or outer class name.
   TProtoStringType GetClassFullName(const TProtoStringType& name_without_package,
@@ -132,6 +131,8 @@ class ClassNameResolver {
   TProtoStringType GetClassFullName(const TProtoStringType& name_without_package,
                                const FileDescriptor* file, bool immutable,
                                bool is_own_file, bool kotlin);
+
+ private:
   // Get the Java Class style full name of a message.
   TProtoStringType GetJavaClassFullName(const TProtoStringType& name_without_package,
                                    const FileDescriptor* file, bool immutable);

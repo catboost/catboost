@@ -52,6 +52,7 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/api.pb.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arena.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arenastring.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arenaz_sampler.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.pb.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor_database.cc
@@ -64,8 +65,6 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_enum_util.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_bases.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_reflection.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven_lite.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_tctable_full.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_tctable_lite.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/implicit_weak_message.cc

@@ -40,16 +40,17 @@
 #ifndef GOOGLE_PROTOBUF_WIRE_FORMAT_LITE_H__
 #define GOOGLE_PROTOBUF_WIRE_FORMAT_LITE_H__
 
+
 #include <string>
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/port.h>
+#include <google/protobuf/stubs/casts.h>
 #include <google/protobuf/arenastring.h>
 #include <google/protobuf/message_lite.h>
-#include <google/protobuf/port.h>
 #include <google/protobuf/repeated_field.h>
-#include <google/protobuf/stubs/casts.h>
 
 
 // Avoid conflict with iOS where <ConditionalMacros.h> #defines TYPE_BOOL.
@@ -63,6 +64,7 @@
 #undef TYPE_BOOL
 
 
+// Must be included last.
 #include <google/protobuf/port_def.inc>
 
 namespace google {
@@ -618,14 +620,13 @@ class PROTOBUF_EXPORT WireFormatLite {
   // of serialization, the "ToArray" variants may be invoked.  But they don't
   // have a CodedOutputStream available, so they get an additional parameter
   // telling them whether to serialize deterministically.
-  template <typename MessageType>
-  PROTOBUF_NDEBUG_INLINE static uint8_t* InternalWriteGroup(
-      int field_number, const MessageType& value, uint8_t* target,
-      io::EpsCopyOutputStream* stream);
-  template <typename MessageType>
-  PROTOBUF_NDEBUG_INLINE static uint8_t* InternalWriteMessage(
-      int field_number, const MessageType& value, uint8_t* target,
-      io::EpsCopyOutputStream* stream);
+  static uint8_t* InternalWriteGroup(int field_number, const MessageLite& value,
+                                     uint8_t* target,
+                                     io::EpsCopyOutputStream* stream);
+  static uint8_t* InternalWriteMessage(int field_number,
+                                       const MessageLite& value,
+                                       int cached_size, uint8_t* target,
+                                       io::EpsCopyOutputStream* stream);
 
   // Like above, but de-virtualize the call to SerializeWithCachedSizes().  The
   // pointer must point at an instance of MessageType, *not* a subclass (or
@@ -658,7 +659,8 @@ class PROTOBUF_EXPORT WireFormatLite {
                                     static_cast<arc_ui32>(field_number) << 3) +
                                 io::CodedOutputStream::VarintSize32(size)),
         io::CodedOutputStream::IsDefaultSerializationDeterministic());
-    return InternalWriteMessage(field_number, value, target, &stream);
+    return InternalWriteMessage(field_number, value, value.GetCachedSize(),
+                                target, &stream);
   }
 
   // Compute the byte size of a field.  The XxSize() functions do NOT include
@@ -1701,25 +1703,6 @@ inline uint8_t* WireFormatLite::WriteBytesToArray(int field_number,
 }
 
 
-template <typename MessageType>
-inline uint8_t* WireFormatLite::InternalWriteGroup(
-    int field_number, const MessageType& value, uint8_t* target,
-    io::EpsCopyOutputStream* stream) {
-  target = WriteTagToArray(field_number, WIRETYPE_START_GROUP, target);
-  target = value._InternalSerialize(target, stream);
-  target = stream->EnsureSpace(target);
-  return WriteTagToArray(field_number, WIRETYPE_END_GROUP, target);
-}
-template <typename MessageType>
-inline uint8_t* WireFormatLite::InternalWriteMessage(
-    int field_number, const MessageType& value, uint8_t* target,
-    io::EpsCopyOutputStream* stream) {
-  target = WriteTagToArray(field_number, WIRETYPE_LENGTH_DELIMITED, target);
-  target = io::CodedOutputStream::WriteVarint32ToArrayOutOfLine(
-      static_cast<arc_ui32>(value.GetCachedSize()), target);
-  return value._InternalSerialize(target, stream);
-}
-
 // See comment on ReadGroupNoVirtual to understand the need for this template
 // parameter name.
 template <typename MessageType_WorkAroundCppLookupDefect>
@@ -1843,6 +1826,9 @@ bool ParseMessageSetItemImpl(io::CodedInputStream* input, MS ms) {
   // we can parse it later.
   TProtoStringType message_data;
 
+  enum class State { kNoTag, kHasType, kHasPayload, kDone };
+  State state = State::kNoTag;
+
   while (true) {
     const arc_ui32 tag = input->ReadTagNoLastTag();
     if (tag == 0) return false;
@@ -1851,26 +1837,34 @@ bool ParseMessageSetItemImpl(io::CodedInputStream* input, MS ms) {
       case WireFormatLite::kMessageSetTypeIdTag: {
         arc_ui32 type_id;
         if (!input->ReadVarint32(&type_id)) return false;
-        last_type_id = type_id;
-
-        if (!message_data.empty()) {
+        if (state == State::kNoTag) {
+          last_type_id = type_id;
+          state = State::kHasType;
+        } else if (state == State::kHasPayload) {
           // We saw some message data before the type_id.  Have to parse it
           // now.
           io::CodedInputStream sub_input(
               reinterpret_cast<const uint8_t*>(message_data.data()),
               static_cast<int>(message_data.size()));
           sub_input.SetRecursionLimit(input->RecursionBudget());
-          if (!ms.ParseField(last_type_id, &sub_input)) {
+          if (!ms.ParseField(type_id, &sub_input)) {
             return false;
           }
           message_data.clear();
+          state = State::kDone;
         }
 
         break;
       }
 
       case WireFormatLite::kMessageSetMessageTag: {
-        if (last_type_id == 0) {
+        if (state == State::kHasType) {
+          // Already saw type_id, so we can parse this directly.
+          if (!ms.ParseField(last_type_id, input)) {
+            return false;
+          }
+          state = State::kDone;
+        } else if (state == State::kNoTag) {
           // We haven't seen a type_id yet.  Append this data to message_data.
           arc_ui32 length;
           if (!input->ReadVarint32(&length)) return false;
@@ -1881,11 +1875,9 @@ bool ParseMessageSetItemImpl(io::CodedInputStream* input, MS ms) {
           auto ptr = reinterpret_cast<uint8_t*>(&message_data[0]);
           ptr = io::CodedOutputStream::WriteVarint32ToArray(length, ptr);
           if (!input->ReadRaw(ptr, length)) return false;
+          state = State::kHasPayload;
         } else {
-          // Already saw type_id, so we can parse this directly.
-          if (!ms.ParseField(last_type_id, input)) {
-            return false;
-          }
+          if (!ms.SkipField(tag, input)) return false;
         }
 
         break;

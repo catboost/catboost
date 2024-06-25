@@ -28,6 +28,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
 namespace google {
@@ -81,24 +82,24 @@ static struct PyModuleDef _module = {PyModuleDef_HEAD_INIT,
                                      kModuleName,
                                      kModuleDocstring,
                                      -1,
-                                     NULL,
-                                     NULL,
-                                     NULL,
-                                     NULL,
-                                     NULL};
+                                     nullptr,
+                                     nullptr,
+                                     nullptr,
+                                     nullptr,
+                                     nullptr};
 
 extern "C" {
 PyMODINIT_FUNC PyInit__api_implementation() {
   PyObject* module = PyModule_Create(&_module);
-  if (module == NULL) {
-    return NULL;
+  if (module == nullptr) {
+    return nullptr;
   }
 
   // Adds the module variable "api_version".
   if (PyModule_AddIntConstant(module, const_cast<char*>(kImplVersionName),
                               kImplVersion)) {
     Py_DECREF(module);
-    return NULL;
+    return nullptr;
   }
 
   return module;

@@ -38,15 +38,16 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/arena.h>
+#include <google/protobuf/port.h>
+#include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/arenastring.h>
 #include <google/protobuf/implicit_weak_message.h>
 #include <google/protobuf/inlined_string_field.h>
 #include <google/protobuf/metadata_lite.h>
-#include <google/protobuf/port.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/wire_format_lite.h>
-#include <google/protobuf/stubs/strutil.h>
 
+// Must be included last.
 #include <google/protobuf/port_def.inc>
 
 
@@ -197,6 +198,7 @@ class PROTOBUF_EXPORT EpsCopyInputStream {
     return ptr > limit_end_ &&
            (next_chunk_ == nullptr || ptr - buffer_end_ > limit_);
   }
+  bool AliasingEnabled() const { return aliasing_ != kNoAliasing; }
   int BytesUntilLimit(const char* ptr) const {
     return limit_ + static_cast<int>(buffer_end_ - ptr);
   }
@@ -372,6 +374,9 @@ class PROTOBUF_EXPORT EpsCopyInputStream {
   friend class ImplicitWeakMessage;
 };
 
+using LazyEagerVerifyFnType = const char* (*)(const char* ptr,
+                                              ParseContext* ctx);
+
 // ParseContext holds all data that is global to the entire parse. Most
 // importantly it contains the input stream, but also recursion depth and also
 // stores the end group tag, in case a parser ended on a endgroup, to verify
@@ -400,6 +405,18 @@ class PROTOBUF_EXPORT ParseContext : public EpsCopyInputStream {
   const Data& data() const { return data_; }
 
   const char* ParseMessage(MessageLite* msg, const char* ptr);
+
+  // Spawns a child parsing context that inherits key properties. New context
+  // inherits the following:
+  // --depth_, data_, check_required_fields_, lazy_parse_mode_
+  // The spanwed context always disables aliasing (different input).
+  template <typename... T>
+  ParseContext Spawn(const char** start, T&&... args) {
+    ParseContext spawned(depth_, false, start, std::forward<T>(args)...);
+    // Transfer key context states.
+    spawned.data_ = data_;
+    return spawned;
+  }
 
   // This overload supports those few cases where ParseMessage is called
   // on a class that is not actually a proto message.
@@ -789,7 +806,7 @@ inline bool VerifyUTF8(const TProtoStringType* s, const char* field_name) {
 }
 
 // All the string parsers with or without UTF checking and for all CTypes.
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* InlineGreedyStringParser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* InlineGreedyStringParser(
     TProtoStringType* s, const char* ptr, ParseContext* ctx);
 
 
@@ -861,19 +878,19 @@ PROTOBUF_NODISCARD const char* WireFormatParser(T& field_parser,
 // corresponding field
 
 // These are packed varints
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedInt32Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedInt32Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedUInt32Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedUInt32Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedInt64Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedInt64Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedUInt64Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedUInt64Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedSInt32Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedSInt32Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedSInt64Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedSInt64Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedEnumParser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedEnumParser(
     void* object, const char* ptr, ParseContext* ctx);
 
 template <typename T>
@@ -907,28 +924,28 @@ PROTOBUF_NODISCARD const char* PackedEnumParserArg(
       });
 }
 
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedBoolParser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedBoolParser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedFixed32Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedFixed32Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedSFixed32Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedSFixed32Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedFixed64Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedFixed64Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedSFixed64Parser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedSFixed64Parser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedFloatParser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedFloatParser(
     void* object, const char* ptr, ParseContext* ctx);
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* PackedDoubleParser(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* PackedDoubleParser(
     void* object, const char* ptr, ParseContext* ctx);
 
 // This is the only recursive parser.
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* UnknownGroupLiteParse(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* UnknownGroupLiteParse(
     TProtoStringType* unknown, const char* ptr, ParseContext* ctx);
 // This is a helper to for the UnknownGroupLiteParse but is actually also
 // useful in the generated code. It uses overload on TProtoStringType* vs
 // UnknownFieldSet* to make the generated code isomorphic between full and lite.
-PROTOBUF_EXPORT PROTOBUF_NODISCARD const char* UnknownFieldParse(
+PROTOBUF_NODISCARD PROTOBUF_EXPORT const char* UnknownFieldParse(
     arc_ui32 tag, TProtoStringType* unknown, const char* ptr, ParseContext* ctx);
 
 }  // namespace internal

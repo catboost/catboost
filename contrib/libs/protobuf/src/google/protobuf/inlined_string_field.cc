@@ -30,11 +30,11 @@
 
 #include <google/protobuf/inlined_string_field.h>
 
-#include <google/protobuf/parse_context.h>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/arenastring.h>
 #include <google/protobuf/generated_message_util.h>
 #include <google/protobuf/message_lite.h>
+#include <google/protobuf/parse_context.h>
 
 // clang-format off
 #include <google/protobuf/port_def.inc>
@@ -48,54 +48,62 @@ namespace internal {
 TProtoStringType* InlinedStringField::Mutable(const LazyString& /*default_value*/,
                                          Arena* arena, bool donated,
                                          arc_ui32* donating_states,
-                                         arc_ui32 mask) {
+                                         arc_ui32 mask, MessageLite* msg) {
   if (arena == nullptr || !donated) {
     return UnsafeMutablePointer();
   }
-  return MutableSlow(arena, donated, donating_states, mask);
+  return MutableSlow(arena, donated, donating_states, mask, msg);
 }
 
-TProtoStringType* InlinedStringField::Mutable(ArenaStringPtr::EmptyDefault,
-                                         Arena* arena, bool donated,
+TProtoStringType* InlinedStringField::Mutable(Arena* arena, bool donated,
                                          arc_ui32* donating_states,
-                                         arc_ui32 mask) {
+                                         arc_ui32 mask, MessageLite* msg) {
   if (arena == nullptr || !donated) {
     return UnsafeMutablePointer();
   }
-  return MutableSlow(arena, donated, donating_states, mask);
+  return MutableSlow(arena, donated, donating_states, mask, msg);
 }
 
 TProtoStringType* InlinedStringField::MutableSlow(::google::protobuf::Arena* arena,
                                              bool donated,
                                              arc_ui32* donating_states,
-                                             arc_ui32 mask) {
+                                             arc_ui32 mask, MessageLite* msg) {
+  (void)mask;
+  (void)msg;
   return UnsafeMutablePointer();
 }
 
 void InlinedStringField::SetAllocated(const TProtoStringType* default_value,
                                       TProtoStringType* value, Arena* arena,
                                       bool donated, arc_ui32* donating_states,
-                                      arc_ui32 mask) {
+                                      arc_ui32 mask, MessageLite* msg) {
+  (void)mask;
+  (void)msg;
   SetAllocatedNoArena(default_value, value);
 }
 
-void InlinedStringField::Set(const TProtoStringType* default_value,
-                             TProtoStringType&& value, Arena* arena, bool donated,
-                             arc_ui32* donating_states, arc_ui32 mask) {
-  SetNoArena(default_value, std::move(value));
+void InlinedStringField::Set(TProtoStringType&& value, Arena* arena, bool donated,
+                             arc_ui32* donating_states, arc_ui32 mask,
+                             MessageLite* msg) {
+  (void)donating_states;
+  (void)mask;
+  (void)msg;
+  SetNoArena(std::move(value));
 }
 
-TProtoStringType* InlinedStringField::Release(const TProtoStringType* default_value,
-                                         Arena* arena, bool donated) {
-  if (arena == nullptr && !donated) {
-    return ReleaseNonDefaultNoArena(default_value);
-  }
-  return ReleaseNonDefault(default_value, arena);
+TProtoStringType* InlinedStringField::Release() {
+  auto* released = new TProtoStringType(std::move(*get_mutable()));
+  get_mutable()->clear();
+  return released;
 }
 
-TProtoStringType* InlinedStringField::ReleaseNonDefault(
-    const TProtoStringType* default_value, Arena* arena) {
-  return ReleaseNonDefaultNoArena(default_value);
+TProtoStringType* InlinedStringField::Release(Arena* arena, bool donated) {
+  // We can not steal donated arena strings.
+  TProtoStringType* released = (arena != nullptr && donated)
+                              ? new TProtoStringType(*get_mutable())
+                              : new TProtoStringType(std::move(*get_mutable()));
+  get_mutable()->clear();
+  return released;
 }
 
 void InlinedStringField::ClearToDefault(const LazyString& default_value,

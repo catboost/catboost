@@ -44,10 +44,10 @@
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/compiler/cpp/cpp_options.h>
-#include <google/protobuf/compiler/cpp/cpp_names.h>
-#include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/descriptor.h>
+#include <google/protobuf/compiler/cpp/cpp_names.h>
+#include <google/protobuf/compiler/cpp/cpp_options.h>
+#include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/compiler/scc.h>
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/io/zero_copy_stream.h>
@@ -231,6 +231,18 @@ void SetCommonVars(const Options& options,
   SetIntVar(options, "int32", variables);
   SetIntVar(options, "int64", variables);
   (*variables)["string"] = "TProtoStringType";
+}
+
+void SetCommonMessageDataVariables(
+    std::map<TProtoStringType, TProtoStringType>* variables) {
+  (*variables)["any_metadata"] = "_any_metadata_";
+  (*variables)["cached_size"] = "_cached_size_";
+  (*variables)["extensions"] = "_extensions_";
+  (*variables)["has_bits"] = "_has_bits_";
+  (*variables)["inlined_string_donated_array"] = "_inlined_string_donated_";
+  (*variables)["oneof_case"] = "_oneof_case_";
+  (*variables)["tracker"] = "_tracker_";
+  (*variables)["weak_field_map"] = "_weak_field_map_";
 }
 
 void SetUnknownFieldsVariable(const Descriptor* descriptor,
@@ -455,6 +467,14 @@ TProtoStringType FieldName(const FieldDescriptor* field) {
     result.append("_");
   }
   return result;
+}
+
+TProtoStringType FieldMemberName(const FieldDescriptor* field) {
+  if (field->real_containing_oneof() == nullptr) {
+    return StrCat(FieldName(field), "_");
+  }
+  return StrCat(field->containing_oneof()->name(), "_.", FieldName(field),
+                      "_");
 }
 
 TProtoStringType OneofCaseConstantName(const FieldDescriptor* field) {
@@ -1151,7 +1171,6 @@ bool IsImplicitWeakField(const FieldDescriptor* field, const Options& options,
   return UsingImplicitWeakFields(field->file(), options) &&
          field->type() == FieldDescriptor::TYPE_MESSAGE &&
          !field->is_required() && !field->is_map() && !field->is_extension() &&
-         !field->real_containing_oneof() &&
          !IsWellKnownMessage(field->message_type()->file()) &&
          field->message_type()->file()->name() !=
              "net/proto2/proto/descriptor.proto" &&
@@ -1268,7 +1287,7 @@ bool GetBootstrapBasename(const Options& options, const TProtoStringType& basena
 
   std::unordered_map<TProtoStringType, TProtoStringType> bootstrap_mapping{
       {"net/proto2/proto/descriptor",
-       "net/proto2/internal/descriptor"},
+       "third_party/protobuf/descriptor"},
       {"net/proto2/compiler/proto/plugin",
        "net/proto2/compiler/proto/plugin"},
       {"net/proto2/compiler/proto/profile",
@@ -1301,7 +1320,7 @@ bool MaybeBootstrap(const Options& options, GeneratorContext* generator_context,
     *basename = bootstrap_basename;
     return false;
   } else {
-    TProtoStringType forward_to_basename = bootstrap_basename;
+    const TProtoStringType& forward_to_basename = bootstrap_basename;
 
     // Generate forwarding headers and empty .pb.cc.
     {
@@ -1490,8 +1509,9 @@ FileOptions_OptimizeMode GetOptimizeFor(const FileDescriptor* file,
   return FileOptions::SPEED;
 }
 
-bool EnableMessageOwnedArena(const Descriptor* desc) {
+bool EnableMessageOwnedArena(const Descriptor* desc, const Options& options) {
   (void)desc;
+  (void)options;
   return false;
 }
 

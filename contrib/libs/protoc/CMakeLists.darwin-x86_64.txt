@@ -116,6 +116,8 @@ target_sources(contrib-libs-protoc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/plugin.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/plugin.pb.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/python_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/python_helpers.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/python_pyi_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/ruby/ruby_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/subprocess.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/zip_writer.cc

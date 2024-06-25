@@ -47,6 +47,10 @@ namespace protobuf {
 namespace compiler {
 namespace objectivec {
 
+// Get/Set the path to a file to load for objc class prefix lookups.
+TProtoStringType PROTOC_EXPORT GetPackageToPrefixMappingsPath();
+void PROTOC_EXPORT SetPackageToPrefixMappingsPath(
+    const TProtoStringType& file_path);
 // Get/Set if the proto package should be used to make the default prefix for
 // symbols. This will then impact most of the type naming apis below. It is done
 // as a global to not break any other generator reusing the methods since they
@@ -54,20 +58,18 @@ namespace objectivec {
 bool PROTOC_EXPORT UseProtoPackageAsDefaultPrefix();
 void PROTOC_EXPORT SetUseProtoPackageAsDefaultPrefix(bool on_or_off);
 // Get/Set the path to a file to load as exceptions when
-// `UseProtoPackageAsDefaultPrefixUseProtoPackageAsDefaultPrefix()` is `true`.
-// And empty string means there should be no exceptions loaded.
+// `UseProtoPackageAsDefaultPrefix()` is `true`. An empty string means there
+// should be no exceptions.
 TProtoStringType PROTOC_EXPORT GetProtoPackagePrefixExceptionList();
 void PROTOC_EXPORT SetProtoPackagePrefixExceptionList(
     const TProtoStringType& file_path);
 
-// Generator options (see objectivec_generator.cc for a description of each):
+// Generator Prefix Validation Options (see objectivec_generator.cc for a
+// description of each):
 struct Options {
   Options();
   TProtoStringType expected_prefixes_path;
   std::vector<TProtoStringType> expected_prefixes_suppressions;
-  TProtoStringType generate_for_named_framework;
-  TProtoStringType named_framework_to_proto_path_mappings_path;
-  TProtoStringType runtime_import_prefix;
   bool prefixes_must_be_registered;
   bool require_prefixes;
 };
@@ -251,7 +253,11 @@ IsProtobufLibraryBundledProtoFile(const FileDescriptor* file);
 // and the result is false.
 bool PROTOC_EXPORT ValidateObjCClassPrefixes(
     const std::vector<const FileDescriptor*>& files,
-    const Options& generation_options, TProtoStringType* out_error);
+    const Options& validation_options, TProtoStringType* out_error);
+// Same was the other ValidateObjCClassPrefixes() calls, but the options all
+// come from the environment variables.
+bool PROTOC_EXPORT ValidateObjCClassPrefixes(
+    const std::vector<const FileDescriptor*>& files, TProtoStringType* out_error);
 
 // Generate decode data needed for ObjC's GPBDecodeTextFormatName() to transform
 // the input into the expected output.
