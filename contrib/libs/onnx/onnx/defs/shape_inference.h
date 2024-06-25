@@ -659,7 +659,7 @@ inline void mergeInDimensionInfo(
   } else if (target_dim.has_dim_param()) {
     // prefer target param over source
   } else if (source_dim.has_dim_param()) {
-    target_dim.set_dim_param(TString{source_dim.dim_param()});
+    target_dim.set_dim_param(TProtoStringType{source_dim.dim_param()});
   }
 }
 
@@ -769,7 +769,7 @@ inline void unifyDim(const Dim& source_dim, Dim& target_dim) {
     // prefer target param over source
     // we cannot currently unify the dim_params
   } else if (source_dim.has_dim_param()) {
-    target_dim.set_dim_param(TString{source_dim.dim_param()});
+    target_dim.set_dim_param(TProtoStringType{source_dim.dim_param()});
   }
 }
 

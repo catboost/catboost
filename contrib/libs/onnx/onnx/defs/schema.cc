@@ -472,7 +472,7 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                                                           \
     }                                                                                                                  \
     AttributeProto a;                                                                                                  \
-    a.set_name(TString{name});                                                                                         \
+    a.set_name(TProtoStringType{name});                                                                                         \
     a.set_##field(default_value);                                                                                      \
     a.set_type(attr_type);                                                                                             \
     Attr(Attribute(std::move(name), std::move(description), std::move(a)));                                            \
@@ -490,8 +490,8 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                                                           \
     }                                                                                                                  \
     AttributeProto a;                                                                                                  \
-    a.set_name(TString{name});                                                                                         \
-    a.set_##field(TString{default_value});                                                                             \
+    a.set_name(TProtoStringType{name});                                                                                         \
+    a.set_##field(TProtoStringType{default_value});                                                                             \
     a.set_type(attr_type);                                                                                             \
     Attr(Attribute(std::move(name), std::move(description), std::move(a)));                                            \
     return *this;                                                                                                      \
@@ -511,7 +511,7 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                \
     }                                                                       \
     AttributeProto a;                                                       \
-    a.set_name(TString{name});                                              \
+    a.set_name(TProtoStringType{name});                                              \
     a.set_type(attr_type);                                                  \
     for (const auto& v : default_value) {                                   \
       a.add_##field(v);                                                     \
@@ -527,7 +527,7 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                                                           \
     }                                                                                                                  \
     AttributeProto a;                                                                                                  \
-    a.set_name(TString{name});                                                                                         \
+    a.set_name(TProtoStringType{name});                                                                                         \
     *(a.mutable_##field()) = default_value;                                                                            \
     a.set_type(attr_type);                                                                                             \
     Attr(Attribute(std::move(name), std::move(description), a));                                                       \
@@ -544,7 +544,7 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                \
     }                                                                       \
     AttributeProto a;                                                       \
-    a.set_name(TString{name});                                              \
+    a.set_name(TProtoStringType{name});                                              \
     a.set_type(attr_type);                                                  \
     for (const auto& v : default_value) {                                   \
       *(a.add_##field()) = v;                                               \
@@ -787,7 +787,7 @@ void OpSchema::UpdateFunctionProtoOpsetImportVersion(FunctionProto& function_pro
 
   if (!opset_import_exist) {
     auto* schema_opset = function_proto.mutable_opset_import()->Add();
-    schema_opset->set_domain(TString{domain_});
+    schema_opset->set_domain(TProtoStringType{domain_});
     schema_opset->set_version(requested_opset_version);
   }
 }
@@ -914,17 +914,17 @@ OpSchema& OpSchema::FillUsing(const std::function<void(OpSchema&)>& populator) {
 }
 
 void OpSchema::BuildFunction(FunctionProto& function_body) const {
-  function_body.set_name(TString{this->name_});
-  function_body.set_doc_string(TString{this->doc_});
-  function_body.set_domain(TString{this->domain_});
+  function_body.set_name(TProtoStringType{this->name_});
+  function_body.set_doc_string(TProtoStringType{this->doc_});
+  function_body.set_domain(TProtoStringType{this->domain_});
   for (auto& i : inputs_) {
-    function_body.add_input(TString{i.GetName()});
+    function_body.add_input(TProtoStringType{i.GetName()});
   }
   for (auto& o : outputs_) {
-    function_body.add_output(TString{o.GetName()});
+    function_body.add_output(TProtoStringType{o.GetName()});
   }
   for (auto& a : attributes_) {
-    function_body.add_attribute(TString{a.first});
+    function_body.add_attribute(TProtoStringType{a.first});
   }
 
   // In a typical onnx function where the function and all the
@@ -935,7 +935,7 @@ void OpSchema::BuildFunction(FunctionProto& function_body) const {
   // opset imports.
   if (function_body.opset_import().size() == 0) {
     auto* schema_opset = function_body.mutable_opset_import()->Add();
-    schema_opset->set_domain(TString{domain_});
+    schema_opset->set_domain(TProtoStringType{domain_});
     schema_opset->set_version(since_version_);
   }
 }

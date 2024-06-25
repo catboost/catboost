@@ -60,7 +60,7 @@ ONNX_ML_OPERATOR_SET_SCHEMA(
               if (single_symbolic_dim.empty()) {
                 last_dim->set_dim_value(num_indices);
               } else if (num_indices == 1) {
-                last_dim->set_dim_param(TString{single_symbolic_dim});
+                last_dim->set_dim_param(TProtoStringType{single_symbolic_dim});
               }
             }
           }

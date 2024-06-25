@@ -11,7 +11,7 @@ namespace ONNX_NAMESPACE {
 #define ADD_BASIC_ATTR_IMPL(type, enumType, field)                                \
   AttributeProto MakeAttribute(const std::string& attr_name, const type& value) { \
     AttributeProto a;                                                             \
-    a.set_name(TString{attr_name});                                               \
+    a.set_name(TProtoStringType{attr_name});                                               \
     a.set_type(enumType);                                                         \
     a.set_##field(value);                                                         \
     return a;                                                                     \
@@ -20,16 +20,16 @@ namespace ONNX_NAMESPACE {
 #define ADD_BASIC_ATTR_IMPL_STRING(type, enumType, field)                         \
   AttributeProto MakeAttribute(const std::string& attr_name, const type& value) { \
     AttributeProto a;                                                             \
-    a.set_name(TString{attr_name});                                               \
+    a.set_name(TProtoStringType{attr_name});                                               \
     a.set_type(enumType);                                                         \
-    a.set_##field(TString{value});                                                \
+    a.set_##field(TProtoStringType{value});                                                \
     return a;                                                                     \
   }
 
 #define ADD_ATTR_IMPL(type, enumType, field)                                      \
   AttributeProto MakeAttribute(const std::string& attr_name, const type& value) { \
     AttributeProto a;                                                             \
-    a.set_name(TString{attr_name});                                               \
+    a.set_name(TProtoStringType{attr_name});                                               \
     a.set_type(enumType);                                                         \
     *(a.mutable_##field()) = value;                                               \
     return a;                                                                     \
@@ -38,7 +38,7 @@ namespace ONNX_NAMESPACE {
 #define ADD_LIST_ATTR_IMPL(type, enumType, field)                                               \
   AttributeProto MakeAttribute(const std::string& attr_name, const std::vector<type>& values) { \
     AttributeProto a;                                                                           \
-    a.set_name(TString{attr_name});                                                             \
+    a.set_name(TProtoStringType{attr_name});                                                             \
     a.set_type(enumType);                                                                       \
     for (const auto& val : values) {                                                            \
       *(a.mutable_##field()->Add()) = val;                                                      \
@@ -68,8 +68,8 @@ AttributeProto MakeRefAttribute(
     const std::string& referred_attr_name,
     AttributeProto_AttributeType type) {
   AttributeProto a;
-  a.set_name(TString{attr_name});
-  a.set_ref_attr_name(TString{referred_attr_name});
+  a.set_name(TProtoStringType{attr_name});
+  a.set_ref_attr_name(TProtoStringType{referred_attr_name});
   a.set_type(type);
   return a;
 }

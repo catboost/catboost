@@ -183,7 +183,7 @@ class FunctionBuilder {
 
   FunctionBuilder& AddOpset(const char* domain, int version) {
     auto* opset = funProto.add_opset_import();
-    opset->set_domain(TString{domain});
+    opset->set_domain(TProtoStringType{domain});
     opset->set_version(version);
     return *this;
   }

@@ -22,7 +22,7 @@ namespace ONNX_NAMESPACE {
 
 using namespace ONNX_NAMESPACE::Common;
 
-using IdList = google::protobuf::RepeatedPtrField<TString>;
+using IdList = google::protobuf::RepeatedPtrField<TProtoStringType>;
 
 using NodeList = google::protobuf::RepeatedPtrField<NodeProto>;
 

@@ -24,7 +24,7 @@ namespace ONNX_NAMESPACE {
   TensorProto ToTensor<type>(const type& value) {   \
     TensorProto t;                                  \
     t.set_data_type(enumType);                      \
-    t.add_##field##_data(TString(value));                    \
+    t.add_##field##_data(TProtoStringType(value));  \
     return t;                                       \
   }
 
@@ -47,7 +47,7 @@ namespace ONNX_NAMESPACE {
     t.clear_##field##_data();                                   \
     t.set_data_type(enumType);                                  \
     for (const type& val : values) {                            \
-      t.add_##field##_data(TString{val});                                \
+      t.add_##field##_data(TProtoStringType{val});                                \
     }                                                           \
     return t;                                                   \
   }

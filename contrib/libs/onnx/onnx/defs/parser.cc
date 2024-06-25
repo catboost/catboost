@@ -142,7 +142,7 @@ Status OnnxParser::Parse(TensorShapeProto& shape) {
       std::string id;
       CHECK_PARSER_STATUS(ParseOptionalIdentifier(id));
       if (!id.empty()) {
-        shape.add_dim()->set_dim_param(TString{id});
+        shape.add_dim()->set_dim_param(TProtoStringType{id});
       } else {
         // ...or a integer value
         int64_t dimval = 0;
@@ -248,7 +248,7 @@ Status OnnxParser::Parse(ValueInfoProto& valueinfo) {
     PARSE(*valueinfo.mutable_type());
   std::string name;
   CHECK_PARSER_STATUS(ParseIdentifier(name));
-  valueinfo.set_name(TString{name});
+  valueinfo.set_name(TProtoStringType{name});
   return Status::OK();
 }
 
@@ -277,7 +277,7 @@ Status OnnxParser::ParseInput(ValueInfoList& inputs, TensorList& initializers) {
         if (Matches('=')) {
           // default value for input
           TensorProto& tp = *initializers.Add();
-          tp.set_name(TString{vi.name()});
+          tp.set_name(TProtoStringType{vi.name()});
           CHECK_PARSER_STATUS(Parse(tp, vi.type()));
         }
       } while (Matches(','));
@@ -300,7 +300,7 @@ Status OnnxParser::ParseValueInfo(ValueInfoList& value_infos, TensorList& initia
         if (Matches('=')) {
           // initializer
           TensorProto& tp = *initializers.Add();
-          tp.set_name(TString{vi.name()});
+          tp.set_name(TProtoStringType{vi.name()});
           CHECK_PARSER_STATUS(Parse(tp, vi.type()));
         } else {
           // valueinfo
@@ -381,7 +381,7 @@ Status OnnxParser::Parse(TensorProto& tensorProto, const TypeProto& tensorTypePr
           break;
         case TensorProto::DataType::TensorProto_DataType_STRING:
           PARSE_TOKEN(strval);
-          tensorProto.add_string_data(TString{strval});
+          tensorProto.add_string_data(TProtoStringType{strval});
           break;
         default:
           return ParseError("Unhandled type: %d", elem_type);
@@ -439,7 +439,7 @@ Status OnnxParser::ParseSingleAttributeValue(AttributeProto& attr) {
   } else if (Matches('@')) {
     std::string name;
     CHECK_PARSER_STATUS(ParseIdentifier(name));
-    attr.set_ref_attr_name(TString{name});
+    attr.set_ref_attr_name(TProtoStringType{name});
   } else {
     Literal literal;
     PARSE_TOKEN(literal);
@@ -454,7 +454,7 @@ Status OnnxParser::ParseSingleAttributeValue(AttributeProto& attr) {
         break;
       case LiteralType::STRING_LITERAL:
         attr.set_type(AttributeProto_AttributeType_STRING);
-        attr.set_s(TString{literal.value});
+        attr.set_s(TProtoStringType{literal.value});
         break;
       default:
         return ParseError("Unexpected literal type.");
@@ -471,7 +471,7 @@ Status OnnxParser::Parse(AttributeProto& attr) {
 }
 
 Status OnnxParser::Parse(AttributeProto& attr, std::string& name) {
-  attr.set_name(TString{name});
+  attr.set_name(TProtoStringType{name});
   if (Matches(':')) {
     CHECK_PARSER_STATUS(ParseIdentifier(name));
     int attrtype = AttributeTypeNameMap::Lookup(name);
@@ -500,7 +500,7 @@ Status OnnxParser::Parse(AttributeProto& attr, std::string& name) {
           attr.add_floats(nextval.f());
           break;
         case AttributeProto_AttributeType_STRING:
-          attr.add_strings(TString{nextval.s()});
+          attr.add_strings(TProtoStringType{nextval.s()});
           attr.set_type(AttributeProto_AttributeType_STRINGS);
           break;
         default:
@@ -537,8 +537,8 @@ Status OnnxParser::Parse(NodeProto& node) {
     domain += id;
     ParseIdentifier(id);
   }
-  node.set_domain(TString{domain});
-  node.set_op_type(TString{id});
+  node.set_domain(TProtoStringType{domain});
+  node.set_op_type(TProtoStringType{id});
   PARSE(*node.mutable_attribute());
   MATCH('(');
   PARSE(*node.mutable_input());
@@ -566,7 +566,7 @@ Status OnnxParser::Parse(GraphProto& graph) {
 }
 
 Status OnnxParser::Parse(std::string name, GraphProto& graph) {
-  graph.set_name(TString{name});
+  graph.set_name(TProtoStringType{name});
   graph.mutable_initializer()->Clear();
   CHECK_PARSER_STATUS(ParseInput(*graph.mutable_input(), *graph.mutable_initializer()));
   MATCH('=');
@@ -590,11 +590,11 @@ Status OnnxParser::Parse(FunctionProto& fn) {
           break;
         case KeyWordMap::KeyWord::DOC_STRING:
           PARSE_TOKEN(strval);
-          fn.set_doc_string(TString{strval});
+          fn.set_doc_string(TProtoStringType{strval});
           break;
         case KeyWordMap::KeyWord::DOMAIN_KW:
           PARSE_TOKEN(strval);
-          fn.set_domain(TString{strval});
+          fn.set_domain(TProtoStringType{strval});
           break;
         default:
           return ParseError("Unhandled keyword.");
@@ -604,7 +604,7 @@ Status OnnxParser::Parse(FunctionProto& fn) {
   }
   std::string id;
   ParseIdentifier(id);
-  fn.set_name(TString{id});
+  fn.set_name(TProtoStringType{id});
 
   PARSE('<', *fn.mutable_attribute(), *fn.mutable_attribute_proto(), '>');
   PARSE('(', *fn.mutable_input(), ')');
@@ -622,7 +622,7 @@ Status OnnxParser::Parse(OpsetIdList& opsets) {
     do {
       auto* import = opsets.Add();
       PARSE_TOKEN(strval);
-      import->set_domain(TString{strval});
+      import->set_domain(TProtoStringType{strval});
       MATCH(':');
       PARSE_TOKEN(intval);
       import->set_version(intval);
@@ -651,15 +651,15 @@ Status OnnxParser::Parse(ModelProto& model) {
           break;
         case KeyWordMap::KeyWord::PRODUCER_NAME:
           PARSE_TOKEN(strval);
-          model.set_producer_name(TString{strval});
+          model.set_producer_name(TProtoStringType{strval});
           break;
         case KeyWordMap::KeyWord::PRODUCER_VERSION:
           PARSE_TOKEN(strval);
-          model.set_producer_version(TString{strval});
+          model.set_producer_version(TProtoStringType{strval});
           break;
         case KeyWordMap::KeyWord::DOMAIN_KW:
           PARSE_TOKEN(strval);
-          model.set_domain(TString{strval});
+          model.set_domain(TProtoStringType{strval});
           break;
         case KeyWordMap::KeyWord::MODEL_VERSION:
           PARSE_TOKEN(intval);
@@ -667,7 +667,7 @@ Status OnnxParser::Parse(ModelProto& model) {
           break;
         case KeyWordMap::KeyWord::DOC_STRING:
           PARSE_TOKEN(strval);
-          model.set_doc_string(TString{strval});
+          model.set_doc_string(TProtoStringType{strval});
           break;
         case KeyWordMap::KeyWord::METADATA_PROPS: {
           auto& metadata_props = *model.mutable_metadata_props();
@@ -676,10 +676,10 @@ Status OnnxParser::Parse(ModelProto& model) {
             do {
               auto* metadata = metadata_props.Add();
               PARSE_TOKEN(strval);
-              metadata->set_key(TString{strval});
+              metadata->set_key(TProtoStringType{strval});
               MATCH(':');
               PARSE_TOKEN(strval);
-              metadata->set_value(TString{strval});
+              metadata->set_value(TProtoStringType{strval});
             } while (Matches(','));
             MATCH(']');
           }

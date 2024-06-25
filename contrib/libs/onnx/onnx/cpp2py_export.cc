@@ -29,7 +29,7 @@ static std::tuple<bool, py::bytes, py::bytes> Parse(const char* cstr) {
   auto status = parser.Parse(proto);
   TString out;
   proto.SerializeToString(&out);
-  return std::make_tuple(status.IsOK(), py::bytes(status.ErrorMessage()), py::bytes(TString{out}));
+  return std::make_tuple(status.IsOK(), py::bytes(status.ErrorMessage()), py::bytes(TProtoStringType{out}));
 }
 
 template <typename ProtoType>
@@ -371,7 +371,7 @@ PYBIND11_MODULE(onnx_cpp2py_export, onnx_cpp2py_export) {
             if (function_proto) {
               function_proto->SerializeToString(&bytes);
             }
-            return py::bytes(TString{bytes});
+            return py::bytes(TProtoStringType{bytes});
           })
       .def_property_readonly("has_context_dependent_function", &OpSchema::HasContextDependentFunction)
       .def(
@@ -393,7 +393,7 @@ PYBIND11_MODULE(onnx_cpp2py_export, onnx_cpp2py_export) {
               op->BuildContextDependentFunction(ctx, func_proto);
               func_proto.SerializeToString(&func_bytes);
             }
-            return py::bytes(TString{func_bytes});
+            return py::bytes(TProtoStringType{func_bytes});
           })
       .def(
           "get_context_dependent_function_with_opset_version",
@@ -550,7 +550,7 @@ PYBIND11_MODULE(onnx_cpp2py_export, onnx_cpp2py_export) {
     auto result = version_conversion::ConvertVersion(proto, target);
     TString out;
     result.SerializeToString(&out);
-    return py::bytes(TString{out});
+    return py::bytes(TProtoStringType{out});
   });
 
   // Submodule `shape_inference`
@@ -567,7 +567,7 @@ PYBIND11_MODULE(onnx_cpp2py_export, onnx_cpp2py_export) {
         shape_inference::InferShapes(proto, OpSchemaRegistry::Instance(), options);
         TString out;
         proto.SerializeToString(&out);
-        return py::bytes(TString{out});
+        return py::bytes(TProtoStringType{out});
       },
       "bytes"_a,
       "check_type"_a = false,
@@ -615,7 +615,7 @@ PYBIND11_MODULE(onnx_cpp2py_export, onnx_cpp2py_export) {
         for (auto& type_proto : output_types) {
           TString out;
           type_proto.SerializeToString(&out);
-          result.push_back(py::bytes(TString{out}));
+          result.push_back(py::bytes(TProtoStringType{out}));
         }
         return result;
       });
