@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: prompt_toolkit
-Version: 3.0.46
+Version: 3.0.47
 Summary: Library for building powerful interactive command lines in Python
 Home-page: https://github.com/prompt-toolkit/python-prompt-toolkit
 Author: Jonathan Slenders
