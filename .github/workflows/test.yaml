@@ -24,8 +24,7 @@ jobs:
         with:
           path: catboost
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
-        name: Env setup
+      - name: Env setup
         shell: pwsh
         run: |
           New-Item -Path build_native_root/catboost -ItemType Directory
@@ -35,33 +34,48 @@ jobs:
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/download-artifact@v4
-        name: catboost-cli-linux-x86_64-${{ inputs.artifacts_version }}
-        path: build_native_root/catboost/app/
+        with:
+          name: catboost-cli-linux-x86_64-${{ inputs.artifacts_version }}
+          path: build_native_root/catboost/app/
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/download-artifact@v4
-        name: catboost-cli-darwin-universal2-${{ inputs.artifacts_version }}
-        path: build_native_root/catboost/app/
+        with:
+          name: catboost-cli-darwin-universal2-${{ inputs.artifacts_version }}
+          path: build_native_root/catboost/app/
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/download-artifact@v4
-        name: catboost-cli-windows-x86_64-${{ inputs.artifacts_version }}
-        path: build_native_root/catboost/app/
+        with:
+          name: catboost-cli-windows-x86_64-${{ inputs.artifacts_version }}
+          path: build_native_root/catboost/app/
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/download-artifact@v4
-        name: catboost-test-tools-linux-x86_64-${{ inputs.artifacts_version }}
-        path: build_native_root/catboost/tools/
+        with:
+          name: catboost-test-tools-linux-x86_64-${{ inputs.artifacts_version }}
+          path: build_native_root/
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/download-artifact@v4
-        name: catboost-test-tools-darwin-universal2-${{ inputs.artifacts_version }}
-        path: build_native_root/catboost/tools/
+        with:
+          name: catboost-test-tools-darwin-universal2-${{ inputs.artifacts_version }}
+          path: build_native_root/
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/download-artifact@v4
-        name: catboost-test-tools-windows-x86_64-${{ inputs.artifacts_version }}
-        path: build_native_root/catboost/tools/
+        with:
+          name: catboost-test-tools-windows-x86_64-${{ inputs.artifacts_version }}
+          path: build_native_root/
+
+      - name: Move test tools to canonical place
+        shell: pwsh
+        run: |
+          Set-Location -LiteralPath ${{ github.workspace }}/build_native_root/catboost/tools
+          foreach($tool in 'limited_precision_dsv_diff','limited_precision_json_diff','model_comparator') {
+            New-Item -Path $tool -ItemType Directory
+            Move-Item "${{ github.workspace }}/build_native_root/${tool}*" -Destination $tool
+          }
 
       - name: Run pytest
         shell: pwsh
