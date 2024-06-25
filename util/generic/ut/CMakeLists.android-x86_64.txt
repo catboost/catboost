@@ -40,6 +40,7 @@ target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/buffer_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/cast_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/deque_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/enum_range_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/explicit_type_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/flags_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/function_ref_ut.cpp

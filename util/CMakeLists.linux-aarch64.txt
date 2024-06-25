@@ -102,6 +102,7 @@ target_joined_source(yutil
   ${PROJECT_SOURCE_DIR}/util/generic/buffer.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/cast.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/deque.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/enum_range.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/explicit_type.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/fastqueue.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/flags.cpp
