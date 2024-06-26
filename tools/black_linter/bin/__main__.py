@@ -1,18 +1,21 @@
 import contextlib
 import io
+import json
 import logging
 import os
 import sys
 import time
-from pathlib import Path
+from pathlib import Path, PurePath
 
+import build.plugins.lib.tests.utils as config_utils
 import yalibrary.term.console as console
 from library.python.testing.custom_linter_util import linter_params, reporter
 
 import black
 import black.files
-import black.report
 import black.mode
+import black.report
+
 
 logger = logging.getLogger(__name__)
 
@@ -100,11 +103,17 @@ def main():
     black_parser_logger = logging.getLogger("blib2to3.pgen2.driver")
     black_parser_logger.setLevel(logging.WARNING)
 
-    style_config_path = params.configs[0]
-    black_config = black.parse_pyproject_toml(style_config_path)
+    black_config_paths_file = params.configs[0]
+    if PurePath(black_config_paths_file).suffix == '.json':
+        with open(black_config_paths_file, 'r', encoding='utf-8') as fd:
+            config_paths = json.load(fd)
+    else:
+        config_paths = {'': black_config_paths_file}
 
     report = reporter.LintReport()
     for file_name in params.files:
+        style_config_path = config_utils.select_project_config(file_name, config_paths, params.source_root)
+        black_config = black.parse_pyproject_toml(style_config_path)
         start_time = time.time()
         error = process_file(file_name, black_config)
         elapsed = time.time() - start_time

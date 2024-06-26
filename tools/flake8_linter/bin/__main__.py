@@ -38,7 +38,10 @@ def get_flake8_bin(params) -> str:
 def get_migrations_config(params) -> MigrationsConfig:
     if params.extra_params.get("DISABLE_FLAKE8_MIGRATIONS", "no") == "yes":
         return MigrationsConfig()
-    config_path = os.getenv("_YA_TEST_FLAKE8_CONFIG", params.configs[MIGRATIONS_CONFIG_INDEX])
+    config_path = os.getenv("_YA_TEST_FLAKE8_CONFIG")
+    if config_path is None and len(params.configs) > 1:
+        config_path = params.configs[MIGRATIONS_CONFIG_INDEX]
+
     if not config_path:
         return MigrationsConfig()
     else:
