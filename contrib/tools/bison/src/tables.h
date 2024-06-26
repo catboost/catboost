@@ -1,6 +1,7 @@
 /* Prepare the LALR and GLR parser tables.
 
-   Copyright (C) 2002, 2004, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004, 2009-2015, 2018 Free Software Foundation,
+   Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -121,8 +122,8 @@ extern base_number *base;
    keep parser tables small.  */
 extern base_number base_ninf;
 
-extern unsigned int *conflict_table;
-extern unsigned int *conflict_list;
+extern unsigned *conflict_table;
+extern unsigned *conflict_list;
 extern int conflict_list_cnt;
 
 extern base_number *table;

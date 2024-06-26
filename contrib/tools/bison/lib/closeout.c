@@ -1,6 +1,6 @@
 /* Close standard output and standard error, exiting with a diagnostic on error.
 
-   Copyright (C) 1998-2002, 2004, 2006, 2008-2013 Free Software Foundation,
+   Copyright (C) 1998-2002, 2004, 2006, 2008-2018 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -32,6 +32,16 @@
 #include "error.h"
 #include "exitfail.h"
 #include "quotearg.h"
+
+#ifndef __has_feature
+# define __has_feature(a) false
+#endif
+
+#if defined __SANITIZE_ADDRESS__ || __has_feature (address_sanitizer)
+enum { SANITIZE_ADDRESS = true };
+#else
+enum { SANITIZE_ADDRESS = false };
+#endif
 
 static const char *file_name;
 
@@ -119,6 +129,8 @@ close_stdout (void)
       _exit (exit_failure);
     }
 
-   if (close_stream (stderr) != 0)
-     _exit (exit_failure);
+  /* Close stderr only if not sanitizing, as sanitizers may report to
+     stderr after this function returns.  */
+  if (!SANITIZE_ADDRESS && close_stream (stderr) != 0)
+    _exit (exit_failure);
 }

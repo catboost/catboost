@@ -1,6 +1,6 @@
 /* Input parser for Bison
 
-   Copyright (C) 2000-2003, 2005-2007, 2009-2013 Free Software
+   Copyright (C) 2000-2003, 2005-2007, 2009-2015, 2018 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -54,8 +54,11 @@ void grammar_current_rule_dprec_set (int dprec, location loc);
 void grammar_current_rule_merge_set (uniqstr name, location loc);
 void grammar_current_rule_symbol_append (symbol *sym, location loc,
                                          named_ref *nref);
+/* Attach an ACTION to the current rule.  */
 void grammar_current_rule_action_append (const char *action, location loc,
-                                         named_ref *nref, bool);
+                                         named_ref *nref, uniqstr tag);
+/* Attach a PREDICATE to the current rule.  */
+void grammar_current_rule_predicate_append (const char *predicate, location loc);
 void reader (void);
 void free_merger_functions (void);
 

@@ -3,7 +3,7 @@ divert(-1)#                                                  -*- Autoconf -*-
 # Base M4 layer.
 # Requires GNU M4.
 #
-# Copyright (C) 1999-2013 Free Software Foundation, Inc.
+# Copyright (C) 1999-2017 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -23,7 +23,7 @@ divert(-1)#                                                  -*- Autoconf -*-
 # You should have received a copy of the GNU General Public License
 # and a copy of the Autoconf Configure Script Exception along with
 # this program; see the files COPYINGv3 and COPYING.EXCEPTION
-# respectively.  If not, see <http://www.gnu.org/licenses/>.
+# respectively.  If not, see <https://www.gnu.org/licenses/>.
 
 # Written by Akim Demaille.
 
@@ -2000,7 +2000,7 @@ m4_define([_m4_defun_once],
 
 # m4_pattern_forbid(ERE, [WHY])
 # -----------------------------
-# Declare that no token matching the forbidden extended regular
+# Declare that no token matching the forbidden perl extended regular
 # expression ERE should be seen in the output unless...
 m4_define([m4_pattern_forbid], [])
 
@@ -2008,7 +2008,7 @@ m4_define([m4_pattern_forbid], [])
 # m4_pattern_allow(ERE)
 # ---------------------
 # ... that token also matches the allowed extended regular expression ERE.
-# Both used via traces.
+# Both used via traces, by autom4te post-processing.
 m4_define([m4_pattern_allow], [])
 
 
@@ -2107,7 +2107,7 @@ m4_define([_m4_require_check],
 [m4_if(_m4_defn([_m4_diverting]), [$2], [m4_ignore],
        m4_ifdef([_m4_diverting([$2])], [-]), [-], [m4_warn([syntax],
    [$3: `$1' was expanded before it was required
-http://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required])_m4_require_call],
+https://www.gnu.org/software/autoconf/manual/autoconf.html#Expanded-Before-Required])_m4_require_call],
        [m4_ignore])])
 
 
@@ -3126,7 +3126,8 @@ m4_define([m4_set_empty],
 # guaranteed.  This is faster than the corresponding m4_foreach([VAR],
 #   m4_indir([m4_dquote]m4_set_listc([SET])), [ACTION])
 m4_define([m4_set_foreach],
-[m4_pushdef([$2])m4_set_map_sep([$1], [m4_define([$2],], [)$3])])
+[m4_pushdef([$2])m4_set_map_sep([$1],
+[m4_define([$2],], [)$3])m4_popdef([$2])])
 
 # m4_set_intersection(SET1, SET2)
 # -------------------------------

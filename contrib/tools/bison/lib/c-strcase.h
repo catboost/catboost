@@ -1,5 +1,5 @@
 /* Case-insensitive string comparison functions in C locale.
-   Copyright (C) 1995-1996, 2001, 2003, 2005, 2009-2013 Free Software
+   Copyright (C) 1995-1996, 2001, 2003, 2005, 2009-2018 Free Software
    Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef C_STRCASE_H
 #define C_STRCASE_H

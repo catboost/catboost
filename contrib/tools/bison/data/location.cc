@@ -1,6 +1,6 @@
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2013 Free Software Foundation, Inc.
+# Copyright (C) 2002-2015, 2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 m4_pushdef([b4_copyright_years],
-           [2002-2013])
+           [2002-2015, 2018])
 
 # b4_position_define
 # ------------------
@@ -27,20 +27,19 @@ m4_define([b4_position_define],
   {
   public:]m4_ifdef([b4_location_constructors], [[
     /// Construct a position.
-    explicit position (]b4_percent_define_get([[filename_type]])[* f = YY_NULL,
-                       unsigned int l = ]b4_location_initial_line[u,
-                       unsigned int c = ]b4_location_initial_column[u)
+    explicit position (]b4_percent_define_get([[filename_type]])[* f = YY_NULLPTR,
+                       unsigned l = ]b4_location_initial_line[u,
+                       unsigned c = ]b4_location_initial_column[u)
       : filename (f)
       , line (l)
       , column (c)
-    {
-    }
+    {}
 
 ]])[
     /// Initialization.
-    void initialize (]b4_percent_define_get([[filename_type]])[* fn = YY_NULL,
-                     unsigned int l = ]b4_location_initial_line[u,
-                     unsigned int c = ]b4_location_initial_column[u)
+    void initialize (]b4_percent_define_get([[filename_type]])[* fn = YY_NULLPTR,
+                     unsigned l = ]b4_location_initial_line[u,
+                     unsigned c = ]b4_location_initial_column[u)
     {
       filename = fn;
       line = l;
@@ -69,21 +68,19 @@ m4_define([b4_position_define],
     /// File name to which this position refers.
     ]b4_percent_define_get([[filename_type]])[* filename;
     /// Current line number.
-    unsigned int line;
+    unsigned line;
     /// Current column number.
-    unsigned int column;
+    unsigned column;
 
   private:
-    /// Compute max(min, lhs+rhs) (provided min <= lhs).
-    static unsigned int add_ (unsigned int lhs, int rhs, unsigned int min)
+    /// Compute max(min, lhs+rhs).
+    static unsigned add_ (unsigned lhs, int rhs, int min)
     {
-      return (0 < rhs || -static_cast<unsigned int>(rhs) < lhs
-              ? rhs + lhs
-              : min);
+      return static_cast<unsigned>(std::max(min, static_cast<int>(lhs) + rhs));
     }
   };
 
-  /// Add and assign a position.
+  /// Add \a width columns, in place.
   inline position&
   operator+= (position& res, int width)
   {
@@ -91,21 +88,21 @@ m4_define([b4_position_define],
     return res;
   }
 
-  /// Add two position objects.
+  /// Add \a width columns.
   inline position
   operator+ (position res, int width)
   {
     return res += width;
   }
 
-  /// Add and assign a position.
+  /// Subtract \a width columns, in place.
   inline position&
   operator-= (position& res, int width)
   {
     return res += -width;
   }
 
-  /// Add two position objects.
+  /// Subtract \a width columns.
   inline position
   operator- (position res, int width)
   {
@@ -135,7 +132,7 @@ m4_define([b4_position_define],
    ** \param pos a reference to the position to redirect
    */
   template <typename YYChar>
-  inline std::basic_ostream<YYChar>&
+  std::basic_ostream<YYChar>&
   operator<< (std::basic_ostream<YYChar>& ostr, const position& pos)
   {
     if (pos.filename)
@@ -157,30 +154,27 @@ m4_define([b4_location_define],
     location (const position& b, const position& e)
       : begin (b)
       , end (e)
-    {
-    }
+    {}
 
     /// Construct a 0-width location in \a p.
     explicit location (const position& p = position ())
       : begin (p)
       , end (p)
-    {
-    }
+    {}
 
     /// Construct a 0-width location in \a f, \a l, \a c.
     explicit location (]b4_percent_define_get([[filename_type]])[* f,
-                       unsigned int l = ]b4_location_initial_line[u,
-                       unsigned int c = ]b4_location_initial_column[u)
+                       unsigned l = ]b4_location_initial_line[u,
+                       unsigned c = ]b4_location_initial_column[u)
       : begin (f, l, c)
       , end (f, l, c)
-    {
-    }
+    {}
 
 ])[
     /// Initialization.
-    void initialize (]b4_percent_define_get([[filename_type]])[* f = YY_NULL,
-                     unsigned int l = ]b4_location_initial_line[u,
-                     unsigned int c = ]b4_location_initial_column[u)
+    void initialize (]b4_percent_define_get([[filename_type]])[* f = YY_NULLPTR,
+                     unsigned l = ]b4_location_initial_line[u,
+                     unsigned c = ]b4_location_initial_column[u)
     {
       begin.initialize (f, l, c);
       end = begin;
@@ -216,36 +210,42 @@ m4_define([b4_location_define],
     position end;
   };
 
-  /// Join two location objects to create a location.
-  inline location operator+ (location res, const location& end)
+  /// Join two locations, in place.
+  inline location& operator+= (location& res, const location& end)
   {
     res.end = end.end;
     return res;
   }
 
-  /// Change end position in place.
+  /// Join two locations.
+  inline location operator+ (location res, const location& end)
+  {
+    return res += end;
+  }
+
+  /// Add \a width columns to the end position, in place.
   inline location& operator+= (location& res, int width)
   {
     res.columns (width);
     return res;
   }
 
-  /// Change end position.
+  /// Add \a width columns to the end position.
   inline location operator+ (location res, int width)
   {
     return res += width;
   }
 
-  /// Change end position in place.
+  /// Subtract \a width columns to the end position, in place.
   inline location& operator-= (location& res, int width)
   {
     return res += -width;
   }
 
-  /// Change end position.
-  inline location operator- (const location& begin, int width)
+  /// Subtract \a width columns to the end position.
+  inline location operator- (location res, int width)
   {
-    return begin + -width;
+    return res -= width;
   }
 ]b4_percent_define_flag_if([[define_location_comparison]], [[
   /// Compare two location objects.
@@ -269,12 +269,11 @@ m4_define([b4_location_define],
    ** Avoid duplicate information.
    */
   template <typename YYChar>
-  inline std::basic_ostream<YYChar>&
+  std::basic_ostream<YYChar>&
   operator<< (std::basic_ostream<YYChar>& ostr, const location& loc)
   {
-    unsigned int end_col = 0 < loc.end.column ? loc.end.column - 1 : 0;
-    ostr << loc.begin// << "(" << loc.end << ") "
-;
+    unsigned end_col = 0 < loc.end.column ? loc.end.column - 1 : 0;
+    ostr << loc.begin;
     if (loc.end.filename
         && (!loc.begin.filename
             || *loc.begin.filename != *loc.end.filename))

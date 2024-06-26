@@ -1,7 +1,7 @@
 /* Type definitions for the finite state machine for Bison.
 
-   Copyright (C) 1984, 1989, 2000-2004, 2007, 2009-2013 Free Software
-   Foundation, Inc.
+   Copyright (C) 1984, 1989, 2000-2004, 2007, 2009-2015, 2018 Free
+   Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -135,7 +135,7 @@ typedef struct
 /* Is the TRANSITIONS->states[Num] labelled by the error token?  */
 
 # define TRANSITION_IS_ERROR(Transitions, Num) \
-  (TRANSITION_SYMBOL (Transitions, Num) == errtoken->number)
+  (TRANSITION_SYMBOL (Transitions, Num) == errtoken->content->number)
 
 /* When resolving a SR conflicts, if the reduction wins, the shift is
    disabled.  */

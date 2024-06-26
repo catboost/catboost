@@ -1,5 +1,5 @@
 /* Binary mode I/O.
-   Copyright (C) 2001, 2003, 2005, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2003, 2005, 2008-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _BINARY_H
 #define _BINARY_H
@@ -33,20 +33,20 @@
 	#define O_TEXT 0
 #endif
 
+#ifndef _GL_INLINE_HEADER_BEGIN
+ #error "Please include config.h first."
+#endif
 _GL_INLINE_HEADER_BEGIN
 #ifndef BINARY_IO_INLINE
 # define BINARY_IO_INLINE _GL_INLINE
 #endif
 
-/* set_binary_mode (fd, mode)
-   sets the binary/text I/O mode of file descriptor fd to the given mode
-   (must be O_BINARY or O_TEXT) and returns the previous mode.  */
 #if O_BINARY
 # if defined __EMX__ || defined __DJGPP__ || defined __CYGWIN__
 #  include <io.h> /* declares setmode() */
-#  define set_binary_mode setmode
+#  define __gl_setmode setmode
 # else
-#  define set_binary_mode _setmode
+#  define __gl_setmode _setmode
 #  undef fileno
 #  define fileno _fileno
 # endif
@@ -55,25 +55,34 @@ _GL_INLINE_HEADER_BEGIN
   /* Use a function rather than a macro, to avoid gcc warnings
      "warning: statement with no effect".  */
 BINARY_IO_INLINE int
-set_binary_mode (int fd, int mode)
+__gl_setmode (int fd _GL_UNUSED, int mode _GL_UNUSED)
 {
-  (void) fd;
-  (void) mode;
   return O_BINARY;
 }
 #endif
 
-/* SET_BINARY (fd);
-   changes the file descriptor fd to perform binary I/O.  */
-#ifdef __DJGPP__
-# include <unistd.h> /* declares isatty() */
-  /* Avoid putting stdin/stdout in binary mode if it is connected to
-     the console, because that would make it impossible for the user
-     to interrupt the program through Ctrl-C or Ctrl-Break.  */
-# define SET_BINARY(fd) ((void) (!isatty (fd) ? (set_binary_mode (fd, O_BINARY), 0) : 0))
+#if defined __DJGPP__ || defined __EMX__
+extern int __gl_setmode_check (int);
 #else
-# define SET_BINARY(fd) ((void) set_binary_mode (fd, O_BINARY))
+BINARY_IO_INLINE int
+__gl_setmode_check (int fd _GL_UNUSED) { return 0; }
 #endif
+
+/* Set FD's mode to MODE, which should be either O_TEXT or O_BINARY.
+   Return the old mode if successful, -1 (setting errno) on failure.
+   Ordinarily this function would be called 'setmode', since that is
+   its name on MS-Windows, but it is called 'set_binary_mode' here
+   to avoid colliding with a BSD function of another name.  */
+
+BINARY_IO_INLINE int
+set_binary_mode (int fd, int mode)
+{
+  int r = __gl_setmode_check (fd);
+  return r != 0 ? r : __gl_setmode (fd, mode);
+}
+
+/* This macro is obsolescent.  */
+#define SET_BINARY(fd) ((void) set_binary_mode (fd, O_BINARY))
 
 _GL_INLINE_HEADER_END
 

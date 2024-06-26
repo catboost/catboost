@@ -1,5 +1,5 @@
-/* Manipulating the FPU control word.
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+/* Manipulating the FPU control word.  -*- coding: utf-8 -*-
+   Copyright (C) 2007-2018 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2007.
 
    This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _FPUCW_H
 #define _FPUCW_H
@@ -35,13 +35,13 @@
 
    The FPU control word is under control of the application, i.e. it is
    not required to be set either way by the ABI.  (In fact, the i386 ABI
-   http://refspecs.freestandards.org/elf/abi386-4.pdf page 3-12 = page 38
+   https://www.linux-mips.org/pub/linux/mips/doc/ABI/abi386-4.pdf page 3-12 = page 38
    is not clear about it.  But in any case, gcc treats the control word
    like a "preserved" register: it emits code that assumes that the control
    word is preserved across calls, and it restores the control word at the
    end of functions that modify it.)
 
-   See Vincent Lefèvre's page http://www.vinc17.org/research/extended.en.html
+   See Vincent Lefèvre's page https://www.vinc17.net/research/extended.en.html
    for a good explanation.
    See http://www.uwsg.iu.edu/hypermail/linux/kernel/0103.0/0453.html for
    some argumentation which setting should be the default.  */

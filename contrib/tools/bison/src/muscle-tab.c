@@ -1,6 +1,6 @@
 /* Muscle table manager for Bison.
 
-   Copyright (C) 2001-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001-2015, 2018 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -37,7 +37,7 @@ muscle_kind_new (char const *k)
     return muscle_keyword;
   else if (STREQ (k, "string"))
     return muscle_string;
-  aver (0);
+  abort ();
 }
 
 char const *
@@ -49,7 +49,7 @@ muscle_kind_string (muscle_kind k)
     case muscle_keyword: return "keyword";
     case muscle_string:  return "string";
     }
-  aver (0);
+  abort ();
 }
 
 
@@ -299,8 +299,9 @@ muscle_location_grow (char const *key, location loc)
 
 #define COMMON_DECODE(Value)                                    \
   case '$':                                                     \
-    aver (*++(Value) == ']');                                   \
-    aver (*++(Value) == '[');                                   \
+    ++(Value); aver (*(Value) == '[');                          \
+    ++(Value); aver (*(Value) == ']');                          \
+    ++(Value); aver (*(Value) == '[');                          \
     obstack_sgrow (&muscle_obstack, "$");                       \
     break;                                                      \
   case '@':                                                     \
@@ -349,7 +350,7 @@ location_decode (char const *value)
   location loc;
   aver (value);
   aver (*value == '[');
-  aver (*++value == '[');
+  ++value; aver (*value == '[');
   while (*++value)
     switch (*value)
       {
@@ -360,16 +361,16 @@ location_decode (char const *value)
         case ']':
           {
             char *boundary_str;
-            aver (*++value == ']');
+            ++value; aver (*value == ']');
             boundary_str = obstack_finish0 (&muscle_obstack);
             switch (*++value)
               {
                 case ',':
                   boundary_set_from_string (&loc.start, boundary_str);
                   obstack_free (&muscle_obstack, boundary_str);
-                  aver (*++value == ' ');
-                  aver (*++value == '[');
-                  aver (*++value == '[');
+                  ++value; aver (*value == ' ');
+                  ++value; aver (*value == '[');
+                  ++value; aver (*value == '[');
                   break;
                 case '\0':
                   boundary_set_from_string (&loc.end, boundary_str);

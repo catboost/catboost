@@ -1,7 +1,7 @@
 /* Base bitset stuff.
 
-   Copyright (C) 2002-2004, 2006, 2009-2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 2002-2004, 2006, 2009-2015, 2018 Free Software
+   Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -50,8 +50,8 @@ extern const char * const bitset_type_names[];
 enum bitset_alloc_type {BITSET_MALLOC, BITSET_OBALLOC};
 
 /* Data type used to store a word of bits.  */
-typedef unsigned long int bitset_word;
-#define BITSET_WORD_BITS ((unsigned int) (CHAR_BIT * sizeof (bitset_word)))
+typedef unsigned long bitset_word;
+#define BITSET_WORD_BITS ((unsigned) (CHAR_BIT * sizeof (bitset_word)))
 
 /* Bit index.  In theory we might need a type wider than size_t, but
    in practice we lose at most a factor of CHAR_BIT by going with

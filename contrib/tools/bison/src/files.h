@@ -1,6 +1,6 @@
 /* File names and variables for bison,
 
-   Copyright (C) 1984, 1989, 2000-2002, 2006-2007, 2009-2013 Free
+   Copyright (C) 1984, 1989, 2000-2002, 2006-2007, 2009-2015, 2018 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -63,7 +63,17 @@ extern char *all_but_ext;
 
 void compute_output_file_names (void);
 void output_file_names_free (void);
-void output_file_name_check (char **file_name);
+
+/** Record that we generate a file.
+ *
+ *  \param file_name  the name of file being generated.
+ *  \param source whether this is a source file (*c, *.java...)
+ *                as opposed to a report (*.output, *.dot...).
+ */
+void output_file_name_check (char **file_name, bool source);
+
+/** Remove all the generated source files. */
+void unlink_generated_sources (void);
 
 FILE *xfopen (const char *name, char const *mode);
 void xfclose (FILE *ptr);

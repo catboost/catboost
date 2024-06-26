@@ -1,5 +1,5 @@
 /* Waiting for a subprocess to finish.
-   Copyright (C) 2001-2003, 2005-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001-2003, 2005-2018 Free Software Foundation, Inc.
    Written by Bruno Haible <haible@clisp.cons.org>, 2001.
 
    This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
@@ -39,14 +39,14 @@
 #define SIZEOF(a) (sizeof(a) / sizeof(a[0]))
 
 
-#if defined _MSC_VER || defined __MINGW32__
+#if defined _WIN32 && ! defined __CYGWIN__
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
 
 /* The return value of spawnvp() is really a process handle as returned
    by CreateProcess().  Therefore we can kill it using TerminateProcess.  */
-#define kill(pid,sig) TerminateProcess ((HANDLE) (pid), sig)
+# define kill(pid,sig) TerminateProcess ((HANDLE) (pid), sig)
 
 #endif
 

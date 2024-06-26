@@ -1,5 +1,5 @@
 /* Locking in multithreaded situations.
-   Copyright (C) 2005-2013 Free Software Foundation, Inc.
+   Copyright (C) 2005-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Bruno Haible <bruno@clisp.org>, 2005.
    Based on GCC's gthr-posix.h, gthr-posix95.h, gthr-solaris.h,
@@ -30,9 +30,38 @@
 
 /* ------------------------- gl_rwlock_t datatype ------------------------- */
 
-# if HAVE_PTHREAD_RWLOCK
+# if HAVE_PTHREAD_RWLOCK && (HAVE_PTHREAD_RWLOCK_RDLOCK_PREFER_WRITER || (defined PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP && (__GNU_LIBRARY__ > 1)))
 
-#  if !defined PTHREAD_RWLOCK_INITIALIZER
+#  ifdef PTHREAD_RWLOCK_INITIALIZER
+
+#   if !HAVE_PTHREAD_RWLOCK_RDLOCK_PREFER_WRITER
+     /* glibc with bug https://sourceware.org/bugzilla/show_bug.cgi?id=13701 */
+
+int
+glthread_rwlock_init_for_glibc (pthread_rwlock_t *lock)
+{
+  pthread_rwlockattr_t attributes;
+  int err;
+
+  err = pthread_rwlockattr_init (&attributes);
+  if (err != 0)
+    return err;
+  /* Note: PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP is the only value that
+     causes the writer to be preferred. PTHREAD_RWLOCK_PREFER_WRITER_NP does not
+     do this; see
+     http://man7.org/linux/man-pages/man3/pthread_rwlockattr_setkind_np.3.html */
+  err = pthread_rwlockattr_setkind_np (&attributes,
+                                       PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP);
+  if (err == 0)
+    err = pthread_rwlock_init(lock, &attributes);
+  /* pthread_rwlockattr_destroy always returns 0.  It cannot influence the
+     return value.  */
+  pthread_rwlockattr_destroy (&attributes);
+  return err;
+}
+
+#   endif
+#  else
 
 int
 glthread_rwlock_init_multithreaded (gl_rwlock_t *lock)
@@ -152,11 +181,9 @@ glthread_rwlock_rdlock_multithreaded (gl_rwlock_t *lock)
   if (err != 0)
     return err;
   /* Test whether only readers are currently running, and whether the runcount
-     field will not overflow.  */
-  /* POSIX says: "It is implementation-defined whether the calling thread
-     acquires the lock when a writer does not hold the lock and there are
-     writers blocked on the lock."  Let's say, no: give the writers a higher
-     priority.  */
+     field will not overflow, and whether no writer is waiting.  The latter
+     condition is because POSIX recommends that "write locks shall take
+     precedence over read locks", to avoid "writer starvation".  */
   while (!(lock->runcount + 1 > 0 && lock->waiting_writers_count == 0))
     {
       /* This thread has to wait for a while.  Enqueue it among the
@@ -481,6 +508,141 @@ glthread_once_singlethreaded (pthread_once_t *once_control)
 
 /* ------------------------- gl_rwlock_t datatype ------------------------- */
 
+# if !HAVE_PTH_RWLOCK_ACQUIRE_PREFER_WRITER
+
+int
+glthread_rwlock_init_multithreaded (gl_rwlock_t *lock)
+{
+  if (!pth_mutex_init (&lock->lock))
+    return errno;
+  if (!pth_cond_init (&lock->waiting_readers))
+    return errno;
+  if (!pth_cond_init (&lock->waiting_writers))
+    return errno;
+  lock->waiting_writers_count = 0;
+  lock->runcount = 0;
+  lock->initialized = 1;
+  return 0;
+}
+
+int
+glthread_rwlock_rdlock_multithreaded (gl_rwlock_t *lock)
+{
+  if (!lock->initialized)
+    glthread_rwlock_init_multithreaded (lock);
+  if (!pth_mutex_acquire (&lock->lock, 0, NULL))
+    return errno;
+  /* Test whether only readers are currently running, and whether the runcount
+     field will not overflow, and whether no writer is waiting.  The latter
+     condition is because POSIX recommends that "write locks shall take
+     precedence over read locks", to avoid "writer starvation".  */
+  while (!(lock->runcount + 1 > 0 && lock->waiting_writers_count == 0))
+    {
+      /* This thread has to wait for a while.  Enqueue it among the
+         waiting_readers.  */
+      if (!pth_cond_await (&lock->waiting_readers, &lock->lock, NULL))
+        {
+          int err = errno;
+          pth_mutex_release (&lock->lock);
+          return err;
+        }
+    }
+  lock->runcount++;
+  return (!pth_mutex_release (&lock->lock) ? errno : 0);
+}
+
+int
+glthread_rwlock_wrlock_multithreaded (gl_rwlock_t *lock)
+{
+  if (!lock->initialized)
+    glthread_rwlock_init_multithreaded (lock);
+  if (!pth_mutex_acquire (&lock->lock, 0, NULL))
+    return errno;
+  /* Test whether no readers or writers are currently running.  */
+  while (!(lock->runcount == 0))
+    {
+      /* This thread has to wait for a while.  Enqueue it among the
+         waiting_writers.  */
+      lock->waiting_writers_count++;
+      if (!pth_cond_await (&lock->waiting_writers, &lock->lock, NULL))
+        {
+          int err = errno;
+          lock->waiting_writers_count--;
+          pth_mutex_release (&lock->lock);
+          return err;
+        }
+      lock->waiting_writers_count--;
+    }
+  lock->runcount--; /* runcount becomes -1 */
+  return (!pth_mutex_release (&lock->lock) ? errno : 0);
+}
+
+int
+glthread_rwlock_unlock_multithreaded (gl_rwlock_t *lock)
+{
+  int err;
+
+  if (!lock->initialized)
+    return EINVAL;
+  if (!pth_mutex_acquire (&lock->lock, 0, NULL))
+    return errno;
+  if (lock->runcount < 0)
+    {
+      /* Drop a writer lock.  */
+      if (!(lock->runcount == -1))
+        {
+          pth_mutex_release (&lock->lock);
+          return EINVAL;
+        }
+      lock->runcount = 0;
+    }
+  else
+    {
+      /* Drop a reader lock.  */
+      if (!(lock->runcount > 0))
+        {
+          pth_mutex_release (&lock->lock);
+          return EINVAL;
+        }
+      lock->runcount--;
+    }
+  if (lock->runcount == 0)
+    {
+      /* POSIX recommends that "write locks shall take precedence over read
+         locks", to avoid "writer starvation".  */
+      if (lock->waiting_writers_count > 0)
+        {
+          /* Wake up one of the waiting writers.  */
+          if (!pth_cond_notify (&lock->waiting_writers, FALSE))
+            {
+              int err = errno;
+              pth_mutex_release (&lock->lock);
+              return err;
+            }
+        }
+      else
+        {
+          /* Wake up all waiting readers.  */
+          if (!pth_cond_notify (&lock->waiting_readers, TRUE))
+            {
+              int err = errno;
+              pth_mutex_release (&lock->lock);
+              return err;
+            }
+        }
+    }
+  return (!pth_mutex_release (&lock->lock) ? errno : 0);
+}
+
+int
+glthread_rwlock_destroy_multithreaded (gl_rwlock_t *lock)
+{
+  lock->initialized = 0;
+  return 0;
+}
+
+# endif
+
 /* --------------------- gl_recursive_lock_t datatype --------------------- */
 
 /* -------------------------- gl_once_t datatype -------------------------- */
@@ -796,8 +958,10 @@ glthread_rwlock_rdlock_func (gl_rwlock_t *lock)
     }
   EnterCriticalSection (&lock->lock);
   /* Test whether only readers are currently running, and whether the runcount
-     field will not overflow.  */
-  if (!(lock->runcount + 1 > 0))
+     field will not overflow, and whether no writer is waiting.  The latter
+     condition is because POSIX recommends that "write locks shall take
+     precedence over read locks", to avoid "writer starvation".  */
+  if (!(lock->runcount + 1 > 0 && lock->waiting_writers.count == 0))
     {
       /* This thread has to wait for a while.  Enqueue it among the
          waiting_readers.  */

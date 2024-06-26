@@ -1,6 +1,6 @@
 /* IELR's inadequacy list.
 
-   Copyright (C) 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -66,7 +66,7 @@ symbol *
 InadequacyList__getContributionToken (InadequacyList const *self,
                                       ContributionIndex i)
 {
-  aver (0 <= i && i < self->contributionCount);
+  aver (0 <= i && i < self->contributionCount); (void) i;
   return self->inadequacy.conflict.token;
 }
 

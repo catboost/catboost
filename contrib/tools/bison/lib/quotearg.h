@@ -1,6 +1,6 @@
 /* quotearg.h - quote arguments for output
 
-   Copyright (C) 1998-2002, 2004, 2006, 2008-2013 Free Software Foundation,
+   Copyright (C) 1998-2002, 2004, 2006, 2008-2018 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Paul Eggert <eggert@twinsun.com> */
 
@@ -72,6 +72,37 @@ enum quoting_style
        "'simple'", "' \t\n'\\''\"\033??/\\'", "'a:b'"
     */
     shell_always_quoting_style,
+
+    /* Quote names for the shell if they contain shell metacharacters
+       or other problematic characters (ls --quoting-style=shell-escape).
+       Non printable characters are quoted using the $'...' syntax,
+       which originated in ksh93 and is widely supported by most shells,
+       and proposed for inclusion in POSIX.
+
+       quotearg_buffer:
+       "simple", "''$'\\0'' '$'\\t\\n'\\''\"'$'\\033''??/\\'", "a:b"
+       quotearg:
+       "simple", "''$'\\0'' '$'\\t\\n'\\''\"'$'\\033''??/\\'", "a:b"
+       quotearg_colon:
+       "simple", "''$'\\0'' '$'\\t\\n'\\''\"'$'\\033''??/\\'", "'a:b'"
+    */
+    shell_escape_quoting_style,
+
+    /* Quote names for the shell even if they would normally not
+       require quoting (ls --quoting-style=shell-escape).
+       Non printable characters are quoted using the $'...' syntax,
+       which originated in ksh93 and is widely supported by most shells,
+       and proposed for inclusion in POSIX.  Behaves like
+       shell_escape_quoting_style if QA_ELIDE_OUTER_QUOTES is in effect.
+
+       quotearg_buffer:
+       "simple", "''$'\\0'' '$'\\t\\n'\\''\"'$'\\033''??/\'", "a:b"
+       quotearg:
+       "simple", "''$'\\0'' '$'\\t\\n'\\''\"'$'\\033''??/\'", "a:b"
+       quotearg_colon:
+       "simple", "''$'\\0'' '$'\\t\\n'\\''\"'$'\\033''??/\'", "'a:b'"
+    */
+    shell_escape_always_quoting_style,
 
     /* Quote names as for a C language string (ls --quoting-style=c).
        Behaves like c_maybe_quoting_style if QA_ELIDE_OUTER_QUOTES is
@@ -247,7 +278,7 @@ struct quoting_options;
 struct quoting_options *clone_quoting_options (struct quoting_options *o);
 
 /* Get the value of O's quoting style.  If O is null, use the default.  */
-enum quoting_style get_quoting_style (struct quoting_options *o);
+enum quoting_style get_quoting_style (struct quoting_options const *o);
 
 /* In O (or in the default if O is null),
    set the value of the quoting style to S.  */
@@ -361,6 +392,9 @@ char *quotearg_colon (char const *arg);
 
 /* Like quotearg_colon (ARG), except it can quote null bytes.  */
 char *quotearg_colon_mem (char const *arg, size_t argsize);
+
+/* Like quotearg_n_style, except with ':' quoting enabled.  */
+char *quotearg_n_style_colon (int n, enum quoting_style s, char const *arg);
 
 /* Like quotearg_n_style (N, S, ARG) but with S as custom_quoting_style
    with left quote as LEFT_QUOTE and right quote as RIGHT_QUOTE.  See

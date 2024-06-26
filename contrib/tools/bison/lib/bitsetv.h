@@ -1,6 +1,7 @@
 /* Bitset vectors.
 
-   Copyright (C) 2002, 2004, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004, 2009-2015, 2018 Free Software Foundation,
+   Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -30,7 +31,7 @@ extern bitsetv bitsetv_alloc (bitset_bindex, bitset_bindex, enum bitset_type);
 
 /* Create a vector of N_VECS bitsets, each of N_BITS, and with
    attribute hints specified by ATTR.  */
-extern bitsetv bitsetv_create (bitset_bindex, bitset_bindex, unsigned int);
+extern bitsetv bitsetv_create (bitset_bindex, bitset_bindex, unsigned);
 
 /* Free vector of bitsets.  */
 extern void bitsetv_free (bitsetv);

@@ -1,5 +1,5 @@
 /* hash - hashing table processing.
-   Copyright (C) 1998-1999, 2001, 2003, 2009-2013 Free Software Foundation,
+   Copyright (C) 1998-1999, 2001, 2003, 2009-2018 Free Software Foundation,
    Inc.
    Written by Jim Meyering <meyering@ascend.com>, 1998.
 
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* A generic hash table package.  */
 
@@ -96,10 +96,6 @@ void hash_free (Hash_table *);
 bool hash_rehash (Hash_table *, size_t) _GL_ATTRIBUTE_WUR;
 void *hash_insert (Hash_table *, const void *) _GL_ATTRIBUTE_WUR;
 
-/* Deprecate this interface.  It has been renamed to hash_insert_if_absent.  */
-int hash_insert0 (Hash_table *table, /* FIXME: remove in 2013 */
-                  const void *entry,
-                  const void **matched_ent) _GL_ATTRIBUTE_DEPRECATED;
 int hash_insert_if_absent (Hash_table *table, const void *entry,
                            const void **matched_ent);
 void *hash_delete (Hash_table *, const void *);

@@ -1,6 +1,6 @@
 /* Determine a canonical name for the current locale's character encoding.
 
-   Copyright (C) 2000-2006, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2000-2006, 2008-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Bruno Haible <bruno@clisp.org>.  */
 
@@ -22,7 +22,6 @@
 /* Specification.  */
 #include "localcharset.h"
 
-#include <fcntl.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,8 +31,9 @@
 # define DARWIN7 /* Darwin 7 or newer, i.e. Mac OS X 10.3 or newer */
 #endif
 
-#if defined _WIN32 || defined __WIN32__
+#if defined _WIN32 && !defined __CYGWIN__
 # define WINDOWS_NATIVE
+# include <locale.h>
 #endif
 
 #if defined __EMX__
@@ -44,11 +44,10 @@
 #endif
 
 #if !defined WINDOWS_NATIVE
-# include <unistd.h>
 # if HAVE_LANGINFO_CODESET
 #  include <langinfo.h>
 # else
-#  if 0 /* see comment below */
+#  if 0 /* see comment regarding use of setlocale(), below */
 #   include <locale.h>
 #  endif
 # endif
@@ -70,287 +69,613 @@
 # include <xlocale.h>
 #endif
 
-#if ENABLE_RELOCATABLE
-# include "relocatable.h"
-#else
-# define relocate(pathname) (pathname)
-#endif
 
-/* Get LIBDIR.  */
-#ifndef LIBDIR
-# include "configmake.h"
-#endif
+#if HAVE_LANGINFO_CODESET || defined WINDOWS_NATIVE || defined OS2
 
-/* Define O_NOFOLLOW to 0 on platforms where it does not exist.  */
-#ifndef O_NOFOLLOW
-# define O_NOFOLLOW 0
-#endif
+/* On these platforms, we use a mapping from non-canonical encoding name
+   to GNU canonical encoding name.  */
 
-#if defined _WIN32 || defined __WIN32__ || defined __CYGWIN__ || defined __EMX__ || defined __DJGPP__
-  /* Native Windows, Cygwin, OS/2, DOS */
-# define ISSLASH(C) ((C) == '/' || (C) == '\\')
-#endif
+/* With glibc-2.1 or newer, we don't need any canonicalization,
+   because glibc has iconv and both glibc and libiconv support all
+   GNU canonical names directly.  */
+# if !((defined __GNU_LIBRARY__ && __GLIBC__ >= 2) || defined __UCLIBC__)
 
-#ifndef DIRECTORY_SEPARATOR
-# define DIRECTORY_SEPARATOR '/'
-#endif
-
-#ifndef ISSLASH
-# define ISSLASH(C) ((C) == DIRECTORY_SEPARATOR)
-#endif
-
-#if HAVE_DECL_GETC_UNLOCKED
-# undef getc
-# define getc getc_unlocked
-#endif
-
-/* The following static variable is declared 'volatile' to avoid a
-   possible multithread problem in the function get_charset_aliases. If we
-   are running in a threaded environment, and if two threads initialize
-   'charset_aliases' simultaneously, both will produce the same value,
-   and everything will be ok if the two assignments to 'charset_aliases'
-   are atomic. But I don't know what will happen if the two assignments mix.  */
-#if __STDC__ != 1
-# define volatile /* empty */
-#endif
-/* Pointer to the contents of the charset.alias file, if it has already been
-   read, else NULL.  Its format is:
-   ALIAS_1 '\0' CANONICAL_1 '\0' ... ALIAS_n '\0' CANONICAL_n '\0' '\0'  */
-static const char * volatile charset_aliases;
-
-/* Return a pointer to the contents of the charset.alias file.  */
-static const char *
-get_charset_aliases (void)
+struct table_entry
 {
-  const char *cp;
+  const char alias[11+1];
+  const char canonical[11+1];
+};
 
-  cp = charset_aliases;
-  if (cp == NULL)
-    {
-#if !(defined DARWIN7 || defined VMS || defined WINDOWS_NATIVE || defined __CYGWIN__)
-      const char *dir;
-      const char *base = "charset.alias";
-      char *file_name;
+/* Table of platform-dependent mappings, sorted in ascending order.  */
+static const struct table_entry alias_table[] =
+  {
+#  if defined __FreeBSD__                                   /* FreeBSD */
+  /*{ "ARMSCII-8",  "ARMSCII-8" },*/
+    { "Big5",       "BIG5" },
+    { "C",          "ASCII" },
+  /*{ "CP1131",     "CP1131" },*/
+  /*{ "CP1251",     "CP1251" },*/
+  /*{ "CP866",      "CP866" },*/
+  /*{ "GB18030",    "GB18030" },*/
+  /*{ "GB2312",     "GB2312" },*/
+  /*{ "GBK",        "GBK" },*/
+  /*{ "ISCII-DEV",  "?" },*/
+    { "ISO8859-1",  "ISO-8859-1" },
+    { "ISO8859-13", "ISO-8859-13" },
+    { "ISO8859-15", "ISO-8859-15" },
+    { "ISO8859-2",  "ISO-8859-2" },
+    { "ISO8859-5",  "ISO-8859-5" },
+    { "ISO8859-7",  "ISO-8859-7" },
+    { "ISO8859-9",  "ISO-8859-9" },
+  /*{ "KOI8-R",     "KOI8-R" },*/
+  /*{ "KOI8-U",     "KOI8-U" },*/
+    { "SJIS",       "SHIFT_JIS" },
+    { "US-ASCII",   "ASCII" },
+    { "eucCN",      "GB2312" },
+    { "eucJP",      "EUC-JP" },
+    { "eucKR",      "EUC-KR" }
+#   define alias_table_defined
+#  endif
+#  if defined __NetBSD__                                    /* NetBSD */
+    { "646",        "ASCII" },
+  /*{ "ARMSCII-8",  "ARMSCII-8" },*/
+  /*{ "BIG5",       "BIG5" },*/
+    { "Big5-HKSCS", "BIG5-HKSCS" },
+  /*{ "CP1251",     "CP1251" },*/
+  /*{ "CP866",      "CP866" },*/
+  /*{ "GB18030",    "GB18030" },*/
+  /*{ "GB2312",     "GB2312" },*/
+    { "ISO8859-1",  "ISO-8859-1" },
+    { "ISO8859-13", "ISO-8859-13" },
+    { "ISO8859-15", "ISO-8859-15" },
+    { "ISO8859-2",  "ISO-8859-2" },
+    { "ISO8859-4",  "ISO-8859-4" },
+    { "ISO8859-5",  "ISO-8859-5" },
+    { "ISO8859-7",  "ISO-8859-7" },
+  /*{ "KOI8-R",     "KOI8-R" },*/
+  /*{ "KOI8-U",     "KOI8-U" },*/
+  /*{ "PT154",      "PT154" },*/
+    { "SJIS",       "SHIFT_JIS" },
+    { "eucCN",      "GB2312" },
+    { "eucJP",      "EUC-JP" },
+    { "eucKR",      "EUC-KR" },
+    { "eucTW",      "EUC-TW" }
+#   define alias_table_defined
+#  endif
+#  if defined __OpenBSD__                                   /* OpenBSD */
+    { "646",        "ASCII" },
+    { "ISO8859-1",  "ISO-8859-1" },
+    { "ISO8859-13", "ISO-8859-13" },
+    { "ISO8859-15", "ISO-8859-15" },
+    { "ISO8859-2",  "ISO-8859-2" },
+    { "ISO8859-4",  "ISO-8859-4" },
+    { "ISO8859-5",  "ISO-8859-5" },
+    { "ISO8859-7",  "ISO-8859-7" }
+#   define alias_table_defined
+#  endif
+#  if defined __APPLE__ && defined __MACH__                 /* Mac OS X */
+    /* Darwin 7.5 has nl_langinfo(CODESET), but sometimes its value is
+       useless:
+       - It returns the empty string when LANG is set to a locale of the
+         form ll_CC, although ll_CC/LC_CTYPE is a symlink to an UTF-8
+         LC_CTYPE file.
+       - The environment variables LANG, LC_CTYPE, LC_ALL are not set by
+         the system; nl_langinfo(CODESET) returns "US-ASCII" in this case.
+       - The documentation says:
+           "... all code that calls BSD system routines should ensure
+            that the const *char parameters of these routines are in UTF-8
+            encoding. All BSD system functions expect their string
+            parameters to be in UTF-8 encoding and nothing else."
+         It also says
+           "An additional caveat is that string parameters for files,
+            paths, and other file-system entities must be in canonical
+            UTF-8. In a canonical UTF-8 Unicode string, all decomposable
+            characters are decomposed ..."
+         but this is not true: You can pass non-decomposed UTF-8 strings
+         to file system functions, and it is the OS which will convert
+         them to decomposed UTF-8 before accessing the file system.
+       - The Apple Terminal application displays UTF-8 by default.
+       - However, other applications are free to use different encodings:
+         - xterm uses ISO-8859-1 by default.
+         - TextEdit uses MacRoman by default.
+       We prefer UTF-8 over decomposed UTF-8-MAC because one should
+       minimize the use of decomposed Unicode. Unfortunately, through the
+       Darwin file system, decomposed UTF-8 strings are leaked into user
+       space nevertheless.
+       Then there are also the locales with encodings other than US-ASCII
+       and UTF-8. These locales can be occasionally useful to users (e.g.
+       when grepping through ISO-8859-1 encoded text files), when all their
+       file names are in US-ASCII.
+     */
+    { "ARMSCII-8",  "ARMSCII-8" },
+    { "Big5",       "BIG5" },
+    { "Big5HKSCS",  "BIG5-HKSCS" },
+    { "CP1131",     "CP1131" },
+    { "CP1251",     "CP1251" },
+    { "CP866",      "CP866" },
+    { "CP949",      "CP949" },
+    { "GB18030",    "GB18030" },
+    { "GB2312",     "GB2312" },
+    { "GBK",        "GBK" },
+  /*{ "ISCII-DEV",  "?" },*/
+    { "ISO8859-1",  "ISO-8859-1" },
+    { "ISO8859-13", "ISO-8859-13" },
+    { "ISO8859-15", "ISO-8859-15" },
+    { "ISO8859-2",  "ISO-8859-2" },
+    { "ISO8859-4",  "ISO-8859-4" },
+    { "ISO8859-5",  "ISO-8859-5" },
+    { "ISO8859-7",  "ISO-8859-7" },
+    { "ISO8859-9",  "ISO-8859-9" },
+    { "KOI8-R",     "KOI8-R" },
+    { "KOI8-U",     "KOI8-U" },
+    { "PT154",      "PT154" },
+    { "SJIS",       "SHIFT_JIS" },
+    { "eucCN",      "GB2312" },
+    { "eucJP",      "EUC-JP" },
+    { "eucKR",      "EUC-KR" }
+#   define alias_table_defined
+#  endif
+#  if defined _AIX                                          /* AIX */
+  /*{ "GBK",        "GBK" },*/
+    { "IBM-1046",   "CP1046" },
+    { "IBM-1124",   "CP1124" },
+    { "IBM-1129",   "CP1129" },
+    { "IBM-1252",   "CP1252" },
+    { "IBM-850",    "CP850" },
+    { "IBM-856",    "CP856" },
+    { "IBM-921",    "ISO-8859-13" },
+    { "IBM-922",    "CP922" },
+    { "IBM-932",    "CP932" },
+    { "IBM-943",    "CP943" },
+    { "IBM-eucCN",  "GB2312" },
+    { "IBM-eucJP",  "EUC-JP" },
+    { "IBM-eucKR",  "EUC-KR" },
+    { "IBM-eucTW",  "EUC-TW" },
+    { "ISO8859-1",  "ISO-8859-1" },
+    { "ISO8859-15", "ISO-8859-15" },
+    { "ISO8859-2",  "ISO-8859-2" },
+    { "ISO8859-5",  "ISO-8859-5" },
+    { "ISO8859-6",  "ISO-8859-6" },
+    { "ISO8859-7",  "ISO-8859-7" },
+    { "ISO8859-8",  "ISO-8859-8" },
+    { "ISO8859-9",  "ISO-8859-9" },
+    { "TIS-620",    "TIS-620" },
+  /*{ "UTF-8",      "UTF-8" },*/
+    { "big5",       "BIG5" }
+#   define alias_table_defined
+#  endif
+#  if defined __hpux                                        /* HP-UX */
+    { "SJIS",      "SHIFT_JIS" },
+    { "arabic8",   "HP-ARABIC8" },
+    { "big5",      "BIG5" },
+    { "cp1251",    "CP1251" },
+    { "eucJP",     "EUC-JP" },
+    { "eucKR",     "EUC-KR" },
+    { "eucTW",     "EUC-TW" },
+    { "gb18030",   "GB18030" },
+    { "greek8",    "HP-GREEK8" },
+    { "hebrew8",   "HP-HEBREW8" },
+    { "hkbig5",    "BIG5-HKSCS" },
+    { "hp15CN",    "GB2312" },
+    { "iso88591",  "ISO-8859-1" },
+    { "iso885913", "ISO-8859-13" },
+    { "iso885915", "ISO-8859-15" },
+    { "iso88592",  "ISO-8859-2" },
+    { "iso88594",  "ISO-8859-4" },
+    { "iso88595",  "ISO-8859-5" },
+    { "iso88596",  "ISO-8859-6" },
+    { "iso88597",  "ISO-8859-7" },
+    { "iso88598",  "ISO-8859-8" },
+    { "iso88599",  "ISO-8859-9" },
+    { "kana8",     "HP-KANA8" },
+    { "koi8r",     "KOI8-R" },
+    { "roman8",    "HP-ROMAN8" },
+    { "tis620",    "TIS-620" },
+    { "turkish8",  "HP-TURKISH8" },
+    { "utf8",      "UTF-8" }
+#   define alias_table_defined
+#  endif
+#  if defined __sgi                                         /* IRIX */
+    { "ISO8859-1",  "ISO-8859-1" },
+    { "ISO8859-15", "ISO-8859-15" },
+    { "ISO8859-2",  "ISO-8859-2" },
+    { "ISO8859-5",  "ISO-8859-5" },
+    { "ISO8859-7",  "ISO-8859-7" },
+    { "ISO8859-9",  "ISO-8859-9" },
+    { "eucCN",      "GB2312" },
+    { "eucJP",      "EUC-JP" },
+    { "eucKR",      "EUC-KR" },
+    { "eucTW",      "EUC-TW" }
+#   define alias_table_defined
+#  endif
+#  if defined __osf__                                       /* OSF/1 */
+  /*{ "GBK",        "GBK" },*/
+    { "ISO8859-1",  "ISO-8859-1" },
+    { "ISO8859-15", "ISO-8859-15" },
+    { "ISO8859-2",  "ISO-8859-2" },
+    { "ISO8859-4",  "ISO-8859-4" },
+    { "ISO8859-5",  "ISO-8859-5" },
+    { "ISO8859-7",  "ISO-8859-7" },
+    { "ISO8859-8",  "ISO-8859-8" },
+    { "ISO8859-9",  "ISO-8859-9" },
+    { "KSC5601",    "CP949" },
+    { "SJIS",       "SHIFT_JIS" },
+    { "TACTIS",     "TIS-620" },
+  /*{ "UTF-8",      "UTF-8" },*/
+    { "big5",       "BIG5" },
+    { "cp850",      "CP850" },
+    { "dechanyu",   "DEC-HANYU" },
+    { "dechanzi",   "GB2312" },
+    { "deckanji",   "DEC-KANJI" },
+    { "deckorean",  "EUC-KR" },
+    { "eucJP",      "EUC-JP" },
+    { "eucKR",      "EUC-KR" },
+    { "eucTW",      "EUC-TW" },
+    { "sdeckanji",  "EUC-JP" }
+#   define alias_table_defined
+#  endif
+#  if defined __sun                                         /* Solaris */
+    { "5601",        "EUC-KR" },
+    { "646",         "ASCII" },
+  /*{ "BIG5",        "BIG5" },*/
+    { "Big5-HKSCS",  "BIG5-HKSCS" },
+    { "GB18030",     "GB18030" },
+  /*{ "GBK",         "GBK" },*/
+    { "ISO8859-1",   "ISO-8859-1" },
+    { "ISO8859-11",  "TIS-620" },
+    { "ISO8859-13",  "ISO-8859-13" },
+    { "ISO8859-15",  "ISO-8859-15" },
+    { "ISO8859-2",   "ISO-8859-2" },
+    { "ISO8859-3",   "ISO-8859-3" },
+    { "ISO8859-4",   "ISO-8859-4" },
+    { "ISO8859-5",   "ISO-8859-5" },
+    { "ISO8859-6",   "ISO-8859-6" },
+    { "ISO8859-7",   "ISO-8859-7" },
+    { "ISO8859-8",   "ISO-8859-8" },
+    { "ISO8859-9",   "ISO-8859-9" },
+    { "PCK",         "SHIFT_JIS" },
+    { "TIS620.2533", "TIS-620" },
+  /*{ "UTF-8",       "UTF-8" },*/
+    { "ansi-1251",   "CP1251" },
+    { "cns11643",    "EUC-TW" },
+    { "eucJP",       "EUC-JP" },
+    { "gb2312",      "GB2312" },
+    { "koi8-r",      "KOI8-R" }
+#   define alias_table_defined
+#  endif
+#  if defined __minix                                       /* Minix */
+    { "646", "ASCII" }
+#   define alias_table_defined
+#  endif
+#  if defined WINDOWS_NATIVE || defined __CYGWIN__          /* Windows */
+    { "CP1361",  "JOHAB" },
+    { "CP20127", "ASCII" },
+    { "CP20866", "KOI8-R" },
+    { "CP20936", "GB2312" },
+    { "CP21866", "KOI8-RU" },
+    { "CP28591", "ISO-8859-1" },
+    { "CP28592", "ISO-8859-2" },
+    { "CP28593", "ISO-8859-3" },
+    { "CP28594", "ISO-8859-4" },
+    { "CP28595", "ISO-8859-5" },
+    { "CP28596", "ISO-8859-6" },
+    { "CP28597", "ISO-8859-7" },
+    { "CP28598", "ISO-8859-8" },
+    { "CP28599", "ISO-8859-9" },
+    { "CP28605", "ISO-8859-15" },
+    { "CP38598", "ISO-8859-8" },
+    { "CP51932", "EUC-JP" },
+    { "CP51936", "GB2312" },
+    { "CP51949", "EUC-KR" },
+    { "CP51950", "EUC-TW" },
+    { "CP54936", "GB18030" },
+    { "CP65001", "UTF-8" },
+    { "CP936",   "GBK" }
+#   define alias_table_defined
+#  endif
+#  if defined OS2                                           /* OS/2 */
+    /* The list of encodings is taken from "List of OS/2 Codepages"
+       by Alex Taylor:
+       <http://altsan.org/os2/toolkits/uls/index.html#codepages>.
+       See also "IBM Globalization - Code page identifiers":
+       <https://www-01.ibm.com/software/globalization/cp/cp_cpgid.html>.  */
+    { "CP1089", "ISO-8859-6" },
+    { "CP1208", "UTF-8" },
+    { "CP1381", "GB2312" },
+    { "CP1386", "GBK" },
+    { "CP3372", "EUC-JP" },
+    { "CP813",  "ISO-8859-7" },
+    { "CP819",  "ISO-8859-1" },
+    { "CP878",  "KOI8-R" },
+    { "CP912",  "ISO-8859-2" },
+    { "CP913",  "ISO-8859-3" },
+    { "CP914",  "ISO-8859-4" },
+    { "CP915",  "ISO-8859-5" },
+    { "CP916",  "ISO-8859-8" },
+    { "CP920",  "ISO-8859-9" },
+    { "CP921",  "ISO-8859-13" },
+    { "CP923",  "ISO-8859-15" },
+    { "CP954",  "EUC-JP" },
+    { "CP964",  "EUC-TW" },
+    { "CP970",  "EUC-KR" }
+#   define alias_table_defined
+#  endif
+#  if defined VMS                                           /* OpenVMS */
+    /* The list of encodings is taken from the OpenVMS 7.3-1 documentation
+       "Compaq C Run-Time Library Reference Manual for OpenVMS systems"
+       section 10.7 "Handling Different Character Sets".  */
+    { "DECHANYU",  "DEC-HANYU" },
+    { "DECHANZI",  "GB2312" },
+    { "DECKANJI",  "DEC-KANJI" },
+    { "DECKOREAN", "EUC-KR" },
+    { "ISO8859-1", "ISO-8859-1" },
+    { "ISO8859-2", "ISO-8859-2" },
+    { "ISO8859-5", "ISO-8859-5" },
+    { "ISO8859-7", "ISO-8859-7" },
+    { "ISO8859-8", "ISO-8859-8" },
+    { "ISO8859-9", "ISO-8859-9" },
+    { "SDECKANJI", "EUC-JP" },
+    { "SJIS",      "SHIFT_JIS" },
+    { "eucJP",     "EUC-JP" },
+    { "eucTW",     "EUC-TW" }
+#   define alias_table_defined
+#  endif
+#  ifndef alias_table_defined
+    /* Just a dummy entry, to avoid a C syntax error.  */
+    { "", "" }
+#  endif
+  };
 
-      /* Make it possible to override the charset.alias location.  This is
-         necessary for running the testsuite before "make install".  */
-      dir = getenv ("CHARSETALIASDIR");
-      if (dir == NULL || dir[0] == '\0')
-        dir = relocate (LIBDIR);
-
-      /* Concatenate dir and base into freshly allocated file_name.  */
-      {
-        size_t dir_len = strlen (dir);
-        size_t base_len = strlen (base);
-        int add_slash = (dir_len > 0 && !ISSLASH (dir[dir_len - 1]));
-        file_name = (char *) malloc (dir_len + add_slash + base_len + 1);
-        if (file_name != NULL)
-          {
-            memcpy (file_name, dir, dir_len);
-            if (add_slash)
-              file_name[dir_len] = DIRECTORY_SEPARATOR;
-            memcpy (file_name + dir_len + add_slash, base, base_len + 1);
-          }
-      }
-
-      if (file_name == NULL)
-        /* Out of memory.  Treat the file as empty.  */
-        cp = "";
-      else
-        {
-          int fd;
-
-          /* Open the file.  Reject symbolic links on platforms that support
-             O_NOFOLLOW.  This is a security feature.  Without it, an attacker
-             could retrieve parts of the contents (namely, the tail of the
-             first line that starts with "* ") of an arbitrary file by placing
-             a symbolic link to that file under the name "charset.alias" in
-             some writable directory and defining the environment variable
-             CHARSETALIASDIR to point to that directory.  */
-          fd = open (file_name,
-                     O_RDONLY | (HAVE_WORKING_O_NOFOLLOW ? O_NOFOLLOW : 0));
-          if (fd < 0)
-            /* File not found.  Treat it as empty.  */
-            cp = "";
-          else
-            {
-              FILE *fp;
-
-              fp = fdopen (fd, "r");
-              if (fp == NULL)
-                {
-                  /* Out of memory.  Treat the file as empty.  */
-                  close (fd);
-                  cp = "";
-                }
-              else
-                {
-                  /* Parse the file's contents.  */
-                  char *res_ptr = NULL;
-                  size_t res_size = 0;
-
-                  for (;;)
-                    {
-                      int c;
-                      char buf1[50+1];
-                      char buf2[50+1];
-                      size_t l1, l2;
-                      char *old_res_ptr;
-
-                      c = getc (fp);
-                      if (c == EOF)
-                        break;
-                      if (c == '\n' || c == ' ' || c == '\t')
-                        continue;
-                      if (c == '#')
-                        {
-                          /* Skip comment, to end of line.  */
-                          do
-                            c = getc (fp);
-                          while (!(c == EOF || c == '\n'));
-                          if (c == EOF)
-                            break;
-                          continue;
-                        }
-                      ungetc (c, fp);
-                      if (fscanf (fp, "%50s %50s", buf1, buf2) < 2)
-                        break;
-                      l1 = strlen (buf1);
-                      l2 = strlen (buf2);
-                      old_res_ptr = res_ptr;
-                      if (res_size == 0)
-                        {
-                          res_size = l1 + 1 + l2 + 1;
-                          res_ptr = (char *) malloc (res_size + 1);
-                        }
-                      else
-                        {
-                          res_size += l1 + 1 + l2 + 1;
-                          res_ptr = (char *) realloc (res_ptr, res_size + 1);
-                        }
-                      if (res_ptr == NULL)
-                        {
-                          /* Out of memory. */
-                          res_size = 0;
-                          free (old_res_ptr);
-                          break;
-                        }
-                      strcpy (res_ptr + res_size - (l2 + 1) - (l1 + 1), buf1);
-                      strcpy (res_ptr + res_size - (l2 + 1), buf2);
-                    }
-                  fclose (fp);
-                  if (res_size == 0)
-                    cp = "";
-                  else
-                    {
-                      *(res_ptr + res_size) = '\0';
-                      cp = res_ptr;
-                    }
-                }
-            }
-
-          free (file_name);
-        }
+# endif
 
 #else
 
-# if defined DARWIN7
-      /* To avoid the trouble of installing a file that is shared by many
-         GNU packages -- many packaging systems have problems with this --,
-         simply inline the aliases here.  */
-      cp = "ISO8859-1" "\0" "ISO-8859-1" "\0"
-           "ISO8859-2" "\0" "ISO-8859-2" "\0"
-           "ISO8859-4" "\0" "ISO-8859-4" "\0"
-           "ISO8859-5" "\0" "ISO-8859-5" "\0"
-           "ISO8859-7" "\0" "ISO-8859-7" "\0"
-           "ISO8859-9" "\0" "ISO-8859-9" "\0"
-           "ISO8859-13" "\0" "ISO-8859-13" "\0"
-           "ISO8859-15" "\0" "ISO-8859-15" "\0"
-           "KOI8-R" "\0" "KOI8-R" "\0"
-           "KOI8-U" "\0" "KOI8-U" "\0"
-           "CP866" "\0" "CP866" "\0"
-           "CP949" "\0" "CP949" "\0"
-           "CP1131" "\0" "CP1131" "\0"
-           "CP1251" "\0" "CP1251" "\0"
-           "eucCN" "\0" "GB2312" "\0"
-           "GB2312" "\0" "GB2312" "\0"
-           "eucJP" "\0" "EUC-JP" "\0"
-           "eucKR" "\0" "EUC-KR" "\0"
-           "Big5" "\0" "BIG5" "\0"
-           "Big5HKSCS" "\0" "BIG5-HKSCS" "\0"
-           "GBK" "\0" "GBK" "\0"
-           "GB18030" "\0" "GB18030" "\0"
-           "SJIS" "\0" "SHIFT_JIS" "\0"
-           "ARMSCII-8" "\0" "ARMSCII-8" "\0"
-           "PT154" "\0" "PT154" "\0"
-         /*"ISCII-DEV" "\0" "?" "\0"*/
-           "*" "\0" "UTF-8" "\0";
-# endif
+/* On these platforms, we use a mapping from locale name to GNU canonical
+   encoding name.  */
 
-# if defined VMS
-      /* To avoid the troubles of an extra file charset.alias_vms in the
-         sources of many GNU packages, simply inline the aliases here.  */
-      /* The list of encodings is taken from the OpenVMS 7.3-1 documentation
-         "Compaq C Run-Time Library Reference Manual for OpenVMS systems"
-         section 10.7 "Handling Different Character Sets".  */
-      cp = "ISO8859-1" "\0" "ISO-8859-1" "\0"
-           "ISO8859-2" "\0" "ISO-8859-2" "\0"
-           "ISO8859-5" "\0" "ISO-8859-5" "\0"
-           "ISO8859-7" "\0" "ISO-8859-7" "\0"
-           "ISO8859-8" "\0" "ISO-8859-8" "\0"
-           "ISO8859-9" "\0" "ISO-8859-9" "\0"
-           /* Japanese */
-           "eucJP" "\0" "EUC-JP" "\0"
-           "SJIS" "\0" "SHIFT_JIS" "\0"
-           "DECKANJI" "\0" "DEC-KANJI" "\0"
-           "SDECKANJI" "\0" "EUC-JP" "\0"
-           /* Chinese */
-           "eucTW" "\0" "EUC-TW" "\0"
-           "DECHANYU" "\0" "DEC-HANYU" "\0"
-           "DECHANZI" "\0" "GB2312" "\0"
-           /* Korean */
-           "DECKOREAN" "\0" "EUC-KR" "\0";
-# endif
+struct table_entry
+{
+  const char locale[17+1];
+  const char canonical[11+1];
+};
 
-# if defined WINDOWS_NATIVE || defined __CYGWIN__
-      /* To avoid the troubles of installing a separate file in the same
-         directory as the DLL and of retrieving the DLL's directory at
-         runtime, simply inline the aliases here.  */
-
-      cp = "CP936" "\0" "GBK" "\0"
-           "CP1361" "\0" "JOHAB" "\0"
-           "CP20127" "\0" "ASCII" "\0"
-           "CP20866" "\0" "KOI8-R" "\0"
-           "CP20936" "\0" "GB2312" "\0"
-           "CP21866" "\0" "KOI8-RU" "\0"
-           "CP28591" "\0" "ISO-8859-1" "\0"
-           "CP28592" "\0" "ISO-8859-2" "\0"
-           "CP28593" "\0" "ISO-8859-3" "\0"
-           "CP28594" "\0" "ISO-8859-4" "\0"
-           "CP28595" "\0" "ISO-8859-5" "\0"
-           "CP28596" "\0" "ISO-8859-6" "\0"
-           "CP28597" "\0" "ISO-8859-7" "\0"
-           "CP28598" "\0" "ISO-8859-8" "\0"
-           "CP28599" "\0" "ISO-8859-9" "\0"
-           "CP28605" "\0" "ISO-8859-15" "\0"
-           "CP38598" "\0" "ISO-8859-8" "\0"
-           "CP51932" "\0" "EUC-JP" "\0"
-           "CP51936" "\0" "GB2312" "\0"
-           "CP51949" "\0" "EUC-KR" "\0"
-           "CP51950" "\0" "EUC-TW" "\0"
-           "CP54936" "\0" "GB18030" "\0"
-           "CP65001" "\0" "UTF-8" "\0";
+/* Table of platform-dependent mappings, sorted in ascending order.  */
+static const struct table_entry locale_table[] =
+  {
+# if defined __FreeBSD__                                    /* FreeBSD 4.2 */
+    { "cs_CZ.ISO_8859-2",  "ISO-8859-2" },
+    { "da_DK.DIS_8859-15", "ISO-8859-15" },
+    { "da_DK.ISO_8859-1",  "ISO-8859-1" },
+    { "de_AT.DIS_8859-15", "ISO-8859-15" },
+    { "de_AT.ISO_8859-1",  "ISO-8859-1" },
+    { "de_CH.DIS_8859-15", "ISO-8859-15" },
+    { "de_CH.ISO_8859-1",  "ISO-8859-1" },
+    { "de_DE.DIS_8859-15", "ISO-8859-15" },
+    { "de_DE.ISO_8859-1",  "ISO-8859-1" },
+    { "en_AU.DIS_8859-15", "ISO-8859-15" },
+    { "en_AU.ISO_8859-1",  "ISO-8859-1" },
+    { "en_CA.DIS_8859-15", "ISO-8859-15" },
+    { "en_CA.ISO_8859-1",  "ISO-8859-1" },
+    { "en_GB.DIS_8859-15", "ISO-8859-15" },
+    { "en_GB.ISO_8859-1",  "ISO-8859-1" },
+    { "en_US.DIS_8859-15", "ISO-8859-15" },
+    { "en_US.ISO_8859-1",  "ISO-8859-1" },
+    { "es_ES.DIS_8859-15", "ISO-8859-15" },
+    { "es_ES.ISO_8859-1",  "ISO-8859-1" },
+    { "fi_FI.DIS_8859-15", "ISO-8859-15" },
+    { "fi_FI.ISO_8859-1",  "ISO-8859-1" },
+    { "fr_BE.DIS_8859-15", "ISO-8859-15" },
+    { "fr_BE.ISO_8859-1",  "ISO-8859-1" },
+    { "fr_CA.DIS_8859-15", "ISO-8859-15" },
+    { "fr_CA.ISO_8859-1",  "ISO-8859-1" },
+    { "fr_CH.DIS_8859-15", "ISO-8859-15" },
+    { "fr_CH.ISO_8859-1",  "ISO-8859-1" },
+    { "fr_FR.DIS_8859-15", "ISO-8859-15" },
+    { "fr_FR.ISO_8859-1",  "ISO-8859-1" },
+    { "hr_HR.ISO_8859-2",  "ISO-8859-2" },
+    { "hu_HU.ISO_8859-2",  "ISO-8859-2" },
+    { "is_IS.DIS_8859-15", "ISO-8859-15" },
+    { "is_IS.ISO_8859-1",  "ISO-8859-1" },
+    { "it_CH.DIS_8859-15", "ISO-8859-15" },
+    { "it_CH.ISO_8859-1",  "ISO-8859-1" },
+    { "it_IT.DIS_8859-15", "ISO-8859-15" },
+    { "it_IT.ISO_8859-1",  "ISO-8859-1" },
+    { "ja_JP.EUC",         "EUC-JP" },
+    { "ja_JP.SJIS",        "SHIFT_JIS" },
+    { "ja_JP.Shift_JIS",   "SHIFT_JIS" },
+    { "ko_KR.EUC",         "EUC-KR" },
+    { "la_LN.ASCII",       "ASCII" },
+    { "la_LN.DIS_8859-15", "ISO-8859-15" },
+    { "la_LN.ISO_8859-1",  "ISO-8859-1" },
+    { "la_LN.ISO_8859-2",  "ISO-8859-2" },
+    { "la_LN.ISO_8859-4",  "ISO-8859-4" },
+    { "lt_LN.ASCII",       "ASCII" },
+    { "lt_LN.DIS_8859-15", "ISO-8859-15" },
+    { "lt_LN.ISO_8859-1",  "ISO-8859-1" },
+    { "lt_LN.ISO_8859-2",  "ISO-8859-2" },
+    { "lt_LT.ISO_8859-4",  "ISO-8859-4" },
+    { "nl_BE.DIS_8859-15", "ISO-8859-15" },
+    { "nl_BE.ISO_8859-1",  "ISO-8859-1" },
+    { "nl_NL.DIS_8859-15", "ISO-8859-15" },
+    { "nl_NL.ISO_8859-1",  "ISO-8859-1" },
+    { "no_NO.DIS_8859-15", "ISO-8859-15" },
+    { "no_NO.ISO_8859-1",  "ISO-8859-1" },
+    { "pl_PL.ISO_8859-2",  "ISO-8859-2" },
+    { "pt_PT.DIS_8859-15", "ISO-8859-15" },
+    { "pt_PT.ISO_8859-1",  "ISO-8859-1" },
+    { "ru_RU.CP866",       "CP866" },
+    { "ru_RU.ISO_8859-5",  "ISO-8859-5" },
+    { "ru_RU.KOI8-R",      "KOI8-R" },
+    { "ru_SU.CP866",       "CP866" },
+    { "ru_SU.ISO_8859-5",  "ISO-8859-5" },
+    { "ru_SU.KOI8-R",      "KOI8-R" },
+    { "sl_SI.ISO_8859-2",  "ISO-8859-2" },
+    { "sv_SE.DIS_8859-15", "ISO-8859-15" },
+    { "sv_SE.ISO_8859-1",  "ISO-8859-1" },
+    { "uk_UA.KOI8-U",      "KOI8-U" },
+    { "zh_CN.EUC",         "GB2312" },
+    { "zh_TW.BIG5",        "BIG5" },
+    { "zh_TW.Big5",        "BIG5" }
+#  define locale_table_defined
 # endif
+# if defined __DJGPP__                                      /* DOS / DJGPP 2.03 */
+    /* The encodings given here may not all be correct.
+       If you find that the encoding given for your language and
+       country is not the one your DOS machine actually uses, just
+       correct it in this file, and send a mail to
+       Juan Manuel Guerrero <juan.guerrero@gmx.de>
+       and <bug-gnulib@gnu.org>.  */
+    { "C",     "ASCII" },
+    { "ar",    "CP864" },
+    { "ar_AE", "CP864" },
+    { "ar_DZ", "CP864" },
+    { "ar_EG", "CP864" },
+    { "ar_IQ", "CP864" },
+    { "ar_IR", "CP864" },
+    { "ar_JO", "CP864" },
+    { "ar_KW", "CP864" },
+    { "ar_MA", "CP864" },
+    { "ar_OM", "CP864" },
+    { "ar_QA", "CP864" },
+    { "ar_SA", "CP864" },
+    { "ar_SY", "CP864" },
+    { "be",    "CP866" },
+    { "be_BE", "CP866" },
+    { "bg",    "CP866" }, /* not CP855 ?? */
+    { "bg_BG", "CP866" }, /* not CP855 ?? */
+    { "ca",    "CP850" },
+    { "ca_ES", "CP850" },
+    { "cs",    "CP852" },
+    { "cs_CZ", "CP852" },
+    { "da",    "CP865" }, /* not CP850 ?? */
+    { "da_DK", "CP865" }, /* not CP850 ?? */
+    { "de",    "CP850" },
+    { "de_AT", "CP850" },
+    { "de_CH", "CP850" },
+    { "de_DE", "CP850" },
+    { "el",    "CP869" },
+    { "el_GR", "CP869" },
+    { "en",    "CP850" },
+    { "en_AU", "CP850" }, /* not CP437 ?? */
+    { "en_CA", "CP850" },
+    { "en_GB", "CP850" },
+    { "en_NZ", "CP437" },
+    { "en_US", "CP437" },
+    { "en_ZA", "CP850" }, /* not CP437 ?? */
+    { "eo",    "CP850" },
+    { "eo_EO", "CP850" },
+    { "es",    "CP850" },
+    { "es_AR", "CP850" },
+    { "es_BO", "CP850" },
+    { "es_CL", "CP850" },
+    { "es_CO", "CP850" },
+    { "es_CR", "CP850" },
+    { "es_CU", "CP850" },
+    { "es_DO", "CP850" },
+    { "es_EC", "CP850" },
+    { "es_ES", "CP850" },
+    { "es_GT", "CP850" },
+    { "es_HN", "CP850" },
+    { "es_MX", "CP850" },
+    { "es_NI", "CP850" },
+    { "es_PA", "CP850" },
+    { "es_PE", "CP850" },
+    { "es_PY", "CP850" },
+    { "es_SV", "CP850" },
+    { "es_UY", "CP850" },
+    { "es_VE", "CP850" },
+    { "et",    "CP850" },
+    { "et_EE", "CP850" },
+    { "eu",    "CP850" },
+    { "eu_ES", "CP850" },
+    { "fi",    "CP850" },
+    { "fi_FI", "CP850" },
+    { "fr",    "CP850" },
+    { "fr_BE", "CP850" },
+    { "fr_CA", "CP850" },
+    { "fr_CH", "CP850" },
+    { "fr_FR", "CP850" },
+    { "ga",    "CP850" },
+    { "ga_IE", "CP850" },
+    { "gd",    "CP850" },
+    { "gd_GB", "CP850" },
+    { "gl",    "CP850" },
+    { "gl_ES", "CP850" },
+    { "he",    "CP862" },
+    { "he_IL", "CP862" },
+    { "hr",    "CP852" },
+    { "hr_HR", "CP852" },
+    { "hu",    "CP852" },
+    { "hu_HU", "CP852" },
+    { "id",    "CP850" }, /* not CP437 ?? */
+    { "id_ID", "CP850" }, /* not CP437 ?? */
+    { "is",    "CP861" }, /* not CP850 ?? */
+    { "is_IS", "CP861" }, /* not CP850 ?? */
+    { "it",    "CP850" },
+    { "it_CH", "CP850" },
+    { "it_IT", "CP850" },
+    { "ja",    "CP932" },
+    { "ja_JP", "CP932" },
+    { "kr",    "CP949" }, /* not CP934 ?? */
+    { "kr_KR", "CP949" }, /* not CP934 ?? */
+    { "lt",    "CP775" },
+    { "lt_LT", "CP775" },
+    { "lv",    "CP775" },
+    { "lv_LV", "CP775" },
+    { "mk",    "CP866" }, /* not CP855 ?? */
+    { "mk_MK", "CP866" }, /* not CP855 ?? */
+    { "mt",    "CP850" },
+    { "mt_MT", "CP850" },
+    { "nb",    "CP865" }, /* not CP850 ?? */
+    { "nb_NO", "CP865" }, /* not CP850 ?? */
+    { "nl",    "CP850" },
+    { "nl_BE", "CP850" },
+    { "nl_NL", "CP850" },
+    { "nn",    "CP865" }, /* not CP850 ?? */
+    { "nn_NO", "CP865" }, /* not CP850 ?? */
+    { "no",    "CP865" }, /* not CP850 ?? */
+    { "no_NO", "CP865" }, /* not CP850 ?? */
+    { "pl",    "CP852" },
+    { "pl_PL", "CP852" },
+    { "pt",    "CP850" },
+    { "pt_BR", "CP850" },
+    { "pt_PT", "CP850" },
+    { "ro",    "CP852" },
+    { "ro_RO", "CP852" },
+    { "ru",    "CP866" },
+    { "ru_RU", "CP866" },
+    { "sk",    "CP852" },
+    { "sk_SK", "CP852" },
+    { "sl",    "CP852" },
+    { "sl_SI", "CP852" },
+    { "sq",    "CP852" },
+    { "sq_AL", "CP852" },
+    { "sr",    "CP852" }, /* CP852 or CP866 or CP855 ?? */
+    { "sr_CS", "CP852" }, /* CP852 or CP866 or CP855 ?? */
+    { "sr_YU", "CP852" }, /* CP852 or CP866 or CP855 ?? */
+    { "sv",    "CP850" },
+    { "sv_SE", "CP850" },
+    { "th",    "CP874" },
+    { "th_TH", "CP874" },
+    { "tr",    "CP857" },
+    { "tr_TR", "CP857" },
+    { "uk",    "CP1125" },
+    { "uk_UA", "CP1125" },
+    { "zh_CN", "GBK" },
+    { "zh_TW", "CP950" } /* not CP938 ?? */
+#  define locale_table_defined
+# endif
+# ifndef locale_table_defined
+    /* Just a dummy entry, to avoid a C syntax error.  */
+    { "", "" }
+# endif
+  };
+
 #endif
 
-      charset_aliases = cp;
-    }
-
-  return cp;
-}
 
 /* Determine the current locale's character encoding, and canonicalize it
-   into one of the canonical names listed in config.charset.
+   into one of the canonical names listed in localcharset.h.
    The result must not be freed; it is statically allocated.
    If the canonical name cannot be determined, the result is a non-canonical
    name.  */
@@ -362,9 +687,8 @@ const char *
 locale_charset (void)
 {
   const char *codeset;
-  const char *aliases;
 
-#if !(defined WINDOWS_NATIVE || defined OS2)
+#if HAVE_LANGINFO_CODESET || defined WINDOWS_NATIVE || defined OS2
 
 # if HAVE_LANGINFO_CODESET
 
@@ -427,56 +751,52 @@ locale_charset (void)
     }
 #  endif
 
-# else
+  if (codeset == NULL)
+    /* The canonical name cannot be determined.  */
+    codeset = "";
 
-  /* On old systems which lack it, use setlocale or getenv.  */
-  const char *locale = NULL;
-
-  /* But most old systems don't have a complete set of locales.  Some
-     (like SunOS 4 or DJGPP) have only the C locale.  Therefore we don't
-     use setlocale here; it would return "C" when it doesn't support the
-     locale name the user has set.  */
-#  if 0
-  locale = setlocale (LC_CTYPE, NULL);
-#  endif
-  if (locale == NULL || locale[0] == '\0')
-    {
-      locale = getenv ("LC_ALL");
-      if (locale == NULL || locale[0] == '\0')
-        {
-          locale = getenv ("LC_CTYPE");
-          if (locale == NULL || locale[0] == '\0')
-            locale = getenv ("LANG");
-        }
-    }
-
-  /* On some old systems, one used to set locale = "iso8859_1". On others,
-     you set it to "language_COUNTRY.charset". In any case, we resolve it
-     through the charset.alias file.  */
-  codeset = locale;
-
-# endif
-
-#elif defined WINDOWS_NATIVE
+# elif defined WINDOWS_NATIVE
 
   static char buf[2 + 10 + 1];
 
-  /* The Windows API has a function returning the locale's codepage as a
-     number: GetACP().
-     When the output goes to a console window, it needs to be provided in
-     GetOEMCP() encoding if the console is using a raster font, or in
-     GetConsoleOutputCP() encoding if it is using a TrueType font.
-     But in GUI programs and for output sent to files and pipes, GetACP()
-     encoding is the best bet.  */
-  sprintf (buf, "CP%u", GetACP ());
+  /* The Windows API has a function returning the locale's codepage as
+     a number, but the value doesn't change according to what the
+     'setlocale' call specified.  So we use it as a last resort, in
+     case the string returned by 'setlocale' doesn't specify the
+     codepage.  */
+  char *current_locale = setlocale (LC_ALL, NULL);
+  char *pdot;
+
+  /* If they set different locales for different categories,
+     'setlocale' will return a semi-colon separated list of locale
+     values.  To make sure we use the correct one, we choose LC_CTYPE.  */
+  if (strchr (current_locale, ';'))
+    current_locale = setlocale (LC_CTYPE, NULL);
+
+  pdot = strrchr (current_locale, '.');
+  if (pdot && 2 + strlen (pdot + 1) + 1 <= sizeof (buf))
+    sprintf (buf, "CP%s", pdot + 1);
+  else
+    {
+      /* The Windows API has a function returning the locale's codepage as a
+        number: GetACP().
+        When the output goes to a console window, it needs to be provided in
+        GetOEMCP() encoding if the console is using a raster font, or in
+        GetConsoleOutputCP() encoding if it is using a TrueType font.
+        But in GUI programs and for output sent to files and pipes, GetACP()
+        encoding is the best bet.  */
+      sprintf (buf, "CP%u", GetACP ());
+    }
   codeset = buf;
 
-#elif defined OS2
+# elif defined OS2
 
   const char *locale;
   static char buf[2 + 10 + 1];
   ULONG cp[3];
   ULONG cplen;
+
+  codeset = NULL;
 
   /* Allow user to override the codeset, as set in the operating system,
      with standard language environment variables.  */
@@ -509,10 +829,12 @@ locale_charset (void)
             }
         }
 
-      /* Resolve through the charset.alias file.  */
-      codeset = locale;
+      /* For the POSIX locale, don't use the system's codepage.  */
+      if (strcmp (locale, "C") == 0 || strcmp (locale, "POSIX") == 0)
+        codeset = "";
     }
-  else
+
+  if (codeset == NULL)
     {
       /* OS/2 has a function returning the locale's codepage as a number.  */
       if (DosQueryCp (sizeof (cp), cp, &cplen))
@@ -524,28 +846,144 @@ locale_charset (void)
         }
     }
 
-#endif
+# else
 
-  if (codeset == NULL)
-    /* The canonical name cannot be determined.  */
-    codeset = "";
+#  error "Add code for other platforms here."
 
-  /* Resolve alias. */
-  for (aliases = get_charset_aliases ();
-       *aliases != '\0';
-       aliases += strlen (aliases) + 1, aliases += strlen (aliases) + 1)
-    if (strcmp (codeset, aliases) == 0
-        || (aliases[0] == '*' && aliases[1] == '\0'))
+# endif
+
+  /* Resolve alias.  */
+  {
+# ifdef alias_table_defined
+    /* On some platforms, UTF-8 locales are the most frequently used ones.
+       Speed up the common case and slow down the less common cases by
+       testing for this case first.  */
+#  if defined __OpenBSD__ || (defined __APPLE__ && defined __MACH__) || defined __sun || defined __CYGWIN__
+    if (strcmp (codeset, "UTF-8") == 0)
+      goto done_table_lookup;
+    else
+#  endif
       {
-        codeset = aliases + strlen (aliases) + 1;
-        break;
+        const struct table_entry * const table = alias_table;
+        size_t const table_size =
+          sizeof (alias_table) / sizeof (struct table_entry);
+        /* The table is sorted.  Perform a binary search.  */
+        size_t hi = table_size;
+        size_t lo = 0;
+        while (lo < hi)
+          {
+            /* Invariant:
+               for i < lo, strcmp (table[i].alias, codeset) < 0,
+               for i >= hi, strcmp (table[i].alias, codeset) > 0.  */
+            size_t mid = (hi + lo) >> 1; /* >= lo, < hi */
+            int cmp = strcmp (table[mid].alias, codeset);
+            if (cmp < 0)
+              lo = mid + 1;
+            else if (cmp > 0)
+              hi = mid;
+            else
+              {
+                /* Found an i with
+                     strcmp (table[i].alias, codeset) == 0.  */
+                codeset = table[mid].canonical;
+                goto done_table_lookup;
+              }
+          }
       }
+    if (0)
+      done_table_lookup: ;
+    else
+# endif
+      {
+        /* Did not find it in the table.  */
+        /* On Mac OS X, all modern locales use the UTF-8 encoding.
+           BeOS and Haiku have a single locale, and it has UTF-8 encoding.  */
+# if (defined __APPLE__ && defined __MACH__) || defined __BEOS__ || defined __HAIKU__
+        codeset = "UTF-8";
+# else
+        /* Don't return an empty string.  GNU libc and GNU libiconv interpret
+           the empty string as denoting "the locale's character encoding",
+           thus GNU libiconv would call this function a second time.  */
+        if (codeset[0] == '\0')
+          codeset = "ASCII";
+# endif
+      }
+  }
 
-  /* Don't return an empty string.  GNU libc and GNU libiconv interpret
-     the empty string as denoting "the locale's character encoding",
-     thus GNU libiconv would call this function a second time.  */
-  if (codeset[0] == '\0')
-    codeset = "ASCII";
+#else
+
+  /* On old systems which lack it, use setlocale or getenv.  */
+  const char *locale = NULL;
+
+  /* But most old systems don't have a complete set of locales.  Some
+     (like DJGPP) have only the C locale.  Therefore we don't use setlocale
+     here; it would return "C" when it doesn't support the locale name the
+     user has set.  */
+# if 0
+  locale = setlocale (LC_CTYPE, NULL);
+# endif
+  if (locale == NULL || locale[0] == '\0')
+    {
+      locale = getenv ("LC_ALL");
+      if (locale == NULL || locale[0] == '\0')
+        {
+          locale = getenv ("LC_CTYPE");
+          if (locale == NULL || locale[0] == '\0')
+            locale = getenv ("LANG");
+            if (locale == NULL)
+              locale = "";
+        }
+    }
+
+  /* Map locale name to canonical encoding name.  */
+  {
+# ifdef locale_table_defined
+    const struct table_entry * const table = locale_table;
+    size_t const table_size =
+      sizeof (locale_table) / sizeof (struct table_entry);
+    /* The table is sorted.  Perform a binary search.  */
+    size_t hi = table_size;
+    size_t lo = 0;
+    while (lo < hi)
+      {
+        /* Invariant:
+           for i < lo, strcmp (table[i].locale, locale) < 0,
+           for i >= hi, strcmp (table[i].locale, locale) > 0.  */
+        size_t mid = (hi + lo) >> 1; /* >= lo, < hi */
+        int cmp = strcmp (table[mid].locale, locale);
+        if (cmp < 0)
+          lo = mid + 1;
+        else if (cmp > 0)
+          hi = mid;
+        else
+          {
+            /* Found an i with
+                 strcmp (table[i].locale, locale) == 0.  */
+            codeset = table[mid].canonical;
+            goto done_table_lookup;
+          }
+      }
+    if (0)
+      done_table_lookup: ;
+    else
+# endif
+      {
+        /* Did not find it in the table.  */
+        /* On Mac OS X, all modern locales use the UTF-8 encoding.
+           BeOS and Haiku have a single locale, and it has UTF-8 encoding.  */
+# if (defined __APPLE__ && defined __MACH__) || defined __BEOS__ || defined __HAIKU__
+        codeset = "UTF-8";
+# else
+        /* The canonical name cannot be determined.  */
+        /* Don't return an empty string.  GNU libc and GNU libiconv interpret
+           the empty string as denoting "the locale's character encoding",
+           thus GNU libiconv would call this function a second time.  */
+        codeset = "ASCII";
+# endif
+      }
+  }
+
+#endif
 
 #ifdef DARWIN7
   /* Mac OS X sets MB_CUR_MAX to 1 when LC_ALL=C, and "UTF-8"

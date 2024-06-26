@@ -1,6 +1,6 @@
 /* xmalloc.c -- malloc with out of memory checking
 
-   Copyright (C) 1990-2000, 2002-2006, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 1990-2000, 2002-2006, 2008-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -93,11 +93,11 @@ void *
 xcalloc (size_t n, size_t s)
 {
   void *p;
-  /* Test for overflow, since some calloc implementations don't have
-     proper overflow checks.  But omit overflow and size-zero tests if
-     HAVE_GNU_CALLOC, since GNU calloc catches overflow and never
-     returns NULL if successful.  */
-  if ((! HAVE_GNU_CALLOC && xalloc_oversized (n, s))
+  /* Test for overflow, since objects with size greater than
+     PTRDIFF_MAX cause pointer subtraction to go awry.  Omit size-zero
+     tests if HAVE_GNU_CALLOC, since GNU calloc never returns NULL if
+     successful.  */
+  if (xalloc_oversized (n, s)
       || (! (p = calloc (n, s)) && (HAVE_GNU_CALLOC || n != 0)))
     xalloc_die ();
   return p;

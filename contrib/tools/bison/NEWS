@@ -1,5 +1,298 @@
 GNU Bison NEWS
 
+* Noteworthy changes in release 3.1 (2018-08-27) [stable]
+
+** Backward incompatible changes
+
+  Compiling Bison now requires a C99 compiler---as announced during the
+  release of Bison 3.0, five years ago.  Generated parsers do not require a
+  C99 compiler.
+
+  Support for DJGPP, which have been unmaintained and untested for years, is
+  obsolete. Unless there is activity to revive it, the next release of Bison
+  will have it removed.
+
+** New features
+
+*** Typed midrule actions
+
+  Because their type is unknown to Bison, the values of midrule actions are
+  not treated like the others: they don't have %printer and %destructor
+  support.  It also prevents C++ (Bison) variants to handle them properly.
+
+  Typed midrule actions address these issues.  Instead of:
+
+    exp: { $<ival>$ = 1; } { $<ival>$ = 2; }   { $$ = $<ival>1 + $<ival>2; }
+
+  write:
+
+    exp: <ival>{ $$ = 1; } <ival>{ $$ = 2; }   { $$ = $1 + $2; }
+
+*** Reports include the type of the symbols
+
+  The sections about terminal and nonterminal symbols of the '*.output' file
+  now specify their declared type.  For instance, for:
+
+    %token <ival> NUM
+
+  the report now shows '<ival>':
+
+    Terminals, with rules where they appear
+
+    NUM <ival> (258) 5
+
+*** Diagnostics about useless rules
+
+  In the following grammar, the 'exp' nonterminal is trivially useless.  So,
+  of course, its rules are useless too.
+
+    %%
+    input: '0' | exp
+    exp: exp '+' exp | exp '-' exp | '(' exp ')'
+
+  Previously all the useless rules were reported, including those whose
+  left-hand side is the 'exp' nonterminal:
+
+    warning: 1 nonterminal useless in grammar [-Wother]
+    warning: 4 rules useless in grammar [-Wother]
+    2.14-16: warning: nonterminal useless in grammar: exp [-Wother]
+     input: '0' | exp
+                  ^^^
+    2.14-16: warning: rule useless in grammar [-Wother]
+     input: '0' | exp
+                  ^^^
+    3.6-16: warning: rule useless in grammar [-Wother]
+     exp: exp '+' exp | exp '-' exp | '(' exp ')'
+          ^^^^^^^^^^^
+    3.20-30: warning: rule useless in grammar [-Wother]
+     exp: exp '+' exp | exp '-' exp | '(' exp ')'
+                        ^^^^^^^^^^^
+    3.34-44: warning: rule useless in grammar [-Wother]
+     exp: exp '+' exp | exp '-' exp | '(' exp ')'
+                                      ^^^^^^^^^^^
+
+  Now, rules whose left-hand side symbol is useless are no longer reported
+  as useless.  The locations of the errors have also been adjusted to point
+  to the first use of the nonterminal as a left-hand side of a rule:
+
+    warning: 1 nonterminal useless in grammar [-Wother]
+    warning: 4 rules useless in grammar [-Wother]
+    3.1-3: warning: nonterminal useless in grammar: exp [-Wother]
+     exp: exp '+' exp | exp '-' exp | '(' exp ')'
+     ^^^
+    2.14-16: warning: rule useless in grammar [-Wother]
+     input: '0' | exp
+                  ^^^
+
+*** C++: Generated parsers can be compiled with -fno-exceptions (lalr1.cc)
+
+  When compiled with exceptions disabled, the generated parsers no longer
+  uses try/catch clauses.
+
+  Currently only GCC and Clang are supported.
+
+** Documentation
+
+*** A demonstration of variants
+
+  A new example was added (installed in .../share/doc/bison/examples),
+  'variant.yy', which shows how to use (Bison) variants in C++.
+
+  The other examples were made nicer to read.
+
+*** Some features are no longer 'experimental'
+
+  The following features, mature enough, are no longer flagged as
+  experimental in the documentation: push parsers, default %printer and
+  %destructor (typed: <*> and untyped: <>), %define api.value.type union and
+  variant, Java parsers, XML output, LR family (lr, ielr, lalr), and
+  semantic predicates (%?).
+
+** Bug fixes
+
+*** GLR: Predicates support broken by #line directives
+
+  Predicates (%?) in GLR such as
+
+    widget:
+      %? {new_syntax} 'w' id new_args
+    | %?{!new_syntax} 'w' id old_args
+
+  were issued with #lines in the middle of C code.
+
+*** Printer and destructor with broken #line directives
+
+  The #line directives were not properly escaped when emitting the code for
+  %printer/%destructor, which resulted in compiler errors if there are
+  backslashes or double-quotes in the grammar file name.
+
+*** Portability on ICC
+
+  The Intel compiler claims compatibility with GCC, yet rejects its _Pragma.
+  Generated parsers now work around this.
+
+*** Various
+
+  There were several small fixes in the test suite and in the build system,
+  many warnings in bison and in the generated parsers were eliminated.  The
+  documentation also received its share of minor improvements.
+
+  Useless code was removed from C++ parsers, and some of the generated
+  constructors are more 'natural'.
+
+* Noteworthy changes in release 3.0.5 (2018-05-27) [stable]
+
+** Bug fixes
+
+*** C++: Fix support of 'syntax_error'
+
+  One incorrect 'inline' resulted in linking errors about the constructor of
+  the syntax_error exception.
+
+*** C++: Fix warnings
+
+  GCC 7.3 (with -O1 or -O2 but not -O0 or -O3) issued null-dereference
+  warnings about yyformat being possibly null.  It also warned about the
+  deprecated implicit definition of copy constructors when there's a
+  user-defined (copy) assignment operator.
+
+*** Location of errors
+
+  In C++ parsers, out-of-bounds errors can happen when a rule with an empty
+  ride-hand side raises a syntax error.  The behavior of the default parser
+  (yacc.c) in such a condition was undefined.
+
+  Now all the parsers match the behavior of glr.c: @$ is used as the
+  location of the error.  This handles gracefully rules with and without
+  rhs.
+
+*** Portability fixes in the test suite
+
+  On some platforms, some Java and/or C++ tests were failing.
+
+* Noteworthy changes in release 3.0.4 (2015-01-23) [stable]
+
+** Bug fixes
+
+*** C++ with Variants (lalr1.cc)
+
+  Fix a compiler warning when no %destructor use $$.
+
+*** Test suites
+
+  Several portability issues in tests were fixed.
+
+* Noteworthy changes in release 3.0.3 (2015-01-15) [stable]
+
+** Bug fixes
+
+*** C++ with Variants (lalr1.cc)
+
+  Problems with %destructor and '%define parse.assert' have been fixed.
+
+*** Named %union support (yacc.c, glr.c)
+
+  Bison 3.0 introduced a regression on named %union such as
+
+    %union foo { int ival; };
+
+  The possibility to use a name was introduced "for Yacc compatibility".
+  It is however not required by POSIX Yacc, and its usefulness is not clear.
+
+*** %define api.value.type union with %defines (yacc.c, glr.c)
+
+  The C parsers were broken when %defines was used together with "%define
+  api.value.type union".
+
+*** Redeclarations are reported in proper order
+
+  On
+
+    %token FOO "foo"
+    %printer {} "foo"
+    %printer {} FOO
+
+  bison used to report:
+
+    /tmp/foo.yy:2.10-11: error: %printer redeclaration for FOO
+     %printer {} "foo"
+              ^^
+    /tmp/foo.yy:3.10-11:     previous declaration
+     %printer {} FOO
+              ^^
+
+  Now, the "previous" declaration is always the first one.
+
+
+** Documentation
+
+  Bison now installs various files in its docdir (which defaults to
+  '/usr/local/share/doc/bison'), including the three fully blown examples
+  extracted from the documentation:
+
+   - rpcalc
+     Reverse Polish Calculator, a simple introductory example.
+   - mfcalc
+     Multi-function Calc, a calculator with memory and functions and located
+     error messages.
+   - calc++
+     a calculator in C++ using variant support and token constructors.
+
+* Noteworthy changes in release 3.0.2 (2013-12-05) [stable]
+
+** Bug fixes
+
+*** Generated source files when errors are reported
+
+  When warnings are issued and -Werror is set, bison would still generate
+  the source files (*.c, *.h...).  As a consequence, some runs of "make"
+  could fail the first time, but not the second (as the files were generated
+  anyway).
+
+  This is fixed: bison no longer generates this source files, but, of
+  course, still produces the various reports (*.output, *.xml, etc.).
+
+*** %empty is used in reports
+
+  Empty right-hand sides are denoted by '%empty' in all the reports (text,
+  dot, XML and formats derived from it).
+
+*** YYERROR and variants
+
+  When C++ variant support is enabled, an error triggered via YYERROR, but
+  not caught via error recovery, resulted in a double deletion.
+
+* Noteworthy changes in release 3.0.1 (2013-11-12) [stable]
+
+** Bug fixes
+
+*** Errors in caret diagnostics
+
+  On some platforms, some errors could result in endless diagnostics.
+
+*** Fixes of the -Werror option
+
+  Options such as "-Werror -Wno-error=foo" were still turning "foo"
+  diagnostics into errors instead of warnings.  This is fixed.
+
+  Actually, for consistency with GCC, "-Wno-error=foo -Werror" now also
+  leaves "foo" diagnostics as warnings.  Similarly, with "-Werror=foo
+  -Wno-error", "foo" diagnostics are now errors.
+
+*** GLR Predicates
+
+  As demonstrated in the documentation, one can now leave spaces between
+  "%?" and its "{".
+
+*** Installation
+
+  The yacc.1 man page is no longer installed if --disable-yacc was
+  specified.
+
+*** Fixes in the test suite
+
+  Bugs and portability issues.
+
 * Noteworthy changes in release 3.0 (2013-07-25) [stable]
 
 ** WARNING: Future backward-incompatibilities!
@@ -2625,7 +2918,7 @@ Output file does not redefine const for C++.
 
 -----
 
-Copyright (C) 1995-2013 Free Software Foundation, Inc.
+Copyright (C) 1995-2015, 2018 Free Software Foundation, Inc.
 
 This file is part of Bison, the GNU Parser Generator.
 

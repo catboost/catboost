@@ -1,6 +1,7 @@
 /* Keep a unique copy of strings.
 
-   Copyright (C) 2002-2005, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002-2005, 2009-2015, 2018 Free Software Foundation,
+   Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -77,7 +78,8 @@ uniqstr_vsprintf (char const *format, ...)
 void
 uniqstr_assert (char const *str)
 {
-  if (!hash_lookup (uniqstrs_table, str))
+  uniqstr s = hash_lookup (uniqstrs_table, str);
+  if (!s || s != str)
     {
       error (0, 0,
              "not a uniqstr: %s", quotearg (str));

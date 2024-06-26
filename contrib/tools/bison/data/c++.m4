@@ -2,7 +2,7 @@
 
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2013 Free Software Foundation, Inc.
+# Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,6 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# Sanity checks, before defaults installed by c.m4.
+b4_percent_define_ifdef([[api.value.union.name]],
+  [b4_complain_at(b4_percent_define_get_loc([[api.value.union.name]]),
+                  [named %union is invalid in C++])])
+
 m4_include(b4_pkgdatadir/[c.m4])
 
 # b4_comment(TEXT, [PREFIX])
@@ -24,6 +29,16 @@ m4_include(b4_pkgdatadir/[c.m4])
 # Put TEXT in comment. Prefix all the output lines with PREFIX.
 m4_define([b4_comment],
 [b4_comment_([$1], [$2// ], [$2// ])])
+
+# b4_inline(hh|cc)
+# ----------------
+# Expand to `inline\n  ` if $1 is hh.
+m4_define([b4_inline],
+[m4_case([$1],
+  [cc], [],
+  [hh], [[inline
+  ]],
+  [m4_fatal([$0: invalid argument: $1])])])
 
 ## -------- ##
 ## Checks.  ##
@@ -169,8 +184,11 @@ m4_define([b4_public_types_declare],
     /// (External) token type, as returned by yylex.
     typedef token::yytokentype token_type;
 
-    /// Internal symbol number.
+    /// Symbol type: an internal symbol number.
     typedef int symbol_number_type;
+
+    /// The symbol type number to denote an empty symbol.
+    enum { empty_symbol = -2 };
 
     /// Internal symbol number for tokens (subsumed by symbol_number_type).
     typedef ]b4_int_type_for([b4_translate])[ token_number_type;
@@ -204,7 +222,14 @@ m4_define([b4_public_types_declare],
                     const semantic_type& v]b4_locations_if([,
                     const location_type& l])[);
 
+      /// Destroy the symbol.
       ~basic_symbol ();
+
+      /// Destroy contents, and record that is empty.
+      void clear ();
+
+      /// Whether empty.
+      bool empty () const;
 
       /// Destructive move, \a s is emptied into this.
       void move (basic_symbol& s);
@@ -235,21 +260,23 @@ m4_define([b4_public_types_declare],
       /// Constructor from (external) token numbers.
       by_type (kind_type t);
 
+      /// Record that this symbol is empty.
+      void clear ();
+
       /// Steal the symbol type from \a that.
       void move (by_type& that);
 
       /// The (internal) type number (corresponding to \a type).
-      /// -1 when this symbol is empty.
+      /// \a empty when empty.
       symbol_number_type type_get () const;
 
       /// The token.
       token_type token () const;
 
-      enum { empty = 0 };
-
       /// The symbol type.
-      /// -1 when this symbol is empty.
-      token_number_type type;
+      /// \a empty_symbol when empty.
+      /// An int, not token_number_type, to be able to store empty_symbol.
+      int type;
     };
 
     /// "External" symbols: returned by the scanner.
@@ -258,38 +285,33 @@ m4_define([b4_public_types_declare],
 ]b4_symbol_constructor_declare])
 
 
-# b4_public_types_define
-# ----------------------
+# b4_public_types_define(hh|cc)
+# -----------------------------
 # Provide the implementation needed by the public types.
 m4_define([b4_public_types_define],
-[[  inline
-  ]b4_parser_class_name[::syntax_error::syntax_error (]b4_locations_if([const location_type& l, ])[const std::string& m)
+[  b4_inline([$1])b4_parser_class_name[::syntax_error::syntax_error (]b4_locations_if([const location_type& l, ])[const std::string& m)
     : std::runtime_error (m)]b4_locations_if([
     , location (l)])[
   {}
 
   // basic_symbol.
   template <typename Base>
-  inline
   ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol ()
-    : value ()
+    : value ()]b4_locations_if([
+    , location ()])[
   {}
 
   template <typename Base>
-  inline
   ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol (const basic_symbol& other)
     : Base (other)
-    , value ()]b4_locations_if([
+    , value (]b4_variant_if([], [other.value])[)]b4_locations_if([
     , location (other.location)])[
-  {
-    ]b4_variant_if([b4_symbol_variant([other.type_get ()], [value], [copy],
-                                      [other.value])],
-                   [value = other.value;])[
+  {]b4_variant_if([
+    b4_symbol_variant([other.type_get ()], [value], [copy],
+                      [other.value])])[
   }
 
-
   template <typename Base>
-  inline
   ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol (]b4_join(
           [typename Base::kind_type t],
           [const semantic_type& v],
@@ -306,7 +328,6 @@ m4_define([b4_public_types_define],
 ]b4_type_foreach([b4_basic_symbol_constructor_define])], [[
   /// Constructor for valueless symbols.
   template <typename Base>
-  inline
   ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol (]b4_join(
           [typename Base::kind_type t],
           b4_locations_if([const location_type& l]))[)
@@ -316,11 +337,19 @@ m4_define([b4_public_types_define],
   {}]])[
 
   template <typename Base>
-  inline
   ]b4_parser_class_name[::basic_symbol<Base>::~basic_symbol ()
+  {
+    clear ();
+  }
+
+  template <typename Base>
+  void
+  ]b4_parser_class_name[::basic_symbol<Base>::clear ()
   {]b4_variant_if([[
     // User destructor.
     symbol_number_type yytype = this->type_get ();
+    basic_symbol<Base>& yysym = *this;
+    (void) yysym;
     switch (yytype)
     {
 ]b4_symbol_foreach([b4_symbol_destructor])dnl
@@ -330,14 +359,21 @@ m4_define([b4_public_types_define],
 
     // Type destructor.
   ]b4_symbol_variant([[yytype]], [[value]], [[template destroy]])])[
+    Base::clear ();
   }
 
   template <typename Base>
-  inline
+  bool
+  ]b4_parser_class_name[::basic_symbol<Base>::empty () const
+  {
+    return Base::type_get () == empty_symbol;
+  }
+
+  template <typename Base>
   void
   ]b4_parser_class_name[::basic_symbol<Base>::move (basic_symbol& s)
   {
-    super_type::move(s);
+    super_type::move (s);
     ]b4_variant_if([b4_symbol_variant([this->type_get ()], [value], [move],
                                       [s.value])],
                    [value = s.value;])[]b4_locations_if([
@@ -345,38 +381,38 @@ m4_define([b4_public_types_define],
   }
 
   // by_type.
-  inline
-  ]b4_parser_class_name[::by_type::by_type ()
-     : type (empty)
+  ]b4_inline([$1])b4_parser_class_name[::by_type::by_type ()
+    : type (empty_symbol)
   {}
 
-  inline
-  ]b4_parser_class_name[::by_type::by_type (const by_type& other)
+  ]b4_inline([$1])b4_parser_class_name[::by_type::by_type (const by_type& other)
     : type (other.type)
   {}
 
-  inline
-  ]b4_parser_class_name[::by_type::by_type (token_type t)
+  ]b4_inline([$1])b4_parser_class_name[::by_type::by_type (token_type t)
     : type (yytranslate_ (t))
   {}
 
-  inline
-  void
+  ]b4_inline([$1])[void
+  ]b4_parser_class_name[::by_type::clear ()
+  {
+    type = empty_symbol;
+  }
+
+  ]b4_inline([$1])[void
   ]b4_parser_class_name[::by_type::move (by_type& that)
   {
     type = that.type;
-    that.type = empty;
+    that.clear ();
   }
 
-  inline
-  int
+  ]b4_inline([$1])[int
   ]b4_parser_class_name[::by_type::type_get () const
   {
     return type;
   }
 ]b4_token_ctor_if([[
-  inline
-  ]b4_parser_class_name[::token_type
+  ]b4_inline([$1])b4_parser_class_name[::token_type
   ]b4_parser_class_name[::by_type::token () const
   {
     // YYTOKNUM[NUM] -- (External) token number corresponding to the
@@ -402,14 +438,13 @@ m4_define([b4_symbol_constructor_declare], [])
 m4_define([b4_symbol_constructor_define], [])
 
 
-# b4_yytranslate_define
-# ---------------------
-# Define yytranslate_.  Sometimes used in the header file,
+# b4_yytranslate_define(cc|hh)
+# ----------------------------
+# Define yytranslate_.  Sometimes used in the header file ($1=hh),
 # sometimes in the cc file.
 m4_define([b4_yytranslate_define],
 [[  // Symbol number corresponding to token number t.
-  inline
-  ]b4_parser_class_name[::token_number_type
+  ]b4_inline([$1])b4_parser_class_name[::token_number_type
   ]b4_parser_class_name[::yytranslate_ (]b4_token_ctor_if([token_type],
                                                           [int])[ t)
   {
@@ -419,12 +454,12 @@ m4_define([b4_yytranslate_define],
     {
 ]b4_translate[
     };
-    const unsigned int user_token_number_max_ = ]b4_user_token_number_max[;
+    const unsigned user_token_number_max_ = ]b4_user_token_number_max[;
     const token_number_type undef_token_ = ]b4_undef_token_number[;
 
-    if (static_cast<int>(t) <= yyeof_)
+    if (static_cast<int> (t) <= yyeof_)
       return yyeof_;
-    else if (static_cast<unsigned int> (t) <= user_token_number_max_)
+    else if (static_cast<unsigned> (t) <= user_token_number_max_)
       return translate_table[t];
     else
       return undef_token_;

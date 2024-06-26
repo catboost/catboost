@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.  */
+/* A Bison parser, made by GNU Bison 3.0.5.75-d835.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -48,11 +48,11 @@
 extern int gram_debug;
 #endif
 /* "%code requires" blocks.  */
-#line 21 "src/parse-gram.y" /* yacc.c:1909  */
+#line 21 "src/parse-gram.y" /* yacc.c:1913  */
 
   #include "symlist.h"
   #include "symtab.h"
-#line 221 "src/parse-gram.y" /* yacc.c:1909  */
+#line 221 "src/parse-gram.y" /* yacc.c:1913  */
 
   typedef enum
   {
@@ -61,10 +61,10 @@ extern int gram_debug;
     param_parse  = 1 << 1,
     param_both   = param_lex | param_parse
   } param_type;
-#line 645 "src/parse-gram.y" /* yacc.c:1909  */
+#line 644 "src/parse-gram.y" /* yacc.c:1913  */
 #include "muscle-tab.h"
 
-#line 68 "src/parse-gram.h" /* yacc.c:1909  */
+#line 68 "src/parse-gram.h" /* yacc.c:1913  */
 
 /* Token type.  */
 #ifndef GRAM_TOKENTYPE
@@ -132,30 +132,30 @@ extern int gram_debug;
 
 /* Value type.  */
 #if ! defined GRAM_STYPE && ! defined GRAM_STYPE_IS_DECLARED
-typedef union GRAM_STYPE GRAM_STYPE;
+
 union GRAM_STYPE
 {
-#line 182 "src/parse-gram.y" /* yacc.c:1909  */
+#line 182 "src/parse-gram.y" /* yacc.c:1913  */
 unsigned char character;
-#line 186 "src/parse-gram.y" /* yacc.c:1909  */
+#line 186 "src/parse-gram.y" /* yacc.c:1913  */
 char *code;
-#line 191 "src/parse-gram.y" /* yacc.c:1909  */
+#line 191 "src/parse-gram.y" /* yacc.c:1913  */
 uniqstr uniqstr;
-#line 199 "src/parse-gram.y" /* yacc.c:1909  */
+#line 199 "src/parse-gram.y" /* yacc.c:1913  */
 int integer;
-#line 203 "src/parse-gram.y" /* yacc.c:1909  */
+#line 203 "src/parse-gram.y" /* yacc.c:1913  */
 symbol *symbol;
-#line 208 "src/parse-gram.y" /* yacc.c:1909  */
+#line 208 "src/parse-gram.y" /* yacc.c:1913  */
 assoc assoc;
-#line 211 "src/parse-gram.y" /* yacc.c:1909  */
+#line 211 "src/parse-gram.y" /* yacc.c:1913  */
 symbol_list *list;
-#line 214 "src/parse-gram.y" /* yacc.c:1909  */
+#line 214 "src/parse-gram.y" /* yacc.c:1913  */
 named_ref *named_ref;
-#line 241 "src/parse-gram.y" /* yacc.c:1909  */
+#line 241 "src/parse-gram.y" /* yacc.c:1913  */
 param_type param;
-#line 409 "src/parse-gram.y" /* yacc.c:1909  */
+#line 408 "src/parse-gram.y" /* yacc.c:1913  */
 code_props_type code_type;
-#line 647 "src/parse-gram.y" /* yacc.c:1909  */
+#line 646 "src/parse-gram.y" /* yacc.c:1913  */
 
   struct
   {
@@ -163,8 +163,10 @@ code_props_type code_type;
     muscle_kind kind;
   } value;
 
-#line 167 "src/parse-gram.h" /* yacc.c:1909  */
+#line 167 "src/parse-gram.h" /* yacc.c:1913  */
 };
+
+typedef union GRAM_STYPE GRAM_STYPE;
 # define GRAM_STYPE_IS_TRIVIAL 1
 # define GRAM_STYPE_IS_DECLARED 1
 #endif

@@ -1,5 +1,5 @@
 /* Auxiliary functions for the creation of subprocesses.  Native Windows API.
-   Copyright (C) 2001, 2003-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2003-2018 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2003.
 
    This program is free software: you can redistribute it and/or modify
@@ -13,11 +13,13 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#ifndef __KLIBC__
 /* Get declarations of the native Windows API functions.  */
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+#endif
 
 /* Get _open_osfhandle().  */
 #include <io.h>
@@ -28,7 +30,11 @@
 #include <errno.h>
 
 /* Get _get_osfhandle().  */
-#include "msvc-nothrow.h"
+# if GNULIB_MSVC_NOTHROW
+#  include "msvc-nothrow.h"
+# else
+#  include <io.h>
+# endif
 
 #include "cloexec.h"
 #include "xalloc.h"
@@ -123,8 +129,13 @@ undup_safer_noinherit (int tempfd, int origfd)
        - mingw programs that have a global variable 'int _CRT_glob = 0;',
        - Cygwin programs, when invoked from a Cygwin program.
  */
-#define SHELL_SPECIAL_CHARS "\"\\ \001\002\003\004\005\006\007\010\011\012\013\014\015\016\017\020\021\022\023\024\025\026\027\030\031\032\033\034\035\036\037*?"
-#define SHELL_SPACE_CHARS " \001\002\003\004\005\006\007\010\011\012\013\014\015\016\017\020\021\022\023\024\025\026\027\030\031\032\033\034\035\036\037"
+#ifndef __KLIBC__
+# define SHELL_SPECIAL_CHARS "\"\\ \001\002\003\004\005\006\007\010\011\012\013\014\015\016\017\020\021\022\023\024\025\026\027\030\031\032\033\034\035\036\037*?"
+# define SHELL_SPACE_CHARS " \001\002\003\004\005\006\007\010\011\012\013\014\015\016\017\020\021\022\023\024\025\026\027\030\031\032\033\034\035\036\037"
+#else
+# define SHELL_SPECIAL_CHARS ""
+# define SHELL_SPACE_CHARS ""
+#endif
 static char **
 prepare_spawn (char **argv)
 {

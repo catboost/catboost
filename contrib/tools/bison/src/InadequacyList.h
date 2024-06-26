@@ -1,6 +1,6 @@
 /* IELR's inadequacy list.
 
-   Copyright (C) 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -31,7 +31,7 @@
  * This must remain unsigned so that the overflow check in
  * \c InadequacyList__new_conflict works properly.
  */
-typedef unsigned long long int InadequacyListNodeCount;
+typedef unsigned long long InadequacyListNodeCount;
 
 /**
  * For a conflict, each rule in the grammar can have at most one contributing

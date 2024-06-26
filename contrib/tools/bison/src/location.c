@@ -1,6 +1,6 @@
 /* Locations for Bison
 
-   Copyright (C) 2002, 2005-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005-2015, 2018 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -37,7 +37,7 @@ static inline int
 add_column_width (int column, char const *buf, size_t bufsize)
 {
   size_t width;
-  unsigned int remaining_columns = INT_MAX - column;
+  unsigned remaining_columns = INT_MAX - column;
 
   if (buf)
     {
@@ -188,7 +188,7 @@ location_caret (location loc, FILE *out)
   /* Read the actual line.  Don't update the offset, so that we keep a pointer
      to the start of the line.  */
   {
-    char c = getc (caret_info.source);
+    int c = getc (caret_info.source);
     if (c != EOF)
       {
         /* Quote the file, indent by a single column.  */

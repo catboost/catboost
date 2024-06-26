@@ -7,7 +7,7 @@ instructions.
 
 Bison requires GNU m4 1.4.6 or later.  See:
 
-      ftp://ftp.gnu.org/gnu/m4/m4-1.4.6.tar.gz
+      https://ftp.gnu.org/gnu/m4/m4-1.4.6.tar.gz
 
 ** Internationalization
 Bison supports two catalogues: one for Bison itself (i.e., for the
@@ -37,14 +37,14 @@ test case in each bug report.
 For any copyright year range specified as YYYY-ZZZZ in this package,
 note that the range specifies every single year in that closed interval.
 
+-----
 
 Local Variables:
 mode: outline
+fill-column: 76
 End:
 
------
-
-Copyright (C) 1992, 1998-1999, 2003-2005, 2008-2013 Free Software
+Copyright (C) 1992, 1998-1999, 2003-2005, 2008-2015, 2018 Free Software
 Foundation, Inc.
 
 This file is part of Bison, the GNU Compiler Compiler.

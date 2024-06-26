@@ -1,5 +1,5 @@
-/* Hook for making making file descriptor functions close(), ioctl() extensible.
-   Copyright (C) 2009-2013 Free Software Foundation, Inc.
+/* Hook for making file descriptor functions close(), ioctl() extensible.
+   Copyright (C) 2009-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published
@@ -12,7 +12,7 @@
    General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #ifndef FD_HOOK_H

@@ -1,5 +1,5 @@
 /* Locking in multithreaded situations.
-   Copyright (C) 2005-2013 Free Software Foundation, Inc.
+   Copyright (C) 2005-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Bruno Haible <bruno@clisp.org>, 2005.
    Based on GCC's gthr-posix.h, gthr-posix95.h, gthr-solaris.h,
@@ -139,13 +139,24 @@ extern int glthread_in_use (void);
 #  pragma weak pthread_mutexattr_init
 #  pragma weak pthread_mutexattr_settype
 #  pragma weak pthread_mutexattr_destroy
+#  pragma weak pthread_rwlockattr_init
+#  if __GNU_LIBRARY__ > 1
+#   pragma weak pthread_rwlockattr_setkind_np
+#  endif
+#  pragma weak pthread_rwlockattr_destroy
 #  ifndef pthread_self
 #   pragma weak pthread_self
 #  endif
 
 #  if !PTHREAD_IN_USE_DETECTION_HARD
-#   pragma weak pthread_cancel
-#   define pthread_in_use() (pthread_cancel != NULL)
+    /* Considering all platforms with USE_POSIX_THREADS_WEAK, only few symbols
+       can be used to determine whether libpthread is in use.  These are:
+         pthread_mutexattr_gettype
+         pthread_rwlockattr_destroy
+         pthread_rwlockattr_init
+     */
+#   pragma weak pthread_mutexattr_gettype
+#   define pthread_in_use() (pthread_mutexattr_gettype != NULL)
 #  endif
 
 # else
@@ -176,7 +187,7 @@ typedef pthread_mutex_t gl_lock_t;
 
 /* ------------------------- gl_rwlock_t datatype ------------------------- */
 
-# if HAVE_PTHREAD_RWLOCK
+# if HAVE_PTHREAD_RWLOCK && (HAVE_PTHREAD_RWLOCK_RDLOCK_PREFER_WRITER || (defined PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP && (__GNU_LIBRARY__ > 1)))
 
 #  ifdef PTHREAD_RWLOCK_INITIALIZER
 
@@ -185,10 +196,18 @@ typedef pthread_rwlock_t gl_rwlock_t;
       STORAGECLASS pthread_rwlock_t NAME;
 #   define gl_rwlock_define_initialized(STORAGECLASS, NAME) \
       STORAGECLASS pthread_rwlock_t NAME = gl_rwlock_initializer;
-#   define gl_rwlock_initializer \
-      PTHREAD_RWLOCK_INITIALIZER
-#   define glthread_rwlock_init(LOCK) \
-      (pthread_in_use () ? pthread_rwlock_init (LOCK, NULL) : 0)
+#   if HAVE_PTHREAD_RWLOCK_RDLOCK_PREFER_WRITER
+#    define gl_rwlock_initializer \
+       PTHREAD_RWLOCK_INITIALIZER
+#    define glthread_rwlock_init(LOCK) \
+       (pthread_in_use () ? pthread_rwlock_init (LOCK, NULL) : 0)
+#   else /* glibc with bug https://sourceware.org/bugzilla/show_bug.cgi?id=13701 */
+#    define gl_rwlock_initializer \
+       PTHREAD_RWLOCK_WRITER_NONRECURSIVE_INITIALIZER_NP
+#    define glthread_rwlock_init(LOCK) \
+       (pthread_in_use () ? glthread_rwlock_init_for_glibc (LOCK) : 0)
+extern int glthread_rwlock_init_for_glibc (pthread_rwlock_t *lock);
+#   endif
 #   define glthread_rwlock_rdlock(LOCK) \
       (pthread_in_use () ? pthread_rwlock_rdlock (LOCK) : 0)
 #   define glthread_rwlock_wrlock(LOCK) \
@@ -427,6 +446,9 @@ typedef pth_mutex_t gl_lock_t;
 
 /* ------------------------- gl_rwlock_t datatype ------------------------- */
 
+/* Pth pth_rwlock_acquire always prefers readers.  No autoconf test so far.  */
+# if HAVE_PTH_RWLOCK_ACQUIRE_PREFER_WRITER
+
 typedef pth_rwlock_t gl_rwlock_t;
 #  define gl_rwlock_define(STORAGECLASS, NAME) \
      STORAGECLASS pth_rwlock_t NAME;
@@ -444,6 +466,42 @@ typedef pth_rwlock_t gl_rwlock_t;
      (pth_in_use () && !pth_rwlock_release (LOCK) ? errno : 0)
 #  define glthread_rwlock_destroy(LOCK) \
      ((void)(LOCK), 0)
+
+# else
+
+typedef struct
+        {
+          int initialized;
+          pth_mutex_t lock; /* protects the remaining fields */
+          pth_cond_t waiting_readers; /* waiting readers */
+          pth_cond_t waiting_writers; /* waiting writers */
+          unsigned int waiting_writers_count; /* number of waiting writers */
+          int runcount; /* number of readers running, or -1 when a writer runs */
+        }
+        gl_rwlock_t;
+#  define gl_rwlock_define(STORAGECLASS, NAME) \
+     STORAGECLASS gl_rwlock_t NAME;
+#  define gl_rwlock_define_initialized(STORAGECLASS, NAME) \
+     STORAGECLASS gl_rwlock_t NAME = gl_rwlock_initializer;
+#  define gl_rwlock_initializer \
+     { 0 }
+#  define glthread_rwlock_init(LOCK) \
+     (pth_in_use () ? glthread_rwlock_init_multithreaded (LOCK) : 0)
+#  define glthread_rwlock_rdlock(LOCK) \
+     (pth_in_use () ? glthread_rwlock_rdlock_multithreaded (LOCK) : 0)
+#  define glthread_rwlock_wrlock(LOCK) \
+     (pth_in_use () ? glthread_rwlock_wrlock_multithreaded (LOCK) : 0)
+#  define glthread_rwlock_unlock(LOCK) \
+     (pth_in_use () ? glthread_rwlock_unlock_multithreaded (LOCK) : 0)
+#  define glthread_rwlock_destroy(LOCK) \
+     (pth_in_use () ? glthread_rwlock_destroy_multithreaded (LOCK) : 0)
+extern int glthread_rwlock_init_multithreaded (gl_rwlock_t *lock);
+extern int glthread_rwlock_rdlock_multithreaded (gl_rwlock_t *lock);
+extern int glthread_rwlock_wrlock_multithreaded (gl_rwlock_t *lock);
+extern int glthread_rwlock_unlock_multithreaded (gl_rwlock_t *lock);
+extern int glthread_rwlock_destroy_multithreaded (gl_rwlock_t *lock);
+
+# endif
 
 /* --------------------- gl_recursive_lock_t datatype --------------------- */
 

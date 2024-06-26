@@ -1,6 +1,6 @@
 /* Print information on generated parser, for bison,
 
-   Copyright (C) 1984, 1986, 1989, 2000-2005, 2007, 2009-2013 Free
+   Copyright (C) 1984, 1986, 1989, 2000-2005, 2007, 2009-2015, 2018 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -40,14 +40,6 @@
 
 static bitset no_reduce_set;
 
-#if 0
-static void
-print_token (int extnum, int token)
-{
-  fprintf (out, _(" type %d is %s\n"), extnum, tags[token]);
-}
-#endif
-
 
 
 /*---------------------------------------.
@@ -72,7 +64,7 @@ print_core (FILE *out, state *s)
   size_t i;
   item_number *sitems = s->items;
   size_t snritems = s->nitems;
-  symbol *previous_lhs = NULL;
+  sym_content *previous_lhs = NULL;
 
   /* Output all the items of a state, not only its kernel.  */
   if (report_flag & report_itemsets)
@@ -106,8 +98,11 @@ print_core (FILE *out, state *s)
       for (sp = rules[r].rhs; sp < sp1; sp++)
         fprintf (out, " %s", symbols[*sp]->tag);
       fputs (" .", out);
-      for (/* Nothing */; *sp >= 0; ++sp)
-        fprintf (out, " %s", symbols[*sp]->tag);
+      if (0 <= *rules[r].rhs)
+        for (/* Nothing */; 0 <= *sp; ++sp)
+          fprintf (out, " %s", symbols[*sp]->tag);
+      else
+        fprintf (out, " %%empty");
 
       /* Display the lookahead tokens?  */
       if (report_flag & report_lookahead_tokens
@@ -223,7 +218,8 @@ print_reduction (FILE *out, size_t width,
   if (!enabled)
     fputc ('[', out);
   if (r->number)
-    fprintf (out, _("reduce using rule %d (%s)"), r->number, r->lhs->tag);
+    fprintf (out, _("reduce using rule %d (%s)"), r->number,
+             r->lhs->symbol->tag);
   else
     fprintf (out, _("accept"));
   if (!enabled)
@@ -257,7 +253,7 @@ print_reductions (FILE *out, state *s)
     bitset_set (no_reduce_set, TRANSITION_SYMBOL (trans, i));
   for (i = 0; i < s->errs->num; ++i)
     if (s->errs->symbols[i])
-      bitset_set (no_reduce_set, s->errs->symbols[i]->number);
+      bitset_set (no_reduce_set, s->errs->symbols[i]->content->number);
 
   /* Compute the width of the lookahead token column.  */
   if (default_reduction)
@@ -340,6 +336,7 @@ print_reductions (FILE *out, state *s)
             || (STREQ (default_reductions, "consistent")
                 && default_reduction_only)
             || (reds->num == 1 && reds->rules[0]->number == 0));
+      (void) default_reduction_only;
       free (default_reductions);
     }
 }
@@ -397,27 +394,30 @@ print_state (FILE *out, state *s)
 
 
 static void
-print_grammar (FILE *out)
+print_terminal_symbols (FILE *out)
 {
   symbol_number i;
-  char buffer[90];
-  int column = 0;
-
-  grammar_rules_print (out);
 
   /* TERMINAL (type #) : rule #s terminal is on RHS */
   fprintf (out, "%s\n\n", _("Terminals, with rules where they appear"));
   for (i = 0; i < max_user_token_number + 1; i++)
-    if (token_translations[i] != undeftoken->number)
+    if (token_translations[i] != undeftoken->content->number)
       {
         const char *tag = symbols[token_translations[i]]->tag;
+        int column = strlen (tag);
+        char buffer[90];
         rule_number r;
         item_number *rhsp;
 
         buffer[0] = 0;
-        column = strlen (tag);
         fputs (tag, out);
         END_TEST (65);
+        if (symbols[token_translations[i]]->content->type_name)
+          {
+            column += fprintf (out, " <%s>",
+                               symbols[token_translations[i]]->content->type_name);
+            END_TEST (65);
+          }
         sprintf (buffer, " (%d)", i);
 
         for (r = 0; r < nrules; r++)
@@ -431,14 +431,23 @@ print_grammar (FILE *out)
         fprintf (out, "%s\n", buffer);
       }
   fputs ("\n\n", out);
+}
 
+
+static void
+print_nonterminal_symbols (FILE *out)
+{
+  symbol_number i;
 
   fprintf (out, "%s\n\n", _("Nonterminals, with rules where they appear"));
   for (i = ntokens; i < nsyms; i++)
     {
+      const char *tag = symbols[i]->tag;
+      int column = strlen (tag);
       int left_count = 0, right_count = 0;
       rule_number r;
-      const char *tag = symbols[i]->tag;
+      char buffer[90];
+      buffer[0] = 0;
 
       for (r = 0; r < nrules; r++)
         {
@@ -453,9 +462,10 @@ print_grammar (FILE *out)
               }
         }
 
-      buffer[0] = 0;
       fputs (tag, out);
-      column = strlen (tag);
+      if (symbols[i]->content->type_name)
+        column += fprintf (out, " <%s>",
+                           symbols[i]->content->type_name);
       sprintf (buffer, " (%d)", i);
       END_TEST (0);
 
@@ -499,8 +509,6 @@ print_grammar (FILE *out)
 void
 print_results (void)
 {
-  state_number i;
-
   /* We used to use just .out if SPEC_NAME_PREFIX (-p) was used, but
      that conflicts with Posix.  */
   FILE *out = xfopen (spec_verbose_file, "w");
@@ -511,7 +519,9 @@ print_results (void)
                                  rule_useless_in_parser_p);
   conflicts_output (out);
 
-  print_grammar (out);
+  grammar_rules_print (out);
+  print_terminal_symbols (out);
+  print_nonterminal_symbols (out);
 
   /* If the whole state item sets, not only the kernels, are wanted,
      'closure' will be run, which needs memory allocation/deallocation.   */
@@ -519,8 +529,11 @@ print_results (void)
     new_closure (nritems);
   /* Storage for print_reductions.  */
   no_reduce_set =  bitset_create (ntokens, BITSET_FIXED);
-  for (i = 0; i < nstates; i++)
-    print_state (out, states[i]);
+  {
+    state_number i;
+    for (i = 0; i < nstates; i++)
+      print_state (out, states[i]);
+  }
   bitset_free (no_reduce_set);
   if (report_flag & report_itemsets)
     free_closure ();

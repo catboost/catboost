@@ -1,6 +1,6 @@
 /* Wrappers that don't throw invalid parameter notifications
    with MSVC runtime libraries.
-   Copyright (C) 2011-2013 Free Software Foundation, Inc.
+   Copyright (C) 2011-2018 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _MSVC_NOTHROW_H
 #define _MSVC_NOTHROW_H
@@ -25,7 +25,7 @@
    This file defines wrappers that turn such an invalid parameter notification
    into an error code.  */
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#if defined _WIN32 && ! defined __CYGWIN__
 
 /* Get original declaration of _get_osfhandle.  */
 # include <io.h>

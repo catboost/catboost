@@ -2,7 +2,7 @@
 
 # Language-independent M4 Macros for Bison.
 
-# Copyright (C) 2002, 2004-2013 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2004-2015, 2018 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -437,7 +437,6 @@ m4_define([b4_symbol_action_location],
 # b4_symbol_action(SYMBOL-NUM, KIND)
 # ----------------------------------
 # Run the action KIND (destructor or printer) for SYMBOL-NUM.
-# Same as in C, but using references instead of pointers.
 m4_define([b4_symbol_action],
 [b4_symbol_if([$1], [has_$2],
 [b4_dollar_pushdef([(*yyvaluep)],
@@ -445,7 +444,7 @@ m4_define([b4_symbol_action],
                                 [m4_dquote(b4_symbol([$1], [type]))]),
                    [(*yylocationp)])dnl
     b4_symbol_case_([$1])[]dnl
-b4_syncline([b4_symbol([$1], [$2_line])], ["b4_symbol([$1], [$2_file])"])
+b4_syncline([b4_symbol([$1], [$2_line])], [b4_symbol([$1], [$2_file])])
       b4_symbol([$1], [$2])
 b4_syncline([@oline@], [@ofile@])
         break;
@@ -1061,3 +1060,6 @@ b4_percent_define_ifdef([api.value.type],
                 [['%s' and '%s' cannot be used together]],
                 [%yacc],
                 [%define api.value.type "union"])])])])
+
+# api.value.union.name.
+b4_percent_define_check_kind([api.value.union.name], [keyword])

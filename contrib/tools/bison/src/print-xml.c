@@ -1,6 +1,6 @@
 /* Print an xml on generated parser, for Bison,
 
-   Copyright (C) 2007, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009-2015, 2018 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -65,40 +65,39 @@ print_core (FILE *out, int level, state *s)
   sitems = itemset;
   snritems = nitemset;
 
-  if (!snritems) {
-    xml_puts (out, level, "<itemset/>");
-    return;
-  }
+  if (!snritems)
+    {
+      xml_puts (out, level, "<itemset/>");
+      return;
+    }
 
   xml_puts (out, level, "<itemset>");
 
   for (i = 0; i < snritems; i++)
     {
       bool printed = false;
-      item_number *sp;
-      item_number *sp1;
-      rule_number r;
+      item_number *sp1 = ritem + sitems[i];
+      item_number *sp = sp1;
+      rule *r;
 
-      sp1 = sp = ritem + sitems[i];
-
-      while (*sp >= 0)
+      while (0 <= *sp)
         sp++;
 
-      r = item_number_as_rule_number (*sp);
-      sp = rules[r].rhs;
+      r = &rules[item_number_as_rule_number (*sp)];
+      sp = r->rhs;
 
       /* Display the lookahead tokens?  */
       if (item_number_is_rule_number (*sp1))
         {
           reductions *reds = s->reductions;
-          int red = state_reduction_find (s, &rules[r]);
+          int red = state_reduction_find (s, r);
           /* Print item with lookaheads if there are. */
           if (reds->lookahead_tokens && red != -1)
             {
               xml_printf (out, level + 1,
                           "<item rule-number=\"%d\" point=\"%d\">",
-                          rules[r].number, sp1 - sp);
-              state_rule_lookahead_tokens_print_xml (s, &rules[r],
+                          r->number, sp1 - sp);
+              state_rule_lookahead_tokens_print_xml (s, r,
                                                      out, level + 2);
               xml_puts (out, level + 1, "</item>");
               printed = true;
@@ -106,12 +105,10 @@ print_core (FILE *out, int level, state *s)
         }
 
       if (!printed)
-        {
-          xml_printf (out, level + 1,
-                      "<item rule-number=\"%d\" point=\"%d\"/>",
-                      rules[r].number,
-                      sp1 - sp);
-        }
+        xml_printf (out, level + 1,
+                    "<item rule-number=\"%d\" point=\"%d\"/>",
+                    r->number,
+                    sp1 - sp);
     }
   xml_puts (out, level, "</itemset>");
 }
@@ -136,10 +133,11 @@ print_transitions (state *s, FILE *out, int level)
       }
 
   /* Nothing to report. */
-  if (!n) {
-    xml_puts (out, level, "<transitions/>");
-    return;
-  }
+  if (!n)
+    {
+      xml_puts (out, level, "<transitions/>");
+      return;
+    }
 
   /* Report lookahead tokens and shifts.  */
   xml_puts (out, level, "<transitions>");
@@ -190,10 +188,11 @@ print_errs (FILE *out, int level, state *s)
       count = true;
 
   /* Nothing to report. */
-  if (!count) {
-    xml_puts (out, level, "<errors/>");
-    return;
-  }
+  if (!count)
+    {
+      xml_puts (out, level, "<errors/>");
+      return;
+    }
 
   /* Report lookahead tokens and errors.  */
   xml_puts (out, level, "<errors>");
@@ -260,7 +259,7 @@ print_reductions (FILE *out, int level, state *s)
     bitset_set (no_reduce_set, TRANSITION_SYMBOL (trans, i));
   for (i = 0; i < s->errs->num; ++i)
     if (s->errs->symbols[i])
-      bitset_set (no_reduce_set, s->errs->symbols[i]->number);
+      bitset_set (no_reduce_set, s->errs->symbols[i]->content->number);
 
   if (default_reduction)
     report = true;
@@ -287,10 +286,11 @@ print_reductions (FILE *out, int level, state *s)
       }
 
   /* Nothing to report. */
-  if (!report) {
-    xml_puts (out, level, "<reductions/>");
-    return;
-  }
+  if (!report)
+    {
+      xml_puts (out, level, "<reductions/>");
+      return;
+    }
 
   xml_puts (out, level, "<reductions>");
 
@@ -388,11 +388,11 @@ print_grammar (FILE *out, int level)
   /* Terminals */
   xml_puts (out, level + 1, "<terminals>");
   for (i = 0; i < max_user_token_number + 1; i++)
-    if (token_translations[i] != undeftoken->number)
+    if (token_translations[i] != undeftoken->content->number)
       {
         char const *tag = symbols[token_translations[i]]->tag;
-        int precedence = symbols[token_translations[i]]->prec;
-        assoc associativity = symbols[token_translations[i]]->assoc;
+        int precedence = symbols[token_translations[i]]->content->prec;
+        assoc associativity = symbols[token_translations[i]]->content->assoc;
         xml_indent (out, level + 2);
         fprintf (out,
                  "<terminal symbol-number=\"%d\" token-number=\"%d\""
@@ -417,7 +417,7 @@ print_grammar (FILE *out, int level)
                   "<nonterminal symbol-number=\"%d\" name=\"%s\""
                   " usefulness=\"%s\"/>",
                   i, xml_escape (tag),
-                  reduce_nonterminal_useless_in_grammar (i)
+                  reduce_nonterminal_useless_in_grammar (symbols[i]->content)
                     ? "useless-in-grammar" : "useful");
     }
   xml_puts (out, level + 1, "</nonterminals>");

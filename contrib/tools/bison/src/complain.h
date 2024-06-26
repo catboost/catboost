@@ -1,7 +1,7 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2006, 2009-2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 2000-2002, 2006, 2009-2015, 2018 Free Software
+   Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -128,14 +128,14 @@ void deprecated_directive (location const *loc,
 void duplicate_directive (char const *directive,
                           location first, location second);
 
-/** Warnings treated as errors shouldn't stop the execution as regular errors
-    should (because due to their nature, it is safe to go on). Thus, there are
-    three possible execution statuses.  */
+/** Warnings treated as errors shouldn't stop the execution as regular
+    errors should (because due to their nature, it is safe to go
+    on). Thus, there are three possible execution statuses.  */
 typedef enum
   {
-    status_none,
-    status_warning_as_error,
-    status_complaint
+    status_none,             /**< No diagnostic issued so far.  */
+    status_warning_as_error, /**< A warning was issued (but no error).  */
+    status_complaint         /**< An error was issued.  */
   } err_status;
 
 /** Whether an error was reported.  */

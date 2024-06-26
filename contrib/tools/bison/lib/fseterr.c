@@ -1,5 +1,5 @@
 /* Set the error indicator of a stream.
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -23,24 +23,27 @@
 
 #include "stdio-impl.h"
 
+/* This file is not used on systems that have the __fseterr function,
+   namely musl libc.  */
+
 void
 fseterr (FILE *fp)
 {
   /* Most systems provide FILE as a struct and the necessary bitmask in
      <stdio.h>, because they need it for implementing getc() and putc() as
      fast macros.  */
-#if defined _IO_EOF_SEEN || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
+#if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1
+  /* GNU libc, BeOS, Haiku, Linux libc5 */
   fp->_flags |= _IO_ERR_SEEN;
-#elif defined __sferror || defined __DragonFly__ /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin */
+#elif defined __sferror || defined __DragonFly__ || defined __ANDROID__
+  /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin, Minix 3, Android */
   fp_->_flags |= __SERR;
 #elif defined __EMX__               /* emx+gcc */
   fp->_flags |= _IOERR;
 #elif defined __minix               /* Minix */
   fp->_flags |= _IOERR;
-#elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, mingw, NonStop Kernel */
+#elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, mingw, MSVC, NonStop Kernel, OpenVMS */
   fp_->_flag |= _IOERR;
-#elif _MSC_VER
-  ((TWinSdk10File*)fp)->_flags |= WIN_SDK10_IOERROR;
 #elif defined __UCLIBC__            /* uClibc */
   fp->__modeflags |= __FLAG_ERROR;
 #elif defined __QNX__               /* QNX */

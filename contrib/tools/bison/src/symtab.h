@@ -1,7 +1,7 @@
 /* Definitions for symtab.c and callers, part of Bison.
 
-   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2013 Free Software
-   Foundation, Inc.
+   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015, 2018 Free
+   Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -50,6 +50,7 @@ typedef int symbol_number;
 
 
 typedef struct symbol symbol;
+typedef struct sym_content sym_content;
 
 /* Declaration status of a symbol.
 
@@ -73,23 +74,44 @@ typedef enum
     declared,
   } status;
 
-typedef enum code_props_type code_props_type;
 enum code_props_type
   {
     destructor = 0,
     printer = 1,
   };
+typedef enum code_props_type code_props_type;
 
 enum { CODE_PROPS_SIZE = 2 };
 
-/* When extending this structure, be sure to complete
-   symbol_check_alias_consistency.  */
 struct symbol
 {
   /** The key, name of the symbol.  */
   uniqstr tag;
-  /** The location of its first occurrence.  */
+
+  /** The "defining" location.  */
   location location;
+
+  /** Whether \a location is about the first uses as left-hand side
+      symbol of a rule (true), or simply the first occurrence (e.g.,
+      in a %type, or as a rhs symbol of a rule).  The former type of
+      location is more natural in error messages.  This Boolean helps
+      moving from location of the first occurrence to first use as
+      lhs. */
+  bool location_of_lhs;
+
+  /** Points to the other in the symbol-string pair for an alias. */
+  symbol *alias;
+
+  /** Whether this symbol is the alias of another or not. */
+  bool is_alias;
+
+  /** All the info about the pointed symbol is there. */
+  sym_content *content;
+};
+
+struct sym_content
+{
+  symbol *symbol;
 
   /** Its \c \%type.
 
@@ -117,22 +139,12 @@ struct symbol
   assoc assoc;
   int user_token_number;
 
-  /* Points to the other in the symbol-string pair for an alias.
-     Special value USER_NUMBER_HAS_STRING_ALIAS in the symbol half of the
-     symbol-string pair for an alias.  */
-  symbol *alias;
   symbol_class class;
   status status;
 };
 
 /** Undefined user number.  */
 # define USER_NUMBER_UNDEFINED -1
-
-/* 'symbol->user_token_number == USER_NUMBER_HAS_STRING_ALIAS' means
-   this symbol has a literal string alias.  For instance, '%token foo
-   "foo"' has '"foo"' numbered regularly, and 'foo' numbered as
-   USER_NUMBER_HAS_STRING_ALIAS.  */
-# define USER_NUMBER_HAS_STRING_ALIAS -9991
 
 /* Undefined internal token number.  */
 # define NUMBER_UNDEFINED (-1)
@@ -173,6 +185,12 @@ uniqstr symbol_id_get (symbol const *sym);
  * symbol number, and type from \c sym to \c str.
  */
 void symbol_make_alias (symbol *sym, symbol *str, location loc);
+
+/**
+ * This symbol is used as the lhs of a rule.  Record this location
+ * as definition point, if not already done.
+ */
+void symbol_location_as_lhs_set (symbol *sym, location loc);
 
 /** Set the \c type_name associated with \c sym.
 

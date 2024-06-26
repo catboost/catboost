@@ -1,5 +1,5 @@
 /* Open a descriptor to a file.
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Written by Bruno Haible <bruno@clisp.org>, 2007.  */
 
@@ -38,6 +38,8 @@ orig_open (const char *filename, int flags, mode_t mode)
    this include because of the preliminary #include <fcntl.h> above.  */
 #include "fcntl.h"
 
+#include "cloexec.h"
+
 #include <errno.h>
 #include <stdarg.h>
 #include <string.h>
@@ -52,6 +54,13 @@ orig_open (const char *filename, int flags, mode_t mode)
 int
 open (const char *filename, int flags, ...)
 {
+  /* 0 = unknown, 1 = yes, -1 = no.  */
+#if GNULIB_defined_O_CLOEXEC
+  int have_cloexec = -1;
+#else
+  static int have_cloexec;
+#endif
+
   mode_t mode;
   int fd;
 
@@ -77,7 +86,7 @@ open (const char *filename, int flags, ...)
   flags &= ~O_NONBLOCK;
 #endif
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#if defined _WIN32 && ! defined __CYGWIN__
   if (strcmp (filename, "/dev/null") == 0)
     filename = "NUL";
 #endif
@@ -115,7 +124,25 @@ open (const char *filename, int flags, ...)
     }
 #endif
 
-  fd = orig_open (filename, flags, mode);
+  fd = orig_open (filename,
+                  flags & ~(have_cloexec <= 0 ? O_CLOEXEC : 0), mode);
+
+  if (flags & O_CLOEXEC)
+    {
+      if (! have_cloexec)
+        {
+          if (0 <= fd)
+            have_cloexec = 1;
+          else if (errno == EINVAL)
+            {
+              fd = orig_open (filename, flags & ~O_CLOEXEC, mode);
+              have_cloexec = -1;
+            }
+        }
+      if (have_cloexec < 0 && 0 <= fd)
+        set_cloexec_flag (fd, true);
+    }
+
 
 #if REPLACE_FCHDIR
   /* Implementing fchdir and fdopendir requires the ability to open a

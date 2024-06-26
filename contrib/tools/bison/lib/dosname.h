@@ -1,6 +1,6 @@
 /* File names on MS-DOS/Windows systems.
 
-   Copyright (C) 2000-2001, 2004-2006, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2000-2001, 2004-2006, 2009-2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,16 +13,15 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
    From Paul Eggert and Jim Meyering.  */
 
 #ifndef _DOSNAME_H
 #define _DOSNAME_H
 
-#if (defined _WIN32 || defined __WIN32__ ||     \
-     defined __MSDOS__ || defined __CYGWIN__ || \
-     defined __EMX__ || defined __DJGPP__)
+#if (defined _WIN32 || defined __CYGWIN__ \
+     || defined __EMX__ || defined __MSDOS__ || defined __DJGPP__)
    /* This internal macro assumes ASCII, but all hosts that support drive
       letters use ASCII.  */
 # define _IS_DRIVE_LETTER(C) (((unsigned int) (C) | ('a' - 'A')) - 'a'  \

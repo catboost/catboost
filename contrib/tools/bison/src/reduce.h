@@ -1,7 +1,7 @@
 /* Grammar reduction for Bison.
 
-   Copyright (C) 2000-2002, 2007, 2009-2013 Free Software Foundation,
-   Inc.
+   Copyright (C) 2000-2002, 2007, 2009-2015, 2018 Free Software
+   Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -24,9 +24,14 @@
 void reduce_grammar (void);
 void reduce_output (FILE *out);
 bool reduce_token_unused_in_grammar (symbol_number i);
-bool reduce_nonterminal_useless_in_grammar (symbol_number i);
+
+/** Whether symbol \a i is useless in the grammar.
+ * \pre  reduce_grammar was called before.
+ */
+bool reduce_nonterminal_useless_in_grammar (const sym_content *sym);
+
 void reduce_free (void);
 
-extern symbol_number nuseless_nonterminals;
-extern rule_number nuseless_productions;
+extern unsigned nuseless_nonterminals;
+extern unsigned nuseless_productions;
 #endif /* !REDUCE_H_ */

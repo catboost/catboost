@@ -1,6 +1,7 @@
 /* Bison code properties structure and scanner.
 
-   Copyright (C) 2006-2007, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2006-2007, 2009-2015, 2018 Free Software Foundation,
+   Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -22,6 +23,7 @@
 
 # include "location.h"
 # include "named-ref.h"
+# include "uniqstr.h"
 
 struct symbol_list;
 
@@ -80,8 +82,11 @@ typedef struct code_props {
   /** \c NULL iff \c code_props::kind is not \c CODE_PROPS_RULE_ACTION.  */
   struct symbol_list *rule;
 
-  /* Named reference. */
+  /** Named reference. */
   named_ref *named_ref;
+
+  /** Type, for mid-rule actions.  */
+  uniqstr type;
 } code_props;
 
 /**
@@ -102,7 +107,8 @@ void code_props_none_init (code_props *self);
     /* .is_predicate = */ false,                \
     /* .is_used = */ false,                     \
     /* .rule = */ NULL,                         \
-    /* .named_ref = */ NULL                     \
+    /* .named_ref = */ NULL,                    \
+    /* .type = */ NULL,                         \
   }
 
 /** Initialized by \c CODE_PROPS_NONE_INIT with no further modification.  */
@@ -157,7 +163,8 @@ void code_props_symbol_action_init (code_props *self, char const *code,
  */
 void code_props_rule_action_init (code_props *self, char const *code,
                                   location code_loc, struct symbol_list *rule,
-                                  named_ref *name, bool is_predicate);
+                                  named_ref *name, uniqstr type,
+                                  bool is_predicate);
 
 /**
  * \pre
