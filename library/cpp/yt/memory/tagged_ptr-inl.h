@@ -28,7 +28,7 @@ template <class T>
 Y_FORCE_INLINE TPackedPtr TTaggedPtr<T>::Pack() const
 {
     YT_ASSERT((reinterpret_cast<TPackedPtr>(Ptr) & PackedPtrTagMask) == 0);
-    return (static_cast<TPackedPtr>(Tag) << PackedPtrAddrsssBits) | reinterpret_cast<TPackedPtr>(Ptr);
+    return (static_cast<TPackedPtr>(Tag) << PackedPtrAddressBits) | reinterpret_cast<TPackedPtr>(Ptr);
 }
 
 template <class T>
@@ -36,7 +36,7 @@ Y_FORCE_INLINE TTaggedPtr<T> TTaggedPtr<T>::Unpack(TPackedPtr packedPtr)
 {
     return {
         reinterpret_cast<T*>(packedPtr & PackedPtrAddressMask),
-        static_cast<ui16>(packedPtr >> PackedPtrAddrsssBits),
+        static_cast<ui16>(packedPtr >> PackedPtrAddressBits),
     };
 }
 

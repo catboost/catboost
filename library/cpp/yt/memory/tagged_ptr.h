@@ -9,9 +9,9 @@ namespace NYT {
 using TPackedPtr = uintptr_t;
 static_assert(sizeof(TPackedPtr) == 8);
 
-constexpr size_t PackedPtrAddrsssBits = 48;
+constexpr size_t PackedPtrAddressBits = 48;
 constexpr size_t PackedPtrTagBits = 16;
-constexpr TPackedPtr PackedPtrAddressMask = (1ULL << PackedPtrAddrsssBits) - 1;
+constexpr TPackedPtr PackedPtrAddressMask = (1ULL << PackedPtrAddressBits) - 1;
 constexpr TPackedPtr PackedPtrTagMask = ~PackedPtrAddressMask;
 
 ////////////////////////////////////////////////////////////////////////////////
