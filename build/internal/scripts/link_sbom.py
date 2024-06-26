@@ -3,45 +3,12 @@ import json
 import os
 
 
-def parse_kv_arr(val):
-    res = {}
-    for kv in val.split(';'):
-        k, v = kv.split('=')
-        res[k] = v
-    return res
-
-
-def deduce_name(path):
-    name = os.path.basename(path)
-    for prefix in ['contrib/libs/', 'contrib/python/py2/', 'contrib/python/py3/', 'contrib/python/']:
-        if path.startswith(prefix):
-            name = path[len(prefix):].replace('/', '-')
-            break
-    return name
-
-
-def parse_componenet(component):
-    props = parse_kv_arr(component)
-    path = props['path']
-    ver = props['ver']
-
-    res = {}
-    res['type'] = 'library'
-    res['name'] = deduce_name(path)
-    res['version'] = ver
-    res["properties"] = [
-        {'name': 'arcadia_module_subdir', 'value': path},
-        {'name': 'language', 'value': props['lang']}
-    ]
-    return res
-
-
 def main():
     parser = argparse.ArgumentParser(description='Generate SBOM data from used contribs info')
     parser.add_argument('-o', '--output', type=argparse.FileType('w', encoding='UTF-8'), help='resulting SBOM file', required=True)
     parser.add_argument('--vcs-info', type=argparse.FileType('r', encoding='UTF-8'), help='VCS information file', required=True)
     parser.add_argument('--mod-path', type=str, help='Path to module in arcadia', required=True)
-    parser.add_argument('libinfo', metavar='N', type=str, nargs='*', help='libraries info for components section')
+    parser.add_argument('components', metavar='N', type=argparse.FileType('r', encoding='UTF-8'), nargs='*', help='dependencies info in SBOM component JSON format')
 
     args = parser.parse_args()
 
@@ -52,7 +19,7 @@ def main():
     res["bomFormat"] = "CycloneDX"
     res["specVersion"] = "1.5"
     res["version"] = 1
-    res["components"] = [parse_componenet(lib) for lib in args.libinfo]
+    res["components"] = [json.load(dep) for dep in args.components]
     res["properties"] = [
         {'name': 'commit_hash', 'value': vcs['ARCADIA_SOURCE_HG_HASH']},
         {'name': 'arcadia_module_subdir', 'value': args.mod_path}
