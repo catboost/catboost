@@ -80,7 +80,7 @@ jobs:
       - name: Run pytest
         shell: pwsh
         run: |
-          python -m pip install testpath pytest pandas catboost
+          python -m pip install testpath pytest 'numpy<2.0' pandas catboost
           $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
           $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
           $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
@@ -91,7 +91,7 @@ jobs:
       - name: Run python package tests
         shell: pwsh
         run: |
-          python -m pip install testpath pytest pandas ipywidgets scikit-learn
+          python -m pip install testpath pytest 'numpy<2.0' pandas ipywidgets scikit-learn
           $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
           $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
           $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
