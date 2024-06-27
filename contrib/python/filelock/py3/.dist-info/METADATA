@@ -1,6 +1,6 @@
 Metadata-Version: 2.3
 Name: filelock
-Version: 3.14.0
+Version: 3.15.1
 Summary: A platform independent file lock.
 Project-URL: Documentation, https://py-filelock.readthedocs.io
 Project-URL: Homepage, https://github.com/tox-dev/py-filelock
@@ -33,6 +33,7 @@ Provides-Extra: testing
 Requires-Dist: covdefaults>=2.3; extra == 'testing'
 Requires-Dist: coverage>=7.3.2; extra == 'testing'
 Requires-Dist: diff-cover>=8.0.1; extra == 'testing'
+Requires-Dist: pytest-asyncio>=0.21; extra == 'testing'
 Requires-Dist: pytest-cov>=4.1; extra == 'testing'
 Requires-Dist: pytest-mock>=3.12; extra == 'testing'
 Requires-Dist: pytest-timeout>=2.2; extra == 'testing'
