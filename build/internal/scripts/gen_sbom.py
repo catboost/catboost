@@ -15,20 +15,27 @@ def deduce_name(path):
 def main():
     parser = argparse.ArgumentParser(description='Generate single SBOM component JSON object for current third-party library')
     parser.add_argument('-o', '--output', type=argparse.FileType('w', encoding='UTF-8'), help='resulting SBOM component file', required=True)
+    parser.add_argument('--type', choices=['library', 'toolchain'], required=True)
     parser.add_argument('--path', type=str, help='Path to module in arcadia', required=True)
     parser.add_argument('--ver', type=str, help='Version of the contrib module', required=True)
-    parser.add_argument('--lang', type=str, help='Language of the library', required=True)
+    parser.add_argument('--lang', type=str, help='Language of the library')
+    parser.add_argument('--toolchain-name', type=str, help='Public name of the toolchain')
 
     args = parser.parse_args()
 
     res = {}
-    res['type'] = 'library'
-    res['name'] = deduce_name(args.path)
     res['version'] = args.ver
     res["properties"] = [
         {'name': 'arcadia_module_subdir', 'value': args.path},
-        {'name': 'language', 'value': args.lang}
     ]
+    if args.type == 'library':
+        res['name'] = deduce_name(args.path)
+        res['type'] = 'library'
+        res["properties"].append({'name': 'language', 'value': args.lang})
+    elif args.type == 'toolchain':
+        res['name'] = args.toolchain_name
+        res['type'] = 'application'
+        res["tags"] = ['toolchain']
 
     json.dump(res, args.output)
     args.output.close()

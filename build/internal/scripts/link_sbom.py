@@ -15,9 +15,9 @@ def main():
     vcs = json.load(args.vcs_info)
 
     res = {}
-    res['$schema'] = "http://cyclonedx.org/schema/bom-1.5.schema.json"
+    res['$schema'] = "http://cyclonedx.org/schema/bom-1.6.schema.json"
     res["bomFormat"] = "CycloneDX"
-    res["specVersion"] = "1.5"
+    res["specVersion"] = "1.6"
     res["version"] = 1
     res["components"] = [json.load(dep) for dep in args.components]
     res["properties"] = [
