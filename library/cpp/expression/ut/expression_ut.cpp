@@ -9,6 +9,7 @@
 #include <util/generic/map.h>
 #include <util/generic/vector.h>
 #include <util/generic/ptr.h>
+#include <util/generic/ymath.h>
 #include <util/generic/ylimits.h>
 
 #include <util/random/random.h>
@@ -42,6 +43,13 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         UNIT_ASSERT_EQUAL(CalcExpression("(a*11) > 1", m), 1);
         UNIT_ASSERT_EQUAL(CalcExpression("(9*a) > 1 && size > 20", m), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("2+2*2", m), 6);
+        UNIT_ASSERT_EQUAL(CalcExpression("2+2^3", m), 10);
+        UNIT_ASSERT_EQUAL(CalcExpression("(2*a^(-3)-2000)^2<=10^(-5)", m), 1); // comparison adds EPS to lhs
+        UNIT_ASSERT_EQUAL(CalcExpression("2*a^(-3)==2000", m), 1);
+        UNIT_ASSERT_EQUAL(IsNan(CalcExpression("0^0", m)), 1);
+        UNIT_ASSERT_EQUAL(IsNan(CalcExpression("0.0^0", m)), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("0.00001^0", m), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("0.0^0.00001", m), 0);
 
         // Sum with boolean
         UNIT_ASSERT_EQUAL(CalcExpression("2+(2==2)", m), 3);

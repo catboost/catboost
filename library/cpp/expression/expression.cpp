@@ -254,6 +254,7 @@ enum EOperation {
     O_SUBSTRACT,           // "-"  / binary
     O_MULTIPLY,            // "*"
     O_DIVIDE,              // "/"
+    O_POW,                 // "^"
     O_END
 };
 
@@ -295,7 +296,8 @@ const TStringBuf EOperationsStrings[] = {
     TStringBuf("+"),
     TStringBuf("-"),
     TStringBuf("*"),
-    TStringBuf("/")};
+    TStringBuf("/"),
+    TStringBuf("^")};
 
 const int EOperationsPriority[] = {
     0, // "const"
@@ -336,6 +338,7 @@ const int EOperationsPriority[] = {
     4, // "-"
     5, // "*"
     5, // "/"
+    6, // "^"
     std::numeric_limits<int>::max()};
 
 constexpr size_t MaxOperands = 3;
@@ -581,6 +584,13 @@ public:
             return std::numeric_limits<double>::infinity();
         }
         return ToDouble() / denominator;
+    }
+    double Pow(const TVariant& v) const {
+        double exponent = v.ToDouble();
+        if (exponent == 0 && ToDouble() == 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return std::pow(ToDouble(), exponent);
     }
     double Exp() const {
         return exp(ToDouble());
@@ -1016,6 +1026,9 @@ TVariant TExpressionImpl::CalcVariantExpression(const IExpressionAdaptor& data) 
                 break;
             case O_DIVIDE:
                 values[i - 1] = values[Operations[i - 1].Input.front()].Div(values[Operations[i - 1].Input.back()]);
+                break;
+            case O_POW:
+                values[i - 1] = values[Operations[i - 1].Input.front()].Pow(values[Operations[i - 1].Input.back()]);
                 break;
             case O_EXP:
                 values[i - 1] = values[Operations[i - 1].Input.front()].Exp();
