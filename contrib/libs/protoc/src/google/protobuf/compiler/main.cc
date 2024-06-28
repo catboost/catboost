@@ -33,7 +33,6 @@
 #include <google/protobuf/compiler/java/java_kotlin_generator.h>
 #include <google/protobuf/compiler/js/js_generator.h>
 #include <google/protobuf/compiler/command_line_interface.h>
-#include <google/protobuf/compiler/perlxs/perlxs_generator.h>
 #include <google/protobuf/compiler/python/python_generator.h>
 #include <google/protobuf/compiler/python/python_pyi_generator.h>
 #include <google/protobuf/compiler/csharp/csharp_generator.h>
@@ -102,11 +101,6 @@ int ProtobufMain(int argc, char* argv[]) {
   objectivec::ObjectiveCGenerator objc_generator;
   cli.RegisterGenerator("--objc_out", "--objc_opt", &objc_generator,
                         "Generate Objective-C header and source.");
-           
-  // Proto2 Perl/XS
-  perlxs::PerlXSGenerator perlxs_generator;
-  cli.RegisterGenerator("--perlxs_out", &perlxs_generator,
-                        "Generate Perl/XS source files.");
 
   // JavaScript
   js::Generator js_generator;
