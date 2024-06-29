@@ -1,7 +1,7 @@
 /* Symbol table manager for Bison.
 
-   Copyright (C) 1984, 1989, 2000-2002, 2004-2015, 2018 Free Software
-   Foundation, Inc.
+   Copyright (C) 1984, 1989, 2000-2002, 2004-2015, 2018-2019 Free
+   Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -46,17 +46,14 @@ symbol *accept = NULL;
 symbol *startsymbol = NULL;
 location startsymbol_location;
 
-/*---------------------------.
-| Precedence relation graph. |
-`---------------------------*/
-
+/* Precedence relation graph. */
 static symgraph **prec_nodes;
 
-/*-----------------------------------.
-| Store which associativity is used. |
-`-----------------------------------*/
+/* Store which associativity is used.  */
+static bool *used_assoc = NULL;
 
-bool *used_assoc = NULL;
+bool tag_seen = false;
+
 
 /*--------------------------.
 | Create a new sym_content. |
@@ -213,11 +210,11 @@ semantic_type_new (uniqstr tag, const location *loc)
 `-----------------*/
 
 #define SYMBOL_ATTR_PRINT(Attr)                         \
-  if (s->content->Attr)                                 \
+  if (s->content && s->content->Attr)                   \
     fprintf (f, " %s { %s }", #Attr, s->content->Attr)
 
 #define SYMBOL_CODE_PRINT(Attr)                                         \
-  if (s->content->props[Attr].code)                                     \
+  if (s->content && s->content->props[Attr].code)                       \
     fprintf (f, " %s { %s }", #Attr, s->content->props[Attr].code)
 
 void
@@ -277,8 +274,8 @@ symbol_id_get (symbol const *sym)
 `------------------------------------------------------------------*/
 
 static void
-symbol_redeclaration (symbol *s, const char *what, location first,
-                      location second)
+complain_symbol_redeclared (symbol *s, const char *what, location first,
+                            location second)
 {
   unsigned i = 0;
   locations_sort (&first, &second);
@@ -290,8 +287,8 @@ symbol_redeclaration (symbol *s, const char *what, location first,
 }
 
 static void
-semantic_type_redeclaration (semantic_type *s, const char *what, location first,
-                             location second)
+complain_semantic_type_redeclared (semantic_type *s, const char *what, location first,
+                                   location second)
 {
   unsigned i = 0;
   locations_sort (&first, &second);
@@ -300,6 +297,19 @@ semantic_type_redeclaration (semantic_type *s, const char *what, location first,
   i += SUB_INDENT;
   complain_indent (&first, complaint, &i,
                    _("previous declaration"));
+}
+
+static void
+complain_class_redeclared (symbol *sym, symbol_class class, location second)
+{
+  unsigned i = 0;
+  complain_indent (&second, complaint, &i,
+                   class == token_sym
+                   ? _("symbol %s redeclared as a token")
+                   : _("symbol %s redeclared as a nonterminal"), sym->tag);
+  i += SUB_INDENT;
+  complain_indent (&sym->location, complaint, &i,
+                   _("previous definition"));
 }
 
 
@@ -321,8 +331,10 @@ symbol_type_set (symbol *sym, uniqstr type_name, location loc)
 {
   if (type_name)
     {
+      tag_seen = true;
       if (sym->content->type_name)
-        symbol_redeclaration (sym, "%type", sym->content->type_location, loc);
+        complain_symbol_redeclared (sym, "%type",
+                                    sym->content->type_location, loc);
       else
         {
           uniqstr_assert (type_name);
@@ -341,9 +353,9 @@ symbol_code_props_set (symbol *sym, code_props_type kind,
                        code_props const *code)
 {
   if (sym->content->props[kind].code)
-    symbol_redeclaration (sym, code_props_type_string (kind),
-                          sym->content->props[kind].location,
-                          code->location);
+    complain_symbol_redeclared (sym, code_props_type_string (kind),
+                                sym->content->props[kind].location,
+                                code->location);
   else
     sym->content->props[kind] = *code;
 }
@@ -358,9 +370,9 @@ semantic_type_code_props_set (semantic_type *type,
                               code_props const *code)
 {
   if (type->props[kind].code)
-    semantic_type_redeclaration (type, code_props_type_string (kind),
-                                 type->props[kind].location,
-                                 code->location);
+    complain_semantic_type_redeclared (type, code_props_type_string (kind),
+                                       type->props[kind].location,
+                                       code->location);
   else
     type->props[kind] = *code;
 }
@@ -408,8 +420,8 @@ symbol_precedence_set (symbol *sym, int prec, assoc a, location loc)
     {
       sym_content *s = sym->content;
       if (s->prec)
-        symbol_redeclaration (sym, assoc_to_string (a),
-                              s->prec_location, loc);
+        complain_symbol_redeclared (sym, assoc_to_string (a),
+                                    s->prec_location, loc);
       else
         {
           s->prec = prec;
@@ -430,27 +442,25 @@ symbol_precedence_set (symbol *sym, int prec, assoc a, location loc)
 void
 symbol_class_set (symbol *sym, symbol_class class, location loc, bool declaring)
 {
-  bool warned = false;
-  if (sym->content->class != unknown_sym && sym->content->class != class)
+  aver (class != unknown_sym);
+  sym_content *s = sym->content;
+  if (s->class != unknown_sym && s->class != class)
+    complain_class_redeclared (sym, class, loc);
+  else
     {
-      complain (&loc, complaint, _("symbol %s redefined"), sym->tag);
-      /* Don't report both "redefined" and "redeclared".  */
-      warned = true;
-    }
+      if (class == nterm_sym && s->class != nterm_sym)
+        s->number = nvars++;
+      else if (class == token_sym && s->number == NUMBER_UNDEFINED)
+        s->number = ntokens++;
+      s->class = class;
 
-  if (class == nterm_sym && sym->content->class != nterm_sym)
-    sym->content->number = nvars++;
-  else if (class == token_sym && sym->content->number == NUMBER_UNDEFINED)
-    sym->content->number = ntokens++;
-
-  sym->content->class = class;
-
-  if (declaring)
-    {
-      if (sym->content->status == declared && !warned)
-        complain (&loc, Wother, _("symbol %s redeclared"), sym->tag);
-      else
-        sym->content->status = declared;
+      if (declaring)
+        {
+          if (s->status == declared)
+            complain (&loc, Wother, _("symbol %s redeclared"), sym->tag);
+          else
+            s->status = declared;
+        }
     }
 }
 
@@ -462,24 +472,27 @@ symbol_class_set (symbol *sym, symbol_class class, location loc, bool declaring)
 void
 symbol_user_token_number_set (symbol *sym, int user_token_number, location loc)
 {
-  int *user_token_numberp;
-
-  user_token_numberp = &sym->content->user_token_number;
-  if (*user_token_numberp != USER_NUMBER_UNDEFINED
-      && *user_token_numberp != user_token_number)
+  int *user_token_numberp = &sym->content->user_token_number;
+  if (sym->content->class != token_sym)
+    complain (&loc, complaint,
+              _("nonterminals cannot be given an explicit number"));
+  else if (*user_token_numberp != USER_NUMBER_UNDEFINED
+           && *user_token_numberp != user_token_number)
     complain (&loc, complaint, _("redefining user token number of %s"),
               sym->tag);
-
-  *user_token_numberp = user_token_number;
-  /* User defined $end token? */
-  if (user_token_number == 0)
+  else
     {
-      endtoken = sym->content->symbol;
-      /* It is always mapped to 0, so it was already counted in
-         NTOKENS.  */
-      if (endtoken->content->number != NUMBER_UNDEFINED)
-        --ntokens;
-      endtoken->content->number = 0;
+      *user_token_numberp = user_token_number;
+      /* User defined $end token? */
+      if (user_token_number == 0)
+        {
+          endtoken = sym->content->symbol;
+          /* It is always mapped to 0, so it was already counted in
+             NTOKENS.  */
+          if (endtoken->content->number != NUMBER_UNDEFINED)
+            --ntokens;
+          endtoken->content->number = 0;
+        }
     }
 }
 
@@ -596,7 +609,10 @@ symbol_merge_properties (symbol *sym, symbol *str)
 void
 symbol_make_alias (symbol *sym, symbol *str, location loc)
 {
-  if (str->alias)
+  if (sym->content->class != token_sym)
+    complain (&loc, complaint,
+              _("nonterminals cannot be given a string alias"));
+  else if (str->alias)
     complain (&loc, Wother,
               _("symbol %s used more than once as a literal string"), str->tag);
   else if (sym->alias)
@@ -638,7 +654,7 @@ symbol_pack_processor (void *this, void *null ATTRIBUTE_UNUSED)
 }
 
 static void
-user_token_number_redeclaration (int num, symbol *first, symbol *second)
+complain_user_token_number_redeclared (int num, symbol *first, symbol *second)
 {
   unsigned i = 0;
   symbols_sort (&first, &second);
@@ -658,14 +674,14 @@ user_token_number_redeclaration (int num, symbol *first, symbol *second)
 static inline bool
 symbol_translation (symbol *this)
 {
-  /* Non-terminal? */
+  /* Nonterminal? */
   if (this->content->class == token_sym
       && !this->is_alias)
     {
       /* A token which translation has already been set?*/
       if (token_translations[this->content->user_token_number]
           != undeftoken->content->number)
-        user_token_number_redeclaration
+        complain_user_token_number_redeclared
           (this->content->user_token_number,
            symbols[token_translations[this->content->user_token_number]], this);
       else

@@ -1,7 +1,7 @@
 /* Parse command line arguments for bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018 Free Software
-   Foundation, Inc.
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2019 Free
+   Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -39,9 +39,10 @@ extern bool graph_flag;                 /* for -g */
 extern bool xml_flag;                   /* for -x */
 extern bool no_lines_flag;              /* for -l */
 extern bool token_table_flag;           /* for -k */
-extern bool yacc_flag;                  /* for -y */
+extern location yacc_loc;               /* for -y */
+extern bool update_flag;                /* for -u */
 
-extern const char *m4_path;
+extern const char* m4_path;
 
 /* GLR_PARSER is true if the input file says to use the GLR
    (Generalized LR) parser, and to output some additional information
@@ -115,9 +116,10 @@ extern int trace_flag;
 
 enum feature
   {
-    feature_none  = 0,         /**< No additional feature.  */
-    feature_caret = 1 << 0,    /**< Enhance the output of errors with carets.  */
-    feature_all   = ~0         /**< All above features.  */
+    feature_none           = 0,       /**< No additional feature.  */
+    feature_caret          = 1 << 0,  /**< Output errors with carets.  */
+    feature_fixit_parsable = 1 << 1,  /**< Issue instructions to fix the sources.  */
+    feature_all            = ~0       /**< All above features.  */
   };
 /** What additional features to use.  */
 extern int feature_flag;

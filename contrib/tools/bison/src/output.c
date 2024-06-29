@@ -1,7 +1,7 @@
 /* Output the generated parsing program for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018 Free Software
-   Foundation, Inc.
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2019 Free
+   Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -26,6 +26,7 @@
 #include <get-errno.h>
 #include <path-join.h>
 #include <quotearg.h>
+#include <relocatable.h> /* relocate2 */
 #include <spawn-pipe.h>
 #include <timevar.h>
 #include <wait-process.h>
@@ -37,6 +38,7 @@
 #include "muscle-tab.h"
 #include "output.h"
 #include "reader.h"
+#include "reduce.h"
 #include "scan-code.h"    /* max_left_semantic_context */
 #include "scan-skel.h"
 #include "symtab.h"
@@ -65,6 +67,9 @@ default_pkgdatadir()
 
 static struct obstack format_obstack;
 
+/* Memory allocated by relocate2, to free.  */
+static char *relocate_buffer = NULL;
+
 
 /*-------------------------------------------------------------------.
 | Create a function NAME which associates to the muscle NAME the     |
@@ -77,11 +82,8 @@ static struct obstack format_obstack;
 #define GENERATE_MUSCLE_INSERT_TABLE(Name, Type)                        \
                                                                         \
 static void                                                             \
-Name (char const *name,                                                 \
-      Type *table_data,                                                 \
-      Type first,                                                       \
-      int begin,                                                        \
-      int end)                                                          \
+Name (char const *name, Type *table_data, Type first,                   \
+      int begin, int end)                                               \
 {                                                                       \
   Type min = first;                                                     \
   Type max = first;                                                     \
@@ -115,11 +117,12 @@ Name (char const *name,                                                 \
   MUSCLE_INSERT_LONG_INT (obstack_finish0 (&format_obstack), lmax);     \
 }
 
-GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_unsigned_int_table, unsigned)
+GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_unsigned_table, unsigned)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_int_table, int)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_base_table, base_number)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_rule_number_table, rule_number)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_symbol_number_table, symbol_number)
+GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_item_number_table, item_number)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_state_number_table, state_number)
 
 /*----------------------------------------------------------------.
@@ -156,6 +159,46 @@ string_output (FILE *out, char const *string)
 }
 
 
+/*----------------------------.
+| Prepare the symbols names.  |
+`----------------------------*/
+
+static void
+prepare_symbol_names (char const *muscle_name)
+{
+  /* We assume that the table will be output starting at column 2. */
+  int j = 2;
+  struct quoting_options *qo = clone_quoting_options (0);
+  set_quoting_style (qo, c_quoting_style);
+  set_quoting_flags (qo, QA_SPLIT_TRIGRAPHS);
+  for (int i = 0; i < nsyms; i++)
+    {
+      char *cp = quotearg_alloc (symbols[i]->tag, -1, qo);
+      /* Width of the next token, including the two quotes, the
+         comma and the space.  */
+      int width = strlen (cp) + 2;
+
+      if (j + width > 75)
+        {
+          obstack_sgrow (&format_obstack, "\n ");
+          j = 1;
+        }
+
+      if (i)
+        obstack_1grow (&format_obstack, ' ');
+      obstack_escape (&format_obstack, cp);
+      free (cp);
+      obstack_1grow (&format_obstack, ',');
+      j += width;
+    }
+  free (qo);
+  obstack_sgrow (&format_obstack, " ]b4_null[");
+
+  /* Finish table and store. */
+  muscle_insert (muscle_name, obstack_finish0 (&format_obstack));
+}
+
+
 /*------------------------------------------------------------------.
 | Prepare the muscles related to the symbols: translate, tname, and |
 | toknum.                                                           |
@@ -176,38 +219,7 @@ prepare_symbols (void)
                                      1, max_user_token_number + 1);
 
   /* tname -- token names.  */
-  {
-    /* We assume that the table will be output starting at column 2. */
-    int j = 2;
-    struct quoting_options *qo = clone_quoting_options (0);
-    set_quoting_style (qo, c_quoting_style);
-    set_quoting_flags (qo, QA_SPLIT_TRIGRAPHS);
-    for (int i = 0; i < nsyms; i++)
-      {
-        char *cp = quotearg_alloc (symbols[i]->tag, -1, qo);
-        /* Width of the next token, including the two quotes, the
-           comma and the space.  */
-        int width = strlen (cp) + 2;
-
-        if (j + width > 75)
-          {
-            obstack_sgrow (&format_obstack, "\n ");
-            j = 1;
-          }
-
-        if (i)
-          obstack_1grow (&format_obstack, ' ');
-        obstack_escape (&format_obstack, cp);
-        free (cp);
-        obstack_1grow (&format_obstack, ',');
-        j += width;
-      }
-    free (qo);
-    obstack_sgrow (&format_obstack, " ]b4_null[");
-
-    /* Finish table and store. */
-    muscle_insert ("tname", obstack_finish0 (&format_obstack));
-  }
+  prepare_symbol_names ("tname");
 
   /* Output YYTOKNUM. */
   {
@@ -221,14 +233,16 @@ prepare_symbols (void)
 }
 
 
-/*----------------------------------------------------------------.
-| Prepare the muscles related to the rules: r1, r2, rline, dprec, |
-| merger, immediate.                                              |
-`----------------------------------------------------------------*/
+/*-------------------------------------------------------------.
+| Prepare the muscles related to the rules: rhs, prhs, r1, r2, |
+| rline, dprec, merger, immediate.                             |
+`-------------------------------------------------------------*/
 
 static void
 prepare_rules (void)
 {
+  unsigned *prhs = xnmalloc (nrules, sizeof *prhs);
+  item_number *rhs = xnmalloc (nritems, sizeof *rhs);
   unsigned *rline = xnmalloc (nrules, sizeof *rline);
   symbol_number *r1 = xnmalloc (nrules, sizeof *r1);
   unsigned *r2 = xnmalloc (nrules, sizeof *r2);
@@ -236,14 +250,24 @@ prepare_rules (void)
   int *merger = xnmalloc (nrules, sizeof *merger);
   int *immediate = xnmalloc (nrules, sizeof *immediate);
 
+  /* Index in RHS.  */
+  unsigned i = 0;
   for (rule_number r = 0; r < nrules; ++r)
     {
+      /* Index of rule R in RHS. */
+      prhs[r] = i;
+      /* RHS of the rule R. */
+      for (item_number *rhsp = rules[r].rhs; 0 <= *rhsp; ++rhsp)
+        rhs[i++] = *rhsp;
+      /* Separator in RHS. */
+      rhs[i++] = -1;
+
+      /* Line where rule was defined. */
+      rline[r] = rules[r].location.start.line;
       /* LHS of the rule R. */
       r1[r] = rules[r].lhs->number;
       /* Length of rule R's RHS. */
       r2[r] = rule_rhs_length (&rules[r]);
-      /* Line where rule was defined. */
-      rline[r] = rules[r].location.start.line;
       /* Dynamic precedence (GLR).  */
       dprec[r] = rules[r].dprec;
       /* Merger-function index (GLR).  */
@@ -251,10 +275,13 @@ prepare_rules (void)
       /* Immediate reduction flags (GLR).  */
       immediate[r] = rules[r].is_predicate;
     }
+  aver (i == nritems);
 
-  muscle_insert_unsigned_int_table ("rline", rline, 0, 0, nrules);
+  muscle_insert_item_number_table ("rhs", rhs, ritem[0], 1, nritems);
+  muscle_insert_unsigned_table ("prhs", prhs, 0, 0, nrules);
+  muscle_insert_unsigned_table ("rline", rline, 0, 0, nrules);
   muscle_insert_symbol_number_table ("r1", r1, 0, 0, nrules);
-  muscle_insert_unsigned_int_table ("r2", r2, 0, 0, nrules);
+  muscle_insert_unsigned_table ("r2", r2, 0, 0, nrules);
   muscle_insert_int_table ("dprec", dprec, 0, 0, nrules);
   muscle_insert_int_table ("merger", merger, 0, 0, nrules);
   muscle_insert_int_table ("immediate", immediate, 0, 0, nrules);
@@ -262,6 +289,8 @@ prepare_rules (void)
   MUSCLE_INSERT_INT ("rules_number", nrules);
   MUSCLE_INSERT_INT ("max_left_semantic_context", max_left_semantic_context);
 
+  free (prhs);
+  free (rhs);
   free (rline);
   free (r1);
   free (r2);
@@ -407,6 +436,14 @@ merger_output (FILE *out)
 static void
 prepare_symbol_definitions (void)
 {
+  /* Map "orig NUM" to new numbers.  See data/README.  */
+  for (symbol_number i = ntokens; i < nsyms + nuseless_nonterminals; ++i)
+    {
+      obstack_printf (&format_obstack, "symbol(orig %d, number)", i);
+      const char *key = obstack_finish0 (&format_obstack);
+      MUSCLE_INSERT_INT (key, nterm_map ? nterm_map[i - ntokens] : i);
+    }
+
   for (int i = 0; i < nsyms; ++i)
     {
       symbol *sym = symbols[i];
@@ -519,10 +556,10 @@ prepare_actions (void)
      parser, so we could avoid accidents by not writing them out in
      that case.  Nevertheless, it seems even better to be able to use
      the GLR skeletons even without the non-deterministic tables.  */
-  muscle_insert_unsigned_int_table ("conflict_list_heads", conflict_table,
-                                    conflict_table[0], 1, high + 1);
-  muscle_insert_unsigned_int_table ("conflicting_rules", conflict_list,
-                                    0, 1, conflict_list_cnt);
+  muscle_insert_unsigned_table ("conflict_list_heads", conflict_table,
+                                conflict_table[0], 1, high + 1);
+  muscle_insert_unsigned_table ("conflicting_rules", conflict_list,
+                                0, 1, conflict_list_cnt);
 }
 
 
@@ -552,11 +589,12 @@ output_skeleton (void)
   /* Compute the names of the package data dir and skeleton files.  */
   char const *m4 = (m4 = getenv ("M4")) ? m4 : M4;
   char const *datadir = pkgdatadir ();
+  char *skeldir = xpath_join (datadir, "skeletons");
   char *m4sugar = xpath_join (datadir, "m4sugar/m4sugar.m4");
-  char *m4bison = xpath_join (datadir, "bison.m4");
+  char *m4bison = xpath_join (skeldir, "bison.m4");
   char *skel = (IS_PATH_WITH_DIR (skeleton)
                 ? xstrdup (skeleton)
-                : xpath_join (datadir, skeleton));
+                : xpath_join (skeldir, skeleton));
 
   /* Test whether m4sugar.m4 is readable, to check for proper
      installation.  A faulty installation can cause deadlock, so a
@@ -611,6 +649,7 @@ output_skeleton (void)
                             true, filter_fd);
   }
 
+  free (skeldir);
   free (m4sugar);
   free (m4bison);
   free (skel);
@@ -656,7 +695,7 @@ prepare (void)
   MUSCLE_INSERT_BOOL ("tag_seen_flag", tag_seen);
   MUSCLE_INSERT_BOOL ("token_table_flag", token_table_flag);
   MUSCLE_INSERT_BOOL ("use_push_for_pull_flag", use_push_for_pull_flag);
-  MUSCLE_INSERT_BOOL ("yacc_flag", yacc_flag);
+  MUSCLE_INSERT_BOOL ("yacc_flag", !location_empty (yacc_loc));
 
   /* File names.  */
   if (spec_name_prefix)
@@ -683,10 +722,12 @@ prepare (void)
 
   /* About the skeletons.  */
   {
-    /* b4_pkgdatadir is used inside m4_include in the skeletons, so digraphs
+    /* b4_skeletonsdir is used inside m4_include in the skeletons, so digraphs
        would never be expanded.  Hopefully no one has M4-special characters in
        his Bison installation path.  */
-    MUSCLE_INSERT_STRING_RAW ("pkgdatadir", pkgdatadir ());
+    char *skeldir = xpath_join (pkgdatadir (), "skeletons");
+    MUSCLE_INSERT_STRING_RAW ("skeletonsdir", skeldir);
+    free (skeldir);
   }
 }
 
@@ -717,11 +758,17 @@ output (void)
     unlink_generated_sources ();
 
   obstack_free (&format_obstack, NULL);
+  free (relocate_buffer);
 }
 
 char const *
 pkgdatadir (void)
 {
-  char const *cp = getenv ("BISON_PKGDATADIR");
-  return cp ? cp : PKGDATADIR;
+  if (relocate_buffer)
+    return relocate_buffer;
+  else
+    {
+      char const *cp = getenv ("BISON_PKGDATADIR");
+      return cp ? cp : relocate2 (PKGDATADIR, &relocate_buffer);
+    }
 }

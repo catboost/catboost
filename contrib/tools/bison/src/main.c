@@ -1,7 +1,7 @@
 /* Top level entry point of Bison.
 
    Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2002, 2004-2015,
-   2018 Free Software Foundation, Inc.
+   2018-2019 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -21,11 +21,12 @@
 #include <config.h>
 #include "system.h"
 
-#include <bitset_stats.h>
 #include <bitset.h>
+#include <bitset/stats.h>
 #include <configmake.h>
 #include <progname.h>
 #include <quotearg.h>
+#include <relocatable.h> /* relocate2 */
 #include <timevar.h>
 
 #include "LR0.h"
@@ -34,6 +35,7 @@
 #include "conflicts.h"
 #include "derives.h"
 #include "files.h"
+#include "fixits.h"
 #include "getargs.h"
 #include "gram.h"
 #include "lalr.h"
@@ -58,6 +60,7 @@
 int
 main (int argc, char *argv[])
 {
+#define DEPENDS_ON_LIBINTL 1
   set_program_name (argv[0]);
   setlocale (LC_ALL, "");
 
@@ -144,31 +147,34 @@ main (int argc, char *argv[])
 
   print_precedence_warnings ();
 
-  /* Output file names. */
-  compute_output_file_names ();
-
-  /* Output the detailed report on the grammar.  */
-  if (report_flag)
+  if (!update_flag)
     {
-      timevar_push (tv_report);
-      print_results ();
-      timevar_pop (tv_report);
-    }
+      /* Output file names. */
+      compute_output_file_names ();
 
-  /* Output the graph.  */
-  if (graph_flag)
-    {
-      timevar_push (tv_graph);
-      print_graph ();
-      timevar_pop (tv_graph);
-    }
+      /* Output the detailed report on the grammar.  */
+      if (report_flag)
+        {
+          timevar_push (tv_report);
+          print_results ();
+          timevar_pop (tv_report);
+        }
 
-  /* Output xml.  */
-  if (xml_flag)
-    {
-      timevar_push (tv_xml);
-      print_xml ();
-      timevar_pop (tv_xml);
+      /* Output the graph.  */
+      if (graph_flag)
+        {
+          timevar_push (tv_graph);
+          print_graph ();
+          timevar_pop (tv_graph);
+        }
+
+      /* Output xml.  */
+      if (xml_flag)
+        {
+          timevar_push (tv_xml);
+          print_xml ();
+          timevar_pop (tv_xml);
+        }
     }
 
   /* Stop if there were errors, to avoid trashing previous output
@@ -182,9 +188,12 @@ main (int argc, char *argv[])
   timevar_pop (tv_free);
 
   /* Output the tables and the parser to ftable.  In file output.  */
-  timevar_push (tv_parser);
-  output ();
-  timevar_pop (tv_parser);
+  if (!update_flag)
+    {
+      timevar_push (tv_parser);
+      output ();
+      timevar_pop (tv_parser);
+    }
 
   timevar_push (tv_free);
   nullable_free ();
@@ -200,7 +209,6 @@ main (int argc, char *argv[])
      contains things such as user actions, prologue, epilogue etc.  */
   gram_scanner_free ();
   muscle_free ();
-  uniqstrs_free ();
   code_scanner_free ();
   skel_scanner_free ();
   quotearg_free ();
@@ -216,6 +224,19 @@ main (int argc, char *argv[])
   timevar_print (stderr);
 
   cleanup_caret ();
+
+  /* Fix input file now, even if there are errors: that's less
+     warnings in the following runs.  */
+  if (!fixits_empty ())
+    {
+      if (update_flag)
+        fixits_run ();
+      else
+        complain (NULL, Wother,
+                  _("fix-its can be applied.  Rerun with option '--update'."));
+      fixits_free ();
+    }
+  uniqstrs_free ();
 
   return complaint_status ? EXIT_FAILURE : EXIT_SUCCESS;
 }

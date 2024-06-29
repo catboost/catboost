@@ -1,7 +1,6 @@
 /* Generic bitsets.
 
-   Copyright (C) 2002-2004, 2009-2015, 2018 Free Software Foundation,
-   Inc.
+   Copyright (C) 2002-2004, 2009-2015, 2018-2019 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -18,8 +17,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef _BITSET_H
-#define _BITSET_H
+#ifndef _GL_BITSET_H
+#define _GL_BITSET_H
 
 /* This file is the public interface to the bitset abstract data type.
    Only use the functions and macros defined in this file.  */
@@ -29,7 +28,7 @@
 # include "unlocked-io.h"
 #endif
 
-#include "bbitset.h"
+#include "bitset/base.h"
 #include "obstack.h"
 
 /* Attributes used to select a bitset implementation.  */
@@ -58,11 +57,11 @@ union bitset_union
     bitset_word words[1];               /* The array of bits.  */
   } a;
 
-  struct ebitset_struct
+  struct tbitset_struct
   {
     struct bbitset_struct b;
     bitset_windex size;                 /* Number of elements.  */
-    struct ebitset_elt_struct **elts;   /* Expanding array of ptrs to elts.  */
+    struct tbitset_elt_struct **elts;   /* Expanding array of ptrs to elts.  */
   } e;
 
   struct lbitset_struct
@@ -386,4 +385,4 @@ void debug_bitset (bitset);
 /* Function to debug bitset stats from debugger.  */
 void debug_bitset_stats (void);
 
-#endif /* _BITSET_H  */
+#endif /* _GL_BITSET_H  */

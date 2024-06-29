@@ -1,7 +1,7 @@
 /* Parse command line arguments for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018 Free Software
-   Foundation, Inc.
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2019 Free
+   Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -36,12 +36,13 @@
 #include "quote.h"
 #include "uniqstr.h"
 
-bool defines_flag;
-bool graph_flag;
-bool xml_flag;
-bool no_lines_flag;
-bool token_table_flag;
-bool yacc_flag; /* for -y */
+bool defines_flag = false;
+bool graph_flag = false;
+bool xml_flag = false;
+bool no_lines_flag = false;
+bool token_table_flag = false;
+location yacc_loc = EMPTY_LOCATION_INIT;
+bool update_flag = false; /* for -u */
 
 bool nondeterministic_parser = false;
 bool glr_parser = false;
@@ -54,6 +55,7 @@ static struct bison_language const valid_languages[] = {
   /* lang,  skeleton,       ext,     hdr,     add_tab */
   { "c",    "c-skel.m4",    ".c",    ".h",    true },
   { "c++",  "c++-skel.m4",  ".cc",   ".hh",   true },
+  { "d",    "d-skel.m4",    ".d",    ".d",    false },
   { "java", "java-skel.m4", ".java", ".java", false },
   { "", "", "", "", false }
 };
@@ -229,6 +231,7 @@ static const char * const feature_args[] =
 {
   "none",
   "caret", "diagnostics-show-caret",
+  "fixit", "diagnostics-parseable-fixits",
   "all",
   0
 };
@@ -237,6 +240,7 @@ static const int feature_types[] =
 {
   feature_none,
   feature_caret, feature_caret,
+  feature_fixit_parsable, feature_fixit_parsable,
   feature_all
 };
 
@@ -282,7 +286,10 @@ Operation modes:\n\
   -h, --help                 display this help and exit\n\
   -V, --version              output version information and exit\n\
       --print-localedir      output directory containing locale-dependent data\n\
+                             and exit\n\
       --print-datadir        output directory containing skeletons and XSLT\n\
+                             and exit\n\
+  -u, --update               apply fixes to the source grammar file and exit\n\
   -y, --yacc                 emulate POSIX Yacc\n\
   -W, --warnings[=CATEGORY]  report the warnings falling in CATEGORY\n\
   -f, --feature[=FEATURE]    activate miscellaneous features\n\
@@ -477,6 +484,7 @@ static char const short_options[] =
   "p:"
   "r:"
   "t"
+  "u"   /* --update */
   "v"
   "x::"
   "y"
@@ -499,6 +507,7 @@ static struct option const long_options[] =
   { "version",         no_argument,       0,   'V' },
   { "print-localedir", no_argument,       0,   PRINT_LOCALEDIR_OPTION },
   { "print-datadir",   no_argument,       0,   PRINT_DATADIR_OPTION   },
+  { "update",          no_argument,       0,   'u' },
   { "warnings",        optional_argument, 0,   'W' },
 
   /* Parser. */
@@ -685,6 +694,10 @@ getargs (int argc, char *argv[])
                                       MUSCLE_PERCENT_DEFINE_D);
         break;
 
+      case 'u':
+        update_flag = true;
+        break;
+
       case 'v':
         report_flag |= report_states;
         break;
@@ -699,8 +712,8 @@ getargs (int argc, char *argv[])
         break;
 
       case 'y':
-        warning_argmatch ("error=yacc", 0, 6);
-        yacc_flag = true;
+        warning_argmatch ("yacc", 0, 0);
+        yacc_loc = command_line_location ();
         break;
 
       case LOCATIONS_OPTION:

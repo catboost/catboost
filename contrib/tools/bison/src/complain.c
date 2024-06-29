@@ -1,7 +1,7 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2004-2006, 2009-2015, 2018 Free Software
-   Foundation, Inc.
+   Copyright (C) 2000-2002, 2004-2006, 2009-2015, 2018-2019 Free
+   Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 
 #include "complain.h"
 #include "files.h"
+#include "fixits.h"
 #include "getargs.h"
 #include "quote.h"
 
@@ -278,15 +279,18 @@ error_message (const location *loc, warnings flags, const char *prefix,
         *indent_ptr = pos;
       else if (*indent_ptr > pos)
         fprintf (stderr, "%*s", *indent_ptr - pos, "");
-      indent_ptr = 0;
+      indent_ptr = NULL;
     }
 
   if (prefix)
     fprintf (stderr, "%s: ", prefix);
 
   vfprintf (stderr, message, args);
-  if (! (flags & silent))
+  /* Print the type of warning, only if this is not a sub message
+     (in which case the prefix is null).  */
+  if (! (flags & silent) && prefix)
     warnings_print_categories (flags, stderr);
+
   {
     size_t l = strlen (message);
     if (l < 2 || message[l - 2] != ':' || message[l - 1] != ' ')
@@ -374,6 +378,14 @@ complain_args (location const *loc, warnings w, unsigned *indent,
   }
 }
 
+
+void
+bison_directive (location const *loc, char const *directive)
+{
+  complain (loc, Wyacc,
+            _("POSIX Yacc does not support %s"), directive);
+}
+
 void
 deprecated_directive (location const *loc, char const *old, char const *upd)
 {
@@ -385,6 +397,9 @@ deprecated_directive (location const *loc, char const *old, char const *upd)
     complain (loc, Wdeprecated,
               _("deprecated directive: %s, use %s"),
               quote (old), quote_n (1, upd));
+  /* Register updates only if -Wdeprecated is enabled.  */
+  if (warnings_flag[warning_deprecated] != severity_disabled)
+    fixits_register (loc, upd);
 }
 
 void
@@ -392,7 +407,24 @@ duplicate_directive (char const *directive,
                      location first, location second)
 {
   unsigned i = 0;
-  complain (&second, complaint, _("only one %s allowed per rule"), directive);
+  if (feature_flag & feature_caret)
+    complain_indent (&second, Wother, &i, _("duplicate directive"));
+  else
+    complain_indent (&second, Wother, &i, _("duplicate directive: %s"), quote (directive));
   i += SUB_INDENT;
-  complain_indent (&first, complaint, &i, _("previous declaration"));
+  complain_indent (&first, Wother, &i, _("previous declaration"));
+  fixits_register (&second, "");
+}
+
+void
+duplicate_rule_directive (char const *directive,
+                          location first, location second)
+{
+  unsigned i = 0;
+  complain_indent (&second, complaint, &i,
+                   _("only one %s allowed per rule"), directive);
+  i += SUB_INDENT;
+  complain_indent (&first, complaint, &i,
+                   _("previous declaration"));
+  fixits_register (&second, "");
 }

@@ -1,7 +1,7 @@
 /* Find and resolve or report lookahead conflicts for bison,
 
-   Copyright (C) 2000-2002, 2004, 2007, 2009-2015, 2018 Free Software
-   Foundation, Inc.
+   Copyright (C) 2000-2002, 2004, 2007, 2009-2015, 2018-2019 Free
+   Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -44,4 +44,5 @@ void conflicts_free (void);
 /* Were there conflicts? */
 extern int expected_sr_conflicts;
 extern int expected_rr_conflicts;
+
 #endif /* !CONFLICTS_H_ */

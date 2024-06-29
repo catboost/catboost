@@ -1,6 +1,6 @@
 /* Type definitions for the finite state machine for Bison.
 
-   Copyright (C) 1984, 1989, 2000-2004, 2007, 2009-2015, 2018 Free
+   Copyright (C) 1984, 1989, 2000-2004, 2007, 2009-2015, 2018-2019 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -81,6 +81,8 @@
 #ifndef STATE_H_
 # define STATE_H_
 
+# include <stdbool.h>
+
 # include <bitset.h>
 
 # include "gram.h"
@@ -117,7 +119,7 @@ typedef struct
 
 /* What is the symbol labelling the transition to
    TRANSITIONS->states[Num]?  Can be a token (amongst which the error
-   token), or non terminals in case of gotos.  */
+   token), or nonterminals in case of gotos.  */
 
 # define TRANSITION_SYMBOL(Transitions, Num) \
   (Transitions->states[Num]->accessing_symbol)
@@ -208,9 +210,9 @@ struct state
      store in this member a reference to the node containing each state.  */
   struct state_list *state_list;
 
-  /* If non-zero, then no lookahead sets on reduce actions are needed to
-     decide what to do in state S.  */
-  char consistent;
+  /* Whether no lookahead sets on reduce actions are needed to decide
+     what to do in state S.  */
+  bool consistent;
 
   /* If some conflicts were solved thanks to precedence/associativity,
      a human readable description of the resolution.  */

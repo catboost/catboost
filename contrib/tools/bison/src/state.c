@@ -1,7 +1,7 @@
 /* Type definitions for the finite state machine for Bison.
 
-   Copyright (C) 2001-2007, 2009-2015, 2018 Free Software Foundation,
-   Inc.
+   Copyright (C) 2001-2007, 2009-2015, 2018-2019 Free Software
+   Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -143,7 +143,7 @@ state_new (symbol_number accessing_symbol,
   res->reductions = NULL;
   res->errs = NULL;
   res->state_list = NULL;
-  res->consistent = 0;
+  res->consistent = false;
   res->solved_conflicts = NULL;
   res->solved_conflicts_xml = NULL;
 

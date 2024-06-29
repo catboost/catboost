@@ -5,7 +5,7 @@
    <ctype.h> functions' behaviour depends on the current locale set via
    setlocale.
 
-   Copyright (C) 2000-2003, 2006, 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2003, 2006, 2008-2019 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -1,7 +1,7 @@
 /* Input parser for Bison
 
-   Copyright (C) 2000-2003, 2005-2007, 2009-2015, 2018 Free Software
-   Foundation, Inc.
+   Copyright (C) 2000-2003, 2005-2007, 2009-2015, 2018-2019 Free
+   Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -38,7 +38,6 @@ typedef struct merger_list
 /* From the parser.  */
 extern int gram_debug;
 int gram_parse (void);
-char const *token_name (int type);
 
 
 /* From reader.c. */
@@ -52,6 +51,8 @@ void grammar_current_rule_empty_set (location loc);
 void grammar_current_rule_prec_set (symbol *precsym, location loc);
 void grammar_current_rule_dprec_set (int dprec, location loc);
 void grammar_current_rule_merge_set (uniqstr name, location loc);
+void grammar_current_rule_expect_sr (int count, location loc);
+void grammar_current_rule_expect_rr (int count, location loc);
 void grammar_current_rule_symbol_append (symbol *sym, location loc,
                                          named_ref *nref);
 /* Attach an ACTION to the current rule.  */
@@ -66,9 +67,6 @@ extern merger_list *merge_functions;
 
 /* Was %union seen?  */
 extern bool union_seen;
-
-/* Was a tag seen?  */
-extern bool tag_seen;
 
 /* Should rules have a default precedence?  */
 extern bool default_prec;

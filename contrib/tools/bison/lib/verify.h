@@ -1,6 +1,6 @@
 /* Compile-time assert-like macros.
 
-   Copyright (C) 2005-2006, 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2009-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
    here generates easier-to-read diagnostics when verify (R) fails.
 
    Define _GL_HAVE_STATIC_ASSERT to 1 if static_assert works as per C++11.
-   This will likely be supported by future GCC versions, in C++ mode.
+   This is supported by GCC 6.1.0 and later, in C++ mode.
 
    Use this only with GCC.  If we were willing to slow 'configure'
    down we could also use it with other compilers, but since this
@@ -36,9 +36,7 @@
      && !defined __cplusplus)
 # define _GL_HAVE__STATIC_ASSERT 1
 #endif
-/* The condition (99 < __GNUC__) is temporary, until we know about the
-   first G++ release that supports static_assert.  */
-#if (99 < __GNUC__) && defined __cplusplus
+#if (6 <= __GNUC__) && defined __cplusplus
 # define _GL_HAVE_STATIC_ASSERT 1
 #endif
 

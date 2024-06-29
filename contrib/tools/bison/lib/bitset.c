@@ -1,7 +1,6 @@
 /* General bitsets.
 
-   Copyright (C) 2002-2006, 2009-2015, 2018 Free Software Foundation,
-   Inc.
+   Copyright (C) 2002-2006, 2009-2015, 2018-2019 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -27,11 +26,11 @@
 
 #include "obstack.h"
 
-#include "abitset.h"
-#include "lbitset.h"
-#include "ebitset.h"
-#include "vbitset.h"
-#include "bitset_stats.h"
+#include "bitset/array.h"
+#include "bitset/list.h"
+#include "bitset/stats.h"
+#include "bitset/table.h"
+#include "bitset/vector.h"
 
 const char * const bitset_type_names[] = BITSET_TYPE_NAMES;
 
@@ -56,9 +55,9 @@ bitset_bytes (enum bitset_type type, bitset_bindex n_bits)
       return lbitset_bytes (n_bits);
 
     case BITSET_TABLE:
-      return ebitset_bytes (n_bits);
+      return tbitset_bytes (n_bits);
 
-    case BITSET_VARRAY:
+    case BITSET_VECTOR:
       return vbitset_bytes (n_bits);
     }
 }
@@ -83,9 +82,9 @@ bitset_init (bitset bset, bitset_bindex n_bits, enum bitset_type type)
       return lbitset_init (bset, n_bits);
 
     case BITSET_TABLE:
-      return ebitset_init (bset, n_bits);
+      return tbitset_init (bset, n_bits);
 
-    case BITSET_VARRAY:
+    case BITSET_VECTOR:
       return vbitset_init (bset, n_bits);
     }
 }
@@ -109,7 +108,7 @@ bitset_type_choose (bitset_bindex n_bits ATTRIBUTE_UNUSED, unsigned attr)
 
   /* If no attributes selected, choose a good compromise.  */
   if (!attr)
-    return BITSET_VARRAY;
+    return BITSET_VECTOR;
 
   if (attr & BITSET_SPARSE)
     return BITSET_LIST;
@@ -120,7 +119,7 @@ bitset_type_choose (bitset_bindex n_bits ATTRIBUTE_UNUSED, unsigned attr)
   if (attr & BITSET_GREEDY)
     return BITSET_TABLE;
 
-  return BITSET_VARRAY;
+  return BITSET_VECTOR;
 }
 
 
@@ -308,7 +307,7 @@ void
 bitset_release_memory (void)
 {
   lbitset_release_memory ();
-  ebitset_release_memory ();
+  tbitset_release_memory ();
 }
 
 
@@ -374,9 +373,7 @@ bitset_copy_ (bitset dst, bitset src)
      is large enough to hold the SRC bitset.  */
   bitset_zero (dst);
   BITSET_FOR_EACH (iter, src, i, 0)
-  {
-     bitset_set (dst, i);
-  }
+    bitset_set (dst, i);
 
   return true;
 }

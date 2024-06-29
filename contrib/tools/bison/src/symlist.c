@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2015, 2018 Free Software
+   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2019 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -49,6 +49,8 @@ symbol_list_sym_new (symbol *sym, location loc)
   res->dprec_location = empty_location;
   res->merger = 0;
   res->merger_declaration_location = empty_location;
+  res->expected_sr_conflicts = -1;
+  res->expected_rr_conflicts = -1;
 
   res->next = NULL;
 
@@ -76,6 +78,15 @@ symbol_list_type_new (uniqstr type_name, location loc)
   res->next = NULL;
 
   return res;
+}
+
+
+symbol_list *
+symbol_list_type_set (symbol_list *syms, uniqstr type_name, location loc)
+{
+  for (symbol_list *l = syms; l; l = l->next)
+    symbol_type_set (l->content.sym, type_name, loc);
+  return syms;
 }
 
 
@@ -172,9 +183,8 @@ symbol_list_length (symbol_list const *l)
 symbol_list *
 symbol_list_n_get (symbol_list *l, int n)
 {
-  int i;
   aver (0 <= n);
-  for (i = 0; i < n; ++i)
+  for (int i = 0; i < n; ++i)
     {
       l = l->next;
       aver (l);

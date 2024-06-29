@@ -1,6 +1,6 @@
 /* Muscle table manager for Bison.
 
-   Copyright (C) 2001-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2015, 2018-2019 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -24,6 +24,7 @@
 
 #include "complain.h"
 #include "files.h"
+#include "fixits.h"
 #include "getargs.h"
 #include "muscle-tab.h"
 #include "quote.h"
@@ -407,10 +408,16 @@ muscle_user_name_list_grow (char const *key, char const *user_name,
 
 static
 char *
-define_directive (char const *assignment, char const *value)
+define_directive (char const *assignment,
+                  muscle_kind kind,
+                  char const *value)
 {
   char *eq = strchr (assignment, '=');
-  char const *fmt = !eq && value && *value ? "%%define %s %s" : "%%define %s";
+  char const *fmt
+    = eq || !value || !*value ? "%%define %s"
+    : kind == muscle_code     ? "%%define %s {%s}"
+    : kind == muscle_string   ? "%%define %s \"%s\""
+    :                           "%%define %s %s";
   char *res = xmalloc (strlen (fmt) + strlen (assignment)
                        + (value ? strlen (value) : 0));
   sprintf (res, fmt, assignment, value);
@@ -423,32 +430,46 @@ define_directive (char const *assignment, char const *value)
 /** If the \a variable name is obsolete, return the name to use,
  * otherwise \a variable.  If the \a value is obsolete, update it too.
  *
- * Allocates the returned value.  */
+ * Allocates the returned value if needed, otherwise the returned
+ * value is exactly \a variable.  */
 static
-char *
-muscle_percent_variable_update (char const *variable, location variable_loc,
-                                char const **value)
+char const *
+muscle_percent_variable_update (char const *variable,
+                                muscle_kind kind,
+                                char const **value,
+                                char **old, char **upd)
 {
   typedef struct
   {
     const char *obsolete;
     const char *updated;
+    muscle_kind kind;
   } conversion_type;
   const conversion_type conversion[] =
-    {
-      { "api.push_pull",              "api.push-pull", },
-      { "api.tokens.prefix",          "api.token.prefix", },
-      { "lex_symbol",                 "api.token.constructor", },
-      { "location_type",              "api.location.type", },
-      { "lr.default-reductions",      "lr.default-reduction", },
-      { "lr.keep-unreachable-states", "lr.keep-unreachable-state", },
-      { "lr.keep_unreachable_states", "lr.keep-unreachable-state", },
-      { "namespace",                  "api.namespace", },
-      { "stype",                      "api.value.type", },
-      { "variant=",                   "api.value.type=variant", },
-      { "variant=true",               "api.value.type=variant", },
-      { NULL, NULL, }
-    };
+  {
+    { "%error-verbose",             "parse.error=verbose",       muscle_keyword },
+    { "%error_verbose",             "parse.error=verbose",       muscle_keyword },
+    { "abstract",                   "api.parser.abstract",       muscle_keyword },
+    { "annotations",                "api.parser.annotations",    muscle_code },
+    { "api.push_pull",              "api.push-pull",             muscle_keyword },
+    { "api.tokens.prefix",          "api.token.prefix",          muscle_code },
+    { "extends",                    "api.parser.extends",        muscle_keyword },
+    { "final",                      "api.parser.final",          muscle_keyword },
+    { "implements",                 "api.parser.implements",     muscle_keyword },
+    { "lex_symbol",                 "api.token.constructor",     -1 },
+    { "location_type",              "api.location.type",         muscle_code },
+    { "lr.default-reductions",      "lr.default-reduction",      muscle_keyword },
+    { "lr.keep-unreachable-states", "lr.keep-unreachable-state", muscle_keyword },
+    { "lr.keep_unreachable_states", "lr.keep-unreachable-state", muscle_keyword },
+    { "namespace",                  "api.namespace",             muscle_code },
+    { "parser_class_name",          "api.parser.class",          muscle_code },
+    { "public",                     "api.parser.public",         muscle_keyword },
+    { "strictfp",                   "api.parser.strictfp",       muscle_keyword },
+    { "stype",                      "api.value.type",            -1 },
+    { "variant=",                   "api.value.type=variant",    -1 },
+    { "variant=true",               "api.value.type=variant",    -1 },
+    { NULL, NULL, -1, }
+  };
 
   for (conversion_type const *c = conversion; c->obsolete; ++c)
     {
@@ -458,22 +479,25 @@ muscle_percent_variable_update (char const *variable, location variable_loc,
              && STREQ (eq + 1, *value))
           : STREQ (c->obsolete, variable))
         {
-          char *old = define_directive (c->obsolete, *value);
-          char *upd = define_directive (c->updated, *value);
-          deprecated_directive (&variable_loc, old, upd);
-          free (old);
-          free (upd);
-          char *res = xstrdup (c->updated);
-          char *eq2 = strchr (res, '=');
-          if (eq2)
-            {
-              *eq2 = '\0';
-              *value = eq2 + 1;
-            }
-          return res;
+          /* Generate the deprecation warning. */
+          *old = c->obsolete[0] == '%'
+            ? xstrdup (c->obsolete)
+            : define_directive (c->obsolete, kind, *value);
+          *upd = define_directive (c->updated, c->kind, *value);
+          /* Update the variable and its value.  */
+          {
+            char *res = xstrdup (c->updated);
+            char *eq2 = strchr (res, '=');
+            if (eq2)
+              {
+                *eq2 = '\0';
+                *value = eq2 + 1;
+              }
+            return res;
+          }
         }
     }
-  return xstrdup (variable);
+  return variable;
 }
 
 void
@@ -483,7 +507,11 @@ muscle_percent_define_insert (char const *var, location variable_loc,
                               muscle_percent_define_how how)
 {
   /* Backward compatibility.  */
-  char *variable = muscle_percent_variable_update (var, variable_loc, &value);
+  char *old = NULL;
+  char *upd = NULL;
+  char const *variable
+    = muscle_percent_variable_update (var, kind,
+                                      &value, &old, &upd);
   uniqstr name = muscle_name (variable, NULL);
   uniqstr loc_name = muscle_name (variable, "loc");
   uniqstr syncline_name = muscle_name (variable, "syncline");
@@ -491,20 +519,32 @@ muscle_percent_define_insert (char const *var, location variable_loc,
   uniqstr kind_name = muscle_name (variable, "kind");
 
   /* Command-line options are processed before the grammar file.  */
-  if (how == MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE
-      && muscle_find_const (name))
+  bool warned = false;
+  if (how == MUSCLE_PERCENT_DEFINE_GRAMMAR_FILE)
     {
-      muscle_percent_define_how how_old = atoi (muscle_find_const (how_name));
-      if (how_old == MUSCLE_PERCENT_DEFINE_F)
-        goto end;
-      unsigned i = 0;
-      complain_indent (&variable_loc, complaint, &i,
-                       _("%%define variable %s redefined"),
-                       quote (variable));
-      i += SUB_INDENT;
-      location loc = muscle_percent_define_get_loc (variable);
-      complain_indent (&loc, complaint, &i, _("previous definition"));
+      char const *current_value = muscle_find_const (name);
+      if (current_value)
+        {
+          muscle_percent_define_how how_old
+            = atoi (muscle_find_const (how_name));
+          if (how_old == MUSCLE_PERCENT_DEFINE_F)
+            goto end;
+          unsigned i = 0;
+          /* If assigning the same value, make it a warning.  */
+          warnings warn = STREQ (value, current_value) ? Wother : complaint;
+          complain_indent (&variable_loc, warn, &i,
+                           _("%%define variable %s redefined"),
+                           quote (variable));
+          i += SUB_INDENT;
+          location loc = muscle_percent_define_get_loc (variable);
+          complain_indent (&loc, warn, &i, _("previous definition"));
+          fixits_register (&variable_loc, "");
+          warned = true;
+        }
     }
+
+  if (!warned && old && upd)
+    deprecated_directive (&variable_loc, old, upd);
 
   MUSCLE_INSERT_STRING (name, value);
   muscle_insert (loc_name, "");
@@ -516,7 +556,10 @@ muscle_percent_define_insert (char const *var, location variable_loc,
   MUSCLE_INSERT_INT (how_name, how);
   MUSCLE_INSERT_STRING (kind_name, muscle_kind_string (kind));
  end:
-  free (variable);
+  free (old);
+  free (upd);
+  if (variable != var)
+    free ((char *) variable);
 }
 
 /* This is used for backward compatibility, e.g., "%define api.pure"

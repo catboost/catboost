@@ -1,5 +1,5 @@
 /* obstack.h - object stack macros
-   Copyright (C) 1988-2018 Free Software Foundation, Inc.
+   Copyright (C) 1988-2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -111,7 +111,7 @@
 #include <stddef.h>             /* For size_t and ptrdiff_t.  */
 #include <string.h>             /* For __GNU_LIBRARY__, and memcpy.  */
 
-#if __STDC_VERSION__ < 199901L
+#if __STDC_VERSION__ < 199901L || defined __HP_cc
 # define __FLEXIBLE_ARRAY_MEMBER 1
 #else
 # define __FLEXIBLE_ARRAY_MEMBER

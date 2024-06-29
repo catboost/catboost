@@ -1,6 +1,6 @@
 /* xalloc-oversized.h -- memory allocation size checking
 
-   Copyright (C) 1990-2000, 2003-2004, 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2000, 2003-2004, 2006-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

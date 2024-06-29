@@ -1,6 +1,6 @@
 /* Find and resolve or report lookahead conflicts for bison,
 
-   Copyright (C) 1984, 1989, 1992, 2000-2015, 2018 Free Software
+   Copyright (C) 1984, 1989, 1992, 2000-2015, 2018-2019 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -467,15 +467,13 @@ count_sr_conflicts (void)
 
 
 
-/*----------------------------------------------------------------.
-| Count the number of reduce/reduce conflicts.  If ONE_PER_TOKEN, |
-| count one conflict for each token that has any reduce/reduce    |
-| conflicts.  Otherwise, count one conflict for each pair of      |
-| conflicting reductions.                                         |
-`----------------------------------------------------------------*/
+/*-----------------------------------------------------------------.
+| Count the number of reduce/reduce conflicts.  Count one conflict |
+| for each reduction after the first for a given token.            |
+`-----------------------------------------------------------------*/
 
 static size_t
-count_state_rr_conflicts (state *s, bool one_per_token)
+count_state_rr_conflicts (state *s)
 {
   reductions *reds = s->reductions;
   size_t res = 0;
@@ -485,24 +483,98 @@ count_state_rr_conflicts (state *s, bool one_per_token)
       int count = 0;
       for (int j = 0; j < reds->num; ++j)
         count += bitset_test (reds->lookahead_tokens[j], i);
-      if (count >= 2)
-        res += one_per_token ? 1 : count-1;
+      if (2 <= count)
+        res += count-1;
     }
 
   return res;
 }
 
 static size_t
-count_rr_conflicts (bool one_per_token)
+count_rr_conflicts (void)
 {
   size_t res = 0;
   /* Conflicts by state.  */
   for (state_number i = 0; i < nstates; ++i)
     if (conflicts[i])
-      res += count_state_rr_conflicts (states[i], one_per_token);
+      res += count_state_rr_conflicts (states[i]);
   return res;
 }
 
+
+/*------------------------------------------------------------------.
+| For a given rule, the number of shift/reduce conflicts in a given |
+| state.                                                            |
+`------------------------------------------------------------------*/
+
+static size_t
+count_rule_state_sr_conflicts (rule *r, state *s)
+{
+  size_t res = 0;
+  transitions *trans = s->transitions;
+  reductions *reds = s->reductions;
+
+  for (int i = 0; i < reds->num; ++i)
+    if (reds->rules[i] == r)
+      {
+        bitset lookaheads = reds->lookahead_tokens[i];
+        int j;
+        FOR_EACH_SHIFT (trans, j)
+          res += bitset_test (lookaheads, TRANSITION_SYMBOL (trans, j));
+      }
+
+  return res;
+}
+
+/*----------------------------------------------------------------------.
+| For a given rule, count the number of states for which it is involved |
+| in shift/reduce conflicts.                                            |
+`----------------------------------------------------------------------*/
+
+static size_t
+count_rule_sr_conflicts (rule *r)
+{
+  size_t res = 0;
+  for (state_number i = 0; i < nstates; ++i)
+    if (conflicts[i])
+      res += count_rule_state_sr_conflicts (r, states[i]);
+  return res;
+}
+
+/*-----------------------------------------------------------------.
+| For a given rule, count the number of states in which it is      |
+| involved in reduce/reduce conflicts.                             |
+`-----------------------------------------------------------------*/
+
+static size_t
+count_rule_state_rr_conflicts (rule *r, state *s)
+{
+  size_t res = 0;
+  const reductions *reds = s->reductions;
+  bitset lookaheads = bitset_create (ntokens, BITSET_FIXED);
+
+  for (int i = 0; i < reds->num; ++i)
+    if (reds->rules[i] == r)
+      for (int j = 0; j < reds->num; ++j)
+        if (reds->rules[j] != r)
+          {
+            bitset_and (lookaheads,
+                        reds->lookahead_tokens[i],
+                        reds->lookahead_tokens[j]);
+            res += bitset_count (lookaheads);
+          }
+  bitset_free (lookaheads);
+  return res;
+}
+
+static size_t
+count_rule_rr_conflicts (rule *r)
+{
+  size_t res = 0;
+  for (state_number i = 0; i < nstates; ++i)
+    res += count_rule_state_rr_conflicts (r, states[i]);
+  return res;
+}
 
 /*-----------------------------------------------------------.
 | Output the detailed description of states with conflicts.  |
@@ -518,7 +590,7 @@ conflicts_output (FILE *out)
       if (conflicts[i])
         {
           int src = count_state_sr_conflicts (s);
-          int rrc = count_state_rr_conflicts (s, true);
+          int rrc = count_state_rr_conflicts (s);
           fprintf (out, _("State %d "), i);
           if (src && rrc)
             fprintf (out,
@@ -535,27 +607,56 @@ conflicts_output (FILE *out)
     fputs ("\n\n", out);
 }
 
-/*--------------------------------------------------------.
-| Total the number of S/R and R/R conflicts.  Unlike the  |
-| code in conflicts_output, however, count EACH pair of   |
-| reductions for the same state and lookahead as one      |
-| conflict.                                               |
-`--------------------------------------------------------*/
+/*--------------------------------------------.
+| Total the number of S/R and R/R conflicts.  |
+`--------------------------------------------*/
 
 int
 conflicts_total_count (void)
 {
-  return count_sr_conflicts () + count_rr_conflicts (false);
+  return count_sr_conflicts () + count_rr_conflicts ();
 }
 
+/*------------------------------.
+| Reporting per-rule conflicts. |
+`------------------------------*/
 
-/*------------------------------------------.
-| Reporting the total number of conflicts.  |
-`------------------------------------------*/
+static void
+rule_conflicts_print (void)
+{
+  for (rule_number i = 0; i < nrules; i += 1)
+    {
+      rule *r = &rules[i];
+      int expected_sr = r->expected_sr_conflicts;
+      int expected_rr = r->expected_rr_conflicts;
+
+      if (expected_sr != -1 || expected_rr != -1)
+        {
+          int sr = count_rule_sr_conflicts (r);
+          if (sr != expected_sr && (sr != 0 || expected_sr != -1))
+            complain (&r->location, complaint,
+                      _("shift/reduce conflicts for rule %d:"
+                        " %d found, %d expected"),
+                      r->user_number, sr, expected_sr);
+          int rr = count_rule_rr_conflicts (r);
+          if (rr != expected_rr && (rr != 0 || expected_rr != -1))
+            complain (&r->location, complaint,
+                      _("reduce/reduce conflicts for rule %d:"
+                        " %d found, %d expected"),
+                      r->user_number, rr, expected_rr);
+        }
+    }
+}
+
+/*---------------------------------.
+| Reporting numbers of conflicts.  |
+`---------------------------------*/
 
 void
 conflicts_print (void)
 {
+  rule_conflicts_print ();
+
   if (! glr_parser && expected_rr_conflicts != -1)
     {
       complain (NULL, Wother, _("%%expect-rr applies only to GLR parsers"));
@@ -587,7 +688,7 @@ conflicts_print (void)
   }
 
   {
-    int total = count_rr_conflicts (true);
+    int total = count_rr_conflicts ();
     /* If %expect-rr is not used, but %expect is, then expect 0 rr.  */
     int expected =
       (expected_rr_conflicts == -1 && expected_sr_conflicts != -1)
@@ -608,7 +709,6 @@ conflicts_print (void)
                 total);
   }
 }
-
 
 void
 conflicts_free (void)

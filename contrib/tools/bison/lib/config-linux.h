@@ -54,6 +54,9 @@
    language is requested. */
 /* #undef ENABLE_NLS */
 
+/* Define to 1 if the package shall run at any location in the file system. */
+/* #undef ENABLE_RELOCATABLE */
+
 /* Define this to 1 if F_DUPFD behavior does not match POSIX */
 /* #undef FCNTL_DUPFD_BUGGY */
 
@@ -73,12 +76,20 @@
 /* Define to 1 if fopen() fails to recognize a trailing slash. */
 /* #undef FOPEN_TRAILING_SLASH_BUG */
 
+/* Define to 1 if realpath() can malloc memory, always gives an absolute path,
+   and handles trailing slash correctly. */
+#define FUNC_REALPATH_WORKS 1
+
 /* Define if gettimeofday clobbers the localtime buffer. */
 /* #undef GETTIMEOFDAY_CLOBBERS_LOCALTIME */
 
 /* Define this to 'void' or 'struct timezone' to match the system's
    declaration of the second argument to gettimeofday. */
 #define GETTIMEOFDAY_TIMEZONE void
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module canonicalize-lgpl shall be considered present. */
+#define GNULIB_CANONICALIZE_LGPL 1
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module close-stream shall be considered present. */
@@ -102,7 +113,7 @@
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module lock shall be considered present. */
-#define GNULIB_LOCK 1
+/* #undef GNULIB_LOCK */
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module malloc-gnu shall be considered present. */
@@ -134,10 +145,17 @@
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module strerror_r-posix shall be considered present. */
-#define GNULIB_STRERROR_R_POSIX 1
+/* #undef GNULIB_STRERROR_R_POSIX */
 
 /* Define to 1 when the gnulib module calloc-posix should be tested. */
 #define GNULIB_TEST_CALLOC_POSIX 1
+
+/* Define to 1 when the gnulib module canonicalize_file_name should be tested.
+   */
+#define GNULIB_TEST_CANONICALIZE_FILE_NAME 1
+
+/* Define to 1 when the gnulib module chdir should be tested. */
+/* #undef GNULIB_TEST_CHDIR */
 
 /* Define to 1 when the gnulib module cloexec should be tested. */
 #define GNULIB_TEST_CLOEXEC 1
@@ -167,7 +185,7 @@
 #define GNULIB_TEST_FREXPL 1
 
 /* Define to 1 when the gnulib module fstat should be tested. */
-#define GNULIB_TEST_FSTAT 1
+/* #undef GNULIB_TEST_FSTAT */
 
 /* Define to 1 when the gnulib module getdtablesize should be tested. */
 #define GNULIB_TEST_GETDTABLESIZE 1
@@ -194,7 +212,7 @@
 #define GNULIB_TEST_LDEXPL 1
 
 /* Define to 1 when the gnulib module lstat should be tested. */
-#define GNULIB_TEST_LSTAT 1
+/* #undef GNULIB_TEST_LSTAT */
 
 /* Define to 1 when the gnulib module malloc-posix should be tested. */
 #define GNULIB_TEST_MALLOC_POSIX 1
@@ -266,10 +284,22 @@
 #define GNULIB_TEST_RAISE 1
 
 /* Define to 1 when the gnulib module rawmemchr should be tested. */
-#define GNULIB_TEST_RAWMEMCHR 1
+/* #undef GNULIB_TEST_RAWMEMCHR */
+
+/* Define to 1 when the gnulib module readlink should be tested. */
+#define GNULIB_TEST_READLINK 1
 
 /* Define to 1 when the gnulib module realloc-posix should be tested. */
 #define GNULIB_TEST_REALLOC_POSIX 1
+
+/* Define to 1 when the gnulib module realpath should be tested. */
+#define GNULIB_TEST_REALPATH 1
+
+/* Define to 1 when the gnulib module rename should be tested. */
+#define GNULIB_TEST_RENAME 1
+
+/* Define to 1 when the gnulib module rmdir should be tested. */
+/* #undef GNULIB_TEST_RMDIR */
 
 /* Define to 1 when the gnulib module sigaction should be tested. */
 #define GNULIB_TEST_SIGACTION 1
@@ -287,13 +317,13 @@
 #define GNULIB_TEST_SPRINTF_POSIX 1
 
 /* Define to 1 when the gnulib module stat should be tested. */
-#define GNULIB_TEST_STAT 1
+/* #undef GNULIB_TEST_STAT */
 
 /* Define to 1 when the gnulib module stpcpy should be tested. */
 #define GNULIB_TEST_STPCPY 1
 
 /* Define to 1 when the gnulib module strchrnul should be tested. */
-#define GNULIB_TEST_STRCHRNUL 1
+/* #undef GNULIB_TEST_STRCHRNUL */
 
 /* Define to 1 when the gnulib module strdup should be tested. */
 #define GNULIB_TEST_STRDUP 1
@@ -302,13 +332,13 @@
 #define GNULIB_TEST_STRERROR 1
 
 /* Define to 1 when the gnulib module strerror_r should be tested. */
-#define GNULIB_TEST_STRERROR_R 1
+/* #undef GNULIB_TEST_STRERROR_R */
 
 /* Define to 1 when the gnulib module strndup should be tested. */
 #define GNULIB_TEST_STRNDUP 1
 
 /* Define to 1 when the gnulib module strnlen should be tested. */
-#define GNULIB_TEST_STRNLEN 1
+/* #undef GNULIB_TEST_STRNLEN */
 
 /* Define to 1 when the gnulib module strverscmp should be tested. */
 #define GNULIB_TEST_STRVERSCMP 1
@@ -350,6 +380,9 @@
 
 /* Define if the 'calloc' function is POSIX compliant. */
 #define HAVE_CALLOC_POSIX 1
+
+/* Define to 1 if you have the `canonicalize_file_name' function. */
+#define HAVE_CANONICALIZE_FILE_NAME 1
 
 /* Define to 1 if you have the `catgets' function. */
 #define HAVE_CATGETS 1
@@ -494,6 +527,10 @@
    don't. */
 #define HAVE_DECL_PUTC_UNLOCKED 1
 
+/* Define to 1 if you have the declaration of `setenv', and to 0 if you don't.
+   */
+#define HAVE_DECL_SETENV 1
+
 /* Define to 1 if you have the declaration of `snprintf', and to 0 if you
    don't. */
 #define HAVE_DECL_SNPRINTF 1
@@ -560,6 +597,9 @@
 /* Define if the frexp function is available in libc. */
 #define HAVE_FREXP_IN_LIBC 1
 
+/* Define to 1 if you have the `getcwd' function. */
+#define HAVE_GETCWD 1
+
 /* Define to 1 if you have the `getdtablesize' function. */
 #define HAVE_GETDTABLESIZE 1
 
@@ -604,7 +644,7 @@
 #define HAVE_ISNAND_IN_LIBC 1
 
 /* Define if the isnan(float) function is available in libc. */
-#define HAVE_ISNANF_IN_LIBC 1
+/* #undef HAVE_ISNANF_IN_LIBC */
 
 /* Define if the isnan(long double) function is available in libc. */
 #define HAVE_ISNANL_IN_LIBC 1
@@ -627,6 +667,9 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
 
+/* Define to 1 if you have the `link' function. */
+#define HAVE_LINK 1
+
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
 
@@ -635,6 +678,9 @@
 
 /* Define to 1 if you have the `lstat' function. */
 #define HAVE_LSTAT 1
+
+/* Define to 1 if you have the <mach-o/dyld.h> header file. */
+/* #undef HAVE_MACH_O_DYLD_H */
 
 /* Define to 1 if your system has a GNU libc compatible 'malloc' function, and
    to 0 otherwise. */
@@ -709,10 +755,10 @@
 #define HAVE_POSIX_SPAWN_FILE_ACTIONS_T 1
 
 /* Define if the <pthread.h> defines PTHREAD_MUTEX_RECURSIVE. */
-#define HAVE_PTHREAD_MUTEX_RECURSIVE 1
+/* #undef HAVE_PTHREAD_MUTEX_RECURSIVE */
 
 /* Define if the POSIX multithreading library has read/write locks. */
-#define HAVE_PTHREAD_RWLOCK 1
+/* #undef HAVE_PTHREAD_RWLOCK */
 
 /* Define if the 'pthread_rwlock_rdlock' function prefers a writer to a
    reader. */
@@ -722,10 +768,19 @@
 #define HAVE_RAISE 1
 
 /* Define to 1 if you have the `rawmemchr' function. */
-#define HAVE_RAWMEMCHR 1
+/* #undef HAVE_RAWMEMCHR */
+
+/* Define to 1 if you have the `readlink' function. */
+#define HAVE_READLINK 1
+
+/* Define to 1 if you have the `readlinkat' function. */
+#define HAVE_READLINKAT 1
 
 /* Define if the 'realloc' function is POSIX compliant. */
 #define HAVE_REALLOC_POSIX 1
+
+/* Define to 1 if you have the `realpath' function. */
+#define HAVE_REALPATH 1
 
 /* Define to 1 if 'long double' and 'double' have the same representation. */
 /* #undef HAVE_SAME_LONG_DOUBLE_AS_DOUBLE */
@@ -739,11 +794,17 @@
 /* Define to 1 if you have the `sched_setscheduler' function. */
 /* #undef HAVE_SCHED_SETSCHEDULER */
 
+/* Define to 1 if you have the <search.h> header file. */
+#define HAVE_SEARCH_H 1
+
 /* Define to 1 if you have the `setdtablesize' function. */
 /* #undef HAVE_SETDTABLESIZE */
 
 /* Define to 1 if you have the `setegid' function. */
 /* #undef HAVE_SETEGID */
+
+/* Define to 1 if you have the `setenv' function. */
+#define HAVE_SETENV 1
 
 /* Define to 1 if you have the `seteuid' function. */
 /* #undef HAVE_SETEUID */
@@ -806,7 +867,7 @@
 #define HAVE_STPCPY 1
 
 /* Define to 1 if you have the `strchrnul' function. */
-#define HAVE_STRCHRNUL 1
+/* #undef HAVE_STRCHRNUL */
 
 /* Define to 1 if you have the `strdup' function. */
 #define HAVE_STRDUP 1
@@ -839,7 +900,7 @@
 /* #undef HAVE_STRUCT_STAT_ST_ATIM_ST__TIM_TV_NSEC */
 
 /* Define to 1 if `st_atim.tv_nsec' is a member of `struct stat'. */
-#define HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC 1
+/* #undef HAVE_STRUCT_STAT_ST_ATIM_TV_NSEC */
 
 /* Define to 1 if `st_birthtimensec' is a member of `struct stat'. */
 /* #undef HAVE_STRUCT_STAT_ST_BIRTHTIMENSEC */
@@ -897,6 +958,9 @@
 
 /* Define to 1 if you have the `towlower' function. */
 #define HAVE_TOWLOWER 1
+
+/* Define to 1 if you have the `tsearch' function. */
+#define HAVE_TSEARCH 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
@@ -958,6 +1022,9 @@
 /* Define to 1 if the system has the type `_Bool'. */
 #define HAVE__BOOL 1
 
+/* Define to 1 if you have the `_NSGetExecutablePath' function. */
+/* #undef HAVE__NSGETEXECUTABLEPATH */
+
 /* Define to 1 if you have the `_set_invalid_parameter_handler' function. */
 /* #undef HAVE__SET_INVALID_PARAMETER_HANDLER */
 
@@ -966,6 +1033,9 @@
 
 /* Define to 1 if you have the `__xpg_strerror_r' function. */
 #define HAVE___XPG_STRERROR_R 1
+
+/* Define to the value of ${prefix}, as a string. */
+#define INSTALLPREFIX "/var/empty/bison-3.3.2"
 
 /* Define as the bit index in the word where to find bit 0 of the exponent of
    'long double'. */
@@ -1080,13 +1150,13 @@
 #define PACKAGE_BUGREPORT "bug-bison@gnu.org"
 
 /* The copyright year for this package */
-#define PACKAGE_COPYRIGHT_YEAR 2018
+#define PACKAGE_COPYRIGHT_YEAR 2019
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "GNU Bison"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU Bison 3.2.4"
+#define PACKAGE_STRING "GNU Bison 3.3.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "bison"
@@ -1095,7 +1165,7 @@
 #define PACKAGE_URL "http://www.gnu.org/software/bison/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.2.4"
+#define PACKAGE_VERSION "3.3.2"
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 /* #undef PRI_MACROS_BROKEN */
@@ -1110,6 +1180,25 @@
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'ptrdiff_t'. */
 /* #undef PTRDIFF_T_SUFFIX */
+
+/* Define to 1 if readlink fails to recognize a trailing slash. */
+/* #undef READLINK_TRAILING_SLASH_BUG */
+
+/* Define if rename does not work when the destination file exists, as on
+   Cygwin 1.5 or Windows. */
+/* #undef RENAME_DEST_EXISTS_BUG */
+
+/* Define if rename fails to leave hard links alone, as on NetBSD 1.6 or
+   Cygwin 1.5. */
+/* #undef RENAME_HARD_LINK_BUG */
+
+/* Define if rename does not correctly handle slashes on the destination
+   argument, such as on Solaris 11 or NetBSD 1.6. */
+/* #undef RENAME_TRAILING_SLASH_DEST_BUG */
+
+/* Define if rename does not correctly handle slashes on the source argument,
+   such as on Solaris 9 or cygwin 1.5. */
+/* #undef RENAME_TRAILING_SLASH_SOURCE_BUG */
 
 /* Define if fprintf is overridden by a POSIX compliant gnulib implementation.
    */
@@ -1178,7 +1267,7 @@
 
 /* Define to 1 if the type of the st_atim member of a struct stat is struct
    timespec. */
-#define TYPEOF_STRUCT_STAT_ST_ATIM_IS_STRUCT_TIMESPEC 1
+/* #undef TYPEOF_STRUCT_STAT_ST_ATIM_IS_STRUCT_TIMESPEC */
 
 /* Define to 1 if unlink() on a parent directory may succeed */
 /* #undef UNLINK_PARENT_BUG */
@@ -1290,7 +1379,7 @@
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "3.2.4"
+#define VERSION "3.3.2"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 /* #undef VOID_UNSETENV */

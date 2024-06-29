@@ -1,7 +1,7 @@
 /* Input parser for Bison
 
    Copyright (C) 1984, 1986, 1989, 1992, 1998, 2000-2003, 2005-2007,
-   2009-2015, 2018 Free Software Foundation, Inc.
+   2009-2015, 2018-2019 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -44,9 +44,6 @@ merger_list *merge_functions;
 
 /* Was %union seen?  */
 bool union_seen = false;
-
-/* Was a tag seen?  */
-bool tag_seen = false;
 
 /* Should rules have a default precedence?  */
 bool default_prec = true;
@@ -114,13 +111,11 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
   if (merger <= 0)
     return;
 
-  int merger_find;
-  merger_list *merge_function;
-
   if (type == NULL)
     type = uniqstr_new ("");
 
-  merger_find = 1;
+  merger_list *merge_function;
+  int merger_find = 1;
   for (merge_function = merge_functions;
        merge_function != NULL && merger_find != merger;
        merge_function = merge_function->next)
@@ -430,6 +425,11 @@ grammar_midrule_action (void)
                                current_rule->action_props.is_predicate);
   code_props_none_init (&current_rule->action_props);
 
+  midrule->expected_sr_conflicts = current_rule->expected_sr_conflicts;
+  midrule->expected_rr_conflicts = current_rule->expected_rr_conflicts;
+  current_rule->expected_sr_conflicts = -1;
+  current_rule->expected_rr_conflicts = -1;
+
   if (previous_rule_end)
     previous_rule_end->next = midrule;
   else
@@ -467,8 +467,8 @@ grammar_current_rule_prec_set (symbol *precsym, location loc)
      not defined separately as a token.  */
   symbol_class_set (precsym, token_sym, loc, false);
   if (current_rule->ruleprec)
-    duplicate_directive ("%prec",
-                         current_rule->ruleprec->location, loc);
+    duplicate_rule_directive ("%prec",
+                              current_rule->ruleprec->location, loc);
   else
     current_rule->ruleprec = precsym;
 }
@@ -483,8 +483,8 @@ grammar_current_rule_empty_set (location loc)
   if (warning_is_unset (Wempty_rule))
     warning_argmatch ("empty-rule", 0, 0);
   if (current_rule->percent_empty_loc.start.file)
-    duplicate_directive ("%empty",
-                         current_rule->percent_empty_loc, loc);
+    duplicate_rule_directive ("%empty",
+                              current_rule->percent_empty_loc, loc);
   else
     current_rule->percent_empty_loc = loc;
 }
@@ -501,8 +501,8 @@ grammar_current_rule_dprec_set (int dprec, location loc)
     complain (&loc, complaint, _("%s must be followed by positive number"),
               "%dprec");
   else if (current_rule->dprec != 0)
-    duplicate_directive ("%dprec",
-                         current_rule->dprec_location, loc);
+    duplicate_rule_directive ("%dprec",
+                              current_rule->dprec_location, loc);
   else
     {
       current_rule->dprec = dprec;
@@ -520,8 +520,8 @@ grammar_current_rule_merge_set (uniqstr name, location loc)
     complain (&loc, Wother, _("%s affects only GLR parsers"),
               "%merge");
   if (current_rule->merger != 0)
-    duplicate_directive ("%merge",
-                         current_rule->merger_declaration_location, loc);
+    duplicate_rule_directive ("%merge",
+                              current_rule->merger_declaration_location, loc);
   else
     {
       current_rule->merger = get_merge_function (name);
@@ -573,6 +573,27 @@ grammar_current_rule_predicate_append (const char *pred, location loc)
                                /* is_predicate */ true);
 }
 
+/* Set the expected number of shift-reduce (reduce-reduce) conflicts for
+ * the current rule.  If a midrule is encountered later, the count
+ * is transferred to it and reset in the current rule to -1. */
+
+void
+grammar_current_rule_expect_sr (int count, location loc)
+{
+  (void) loc;
+  current_rule->expected_sr_conflicts = count;
+}
+
+void
+grammar_current_rule_expect_rr (int count, location loc)
+{
+  if (! glr_parser)
+    complain (&loc, Wother, _("%s affects only GLR parsers"),
+              "%expect-rr");
+  else
+    current_rule->expected_rr_conflicts = count;
+}
+
 
 /*---------------------------------------------------------------.
 | Convert the rules into the representation using RRHS, RLHS and |
@@ -583,13 +604,11 @@ static void
 packgram (void)
 {
   unsigned itemno = 0;
-  rule_number ruleno = 0;
-
   ritem = xnmalloc (nritems + 1, sizeof *ritem);
-
   /* This sentinel is used by build_relations in gram.c.  */
   *ritem++ = 0;
 
+  rule_number ruleno = 0;
   rules = xnmalloc (nrules, sizeof *rules);
 
   for (symbol_list *p = grammar; p; p = p->next)
@@ -626,6 +645,8 @@ packgram (void)
       rules[ruleno].action = lhs->action_props.code;
       rules[ruleno].action_location = lhs->action_props.location;
       rules[ruleno].is_predicate = lhs->action_props.is_predicate;
+      rules[ruleno].expected_sr_conflicts = p->expected_sr_conflicts;
+      rules[ruleno].expected_rr_conflicts = p->expected_rr_conflicts;
 
       /* Traverse the rhs.  */
       {
@@ -720,11 +741,10 @@ prepare_percent_define_front_end_variables (void)
   /* Set %define front-end variable defaults.  */
   muscle_percent_define_default ("lr.keep-unreachable-state", "false");
   {
-    char *lr_type;
     /* IELR would be a better default, but LALR is historically the
        default.  */
     muscle_percent_define_default ("lr.type", "lalr");
-    lr_type = muscle_percent_define_get ("lr.type");
+    char *lr_type = muscle_percent_define_get ("lr.type");
     if (STRNEQ (lr_type, "canonical-lr"))
       muscle_percent_define_default ("lr.default-reduction", "most");
     else

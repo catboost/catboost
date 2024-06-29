@@ -1,6 +1,6 @@
 /* Bitset vectors.
 
-   Copyright (C) 2002, 2004, 2009-2015, 2018 Free Software Foundation,
+   Copyright (C) 2002, 2004, 2009-2015, 2018-2019 Free Software Foundation,
    Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
@@ -57,5 +57,8 @@ void bitsetv_dump (FILE *, const char *, const char *, bitsetv);
 
 /* Function to debug vector of bitsets from debugger.  */
 void debug_bitsetv (bitsetv);
+
+/* Dump vector of bitsets as a matrix.  */
+void bitsetv_matrix_dump (FILE *, const char *, bitsetv);
 
 #endif  /* _BITSETV_H  */

@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2015, 2018 Free Software
+   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2019 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -87,6 +87,11 @@ typedef struct symbol_list
   int merger;
   location merger_declaration_location;
 
+  /* Counts of the number of expected conflicts for this rule, or -1 if none
+     given. */
+  int expected_sr_conflicts;
+  int expected_rr_conflicts;
+
   /* The list.  */
   struct symbol_list *next;
 } symbol_list;
@@ -97,6 +102,11 @@ symbol_list *symbol_list_sym_new (symbol *sym, location loc);
 
 /** Create a list containing \c type_name at \c loc.  */
 symbol_list *symbol_list_type_new (uniqstr type_name, location loc);
+
+/** Assign the type \c type_name to all the members of \c syms.
+ ** \returns \c syms */
+symbol_list *symbol_list_type_set (symbol_list *syms,
+                                   uniqstr type_name, location loc);
 
 /** Print this list.
 

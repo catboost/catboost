@@ -856,7 +856,7 @@ char *yytext;
 #line 1 "/Users/akim/src/gnu/bison/src/scan-code.l"
 /* Bison Action Scanner                             -*- C -*-
 
-   Copyright (C) 2006-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2015, 2018-2019 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -874,24 +874,24 @@ char *yytext;
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define YY_NO_INPUT 1
 #line 24 "/Users/akim/src/gnu/bison/src/scan-code.l"
-/* Work around a bug in flex 2.5.31.  See Debian bug 333231
-   <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=333231>.  */
-#undef code_wrap
-#define code_wrap() 1
+#include <c-ctype.h>
+#include <get-errno.h>
+#include <quote.h>
+
+#include <src/complain.h>
+#include <src/getargs.h>
+#include <src/muscle-tab.h>
+#include <src/reader.h>
+#include <src/scan-code.h>
+#include <src/symlist.h>
 
 #define FLEX_PREFIX(Id) code_ ## Id
 #include <src/flex-scanner.h>
 
-#include <src/complain.h>
-#include <src/reader.h>
-#include <src/getargs.h>
-#include <src/muscle-tab.h>
-#include <src/scan-code.h>
-#include <src/symlist.h>
-
-#include <c-ctype.h>
-#include <get-errno.h>
-#include <quote.h>
+/* Work around a bug in flex 2.5.31.  See Debian bug 333231
+   <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=333231>.  */
+#undef code_wrap
+#define code_wrap() 1
 
 /* The current calling start condition: SC_RULE_ACTION or
    SC_SYMBOL_ACTION. */
@@ -2991,14 +2991,12 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
       effective_rule_length = symbol_list_length (rule->next);
     }
 
-  /* Get the type name if explicit. */
+  /* The type name if explicit, otherwise left null. */
   char const *type_name = NULL;
   char *cp = fetch_type_name (text + 1, &type_name, dollar_loc);
-
   int n = parse_ref (cp, effective_rule, effective_rule_length,
                      rule->midrule_parent_rhs_index, text, dollar_loc, '$');
-
-  /* End type_name. */
+  /* End type_name.  Don't do it ealier: parse_ref depends on TEXT.  */
   if (type_name)
     cp[-1] = '\0';
 
@@ -3008,63 +3006,75 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
       break;
 
     case LHS_REF:
-      if (!type_name)
-        type_name = symbol_list_n_type_name_get (rule, 0);
+      {
+        symbol_list *sym = symbol_list_n_get (rule, 0);
+        if (!type_name
+            && !sym->content.sym->content->type_name)
+          {
+            if (union_seen | tag_seen)
+              {
+                if (rule->midrule_parent_rule)
+                  complain (&dollar_loc, complaint,
+                            _("$$ for the midrule at $%d of %s"
+                              " has no declared type"),
+                            rule->midrule_parent_rhs_index,
+                            quote (effective_rule->content.sym->tag));
+                else
+                  complain (&dollar_loc, complaint,
+                            _("$$ of %s has no declared type"),
+                            quote (rule->content.sym->tag));
+              }
+            else
+              untyped_var_seen = true;
+          }
 
-      if (!type_name)
-        {
-          if (union_seen | tag_seen)
-            {
-              if (rule->midrule_parent_rule)
-                complain (&dollar_loc, complaint,
-                             _("$$ for the midrule at $%d of %s"
-                               " has no declared type"),
-                             rule->midrule_parent_rhs_index,
-                             quote (effective_rule->content.sym->tag));
-              else
-                complain (&dollar_loc, complaint,
-                          _("$$ of %s has no declared type"),
-                          quote (rule->content.sym->tag));
-            }
-          else
-            untyped_var_seen = true;
-        }
-
-      obstack_sgrow (&obstack_for_string, "]b4_lhs_value(");
-      obstack_quote (&obstack_for_string, type_name);
-      obstack_sgrow (&obstack_for_string, ")[");
-      rule->action_props.is_value_used = true;
+        obstack_printf (&obstack_for_string, "]b4_lhs_value(orig %d, ",
+                        sym->content.sym->content->number);
+        obstack_quote (&obstack_for_string, type_name);
+        obstack_sgrow (&obstack_for_string, ")[");
+        rule->action_props.is_value_used = true;
+      }
       break;
 
+      /* Reference to a RHS symbol.  */
     default:
-      if (max_left_semantic_context < 1 - n)
-        max_left_semantic_context = 1 - n;
-      if (!type_name && 0 < n)
-        type_name = symbol_list_n_type_name_get (effective_rule, n);
-      if (!type_name)
-        {
-          if (union_seen | tag_seen)
-            complain (&dollar_loc, complaint,
-                      _("$%s of %s has no declared type"), cp,
-                      quote (effective_rule->content.sym->tag));
-          else
-            untyped_var_seen = true;
-        }
+      {
+        if (max_left_semantic_context < 1 - n)
+          max_left_semantic_context = 1 - n;
+        symbol_list *sym = 0 < n ? symbol_list_n_get (effective_rule, n) : NULL;
+        if (!type_name
+            && (!sym || !sym->content.sym->content->type_name))
+          {
+            if (union_seen | tag_seen)
+              complain (&dollar_loc, complaint,
+                        _("$%s of %s has no declared type"), cp,
+                        quote (effective_rule->content.sym->tag));
+            else
+              untyped_var_seen = true;
+          }
 
-      obstack_printf (&obstack_for_string,
-                      "]b4_rhs_value(%d, %d, ", effective_rule_length, n);
-      obstack_quote (&obstack_for_string, type_name);
-      obstack_sgrow (&obstack_for_string, ")[");
-      if (0 < n)
-        {
-          symbol_list *sym = symbol_list_n_get (effective_rule, n);
-          if (muscle_percent_define_ifdef ("api.value.automove")
-              && sym->action_props.is_value_used)
-            complain (&dollar_loc, Wother,
-                      _("multiple occurrences of $%d with api.value.automove"),
-                      n);
-          sym->action_props.is_value_used = true;
-        }
+        obstack_printf (&obstack_for_string,
+                        "]b4_rhs_value(%d, %d, ",
+                        effective_rule_length, n);
+        if (sym)
+          obstack_printf (&obstack_for_string, "%s%d, ",
+                          sym->content.sym->content->class == nterm_sym ? "orig " : "",
+                          sym->content.sym->content->number);
+        else
+          obstack_sgrow (&obstack_for_string, "[], ");
+
+        obstack_quote (&obstack_for_string, type_name);
+        obstack_sgrow (&obstack_for_string, ")[");
+        if (0 < n)
+          {
+            if (muscle_percent_define_ifdef ("api.value.automove")
+                && sym->action_props.is_value_used)
+              complain (&dollar_loc, Wother,
+                        _("multiple occurrences of $%d with api.value.automove"),
+                        n);
+            sym->action_props.is_value_used = true;
+          }
+      }
       break;
     }
 }

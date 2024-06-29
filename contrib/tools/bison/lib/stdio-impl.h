@@ -1,5 +1,5 @@
 /* Implementation details of FILE streams.
-   Copyright (C) 2007-2008, 2010-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2008, 2010-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,6 +61,11 @@
 #  define _r pub._r
 #  define _w pub._w
 # elif defined __ANDROID__ /* Android */
+#  ifdef __LP64__
+#   define _gl_flags_file_t int
+#  else
+#   define _gl_flags_file_t short
+#  endif
   /* Up to this commit from 2015-10-12
      <https://android.googlesource.com/platform/bionic.git/+/f0141dfab10a4b332769d52fa76631a64741297a>
      the innards of FILE were public, and fp_ub could be defined like for OpenBSD,
@@ -70,8 +75,8 @@
 #  define fp_ ((struct { unsigned char *_p; \
                          int _r; \
                          int _w; \
-                         int _flags; \
-                         int _file; \
+                         _gl_flags_file_t _flags; \
+                         _gl_flags_file_t _file; \
                          struct { unsigned char *_base; size_t _size; } _bf; \
                          int _lbfsize; \
                          void *_cookie; \

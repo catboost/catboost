@@ -1,6 +1,6 @@
 /* argmatch.c -- find a match for a string in an array
 
-   Copyright (C) 1990, 1998-1999, 2001-2007, 2009-2018 Free Software
+   Copyright (C) 1990, 1998-1999, 2001-2007, 2009-2019 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify

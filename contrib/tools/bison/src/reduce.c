@@ -1,7 +1,7 @@
 /* Grammar reduction for Bison.
 
-   Copyright (C) 1988-1989, 2000-2003, 2005-2015, 2018 Free Software
-   Foundation, Inc.
+   Copyright (C) 1988-1989, 2000-2003, 2005-2015, 2018-2019 Free
+   Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -259,22 +259,23 @@ reduce_grammar_tables (void)
 | Remove useless nonterminals.  |
 `------------------------------*/
 
+symbol_number *nterm_map = NULL;
+
 static void
 nonterminals_reduce (void)
 {
+  nterm_map = xnmalloc (nvars, sizeof *nterm_map);
   /* Map the nonterminals to their new index: useful first, useless
      afterwards.  Kept for later report.  */
-
-  symbol_number *nontermmap = xnmalloc (nvars, sizeof *nontermmap);
   {
     symbol_number n = ntokens;
     for (symbol_number i = ntokens; i < nsyms; ++i)
       if (bitset_test (V, i))
-        nontermmap[i - ntokens] = n++;
+        nterm_map[i - ntokens] = n++;
     for (symbol_number i = ntokens; i < nsyms; ++i)
       if (!bitset_test (V, i))
         {
-          nontermmap[i - ntokens] = n++;
+          nterm_map[i - ntokens] = n++;
           if (symbols[i]->content->status != used)
             complain (&symbols[i]->location, Wother,
                       _("nonterminal useless in grammar: %s"),
@@ -282,32 +283,30 @@ nonterminals_reduce (void)
         }
   }
 
-
   /* Shuffle elements of tables indexed by symbol number.  */
   {
     symbol **symbols_sorted = xnmalloc (nvars, sizeof *symbols_sorted);
     for (symbol_number i = ntokens; i < nsyms; ++i)
-      symbols[i]->content->number = nontermmap[i - ntokens];
+      symbols[i]->content->number = nterm_map[i - ntokens];
     for (symbol_number i = ntokens; i < nsyms; ++i)
-      symbols_sorted[nontermmap[i - ntokens] - ntokens] = symbols[i];
+      symbols_sorted[nterm_map[i - ntokens] - ntokens] = symbols[i];
     for (symbol_number i = ntokens; i < nsyms; ++i)
       symbols[i] = symbols_sorted[i - ntokens];
     free (symbols_sorted);
   }
 
+  /* Update nonterminal numbers in the RHS of the rules.  LHS are
+     pointers to the symbol structure, they don't need renumbering. */
   {
     for (rule_number r = 0; r < nrules; ++r)
       for (item_number *rhsp = rules[r].rhs; 0 <= *rhsp; ++rhsp)
         if (ISVAR (*rhsp))
-          *rhsp =  symbol_number_as_item_number (nontermmap[*rhsp
-                                                            - ntokens]);
-    accept->content->number = nontermmap[accept->content->number - ntokens];
+          *rhsp = symbol_number_as_item_number (nterm_map[*rhsp - ntokens]);
+    accept->content->number = nterm_map[accept->content->number - ntokens];
   }
 
   nsyms -= nuseless_nonterminals;
   nvars -= nuseless_nonterminals;
-
-  free (nontermmap);
 }
 
 
@@ -433,4 +432,6 @@ reduce_free (void)
   bitset_free (V);
   bitset_free (V1);
   bitset_free (P);
+  free (nterm_map);
+  nterm_map = NULL;
 }

@@ -1,6 +1,6 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2006, 2009-2015, 2018 Free Software
+   Copyright (C) 2000-2002, 2006, 2009-2015, 2018-2019 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -78,8 +78,7 @@ void complain_init (void);
 
 typedef enum
   {
-    /**< Issue no warnings.  */
-    Wnone             = 0,
+    Wnone             = 0,       /**< Issue no warnings.  */
 
     Wmidrule_values   = 1 << warning_midrule_values,
     Wyacc             = 1 << warning_yacc,
@@ -120,13 +119,20 @@ void complain_indent (location const *loc, warnings flags, unsigned *indent,
   __attribute__ ((__format__ (__printf__, 4, 5)));
 
 
+/** GNU Bison extension not valid with POSIX Yacc.  */
+void bison_directive (location const *loc, char const *directive);
+
 /** Report an obsolete syntax, suggest the updated one.  */
 void deprecated_directive (location const *loc,
                            char const *obsolete, char const *updated);
 
-/** Report a repeated directive for a rule.  */
+/** Report a repeated directive.  */
 void duplicate_directive (char const *directive,
                           location first, location second);
+
+/** Report a repeated directive for a rule.  */
+void duplicate_rule_directive (char const *directive,
+                               location first, location second);
 
 /** Warnings treated as errors shouldn't stop the execution as regular
     errors should (because due to their nature, it is safe to go
