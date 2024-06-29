@@ -110,9 +110,73 @@ getprogname (void)
       first = 0;
       pid_t pid = getpid ();
       struct pst_status status;
-      p = (0 < pstat_getproc (&status, sizeof status, 0, pid)
-           ? strdup (status.pst_ucomm)
-           : NULL);
+      if (pstat_getproc (&status, sizeof status, 0, pid) > 0)
+        {
+          char *ucomm = status.pst_ucomm;
+          char *cmd = status.pst_cmd;
+          if (strlen (ucomm) < PST_UCOMMLEN - 1)
+            p = ucomm;
+          else
+            {
+              /* ucomm is truncated to length PST_UCOMMLEN - 1.
+                 Look at cmd instead.  */
+              char *space = strchr (cmd, ' ');
+              if (space != NULL)
+                *space = '\0';
+              p = strrchr (cmd, '/');
+              if (p != NULL)
+                p++;
+              else
+                p = cmd;
+              if (strlen (p) > PST_UCOMMLEN - 1
+                  && memcmp (p, ucomm, PST_UCOMMLEN - 1) == 0)
+                /* p is less truncated than ucomm.  */
+                ;
+              else
+                p = ucomm;
+            }
+          p = strdup (p);
+        }
+      else
+        {
+#  if !defined __LP64__
+          /* Support for 32-bit programs running in 64-bit HP-UX.
+             The documented way to do this is to use the same source code
+             as above, but in a compilation unit where '#define _PSTAT64 1'
+             is in effect.  I prefer a single compilation unit; the struct
+             size and the offsets are not going to change.  */
+          char status64[1216];
+          if (__pstat_getproc64 (status64, sizeof status64, 0, pid) > 0)
+            {
+              char *ucomm = status64 + 288;
+              char *cmd = status64 + 168;
+              if (strlen (ucomm) < PST_UCOMMLEN - 1)
+                p = ucomm;
+              else
+                {
+                  /* ucomm is truncated to length PST_UCOMMLEN - 1.
+                     Look at cmd instead.  */
+                  char *space = strchr (cmd, ' ');
+                  if (space != NULL)
+                    *space = '\0';
+                  p = strrchr (cmd, '/');
+                  if (p != NULL)
+                    p++;
+                  else
+                    p = cmd;
+                  if (strlen (p) > PST_UCOMMLEN - 1
+                      && memcmp (p, ucomm, PST_UCOMMLEN - 1) == 0)
+                    /* p is less truncated than ucomm.  */
+                    ;
+                  else
+                    p = ucomm;
+                }
+              p = strdup (p);
+            }
+          else
+#  endif
+            p = NULL;
+        }
       if (!p)
         p = "?";
     }

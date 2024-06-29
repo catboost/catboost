@@ -44,7 +44,7 @@
 #   filename member).
 
 # We require a pure interface.
-m4_define([b4_pure_flag],      [1])
+m4_define([b4_pure_flag], [1])
 
 m4_include(b4_pkgdatadir/[c++.m4])
 b4_bison_locations_if([m4_include(b4_pkgdatadir/[location.cc])])
@@ -167,6 +167,12 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
   }
 
   int
+  ]b4_parser_class_name[::operator() ()
+  {
+    return parse ();
+  }
+
+  int
   ]b4_parser_class_name[::parse ()
   {
     return ::yyparse (*this]b4_user_args[);
@@ -184,9 +190,9 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
   {]b4_locations_if([[
     YYUSE (yylocationp);]])[
     YYUSE (yyvaluep);
-    std::ostream& yyoutput = debug_stream ();
-    std::ostream& yyo = yyoutput;
-    YYUSE (yyo);
+    std::ostream& yyo = debug_stream ();
+    std::ostream& yyoutput = yyo;
+    YYUSE (yyoutput);
     ]b4_symbol_actions([printer])[
   }
 
@@ -234,25 +240,28 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
 b4_namespace_close
 ])
 
-# b4_shared_declarations
-# ----------------------
-# Declaration that might either go into the header (if --defines)
-# or open coded in the parser body.
+
+# b4_shared_declarations(hh|cc)
+# -----------------------------
+# Declaration that might either go into the header (if --defines, $1 = hh)
+# or in the implementation file.
 m4_define([b4_shared_declarations],
 [m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
 b4_percent_code_get([[requires]])[
-
+#include <iostream>
 #include <stdexcept>
 #include <string>
-#include <iostream>]b4_defines_if([
-b4_bison_locations_if([[#include "location.hh"]])])[
+
+]m4_ifdef([b4_location_file],
+          [[# include ]b4_location_include])[
+
+]b4_null_define[
 
 ]b4_YYDEBUG_define[
 
 ]b4_namespace_open[
-]b4_defines_if([],
-[b4_bison_locations_if([b4_position_define
-b4_location_define])])[
+]b4_bison_locations_if([m4_ifndef([b4_location_file],
+                                  [b4_location_define])])[
 
   /// A Bison parser.
   class ]b4_parser_class_name[
@@ -263,6 +272,10 @@ b4_location_define])])[
     /// Build a parser object.
     ]b4_parser_class_name[ (]b4_parse_param_decl[);
     virtual ~]b4_parser_class_name[ ();
+
+    /// Parse.  An alias for parse ().
+    /// \returns  0 iff parsing succeeded.
+    int operator() ();
 
     /// Parse.
     /// \returns  0 iff parsing succeeded.
@@ -330,13 +343,13 @@ b4_defines_if(
 [b4_output_begin([b4_spec_defines_file])
 b4_copyright([Skeleton interface for Bison GLR parsers in C++],
              [2002-2015, 2018])[
-
 // C++ GLR parser skeleton written by Akim Demaille.
 
+]b4_disclaimer[
 ]b4_cpp_guard_open([b4_spec_defines_file])[
 ]b4_shared_declarations[
 ]b4_cpp_guard_close([b4_spec_defines_file])[
-]b4_output_end()])
+]b4_output_end])
 
 # Let glr.c (and b4_shared_declarations) believe that the user
 # arguments include the parser itself.

@@ -29,17 +29,18 @@
 
 #include "bitset_stats.h"
 
-#include "bbitset.h"
-#include "abitset.h"
-#include "ebitset.h"
-#include "lbitset.h"
-#include "vbitset.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "gettext.h"
 #define _(Msgid)  gettext (Msgid)
+
+#include "abitset.h"
+#include "bbitset.h"
+#include "ebitset.h"
+#include "lbitset.h"
+#include "vbitset.h"
 
 /* Configuration macros.  */
 #define BITSET_STATS_FILE "bitset.dat"
@@ -108,18 +109,15 @@ static void
 bitset_percent_histogram_print (FILE *file, const char *name, const char *msg,
                                 unsigned n_bins, unsigned *bins)
 {
-  unsigned i;
-  unsigned total;
-
-  total = 0;
-  for (i = 0; i < n_bins; i++)
+  unsigned total = 0;
+  for (unsigned i = 0; i < n_bins; i++)
     total += bins[i];
 
   if (!total)
     return;
 
   fprintf (file, "%s %s", name, msg);
-  for (i = 0; i < n_bins; i++)
+  for (unsigned i = 0; i < n_bins; i++)
     fprintf (file, "%.0f-%.0f%%\t%8u (%5.1f%%)\n",
              i * 100.0 / n_bins,
              (i + 1) * 100.0 / n_bins, bins[i],
@@ -132,37 +130,39 @@ static void
 bitset_log_histogram_print (FILE *file, const char *name, const char *msg,
                             unsigned n_bins, unsigned *bins)
 {
-  unsigned i;
-  unsigned total;
-  unsigned max_width;
-
-  total = 0;
-  for (i = 0; i < n_bins; i++)
+  unsigned total = 0;
+  for (unsigned i = 0; i < n_bins; i++)
     total += bins[i];
 
   if (!total)
     return;
 
   /* Determine number of useful bins.  */
-  for (i = n_bins; i > 3 && ! bins[i - 1]; i--)
-     continue;
-  n_bins = i;
+  {
+    unsigned i;
+    for (i = n_bins; i > 3 && ! bins[i - 1]; i--)
+      continue;
+    n_bins = i;
+  }
 
   /* 2 * ceil (log10 (2) * (N - 1)) + 1.  */
-  max_width = 2 * (unsigned) (0.30103 * (n_bins - 1) + 0.9999) + 1;
+  unsigned max_width = 2 * (unsigned) (0.30103 * (n_bins - 1) + 0.9999) + 1;
 
   fprintf (file, "%s %s", name, msg);
-  for (i = 0; i < 2; i++)
-    fprintf (file, "%*d\t%8u (%5.1f%%)\n",
-             max_width, i, bins[i], 100.0 * bins[i] / total);
+  {
+    unsigned i;
+    for (i = 0; i < 2; i++)
+      fprintf (file, "%*d\t%8u (%5.1f%%)\n",
+               max_width, i, bins[i], 100.0 * bins[i] / total);
 
-  for (; i < n_bins; i++)
-    fprintf (file, "%*lu-%lu\t%8u (%5.1f%%)\n",
-             max_width - ((unsigned) (0.30103 * (i) + 0.9999) + 1),
-             1UL << (i - 1),
-             (1UL << i) - 1,
-             bins[i],
-             (100.0 * bins[i]) / total);
+    for (; i < n_bins; i++)
+      fprintf (file, "%*lu-%lu\t%8u (%5.1f%%)\n",
+               max_width - ((unsigned) (0.30103 * (i) + 0.9999) + 1),
+               1UL << (i - 1),
+               (1UL << i) - 1,
+               bins[i],
+               (100.0 * bins[i]) / total);
+  }
 }
 
 
@@ -205,8 +205,6 @@ bitset_stats_print_1 (FILE *file, const char *name,
 static void
 bitset_stats_print (FILE *file, bool verbose ATTRIBUTE_UNUSED)
 {
-  int i;
-
   if (!bitset_stats_info)
     return;
 
@@ -215,7 +213,7 @@ bitset_stats_print (FILE *file, bool verbose ATTRIBUTE_UNUSED)
   if (bitset_stats_info->runs > 1)
     fprintf (file, _("Accumulated runs = %u\n"), bitset_stats_info->runs);
 
-  for (i = 0; i < BITSET_TYPE_NUM; i++)
+  for (int i = 0; i < BITSET_TYPE_NUM; i++)
     bitset_stats_print_1 (file, bitset_type_names[i],
                           &bitset_stats_info->types[i]);
 }
@@ -242,15 +240,13 @@ bitset_stats_disable (void)
 void
 bitset_stats_read (const char *file_name)
 {
-  FILE *file;
-
   if (!bitset_stats_info)
     return;
 
   if (!file_name)
     file_name = BITSET_STATS_FILE;
 
-  file = fopen (file_name, "r");
+  FILE *file = fopen (file_name, "r");
   if (file)
     {
       if (fread (&bitset_stats_info_data, sizeof (bitset_stats_info_data),
@@ -272,15 +268,13 @@ bitset_stats_read (const char *file_name)
 void
 bitset_stats_write (const char *file_name)
 {
-  FILE *file;
-
   if (!bitset_stats_info)
     return;
 
   if (!file_name)
     file_name = BITSET_STATS_FILE;
 
-  file = fopen (file_name, "w");
+  FILE *file = fopen (file_name, "w");
   if (file)
     {
       if (fwrite (&bitset_stats_info_data, sizeof (bitset_stats_info_data),
@@ -352,7 +346,7 @@ bitset_stats_reset (bitset dst, bitset_bindex bitno)
 static bool
 bitset_stats_toggle (bitset src, bitset_bindex bitno)
 {
-    return BITSET_TOGGLE_ (src->s.bset, bitno);
+  return BITSET_TOGGLE_ (src->s.bset, bitno);
 }
 
 
@@ -378,7 +372,7 @@ bitset_stats_test (bitset src, bitset_bindex bitno)
 static bitset_bindex
 bitset_stats_resize (bitset src, bitset_bindex size)
 {
-    return BITSET_RESIZE_ (src->s.bset, size);
+  return BITSET_RESIZE_ (src->s.bset, size);
 }
 
 
@@ -573,35 +567,40 @@ static bitset_bindex
 bitset_stats_list (bitset bset, bitset_bindex *list,
                    bitset_bindex num, bitset_bindex *next)
 {
-  bitset_bindex count;
-  bitset_bindex tmp;
-  bitset_bindex size;
-  bitset_bindex i;
-
-  count = BITSET_LIST_ (bset->s.bset, list, num, next);
+  bitset_bindex count = BITSET_LIST_ (bset->s.bset, list, num, next);
 
   BITSET_STATS_LISTS_INC (bset->s.bset);
 
   /* Log histogram of number of set bits.  */
-  for (i = 0, tmp = count; tmp; tmp >>= 1, i++)
-     continue;
-  if (i >= BITSET_LOG_COUNT_BINS)
-     i = BITSET_LOG_COUNT_BINS - 1;
-  BITSET_STATS_LIST_COUNTS_INC (bset->s.bset, i);
+  {
+    bitset_bindex i;
+    bitset_bindex tmp;
+    for (i = 0, tmp = count; tmp; tmp >>= 1, i++)
+      continue;
+    if (i >= BITSET_LOG_COUNT_BINS)
+      i = BITSET_LOG_COUNT_BINS - 1;
+    BITSET_STATS_LIST_COUNTS_INC (bset->s.bset, i);
+  }
 
   /* Log histogram of number of bits in set.  */
-  size = BITSET_SIZE_ (bset->s.bset);
-  for (i = 0, tmp = size; tmp; tmp >>= 1, i++)
-     continue;
-  if (i >= BITSET_LOG_SIZE_BINS)
-     i = BITSET_LOG_SIZE_BINS - 1;
-  BITSET_STATS_LIST_SIZES_INC (bset->s.bset, i);
+  bitset_bindex size = BITSET_SIZE_ (bset->s.bset);
+  {
+    bitset_bindex i;
+    bitset_bindex tmp;
+    for (i = 0, tmp = size; tmp; tmp >>= 1, i++)
+      continue;
+    if (i >= BITSET_LOG_SIZE_BINS)
+      i = BITSET_LOG_SIZE_BINS - 1;
+    BITSET_STATS_LIST_SIZES_INC (bset->s.bset, i);
+  }
 
   /* Histogram of fraction of bits set.  */
-  i = size ? (count * BITSET_DENSITY_BINS) / size : 0;
-  if (i >= BITSET_DENSITY_BINS)
-     i = BITSET_DENSITY_BINS - 1;
-  BITSET_STATS_LIST_DENSITY_INC (bset->s.bset, i);
+  {
+    bitset_bindex i = size ? (count * BITSET_DENSITY_BINS) / size : 0;
+    if (i >= BITSET_DENSITY_BINS)
+      i = BITSET_DENSITY_BINS - 1;
+    BITSET_STATS_LIST_DENSITY_INC (bset->s.bset, i);
+  }
   return count;
 }
 
@@ -663,7 +662,7 @@ struct bitset_vtable bitset_stats_vtable = {
 enum bitset_type
 bitset_stats_type_get (bitset bset)
 {
-   return BITSET_TYPE_ (bset->s.bset);
+  return BITSET_TYPE_ (bset->s.bset);
 }
 
 
@@ -677,9 +676,6 @@ bitset_stats_bytes (void)
 bitset
 bitset_stats_init (bitset bset, bitset_bindex n_bits, enum bitset_type type)
 {
-  size_t bytes;
-  bitset sbset;
-
   bset->b.vtable = &bitset_stats_vtable;
 
   /* Disable cache.  */
@@ -697,31 +693,37 @@ bitset_stats_init (bitset bset, bitset_bindex n_bits, enum bitset_type type)
       abort ();
 
     case BITSET_ARRAY:
-      bytes = abitset_bytes (n_bits);
-      sbset = xcalloc (1, bytes);
-      abitset_init (sbset, n_bits);
+      {
+        size_t bytes = abitset_bytes (n_bits);
+        bset->s.bset = xcalloc (1, bytes);
+        abitset_init (bset->s.bset, n_bits);
+      }
       break;
 
     case BITSET_LIST:
-      bytes = lbitset_bytes (n_bits);
-      sbset = xcalloc (1, bytes);
-      lbitset_init (sbset, n_bits);
+      {
+        size_t bytes = lbitset_bytes (n_bits);
+        bset->s.bset = xcalloc (1, bytes);
+        lbitset_init (bset->s.bset, n_bits);
+      }
       break;
 
     case BITSET_TABLE:
-      bytes = ebitset_bytes (n_bits);
-      sbset = xcalloc (1, bytes);
-      ebitset_init (sbset, n_bits);
+      {
+        size_t bytes = ebitset_bytes (n_bits);
+        bset->s.bset = xcalloc (1, bytes);
+        ebitset_init (bset->s.bset, n_bits);
+      }
       break;
 
     case BITSET_VARRAY:
-      bytes = vbitset_bytes (n_bits);
-      sbset = xcalloc (1, bytes);
-      vbitset_init (sbset, n_bits);
+      {
+        size_t bytes = vbitset_bytes (n_bits);
+        bset->s.bset = xcalloc (1, bytes);
+        vbitset_init (bset->s.bset, n_bits);
+      }
       break;
     }
-
-  bset->s.bset = sbset;
 
   BITSET_STATS_ALLOCS_INC (type);
 

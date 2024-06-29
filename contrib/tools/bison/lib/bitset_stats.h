@@ -25,10 +25,10 @@
 
 extern bool bitset_stats_enabled;
 
-extern enum bitset_type bitset_stats_type_get (bitset);
+enum bitset_type bitset_stats_type_get (bitset);
 
-extern size_t bitset_stats_bytes (void);
+size_t bitset_stats_bytes (void);
 
-extern bitset bitset_stats_init (bitset, bitset_bindex, enum bitset_type);
+bitset bitset_stats_init (bitset, bitset_bindex, enum bitset_type);
 
 #endif

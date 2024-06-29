@@ -21,10 +21,10 @@
 #include <config.h>
 #include "system.h"
 
-#include <concat-filename.h>
 #include <configmake.h>
-#include <filename.h>
+#include <filename.h> /* IS_PATH_WITH_DIR */
 #include <get-errno.h>
+#include <path-join.h>
 #include <quotearg.h>
 #include <spawn-pipe.h>
 #include <timevar.h>
@@ -58,7 +58,7 @@ default_pkgdatadir()
     const char* arc_path  = getenv("ARCADIA_ROOT_DISTBUILD");
     if (arc_path == NULL)
         arc_path = ArcadiaRoot();
-    return uniqstr_vsprintf("%s/" STR(BISON_DATA_DIR), arc_path);
+    return uniqstr_concat(3, arc_path, "/", STR(BISON_DATA_DIR));
 }
 #undef PKGDATADIR
 #define PKGDATADIR (default_pkgdatadir())
@@ -552,11 +552,11 @@ output_skeleton (void)
   /* Compute the names of the package data dir and skeleton files.  */
   char const *m4 = (m4 = getenv ("M4")) ? m4 : M4;
   char const *datadir = pkgdatadir ();
-  char *m4sugar = xconcatenated_filename (datadir, "m4sugar/m4sugar.m4", NULL);
-  char *m4bison = xconcatenated_filename (datadir, "bison.m4", NULL);
+  char *m4sugar = xpath_join (datadir, "m4sugar/m4sugar.m4");
+  char *m4bison = xpath_join (datadir, "bison.m4");
   char *skel = (IS_PATH_WITH_DIR (skeleton)
                 ? xstrdup (skeleton)
-                : xconcatenated_filename (datadir, skeleton, NULL));
+                : xpath_join (datadir, skeleton));
 
   /* Test whether m4sugar.m4 is readable, to check for proper
      installation.  A faulty installation can cause deadlock, so a
@@ -624,7 +624,7 @@ output_skeleton (void)
   }
 
   /* Read and process m4's output.  */
-  timevar_push (TV_M4);
+  timevar_push (tv_m4);
   {
     FILE *in = xfdopen (filter_fd[0], "r");
     scan_skel (in);
@@ -635,7 +635,7 @@ output_skeleton (void)
     xfclose (in);
   }
   wait_subprocess (pid, "m4", false, false, true, true, NULL);
-  timevar_pop (TV_M4);
+  timevar_pop (tv_m4);
 }
 
 static void
@@ -645,6 +645,8 @@ prepare (void)
      documented for the user.  */
   char const *cp = getenv ("BISON_USE_PUSH_FOR_PULL");
   bool use_push_for_pull_flag = cp && *cp && strtol (cp, 0, 10);
+
+  MUSCLE_INSERT_INT ("required_version", required_version);
 
   /* Flags. */
   MUSCLE_INSERT_BOOL ("defines_flag", defines_flag);

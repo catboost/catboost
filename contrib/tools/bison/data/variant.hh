@@ -29,7 +29,7 @@ m4_define([b4_symbol_variant],
             [$2.$3< $][3 > (m4_shift3($@))])dnl
 switch ($1)
     {
-b4_type_foreach([b4_type_action_])[]dnl
+b4_type_foreach([_b4_type_action])[]dnl
       default:
         break;
     }
@@ -55,15 +55,15 @@ dummy[]_b4_char_sizeof_counter])
 # ---------------------------
 # To be mapped on the list of type names to produce:
 #
-#    char dummy1[sizeof(type_name_1)];
-#    char dummy2[sizeof(type_name_2)];
+#    char dummy1[sizeof (type_name_1)];
+#    char dummy2[sizeof (type_name_2)];
 #
 # for defined type names.
 m4_define([b4_char_sizeof],
 [b4_symbol_if([$1], [has_type],
 [
 m4_map([      b4_symbol_tag_comment], [$@])dnl
-      char _b4_char_sizeof_dummy@{sizeof(b4_symbol([$1], [type]))@};
+      char _b4_char_sizeof_dummy@{sizeof (b4_symbol([$1], [type]))@};
 ])])
 
 
@@ -101,11 +101,11 @@ m4_define([b4_variant_define],
 
     /// Construct and fill.
     template <typename T>
-    variant (const T& t)]b4_parse_assert_if([
+    variant (YY_RVREF (T) t)]b4_parse_assert_if([
       : yytypeid_ (&typeid (T))])[
     {
       YYASSERT (sizeof (T) <= S);
-      new (yyas_<T> ()) T (t);
+      new (yyas_<T> ()) T (YY_MOVE (t));
     }
 
     /// Destruction, allowed only if empty.
@@ -117,7 +117,7 @@ m4_define([b4_variant_define],
     /// Instantiate an empty \a T in here.
     template <typename T>
     T&
-    build ()
+    emplace ()
     {]b4_parse_assert_if([
       YYASSERT (!yytypeid_);
       YYASSERT (sizeof (T) <= S);
@@ -125,15 +125,46 @@ m4_define([b4_variant_define],
       return *new (yyas_<T> ()) T ();
     }
 
+# if 201103L <= YY_CPLUSPLUS
+    /// Instantiate a \a T in here from \a t.
+    template <typename T, typename U>
+    T&
+    emplace (U&& u)
+    {]b4_parse_assert_if([
+      YYASSERT (!yytypeid_);
+      YYASSERT (sizeof (T) <= S);
+      yytypeid_ = & typeid (T);])[
+      return *new (yyas_<T> ()) T (std::forward <U>(u));
+    }
+# else
     /// Instantiate a \a T in here from \a t.
     template <typename T>
     T&
-    build (const T& t)
+    emplace (const T& t)
     {]b4_parse_assert_if([
       YYASSERT (!yytypeid_);
       YYASSERT (sizeof (T) <= S);
       yytypeid_ = & typeid (T);])[
       return *new (yyas_<T> ()) T (t);
+    }
+# endif
+
+    /// Instantiate an empty \a T in here.
+    /// Obsolete, use emplace.
+    template <typename T>
+    T&
+    build ()
+    {
+      return emplace<T> ();
+    }
+
+    /// Instantiate a \a T in here from \a t.
+    /// Obsolete, use emplace.
+    template <typename T>
+    T&
+    build (const T& t)
+    {
+      return emplace<T> (t);
     }
 
     /// Accessor to a built \a T.
@@ -163,7 +194,7 @@ m4_define([b4_variant_define],
     /// Both variants must be built beforehand, because swapping the actual
     /// data requires reading it (with as()), and this is not possible on
     /// unconstructed variants: it would require some dynamic testing, which
-    /// should not be the variant's responsability.
+    /// should not be the variant's responsibility.
     /// Swapping between built and (possibly) non-built is done with
     /// variant::move ().
     template <typename T>
@@ -182,17 +213,32 @@ m4_define([b4_variant_define],
     void
     move (self_type& other)
     {
-      build<T> ();
+# if 201103L <= YY_CPLUSPLUS
+      emplace<T> (std::move (other.as<T> ()));
+# else
+      emplace<T> ();
       swap<T> (other);
+# endif
       other.destroy<T> ();
     }
+
+# if 201103L <= YY_CPLUSPLUS
+    /// Move the content of \a other to this.
+    template <typename T>
+    void
+    move (self_type&& other)
+    {
+      emplace<T> (std::move (other.as<T> ()));
+      other.destroy<T> ();
+    }
+#endif
 
     /// Copy the content of \a other to this.
     template <typename T>
     void
     copy (const self_type& other)
     {
-      build<T> (other.as<T> ());
+      emplace<T> (other.as<T> ());
     }
 
     /// Destroy the stored \a T.
@@ -206,7 +252,7 @@ m4_define([b4_variant_define],
 
   private:
     /// Prohibit blind copies.
-    self_type& operator=(const self_type&);
+    self_type& operator= (const self_type&);
     variant (const self_type&);
 
     /// Accessor to raw memory as \a T.
@@ -255,7 +301,7 @@ m4_define([b4_value_type_declare],
     {]b4_type_foreach([b4_char_sizeof])[};
 
     /// Symbol semantic values.
-    typedef variant<sizeof(union_type)> semantic_type;][]dnl
+    typedef variant<sizeof (union_type)> semantic_type;][]dnl
 ])
 
 
@@ -283,19 +329,27 @@ m4_define([b4_symbol_value_template],
 ## ------------- ##
 
 
-# b4_symbol_constructor_declare_(SYMBOL-NUMBER)
+# _b4_symbol_constructor_declare(SYMBOL-NUMBER)
 # ---------------------------------------------
 # Declare the overloaded version of make_symbol for the (common) type of
 # these SYMBOL-NUMBERS.  Use at class-level.
-m4_define([b4_symbol_constructor_declare_],
+m4_define([_b4_symbol_constructor_declare],
 [b4_symbol_if([$1], [is_token], [b4_symbol_if([$1], [has_id],
-[    static inline
+[#if 201103L <= YY_CPLUSPLUS
+    static
     symbol_type
-    make_[]b4_symbol_([$1], [id]) (dnl
+    make_[]_b4_symbol([$1], [id]) (dnl
+b4_join(b4_symbol_if([$1], [has_type],
+                     [b4_symbol([$1], [type]) v]),
+        b4_locations_if([location_type l])));
+#else
+    static
+    symbol_type
+    make_[]_b4_symbol([$1], [id]) (dnl
 b4_join(b4_symbol_if([$1], [has_type],
                      [const b4_symbol([$1], [type])& v]),
         b4_locations_if([const location_type& l])));
-
+#endif
 ])])])
 
 
@@ -305,17 +359,31 @@ b4_join(b4_symbol_if([$1], [has_type],
 # Use at class-level.
 m4_define([b4_symbol_constructor_declare],
 [    // Symbol constructors declarations.
-b4_symbol_foreach([b4_symbol_constructor_declare_])])
+b4_symbol_foreach([_b4_symbol_constructor_declare])])
 
 
 
-# b4_symbol_constructor_define_(SYMBOL-NUMBER)
+# _b4_symbol_constructor_define(SYMBOL-NUMBER)
 # --------------------------------------------
 # Define symbol constructor for this SYMBOL-NUMBER.
-m4_define([b4_symbol_constructor_define_],
+m4_define([_b4_symbol_constructor_define],
 [b4_symbol_if([$1], [is_token], [b4_symbol_if([$1], [has_id],
-[  b4_parser_class_name::symbol_type
-  b4_parser_class_name::make_[]b4_symbol_([$1], [id]) (dnl
+[# if 201103L <= YY_CPLUSPLUS
+  inline
+  b4_parser_class_name::symbol_type
+  b4_parser_class_name::make_[]_b4_symbol([$1], [id]) (dnl
+b4_join(b4_symbol_if([$1], [has_type],
+                     [b4_symbol([$1], [type]) v]),
+        b4_locations_if([location_type l])))
+  {
+    return symbol_type (b4_join([token::b4_symbol([$1], [id])],
+                                b4_symbol_if([$1], [has_type], [std::move (v)]),
+                                b4_locations_if([std::move (l)])));
+  }
+#else
+  inline
+  b4_parser_class_name::symbol_type
+  b4_parser_class_name::make_[]_b4_symbol([$1], [id]) (dnl
 b4_join(b4_symbol_if([$1], [has_type],
                      [const b4_symbol([$1], [type])& v]),
         b4_locations_if([const location_type& l])))
@@ -324,7 +392,7 @@ b4_join(b4_symbol_if([$1], [has_type],
                                 b4_symbol_if([$1], [has_type], [v]),
                                 b4_locations_if([l])));
   }
-
+#endif
 ])])])
 
 
@@ -332,27 +400,44 @@ b4_join(b4_symbol_if([$1], [has_type],
 # -----------------------------------
 # Generate a constructor declaration for basic_symbol from given type.
 m4_define([b4_basic_symbol_constructor_declare],
-[[
-  basic_symbol (]b4_join(
+[[# if 201103L <= YY_CPLUSPLUS
+      basic_symbol (]b4_join(
           [typename Base::kind_type t],
-          b4_symbol_if([$1], [has_type], const b4_symbol([$1], [type])[& v]),
+          b4_symbol_if([$1], [has_type], [b4_symbol([$1], [type])&& v]),
+          b4_locations_if([location_type&& l]))[);
+#else
+      basic_symbol (]b4_join(
+          [typename Base::kind_type t],
+          b4_symbol_if([$1], [has_type], [const b4_symbol([$1], [type])& v]),
           b4_locations_if([const location_type& l]))[);
+#endif
 ]])
 
 # b4_basic_symbol_constructor_define
 # ----------------------------------
 # Generate a constructor implementation for basic_symbol from given type.
 m4_define([b4_basic_symbol_constructor_define],
-[[
+[[# if 201103L <= YY_CPLUSPLUS
   template <typename Base>
   ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol (]b4_join(
           [typename Base::kind_type t],
-          b4_symbol_if([$1], [has_type], const b4_symbol([$1], [type])[& v]),
+          b4_symbol_if([$1], [has_type], [b4_symbol([$1], [type])&& v]),
+          b4_locations_if([location_type&& l]))[)
+    : Base (t)]b4_symbol_if([$1], [has_type], [
+    , value (std::move (v))])[]b4_locations_if([
+    , location (std::move (l))])[
+  {}
+#else
+  template <typename Base>
+  ]b4_parser_class_name[::basic_symbol<Base>::basic_symbol (]b4_join(
+          [typename Base::kind_type t],
+          b4_symbol_if([$1], [has_type], [const b4_symbol([$1], [type])& v]),
           b4_locations_if([const location_type& l]))[)
     : Base (t)]b4_symbol_if([$1], [has_type], [
     , value (v)])[]b4_locations_if([
     , location (l)])[
   {}
+#endif
 ]])
 
 # b4_symbol_constructor_define
@@ -360,4 +445,4 @@ m4_define([b4_basic_symbol_constructor_define],
 # Define the overloaded versions of make_symbol for all the value types.
 m4_define([b4_symbol_constructor_define],
 [  // Implementation of make_symbol for each symbol type.
-b4_symbol_foreach([b4_symbol_constructor_define_])])
+b4_symbol_foreach([_b4_symbol_constructor_define])])

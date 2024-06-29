@@ -1,6 +1,5 @@
-#line 1 "src/scan-skel.c"
 
-#line 3 "src/scan-skel.c"
+#line 2 "lex.skel_.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -821,9 +820,9 @@ int yy_flex_debug = 1;
 
 static const flex_int16_t yy_rule_linenum[25] =
     {   0,
-       73,   74,   75,   76,   77,   78,   80,   81,   83,   84,
-       85,   88,   89,   90,  103,  105,  106,  107,  108,  109,
-      111,  130,  135,  136
+       74,   75,   76,   77,   78,   79,   81,   82,   84,   85,
+       86,   89,   90,   91,  104,  106,  107,  108,  109,  110,
+      112,  131,  136,  137
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -863,8 +862,9 @@ char *yytext;
 #define FLEX_PREFIX(Id) skel_ ## Id
 #include <src/flex-scanner.h>
 
-#include <dirname.h>
 #include <error.h>
+#include <dirname.h>
+#include <path-join.h>
 #include <quotearg.h>
 
 #include <src/complain.h>
@@ -883,9 +883,9 @@ static void at_output (int argc, char *argv[], char **name, int *lineno);
 static void fail_for_at_directive_too_many_args (char const *at_directive_name);
 static void fail_for_at_directive_too_few_args (char const *at_directive_name);
 static void fail_for_invalid_at (char const *at);
-#line 886 "src/scan-skel.c"
+#line 886 "lex.skel_.c"
 
-#line 888 "src/scan-skel.c"
+#line 888 "lex.skel_.c"
 
 #define INITIAL 0
 #define SC_AT_DIRECTIVE_ARGS 1
@@ -1165,11 +1165,11 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 57 "src/scan-skel.l"
+#line 58 "src/scan-skel.l"
 
 
 
-#line 61 "src/scan-skel.l"
+#line 62 "src/scan-skel.l"
   int out_lineno PACIFY_CC (= 0);
   char *out_name = NULL;
 
@@ -1182,7 +1182,7 @@ YY_DECL
   at_directive at_ptr = NULL;
 
 
-#line 1185 "src/scan-skel.c"
+#line 1185 "lex.skel_.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1260,79 +1260,79 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 73 "src/scan-skel.l"
+#line 74 "src/scan-skel.l"
 continue;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 74 "src/scan-skel.l"
+#line 75 "src/scan-skel.l"
 fputc ('@', yyout);
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 75 "src/scan-skel.l"
+#line 76 "src/scan-skel.l"
 fputc ('[', yyout);
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 76 "src/scan-skel.l"
+#line 77 "src/scan-skel.l"
 fputc (']', yyout);
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 77 "src/scan-skel.l"
+#line 78 "src/scan-skel.l"
 continue;  /* Used by b4_cat in ../data/bison.m4.  */
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 78 "src/scan-skel.l"
+#line 79 "src/scan-skel.l"
 continue;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 80 "src/scan-skel.l"
+#line 81 "src/scan-skel.l"
 fprintf (yyout, "%d", out_lineno + 1);
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 81 "src/scan-skel.l"
+#line 82 "src/scan-skel.l"
 fputs (quotearg_style (c_quoting_style, out_name), yyout);
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 83 "src/scan-skel.l"
+#line 84 "src/scan-skel.l"
 at_init (&argc, argv, &at_ptr, &at_basename);
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 84 "src/scan-skel.l"
+#line 85 "src/scan-skel.l"
 at_init (&argc, argv, &at_ptr, &at_complain);
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 85 "src/scan-skel.l"
+#line 86 "src/scan-skel.l"
 at_init (&argc, argv, &at_ptr, &at_output);
 	YY_BREAK
 /* This pattern must not match more than the previous @ patterns. */
 case 12:
 YY_RULE_SETUP
-#line 88 "src/scan-skel.l"
+#line 89 "src/scan-skel.l"
 fail_for_invalid_at (yytext);
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
 YY_RULE_SETUP
-#line 89 "src/scan-skel.l"
+#line 90 "src/scan-skel.l"
 out_lineno++; ECHO;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 90 "src/scan-skel.l"
+#line 91 "src/scan-skel.l"
 ECHO;
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 92 "src/scan-skel.l"
+#line 93 "src/scan-skel.l"
 {
   if (out_name)
     {
@@ -1347,38 +1347,38 @@ case YY_STATE_EOF(INITIAL):
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 103 "src/scan-skel.l"
+#line 104 "src/scan-skel.l"
 STRING_GROW;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 105 "src/scan-skel.l"
+#line 106 "src/scan-skel.l"
 obstack_1grow (&obstack_for_string, '@');
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 106 "src/scan-skel.l"
+#line 107 "src/scan-skel.l"
 obstack_1grow (&obstack_for_string, '[');
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 107 "src/scan-skel.l"
+#line 108 "src/scan-skel.l"
 obstack_1grow (&obstack_for_string, ']');
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 108 "src/scan-skel.l"
+#line 109 "src/scan-skel.l"
 continue; /* For starting an argument that begins with whitespace. */
 	YY_BREAK
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 109 "src/scan-skel.l"
+#line 110 "src/scan-skel.l"
 continue;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 111 "src/scan-skel.l"
+#line 112 "src/scan-skel.l"
 {
     if (argc >= ARGC_MAX)
       fail_for_at_directive_too_many_args (argv[0]);
@@ -1400,7 +1400,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 130 "src/scan-skel.l"
+#line 131 "src/scan-skel.l"
 fail_for_invalid_at (yytext);
 	YY_BREAK
 
@@ -1409,12 +1409,12 @@ fail_for_invalid_at (yytext);
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 135 "src/scan-skel.l"
+#line 136 "src/scan-skel.l"
 continue;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 136 "src/scan-skel.l"
+#line 137 "src/scan-skel.l"
 yyless (0); BEGIN SC_AT_DIRECTIVE_ARGS;
 	YY_BREAK
 
@@ -1422,16 +1422,16 @@ yyless (0); BEGIN SC_AT_DIRECTIVE_ARGS;
 
 case YY_STATE_EOF(SC_AT_DIRECTIVE_ARGS):
 case YY_STATE_EOF(SC_AT_DIRECTIVE_SKIP_WS):
-#line 141 "src/scan-skel.l"
+#line 142 "src/scan-skel.l"
 complain (NULL, fatal, _("unclosed %s directive in skeleton"), argv[0]);
 	YY_BREAK
 
 case 25:
 YY_RULE_SETUP
-#line 144 "src/scan-skel.l"
+#line 145 "src/scan-skel.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1434 "src/scan-skel.c"
+#line 1434 "lex.skel_.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2536,7 +2536,7 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 144 "src/scan-skel.l"
+#line 145 "src/scan-skel.l"
 
 
 static void
@@ -2634,14 +2634,14 @@ at_complain (int argc, char *argv[], char **out_namep, int *out_linenop)
 static void
 at_output (int argc, char *argv[], char **out_namep, int *out_linenop)
 {
-  if (2 < argc)
+  if (3 < argc)
     fail_for_at_directive_too_many_args (argv[0]);
   if (*out_namep)
     {
       free (*out_namep);
       xfclose (yyout);
     }
-  *out_namep = xstrdup (argv[1]);
+  *out_namep = xpath_join (argv[1], 2 < argc ? argv[2] : NULL);
   output_file_name_check (out_namep, true);
   /* If there were errors, do not generate the output.  */
   yyout = xfopen (complaint_status ? "/dev/null" : *out_namep, "wb");

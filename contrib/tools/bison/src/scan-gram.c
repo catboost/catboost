@@ -2769,7 +2769,7 @@ YY_RULE_SETUP
 #line 709 "/Users/akim/src/gnu/bison/src/scan-gram.l"
 STRING_GROW; nesting--;
 	YY_BREAK
-/* Tokenize '<<%' correctly (as '<<' '%') rather than incorrrectly
+/* Tokenize '<<%' correctly (as '<<' '%') rather than incorrectly
      (as '<' '<%').  */
 case 124:
 /* rule 124 can match eol */

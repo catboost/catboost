@@ -28,35 +28,35 @@
 
      DEFTIMEVAR (id, name)
 
-   where ID is the enumeral value used to identify the timing
+   where ID is the enum value used to identify the timing
    variable, and NAME is a character string describing its purpose.  */
 
 /* The total execution time.  */
-DEFTIMEVAR (TV_TOTAL                 , "total time")
+DEFTIMEVAR (tv_total                 , "total time")
 
 /* Time spent in the reader.  */
-DEFTIMEVAR (TV_READER                , "reader")
-DEFTIMEVAR (TV_SCANNING              , "scanner")
-DEFTIMEVAR (TV_PARSING               , "parser")
+DEFTIMEVAR (tv_reader                , "reader")
+DEFTIMEVAR (tv_scanning              , "scanner")
+DEFTIMEVAR (tv_parsing               , "parser")
 
 /* Time spent handling the grammar.  */
-DEFTIMEVAR (TV_REDUCE                , "reducing the grammar")
-DEFTIMEVAR (TV_SETS                  , "computing the sets")
-DEFTIMEVAR (TV_LR0                   , "LR(0)")
-DEFTIMEVAR (TV_LALR                  , "LALR(1)")
-DEFTIMEVAR (TV_IELR_PHASE1           , "IELR(1) Phase 1")
-DEFTIMEVAR (TV_IELR_PHASE2           , "IELR(1) Phase 2")
-DEFTIMEVAR (TV_IELR_PHASE3           , "IELR(1) Phase 3")
-DEFTIMEVAR (TV_IELR_PHASE4           , "IELR(1) Phase 4")
-DEFTIMEVAR (TV_CONFLICTS             , "conflicts")
+DEFTIMEVAR (tv_reduce                , "reducing the grammar")
+DEFTIMEVAR (tv_sets                  , "computing the sets")
+DEFTIMEVAR (tv_lr0                   , "LR(0)")
+DEFTIMEVAR (tv_lalr                  , "LALR(1)")
+DEFTIMEVAR (tv_ielr_phase1           , "IELR(1) Phase 1")
+DEFTIMEVAR (tv_ielr_phase2           , "IELR(1) Phase 2")
+DEFTIMEVAR (tv_ielr_phase3           , "IELR(1) Phase 3")
+DEFTIMEVAR (tv_ielr_phase4           , "IELR(1) Phase 4")
+DEFTIMEVAR (tv_conflicts             , "conflicts")
 
-/* Time spent outputing results.  */
-DEFTIMEVAR (TV_REPORT                , "outputing report")
-DEFTIMEVAR (TV_GRAPH                 , "outputing graph")
-DEFTIMEVAR (TV_XML                   , "outputing xml")
-DEFTIMEVAR (TV_ACTIONS               , "parser action tables")
-DEFTIMEVAR (TV_PARSER                , "outputing parser")
-DEFTIMEVAR (TV_M4                    , "running m4")
+/* Time spent outputting results.  */
+DEFTIMEVAR (tv_report                , "outputting report")
+DEFTIMEVAR (tv_graph                 , "outputting graph")
+DEFTIMEVAR (tv_xml                   , "outputting xml")
+DEFTIMEVAR (tv_actions               , "parser action tables")
+DEFTIMEVAR (tv_parser                , "outputting parser")
+DEFTIMEVAR (tv_m4                    , "running m4")
 
 /* Time spent by freeing the memory :).  */
-DEFTIMEVAR (TV_FREE                  , "freeing")
+DEFTIMEVAR (tv_free                  , "freeing")

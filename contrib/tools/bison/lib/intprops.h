@@ -22,12 +22,13 @@
 
 #include <limits.h>
 
-/* Return a value with the common real type of E and V and the value of V.  */
-#define _GL_INT_CONVERT(e, v) (0 * (e) + (v))
+/* Return a value with the common real type of E and V and the value of V.
+   Do not evaluate E.  */
+#define _GL_INT_CONVERT(e, v) ((1 ? 0 : (e)) + (v))
 
 /* Act like _GL_INT_CONVERT (E, -V) but work around a bug in IRIX 6.5 cc; see
    <https://lists.gnu.org/r/bug-gnulib/2011-05/msg00406.html>.  */
-#define _GL_INT_NEGATE_CONVERT(e, v) (0 * (e) - (v))
+#define _GL_INT_NEGATE_CONVERT(e, v) ((1 ? 0 : (e)) - (v))
 
 /* The extra casts in the following macros work around compiler bugs,
    e.g., in Cray C 5.0.3.0.  */
@@ -40,13 +41,14 @@
 #define TYPE_SIGNED(t) (! ((t) 0 < (t) -1))
 
 /* Return 1 if the real expression E, after promotion, has a
-   signed or floating type.  */
+   signed or floating type.  Do not evaluate E.  */
 #define EXPR_SIGNED(e) (_GL_INT_NEGATE_CONVERT (e, 1) < 0)
 
 
 /* Minimum and maximum values for integer types and expressions.  */
 
 /* The width in bits of the integer type or expression T.
+   Do not evaluate T.
    Padding bits are not supported; this is checked at compile-time below.  */
 #define TYPE_WIDTH(t) (sizeof (t) * CHAR_BIT)
 
@@ -58,7 +60,7 @@
         : ((((t) 1 << (TYPE_WIDTH (t) - 2)) - 1) * 2 + 1)))
 
 /* The maximum and minimum values for the type of the expression E,
-   after integer promotion.  E should not have side effects.  */
+   after integer promotion.  E is not evaluated.  */
 #define _GL_INT_MINIMUM(e)                                              \
   (EXPR_SIGNED (e)                                                      \
    ? ~ _GL_SIGNED_INT_MAXIMUM (e)                                       \
@@ -340,8 +342,8 @@
    Arguments should be free of side effects.  */
 #define _GL_BINARY_OP_OVERFLOW(a, b, op_result_overflow)        \
   op_result_overflow (a, b,                                     \
-                      _GL_INT_MINIMUM (0 * (b) + (a)),          \
-                      _GL_INT_MAXIMUM (0 * (b) + (a)))
+                      _GL_INT_MINIMUM (_GL_INT_CONVERT (a, b)), \
+                      _GL_INT_MAXIMUM (_GL_INT_CONVERT (a, b)))
 
 /* Store the low-order bits of A + B, A - B, A * B, respectively, into *R.
    Return 1 if the result overflows.  See above for restrictions.  */

@@ -19,7 +19,7 @@
 #ifndef BISON_SYSTEM_H
 # define BISON_SYSTEM_H
 
-/* flex 2.5.31 gratutiously defines macros like INT8_MIN.  But this
+/* flex 2.5.31 gratuitously defines macros like INT8_MIN.  But this
    runs afoul of pre-C99 compilers that have <inttypes.h> or
    <stdint.h>, which are included below if available.  It also runs
    afoul of pre-C99 compilers that define these macros in <limits.h>.  */

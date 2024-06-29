@@ -1,4 +1,4 @@
-/* Timing variables for measuring compiler performance.
+/* Timing variables for measuring application performance.
 
    Copyright (C) 2000, 2002, 2004, 2009-2015, 2018 Free Software
    Foundation, Inc.
@@ -18,11 +18,19 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef GCC_TIMEVAR_H
-#define GCC_TIMEVAR_H
+#ifndef _TIMEVAR_H
+# define _TIMEVAR_H 1
+
+# include <stdio.h>
+
+# include "xtime.h"
+
+# ifdef  __cplusplus
+extern "C" {
+# endif
 
 /* Timing variables are used to measure elapsed time in various
-   portions of the compiler.  Each measures elapsed user, system, and
+   portions of the application.  Each measures elapsed user, system, and
    wall-clock time, as appropriate to and supported by the host
    system.
 
@@ -52,14 +60,14 @@
 struct timevar_time_def
 {
   /* User time in this process.  */
-  float user;
+  xtime_t user;
 
   /* System time (if applicable for this host platform) in this
      process.  */
-  float sys;
+  xtime_t sys;
 
   /* Wall clock time.  */
-  float wall;
+  xtime_t wall;
 };
 
 /* An enumeration of timing variable identifiers.  Constructed from
@@ -75,18 +83,56 @@ typedef enum
 timevar_id_t;
 #undef DEFTIMEVAR
 
-extern void init_timevar (void);
-extern void timevar_push (timevar_id_t);
-extern void timevar_pop (timevar_id_t);
-extern void timevar_start (timevar_id_t);
-extern void timevar_stop (timevar_id_t);
-extern void timevar_get (timevar_id_t, struct timevar_time_def *);
-extern void timevar_print (FILE *);
+/* Initialize timing variables.  */
 
-/* Provided for backward compatibility.  */
-extern long get_run_time (void);
-extern void print_time (const char *, long);
+void timevar_init (void);
 
-extern int timevar_report;
+/* Push TIMEVAR onto the timing stack.  No further elapsed time is
+   attributed to the previous topmost timing variable on the stack;
+   subsequent elapsed time is attributed to TIMEVAR, until it is
+   popped or another element is pushed on top.
 
-#endif /* ! GCC_TIMEVAR_H */
+   TIMEVAR cannot be running as a standalone timer.  */
+
+void timevar_push (timevar_id_t timevar);
+
+/* Pop the topmost timing variable element off the timing stack.  The
+   popped variable must be TIMEVAR.  Elapsed time since the that
+   element was pushed on, or since it was last exposed on top of the
+   stack when the element above it was popped off, is credited to that
+   timing variable.  */
+
+void timevar_pop (timevar_id_t timevar);
+
+/* Start timing TIMEVAR independently of the timing stack.  Elapsed
+   time until timevar_stop is called for the same timing variable is
+   attributed to TIMEVAR.  */
+
+void timevar_start (timevar_id_t timevar);
+
+/* Stop timing TIMEVAR.  Time elapsed since timevar_start was called
+   is attributed to it.  */
+
+void timevar_stop (timevar_id_t timevar);
+
+/* Fill the elapsed time for TIMEVAR into ELAPSED.  Returns
+   update-to-date information even if TIMEVAR is currently running.  */
+
+void timevar_get (timevar_id_t timevar, struct timevar_time_def *elapsed);
+
+/* Summarize timing variables to FP.  The timing variable TV_TOTAL has
+   a special meaning -- it's considered to be the total elapsed time,
+   for normalizing the others, and is displayed last.  */
+
+void timevar_print (FILE *fp);
+
+/* Set to to nonzero to enable timing variables.  All the timevar
+   functions make an early exit if timevar is disabled.  */
+
+extern int timevar_enabled;
+
+# ifdef  __cplusplus
+}
+# endif
+
+#endif /* ! _TIMEVAR_H */

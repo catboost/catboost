@@ -2595,10 +2595,7 @@ is_dot_or_dash (char ch)
 static inline bool
 contains_dot_or_dash (const char* p)
 {
-  for (; *p; ++p)
-    if (is_dot_or_dash (*p))
-      return true;
-  return false;
+  return strpbrk(p, ".-");
 }
 
 /* Defines a variant of a symbolic name resolution. */
@@ -2657,26 +2654,21 @@ variant_table_free (void)
   variant_table_size = variant_count = 0;
 }
 
-static char *
-find_prefix_end (const char *prefix, char *begin, char *end)
+static char const *
+find_prefix_end (char const *prefix, char const *cp, char const *end)
 {
-  char *ptr = begin;
+  for (; *prefix && cp != end; ++prefix, ++cp)
+    if (*prefix != *cp)
+      return NULL;
 
-  for (; *prefix && ptr != end; ++prefix, ++ptr)
-    if (*prefix != *ptr)
-      return 0;
-
-  if (*prefix)
-    return 0;
-
-  return ptr;
+  return *prefix ? NULL : cp;
 }
 
 static variant *
 variant_add (uniqstr id, location id_loc, unsigned symbol_index,
-             char *cp, char *cp_end, bool explicit_bracketing)
+             char const *cp, char const *cp_end, bool explicit_bracketing)
 {
-  char *prefix_end = find_prefix_end (id, cp, cp_end);
+  char const *prefix_end = find_prefix_end (id, cp, cp_end);
   if (prefix_end &&
       (prefix_end == cp_end ||
        (!explicit_bracketing && is_dot_or_dash (*prefix_end))))
@@ -2759,7 +2751,7 @@ show_sub_message (warnings warning,
 
       if (var->err & VARIANT_NOT_VISIBLE_FROM_MIDRULE)
         obstack_printf (&msg_buf,
-                        _(", cannot be accessed from mid-rule action at $%d"),
+                        _(", cannot be accessed from midrule action at $%d"),
                         midrule_rhs_index);
 
       complain_indent (&id_loc, warning, &indent, "%s",
@@ -2813,35 +2805,14 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
         }
     }
 
-  char *cp_end;
-  bool explicit_bracketing;
+  bool const explicit_bracketing = *cp == '[';
 
-  if ('[' == *cp)
-    {
-      /* Ignore the brackets. */
-      char *p;
-      for (p = ++cp; *p != ']'; ++p)
-        continue;
-      cp_end = p;
-
-      explicit_bracketing = true;
-    }
+  if (explicit_bracketing)
+    ++cp;
   else
-    {
-      /* Take all characters of the name. */
-      char* p;
-      for (p = cp; *p; ++p)
-        if (is_dot_or_dash (*p))
-          {
-            ref_tail_fields = p;
-            break;
-          }
-      for (p = cp; *p; ++p)
-        continue;
-      cp_end = p;
+    ref_tail_fields = strpbrk (cp, ".-");
 
-      explicit_bracketing = false;
-    }
+  char const *cp_end = strchr (cp, explicit_bracketing ? ']' : '\0');
 
   /* Add all relevant variants. */
   {
@@ -2874,7 +2845,7 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
       variant *var = &variant_table[i];
       unsigned symbol_index = var->symbol_index;
 
-      /* Check visibility from mid-rule actions. */
+      /* Check visibility from midrule actions. */
       if (midrule_rhs_index != 0
           && (symbol_index == 0 || midrule_rhs_index < symbol_index))
         var->err |= VARIANT_NOT_VISIBLE_FROM_MIDRULE;
@@ -3085,8 +3056,15 @@ handle_action_dollar (symbol_list *rule, char *text, location dollar_loc)
       obstack_quote (&obstack_for_string, type_name);
       obstack_sgrow (&obstack_for_string, ")[");
       if (0 < n)
-        symbol_list_n_get (effective_rule, n)->action_props.is_value_used =
-          true;
+        {
+          symbol_list *sym = symbol_list_n_get (effective_rule, n);
+          if (muscle_percent_define_ifdef ("api.value.automove")
+              && sym->action_props.is_value_used)
+            complain (&dollar_loc, Wother,
+                      _("multiple occurrences of $%d with api.value.automove"),
+                      n);
+          sym->action_props.is_value_used = true;
+        }
       break;
     }
 }
@@ -3214,17 +3192,17 @@ code_props_translate_code (code_props *self)
 {
   switch (self->kind)
     {
-      case CODE_PROPS_NONE:
-        break;
-      case CODE_PROPS_PLAIN:
-        self->code = translate_action (self, INITIAL);
-        break;
-      case CODE_PROPS_SYMBOL_ACTION:
-        self->code = translate_action (self, SC_SYMBOL_ACTION);
-        break;
-      case CODE_PROPS_RULE_ACTION:
-        self->code = translate_action (self, SC_RULE_ACTION);
-        break;
+    case CODE_PROPS_NONE:
+      break;
+    case CODE_PROPS_PLAIN:
+      self->code = translate_action (self, INITIAL);
+      break;
+    case CODE_PROPS_SYMBOL_ACTION:
+      self->code = translate_action (self, SC_SYMBOL_ACTION);
+      break;
+    case CODE_PROPS_RULE_ACTION:
+      self->code = translate_action (self, SC_RULE_ACTION);
+      break;
     }
 }
 

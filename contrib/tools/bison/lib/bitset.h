@@ -24,13 +24,13 @@
 /* This file is the public interface to the bitset abstract data type.
    Only use the functions and macros defined in this file.  */
 
-#include "bbitset.h"
-#include "obstack.h"
 #include <stdio.h>
-
 #if USE_UNLOCKED_IO
 # include "unlocked-io.h"
 #endif
+
+#include "bbitset.h"
+#include "obstack.h"
 
 /* Attributes used to select a bitset implementation.  */
 enum bitset_attr {BITSET_FIXED = 1,    /* Bitset size fixed.  */
@@ -83,7 +83,6 @@ union bitset_union
     struct bbitset_struct b;
     bitset_windex size;                 /* Allocated size of array.  */
   } v;
-
 };
 
 
@@ -99,37 +98,37 @@ typedef struct
 
 
 /* Return bytes required for bitset of desired type and size.  */
-extern size_t bitset_bytes (enum bitset_type, bitset_bindex);
+size_t bitset_bytes (enum bitset_type, bitset_bindex);
 
 /* Initialise a bitset with desired type and size.  */
-extern bitset bitset_init (bitset, bitset_bindex, enum bitset_type);
+bitset bitset_init (bitset, bitset_bindex, enum bitset_type);
 
 /* Select an implementation type based on the desired bitset size
    and attributes.  */
-extern enum bitset_type bitset_type_choose (bitset_bindex, bitset_attrs);
+enum bitset_type bitset_type_choose (bitset_bindex, bitset_attrs);
 
 /* Create a bitset of desired type and size.  The bitset is zeroed.  */
-extern bitset bitset_alloc (bitset_bindex, enum bitset_type);
+bitset bitset_alloc (bitset_bindex, enum bitset_type);
 
 /* Free bitset.  */
-extern void bitset_free (bitset);
+void bitset_free (bitset);
 
 /* Create a bitset of desired type and size using an obstack.  The
    bitset is zeroed.  */
-extern bitset bitset_obstack_alloc (struct obstack *bobstack,
-                                    bitset_bindex, enum bitset_type);
+bitset bitset_obstack_alloc (struct obstack *bobstack,
+                             bitset_bindex, enum bitset_type);
 
 /* Free bitset allocated on obstack.  */
-extern void bitset_obstack_free (bitset);
+void bitset_obstack_free (bitset);
 
 /* Create a bitset of desired size and attributes.  The bitset is zeroed.  */
-extern bitset bitset_create (bitset_bindex, bitset_attrs);
+bitset bitset_create (bitset_bindex, bitset_attrs);
 
 /* Return bitset type.  */
-extern enum bitset_type bitset_type_get (bitset);
+enum bitset_type bitset_type_get (bitset);
 
 /* Return bitset type name.  */
-extern const char *bitset_type_name_get (bitset);
+const char *bitset_type_name_get (bitset);
 
 
 /* Set bit BITNO in bitset BSET.  */
@@ -181,7 +180,7 @@ bitset_test (bitset bset, bitset_bindex bitno)
 #define bitset_size(SRC) BITSET_SIZE_ (SRC)
 
 /* Change size of bitset.  */
-extern void bitset_resize (bitset, bitset_bindex);
+void bitset_resize (bitset, bitset_bindex);
 
 /* Return number of bits set in bitset SRC.  */
 #define bitset_count(SRC) BITSET_COUNT_ (SRC)
@@ -281,25 +280,25 @@ extern void bitset_resize (bitset, bitset_bindex);
  BITSET_LIST_REVERSE_ (BSET, LIST, NUM, NEXT)
 
 /* Return true if both bitsets are of the same type and size.  */
-extern bool bitset_compatible_p (bitset bset1, bitset bset2);
+bool bitset_compatible_p (bitset bset1, bitset bset2);
 
 /* Find next set bit from the given bit index.  */
-extern bitset_bindex bitset_next (bitset, bitset_bindex);
+bitset_bindex bitset_next (bitset, bitset_bindex);
 
 /* Find previous set bit from the given bit index.  */
-extern bitset_bindex bitset_prev (bitset, bitset_bindex);
+bitset_bindex bitset_prev (bitset, bitset_bindex);
 
 /* Find first set bit.  */
-extern bitset_bindex bitset_first (bitset);
+bitset_bindex bitset_first (bitset);
 
 /* Find last set bit.  */
-extern bitset_bindex bitset_last (bitset);
+bitset_bindex bitset_last (bitset);
 
 /* Return nonzero if this is the only set bit.  */
-extern bool bitset_only_set_p (bitset, bitset_bindex);
+bool bitset_only_set_p (bitset, bitset_bindex);
 
 /* Dump bitset.  */
-extern void bitset_dump (FILE *, bitset);
+void bitset_dump (FILE *, bitset);
 
 /* Loop over all elements of BSET, starting with MIN, setting INDEX
    to the index of each set bit.  For example, the following will print
@@ -309,9 +308,7 @@ extern void bitset_dump (FILE *, bitset);
    bitset_iterator iter;
 
    BITSET_FOR_EACH (iter, src, i, 0)
-   {
-      printf ("%lu ", (unsigned long) i);
-   };
+     printf ("%lu ", (unsigned long) i);
 */
 #define BITSET_FOR_EACH(ITER, BSET, INDEX, MIN)                               \
   for (ITER.next = (MIN), ITER.num = BITSET_LIST_SIZE;                        \
@@ -331,9 +328,7 @@ extern void bitset_dump (FILE *, bitset);
    bitset_iterator iter;
 
    BITSET_FOR_EACH_REVERSE (iter, src, i, 0)
-   {
-      printf ("%lu ", (unsigned long) i);
-   };
+    printf ("%lu ", (unsigned long) i);
 */
 #define BITSET_FOR_EACH_REVERSE(ITER, BSET, INDEX, MIN)                       \
   for (ITER.next = (MIN), ITER.num = BITSET_LIST_SIZE;                        \
@@ -368,13 +363,13 @@ extern void bitset_dump (FILE *, bitset);
 
 
 /* Release any memory tied up with bitsets.  */
-extern void bitset_release_memory (void);
+void bitset_release_memory (void);
 
 /* Enable bitset stats gathering.  */
-extern void bitset_stats_enable (void);
+void bitset_stats_enable (void);
 
 /* Disable bitset stats gathering.  */
-extern void bitset_stats_disable (void);
+void bitset_stats_disable (void);
 
 /* Read bitset stats file of accummulated stats.  */
 void bitset_stats_read (const char *file_name);
@@ -383,12 +378,12 @@ void bitset_stats_read (const char *file_name);
 void bitset_stats_write (const char *file_name);
 
 /* Dump bitset stats.  */
-extern void bitset_stats_dump (FILE *);
+void bitset_stats_dump (FILE *);
 
 /* Function to debug bitset from debugger.  */
-extern void debug_bitset (bitset);
+void debug_bitset (bitset);
 
 /* Function to debug bitset stats from debugger.  */
-extern void debug_bitset_stats (void);
+void debug_bitset_stats (void);
 
 #endif /* _BITSET_H  */

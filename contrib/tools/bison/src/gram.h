@@ -271,4 +271,8 @@ void grammar_rules_useless_report (const char *message);
 /* Free the packed grammar. */
 void grammar_free (void);
 
+/* The version %required by the grammar file, as an int (100 * major +
+   minor).  0 if unspecified.  */
+extern int required_version;
+
 #endif /* !GRAM_H_ */

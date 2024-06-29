@@ -1,111 +1,6 @@
 /* lib/config.h.  Generated from config.in.h by configure.  */
 /* lib/config.in.h.  Generated from configure.ac by autoheader.  */
 
-/* CPU and C ABI indicator */
-#ifndef __i386__
-/* #undef __i386__ */
-#endif
-#ifndef __x86_64_x32__
-/* #undef __x86_64_x32__ */
-#endif
-#ifndef __alpha__
-/* #undef __alpha__ */
-#endif
-#ifndef __arm__
-/* #undef __arm__ */
-#endif
-#ifndef __armhf__
-/* #undef __armhf__ */
-#endif
-#ifndef __arm64_ilp32__
-/* #undef __arm64_ilp32__ */
-#endif
-#ifndef __arm64__
-/* #undef __arm64__ */
-#endif
-#ifndef __hppa__
-/* #undef __hppa__ */
-#endif
-#ifndef __hppa64__
-/* #undef __hppa64__ */
-#endif
-#ifndef __ia64_ilp32__
-/* #undef __ia64_ilp32__ */
-#endif
-#ifndef __ia64__
-/* #undef __ia64__ */
-#endif
-#ifndef __m68k__
-/* #undef __m68k__ */
-#endif
-#ifndef __mips__
-/* #undef __mips__ */
-#endif
-#ifndef __mipsn32__
-/* #undef __mipsn32__ */
-#endif
-#ifndef __mips64__
-/* #undef __mips64__ */
-#endif
-#ifndef __powerpc__
-/* #undef __powerpc__ */
-#endif
-#ifndef __powerpc64__
-/* #undef __powerpc64__ */
-#endif
-#ifndef __powerpc64_elfv2__
-/* #undef __powerpc64_elfv2__ */
-#endif
-#ifndef __riscv32__
-/* #undef __riscv32__ */
-#endif
-#ifndef __riscv64__
-/* #undef __riscv64__ */
-#endif
-#ifndef __riscv32_ilp32__
-/* #undef __riscv32_ilp32__ */
-#endif
-#ifndef __riscv32_ilp32f__
-/* #undef __riscv32_ilp32f__ */
-#endif
-#ifndef __riscv32_ilp32d__
-/* #undef __riscv32_ilp32d__ */
-#endif
-#ifndef __riscv64_ilp32__
-/* #undef __riscv64_ilp32__ */
-#endif
-#ifndef __riscv64_ilp32f__
-/* #undef __riscv64_ilp32f__ */
-#endif
-#ifndef __riscv64_ilp32d__
-/* #undef __riscv64_ilp32d__ */
-#endif
-#ifndef __riscv64_lp64__
-/* #undef __riscv64_lp64__ */
-#endif
-#ifndef __riscv64_lp64f__
-/* #undef __riscv64_lp64f__ */
-#endif
-#ifndef __riscv64_lp64d__
-/* #undef __riscv64_lp64d__ */
-#endif
-#ifndef __s390__
-/* #undef __s390__ */
-#endif
-#ifndef __s390x__
-/* #undef __s390x__ */
-#endif
-#ifndef __sh__
-/* #undef __sh__ */
-#endif
-#ifndef __sparc__
-/* #undef __sparc__ */
-#endif
-#ifndef __sparc64__
-/* #undef __sparc64__ */
-#endif
-
-
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
@@ -177,6 +72,13 @@
 
 /* Define to 1 if fopen() fails to recognize a trailing slash. */
 /* #undef FOPEN_TRAILING_SLASH_BUG */
+
+/* Define if gettimeofday clobbers the localtime buffer. */
+/* #undef GETTIMEOFDAY_CLOBBERS_LOCALTIME */
+
+/* Define this to 'void' or 'struct timezone' to match the system's
+   declaration of the second argument to gettimeofday. */
+#define GETTIMEOFDAY_TIMEZONE void
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module close-stream shall be considered present. */
@@ -269,6 +171,12 @@
 
 /* Define to 1 when the gnulib module getdtablesize should be tested. */
 #define GNULIB_TEST_GETDTABLESIZE 1
+
+/* Define to 1 when the gnulib module getrusage should be tested. */
+#define GNULIB_TEST_GETRUSAGE 1
+
+/* Define to 1 when the gnulib module gettimeofday should be tested. */
+#define GNULIB_TEST_GETTIMEOFDAY 1
 
 /* Define to 1 when the gnulib module isnan should be tested. */
 #define GNULIB_TEST_ISNAN 1
@@ -434,6 +342,9 @@
    */
 #define HAVE_ALLOCA_H 1
 
+/* Define if you have an arithmetic hrtime_t type. */
+/* #undef HAVE_ARITHMETIC_HRTIME_T */
+
 /* Define to 1 if you have the <bp-sym.h> header file. */
 /* #undef HAVE_BP_SYM_H */
 
@@ -447,12 +358,19 @@
    CoreFoundation framework. */
 /* #undef HAVE_CFLOCALECOPYCURRENT */
 
+/* Define to 1 if you have the Mac OS X function
+   CFLocaleCopyPreferredLanguages in the CoreFoundation framework. */
+/* #undef HAVE_CFLOCALECOPYPREFERREDLANGUAGES */
+
 /* Define to 1 if you have the Mac OS X function CFPreferencesCopyAppValue in
    the CoreFoundation framework. */
 /* #undef HAVE_CFPREFERENCESCOPYAPPVALUE */
 
-/* Define to 1 if the system has the type `clock_t'. */
-#define HAVE_CLOCK_T 1
+/* Define to 1 if you have the `clock_gettime' function. */
+#define HAVE_CLOCK_GETTIME 1
+
+/* Define to 1 if you have the `clock_settime' function. */
+#define HAVE_CLOCK_SETTIME 1
 
 /* Define to 1 if you have the `confstr' function. */
 /* #undef HAVE_CONFSTR */
@@ -483,10 +401,6 @@
 /* Define to 1 if you have the declaration of `clearerr_unlocked', and to 0 if
    you don't. */
 #define HAVE_DECL_CLEARERR_UNLOCKED 1
-
-/* Define to 1 if you have the declaration of `clock', and to 0 if you don't.
-   */
-#define HAVE_DECL_CLOCK 0
 
 /* Define to 1 if you have the declaration of `copysign', and to 0 if you
    don't. */
@@ -544,9 +458,9 @@
    don't. */
 #define HAVE_DECL_GETDTABLESIZE 1
 
-/* Define to 1 if you have the declaration of `getrusage', and to 0 if you
+/* Define to 1 if you have the declaration of `gethrtime', and to 0 if you
    don't. */
-#define HAVE_DECL_GETRUSAGE 1
+#define HAVE_DECL_GETHRTIME 0
 
 /* Define to 1 if you have the declaration of `mbrtowc', and to 0 if you
    don't. */
@@ -599,14 +513,6 @@
 /* Define to 1 if you have the declaration of `strnlen', and to 0 if you
    don't. */
 #define HAVE_DECL_STRNLEN 1
-
-/* Define to 1 if you have the declaration of `sysconf', and to 0 if you
-   don't. */
-#define HAVE_DECL_SYSCONF 1
-
-/* Define to 1 if you have the declaration of `times', and to 0 if you don't.
-   */
-#define HAVE_DECL_TIMES 1
 
 /* Define to 1 if you have the declaration of `towlower', and to 0 if you
    don't. */
@@ -669,8 +575,14 @@
 /* Define to 1 if you have the `getprogname' function. */
 /* #undef HAVE_GETPROGNAME */
 
+/* Define to 1 if you have the `getrusage' function. */
+#define HAVE_GETRUSAGE 1
+
 /* Define if the GNU gettext() function is already present or preinstalled. */
 /* #undef HAVE_GETTEXT */
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#define HAVE_GETTIMEOFDAY 1
 
 /* Define if you have the iconv() function and it works. */
 /* #undef HAVE_ICONV */
@@ -750,6 +662,9 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
+/* Define to 1 if you have the `microuptime' function. */
+/* #undef HAVE_MICROUPTIME */
+
 /* Define to 1 if <limits.h> defines the MIN and MAX macros. */
 /* #undef HAVE_MINMAX_IN_LIMITS_H */
 
@@ -762,6 +677,9 @@
 /* Define to 1 on MSVC platforms that have the "invalid parameter handler"
    concept. */
 /* #undef HAVE_MSVC_INVALID_PARAMETER_HANDLER */
+
+/* Define to 1 if you have the `nanouptime' function. */
+/* #undef HAVE_NANOUPTIME */
 
 /* Define to 1 if you have the `nl_langinfo' function. */
 /* #undef HAVE_NL_LANGINFO */
@@ -977,9 +895,6 @@
 /* Define to 1 if you have the <sys/wait.h> header file. */
 #define HAVE_SYS_WAIT_H 1
 
-/* Define to 1 if you have the `times' function. */
-#define HAVE_TIMES 1
-
 /* Define to 1 if you have the `towlower' function. */
 #define HAVE_TOWLOWER 1
 
@@ -1039,10 +954,6 @@
 
 /* Define to 1 if O_NOFOLLOW works. */
 #define HAVE_WORKING_O_NOFOLLOW 1
-
-/* Define if you have the posix_spawn and posix_spawnp functions and they
-   work. */
-#define HAVE_WORKING_POSIX_SPAWN 1
 
 /* Define to 1 if the system has the type `_Bool'. */
 #define HAVE__BOOL 1
@@ -1175,7 +1086,7 @@
 #define PACKAGE_NAME "GNU Bison"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU Bison 3.1"
+#define PACKAGE_STRING "GNU Bison 3.2.4"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "bison"
@@ -1184,7 +1095,7 @@
 #define PACKAGE_URL "http://www.gnu.org/software/bison/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.1"
+#define PACKAGE_VERSION "3.2.4"
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 /* #undef PRI_MACROS_BROKEN */
@@ -1208,6 +1119,9 @@
    slash */
 /* #undef REPLACE_FUNC_STAT_FILE */
 
+/* Define if gnulib uses its own posix_spawn and posix_spawnp functions. */
+/* #undef REPLACE_POSIX_SPAWN */
+
 /* Define if printf is overridden by a POSIX compliant gnulib implementation.
    */
 #define REPLACE_PRINTF_POSIX 1
@@ -1221,6 +1135,15 @@
 /* Define if vfprintf is overridden by a POSIX compliant gnulib
    implementation. */
 #define REPLACE_VFPRINTF_POSIX 1
+
+/* File name of the Bourne shell.  */
+#if defined __CYGWIN__
+/* Omit the directory part because for 32-bit Cygwin programs in a
+   64-bit Cygwin environment, the Cygwin mounts are not visible.  */
+# define BOURNE_SHELL "sh"
+#else
+# define BOURNE_SHELL "/bin/sh"
+#endif
 
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'sig_atomic_t'. */
@@ -1367,7 +1290,7 @@
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "3.1"
+#define VERSION "3.2.4"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 /* #undef VOID_UNSETENV */
@@ -1418,12 +1341,15 @@
 #define _NETBSD_SOURCE 1
 
 /* The _Noreturn keyword of C11.  */
-#if ! (defined _Noreturn \
-       || (defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__))
-# if (3 <= __GNUC__ || (__GNUC__ == 2 && 8 <= __GNUC_MINOR__) \
-      || 0x5110 <= __SUNPRO_C)
+#ifndef _Noreturn
+# if 201103 <= (defined __cplusplus ? __cplusplus : 0)
+#  define _Noreturn [[noreturn]]
+# elif (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) \
+        || 4 < __GNUC__ + (7 <= __GNUC_MINOR__))
+   /* _Noreturn works as-is.  */
+# elif 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || 0x5110 <= __SUNPRO_C
 #  define _Noreturn __attribute__ ((__noreturn__))
-# elif defined _MSC_VER && 1200 <= _MSC_VER
+# elif 1200 <= (defined _MSC_VER ? _MSC_VER : 0)
 #  define _Noreturn __declspec (noreturn)
 # else
 #  define _Noreturn

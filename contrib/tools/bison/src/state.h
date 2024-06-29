@@ -148,7 +148,7 @@ typedef struct
 
 
 /* Iterate over each transition over a token (shifts).  */
-# define FOR_EACH_SHIFT(Transitions, Iter)                       \
+# define FOR_EACH_SHIFT(Transitions, Iter)                      \
   for (Iter = 0;                                                \
        Iter < Transitions->num                                  \
          && (TRANSITION_IS_DISABLED (Transitions, Iter)         \

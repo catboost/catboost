@@ -85,7 +85,7 @@ typedef struct code_props {
   /** Named reference. */
   named_ref *named_ref;
 
-  /** Type, for mid-rule actions.  */
+  /** Type, for midrule actions.  */
   uniqstr type;
 } code_props;
 

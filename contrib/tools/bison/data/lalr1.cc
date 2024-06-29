@@ -20,6 +20,7 @@ m4_include(b4_pkgdatadir/[c++.m4])
 # api.value.type=variant is valid.
 m4_define([b4_value_type_setup_variant])
 
+
 # b4_integral_parser_table_declare(TABLE-NAME, CONTENT, COMMENT)
 # --------------------------------------------------------------
 # Declare "parser::yy<TABLE-NAME>_" whose contents is CONTENT.
@@ -83,8 +84,13 @@ m4_define([b4_rhs_state],
 # --------------------------------------
 # Expansion of $<TYPE>NUM, where the current rule has RULE-LENGTH
 # symbols on RHS.
-m4_define([b4_rhs_value],
+m4_define([_b4_rhs_value],
           [b4_symbol_value([b4_rhs_data([$1], [$2]).value], [$3])])
+
+m4_define([b4_rhs_value],
+[b4_percent_define_ifdef([api.value.automove],
+                         [YY_MOVE (_b4_rhs_value($@))],
+                         [_b4_rhs_value($@)])])
 
 
 # b4_rhs_location(RULE-LENGTH, NUM)
@@ -106,7 +112,7 @@ b4_dollar_pushdef([yysym.value],
                    b4_symbol_if([$1], [has_type],
                                 [m4_dquote(b4_symbol([$1], [type]))]),
                    [yysym.location])dnl
-      b4_symbol_case_([$1])
+      _b4_symbol_case([$1])
 b4_syncline([b4_symbol([$1], [$2_line])], [b4_symbol([$1], [$2_file])])
         b4_symbol([$1], [$2])
 b4_syncline([@oline@], [@ofile@])
@@ -142,10 +148,11 @@ b4_bison_locations_if([# Backward compatibility.
 m4_include(b4_pkgdatadir/[stack.hh])
 b4_variant_if([m4_include(b4_pkgdatadir/[variant.hh])])
 
+
 # b4_shared_declarations(hh|cc)
 # -----------------------------
 # Declaration that might either go into the header (if --defines, $1 = hh)
-# or open coded in the parser body.
+# or in the implementation file.
 m4_define([b4_shared_declarations],
 [b4_percent_code_get([[requires]])[
 ]b4_parse_assert_if([# include <cassert>])[
@@ -153,21 +160,23 @@ m4_define([b4_shared_declarations],
 # include <iostream>
 # include <stdexcept>
 # include <string>
-# include <vector>]b4_defines_if([[
-# include "stack.hh"
-]b4_bison_locations_if([[# include "location.hh"]])])[
+# include <vector>
+
+]b4_cxx_portability[
+]m4_ifdef([b4_location_include],
+          [[# include ]b4_location_include])[
 ]b4_variant_if([b4_variant_includes])[
 
 ]b4_attribute_define[
 ]b4_null_define[
+
 ]b4_YYDEBUG_define[
 
 ]b4_namespace_open[
 
-]b4_defines_if([],
-[b4_stack_define
-b4_bison_locations_if([b4_position_define
-b4_location_define])])[
+]b4_stack_define[
+]b4_bison_locations_if([m4_ifndef([b4_location_file],
+                                  [b4_location_define])])[
 
 ]b4_variant_if([b4_variant_define])[
 
@@ -176,9 +185,14 @@ b4_location_define])])[
   {
   public:
 ]b4_public_types_declare[
+]b4_symbol_type_declare[
     /// Build a parser object.
     ]b4_parser_class_name[ (]b4_parse_param_decl[);
     virtual ~]b4_parser_class_name[ ();
+
+    /// Parse.  An alias for parse ().
+    /// \returns  0 iff parsing succeeded.
+    int operator() ();
 
     /// Parse.
     /// \returns  0 iff parsing succeeded.
@@ -205,6 +219,8 @@ b4_location_define])])[
 
     /// Report a syntax error.
     void error (const syntax_error& err);
+
+]b4_symbol_constructor_declare[
 
   private:
     /// This class is not copyable.
@@ -256,8 +272,9 @@ b4_location_define])])[
     /// Print the state stack on the debug stream.
     virtual void yystack_print_ ();
 
-    // Debugging.
+    /// Debugging level.
     int yydebug_;
+    /// Debug stream.
     std::ostream* yycdebug_;
 
     /// \brief Display a symbol type, value and location.
@@ -315,12 +332,15 @@ b4_location_define])])[
       typedef basic_symbol<by_state> super_type;
       /// Construct an empty symbol.
       stack_symbol_type ();
-      /// Copy construct (for efficiency).
-      stack_symbol_type (const stack_symbol_type& that);
+      /// Move or copy construction.
+      stack_symbol_type (YY_RVREF (stack_symbol_type) that);
       /// Steal the contents from \a sym to build this.
-      stack_symbol_type (state_type s, symbol_type& sym);
-      /// Assignment, needed by push_back.
-      stack_symbol_type& operator= (const stack_symbol_type& that);
+      stack_symbol_type (state_type s, YY_MOVE_REF (symbol_type) sym);
+#if YY_CPLUSPLUS < 201103L
+      /// Assignment, needed by push_back by some old implementations.
+      /// Moves the contents of that.
+      stack_symbol_type& operator= (stack_symbol_type& that);
+#endif
     };
 
     /// Stack type.
@@ -332,20 +352,20 @@ b4_location_define])])[
     /// Push a new state on the stack.
     /// \param m    a debug message to display
     ///             if null, no trace is output.
-    /// \param s    the symbol
+    /// \param sym  the symbol
     /// \warning the contents of \a s.value is stolen.
-    void yypush_ (const char* m, stack_symbol_type& s);
+    void yypush_ (const char* m, YY_MOVE_REF (stack_symbol_type) sym);
 
     /// Push a new look ahead token on the state on the stack.
     /// \param m    a debug message to display
     ///             if null, no trace is output.
     /// \param s    the state
     /// \param sym  the symbol (for its value and location).
-    /// \warning the contents of \a s.value is stolen.
-    void yypush_ (const char* m, state_type s, symbol_type& sym);
+    /// \warning the contents of \a sym.value is stolen.
+    void yypush_ (const char* m, state_type s, YY_MOVE_REF (symbol_type) sym);
 
-    /// Pop \a n symbols the three stacks.
-    void yypop_ (unsigned n = 1);
+    /// Pop \a n symbols from the stack.
+    void yypop_ (int n = 1);
 
     /// Constants.
     enum
@@ -377,6 +397,10 @@ b4_location_define])])[
 ]b4_percent_code_get([[provides]])[
 ]])
 
+## -------------- ##
+## Output files.  ##
+## -------------- ##
+
 b4_defines_if(
 [b4_output_begin([b4_spec_defines_file])
 b4_copyright([Skeleton interface for Bison LALR(1) parsers in C++])
@@ -388,30 +412,28 @@ b4_copyright([Skeleton interface for Bison LALR(1) parsers in C++])
 
 // C++ LALR(1) parser skeleton written by Akim Demaille.
 
+]b4_disclaimer[
 ]b4_cpp_guard_open([b4_spec_defines_file])[
 ]b4_shared_declarations(hh)[
 ]b4_cpp_guard_close([b4_spec_defines_file])
-b4_output_end()
+b4_output_end
 ])
 
 
-b4_output_begin([b4_parser_file_name])
-b4_copyright([Skeleton implementation for Bison LALR(1) parsers in C++])
-b4_percent_code_get([[top]])[]dnl
+b4_output_begin([b4_parser_file_name])[
+]b4_copyright([Skeleton implementation for Bison LALR(1) parsers in C++])[
+]b4_disclaimer[
+]b4_percent_code_get([[top]])[]dnl
 m4_if(b4_prefix, [yy], [],
 [
 // Take the name prefix into account.
-#define yylex   b4_prefix[]lex])[
+[#]define yylex   b4_prefix[]lex])[
 
-// First part of user declarations.
 ]b4_user_pre_prologue[
-
-]b4_null_define[
 
 ]b4_defines_if([[#include "@basename(]b4_spec_defines_file[@)"]],
                [b4_shared_declarations([cc])])[
 
-// User implementation prologue.
 ]b4_user_post_prologue[
 ]b4_percent_code_get[
 
@@ -585,34 +607,40 @@ m4_if(b4_prefix, [yy], [],
   ]b4_parser_class_name[::stack_symbol_type::stack_symbol_type ()
   {}
 
-  ]b4_parser_class_name[::stack_symbol_type::stack_symbol_type (const stack_symbol_type& that)
-    : super_type (that.state]b4_locations_if([, that.location])[)
-  {
-    ]b4_variant_if([b4_symbol_variant([that.type_get ()],
-                                      [value], [copy], [that.value])],
-                   [[value = that.value;]])[
-  }
-
-  ]b4_parser_class_name[::stack_symbol_type::stack_symbol_type (state_type s, symbol_type& that)
-    : super_type (s]b4_variant_if([], [, that.value])[]b4_locations_if([, that.location])[)
+  ]b4_parser_class_name[::stack_symbol_type::stack_symbol_type (YY_RVREF (stack_symbol_type) that)
+    : super_type (YY_MOVE (that.state)]b4_variant_if([], [, YY_MOVE (that.value)])b4_locations_if([, YY_MOVE (that.location)])[)
   {]b4_variant_if([
     b4_symbol_variant([that.type_get ()],
-                      [value], [move], [that.value])])[
+                      [value], [YY_MOVE_OR_COPY], [YY_MOVE (that.value)])])[
+#if 201103L <= YY_CPLUSPLUS
+    // that is emptied.
+    that.state = empty_state;
+#endif
+  }
+
+  ]b4_parser_class_name[::stack_symbol_type::stack_symbol_type (state_type s, YY_MOVE_REF (symbol_type) that)
+    : super_type (s]b4_variant_if([], [, YY_MOVE (that.value)])[]b4_locations_if([, YY_MOVE (that.location)])[)
+  {]b4_variant_if([
+    b4_symbol_variant([that.type_get ()],
+                      [value], [move], [YY_MOVE (that.value)])])[
     // that is emptied.
     that.type = empty_symbol;
   }
 
+#if YY_CPLUSPLUS < 201103L
   ]b4_parser_class_name[::stack_symbol_type&
-  ]b4_parser_class_name[::stack_symbol_type::operator= (const stack_symbol_type& that)
+  ]b4_parser_class_name[::stack_symbol_type::operator= (stack_symbol_type& that)
   {
     state = that.state;
     ]b4_variant_if([b4_symbol_variant([that.type_get ()],
-                                      [value], [copy], [that.value])],
+                                      [value], [move], [that.value])],
                    [[value = that.value;]])[]b4_locations_if([
     location = that.location;])[
+    // that is emptied.
+    that.state = empty_state;
     return *this;
   }
-
+#endif
 
   template <typename Base>
   void
@@ -647,22 +675,26 @@ m4_if(b4_prefix, [yy], [],
 #endif
 
   void
-  ]b4_parser_class_name[::yypush_ (const char* m, state_type s, symbol_type& sym)
-  {
-    stack_symbol_type t (s, sym);
-    yypush_ (m, t);
-  }
-
-  void
-  ]b4_parser_class_name[::yypush_ (const char* m, stack_symbol_type& s)
+  ]b4_parser_class_name[::yypush_ (const char* m, YY_MOVE_REF (stack_symbol_type) sym)
   {
     if (m)
-      YY_SYMBOL_PRINT (m, s);
-    yystack_.push (s);
+      YY_SYMBOL_PRINT (m, sym);
+    yystack_.push (YY_MOVE (sym));
   }
 
   void
-  ]b4_parser_class_name[::yypop_ (unsigned n)
+  ]b4_parser_class_name[::yypush_ (const char* m, state_type s, YY_MOVE_REF (symbol_type) sym)
+  {
+#if 201103L <= YY_CPLUSPLUS
+    yypush_ (m, stack_symbol_type (s, std::move (sym)));
+#else
+    stack_symbol_type ss (s, sym);
+    yypush_ (m, ss);
+#endif
+  }
+
+  void
+  ]b4_parser_class_name[::yypop_ (int n)
   {
     yystack_.pop (n);
   }
@@ -717,6 +749,12 @@ m4_if(b4_prefix, [yy], [],
   }
 
   int
+  ]b4_parser_class_name[::operator() ()
+  {
+    return parse ();
+  }
+
+  int
   ]b4_parser_class_name[::parse ()
   {
     // State.
@@ -745,7 +783,6 @@ m4_if(b4_prefix, [yy], [],
 
 ]m4_ifdef([b4_initial_action], [
 b4_dollar_pushdef([yyla.value], [], [yyla.location])dnl
-    // User initialization code.
     b4_user_initial_action
 b4_dollar_popdef])[]dnl
 
@@ -754,7 +791,7 @@ b4_dollar_popdef])[]dnl
        location values to have been already stored, initialize these
        stacks with a primary value.  */
     yystack_.clear ();
-    yypush_ (YY_NULLPTR, 0, yyla);
+    yypush_ (YY_NULLPTR, 0, YY_MOVE (yyla));
 
     // A new symbol was pushed on the stack.
   yynewstate:
@@ -816,7 +853,7 @@ b4_dollar_popdef])[]dnl
       --yyerrstatus_;
 
     // Shift the lookahead token.
-    yypush_ ("Shifting", yyn, yyla);
+    yypush_ ("Shifting", yyn, YY_MOVE (yyla));
     goto yynewstate;
 
   /*-----------------------------------------------------------.
@@ -839,7 +876,7 @@ b4_dollar_popdef])[]dnl
       /* Variants are always initialized to an empty instance of the
          correct type. The default '$$ = $1' action is NOT applied
          when using variants.  */
-      b4_symbol_variant([[yyr1_@{yyn@}]], [yylhs.value], [build])], [
+      b4_symbol_variant([[yyr1_@{yyn@}]], [yylhs.value], [emplace])], [
       /* If YYLEN is nonzero, implement the default value of the
          action: '$$ = $1'.  Otherwise, use the top of the stack.
 
@@ -885,7 +922,7 @@ b4_dollar_popdef])[]dnl
       YY_STACK_PRINT ();
 
       // Shift the result of the reduction.
-      yypush_ (YY_NULLPTR, yylhs);
+      yypush_ (YY_NULLPTR, YY_MOVE (yylhs));
     }
     goto yynewstate;
 
@@ -974,7 +1011,7 @@ b4_dollar_popdef])[]dnl
 
       // Shift the error token.
       error_token.state = yyn;
-      yypush_ ("Shifting", error_token);
+      yypush_ ("Shifting", YY_MOVE (error_token));
     }
     goto yynewstate;
 
@@ -1180,7 +1217,7 @@ b4_error_verbose_if([state_type yystate, const symbol_type& yyla],
 ]b4_token_ctor_if([], [b4_yytranslate_define([cc])])[
 ]b4_namespace_close[
 ]b4_epilogue[]dnl
-b4_output_end()
+b4_output_end
 
 
 m4_popdef([b4_copyright_years])dnl

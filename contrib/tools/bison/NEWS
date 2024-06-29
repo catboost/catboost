@@ -1,5 +1,199 @@
 GNU Bison NEWS
 
+* Noteworthy changes in release 3.2.4 (2018-12-24) [stable]
+
+** Bug fixes
+
+  Fix the move constructor of symbol_type.
+
+  Always provide a copy constructor for symbol_type, even in modern C++.
+
+* Noteworthy changes in release 3.2.3 (2018-12-18) [stable]
+
+** Bug fixes
+
+  Properly support token constructors in C++ with types that include commas
+  (e.g., std::pair<int, int>).  A regression introduced in Bison 3.2.
+
+* Noteworthy changes in release 3.2.2 (2018-11-21) [stable]
+
+** Bug fixes
+
+  C++ portability issues.
+
+* Noteworthy changes in release 3.2.1 (2018-11-09) [stable]
+
+** Bug fixes
+
+  Several portability issues have been fixed in the build system, in the
+  test suite, and in the generated parsers in C++.
+
+* Noteworthy changes in release 3.2 (2018-10-29) [stable]
+
+** Backward incompatible changes
+
+  Support for DJGPP, which have been unmaintained and untested for years, is
+  obsolete.  Unless there is activity to revive it, it will be removed.
+
+** Changes
+
+  %printers should use yyo rather than yyoutput to denote the output stream.
+
+  Variant-based symbols in C++ should use emplace() rather than build().
+
+  In C++ parsers, parser::operator() is now a synonym for the parser::parse.
+
+** Documentation
+
+  A new section, "A Simple C++ Example", is a tutorial for parsers in C++.
+
+  A comment in the generated code now emphasizes that users should not
+  depend upon non-documented implementation details, such as macros starting
+  with YY_.
+
+** New features
+
+*** C++: Support for move semantics (lalr1.cc)
+
+  The lalr1.cc skeleton now fully supports C++ move semantics, while
+  maintaining compatibility with C++98.  You may now store move-only types
+  when using Bison's variants.  For instance:
+
+    %code {
+      #include <memory>
+      #include <vector>
+    }
+
+    %skeleton "lalr1.cc"
+    %define api.value.type variant
+
+    %%
+
+    %token <int> INT "int";
+    %type <std::unique_ptr<int>> int;
+    %type <std::vector<std::unique_ptr<int>>> list;
+
+    list:
+      %empty    {}
+    | list int  { $$ = std::move($1); $$.emplace_back(std::move($2)); }
+
+    int: "int"  { $$ = std::make_unique<int>($1); }
+
+*** C++: Implicit move of right-hand side values (lalr1.cc)
+
+  In modern C++ (C++11 and later), you should always use 'std::move' with
+  the values of the right-hand side symbols ($1, $2, etc.), as they will be
+  popped from the stack anyway.  Using 'std::move' is mandatory for
+  move-only types such as unique_ptr, and it provides a significant speedup
+  for large types such as std::string, or std::vector, etc.
+
+  If '%define api.value.automove' is set, every occurrence '$n' is replaced
+  by 'std::move ($n)'.  The second rule in the previous grammar can be
+  simplified to:
+
+    list: list int  { $$ = $1; $$.emplace_back($2); }
+
+  With automove enabled, the semantic values are no longer lvalues, so do
+  not use the swap idiom:
+
+    list: list int  { std::swap($$, $1); $$.emplace_back($2); }
+
+  This idiom is anyway obsolete: it is preferable to move than to swap.
+
+  A warning is issued when automove is enabled, and a value is used several
+  times.
+
+    input.yy:16.31-32: warning: multiple occurrences of $2 with api.value.automove enabled [-Wother]
+    exp: "twice" exp   { $$ = $2 + $2; }
+                                   ^^
+
+  Enabling api.value.automove does not require support for modern C++.  The
+  generated code is valid C++98/03, but will use copies instead of moves.
+
+  The new examples/c++/variant-11.yy shows these features in action.
+
+*** C++: The implicit default semantic action is always run
+
+  When variants are enabled, the default action was not run, so
+
+    exp: "number"
+
+  was equivalent to
+
+    exp: "number"  {}
+
+  It now behaves like in all the other cases, as
+
+    exp: "number"  { $$ = $1; }
+
+  possibly using std::move if automove is enabled.
+
+  We do not expect backward compatibility issues.  However, beware of
+  forward compatibility issues: if you rely on default actions with
+  variants, be sure to '%require "3.2"' to avoid older versions of Bison to
+  generate incorrect parsers.
+
+*** C++: Renaming location.hh
+
+  When both %defines and %locations are enabled, Bison generates a
+  location.hh file.  If you don't use locations outside of the parser, you
+  may avoid its creation with:
+
+    %define api.location.file none
+
+  However this file is useful if, for instance, your parser builds an AST
+  decorated with locations: you may use Bison's location independently of
+  Bison's parser.  You can now give it another name, for instance:
+
+    %define api.location.file "my-location.hh"
+
+  This name can have directory components, and even be absolute.  The name
+  under which the location file is included is controlled by
+  api.location.include.
+
+  This way it is possible to have several parsers share the same location
+  file.
+
+  For instance, in src/foo/parser.hh, generate the include/ast/loc.hh file:
+
+    %locations
+    %define api.namespace {foo}
+    %define api.location.file "include/ast/loc.hh"
+    %define api.location.include {<ast/loc.hh>}
+
+  and use it in src/bar/parser.hh:
+
+    %locations
+    %define api.namespace {bar}
+    %code requires {#include <ast/loc.hh>}
+    %define api.location.type {bar::location}
+
+  Absolute file names are supported, so in your Makefile, passing the flag
+  -Dapi.location.file='"$(top_srcdir)/include/ast/location.hh"' to bison is
+  safe.
+
+*** C++: stack.hh and position.hh are deprecated
+
+  When asked to generate a header file (%defines), the lalr1.cc skeleton
+  generates a stack.hh file.  This file had no interest for users; it is now
+  made useless: its content is included in the parser definition.  It is
+  still generated for backward compatibility.
+
+  When in addition to %defines, location support is requested (%locations),
+  the file position.hh is also generated.  It is now also useless: its
+  content is now included in location.hh.
+
+  These files are no longer generated when your grammar file requires at
+  least Bison 3.2 (%require "3.2").
+
+** Bug fixes
+
+  Portability issues on MinGW and VS2015.
+
+  Portability issues in the test suite.
+
+  Portability/warning issues with Flex.
+
 * Noteworthy changes in release 3.1 (2018-08-27) [stable]
 
 ** Backward incompatible changes
@@ -698,9 +892,9 @@ GNU Bison NEWS
   fixed, and introducing tokens with any of %token, %left, %right,
   %precedence, or %nonassoc yields the same result.
 
-  When mixing declarations of tokens with a litteral character (e.g., 'a')
-  or with an identifier (e.g., B) in a precedence declaration, Bison
-  numbered the litteral characters first.  For example
+  When mixing declarations of tokens with a literal character (e.g., 'a') or
+  with an identifier (e.g., B) in a precedence declaration, Bison numbered
+  the literal characters first.  For example
 
     %right A B 'c' 'd'
 
@@ -1021,7 +1215,7 @@ GNU Bison NEWS
   Although introduced more than four years ago, XML and Graphviz reports
   were not properly documented.
 
-  The translation of mid-rule actions is now described.
+  The translation of midrule actions is now described.
 
 * Noteworthy changes in release 2.6.5 (2012-11-07) [stable]
 
@@ -2017,16 +2211,16 @@ GNU Bison NEWS
   The prologue alternatives are experimental.  More user feedback will help to
   determine whether they should become permanent features.
 
-** Revised warning: unset or unused mid-rule values
+** Revised warning: unset or unused midrule values
 
-  Since Bison 2.2, Bison has warned about mid-rule values that are set but not
+  Since Bison 2.2, Bison has warned about midrule values that are set but not
   used within any of the actions of the parent rule.  For example, Bison warns
   about unused $2 in:
 
     exp: '1' { $$ = 1; } '+' exp { $$ = $1 + $4; };
 
-  Now, Bison also warns about mid-rule values that are used but not set.  For
-  example, Bison warns about unset $$ in the mid-rule action in:
+  Now, Bison also warns about midrule values that are used but not set.  For
+  example, Bison warns about unset $$ in the midrule action in:
 
     exp: '1' { $1 = 1; } '+' exp { $$ = $2 + $4; };
 
@@ -2052,7 +2246,7 @@ GNU Bison NEWS
 
   Bison no longer supports the "%symbol-default" notation from Bison 2.3a.
   "<*>" and "<>" combined achieve the same effect with one exception: Bison no
-  longer applies any %destructor to a mid-rule value if that mid-rule value is
+  longer applies any %destructor to a midrule value if that midrule value is
   not actually ever referenced using either $$ or $n in a semantic action.
 
   The default %destructor's and %printer's are experimental.  More user
@@ -2230,7 +2424,7 @@ GNU Bison NEWS
         | exp "+" exp         { $$ = $1; (void) $3; }
         ;
 
-  If there are mid-rule actions, the warning is issued if no action
+  If there are midrule actions, the warning is issued if no action
   uses it.  The following triggers no warning: $1 and $3 are used.
 
      exp: exp { push ($1); } '+' exp { push ($3); sum (); };
@@ -2505,13 +2699,13 @@ GNU Bison NEWS
 
         typed: ... untyped;
 
-** Values of mid-rule actions
+** Values of midrule actions
   The following code:
 
         foo: { ... } { $$ = $1; } ...
 
-  was incorrectly rejected: $1 is defined in the second mid-rule
-  action, and is equal to the $$ of the first mid-rule action.
+  was incorrectly rejected: $1 is defined in the second midrule
+  action, and is equal to the $$ of the first midrule action.
 
 * Changes in version 1.50, 2002-10-04:
 
@@ -2647,7 +2841,7 @@ GNU Bison NEWS
 
 ** Type clashes
   Previous versions don't complain when there is a type clash on
-  the default action if the rule has a mid-rule action, such as in:
+  the default action if the rule has a midrule action, such as in:
 
     %type <foo> bar
     %%
@@ -2958,7 +3152,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  LocalWords:  Wprecedence Rassoul Wempty Paolo Bonzini parser's Michiel loc
  LocalWords:  redeclaration sval fcaret reentrant XSLT xsl Wmaybe yyvsp Tedi
  LocalWords:  pragmas noreturn untyped Rozenman unexpanded Wojciech Polak
- LocalWords:  Alexandre MERCHANTABILITY yytype
+ LocalWords:  Alexandre MERCHANTABILITY yytype emplace ptr automove lvalues
+ LocalWords:  nonterminal yy args Pragma dereference yyformat rhs docdir
+ LocalWords:  Redeclarations rpcalc Autoconf YFLAGS Makefiles outout PROG
+ LocalWords:  Heimbigner AST src ast Makefile srcdir MinGW
 
 Local Variables:
 mode: outline

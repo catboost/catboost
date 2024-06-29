@@ -21,11 +21,19 @@
 #ifndef _BBITSET_H
 #define _BBITSET_H
 
-#include "libiberty.h"
-
-#include <stdbool.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stddef.h>
+
+#include "xalloc.h"
+
+#ifndef __attribute__
+# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 8)
+#  define __attribute__(x)
+# endif
+#endif
+
+#define ATTRIBUTE_UNUSED __attribute__ ((__unused__))
 
 /* Currently we support five flavours of bitsets:
    BITSET_ARRAY:  Array of bits (fixed size, fast for dense bitsets).
@@ -281,24 +289,24 @@ if (!BITSET_COMPATIBLE_ (DST, SRC1) || !BITSET_COMPATIBLE_ (DST, SRC2) \
 
 /* Private functions for bitset implementations.  */
 
-extern bool bitset_toggle_ (bitset, bitset_bindex);
+bool bitset_toggle_ (bitset, bitset_bindex);
 
-extern bitset_bindex bitset_count_ (bitset);
+bitset_bindex bitset_count_ (bitset);
 
-extern bitset_bindex bitset_size_ (bitset);
+bitset_bindex bitset_size_ (bitset);
 
-extern bool bitset_copy_ (bitset, bitset);
+bool bitset_copy_ (bitset, bitset);
 
-extern void bitset_and_or_ (bitset, bitset, bitset, bitset);
+void bitset_and_or_ (bitset, bitset, bitset, bitset);
 
-extern bool bitset_and_or_cmp_ (bitset, bitset, bitset, bitset);
+bool bitset_and_or_cmp_ (bitset, bitset, bitset, bitset);
 
-extern void bitset_andn_or_ (bitset, bitset, bitset, bitset);
+void bitset_andn_or_ (bitset, bitset, bitset, bitset);
 
-extern bool bitset_andn_or_cmp_ (bitset, bitset, bitset, bitset);
+bool bitset_andn_or_cmp_ (bitset, bitset, bitset, bitset);
 
-extern void bitset_or_and_ (bitset, bitset, bitset, bitset);
+void bitset_or_and_ (bitset, bitset, bitset, bitset);
 
-extern bool bitset_or_and_cmp_ (bitset, bitset, bitset, bitset);
+bool bitset_or_and_cmp_ (bitset, bitset, bitset, bitset);
 
 #endif /* _BBITSET_H  */

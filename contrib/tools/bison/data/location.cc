@@ -18,11 +18,48 @@
 m4_pushdef([b4_copyright_years],
            [2002-2015, 2018])
 
-# b4_position_define
+
+# b4_position_file
+# ----------------
+# Name of the file containing the position class, if we want this file.
+b4_defines_if([b4_required_version_if([302], [],
+                                      [m4_define([b4_position_file], [position.hh])])])])
+
+
+# b4_location_file
+# ----------------
+# Name of the file containing the position/location class,
+# if we want this file.
+b4_percent_define_check_file([b4_location_file],
+                             [[api.location.file]],
+                             b4_defines_if([[location.hh]]))
+
+# b4_location_include
+# -------------------
+# If location.hh is to be generated, the name under which should it be
+# included.
+#
+# b4_location_path
+# ----------------
+# The path to use for the CPP guard.
+m4_ifdef([b4_location_file],
+[m4_define([b4_location_include],
+           [b4_percent_define_get([[api.location.include]],
+                                  ["b4_location_file"])])
+ m4_define([b4_location_path],
+           b4_percent_define_get([[api.location.include]],
+                                 ["b4_dir_prefix[]b4_location_file"]))
+ m4_define([b4_location_path],
+           m4_substr(m4_defn([b4_location_path]), 1, m4_eval(m4_len(m4_defn([b4_location_path])) - 2)))
+ ])
+
+
+
+# b4_location_define
 # ------------------
-# Define class position.
-m4_define([b4_position_define],
-[[  /// Abstract a position.
+# Define the position and location classes.
+m4_define([b4_location_define],
+[[  /// A point in a source file.
   class position
   {
   public:]m4_ifdef([b4_location_constructors], [[
@@ -73,10 +110,11 @@ m4_define([b4_position_define],
     unsigned column;
 
   private:
-    /// Compute max(min, lhs+rhs).
+    /// Compute max (min, lhs+rhs).
     static unsigned add_ (unsigned lhs, int rhs, int min)
     {
-      return static_cast<unsigned>(std::max(min, static_cast<int>(lhs) + rhs));
+      return static_cast<unsigned> (std::max (min,
+                                              static_cast<int> (lhs) + rhs));
     }
   };
 
@@ -139,13 +177,8 @@ m4_define([b4_position_define],
       ostr << *pos.filename << ':';
     return ostr << pos.line << '.' << pos.column;
   }
-]])
 
-
-# b4_location_define
-# ------------------
-m4_define([b4_location_define],
-[[  /// Abstract a location.
+  /// Two points in a source file.
   class location
   {
   public:
@@ -287,16 +320,31 @@ m4_define([b4_location_define],
 ]])
 
 
-b4_defines_if([
-b4_output_begin([b4_dir_prefix[]position.hh])
-b4_copyright([Positions for Bison parsers in C++])[
+m4_ifdef([b4_position_file], [[
+]b4_output_begin([b4_dir_prefix], [b4_position_file])[
+]b4_generated_by[
+// Starting with Bison 3.2, this file is useless: the structure it
+// used to define is now defined in "]b4_location_file[".
+//
+// To get rid of this file:
+// 1. add 'require "3.2"' (or newer) to your grammar file
+// 2. remove references to this file from your build system
+// 3. if you used to include it, include "]b4_location_file[" instead.
 
+#include ]b4_location_include[
+]b4_output_end[
+]])
+
+
+m4_ifdef([b4_location_file], [[
+]b4_output_begin([b4_dir_prefix], [b4_location_file])[
+]b4_copyright([Locations for Bison parsers in C++])[
 /**
- ** \file ]b4_dir_prefix[position.hh
- ** Define the ]b4_namespace_ref[::position class.
+ ** \file ]b4_location_path[
+ ** Define the ]b4_namespace_ref[::location class.
  */
 
-]b4_cpp_guard_open([b4_dir_prefix[]position.hh])[
+]b4_cpp_guard_open([b4_location_path])[
 
 # include <algorithm> // std::max
 # include <iostream>
@@ -305,30 +353,11 @@ b4_copyright([Positions for Bison parsers in C++])[
 ]b4_null_define[
 
 ]b4_namespace_open[
-]b4_position_define[
-]b4_namespace_close[
-]b4_cpp_guard_close([b4_dir_prefix[]position.hh])
-b4_output_end()
-
-
-b4_output_begin([b4_dir_prefix[]location.hh])
-b4_copyright([Locations for Bison parsers in C++])[
-
-/**
- ** \file ]b4_dir_prefix[location.hh
- ** Define the ]b4_namespace_ref[::location class.
- */
-
-]b4_cpp_guard_open([b4_dir_prefix[]location.hh])[
-
-# include "position.hh"
-
-]b4_namespace_open[
 ]b4_location_define[
 ]b4_namespace_close[
-]b4_cpp_guard_close([b4_dir_prefix[]location.hh])
-b4_output_end()
-])
+]b4_cpp_guard_close([b4_location_path])[
+]b4_output_end[
+]])
 
 
 m4_popdef([b4_copyright_years])

@@ -10,7 +10,7 @@ Bison requires GNU m4 1.4.6 or later.  See:
       https://ftp.gnu.org/gnu/m4/m4-1.4.6.tar.gz
 
 ** Internationalization
-Bison supports two catalogues: one for Bison itself (i.e., for the
+Bison supports two catalogs: one for Bison itself (i.e., for the
 maintainer-side parser generation), and one for the generated parsers
 (i.e., for the user-side parser execution).  The requirements between
 both differ: bison needs ngettext, the generated parsers do not.  To
@@ -29,9 +29,9 @@ If you have questions about using Bison and the documentation does
 not answer them, please send mail to <help-bison@gnu.org>.
 
 * Bug reports
-Please send bug reports to <bug-bison@gnu.org>.  Please include the
-version number from 'bison --version', and a complete, self-contained
-test case in each bug report.
+Please send bug reports to <bug-bison@gnu.org>.  Be sure to include the
+version number from 'bison --version', and a complete, self-contained test
+case in each bug report.
 
 * Copyright statements
 For any copyright year range specified as YYYY-ZZZZ in this package,
@@ -42,12 +42,13 @@ note that the range specifies every single year in that closed interval.
 Local Variables:
 mode: outline
 fill-column: 76
+ispell-dictionary: "american"
 End:
 
 Copyright (C) 1992, 1998-1999, 2003-2005, 2008-2015, 2018 Free Software
 Foundation, Inc.
 
-This file is part of Bison, the GNU Compiler Compiler.
+This file is part of GNU bison, the GNU Compiler Compiler.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -61,3 +62,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# LocalWords:  parsers ngettext Texinfo pdf html YYYY ZZZZ ispell american
+# LocalWords:  MERCHANTABILITY
