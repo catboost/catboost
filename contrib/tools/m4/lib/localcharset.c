@@ -71,7 +71,7 @@
 #endif
 
 #if ENABLE_RELOCATABLE
-# include "relocatable.h"
+# error #include "relocatable.h"
 #else
 # define relocate(pathname) (pathname)
 #endif
