@@ -381,7 +381,7 @@ class ConjectureRunner:
             self.__data_cache_ir[key] = result
 
     def cached_test_function_ir(
-        self, nodes: List[IRNode]
+        self, nodes: List[IRNode], *, error_on_discard: bool = False
     ) -> Union[ConjectureResult, _Overrun]:
         key = self._cache_key_ir(nodes=nodes)
         try:
@@ -389,8 +389,22 @@ class ConjectureRunner:
         except KeyError:
             pass
 
+        # explicitly use a no-op DataObserver here instead of a TreeRecordingObserver.
+        # The reason is we don't expect simulate_test_function to explore new choices
+        # and write back to the tree, so we don't want the overhead of the
+        # TreeRecordingObserver tracking those calls.
+        trial_observer: Optional[DataObserver] = DataObserver()
+        if error_on_discard:
+
+            class DiscardObserver(DataObserver):
+                @override
+                def kill_branch(self) -> NoReturn:
+                    raise ContainsDiscard
+
+            trial_observer = DiscardObserver()
+
         try:
-            trial_data = self.new_conjecture_data_ir(nodes)
+            trial_data = self.new_conjecture_data_ir(nodes, observer=trial_observer)
             self.tree.simulate_test_function(trial_data)
         except PreviouslyUnseenBehaviour:
             pass
@@ -1063,13 +1077,24 @@ class ConjectureRunner:
 
                 group = self.random.choice(groups)
 
-                ex1, ex2 = (
-                    data.examples[i] for i in sorted(self.random.sample(group, 2))
-                )
-                assert ex1.end <= ex2.start
+                (start1, end1), (start2, end2) = self.random.sample(sorted(group), 2)
+                if (start1 <= start2 <= end2 <= end1) or (
+                    start2 <= start1 <= end1 <= end2
+                ):
+                    # one example entirely contains the other. give up.
+                    # TODO use more intelligent mutation for containment, like
+                    # replacing child with parent or vice versa. Would allow for
+                    # recursive / subtree mutation
+                    failed_mutations += 1
+                    continue
 
-                e = self.random.choice([ex1, ex2])
-                replacement = data.buffer[e.start : e.end]
+                if start1 > start2:
+                    (start1, end1), (start2, end2) = (start2, end2), (start1, end1)
+                assert end1 <= start2
+
+                nodes = data.examples.ir_tree_nodes
+                (start, end) = self.random.choice([(start1, end1), (start2, end2)])
+                replacement = nodes[start:end]
 
                 try:
                     # We attempt to replace both the examples with
@@ -1080,17 +1105,16 @@ class ConjectureRunner:
                     # really matter. It may not achieve the desired result,
                     # but it's still a perfectly acceptable choice sequence
                     # to try.
-                    new_data = self.cached_test_function(
-                        data.buffer[: ex1.start]
+                    new_data = self.cached_test_function_ir(
+                        nodes[:start1]
                         + replacement
-                        + data.buffer[ex1.end : ex2.start]
+                        + nodes[end1:start2]
                         + replacement
-                        + data.buffer[ex2.end :],
+                        + nodes[end2:],
                         # We set error_on_discard so that we don't end up
                         # entering parts of the tree we consider redundant
                         # and not worth exploring.
                         error_on_discard=True,
-                        extend=BUFFER_SIZE,
                     )
                 except ContainsDiscard:
                     failed_mutations += 1
@@ -1184,6 +1208,7 @@ class ConjectureRunner:
         ir_tree_prefix: List[IRNode],
         *,
         observer: Optional[DataObserver] = None,
+        max_length: Optional[int] = None,
     ) -> ConjectureData:
         provider = (
             HypothesisProvider if self._switch_to_hypothesis_provider else self.provider
@@ -1193,7 +1218,7 @@ class ConjectureRunner:
             observer = DataObserver()
 
         return ConjectureData.for_ir_tree(
-            ir_tree_prefix, observer=observer, provider=provider
+            ir_tree_prefix, observer=observer, provider=provider, max_length=max_length
         )
 
     def new_conjecture_data(
@@ -1331,7 +1356,6 @@ class ConjectureRunner:
         self,
         buffer: Union[bytes, bytearray],
         *,
-        error_on_discard: bool = False,
         extend: int = 0,
     ) -> Union[ConjectureResult, _Overrun]:
         """Checks the tree to see if we've tested this buffer, and returns the
@@ -1370,18 +1394,7 @@ class ConjectureRunner:
         except KeyError:
             pass
 
-        observer: DataObserver
-        if error_on_discard:
-
-            class DiscardObserver(DataObserver):
-                @override
-                def kill_branch(self) -> NoReturn:
-                    raise ContainsDiscard
-
-            observer = DiscardObserver()
-        else:
-            observer = DataObserver()
-
+        observer = DataObserver()
         dummy_data = self.new_conjecture_data(
             prefix=buffer, max_length=max_length, observer=observer
         )

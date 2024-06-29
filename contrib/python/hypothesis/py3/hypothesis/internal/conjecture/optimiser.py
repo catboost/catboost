@@ -136,12 +136,12 @@ class Optimiser:
 
                     for i, ex in enumerate(self.current_data.examples):
                         if ex.start >= block.end:
-                            break
+                            break  # pragma: no cover
                         if ex.end <= block.start:
                             continue
                         ex_attempt = attempt.examples[i]
                         if ex.length == ex_attempt.length:
-                            continue
+                            continue  # pragma: no cover
                         replacement = attempt.buffer[ex_attempt.start : ex_attempt.end]
                         if self.consider_new_test_data(
                             self.engine.cached_test_function(
