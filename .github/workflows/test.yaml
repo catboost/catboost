@@ -68,13 +68,18 @@ jobs:
           name: catboost-test-tools-windows-x86_64-${{ inputs.artifacts_version }}
           path: build_native_root/
 
-      - name: Move test tools to canonical place
+      - name: Prepare binaries from artifacts
         shell: pwsh
         run: |
+          if ("${{ inputs.runs-on_value }}" -ne "windows-2022") {
+            chmod a+x ${{ github.workspace }}/build_native_root/catboost/app/catboost
+          }
           Set-Location -LiteralPath ${{ github.workspace }}/build_native_root/catboost/tools
           foreach($tool in 'limited_precision_dsv_diff','limited_precision_json_diff','model_comparator') {
-            New-Item -Path $tool -ItemType Directory
-            Move-Item "${{ github.workspace }}/build_native_root/${tool}*" -Destination $tool
+            Move-Item ${{ github.workspace }}/build_native_root/${tool}
+            if ("${{ inputs.runs-on_value }}" -ne "windows-2022") {
+              chmod a+x $tool/$tool
+            }
           }
 
       - name: Run pytest
