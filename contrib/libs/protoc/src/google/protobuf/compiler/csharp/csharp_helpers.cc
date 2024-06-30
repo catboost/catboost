@@ -393,6 +393,13 @@ TProtoStringType GetPropertyName(const FieldDescriptor* descriptor) {
   return property_name;
 }
 
+TProtoStringType GetOneofCaseName(const FieldDescriptor* descriptor) {
+  // The name in a oneof case enum is the same as for the property, but as we always have a "None"
+  // value as well, we need to reserve that by appending an underscore.
+  TProtoStringType property_name = GetPropertyName(descriptor);
+  return property_name == "None" ? "None_" : property_name;
+}
+
 TProtoStringType GetOutputFile(const FileDescriptor* descriptor,
                           const TProtoStringType file_extension,
                           const bool generate_directories,

@@ -85,6 +85,7 @@ class FieldGeneratorBase : public SourceGeneratorBase {
       std::map<TProtoStringType, TProtoStringType>* variables);
 
   TProtoStringType oneof_property_name();
+  TProtoStringType oneof_case_name(); 
   TProtoStringType oneof_name();
   TProtoStringType property_name();
   TProtoStringType name();

@@ -498,13 +498,13 @@ int CEscapeInternal(const char* src, int src_len, char* dest,
         // Note that if we emit \xNN and the src character after that is a hex
         // digit then that digit must be escaped too to prevent it being
         // interpreted as part of the character code by C.
-        if ((!utf8_safe || static_cast<uint8>(*src) < 0x80) &&
+        if ((!utf8_safe || static_cast<uint8_t>(*src) < 0x80) &&
             (!isprint(*src) ||
              (last_hex_escape && isxdigit(*src)))) {
           if (dest_len - used < 4) // need space for 4 letter escape
             return -1;
           sprintf(dest + used, (use_hex ? "\\x%02x" : "\\%03o"),
-                  static_cast<uint8>(*src));
+                  static_cast<uint8_t>(*src));
           is_hex_escape = use_hex;
           used += 4;
         } else {
@@ -628,39 +628,39 @@ TProtoStringType CHexEscape(const TProtoStringType &src) {
 //    platforms, including errno preservation in error-free calls.
 // ----------------------------------------------------------------------
 
-int32 strto32_adaptor(const char *nptr, char **endptr, int base) {
+arc_i32 strto32_adaptor(const char *nptr, char **endptr, int base) {
   const int saved_errno = errno;
   errno = 0;
   const long result = strtol(nptr, endptr, base);
   if (errno == ERANGE && result == LONG_MIN) {
-    return kint32min;
+    return std::numeric_limits<arc_i32>::min();
   } else if (errno == ERANGE && result == LONG_MAX) {
-    return kint32max;
-  } else if (errno == 0 && result < kint32min) {
+    return std::numeric_limits<arc_i32>::max();
+  } else if (errno == 0 && result < std::numeric_limits<arc_i32>::min()) {
     errno = ERANGE;
-    return kint32min;
-  } else if (errno == 0 && result > kint32max) {
+    return std::numeric_limits<arc_i32>::min();
+  } else if (errno == 0 && result > std::numeric_limits<arc_i32>::max()) {
     errno = ERANGE;
-    return kint32max;
+    return std::numeric_limits<arc_i32>::max();
   }
   if (errno == 0)
     errno = saved_errno;
-  return static_cast<int32>(result);
+  return static_cast<arc_i32>(result);
 }
 
-uint32 strtou32_adaptor(const char *nptr, char **endptr, int base) {
+arc_ui32 strtou32_adaptor(const char *nptr, char **endptr, int base) {
   const int saved_errno = errno;
   errno = 0;
   const unsigned long result = strtoul(nptr, endptr, base);
   if (errno == ERANGE && result == ULONG_MAX) {
-    return kuint32max;
-  } else if (errno == 0 && result > kuint32max) {
+    return std::numeric_limits<arc_ui32>::max();
+  } else if (errno == 0 && result > std::numeric_limits<arc_ui32>::max()) {
     errno = ERANGE;
-    return kuint32max;
+    return std::numeric_limits<arc_ui32>::max();
   }
   if (errno == 0)
     errno = saved_errno;
-  return static_cast<uint32>(result);
+  return static_cast<arc_ui32>(result);
 }
 
 inline bool safe_parse_sign(TProtoStringType *text /*inout*/,
@@ -800,7 +800,7 @@ bool safe_uint_internal(TProtoStringType text, IntType *value_p) {
 // null character.  Also used by FastInt64ToBufferLeft.
 static const int kFastInt64ToBufferOffset = 21;
 
-char *FastInt64ToBuffer(int64 i, char* buffer) {
+char *FastInt64ToBuffer(arc_i64 i, char* buffer) {
   // We could collapse the positive and negative sections, but that
   // would be slightly slower for positive numbers...
   // 22 bytes is enough to store -2**64, -18446744073709551616.
@@ -845,7 +845,7 @@ static const int kFastInt32ToBufferOffset = 11;
 // Yes, this is a duplicate of FastInt64ToBuffer.  But, we need this for the
 // compiler to generate 32 bit arithmetic instructions.  It's much faster, at
 // least with 32 bit binaries.
-char *FastInt32ToBuffer(int32 i, char* buffer) {
+char *FastInt32ToBuffer(arc_i32 i, char* buffer) {
   // We could collapse the positive and negative sections, but that
   // would be slightly slower for positive numbers...
   // 12 bytes is enough to store -2**32, -4294967296.
@@ -896,7 +896,7 @@ char *FastHexToBuffer(int i, char* buffer) {
   return p + 1;
 }
 
-char *InternalFastHexToBuffer(uint64 value, char* buffer, int num_byte) {
+char *InternalFastHexToBuffer(arc_ui64 value, char* buffer, int num_byte) {
   static const char *hexdigits = "0123456789abcdef";
   buffer[num_byte] = '\0';
   for (int i = num_byte - 1; i >= 0; i--) {
@@ -906,18 +906,18 @@ char *InternalFastHexToBuffer(uint64 value, char* buffer, int num_byte) {
     // platforms, we use 64-bit '&' directly.
     buffer[i] = hexdigits[value & 0xf];
 #else
-    buffer[i] = hexdigits[uint32(value) & 0xf];
+    buffer[i] = hexdigits[arc_ui32(value) & 0xf];
 #endif
     value >>= 4;
   }
   return buffer;
 }
 
-char *FastHex64ToBuffer(uint64 value, char* buffer) {
+char *FastHex64ToBuffer(arc_ui64 value, char* buffer) {
   return InternalFastHexToBuffer(value, buffer, 16);
 }
 
-char *FastHex32ToBuffer(uint32 value, char* buffer) {
+char *FastHex32ToBuffer(arc_ui32 value, char* buffer) {
   return InternalFastHexToBuffer(value, buffer, 8);
 }
 
@@ -960,8 +960,8 @@ static const char two_ASCII_digits[100][2] = {
   {'9','5'}, {'9','6'}, {'9','7'}, {'9','8'}, {'9','9'}
 };
 
-char* FastUInt32ToBufferLeft(uint32 u, char* buffer) {
-  uint32 digits;
+char* FastUInt32ToBufferLeft(arc_ui32 u, char* buffer) {
+  arc_ui32 digits;
   const char *ASCII_digits = nullptr;
   // The idea of this implementation is to trim the number of divides to as few
   // as possible by using multiplication and subtraction rather than mod (%),
@@ -1042,8 +1042,8 @@ done:
   goto sublt100_000_000;
 }
 
-char* FastInt32ToBufferLeft(int32 i, char* buffer) {
-  uint32 u = 0;
+char* FastInt32ToBufferLeft(arc_i32 i, char* buffer) {
+  arc_ui32 u = 0;
   if (i < 0) {
     *buffer++ = '-';
     u -= i;
@@ -1053,14 +1053,14 @@ char* FastInt32ToBufferLeft(int32 i, char* buffer) {
   return FastUInt32ToBufferLeft(u, buffer);
 }
 
-char* FastUInt64ToBufferLeft(uint64 u64, char* buffer) {
+char* FastUInt64ToBufferLeft(arc_ui64 u64, char* buffer) {
   int digits;
   const char *ASCII_digits = nullptr;
 
-  uint32 u = static_cast<uint32>(u64);
+  arc_ui32 u = static_cast<arc_ui32>(u64);
   if (u == u64) return FastUInt32ToBufferLeft(u, buffer);
 
-  uint64 top_11_digits = u64 / 1000000000;
+  arc_ui64 top_11_digits = u64 / 1000000000;
   buffer = FastUInt64ToBufferLeft(top_11_digits, buffer);
   u = u64 - (top_11_digits * 1000000000);
 
@@ -1095,8 +1095,8 @@ char* FastUInt64ToBufferLeft(uint64 u64, char* buffer) {
   return buffer;
 }
 
-char* FastInt64ToBufferLeft(int64 i, char* buffer) {
-  uint64 u = 0;
+char* FastInt64ToBufferLeft(arc_i64 i, char* buffer) {
+  arc_ui64 u = 0;
   if (i < 0) {
     *buffer++ = '-';
     u -= i;
@@ -1341,19 +1341,19 @@ bool safe_strtod(const char* str, double* value) {
   return *str != '\0' && *endptr == '\0';
 }
 
-bool safe_strto32(const TProtoStringType &str, int32 *value) {
+bool safe_strto32(const TProtoStringType &str, arc_i32 *value) {
   return safe_int_internal(str, value);
 }
 
-bool safe_strtou32(const TProtoStringType &str, uint32 *value) {
+bool safe_strtou32(const TProtoStringType &str, arc_ui32 *value) {
   return safe_uint_internal(str, value);
 }
 
-bool safe_strto64(const TProtoStringType &str, int64 *value) {
+bool safe_strto64(const TProtoStringType &str, arc_i64 *value) {
   return safe_int_internal(str, value);
 }
 
-bool safe_strtou64(const TProtoStringType &str, uint64 *value) {
+bool safe_strtou64(const TProtoStringType &str, arc_ui64 *value) {
   return safe_uint_internal(str, value);
 }
 
@@ -1400,12 +1400,12 @@ namespace strings {
 AlphaNum::AlphaNum(strings::Hex hex) {
   char *const end = &digits[kFastToBufferSize];
   char *writer = end;
-  uint64 value = hex.value;
-  uint64 width = hex.spec;
+  arc_ui64 value = hex.value;
+  arc_ui64 width = hex.spec;
   // We accomplish minimum width by OR'ing in 0x10000 to the user's value,
   // where 0x10000 is the smallest hex number that is as wide as the user
   // asked for.
-  uint64 mask = (static_cast<uint64>(1) << ((width - 1) * 4)) | value;
+  arc_ui64 mask = (static_cast<arc_ui64>(1) << ((width - 1) * 4)) | value;
   static const char hexdigits[] = "0123456789abcdef";
   do {
     *--writer = hexdigits[value & 0xF];
@@ -2104,7 +2104,7 @@ int Base64EscapeInternal(const unsigned char *src, int szsrc,
   // Three bytes of data encodes to four characters of ciphertext.
   // So we can pump through three-byte chunks atomically.
   while (cur_src < limit_src - 3) {  // keep going as long as we have >= 32 bits
-    uint32 in = BigEndian::Load32(cur_src) >> 8;
+    arc_ui32 in = BigEndian::Load32(cur_src) >> 8;
 
     cur_dest[0] = base64[in >> 18];
     in &= 0x3FFFF;
@@ -2130,7 +2130,7 @@ int Base64EscapeInternal(const unsigned char *src, int szsrc,
       // One byte left: this encodes to two characters, and (optionally)
       // two pad characters to round out the four-character cipherblock.
       if ((szdest -= 2) < 0) return 0;
-      uint32 in = cur_src[0];
+      arc_ui32 in = cur_src[0];
       cur_dest[0] = base64[in >> 2];
       in &= 0x3;
       cur_dest[1] = base64[in << 4];
@@ -2147,7 +2147,7 @@ int Base64EscapeInternal(const unsigned char *src, int szsrc,
       // Two bytes left: this encodes to three characters, and (optionally)
       // one pad character to round out the four-character cipherblock.
       if ((szdest -= 3) < 0) return 0;
-      uint32 in = BigEndian::Load16(cur_src);
+      arc_ui32 in = BigEndian::Load16(cur_src);
       cur_dest[0] = base64[in >> 10];
       in &= 0x3FF;
       cur_dest[1] = base64[in >> 4];
@@ -2166,7 +2166,7 @@ int Base64EscapeInternal(const unsigned char *src, int szsrc,
       // the loop because the loop above always reads 4 bytes, and the fourth
       // byte is past the end of the input.
       if ((szdest -= 4) < 0) return 0;
-      uint32 in = (cur_src[0] << 16) + BigEndian::Load16(cur_src + 1);
+      arc_ui32 in = (cur_src[0] << 16) + BigEndian::Load16(cur_src + 1);
       cur_dest[0] = base64[in >> 18];
       in &= 0x3FFFF;
       cur_dest[1] = base64[in >> 12];
@@ -2243,8 +2243,8 @@ void WebSafeBase64EscapeWithPadding(StringPiece src, TProtoStringType *dest) {
 
 // Helper to append a Unicode code point to a string as UTF8, without bringing
 // in any external dependencies.
-int EncodeAsUTF8Char(uint32 code_point, char* output) {
-  uint32 tmp = 0;
+int EncodeAsUTF8Char(arc_ui32 code_point, char* output) {
+  arc_ui32 tmp = 0;
   int len = 0;
   if (code_point <= 0x7f) {
     tmp = code_point;
@@ -2296,7 +2296,7 @@ int UTF8FirstLetterNumBytes(const char* src, int len) {
   if (len == 0) {
     return 0;
   }
-  return kUTF8LenTbl[*reinterpret_cast<const uint8*>(src)];
+  return kUTF8LenTbl[*reinterpret_cast<const uint8_t*>(src)];
 }
 
 // ----------------------------------------------------------------------

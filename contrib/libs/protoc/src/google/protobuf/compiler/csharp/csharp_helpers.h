@@ -87,6 +87,8 @@ TProtoStringType GetFieldConstantName(const FieldDescriptor* field);
 
 TProtoStringType GetPropertyName(const FieldDescriptor* descriptor);
 
+TProtoStringType GetOneofCaseName(const FieldDescriptor* descriptor);
+
 int GetFixedSize(FieldDescriptor::Type type);
 
 TProtoStringType UnderscoresToCamelCase(const TProtoStringType& input,

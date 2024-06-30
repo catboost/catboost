@@ -33,21 +33,21 @@ target_link_libraries(contrib-libs-protoc PUBLIC
 target_sources(contrib-libs-protoc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/code_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/command_line_interface.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_enum.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_enum_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_extension.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_file.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_generator.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_helpers.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_map_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_message.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_message_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_padding_optimizer.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_parse_function_generator.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_primitive_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_service.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/cpp_string_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/enum.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/enum_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/extension.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/file.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/helpers.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/map_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/message.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/message_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/padding_optimizer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/parse_function_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/primitive_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/service.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/cpp/string_field.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_doc_comment.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_enum.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_enum_field.cc
@@ -65,37 +65,35 @@ target_sources(contrib-libs-protoc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_source_generator_base.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/csharp/csharp_wrapper_field.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/importer.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_context.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_doc_comment.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_enum.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_enum_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_enum_field_lite.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_enum_lite.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_extension.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_extension_lite.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_file.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_generator.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_generator_factory.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_helpers.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_kotlin_generator.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_map_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_map_field_lite.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_builder.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_builder_lite.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_field_lite.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_message_lite.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_name_resolver.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_primitive_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_primitive_field_lite.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_service.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_shared_code_generator.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_string_field.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/java_string_field_lite.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/js/js_generator.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/js/well_known_types_embed.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/context.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/doc_comment.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/enum.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/enum_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/enum_field_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/enum_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/extension.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/extension_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/file.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/generator_factory.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/helpers.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/kotlin_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/map_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/map_field_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/message.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/message_builder.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/message_builder_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/message_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/message_field_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/message_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/name_resolver.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/primitive_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/primitive_field_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/service.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/shared_code_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/string_field.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/java/string_field_lite.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_enum.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_enum_field.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/objectivec/objectivec_extension.cc
@@ -112,9 +110,9 @@ target_sources(contrib-libs-protoc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/php/php_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/plugin.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/plugin.pb.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/python_generator.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/python_helpers.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/python_pyi_generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/generator.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/helpers.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/python/pyi_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/ruby/ruby_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/subprocess.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/zip_writer.cc

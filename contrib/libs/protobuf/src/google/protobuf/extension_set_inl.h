@@ -206,21 +206,16 @@ const char* ExtensionSet::ParseMessageSetItemTmpl(
     const char* ptr, const Msg* extendee, internal::InternalMetadata* metadata,
     internal::ParseContext* ctx) {
   TProtoStringType payload;
-  arc_ui32 type_id;
-  enum class State { kNoTag, kHasType, kHasPayload, kDone };
-  State state = State::kNoTag;
-
+  arc_ui32 type_id = 0;
+  bool payload_read = false;
   while (!ctx->Done(&ptr)) {
     arc_ui32 tag = static_cast<uint8_t>(*ptr++);
     if (tag == WireFormatLite::kMessageSetTypeIdTag) {
       arc_ui64 tmp;
       ptr = ParseBigVarint(ptr, &tmp);
       GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-      if (state == State::kNoTag) {
-        type_id = tmp;
-        state = State::kHasType;
-      } else if (state == State::kHasPayload) {
-        type_id = tmp;
+      type_id = tmp;
+      if (payload_read) {
         ExtensionInfo extension;
         bool was_packed_on_wire;
         if (!FindExtension(2, type_id, extendee, ctx, &extension,
@@ -246,24 +241,20 @@ const char* ExtensionSet::ParseMessageSetItemTmpl(
           GOOGLE_PROTOBUF_PARSER_ASSERT(value->_InternalParse(p, &tmp_ctx) &&
                                          tmp_ctx.EndedAtLimit());
         }
-        state = State::kDone;
+        type_id = 0;
       }
     } else if (tag == WireFormatLite::kMessageSetMessageTag) {
-      if (state == State::kHasType) {
+      if (type_id != 0) {
         ptr = ParseFieldMaybeLazily(static_cast<arc_ui64>(type_id) * 8 + 2, ptr,
                                     extendee, metadata, ctx);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr != nullptr);
-        state = State::kDone;
+        type_id = 0;
       } else {
-        TProtoStringType tmp;
         arc_i32 size = ReadSize(&ptr);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        ptr = ctx->ReadString(ptr, size, &tmp);
+        ptr = ctx->ReadString(ptr, size, &payload);
         GOOGLE_PROTOBUF_PARSER_ASSERT(ptr);
-        if (state == State::kNoTag) {
-          payload = std::move(tmp);
-          state = State::kHasPayload;
-        }
+        payload_read = true;
       }
     } else {
       ptr = ReadTag(ptr - 1, &tag);

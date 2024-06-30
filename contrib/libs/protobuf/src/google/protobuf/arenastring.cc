@@ -187,7 +187,7 @@ TProtoStringType* ArenaStringPtr::Release() {
   if (IsDefault()) return nullptr;
 
   TProtoStringType* released = tagged_ptr_.Get();
-  if (!tagged_ptr_.IsAllocated()) {
+  if (tagged_ptr_.IsArena()) {
     released = tagged_ptr_.IsMutable() ? new TProtoStringType(std::move(*released))
                                        : new TProtoStringType(*released);
   }
@@ -216,9 +216,7 @@ void ArenaStringPtr::SetAllocated(TProtoStringType* value, Arena* arena) {
 }
 
 void ArenaStringPtr::Destroy() {
-  if (tagged_ptr_.IsAllocated()) {
-    delete tagged_ptr_.Get();
-  }
+  delete tagged_ptr_.GetIfAllocated();
 }
 
 void ArenaStringPtr::ClearToEmpty() {

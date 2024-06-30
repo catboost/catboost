@@ -45,8 +45,8 @@
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
-#include <google/protobuf/message.h>
 #include <google/protobuf/stubs/substitute.h>
+#include <google/protobuf/message.h>
 
 namespace google {
 namespace protobuf {
@@ -167,7 +167,11 @@ bool Subprocess::Communicate(const Message& input, Message* output,
 
   GOOGLE_CHECK(child_handle_ != nullptr) << "Must call Start() first.";
 
-  TProtoStringType input_data = input.SerializeAsString();
+  TProtoStringType input_data;
+  if (!input.SerializeToString(&input_data)) {
+    *error = "Failed to serialize request.";
+    return false;
+  }
   TProtoStringType output_data;
 
   int input_pos = 0;
@@ -369,7 +373,11 @@ bool Subprocess::Communicate(const Message& input, Message* output,
   // Make sure SIGPIPE is disabled so that if the child dies it doesn't kill us.
   SignalHandler* old_pipe_handler = signal(SIGPIPE, SIG_IGN);
 
-  TProtoStringType input_data = input.SerializeAsString();
+  TProtoStringType input_data;
+  if (!input.SerializeToString(&input_data)) {
+    *error = "Failed to serialize request.";
+    return false;
+  }
   TProtoStringType output_data;
 
   int input_pos = 0;
