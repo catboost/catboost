@@ -9,6 +9,7 @@ import pandas as pd
 import timeit
 import json
 import shutil
+import sys
 
 import catboost
 
@@ -178,6 +179,7 @@ def test_cv_multiregression(is_inverted, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -194,6 +196,7 @@ def test_dist_train_multiregression(dev_score_calc_obj_block_size):
         other_options=('--boost-from-average', '0'))))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -4403,6 +4406,7 @@ def test_quantile_categorical(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 def test_quantile_exact_distributed():
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='MAE',
@@ -5768,6 +5772,7 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
     return eval_1_path
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5783,6 +5788,7 @@ def test_dist_train(dev_score_calc_obj_block_size):
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5798,6 +5804,7 @@ def test_dist_train_with_weights(dev_score_calc_obj_block_size):
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5813,6 +5820,7 @@ def test_dist_train_with_baseline(dev_score_calc_obj_block_size):
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5828,6 +5836,7 @@ def test_dist_train_multiclass(dev_score_calc_obj_block_size):
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5843,6 +5852,7 @@ def test_dist_train_multiclass_weight(dev_score_calc_obj_block_size):
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5860,6 +5870,7 @@ def test_dist_train_quantized(dev_score_calc_obj_block_size):
         other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum'))))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5880,6 +5891,7 @@ def test_dist_train_quantized_groupid(dev_score_calc_obj_block_size, pairs_file,
                        '--learn-pairs', data_file('querywise', pairs_file)))))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5898,6 +5910,7 @@ def test_dist_train_quantized_group_weights(dev_score_calc_obj_block_size):
                        '--learn-group-weights', data_file('querywise', 'train.group_weights')))))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5918,6 +5931,7 @@ def test_dist_train_quantized_baseline(dev_score_calc_obj_block_size):
                        '--learn-baseline', data_file('higgs', 'train_baseline')))))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5933,6 +5947,7 @@ def test_dist_train_queryrmse(dev_score_calc_obj_block_size):
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5950,6 +5965,7 @@ def test_dist_train_subgroup(dev_score_calc_obj_block_size):
     ), output_file_switch='--test-err-log'))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5967,6 +5983,7 @@ def test_dist_train_pairlogit(dev_score_calc_obj_block_size):
     )))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize('pairs_file', ['train.pairs', 'train.pairs.weighted'])
 def test_dist_train_pairlogitpairwise(pairs_file):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
@@ -5979,6 +5996,7 @@ def test_dist_train_pairlogitpairwise(pairs_file):
     )))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -5994,6 +6012,7 @@ def test_dist_train_querysoftmax(dev_score_calc_obj_block_size):
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize('loss_func', ['Logloss', 'RMSE'])
 def test_dist_train_auc(loss_func):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
@@ -6006,6 +6025,7 @@ def test_dist_train_auc(loss_func):
     ), output_file_switch='--test-err-log'))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize('loss_func', ['Logloss', 'RMSE'])
 def test_dist_train_auc_weight(loss_func):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
@@ -6018,6 +6038,7 @@ def test_dist_train_auc_weight(loss_func):
     ), output_file_switch='--test-err-log'))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.xfail(reason='Boost from average for distributed training')
 @pytest.mark.parametrize('schema,train', [('quantized://', 'train_small_x128_greedylogsum.bin'), ('', 'train_small')])
 def test_dist_train_snapshot(schema, train):
@@ -6042,6 +6063,7 @@ def test_dist_train_snapshot(schema, train):
     return [local_canonical_file(eval_5_plus_5_trees_path)]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 def test_dist_train_yetirank():
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='YetiRank',
@@ -6052,6 +6074,7 @@ def test_dist_train_yetirank():
     ), output_file_switch='--test-err-log'))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
@@ -6080,6 +6103,7 @@ def test_dist_train_with_cat_features(dev_score_calc_obj_block_size, one_hot_max
         return [local_canonical_file(run_dist_train(cmd))]
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="known issue with getting worker addresses")
 @pytest.mark.parametrize(
     'od_type',
     ['IncToDec', 'Iter'],
