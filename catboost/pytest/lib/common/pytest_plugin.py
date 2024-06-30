@@ -2,6 +2,7 @@ import os
 import sys
 
 import tempfile
+import shutil
 
 import pytest
 
@@ -39,16 +40,21 @@ class WorkdirProcessor(object):
         def get_wrapper(obj):
             def wrapper(*args, **kwargs):
                 test_output_path = yatest.common.test_output_path()
-                with tempfile.TemporaryDirectory(dir=test_output_path, prefix='work_dir') as work_dir:
-                    prev_cwd = None
-                    try:
-                        prev_cwd = os.getcwd()
-                    except Exception:
-                        pass
-                    os.chdir(work_dir)
+                work_dir = tempfile.mkdtemp(dir=test_output_path, prefix='work_dir')
+                prev_cwd = None
+                try:
+                    prev_cwd = os.getcwd()
+                except Exception:
+                    pass
+                os.chdir(work_dir)
+                try:
                     obj(*args, **kwargs)
-                    if prev_cwd:
-                        os.chdir(prev_cwd)
+                finally:
+                    os.chdir(prev_cwd if prev_cwd else test_output_path)
+
+                # delete only if test succeeded, otherwise leave for debugging
+                shutil.rmtree(work_dir)
+
             return wrapper
 
         item.obj = get_wrapper(item.obj)
