@@ -171,6 +171,8 @@ TString ToStringIgnoringFormatValue(const T& t)
 // automatic formatting wherever it is needed.
 namespace NPrivate {
 
+////////////////////////////////////////////////////////////////////////////////
+
 template <class T>
     requires (
         (NYT::NDetail::IsNYTName<T>() ||
@@ -183,5 +185,7 @@ struct TToString<T, false>
         return NYT::ToStringViaBuilder(t);
     }
 };
+
+////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NPrivate

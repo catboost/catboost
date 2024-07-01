@@ -99,11 +99,11 @@ struct TFormatterWrapper
 // Allows insertion of text conditionally.
 // Usage:
 /*
- NYT::Format(
+NYT::Format(
     "Value is %v%v",
     42,
     MakeFormatterWrapper([&] (auto* builder) {
-        If (PossiblyMissingInfo_) {
+        if (PossiblyMissingInfo_) {
             builder->AppendString(", PossiblyMissingInfo: ");
             FormatValue(builder, PossiblyMissingInfo_, "v");
         }

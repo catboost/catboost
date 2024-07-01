@@ -27,7 +27,7 @@ constexpr bool IsNYTName();
 
 // Base used for flag checks for each type independently.
 // Use it for overrides.
-struct TFormatArgBase
+class TFormatArgBase
 {
 public:
     // TODO(arkady-e1ppa): Consider more strict formatting rules.
