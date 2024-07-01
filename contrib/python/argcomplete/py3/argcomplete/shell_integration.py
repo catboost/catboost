@@ -24,9 +24,9 @@ __python_argcomplete_run() {
 
 __python_argcomplete_run_inner() {
     if [[ -z "${_ARC_DEBUG-}" ]]; then
-        "$@" 8>&1 9>&2 1>/dev/null 2>&1
+        "$@" 8>&1 9>&2 1>/dev/null 2>&1 </dev/null
     else
-        "$@" 8>&1 9>&2 1>&9 2>&1
+        "$@" 8>&1 9>&2 1>&9 2>&1 </dev/null
     fi
 }
 

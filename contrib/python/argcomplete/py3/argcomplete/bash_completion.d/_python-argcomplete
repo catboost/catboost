@@ -46,9 +46,9 @@ __python_argcomplete_run() {
 
 __python_argcomplete_run_inner() {
     if [[ -z "${_ARC_DEBUG-}" ]]; then
-        "$@" 8>&1 9>&2 1>/dev/null 2>&1
+        "$@" 8>&1 9>&2 1>/dev/null 2>&1 </dev/null
     else
-        "$@" 8>&1 9>&2 1>&9 2>&1
+        "$@" 8>&1 9>&2 1>&9 2>&1 </dev/null
     fi
 }
 
@@ -76,6 +76,7 @@ __python_argcomplete_scan_head() {
     local file="$1"
     local target="$2"
 
+    local REPLY
     if [[ -n "${ZSH_VERSION-}" ]]; then
         read -r -k 1024 -u 0 < "$file";
     else

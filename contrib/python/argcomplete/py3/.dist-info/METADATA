@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: argcomplete
-Version: 3.3.0
+Version: 3.4.0
 Summary: Bash tab completion for argparse
 Home-page: https://github.com/kislyuk/argcomplete
 Author: Andrey Kislyuk
