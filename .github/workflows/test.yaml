@@ -7,6 +7,14 @@ on:
       artifacts_version:
         required: true
         type: string
+      artifacts_run_id:
+        required: false
+        type: string
+        default: ${{ github.run_id }}
+      artifacts_repository:
+        required: false
+        type: string
+        default: ${{ github.repository }}
       catboost_package_name:
         required: false
         type: string
@@ -37,36 +45,54 @@ jobs:
         with:
           name: catboost-cli-linux-x86_64-${{ inputs.artifacts_version }}
           path: build_native_root/catboost/app/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/download-artifact@v4
         with:
           name: catboost-cli-darwin-universal2-${{ inputs.artifacts_version }}
           path: build_native_root/catboost/app/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/download-artifact@v4
         with:
           name: catboost-cli-windows-x86_64-${{ inputs.artifacts_version }}
           path: build_native_root/catboost/app/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/download-artifact@v4
         with:
           name: catboost-test-tools-linux-x86_64-${{ inputs.artifacts_version }}
           path: build_native_root/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/download-artifact@v4
         with:
           name: catboost-test-tools-darwin-universal2-${{ inputs.artifacts_version }}
           path: build_native_root/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/download-artifact@v4
         with:
           name: catboost-test-tools-windows-x86_64-${{ inputs.artifacts_version }}
           path: build_native_root/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
 
       - name: Prepare binaries from artifacts
         shell: pwsh
