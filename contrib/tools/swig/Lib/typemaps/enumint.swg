@@ -29,7 +29,7 @@
 %typemap(varin,fragment=SWIG_AsVal_frag(int),noblock=1) enum SWIGTYPE {
   if (sizeof(int) != sizeof($1)) {
     %variable_fail(SWIG_AttributeError,"$type", "arch, read-only $name");
-  }  else {
+  } else {
     int ecode = SWIG_AsVal(int)($input, %reinterpret_cast(&$1,int*));
     if (!SWIG_IsOK(ecode)) {
       %variable_fail(ecode, "$type", "$name");

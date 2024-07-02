@@ -16,9 +16,7 @@
 static const char *usage = "\
 XML Options (available with -xml)\n\
      -xmllang <lang> - Typedef language\n\
-     -xmllite        - More lightweight version of XML\n\
-     ------\n\
-     deprecated (use -o): -xml <output.xml> - Use <output.xml> as output file (extension .xml mandatory)\n";
+     -xmllite        - More lightweight version of XML\n";
 
 static File *out = 0;
 static int xmllite = 0;
@@ -39,23 +37,6 @@ public:
   virtual void main(int argc, char *argv[]) {
     SWIG_typemap_lang("xml");
     for (int iX = 0; iX < argc; iX++) {
-      if (strcmp(argv[iX], "-xml") == 0) {
-	char *extension = 0;
-	if (iX + 1 >= argc)
-	  continue;
-	extension = argv[iX + 1] + strlen(argv[iX + 1]) - 4;
-	if (strcmp(extension, ".xml"))
-	  continue;
-	iX++;
-	Swig_mark_arg(iX);
-	String *outfile = NewString(argv[iX]);
-	out = NewFile(outfile, "w", SWIG_output_files());
-	if (!out) {
-	  FileErrorDisplay(outfile);
-	  Exit(EXIT_FAILURE);
-	}
-	continue;
-      }
       if (strcmp(argv[iX], "-xmllang") == 0) {
 	Swig_mark_arg(iX);
 	iX++;
@@ -300,18 +281,14 @@ public:
  * up being a post-processing version of the tree.
  * ----------------------------------------------------------------------------- */
 
-void Swig_print_xml(DOH *obj, String *filename) {
+void Swig_print_xml(Node *obj, String *filename) {
   XML xml;
   xmllite = 1;
 
-  if (!filename) {
-    out = stdout;
-  } else {
-    out = NewFile(filename, "w", SWIG_output_files());
-    if (!out) {
-      FileErrorDisplay(filename);
-      Exit(EXIT_FAILURE);
-    }
+  out = NewFile(filename, "w", SWIG_output_files());
+  if (!out) {
+    FileErrorDisplay(filename);
+    Exit(EXIT_FAILURE);
   }
 
   Printf(out, "<?xml version=\"1.0\" ?> \n");

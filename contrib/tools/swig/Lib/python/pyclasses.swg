@@ -11,7 +11,7 @@
   or as a member variable:
   
      struct A {
-       SwigPtr_PyObject obj;
+       SwigPtr_PyObject _obj;
        A(PyObject *o) : _obj(o) {
        }
      };

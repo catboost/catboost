@@ -252,9 +252,11 @@ SWIGINTERNINLINE int
 SWIG_CanCastAsInteger(double *d, double min, double max) {
   double x = *d;
   if ((min <= x && x <= max)) {
-   double fx = floor(x);
-   double cx = ceil(x);
-   double rd =  ((x - fx) < 0.5) ? fx : cx; /* simple rint */
+   double fx, cx, rd;
+   errno = 0;
+   fx = floor(x);
+   cx = ceil(x);
+   rd =  ((x - fx) < 0.5) ? fx : cx; /* simple rint */
    if ((errno == EDOM) || (errno == ERANGE)) {
      errno = 0;
    } else {

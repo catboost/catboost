@@ -41,7 +41,7 @@ void Swig_fragment_register(Node *fragment) {
     String *type = Getattr(fragment, "type");
     if (type) {
       SwigType *rtype = SwigType_typedef_resolve_all(type);
-      String *mangle = Swig_string_mangle(type);
+      String *mangle = Swig_name_mangle_type(type);
       Append(name, mangle);
       Delete(mangle);
       Delete(rtype);
@@ -106,7 +106,7 @@ void Swig_fragment_emit(Node *n) {
 
   type = Getattr(n, "type");
   if (type) {
-    mangle = Swig_string_mangle(type);
+    mangle = Swig_name_mangle_type(type);
   }
 
   if (debug)
@@ -162,7 +162,7 @@ void Swig_fragment_emit(Node *n) {
       SwigType *rtype = SwigType_typedef_resolve_all(type);
       if (!Equal(type, rtype)) {
 	String *name = Copy(Getattr(n, "value"));
-	String *mangle = Swig_string_mangle(type);
+	String *mangle = Swig_name_mangle_type(type);
 	Append(name, mangle);
 	Setfile(name, Getfile(n));
 	Setline(name, Getline(n));

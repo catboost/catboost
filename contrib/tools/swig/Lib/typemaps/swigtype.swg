@@ -172,12 +172,8 @@
   if ($input) {
     size_t ii = 0;
     for (; ii < (size_t)$1_dim0; ++ii) {
-      if ($input[ii]) {
-	size_t jj = 0;
-	for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
-      } else {
-	%variable_nullref("$type","$name");
-      }
+      size_t jj = 0;
+      for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
     }
   } else {
     %variable_nullref("$type","$name");
@@ -188,12 +184,8 @@
   if ($input) {
     size_t ii = 0;
     for (; ii < (size_t)$1_dim0; ++ii) {
-      if ($input[ii]) {
-	size_t jj = 0;
-	for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
-      } else {
-	%variable_nullref("$type","$name");
-      }
+      size_t jj = 0;
+      for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
     }
   } else {
     %variable_nullref("$type","$name");
@@ -208,12 +200,8 @@
   } else if (inp) {
     size_t ii = 0;
     for (; ii < (size_t)$1_dim0; ++ii) {
-      if (inp[ii]) {
-	size_t jj = 0;
-	for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = inp[ii][jj];
-      } else {
-	%variable_nullref("$type", "$name");
-      }
+      size_t jj = 0;
+      for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = inp[ii][jj];
     }
   } else {
     %variable_nullref("$type", "$name");

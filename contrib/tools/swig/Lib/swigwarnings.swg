@@ -54,7 +54,7 @@
 %define SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG     "454:Setting a pointer/reference variable may leak memory." %enddef
 %define SWIGWARN_TYPEMAP_WCHARLEAK_MSG        "455:Setting a const wchar_t * variable may leak memory." %enddef
 %define SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG    "470:Thread/reentrant unsafe wrapping, consider returning by value instead." %enddef
-%define SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG  "473:Returning a pointer or reference in a director method is not recommended." %enddef
+%define SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG  "473:Returning a reference, pointer or pointer wrapper in a director method is not recommended." %enddef
 %define SWIGWARN_TYPEMAP_INITIALIZER_LIST_MSG "476:Initialization using std::initializer_list." %enddef
 
 /* -----------------------------------------------------------------------------

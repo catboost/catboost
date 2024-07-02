@@ -527,3 +527,23 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
 
 %typemap(argout) unsigned long long *INOUT = unsigned long long *OUTPUT;
 %typemap(argout) unsigned long long &INOUT = unsigned long long &OUTPUT;
+
+#if defined(SWIGWORDSIZE64)
+%apply long long *INPUT { long *INPUT };
+%apply unsigned long long *INPUT { unsigned long *INPUT };
+
+%apply long long &INPUT { long &INPUT };
+%apply unsigned long long &INPUT { unsigned long &INPUT };
+
+%apply long long *INOUT { long *INOUT };
+%apply unsigned long long *INOUT { unsigned long *INOUT };
+
+%apply long long &INOUT { long &INOUT };
+%apply unsigned long long &INOUT { unsigned long &INOUT };
+
+%apply long long *OUTPUT { long *OUTPUT };
+%apply unsigned long long *OUTPUT { unsigned long *OUTPUT };
+
+%apply long long &OUTPUT { long &OUTPUT };
+%apply unsigned long long &OUTPUT { unsigned long &OUTPUT };
+#endif

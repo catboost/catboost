@@ -7,6 +7,43 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.2.1 summary:
+- Tcl 9.0 support.
+- Octave 9.0 support.
+- Improvements wrapping friend functions.
+- Variadic templated functions within a template support.
+- Type deduction enhancements.
+- Stability and regression fixes.
+
+SWIG-4.2.0 summary:
+- Various template wrapping improvements: template template parameters,
+  variadic templates, partially specialized templates, const template
+  parameters and improved error checking instantiating templates.
+- Improved decltype() support for expressions.
+- C++14 auto without trailing return type and C++11 auto variables.
+- Numerous C++ using declarations improvements.
+- Numerous fixes for constructors, destructors and assignment operators:
+  implicit, default and deleted and related non-assignable variable
+  wrappers.
+- STL: std::array and std::map improvements, std::string_view support
+  added.
+- Various C preprocessor improvements.
+- Various issues fixed to do with architecture specific long type.
+- Various Doxygen improvements.
+- D1/Tango support removed.  D2/Phobos is now the supported D version
+  and SWIG now generates code which works with recent D2 releases.
+- New Javascript generator targeting Node.js binary stable ABI Node-API.
+- Octave 8.1 support added.
+- PHP7 support removed, PHP8 is now the supported PHP version.
+- Python STL container wrappers now use the Python Iterator Protocol.
+- Python stable ABI support added.
+- Python 3.12 support added.
+- Ruby 3.2 and 3.3 support.
+- Scilab 2023.* support added.
+- Various minor enhancements for C#, Go, Guile, Javascript, Lua, Ocaml,
+  Perl, PHP, R, Racket, Ruby, Scilab and Tcl.
+- A number of deprecated features have been removed.
+
 SWIG-4.1.1 summary:
 - Couple of stability fixes.
 - Stability fix in ccache-swig when calculating hashes of inputs.

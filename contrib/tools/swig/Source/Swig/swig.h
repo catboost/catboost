@@ -64,7 +64,6 @@ extern "C" {
 #define   T_UCHAR      3
 #define   T_SHORT      4
 #define   T_USHORT     5
-#define   T_ENUM       6
 #define   T_INT        7
 #define   T_UINT       8
 #define   T_LONG       9
@@ -76,7 +75,6 @@ extern "C" {
 #define   T_LONGDOUBLE 22
 #define   T_FLTCPLX    23
 #define   T_DBLCPLX    24
-#define   T_NUMERIC    25
 #define   T_AUTO       26
 
 #define   T_COMPLEX    T_DBLCPLX
@@ -96,11 +94,7 @@ extern "C" {
 #define   T_VARARGS    39
 #define   T_RVALUE_REFERENCE  40
 #define   T_WSTRING    41
-
-#define   T_SYMBOL     98
-#define   T_ERROR      99
-
-
+#define   T_UNKNOWN    42
 
 /* --- File interface --- */
 
@@ -129,12 +123,15 @@ extern "C" {
   extern SwigType *SwigType_del_reference(SwigType *t);
   extern SwigType *SwigType_add_rvalue_reference(SwigType *t);
   extern SwigType *SwigType_del_rvalue_reference(SwigType *t);
+  extern SwigType *SwigType_add_variadic(SwigType *t);
+  extern SwigType *SwigType_del_variadic(SwigType *t);
   extern SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual);
   extern SwigType *SwigType_del_qualifier(SwigType *t);
   extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_add_template(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_pop_function(SwigType *t);
   extern SwigType *SwigType_pop_function_qualifiers(SwigType *t);
+  extern SwigType *SwigType_function_parms_only(ParmList *parms);
   extern ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node);
   extern List *SwigType_split(const SwigType *t);
   extern String *SwigType_pop(SwigType *t);
@@ -155,6 +152,7 @@ extern "C" {
   extern int SwigType_isreference(const SwigType *t);
   extern int SwigType_isreference_return(const SwigType *t);
   extern int SwigType_isrvalue_reference(const SwigType *t);
+  extern int SwigType_isvariadic(const SwigType *t);
   extern int SwigType_isarray(const SwigType *t);
   extern int SwigType_prefix_is_simple_1D_array(const SwigType *t);
   extern int SwigType_isfunction(const SwigType *t);
@@ -184,6 +182,7 @@ extern "C" {
   extern SwigType *SwigType_default_create(const SwigType *ty);
   extern SwigType *SwigType_default_deduce(const SwigType *t);
   extern void SwigType_typename_replace(SwigType *t, String *pat, String *rep);
+  extern void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms);
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(const SwigType *t, int ltmap);
 
@@ -231,17 +230,19 @@ extern "C" {
   extern Symtab *Swig_symbol_global_scope(void);
   extern Symtab *Swig_symbol_current(void);
   extern Symtab *Swig_symbol_popscope(void);
-  extern Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *node);
-  extern void Swig_symbol_cadd(const_String_or_char_ptr symname, Node *node);
+  extern Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n);
+  extern void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int inclass);
+  extern void Swig_symbol_cadd(const_String_or_char_ptr symname, Node *n);
   extern Node *Swig_symbol_clookup(const_String_or_char_ptr symname, Symtab *tab);
-  extern Node *Swig_symbol_clookup_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));
+  extern Node *Swig_symbol_clookup_check(const_String_or_char_ptr symname, Symtab *tab, Node *(*checkfunc) (Node *));
   extern Node *Swig_symbol_clookup_no_inherit(const_String_or_char_ptr name, Symtab *n);
   extern Symtab *Swig_symbol_cscope(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_local(const_String_or_char_ptr symname, Symtab *tab);
-  extern Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));
-  extern String *Swig_symbol_qualified(Node *node);
-  extern Node *Swig_symbol_isoverloaded(Node *node);
-  extern void Swig_symbol_remove(Node *node);
+  extern Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr symname, Symtab *tab, Node *(*checkfunc) (Node *));
+  extern String *Swig_symbol_qualified(Node *n);
+  extern Node *Swig_symbol_isoverloaded(Node *n);
+  extern void Swig_symbol_remove(Node *n);
+  extern void Swig_symbol_fix_overname(Node *n);
   extern void Swig_symbol_alias(const_String_or_char_ptr aliasname, Symtab *tab);
   extern void Swig_symbol_inherit(Symtab *tab);
   extern SwigType *Swig_symbol_type_qualify(const SwigType *ty, Symtab *tab);
@@ -271,7 +272,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern void Swig_name_register(const_String_or_char_ptr method, const_String_or_char_ptr format);
   extern void Swig_name_unregister(const_String_or_char_ptr method);
-  extern String *Swig_name_mangle(const_String_or_char_ptr s);
+  extern String *Swig_name_mangle_string(const String *s);
+  extern String *Swig_name_mangle_type(const SwigType *s);
   extern String *Swig_name_wrapper(const_String_or_char_ptr fname);
   extern String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_ptr classname, const_String_or_char_ptr membername);
   extern String *Swig_name_get(const_String_or_char_ptr nspace, const_String_or_char_ptr vname);
@@ -323,7 +325,6 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage);
   extern int Swig_storage_isstatic(Node *n);
   extern String *Swig_string_escape(String *s);
-  extern String *Swig_string_mangle(const String *s);
   extern void Swig_scopename_split(const String *s, String **prefix, String **last);
   extern String *Swig_scopename_prefix(const String *s);
   extern String *Swig_scopename_last(const String *s);
@@ -340,6 +341,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern int Swig_value_wrapper_mode(int mode);
   extern int Swig_is_generated_overload(Node *n);
+  extern Node *Swig_item_in_list(List *list, const String *name);
 
   typedef enum { EMF_STANDARD, EMF_MICROSOFT } ErrorMessageFormat;
 

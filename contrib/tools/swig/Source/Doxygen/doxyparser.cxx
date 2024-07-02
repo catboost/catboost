@@ -1252,7 +1252,7 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line) {
         printListError(WARN_DOXYGEN_HTML_ERROR, "Doxygen HTML error for tag " + cmd + ": Illegal end HTML tag without greater-than ('>') found.");
       }
 
-      endHtmlPos = line.find(">", pos);
+      endHtmlPos = line.find('>', pos);
       if (endHtmlPos == string::npos) {
         m_tokenListIt = m_tokenList.end();
         printListError(WARN_DOXYGEN_HTML_ERROR, "Doxygen HTML error for tag " + cmd + ": HTML tag without greater-than ('>') found.");
@@ -1474,7 +1474,7 @@ void DoxygenParser::printList() {
   int tokNo = 0;
   for (TokenListCIt it = m_tokenList.begin(); it != m_tokenList.end(); it++, tokNo++) {
 
-    cout << it->toString() << " ";
+    cout << it->toString() << ' ';
 
     if ((tokNo % TOKENSPERLINE) == 0) {
       cout << endl;

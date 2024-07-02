@@ -42,6 +42,7 @@
  *  'p.'                = Pointer (*)
  *  'r.'                = Reference (&)
  *  'z.'                = Rvalue reference (&&)
+ *  'v.'                = Variadic (...)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
@@ -108,71 +109,59 @@ SwigType *NewSwigType(int t) {
   switch (t) {
   case T_BOOL:
     return NewString("bool");
-    break;
+  case T_UNKNOWN:
+    /* Handle like T_INT since we used to just use T_INT where we now use
+     * T_UNKNOWN.
+     */
   case T_INT:
     return NewString("int");
-    break;
   case T_UINT:
     return NewString("unsigned int");
-    break;
   case T_SHORT:
     return NewString("short");
-    break;
   case T_USHORT:
     return NewString("unsigned short");
-    break;
   case T_LONG:
     return NewString("long");
-    break;
   case T_ULONG:
     return NewString("unsigned long");
-    break;
   case T_FLOAT:
     return NewString("float");
-    break;
   case T_DOUBLE:
     return NewString("double");
-    break;
+  case T_LONGDOUBLE:
+    return NewString("long double");
+  case T_FLTCPLX:
+    return NewString("float _Complex");
   case T_COMPLEX:
     return NewString("_Complex");
-    break;
   case T_CHAR:
     return NewString("char");
-    break;
   case T_SCHAR:
     return NewString("signed char");
-    break;
   case T_UCHAR:
     return NewString("unsigned char");
-    break;
   case T_STRING: {
       SwigType *t = NewString("char");
       SwigType_add_qualifier(t, "const");
       SwigType_add_pointer(t);
       return t;
-      break;
     }
   case T_WCHAR:
     return NewString("wchar_t");
-    break;
   case T_WSTRING: {
     SwigType *t = NewString("wchar_t");
     SwigType_add_pointer(t);
     return t;
-    break;
   }
   case T_LONGLONG:
     return NewString("long long");
-    break;
   case T_ULONGLONG:
     return NewString("unsigned long long");
-    break;
   case T_VOID:
     return NewString("void");
-    break;
   case T_AUTO:
     return NewString("auto");
-    break;
   default:
     break;
   }
@@ -260,8 +249,12 @@ int SwigType_isconst(const SwigType *t) {
 int SwigType_ismutable(const SwigType *t) {
   int r;
   SwigType *qt = SwigType_typedef_resolve_all(t);
-  if (SwigType_isreference(qt) || SwigType_isrvalue_reference(qt) || SwigType_isarray(qt)) {
+  if (SwigType_isreference(qt) || SwigType_isrvalue_reference(qt)) {
     Delete(SwigType_pop(qt));
+  } else {
+    while (SwigType_isarray(qt)) {
+      Delete(SwigType_pop(qt));
+    }
   }
   r = SwigType_isconst(qt);
   Delete(qt);
@@ -549,7 +542,7 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
   int nelements, i;
 
   if (id) {
-    /* stringify the id expanding templates, for example when the id is a fully qualified templated class name */
+    /* Stringify the id expanding templates, for example when the id is a fully qualified class template name */
     String *id_str = NewString(id); /* unfortunate copy due to current const limitations */
     result = SwigType_str(id_str, 0);
     Delete(id_str);
@@ -620,6 +613,12 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
     } else if (SwigType_isrvalue_reference(element)) {
       if (!member_function_qualifiers)
 	Insert(result, 0, "&&");
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
+	Insert(result, 0, "(");
+	Append(result, ")");
+      }
+    } else if (SwigType_isvariadic(element)) {
+      Insert(result, 0, "...");
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
@@ -1190,7 +1189,9 @@ static String *manglestr_default(const SwigType *s) {
   SwigType *type = ss;
 
   if (SwigType_istemplate(ss)) {
-    SwigType *ty = Swig_symbol_template_deftype(ss, 0);
+    SwigType *dt = Swig_symbol_template_deftype(ss, 0);
+    String *ty = Swig_symbol_type_qualify(dt, 0);
+    Delete(dt);
     Delete(ss);
     ss = ty;
     type = ss;
@@ -1253,10 +1254,10 @@ static String *manglestr_default(const SwigType *s) {
 String *SwigType_manglestr(const SwigType *s) {
 #if 0
   /* Debugging checks to ensure a proper SwigType is passed in and not a stringified type */
-  String *angle = Strstr(s, "<");
+  String *angle = Strchr(s, '<');
   if (angle && Strncmp(angle, "<(", 2) != 0)
     Printf(stderr, "SwigType_manglestr error: %s\n", s);
-  else if (Strstr(s, "*") || Strstr(s, "&") || Strstr(s, "["))
+  else if (Strchr(s, '*') || Strchr(s, '&') || Strchr(s, '['))
     Printf(stderr, "SwigType_manglestr error: %s\n", s);
 #endif
   return manglestr_default(s);
@@ -1266,6 +1267,11 @@ String *SwigType_manglestr(const SwigType *s) {
  * SwigType_typename_replace()
  *
  * Replaces a typename in a type with something else.  Needed for templates.
+ * Collapses duplicate const into a single const.
+ * Reference collapsing probably should be implemented here.
+ * Example:
+ *   t=r.q(const).T pat=T rep=int           =>  r.q(const).int
+ *   t=r.q(const).T pat=T rep=q(const).int  =>  r.q(const).int  (duplicate const removed)
  * ----------------------------------------------------------------------------- */
 
 void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
@@ -1288,7 +1294,15 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
     if (SwigType_issimple(e)) {
       if (Equal(e, pat)) {
 	/* Replaces a type of the form 'pat' with 'rep<args>' */
-	Replace(e, pat, rep, DOH_REPLACE_ANY);
+	if (SwigType_isconst(rep) && i > 0 && SwigType_isconst(Getitem(elem, i - 1))) {
+	  /* Collapse duplicate const into a single const */
+	  SwigType *rep_without_const = Copy(rep);
+	  Delete(SwigType_pop(rep_without_const));
+	  Replace(e, pat, rep_without_const, DOH_REPLACE_ANY);
+	  Delete(rep_without_const);
+	} else {
+	  Replace(e, pat, rep, DOH_REPLACE_ANY);
+	}
       } else if (SwigType_istemplate(e)) {
 	/* Replaces a type of the form 'pat<args>' with 'rep' */
 	{
@@ -1374,6 +1388,73 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
       Delete(fparms);
     } else if (SwigType_isarray(e)) {
       Replace(e, pat, rep, DOH_REPLACE_ID);
+    }
+    Append(nt, e);
+  }
+  Clear(t);
+  Append(t, nt);
+  Delete(nt);
+  Delete(elem);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_variadic_replace()
+ *
+ * Replaces variadic parameter with a list of (zero or more) parameters.
+ * Needed for variadic templates.
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
+  String *nt;
+  int i, ilen;
+  List *elem;
+  if (!unexpanded_variadic_parm)
+    return;
+
+  if (SwigType_isvariadic(t)) {
+    /* Based on expand_variadic_parms() but input is single SwigType (t) instead of ParmList */
+    String *unexpanded_name = Getattr(unexpanded_variadic_parm, "name");
+    ParmList *expanded = CopyParmList(expanded_variadic_parms);
+    Parm *ep = expanded;
+    SwigType *fparms;
+    while (ep) {
+      SwigType *newtype = Copy(t);
+      SwigType_del_variadic(newtype);
+      Replaceid(newtype, unexpanded_name, Getattr(ep, "type"));
+      Setattr(ep, "type", newtype);
+      ep = nextSibling(ep);
+    }
+    Clear(t);
+    fparms = SwigType_function_parms_only(expanded);
+    Append(t, fparms);
+    Delete(expanded);
+
+    return;
+  }
+  nt = NewStringEmpty();
+  elem = SwigType_split(t);
+  ilen = Len(elem);
+  for (i = 0; i < ilen; i++) {
+    String *e = Getitem(elem, i);
+    if (SwigType_isfunction(e)) {
+      int j, jlen;
+      List *fparms = SwigType_parmlist(e);
+      Clear(e);
+      Append(e, "f(");
+      jlen = Len(fparms);
+      for (j = 0; j < jlen; j++) {
+	SwigType *type = Getitem(fparms, j);
+	SwigType_variadic_replace(type, unexpanded_variadic_parm, expanded_variadic_parms);
+	if (Len(type) > 0) {
+	  if (j != 0)
+	    Putc(',', e);
+	  Append(e, type);
+	} else {
+	  assert(j == jlen - 1); /* A variadic parm was replaced with zero parms, variadic parms are only changed at the end of the list */
+	}
+      }
+      Append(e, ").");
+      Delete(fparms);
     }
     Append(nt, e);
   }

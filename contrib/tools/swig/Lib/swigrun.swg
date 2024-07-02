@@ -145,7 +145,7 @@
 #define SWIG_CASTRANKLIMIT         (1 << 8)
 /* The NewMask denotes the object was created (using new/malloc) */
 #define SWIG_NEWOBJMASK            (SWIG_CASTRANKLIMIT  << 1)
-/* The TmpMask is for in/out typemaps that use temporal objects */
+/* The TmpMask is for in/out typemaps that use temporary objects */
 #define SWIG_TMPOBJMASK            (SWIG_NEWOBJMASK << 1)
 /* Simple returning values */
 #define SWIG_BADOBJ                (SWIG_ERROR)

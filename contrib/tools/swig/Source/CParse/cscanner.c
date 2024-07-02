@@ -46,7 +46,6 @@ String *cparse_unknown_directive = 0;
 /* Private vars */
 static int scan_init = 0;
 static int num_brace = 0;
-static int last_brace = 0;
 static int last_id = 0;
 static int rename_active = 0;
 
@@ -163,15 +162,17 @@ void start_inline(char *text, int line) {
  *
  * Skips a piece of code enclosed in begin/end symbols such as '{...}' or
  * (...).  Ignores symbols inside comments or strings.
+ *
+ * Returns 0 if successfully skipped, -1 if EOF found first.
  * ----------------------------------------------------------------------------- */
 
-void skip_balanced(int startchar, int endchar) {
+int skip_balanced(int startchar, int endchar) {
   int start_line = Scanner_line(scan);
   Clear(scanner_ccode);
 
   if (Scanner_skip_balanced(scan,startchar,endchar) < 0) {
     Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
-    return;
+    return -1;
   }
 
   cparse_line = Scanner_line(scan);
@@ -180,7 +181,7 @@ void skip_balanced(int startchar, int endchar) {
   Append(scanner_ccode, Scanner_text(scan));
   if (endchar == '}')
     num_brace--;
-  return;
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -274,7 +275,6 @@ static int yylook(void) {
       }
       break;
     case SWIG_TOKEN_LBRACE:
-      last_brace = num_brace;
       num_brace++;
       return LBRACE;
     case SWIG_TOKEN_EQUAL:
@@ -325,7 +325,7 @@ static int yylook(void) {
       return ARROW;
     case SWIG_TOKEN_PERIOD:
       return PERIOD;
-    case SWIG_TOKEN_MODULO:
+    case SWIG_TOKEN_PERCENT:
       return MODULO;
     case SWIG_TOKEN_COLON:
       return COLON;
@@ -419,9 +419,14 @@ static int yylook(void) {
       return NUM_ULONGLONG;
       
     case SWIG_TOKEN_DOUBLE:
+      return NUM_DOUBLE;
+
     case SWIG_TOKEN_FLOAT:
       return NUM_FLOAT;
       
+    case SWIG_TOKEN_LONGDOUBLE:
+      return NUM_LONGDOUBLE;
+
     case SWIG_TOKEN_BOOL:
       return NUM_BOOL;
       
@@ -429,7 +434,6 @@ static int yylook(void) {
       Scanner_skip_line(scan);
       yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
       return POUND;
-      break;
       
     case SWIG_TOKEN_CODEBLOCK:
       yylval.str = NewString(Scanner_text(scan));
@@ -538,18 +542,8 @@ static int yylook(void) {
   }
 }
 
-static int check_typedef = 0;
-
 void scanner_set_location(String *file, int line) {
   Scanner_set_location(scan,file,line-1);
-}
-
-void scanner_check_typedef(void) {
-  check_typedef = 1;
-}
-
-void scanner_ignore_typedef(void) {
-  check_typedef = 0;
 }
 
 void scanner_last_id(int x) {
@@ -620,29 +614,36 @@ int yylex(void) {
   switch (l) {
 
   case NUM_INT:
+    yylval.dtype.type = T_INT;
+    goto num_common;
+  case NUM_DOUBLE:
+    yylval.dtype.type = T_DOUBLE;
+    goto num_common;
   case NUM_FLOAT:
+    yylval.dtype.type = T_FLOAT;
+    goto num_common;
+  case NUM_LONGDOUBLE:
+    yylval.dtype.type = T_LONGDOUBLE;
+    goto num_common;
   case NUM_ULONG:
+    yylval.dtype.type = T_ULONG;
+    goto num_common;
   case NUM_LONG:
+    yylval.dtype.type = T_LONG;
+    goto num_common;
   case NUM_UNSIGNED:
+    yylval.dtype.type = T_UINT;
+    goto num_common;
   case NUM_LONGLONG:
+    yylval.dtype.type = T_LONGLONG;
+    goto num_common;
   case NUM_ULONGLONG:
+    yylval.dtype.type = T_ULONGLONG;
+    goto num_common;
   case NUM_BOOL:
-    if (l == NUM_INT)
-      yylval.dtype.type = T_INT;
-    if (l == NUM_FLOAT)
-      yylval.dtype.type = T_DOUBLE;
-    if (l == NUM_ULONG)
-      yylval.dtype.type = T_ULONG;
-    if (l == NUM_LONG)
-      yylval.dtype.type = T_LONG;
-    if (l == NUM_UNSIGNED)
-      yylval.dtype.type = T_UINT;
-    if (l == NUM_LONGLONG)
-      yylval.dtype.type = T_LONGLONG;
-    if (l == NUM_ULONGLONG)
-      yylval.dtype.type = T_ULONGLONG;
-    if (l == NUM_BOOL)
-      yylval.dtype.type = T_BOOL;
+    yylval.dtype.type = T_BOOL;
+num_common:
+    yylval.dtype.unary_arg_type = 0;
     yylval.dtype.val = NewString(Scanner_text(scan));
     yylval.dtype.bitfield = 0;
     yylval.dtype.throws = 0;
@@ -976,8 +977,6 @@ int yylex(void) {
 	return (MODULE);
       if (strcmp(yytext, "%insert") == 0)
 	return (INSERT);
-      if (strcmp(yytext, "%name") == 0)
-	return (NAME);
       if (strcmp(yytext, "%rename") == 0) {
 	rename_active = 1;
 	return (RENAME);
@@ -992,14 +991,6 @@ int yylex(void) {
 	return (BEGINFILE);
       if (strcmp(yytext, "%endoffile") == 0)
 	return (ENDOFFILE);
-      if (strcmp(yytext, "%val") == 0) {
-	Swig_warning(WARN_DEPRECATED_VAL, cparse_file, cparse_line, "%%val directive deprecated (ignored).\n");
-	return (yylex());
-      }
-      if (strcmp(yytext, "%out") == 0) {
-	Swig_warning(WARN_DEPRECATED_OUT, cparse_file, cparse_line, "%%out directive deprecated (ignored).\n");
-	return (yylex());
-      }
       if (strcmp(yytext, "%constant") == 0)
 	return (CONSTANT);
       if (strcmp(yytext, "%typedef") == 0) {
@@ -1026,8 +1017,6 @@ int yylex(void) {
         rename_active = 1;
 	return (FEATURE);
       }
-      if (strcmp(yytext, "%except") == 0)
-	return (EXCEPT);
       if (strcmp(yytext, "%importfile") == 0)
 	return (IMPORT);
       if (strcmp(yytext, "%echo") == 0)
@@ -1050,7 +1039,7 @@ int yylex(void) {
 
       /* Note down the apparently unknown directive for error reporting - if
        * we end up reporting a generic syntax error we'll instead report an
-       * error for his as an unknown directive.  Then we treat it as MODULO
+       * error for this as an unknown directive.  Then we treat it as MODULO
        * (`%`) followed by an identifier and if that parses OK then
        * `cparse_unknown_directive` doesn't get used.
        *
@@ -1066,15 +1055,7 @@ int yylex(void) {
       Delete(stext);
       return (MODULO);
     }
-    /* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 
-    /* Need to fix this */
-    if (check_typedef) {
-      if (SwigType_istypedef(yytext)) {
-	yylval.type = NewString(yytext);
-	return (TYPE_TYPEDEF);
-      }
-    }
     yylval.id = Swig_copy_string(yytext);
     last_id = 1;
     return (ID);

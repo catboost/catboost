@@ -23,6 +23,7 @@ extern "C" {
   extern const char *Preprocessor_expr_error(void);
   extern Hash *Preprocessor_define(const_String_or_char_ptr str, int swigmacro);
   extern void Preprocessor_undef(const_String_or_char_ptr name);
+  extern int Preprocessor_defined(const_String_or_char_ptr str);
   extern void Preprocessor_init(void);
   extern void Preprocessor_delete(void);
   extern String *Preprocessor_parse(String *s);

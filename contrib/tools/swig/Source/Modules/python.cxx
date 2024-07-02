@@ -220,7 +220,7 @@ public:
 	   "  $director_new \n",
 	   "} else {\n", "  SWIG_SetErrorMsg(PyExc_RuntimeError,\"accessing abstract class or protected constructor\"); \n", "  SWIG_fail;\n", "}\n", NIL);
     director_multiple_inheritance = 1;
-    director_language = 1;
+    directorLanguage();
   }
 
   ~PYTHON() {
@@ -560,7 +560,7 @@ public:
       f_builtins = NewString("");
     }
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       if (!no_header_file) {
 	f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
 	if (!f_runtime_h) {
@@ -589,7 +589,7 @@ public:
 
     Swig_obligatory_macros(f_runtime, "PYTHON");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
     }
 
@@ -638,7 +638,7 @@ public:
     module = Copy(Getattr(n, "name"));
     mainmodule = Getattr(n, "name");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
@@ -769,7 +769,7 @@ public:
 
 	Printv(f_shadow, "\n", NIL);
 
-	if (directorsEnabled())
+	if (Swig_directors_enabled())
 	  Printv(f_shadow, "import weakref\n\n", NIL);
       }
     }
@@ -805,7 +805,7 @@ public:
     /* emit code */
     Language::top(n);
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
       Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
@@ -886,7 +886,7 @@ public:
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
@@ -1898,16 +1898,20 @@ public:
 	    String *str = Getattr(n, "feature:docstring");
 	    if (!str || Len(str) == 0) {
 	      if (builtin) {
-		String *name = Getattr(n, "name");
-		String *rname = add_explicit_scope(SwigType_namestr(name));
+		SwigType *name = Getattr(n, "name");
+		SwigType *sname = add_explicit_scope(name);
+		String *rname = SwigType_namestr(sname);
 		Printf(doc, "%s", rname);
+		Delete(sname);
 		Delete(rname);
 	      } else {
+		String *classname_str = SwigType_namestr(real_classname);
 		if (CPlusPlus) {
-		  Printf(doc, "Proxy of C++ %s class.", SwigType_namestr(real_classname));
+		  Printf(doc, "Proxy of C++ %s class.", classname_str);
 		} else {
-		  Printf(doc, "Proxy of C %s struct.", SwigType_namestr(real_classname));
+		  Printf(doc, "Proxy of C %s struct.", classname_str);
 		}
+		Delete(classname_str);
 	      }
 	    }
 	  }
@@ -2714,6 +2718,7 @@ public:
     int constructor = (!Cmp(nodeType, "constructor"));
     int destructor = (!Cmp(nodeType, "destructor"));
     String *storage = Getattr(n, "storage");
+    int isfriend = Strstr(storage, "friend") != NULL;
     /* Only the first constructor is handled as init method. Others
        constructor can be emitted via %rename */
     int handled_as_init = 0;
@@ -2812,7 +2817,7 @@ public:
       Append(f->def, "(void)self;\n");
     }
 
-    if (builtin) {
+    if (!builtin) {
       /* Avoid warning if the self parameter is not used. */
       Append(f->code, "(void)self;\n");
     }
@@ -3224,6 +3229,9 @@ public:
       Printv(f->code, "  return -1;\n", NIL);
     } else {
       if (GetFlag(n, "feature:python:maybecall")) {
+	Append(f->code, "  if (PyErr_Occurred() && !PyErr_ExceptionMatches(PyExc_TypeError)) {\n");
+	Append(f->code, "    return NULL;\n");
+	Append(f->code, "  }\n");
 	Append(f->code, "  PyErr_Clear();\n");
 	Append(f->code, "  Py_INCREF(Py_NotImplemented);\n");
 	Append(f->code, "  return Py_NotImplemented;\n");
@@ -3373,7 +3381,7 @@ public:
     if (in_class && builtin) {
       /* Handle operator overloads for builtin types */
       String *slot = Getattr(n, "feature:python:slot");
-      if (slot) {
+      if (slot && !isfriend) {
 	String *func_type = Getattr(n, "feature:python:slot:functype");
 	String *closure_decl = getClosure(func_type, wrapper_name, overname ? 0 : funpack);
 	String *feature_name = NewStringf("feature:python:%s", slot);
@@ -3462,7 +3470,7 @@ public:
 	Printf(f_shadow_stubs, "%s = %s.%s\n", global_name, module, global_name);
       }
     }
-    int assignable = is_assignable(n);
+    int assignable = !is_immutable(n);
 
     if (!builtin && shadow && !assignable && !in_class)
       Printf(f_shadow_stubs, "%s = %s.%s\n", iname, global_name, iname);
@@ -3928,35 +3936,36 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
 
-  String *add_explicit_scope(String *s) {
+  SwigType *add_explicit_scope(SwigType *s) {
     if (!Strstr(s, "::")) {
-      String *ss = NewStringf("::%s", s);
-      Delete(s);
-      s = ss;
+      return NewStringf("::%s", s);
     }
-    return s;
+    return Copy(s);
   }
 
   void builtin_pre_decl(Node *n) {
-    String *name = Getattr(n, "name");
-    String *rname = add_explicit_scope(SwigType_namestr(name));
-    String *mname = SwigType_manglestr(rname);
+    SwigType *name = Getattr(n, "name");
+    SwigType *sname = add_explicit_scope(name);
+    String *rname = SwigType_namestr(sname);
+    String *mname = SwigType_manglestr(sname);
 
     Printf(f_init, "\n/* type '%s' */\n", rname);
     Printf(f_init, "    builtin_pytype = (PyTypeObject *)&SwigPyBuiltin_%s_type;\n", mname);
     Printf(f_init, "    builtin_pytype->tp_dict = d = PyDict_New();\n");
 
+    Delete(sname);
     Delete(rname);
     Delete(mname);
   }
 
   void builtin_post_decl(File *f, Node *n) {
-    String *name = Getattr(n, "name");
-    String *pname = Copy(name);
+    SwigType *name = Getattr(n, "name");
+    SwigType *pname = Copy(name);
     SwigType_add_pointer(pname);
     String *symname = Getattr(n, "sym:name");
-    String *rname = add_explicit_scope(SwigType_namestr(name));
-    String *mname = SwigType_manglestr(rname);
+    SwigType *sname = add_explicit_scope(name);
+    String *rname = SwigType_namestr(sname);
+    String *mname = SwigType_manglestr(sname);
     String *pmname = SwigType_manglestr(pname);
     String *templ = NewStringf("SwigPyBuiltin_%s", mname);
     int funpack = fastunpack;
@@ -4069,7 +4078,7 @@ public:
       Printf(f, "  }\n");
     }
     Delete(richcompare_list);
-    Printv(f, "  if (!result) {\n", NIL);
+    Printv(f, "  if (!result && !PyErr_Occurred()) {\n", NIL);
     Printv(f, "    if (SwigPyObject_Check(self) && SwigPyObject_Check(other)) {\n", NIL);
     Printv(f, "      result = SwigPyObject_richcompare((SwigPyObject *)self, (SwigPyObject *)other, op);\n", NIL);
     Printv(f, "    } else {\n", NIL);
@@ -4205,7 +4214,7 @@ public:
     printSlot(f, getSlot(), "tp_print");
     Printv(f, "#endif\n", NIL);
     Printv(f, "#if PY_VERSION_HEX >= 0x030c0000\n", NIL);
-    printSlot(f, getSlot(), "tp_watched", "char");
+    printSlot(f, getSlot(n, "feature:python:tp_watched"), "tp_watched", "char");
     Printv(f, "#endif\n", NIL);
 
     Printv(f, "#ifdef COUNT_ALLOCS\n", NIL);
@@ -4362,12 +4371,14 @@ public:
     Printf(clientdata, "&%s_clientdata", templ);
     SwigType_remember_mangleddata(pmname, clientdata);
 
-    SwigType *smart = Swig_cparse_smartptr(n);
+    SwigType *smart = Getattr(n, "smart");
     if (smart) {
-      SwigType_add_pointer(smart);
-      String *smart_pmname = SwigType_manglestr(smart);
+      SwigType *psmart = Copy(smart);
+      SwigType_add_pointer(psmart);
+      String *smart_pmname = SwigType_manglestr(psmart);
       SwigType_remember_mangleddata(smart_pmname, clientdata);
       Delete(smart_pmname);
+      Delete(psmart);
     }
 
     String *clientdata_klass = NewString("0");
@@ -4392,10 +4403,10 @@ public:
     Printv(f_init, "    d = md;\n", NIL);
 
     Delete(clientdata);
-    Delete(smart);
+    Delete(sname);
     Delete(rname);
-    Delete(pname);
     Delete(mname);
+    Delete(pname);
     Delete(pmname);
     Delete(templ);
     Delete(tp_flags);
@@ -4492,9 +4503,11 @@ public:
 	  Setattr(n, "feature:python:tp_doc", ds);
 	  Delete(ds);
 	} else {
-	  String *name = Getattr(n, "name");
-	  String *rname = add_explicit_scope(SwigType_namestr(name));
+	  SwigType *name = Getattr(n, "name");
+	  SwigType *sname = add_explicit_scope(name);
+	  String *rname = SwigType_namestr(sname);
 	  Setattr(n, "feature:python:tp_doc", rname);
+	  Delete(sname);
 	  Delete(rname);
 	}
       } else {
@@ -4567,7 +4580,7 @@ public:
     if (shadow) {
       /* Generate a class registration function */
       // Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
-      SwigType *smart = Swig_cparse_smartptr(n);
+      SwigType *smart = Getattr(n, "smart");
       SwigType *ct = Copy(smart ? smart : real_classname);
       SwigType_add_pointer(ct);
       SwigType *realct = Copy(real_classname);
@@ -4589,7 +4602,6 @@ public:
 	add_method(cname, cname, 0, 0, 1, 1, 1);
 	Delete(cname);
       }
-      Delete(smart);
       Delete(ct);
       Delete(realct);
       if (!have_constructor) {
@@ -5056,7 +5068,7 @@ public:
       String *mname = Swig_name_member(NSPACE_TODO, class_name, symname);
       String *setname = Swig_name_set(NSPACE_TODO, mname);
       String *getname = Swig_name_get(NSPACE_TODO, mname);
-      int assignable = is_assignable(n);
+      int assignable = !is_immutable(n);
       String *variable_annotation = variableAnnotation(n);
       Printv(f_shadow, tab4, symname, variable_annotation, " = property(", module, ".", getname, NIL);
       if (assignable)
@@ -5111,7 +5123,7 @@ public:
 	add_method(getname, wrapgetname, 0);
 	Wrapper_print(f, f_wrappers);
 	DelWrapper(f);
-	int assignable = is_assignable(n);
+	int assignable = !is_immutable(n);
 	if (assignable) {
 	  int funpack = fastunpack;
 	  Wrapper *f = NewWrapper();
@@ -5444,14 +5456,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	p = Getattr(p, "tmap:in:next");
 	continue;
       }
-
-      /* old style?  caused segfaults without the p!=0 check
-         in the for() condition, and seems dangerous in the
-         while loop as well.
-         while (Getattr(p, "tmap:ignore")) {
-         p = Getattr(p, "tmap:ignore:next");
-         }
-       */
 
       if (Getattr(p, "tmap:directorargout") != 0)
 	outputs++;

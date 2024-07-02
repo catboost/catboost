@@ -29,31 +29,31 @@
 
 /* -- Deprecated features -- */
 
-#define WARN_DEPRECATED_EXTERN        101
-#define WARN_DEPRECATED_VAL           102
-#define WARN_DEPRECATED_OUT           103
-#define WARN_DEPRECATED_DISABLEDOC    104
-#define WARN_DEPRECATED_ENABLEDOC     105
-#define WARN_DEPRECATED_DOCONLY       106
-#define WARN_DEPRECATED_STYLE         107
-#define WARN_DEPRECATED_LOCALSTYLE    108
-#define WARN_DEPRECATED_TITLE         109
-#define WARN_DEPRECATED_SECTION       110
-#define WARN_DEPRECATED_SUBSECTION    111
-#define WARN_DEPRECATED_SUBSUBSECTION 112
-#define WARN_DEPRECATED_ADDMETHODS    113
-#define WARN_DEPRECATED_READONLY      114
-#define WARN_DEPRECATED_READWRITE     115
-#define WARN_DEPRECATED_EXCEPT        116
-#define WARN_DEPRECATED_NEW           117
-#define WARN_DEPRECATED_EXCEPT_TM     118
-#define WARN_DEPRECATED_IGNORE_TM     119
-#define WARN_DEPRECATED_OPTC          120
-#define WARN_DEPRECATED_NAME          121
-#define WARN_DEPRECATED_NOEXTERN      122
-#define WARN_DEPRECATED_NODEFAULT     123
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXTERN        101 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_VAL           102 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_OUT           103 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_DISABLEDOC    104 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_ENABLEDOC     105 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_DOCONLY       106 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_STYLE         107 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_LOCALSTYLE    108 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_TITLE         109 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SECTION       110 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SUBSECTION    111 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SUBSUBSECTION 112 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_ADDMETHODS    113 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_READONLY      114 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_READWRITE     115 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXCEPT        116 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NEW           117 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXCEPT_TM     118 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_IGNORE_TM     119 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_OPTC          120 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NAME          121 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NOEXTERN      122 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NODEFAULT     123 */
 /* Unused since 4.1.0: #define WARN_DEPRECATED_TYPEMAP_LANG  124 */
-#define WARN_DEPRECATED_INPUT_FILE    125
+/* Unused since 4.2.0: #define WARN_DEPRECATED_INPUT_FILE    125 */
 #define WARN_DEPRECATED_NESTED_WORKAROUND 126
 
 /* -- Preprocessor -- */
@@ -72,17 +72,17 @@
 #define WARN_PARSE_EXTEND_UNDEF       303
 #define WARN_PARSE_UNSUPPORTED_VALUE  304
 #define WARN_PARSE_BAD_VALUE          305
-#define WARN_PARSE_PRIVATE            306
-#define WARN_PARSE_BAD_DEFAULT        307
+/* Unused since 1.3.32: #define WARN_PARSE_PRIVATE            306 */
+/* Unused since 4.2.0: #define WARN_PARSE_BAD_DEFAULT        307 */
 #define WARN_PARSE_NAMESPACE_ALIAS    308
 #define WARN_PARSE_PRIVATE_INHERIT    309
-#define WARN_PARSE_TEMPLATE_REPEAT    310
-#define WARN_PARSE_TEMPLATE_PARTIAL   311
+/* Unused since 1.3.18: #define WARN_PARSE_TEMPLATE_REPEAT    310 */
+/* Unused since 1.3.18: #define WARN_PARSE_TEMPLATE_PARTIAL   311 */
 #define WARN_PARSE_UNNAMED_NESTED_CLASS 312
 #define WARN_PARSE_UNDEFINED_EXTERN   313
 #define WARN_PARSE_KEYWORD            314
 #define WARN_PARSE_USING_UNDEF        315
-#define WARN_PARSE_MODULE_REPEAT      316
+/* Unused since 1.3.18: #define WARN_PARSE_MODULE_REPEAT      316 */
 #define WARN_PARSE_TEMPLATE_SP_UNDEF  317
 #define WARN_PARSE_TEMPLATE_AMBIG     318
 #define WARN_PARSE_NO_ACCESS          319
@@ -94,11 +94,16 @@
 #define WARN_PARSE_NAMED_NESTED_CLASS 325
 #define WARN_PARSE_EXTEND_NAME        326
 #define WARN_PARSE_EXTERN_TEMPLATE    327
+#define WARN_PARSE_ASSIGNED_VALUE     328
+#define WARN_PARSE_USING_CONSTRUCTOR  329
 
 #define WARN_CPP11_LAMBDA             340
-#define WARN_CPP11_ALIAS_DECLARATION  341  /* redundant now */
-#define WARN_CPP11_ALIAS_TEMPLATE     342  /* redundant now */
-#define WARN_CPP11_VARIADIC_TEMPLATE  343
+/* Unused since 3.0.11: #define WARN_CPP11_ALIAS_DECLARATION  341 */
+/* Unused since 3.0.11: #define WARN_CPP11_ALIAS_TEMPLATE     342 */
+/* Unused since 4.2.0: #define WARN_CPP11_VARIADIC_TEMPLATE  343 */
+#define WARN_CPP11_DECLTYPE           344
+#define WARN_CPP14_AUTO               345
+#define WARN_CPP11_AUTO               346
 
 #define WARN_IGNORE_OPERATOR_NEW        350	/* new */
 #define WARN_IGNORE_OPERATOR_DELETE     351	/* delete */
@@ -159,9 +164,9 @@
 #define WARN_TYPE_REDEFINED           404
 #define WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED 405
 
-#define WARN_TYPEMAP_SOURCETARGET     450 /* No longer issued */
+/* Unused since 4.1.0: #define WARN_TYPEMAP_SOURCETARGET     450 */
 #define WARN_TYPEMAP_CHARLEAK         451
-#define WARN_TYPEMAP_SWIGTYPE         452 /* No longer issued */
+/* Unused since 1.3.32: #define WARN_TYPEMAP_SWIGTYPE         452 */
 #define WARN_TYPEMAP_APPLY_UNDEF      453
 #define WARN_TYPEMAP_SWIGTYPELEAK     454
 #define WARN_TYPEMAP_WCHARLEAK        455
@@ -199,7 +204,7 @@
 #define WARN_LANG_NATIVE_UNIMPL       507
 #define WARN_LANG_DEREF_SHADOW        508
 #define WARN_LANG_OVERLOAD_SHADOW     509
-#define WARN_LANG_FRIEND_IGNORE       510
+#define WARN_LANG_FRIEND_IGNORE       510 /* No longer issued */
 #define WARN_LANG_OVERLOAD_KEYWORD    511
 #define WARN_LANG_OVERLOAD_CONST      512
 #define WARN_LANG_CLASS_UNNAMED       513
@@ -259,7 +264,8 @@
 
 /* please leave 740-749 free for Python */
 
-#define WARN_R_MISSING_RTYPECHECK_TYPEMAP     750
+/* Unused since 4.2.0: #define WARN_R_MISSING_RTYPECHECK_TYPEMAP     750 */
+#define WARN_R_TYPEMAP_RTYPECHECK_UNDEF       751
 
 /* please leave 750-759 free for R */
 
@@ -314,7 +320,7 @@
 
 #define WARN_PHP_MULTIPLE_INHERITANCE         870
 #define WARN_PHP_UNKNOWN_PRAGMA               871
-#define WARN_PHP_PUBLIC_BASE                  872
+/* Unused since 4.1.0: define WARN_PHP_PUBLIC_BASE                  872 */
 
 /* please leave 870-889 free for PHP */
 

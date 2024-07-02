@@ -179,7 +179,7 @@ SWIG_From_dec(long long)(long long value)
   else {
     //sv = newSVpvf("%lld", value); doesn't work in non 64bit Perl
     char temp[256];
-    sprintf(temp, "%lld", value);
+    SWIG_snprintf(temp, sizeof(temp), "%lld", value);
     sv = newSVpv(temp, 0);
   }
   return sv_2mortal(sv);
@@ -259,7 +259,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
   else {
     //sv = newSVpvf("%llu", value); doesn't work in non 64bit Perl
     char temp[256];
-    sprintf(temp, "%llu", value);
+    SWIG_snprintf(temp, sizeof(temp), "%llu", value);
     sv = newSVpv(temp, 0);
   }
   return sv_2mortal(sv);
@@ -280,7 +280,7 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
      * (UVSIZE <= sizeof(*val) || v <= ULLONG_MAX) */
     if (val) *val = SvUV(obj);
     return SWIG_OK;
-  } else  if (SvIOK(obj)) {
+  } else if (SvIOK(obj)) {
     IV v = SvIV(obj);
     if (v >= 0 && (IVSIZE <= sizeof(*val) || v <= ULLONG_MAX)) {
       if (val) *val = v;

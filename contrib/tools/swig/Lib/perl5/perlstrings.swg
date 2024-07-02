@@ -15,7 +15,7 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
     STRLEN len = 0;
     char *cstr = SvPV(obj, len); 
     size_t size = len + 1;
-    if (cptr)  {
+    if (cptr) {
       if (alloc) {
 	if (*alloc == SWIG_NEWOBJ) {
 	  *cptr = %new_copy_array(cstr, size, char);

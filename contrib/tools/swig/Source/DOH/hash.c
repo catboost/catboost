@@ -130,6 +130,7 @@ static void DelHash(DOH *ho) {
  * Hash_clear()
  *
  * Clear all of the entries in the hash table.
+ * File and line numbering info left unmodified.
  * ----------------------------------------------------------------------------- */
 
 static void Hash_clear(DOH *ho) {

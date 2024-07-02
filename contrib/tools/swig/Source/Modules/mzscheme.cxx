@@ -569,7 +569,7 @@ public:
 
     // Make a static variable;
 
-    Printf(var_name, "_wrap_const_%s", Swig_name_mangle(Getattr(n, "sym:name")));
+    Printf(var_name, "_wrap_const_%s", Swig_name_mangle_string(Getattr(n, "sym:name")));
 
     // Build the name for scheme.
     Printv(proc_name, iname, NIL);
@@ -641,8 +641,6 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
   virtual int classHandler(Node *n) {
-    String *mangled_classname = 0;
-    String *real_classname = 0;
     String *scm_structname = NewString("");
     SwigType *ctype_ptr = NewStringf("p.%s", getClassType());
 
@@ -658,13 +656,10 @@ public:
     convert_proto_tab = NewString("");
 
     struct_name = Getattr(n, "sym:name");
-    mangled_struct_name = Swig_name_mangle(Getattr(n, "sym:name"));
+    mangled_struct_name = Swig_name_mangle_string(Getattr(n, "sym:name"));
 
     Printv(scm_structname, struct_name, NIL);
     Replaceall(scm_structname, "_", "-");
-
-    real_classname = Getattr(n, "name");
-    mangled_classname = Swig_name_mangle(real_classname);
 
     Printv(fieldnames_tab, "static const char *_swig_struct_", cls_swigtype, "_field_names[] = { \n", NIL);
 
@@ -695,7 +690,6 @@ public:
 	   " = SWIG_MzScheme_new_scheme_struct(menv, \"", scm_structname, "\", ",
 	   "_swig_struct_", cls_swigtype, "_field_names_cnt,", "(char**) _swig_struct_", cls_swigtype, "_field_names);\n", NIL);
 
-    Delete(mangled_classname);
     Delete(swigtype_ptr);
     swigtype_ptr = 0;
     Delete(fieldnames_tab);

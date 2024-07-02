@@ -118,12 +118,12 @@ static int have_operators = 0;
 class PERL5:public Language {
 public:
 
-  PERL5():Language () {
+  PERL5() {
     Clear(argc_template_string);
     Printv(argc_template_string, "items", NIL);
     Clear(argv_template_string);
     Printv(argv_template_string, "ST(%d)", NIL);
-    director_language = 1;
+    directorLanguage();
   }
 
   /* Test to see if a type corresponds to something wrapped with a shadow class */
@@ -285,7 +285,7 @@ public:
     f_directors_h = NewString("");
     f_directors = NewString("");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
@@ -321,7 +321,7 @@ public:
 
     Swig_obligatory_macros(f_runtime, "PERL");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
     }
     Printf(f_runtime, "#define SWIG_CASTRANK_MODE\n");
@@ -341,7 +341,7 @@ public:
       fprintf(stdout, "top: using namespace_module: %s\n", Char(namespace_module));
     }
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", underscore_module);
@@ -454,7 +454,7 @@ public:
     /* emit wrappers */
     Language::top(n);
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
       Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
@@ -612,7 +612,7 @@ public:
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
@@ -969,7 +969,8 @@ public:
 
     /* Create a Perl function for setting the variable value */
 
-    if (!GetFlag(n, "feature:immutable")) {
+    int assignable = !is_immutable(n);
+    if (assignable) {
       Setattr(n, "wrap:name", set_name);
       Printf(setf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC * SWIGUNUSEDPARM(mg)) {\n", set_name);
       Printv(setf->code, tab4, "MAGIC_PPERL\n", NIL);
@@ -1031,7 +1032,7 @@ public:
       tt = NewString("0");
     }
     /* Now add symbol to the PERL interpreter */
-    if (GetFlag(n, "feature:immutable")) {
+    if (!assignable) {
       Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", get_name, ",", tt, " },\n", NIL);
 
     } else {
@@ -1514,67 +1515,67 @@ public:
     if ((blessed) && (!Getattr(n, "sym:nextSibling"))) {
 
       if (Strstr(symname, "__eq__")) {
-	DohSetInt(operators, "__eq__", 1);
+	SetInt(operators, "__eq__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__ne__")) {
-	DohSetInt(operators, "__ne__", 1);
+	SetInt(operators, "__ne__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__assign__")) {
-	DohSetInt(operators, "__assign__", 1);
+	SetInt(operators, "__assign__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__str__")) {
-	DohSetInt(operators, "__str__", 1);
+	SetInt(operators, "__str__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__add__")) {
-	DohSetInt(operators, "__add__", 1);
+	SetInt(operators, "__add__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__sub__")) {
-	DohSetInt(operators, "__sub__", 1);
+	SetInt(operators, "__sub__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__mul__")) {
-	DohSetInt(operators, "__mul__", 1);
+	SetInt(operators, "__mul__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__div__")) {
-	DohSetInt(operators, "__div__", 1);
+	SetInt(operators, "__div__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__mod__")) {
-	DohSetInt(operators, "__mod__", 1);
+	SetInt(operators, "__mod__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__and__")) {
-	DohSetInt(operators, "__and__", 1);
+	SetInt(operators, "__and__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__or__")) {
-	DohSetInt(operators, "__or__", 1);
+	SetInt(operators, "__or__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__not__")) {
-	DohSetInt(operators, "__not__", 1);
+	SetInt(operators, "__not__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__gt__")) {
-	DohSetInt(operators, "__gt__", 1);
+	SetInt(operators, "__gt__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__ge__")) {
-	DohSetInt(operators, "__ge__", 1);
+	SetInt(operators, "__ge__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__lt__")) {
-	DohSetInt(operators, "__lt__", 1);
+	SetInt(operators, "__lt__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__le__")) {
-	DohSetInt(operators, "__le__", 1);
+	SetInt(operators, "__le__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__neg__")) {
-	DohSetInt(operators, "__neg__", 1);
+	SetInt(operators, "__neg__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__plusplus__")) {
-	DohSetInt(operators, "__plusplus__", 1);
+	SetInt(operators, "__plusplus__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__minmin__")) {
-	DohSetInt(operators, "__minmin__", 1);
+	SetInt(operators, "__minmin__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__mineq__")) {
-	DohSetInt(operators, "__mineq__", 1);
+	SetInt(operators, "__mineq__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__pluseq__")) {
-	DohSetInt(operators, "__pluseq__", 1);
+	SetInt(operators, "__pluseq__", 1);
 	have_operators = 1;
       }
 
@@ -2181,14 +2182,6 @@ public:
 	  p = Getattr(p, "tmap:in:next");
 	  continue;
 	}
-
-	/* old style?  caused segfaults without the p!=0 check
-	   in the for() condition, and seems dangerous in the
-	   while loop as well.
-	   while (Getattr(p, "tmap:ignore")) {
-	   p = Getattr(p, "tmap:ignore:next");
-	   }
-	 */
 
 	if (Getattr(p, "tmap:directorargout") != 0)
 	  outputs++;

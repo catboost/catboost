@@ -9,20 +9,6 @@
  * User Directives 
  * ----------------------------------------------------------------------------- */
 
-/* Deprecated SWIG-1.1 directives */
-
-#define %disabledoc     %warn "104:%disabledoc is deprecated"
-#define %enabledoc      %warn "105:%enabledoc is deprecated"
-#define %doconly        %warn "106:%doconly is deprecated"
-#define %style          %warn "107:%style is deprecated" /##/
-#define %localstyle     %warn "108:%localstyle is deprecated" /##/
-#define %title          %warn "109:%title is deprecated" /##/
-#define %section        %warn "110:%section is deprecated" /##/
-#define %subsection     %warn "111:%subsection is deprecated" /##/
-#define %subsubsection  %warn "112:%subsubsection is deprecated" /##/
-#define %new            %warn "117:%new is deprecated. Use %newobject"
-#define %text           %insert("null")
-
 /* Code insertion directives such as %wrapper %{ ... %} */
 
 #define %begin       %insert("begin")
@@ -31,19 +17,12 @@
 #define %wrapper     %insert("wrapper")
 #define %init        %insert("init")
 
-/* Class extension */
-
-#define %addmethods  %warn "113:%addmethods is now %extend" %extend
-
 /* %ignore directive */
 
 #define %ignore         %rename($ignore)
 #define %ignorewarn(x)  %rename("$ignore:" x)
 
 /* Access control directives */
-
-#define %readonly    %warn "114:%readonly is deprecated. Use %immutable; " %feature("immutable");
-#define %readwrite   %warn "115:%readwrite is deprecated. Use %mutable; " %feature("immutable","");
 
 #define %immutable       %feature("immutable")
 #define %noimmutable     %feature("immutable","0")
@@ -361,6 +340,11 @@ static int NAME(TYPE x) {
 %define SWIG_TYPECHECK_STDUNISTRING 115    %enddef
 %define SWIG_TYPECHECK_UNISTRING    120    %enddef
 %define SWIG_TYPECHECK_CHAR         130    %enddef
+/* Give std::string_view a slightly higher precedence because if there are
+ * overloaded forms then it may be more efficient to pass as std::string_view
+ * (e.g. to pass as std::string requires copying the data into a std::string).
+ */
+%define SWIG_TYPECHECK_STRINGVIEW   134    %enddef
 %define SWIG_TYPECHECK_STDSTRING    135    %enddef
 %define SWIG_TYPECHECK_STRING       140    %enddef
 %define SWIG_TYPECHECK_PAIR         150    %enddef
@@ -560,13 +544,13 @@ namespace std {
 
 /* memberin/globalin typemap for arrays. */
 
-%typemap(memberin,fragment="<string.h>") SWIGTYPE [ANY] {
+%typemap(memberin) SWIGTYPE [ANY] {
   size_t ii;
   $1_basetype *b = ($1_basetype *) $1;
   for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
 }
 
-%typemap(globalin,fragment="<string.h>") SWIGTYPE [ANY] {
+%typemap(globalin) SWIGTYPE [ANY] {
   size_t ii;
   $1_basetype *b = ($1_basetype *) $1;
   for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
@@ -574,7 +558,7 @@ namespace std {
 
 /* memberin/globalin typemap for double arrays. */
 
-%typemap(memberin,fragment="<string.h>") SWIGTYPE [ANY][ANY] {
+%typemap(memberin) SWIGTYPE [ANY][ANY] {
   $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
   $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
   size_t ii = 0;
@@ -586,7 +570,7 @@ namespace std {
   }
 }
 
-%typemap(globalin,fragment="<string.h>") SWIGTYPE [ANY][ANY] {
+%typemap(globalin) SWIGTYPE [ANY][ANY] {
   $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
   $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
   size_t ii = 0;
@@ -727,3 +711,4 @@ template <typename T> T SwigValueInit() {
 %}
 #endif
 
+%insert("runtime") "swigcompat.swg"

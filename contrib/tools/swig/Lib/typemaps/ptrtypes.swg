@@ -184,13 +184,33 @@
 %enddef
 
 /*---------------------------------------------------------------------
+ * typemap definition for types with from method for ptr types
+ * Same as typemaps_from but without varout typemap
+ *---------------------------------------------------------------------*/
+
+%define %ptr_typemaps_from(FromMeth, FromFrag, Type...)
+  %value_out_typemap(%arg(FromMeth), %arg(FromFrag), Type);
+  /* No varout typemap */
+  %value_constcode_typemap(%arg(FromMeth), %arg(FromFrag), Type);
+  %value_directorin_typemap(%arg(FromMeth), %arg(FromFrag), Type);
+  %value_throws_typemap(%arg(FromMeth), %arg(FromFrag), Type);
+  %value_output_typemap(%arg(FromMeth), %arg(FromFrag), Type);
+%enddef
+
+/*---------------------------------------------------------------------
  * typemap definition for types with asptr/from methods
  *---------------------------------------------------------------------*/
 
 %define %typemaps_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, Type...)
   %typemaps_asptr(%arg(CheckCode), %arg(AsPtrMeth), %arg(AsPtrFrag), Type)
+  %ptr_typemaps_from(%arg(FromMeth), %arg(FromFrag), Type);
+  %ptr_inout_typemap(Type);
+%enddef
+
+// Same as typemaps_asptrfrom but defines a varout typemap to wrap with value semantics instead of the default pointer semantics
+%define %_typemaps_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, Type...)
+  %typemaps_asptr(%arg(CheckCode), %arg(AsPtrMeth), %arg(AsPtrFrag), Type)
   %typemaps_from(%arg(FromMeth), %arg(FromFrag), Type);
-  %value_output_typemap(%arg(FromMeth), %arg(FromFrag), Type);
   %ptr_inout_typemap(Type);
 %enddef
 
@@ -199,7 +219,7 @@
  *---------------------------------------------------------------------*/
 
 %define %typemaps_asptrfromn(CheckCode, Type...)
-%typemaps_asptrfrom(%arg(CheckCode),
+%_typemaps_asptrfrom(%arg(CheckCode),
 		   %arg(SWIG_AsPtr(Type)), 
 		   %arg(SWIG_From(Type)), 
 		   %arg(SWIG_AsPtr_frag(Type)), 

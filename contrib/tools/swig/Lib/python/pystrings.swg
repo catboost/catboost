@@ -2,8 +2,10 @@
  *  utility methods for char strings 
  * ------------------------------------------------------------ */
 %fragment("SWIG_AsCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
+/* Return string from Python obj. NOTE: obj must remain in scope in order
+   to use the returned cptr (but only when alloc is set to SWIG_OLDOBJ) */
 SWIGINTERN int
-SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
+SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
 {
 %#if PY_VERSION_HEX>=0x03000000
 %#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
@@ -16,55 +18,31 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 %#endif
   {
     char *cstr; Py_ssize_t len;
+    PyObject *bytes = NULL;
     int ret = SWIG_OK;
-%#if PY_VERSION_HEX>=0x03000000
-%#if !defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
-    if (!alloc && cptr) {
-        /* We can't allow converting without allocation, since the internal
-           representation of string in Python 3 is UCS-2/UCS-4 but we require
-           a UTF-8 representation.
-           TODO(bhy) More detailed explanation */
-        return SWIG_RuntimeError;
-    }
-    obj = PyUnicode_AsUTF8String(obj);
-    if (!obj)
-      return SWIG_TypeError;
     if (alloc)
-      *alloc = SWIG_NEWOBJ;
-%#endif
+      *alloc = SWIG_OLDOBJ;
+%#if PY_VERSION_HEX>=0x03000000 && defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
     if (PyBytes_AsStringAndSize(obj, &cstr, &len) == -1)
       return SWIG_TypeError;
 %#else
-    if (PyString_AsStringAndSize(obj, &cstr, &len) == -1)
+    cstr = (char *)SWIG_PyUnicode_AsUTF8AndSize(obj, &len, &bytes);
+    if (!cstr)
       return SWIG_TypeError;
-%#endif
-    if (cptr) {
+    /* The returned string is only duplicated if the char * returned is not owned and memory managed by obj */
+    if (bytes && cptr) {
       if (alloc) {
-	if (*alloc == SWIG_NEWOBJ) {
-	  *cptr = %new_copy_array(cstr, len + 1, char);
-	  *alloc = SWIG_NEWOBJ;
-	} else {
-	  *cptr = cstr;
-	  *alloc = SWIG_OLDOBJ;
-	}
+        cstr = %new_copy_array(cstr, len + 1, char);
+        *alloc = SWIG_NEWOBJ;
       } else {
-%#if PY_VERSION_HEX>=0x03000000
-%#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
-	*cptr = PyBytes_AsString(obj);
-%#else
-	assert(0); /* Should never reach here with Unicode strings in Python 3 */
-%#endif
-%#else
-	*cptr = SWIG_Python_str_AsChar(obj);
-        if (!*cptr)
-          ret = SWIG_TypeError;
-%#endif
+        /* alloc must be set in order to clean up allocated memory */
+        return SWIG_RuntimeError;
       }
     }
-    if (psize) *psize = len + 1;
-%#if PY_VERSION_HEX>=0x03000000 && !defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
-    Py_XDECREF(obj);
 %#endif
+    if (cptr) *cptr = cstr;
+    if (psize) *psize = len + 1;
+    Py_XDECREF(bytes);
     return ret;
   } else {
 %#if defined(SWIG_PYTHON_2_UNICODE)

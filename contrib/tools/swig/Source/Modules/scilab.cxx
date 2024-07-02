@@ -26,6 +26,7 @@ Scilab options (available with -scilab)\n \
      -buildersources <files>                - Add the (comma separated) files <files> to the builder sources\n \
      -builderverbositylevel <level>         - Set the builder verbosity level to <level> (default 0: off, 2: high)\n \
      -gatewayxml <gateway_id>               - Generate gateway xml with the given <gateway_id>\n \
+     -gatewayxml6                           - Generate gateway xml for Scilab 6\n \
 \n";
 
 
@@ -64,6 +65,10 @@ protected:
   String *gatewayID;
   int primitiveID;
 
+  bool createGatewayXMLV6;
+  File *gatewayXMLFileV6;
+  String *gatewayXMLV6;
+
   bool createLoader;
   File *loaderFile;
   String *loaderScript;
@@ -92,6 +97,10 @@ public:
     gatewayXML = NULL;
     gatewayXMLFile = NULL;
     gatewayID = NULL;
+
+    createGatewayXMLV6 = false;
+    gatewayXMLV6 = NULL;
+    gatewayXMLFileV6 = NULL;
 
     createLoader = true;
     loaderFile = NULL;
@@ -141,6 +150,9 @@ public:
           createGatewayXML = true;
           gatewayID = NewString(argv[argIndex + 1]);
           Swig_mark_arg(argIndex + 1);
+        } else if (strcmp(argv[argIndex], "-gatewayxml6") == 0) {
+          Swig_mark_arg(argIndex);
+          createGatewayXMLV6 = true;
         }
       }
     }
@@ -216,6 +228,11 @@ public:
       createGatewayXMLFile(gatewayName);
     }
 
+    // Create gateway XML V6 if required
+    if (createGatewayXMLV6) {
+      createGatewayXMLFileV6(gatewayName);
+    }
+
     // Create loader script if required
     if (createLoader) {
       createLoaderFile(gatewayLibraryName);
@@ -276,6 +293,9 @@ public:
 
     if (createGatewayXML) {
       saveGatewayXMLFile();
+    }
+    if (createGatewayXMLV6) {
+      saveGatewayXMLFileV6();
     }
 
     if (createLoader) {
@@ -360,7 +380,7 @@ public:
     int maxInputArguments = emit_num_arguments(functionParamsList);
     int minInputArguments = emit_num_required(functionParamsList);
     int minOutputArguments = 0;
-    int maxOutputArguments = 1;
+    int maxOutputArguments = 0;
 
     if (!emit_isvarargs(functionParamsList)) {
       Printf(wrapper->code, "SWIG_CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
@@ -623,7 +643,7 @@ public:
     addFunctionToScilab(scilabGetFunctionName, scilabGetSmallFunctionName, getFunctionName);
 
     /* Manage SET function */
-    if (is_assignable(node)) {
+    if (!is_immutable(node)) {
       Wrapper *setFunctionWrapper = NewWrapper();
       String *setFunctionName = Swig_name_set(NSPACE_TODO, variableName);
       String *scilabSetFunctionName = Swig_name_set(NSPACE_TODO, variableName);
@@ -812,6 +832,10 @@ public:
     if (gatewayXMLFile) {
       Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabSmallFunctionName);
     }
+
+    if (gatewayXMLFileV6) {
+      Printf(gatewayXMLV6, "<gateway name=\"%s\" function=\"%s\" type=\"0\"/>\n", scilabFunctionName, scilabFunctionName);
+    }
   }
 
 
@@ -942,6 +966,39 @@ public:
   }
 
   /* -----------------------------------------------------------------------
+   * createGatewayXMLFileV6()
+   * This XML file is used by Scilab 6 in the context of internal modules or
+   * to get the function list.
+   * ----------------------------------------------------------------------- */
+
+  void createGatewayXMLFileV6(String *gatewayName) {
+    String *gatewayXMLFilename = NewStringf("%s_gateway.xml", gatewayName);
+    gatewayXMLFileV6 = NewFile(gatewayXMLFilename, "w", SWIG_output_files());
+    if (!gatewayXMLFileV6) {
+      FileErrorDisplay(gatewayXMLFilename);
+      Exit(EXIT_FAILURE);
+    }
+    // Add a slightly modified SWIG banner to the gateway XML ("--modify" is illegal in XML)
+    gatewayXMLV6 = NewString("");
+    Printf(gatewayXMLV6, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
+    Printf(gatewayXMLV6, "<!DOCTYPE module SYSTEM \"../../functions/xml/gateway.dtd\">\n");
+    Printf(gatewayXMLV6, "<!--\n");
+    Swig_banner_target_lang(gatewayXMLV6, "");
+    Printf(gatewayXMLV6, "-->\n");
+    Printf(gatewayXMLV6, "<module name=\"%s\">\n", gatewayName);
+  }
+
+  /* -----------------------------------------------------------------------
+   * saveGatewayXMLFileV6()
+   * ----------------------------------------------------------------------- */
+
+  void saveGatewayXMLFileV6() {
+    Printf(gatewayXMLV6, "</module>\n");
+    Printv(gatewayXMLFileV6, gatewayXMLV6, NIL);
+    Delete(gatewayXMLFileV6);
+  }
+
+  /* -----------------------------------------------------------------------
    * createGatewayXMLFile()
    * This XML file is used by Scilab in the context of internal modules
    * ----------------------------------------------------------------------- */
@@ -1046,10 +1103,10 @@ public:
     Printf(gatewayHeaderV6, "return 1;\n");
     Printf(gatewayHeaderV6, "};\n");
 
-    Printf(gatewayHeader, "#if SWIG_SCILAB_VERSION >= 600\n");
-    Printv(gatewayHeader, gatewayHeaderV6, NIL);
-    Printf(gatewayHeader, "#else\n");
+    Printf(gatewayHeader, "#if SCI_VERSION_MAJOR < 6\n");
     Printv(gatewayHeader, gatewayHeaderV5, NIL);
+    Printf(gatewayHeader, "#else\n");
+    Printv(gatewayHeader, gatewayHeaderV6, NIL);
     Printf(gatewayHeader, "#endif\n");
   }
 

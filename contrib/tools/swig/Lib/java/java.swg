@@ -1039,7 +1039,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
                  unsigned long, 
                  unsigned short
 %{ char error_msg[256];
-   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
+   SWIG_snprintf(error_msg, sizeof(error_msg), "C++ $1_type exception thrown, value: %d", $1);
    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, error_msg);
    return $null; %}
 
@@ -1304,7 +1304,7 @@ SWIG_JAVABODY_PROXY(protected, protected, SWIGTYPE)
 SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
 
 %typemap(javafinalize) SWIGTYPE %{
-  @SuppressWarnings("deprecation")
+  @SuppressWarnings({"deprecation", "removal"})
   protected void finalize() {
     delete();
   }
@@ -1399,10 +1399,17 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %pragma(java) jniclassclassmodifiers="public class"
 %pragma(java) moduleclassmodifiers="public class"
 
-/* Some ANSI C typemaps */
+/* 64-bit architecture specific typemaps */
+#if defined(SWIGWORDSIZE64)
+%apply long long { long };
+%apply unsigned long long { unsigned long };
+%apply const long long & { const long & };
+%apply const unsigned long long & { const unsigned long & };
+#endif
 
-%apply unsigned long { size_t };
-%apply const unsigned long & { const size_t & };
+/* size_t maps to Java 64-bit (signed) long type */
+%apply unsigned int { size_t };
+%apply const unsigned int & { const size_t & };
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }

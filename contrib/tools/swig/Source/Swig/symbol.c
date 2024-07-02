@@ -495,7 +495,7 @@ void Swig_symbol_alias(const_String_or_char_ptr aliasname, Symtab *s) {
  *
  * Inherit symbols from another scope. Primarily for C++ inheritance and
  * for using directives, such as 'using namespace X;'
- * but not for using declarations, such as 'using A;'.
+ * but not for using declarations, such as 'using X::A;'.
  * ----------------------------------------------------------------------------- */
 
 void Swig_symbol_inherit(Symtab *s) {
@@ -553,6 +553,12 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
     String *cname = NewString(name);
     String *dname = Swig_symbol_template_deftype(cname, 0);
     if (!Equal(dname, name)) {
+      /* Add another symbol with all template default arguments expanded, eg
+       *
+       * template <typename T1, typename T2 = short> struct X {};
+       * %template(XInt) X<int>;
+       *
+       * then name=X<int>, and dname=X<int,short> so add X<int,short> here too. */
       Swig_symbol_cadd(dname, n);
     }
     Delete(dname);
@@ -705,7 +711,7 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
  * for namespace support, type resolution, and other issues.
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
+static Node *symbol_add(const_String_or_char_ptr symname, Node *n) {
   Hash *c, *cl = 0;
   SwigType *decl, *ndecl;
   String *cstorage, *nstorage;
@@ -744,7 +750,6 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
 
   /* No symbol name defined.  We return. */
   if (!symname) {
-    Setattr(n, "sym:symtab", current_symtab);
     return n;
   }
 
@@ -839,10 +844,10 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
 
       /* Hmmm.  This appears to be okay.  Make sure the symbol table refers to the allow_type node */
 
-      if (td != c) {
+      Setattr(n, "sym:symtab", current_symtab);
+      Setattr(n, "sym:name", symname);
+      if (td == n) {
 	Setattr(current, symname, td);
-	Setattr(td, "sym:symtab", current_symtab);
-	Setattr(td, "sym:name", symname);
       }
       return n;
     }
@@ -942,6 +947,69 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
   return n;
 }
 
+Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
+  Node *nn = symbol_add(symname, n);
+  /* Always set the symtab to have correct scope in case of error reporting */
+  if (!Getattr(n, "sym:symtab"))
+    Setattr(n, "sym:symtab", current_symtab);
+  return nn;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_conflict_warn()
+ *
+ * Issue warnings for node n if it conflicts with node c after calling
+ * Swig_symbol_add().
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int inclass) {
+  String *e = NewStringEmpty();
+  String *en = NewStringEmpty();
+  String *ec = NewStringEmpty();
+  String *symname_stripped = SwigType_templateprefix(symname);
+  String *n_name_stripped = SwigType_templateprefix(Getattr(n, "name"));
+  String *c_name_stripped = SwigType_templateprefix(Getattr(c, "name"));
+  int redefined = Swig_need_redefined_warn(n, c, inclass);
+  String *n_name_decl = Swig_name_decl(n);
+  String *c_name_decl = Swig_name_decl(c);
+  if (redefined) {
+    Printf(en, "Redefinition of identifier '%s'", symname_stripped);
+    Printf(ec, "previous definition of '%s'", symname_stripped);
+  } else {
+    Printf(en, "Redundant redeclaration of identifier '%s'", symname_stripped);
+    Printf(ec, "previous declaration of '%s'", symname_stripped);
+  }
+  if (!Equal(symname_stripped, n_name_stripped))
+    Printf(en, " (Renamed from '%s')", SwigType_namestr(n_name_stripped));
+  if (!Equal(symname_stripped, c_name_stripped))
+    Printf(ec, " (Renamed from '%s')", SwigType_namestr(c_name_stripped));
+  if (!Equal(n_name_stripped, n_name_decl))
+    Printf(en, " as %s", n_name_decl);
+  if (!Equal(c_name_stripped, c_name_decl))
+    Printf(ec, " as %s", c_name_decl);
+  Printf(en, " ignored,");
+  Printf(ec, ".");
+  SWIG_WARN_NODE_BEGIN(n);
+  if (redefined) {
+    Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
+    Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
+  } else if (!Checkattr(n, "storage", "friend") && !Checkattr(c, "storage", "friend")) {
+    Swig_warning(WARN_PARSE_REDUNDANT, Getfile(n), Getline(n), "%s\n", en);
+    Swig_warning(WARN_PARSE_REDUNDANT, Getfile(c), Getline(c), "%s\n", ec);
+  }
+  SWIG_WARN_NODE_END(n);
+  Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(n), Getline(n), en, Getfile(c), Getline(c), ec);
+  Setattr(n, "error", e);
+  Delete(c_name_decl);
+  Delete(n_name_decl);
+  Delete(symname_stripped);
+  Delete(c_name_stripped);
+  Delete(n_name_stripped);
+  Delete(e);
+  Delete(en);
+  Delete(ec);
+}
+
 /* -----------------------------------------------------------------------------
  * symbol_lookup()
  *
@@ -951,12 +1019,12 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
  *
  * This function operates in the C namespace, not the target namespace.
  *
- * The check function is an optional callback that can be used to verify a particular
+ * The checkfunc function is an optional callback that can be used to verify a particular
  * symbol match.   This is only used in some of the more exotic parts of SWIG. For instance,
  * verifying that a class hierarchy implements all pure virtual methods.
  * ----------------------------------------------------------------------------- */
 
-static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (Node *n)) {
+static Node *_symbol_lookup(const String *name, Symtab *symtab, Node *(*checkfunc) (Node *n)) {
   Node *n;
   List *inherit;
   Hash *sym = Getattr(symtab, "csymtab");
@@ -971,17 +1039,13 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
 #endif
 
   if (n) {
-    /* if a check-function is defined.  Call it to determine a match */
-    if (check) {
-      int c = check(n);
-      if (c == 1) {
+    /* if checkfunc is defined.  Call it to determine a match */
+    if (checkfunc) {
+      Node *cn = checkfunc(n);
+      if (cn) {
 	Setmark(symtab, 0);
-	return n;
-      }
-      if (c < 0) {
-	/* Terminate the search right away */
-	Setmark(symtab, 0);
-	return 0;
+	/* Note that checkfunc can return n != cn, where cn could be a node further down the csym linked list starting at n */
+	return cn;
       }
     } else {
       Setmark(symtab, 0);
@@ -994,7 +1058,7 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
     Setmark(symtab, 0);
     dname = Swig_symbol_template_deftype(name, symtab);
     if (!Equal(dname, name)) {
-      n = _symbol_lookup(dname, symtab, check);
+      n = _symbol_lookup(dname, symtab, checkfunc);
     }
     Delete(dname);
     if (n)
@@ -1007,7 +1071,7 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
     int i, len;
     len = Len(inherit);
     for (i = 0; i < len; i++) {
-      n = _symbol_lookup(name, Getitem(inherit, i), check);
+      n = _symbol_lookup(name, Getitem(inherit, i), checkfunc);
       if (n) {
 	Setmark(symtab, 0);
 	return n;
@@ -1019,13 +1083,13 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
   return 0;
 }
 
-static Node *symbol_lookup(const_String_or_char_ptr name, Symtab *symtab, int (*check) (Node *n)) {
+static Node *symbol_lookup(const_String_or_char_ptr name, Symtab *symtab, Node *(*checkfunc) (Node *n)) {
   Node *n = 0;
   if (DohCheck(name)) {
-    n = _symbol_lookup(name, symtab, check);
+    n = _symbol_lookup(name, symtab, checkfunc);
   } else {
     String *sname = NewString(name);
-    n = _symbol_lookup(sname, symtab, check);
+    n = _symbol_lookup(sname, symtab, checkfunc);
     Delete(sname);
   }
   return n;
@@ -1037,7 +1101,7 @@ static Node *symbol_lookup(const_String_or_char_ptr name, Symtab *symtab, int (*
  * symbol_lookup_qualified()
  * ----------------------------------------------------------------------------- */
 
-static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symtab, const String *prefix, int local, int (*checkfunc) (Node *n)) {
+static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symtab, const String *prefix, int local, Node *(*checkfunc) (Node *n)) {
   /* This is a little funky, we search by fully qualified names */
 
   if (!symtab)
@@ -1173,20 +1237,22 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
     }
   }
 
-  if (!s) {
-    return 0;
-  }
   /* Check if s is a 'using' node */
   while (s && Checkattr(s, "nodeType", "using")) {
-    String *uname = Getattr(s, "uname");
-    Symtab *un = Getattr(s, "sym:symtab");
-    Node *ss = (!Equal(name, uname) || (un != n)) ? Swig_symbol_clookup(uname, un) : 0;	/* avoid infinity loop */
-    if (!ss) {
-      SWIG_WARN_NODE_BEGIN(s);
-      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
-      SWIG_WARN_NODE_END(s);
+    if (Getattr(s, "csym:nextSibling")) {
+      /* overloaded using declarations and method declarations - don't chase the using declarations up the inheritance hierarchy  */
+      break;
+    } else {
+      String *uname = Getattr(s, "uname");
+      Symtab *un = Getattr(s, "sym:symtab");
+      Node *ss = (!Equal(name, uname) || (un != n)) ? Swig_symbol_clookup(uname, un) : 0;	/* avoid infinity loop */
+      if (!ss) {
+	SWIG_WARN_NODE_BEGIN(s);
+	Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(uname));
+	SWIG_WARN_NODE_END(s);
+      }
+      s = ss;
     }
-    s = ss;
   }
   return s;
 }
@@ -1201,7 +1267,7 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
  * inheritance hierarchy. 
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*checkfunc) (Node *n)) {
+Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, Node *(*checkfunc) (Node *n)) {
   Hash *hsym = 0;
   Node *s = 0;
 
@@ -1248,19 +1314,23 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*
 	break;
     }
   }
-  if (!s) {
-    return 0;
-  }
+
   /* Check if s is a 'using' node */
   while (s && Checkattr(s, "nodeType", "using")) {
-    Node *ss;
-    ss = Swig_symbol_clookup(Getattr(s, "uname"), Getattr(s, "sym:symtab"));
-    if (!ss && !checkfunc) {
-      SWIG_WARN_NODE_BEGIN(s);
-      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
-      SWIG_WARN_NODE_END(s);
+    if (Getattr(s, "csym:nextSibling")) {
+      /* overloaded using declarations and method declarations - don't chase the using declarations up the inheritance hierarchy  */
+      break;
+    } else {
+      String *uname = Getattr(s, "uname");
+      Symtab *un = Getattr(s, "sym:symtab");
+      Node *ss = Swig_symbol_clookup_check(uname, un, checkfunc);
+      if (!ss && !checkfunc) {
+	SWIG_WARN_NODE_BEGIN(s);
+	Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(uname));
+	SWIG_WARN_NODE_END(s);
+      }
+      s = ss;
     }
-    s = ss;
   }
   return s;
 }
@@ -1303,17 +1373,23 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
   if (!s) {
     s = symbol_lookup(name, hsym, 0);
   }
-  if (!s)
-    return 0;
+
   /* Check if s is a 'using' node */
   while (s && Checkattr(s, "nodeType", "using")) {
-    Node *ss = Swig_symbol_clookup_local(Getattr(s, "uname"), Getattr(s, "sym:symtab"));
-    if (!ss) {
-      SWIG_WARN_NODE_BEGIN(s);
-      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
-      SWIG_WARN_NODE_END(s);
+    if (Getattr(s, "csym:nextSibling")) {
+      /* overloaded using declarations and method declarations - don't chase the using declarations up the inheritance hierarchy  */
+      break;
+    } else {
+      String *uname = Getattr(s, "uname");
+      Symtab *un = Getattr(s, "sym:symtab");
+      Node *ss = Swig_symbol_clookup_local(uname, un);
+      if (!ss) {
+	SWIG_WARN_NODE_BEGIN(s);
+	Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(uname));
+	SWIG_WARN_NODE_END(s);
+      }
+      s = ss;
     }
-    s = ss;
   }
   return s;
 }
@@ -1322,7 +1398,7 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
  * Swig_symbol_clookup_local_check()
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, int (*checkfunc) (Node *)) {
+Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, Node *(*checkfunc) (Node *)) {
   Hash *hsym;
   Node *s = 0;
 
@@ -1353,17 +1429,23 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
   if (!s) {
     s = symbol_lookup(name, hsym, checkfunc);
   }
-  if (!s)
-    return 0;
+
   /* Check if s is a 'using' node */
   while (s && Checkattr(s, "nodeType", "using")) {
-    Node *ss = Swig_symbol_clookup_local_check(Getattr(s, "uname"), Getattr(s, "sym:symtab"), checkfunc);
-    if (!ss && !checkfunc) {
-      SWIG_WARN_NODE_BEGIN(s);
-      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
-      SWIG_WARN_NODE_END(s);
+    if (Getattr(s, "csym:nextSibling")) {
+      /* overloaded using declarations and method declarations - don't chase the using declarations up the inheritance hierarchy  */
+      break;
+    } else {
+      String *uname = Getattr(s, "uname");
+      Symtab *un = Getattr(s, "sym:symtab");
+      Node *ss = Swig_symbol_clookup_local_check(uname, un, checkfunc);
+      if (!ss && !checkfunc) {
+	SWIG_WARN_NODE_BEGIN(s);
+	Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(uname));
+	SWIG_WARN_NODE_END(s);
+      }
+      s = ss;
     }
-    s = ss;
   }
   return s;
 }
@@ -1371,7 +1453,8 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_clookup_no_inherit()
  *
- * Symbol lookup like Swig_symbol_clookup but does not follow using declarations.
+ * Symbol lookup like Swig_symbol_clookup but does not follow using directives.
+ * Using declarations are followed.
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_no_inherit(const_String_or_char_ptr name, Symtab *n) {
@@ -1407,7 +1490,6 @@ Symtab *Swig_symbol_cscope(const_String_or_char_ptr name, Symtab *symtab) {
 void Swig_symbol_remove(Node *n) {
   Symtab *symtab;
   String *symname;
-  String *overname;
   Node *symprev;
   Node *symnext;
   Node *fixovername = 0;
@@ -1449,11 +1531,22 @@ void Swig_symbol_remove(Node *n) {
   Delattr(n, "sym:overname");
   Delattr(n, "csym:previousSibling");
   Delattr(n, "sym:overloaded");
-  n = 0;
 
-  if (fixovername) {
-    Node *nn = fixovername;
-    Node *head = fixovername;
+  Swig_symbol_fix_overname(fixovername);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_fix_overname()
+ *
+ * Fix/update the sym:overname attribute for all the overloaded names.
+ * The sym:overname attributes are changed to start from zero, eg __SWIG_0.
+ * Call this when the linked lists for overloaded methods are modified.
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_fix_overname(Node *n) {
+  if (n) {
+    Node *nn = n;
+    Node *head = n;
     int pn = 0;
 
     /* find head of linked list */
@@ -1465,9 +1558,8 @@ void Swig_symbol_remove(Node *n) {
     /* adjust all the sym:overname strings to start from 0 and increment by one */
     nn = head;
     while (nn) {
-      assert(Getattr(nn, "sym:overname"));
+      String *overname = NewStringf("__SWIG_%d", pn);
       Delattr(nn, "sym:overname");
-      overname = NewStringf("__SWIG_%d", pn);
       Setattr(nn, "sym:overname", overname);
       Delete(overname);
       pn++;
@@ -1585,8 +1677,12 @@ static SwigType *symbol_template_qualify(const SwigType *e, Symtab *st) {
 }
 
 
-static int symbol_no_constructor(Node *n) {
-  return !Checkattr(n, "nodeType", "constructor");
+static Node *symbol_no_constructor(Node *n) {
+  return Checkattr(n, "nodeType", "constructor") ? 0 : n;
+}
+
+static Node *symbol_is_template(Node *n) {
+  return Checkattr(n, "nodeType", "template") ? n : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1746,7 +1842,7 @@ SwigType *Swig_symbol_typedef_reduce(const SwigType *ty, Symtab *tab) {
 
   n = Swig_symbol_clookup(base, tab);
   if (!n) {
-    if (SwigType_istemplate(ty)) {
+    if (SwigType_istemplate(base)) {
       SwigType *qt = Swig_symbol_template_reduce(base, tab);
       Append(prefix, qt);
       Delete(qt);
@@ -1944,6 +2040,7 @@ ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope,
  * Swig_symbol_template_deftype()
  *
  * Apply default args to generic template type
+ * Return input type with template args expanded to include default template args
  * ----------------------------------------------------------------------------- */
 
 #define SWIG_TEMPLATE_DEFTYPE_CACHE
@@ -2018,9 +2115,9 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
       String *targs = SwigType_templateargs(base);
       String *tsuffix = SwigType_templatesuffix(base);
       ParmList *tparms = SwigType_function_parms(targs, 0);
-      Node *tempn = Swig_symbol_clookup_local(tprefix, tscope);
+      Node *tempn = Swig_symbol_clookup_local_check(tprefix, tscope, symbol_is_template);
       if (!tempn && tsuffix && Len(tsuffix)) {
-	tempn = Swig_symbol_clookup(tprefix, 0);
+	tempn = Swig_symbol_clookup_check(tprefix, 0, symbol_is_template);
       }
 #ifdef SWIG_DEBUG
       Printf(stderr, "deftype type %s %s %d\n", e, tprefix, (long) tempn);

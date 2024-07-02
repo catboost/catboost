@@ -140,10 +140,6 @@ to a Tcl variable you might do this :
 
        x = neg(x)
 
-Note : previous versions of SWIG used the symbol 'BOTH' to mark
-input/output arguments.   This is still supported, but will be slowly
-phased out in future releases.
-
 */
 
 

@@ -52,9 +52,9 @@ extern "C" {
 
 static TargetLanguageModule modules[] = {
   {"-allegrocl", NULL, "ALLEGROCL", Disabled},
+  {"-cffi", NULL, "CFFI", Disabled},
   {"-chicken", NULL, "CHICKEN", Disabled},
   {"-clisp", NULL, "CLISP", Disabled},
-  {"-cffi", NULL, "CFFI", Disabled},
   {"-csharp", swig_csharp, "C#", Supported},
   {"-d", swig_d, "D", Supported},
   {"-go", swig_go, "Go", Supported},
@@ -70,7 +70,7 @@ static TargetLanguageModule modules[] = {
   {"-perl5", swig_perl5, "Perl 5", Supported},
   {"-php", swig_php, NULL, Supported},
   {"-php5", NULL, "PHP 5", Disabled},
-  {"-php7", swig_php, "PHP 7 or later", Supported},
+  {"-php7", swig_php, "PHP 8 or later", Supported},
   {"-pike", NULL, "Pike", Disabled},
   {"-python", swig_python, "Python", Supported},
   {"-r", swig_r, "R (aka GNU S)", Supported},
@@ -213,6 +213,8 @@ int main(int margc, char **margv) {
 
   int argc;
   char **argv;
+
+  /* Check for SWIG_FEATURES environment variable */
 
   SWIG_merge_envopt(getenv("SWIG_FEATURES"), margc, margv, &argc, &argv);
   merge_options_files(&argc, &argv);

@@ -114,6 +114,10 @@ void Swig_print_node(Node *obj) {
 	}
 	Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
 	Delete(o);
+/*
+      } else if (DohIsSequence(value)) {
+	Printf(stdout, "%-12s - %s\n", k, value);
+*/
       } else {
 	Printf(stdout, "%-12s - %p\n", k, value);
       }
@@ -322,7 +326,7 @@ void Swig_require(const char *ns, Node *n, ...) {
       Exit(EXIT_FAILURE);
     }
     if (!obj)
-      obj = DohNone;
+      obj = None;
     if (newref) {
       /* Save a copy of the attribute */
       Setattr(n, NewStringf("%s:%s", ns, name), obj);
@@ -367,7 +371,7 @@ void Swig_save(const char *ns, Node *n, ...) {
     }
     obj = Getattr(n, name);
     if (!obj)
-      obj = DohNone;
+      obj = None;
 
     /* Save a copy of the attribute */
     if (Setattr(n, NewStringf("%s:%s", ns, name), obj)) {

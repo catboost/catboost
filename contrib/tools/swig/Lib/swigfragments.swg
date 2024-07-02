@@ -77,6 +77,10 @@
 #include <algorithm>
 %}
 
+%fragment("<memory>", "header") %{
+#include <memory>
+%}
+
 %fragment("<stdexcept>", "header") %{
 #include <stdexcept>
 %}
@@ -85,6 +89,41 @@
 #include <string>
 %}
 
-%fragment("<memory>", "header") %{
-#include <memory>
+%fragment("<string_view>", "header") %{
+#include <string_view>
 %}
+
+%fragment("<type_traits>", "header") %{
+#include <type_traits>
+%}
+
+%fragment("<iostream>", "header") %{
+#include <iostream>
+%}
+
+/* -----------------------------------------------------------------------------
+ * Other common fragments
+ * ----------------------------------------------------------------------------- */
+
+%fragment("long_check_wordsize32", "header", fragment="<limits.h>") %{
+#if !defined(SWIG_NO_WORDSIZE32_CHECK)
+#if (__WORDSIZE == 64) || (LONG_MAX != INT_MAX)
+# error "SWIG generated code is invalid on this 64-bit architecture, please regenerate without defining SWIGWORDSIZE32 or define SWIGWORDSIZE64"
+#endif
+#endif
+%}
+
+%fragment("long_check_wordsize64", "header", fragment="<limits.h>") %{
+#if !defined(SWIG_NO_WORDSIZE64_CHECK)
+#if (__WORDSIZE == 32) || (LONG_MAX == INT_MAX)
+# error "SWIG generated code is invalid on this 32-bit architecture, please regenerate without defining SWIGWORDSIZE64 or define SWIGWORDSIZE32"
+#endif
+#endif
+%}
+
+#ifdef SWIGWORDSIZE64
+%fragment("long_check_wordsize", "header", fragment="long_check_wordsize64") {}
+#else
+%fragment("long_check_wordsize", "header", fragment="long_check_wordsize32") {}
+#endif
+

@@ -58,22 +58,6 @@ static void add_symbols_c(Node *n) {
 	if (value && Len(value)) {
 	  Setattr(n, "hasvalue", "1");
 	}
-	if (type) {
-	  SwigType *ty;
-	  SwigType *tmp = 0;
-	  if (decl) {
-	    ty = tmp = Copy(type);
-	    SwigType_push(ty, decl);
-	  } else {
-	    ty = type;
-	  }
-	  if (!SwigType_ismutable(ty)) {
-	    SetFlag(n, "hasconsttype");
-	    SetFlag(n, "feature:immutable");
-	  }
-	  if (tmp)
-	    Delete(tmp);
-	}
 	if (!type) {
 	  Printf(stderr, "notype name %s\n", name);
 	}
@@ -143,39 +127,8 @@ static void add_symbols_c(Node *n) {
       if (Getattr(n, "sym:weak")) {
 	Setattr(n, "sym:name", symname);
       } else {
-	String *e = NewStringEmpty();
-	String *en = NewStringEmpty();
-	String *ec = NewStringEmpty();
-	int redefined = Swig_need_redefined_warn(n, c, true);
-	if (redefined) {
-	  Printf(en, "Identifier '%s' redefined (ignored)", symname);
-	  Printf(ec, "previous definition of '%s'", symname);
-	} else {
-	  Printf(en, "Redundant redeclaration of '%s'", symname);
-	  Printf(ec, "previous declaration of '%s'", symname);
-	}
-	if (Cmp(symname, Getattr(n, "name"))) {
-	  Printf(en, " (Renamed from '%s')", SwigType_namestr(Getattr(n, "name")));
-	}
-	Printf(en, ",");
-	if (Cmp(symname, Getattr(c, "name"))) {
-	  Printf(ec, " (Renamed from '%s')", SwigType_namestr(Getattr(c, "name")));
-	}
-	Printf(ec, ".");
-	SWIG_WARN_NODE_BEGIN(n);
-	if (redefined) {
-	  Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
-	  Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
-	} else {
-	  Swig_warning(WARN_PARSE_REDUNDANT, Getfile(n), Getline(n), "%s\n", en);
-	  Swig_warning(WARN_PARSE_REDUNDANT, Getfile(c), Getline(c), "%s\n", ec);
-	}
-	SWIG_WARN_NODE_END(n);
-	Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(n), Getline(n), en, Getfile(c), Getline(c), ec);
-	Setattr(n, "error", e);
-	Delete(e);
-	Delete(en);
-	Delete(ec);
+	int inclass = 1;
+	Swig_symbol_conflict_warn(n, c, symname, inclass);
       }
     }
   }

@@ -30,20 +30,28 @@
 #endif
 
 
-SWIGINTERN char*
-SWIG_Python_str_AsChar(PyObject *str)
+/* Wrapper around PyUnicode_AsUTF8AndSize - call Py_XDECREF on the returned pbytes when finished with the returned string */
+SWIGINTERN const char *
+SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes)
 {
 #if PY_VERSION_HEX >= 0x03030000
-  return (char *)PyUnicode_AsUTF8(str);
+# if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030A0000
+  *pbytes = NULL;
+  return PyUnicode_AsUTF8AndSize(str, psize);
+# else
+   *pbytes = PyUnicode_AsUTF8String(str);
+   const char *chars = *pbytes ? PyBytes_AsString(*pbytes) : NULL;
+   if (chars && psize)
+     *psize = PyBytes_Size(*pbytes);
+  return chars;
+# endif
 #else
-  return PyString_AsString(str);
+  char *chars = NULL;
+  *pbytes = NULL;
+  PyString_AsStringAndSize(str, &chars, psize);
+  return chars;
 #endif
 }
-
-/* Was useful for Python 3.0.x-3.2.x - now provided only for compatibility
- * with any uses in user interface files. */
-#define SWIG_Python_str_DelForPy3(x)
-
 
 SWIGINTERN PyObject*
 SWIG_Python_str_FromChar(const char *c)
@@ -72,4 +80,18 @@ SWIG_Python_str_FromChar(const char *c)
 #define PyDescr_TYPE(x) (((PyDescrObject *)(x))->d_type)
 #define PyDescr_NAME(x) (((PyDescrObject *)(x))->d_name)
 #define Py_hash_t long
+#endif
+
+#ifdef Py_LIMITED_API
+# define PyTuple_GET_ITEM PyTuple_GetItem
+/* Note that PyTuple_SetItem() has different semantics from PyTuple_SET_ITEM as it decref's the original tuple item, so in general they cannot be used
+  interchangeably. However in SWIG-generated code PyTuple_SET_ITEM is only used with newly initialized tuples without any items and for them this does work. */
+# define PyTuple_SET_ITEM PyTuple_SetItem
+# define PyTuple_GET_SIZE PyTuple_Size
+# define PyCFunction_GET_FLAGS PyCFunction_GetFlags
+# define PyCFunction_GET_FUNCTION PyCFunction_GetFunction
+# define PyCFunction_GET_SELF PyCFunction_GetSelf
+# define PyList_GET_ITEM PyList_GetItem
+# define PyList_SET_ITEM PyList_SetItem
+# define PySliceObject PyObject
 #endif

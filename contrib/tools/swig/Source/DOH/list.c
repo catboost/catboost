@@ -73,6 +73,7 @@ static void DelList(DOH *lo) {
  * List_clear()
  *
  * Remove all of the list entries, but keep the list object intact.
+ * File and line numbering info left unmodified.
  * ----------------------------------------------------------------------------- */
 
 static void List_clear(DOH *lo) {

@@ -121,3 +121,9 @@
 #ifdef __INTEL_COMPILER
 # pragma warning disable 592
 #endif
+
+#if defined(__cplusplus) && __cplusplus >=201103L
+# define SWIG_NULLPTR nullptr
+#else
+# define SWIG_NULLPTR NULL
+#endif 

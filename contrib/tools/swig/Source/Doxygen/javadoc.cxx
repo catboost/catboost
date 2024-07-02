@@ -254,7 +254,7 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
       i += APPROX_LINE_LENGTH - indent * TAB_SIZE;
     }
 
-    i = unformattedLine.find(" ", i);
+    i = unformattedLine.find(' ', i);
 
     if (i > 0 && i + 1 < unformattedLine.length()) {
       if (!isFirstLine)

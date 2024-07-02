@@ -42,7 +42,7 @@ void DoxygenEntity::printEntity(int level) const {
 
   if (isLeaf) {
     for (int i = 0; i < thisLevel; i++) {
-      cout << "\t";
+      cout << '\t';
     }
 
     cout << "Node Leaf Command: '" << typeOfEntity << "',  ";
@@ -55,7 +55,7 @@ void DoxygenEntity::printEntity(int level) const {
   } else {
 
     for (int i = 0; i < thisLevel; i++) {
-      cout << "\t";
+      cout << '\t';
     }
 
     cout << "Node Command: '" << typeOfEntity << "'" << std::endl;

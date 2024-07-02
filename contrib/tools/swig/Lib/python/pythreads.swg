@@ -28,7 +28,7 @@
          bool status;
          PyThreadState *save;
        public:
-         void end() { if (status) { PyEval_RestoreThread(save); status = false; }}
+         void end() { if (status) { status = false; PyEval_RestoreThread(save); }}
          SWIG_Python_Thread_Allow() : status(true), save(PyEval_SaveThread()) {}
          ~SWIG_Python_Thread_Allow() { end(); }
        };

@@ -5,31 +5,31 @@
 
 /* -- Deprecated features -- */
 
-%define SWIGWARN_DEPRECATED_EXTERN        101 %enddef
-%define SWIGWARN_DEPRECATED_VAL           102 %enddef
-%define SWIGWARN_DEPRECATED_OUT           103 %enddef
-%define SWIGWARN_DEPRECATED_DISABLEDOC    104 %enddef
-%define SWIGWARN_DEPRECATED_ENABLEDOC     105 %enddef
-%define SWIGWARN_DEPRECATED_DOCONLY       106 %enddef
-%define SWIGWARN_DEPRECATED_STYLE         107 %enddef
-%define SWIGWARN_DEPRECATED_LOCALSTYLE    108 %enddef
-%define SWIGWARN_DEPRECATED_TITLE         109 %enddef
-%define SWIGWARN_DEPRECATED_SECTION       110 %enddef
-%define SWIGWARN_DEPRECATED_SUBSECTION    111 %enddef
-%define SWIGWARN_DEPRECATED_SUBSUBSECTION 112 %enddef
-%define SWIGWARN_DEPRECATED_ADDMETHODS    113 %enddef
-%define SWIGWARN_DEPRECATED_READONLY      114 %enddef
-%define SWIGWARN_DEPRECATED_READWRITE     115 %enddef
-%define SWIGWARN_DEPRECATED_EXCEPT        116 %enddef
-%define SWIGWARN_DEPRECATED_NEW           117 %enddef
-%define SWIGWARN_DEPRECATED_EXCEPT_TM     118 %enddef
-%define SWIGWARN_DEPRECATED_IGNORE_TM     119 %enddef
-%define SWIGWARN_DEPRECATED_OPTC          120 %enddef
-%define SWIGWARN_DEPRECATED_NAME          121 %enddef
-%define SWIGWARN_DEPRECATED_NOEXTERN      122 %enddef
-%define SWIGWARN_DEPRECATED_NODEFAULT     123 %enddef
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXTERN        101 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_VAL           102 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_OUT           103 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_DISABLEDOC    104 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_ENABLEDOC     105 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_DOCONLY       106 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_STYLE         107 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_LOCALSTYLE    108 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_TITLE         109 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SECTION       110 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SUBSECTION    111 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SUBSUBSECTION 112 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_ADDMETHODS    113 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_READONLY      114 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_READWRITE     115 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXCEPT        116 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NEW           117 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXCEPT_TM     118 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_IGNORE_TM     119 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_OPTC          120 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NAME          121 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NOEXTERN      122 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NODEFAULT     123 */
 /* Unused since 4.1.0: #define WARN_DEPRECATED_TYPEMAP_LANG  124 */
-%define SWIGWARN_DEPRECATED_INPUT_FILE    125 %enddef
+/* Unused since 4.2.0: #define WARN_DEPRECATED_INPUT_FILE    125 */
 %define SWIGWARN_DEPRECATED_NESTED_WORKAROUND 126 %enddef
 
 /* -- Preprocessor -- */
@@ -48,17 +48,17 @@
 %define SWIGWARN_PARSE_EXTEND_UNDEF       303 %enddef
 %define SWIGWARN_PARSE_UNSUPPORTED_VALUE  304 %enddef
 %define SWIGWARN_PARSE_BAD_VALUE          305 %enddef
-%define SWIGWARN_PARSE_PRIVATE            306 %enddef
-%define SWIGWARN_PARSE_BAD_DEFAULT        307 %enddef
+/* Unused since 1.3.32: #define WARN_PARSE_PRIVATE            306 */
+/* Unused since 4.2.0: #define WARN_PARSE_BAD_DEFAULT        307 */
 %define SWIGWARN_PARSE_NAMESPACE_ALIAS    308 %enddef
 %define SWIGWARN_PARSE_PRIVATE_INHERIT    309 %enddef
-%define SWIGWARN_PARSE_TEMPLATE_REPEAT    310 %enddef
-%define SWIGWARN_PARSE_TEMPLATE_PARTIAL   311 %enddef
+/* Unused since 1.3.18: #define WARN_PARSE_TEMPLATE_REPEAT    310 */
+/* Unused since 1.3.18: #define WARN_PARSE_TEMPLATE_PARTIAL   311 */
 %define SWIGWARN_PARSE_UNNAMED_NESTED_CLASS 312 %enddef
 %define SWIGWARN_PARSE_UNDEFINED_EXTERN   313 %enddef
 %define SWIGWARN_PARSE_KEYWORD            314 %enddef
 %define SWIGWARN_PARSE_USING_UNDEF        315 %enddef
-%define SWIGWARN_PARSE_MODULE_REPEAT      316 %enddef
+/* Unused since 1.3.18: #define WARN_PARSE_MODULE_REPEAT      316 */
 %define SWIGWARN_PARSE_TEMPLATE_SP_UNDEF  317 %enddef
 %define SWIGWARN_PARSE_TEMPLATE_AMBIG     318 %enddef
 %define SWIGWARN_PARSE_NO_ACCESS          319 %enddef
@@ -70,11 +70,16 @@
 %define SWIGWARN_PARSE_NAMED_NESTED_CLASS 325 %enddef
 %define SWIGWARN_PARSE_EXTEND_NAME        326 %enddef
 %define SWIGWARN_PARSE_EXTERN_TEMPLATE    327 %enddef
+%define SWIGWARN_PARSE_ASSIGNED_VALUE     328 %enddef
+%define SWIGWARN_PARSE_USING_CONSTRUCTOR  329 %enddef
 
 %define SWIGWARN_CPP11_LAMBDA             340 %enddef
-%define SWIGWARN_CPP11_ALIAS_DECLARATION  341 %enddef  /* redundant now */
-%define SWIGWARN_CPP11_ALIAS_TEMPLATE     342 %enddef  /* redundant now */
-%define SWIGWARN_CPP11_VARIADIC_TEMPLATE  343 %enddef
+/* Unused since 3.0.11: #define WARN_CPP11_ALIAS_DECLARATION  341 */
+/* Unused since 3.0.11: #define WARN_CPP11_ALIAS_TEMPLATE     342 */
+/* Unused since 4.2.0: #define WARN_CPP11_VARIADIC_TEMPLATE  343 */
+%define SWIGWARN_CPP11_DECLTYPE           344 %enddef
+%define SWIGWARN_CPP14_AUTO               345 %enddef
+%define SWIGWARN_CPP11_AUTO               346 %enddef
 
 %define SWIGWARN_IGNORE_OPERATOR_NEW        350 %enddef	/* new */
 %define SWIGWARN_IGNORE_OPERATOR_DELETE     351 %enddef	/* delete */
@@ -135,9 +140,9 @@
 %define SWIGWARN_TYPE_REDEFINED           404 %enddef
 %define SWIGWARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED 405 %enddef
 
-%define SWIGWARN_TYPEMAP_SOURCETARGET     450 %enddef /* No longer issued */
+/* Unused since 4.1.0: #define WARN_TYPEMAP_SOURCETARGET     450 */
 %define SWIGWARN_TYPEMAP_CHARLEAK         451 %enddef
-%define SWIGWARN_TYPEMAP_SWIGTYPE         452 %enddef /* No longer issued */
+/* Unused since 1.3.32: #define WARN_TYPEMAP_SWIGTYPE         452 */
 %define SWIGWARN_TYPEMAP_APPLY_UNDEF      453 %enddef
 %define SWIGWARN_TYPEMAP_SWIGTYPELEAK     454 %enddef
 %define SWIGWARN_TYPEMAP_WCHARLEAK        455 %enddef
@@ -175,7 +180,7 @@
 %define SWIGWARN_LANG_NATIVE_UNIMPL       507 %enddef
 %define SWIGWARN_LANG_DEREF_SHADOW        508 %enddef
 %define SWIGWARN_LANG_OVERLOAD_SHADOW     509 %enddef
-%define SWIGWARN_LANG_FRIEND_IGNORE       510 %enddef
+%define SWIGWARN_LANG_FRIEND_IGNORE       510 %enddef /* No longer issued */
 %define SWIGWARN_LANG_OVERLOAD_KEYWORD    511 %enddef
 %define SWIGWARN_LANG_OVERLOAD_CONST      512 %enddef
 %define SWIGWARN_LANG_CLASS_UNNAMED       513 %enddef
@@ -233,7 +238,8 @@
 
 /* please leave 740-749 free for Python */
 
-%define SWIGWARN_R_MISSING_RTYPECHECK_TYPEMAP     750 %enddef
+/* Unused since 4.2.0: #define WARN_R_MISSING_RTYPECHECK_TYPEMAP     750 */
+%define SWIGWARN_R_TYPEMAP_RTYPECHECK_UNDEF       751 %enddef
 
 /* please leave 750-759 free for R */
 
@@ -288,7 +294,7 @@
 
 %define SWIGWARN_PHP_MULTIPLE_INHERITANCE         870 %enddef
 %define SWIGWARN_PHP_UNKNOWN_PRAGMA               871 %enddef
-%define SWIGWARN_PHP_PUBLIC_BASE                  872 %enddef
+/* Unused since 4.1.0: define WARN_PHP_PUBLIC_BASE                  872 */
 
 /* please leave 870-889 free for PHP */
 

@@ -327,7 +327,7 @@ protected:
   String *s_namespace;
 
   // State variables that carry information across calls to functionWrapper()
-  // from  member accessors and class declarations.
+  // from member accessors and class declarations.
   String *opaqueClassDeclaration;
   int processing_variable;
   int processing_member_access_function;
@@ -1596,21 +1596,24 @@ void R::dispatchFunction(Node *n) {
       }
       Printv(f->code, "if (", NIL);
       for (p = pi, j = 0 ; j < num_arguments ; j++) {
+	SwigType *pt = Getattr(p, "type");
 	if (debugMode) {
 	  Swig_print_node(p);
 	}
 	String *tm = Swig_typemap_lookup("rtype", p, "", 0);
 	if (tm) {
-	  replaceRClass(tm, Getattr(p, "type"));
+	  replaceRClass(tm, pt);
 	}
 
-	String *tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
+	/* Check if type have a %typemap(rtypecheck) */
+	String *tmcheck = Getattr(p,"tmap:rtypecheck");
 	if (tmcheck) {
+	  tmcheck = Copy(tmcheck);
 	  String *tmp_argtype = NewStringf("argtypes[%d]", j+1);
 	  Replaceall(tmcheck, "$argtype", tmp_argtype);
 	  String *tmp_arg = NewStringf("argv[[%d]]", j+1);
 	  Replaceall(tmcheck, "$arg", tmp_arg);
-	  replaceRClass(tmcheck, Getattr(p, "type"));
+	  replaceRClass(tmcheck, pt);
 	  if (debugMode) {
 	    Printf(stdout, "<rtypecheck>%s\n", tmcheck);
 	  }
@@ -1619,48 +1622,11 @@ void R::dispatchFunction(Node *n) {
 	  } else {
 	    Printf(f->code, "%s(%s)", j == 0 ? "" : " && ", tmcheck);
 	  }
-	  p = Getattr(p, "tmap:in:next");
+	  Delete(tmcheck);
 	  Delete(tmp_arg);
 	  Delete(tmp_argtype);
-	  continue;
-	}
-	// Below should be migrated into rtypecheck typemaps
-	// Preparation for this has started by warning in swig-4.1.1 for "numeric", "integer", "character" typemaps
-	// For swig-4.2: remove the code block below and uncomment typemaps marked 'Replacement rtypecheck typemaps' in rtype.swg.
-	// There is a slight difference in output as the typemap approach fixes some bugs due to a missing type resolution below
-	if (tm) {
-	  String *tmcode = NULL;
-	  Printf(f->code, "%s", j == 0 ? "" : " && ");
-	  if (num_arguments != 1)
-	    Printf(f->code, "(");
-	  Printf(f->code, " ");
-	  if (Strcmp(tm, "numeric") == 0) {
-	    tmcode = NewString("is.numeric($arg)");
-	  } else if (Strcmp(tm, "integer") == 0) {
-	    tmcode = NewString("(is.integer($arg) || is.numeric($arg))");
-	  } else if (Strcmp(tm, "character") == 0) {
-	    tmcode = NewString("is.character($arg)");
-	  } else {
-	    if (SwigType_ispointer(Getattr(p, "type")))
-	      Printf(f->code, "extends(argtypes[%d], '%s') || is.null(argv[[%d]])", j+1, tm, j+1);
-	    else
-	      Printf(f->code, "extends(argtypes[%d], '%s') && length(argv[[%d]]) == 1", j+1, tm, j+1);
-	  }
-	  if (tmcode) {
-	    if (!SwigType_ispointer(Getattr(p, "type")))
-	      Printf(tmcode, " && length($arg) == 1");
-	    Swig_warning(WARN_R_MISSING_RTYPECHECK_TYPEMAP, input_file, line_number,
-			 "Optional rtypecheck code is deprecated. Add the following typemap to fix as the next version of SWIG will not work without it: %%typemap(\"rtypecheck\") %s %%{ %s %%}\n",
-			 SwigType_str(Getattr(p, "type"), 0), tmcode);
-	    String *tmp_arg = NewStringf("argv[[%d]]", j+1);
-	    Replaceall(tmcode, "$arg", tmp_arg);
-	    Printv(f->code, tmcode, NIL);
-	    Delete(tmp_arg);
-	  }
-	  Printf(f->code, " ");
-	  if (num_arguments != 1)
-	    Printf(f->code, ")");
-	  Delete(tmcode);
+	} else {
+	  Swig_warning(WARN_R_TYPEMAP_RTYPECHECK_UNDEF, input_file, line_number, "No rtypecheck typemap defined for %s\n", SwigType_str(pt, 0));
 	}
 	p = Getattr(p, "tmap:in:next");
       }
@@ -1825,6 +1791,7 @@ int R::functionWrapper(Node *n) {
   Swig_typemap_attach_parms("scoercein", l, f);
   Swig_typemap_attach_parms("scoerceout", l, f);
   Swig_typemap_attach_parms("scheck", l, f);
+  Swig_typemap_attach_parms("rtypecheck", l, f);
 
   emit_parameter_variables(l, f);
   emit_attach_parmmaps(l,f);
@@ -1854,27 +1821,20 @@ int R::functionWrapper(Node *n) {
     int nargs = -1;
     String *funcptr_name = processType(tt, p, &nargs);
 
-    //      SwigType *tp = Getattr(p, "type");
-    String   *name  = Getattr(p,"name");
-    String   *lname  = Getattr(p,"lname");
+    String *name = makeParameterName(n, p, i+1, false);
+    String *lname = Getattr(p, "lname");
 
-    // R keyword renaming
     if (name) {
-      if (Swig_name_warning(p, 0, name, 0)) {
-	name = 0;
-      } else {
-	/* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
-	   we need to remove that prefix. */
-	while (Strstr(name, "::")) {
-	  //XXX need to free.
-	  name = NewStringf("%s", Strchr(name, ':') + 2);
-	  if (debugMode)
-	    Printf(stdout, "+++  parameter name with :: in it %s\n", name);
-	}
+      /* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
+	 we need to remove that prefix. */
+      while (Strstr(name, "::")) {
+	String *oldname = name;
+	name = NewStringf("%s", Strchr(name, ':') + 2);
+	if (debugMode)
+	  Printf(stdout, "+++  parameter name with :: in it %s\n", name);
+	Delete(oldname);
       }
     }
-    if (!name || Len(name) == 0)
-      name = NewStringf("s_arg%d", i+1);
 
     name = replaceInitialDash(name);
 
@@ -2790,7 +2750,7 @@ Language *swig_r(void) {
  *----------------------------------------------------------------------- */
 String * R::processType(SwigType *t, Node *n, int *nargs) {
   //XXX Need to handle typedefs, e.g.
-  //  a type which is a typedef  to a function pointer.
+  //  a type which is a typedef to a function pointer.
 
   SwigType *tmp = Getattr(n, "tdname");
   if (debugMode)

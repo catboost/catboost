@@ -38,7 +38,6 @@ Hash *Swig_extend_hash(void) {
 
 void Swig_extend_merge(Node *cls, Node *am) {
   Node *n;
-  Node *csym;
 
   n = firstChild(am);
   while (n) {
@@ -61,28 +60,28 @@ void Swig_extend_merge(Node *cls, Node *am) {
     symname = Getattr(n,"sym:name");
     DohIncref(symname);
     if ((symname) && (!Getattr(n,"error"))) {
+      Node *c;
       /* Remove node from its symbol table */
       Swig_symbol_remove(n);
-      csym = Swig_symbol_add(symname,n);
-      if (csym != n) {
+      c = Swig_symbol_add(symname,n);
+      if (c != n) {
 	/* Conflict with previous definition.  Nuke previous definition */
 	String *e = NewStringEmpty();
 	String *en = NewStringEmpty();
 	String *ec = NewStringEmpty();
-	Printf(ec,"Identifier '%s' redefined by %%extend (ignored),",symname);
-	Printf(en,"%%extend definition of '%s'.",symname);
+	Printf(ec, "Redefinition of identifier '%s' by %%extend ignored,", symname);
+	Printf(en, "%%extend definition of '%s'.", symname);
 	SWIG_WARN_NODE_BEGIN(n);
-	Swig_warning(WARN_PARSE_REDEFINED,Getfile(csym),Getline(csym),"%s\n",ec);
-	Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
+	Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
+	Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
 	SWIG_WARN_NODE_END(n);
-	Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(csym),Getline(csym),ec, 
-	       Getfile(n),Getline(n),en);
-	Setattr(csym,"error",e);
+	Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(c), Getline(c), ec, Getfile(n),Getline(n),en);
+	Setattr(c, "error", e);
 	Delete(e);
 	Delete(en);
 	Delete(ec);
-	Swig_symbol_remove(csym);              /* Remove class definition */
-	Swig_symbol_add(symname,n);            /* Insert extend definition */
+	Swig_symbol_remove(c);                /* Remove class definition */
+	Swig_symbol_add(symname, n);          /* Insert extend definition */
       }
     }
     n = nextSibling(n);

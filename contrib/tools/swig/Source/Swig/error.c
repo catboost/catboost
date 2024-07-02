@@ -189,7 +189,6 @@ void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
     filter = NewStringEmpty();
 
   s = NewString("");
-  Clear(s);
   cw = Char(wlist);
   while (*cw != '\0') {
     if (*cw != ' ') {

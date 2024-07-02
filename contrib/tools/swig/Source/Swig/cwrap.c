@@ -296,7 +296,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	  Delete(defname);
 	  Delete(defvalue);
 	}
-      } else if (!pvalue && ((tycode == T_POINTER) || (tycode == T_STRING) || (tycode == T_WSTRING))) {
+      } else if (!pvalue && ((tycode == T_POINTER) || (tycode == T_STRING) || (tycode == T_WSTRING) || (tycode == T_ARRAY))) {
 	pvalue = (String *) "0";
       }
       if (!altty) {
@@ -875,7 +875,7 @@ void Swig_replace_special_variables(Node *n, Node *parentnode, String *code) {
     String *parentclassname = 0;
     if (parentclass)
       parentclassname = Getattr(parentclass, "name");
-    Replaceall(code, "$parentclassname", parentclassname ? SwigType_str(parentclassname, "") : "");
+    Replaceall(code, "$parentclassname", parentclassname ? SwigType_str(parentclassname, NULL) : "");
   }
 }
 
@@ -893,7 +893,7 @@ static String *extension_code(Node *n, const String *function_name, ParmList *pa
   String *rt_sig = SwigType_str(return_type, sig);
   String *body = NewStringf("SWIGINTERN %s", rt_sig);
   Printv(body, code, "\n", NIL);
-  if (Strstr(body, "$")) {
+  if (Strchr(body, '$')) {
     Swig_replace_special_variables(n, parentNode(parentNode(n)), body);
     if (self)
       Replaceall(body, "$self", self);
@@ -1075,7 +1075,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
     String *code = Getattr(n, "code");
     String *cname = Getattr(n, "extendsmartclassname") ? Getattr(n, "extendsmartclassname") : classname;
     String *membername = Swig_name_member(nspace, cname, name);
-    String *mangled = Swig_name_mangle(membername);
+    String *mangled = Swig_name_mangle_string(membername);
     int is_smart_pointer = flags & CWRAP_SMART_POINTER;
 
     type = Getattr(n, "type");
@@ -1172,8 +1172,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_methodclass(Node *n) {
-  Node *nodetype = nodeType(n);
-  if (Cmp(nodetype, "class") == 0)
+  if (Equal(nodeType(n), "class"))
     return n;
   return GetFlag(n, "feature:extend") ? parentNode(parentNode(n)) : parentNode(n);
 }
@@ -1238,7 +1237,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
     String *defaultargs = Getattr(n, "defaultargs");
     String *code = Getattr(n, "code");
     String *membername = Swig_name_construct(nspace, classname);
-    String *mangled = Swig_name_mangle(membername);
+    String *mangled = Swig_name_mangle_string(membername);
 
     /* Check if the constructor is overloaded.   If so, and it has code attached, we append an extra suffix
        to avoid a name-clash in the generated wrappers.  This allows overloaded constructors to be defined
@@ -1356,7 +1355,7 @@ int Swig_DestructorToFunction(Node *n, const_String_or_char_ptr nspace, String *
     String *call;
     String *membername, *mangled, *code;
     membername = Swig_name_destroy(nspace, classname);
-    mangled = Swig_name_mangle(membername);
+    mangled = Swig_name_mangle_string(membername);
     code = Getattr(n, "code");
     if (code) {
       Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus, "self");
@@ -1443,7 +1442,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
 
     String *sname = Swig_name_set(0, name);
     String *membername = Swig_name_member(0, classname, sname);
-    String *mangled = Swig_name_mangle(membername);
+    String *mangled = Swig_name_mangle_string(membername);
 
     if (code) {
       /* I don't think this ever gets run - WSF */
@@ -1525,7 +1524,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 
     String *gname = Swig_name_get(0, name);
     String *membername = Swig_name_member(0, classname, gname);
-    String *mangled = Swig_name_mangle(membername);
+    String *mangled = Swig_name_mangle_string(membername);
 
     if (code) {
       /* I don't think this ever gets run - WSF */
@@ -1577,7 +1576,7 @@ int Swig_VarsetToFunction(Node *n, int flags) {
 
   if (flags & CWRAP_EXTEND) {
     String *sname = Swig_name_set(0, name);
-    String *mangled = Swig_name_mangle(sname);
+    String *mangled = Swig_name_mangle_string(sname);
     String *call = Swig_cfunction_call(mangled, parms);
     String *cres = NewStringf("%s;", call);
     Setattr(n, "wrap:action", cres);
@@ -1631,7 +1630,7 @@ int Swig_VargetToFunction(Node *n, int flags) {
 
   if (flags & CWRAP_EXTEND) {
     String *sname = Swig_name_get(0, name);
-    String *mangled = Swig_name_mangle(sname);
+    String *mangled = Swig_name_mangle_string(sname);
     call = Swig_cfunction_call(mangled, 0);
     cres = Swig_cresult(ty, Swig_cresult_name(), call);
     Setattr(n, "wrap:action", cres);

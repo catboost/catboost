@@ -53,33 +53,33 @@ extern void         Scanner_locator(Scanner *, String *loc);
 #define   SWIG_TOKEN_ID           15       /* identifier */
 #define   SWIG_TOKEN_FLOAT        16       /* 3.1415F */
 #define   SWIG_TOKEN_DOUBLE       17       /* 3.1415 */
-#define   SWIG_TOKEN_INT          18       /* 314 */
-#define   SWIG_TOKEN_UINT         19       /* 314U */
-#define   SWIG_TOKEN_LONG         20       /* 314L */
-#define   SWIG_TOKEN_ULONG        21       /* 314UL */
-#define   SWIG_TOKEN_CHAR         22       /* 'charconst' */
-#define   SWIG_TOKEN_PERIOD       23       /* . */
-#define   SWIG_TOKEN_AT           24       /* @ */
-#define   SWIG_TOKEN_DOLLAR       25       /* $ */
-#define   SWIG_TOKEN_CODEBLOCK    26       /* %{ ... %} ... */
-#define   SWIG_TOKEN_RSTRING      27       /* `charconst` */
-#define   SWIG_TOKEN_LONGLONG     28       /* 314LL */
-#define   SWIG_TOKEN_ULONGLONG    29       /* 314ULL */
-#define   SWIG_TOKEN_QUESTION     30       /* ? */
-#define   SWIG_TOKEN_COMMENT      31       /* C or C++ comment */
-#define   SWIG_TOKEN_BOOL         32       /* true or false */
-#define   SWIG_TOKEN_WSTRING      33       /* L"str" */
-#define   SWIG_TOKEN_WCHAR        34       /* L'c' */
-#define   SWIG_TOKEN_ELLIPSIS     35       /* ... */
-#define   SWIG_TOKEN_LLBRACKET    36       /* [[ */
-#define   SWIG_TOKEN_RRBRACKET    37       /* ]] */
+#define   SWIG_TOKEN_LONGDOUBLE   18       /* 3.1415L */
+#define   SWIG_TOKEN_INT          19       /* 314 */
+#define   SWIG_TOKEN_UINT         20       /* 314U */
+#define   SWIG_TOKEN_LONG         21       /* 314L */
+#define   SWIG_TOKEN_ULONG        22       /* 314UL */
+#define   SWIG_TOKEN_CHAR         23       /* 'charconst' */
+#define   SWIG_TOKEN_PERIOD       24       /* . */
+#define   SWIG_TOKEN_AT           25       /* @ */
+#define   SWIG_TOKEN_DOLLAR       26       /* $ */
+#define   SWIG_TOKEN_CODEBLOCK    27       /* %{ ... %} ... */
+#define   SWIG_TOKEN_RSTRING      28       /* `charconst` */
+#define   SWIG_TOKEN_LONGLONG     29       /* 314LL */
+#define   SWIG_TOKEN_ULONGLONG    30       /* 314ULL */
+#define   SWIG_TOKEN_QUESTION     31       /* ? */
+#define   SWIG_TOKEN_COMMENT      32       /* C or C++ comment */
+#define   SWIG_TOKEN_BOOL         33       /* true or false */
+#define   SWIG_TOKEN_WSTRING      34       /* L"str" */
+#define   SWIG_TOKEN_WCHAR        35       /* L'c' */
+#define   SWIG_TOKEN_ELLIPSIS     36       /* ... */
+#define   SWIG_TOKEN_LLBRACKET    37       /* [[ */
+#define   SWIG_TOKEN_RRBRACKET    38       /* ]] */
 
 #define   SWIG_TOKEN_ILLEGAL      99
 #define   SWIG_TOKEN_ERROR        -1
 
 #define   SWIG_TOKEN_COMMA        101      /* , */
 #define   SWIG_TOKEN_STAR         102      /* * */
-#define   SWIG_TOKEN_TIMES        102      /* * */
 #define   SWIG_TOKEN_EQUAL        103      /* = */
 #define   SWIG_TOKEN_EQUALTO      104      /* == */
 #define   SWIG_TOKEN_NOTEQUAL     105      /* != */
@@ -97,9 +97,7 @@ extern void         Scanner_locator(Scanner *, String *loc);
 #define   SWIG_TOKEN_NOT          117      /* ~ */
 #define   SWIG_TOKEN_LNOT         118      /* ! */
 #define   SWIG_TOKEN_SLASH        119      /* / */
-#define   SWIG_TOKEN_DIVIDE       119      /* / */
 #define   SWIG_TOKEN_PERCENT      120      /* % */
-#define   SWIG_TOKEN_MODULO       120      /* % */
 #define   SWIG_TOKEN_LSHIFT       121      /* << */
 #define   SWIG_TOKEN_RSHIFT       122      /* >> */
 #define   SWIG_TOKEN_PLUSPLUS     123      /* ++ */

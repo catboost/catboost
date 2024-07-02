@@ -180,6 +180,7 @@
 /*---------------------------------------------------------------------
  * typemap definition for types with from method
  *---------------------------------------------------------------------*/
+
 %define %typemaps_from(FromMeth, FromFrag, Type...)
   %value_out_typemap(%arg(FromMeth), %arg(FromFrag), Type);
   %value_varout_typemap(%arg(FromMeth), %arg(FromFrag), Type);
@@ -191,7 +192,7 @@
 
 
 /*---------------------------------------------------------------------
- * typemap definition for types with alval/from method
+ * typemap definition for types with asval/from method
  *---------------------------------------------------------------------*/
 
 %define %typemaps_asvalfrom(CheckCode, AsValMeth, FromMeth,

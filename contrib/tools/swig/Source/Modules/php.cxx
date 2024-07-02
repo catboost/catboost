@@ -147,19 +147,13 @@ static void SwigPHP_emit_pointer_type_registrations() {
   Printf(s_wrappers, "}\n\n");
 
   Printf(s_wrappers, "/* Implement __toString equivalent, since that worked for the old-style resource wrapped pointers. */\n");
-  Append(s_wrappers, "#if PHP_MAJOR_VERSION < 8\n");
-  Printf(s_wrappers, "static int swig_ptr_cast_object(zval *z, zval *retval, int type) {\n");
-  Append(s_wrappers, "#elif PHP_MAJOR_VERSION > 8 || PHP_MINOR_VERSION >= 2\n");
+  Append(s_wrappers, "#if PHP_MAJOR_VERSION > 8 || PHP_MINOR_VERSION >= 2\n");
   Printf(s_wrappers, "static ZEND_RESULT_CODE swig_ptr_cast_object(zend_object *zobj, zval *retval, int type) {\n");
   Append(s_wrappers, "#else\n");
   Printf(s_wrappers, "static int swig_ptr_cast_object(zend_object *zobj, zval *retval, int type) {\n");
   Append(s_wrappers, "#endif\n");
   Printf(s_wrappers, "  if (type == IS_STRING) {\n");
-  Append(s_wrappers, "#if PHP_MAJOR_VERSION < 8\n");
-  Printf(s_wrappers, "    swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(z);\n");
-  Append(s_wrappers, "#else\n");
   Printf(s_wrappers, "    swig_object_wrapper *obj = swig_php_fetch_object(zobj);\n");
-  Append(s_wrappers, "#endif\n");
   Printv(s_wrappers, "    ZVAL_NEW_STR(retval, zend_strpprintf(0, \"SWIGPointer(%p,owned=%d)\", obj->ptr, obj->newobject));\n", NIL);
   Printf(s_wrappers, "    return SUCCESS;\n");
   Printf(s_wrappers, "  }\n");
@@ -244,6 +238,15 @@ class PHPTypes {
 
   // Does the node for this have directorNode set?
   bool has_director_node;
+
+  // Track if all the overloads of a method are static.
+  //
+  // We should only flag a dispatch method as ACC_STATIC if all the dispatched
+  // to methods are static.  If we have both static and non-static methods in
+  // the overloaded set we omit ACC_STATIC, and then all the methods are
+  // callable (though the static ones only via an object).  If we set
+  // ACC_STATIC we get a crash on an attempt to call a non-static method.
+  bool all_overloads_static;
 
   // Used to clamp the required number of parameters in the arginfo to be
   // compatible with any parent class version of the method.
@@ -338,12 +341,17 @@ public:
     }
     arginfo_id = Copy(Getattr(n, "sym:name"));
     has_director_node = (Getattr(n, "directorNode") != NULL);
+    all_overloads_static = true;
   }
 
   ~PHPTypes() {
     Delete(merged_types);
     Delete(byref);
   }
+
+  void not_all_static() { all_overloads_static = false; }
+
+  bool get_all_static() const { return all_overloads_static; }
 
   void adjust(int num_required_, bool php_constructor) {
     num_required = std::min(num_required, num_required_);
@@ -504,7 +512,7 @@ static PHPTypes *phptypes = NULL;
 class PHP : public Language {
 public:
   PHP() {
-    director_language = 1;
+    directorLanguage();
   }
 
   /* ------------------------------------------------------------
@@ -587,7 +595,7 @@ public:
     f_directors_h = NewStringEmpty();
     f_directors = NewStringEmpty();
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
@@ -611,7 +619,7 @@ public:
 
     Swig_obligatory_macros(f_runtime, "PHP");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
     }
 
@@ -648,7 +656,7 @@ public:
     if (!prefix)
       prefix = NewStringEmpty();
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", cap_module);
@@ -678,7 +686,7 @@ public:
     Printf(s_header, "}\n");
     Printf(s_header, "#endif\n\n");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       // Insert director runtime
       Swig_insert_file("director_common.swg", s_header);
       Swig_insert_file("director.swg", s_header);
@@ -784,8 +792,9 @@ public:
       Printf(s_init, "#ifdef __cplusplus\n");
       Printf(s_init, "extern \"C\" {\n");
       Printf(s_init, "#endif\n");
-      // We want to write "SWIGEXPORT ZEND_GET_MODULE(%s)" but ZEND_GET_MODULE
-      // in PHP7 has "extern "C" { ... }" around it so we can't do that.
+      // We want to write "SWIGEXPORT ZEND_GET_MODULE(%s)" but the definition
+      // of ZEND_GET_MODULE has "extern "C" { ... }" around it so we can't do
+      // that.
       Printf(s_init, "SWIGEXPORT zend_module_entry *get_module(void) { return &%s_module_entry; }\n", module);
       Printf(s_init, "#ifdef __cplusplus\n");
       Printf(s_init, "}\n");
@@ -874,7 +883,7 @@ public:
      * function really needs totally redoing.
      */
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
@@ -887,7 +896,7 @@ public:
 
     Dump(f_runtime, f_begin);
     Printv(f_begin, s_header, NIL);
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Dump(f_directors, f_begin);
     }
     Printv(f_begin, s_vdecl, s_wrappers, NIL);
@@ -939,10 +948,10 @@ public:
   }
 
   /* Just need to append function names to function table to register with PHP. */
-  void create_command(String *cname, String *fname, Node *n, bool dispatch, String *modes = NULL) {
+  void create_command(String *cname, String *fname, Node *n, bool dispatch, String *modes) {
     // This is for the single main zend_function_entry record
     ParmList *l = Getattr(n, "parms");
-    if (cname && !Equal(Getattr(n, "storage"), "friend")) {
+    if (cname && !Strstr(Getattr(n, "storage"), "friend")) {
       Printf(f_h, "static PHP_METHOD(%s%s,%s);\n", prefix, cname, fname);
       if (wrapperType != staticmemberfn &&
 	  wrapperType != staticmembervar &&
@@ -964,7 +973,7 @@ public:
     String *arginfo_id = phptypes->get_arginfo_id();
     String *s = cs_entry;
     if (!s) s = s_entry;
-    if (cname && !Equal(Getattr(n, "storage"), "friend")) {
+    if (cname && !Strstr(Getattr(n, "storage"), "friend")) {
       Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id, modes);
     } else {
       if (dispatch) {
@@ -1026,7 +1035,7 @@ public:
       if (constructorRenameOverload) {
 	Append(modes, " | ZEND_ACC_STATIC");
       }
-    } else if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"), "static") == 0) {
+    } else if (phptypes->get_all_static()) {
       modes = NewString("ZEND_ACC_PUBLIC | ZEND_ACC_STATIC");
     } else {
       modes = NewString("ZEND_ACC_PUBLIC");
@@ -1034,7 +1043,7 @@ public:
 
     create_command(class_name, wname, n, true, modes);
 
-    if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+    if (class_name && !Strstr(Getattr(n, "storage"), "friend")) {
       Printv(f->def, "static PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
     } else {
       Printv(f->def, "static ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
@@ -1131,7 +1140,7 @@ public:
     }
     if (swig_base) {
       Printf(f->code, "} else {\nPHP_MN(%s%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n", prefix, swig_base);
-    } else if (Getattr(class_node, "feature:php:allowdynamicproperties")) {
+    } else if (GetFlag(class_node, "feature:php:allowdynamicproperties")) {
       Printf(f->code, "} else {\nadd_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n");
     }
     Printf(f->code, "}\n");
@@ -1331,7 +1340,7 @@ public:
       wname = Getattr(n, "staticmemberfunctionHandler:sym:name");
     } else {
       if (class_name) {
-	if (Cmp(Getattr(n, "storage"), "friend") == 0 && Cmp(Getattr(n, "view"), "globalfunctionHandler") == 0) {
+	if (Strstr(Getattr(n, "storage"), "friend") && Cmp(Getattr(n, "view"), "globalfunctionHandler") == 0) {
 	  wname = iname;
 	} else {
 	  wname = Getattr(n, "destructorHandler:sym:name");
@@ -1355,7 +1364,7 @@ public:
       phptypes = NULL;
 
       String *key;
-      if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+      if (class_name && !Strstr(Getattr(n, "storage"), "friend")) {
 	key = NewStringf("%s:%s", class_name, wname);
       } else {
 	key = NewStringf(":%s", wname);
@@ -1370,6 +1379,9 @@ public:
 	phptypes = new PHPTypes(n);
 	SetVoid(all_phptypes, key, phptypes);
       }
+      if (!(wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"), "static") == 0)) {
+	phptypes->not_all_static();
+      }
     }
 
     f = NewWrapper();
@@ -1383,7 +1395,7 @@ public:
 
     if (!overloaded) {
       if (!static_getter) {
-	if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+	if (class_name && !Strstr(Getattr(n, "storage"), "friend")) {
 	  Printv(f->def, "static PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
 	} else {
 	  if (wrap_nonclass_global) {
@@ -1577,7 +1589,7 @@ public:
 
     List *return_types = phptypes->process_phptype(n, 0, "tmap:out:phptype");
 
-    if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+    if (class_name && !Strstr(Getattr(n, "storage"), "friend")) {
       if (is_member_director(n)) {
 	String *parent = class_name;
 	while ((parent = Getattr(php_parent_class, parent)) != NULL) {
@@ -1853,7 +1865,7 @@ public:
     if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {
       Printf(s_oinit, "  SWIG_Php_ce_%s->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;\n", class_name);
     }
-    if (Getattr(n, "feature:php:allowdynamicproperties")) {
+    if (GetFlag(n, "feature:php:allowdynamicproperties")) {
       Append(s_oinit, "#ifdef ZEND_ACC_ALLOW_DYNAMIC_PROPERTIES\n");
       Printf(s_oinit, "  SWIG_Php_ce_%s->ce_flags |= ZEND_ACC_ALLOW_DYNAMIC_PROPERTIES;\n", class_name);
       Append(s_oinit, "#endif\n");
@@ -2046,11 +2058,13 @@ public:
 
     Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_set, "ZVAL_STRING(&tempZval, \"%s_set\");\n", v_name);
-    Printf(magic_set, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,1,&args[1]);\n}\n");
+    Printf(magic_set, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,1,&args[1]);\n");
+    Printf(magic_set, "zval_ptr_dtor(&tempZval);\n}\n");
 
     Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n", v_name);
-    Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n}\n");
+    Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n");
+    Printf(magic_get, "zval_ptr_dtor(&tempZval);\n}\n");
 
     Printf(magic_isset, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_isset, "RETVAL_TRUE;\n}\n");
@@ -2393,16 +2407,10 @@ public:
 
       const char *funcname = GetChar(n, "sym:name");
       Append(w->code, "{\n");
-      Append(w->code, "#if PHP_MAJOR_VERSION < 8\n");
-      Printf(w->code, "zval swig_funcname;\n");
-      Printf(w->code, "ZVAL_STRINGL(&swig_funcname, \"%s\", %d);\n", funcname, strlen(funcname));
-      Printf(w->code, "call_user_function(EG(function_table), &swig_self, &swig_funcname, &swig_zval_result, %d, args);\n", idx);
-      Append(w->code, "#else\n");
       Printf(w->code, "zend_string *swig_funcname = zend_string_init(\"%s\", %d, 0);\n", funcname, strlen(funcname));
       Append(w->code, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ(swig_self), swig_funcname, NULL);\n");
       Append(w->code, "zend_string_release(swig_funcname);\n");
       Printf(w->code, "if (swig_zend_func) zend_call_known_instance_method(swig_zend_func, Z_OBJ(swig_self), &swig_zval_result, %d, args);\n", idx);
-      Append(w->code, "#endif\n");
 
       /* exception handling */
       tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
