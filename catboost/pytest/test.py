@@ -2331,7 +2331,8 @@ def test_ignored_features_not_read_names():
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_text_ignored_features(boosting_type):
+@pytest.mark.parametrize('ignored_features', ['2-4:6', '0:2', '0:7', '2:7', '0:2:7', '0', '2', '7'])
+def test_text_ignored_features(boosting_type, ignored_features):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -2345,7 +2346,7 @@ def test_text_ignored_features(boosting_type):
         '-w', '0.03',
         '-T', '4',
         '-m', output_model_path,
-        '-I', '2-4:6',
+        '-I', ignored_features,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
     )

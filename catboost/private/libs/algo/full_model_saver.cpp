@@ -91,27 +91,6 @@ namespace {
             );
         }
 
-        void InitializeDigitizer(
-            TVector<TDigitizer>* digitizers,
-            TVector<TVector<ui32>>* perFeatureDigitizers
-        ) {
-            digitizers->resize(DigitizerToId.size());
-            for (const auto& [digitizer, id]: DigitizerToId) {
-                (*digitizers)[id] = digitizer;
-            }
-
-            perFeatureDigitizers->resize(PerFeatureDigitizers.size());
-
-            for (ui32 textFeature: xrange(PerFeatureDigitizers.size())) {
-                auto& digitizersIds = (*perFeatureDigitizers)[textFeature];
-                for (const auto& [tokenizedFeature, digitizerId]: PerFeatureDigitizers[textFeature]) {
-                    Y_UNUSED(tokenizedFeature); // we need just sort by tokenized feature index
-                    digitizersIds.push_back(digitizerId);
-                }
-                textFeature++;
-            }
-        }
-
         void Build(
             TTextProcessingCollection* textProcessingCollection
         ) {
@@ -137,6 +116,27 @@ namespace {
         }
 
     private:
+        void InitializeDigitizer(
+            TVector<TDigitizer>* digitizers,
+            TVector<TVector<ui32>>* perFeatureDigitizers
+        ) {
+            digitizers->resize(DigitizerToId.size());
+            for (const auto& [digitizer, id]: DigitizerToId) {
+                (*digitizers)[id] = digitizer;
+            }
+
+            perFeatureDigitizers->resize(PerFeatureDigitizers.size());
+
+            for (ui32 textFeature: xrange(PerFeatureDigitizers.size())) {
+                auto& digitizersIds = (*perFeatureDigitizers)[textFeature];
+                for (const auto& [tokenizedFeature, digitizerId]: PerFeatureDigitizers[textFeature]) {
+                    Y_UNUSED(tokenizedFeature); // we need just sort by tokenized feature index
+                    digitizersIds.push_back(digitizerId);
+                }
+                textFeature++;
+            }
+        }
+
         ui32 AddDigitizer(TDigitizer digitizer) {
             if (DigitizerToId.contains(digitizer)) {
                 return DigitizerToId[digitizer];
@@ -207,8 +207,8 @@ namespace {
         const TFeatureEstimators& FeatureEstimators;
         const TTextDigitizers& TextDigitizers;
 
-        TVector<TMap<ui32, ui32>> PerFeatureDigitizers;
-        TVector<TVector<ui32>> PerTokenizedFeatureCalcers;
+        TVector<TMap<ui32, ui32>> PerFeatureDigitizers; // [textFeatureIdx]
+        TVector<TVector<ui32>> PerTokenizedFeatureCalcers; // [tokenizedTextFeatureIdx]
 
         THashMap<TDigitizer, ui32> DigitizerToId;
         TVector<TTextFeatureCalcerPtr> Calcers;

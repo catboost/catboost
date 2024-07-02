@@ -9777,14 +9777,84 @@
             "uri": "file://test.test_target_border/test.eval"
         }
     ],
-    "test.test_text_ignored_features[Ordered]": [
+    "test.test_text_ignored_features[0-Ordered]": [
         {
-            "uri": "file://test.test_text_ignored_features_Ordered_/test.eval"
+            "uri": "file://test.test_text_ignored_features_0-Ordered_/test.eval"
         }
     ],
-    "test.test_text_ignored_features[Plain]": [
+    "test.test_text_ignored_features[0-Plain]": [
         {
-            "uri": "file://test.test_text_ignored_features_Plain_/test.eval"
+            "uri": "file://test.test_text_ignored_features_0-Plain_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[0:2-Ordered]": [
+        {
+            "uri": "file://test.test_text_ignored_features_0_2-Ordered_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[0:2-Plain]": [
+        {
+            "uri": "file://test.test_text_ignored_features_0_2-Plain_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[0:2:7-Ordered]": [
+        {
+            "uri": "file://test.test_text_ignored_features_0_2_7-Ordered_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[0:2:7-Plain]": [
+        {
+            "uri": "file://test.test_text_ignored_features_0_2_7-Plain_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[0:7-Ordered]": [
+        {
+            "uri": "file://test.test_text_ignored_features_0_7-Ordered_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[0:7-Plain]": [
+        {
+            "uri": "file://test.test_text_ignored_features_0_7-Plain_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[2-4:6-Ordered]": [
+        {
+            "uri": "file://test.test_text_ignored_features_2-4_6-Ordered_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[2-4:6-Plain]": [
+        {
+            "uri": "file://test.test_text_ignored_features_2-4_6-Plain_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[2-Ordered]": [
+        {
+            "uri": "file://test.test_text_ignored_features_2-Ordered_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[2-Plain]": [
+        {
+            "uri": "file://test.test_text_ignored_features_2-Plain_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[2:7-Ordered]": [
+        {
+            "uri": "file://test.test_text_ignored_features_2_7-Ordered_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[2:7-Plain]": [
+        {
+            "uri": "file://test.test_text_ignored_features_2_7-Plain_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[7-Ordered]": [
+        {
+            "uri": "file://test.test_text_ignored_features_7-Ordered_/test.eval"
+        }
+    ],
+    "test.test_text_ignored_features[7-Plain]": [
+        {
+            "uri": "file://test.test_text_ignored_features_7-Plain_/test.eval"
         }
     ],
     "test.test_text_processing_options[MultiClass-dictionaries0]": [

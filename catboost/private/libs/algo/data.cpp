@@ -345,13 +345,9 @@ namespace NCB {
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
 
         bool needLearnTarget = false;
-        quantizedFeaturesInfo->GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Text>(
-            [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
-                const ui32 tokenizedFeatureIdx = tokenizedTextFeatureIdx.Idx;
-                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx];
-                needLearnTarget = needLearnTarget || HasOnlineEstimators(featureDescription.FeatureEstimators.Get());
-            }
-        );
+        for (auto& description : tokenizedFeaturesDescription) {
+            needLearnTarget = needLearnTarget || HasOnlineEstimators(description.FeatureEstimators.Get());
+        }
         needLearnTarget = needLearnTarget || quantizedFeaturesInfo->GetFeaturesLayout()->GetEmbeddingFeatureCount();
 
         const auto targetCount = pools.Learn->TargetData->GetTargetDimension();
