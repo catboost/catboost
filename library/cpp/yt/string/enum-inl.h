@@ -9,6 +9,7 @@
 #include <library/cpp/yt/exception/exception.h>
 
 #include <util/string/printf.h>
+#include <util/string/strip.h>
 
 namespace NYT {
 

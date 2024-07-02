@@ -1,6 +1,6 @@
 #pragma once
 
-#include "string.h"
+#include "format_arg.h"
 
 #include <library/cpp/yt/misc/enum.h>
 
