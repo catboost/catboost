@@ -30,10 +30,16 @@ class retry_base(abc.ABC):
         pass
 
     def __and__(self, other: "retry_base") -> "retry_all":
-        return retry_all(self, other)
+        return other.__rand__(self)
+
+    def __rand__(self, other: "retry_base") -> "retry_all":
+        return retry_all(other, self)
 
     def __or__(self, other: "retry_base") -> "retry_any":
-        return retry_any(self, other)
+        return other.__ror__(self)
+
+    def __ror__(self, other: "retry_base") -> "retry_any":
+        return retry_any(other, self)
 
 
 RetryBaseT = typing.Union[retry_base, typing.Callable[["RetryCallState"], bool]]

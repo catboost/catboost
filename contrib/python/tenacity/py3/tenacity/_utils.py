@@ -87,3 +87,15 @@ def is_coroutine_callable(call: typing.Callable[..., typing.Any]) -> bool:
     partial_call = isinstance(call, functools.partial) and call.func
     dunder_call = partial_call or getattr(call, "__call__", None)
     return inspect.iscoroutinefunction(dunder_call)
+
+
+def wrap_to_async_func(
+    call: typing.Callable[..., typing.Any],
+) -> typing.Callable[..., typing.Awaitable[typing.Any]]:
+    if is_coroutine_callable(call):
+        return call
+
+    async def inner(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        return call(*args, **kwargs)
+
+    return inner

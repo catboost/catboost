@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: tenacity
-Version: 8.3.0
+Version: 8.4.1
 Summary: Retry code until it succeeds
 Home-page: https://github.com/jd/tenacity
 Author: Julien Danjou

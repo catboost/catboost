@@ -24,7 +24,8 @@ import typing as t
 import warnings
 from abc import ABC, abstractmethod
 from concurrent import futures
-from inspect import iscoroutinefunction
+
+from . import _utils
 
 # Import all built-in retry strategies for easier usage.
 from .retry import retry_base  # noqa
@@ -87,6 +88,7 @@ except ImportError:
 if t.TYPE_CHECKING:
     import types
 
+    from . import asyncio as tasyncio
     from .retry import RetryBaseT
     from .stop import StopBaseT
     from .wait import WaitBaseT
@@ -593,16 +595,24 @@ def retry(func: WrappedFn) -> WrappedFn: ...
 
 @t.overload
 def retry(
-    sleep: t.Callable[[t.Union[int, float]], t.Optional[t.Awaitable[None]]] = sleep,
+    sleep: t.Callable[[t.Union[int, float]], t.Union[None, t.Awaitable[None]]] = sleep,
     stop: "StopBaseT" = stop_never,
     wait: "WaitBaseT" = wait_none(),
-    retry: "RetryBaseT" = retry_if_exception_type(),
-    before: t.Callable[["RetryCallState"], None] = before_nothing,
-    after: t.Callable[["RetryCallState"], None] = after_nothing,
-    before_sleep: t.Optional[t.Callable[["RetryCallState"], None]] = None,
+    retry: "t.Union[RetryBaseT, tasyncio.retry.RetryBaseT]" = retry_if_exception_type(),
+    before: t.Callable[
+        ["RetryCallState"], t.Union[None, t.Awaitable[None]]
+    ] = before_nothing,
+    after: t.Callable[
+        ["RetryCallState"], t.Union[None, t.Awaitable[None]]
+    ] = after_nothing,
+    before_sleep: t.Optional[
+        t.Callable[["RetryCallState"], t.Union[None, t.Awaitable[None]]]
+    ] = None,
     reraise: bool = False,
     retry_error_cls: t.Type["RetryError"] = RetryError,
-    retry_error_callback: t.Optional[t.Callable[["RetryCallState"], t.Any]] = None,
+    retry_error_callback: t.Optional[
+        t.Callable[["RetryCallState"], t.Union[t.Any, t.Awaitable[t.Any]]]
+    ] = None,
 ) -> t.Callable[[WrappedFn], WrappedFn]: ...
 
 
@@ -624,7 +634,7 @@ def retry(*dargs: t.Any, **dkw: t.Any) -> t.Any:
                     f"this will probably hang indefinitely (did you mean retry={f.__class__.__name__}(...)?)"
                 )
             r: "BaseRetrying"
-            if iscoroutinefunction(f):
+            if _utils.is_coroutine_callable(f):
                 r = AsyncRetrying(*dargs, **dkw)
             elif (
                 tornado
@@ -640,7 +650,7 @@ def retry(*dargs: t.Any, **dkw: t.Any) -> t.Any:
         return wrap
 
 
-from tenacity._asyncio import AsyncRetrying  # noqa:E402,I100
+from tenacity.asyncio import AsyncRetrying  # noqa:E402,I100
 
 if tornado:
     from tenacity.tornadoweb import TornadoRetrying
