@@ -70,13 +70,6 @@ bool TSourceLocation::operator==(const TSourceLocation& other) const
         Line_ == other.Line_;
 }
 
-#ifdef __cpp_lib_source_location
-TSourceLocation TSourceLocation::FromStd(const std::source_location& location)
-{
-    return TSourceLocation(location.file_name(), location.line());
-}
-#endif // __cpp_lib_source_location
-
 void FormatValue(TStringBuilderBase* builder, const TSourceLocation& location, TStringBuf /*spec*/)
 {
     if (location.GetFileName() != nullptr) {
