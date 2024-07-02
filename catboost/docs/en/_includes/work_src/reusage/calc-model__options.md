@@ -196,7 +196,7 @@ The number of trees from the model to use when applying. If specified, the first
 
 #### Description
 
-To reduce the number of trees to use when the model is applied or the metrics are calculated, setthe step of the trees to use to `eval-period`.
+To reduce the number of trees to use when the model is applied or the metrics are calculated, set the step of the trees to use to `eval-period`.
 
 
 {% include [eval-start-end-cli__eval__period__desc](../reusage-common-phrases/cli__eval__period__desc.md) %}
