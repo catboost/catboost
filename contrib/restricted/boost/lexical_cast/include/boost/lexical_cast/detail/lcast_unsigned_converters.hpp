@@ -56,9 +56,6 @@ namespace boost
     namespace detail // lcast_to_unsigned
     {
         template<class T>
-#if defined(__clang__) && (__clang_major__ > 3 || __clang_minor__ > 6)
-       __attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
         inline
         typename boost::make_unsigned<T>::type lcast_to_unsigned(const T value) noexcept {
             typedef typename boost::make_unsigned<T>::type result_type;
@@ -254,9 +251,6 @@ namespace boost
         private:
             // Iteration that does not care about grouping/separators and assumes that all
             // input characters are digits
-#if defined(__clang__) && (__clang_major__ > 3 || __clang_minor__ > 6)
-            __attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
             inline bool main_convert_iteration() noexcept {
                 CharT const czero = lcast_char_constants<CharT>::zero;
                 T const maxv = (std::numeric_limits<T>::max)();

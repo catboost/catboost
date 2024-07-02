@@ -42,10 +42,6 @@
 
 #include <array>
 
-#ifndef BOOST_NO_CXX17_HDR_STRING_VIEW
-#include <string_view>
-#endif
-
 #include <boost/lexical_cast/detail/buffer_view.hpp>
 #include <boost/container/container_fwd.hpp>
 
@@ -58,9 +54,6 @@ namespace boost {
     class array;
     template<class IteratorT>
     class iterator_range;
-
-    // Forward declaration of boost::basic_string_view from Utility
-    template<class Ch, class Tr> class basic_string_view;
 
     namespace detail // normalize_single_byte_char<Char>
     {
@@ -178,19 +171,6 @@ namespace boost {
             boost::detail::deduce_character_type_later< std::array< const Char, N > >
         > {};
 #endif
-
-#ifndef BOOST_NO_CXX17_HDR_STRING_VIEW
-        template < class Char, class Traits >
-        struct stream_char_common< std::basic_string_view< Char, Traits > >
-        {
-            typedef Char type;
-        };
-#endif
-        template < class Char, class Traits >
-        struct stream_char_common< boost::basic_string_view< Char, Traits > >
-        {
-            typedef Char type;
-        };
 
 #ifdef BOOST_HAS_INT128
         template <> struct stream_char_common< boost::int128_type >: public boost::type_identity< char > {};
@@ -322,6 +302,32 @@ namespace boost {
         };
     }
 
+    namespace detail // extract_char_traits template
+    {
+        // We are attempting to get char_traits<> from T
+        // template parameter. Otherwise we'll be using std::char_traits<Char>
+        template < class Char, class T >
+        struct extract_char_traits
+                : boost::false_type
+        {
+            typedef std::char_traits< Char > trait_t;
+        };
+
+        template < class Char, class Traits, class Alloc >
+        struct extract_char_traits< Char, std::basic_string< Char, Traits, Alloc > >
+            : boost::true_type
+        {
+            typedef Traits trait_t;
+        };
+
+        template < class Char, class Traits, class Alloc>
+        struct extract_char_traits< Char, boost::container::basic_string< Char, Traits, Alloc > >
+            : boost::true_type
+        {
+            typedef Traits trait_t;
+        };
+    }
+
     namespace detail // array_to_pointer_decay<T>
     {
         template<class T>
@@ -425,7 +431,11 @@ namespace boost {
                 "Your compiler does not have full support for char32_t" );
 #endif
 
-            typedef std::char_traits<char_type> traits;
+            typedef typename boost::conditional<
+                boost::detail::extract_char_traits<char_type, Target>::value,
+                typename boost::detail::extract_char_traits<char_type, Target>,
+                typename boost::detail::extract_char_traits<char_type, no_cv_src>
+            >::type::trait_t traits;
 
             typedef boost::detail::lcast_src_length<no_cv_src> len_t;
         };
@@ -464,7 +474,7 @@ namespace boost {
                     return false;
 
                 to_target_stream out(src_stream.cbegin(), src_stream.cend());
-                if (!out.stream_out(result))
+                if(!(out.stream_out(result)))
                     return false;
 
                 return true;

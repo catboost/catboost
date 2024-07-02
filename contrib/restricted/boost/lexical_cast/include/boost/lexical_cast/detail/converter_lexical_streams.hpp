@@ -77,6 +77,7 @@
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/is_reference.hpp>
 #include <boost/container/container_fwd.hpp>
+#include <boost/core/noncopyable.hpp>
 #include <boost/core/enable_if.hpp>
 #ifndef BOOST_NO_CWCHAR
 #   include <cwchar>
@@ -88,9 +89,6 @@ namespace boost {
     class array;
     template<class IteratorT>
     class iterator_range;
-
-    // forward declaration of boost::basic_string_view from Utility
-    template<class Ch, class Tr> class basic_string_view;
 }
 
 namespace boost { namespace detail { namespace lcast {
@@ -107,7 +105,7 @@ namespace boost { namespace detail { namespace lcast {
             , class Traits
             , std::size_t CharacterBufferSize
             >
-    class optimized_src_stream {
+    class optimized_src_stream: boost::noncopyable {
         CharT buffer[CharacterBufferSize];
 
         // After the `stream_in(`  finishes, `[start, finish)` is
@@ -115,11 +113,6 @@ namespace boost { namespace detail { namespace lcast {
         const CharT*  start;
         const CharT*  finish;
     public:
-        optimized_src_stream(optimized_src_stream&&) = delete;
-        optimized_src_stream(const optimized_src_stream&) = delete;
-        optimized_src_stream& operator=(optimized_src_stream&&) = delete;
-        optimized_src_stream& operator=(const optimized_src_stream&) = delete;
-
         optimized_src_stream() noexcept
           : start(buffer)
           , finish(buffer + CharacterBufferSize)
@@ -254,25 +247,15 @@ namespace boost { namespace detail { namespace lcast {
         }
 #endif
     public:
-        template <class C>
-        using enable_if_compatible_char_t = typename boost::enable_if_c<
-            boost::is_same<const C, const CharT>::value || (
-                boost::is_same<const char, const CharT>::value && (
-                    boost::is_same<const C, const unsigned char>::value ||
-                    boost::is_same<const C, const signed char>::value
-                )
-            ), bool
-        >::type;
-
-        template<class CharTraits, class Alloc>
-        bool stream_in(lcast::exact<std::basic_string<CharT,CharTraits,Alloc>> x) noexcept {
+        template<class Alloc>
+        bool stream_in(lcast::exact<std::basic_string<CharT,Traits,Alloc>> x) noexcept {
             start = x.payload.data();
             finish = start + x.payload.length();
             return true;
         }
 
-        template<class CharTraits, class Alloc>
-        bool stream_in(lcast::exact<boost::container::basic_string<CharT,CharTraits,Alloc>> x) noexcept {
+        template<class Alloc>
+        bool stream_in(lcast::exact<boost::container::basic_string<CharT,Traits,Alloc>> x) noexcept {
             start = x.payload.data();
             finish = start + x.payload.length();
             return true;
@@ -292,8 +275,15 @@ namespace boost { namespace detail { namespace lcast {
         }
 
         template <class C>
-        enable_if_compatible_char_t<C>
+        typename boost::enable_if_c<boost::detail::is_character<C>::value && sizeof(CharT) == sizeof(C), bool>::type
         stream_in(lcast::exact<boost::iterator_range<C*>> x) noexcept {
+            auto buf = boost::conversion::detail::make_buffer_view(x.payload.begin(), x.payload.end());
+            return stream_in(lcast::exact<decltype(buf)>{buf});
+        }
+
+        template <class C>
+        typename boost::enable_if_c<boost::detail::is_character<C>::value && sizeof(CharT) == sizeof(C), bool>::type
+        stream_in(lcast::exact<boost::iterator_range<const C*>> x) noexcept {
             auto buf = boost::conversion::detail::make_buffer_view(x.payload.begin(), x.payload.end());
             return stream_in(lcast::exact<decltype(buf)>{buf});
         }
@@ -307,8 +297,12 @@ namespace boost { namespace detail { namespace lcast {
                 stream_in(lcast::exact<C> x)                    { return shl_char(x.payload); }
 
         template <class Type>
-        enable_if_compatible_char_t<Type>
-                stream_in(lcast::exact<Type*> x)                { return shl_char_array(reinterpret_cast<CharT const*>(x.payload)); }
+        typename boost::enable_if_c<boost::detail::is_character<Type>::value && sizeof(CharT) == sizeof(Type), bool>::type
+                stream_in(lcast::exact<const Type*> x)          { return shl_char_array(reinterpret_cast<CharT const*>(x.payload)); }
+
+        template <class Type>
+        typename boost::enable_if_c<boost::detail::is_character<Type>::value && sizeof(CharT) == sizeof(Type), bool>::type
+                stream_in(lcast::exact<Type*> x)                { return shl_char_array(reinterpret_cast<CharT*>(x.payload)); }
 
         template <class Type>
         typename boost::enable_if_c<boost::is_signed<Type>::value && !boost::is_enum<Type>::value, bool>::type
@@ -330,28 +324,27 @@ namespace boost { namespace detail { namespace lcast {
         }
 
         template <class C, std::size_t N>
-        enable_if_compatible_char_t<C>
+        typename boost::enable_if_c<boost::detail::is_character<C>::value && sizeof(CharT) == sizeof(C), bool>::type
         stream_in(lcast::exact<boost::array<C, N>> x) noexcept {
             return shl_char_array_limited(reinterpret_cast<const CharT*>(x.payload.data()), N);
         }
 
         template <class C, std::size_t N>
-        enable_if_compatible_char_t<C>
+        typename boost::enable_if_c<boost::detail::is_character<C>::value && sizeof(CharT) == sizeof(C), bool>::type
+        stream_in(lcast::exact<boost::array<const C, N>> x) noexcept {
+            return shl_char_array_limited(reinterpret_cast<const CharT*>(x.payload.data()), N);
+        }
+
+        template <class C, std::size_t N>
+        typename boost::enable_if_c<boost::detail::is_character<C>::value && sizeof(CharT) == sizeof(C), bool>::type
         stream_in(lcast::exact<std::array<C, N>> x) noexcept {
             return shl_char_array_limited(reinterpret_cast<const CharT*>(x.payload.data()), N);
         }
 
-#ifndef BOOST_NO_CXX17_HDR_STRING_VIEW
-        template <class C, class CharTraits>
-        enable_if_compatible_char_t<C>
-        stream_in(lcast::exact<std::basic_string_view<C, CharTraits>> x) noexcept {
-            return shl_char_array_limited(reinterpret_cast<const CharT*>(x.payload.data()), x.payload.size());
-        }
-#endif
-        template <class C, class CharTraits>
-        enable_if_compatible_char_t<C>
-        stream_in(lcast::exact<boost::basic_string_view<C, CharTraits>> x) noexcept {
-            return shl_char_array_limited(reinterpret_cast<const CharT*>(x.payload.data()), x.payload.size());
+        template <class C, std::size_t N>
+        typename boost::enable_if_c<boost::detail::is_character<C>::value && sizeof(CharT) == sizeof(C), bool>::type
+        stream_in(lcast::exact<std::array<const C, N>> x) noexcept {
+            return shl_char_array_limited(reinterpret_cast<const CharT*>(x.payload.data()), N);
         }
     };
 
@@ -367,11 +360,6 @@ namespace boost { namespace detail { namespace lcast {
         const CharT*  start = nullptr;
         const CharT*  finish = nullptr;
     public:
-        ios_src_stream(ios_src_stream&&) = delete;
-        ios_src_stream(const ios_src_stream&) = delete;
-        ios_src_stream& operator=(ios_src_stream&&) = delete;
-        ios_src_stream& operator=(const ios_src_stream&) = delete;
-
         ios_src_stream(): out_buffer(), out_stream(&out_buffer) {}
 
         const CharT* cbegin() const noexcept {
@@ -472,17 +460,12 @@ namespace boost { namespace detail { namespace lcast {
 
 
     template <class CharT, class Traits>
-    class to_target_stream {
+    class to_target_stream: boost::noncopyable {
         //`[start, finish)` is the range to output by `operator >>`
         const CharT*        start;
         const CharT* const  finish;
 
     public:
-        to_target_stream(to_target_stream&&) = delete;
-        to_target_stream(const to_target_stream&) = delete;
-        to_target_stream& operator=(to_target_stream&&) = delete;
-        to_target_stream& operator=(const to_target_stream&) = delete;
-
         to_target_stream(const CharT* begin, const CharT* end) noexcept
           : start(begin)
           , finish(end)
@@ -490,9 +473,6 @@ namespace boost { namespace detail { namespace lcast {
 
     private:
         template <typename Type>
-#if defined(__clang__) && (__clang_major__ > 3 || __clang_minor__ > 6)
-        __attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
         bool shr_unsigned(Type& output) {
             if (start == finish) return false;
             CharT const minus = lcast_char_constants<CharT>::minus;
@@ -514,9 +494,6 @@ namespace boost { namespace detail { namespace lcast {
         }
 
         template <typename Type>
-#if defined(__clang__) && (__clang_major__ > 3 || __clang_minor__ > 6)
-        __attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
         bool shr_signed(Type& output) {
             if (start == finish) return false;
             CharT const minus = lcast_char_constants<CharT>::minus;
@@ -648,13 +625,13 @@ namespace boost { namespace detail { namespace lcast {
 #if !defined(BOOST_NO_CXX11_CHAR32_T) && !defined(BOOST_NO_CXX11_UNICODE_LITERALS)
         bool stream_out(char32_t& output)                   { return shr_xchar(output); }
 #endif
-        template<class CharTraits, class Alloc>
-        bool stream_out(std::basic_string<CharT,CharTraits,Alloc>& str) {
+        template<class Alloc>
+        bool stream_out(std::basic_string<CharT,Traits,Alloc>& str) {
             str.assign(start, finish); return true;
         }
 
-        template<class CharTraits, class Alloc>
-        bool stream_out(boost::container::basic_string<CharT,CharTraits,Alloc>& str) {
+        template<class Alloc>
+        bool stream_out(boost::container::basic_string<CharT,Traits,Alloc>& str) {
             str.assign(start, finish); return true;
         }
 
