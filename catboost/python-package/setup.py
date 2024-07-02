@@ -772,7 +772,7 @@ if __name__ == '__main__':
         install_requires=[
             'graphviz',
             'matplotlib',
-            'numpy (>=1.16.0)',
+            'numpy (>=1.16.0, <2.0)',
             'pandas (>=0.24)',
             'scipy',
             'plotly',
