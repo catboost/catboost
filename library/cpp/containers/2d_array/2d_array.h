@@ -3,6 +3,7 @@
 #include <util/system/yassert.h>
 #include <util/generic/algorithm.h>
 
+// FIXME: check for Y_IF_DEBUG instead
 #ifdef _DEBUG
 template <class T>
 struct TBoundCheck {
