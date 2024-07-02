@@ -290,6 +290,9 @@ namespace NJson {
                     value.SetType(JSON_UNDEFINED);
                 }
                 S.emplace(&value);
+                if (!IsWithinStackBounds()) {
+                    return false;
+                }
                 return true;
             }
 
