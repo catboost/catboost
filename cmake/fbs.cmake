@@ -1,7 +1,7 @@
 include(common)
 
 function(target_fbs_source Tgt Key Src)
-    get_built_tool_path(flatc_bin flatc_dependency contrib/tools/flatc  flatc)
+    get_built_tool_path(flatc_bin flatc_dependency contrib/libs/flatbuffers/flatc  flatc)
 
     file(RELATIVE_PATH fbsRel ${PROJECT_SOURCE_DIR} ${Src})
     get_filename_component(OutputBase ${fbsRel} NAME_WLE)
