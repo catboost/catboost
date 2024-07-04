@@ -60,7 +60,6 @@ else:
 
 # fmt: off
 __extra__all__ = [
-    #
     'PROCFS_PATH',
     # io prio constants
     "IOPRIO_CLASS_NONE", "IOPRIO_CLASS_RT", "IOPRIO_CLASS_BE",
@@ -421,7 +420,7 @@ def calculate_avail_vmem(mems):
 
 def virtual_memory():
     """Report virtual memory stats.
-    This implementation mimicks procps-ng-3.3.12, aka "free" CLI tool:
+    This implementation mimics procps-ng-3.3.12, aka "free" CLI tool:
     https://gitlab.com/procps-ng/procps/blob/
         24fd2605c51fccc375ab0287cec33aa767f06718/proc/sysinfo.c#L778-791
     The returned values are supposed to match both "free" and "vmstat -s"
@@ -783,6 +782,13 @@ if os.path.exists("/sys/devices/system/cpu/cpufreq/policy0") or os.path.exists(
                 # https://github.com/giampaolo/psutil/issues/1071
                 curr = bcat(pjoin(path, "cpuinfo_cur_freq"), fallback=None)
                 if curr is None:
+                    online_path = (
+                        "/sys/devices/system/cpu/cpu{}/online".format(i)
+                    )
+                    # if cpu core is offline, set to all zeroes
+                    if cat(online_path, fallback=None) == "0\n":
+                        ret.append(_common.scpufreq(0.0, 0.0, 0.0))
+                        continue
                     msg = "can't find current frequency file"
                     raise NotImplementedError(msg)
             curr = int(curr) / 1000
@@ -812,7 +818,7 @@ class _Ipv6UnsupportedError(Exception):
     pass
 
 
-class Connections:
+class NetConnections:
     """A wrapper on top of /proc/net/* files, retrieving per-process
     and system-wide open connections (TCP, UDP, UNIX) similarly to
     "netstat -an".
@@ -978,8 +984,8 @@ class Connections:
                     else:
                         status = _common.CONN_NONE
                     try:
-                        laddr = Connections.decode_address(laddr, family)
-                        raddr = Connections.decode_address(raddr, family)
+                        laddr = NetConnections.decode_address(laddr, family)
+                        raddr = NetConnections.decode_address(raddr, family)
                     except _Ipv6UnsupportedError:
                         continue
                     yield (fd, family, type_, laddr, raddr, status, pid)
@@ -1056,12 +1062,12 @@ class Connections:
         return list(ret)
 
 
-_connections = Connections()
+_net_connections = NetConnections()
 
 
 def net_connections(kind='inet'):
     """Return system-wide open connections."""
-    return _connections.retrieve(kind)
+    return _net_connections.retrieve(kind)
 
 
 def net_io_counters():
@@ -1077,25 +1083,25 @@ def net_io_counters():
         name = line[:colon].strip()
         fields = line[colon + 1 :].strip().split()
 
-        # in
         (
+            # in
             bytes_recv,
             packets_recv,
             errin,
             dropin,
-            fifoin,  # unused
-            framein,  # unused
-            compressedin,  # unused
-            multicastin,  # unused
+            _fifoin,  # unused
+            _framein,  # unused
+            _compressedin,  # unused
+            _multicastin,  # unused
             # out
             bytes_sent,
             packets_sent,
             errout,
             dropout,
-            fifoout,  # unused
-            collisionsout,  # unused
-            carrierout,  # unused
-            compressedout,
+            _fifoout,  # unused
+            _collisionsout,  # unused
+            _carrierout,  # unused
+            _compressedout,  # unused
         ) = map(int, fields)
 
         retdict[name] = (
@@ -1358,12 +1364,9 @@ def disk_partitions(all=False):
         if device in ("/dev/root", "rootfs"):
             device = RootFsDeviceFinder().find() or device
         if not all:
-            if device == '' or fstype not in fstypes:
+            if not device or fstype not in fstypes:
                 continue
-        maxfile = maxpath = None  # set later
-        ntuple = _common.sdiskpart(
-            device, mountpoint, fstype, opts, maxfile, maxpath
-        )
+        ntuple = _common.sdiskpart(device, mountpoint, fstype, opts)
         retlist.append(ntuple)
 
     return retlist
@@ -2091,9 +2094,9 @@ class Process:
             for header, data in get_blocks(lines, current_block):
                 hfields = header.split(None, 5)
                 try:
-                    addr, perms, offset, dev, inode, path = hfields
+                    addr, perms, _offset, _dev, _inode, path = hfields
                 except ValueError:
-                    addr, perms, offset, dev, inode, path = hfields + ['']
+                    addr, perms, _offset, _dev, _inode, path = hfields + ['']
                 if not path:
                     path = '[anon]'
                 else:
@@ -2104,7 +2107,7 @@ class Process:
                         path
                     ):
                         path = path[:-10]
-                ls.append((
+                item = (
                     decode(addr),
                     decode(perms),
                     path,
@@ -2118,7 +2121,8 @@ class Process:
                     data.get(b'Referenced:', 0),
                     data.get(b'Anonymous:', 0),
                     data.get(b'Swap:', 0),
-                ))
+                )
+                ls.append(item)
             return ls
 
     @wrap_exceptions
@@ -2343,8 +2347,8 @@ class Process:
         return retlist
 
     @wrap_exceptions
-    def connections(self, kind='inet'):
-        ret = _connections.retrieve(kind, self.pid)
+    def net_connections(self, kind='inet'):
+        ret = _net_connections.retrieve(kind, self.pid)
         self._raise_if_not_alive()
         return ret
 

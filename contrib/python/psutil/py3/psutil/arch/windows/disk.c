@@ -319,13 +319,11 @@ psutil_disk_partitions(PyObject *self, PyObject *args) {
                         strcat_s(mp_path, _countof(mp_path), mp_buf);
 
                         py_tuple = Py_BuildValue(
-                            "(ssssIi)",
+                            "(ssss)",
                             drive_letter,
                             mp_path,
                             fs_type,                   // typically "NTFS"
-                            opts,
-                            lpMaximumComponentLength,  // max file length
-                            MAX_PATH                   // max path length
+                            opts
                         );
 
                         if (!py_tuple ||
@@ -351,13 +349,11 @@ psutil_disk_partitions(PyObject *self, PyObject *args) {
         strcat_s(opts, _countof(opts), psutil_get_drive_type(type));
 
         py_tuple = Py_BuildValue(
-            "(ssssIi)",
+            "(ssss)",
             drive_letter,
             drive_letter,
             fs_type,  // either FAT, FAT32, NTFS, HPFS, CDFS, UDF or NWFS
-            opts,
-            lpMaximumComponentLength,  // max file length
-            MAX_PATH                   // max path length
+            opts
         );
         if (!py_tuple)
             goto error;
