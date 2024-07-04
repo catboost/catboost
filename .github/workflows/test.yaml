@@ -151,7 +151,7 @@ jobs:
         shell: pwsh
         run: |
           python -m pip install testpath pytest 'numpy<2.0' pandas ipywidgets scikit-learn
-          python -m pip uninstall catboost
+          python -m pip uninstall -y catboost
           python -m pip install ${{ inputs.catboost_package_name }} -f ${{ github.workspace }}/catboost_python_package_dist/
           $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
           $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
