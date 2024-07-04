@@ -3393,7 +3393,9 @@ def do_test_fstr(
 
     yatest.common.execute(fstr_cmd)
 
-    return local_canonical_file(output_fstr_path)
+    may_use_fast_exp = loss_function in ('Logloss', 'MultiClass', )  # results may depend fma support by cpu
+    epsilon = 1e-18 if is_canonical_test_run() and not may_use_fast_exp else 1e9
+    return local_canonical_file(output_fstr_path, diff_tool=get_limited_precision_dsv_diff_tool(epsilon, False))
 
 
 def make_model_normalized(model_path):
