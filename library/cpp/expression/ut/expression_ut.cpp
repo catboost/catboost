@@ -44,6 +44,14 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         UNIT_ASSERT_EQUAL(CalcExpression("(9*a) > 1 && size > 20", m), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("2+2*2", m), 6);
         UNIT_ASSERT_EQUAL(CalcExpression("2+2^3", m), 10);
+        UNIT_ASSERT_EQUAL(CalcExpression("1 #MIN# 2", m), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("2 #MIN# 1", m), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("1 #MAX# 2", m), 2);
+        UNIT_ASSERT_EQUAL(CalcExpression("2 #MAX# 1", m), 2);
+        UNIT_ASSERT_EQUAL(CalcExpression("2 #MAX# 1 #MIN# 3", m), 2);
+        UNIT_ASSERT_EQUAL(CalcExpression("2+2*2 #MAX# 2+2^3", m), 10);
+        UNIT_ASSERT_EQUAL(CalcExpression("2+2*2 #MIN# 2+2^3", m), 6);
+        UNIT_ASSERT_EQUAL(CalcExpression("1 < 0 #MAX# a + 100", m), 100.1);
         UNIT_ASSERT_EQUAL(CalcExpression("(2*a^(-3)-2000)^2<=10^(-5)", m), 1); // comparison adds EPS to lhs
         UNIT_ASSERT_EQUAL(CalcExpression("2*a^(-3)==2000", m), 1);
         UNIT_ASSERT_EQUAL(IsNan(CalcExpression("0^0", m)), 1);

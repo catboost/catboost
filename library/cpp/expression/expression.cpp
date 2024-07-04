@@ -215,46 +215,48 @@ IExpressionImpl::IExpressionImpl() = default;
 IExpressionImpl::~IExpressionImpl() = default;
 
 enum EOperation {
-    O_CONST,               // const
-    O_TOKEN,               // token
-    O_NOT,                 // !
-    O_IS_TOKEN,            // ~
-    O_MINUS,               // - / unary
-    O_EXP,                 // #EXP#
-    O_LOG,                 // #LOG#
-    O_SQR,                 // #SQR#
-    O_SQRT,                // #SQRT#
-    O_SIGMOID,             // #SIGMOID#
-    O_STR_COND,            // ?@ / ternary operator for strings
-    O_COND,                // ?
-    O_BINARY_BEGIN,        // binary operator
-    O_OR = O_BINARY_BEGIN, // ||
-    O_AND,                 // &&
-    O_STARTS_WITH,         // >? start with
-    O_STR_LE,              // <=@ / for string comparsion (alphabetical)
-    O_STR_L,               // <@  / for string comparsion (alphabetical)
-    O_STR_GE,              // >=@ / for string comparsion (alphabetical)
-    O_STR_G,               // >@  / for string comparsion (alphabetical)
-    O_VERSION_LE,          // <=# / for version comparsion
-    O_VERSION_L,           // <#  / for version comparsion
-    O_VERSION_GE,          // >=# / for version comparsion
-    O_VERSION_G,           // >#  / for version comparsion
-    O_VERSION_E,           // ==# / for version comparsion
-    O_VERSION_NE,          // !=# / for version comparsion
-    O_LE,                  // <=
-    O_L,                   // <
-    O_GE,                  // >=
-    O_G,                   // >
-    O_E,                   // ==
-    O_NE,                  // !=
-    O_MATCH,               // =~
-    O_BITS_OR,             // |
-    O_BITS_AND,            // &
-    O_ADD,                 // "+"
-    O_SUBSTRACT,           // "-"  / binary
-    O_MULTIPLY,            // "*"
-    O_DIVIDE,              // "/"
-    O_POW,                 // "^"
+    O_CONST,                // const
+    O_TOKEN,                // token
+    O_NOT,                  // !
+    O_IS_TOKEN,             // ~
+    O_MINUS,                // - / unary
+    O_EXP,                  // #EXP#
+    O_LOG,                  // #LOG#
+    O_SQR,                  // #SQR#
+    O_SQRT,                 // #SQRT#
+    O_SIGMOID,              // #SIGMOID#
+    O_STR_COND,             // ?@ / ternary operator for strings
+    O_COND,                 // ?
+    O_BINARY_BEGIN,         // binary operator
+    O_MIN = O_BINARY_BEGIN, // #MIN#
+    O_MAX,                  // #MAX#
+    O_OR,                   // ||
+    O_AND,                  // &&
+    O_STARTS_WITH,          // >? start with
+    O_STR_LE,               // <=@ / for string comparsion (alphabetical)
+    O_STR_L,                // <@  / for string comparsion (alphabetical)
+    O_STR_GE,               // >=@ / for string comparsion (alphabetical)
+    O_STR_G,                // >@  / for string comparsion (alphabetical)
+    O_VERSION_LE,           // <=# / for version comparsion
+    O_VERSION_L,            // <#  / for version comparsion
+    O_VERSION_GE,           // >=# / for version comparsion
+    O_VERSION_G,            // >#  / for version comparsion
+    O_VERSION_E,            // ==# / for version comparsion
+    O_VERSION_NE,           // !=# / for version comparsion
+    O_LE,                   // <=
+    O_L,                    // <
+    O_GE,                   // >=
+    O_G,                    // >
+    O_E,                    // ==
+    O_NE,                   // !=
+    O_MATCH,                // =~
+    O_BITS_OR,              // |
+    O_BITS_AND,             // &
+    O_ADD,                  // "+"
+    O_SUBSTRACT,            // "-"  / binary
+    O_MULTIPLY,             // "*"
+    O_DIVIDE,               // "/"
+    O_POW,                  // "^"
     O_END
 };
 
@@ -271,6 +273,8 @@ const TStringBuf EOperationsStrings[] = {
     TStringBuf("#SIGMOID#"),
     TStringBuf("?@"),
     TStringBuf("?"),
+    TStringBuf("#MIN#"),
+    TStringBuf("#MAX#"),
     TStringBuf("||"),
     TStringBuf("&&"),
     TStringBuf(">?"),
@@ -312,33 +316,35 @@ const int EOperationsPriority[] = {
     0, // "#SIGMOID#"
     0, // "?@"
     0, // "?"
-    1, // "||"
-    1, // "&&"
-    2, // ">?"
-    2, // ">=@"
-    2, // ">@"
-    2, // "<=@"
-    2, // "<@"
-    2, // ">=#"
-    2, // ">#"
-    2, // "<=#"
-    2, // "<#"
-    2, // "==#"
-    2, // "!=#"
-    2, // "<="
-    2, // "<"
-    2, // ">="
-    2, // ">"
-    2, // "=="
-    2, // "!="
-    2, // "=~"
-    3, // "|"
-    3, // "&"
-    4, // "+"
-    4, // "-"
-    5, // "*"
-    5, // "/"
-    6, // "^"
+    1, // "#MIN#"
+    1, // "#MAX#"
+    2, // "||"
+    2, // "&&"
+    3, // ">?"
+    3, // ">=@"
+    3, // ">@"
+    3, // "<=@"
+    3, // "<@"
+    3, // ">=#"
+    3, // ">#"
+    3, // "<=#"
+    3, // "<#"
+    3, // "==#"
+    3, // "!=#"
+    3, // "<="
+    3, // "<"
+    3, // ">="
+    3, // ">"
+    3, // "=="
+    3, // "!="
+    3, // "=~"
+    4, // "|"
+    4, // "&"
+    5, // "+"
+    5, // "-"
+    6, // "*"
+    6, // "/"
+    7, // "^"
     std::numeric_limits<int>::max()};
 
 constexpr size_t MaxOperands = 3;
@@ -413,6 +419,12 @@ public:
     }
     double Minus() {
         return -ToDouble();
+    }
+    double Min(const TVariant& v) const {
+        return Le(v) ? ToDouble() : v.ToDouble();
+    }
+    double Max(const TVariant& v) const {
+        return G(v) ? ToDouble() : v.ToDouble();
     }
     double Or(const TVariant& v) const {
         return !(IsEmpty() && v.IsEmpty());
@@ -936,6 +948,12 @@ TVariant TExpressionImpl::CalcVariantExpression(const IExpressionAdaptor& data) 
                 break;
             case O_MINUS:
                 values[i - 1] = values[Operations[i - 1].Input.front()].Minus();
+                break;
+            case O_MIN:
+                values[i - 1] = values[Operations[i - 1].Input.front()].Min(values[Operations[i - 1].Input.back()]);
+                break;
+            case O_MAX:
+                values[i - 1] = values[Operations[i - 1].Input.front()].Max(values[Operations[i - 1].Input.back()]);
                 break;
             case O_OR:
                 values[i - 1] = values[Operations[i - 1].Input.front()].Or(values[Operations[i - 1].Input.back()]);
