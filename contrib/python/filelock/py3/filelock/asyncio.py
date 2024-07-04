@@ -9,9 +9,9 @@ import os
 import time
 from dataclasses import dataclass
 from threading import local
-from typing import TYPE_CHECKING, Any, Callable, NoReturn
+from typing import TYPE_CHECKING, Any, Callable, NoReturn, cast
 
-from ._api import BaseFileLock, FileLockContext
+from ._api import BaseFileLock, FileLockContext, FileLockMeta
 from ._error import Timeout
 from ._soft import SoftFileLock
 from ._unix import UnixFileLock
@@ -67,7 +67,38 @@ class AsyncAcquireReturnProxy:
         await self.lock.release()
 
 
-class BaseAsyncFileLock(BaseFileLock):
+class AsyncFileLockMeta(FileLockMeta):
+    def __call__(  # type: ignore[override] # noqa: PLR0913
+        cls,  # noqa: N805
+        lock_file: str | os.PathLike[str],
+        timeout: float = -1,
+        mode: int = 0o644,
+        thread_local: bool = False,  # noqa: FBT001, FBT002
+        *,
+        blocking: bool = True,
+        is_singleton: bool = False,
+        loop: asyncio.AbstractEventLoop | None = None,
+        run_in_executor: bool = True,
+        executor: futures.Executor | None = None,
+    ) -> BaseAsyncFileLock:
+        if thread_local and run_in_executor:
+            msg = "run_in_executor is not supported when thread_local is True"
+            raise ValueError(msg)
+        instance = super().__call__(
+            lock_file=lock_file,
+            timeout=timeout,
+            mode=mode,
+            thread_local=thread_local,
+            blocking=blocking,
+            is_singleton=is_singleton,
+            loop=loop,
+            run_in_executor=run_in_executor,
+            executor=executor,
+        )
+        return cast(BaseAsyncFileLock, instance)
+
+
+class BaseAsyncFileLock(BaseFileLock, metaclass=AsyncFileLockMeta):
     """Base class for asynchronous file locks."""
 
     def __init__(  # noqa: PLR0913
@@ -104,9 +135,6 @@ class BaseAsyncFileLock(BaseFileLock):
         """
         self._is_thread_local = thread_local
         self._is_singleton = is_singleton
-        if thread_local and run_in_executor:
-            msg = "run_in_executor is not supported when thread_local is True"
-            raise ValueError(msg)
 
         # Create the context. Note that external code should not work with the context directly and should instead use
         # properties of this class.
