@@ -62,4 +62,23 @@ concept CAnyMap = requires {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class T>
+concept CConst = std::is_const_v<T>;
+
+template <class T>
+concept CNonConst = !CConst<T>;
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class T>
+concept CRawPtr = std::is_pointer_v<T>;
+
+template <class T>
+concept CConstRawPtr = CRawPtr<T> && CConst<decltype(*std::declval<T>())>;
+
+template <class T>
+concept CMutRawPtr = CRawPtr<T> && !CConstRawPtr<T>;
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
