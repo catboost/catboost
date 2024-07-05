@@ -98,7 +98,8 @@ class ScopedCheckPtrInvariants {
 // Creates a heap allocated TProtoStringType value.
 inline TaggedStringPtr CreateString(ConstStringParam value) {
   TaggedStringPtr res;
-  res.SetAllocated(new TProtoStringType(value.data(), value.length()));
+  // better than TProtoStringType(value.data(), value.length())
+  res.SetAllocated(new TProtoStringType(value));
   return res;
 }
 
