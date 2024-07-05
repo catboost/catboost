@@ -642,7 +642,7 @@ class PackageIndex(Environment):
                             "Skipping development or system egg: %s",
                             dist,
                         )
-                        skipped[dist] = 1
+                        skipped[dist] = True
                     continue
 
                 test = dist in req and (dist.precedence <= SOURCE_DIST or not source)

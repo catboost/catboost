@@ -7,10 +7,12 @@ The ``requires.txt`` file has an specific format:
 See https://setuptools.pypa.io/en/latest/deprecated/python_eggs.html#requires-txt
 """
 
+from __future__ import annotations
+
 import io
 from collections import defaultdict
 from itertools import filterfalse
-from typing import Dict, List, Tuple, Mapping, TypeVar
+from typing import Dict, Mapping, TypeVar
 
 from .. import _reqs
 from ..extern.jaraco.text import yield_lines
@@ -26,7 +28,7 @@ _StrOrIter = _reqs._StrOrIter
 
 def _prepare(
     install_requires: _StrOrIter, extras_require: Mapping[str, _StrOrIter]
-) -> Tuple[List[str], Dict[str, List[str]]]:
+) -> tuple[list[str], dict[str, list[str]]]:
     """Given values for ``install_requires`` and ``extras_require``
     create modified versions in a way that can be written in ``requires.txt``
     """
@@ -54,7 +56,7 @@ def _convert_extras_requirements(
 
 def _move_install_requirements_markers(
     install_requires: _StrOrIter, extras_require: Mapping[str, _Ordered[Requirement]]
-) -> Tuple[List[str], Dict[str, List[str]]]:
+) -> tuple[list[str], dict[str, list[str]]]:
     """
     The ``requires.txt`` file has an specific format:
         - Environment markers need to be part of the section headers and

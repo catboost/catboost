@@ -1,4 +1,6 @@
-from typing import Dict, List, Protocol
+from __future__ import annotations
+
+from typing import Protocol
 from distutils.command.build import build as _build
 
 _ORIGINAL_SUBCOMMANDS = {"build_py", "build_clib", "build_ext", "build_scripts"}
@@ -87,7 +89,7 @@ class SubCommand(Protocol):
     def run(self):
         """(Required by the original :class:`setuptools.Command` interface)"""
 
-    def get_source_files(self) -> List[str]:
+    def get_source_files(self) -> list[str]:
         """
         Return a list of all files that are used by the command to create the expected
         outputs.
@@ -98,7 +100,7 @@ class SubCommand(Protocol):
         All files should be strings relative to the project root directory.
         """
 
-    def get_outputs(self) -> List[str]:
+    def get_outputs(self) -> list[str]:
         """
         Return a list of files intended for distribution as they would have been
         produced by the build.
@@ -111,7 +113,7 @@ class SubCommand(Protocol):
            and don't correspond to any source file already present in the project.
         """
 
-    def get_output_mapping(self) -> Dict[str, str]:
+    def get_output_mapping(self) -> dict[str, str]:
         """
         Return a mapping between destination files as they would be produced by the
         build (dict keys) into the respective existing (source) files (dict values).

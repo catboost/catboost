@@ -10,6 +10,8 @@ Create a wheel that, when installed, will make the source package 'editable'
    *auxiliary build directory* or ``auxiliary_dir``.
 """
 
+from __future__ import annotations
+
 import logging
 import io
 import os
@@ -23,14 +25,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import (
     TYPE_CHECKING,
-    Dict,
     Iterable,
     Iterator,
-    List,
     Mapping,
-    Optional,
     Protocol,
-    Tuple,
     TypeVar,
     cast,
 )
@@ -59,7 +57,7 @@ from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
 
 if TYPE_CHECKING:
-    from wheel.wheelfile import WheelFile  # type:ignore[import-untyped] # noqa
+    from .._vendor.wheel.wheelfile import WheelFile
 
 _P = TypeVar("_P", bound=StrPath)
 _logger = logging.getLogger(__name__)
@@ -78,7 +76,7 @@ class _EditableMode(Enum):
     COMPAT = "compat"  # TODO: Remove `compat` after Dec/2022.
 
     @classmethod
-    def convert(cls, mode: Optional[str]) -> "_EditableMode":
+    def convert(cls, mode: str | None) -> _EditableMode:
         if not mode:
             return _EditableMode.LENIENT  # default
 
@@ -180,7 +178,7 @@ class editable_wheel(Command):
         installer = _NamespaceInstaller(dist, installation_dir, pth_prefix, src_root)
         installer.install_namespaces()
 
-    def _find_egg_info_dir(self) -> Optional[str]:
+    def _find_egg_info_dir(self) -> str | None:
         parent_dir = Path(self.dist_info_dir).parent if self.dist_info_dir else Path()
         candidates = map(str, parent_dir.glob("*.egg-info"))
         return next(candidates, None)
@@ -255,9 +253,9 @@ class editable_wheel(Command):
             elif hasattr(cmd, "inplace"):
                 cmd.inplace = True  # backward compatibility with distutils
 
-    def _collect_build_outputs(self) -> Tuple[List[str], Dict[str, str]]:
-        files: List[str] = []
-        mapping: Dict[str, str] = {}
+    def _collect_build_outputs(self) -> tuple[list[str], dict[str, str]]:
+        files: list[str] = []
+        mapping: dict[str, str] = {}
         build = self.get_finalized_command("build")
 
         for cmd_name in build.get_sub_commands():
@@ -275,7 +273,7 @@ class editable_wheel(Command):
         unpacked_wheel: StrPath,
         build_lib: StrPath,
         tmp_dir: StrPath,
-    ) -> Tuple[List[str], Dict[str, str]]:
+    ) -> tuple[list[str], dict[str, str]]:
         self._configure_build(dist_name, unpacked_wheel, build_lib, tmp_dir)
         self._run_build_subcommands()
         files, mapping = self._collect_build_outputs()
@@ -335,7 +333,7 @@ class editable_wheel(Command):
             )
 
     def _create_wheel_file(self, bdist_wheel):
-        from wheel.wheelfile import WheelFile
+        from ..extern.wheel.wheelfile import WheelFile
 
         dist_info = self.get_finalized_command("dist_info")
         dist_name = dist_info.name
@@ -373,7 +371,7 @@ class editable_wheel(Command):
         name: str,
         tag: str,
         build_lib: StrPath,
-    ) -> "EditableStrategy":
+    ) -> EditableStrategy:
         """Decides which strategy to use to implement an editable installation."""
         build_name = f"__editable__.{name}-{tag}"
         project_dir = Path(self.project_dir)
@@ -396,9 +394,7 @@ class editable_wheel(Command):
 
 
 class EditableStrategy(Protocol):
-    def __call__(
-        self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]
-    ): ...
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]): ...
 
     def __enter__(self): ...
 
@@ -406,12 +402,12 @@ class EditableStrategy(Protocol):
 
 
 class _StaticPth:
-    def __init__(self, dist: Distribution, name: str, path_entries: List[Path]):
+    def __init__(self, dist: Distribution, name: str, path_entries: list[Path]):
         self.dist = dist
         self.name = name
         self.path_entries = path_entries
 
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
         entries = "\n".join(str(p.resolve()) for p in self.path_entries)
         contents = _encode_pth(f"{entries}\n")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
@@ -451,11 +447,11 @@ class _LinkTree(_StaticPth):
         self._file = dist.get_command_obj("build_py").copy_file  # type: ignore[union-attr]
         super().__init__(dist, name, [self.auxiliary_dir])
 
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
         self._create_links(files, mapping)
         super().__call__(wheel, files, mapping)
 
-    def _normalize_output(self, file: str) -> Optional[str]:
+    def _normalize_output(self, file: str) -> str | None:
         # Files relative to build_lib will be normalized to None
         with suppress(ValueError):
             path = Path(file).resolve().relative_to(self.build_lib)
@@ -505,13 +501,13 @@ class _TopLevelFinder:
         self.dist = dist
         self.name = name
 
-    def template_vars(self) -> Tuple[str, str, Dict[str, str], Dict[str, List[str]]]:
+    def template_vars(self) -> tuple[str, str, dict[str, str], dict[str, list[str]]]:
         src_root = self.dist.src_root or os.curdir
         top_level = chain(_find_packages(self.dist), _find_top_level_modules(self.dist))
         package_dir = self.dist.package_dir or {}
         roots = _find_package_roots(top_level, package_dir, src_root)
 
-        namespaces_: Dict[str, List[str]] = dict(
+        namespaces_: dict[str, list[str]] = dict(
             chain(
                 _find_namespaces(self.dist.packages or [], roots),
                 ((ns, []) for ns in _find_virtual_namespaces(roots)),
@@ -519,7 +515,7 @@ class _TopLevelFinder:
         )
 
         legacy_namespaces = {
-            cast(str, pkg): find_package_path(pkg, roots, self.dist.src_root or "")
+            pkg: find_package_path(pkg, roots, self.dist.src_root or "")
             for pkg in self.dist.namespace_packages or []
         }
 
@@ -532,7 +528,7 @@ class _TopLevelFinder:
         finder = _normalization.safe_identifier(name)
         return finder, name, mapping, namespaces_
 
-    def get_implementation(self) -> Iterator[Tuple[str, bytes]]:
+    def get_implementation(self) -> Iterator[tuple[str, bytes]]:
         finder, name, mapping, namespaces_ = self.template_vars()
 
         content = bytes(_finder_template(name, mapping, namespaces_), "utf-8")
@@ -541,7 +537,7 @@ class _TopLevelFinder:
         content = _encode_pth(f"import {finder}; {finder}.install()")
         yield (f"__editable__.{self.name}.pth", content)
 
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
         for file, content in self.get_implementation():
             wheel.writestr(file, content)
 
@@ -597,7 +593,7 @@ def _can_symlink_files(base_dir: Path) -> bool:
 
 
 def _simple_layout(
-    packages: Iterable[str], package_dir: Dict[str, str], project_dir: StrPath
+    packages: Iterable[str], package_dir: dict[str, str], project_dir: StrPath
 ) -> bool:
     """Return ``True`` if:
     - all packages are contained by the same parent directory, **and**
@@ -680,8 +676,8 @@ def _find_package_roots(
     packages: Iterable[str],
     package_dir: Mapping[str, str],
     src_root: StrPath,
-) -> Dict[str, str]:
-    pkg_roots: Dict[str, str] = {
+) -> dict[str, str]:
+    pkg_roots: dict[str, str] = {
         pkg: _absolute_root(find_package_path(pkg, package_dir, src_root))
         for pkg in sorted(packages)
     }
@@ -700,7 +696,7 @@ def _absolute_root(path: StrPath) -> str:
         return str(parent.resolve() / path_.name)
 
 
-def _find_virtual_namespaces(pkg_roots: Dict[str, str]) -> Iterator[str]:
+def _find_virtual_namespaces(pkg_roots: dict[str, str]) -> Iterator[str]:
     """By carefully designing ``package_dir``, it is possible to implement the logical
     structure of PEP 420 in a package without the corresponding directories.
 
@@ -725,15 +721,15 @@ def _find_virtual_namespaces(pkg_roots: Dict[str, str]) -> Iterator[str]:
 
 
 def _find_namespaces(
-    packages: List[str], pkg_roots: Dict[str, str]
-) -> Iterator[Tuple[str, List[str]]]:
+    packages: list[str], pkg_roots: dict[str, str]
+) -> Iterator[tuple[str, list[str]]]:
     for pkg in packages:
         path = find_package_path(pkg, pkg_roots, "")
         if Path(path).exists() and not Path(path, "__init__.py").exists():
             yield (pkg, [path])
 
 
-def _remove_nested(pkg_roots: Dict[str, str]) -> Dict[str, str]:
+def _remove_nested(pkg_roots: dict[str, str]) -> dict[str, str]:
     output = dict(pkg_roots.copy())
 
     for pkg, path in reversed(list(pkg_roots.items())):
@@ -883,7 +879,7 @@ def install():
 
 
 def _finder_template(
-    name: str, mapping: Mapping[str, str], namespaces: Dict[str, List[str]]
+    name: str, mapping: Mapping[str, str], namespaces: dict[str, list[str]]
 ) -> str:
     """Create a string containing the code for the``MetaPathFinder`` and
     ``PathEntryFinder``.

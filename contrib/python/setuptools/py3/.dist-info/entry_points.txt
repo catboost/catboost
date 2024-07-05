@@ -2,6 +2,7 @@
 alias = setuptools.command.alias:alias
 bdist_egg = setuptools.command.bdist_egg:bdist_egg
 bdist_rpm = setuptools.command.bdist_rpm:bdist_rpm
+bdist_wheel = setuptools.command.bdist_wheel:bdist_wheel
 build = setuptools.command.build:build
 build_clib = setuptools.command.build_clib:build_clib
 build_ext = setuptools.command.build_ext:build_ext

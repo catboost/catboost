@@ -85,6 +85,7 @@ names = (
     'ordered_set',
     'packaging',
     'tomli',
+    'wheel',
     'zipp',
 )
 # [[[end]]]

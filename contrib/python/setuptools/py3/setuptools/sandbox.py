@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 import tempfile
@@ -9,7 +11,6 @@ import contextlib
 import pickle
 import textwrap
 import builtins
-from typing import Union, List
 
 import pkg_resources
 from distutils.errors import DistutilsError
@@ -425,7 +426,7 @@ class DirectorySandbox(AbstractSandbox):
         "tempnam",
     ])
 
-    _exception_patterns: List[Union[str, re.Pattern]] = []
+    _exception_patterns: list[str | re.Pattern] = []
     "exempt writing to paths that match the pattern"
 
     def __init__(self, sandbox, exceptions=_EXCEPTIONS):

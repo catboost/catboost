@@ -4,13 +4,14 @@ Handling of Core Metadata for Python packages (including reading and writing).
 See: https://packaging.python.org/en/latest/specifications/core-metadata/
 """
 
+from __future__ import annotations
+
 import os
 import stat
 import textwrap
 from email import message_from_file
 from email.message import Message
 from tempfile import NamedTemporaryFile
-from typing import Optional, List
 
 from distutils.util import rfc822_escape
 
@@ -38,7 +39,7 @@ def rfc822_unescape(content: str) -> str:
     return '\n'.join((lines[0].lstrip(), textwrap.dedent('\n'.join(lines[1:]))))
 
 
-def _read_field_from_msg(msg: Message, field: str) -> Optional[str]:
+def _read_field_from_msg(msg: Message, field: str) -> str | None:
     """Read Message header field."""
     value = msg[field]
     if value == 'UNKNOWN':
@@ -46,7 +47,7 @@ def _read_field_from_msg(msg: Message, field: str) -> Optional[str]:
     return value
 
 
-def _read_field_unescaped_from_msg(msg: Message, field: str) -> Optional[str]:
+def _read_field_unescaped_from_msg(msg: Message, field: str) -> str | None:
     """Read Message header field and apply rfc822_unescape."""
     value = _read_field_from_msg(msg, field)
     if value is None:
@@ -54,7 +55,7 @@ def _read_field_unescaped_from_msg(msg: Message, field: str) -> Optional[str]:
     return rfc822_unescape(value)
 
 
-def _read_list_from_msg(msg: Message, field: str) -> Optional[List[str]]:
+def _read_list_from_msg(msg: Message, field: str) -> list[str] | None:
     """Read Message header field and return all results as list."""
     values = msg.get_all(field, None)
     if values == []:
@@ -62,7 +63,7 @@ def _read_list_from_msg(msg: Message, field: str) -> Optional[List[str]]:
     return values
 
 
-def _read_payload_from_msg(msg: Message) -> Optional[str]:
+def _read_payload_from_msg(msg: Message) -> str | None:
     value = str(msg.get_payload()).strip()
     if value == 'UNKNOWN' or not value:
         return None

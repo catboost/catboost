@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import partial
 from glob import glob
 from distutils.util import convert_path
@@ -9,7 +11,7 @@ import distutils.errors
 import itertools
 import stat
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Optional, Tuple
+from typing import Iterable, Iterator
 
 from ..extern.more_itertools import unique_everseen
 from ..warnings import SetuptoolsDeprecationWarning
@@ -33,7 +35,7 @@ class build_py(orig.build_py):
     """
 
     editable_mode: bool = False
-    existing_egg_info_dir: Optional[str] = None  #: Private API, internal use only.
+    existing_egg_info_dir: str | None = None  #: Private API, internal use only.
 
     def finalize_options(self):
         orig.build_py.finalize_options(self)
@@ -44,7 +46,13 @@ class build_py(orig.build_py):
         self.__updated_files = []
 
     def copy_file(
-        self, infile, outfile, preserve_mode=1, preserve_times=1, link=None, level=1
+        self,
+        infile,
+        outfile,
+        preserve_mode=True,
+        preserve_times=True,
+        link=None,
+        level=1,
     ):
         # Overwrite base class to allow using links
         if link:
@@ -68,7 +76,7 @@ class build_py(orig.build_py):
 
         # Only compile actual .py files, using our base class' idea of what our
         # output files are.
-        self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=0))
+        self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=False))
 
     def __getattr__(self, attr):
         "lazily compute data files"
@@ -130,13 +138,13 @@ class build_py(orig.build_py):
         )
         return self.exclude_data_files(package, src_dir, files)
 
-    def get_outputs(self, include_bytecode=1) -> List[str]:
+    def get_outputs(self, include_bytecode=True) -> list[str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         if self.editable_mode:
             return list(self.get_output_mapping().keys())
         return super().get_outputs(include_bytecode)
 
-    def get_output_mapping(self) -> Dict[str, str]:
+    def get_output_mapping(self) -> dict[str, str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         mapping = itertools.chain(
             self._get_package_data_output_mapping(),
@@ -144,14 +152,14 @@ class build_py(orig.build_py):
         )
         return dict(sorted(mapping, key=lambda x: x[0]))
 
-    def _get_module_mapping(self) -> Iterator[Tuple[str, str]]:
+    def _get_module_mapping(self) -> Iterator[tuple[str, str]]:
         """Iterate over all modules producing (dest, src) pairs."""
         for package, module, module_file in self.find_all_modules():
             package = package.split('.')
             filename = self.get_module_outfile(self.build_lib, package, module)
             yield (filename, module_file)
 
-    def _get_package_data_output_mapping(self) -> Iterator[Tuple[str, str]]:
+    def _get_package_data_output_mapping(self) -> Iterator[tuple[str, str]]:
         """Iterate over package data producing (dest, src) pairs."""
         for package, src_dir, build_dir, filenames in self.data_files:
             for filename in filenames:

@@ -10,6 +10,8 @@ __ https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
 """
 
+from __future__ import annotations
+
 from glob import glob
 from distutils.util import get_platform
 from distutils.util import convert_path, subst_vars
@@ -25,7 +27,6 @@ from distutils.spawn import find_executable
 from distutils.command import install
 import sys
 import os
-from typing import Dict, List
 import zipimport
 import shutil
 import tempfile
@@ -170,7 +171,7 @@ class easy_install(Command):
 
         # the --user option seems to be an opt-in one,
         # so the default should be False.
-        self.user = 0
+        self.user = False
         self.zip_ok = self.local_snapshots_ok = None
         self.install_dir = self.script_dir = self.exclude_scripts = None
         self.index_url = None
@@ -1058,10 +1059,10 @@ class easy_install(Command):
                     dl = dst.lower()
                     if dl.endswith('.pyd') or dl.endswith('.dll'):
                         parts[-1] = bdist_egg.strip_module(parts[-1])
-                        top_level[os.path.splitext(parts[0])[0]] = 1
+                        top_level[os.path.splitext(parts[0])[0]] = True
                         native_libs.append(src)
                     elif dl.endswith('.py') and old != 'SCRIPTS/':
-                        top_level[os.path.splitext(parts[0])[0]] = 1
+                        top_level[os.path.splitext(parts[0])[0]] = True
                         to_compile.append(dst)
                     return dst
             if not src.endswith('.pth'):
@@ -1317,12 +1318,12 @@ class easy_install(Command):
             # try to make the byte compile messages quieter
             log.set_verbosity(self.verbose - 1)
 
-            byte_compile(to_compile, optimize=0, force=1, dry_run=self.dry_run)
+            byte_compile(to_compile, optimize=0, force=True, dry_run=self.dry_run)
             if self.optimize:
                 byte_compile(
                     to_compile,
                     optimize=self.optimize,
-                    force=1,
+                    force=True,
                     dry_run=self.dry_run,
                 )
         finally:
@@ -1490,7 +1491,7 @@ def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
         if dirname in seen:
             continue
 
-        seen[dirname] = 1
+        seen[dirname] = True
         if not os.path.isdir(dirname):
             continue
 
@@ -1519,7 +1520,7 @@ def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
                 if line in seen:
                     continue
 
-                seen[line] = 1
+                seen[line] = True
                 if not os.path.isdir(line):
                     continue
 
@@ -1642,7 +1643,7 @@ class PthDistributions(Environment):
                 dirty = True
                 paths.pop()
                 continue
-            seen[normalized_path] = 1
+            seen[normalized_path] = True
         f.close()
         # remove any trailing empty/blank line
         while paths and not paths[-1].strip():
@@ -2038,8 +2039,8 @@ class CommandSpec(list):
     those passed to Popen.
     """
 
-    options: List[str] = []
-    split_args: Dict[str, bool] = dict()
+    options: list[str] = []
+    split_args: dict[str, bool] = dict()
 
     @classmethod
     def best(cls):

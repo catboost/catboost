@@ -85,9 +85,9 @@ class bdist_egg(Command):
     def initialize_options(self):
         self.bdist_dir = None
         self.plat_name = None
-        self.keep_temp = 0
+        self.keep_temp = False
         self.dist_dir = None
-        self.skip_build = 0
+        self.skip_build = False
         self.egg_output = None
         self.exclude_source_files = None
 
@@ -136,7 +136,7 @@ class bdist_egg(Command):
 
         try:
             log.info("installing package data to %s", self.bdist_dir)
-            self.call_command('install_data', force=0, root=None)
+            self.call_command('install_data', force=False, root=None)
         finally:
             self.distribution.data_files = old
 
@@ -164,7 +164,7 @@ class bdist_egg(Command):
         instcmd.root = None
         if self.distribution.has_c_libraries() and not self.skip_build:
             self.run_command('build_clib')
-        cmd = self.call_command('install_lib', warn_dir=0)
+        cmd = self.call_command('install_lib', warn_dir=False)
         instcmd.root = old_root
 
         all_outputs, ext_outputs = self.get_ext_outputs()
@@ -192,7 +192,7 @@ class bdist_egg(Command):
         if self.distribution.scripts:
             script_dir = os.path.join(egg_info, 'scripts')
             log.info("installing scripts to %s", script_dir)
-            self.call_command('install_scripts', install_dir=script_dir, no_ep=1)
+            self.call_command('install_scripts', install_dir=script_dir, no_ep=True)
 
         self.copy_metadata_to(egg_info)
         native_libs = os.path.join(egg_info, "native_libs.txt")
@@ -382,8 +382,9 @@ def scan_module(egg_dir, base, name, stubs):
         for bad in [
             'getsource',
             'getabsfile',
+            'getfile',
             'getsourcefile',
-            'getfile' 'getsourcelines',
+            'getsourcelines',
             'findsource',
             'getcomments',
             'getframeinfo',
@@ -426,7 +427,9 @@ def can_scan():
 INSTALL_DIRECTORY_ATTRS = ['install_lib', 'install_dir', 'install_data', 'install_base']
 
 
-def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=True, mode='w'):
+def make_zipfile(
+    zip_filename, base_dir, verbose=False, dry_run=False, compress=True, mode='w'
+):
     """Create a zip file from all the files under 'base_dir'.  The output
     zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
     Python module (if available) or the InfoZIP "zip" utility (if installed

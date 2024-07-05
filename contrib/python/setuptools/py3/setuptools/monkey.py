@@ -2,20 +2,22 @@
 Monkey patching of distutils.
 """
 
+from __future__ import annotations
+
 import functools
 import inspect
 import platform
 import sys
 import types
 from importlib import import_module
-from typing import List, TypeVar
+from typing import TypeVar
 
 import distutils.filelist
 
 
 _T = TypeVar("_T")
 
-__all__: List[str] = []
+__all__: list[str] = []
 """
 Everything is private. Contact the project team
 if you think you need this functionality.

@@ -11,6 +11,8 @@ Microsoft Visual C++ 14.X:
 This may also support compilers shipped with compatible Visual Studio versions.
 """
 
+from __future__ import annotations
+
 import json
 from os import listdir, pathsep
 from os.path import join, isfile, isdir, dirname
@@ -20,7 +22,7 @@ import platform
 import itertools
 import subprocess
 import distutils.errors
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from setuptools.extern.more_itertools import unique_everseen
 
 # https://github.com/python/mypy/issues/8166
@@ -36,7 +38,7 @@ else:
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
 
-    environ: Dict[str, str] = dict()
+    environ: dict[str, str] = dict()
 
 
 def _msvc14_find_vc2015():

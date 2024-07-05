@@ -109,7 +109,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         self.run_command('egg_info')
 
         # Build extensions in-place
-        self.reinitialize_command('build_ext', inplace=1)
+        self.reinitialize_command('build_ext', inplace=True)
         self.run_command('build_ext')
 
         if setuptools.bootstrap_install_from:

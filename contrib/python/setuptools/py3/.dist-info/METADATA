@@ -1,10 +1,9 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 70.0.0
+Version: 70.1.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
-Home-page: https://github.com/pypa/setuptools
-Author: Python Packaging Authority
-Author-email: distutils-sig@python.org
+Author-email: Python Packaging Authority <distutils-sig@python.org>
+Project-URL: Homepage, https://github.com/pypa/setuptools
 Project-URL: Documentation, https://setuptools.pypa.io/
 Project-URL: Changelog, https://setuptools.pypa.io/en/stable/history.html
 Keywords: CPAN PyPI distutils eggs package management
@@ -18,6 +17,7 @@ Classifier: Topic :: System :: Archiving :: Packaging
 Classifier: Topic :: System :: Systems Administration
 Classifier: Topic :: Utilities
 Requires-Python: >=3.8
+Description-Content-Type: text/x-rst
 License-File: LICENSE
 Provides-Extra: certs
 Provides-Extra: docs
@@ -53,14 +53,15 @@ Requires-Dist: ini2toml[lite] >=0.14 ; extra == 'testing'
 Requires-Dist: tomli-w >=1.0.0 ; extra == 'testing'
 Requires-Dist: pytest-timeout ; extra == 'testing'
 Requires-Dist: pytest-home >=0.5 ; extra == 'testing'
-Requires-Dist: mypy ==1.9 ; extra == 'testing'
+Requires-Dist: mypy ==1.10.0 ; extra == 'testing'
 Requires-Dist: tomli ; extra == 'testing'
 Requires-Dist: importlib-metadata ; extra == 'testing'
 Requires-Dist: pytest-subprocess ; extra == 'testing'
 Requires-Dist: pyproject-hooks !=1.1 ; extra == 'testing'
+Requires-Dist: jaraco.test ; extra == 'testing'
 Requires-Dist: pytest-cov ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: jaraco.develop >=7.21 ; (python_version >= "3.9" and sys_platform != "cygwin") and extra == 'testing'
-Requires-Dist: pytest-ruff >=0.2.1 ; (sys_platform != "cygwin") and extra == 'testing'
+Requires-Dist: pytest-ruff >=0.3.2 ; (sys_platform != "cygwin") and extra == 'testing'
 Requires-Dist: pytest-perf ; (sys_platform != "cygwin") and extra == 'testing'
 
 .. |pypi-version| image:: https://img.shields.io/pypi/v/setuptools.svg

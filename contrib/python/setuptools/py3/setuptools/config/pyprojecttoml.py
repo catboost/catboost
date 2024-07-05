@@ -9,11 +9,13 @@ For simple scenarios, you can also try parsing the file directly
 with the help of ``tomllib`` or ``tomli``.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set
+from typing import TYPE_CHECKING, Callable, Mapping
 
 from .._path import StrPath
 from ..errors import FileError, InvalidConfigError
@@ -58,10 +60,10 @@ def validate(config: dict, filepath: StrPath) -> bool:
 
 
 def apply_configuration(
-    dist: "Distribution",
+    dist: Distribution,
     filepath: StrPath,
     ignore_option_errors=False,
-) -> "Distribution":
+) -> Distribution:
     """Apply the configuration from a ``pyproject.toml`` file into an existing
     distribution object.
     """
@@ -73,7 +75,7 @@ def read_configuration(
     filepath: StrPath,
     expand=True,
     ignore_option_errors=False,
-    dist: Optional["Distribution"] = None,
+    dist: Distribution | None = None,
 ):
     """Read given configuration file and returns options from it as a dict.
 
@@ -141,9 +143,9 @@ def read_configuration(
 
 def expand_configuration(
     config: dict,
-    root_dir: Optional[StrPath] = None,
+    root_dir: StrPath | None = None,
     ignore_option_errors: bool = False,
-    dist: Optional["Distribution"] = None,
+    dist: Distribution | None = None,
 ) -> dict:
     """Given a configuration with unresolved fields (e.g. dynamic, cmdclass, ...)
     find their final values.
@@ -166,9 +168,9 @@ class _ConfigExpander:
     def __init__(
         self,
         config: dict,
-        root_dir: Optional[StrPath] = None,
+        root_dir: StrPath | None = None,
         ignore_option_errors: bool = False,
-        dist: Optional["Distribution"] = None,
+        dist: Distribution | None = None,
     ):
         self.config = config
         self.root_dir = root_dir or os.getcwd()
@@ -178,9 +180,9 @@ class _ConfigExpander:
         self.dynamic_cfg = self.setuptools_cfg.get("dynamic", {})
         self.ignore_option_errors = ignore_option_errors
         self._dist = dist
-        self._referenced_files: Set[str] = set()
+        self._referenced_files: set[str] = set()
 
-    def _ensure_dist(self) -> "Distribution":
+    def _ensure_dist(self) -> Distribution:
         from setuptools.dist import Distribution
 
         attrs = {"src_root": self.root_dir, "name": self.project_cfg.get("name", None)}
@@ -233,7 +235,7 @@ class _ConfigExpander:
         cmdclass = partial(_expand.cmdclass, package_dir=package_dir, root_dir=root_dir)
         self._process_field(self.setuptools_cfg, "cmdclass", cmdclass)
 
-    def _expand_all_dynamic(self, dist: "Distribution", package_dir: Mapping[str, str]):
+    def _expand_all_dynamic(self, dist: Distribution, package_dir: Mapping[str, str]):
         special = (  # need special handling
             "version",
             "readme",
@@ -263,7 +265,7 @@ class _ConfigExpander:
         updates = {k: v for k, v in obtained_dynamic.items() if v is not None}
         self.project_cfg.update(updates)
 
-    def _ensure_previously_set(self, dist: "Distribution", field: str):
+    def _ensure_previously_set(self, dist: Distribution, field: str):
         previous = _PREVIOUSLY_DEFINED[field](dist)
         if previous is None and not self.ignore_option_errors:
             msg = (
@@ -288,7 +290,7 @@ class _ConfigExpander:
             raise ValueError(f"invalid `{specifier}`: {directive!r}")
         return None
 
-    def _obtain(self, dist: "Distribution", field: str, package_dir: Mapping[str, str]):
+    def _obtain(self, dist: Distribution, field: str, package_dir: Mapping[str, str]):
         if field in self.dynamic_cfg:
             return self._expand_directive(
                 f"tool.setuptools.dynamic.{field}",
@@ -298,13 +300,13 @@ class _ConfigExpander:
         self._ensure_previously_set(dist, field)
         return None
 
-    def _obtain_version(self, dist: "Distribution", package_dir: Mapping[str, str]):
+    def _obtain_version(self, dist: Distribution, package_dir: Mapping[str, str]):
         # Since plugins can set version, let's silently skip if it cannot be obtained
         if "version" in self.dynamic and "version" in self.dynamic_cfg:
             return _expand.version(self._obtain(dist, "version", package_dir))
         return None
 
-    def _obtain_readme(self, dist: "Distribution") -> Optional[Dict[str, str]]:
+    def _obtain_readme(self, dist: Distribution) -> dict[str, str] | None:
         if "readme" not in self.dynamic:
             return None
 
@@ -319,8 +321,8 @@ class _ConfigExpander:
         return None
 
     def _obtain_entry_points(
-        self, dist: "Distribution", package_dir: Mapping[str, str]
-    ) -> Optional[Dict[str, dict]]:
+        self, dist: Distribution, package_dir: Mapping[str, str]
+    ) -> dict[str, dict] | None:
         fields = ("entry-points", "scripts", "gui-scripts")
         if not any(field in self.dynamic for field in fields):
             return None
@@ -344,21 +346,21 @@ class _ConfigExpander:
 
         return expanded
 
-    def _obtain_classifiers(self, dist: "Distribution"):
+    def _obtain_classifiers(self, dist: Distribution):
         if "classifiers" in self.dynamic:
             value = self._obtain(dist, "classifiers", {})
             if value:
                 return value.splitlines()
         return None
 
-    def _obtain_dependencies(self, dist: "Distribution"):
+    def _obtain_dependencies(self, dist: Distribution):
         if "dependencies" in self.dynamic:
             value = self._obtain(dist, "dependencies", {})
             if value:
                 return _parse_requirements_list(value)
         return None
 
-    def _obtain_optional_dependencies(self, dist: "Distribution"):
+    def _obtain_optional_dependencies(self, dist: Distribution):
         if "optional-dependencies" not in self.dynamic:
             return None
         if "optional-dependencies" in self.dynamic_cfg:
@@ -400,18 +402,18 @@ def _ignore_errors(ignore_option_errors: bool):
 
 class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
     def __init__(
-        self, distribution: "Distribution", project_cfg: dict, setuptools_cfg: dict
+        self, distribution: Distribution, project_cfg: dict, setuptools_cfg: dict
     ):
         super().__init__(distribution)
         self._project_cfg = project_cfg
         self._setuptools_cfg = setuptools_cfg
 
-    def __enter__(self) -> "Self":
+    def __enter__(self) -> Self:
         """When entering the context, the values of ``packages``, ``py_modules`` and
         ``package_dir`` that are missing in ``dist`` are copied from ``setuptools_cfg``.
         """
         dist, cfg = self._dist, self._setuptools_cfg
-        package_dir: Dict[str, str] = cfg.setdefault("package-dir", {})
+        package_dir: dict[str, str] = cfg.setdefault("package-dir", {})
         package_dir.update(dist.package_dir or {})
         dist.package_dir = package_dir  # needs to be the same object
 

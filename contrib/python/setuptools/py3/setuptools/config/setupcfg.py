@@ -9,6 +9,8 @@ For simple scenarios, you can also try parsing the file directly
 with the help of ``configparser``.
 """
 
+from __future__ import annotations
+
 import contextlib
 import functools
 import os
@@ -22,9 +24,6 @@ from typing import (
     Dict,
     Generic,
     Iterable,
-    List,
-    Optional,
-    Set,
     Tuple,
     TypeVar,
     Union,
@@ -80,7 +79,7 @@ def read_configuration(
     return configuration_to_dict(handlers)
 
 
-def apply_configuration(dist: "Distribution", filepath: StrPath) -> "Distribution":
+def apply_configuration(dist: Distribution, filepath: StrPath) -> Distribution:
     """Apply the configuration from a ``setup.cfg`` file into an existing
     distribution object.
     """
@@ -90,11 +89,11 @@ def apply_configuration(dist: "Distribution", filepath: StrPath) -> "Distributio
 
 
 def _apply(
-    dist: "Distribution",
+    dist: Distribution,
     filepath: StrPath,
     other_files: Iterable[StrPath] = (),
     ignore_option_errors: bool = False,
-) -> Tuple["ConfigHandler", ...]:
+) -> tuple[ConfigHandler, ...]:
     """Read configuration from ``filepath`` and applies to the ``dist`` object."""
     from setuptools.dist import _Distribution
 
@@ -108,7 +107,7 @@ def _apply(
     filenames = [*other_files, filepath]
 
     try:
-        _Distribution.parse_config_files(dist, filenames=filenames)  # type: ignore[arg-type] # TODO: fix in disutils stubs
+        _Distribution.parse_config_files(dist, filenames=filenames)  # type: ignore[arg-type] # TODO: fix in distutils stubs
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )
@@ -131,7 +130,7 @@ def _get_option(target_obj: Target, key: str):
     return getter()
 
 
-def configuration_to_dict(handlers: Tuple["ConfigHandler", ...]) -> dict:
+def configuration_to_dict(handlers: tuple[ConfigHandler, ...]) -> dict:
     """Returns configuration data gathered by given handlers as a dict.
 
     :param list[ConfigHandler] handlers: Handlers list,
@@ -150,10 +149,10 @@ def configuration_to_dict(handlers: Tuple["ConfigHandler", ...]) -> dict:
 
 
 def parse_configuration(
-    distribution: "Distribution",
+    distribution: Distribution,
     command_options: AllCommandOptions,
     ignore_option_errors=False,
-) -> Tuple["ConfigMetadataHandler", "ConfigOptionsHandler"]:
+) -> tuple[ConfigMetadataHandler, ConfigOptionsHandler]:
     """Performs additional parsing of configuration options
     for a distribution.
 
@@ -236,7 +235,7 @@ class ConfigHandler(Generic[Target]):
 
     """
 
-    aliases: Dict[str, str] = {}
+    aliases: dict[str, str] = {}
     """Options aliases.
     For compatibility with various packages. E.g.: d2to1 and pbr.
     Note: `-` in keys is replaced with `_` by config parser.
@@ -253,9 +252,9 @@ class ConfigHandler(Generic[Target]):
         self.ignore_option_errors = ignore_option_errors
         self.target_obj = target_obj
         self.sections = dict(self._section_options(options))
-        self.set_options: List[str] = []
+        self.set_options: list[str] = []
         self.ensure_discovered = ensure_discovered
-        self._referenced_files: Set[str] = set()
+        self._referenced_files: set[str] = set()
         """After parsing configurations, this property will enumerate
         all files referenced by the "file:" directive. Private API for setuptools only.
         """
@@ -485,7 +484,7 @@ class ConfigHandler(Generic[Target]):
             if section_name:  # [section.option] variant
                 method_postfix = '_%s' % section_name
 
-            section_parser_method: Optional[Callable] = getattr(
+            section_parser_method: Callable | None = getattr(
                 self,
                 # Dots in section names are translated into dunderscores.
                 ('parse_section%s' % method_postfix).replace('.', '__'),
@@ -534,11 +533,11 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
 
     def __init__(
         self,
-        target_obj: "DistributionMetadata",
+        target_obj: DistributionMetadata,
         options: AllCommandOptions,
         ignore_option_errors: bool,
         ensure_discovered: expand.EnsurePackagesDiscovered,
-        package_dir: Optional[dict] = None,
+        package_dir: dict | None = None,
         root_dir: StrPath = os.curdir,
     ):
         super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
@@ -598,14 +597,14 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
 
     def __init__(
         self,
-        target_obj: "Distribution",
+        target_obj: Distribution,
         options: AllCommandOptions,
         ignore_option_errors: bool,
         ensure_discovered: expand.EnsurePackagesDiscovered,
     ):
         super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.root_dir = target_obj.src_root
-        self.package_dir: Dict[str, str] = {}  # To be filled by `find_packages`
+        self.package_dir: dict[str, str] = {}  # To be filled by `find_packages`
 
     @classmethod
     def _parse_list_semicolon(cls, value):

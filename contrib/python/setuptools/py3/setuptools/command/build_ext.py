@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import os
 import sys
 import itertools
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
-from typing import Dict, Iterator, List, Tuple
+from typing import Iterator
 from pathlib import Path
 
 from distutils.command.build_ext import build_ext as _du_build_ext
@@ -93,7 +95,7 @@ class build_ext(_build_ext):
         if old_inplace:
             self.copy_extensions_to_source()
 
-    def _get_inplace_equivalent(self, build_py, ext: Extension) -> Tuple[str, str]:
+    def _get_inplace_equivalent(self, build_py, ext: Extension) -> tuple[str, str]:
         fullname = self.get_ext_fullname(ext.name)
         filename = self.get_ext_filename(fullname)
         modpath = fullname.split('.')
@@ -125,7 +127,7 @@ class build_ext(_build_ext):
         _, _, name = ext.name.rpartition(".")
         return f"{os.path.join(dir_, name)}.py"
 
-    def _get_output_mapping(self) -> Iterator[Tuple[str, str]]:
+    def _get_output_mapping(self) -> Iterator[tuple[str, str]]:
         if not self.inplace:
             return
 
@@ -265,7 +267,7 @@ class build_ext(_build_ext):
         pkg = '.'.join(ext._full_name.split('.')[:-1] + [''])
         return any(pkg + libname in libnames for libname in ext.libraries)
 
-    def get_source_files(self) -> List[str]:
+    def get_source_files(self) -> list[str]:
         return [*_build_ext.get_source_files(self), *self._get_internal_depends()]
 
     def _get_internal_depends(self) -> Iterator[str]:
@@ -306,12 +308,12 @@ class build_ext(_build_ext):
 
             yield path.as_posix()
 
-    def get_outputs(self) -> List[str]:
+    def get_outputs(self) -> list[str]:
         if self.inplace:
             return list(self.get_output_mapping().keys())
         return sorted(_build_ext.get_outputs(self) + self.__get_stubs_outputs())
 
-    def get_output_mapping(self) -> Dict[str, str]:
+    def get_output_mapping(self) -> dict[str, str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         mapping = self._get_output_mapping()
         return dict(sorted(mapping, key=lambda x: x[0]))
@@ -399,7 +401,7 @@ if use_stubs or os.name == 'nt':
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -434,7 +436,7 @@ else:
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
