@@ -153,6 +153,7 @@ namespace {
         {LANG_KAZ_LAT, SCRIPT_LATIN, "Latin Kazakh", "kazlat", "kk-Latn", nullptr},
         {LANG_KJH, SCRIPT_CYRILLIC, "Khakas", "kjh", "kjh", "khk"},
         {LANG_OSS, SCRIPT_CYRILLIC, "Ossetian", "oss", "os", nullptr},
+        {LANG_TYV, SCRIPT_CYRILLIC, "Tuvan", "tyv", "tyv", nullptr},
     };
 
     static_assert(static_cast<size_t>(LANG_MAX) == Y_ARRAY_SIZE(LanguageNameAndEnum), "Size doesn't match");

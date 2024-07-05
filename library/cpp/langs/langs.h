@@ -138,6 +138,7 @@ enum ELanguage: unsigned {
     LANG_KAZ_LAT = 121,     // Latin Kazakh
     LANG_KJH = 122,         // Khakas
     LANG_OSS = 123,         // Ossetian
+    LANG_TYV = 124,         // Tuvan
     LANG_MAX
 };
 
