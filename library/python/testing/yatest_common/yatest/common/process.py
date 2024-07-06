@@ -572,7 +572,7 @@ def execute(
     err_file, user_stderr = get_out_stream(stderr, 'err')
     in_file = stdin
 
-    if shell and type(command) == list:
+    if shell and isinstance(command, list):
         command = " ".join(command)
 
     if shell:

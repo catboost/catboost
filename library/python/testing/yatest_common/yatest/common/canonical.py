@@ -106,7 +106,7 @@ def canonical_execute(
     :param data_transformer: data modifier (before canonize)
     :return: object that can be canonized
     """
-    if type(binary) == list:
+    if isinstance(binary, list):
         command = binary
     else:
         command = [binary]

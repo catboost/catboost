@@ -174,7 +174,7 @@ def tar(
             paths = paths if fixed_mtime is None else sorted(paths)
 
             for p in paths:
-                if type(p) == tuple:
+                if isinstance(p, tuple):
                     path, arcname = p
                 else:
                     path, arcname = p, os.path.basename(p)
