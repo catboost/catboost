@@ -120,7 +120,6 @@ class FileLockMeta(ABCMeta):
         # (https://github.com/tox-dev/filelock/pull/340)
 
         all_params = {
-            "lock_file": lock_file,
             "timeout": timeout,
             "mode": mode,
             "thread_local": thread_local,
@@ -129,12 +128,10 @@ class FileLockMeta(ABCMeta):
             **kwargs,
         }
 
-        present_params = set(inspect.signature(cls.__init__).parameters)  # type: ignore[misc]
+        present_params = inspect.signature(cls.__init__).parameters  # type: ignore[misc]
         init_params = {key: value for key, value in all_params.items() if key in present_params}
-        # The `lock_file` parameter is required
-        init_params["lock_file"] = lock_file
 
-        instance = super().__call__(**init_params)
+        instance = super().__call__(lock_file, **init_params)
 
         if is_singleton:
             cls._instances[str(lock_file)] = instance  # type: ignore[attr-defined]
