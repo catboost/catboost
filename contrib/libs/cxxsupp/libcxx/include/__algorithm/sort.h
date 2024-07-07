@@ -954,6 +954,18 @@ void __sort_impl(_RandomAccessIterator __first, _RandomAccessIterator __last, _C
   std::__check_strict_weak_ordering_sorted(std::__unwrap_iter(__first), std::__unwrap_iter(__last), __comp);
 }
 
+template <class _RandomAccessIterator, class _Comp>
+inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20
+void sort(_RandomAccessIterator __first, _RandomAccessIterator __last, _Comp __comp) {
+  std::__sort_impl<_ClassicAlgPolicy>(std::move(__first), std::move(__last), __comp);
+}
+
+template <class _RandomAccessIterator>
+inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20
+void sort(_RandomAccessIterator __first, _RandomAccessIterator __last) {
+  std::sort(__first, __last, __less<>());
+}
+
 _LIBCPP_END_NAMESPACE_STD
 
 #endif // _LIBCPP___ALGORITHM_SORT_H

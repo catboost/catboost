@@ -1949,7 +1949,6 @@ template <class BidirectionalIterator, class Compare>
 #include <__algorithm/shuffle.h>
 #include <__algorithm/sift_down.h>
 #include <__algorithm/sort.h>
-#include <__algorithm/sort_old.h>
 #include <__algorithm/sort_heap.h>
 #include <__algorithm/stable_partition.h>
 #include <__algorithm/stable_sort.h>

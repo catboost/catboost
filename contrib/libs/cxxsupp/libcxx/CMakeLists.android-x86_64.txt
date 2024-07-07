@@ -39,7 +39,6 @@ target_link_options(libs-cxxsupp-libcxx INTERFACE
 
 target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/algorithm.cpp
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/algorithm_old.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/any.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/atomic.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/barrier.cpp
