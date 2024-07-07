@@ -3,13 +3,17 @@ import logging
 import os
 import pathlib
 import re
+import typing
 
 base_path = pathlib.Path(__file__).parent.parent
 src_path = base_path / 'portalocker'
 dist_path = base_path / 'dist'
 _default_output_path = base_path / 'dist' / 'portalocker.py'
 
-_RELATIVE_IMPORT_RE = re.compile(r'^from \. import (?P<names>.+)$')
+_NAMES_RE = re.compile(r'(?P<names>[^()]+)$')
+_RELATIVE_IMPORT_RE = re.compile(
+    r'^from \.(?P<from>.*?) import (?P<paren>\(?)(?P<names>[^()]+)$',
+)
 _USELESS_ASSIGNMENT_RE = re.compile(r'^(?P<name>\w+) = \1\n$')
 
 _TEXT_TEMPLATE = """'''
@@ -42,18 +46,38 @@ def main(argv=None):
     args.func(args)
 
 
-def _read_file(path, seen_files):
+def _read_file(path: pathlib.Path, seen_files: typing.Set[pathlib.Path]):
     if path in seen_files:
         return
 
     names = set()
     seen_files.add(path)
+    paren = False
+    from_ = None
     for line in path.open():
-        if match := _RELATIVE_IMPORT_RE.match(line):
-            for name in match.group('names').split(','):
-                name = name.strip()
-                names.add(name)
-                yield from _read_file(src_path / f'{name}.py', seen_files)
+        if paren:
+            if ')' in line:
+                line = line.split(')', 1)[1]
+                paren = False
+                continue
+
+            match = _NAMES_RE.match(line)
+        else:
+            match = _RELATIVE_IMPORT_RE.match(line)
+
+        if match:
+            if not paren:
+                paren = bool(match.group('paren'))
+                from_ = match.group('from')
+
+            if from_:
+                names.add(from_)
+                yield from _read_file(src_path / f'{from_}.py', seen_files)
+            else:
+                for name in match.group('names').split(','):
+                    name = name.strip()
+                    names.add(name)
+                    yield from _read_file(src_path / f'{name}.py', seen_files)
         else:
             yield _clean_line(line, names)
 
@@ -79,7 +103,7 @@ def combine(args):
         _TEXT_TEMPLATE.format((base_path / 'LICENSE').read_text()),
     )
 
-    seen_files = set()
+    seen_files: typing.Set[pathlib.Path] = set()
     for line in _read_file(src_path / '__init__.py', seen_files):
         output_file.write(line)
 

@@ -84,7 +84,7 @@ def open_atomic(
     # `pathlib.Path` cast in case `path` is a `str`
     path: pathlib.Path = pathlib.Path(filename)
 
-    assert not path.exists(), '%r exists' % path
+    assert not path.exists(), f'{path!r} exists'
 
     # Create the parent directory if it doesn't exist
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -132,8 +132,7 @@ class LockBase(abc.ABC):  # pragma: no cover
         timeout: typing.Optional[float] = None,
         check_interval: typing.Optional[float] = None,
         fail_when_locked: typing.Optional[bool] = None,
-    ):
-        return NotImplemented
+    ) -> typing.IO[typing.AnyStr]: ...
 
     def _timeout_generator(
         self,
@@ -156,10 +155,9 @@ class LockBase(abc.ABC):  # pragma: no cover
             time.sleep(max(0.001, (i * f_check_interval) - since_start_time))
 
     @abc.abstractmethod
-    def release(self):
-        return NotImplemented
+    def release(self): ...
 
-    def __enter__(self):
+    def __enter__(self) -> typing.IO[typing.AnyStr]:
         return self.acquire()
 
     def __exit__(
@@ -235,7 +233,7 @@ class Lock(LockBase):
         timeout: typing.Optional[float] = None,
         check_interval: typing.Optional[float] = None,
         fail_when_locked: typing.Optional[bool] = None,
-    ) -> typing.IO:
+    ) -> typing.IO[typing.AnyStr]:
         '''Acquire the locked filehandle'''
 
         fail_when_locked = coalesce(fail_when_locked, self.fail_when_locked)
@@ -281,19 +279,27 @@ class Lock(LockBase):
                 if fail_when_locked:
                     try_close()
                     raise exceptions.AlreadyLocked(exception) from exc
+            except Exception as exc:
+                # Something went wrong with the locking mechanism.
+                # Wrap in a LockException and re-raise:
+                try_close()
+                raise exceptions.LockException(exc) from exc
 
-                # Wait a bit
+            # Wait a bit
 
         if exception:
             try_close()
             # We got a timeout... reraising
-            raise exceptions.LockException(exception)
+            raise exception
 
         # Prepare the filehandle (truncate if needed)
         fh = self._prepare_fh(fh)
 
         self.fh = fh
         return fh
+
+    def __enter__(self) -> typing.IO[typing.AnyStr]:
+        return self.acquire()
 
     def release(self):
         '''Releases the currently locked file handle'''
@@ -470,7 +476,7 @@ class BoundedSemaphore(LockBase):
             number=number,
         )
 
-    def acquire(
+    def acquire(  # type: ignore[override]
         self,
         timeout: typing.Optional[float] = None,
         check_interval: typing.Optional[float] = None,

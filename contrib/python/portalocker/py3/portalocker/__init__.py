@@ -1,4 +1,11 @@
-from . import __about__, constants, exceptions, portalocker, utils
+from . import __about__, constants, exceptions, portalocker
+from .utils import (
+    BoundedSemaphore,
+    Lock,
+    RLock,
+    TemporaryFileLock,
+    open_atomic,
+)
 
 try:  # pragma: no cover
     from .redis import RedisLock
@@ -13,7 +20,7 @@ __author__ = __about__.__author__
 #: Current author's email address
 __email__ = __about__.__email__
 #: Version number
-__version__ = '2.8.2'
+__version__ = '2.10.0'
 #: Package description for Pypi
 __description__ = __about__.__description__
 #: Package homepage
@@ -52,11 +59,6 @@ LockFlags = constants.LockFlags
 
 #: Locking utility class to automatically handle opening with timeouts and
 #: context wrappers
-Lock = utils.Lock
-RLock = utils.RLock
-BoundedSemaphore = utils.BoundedSemaphore
-TemporaryFileLock = utils.TemporaryFileLock
-open_atomic = utils.open_atomic
 
 __all__ = [
     'lock',
@@ -71,6 +73,7 @@ __all__ = [
     'RLock',
     'AlreadyLocked',
     'BoundedSemaphore',
+    'TemporaryFileLock',
     'open_atomic',
     'RedisLock',
 ]

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: portalocker
-Version: 2.8.2
+Version: 2.10.0
 Summary: Wraps the portalocker recipe for easy usage
 Author-email: Rick van Hattem <wolph@wol.ph>
 License: BSD-3-Clause

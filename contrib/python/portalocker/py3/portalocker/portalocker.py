@@ -1,4 +1,3 @@
-import contextlib
 import os
 import typing
 
@@ -7,6 +6,14 @@ from . import constants, exceptions
 # Alias for readability. Due to import recursion issues we cannot do:
 # from .constants import LockFlags
 LockFlags = constants.LockFlags
+
+
+class HasFileno(typing.Protocol):
+    def fileno(self) -> int: ...
+
+
+LOCKER: typing.Optional[typing.Callable[
+    [typing.Union[int, HasFileno], int], typing.Any]] = None
 
 
 if os.name == 'nt':  # pragma: no cover
@@ -87,14 +94,18 @@ if os.name == 'nt':  # pragma: no cover
             ) from exc
 
 elif os.name == 'posix':  # pragma: no cover
+    import errno
     import fcntl
 
+    # The locking implementation.
+    # Expected values are either fcntl.flock() or fcntl.lockf(),
+    # but any callable that matches the syntax will be accepted.
+    LOCKER = fcntl.flock
+
     def lock(file_: typing.Union[typing.IO, int], flags: LockFlags):
-        locking_exceptions = (IOError,)
-        with contextlib.suppress(NameError):
-            locking_exceptions += (BlockingIOError,)  # type: ignore
-        # Locking with NON_BLOCKING without EXCLUSIVE or SHARED enabled results
-        # in an error
+        assert LOCKER is not None, 'We need a locing function in `LOCKER` '
+        # Locking with NON_BLOCKING without EXCLUSIVE or SHARED enabled
+        # results in an error
         if (flags & LockFlags.NON_BLOCKING) and not flags & (
             LockFlags.SHARED | LockFlags.EXCLUSIVE
         ):
@@ -104,14 +115,40 @@ elif os.name == 'posix':  # pragma: no cover
             )
 
         try:
-            fcntl.flock(file_, flags)
-        except locking_exceptions as exc_value:
-            # The exception code varies on different systems so we'll catch
-            # every IO error
-            raise exceptions.LockException(exc_value, fh=file_) from exc_value
+            LOCKER(file_, flags)
+        except OSError as exc_value:
+            # Python can use one of several different exception classes to
+            # represent timeout (most likely is BlockingIOError and IOError),
+            # but these errors may also represent other failures. On some
+            # systems, `IOError is OSError` which means checking for either
+            # IOError or OSError can mask other errors.
+            # The safest check is to catch OSError (from which the others
+            # inherit) and check the errno (which should be EACCESS or EAGAIN
+            # according to the spec).
+            if exc_value.errno in (errno.EACCES, errno.EAGAIN):
+                # A timeout exception, wrap this so the outer code knows to try
+                # again (if it wants to).
+                raise exceptions.AlreadyLocked(
+                    exc_value,
+                    fh=file_,
+                ) from exc_value
+            else:
+                # Something else went wrong; don't wrap this so we stop
+                # immediately.
+                raise exceptions.LockException(
+                    exc_value,
+                    fh=file_,
+                ) from exc_value
+        except EOFError as exc_value:
+            # On NFS filesystems, flock can raise an EOFError
+            raise exceptions.LockException(
+                exc_value,
+                fh=file_,
+            ) from exc_value
 
     def unlock(file_: typing.IO):
-        fcntl.flock(file_.fileno(), LockFlags.UNBLOCK)
+        assert LOCKER is not None, 'We need a locing function in `LOCKER` '
+        LOCKER(file_.fileno(), LockFlags.UNBLOCK)
 
 else:  # pragma: no cover
     raise RuntimeError('PortaLocker only defined for nt and posix platforms')
