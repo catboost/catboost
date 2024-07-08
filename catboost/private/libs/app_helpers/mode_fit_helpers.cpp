@@ -61,7 +61,6 @@ int NCB::ModeFitImpl(int argc, const char* argv[]) {
         CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
         NCatboostOptions::TOutputFilesOptions outputOptions;
         outputOptions.Load(outputOptionsJson);
-        //Cout << LabeledOutput(outputOptions.UseBestModel.IsSet()) << Endl;
 
         TrainModel(poolLoadParams, outputOptions, catBoostJsonOptions);
     }
