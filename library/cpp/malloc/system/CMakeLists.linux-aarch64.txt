@@ -12,7 +12,16 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(api)
-add_subdirectory(mimalloc)
-add_subdirectory(system)
-add_subdirectory(tcmalloc)
+
+add_library(system_allocator)
+
+target_link_libraries(system_allocator PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  cpp-malloc-api
+)
+
+target_sources(system_allocator PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/malloc/system/malloc-info.cpp
+)
+

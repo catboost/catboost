@@ -14,4 +14,5 @@
 
 add_subdirectory(api)
 add_subdirectory(mimalloc)
+add_subdirectory(system)
 add_subdirectory(tcmalloc)
