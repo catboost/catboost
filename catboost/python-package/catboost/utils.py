@@ -364,7 +364,7 @@ def get_roc_curve(model, data, thread_count=-1, plot=False):
     -------
     curve points : tuple of three arrays (fpr, tpr, thresholds)
     """
-    if type(data) == Pool:
+    if isinstance(data, Pool):
         data = [data]
     if not isinstance(data, list):
         raise CatBoostError('data must be a catboost.Pool or list of pools.')
@@ -506,7 +506,7 @@ def select_threshold(model=None, data=None, curve=None, FPR=None, FNR=None, thre
             raise CatBoostError('Only one of the parameters data and curve should be set.')
         if model is None:
             raise CatBoostError('model and data parameters should be set when curve parameter is None.')
-        if type(data) == Pool:
+        if isinstance(data, Pool):
             data = [data]
         if not isinstance(data, list):
             raise CatBoostError('data must be a catboost.Pool or list of pools.')

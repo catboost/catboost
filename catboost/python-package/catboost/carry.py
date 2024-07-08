@@ -33,7 +33,7 @@ def carry(model, features):
 
         if len(factor_values):
             assert len(factor_values[0]) == len(factor_value)
-            assert type(factor_ids[0]) == type(factor_id)
+            assert type(factor_ids[0]) is type(factor_id)
 
         factor_ids.append(factor_id)
         factor_values.append(factor_value)
@@ -66,7 +66,7 @@ def uplift(model, features):
         assert type(factor_base_value) is float or type(factor_base_value) is int
         assert type(factor_next_value) is float or type(factor_next_value) is int
         if len(factor_ids):
-            assert type(factor_ids[0]) == type(factor_id)
+            assert type(factor_ids[0]) is type(factor_id)
 
         factor_ids.append(factor_id)
         factor_base_values.append(float(factor_base_value))
