@@ -43,7 +43,8 @@ namespace NHnsw::PythonHelpers {
     enum EDistance {
         DotProduct = 0,
         L1 = 1,
-        L2Sqr = 2
+        L2Sqr = 2,
+        PairVectorDistance = 3
     };
 
     template <class T>
@@ -81,6 +82,10 @@ namespace NHnsw::PythonHelpers {
                 }
                 case EDistance::L2Sqr: {
                     return NumpyTypeDescription<typename TL2SqrDistance<T>::TResult>();
+                    break;
+                }
+                case EDistance::PairVectorDistance: {
+                    return NumpyTypeDescription<typename TPairVectorSimilarity<T>::TResult>();
                     break;
                 }
                 default:
@@ -151,6 +156,12 @@ namespace NHnsw::PythonHelpers {
                 auto neighbors = index->GetNearestNeighbors(query, topSize, searchNeighborhoodSize, distanceCalcLimit, *storage, vectorDistance);
                 TGilGuard guard;
                 return ToPyObject<typename TL2SqrDistance<T>::TResult>(neighbors);
+            }
+            case EDistance::PairVectorDistance: {
+                auto vectorDistance = TDistanceWithDimension<T, NHnsw::TPairVectorSimilarity<T>>(NHnsw::TPairVectorSimilarity<T>(), storage->GetDimension());
+                auto neighbors = index->GetNearestNeighbors(query, topSize, searchNeighborhoodSize, distanceCalcLimit, *storage, vectorDistance);
+                TGilGuard guard;
+                return ToPyObject<typename NHnsw::TPairVectorSimilarity<T>::TResult>(neighbors);
             }
             default:
                 Y_ABORT_UNLESS(false, "Unknown distance!");
@@ -232,6 +243,10 @@ namespace NHnsw::PythonHelpers {
                 calc(TL2SqrDistance<T>());
                 break;
             }
+            case EDistance::PairVectorDistance: {
+                calc(TPairVectorSimilarity<T>());
+                break;
+            }
             default:
                 Y_ABORT_UNLESS(false, "Unknown distance!");
         }
@@ -251,6 +266,9 @@ namespace NHnsw::PythonHelpers {
                 break;
             case EDistance::L2Sqr:
                 indexData = BuildDenseVectorIndex<T, NHnsw::TL2SqrDistance<T>>(options, *storage, storage->GetDimension());
+                break;
+            case EDistance::PairVectorDistance:
+                indexData = BuildDenseVectorIndex<T, NHnsw::TPairVectorSimilarity<T>>(options, *storage, storage->GetDimension());
                 break;
             default:
                 Y_ABORT_UNLESS(false, "Unknown distance!");
@@ -288,6 +306,9 @@ namespace NOnlineHnsw::PythonHelpers
         using TL2SqrDistance = NHnsw::TL2SqrDistance<T>;
         using TL2SqrDistanceIndex = TOnlineHnswDenseVectorIndex<T, TL2SqrDistance>;
         using TL2SqrDistanceIndexHolder = THolder<TOnlineHnswDenseVectorIndex<T, TL2SqrDistance>>;
+        using TPairVectorSimilarity = NHnsw::TPairVectorSimilarity<T>;
+        using TPairVectorSimilarityIndex = TOnlineHnswDenseVectorIndex<T, TPairVectorSimilarity>;
+        using TPairVectorSimilarityIndexHolder = THolder<TOnlineHnswDenseVectorIndex<T, TPairVectorSimilarity>>;
 
     public:
         PyOnlineHnswDenseVectorIndex(const TString& jsonOptions, size_t dimension, EDistance distance)
@@ -303,6 +324,9 @@ namespace NOnlineHnsw::PythonHelpers
                     break;
                 case EDistance::L2Sqr:
                     Index = MakeHolder<TL2SqrDistanceIndex>(options, dimension);
+                    break;
+                case EDistance::PairVectorDistance:
+                    Index = MakeHolder<TPairVectorSimilarityIndex>(options, dimension);
                     break;
                 default:
                     Y_UNREACHABLE();
@@ -328,6 +352,11 @@ namespace NOnlineHnsw::PythonHelpers
                     auto neighbors = indexImpl->GetNearestNeighbors(query, topSize);
                     return NHnsw::PythonHelpers::ToPyObject<typename TL2SqrDistance::TResult>(neighbors);
                 }
+                case EDistance::PairVectorDistance: {
+                    const auto& indexImpl = std::get<TPairVectorSimilarityIndexHolder>(Index);
+                    auto neighbors = indexImpl->GetNearestNeighbors(query, topSize);
+                    return NHnsw::PythonHelpers::ToPyObject<typename TPairVectorSimilarity::TResult>(neighbors);
+                }
                 default:
                     Y_UNREACHABLE();
             }
@@ -349,6 +378,11 @@ namespace NOnlineHnsw::PythonHelpers
                     auto& indexImpl = std::get<TL2SqrDistanceIndexHolder>(Index);
                     auto neighbors = indexImpl->GetNearestNeighborsAndAddItem(query);
                     return NHnsw::PythonHelpers::ToPyObject<typename TL2SqrDistance::TResult>(neighbors);
+                }
+                case EDistance::PairVectorDistance: {
+                    auto& indexImpl = std::get<TPairVectorSimilarityIndexHolder>(Index);
+                    auto neighbors = indexImpl->GetNearestNeighborsAndAddItem(query);
+                    return NHnsw::PythonHelpers::ToPyObject<typename TPairVectorSimilarity::TResult>(neighbors);
                 }
                 default:
                     Y_UNREACHABLE();
@@ -372,6 +406,11 @@ namespace NOnlineHnsw::PythonHelpers
                     indexImpl->GetNearestNeighborsAndAddItem(item);
                     break;
                 }
+                case EDistance::PairVectorDistance: {
+                    auto& indexImpl = std::get<TPairVectorSimilarityIndexHolder>(Index);
+                    indexImpl->GetNearestNeighborsAndAddItem(item);
+                    break;
+                }
                 default:
                     Y_UNREACHABLE();
             }
@@ -391,6 +430,11 @@ namespace NOnlineHnsw::PythonHelpers
 
     private:
         EDistance Distance;
-        std::variant<TDotProductIndexHolder, TL1DistanceIndexHolder, TL2SqrDistanceIndexHolder> Index;
+        std::variant<
+            TDotProductIndexHolder,
+            TL1DistanceIndexHolder,
+            TL2SqrDistanceIndexHolder,
+            TPairVectorSimilarityIndexHolder
+        > Index;
     };
 }

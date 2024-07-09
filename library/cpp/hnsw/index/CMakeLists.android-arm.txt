@@ -22,6 +22,7 @@ target_link_libraries(cpp-hnsw-index PUBLIC
   library-cpp-dot_product
   library-cpp-l1_distance
   library-cpp-l2_distance
+  library-cpp-pair_vector_distance
 )
 
 target_sources(cpp-hnsw-index PRIVATE

@@ -71,6 +71,30 @@
             "uri": "file://test.test_hnsw_estimator_dimension=10-L2Sqr-int8_/neighbor_ids"
         }
     ],
+    "test.test_hnsw_estimator[dimension=10-PairVectorDistance-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-PairVectorDistance-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=10-PairVectorDistance-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=10-PairVectorDistance-int8_/neighbor_ids"
+        }
+    ],
     "test.test_hnsw_estimator[dimension=20-DotProduct-float]": [
         {
             "uri": "file://test.test_hnsw_estimator_dimension=20-DotProduct-float_/neighbor_distances"
@@ -141,6 +165,30 @@
         },
         {
             "uri": "file://test.test_hnsw_estimator_dimension=20-L2Sqr-int8_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-PairVectorDistance-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-PairVectorDistance-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=20-PairVectorDistance-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=20-PairVectorDistance-int8_/neighbor_ids"
         }
     ],
     "test.test_hnsw_estimator[dimension=30-DotProduct-float]": [
@@ -215,6 +263,30 @@
             "uri": "file://test.test_hnsw_estimator_dimension=30-L2Sqr-int8_/neighbor_ids"
         }
     ],
+    "test.test_hnsw_estimator[dimension=30-PairVectorDistance-float]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-float_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-float_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-PairVectorDistance-int32]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-int32_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-int32_/neighbor_ids"
+        }
+    ],
+    "test.test_hnsw_estimator[dimension=30-PairVectorDistance-int8]": [
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-int8_/neighbor_distances"
+        },
+        {
+            "uri": "file://test.test_hnsw_estimator_dimension=30-PairVectorDistance-int8_/neighbor_ids"
+        }
+    ],
     "test.test_index[DotProduct-float]": [
         {
             "uri": "file://test.test_index_DotProduct-float_/index"
@@ -285,6 +357,30 @@
         },
         {
             "uri": "file://test.test_index_L2Sqr-int8_/log"
+        }
+    ],
+    "test.test_index[PairVectorDistance-float]": [
+        {
+            "uri": "file://test.test_index_PairVectorDistance-float_/index"
+        },
+        {
+            "uri": "file://test.test_index_PairVectorDistance-float_/log"
+        }
+    ],
+    "test.test_index[PairVectorDistance-int32]": [
+        {
+            "uri": "file://test.test_index_PairVectorDistance-int32_/index"
+        },
+        {
+            "uri": "file://test.test_index_PairVectorDistance-int32_/log"
+        }
+    ],
+    "test.test_index[PairVectorDistance-int8]": [
+        {
+            "uri": "file://test.test_index_PairVectorDistance-int8_/index"
+        },
+        {
+            "uri": "file://test.test_index_PairVectorDistance-int8_/log"
         }
     ],
     "test.test_pool[float]": [

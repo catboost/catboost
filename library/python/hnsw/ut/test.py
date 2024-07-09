@@ -27,8 +27,8 @@ POOL_PARAMS = [{'pool_file': FLOATS_60000, 'component_type': EVectorComponentTyp
                {'pool_file': INT32_50000, 'component_type': EVectorComponentType.I32, 'dtype': np.dtype('int32')}]
 POOL_IDS = ['float', 'int8', 'int32']
 
-DISTANCE_PARAMS = [EDistance.DotProduct, EDistance.L1, EDistance.L2Sqr]
-DISTACE_IDS = ['DotProduct', 'L1', 'L2Sqr']
+DISTANCE_PARAMS = [EDistance.DotProduct, EDistance.L1, EDistance.L2Sqr, EDistance.PairVectorDistance]
+DISTACE_IDS = ['DotProduct', 'L1', 'L2Sqr', 'PairVectorDistance']
 
 
 @pytest.mark.parametrize('pool_params', POOL_PARAMS, ids=POOL_IDS)

@@ -51,6 +51,7 @@ class EDistance(IntEnum):
     DotProduct = 0
     L1 = 1
     L2Sqr = 2
+    PairVectorDistance = 3
 
 
 class EVectorComponentType(IntEnum):

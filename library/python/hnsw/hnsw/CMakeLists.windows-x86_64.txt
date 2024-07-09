@@ -37,6 +37,7 @@ target_link_libraries(_hnsw PUBLIC
   cpp-hnsw-logging
   cpp-online_hnsw-base
   cpp-online_hnsw-dense_vectors
+  library-cpp-pair_vector_distance
 )
 
 target_sources(_hnsw PRIVATE
