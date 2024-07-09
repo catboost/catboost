@@ -21,7 +21,7 @@ template <class T, class S>
 bool IsInIntegralRange(S value)
     requires std::is_signed_v<T> && std::is_signed_v<S>
 {
-    return value >= std::numeric_limits<T>::min() && value <= std::numeric_limits<T>::max();
+    return value >= std::numeric_limits<T>::lowest() && value <= std::numeric_limits<T>::max();
 }
 
 template <class T, class S>
@@ -98,7 +98,7 @@ T CheckedIntegralCast(S value)
             TypeName<S>().c_str(),
             NYT::NDetail::FormatInvalidCastValue(value).c_str(),
             TypeName<T>().c_str(),
-            ::ToString(std::numeric_limits<T>::min()).c_str(),
+            ::ToString(std::numeric_limits<T>::lowest()).c_str(),
             ::ToString(std::numeric_limits<T>::max()).c_str()));
     }
     return result;
