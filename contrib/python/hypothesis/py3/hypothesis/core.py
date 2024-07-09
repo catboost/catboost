@@ -1104,7 +1104,9 @@ class StateForActualGivenExecution:
             if TESTCASE_CALLBACKS:
                 if runner := getattr(self, "_runner", None):
                     phase = runner._current_phase
-                elif self.failed_normally or self.failed_due_to_deadline:
+                elif (
+                    self.failed_normally or self.failed_due_to_deadline
+                ):  # pragma: no cover  # FIXME
                     phase = "shrink"
                 else:  # pragma: no cover  # in case of messing with internals
                     phase = "unknown"

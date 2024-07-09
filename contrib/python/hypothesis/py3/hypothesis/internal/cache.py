@@ -8,6 +8,8 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+import threading
+
 import attr
 
 
@@ -51,7 +53,7 @@ class GenericCache:
     on_access and on_evict to implement a specific scoring strategy.
     """
 
-    __slots__ = ("keys_to_indices", "data", "max_size", "__pinned_entry_count")
+    __slots__ = ("max_size", "_threadlocal")
 
     def __init__(self, max_size):
         self.max_size = max_size
@@ -61,9 +63,31 @@ class GenericCache:
         # its children. keys_to_index then maps keys to their index in the
         # heap. We keep these two in sync automatically - the heap is never
         # reordered without updating the index.
-        self.keys_to_indices = {}
-        self.data = []
-        self.__pinned_entry_count = 0
+        self._threadlocal = threading.local()
+
+    @property
+    def keys_to_indices(self):
+        try:
+            return self._threadlocal.keys_to_indices
+        except AttributeError:
+            self._threadlocal.keys_to_indices = {}
+            return self._threadlocal.keys_to_indices
+
+    @property
+    def data(self):
+        try:
+            return self._threadlocal.data
+        except AttributeError:
+            self._threadlocal.data = []
+            return self._threadlocal.data
+
+    @property
+    def __pinned_entry_count(self):
+        return getattr(self._threadlocal, "_pinned_entry_count", 0)
+
+    @__pinned_entry_count.setter
+    def __pinned_entry_count(self, value):
+        self._threadlocal._pinned_entry_count = value
 
     def __len__(self):
         assert len(self.keys_to_indices) == len(self.data)

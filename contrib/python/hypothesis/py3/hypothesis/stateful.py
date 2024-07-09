@@ -388,7 +388,7 @@ class RuleBasedStateMachine(metaclass=StateMachineMeta):
         for target in targets:
             name = self._new_name(target)
 
-            def printer(obj, p, cycle, name=name):
+            def printer(obj, p, cycle, name=name):  # pragma: no cover  # FIXME
                 return p.text(name)
 
             self.__printer.singleton_pprinters.setdefault(id(result), printer)

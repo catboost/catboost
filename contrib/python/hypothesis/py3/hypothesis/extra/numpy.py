@@ -1103,7 +1103,7 @@ def basic_indices(
     allow_newaxis: bool = False,
     allow_ellipsis: bool = True,
 ) -> st.SearchStrategy[BasicIndex]:
-    """Return a strategy for :doc:`basic indexes <numpy:reference/arrays.indexing>` of
+    """Return a strategy for :doc:`basic indexes <numpy:reference/routines.indexing>` of
     arrays with the specified shape, which may include dimensions of size zero.
 
     It generates tuples containing some mix of integers, :obj:`python:slice`

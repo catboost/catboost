@@ -262,6 +262,55 @@ def _for_form_boolean(field):
     return st.booleans()
 
 
+def _model_choice_strategy(field):
+    def _strategy():
+        if field.choices is None:
+            # The field was instantiated with queryset=None, and not
+            # subsequently updated.
+            raise InvalidArgument(
+                "Cannot create strategy for ModelChoicesField with no choices"
+            )
+        elif hasattr(field, "_choices"):
+            # The choices property was set manually.
+            choices = field._choices
+        else:
+            # choices is not None, and was not set manually, so we
+            # must have a QuerySet.
+            choices = field.queryset
+
+        if not choices.ordered:
+            raise InvalidArgument(
+                f"Cannot create strategy for {field.__class__.__name__} with a choices "
+                "attribute derived from a QuerySet without an explicit ordering - this may "
+                "cause Hypothesis to produce unstable results between runs."
+            )
+
+        return st.sampled_from(
+            [
+                (
+                    choice.value
+                    if isinstance(choice, df.models.ModelChoiceIteratorValue)
+                    else choice  # Empty value, if included.
+                )
+                for choice, _ in field.choices
+            ]
+        )
+
+    # Accessing field.choices causes database access, so defer the strategy.
+    return st.deferred(_strategy)
+
+
+@register_for(df.ModelChoiceField)
+def _for_model_choice(field):
+    return _model_choice_strategy(field)
+
+
+@register_for(df.ModelMultipleChoiceField)
+def _for_model_multiple_choice(field):
+    min_size = 1 if field.required else 0
+    return st.lists(_model_choice_strategy(field), min_size=min_size, unique=True)
+
+
 def register_field_strategy(
     field_type: Type[AnyField], strategy: st.SearchStrategy
 ) -> None:
@@ -299,7 +348,13 @@ def from_field(field: F) -> st.SearchStrategy[Union[F, None]]:
     instance attributes such as string length and validators.
     """
     check_type((dm.Field, df.Field), field, "field")
-    if getattr(field, "choices", False):
+
+    # The following isinstance check must occur *before* the getattr
+    # check. In the case of ModelChoicesField, evaluating
+    # field.choices causes database access, which we want to avoid if
+    # we don't have a connection (the generated strategies for
+    # ModelChoicesField defer evaluation of `choices').
+    if not isinstance(field, df.ModelChoiceField) and getattr(field, "choices", False):
         choices: list = []
         for value, name_or_optgroup in field.choices:
             if isinstance(name_or_optgroup, (list, tuple)):

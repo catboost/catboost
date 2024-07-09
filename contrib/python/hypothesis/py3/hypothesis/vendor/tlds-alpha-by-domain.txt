@@ -1,4 +1,4 @@
-# Version 2024033000, Last Updated Sat Mar 30 07:07:01 2024 UTC
+# Version 2024062300, Last Updated Sun Jun 23 07:07:01 2024 UTC
 AAA
 AARP
 ABB
@@ -802,7 +802,6 @@ NA
 NAB
 NAGOYA
 NAME
-NATURA
 NAVY
 NBA
 NC

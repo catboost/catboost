@@ -121,7 +121,7 @@ class AddExamplesCodemod(VisitorBasedCodemodCommand):
                     cst.Module([]).code_for_node(via),
                     mode=black.FileMode(line_length=self.line_length),
                 )
-            except (ImportError, AttributeError):
+            except (ImportError, AttributeError):  # pragma: no cover
                 return None  # See https://github.com/psf/black/pull/4224
             via = cst.parse_expression(pretty.strip())
         return cst.Decorator(via)
