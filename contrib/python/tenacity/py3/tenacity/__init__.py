@@ -329,13 +329,19 @@ class BaseRetrying(ABC):
             f, functools.WRAPPER_ASSIGNMENTS + ("__defaults__", "__kwdefaults__")
         )
         def wrapped_f(*args: t.Any, **kw: t.Any) -> t.Any:
-            return self(f, *args, **kw)
+            # Always create a copy to prevent overwriting the local contexts when
+            # calling the same wrapped functions multiple times in the same stack
+            copy = self.copy()
+            wrapped_f.statistics = copy.statistics  # type: ignore[attr-defined]
+            return copy(f, *args, **kw)
 
         def retry_with(*args: t.Any, **kwargs: t.Any) -> WrappedFn:
             return self.copy(*args, **kwargs).wraps(f)
 
+        # Preserve attributes
         wrapped_f.retry = self  # type: ignore[attr-defined]
         wrapped_f.retry_with = retry_with  # type: ignore[attr-defined]
+        wrapped_f.statistics = {}  # type: ignore[attr-defined]
 
         return wrapped_f  # type: ignore[return-value]
 

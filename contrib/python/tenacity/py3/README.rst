@@ -124,8 +124,8 @@ retrying stuff.
         print("Stopping after 10 seconds")
         raise Exception
 
-If you're on a tight deadline, and exceeding your delay time isn't ok, 
-then you can give up on retries one attempt before you would exceed the delay. 
+If you're on a tight deadline, and exceeding your delay time isn't ok,
+then you can give up on retries one attempt before you would exceed the delay.
 
 .. testcode::
 
@@ -362,7 +362,7 @@ Statistics
 ~~~~~~~~~~
 
 You can access the statistics about the retry made over a function by using the
-`retry` attribute attached to the function and its `statistics` attribute:
+`statistics` attribute attached to the function:
 
 .. testcode::
 
@@ -375,7 +375,7 @@ You can access the statistics about the retry made over a function by using the
     except Exception:
         pass
 
-    print(raise_my_exception.retry.statistics)
+    print(raise_my_exception.statistics)
 
 .. testoutput::
    :hide:
@@ -495,7 +495,7 @@ using the `retry_with` function attached to the wrapped function:
     except Exception:
         pass
 
-    print(raise_my_exception.retry.statistics)
+    print(raise_my_exception.statistics)
 
 .. testoutput::
    :hide:
@@ -513,6 +513,32 @@ to use the `retry` decorator - you can instead use `Retrying` directly:
     def try_never_good_enough(max_attempts=3):
         retryer = Retrying(stop=stop_after_attempt(max_attempts), reraise=True)
         retryer(never_good_enough, 'I really do try')
+
+You may also want to change the behaviour of a decorated function temporarily,
+like in tests to avoid unnecessary wait times. You can modify/patch the `retry`
+attribute attached to the function. Bear in mind this is a write-only attribute,
+statistics should be read from the function `statistics` attribute.
+
+.. testcode::
+
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(3))
+    def raise_my_exception():
+        raise MyException("Fail")
+
+    from unittest import mock
+
+    with mock.patch.object(raise_my_exception.retry, "wait", wait_fixed(0)):
+        try:
+            raise_my_exception()
+        except Exception:
+            pass
+
+    print(raise_my_exception.statistics)
+
+.. testoutput::
+   :hide:
+
+   ...
 
 Retrying code block
 ~~~~~~~~~~~~~~~~~~~
