@@ -226,6 +226,11 @@ jobs:
         run: |
           Set-Content -Path cmake_build_cache/git_commit_sha -Value ${{ github.sha }}
 
+
+      # Unfortunately, GitHub actions do not support uploading multiple artifacts in one step:
+      # https://github.com/actions/upload-artifact/issues/331, so we have to do this unfortunate copy-paste
+      # for now
+
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
