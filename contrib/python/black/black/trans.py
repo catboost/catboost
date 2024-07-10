@@ -29,7 +29,7 @@ from mypy_extensions import trait
 
 from black.comments import contains_pragma_comment
 from black.lines import Line, append_leaves
-from black.mode import Feature, Mode
+from black.mode import Feature, Mode, Preview
 from black.nodes import (
     CLOSING_BRACKETS,
     OPENING_BRACKETS,
@@ -94,43 +94,36 @@ def hug_power_op(
     else:
         raise CannotTransform("No doublestar token was found in the line.")
 
-    def is_simple_lookup(index: int, step: Literal[1, -1]) -> bool:
+    def is_simple_lookup(index: int, kind: Literal[1, -1]) -> bool:
         # Brackets and parentheses indicate calls, subscripts, etc. ...
         # basically stuff that doesn't count as "simple". Only a NAME lookup
         # or dotted lookup (eg. NAME.NAME) is OK.
-        if step == -1:
-            disallowed = {token.RPAR, token.RSQB}
+        if Preview.is_simple_lookup_for_doublestar_expression not in mode:
+            return original_is_simple_lookup_func(line, index, kind)
+
         else:
-            disallowed = {token.LPAR, token.LSQB}
+            if kind == -1:
+                return handle_is_simple_look_up_prev(
+                    line, index, {token.RPAR, token.RSQB}
+                )
+            else:
+                return handle_is_simple_lookup_forward(
+                    line, index, {token.LPAR, token.LSQB}
+                )
 
-        while 0 <= index < len(line.leaves):
-            current = line.leaves[index]
-            if current.type in disallowed:
-                return False
-            if current.type not in {token.NAME, token.DOT} or current.value == "for":
-                # If the current token isn't disallowed, we'll assume this is simple as
-                # only the disallowed tokens are semantically attached to this lookup
-                # expression we're checking. Also, stop early if we hit the 'for' bit
-                # of a comprehension.
-                return True
-
-            index += step
-
-        return True
-
-    def is_simple_operand(index: int, kind: Literal["base", "exponent"]) -> bool:
+    def is_simple_operand(index: int, kind: Literal[1, -1]) -> bool:
         # An operand is considered "simple" if's a NAME, a numeric CONSTANT, a simple
         # lookup (see above), with or without a preceding unary operator.
         start = line.leaves[index]
         if start.type in {token.NAME, token.NUMBER}:
-            return is_simple_lookup(index, step=(1 if kind == "exponent" else -1))
+            return is_simple_lookup(index, kind)
 
         if start.type in {token.PLUS, token.MINUS, token.TILDE}:
             if line.leaves[index + 1].type in {token.NAME, token.NUMBER}:
-                # step is always one as bases with a preceding unary op will be checked
+                # kind is always one as bases with a preceding unary op will be checked
                 # for simplicity starting from the next token (so it'll hit the check
                 # above).
-                return is_simple_lookup(index + 1, step=1)
+                return is_simple_lookup(index + 1, kind=1)
 
         return False
 
@@ -145,9 +138,9 @@ def hug_power_op(
         should_hug = (
             (0 < idx < len(line.leaves) - 1)
             and leaf.type == token.DOUBLESTAR
-            and is_simple_operand(idx - 1, kind="base")
+            and is_simple_operand(idx - 1, kind=-1)
             and line.leaves[idx - 1].value != "lambda"
-            and is_simple_operand(idx + 1, kind="exponent")
+            and is_simple_operand(idx + 1, kind=1)
         )
         if should_hug:
             new_leaf.prefix = ""
@@ -160,6 +153,99 @@ def hug_power_op(
             new_line.append(comment_leaf, preformatted=True)
 
     yield new_line
+
+
+def original_is_simple_lookup_func(
+    line: Line, index: int, step: Literal[1, -1]
+) -> bool:
+    if step == -1:
+        disallowed = {token.RPAR, token.RSQB}
+    else:
+        disallowed = {token.LPAR, token.LSQB}
+
+    while 0 <= index < len(line.leaves):
+        current = line.leaves[index]
+        if current.type in disallowed:
+            return False
+        if current.type not in {token.NAME, token.DOT} or current.value == "for":
+            # If the current token isn't disallowed, we'll assume this is
+            # simple as only the disallowed tokens are semantically
+            # attached to this lookup expression we're checking. Also,
+            # stop early if we hit the 'for' bit of a comprehension.
+            return True
+
+        index += step
+
+    return True
+
+
+def handle_is_simple_look_up_prev(line: Line, index: int, disallowed: Set[int]) -> bool:
+    """
+    Handling the determination of is_simple_lookup for the lines prior to the doublestar
+    token. This is required because of the need to isolate the chained expression
+    to determine the bracket or parenthesis belong to the single expression.
+    """
+    contains_disallowed = False
+    chain = []
+
+    while 0 <= index < len(line.leaves):
+        current = line.leaves[index]
+        chain.append(current)
+        if not contains_disallowed and current.type in disallowed:
+            contains_disallowed = True
+        if not is_expression_chained(chain):
+            return not contains_disallowed
+
+        index -= 1
+
+    return True
+
+
+def handle_is_simple_lookup_forward(
+    line: Line, index: int, disallowed: Set[int]
+) -> bool:
+    """
+    Handling decision is_simple_lookup for the lines behind the doublestar token.
+    This function is simplified to keep consistent with the prior logic and the forward
+    case are more straightforward and do not need to care about chained expressions.
+    """
+    while 0 <= index < len(line.leaves):
+        current = line.leaves[index]
+        if current.type in disallowed:
+            return False
+        if current.type not in {token.NAME, token.DOT} or (
+            current.type == token.NAME and current.value == "for"
+        ):
+            # If the current token isn't disallowed, we'll assume this is simple as
+            # only the disallowed tokens are semantically attached to this lookup
+            # expression we're checking. Also, stop early if we hit the 'for' bit
+            # of a comprehension.
+            return True
+
+        index += 1
+
+    return True
+
+
+def is_expression_chained(chained_leaves: List[Leaf]) -> bool:
+    """
+    Function to determine if the variable is a chained call.
+    (e.g., foo.lookup, foo().lookup, (foo.lookup())) will be recognized as chained call)
+    """
+    if len(chained_leaves) < 2:
+        return True
+
+    current_leaf = chained_leaves[-1]
+    past_leaf = chained_leaves[-2]
+
+    if past_leaf.type == token.NAME:
+        return current_leaf.type in {token.DOT}
+    elif past_leaf.type in {token.RPAR, token.RSQB}:
+        return current_leaf.type in {token.RSQB, token.RPAR}
+    elif past_leaf.type in {token.LPAR, token.LSQB}:
+        return current_leaf.type in {token.NAME, token.LPAR, token.LSQB}
+    else:
+        return False
 
 
 class StringTransformer(ABC):
@@ -1273,7 +1359,7 @@ def iter_fexpr_spans(s: str) -> Iterator[Tuple[int, int]]:
             i += 1
             continue
 
-        # if we're in an expression part of the f-string, fast forward through strings
+        # if we're in an expression part of the f-string, fast-forward through strings
         # note that backslashes are not legal in the expression portion of f-strings
         if stack:
             delim = None
@@ -1740,7 +1826,7 @@ class StringSplitter(BaseStringSplitter, CustomSplitMapMixin):
             """
             Returns:
                 True iff ALL of the conditions listed in the 'Transformations'
-                section of this classes' docstring would be be met by returning @i.
+                section of this classes' docstring would be met by returning @i.
             """
             is_space = string[i] == " "
             is_split_safe = is_valid_index(i - 1) and string[i - 1] in SPLIT_SAFE_CHARS
@@ -1932,7 +2018,7 @@ class StringParenWrapper(BaseStringSplitter, CustomSplitMapMixin):
                 OR
             None, otherwise.
         """
-        # If this line is apart of a return/yield statement and the first leaf
+        # If this line is a part of a return/yield statement and the first leaf
         # contains either the "return" or "yield" keywords...
         if parent_type(LL[0]) in [syms.return_stmt, syms.yield_expr] and LL[
             0
@@ -1957,7 +2043,7 @@ class StringParenWrapper(BaseStringSplitter, CustomSplitMapMixin):
                 OR
             None, otherwise.
         """
-        # If this line is apart of a ternary expression and the first leaf
+        # If this line is a part of a ternary expression and the first leaf
         # contains the "else" keyword...
         if (
             parent_type(LL[0]) == syms.test
@@ -1984,7 +2070,7 @@ class StringParenWrapper(BaseStringSplitter, CustomSplitMapMixin):
                 OR
             None, otherwise.
         """
-        # If this line is apart of an assert statement and the first leaf
+        # If this line is a part of an assert statement and the first leaf
         # contains the "assert" keyword...
         if parent_type(LL[0]) == syms.assert_stmt and LL[0].value == "assert":
             is_valid_index = is_valid_index_factory(LL)
@@ -2019,7 +2105,7 @@ class StringParenWrapper(BaseStringSplitter, CustomSplitMapMixin):
                 OR
             None, otherwise.
         """
-        # If this line is apart of an expression statement or is a function
+        # If this line is a part of an expression statement or is a function
         # argument AND the first leaf contains a variable name...
         if (
             parent_type(LL[0]) in [syms.expr_stmt, syms.argument, syms.power]
@@ -2040,7 +2126,7 @@ class StringParenWrapper(BaseStringSplitter, CustomSplitMapMixin):
                         string_parser = StringParser()
                         idx = string_parser.parse(LL, string_idx)
 
-                        # The next leaf MAY be a comma iff this line is apart
+                        # The next leaf MAY be a comma iff this line is a part
                         # of a function argument...
                         if (
                             parent_type(LL[0]) == syms.argument
@@ -2187,8 +2273,7 @@ class StringParenWrapper(BaseStringSplitter, CustomSplitMapMixin):
                 if opening_bracket is not None and opening_bracket in left_leaves:
                     index = left_leaves.index(opening_bracket)
                     if (
-                        index > 0
-                        and index < len(left_leaves) - 1
+                        0 < index < len(left_leaves) - 1
                         and left_leaves[index - 1].type == token.COLON
                         and left_leaves[index + 1].value == "lambda"
                     ):
@@ -2297,7 +2382,7 @@ class StringParser:
             * @leaves[@string_idx].type == token.STRING
 
         Returns:
-            The index directly after the last leaf which is apart of the string
+            The index directly after the last leaf which is a part of the string
             trailer, if a "trailer" exists.
             OR
             @string_idx + 1, if no string "trailer" exists.
@@ -2320,7 +2405,7 @@ class StringParser:
               MUST be the leaf directly following @leaf.
 
         Returns:
-            True iff @leaf is apart of the string's trailer.
+            True iff @leaf is a part of the string's trailer.
         """
         # We ignore empty LPAR or RPAR leaves.
         if is_empty_par(leaf):
