@@ -1047,7 +1047,7 @@ class easy_install(Command):
         prefixes = get_exe_prefixes(dist_filename)
         to_compile = []
         native_libs = []
-        top_level = {}
+        top_level = set()
 
         def process(src, dst):
             s = src.lower()
@@ -1059,10 +1059,10 @@ class easy_install(Command):
                     dl = dst.lower()
                     if dl.endswith('.pyd') or dl.endswith('.dll'):
                         parts[-1] = bdist_egg.strip_module(parts[-1])
-                        top_level[os.path.splitext(parts[0])[0]] = True
+                        top_level.add([os.path.splitext(parts[0])[0]])
                         native_libs.append(src)
                     elif dl.endswith('.py') and old != 'SCRIPTS/':
-                        top_level[os.path.splitext(parts[0])[0]] = True
+                        top_level.add([os.path.splitext(parts[0])[0]])
                         to_compile.append(dst)
                     return dst
             if not src.endswith('.pth'):
@@ -1484,14 +1484,14 @@ def get_site_dirs():
 def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
     """Yield sys.path directories that might contain "old-style" packages"""
 
-    seen = {}
+    seen = set()
 
     for dirname in inputs:
         dirname = normalize_path(dirname)
         if dirname in seen:
             continue
 
-        seen[dirname] = True
+        seen.add(dirname)
         if not os.path.isdir(dirname):
             continue
 
@@ -1520,7 +1520,7 @@ def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
                 if line in seen:
                     continue
 
-                seen[line] = True
+                seen.add(line)
                 if not os.path.isdir(line):
                     continue
 
@@ -1622,7 +1622,7 @@ class PthDistributions(Environment):
     def _load_raw(self):
         paths = []
         dirty = saw_import = False
-        seen = dict.fromkeys(self.sitedirs)
+        seen = set(self.sitedirs)
         f = open(self.filename, 'rt', encoding=py39.LOCALE_ENCODING)
         # ^-- Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
         for line in f:
@@ -1643,7 +1643,7 @@ class PthDistributions(Environment):
                 dirty = True
                 paths.pop()
                 continue
-            seen[normalized_path] = True
+            seen.add(normalized_path)
         f.close()
         # remove any trailing empty/blank line
         while paths and not paths[-1].strip():

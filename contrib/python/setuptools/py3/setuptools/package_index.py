@@ -627,7 +627,7 @@ class PackageIndex(Environment):
         """
         # process a Requirement
         self.info("Searching for %s", requirement)
-        skipped = {}
+        skipped = set()
         dist = None
 
         def find(req, env=None):
@@ -642,7 +642,7 @@ class PackageIndex(Environment):
                             "Skipping development or system egg: %s",
                             dist,
                         )
-                        skipped[dist] = True
+                        skipped.add(dist)
                     continue
 
                 test = dist in req and (dist.precedence <= SOURCE_DIST or not source)
