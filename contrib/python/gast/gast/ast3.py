@@ -82,6 +82,7 @@ class Ast3ToGAst(AstToGAst):
                 self._visit(node.decorator_list),
                 self._visit(node.returns),
                 None,  # type_comment
+                [],  # type_params
             )
             return gast.copy_location(new_node, node)
 
@@ -93,6 +94,7 @@ class Ast3ToGAst(AstToGAst):
                 self._visit(node.decorator_list),
                 self._visit(node.returns),
                 None,  # type_comment
+                [],  # type_params
             )
             return gast.copy_location(new_node, node)
 
@@ -222,6 +224,31 @@ class Ast3ToGAst(AstToGAst):
                 is_async=0,
             )
             return ast.copy_location(new_node, node)
+
+    if 8 <= sys.version_info.minor < 12:
+        def visit_FunctionDef(self, node):
+            new_node = gast.FunctionDef(
+                self._visit(node.name),
+                self._visit(node.args),
+                self._visit(node.body),
+                self._visit(node.decorator_list),
+                self._visit(node.returns),
+                self._visit(node.type_comment),
+                [],  # type_params
+            )
+            return gast.copy_location(new_node, node)
+
+        def visit_AsyncFunctionDef(self, node):
+            new_node = gast.AsyncFunctionDef(
+                self._visit(node.name),
+                self._visit(node.args),
+                self._visit(node.body),
+                self._visit(node.decorator_list),
+                self._visit(node.returns),
+                self._visit(node.type_comment),
+                [],  # type_params
+            )
+            return gast.copy_location(new_node, node)
 
 
 class GAstToAst3(GAstToAst):
@@ -423,6 +450,41 @@ class GAstToAst3(GAstToAst):
                 self._visit(node.keywords),
             )
             return ast.copy_location(new_node, node)
+    if  5 <= sys.version_info.minor < 12:
+        def visit_ClassDef(self, node):
+            new_node = ast.ClassDef(
+                self._visit(node.name),
+                self._visit(node.bases),
+                self._visit(node.keywords),
+                self._visit(node.body),
+                self._visit(node.decorator_list),
+            )
+            return ast.copy_location(new_node, node)
+
+    if  8 <= sys.version_info.minor < 12:
+        def visit_FunctionDef(self, node):
+            new_node = ast.FunctionDef(
+                self._visit(node.name),
+                self._visit(node.args),
+                self._visit(node.body),
+                self._visit(node.decorator_list),
+                self._visit(node.returns),
+                self._visit(node.type_comment),
+            )
+            return ast.copy_location(new_node, node)
+
+        def visit_AsyncFunctionDef(self, node):
+            new_node = ast.AsyncFunctionDef(
+                self._visit(node.name),
+                self._visit(node.args),
+                self._visit(node.body),
+                self._visit(node.decorator_list),
+                self._visit(node.returns),
+                self._visit(node.type_comment),
+            )
+            return ast.copy_location(new_node, node)
+
+
 
     def visit_arguments(self, node):
         extra_args = [self._make_arg(node.vararg),

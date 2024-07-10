@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: gast
-Version: 0.5.4
+Version: 0.5.5
 Summary: Python AST that abstracts the underlying Python version
 Home-page: https://github.com/serge-sans-paille/gast/
 Author: serge-sans-paille

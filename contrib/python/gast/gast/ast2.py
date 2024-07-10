@@ -22,6 +22,7 @@ class Ast2ToGAst(AstToGAst):
             self._visit(node.decorator_list),
             None,  # returns
             None,  # type_comment
+            [],  # type_params
         )
         gast.copy_location(new_node, node)
         new_node.end_lineno = new_node.end_col_offset = None
@@ -34,6 +35,7 @@ class Ast2ToGAst(AstToGAst):
             [],  # keywords
             self._visit(node.body),
             self._visit(node.decorator_list),
+            [],  # type_params
         )
 
         gast.copy_location(new_node, node)

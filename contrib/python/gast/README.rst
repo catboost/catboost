@@ -64,6 +64,9 @@ The AST used by GAST is the same as the one used in Python3.9, with the
 notable exception of ``ast.arg`` being replaced by an ``ast.Name`` with an
 ``ast.Param`` context.
 
+The ``name`` field of ``ExceptHandler`` is represented as an ``ast.Name`` with
+an ``ast.Store`` context and not a ``str``.
+
 For minor version before 3.9, please note that ``ExtSlice`` and ``Index`` are
 not used.
 
@@ -138,20 +141,22 @@ trade-offs to cope with legacy ASTs.
 
         stmt = FunctionDef(identifier name, arguments args,
                            stmt* body, expr* decorator_list, expr? returns,
-                           string? type_comment)
+                           string? type_comment, type_param* type_params)
               | AsyncFunctionDef(identifier name, arguments args,
                                  stmt* body, expr* decorator_list, expr? returns,
-                                 string? type_comment)
+                                 string? type_comment, type_param* type_params)
 
               | ClassDef(identifier name,
                  expr* bases,
                  keyword* keywords,
                  stmt* body,
-                 expr* decorator_list)
+                 expr* decorator_list,
+                 type_param* type_params)
               | Return(expr? value)
 
               | Delete(expr* targets)
               | Assign(expr* targets, expr value, string? type_comment)
+              | TypeAlias(expr name, type_param* type_params, expr value)
               | AugAssign(expr target, operator op, expr value)
               -- 'simple' indicates that we annotate simple name without parens
               | AnnAssign(expr target, expr annotation, expr? value, int simple)
@@ -278,4 +283,22 @@ trade-offs to cope with legacy ASTs.
                  attributes (int lineno, int col_offset, int end_lineno, int end_col_offset)
 
         type_ignore = TypeIgnore(int lineno, string tag)
+
+         type_param = TypeVar(identifier name, expr? bound)
+                    | ParamSpec(identifier name)
+                    | TypeVarTuple(identifier name)
+                    attributes (int lineno, int col_offset, int end_lineno, int end_col_offset)
     }
+
+
+Reporting Bugs
+--------------
+
+Bugs can be reported through `GitHub issues <https://github.com/serge-sans-paille/gast/issues>`_.
+
+Reporting Security Issues
+-------------------------
+
+If for some reason, you think your bug is security-related and should be subject
+to responsible disclosure, don't hesitate to `contact the maintainer
+<mailto:serge.guelton@telecom-bretagne.eu>`_ directly.

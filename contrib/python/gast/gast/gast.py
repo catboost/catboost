@@ -17,20 +17,29 @@ except ImportError:
         pass
 
 
-def _make_node(Name, Fields, Attributes, Bases):
-    NBFields = len(Fields)
+try:
+    from ast import type_param
+except ImportError:
+    class type_param(AST):
+        pass
 
+
+def _make_node(Name, Fields, Attributes, Bases):
+
+    # This constructor is used a lot during conversion from ast to gast,
+    # then as the primary way to build ast nodes. So we tried to optimized it
+    # for speed and not for readability.
     def create_node(self, *args, **kwargs):
-        if args:
-            if len(args) + len([k for k in kwargs if k in Fields]) != NBFields:
-                raise TypeError(
-                    "{} constructor takes either 0 or {} mandatory arguments".
-                    format(Name, NBFields))
-            for argname, argval in zip(Fields, args):
-                setattr(self, argname, argval)
-        if kwargs:
-            for argname, argval in kwargs.items():
-                setattr(self, argname, argval)
+        if len(args) > len(Fields):
+            raise TypeError(
+                "{} constructor takes at most {} positional arguments".
+                format(Name, len(Fields)))
+
+        # it's faster to iterate rather than zipping or enumerate
+        for i in range(len(args)):
+            setattr(self, Fields[i], args[i])
+        if kwargs:  # cold branch
+            self.__dict__.update(kwargs)
 
     setattr(_sys.modules[__name__],
             Name,
@@ -51,16 +60,16 @@ _nodes = (
 
     # stmt
     ('FunctionDef', (('name', 'args', 'body', 'decorator_list', 'returns',
-                      'type_comment'),
+                      'type_comment', 'type_params'),
                      ('lineno', 'col_offset', 'end_lineno', 'end_col_offset',),
                      (stmt,))),
-    ('AsyncFunctionDef', (('name', 'args', 'body',
-                           'decorator_list', 'returns',
-                           'type_comment'),
+    ('AsyncFunctionDef', (('name', 'args', 'body', 'decorator_list', 'returns',
+                           'type_comment', 'type_params',),
                           ('lineno', 'col_offset',
                            'end_lineno', 'end_col_offset',),
                           (stmt,))),
-    ('ClassDef', (('name', 'bases', 'keywords', 'body', 'decorator_list',),
+    ('ClassDef', (('name', 'bases', 'keywords', 'body', 'decorator_list',
+                   'type_params',),
                   ('lineno', 'col_offset', 'end_lineno', 'end_col_offset',),
                   (stmt,))),
     ('Return', (('value',),
@@ -72,6 +81,9 @@ _nodes = (
     ('Assign', (('targets', 'value', 'type_comment'),
                 ('lineno', 'col_offset', 'end_lineno', 'end_col_offset',),
                 (stmt,))),
+    ('TypeAlias', (('name', 'type_params', 'value'),
+                  ('lineno', 'col_offset', 'end_lineno', 'end_col_offset',),
+                  (stmt,))),
     ('AugAssign', (('target', 'op', 'value',),
                    ('lineno', 'col_offset', 'end_lineno', 'end_col_offset',),
                    (stmt,))),
@@ -340,7 +352,24 @@ _nodes = (
 
     # type_ignore
     ('type_ignore', ((), ('lineno', 'tag'), (TypeIgnore,))),
+
+    # type_param
+    ('TypeVar', (('name', 'bound',),
+                 ('lineno', 'col_offset',
+                  'end_lineno', 'end_col_offset'),
+                 (type_param,))),
+    ('ParamSpec', (('name',),
+                 ('lineno', 'col_offset',
+                  'end_lineno', 'end_col_offset'),
+                 (type_param,))),
+    ('TypeVarTuple', (('name',),
+                 ('lineno', 'col_offset',
+                  'end_lineno', 'end_col_offset'),
+                 (type_param,))),
     )
+
+
+
 
 for name, descr in _nodes:
     _make_node(name, *descr)
