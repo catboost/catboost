@@ -1104,12 +1104,11 @@ class StateForActualGivenExecution:
             if TESTCASE_CALLBACKS:
                 if runner := getattr(self, "_runner", None):
                     phase = runner._current_phase
-                elif (
-                    self.failed_normally or self.failed_due_to_deadline
-                ):  # pragma: no cover  # FIXME
-                    phase = "shrink"
                 else:  # pragma: no cover  # in case of messing with internals
-                    phase = "unknown"
+                    if self.failed_normally or self.failed_due_to_deadline:
+                        phase = "shrink"
+                    else:
+                        phase = "unknown"
                 backend_desc = f", using backend={self.settings.backend!r}" * (
                     self.settings.backend != "hypothesis"
                     and not getattr(runner, "_switch_to_hypothesis_provider", False)

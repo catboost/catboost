@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: importlib_metadata
-Version: 7.2.1
+Version: 8.0.0
 Summary: Read metadata from Python packages
 Author-email: "Jason R. Coombs" <jaraco@jaraco.com>
 Project-URL: Source, https://github.com/python/importlib_metadata
