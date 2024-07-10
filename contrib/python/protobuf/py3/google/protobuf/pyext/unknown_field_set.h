@@ -28,49 +28,51 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Author: anuraag@google.com (Anuraag Agrawal)
-// Author: tibell@google.com (Johan Tibell)
-
-#ifndef GOOGLE_PROTOBUF_PYTHON_CPP_REPEATED_SCALAR_CONTAINER_H__
-#define GOOGLE_PROTOBUF_PYTHON_CPP_REPEATED_SCALAR_CONTAINER_H__
+#ifndef GOOGLE_PROTOBUF_PYTHON_CPP_UNKNOWN_FIELD_SET_H__
+#define GOOGLE_PROTOBUF_PYTHON_CPP_UNKNOWN_FIELD_SET_H__
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include <google/protobuf/descriptor.h>
+#include <memory>
+#include <set>
+
 #include <google/protobuf/pyext/message.h>
 
 namespace google {
 namespace protobuf {
+
+class UnknownField;
+class UnknownFieldSet;
+
 namespace python {
+struct CMessage;
 
-typedef struct RepeatedScalarContainer : public ContainerBase {
-} RepeatedScalarContainer;
+struct PyUnknownFieldSet {
+  PyObject_HEAD;
+  // If parent is nullptr, it is a top UnknownFieldSet.
+  PyUnknownFieldSet* parent;
 
-extern PyTypeObject RepeatedScalarContainer_Type;
+  // Top UnknownFieldSet owns fields pointer. Sub UnknownFieldSet
+  // does not own fields pointer.
+  UnknownFieldSet* fields;
+};
 
-namespace repeated_scalar_container {
+struct PyUnknownField {
+  PyObject_HEAD;
+  // Every Python PyUnknownField holds a reference to its parent
+  // PyUnknownFieldSet in order to keep it alive.
+  PyUnknownFieldSet* parent;
 
-// Builds a RepeatedScalarContainer object, from a parent message and a
-// field descriptor.
-extern RepeatedScalarContainer* NewContainer(
-    CMessage* parent, const FieldDescriptor* parent_field_descriptor);
+  // The UnknownField index in UnknownFieldSet.
+  Py_ssize_t index;
+};
 
-// Appends the scalar 'item' to the end of the container 'self'.
-//
-// Returns None if successful; returns NULL and sets an exception if
-// unsuccessful.
-PyObject* Append(RepeatedScalarContainer* self, PyObject* item);
+extern PyTypeObject PyUnknownFieldSet_Type;
+extern PyTypeObject PyUnknownField_Type;
 
-// Appends all the elements in the input iterator to the container.
-//
-// Returns None if successful; returns NULL and sets an exception if
-// unsuccessful.
-PyObject* Extend(RepeatedScalarContainer* self, PyObject* value);
-
-}  // namespace repeated_scalar_container
 }  // namespace python
 }  // namespace protobuf
 }  // namespace google
 
-#endif  // GOOGLE_PROTOBUF_PYTHON_CPP_REPEATED_SCALAR_CONTAINER_H__
+#endif  // GOOGLE_PROTOBUF_PYTHON_CPP_UNKNOWN_FIELD_SET_H__
