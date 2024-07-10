@@ -4,7 +4,7 @@
 
 #### Description
 
-The path to the input file{% if audience == "internal" %} or table{% endif %} that contains the dataset description.
+The path to the input file{% if audience == "internal" %} or table{% endif %} that contains the training dataset.
 
 {% include [files-internal-files-internal__desc__full](../../../_includes/work_src/reusage-formats/files-internal__desc__full.md) %}
 
@@ -23,7 +23,7 @@ The path to the input file{% if audience == "internal" %} or table{% endif %} th
 
 #### Description
 
-A comma-separated list of input files that contain the validation dataset description (the format must be the same as used in the training dataset).
+A comma-separated list of input files that contain the validation datasets (the format must be the same as used in the training dataset).
 
 {% if audience == "internal" %}
 
@@ -35,7 +35,7 @@ A comma-separated list of input files that contain the validation dataset descri
 
 **{{ cli__params-table__title__default }}**
 
- Omitted. If this parameter is omitted, the validation dataset isn't used.
+ Omitted. If this parameter is omitted, the validation datasets are not used.
 
 
 **{{ cli__params-table__title__processing-units-type }}**
