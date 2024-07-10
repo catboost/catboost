@@ -7,9 +7,9 @@ import optparse
 import textwrap
 
 import process_command_files as pcf
+import thinlto_cache
 
 from process_whole_archive_option import ProcessWholeArchiveOption
-
 from fix_py2_protobuf import fix_py2
 
 
@@ -305,17 +305,18 @@ def parse_args():
     parser.add_option('--custom-step')
     parser.add_option('--python')
     parser.add_option('--source-root')
+    parser.add_option('--build-root')
     parser.add_option('--clang-ver')
     parser.add_option('--dynamic-cuda', action='store_true')
     parser.add_option('--cuda-architectures',
                       help='List of supported CUDA architectures, separated by ":" (e.g. "sm_52:compute_70:lto_90a"')
     parser.add_option('--nvprune-exe')
     parser.add_option('--objcopy-exe')
-    parser.add_option('--build-root')
     parser.add_option('--arch')
     parser.add_option('--linker-output')
     parser.add_option('--whole-archive-peers', action='append')
     parser.add_option('--whole-archive-libs', action='append')
+    thinlto_cache.add_options(parser)
     return parser.parse_args()
 
 
@@ -362,5 +363,8 @@ if __name__ == '__main__':
     else:
         stdout = sys.stdout
 
+    thinlto_cache.preprocess(opts, cmd)
     rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=stdout)
+    thinlto_cache.postprocess(opts)
+
     sys.exit(rc)
