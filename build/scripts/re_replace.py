@@ -23,7 +23,7 @@ def main(args: List[str]):
     skipped_files = []
     for file in files:
         patched = False
-        with open(file, 'r') as f:
+        with open(file, 'rt', encoding="utf-8") as f:
             lines = f.readlines()
             for i in range(len(lines)):
                 line = lines[i]
@@ -32,7 +32,7 @@ def main(args: List[str]):
                     patched = True
                     lines[i] = patched_line
         if patched:
-            with open(file, 'w') as f:
+            with open(file, 'wt', encoding="utf-8") as f:
                 f.writelines(lines)
             patched_files.append(file)
         else:

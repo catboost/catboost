@@ -315,5 +315,5 @@ def get_version_info(arc_root, custom_version=""):
 
 
 if __name__ == '__main__':
-    with open(sys.argv[1], 'w') as f:
+    with open(sys.argv[1], 'wt', encoding="utf-8") as f:
         f.write(get_version_info(sys.argv[2]))
