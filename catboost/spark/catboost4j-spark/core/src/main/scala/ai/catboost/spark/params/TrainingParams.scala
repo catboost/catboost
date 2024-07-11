@@ -209,8 +209,9 @@ trait TrainingParamsTrait
   final val bestModelMinTrees: IntParam = new IntParam(
     this,
     "bestModelMinTrees",
-    "The minimal number of trees that the best model should have. If set, the output model contains at least "
-    + " the given number of trees even if the best model is located within these trees."
+    "The minimal number of trees that the best model should have. If set, the output model contains at least"
+    + " the given number of trees even if the optimal value of the evaluation metric on the validation"
+    + " dataset is achieved with smaller number of trees."
     + " Should be used with the useBestModel parameter."
     + " No limit by default."
   )

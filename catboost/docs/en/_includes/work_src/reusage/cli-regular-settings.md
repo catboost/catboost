@@ -682,7 +682,7 @@ True if a validation set is input (the `-t` or the `--test-set` parameter is de
 
 #### Description
 
-The minimal number of trees that the best model should have. If set, the output model contains at least the given number of trees even if the best model is located within these trees.
+The minimal number of trees that the best model should have. If set, the output model contains at least the given number of trees even if the optimal value of the evaluation metric on the validation dataset is achieved with smaller number of trees.
 
 Should be used with the `--use-best-model` parameter.
 
