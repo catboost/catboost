@@ -246,11 +246,22 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
+        uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
-          name: catboost-python-package-dist-linux-${{ inputs.artifacts_version }}
-          path: catboost/catboost/python-package/dist/*.whl
-          retention-days: ${{ inputs.artifact_retention_days }}
+          artifacts_version: ${{ inputs.artifacts_version }}
+          catboost_package_name: ${{ inputs.catboost_package_name }}
+          catboost_package_version: ${{ inputs.catboost_package_version }}
+          platform_tag: manylinux2014_aarch64
+          artifact_retention_days: ${{ inputs.artifact_retention_days }}
+
+      - if: inputs.runs-on_value == 'ubuntu-latest'
+        uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
+        with:
+          artifacts_version: ${{ inputs.artifacts_version }}
+          catboost_package_name: ${{ inputs.catboost_package_name }}
+          catboost_package_version: ${{ inputs.catboost_package_version }}
+          platform_tag: manylinux2014_x86_64
+          artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
@@ -336,11 +347,13 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
-        uses: actions/upload-artifact@v4
+        uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
-          name: catboost-python-package-dist-darwin-${{ inputs.artifacts_version }}
-          path: catboost/catboost/python-package/dist/*.whl
-          retention-days: ${{ inputs.artifact_retention_days }}
+          artifacts_version: ${{ inputs.artifacts_version }}
+          catboost_package_name: ${{ inputs.catboost_package_name }}
+          catboost_package_version: ${{ inputs.catboost_package_version }}
+          platform_tag: macosx_11_0_universal2
+          artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
         uses: actions/upload-artifact@v4
@@ -388,11 +401,13 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
-        uses: actions/upload-artifact@v4
+        uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
-          name: catboost-python-package-dist-windows-${{ inputs.artifacts_version }}
-          path: catboost/catboost/python-package/dist/*.whl
-          retention-days: ${{ inputs.artifact_retention_days }}
+          artifacts_version: ${{ inputs.artifacts_version }}
+          catboost_package_name: ${{ inputs.catboost_package_name }}
+          catboost_package_version: ${{ inputs.catboost_package_version }}
+          platform_tag: win_amd64
+          artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
         uses: actions/upload-artifact@v4

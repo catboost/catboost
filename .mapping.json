@@ -1,6 +1,7 @@
 {
   ".":"catboost/github_toplevel/",
   ".gitattributes":"catboost/github_toplevel/.gitattributes",
+  ".github/actions/upload_python_package_artifacts_for_all_py_versions/action.yaml":"catboost/github_toplevel/.github/actions/upload_python_package_artifacts_for_all_py_versions/action.yaml",
   ".github/workflows/add_mac_os_extra_env_to_cache.yaml":"catboost/github_toplevel/.github/workflows/add_mac_os_extra_env_to_cache.yaml",
   ".github/workflows/build.yaml":"catboost/github_toplevel/.github/workflows/build.yaml",
   ".github/workflows/check.yaml":"catboost/github_toplevel/.github/workflows/check.yaml",

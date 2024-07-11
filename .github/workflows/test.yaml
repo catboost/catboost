@@ -32,6 +32,13 @@ jobs:
         with:
           path: catboost
 
+      # TODO: running python package tests for all supported python versions
+
+      - name: Setup Python 3.12 for running tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Env setup
         shell: pwsh
         run: |
@@ -69,27 +76,30 @@ jobs:
           run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: Download python package for Ubuntu
         uses: actions/download-artifact@v4
         with:
-          name: catboost-python-package-dist-linux-${{ inputs.artifacts_version }}
+          name: catboost-python-package-dist-cp312-cp312-manylinux2014_x86_64-${{ inputs.artifacts_version }}
           path: catboost_python_package_dist/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: Download python package for macOS
         uses: actions/download-artifact@v4
         with:
-          name: catboost-python-package-dist-darwin-${{ inputs.artifacts_version }}
+          name: catboost-python-package-dist-cp312-cp312-macosx_11_0_universal2-${{ inputs.artifacts_version }}
           path: catboost_python_package_dist/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: Download python package for Windows
         uses: actions/download-artifact@v4
         with:
-          name: catboost-python-package-dist-windows-${{ inputs.artifacts_version }}
+          name: catboost-python-package-dist-cp312-cp312-win_amd64-${{ inputs.artifacts_version }}
           path: catboost_python_package_dist/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
