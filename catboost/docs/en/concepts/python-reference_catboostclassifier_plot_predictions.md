@@ -30,7 +30,7 @@ For example, use a two-document slice of the original dataset (refer to the exam
 
 #### Description
 
-To reduce the number of trees to use when the model is applied or the metrics are calculated, setthe The list of numerical features to vary the prediction value for.
+To reduce the number of trees to use when the model is applied or the metrics are calculated, set the The list of numerical features to vary the prediction value for.
 
 For example, chose the required features by selecting top N most important features that impact the prediction results for a pair of objects according to [PredictionDiff](fstr.md#fstr__prediction-diff) (refer to the example below).
 
