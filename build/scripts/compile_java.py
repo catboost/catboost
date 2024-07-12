@@ -58,7 +58,7 @@ def main():
     for s in jsrcs:
         if s.endswith('.jsrc'):
             with contextlib.closing(tarfile.open(s, 'r')) as tf:
-                tf.extractall(sources_dir)
+                tf.extractall(path=sources_dir, filter='data')
 
     srcs = []
     for r, _, files in os.walk(sources_dir):
