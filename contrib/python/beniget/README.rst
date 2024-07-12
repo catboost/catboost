@@ -5,8 +5,7 @@ Beniget is a collection of Compile-time analyse on Python Abstract Syntax Tree(A
 It's a building block to write static analyzer or compiler for Python.
 
 Beniget relies on `gast <https://pypi.org/project/gast/>`_ to provide a cross
-version abstraction of the AST, effectively working on both Python2 and
-Python3.
+version abstraction of the AST, effectively working across all Python 3 versions greater than 3.6.
 
 API
 ---
