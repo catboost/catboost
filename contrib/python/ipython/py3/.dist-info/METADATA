@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ipython
-Version: 8.25.0
+Version: 8.26.0
 Summary: IPython: Productive Interactive Computing
 Author: The IPython Development Team
 Author-email: ipython-dev@python.org
@@ -76,6 +76,7 @@ Requires-Dist: pytest ; extra == 'test'
 Requires-Dist: pytest-asyncio <0.22 ; extra == 'test'
 Requires-Dist: testpath ; extra == 'test'
 Requires-Dist: pickleshare ; extra == 'test'
+Requires-Dist: packaging ; extra == 'test'
 Provides-Extra: test_extra
 Requires-Dist: ipython[test] ; extra == 'test_extra'
 Requires-Dist: curio ; extra == 'test_extra'
