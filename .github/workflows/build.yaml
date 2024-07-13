@@ -232,6 +232,7 @@ jobs:
       # for now
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: CLI for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-cli-linux-x86_64-${{ inputs.artifacts_version }}
@@ -239,6 +240,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: CLI for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-cli-linux-aarch64-${{ inputs.artifacts_version }}
@@ -246,6 +248,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifacts: python packages for Linux aarch64'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
           artifacts_version: ${{ inputs.artifacts_version }}
@@ -255,6 +258,7 @@ jobs:
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifacts: python packages for Linux x86_64'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
           artifacts_version: ${{ inputs.artifacts_version }}
@@ -264,6 +268,7 @@ jobs:
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: source python package'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-python-package-dist-src-${{ inputs.artifacts_version }}
@@ -271,6 +276,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: R package for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-R-package-linux-x86_64-${{ inputs.artifacts_version }}
@@ -278,6 +284,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: R package for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-R-package-linux-aarch64-${{ inputs.artifacts_version }}
@@ -285,6 +292,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: catboostmodel library for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-model-interface-linux-x86_64-${{ inputs.artifacts_version }}
@@ -292,6 +300,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: catboostmodel library for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-model-interface-linux-aarch64-${{ inputs.artifacts_version }}
@@ -299,6 +308,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: catboost4j-spark_core_resources_classes'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources_classes-${{ inputs.artifacts_version }}
@@ -306,6 +316,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: catboost4j-spark_core_resources-linux'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources-linux-${{ inputs.artifacts_version }}
@@ -313,6 +324,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: catboost4j-prediction_resources-linux'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-prediction_resources-linux-${{ inputs.artifacts_version }}
@@ -320,6 +332,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: test tools for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-test-tools-linux-x86_64-${{ inputs.artifacts_version }}
@@ -330,6 +343,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: test tools for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-test-tools-linux-aarch64-${{ inputs.artifacts_version }}
@@ -340,6 +354,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: 'Upload artifact: CLI for macOS universal2'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-cli-darwin-universal2-${{ inputs.artifacts_version }}
@@ -347,6 +362,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: 'Upload artifacts: python packages for macOS universal2'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
           artifacts_version: ${{ inputs.artifacts_version }}
@@ -356,6 +372,7 @@ jobs:
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: 'Upload artifact: R package for macOS universal2'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-R-package-darwin-universal2-${{ inputs.artifacts_version }}
@@ -363,6 +380,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: 'Upload artifact: catboostmodel library for macOS universal2'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-model-interface-darwin-universal2-${{ inputs.artifacts_version }}
@@ -370,6 +388,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: 'Upload artifact: catboost4j-spark_core_resources-darwin'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources-darwin-${{ inputs.artifacts_version }}
@@ -377,6 +396,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: 'Upload artifact: catboost4j-prediction_resources-darwin'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-prediction_resources-darwin-${{ inputs.artifacts_version }}
@@ -384,6 +404,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: 'Upload artifact: test tools for macOS universal2'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-test-tools-darwin-universal2-${{ inputs.artifacts_version }}
@@ -394,6 +415,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: 'Upload artifact: CLI for Windows x86_64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-cli-windows-x86_64-${{ inputs.artifacts_version }}
@@ -401,6 +423,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: 'Upload artifacts: python packages for Windows x86_64'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
           artifacts_version: ${{ inputs.artifacts_version }}
@@ -410,6 +433,7 @@ jobs:
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: 'Upload artifact: R package for Windows x86_64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-R-package-windows-x86_64-${{ inputs.artifacts_version }}
@@ -417,6 +441,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: 'Upload artifact: catboostmodel library for Windows x86_64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-model-interface-windows-x86_64-${{ inputs.artifacts_version }}
@@ -426,6 +451,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: 'Upload artifact: catboost4j-spark_core_resources-windows'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources-windows-${{ inputs.artifacts_version }}
@@ -433,6 +459,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: 'Upload artifact: catboost4j-prediction_resources-windows'
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-prediction_resources-windows-${{ inputs.artifacts_version }}
@@ -440,6 +467,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: 'Upload artifact: test tools for Windows x86_64'
         uses: actions/upload-artifact@v4
         with:
           name: catboost-test-tools-windows-x86_64-${{ inputs.artifacts_version }}

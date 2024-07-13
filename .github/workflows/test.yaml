@@ -49,6 +49,7 @@ jobs:
           New-Item -Path tools -ItemType Directory
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: Download CLI for Ubuntu
         uses: actions/download-artifact@v4
         with:
           name: catboost-cli-linux-x86_64-${{ inputs.artifacts_version }}
@@ -58,6 +59,7 @@ jobs:
           run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: Download CLI for macOS
         uses: actions/download-artifact@v4
         with:
           name: catboost-cli-darwin-universal2-${{ inputs.artifacts_version }}
@@ -67,6 +69,7 @@ jobs:
           run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: Download CLI for Windows
         uses: actions/download-artifact@v4
         with:
           name: catboost-cli-windows-x86_64-${{ inputs.artifacts_version }}
@@ -106,6 +109,7 @@ jobs:
           run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: Download test tools for Ubuntu
         uses: actions/download-artifact@v4
         with:
           name: catboost-test-tools-linux-x86_64-${{ inputs.artifacts_version }}
@@ -115,6 +119,7 @@ jobs:
           run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'macos-13'
+        name: Download test tools for macOS
         uses: actions/download-artifact@v4
         with:
           name: catboost-test-tools-darwin-universal2-${{ inputs.artifacts_version }}
@@ -124,6 +129,7 @@ jobs:
           run-id: ${{ inputs.artifacts_run_id }}
 
       - if: inputs.runs-on_value == 'windows-2022'
+        name: Download test tools for Windows
         uses: actions/download-artifact@v4
         with:
           name: catboost-test-tools-windows-x86_64-${{ inputs.artifacts_version }}
