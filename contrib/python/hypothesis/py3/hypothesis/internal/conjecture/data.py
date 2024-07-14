@@ -1211,7 +1211,7 @@ class PrimitiveProvider(abc.ABC):
     def __init__(self, conjecturedata: Optional["ConjectureData"], /) -> None:
         self._cd = conjecturedata
 
-    def post_test_case_hook(self, value):
+    def post_test_case_hook(self, value: IRType) -> IRType:
         # hook for providers to modify values returned by draw_* after a full
         # test case concludes. Originally exposed for crosshair to reify its
         # symbolic values into actual values.
@@ -1966,7 +1966,9 @@ class ConjectureData:
         self.max_depth = 0
         self.has_discards = False
 
-        self.provider = provider(self) if isinstance(provider, type) else provider
+        self.provider: PrimitiveProvider = (
+            provider(self) if isinstance(provider, type) else provider
+        )
         assert isinstance(self.provider, PrimitiveProvider)
 
         self.__result: "Optional[ConjectureResult]" = None

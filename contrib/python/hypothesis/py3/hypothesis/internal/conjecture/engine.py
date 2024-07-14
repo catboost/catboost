@@ -38,7 +38,7 @@ import attr
 from hypothesis import HealthCheck, Phase, Verbosity, settings as Settings
 from hypothesis._settings import local_settings
 from hypothesis.database import ExampleDatabase
-from hypothesis.errors import InvalidArgument, StopTest
+from hypothesis.errors import Flaky, HypothesisException, InvalidArgument, StopTest
 from hypothesis.internal.cache import LRUReusedCache
 from hypothesis.internal.compat import (
     NotRequired,
@@ -453,6 +453,24 @@ class ConjectureRunner:
                     ),
                 }
                 self.stats_per_test_case.append(call_stats)
+                if self.settings.backend != "hypothesis":
+                    for node in data.examples.ir_tree_nodes:
+                        value = data.provider.post_test_case_hook(node.value)
+                        expected_type = {
+                            "string": str,
+                            "float": float,
+                            "integer": int,
+                            "boolean": bool,
+                            "bytes": bytes,
+                        }[node.ir_type]
+                        if type(value) is not expected_type:
+                            raise HypothesisException(
+                                f"expected {expected_type} from "
+                                f"{data.provider.post_test_case_hook.__qualname__}, "
+                                f"got {type(value)} ({value!r})"
+                            )
+                        node.value = value
+
                 self._cache(data)
                 if data.invalid_at is not None:  # pragma: no branch # coverage bug?
                     self.misaligned_count += 1
@@ -496,18 +514,23 @@ class ConjectureRunner:
 
         if data.status == Status.INTERESTING:
             if self.settings.backend != "hypothesis":
-                for node in data.examples.ir_tree_nodes:
-                    value = data.provider.post_test_case_hook(node.value)
-                    # require providers to return something valid here.
-                    assert (
-                        value is not None
-                    ), "providers must return a non-null value from post_test_case_hook"
-                    node.value = value
-
                 # drive the ir tree through the test function to convert it
                 # to a buffer
+                initial_origin = data.interesting_origin
                 data = ConjectureData.for_ir_tree(data.examples.ir_tree_nodes)
                 self.__stoppable_test_function(data)
+                data.freeze()
+                # we'd like to use expected_failure machinery here from
+                # StateForActualGivenExecution for better diagnostic reports of eg
+                # flaky deadlines, but we're too low down in the engine for that.
+                # for now a worse generic flaky error will have to do.
+                if data.status != Status.INTERESTING:
+                    raise Flaky(
+                        f"Inconsistent results from replaying a failing test case!\n"
+                        f"  last: {Status.INTERESTING.name} from {initial_origin}\n"
+                        f"  this: {data.status.name}"
+                    )
+
                 self._cache(data)
 
             key = data.interesting_origin
