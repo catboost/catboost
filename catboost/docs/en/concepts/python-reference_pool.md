@@ -58,14 +58,13 @@ Dataset in the form of a two-dimensional feature matrix.
 
 Dataset in the form of {{ python-type__FeaturesData }}. The fastest way to create a Pool from Python objects.
 
-{% include [files-internal-files-internal__desc__full](../_includes/work_src/reusage-formats/files-internal__desc__full.md) %}
-
 {% endcut %}
 
 {% cut "{{ python-type--string }}" %}
 
-
 The path to the input file{% if audience == "internal" %} or table{% endif %} that contains the dataset description.
+
+{% include [files-internal-files-internal__desc__full](../_includes/work_src/reusage-formats/files-internal__desc__full.md) %}
 
 {% endcut %}
 
