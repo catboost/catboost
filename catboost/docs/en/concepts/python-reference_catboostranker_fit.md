@@ -42,7 +42,7 @@ fit(X,
 
 ## {{ dl--parameters }} {#parameters}
 
-{% include [precedence-python--catboost--precedence-p](../_includes/work_src/reusage/python--catboost--precedence-p.md) %}
+{% include [precedence-python--ranker--precedence-p](../_includes/work_src/reusage/python--ranker--precedence-p.md) %}
 
 ### X
 

@@ -126,7 +126,7 @@ Implementation of the scikit-learn API for CatBoost ranking.
 {% include [sections-with-methods-desc-see-training-params](../_includes/work_src/reusage/see-training-params.md) %}
 
 
-{% include [precedence-python--regressor--precedence-note](../_includes/work_src/reusage/python--regressor--precedence-note.md) %}
+{% include [precedence-python--ranker--precedence-note](../_includes/work_src/reusage/python--ranker--precedence-note.md) %}
 
 ## {{ dl--attributes }} {#attributes}
 
@@ -301,6 +301,3 @@ Select the best features from the dataset using the [Recursive Feature Eliminati
 ### [staged_predict](python-reference_catboostranker_staged_predict.md)
 
 {% include [sections-with-methods-desc-staged_predict--purpose](../_includes/work_src/reusage/staged_predict--purpose.md) %}
-
-
-

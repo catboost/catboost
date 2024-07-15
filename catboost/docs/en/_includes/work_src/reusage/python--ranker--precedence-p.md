@@ -1,0 +1,2 @@
+
+Some parameters duplicate the ones specified in the constructor of the[CatBoostRanker](../../../concepts/python-reference_catboostranker.md) class. In these cases the values specified for the [fit](../../../concepts/python-reference_catboostranker_fit.md) method take precedence. The rest of the training parameters must be set in the constructor of the[CatBoostRanker](../../../concepts/python-reference_catboostranker.md) class.
