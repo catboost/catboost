@@ -17,7 +17,6 @@ void_p = ctypes.c_void_p
 objc.objc_getClass.restype = void_p
 objc.sel_registerName.restype = void_p
 objc.objc_msgSend.restype = void_p
-objc.objc_msgSend.argtypes = [void_p, void_p]
 
 msg = objc.objc_msgSend
 
@@ -80,11 +79,25 @@ kCFRunLoopCommonModes = void_p.in_dll(CoreFoundation, "kCFRunLoopCommonModes")
 
 def _NSApp():
     """Return the global NSApplication instance (NSApp)"""
+    objc.objc_msgSend.argtypes = [void_p, void_p]
     return msg(C("NSApplication"), n("sharedApplication"))
 
 
 def _wake(NSApp):
     """Wake the Application"""
+    objc.objc_msgSend.argtypes = [
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+        void_p,
+    ]
     event = msg(
         C("NSEvent"),
         n(
@@ -101,6 +114,7 @@ def _wake(NSApp):
         0,  # data1
         0,  # data2
     )
+    objc.objc_msgSend.argtypes = [void_p, void_p, void_p, void_p]
     msg(NSApp, n("postEvent:atStart:"), void_p(event), True)
 
 
@@ -113,7 +127,9 @@ def stop(timer=None, loop=None):
     NSApp = _NSApp()
     # if NSApp is not running, stop CFRunLoop directly,
     # otherwise stop and wake NSApp
+    objc.objc_msgSend.argtypes = [void_p, void_p]
     if msg(NSApp, n("isRunning")):
+        objc.objc_msgSend.argtypes = [void_p, void_p, void_p]
         msg(NSApp, n("stop:"), NSApp)
         _wake(NSApp)
     else:
@@ -148,6 +164,7 @@ def mainloop(duration=1):
     _triggered.clear()
     NSApp = _NSApp()
     _stop_after(duration)
+    objc.objc_msgSend.argtypes = [void_p, void_p]
     msg(NSApp, n("run"))
     if not _triggered.is_set():
         # app closed without firing callback,
