@@ -70,7 +70,10 @@ TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
         }
 
         // Can not Ref(obj) here because it can be destroyed.
-        if (Ptr_.compare_exchange_weak(ptr, TTaggedPtr(obj, newLocalRefs).Pack())) {
+        auto newPtr = TTaggedPtr(obj, newLocalRefs).Pack();
+        if (Ptr_.compare_exchange_weak(ptr, newPtr)) {
+            ptr = newPtr;
+
             if (Y_UNLIKELY(newLocalRefs > ReservedRefCount / 2)) {
                 Ref(obj, ReservedRefCount / 2);
 

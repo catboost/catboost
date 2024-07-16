@@ -272,10 +272,10 @@ TEST(TAtomicPtrTest, Acquire)
 
         {
             auto tmp = atomicPtr.Acquire();
-            EXPECT_THAT(object, HasRefCounts( RRC + RRC / 2, RRC - 1, 0));
+            EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC / 2, 0));
         }
 
-        EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC, 0));
+        EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC / 2 + 1, 0));
     }
 
     EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC + RRC / 2, 1));
@@ -298,10 +298,10 @@ TEST(TAtomicPtrTest, AcquireConst)
 
         {
             auto tmp = atomicPtr.Acquire();
-            EXPECT_THAT(object, HasRefCounts( RRC + RRC / 2, RRC - 1, 0));
+            EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC / 2, 0));
         }
 
-        EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC, 0));
+        EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC / 2 + 1, 0));
     }
 
     EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC + RRC / 2, 1));
