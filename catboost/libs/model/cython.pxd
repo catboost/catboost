@@ -132,7 +132,7 @@ cdef extern from "catboost/libs/model/model.h":
         TString GetLossFunctionName() except +ProcessException
         double GetBinClassProbabilityThreshold() except +ProcessException
         TVector[TJsonValue] GetModelClassLabels() except +ProcessException
-        TScaleAndBias GetScaleAndBias() except +ProcessException
+        const TScaleAndBias& GetScaleAndBias() except +ProcessException
         void SetScaleAndBias(const TScaleAndBias&) except +ProcessException
         void InitNonOwning(const void* binaryBuffer, size_t binarySize) except +ProcessException
         void SetEvaluatorType(EFormulaEvaluatorType evaluatorType) except +ProcessException
