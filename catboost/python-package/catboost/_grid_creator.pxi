@@ -3,15 +3,15 @@
 # cython: wraparound=False
 
 
-cdef extern from "catboost/python-package/catboost/monoforest_helpers.h":
+cdef extern from "library/cpp/grid_creator/binarization.h":
     cdef cppclass EBorderSelectionType:
         bool_t operator==(EBorderSelectionType)
 
     THashSet[float] BestSplit(
-        TVector[float] features,
+        TVector[float]& features,
         int maxBordersCount,
         EBorderSelectionType borderSelectionType,
-        bool_t filerNans,
+        bool_t filterNans,
         bool_t featuresAreSorted
     ) except +ProcessException
 

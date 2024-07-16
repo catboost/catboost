@@ -61,6 +61,7 @@ target_link_libraries(_catboost_no_cuda PUBLIC
   private-libs-target
   python-numpy-include
   cpp-containers-2d_array
+  library-cpp-grid_creator
   cpp-json-writer
   cpp-text_processing-tokenizer
   cpp-text_processing-app_helpers
