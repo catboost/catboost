@@ -120,8 +120,8 @@ public:
         ui32 objectsCount = datasetPtr->GetObjectCount();
 
         // imputing values from their marginal distribution
-        for (auto [featureIndex, featureType] : features) {    
-            switch (featureType) {   
+        for (auto [featureIndex, featureType] : features) {
+            switch (featureType) {
                 case EFeatureType::Float: {
                     TVector<float> values(objectsCount);
                     for (auto& value: values) {
@@ -450,7 +450,7 @@ void CalcAndOutputSageValues(
 
     TVector<ui32> indices(sageValues.size());
     Iota(indices.begin(), indices.end(), 0);
-    SortBy(indices.begin(), indices.end(), [sageValues](size_t index){ return -sageValues[index][0]; });
+    StableSortBy(indices.begin(), indices.end(), [sageValues](size_t index){ return -sageValues[index][0]; });
 
     for (size_t i = 0; i < sageValues.size(); ++i) {
         out << sageValues[indices[i]][0] << ' ' << indices[i] << '\n';

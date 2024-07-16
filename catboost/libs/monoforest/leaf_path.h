@@ -69,22 +69,6 @@ namespace NMonoForest {
     }
 
     template <class TSortBy>
-    inline TLeafPath SortPath(const TLeafPath& path, TSortBy&& cmpFunc) {
-        TVector<ui32> indices(path.Splits.size());
-        Iota(indices.begin(), indices.end(), 0);
-        Sort(indices.begin(), indices.end(), [&](const ui32 left, const ui32 right) -> bool {
-            return cmpFunc(path.Splits[left], path.Splits[right]);
-        });
-        auto newPath = path;
-        for (ui64 i = 0; i < indices.size(); ++i) {
-            const ui32 loadIdx = indices[i];
-            newPath.Splits[i] = path.Splits[loadIdx];
-            newPath.Directions[i] = path.Directions[loadIdx];
-        }
-        return newPath;
-    }
-
-    template <class TSortBy>
     inline TLeafPath SortUniquePath(const TLeafPath& path, TSortBy&& cmpFunc) {
         TVector<ui32> indices(path.Splits.size());
         Iota(indices.begin(), indices.end(), 0);

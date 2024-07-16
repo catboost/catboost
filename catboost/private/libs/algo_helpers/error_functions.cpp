@@ -873,7 +873,7 @@ void TLambdaMartError::CalcDersForSingleQuery(
 
     TVector<size_t> order(count);
     Iota(order.begin(), order.end(), 0);
-    Sort(order.begin(), order.end(), [&](int a, int b) {
+    StableSort(order.begin(), order.end(), [&](int a, int b) {
         return approxes[a] > approxes[b];
     });
 
@@ -925,7 +925,7 @@ void TLambdaMartError::CalcDersForSingleQuery(
 double TLambdaMartError::CalcIdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const {
     double score = 0;
     TVector<float> sortedTargets(target.begin(), target.end());
-    Sort(sortedTargets, [](float a, float b) {
+    StableSort(sortedTargets, [](float a, float b) {
         return a > b;
     });
     for (size_t id = 0; id < queryTopSize; ++id) {
@@ -1050,7 +1050,7 @@ void TStochasticRankError::CalcDersForSingleQuery(
         }
         const double noiseSum = Accumulate(noise, 0.0);
         Iota(order.begin(), order.end(), 0);
-        Sort(order.begin(), order.end(), [&](int a, int b) {
+        StableSort(order.begin(), order.end(), [&](int a, int b) {
             return scores[a] > scores[b];
         });
         if (EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG, ELossFunction::FilteredDCG) && sample == 0) {
@@ -1524,7 +1524,7 @@ TVector<double> TStochasticRankError::ComputeDCGPosWeights(
 
     if (TargetMetric == ELossFunction::NDCG) {
         TVector<float> sortedTargets(targets.begin(), targets.end());
-        Sort(sortedTargets, [](float a, float b) {
+        StableSort(sortedTargets, [](float a, float b) {
             return a > b;
         });
         const double idealDCG = CalcDCG(sortedTargets, posWeights);

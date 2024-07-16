@@ -85,7 +85,7 @@ TVector<ui32> TDocumentImportancesEvaluator::GetLeafIdToUpdate(ui32 treeId, cons
 
         TVector<ui32> orderedLeafIndices(leafCount);
         std::iota(orderedLeafIndices.begin(), orderedLeafIndices.end(), 0);
-        Sort(orderedLeafIndices.begin(), orderedLeafIndices.end(), [&](ui32 firstDocId, ui32 secondDocId) {
+        StableSort(orderedLeafIndices.begin(), orderedLeafIndices.end(), [&](ui32 firstDocId, ui32 secondDocId) {
             return leafJacobians[firstDocId] > leafJacobians[secondDocId];
         });
 
