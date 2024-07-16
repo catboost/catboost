@@ -85,7 +85,7 @@ class FeatureExplanation:
             return strength
         else:
             strength = []
-            for dim in range(len(self.expected_bias)):
+            for dim in xrange(len(self.expected_bias)):
                 strength.append(self.calc_strength(dim))
             return strength
 
@@ -105,7 +105,7 @@ class FeatureExplanation:
         if dim is not None:
             values = self._calc_pdp_values(dim)
         else:
-            values = [self._calc_pdp_values(dim) for dim in range(len(self.expected_bias))]
+            values = [self._calc_pdp_values(dim) for dim in xrange(len(self.expected_bias))]
         return borders, values
 
 
@@ -118,7 +118,7 @@ cpdef to_polynom(model):
             type = "TakeGreater" if split.SplitType == EBinSplitType_TakeGreater else "TakeEqual"
             python_splits.append(Split(split.FeatureIdx, type, split.Border))
         value = []
-        for i in range(monom.Value.size()):
+        for i in xrange(monom.Value.size()):
             value.append(monom.Value[i])
         python_monoms.append(Monom(python_splits, value, monom.Weight))
     return python_monoms
