@@ -53,7 +53,7 @@ cdef extern from "library/cpp/threading/local_executor/local_executor.h" namespa
 
 cdef extern from "library/cpp/threading/local_executor/tbb_local_executor.h" namespace "NPar":
     cdef cppclass TTbbLocalExecutor[false]:
-        TTbbLocalExecutor(int nThreads) nogil
+        TTbbLocalExecutor(int nThreads) except +ProcessException nogil
 
 
 cdef extern from "catboost/private/libs/options/json_helper.h":
@@ -95,7 +95,7 @@ cdef extern from "catboost/libs/model/enums.h":
 cdef extern from "catboost/libs/model/scale_and_bias.h":
     cdef cppclass TScaleAndBias:
         TScaleAndBias()
-        TScaleAndBias(double scale, TVector[double]& bias)
+        TScaleAndBias(double scale, TVector[double]& bias) except +ProcessException
 
         double Scale
         TVector[double] Bias
