@@ -2,13 +2,7 @@
 # coding: utf-8
 # cython: wraparound=False
 
-
-cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespace "NMonoForest":
-    cdef cppclass EFeatureType:
-        bool_t operator==(EFeatureType)
-
-    cdef EFeatureType EMonoForestFeatureType_Float "NMonoForest::EFeatureType::Float"
-    cdef EFeatureType EMonoForestFeatureType_OneHot "NMonoForest::EFeatureType::OneHot"
+from catboost.libs.monoforest._monoforest cimport *
 
 
 cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespace "NMonoForest":

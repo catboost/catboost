@@ -4,7 +4,6 @@
 
 from catboost.base_defs cimport *
 from catboost.libs.model.cython cimport *
-from catboost.libs.monoforest._monoforest cimport *
 
 import atexit
 import six
