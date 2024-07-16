@@ -2,17 +2,17 @@
 # coding: utf-8
 # cython: wraparound=False
 
-from six import iteritems, string_types, PY3
+from six import string_types
 
 cimport cython  # noqa
 from cython.operator cimport dereference
 
 from libcpp cimport bool as bool_t
 from libcpp cimport nullptr
-from util.system.types cimport ui32, ui64
+from util.system.types cimport ui32
 
 from util.generic.array_ref cimport TConstArrayRef
-from util.generic.string cimport TString, TStringBuf
+from util.generic.string cimport TString
 from util.generic.ptr cimport THolder, MakeHolder, TIntrusivePtr
 from util.generic.vector cimport TVector
 from util.string.cast cimport FromString

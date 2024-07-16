@@ -2,7 +2,7 @@
 # coding: utf-8
 # cython: wraparound=False
 
-from catboost.base_defs cimport *
+from catboost.base_defs cimport ProcessException
 from catboost.libs.model.cython cimport TFullModel, TFeaturePosition
 
 from util.generic.string cimport TString

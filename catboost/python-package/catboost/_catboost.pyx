@@ -6,7 +6,6 @@ from catboost.base_defs cimport *
 from catboost.libs.model.cython cimport *
 
 import atexit
-import six
 from six import iteritems, string_types
 from cpython.version cimport PY_MAJOR_VERSION
 import warnings
