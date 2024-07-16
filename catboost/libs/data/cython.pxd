@@ -6,7 +6,6 @@ from catboost.base_defs cimport *
 from catboost.libs.column_description.cython cimport TTagDescription
 from catboost.libs.helpers.cython cimport *
 from catboost.libs.model.cython cimport TFullModel
-from catboost.libs.monoforest._monoforest cimport EFeatureType
 from catboost.private.libs.cython cimport ERawTargetType, TGroupId, TSubgroupId
 
 
