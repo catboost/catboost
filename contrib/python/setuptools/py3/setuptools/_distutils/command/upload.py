@@ -41,7 +41,7 @@ class upload(PyPIRCCommand):
         PyPIRCCommand.initialize_options(self)
         self.username = ''
         self.password = ''
-        self.show_response = 0
+        self.show_response = False
         self.sign = False
         self.identity = None
 
@@ -75,7 +75,7 @@ class upload(PyPIRCCommand):
         # Makes sure the repository URL is compliant
         schema, netloc, url, params, query, fragments = urlparse(self.repository)
         if params or query or fragments:
-            raise AssertionError("Incompatible url %s" % self.repository)
+            raise AssertionError(f"Incompatible url {self.repository}")
 
         if schema not in ('http', 'https'):
             raise AssertionError("unsupported schema " + schema)
@@ -153,10 +153,10 @@ class upload(PyPIRCCommand):
         end_boundary = sep_boundary + b'--\r\n'
         body = io.BytesIO()
         for key, values in data.items():
-            title = '\r\nContent-Disposition: form-data; name="%s"' % key
+            title = f'\r\nContent-Disposition: form-data; name="{key}"'
             for value in make_iterable(values):
                 if type(value) is tuple:
-                    title += '; filename="%s"' % value[0]
+                    title += f'; filename="{value[0]}"'
                     value = value[1]
                 else:
                     value = str(value).encode('utf-8')
@@ -172,7 +172,7 @@ class upload(PyPIRCCommand):
 
         # build the Request
         headers = {
-            'Content-type': 'multipart/form-data; boundary=%s' % boundary,
+            'Content-type': f'multipart/form-data; boundary={boundary}',
             'Content-length': str(len(body)),
             'Authorization': auth,
         }

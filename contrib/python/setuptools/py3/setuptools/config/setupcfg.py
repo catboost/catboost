@@ -39,9 +39,9 @@ from ..warnings import SetuptoolsDeprecationWarning
 from . import expand
 
 if TYPE_CHECKING:
-    from distutils.dist import DistributionMetadata  # noqa
+    from distutils.dist import DistributionMetadata
 
-    from setuptools.dist import Distribution  # noqa
+    from setuptools.dist import Distribution
 
 SingleCommandOptions = Dict["str", Tuple["str", Any]]
 """Dict that associate the name of the options of a particular command to a

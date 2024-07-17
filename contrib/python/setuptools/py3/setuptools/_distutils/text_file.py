@@ -97,7 +97,7 @@ class TextFile:
         # sanity check client option hash
         for opt in options.keys():
             if opt not in self.default_options:
-                raise KeyError("invalid TextFile option '%s'" % opt)
+                raise KeyError(f"invalid TextFile option '{opt}'")
 
         if file is None:
             self.open(filename)

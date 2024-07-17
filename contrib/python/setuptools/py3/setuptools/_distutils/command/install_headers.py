@@ -19,7 +19,7 @@ class install_headers(Command):
 
     def initialize_options(self):
         self.install_dir = None
-        self.force = 0
+        self.force = False
         self.outfiles = []
 
     def finalize_options(self):

@@ -10,7 +10,7 @@ class register(orig.register):
     def run(self):
         msg = (
             "The register command has been removed, use twine to upload "
-            + "instead (https://pypi.org/p/twine)"
+            "instead (https://pypi.org/p/twine)"
         )
 
         self.announce("ERROR: " + msg, log.ERROR)

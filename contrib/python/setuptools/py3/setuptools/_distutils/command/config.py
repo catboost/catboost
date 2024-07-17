@@ -94,7 +94,7 @@ class config(Command):
 
         if not isinstance(self.compiler, CCompiler):
             self.compiler = new_compiler(
-                compiler=self.compiler, dry_run=self.dry_run, force=1
+                compiler=self.compiler, dry_run=self.dry_run, force=True
             )
             customize_compiler(self.compiler)
             if self.include_dirs:
@@ -109,7 +109,7 @@ class config(Command):
         with open(filename, "w", encoding='utf-8') as file:
             if headers:
                 for header in headers:
-                    file.write("#include <%s>\n" % header)
+                    file.write(f"#include <{header}>\n")
                 file.write("\n")
             file.write(body)
             if body[-1] != "\n":
@@ -126,7 +126,7 @@ class config(Command):
     def _compile(self, body, headers, include_dirs, lang):
         src = self._gen_temp_sourcefile(body, headers, lang)
         if self.dump_source:
-            dump_file(src, "compiling '%s':" % src)
+            dump_file(src, f"compiling '{src}':")
         (obj,) = self.compiler.object_filenames([src])
         self.temp_files.extend([src, obj])
         self.compiler.compile([src], include_dirs=include_dirs)
@@ -292,8 +292,8 @@ class config(Command):
         include_dirs=None,
         libraries=None,
         library_dirs=None,
-        decl=0,
-        call=0,
+        decl=False,
+        call=False,
     ):
         """Determine if function 'func' is available by constructing a
         source file that refers to 'func', and compiles and links it.
@@ -311,12 +311,12 @@ class config(Command):
         self._check_compiler()
         body = []
         if decl:
-            body.append("int %s ();" % func)
+            body.append(f"int {func} ();")
         body.append("int main () {")
         if call:
-            body.append("  %s();" % func)
+            body.append(f"  {func}();")
         else:
-            body.append("  %s;" % func)
+            body.append(f"  {func};")
         body.append("}")
         body = "\n".join(body) + "\n"
 

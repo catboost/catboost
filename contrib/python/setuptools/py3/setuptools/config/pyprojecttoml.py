@@ -25,7 +25,7 @@ from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _MissingDynamic
 from ._apply_pyprojecttoml import apply as _apply
 
 if TYPE_CHECKING:
-    from setuptools.dist import Distribution  # noqa
+    from setuptools.dist import Distribution
     from typing_extensions import Self
 
 _logger = logging.getLogger(__name__)

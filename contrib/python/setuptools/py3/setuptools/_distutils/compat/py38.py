@@ -21,3 +21,13 @@ else:
 
     def removeprefix(self, prefix):
         return self.removeprefix(prefix)
+
+
+def aix_platform(osname, version, release):
+    try:
+        import _aix_support  # type: ignore
+
+        return _aix_support.aix_platform()
+    except ImportError:
+        pass
+    return f"{osname}-{version}.{release}"

@@ -57,7 +57,7 @@ class build_clib(Command):
         self.define = None
         self.undef = None
         self.debug = None
-        self.force = 0
+        self.force = False
         self.compiler = None
 
     def finalize_options(self):
@@ -138,8 +138,8 @@ class build_clib(Command):
 
             if '/' in name or (os.sep != '/' and os.sep in name):
                 raise DistutilsSetupError(
-                    "bad library name '%s': "
-                    "may not contain directory separators" % lib[0]
+                    f"bad library name '{lib[0]}': "
+                    "may not contain directory separators"
                 )
 
             if not isinstance(build_info, dict):
@@ -166,9 +166,9 @@ class build_clib(Command):
             sources = build_info.get('sources')
             if sources is None or not isinstance(sources, (list, tuple)):
                 raise DistutilsSetupError(
-                    "in 'libraries' option (library '%s'), "
+                    f"in 'libraries' option (library '{lib_name}'), "
                     "'sources' must be present and must be "
-                    "a list of source filenames" % lib_name
+                    "a list of source filenames"
                 )
 
             filenames.extend(sources)
@@ -179,9 +179,9 @@ class build_clib(Command):
             sources = build_info.get('sources')
             if sources is None or not isinstance(sources, (list, tuple)):
                 raise DistutilsSetupError(
-                    "in 'libraries' option (library '%s'), "
+                    f"in 'libraries' option (library '{lib_name}'), "
                     "'sources' must be present and must be "
-                    "a list of source filenames" % lib_name
+                    "a list of source filenames"
                 )
             sources = list(sources)
 

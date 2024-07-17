@@ -30,7 +30,7 @@ class PyPIRCCommand(Command):
     realm = None
 
     user_options = [
-        ('repository=', 'r', "url of repository [default: %s]" % DEFAULT_REPOSITORY),
+        ('repository=', 'r', f"url of repository [default: {DEFAULT_REPOSITORY}]"),
         ('show-response', None, 'display full response text from server'),
     ]
 
@@ -51,7 +51,7 @@ class PyPIRCCommand(Command):
         """Reads the .pypirc file."""
         rc = self._get_rc_file()
         if os.path.exists(rc):
-            self.announce('Using PyPI login from %s' % rc)
+            self.announce(f'Using PyPI login from {rc}')
             repository = self.repository or self.DEFAULT_REPOSITORY
 
             config = RawConfigParser()
@@ -129,7 +129,7 @@ class PyPIRCCommand(Command):
         """Initialize options."""
         self.repository = None
         self.realm = None
-        self.show_response = 0
+        self.show_response = False
 
     def finalize_options(self):
         """Finalizes options."""

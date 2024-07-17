@@ -23,7 +23,7 @@ class bdist_dumb(Command):
             'plat-name=',
             'p',
             "platform name to embed in generated filenames "
-            "(default: %s)" % get_platform(),
+            f"[default: {get_platform()}]",
         ),
         (
             'format=',
@@ -33,15 +33,14 @@ class bdist_dumb(Command):
         (
             'keep-temp',
             'k',
-            "keep the pseudo-installation tree around after "
-            + "creating the distribution archive",
+            "keep the pseudo-installation tree around after creating the distribution archive",
         ),
         ('dist-dir=', 'd', "directory to put final built distributions in"),
         ('skip-build', None, "skip rebuilding everything (for testing/debugging)"),
         (
             'relative',
             None,
-            "build the archive using relative paths (default: false)",
+            "build the archive using relative paths [default: false]",
         ),
         (
             'owner=',
@@ -63,10 +62,10 @@ class bdist_dumb(Command):
         self.bdist_dir = None
         self.plat_name = None
         self.format = None
-        self.keep_temp = 0
+        self.keep_temp = False
         self.dist_dir = None
         self.skip_build = None
-        self.relative = 0
+        self.relative = False
         self.owner = None
         self.group = None
 
@@ -81,7 +80,7 @@ class bdist_dumb(Command):
             except KeyError:
                 raise DistutilsPlatformError(
                     "don't know how to create dumb built distributions "
-                    "on platform %s" % os.name
+                    f"on platform {os.name}"
                 )
 
         self.set_undefined_options(
@@ -95,10 +94,10 @@ class bdist_dumb(Command):
         if not self.skip_build:
             self.run_command('build')
 
-        install = self.reinitialize_command('install', reinit_subcommands=1)
+        install = self.reinitialize_command('install', reinit_subcommands=True)
         install.root = self.bdist_dir
         install.skip_build = self.skip_build
-        install.warn_dir = 0
+        install.warn_dir = False
 
         log.info("installing to %s", self.bdist_dir)
         self.run_command('install')
@@ -116,7 +115,7 @@ class bdist_dumb(Command):
             ):
                 raise DistutilsPlatformError(
                     "can't make a dumb built distribution where "
-                    f"base and platbase are different ({repr(install.install_base)}, {repr(install.install_platbase)})"
+                    f"base and platbase are different ({install.install_base!r}, {install.install_platbase!r})"
                 )
             else:
                 archive_root = os.path.join(

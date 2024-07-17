@@ -131,11 +131,11 @@ class MacroExpander:
         for base in HKEYS:
             d = read_values(base, path)
             if d:
-                self.macros["$(%s)" % macro] = d[key]
+                self.macros[f"$({macro})"] = d[key]
                 break
 
     def load_macros(self, version):
-        vsbase = r"Software\Microsoft\VisualStudio\%0.1f" % version
+        vsbase = rf"Software\Microsoft\VisualStudio\{version:0.1f}"
         self.set_macro("VCInstallDir", vsbase + r"\Setup\VC", "productdir")
         self.set_macro("VSInstallDir", vsbase + r"\Setup\VS", "productdir")
         net = r"Software\Microsoft\.NETFramework"
@@ -253,7 +253,7 @@ class MSVCCompiler(CCompiler):
     static_lib_format = shared_lib_format = '%s%s'
     exe_extension = '.exe'
 
-    def __init__(self, verbose=0, dry_run=0, force=0):
+    def __init__(self, verbose=False, dry_run=False, force=False):
         super().__init__(verbose, dry_run, force)
         self.__version = get_build_version()
         self.__arch = get_build_architecture()
@@ -264,7 +264,7 @@ class MSVCCompiler(CCompiler):
                 self.__macros = MacroExpander(self.__version)
             else:
                 self.__root = r"Software\Microsoft\Devstudio"
-            self.__product = "Visual Studio version %s" % self.__version
+            self.__product = f"Visual Studio version {self.__version}"
         else:
             # Win64. Assume this was built with the platform SDK
             self.__product = "Microsoft SDK compiler %s" % (self.__version + 6)
@@ -290,9 +290,9 @@ class MSVCCompiler(CCompiler):
 
             if len(self.__paths) == 0:
                 raise DistutilsPlatformError(
-                    "Python was built with %s, "
+                    f"Python was built with {self.__product}, "
                     "and extensions need to be built with the same "
-                    "version of the compiler, but it isn't installed." % self.__product
+                    "version of the compiler, but it isn't installed."
                 )
 
             self.cc = self.find_exe("cl.exe")
@@ -354,7 +354,7 @@ class MSVCCompiler(CCompiler):
 
     # -- Worker methods ------------------------------------------------
 
-    def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
+    def object_filenames(self, source_filenames, strip_dir=False, output_dir=''):
         # Copied from ccompiler.py, extended to return .res as 'object'-file
         # for .rc input file
         if output_dir is None:
@@ -368,7 +368,7 @@ class MSVCCompiler(CCompiler):
                 # Better to raise an exception instead of silently continuing
                 # and later complain about sources and targets having
                 # different lengths
-                raise CompileError("Don't know how to compile %s" % src_name)
+                raise CompileError(f"Don't know how to compile {src_name}")
             if strip_dir:
                 base = os.path.basename(base)
             if ext in self._rc_extensions:
@@ -385,7 +385,7 @@ class MSVCCompiler(CCompiler):
         output_dir=None,
         macros=None,
         include_dirs=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         depends=None,
@@ -472,7 +472,7 @@ class MSVCCompiler(CCompiler):
         return objects
 
     def create_static_lib(
-        self, objects, output_libname, output_dir=None, debug=0, target_lang=None
+        self, objects, output_libname, output_dir=None, debug=False, target_lang=None
     ):
         if not self.initialized:
             self.initialize()
@@ -500,7 +500,7 @@ class MSVCCompiler(CCompiler):
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -585,7 +585,7 @@ class MSVCCompiler(CCompiler):
     def library_option(self, lib):
         return self.library_filename(lib)
 
-    def find_library_file(self, dirs, lib, debug=0):
+    def find_library_file(self, dirs, lib, debug=False):
         # Prefer a debugging library if found (and requested), but deal
         # with it if we don't have one.
         if debug:
@@ -654,7 +654,7 @@ class MSVCCompiler(CCompiler):
         # the GUI is run.
         if self.__version == 6:
             for base in HKEYS:
-                if read_values(base, r"%s\6.0" % self.__root) is not None:
+                if read_values(base, rf"{self.__root}\6.0") is not None:
                     self.warn(
                         "It seems you have Visual Studio 6 installed, "
                         "but the expected registry settings are not present.\n"
@@ -684,6 +684,6 @@ if get_build_version() >= 8.0:
     OldMSVCCompiler = MSVCCompiler
     # get_build_architecture not really relevant now we support cross-compile
     from distutils.msvc9compiler import (
-        MacroExpander,  # noqa: F811
+        MacroExpander,
         MSVCCompiler,
     )

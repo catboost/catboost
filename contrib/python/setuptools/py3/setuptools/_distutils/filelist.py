@@ -84,24 +84,24 @@ class FileList:
         if action in ('include', 'exclude', 'global-include', 'global-exclude'):
             if len(words) < 2:
                 raise DistutilsTemplateError(
-                    "'%s' expects <pattern1> <pattern2> ..." % action
+                    f"'{action}' expects <pattern1> <pattern2> ..."
                 )
             patterns = [convert_path(w) for w in words[1:]]
         elif action in ('recursive-include', 'recursive-exclude'):
             if len(words) < 3:
                 raise DistutilsTemplateError(
-                    "'%s' expects <dir> <pattern1> <pattern2> ..." % action
+                    f"'{action}' expects <dir> <pattern1> <pattern2> ..."
                 )
             dir = convert_path(words[1])
             patterns = [convert_path(w) for w in words[2:]]
         elif action in ('graft', 'prune'):
             if len(words) != 2:
                 raise DistutilsTemplateError(
-                    "'%s' expects a single <dir_pattern>" % action
+                    f"'{action}' expects a single <dir_pattern>"
                 )
             dir_pattern = convert_path(words[1])
         else:
-            raise DistutilsTemplateError("unknown action '%s'" % action)
+            raise DistutilsTemplateError(f"unknown action '{action}'")
 
         return (action, patterns, dir, dir_pattern)
 
@@ -119,13 +119,13 @@ class FileList:
         if action == 'include':
             self.debug_print("include " + ' '.join(patterns))
             for pattern in patterns:
-                if not self.include_pattern(pattern, anchor=1):
+                if not self.include_pattern(pattern, anchor=True):
                     log.warning("warning: no files found matching '%s'", pattern)
 
         elif action == 'exclude':
             self.debug_print("exclude " + ' '.join(patterns))
             for pattern in patterns:
-                if not self.exclude_pattern(pattern, anchor=1):
+                if not self.exclude_pattern(pattern, anchor=True):
                     log.warning(
                         (
                             "warning: no previously-included files "
@@ -137,7 +137,7 @@ class FileList:
         elif action == 'global-include':
             self.debug_print("global-include " + ' '.join(patterns))
             for pattern in patterns:
-                if not self.include_pattern(pattern, anchor=0):
+                if not self.include_pattern(pattern, anchor=False):
                     log.warning(
                         (
                             "warning: no files found matching '%s' "
@@ -149,7 +149,7 @@ class FileList:
         elif action == 'global-exclude':
             self.debug_print("global-exclude " + ' '.join(patterns))
             for pattern in patterns:
-                if not self.exclude_pattern(pattern, anchor=0):
+                if not self.exclude_pattern(pattern, anchor=False):
                     log.warning(
                         (
                             "warning: no previously-included files matching "
@@ -192,12 +192,12 @@ class FileList:
                 )
         else:
             raise DistutilsInternalError(
-                "this cannot happen: invalid action '%s'" % action
+                f"this cannot happen: invalid action '{action}'"
             )
 
     # Filtering/selection methods
 
-    def include_pattern(self, pattern, anchor=1, prefix=None, is_regex=0):
+    def include_pattern(self, pattern, anchor=True, prefix=None, is_regex=False):
         """Select strings (presumably filenames) from 'self.files' that
         match 'pattern', a Unix-style wildcard (glob) pattern.  Patterns
         are not quite the same as implemented by the 'fnmatch' module: '*'
@@ -225,7 +225,7 @@ class FileList:
         # XXX docstring lying about what the special chars are?
         files_found = False
         pattern_re = translate_pattern(pattern, anchor, prefix, is_regex)
-        self.debug_print("include_pattern: applying regex r'%s'" % pattern_re.pattern)
+        self.debug_print(f"include_pattern: applying regex r'{pattern_re.pattern}'")
 
         # delayed loading of allfiles list
         if self.allfiles is None:
@@ -238,7 +238,7 @@ class FileList:
                 files_found = True
         return files_found
 
-    def exclude_pattern(self, pattern, anchor=1, prefix=None, is_regex=0):
+    def exclude_pattern(self, pattern, anchor=True, prefix=None, is_regex=False):
         """Remove strings (presumably filenames) from 'files' that match
         'pattern'.  Other parameters are the same as for
         'include_pattern()', above.
@@ -247,7 +247,7 @@ class FileList:
         """
         files_found = False
         pattern_re = translate_pattern(pattern, anchor, prefix, is_regex)
-        self.debug_print("exclude_pattern: applying regex r'%s'" % pattern_re.pattern)
+        self.debug_print(f"exclude_pattern: applying regex r'{pattern_re.pattern}'")
         for i in range(len(self.files) - 1, -1, -1):
             if pattern_re.search(self.files[i]):
                 self.debug_print(" removing " + self.files[i])
@@ -327,12 +327,12 @@ def glob_to_re(pattern):
         # we're using a regex to manipulate a regex, so we need
         # to escape the backslash twice
         sep = r'\\\\'
-    escaped = r'\1[^%s]' % sep
+    escaped = rf'\1[^{sep}]'
     pattern_re = re.sub(r'((?<!\\)(\\\\)*)\.', escaped, pattern_re)
     return pattern_re
 
 
-def translate_pattern(pattern, anchor=1, prefix=None, is_regex=0):
+def translate_pattern(pattern, anchor=True, prefix=None, is_regex=False):
     """Translate a shell-like wildcard pattern to a compiled regular
     expression.  Return the compiled regex.  If 'is_regex' true,
     then 'pattern' is directly compiled to a regex (if it's a string)

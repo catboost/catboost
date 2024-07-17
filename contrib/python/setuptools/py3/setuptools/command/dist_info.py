@@ -28,7 +28,7 @@ class dist_info(Command):
             'output-dir=',
             'o',
             "directory inside of which the .dist-info will be"
-            "created (default: top of the source tree)",
+            "created [default: top of the source tree]",
         ),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),

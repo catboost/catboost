@@ -20,7 +20,7 @@ def splitUp(pred):
     """
     res = re_splitComparison.match(pred)
     if not res:
-        raise ValueError("bad package restriction syntax: %r" % pred)
+        raise ValueError(f"bad package restriction syntax: {pred!r}")
     comp, verStr = res.groups()
     with version.suppress_known_deprecation():
         other = version.StrictVersion(verStr)
@@ -113,17 +113,17 @@ class VersionPredicate:
             raise ValueError("empty package restriction")
         match = re_validPackage.match(versionPredicateStr)
         if not match:
-            raise ValueError("bad package name in %r" % versionPredicateStr)
+            raise ValueError(f"bad package name in {versionPredicateStr!r}")
         self.name, paren = match.groups()
         paren = paren.strip()
         if paren:
             match = re_paren.match(paren)
             if not match:
-                raise ValueError("expected parenthesized list: %r" % paren)
+                raise ValueError(f"expected parenthesized list: {paren!r}")
             str = match.groups()[0]
             self.pred = [splitUp(aPred) for aPred in str.split(",")]
             if not self.pred:
-                raise ValueError("empty parenthesized list in %r" % versionPredicateStr)
+                raise ValueError(f"empty parenthesized list in {versionPredicateStr!r}")
         else:
             self.pred = []
 
@@ -167,7 +167,7 @@ def split_provision(value):
     value = value.strip()
     m = _provision_rx.match(value)
     if not m:
-        raise ValueError("illegal provides specification: %r" % value)
+        raise ValueError(f"illegal provides specification: {value!r}")
     ver = m.group(2) or None
     if ver:
         with version.suppress_known_deprecation():

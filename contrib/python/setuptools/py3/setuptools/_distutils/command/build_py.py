@@ -38,7 +38,7 @@ class build_py(Command):
         self.package = None
         self.package_data = None
         self.package_dir = None
-        self.compile = 0
+        self.compile = False
         self.optimize = 0
         self.force = None
 
@@ -95,7 +95,7 @@ class build_py(Command):
             self.build_packages()
             self.build_package_data()
 
-        self.byte_compile(self.get_outputs(include_bytecode=0))
+        self.byte_compile(self.get_outputs(include_bytecode=False))
 
     def get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
@@ -191,12 +191,12 @@ class build_py(Command):
         if package_dir != "":
             if not os.path.exists(package_dir):
                 raise DistutilsFileError(
-                    "package directory '%s' does not exist" % package_dir
+                    f"package directory '{package_dir}' does not exist"
                 )
             if not os.path.isdir(package_dir):
                 raise DistutilsFileError(
-                    "supposed package directory '%s' exists, "
-                    "but is not a directory" % package_dir
+                    f"supposed package directory '{package_dir}' exists, "
+                    "but is not a directory"
                 )
 
         # Directories without __init__.py are namespace packages (PEP 420).
@@ -228,7 +228,7 @@ class build_py(Command):
                 module = os.path.splitext(os.path.basename(f))[0]
                 modules.append((package, module, f))
             else:
-                self.debug_print("excluding %s" % setup_script)
+                self.debug_print(f"excluding {setup_script}")
         return modules
 
     def find_modules(self):
@@ -264,7 +264,7 @@ class build_py(Command):
                 (package_dir, checked) = packages[package]
             except KeyError:
                 package_dir = self.get_package_dir(package)
-                checked = 0
+                checked = False
 
             if not checked:
                 init_py = self.check_package(package, package_dir)
@@ -306,7 +306,7 @@ class build_py(Command):
         outfile_path = [build_dir] + list(package) + [module + ".py"]
         return os.path.join(*outfile_path)
 
-    def get_outputs(self, include_bytecode=1):
+    def get_outputs(self, include_bytecode=True):
         modules = self.find_all_modules()
         outputs = []
         for package, module, _module_file in modules:
@@ -347,7 +347,7 @@ class build_py(Command):
         outfile = self.get_module_outfile(self.build_lib, package, module)
         dir = os.path.dirname(outfile)
         self.mkpath(dir)
-        return self.copy_file(module_file, outfile, preserve_mode=0)
+        return self.copy_file(module_file, outfile, preserve_mode=False)
 
     def build_modules(self):
         modules = self.find_modules()

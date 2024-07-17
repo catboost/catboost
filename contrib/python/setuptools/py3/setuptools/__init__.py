@@ -57,9 +57,9 @@ def _install_setup_requires(attrs):
             """Ignore ``pyproject.toml``, they are not related to setup_requires"""
             try:
                 cfg, toml = super()._split_standard_project_metadata(filenames)
-                return cfg, ()
             except Exception:
                 return filenames, ()
+            return cfg, ()
 
         def finalize_options(self):
             """

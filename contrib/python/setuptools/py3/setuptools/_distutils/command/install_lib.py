@@ -54,7 +54,7 @@ class install_lib(Command):
         # let the 'install' command dictate our installation directory
         self.install_dir = None
         self.build_dir = None
-        self.force = 0
+        self.force = False
         self.compile = None
         self.optimize = None
         self.skip_build = None
@@ -114,7 +114,7 @@ class install_lib(Command):
             outfiles = self.copy_tree(self.build_dir, self.install_dir)
         else:
             self.warn(
-                "'%s' does not exist -- no Python modules to install" % self.build_dir
+                f"'{self.build_dir}' does not exist -- no Python modules to install"
             )
             return
         return outfiles

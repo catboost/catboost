@@ -193,8 +193,7 @@ class install(Command):
         (
             'install-platbase=',
             None,
-            "base installation directory for platform-specific files "
-            + "(instead of --exec-prefix or --home)",
+            "base installation directory for platform-specific files (instead of --exec-prefix or --home)",
         ),
         ('root=', None, "install everything relative to this alternate root directory"),
         # Or, explicitly set the installation scheme
@@ -211,8 +210,7 @@ class install(Command):
         (
             'install-lib=',
             None,
-            "installation directory for all module distributions "
-            + "(overrides --install-purelib and --install-platlib)",
+            "installation directory for all module distributions (overrides --install-purelib and --install-platlib)",
         ),
         ('install-headers=', None, "installation directory for C/C++ headers"),
         ('install-scripts=', None, "installation directory for Python scripts"),
@@ -245,7 +243,7 @@ class install(Command):
         user_options.append((
             'user',
             None,
-            "install in user site-package '%s'" % USER_SITE,
+            f"install in user site-package '{USER_SITE}'",
         ))
         boolean_options.append('user')
 
@@ -258,7 +256,7 @@ class install(Command):
         self.prefix = None
         self.exec_prefix = None
         self.home = None
-        self.user = 0
+        self.user = False
 
         # These select only the installation base; it's up to the user to
         # specify the installation scheme (currently, that means supplying
@@ -293,7 +291,7 @@ class install(Command):
         # 'install_path_file' is always true unless some outsider meddles
         # with it.
         self.extra_path = None
-        self.install_path_file = 1
+        self.install_path_file = True
 
         # 'force' forces installation, even if target files are not
         # out-of-date.  'skip_build' skips running the "build" command,
@@ -301,9 +299,9 @@ class install(Command):
         # a user option, it's just there so the bdist_* commands can turn
         # it off) determines whether we warn about installing to a
         # directory not in sys.path.
-        self.force = 0
-        self.skip_build = 0
-        self.warn_dir = 1
+        self.force = False
+        self.skip_build = False
+        self.warn_dir = True
 
         # These are only here as a conduit from the 'build' command to the
         # 'install_*' commands that do the real work.  ('build_base' isn't
@@ -348,8 +346,7 @@ class install(Command):
             self.install_base or self.install_platbase
         ):
             raise DistutilsOptionError(
-                "must supply either prefix/exec-prefix/home or "
-                + "install-base/install-platbase -- not both"
+                "must supply either prefix/exec-prefix/home or install-base/install-platbase -- not both"
             )
 
         if self.home and (self.prefix or self.exec_prefix):
@@ -600,7 +597,7 @@ class install(Command):
                 self.select_scheme(os.name)
             except KeyError:
                 raise DistutilsPlatformError(
-                    "I don't know how to install stuff on '%s'" % os.name
+                    f"I don't know how to install stuff on '{os.name}'"
                 )
 
     def select_scheme(self, name):
@@ -685,7 +682,7 @@ class install(Command):
         home = convert_path(os.path.expanduser("~"))
         for _name, path in self.config_vars.items():
             if str(path).startswith(home) and not os.path.isdir(path):
-                self.debug_print("os.makedirs('%s', 0o700)" % path)
+                self.debug_print(f"os.makedirs('{path}', 0o700)")
                 os.makedirs(path, 0o700)
 
     # -- Command execution methods -------------------------------------
@@ -720,7 +717,7 @@ class install(Command):
             self.execute(
                 write_file,
                 (self.record, outputs),
-                "writing list of installed files to '%s'" % self.record,
+                f"writing list of installed files to '{self.record}'",
             )
 
         sys_path = map(os.path.normpath, sys.path)
@@ -745,10 +742,10 @@ class install(Command):
         filename = os.path.join(self.install_libbase, self.path_file + ".pth")
         if self.install_path_file:
             self.execute(
-                write_file, (filename, [self.extra_dirs]), "creating %s" % filename
+                write_file, (filename, [self.extra_dirs]), f"creating {filename}"
             )
         else:
-            self.warn("path file '%s' not created" % filename)
+            self.warn(f"path file '{filename}' not created")
 
     # -- Reporting methods ---------------------------------------------
 

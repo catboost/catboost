@@ -91,9 +91,9 @@ try:
         """
         try:
             _req.Requirement(value)
-            return True
         except _req.InvalidRequirement:
             return False
+        return True
 
 except ImportError:  # pragma: no cover
     _logger.warning(

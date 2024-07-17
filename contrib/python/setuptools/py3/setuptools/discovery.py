@@ -62,7 +62,7 @@ StrIter = Iterator[str]
 chain_iter = itertools.chain.from_iterable
 
 if TYPE_CHECKING:
-    from setuptools import Distribution  # noqa
+    from setuptools import Distribution
 
 
 def _valid_name(path: StrPath) -> bool:

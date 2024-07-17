@@ -29,7 +29,7 @@ class sdist(orig.sdist):
         (
             'dist-dir=',
             'd',
-            "directory to put the source distribution archive(s) in " "[default: dist]",
+            "directory to put the source distribution archive(s) in [default: dist]",
         ),
         (
             'owner=',

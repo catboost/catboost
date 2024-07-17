@@ -37,8 +37,8 @@ class register(PyPIRCCommand):
 
     def initialize_options(self):
         PyPIRCCommand.initialize_options(self)
-        self.list_classifiers = 0
-        self.strict = 0
+        self.list_classifiers = False
+        self.strict = False
 
     def finalize_options(self):
         PyPIRCCommand.finalize_options(self)
@@ -74,7 +74,7 @@ class register(PyPIRCCommand):
         check = self.distribution.get_command_obj('check')
         check.ensure_finalized()
         check.strict = self.strict
-        check.restructuredtext = 1
+        check.restructuredtext = True
         check.run()
 
     def _set_config(self):
@@ -88,7 +88,7 @@ class register(PyPIRCCommand):
             self.has_config = True
         else:
             if self.repository not in ('pypi', self.DEFAULT_REPOSITORY):
-                raise ValueError('%s not found in .pypirc' % self.repository)
+                raise ValueError(f'{self.repository} not found in .pypirc')
             if self.repository == 'pypi':
                 self.repository = self.DEFAULT_REPOSITORY
             self.has_config = False
@@ -192,7 +192,7 @@ Your selection [default 1]: """,
                         logging.INFO,
                     )
                     self.announce(
-                        '(the login will be stored in %s)' % self._get_rc_file(),
+                        f'(the login will be stored in {self._get_rc_file()})',
                         logging.INFO,
                     )
                     choice = 'X'
@@ -225,7 +225,7 @@ Your selection [default 1]: """,
                 log.info('Server response (%s): %s', code, result)
             else:
                 log.info('You will receive an email shortly.')
-                log.info('Follow the instructions in it to ' 'complete registration.')
+                log.info('Follow the instructions in it to complete registration.')
         elif choice == '3':
             data = {':action': 'password_reset'}
             data['email'] = ''
@@ -277,7 +277,7 @@ Your selection [default 1]: """,
         for key, values in data.items():
             for value in map(str, make_iterable(values)):
                 body.write(sep_boundary)
-                body.write('\nContent-Disposition: form-data; name="%s"' % key)
+                body.write(f'\nContent-Disposition: form-data; name="{key}"')
                 body.write("\n\n")
                 body.write(value)
                 if value and value[-1] == '\r':
@@ -288,8 +288,7 @@ Your selection [default 1]: """,
 
         # build the Request
         headers = {
-            'Content-type': 'multipart/form-data; boundary=%s; charset=utf-8'
-            % boundary,
+            'Content-type': f'multipart/form-data; boundary={boundary}; charset=utf-8',
             'Content-length': str(len(body)),
         }
         req = urllib.request.Request(self.repository, body, headers)

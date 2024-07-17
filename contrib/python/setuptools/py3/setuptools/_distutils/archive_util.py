@@ -56,7 +56,13 @@ def _get_uid(name):
 
 
 def make_tarball(
-    base_name, base_dir, compress="gzip", verbose=0, dry_run=0, owner=None, group=None
+    base_name,
+    base_dir,
+    compress="gzip",
+    verbose=False,
+    dry_run=False,
+    owner=None,
+    group=None,
 ):
     """Create a (possibly compressed) tar file from all the files under
     'base_dir'.
@@ -113,7 +119,7 @@ def make_tarball(
         return tarinfo
 
     if not dry_run:
-        tar = tarfile.open(archive_name, 'w|%s' % tar_compression[compress])
+        tar = tarfile.open(archive_name, f'w|{tar_compression[compress]}')
         try:
             tar.add(base_dir, filter=_set_uid_gid)
         finally:
@@ -134,7 +140,7 @@ def make_tarball(
     return archive_name
 
 
-def make_zipfile(base_name, base_dir, verbose=0, dry_run=0):  # noqa: C901
+def make_zipfile(base_name, base_dir, verbose=False, dry_run=False):  # noqa: C901
     """Create a zip file from all the files under 'base_dir'.
 
     The output zip file will be named 'base_name' + ".zip".  Uses either the
@@ -160,12 +166,9 @@ def make_zipfile(base_name, base_dir, verbose=0, dry_run=0):  # noqa: C901
             # XXX really should distinguish between "couldn't find
             # external 'zip' command" and "zip failed".
             raise DistutilsExecError(
-                (
-                    "unable to create zip file '%s': "
-                    "could neither import the 'zipfile' module nor "
-                    "find a standalone zip utility"
-                )
-                % zip_filename
+                f"unable to create zip file '{zip_filename}': "
+                "could neither import the 'zipfile' module nor "
+                "find a standalone zip utility"
             )
 
     else:
@@ -224,8 +227,8 @@ def make_archive(
     format,
     root_dir=None,
     base_dir=None,
-    verbose=0,
-    dry_run=0,
+    verbose=False,
+    dry_run=False,
     owner=None,
     group=None,
 ):
@@ -260,7 +263,7 @@ def make_archive(
     try:
         format_info = ARCHIVE_FORMATS[format]
     except KeyError:
-        raise ValueError("unknown archive format '%s'" % format)
+        raise ValueError(f"unknown archive format '{format}'")
 
     func = format_info[0]
     for arg, val in format_info[1]:

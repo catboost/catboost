@@ -16,10 +16,9 @@ def _have_cython():
     try:
         # from (cython_impl) import build_ext
         __import__(cython_impl, fromlist=['build_ext']).build_ext
-        return True
     except Exception:
-        pass
-    return False
+        return False
+    return True
 
 
 # for compatibility

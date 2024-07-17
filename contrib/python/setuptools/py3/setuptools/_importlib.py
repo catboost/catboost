@@ -42,7 +42,7 @@ if sys.version_info < (3, 10):
 
     disable_importlib_metadata_finder(metadata)
 else:
-    import importlib.metadata as metadata  # noqa: F401
+    import importlib.metadata as metadata
 
 
 if sys.version_info < (3, 9):

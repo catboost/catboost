@@ -55,7 +55,7 @@ class Installer:
             "importlib.machinery.PathFinder.find_spec(%(pkg)r, "
             "[os.path.dirname(p)])))"
         ),
-        ("m = m or " "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))"),
+        ("m = m or sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))"),
         "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
         "(p not in mp) and mp.append(p)",
     )

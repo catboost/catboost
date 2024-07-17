@@ -6,6 +6,7 @@ for the Distutils compiler abstraction model."""
 import os
 import re
 import sys
+import types
 import warnings
 
 from ._itertools import always_iterable
@@ -21,7 +22,7 @@ from .errors import (
 )
 from .file_util import move_file
 from .spawn import spawn
-from .util import execute, split_quoted
+from .util import execute, split_quoted, is_mingw
 
 
 class CCompiler:
@@ -104,7 +105,7 @@ class CCompiler:
     library dirs specific to this compiler class
     """
 
-    def __init__(self, verbose=0, dry_run=0, force=0):
+    def __init__(self, verbose=False, dry_run=False, force=False):
         self.dry_run = dry_run
         self.force = force
         self.verbose = verbose
@@ -188,24 +189,28 @@ class CCompiler:
         return None
 
     def _check_macro_definitions(self, definitions):
-        """Ensures that every element of 'definitions' is a valid macro
-        definition, ie. either (name,value) 2-tuple or a (name,) tuple.  Do
-        nothing if all definitions are OK, raise TypeError otherwise.
-        """
+        """Ensure that every element of 'definitions' is valid."""
         for defn in definitions:
-            if not (
-                isinstance(defn, tuple)
-                and (
-                    len(defn) in (1, 2)
-                    and (isinstance(defn[1], str) or defn[1] is None)
-                )
-                and isinstance(defn[0], str)
-            ):
-                raise TypeError(
-                    ("invalid macro definition '%s': " % defn)
-                    + "must be tuple (string,), (string, string), or "
-                    + "(string, None)"
-                )
+            self._check_macro_definition(*defn)
+
+    def _check_macro_definition(self, defn):
+        """
+        Raise a TypeError if defn is not valid.
+
+        A valid definition is either a (name, value) 2-tuple or a (name,) tuple.
+        """
+        if not isinstance(defn, tuple) or not self._is_valid_macro(*defn):
+            raise TypeError(
+                f"invalid macro definition '{defn}': "
+                "must be tuple (string,), (string, string), or (string, None)"
+            )
+
+    @staticmethod
+    def _is_valid_macro(name, value=None):
+        """
+        A valid macro is a ``name : str`` and a ``value : str | None``.
+        """
+        return isinstance(name, str) and isinstance(value, (str, types.NoneType))
 
     # -- Bookkeeping methods -------------------------------------------
 
@@ -342,7 +347,7 @@ class CCompiler:
             extra = []
 
         # Get the list of expected output (object) files
-        objects = self.object_filenames(sources, strip_dir=0, output_dir=outdir)
+        objects = self.object_filenames(sources, strip_dir=False, output_dir=outdir)
         assert len(objects) == len(sources)
 
         pp_opts = gen_preprocess_options(macros, incdirs)
@@ -532,7 +537,7 @@ class CCompiler:
         output_dir=None,
         macros=None,
         include_dirs=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         depends=None,
@@ -609,7 +614,7 @@ class CCompiler:
         pass
 
     def create_static_lib(
-        self, objects, output_libname, output_dir=None, debug=0, target_lang=None
+        self, objects, output_libname, output_dir=None, debug=False, target_lang=None
     ):
         """Link a bunch of stuff together to create a static library file.
         The "bunch of stuff" consists of the list of object files supplied
@@ -650,7 +655,7 @@ class CCompiler:
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -712,7 +717,7 @@ class CCompiler:
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -743,7 +748,7 @@ class CCompiler:
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -773,7 +778,7 @@ class CCompiler:
         libraries=None,
         library_dirs=None,
         runtime_library_dirs=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         target_lang=None,
@@ -859,7 +864,7 @@ class CCompiler:
         fd, fname = tempfile.mkstemp(".c", funcname, text=True)
         with os.fdopen(fd, "w", encoding='utf-8') as f:
             for incl in includes:
-                f.write("""#include "%s"\n""" % incl)
+                f.write(f"""#include "{incl}"\n""")
             if not includes:
                 # Use "char func(void);" as the prototype to follow
                 # what autoconf does.  This prototype does not match
@@ -869,22 +874,20 @@ class CCompiler:
                 # know the exact argument types, and the has_function
                 # interface does not provide that level of information.
                 f.write(
-                    """\
+                    f"""\
 #ifdef __cplusplus
 extern "C"
 #endif
-char %s(void);
+char {funcname}(void);
 """
-                    % funcname
                 )
             f.write(
-                """\
-int main (int argc, char **argv) {
-    %s();
+                f"""\
+int main (int argc, char **argv) {{
+    {funcname}();
     return 0;
-}
+}}
 """
-                % funcname
             )
 
         try:
@@ -909,7 +912,7 @@ int main (int argc, char **argv) {
                 os.remove(fn)
         return True
 
-    def find_library_file(self, dirs, lib, debug=0):
+    def find_library_file(self, dirs, lib, debug=False):
         """Search the specified list of directories for a static or shared
         library file 'lib' and return the full path to that file.  If
         'debug' true, look for a debugging version (if that makes sense on
@@ -952,7 +955,7 @@ int main (int argc, char **argv) {
     #   * exe_extension -
     #     extension for executable files, eg. '' or '.exe'
 
-    def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
+    def object_filenames(self, source_filenames, strip_dir=False, output_dir=''):
         if output_dir is None:
             output_dir = ''
         return list(
@@ -987,13 +990,13 @@ int main (int argc, char **argv) {
         # If abs, chop off leading /
         return no_drive[os.path.isabs(no_drive) :]
 
-    def shared_object_filename(self, basename, strip_dir=0, output_dir=''):
+    def shared_object_filename(self, basename, strip_dir=False, output_dir=''):
         assert output_dir is not None
         if strip_dir:
             basename = os.path.basename(basename)
         return os.path.join(output_dir, basename + self.shared_lib_extension)
 
-    def executable_filename(self, basename, strip_dir=0, output_dir=''):
+    def executable_filename(self, basename, strip_dir=False, output_dir=''):
         assert output_dir is not None
         if strip_dir:
             basename = os.path.basename(basename)
@@ -1003,7 +1006,7 @@ int main (int argc, char **argv) {
         self,
         libname,
         lib_type='static',
-        strip_dir=0,
+        strip_dir=False,
         output_dir='',  # or 'shared'
     ):
         assert output_dir is not None
@@ -1032,7 +1035,7 @@ int main (int argc, char **argv) {
             print(msg)
 
     def warn(self, msg):
-        sys.stderr.write("warning: %s\n" % msg)
+        sys.stderr.write(f"warning: {msg}\n")
 
     def execute(self, func, args, msg=None, level=1):
         execute(func, args, msg, self.dry_run)
@@ -1077,6 +1080,10 @@ def get_default_compiler(osname=None, platform=None):
         osname = os.name
     if platform is None:
         platform = sys.platform
+    # Mingw is a special case where sys.platform is 'win32' but we
+    # want to use the 'mingw32' compiler, so check it first
+    if is_mingw():
+        return 'mingw32'
     for pattern, compiler in _default_compilers:
         if (
             re.match(pattern, platform) is not None
@@ -1125,7 +1132,7 @@ def show_compilers():
     pretty_printer.print_help("List of available compilers:")
 
 
-def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
+def new_compiler(plat=None, compiler=None, verbose=False, dry_run=False, force=False):
     """Generate an instance of some CCompiler subclass for the supplied
     platform/compiler combination.  'plat' defaults to 'os.name'
     (eg. 'posix', 'nt'), and 'compiler' defaults to the default compiler
@@ -1145,9 +1152,9 @@ def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
 
         (module_name, class_name, long_description) = compiler_class[compiler]
     except KeyError:
-        msg = "don't know how to compile C/C++ code on platform '%s'" % plat
+        msg = f"don't know how to compile C/C++ code on platform '{plat}'"
         if compiler is not None:
-            msg = msg + " with '%s' compiler" % compiler
+            msg = msg + f" with '{compiler}' compiler"
         raise DistutilsPlatformError(msg)
 
     try:
@@ -1157,7 +1164,7 @@ def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
         klass = vars(module)[class_name]
     except ImportError:
         raise DistutilsModuleError(
-            "can't compile C/C++ code: unable to load module '%s'" % module_name
+            f"can't compile C/C++ code: unable to load module '{module_name}'"
         )
     except KeyError:
         raise DistutilsModuleError(
@@ -1196,15 +1203,15 @@ def gen_preprocess_options(macros, include_dirs):
     for macro in macros:
         if not (isinstance(macro, tuple) and 1 <= len(macro) <= 2):
             raise TypeError(
-                "bad macro definition '%s': "
-                "each element of 'macros' list must be a 1- or 2-tuple" % macro
+                f"bad macro definition '{macro}': "
+                "each element of 'macros' list must be a 1- or 2-tuple"
             )
 
         if len(macro) == 1:  # undefine this macro
-            pp_opts.append("-U%s" % macro[0])
+            pp_opts.append(f"-U{macro[0]}")
         elif len(macro) == 2:
             if macro[1] is None:  # define with no explicit value
-                pp_opts.append("-D%s" % macro[0])
+                pp_opts.append(f"-D{macro[0]}")
             else:
                 # XXX *don't* need to be clever about quoting the
                 # macro value here, because we're going to avoid the
@@ -1212,7 +1219,7 @@ def gen_preprocess_options(macros, include_dirs):
                 pp_opts.append("-D{}={}".format(*macro))
 
     for dir in include_dirs:
-        pp_opts.append("-I%s" % dir)
+        pp_opts.append(f"-I{dir}")
     return pp_opts
 
 
@@ -1245,7 +1252,7 @@ def gen_lib_options(compiler, library_dirs, runtime_library_dirs, libraries):
                 lib_opts.append(lib_file)
             else:
                 compiler.warn(
-                    "no library file corresponding to '%s' found (skipping)" % lib
+                    f"no library file corresponding to '{lib}' found (skipping)"
                 )
         else:
             lib_opts.append(compiler.library_option(lib))

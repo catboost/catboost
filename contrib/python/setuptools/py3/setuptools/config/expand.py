@@ -47,7 +47,7 @@ from ..discovery import find_package_path
 from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
-    from setuptools.dist import Distribution  # noqa
+    from setuptools.dist import Distribution
 
 _K = TypeVar("_K")
 _V = TypeVar("_V", covariant=True)

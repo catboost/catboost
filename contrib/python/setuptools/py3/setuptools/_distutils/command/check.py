@@ -21,7 +21,7 @@ with contextlib.suppress(ImportError):
             report_level,
             halt_level,
             stream=None,
-            debug=0,
+            debug=False,
             encoding='ascii',
             error_handler='replace',
         ):
@@ -58,9 +58,9 @@ class check(Command):
 
     def initialize_options(self):
         """Sets default values for options."""
-        self.restructuredtext = 0
+        self.restructuredtext = False
         self.metadata = 1
-        self.strict = 0
+        self.strict = False
         self._warnings = 0
 
     def finalize_options(self):
@@ -106,7 +106,7 @@ class check(Command):
                 missing.append(attr)
 
         if missing:
-            self.warn("missing required meta-data: %s" % ', '.join(missing))
+            self.warn("missing required meta-data: {}".format(', '.join(missing)))
 
     def check_restructuredtext(self):
         """Checks if the long string fields are reST-compliant."""
@@ -147,7 +147,7 @@ class check(Command):
         except AttributeError as e:
             reporter.messages.append((
                 -1,
-                'Could not finish the parsing: %s.' % e,
+                f'Could not finish the parsing: {e}.',
                 '',
                 {},
             ))

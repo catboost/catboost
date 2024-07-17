@@ -74,7 +74,7 @@ class bdist_egg(Command):
             'keep-temp',
             'k',
             "keep the pseudo-installation tree around after "
-            + "creating the distribution archive",
+            "creating the distribution archive",
         ),
         ('dist-dir=', 'd', "directory to put final built distributions in"),
         ('skip-build', None, "skip rebuilding everything (for testing/debugging)"),
@@ -290,9 +290,11 @@ class bdist_egg(Command):
 
         paths = {self.bdist_dir: ''}
         for base, dirs, files in sorted_walk(self.bdist_dir):
-            for filename in files:
-                if os.path.splitext(filename)[1].lower() in NATIVE_EXTENSIONS:
-                    all_outputs.append(paths[base] + filename)
+            all_outputs.extend(
+                paths[base] + filename
+                for filename in files
+                if os.path.splitext(filename)[1].lower() in NATIVE_EXTENSIONS
+            )
             for filename in dirs:
                 paths[os.path.join(base, filename)] = paths[base] + filename + '/'
 

@@ -19,7 +19,7 @@ class install_data(Command):
             'install-dir=',
             'd',
             "base directory for installing data files "
-            "(default: installation base dir)",
+            "[default: installation base dir]",
         ),
         ('root=', None, "install everything relative to this alternate root directory"),
         ('force', 'f', "force installation (overwrite existing files)"),
@@ -31,9 +31,9 @@ class install_data(Command):
         self.install_dir = None
         self.outfiles = []
         self.root = None
-        self.force = 0
+        self.force = False
         self.data_files = self.distribution.data_files
-        self.warn_dir = 1
+        self.warn_dir = True
 
     def finalize_options(self):
         self.set_undefined_options(

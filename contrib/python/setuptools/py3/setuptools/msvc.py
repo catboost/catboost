@@ -842,7 +842,7 @@ class SystemInfo:
         """
         return self._use_last_dir_name(join(self.WindowsSdkDir, 'lib'))
 
-    @property  # noqa: C901
+    @property
     def WindowsSdkDir(self):  # noqa: C901  # is too complex (12)  # FIXME
         """
         Microsoft Windows SDK directory.
@@ -1087,6 +1087,7 @@ class SystemInfo:
             return 'v3.5', 'v2.0.50727'
         elif self.vs_ver == 8.0:
             return 'v3.0', 'v2.0.50727'
+        return None
 
     @staticmethod
     def _use_last_dir_name(path, prefix=''):
@@ -1648,6 +1649,7 @@ class EnvironmentInfo:
             path = join(prefix, arch_subdir, crt_dir, vcruntime)
             if isfile(path):
                 return path
+        return None
 
     def return_env(self, exists=True):
         """

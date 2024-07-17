@@ -31,8 +31,8 @@ from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
     from distutils.dist import _OptionsList
-    from setuptools._importlib import metadata  # noqa
-    from setuptools.dist import Distribution  # noqa
+    from setuptools._importlib import metadata
+    from setuptools.dist import Distribution
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
 _ProjectReadmeValue = Union[str, Dict[str, str]]

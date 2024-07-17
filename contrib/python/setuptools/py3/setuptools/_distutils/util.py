@@ -12,6 +12,7 @@ import string
 import subprocess
 import sys
 import sysconfig
+import tempfile
 
 from ._log import log
 from ._modified import newer
@@ -34,7 +35,7 @@ def get_host_platform():
         if os.name == "posix" and hasattr(os, 'uname'):
             osname, host, release, version, machine = os.uname()
             if osname[:3] == "aix":
-                from .py38compat import aix_platform
+                from .compat.py38 import aix_platform
 
                 return aix_platform(osname, version, release)
 
@@ -129,9 +130,9 @@ def convert_path(pathname):
     if not pathname:
         return pathname
     if pathname[0] == '/':
-        raise ValueError("path '%s' cannot be absolute" % pathname)
+        raise ValueError(f"path '{pathname}' cannot be absolute")
     if pathname[-1] == '/':
-        raise ValueError("path '%s' cannot end with '/'" % pathname)
+        raise ValueError(f"path '{pathname}' cannot end with '/'")
 
     paths = pathname.split('/')
     while '.' in paths:
@@ -158,7 +159,7 @@ def change_root(new_root, pathname):
 
     elif os.name == 'nt':
         (drive, path) = os.path.splitdrive(pathname)
-        if path[0] == '\\':
+        if path[0] == os.sep:
             path = path[1:]
         return os.path.join(new_root, path)
 
@@ -240,7 +241,7 @@ _wordchars_re = _squote_re = _dquote_re = None
 
 def _init_regex():
     global _wordchars_re, _squote_re, _dquote_re
-    _wordchars_re = re.compile(r'[^\\\'\"%s ]*' % string.whitespace)
+    _wordchars_re = re.compile(rf'[^\\\'\"{string.whitespace} ]*')
     _squote_re = re.compile(r"'(?:[^'\\]|\\.)*'")
     _dquote_re = re.compile(r'"(?:[^"\\]|\\.)*"')
 
@@ -295,7 +296,7 @@ def split_quoted(s):
                 raise RuntimeError("this can't happen (bad char '%c')" % s[end])
 
             if m is None:
-                raise ValueError("bad string (mismatched %s quotes?)" % s[end])
+                raise ValueError(f"bad string (mismatched {s[end]} quotes?)")
 
             (beg, end) = m.span()
             s = s[:beg] + s[beg + 1 : end - 1] + s[end:]
@@ -311,7 +312,7 @@ def split_quoted(s):
 # split_quoted ()
 
 
-def execute(func, args, msg=None, verbose=0, dry_run=0):
+def execute(func, args, msg=None, verbose=False, dry_run=False):
     """Perform some action that affects the outside world (eg.  by
     writing to the filesystem).  Such actions are special because they
     are disabled by the 'dry_run' flag.  This method takes care of all
@@ -349,11 +350,11 @@ def strtobool(val):
 def byte_compile(  # noqa: C901
     py_files,
     optimize=0,
-    force=0,
+    force=False,
     prefix=None,
     base_dir=None,
-    verbose=1,
-    dry_run=0,
+    verbose=True,
+    dry_run=False,
     direct=None,
 ):
     """Byte-compile a collection of Python source files to .pyc
@@ -405,20 +406,10 @@ def byte_compile(  # noqa: C901
     # "Indirect" byte-compilation: write a temporary script and then
     # run it with the appropriate flags.
     if not direct:
-        try:
-            from tempfile import mkstemp
-
-            (script_fd, script_name) = mkstemp(".py")
-        except ImportError:
-            from tempfile import mktemp
-
-            (script_fd, script_name) = None, mktemp(".py")
+        (script_fd, script_name) = tempfile.mkstemp(".py")
         log.info("writing byte-compilation script '%s'", script_name)
         if not dry_run:
-            if script_fd is not None:
-                script = os.fdopen(script_fd, "w", encoding='utf-8')
-            else:  # pragma: no cover
-                script = open(script_name, "w", encoding='utf-8')
+            script = os.fdopen(script_fd, "w", encoding='utf-8')
 
             with script:
                 script.write(
@@ -443,8 +434,8 @@ files = [
                     f"""
 byte_compile(files, optimize={optimize!r}, force={force!r},
              prefix={prefix!r}, base_dir={base_dir!r},
-             verbose={verbose!r}, dry_run=0,
-             direct=1)
+             verbose={verbose!r}, dry_run=False,
+             direct=True)
 """
                 )
 
@@ -452,7 +443,7 @@ byte_compile(files, optimize={optimize!r}, force={force!r},
         cmd.extend(subprocess._optim_args_from_interpreter_flags())
         cmd.append(script_name)
         spawn(cmd, dry_run=dry_run)
-        execute(os.remove, (script_name,), "removing %s" % script_name, dry_run=dry_run)
+        execute(os.remove, (script_name,), f"removing {script_name}", dry_run=dry_run)
 
     # "Direct" byte-compilation: use the py_compile module to compile
     # right here, right now.  Note that the script generated in indirect
@@ -508,3 +499,12 @@ def rfc822_escape(header):
     suffix = indent if ends_in_newline else ""
 
     return indent.join(lines) + suffix
+
+
+def is_mingw():
+    """Returns True if the current platform is mingw.
+
+    Python compiled with Mingw-w64 has sys.platform == 'win32' and
+    get_platform() starts with 'mingw'.
+    """
+    return sys.platform == 'win32' and get_platform().startswith('mingw')

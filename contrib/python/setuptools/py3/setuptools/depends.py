@@ -58,11 +58,11 @@ class Require:
         if self.attribute is None:
             try:
                 f, p, i = find_module(self.module, paths)
-                if f:
-                    f.close()
-                return default
             except ImportError:
                 return None
+            if f:
+                f.close()
+            return default
 
         v = get_module_constant(self.module, self.attribute, default, paths)
 

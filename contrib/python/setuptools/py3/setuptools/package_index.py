@@ -856,7 +856,7 @@ class PackageIndex(Environment):
     def _download_vcs(self, url, spec_filename):
         vcs = self._resolve_vcs(url)
         if not vcs:
-            return
+            return None
         if vcs == 'svn':
             raise DistutilsError(
                 f"Invalid config, SVN download is not supported: {url}"
@@ -1136,9 +1136,7 @@ def local_open(url):
                 f += '/'
             files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
-            tmpl = (
-                "<html><head><title>{url}</title>" "</head><body>{files}</body></html>"
-            )
+            tmpl = "<html><head><title>{url}</title></head><body>{files}</body></html>"
             body = tmpl.format(url=url, files='\n'.join(files))
         status, message = 200, "OK"
     else:
