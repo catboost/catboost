@@ -5,7 +5,6 @@
 #include <catboost/private/libs/options/enums.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/cpp/containers/2d_array/2d_array.h>
 
 #include <util/generic/vector.h>
 #include <util/system/yassert.h>

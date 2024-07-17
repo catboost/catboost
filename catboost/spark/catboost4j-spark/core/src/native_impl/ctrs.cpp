@@ -15,6 +15,7 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <library/cpp/binsaver/util_stream_io.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/cast.h>

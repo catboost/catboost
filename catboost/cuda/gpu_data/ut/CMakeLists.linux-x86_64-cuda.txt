@@ -21,6 +21,7 @@ target_link_libraries(catboost-cuda-gpu_data-ut PUBLIC
   yutil
   library-cpp-cpuid_check
   cpp-testing-unittest_main
+  cpp-containers-2d_array
   catboost-cuda-gpu_data
   catboost-cuda-data
   catboost-cuda-ut_helpers

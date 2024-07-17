@@ -572,10 +572,6 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
 cdef extern from "catboost/libs/model/utils.h":
     cdef TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model) nogil except +ProcessException
 
-cdef extern from "library/cpp/containers/2d_array/2d_array.h":
-    cdef cppclass TArray2D[T]:
-        T* operator[] (size_t index) const
-
 
 cdef extern from "util/system/info.h" namespace "NSystemInfo":
     cdef size_t CachedNumberOfCpus() except +ProcessException

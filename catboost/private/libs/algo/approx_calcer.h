@@ -7,10 +7,14 @@
 #include <catboost/private/libs/options/restrictions.h>
 
 
+
 class IDerCalcer;
 class TLearnContext;
 struct TSplitTree;
 struct TNonSymmetricTreeStructure;
+
+template <class T>
+class TArray2D;
 
 namespace NCatboostOptions {
     class TCatBoostOptions;

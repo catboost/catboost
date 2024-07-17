@@ -16,6 +16,7 @@
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/private/libs/options/json_helper.h>
 
+#include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/cpp/par/par_settings.h>
 
 #include <util/generic/algorithm.h>

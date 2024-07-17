@@ -27,6 +27,7 @@ target_link_libraries(private-libs-distributed PUBLIC
   private-libs-index_range
   private-libs-options
   library-cpp-binsaver
+  cpp-containers-2d_array
   library-cpp-json
   library-cpp-par
 )

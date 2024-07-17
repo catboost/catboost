@@ -14,7 +14,6 @@
 #include <catboost/libs/helpers/maybe.h>
 
 #include <library/cpp/threading/local_executor/local_executor.h>
-#include <library/cpp/containers/2d_array/2d_array.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/array_ref.h>

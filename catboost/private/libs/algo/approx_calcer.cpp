@@ -31,6 +31,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/functools/forward_as_const.h>
 
+#include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>

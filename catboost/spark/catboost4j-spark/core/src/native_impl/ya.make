@@ -34,6 +34,7 @@ SRCS(
 EXTRADIR(bindings/swiglib)
 
 PEERDIR(
+    library/cpp/containers/2d_array
     library/cpp/dbg_output
     library/cpp/grid_creator
     library/cpp/jni

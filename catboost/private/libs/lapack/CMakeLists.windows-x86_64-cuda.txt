@@ -19,7 +19,6 @@ target_link_libraries(private-libs-lapack PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-clapack
-  cpp-containers-2d_array
 )
 
 target_sources(private-libs-lapack PRIVATE

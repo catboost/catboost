@@ -57,7 +57,6 @@ target_link_libraries(_catboost PUBLIC
   private-libs-quantized_pool_analysis
   private-libs-target
   python-numpy-include
-  cpp-containers-2d_array
   library-cpp-grid_creator
   cpp-json-writer
   cpp-text_processing-tokenizer

@@ -13,6 +13,8 @@
 #include <catboost/private/libs/quantization/grid_creator.h>
 #include <catboost/private/libs/quantization/utils.h>
 
+#include <library/cpp/containers/2d_array/2d_array.h>
+
 #include <library/cpp/testing/unittest/registar.h>
 
 using namespace std;

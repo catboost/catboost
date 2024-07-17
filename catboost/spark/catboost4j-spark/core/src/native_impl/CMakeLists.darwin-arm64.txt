@@ -36,6 +36,7 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-mimalloc
+  cpp-containers-2d_array
   library-cpp-dbg_output
   library-cpp-grid_creator
   library-cpp-jni

@@ -23,6 +23,7 @@ target_link_libraries(catboost-cuda-ctrs-ut PUBLIC
   catboost-cuda-ctrs
   catboost-libs-helpers
   catboost-cuda-data
+  cpp-containers-2d_array
 )
 
 target_sources(catboost-cuda-ctrs-ut PRIVATE

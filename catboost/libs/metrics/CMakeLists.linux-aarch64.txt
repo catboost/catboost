@@ -27,7 +27,6 @@ target_link_libraries(catboost-libs-metrics PUBLIC
   private-libs-options
   libs-helpers-parallel_sort
   library-cpp-binsaver
-  cpp-containers-2d_array
   cpp-containers-stack_vector
   library-cpp-dot_product
   cpp-threading-local_executor
