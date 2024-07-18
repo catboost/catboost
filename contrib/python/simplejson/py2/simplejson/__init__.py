@@ -118,7 +118,7 @@ Serializing multiple objects to JSON lines (newline-delimited JSON)::
 
 """
 from __future__ import absolute_import
-__version__ = '3.18.4'
+__version__ = '3.19.2'
 __all__ = [
     'dump', 'dumps', 'load', 'loads',
     'JSONDecoder', 'JSONDecodeError', 'JSONEncoder',
@@ -149,28 +149,10 @@ def _import_c_make_encoder():
     except ImportError:
         return None
 
-_default_encoder = JSONEncoder(
-    skipkeys=False,
-    ensure_ascii=True,
-    check_circular=True,
-    allow_nan=True,
-    indent=None,
-    separators=None,
-    encoding='utf-8',
-    default=None,
-    use_decimal=True,
-    namedtuple_as_object=True,
-    tuple_as_array=True,
-    iterable_as_array=False,
-    bigint_as_string=False,
-    item_sort_key=None,
-    for_json=False,
-    ignore_nan=False,
-    int_as_string_bitcount=None,
-)
+_default_encoder = JSONEncoder()
 
 def dump(obj, fp, skipkeys=False, ensure_ascii=True, check_circular=True,
-         allow_nan=True, cls=None, indent=None, separators=None,
+         allow_nan=False, cls=None, indent=None, separators=None,
          encoding='utf-8', default=None, use_decimal=True,
          namedtuple_as_object=True, tuple_as_array=True,
          bigint_as_string=False, sort_keys=False, item_sort_key=None,
@@ -187,10 +169,10 @@ def dump(obj, fp, skipkeys=False, ensure_ascii=True, check_circular=True,
     contain non-ASCII characters, so long as they do not need to be escaped
     by JSON. When it is true, all non-ASCII characters are escaped.
 
-    If *allow_nan* is false, then it will be a ``ValueError`` to
-    serialize out of range ``float`` values (``nan``, ``inf``, ``-inf``)
-    in strict compliance of the original JSON specification, instead of using
-    the JavaScript equivalents (``NaN``, ``Infinity``, ``-Infinity``). See
+    If *allow_nan* is true (default: ``False``), then out of range ``float``
+    values (``nan``, ``inf``, ``-inf``) will be serialized to
+    their JavaScript equivalents (``NaN``, ``Infinity``, ``-Infinity``)
+    instead of raising a ValueError. See
     *ignore_nan* for ECMA-262 compliant behavior.
 
     If *indent* is a string, then JSON array elements and object members
@@ -258,7 +240,7 @@ def dump(obj, fp, skipkeys=False, ensure_ascii=True, check_circular=True,
     """
     # cached encoder
     if (not skipkeys and ensure_ascii and
-        check_circular and allow_nan and
+        check_circular and not allow_nan and
         cls is None and indent is None and separators is None and
         encoding == 'utf-8' and default is None and use_decimal
         and namedtuple_as_object and tuple_as_array and not iterable_as_array
@@ -292,7 +274,7 @@ def dump(obj, fp, skipkeys=False, ensure_ascii=True, check_circular=True,
 
 
 def dumps(obj, skipkeys=False, ensure_ascii=True, check_circular=True,
-          allow_nan=True, cls=None, indent=None, separators=None,
+          allow_nan=False, cls=None, indent=None, separators=None,
           encoding='utf-8', default=None, use_decimal=True,
           namedtuple_as_object=True, tuple_as_array=True,
           bigint_as_string=False, sort_keys=False, item_sort_key=None,
@@ -312,10 +294,11 @@ def dumps(obj, skipkeys=False, ensure_ascii=True, check_circular=True,
     for container types will be skipped and a circular reference will
     result in an ``OverflowError`` (or worse).
 
-    If ``allow_nan`` is false, then it will be a ``ValueError`` to
-    serialize out of range ``float`` values (``nan``, ``inf``, ``-inf``) in
-    strict compliance of the JSON specification, instead of using the
-    JavaScript equivalents (``NaN``, ``Infinity``, ``-Infinity``).
+    If *allow_nan* is true (default: ``False``), then out of range ``float``
+    values (``nan``, ``inf``, ``-inf``) will be serialized to
+    their JavaScript equivalents (``NaN``, ``Infinity``, ``-Infinity``)
+    instead of raising a ValueError. See
+    *ignore_nan* for ECMA-262 compliant behavior.
 
     If ``indent`` is a string, then JSON array elements and object members
     will be pretty-printed with a newline followed by that string repeated
@@ -383,7 +366,7 @@ def dumps(obj, skipkeys=False, ensure_ascii=True, check_circular=True,
     """
     # cached encoder
     if (not skipkeys and ensure_ascii and
-        check_circular and allow_nan and
+        check_circular and not allow_nan and
         cls is None and indent is None and separators is None and
         encoding == 'utf-8' and default is None and use_decimal
         and namedtuple_as_object and tuple_as_array and not iterable_as_array
@@ -412,14 +395,12 @@ def dumps(obj, skipkeys=False, ensure_ascii=True, check_circular=True,
         **kw).encode(obj)
 
 
-_default_decoder = JSONDecoder(encoding=None, object_hook=None,
-                               object_pairs_hook=None)
+_default_decoder = JSONDecoder()
 
 
 def load(fp, encoding=None, cls=None, object_hook=None, parse_float=None,
         parse_int=None, parse_constant=None, object_pairs_hook=None,
-        use_decimal=False, namedtuple_as_object=True, tuple_as_array=True,
-        **kw):
+        use_decimal=False, allow_nan=False, **kw):
     """Deserialize ``fp`` (a ``.read()``-supporting file-like object containing
     a JSON document as `str` or `bytes`) to a Python object.
 
@@ -442,22 +423,26 @@ def load(fp, encoding=None, cls=None, object_hook=None, parse_float=None,
     takes priority.
 
     *parse_float*, if specified, will be called with the string of every
-    JSON float to be decoded.  By default, this is equivalent to
+    JSON float to be decoded. By default, this is equivalent to
     ``float(num_str)``. This can be used to use another datatype or parser
     for JSON floats (e.g. :class:`decimal.Decimal`).
 
     *parse_int*, if specified, will be called with the string of every
-    JSON int to be decoded.  By default, this is equivalent to
+    JSON int to be decoded. By default, this is equivalent to
     ``int(num_str)``.  This can be used to use another datatype or parser
     for JSON integers (e.g. :class:`float`).
 
-    *parse_constant*, if specified, will be called with one of the
-    following strings: ``'-Infinity'``, ``'Infinity'``, ``'NaN'``.  This
-    can be used to raise an exception if invalid JSON numbers are
-    encountered.
+    *allow_nan*, if True (default false), will allow the parser to
+    accept the non-standard floats ``NaN``, ``Infinity``, and ``-Infinity``
+    and enable the use of the deprecated *parse_constant*.
 
     If *use_decimal* is true (default: ``False``) then it implies
     parse_float=decimal.Decimal for parity with ``dump``.
+
+    *parse_constant*, if specified, will be
+    called with one of the following strings: ``'-Infinity'``,
+    ``'Infinity'``, ``'NaN'``. It is not recommended to use this feature,
+    as it is rare to parse non-compliant JSON containing these values.
 
     To use a custom ``JSONDecoder`` subclass, specify it with the ``cls``
     kwarg. NOTE: You should use *object_hook* or *object_pairs_hook* instead
@@ -468,12 +453,12 @@ def load(fp, encoding=None, cls=None, object_hook=None, parse_float=None,
         encoding=encoding, cls=cls, object_hook=object_hook,
         parse_float=parse_float, parse_int=parse_int,
         parse_constant=parse_constant, object_pairs_hook=object_pairs_hook,
-        use_decimal=use_decimal, **kw)
+        use_decimal=use_decimal, allow_nan=allow_nan, **kw)
 
 
 def loads(s, encoding=None, cls=None, object_hook=None, parse_float=None,
         parse_int=None, parse_constant=None, object_pairs_hook=None,
-        use_decimal=False, **kw):
+        use_decimal=False, allow_nan=False, **kw):
     """Deserialize ``s`` (a ``str`` or ``unicode`` instance containing a JSON
     document) to a Python object.
 
@@ -505,13 +490,17 @@ def loads(s, encoding=None, cls=None, object_hook=None, parse_float=None,
     ``int(num_str)``.  This can be used to use another datatype or parser
     for JSON integers (e.g. :class:`float`).
 
-    *parse_constant*, if specified, will be called with one of the
-    following strings: ``'-Infinity'``, ``'Infinity'``, ``'NaN'``.  This
-    can be used to raise an exception if invalid JSON numbers are
-    encountered.
+    *allow_nan*, if True (default false), will allow the parser to
+    accept the non-standard floats ``NaN``, ``Infinity``, and ``-Infinity``
+    and enable the use of the deprecated *parse_constant*.
 
     If *use_decimal* is true (default: ``False``) then it implies
     parse_float=decimal.Decimal for parity with ``dump``.
+
+    *parse_constant*, if specified, will be
+    called with one of the following strings: ``'-Infinity'``,
+    ``'Infinity'``, ``'NaN'``. It is not recommended to use this feature,
+    as it is rare to parse non-compliant JSON containing these values.
 
     To use a custom ``JSONDecoder`` subclass, specify it with the ``cls``
     kwarg. NOTE: You should use *object_hook* or *object_pairs_hook* instead
@@ -521,7 +510,7 @@ def loads(s, encoding=None, cls=None, object_hook=None, parse_float=None,
     if (cls is None and encoding is None and object_hook is None and
             parse_int is None and parse_float is None and
             parse_constant is None and object_pairs_hook is None
-            and not use_decimal and not kw):
+            and not use_decimal and not allow_nan and not kw):
         return _default_decoder.decode(s)
     if cls is None:
         cls = JSONDecoder
@@ -539,6 +528,8 @@ def loads(s, encoding=None, cls=None, object_hook=None, parse_float=None,
         if parse_float is not None:
             raise TypeError("use_decimal=True implies parse_float=Decimal")
         kw['parse_float'] = Decimal
+    if allow_nan:
+        kw['allow_nan'] = True
     return cls(encoding=encoding, **kw).decode(s)
 
 
@@ -560,22 +551,9 @@ def _toggle_speedups(enabled):
         scan.make_scanner = scan.py_make_scanner
     dec.make_scanner = scan.make_scanner
     global _default_decoder
-    _default_decoder = JSONDecoder(
-        encoding=None,
-        object_hook=None,
-        object_pairs_hook=None,
-    )
+    _default_decoder = JSONDecoder()
     global _default_encoder
-    _default_encoder = JSONEncoder(
-       skipkeys=False,
-       ensure_ascii=True,
-       check_circular=True,
-       allow_nan=True,
-       indent=None,
-       separators=None,
-       encoding='utf-8',
-       default=None,
-   )
+    _default_encoder = JSONEncoder()
 
 def simple_first(kv):
     """Helper function to pass to item_sort_key to sort simple

@@ -46,9 +46,35 @@ BACKSLASH = {
 
 DEFAULT_ENCODING = "utf-8"
 
+if hasattr(sys, 'get_int_max_str_digits'):
+    bounded_int = int
+else:
+    def bounded_int(s, INT_MAX_STR_DIGITS=4300):
+        """Backport of the integer string length conversion limitation
+
+        https://docs.python.org/3/library/stdtypes.html#int-max-str-digits
+        """
+        if len(s) > INT_MAX_STR_DIGITS:
+            raise ValueError("Exceeds the limit (%s) for integer string conversion: value has %s digits" % (INT_MAX_STR_DIGITS, len(s)))
+        return int(s)
+
+
+def scan_four_digit_hex(s, end, _m=re.compile(r'^[0-9a-fA-F]{4}$').match):
+    """Scan a four digit hex number from s[end:end + 4]
+    """
+    msg = "Invalid \\uXXXX escape sequence"
+    esc = s[end:end + 4]
+    if not _m(esc):
+        raise JSONDecodeError(msg, s, end - 2)
+    try:
+        return int(esc, 16), end + 4
+    except ValueError:
+        raise JSONDecodeError(msg, s, end - 2)
+
 def py_scanstring(s, end, encoding=None, strict=True,
         _b=BACKSLASH, _m=STRINGCHUNK.match, _join=u''.join,
-        _PY3=PY3, _maxunicode=sys.maxunicode):
+        _PY3=PY3, _maxunicode=sys.maxunicode,
+        _scan_four_digit_hex=scan_four_digit_hex):
     """Scan the string s for a JSON string. End is the index of the
     character in s after the quote that started the JSON string.
     Unescapes all valid JSON string escape sequences and raises ValueError
@@ -67,6 +93,7 @@ def py_scanstring(s, end, encoding=None, strict=True,
         if chunk is None:
             raise JSONDecodeError(
                 "Unterminated string starting at", s, begin)
+        prev_end = end
         end = chunk.end()
         content, terminator = chunk.groups()
         # Content is contains zero or more unescaped string characters
@@ -81,7 +108,7 @@ def py_scanstring(s, end, encoding=None, strict=True,
         elif terminator != '\\':
             if strict:
                 msg = "Invalid control character %r at"
-                raise JSONDecodeError(msg, s, end)
+                raise JSONDecodeError(msg, s, prev_end)
             else:
                 _append(terminator)
                 continue
@@ -100,35 +127,18 @@ def py_scanstring(s, end, encoding=None, strict=True,
             end += 1
         else:
             # Unicode escape sequence
-            msg = "Invalid \\uXXXX escape sequence"
-            esc = s[end + 1:end + 5]
-            escX = esc[1:2]
-            if len(esc) != 4 or escX == 'x' or escX == 'X':
-                raise JSONDecodeError(msg, s, end - 1)
-            try:
-                uni = int(esc, 16)
-            except ValueError:
-                raise JSONDecodeError(msg, s, end - 1)
-            if uni < 0 or uni > _maxunicode:
-                raise JSONDecodeError(msg, s, end - 1)
-            end += 5
+            uni, end = _scan_four_digit_hex(s, end + 1)
             # Check for surrogate pair on UCS-4 systems
             # Note that this will join high/low surrogate pairs
             # but will also pass unpaired surrogates through
             if (_maxunicode > 65535 and
                 uni & 0xfc00 == 0xd800 and
                 s[end:end + 2] == '\\u'):
-                esc2 = s[end + 2:end + 6]
-                escX = esc2[1:2]
-                if len(esc2) == 4 and not (escX == 'x' or escX == 'X'):
-                    try:
-                        uni2 = int(esc2, 16)
-                    except ValueError:
-                        raise JSONDecodeError(msg, s, end)
-                    if uni2 & 0xfc00 == 0xdc00:
-                        uni = 0x10000 + (((uni - 0xd800) << 10) |
-                                         (uni2 - 0xdc00))
-                        end += 6
+                uni2, end2 = _scan_four_digit_hex(s, end + 2)
+                if uni2 & 0xfc00 == 0xdc00:
+                    uni = 0x10000 + (((uni - 0xd800) << 10) |
+                                        (uni2 - 0xdc00))
+                    end = end2
             char = unichr(uni)
         # Append the unescaped character
         _append(char)
@@ -169,7 +179,7 @@ def JSONObject(state, encoding, strict, scan_once, object_hook,
             return pairs, end + 1
         elif nextchar != '"':
             raise JSONDecodeError(
-                "Expecting property name enclosed in double quotes",
+                "Expecting property name enclosed in double quotes or '}'",
                 s, end)
     end += 1
     while True:
@@ -296,14 +306,15 @@ class JSONDecoder(object):
     | null          | None              |
     +---------------+-------------------+
 
-    It also understands ``NaN``, ``Infinity``, and ``-Infinity`` as
+    When allow_nan=True, it also understands
+    ``NaN``, ``Infinity``, and ``-Infinity`` as
     their corresponding ``float`` values, which is outside the JSON spec.
 
     """
 
     def __init__(self, encoding=None, object_hook=None, parse_float=None,
             parse_int=None, parse_constant=None, strict=True,
-            object_pairs_hook=None):
+            object_pairs_hook=None, allow_nan=False):
         """
         *encoding* determines the encoding used to interpret any
         :class:`str` objects decoded by this instance (``'utf-8'`` by
@@ -336,10 +347,13 @@ class JSONDecoder(object):
         ``int(num_str)``.  This can be used to use another datatype or parser
         for JSON integers (e.g. :class:`float`).
 
-        *parse_constant*, if specified, will be called with one of the
-        following strings: ``'-Infinity'``, ``'Infinity'``, ``'NaN'``.  This
-        can be used to raise an exception if invalid JSON numbers are
-        encountered.
+        *allow_nan*, if True (default false), will allow the parser to
+        accept the non-standard floats ``NaN``, ``Infinity``, and ``-Infinity``.
+
+        *parse_constant*, if specified, will be
+        called with one of the following strings: ``'-Infinity'``,
+        ``'Infinity'``, ``'NaN'``. It is not recommended to use this feature,
+        as it is rare to parse non-compliant JSON containing these values.
 
         *strict* controls the parser's behavior when it encounters an
         invalid control character in a string. The default setting of
@@ -353,8 +367,8 @@ class JSONDecoder(object):
         self.object_hook = object_hook
         self.object_pairs_hook = object_pairs_hook
         self.parse_float = parse_float or float
-        self.parse_int = parse_int or int
-        self.parse_constant = parse_constant or _CONSTANTS.__getitem__
+        self.parse_int = parse_int or bounded_int
+        self.parse_constant = parse_constant or (allow_nan and _CONSTANTS.__getitem__ or None)
         self.strict = strict
         self.parse_object = JSONObject
         self.parse_array = JSONArray
