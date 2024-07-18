@@ -63,7 +63,7 @@ cdef extern from * nogil:
     cdef T dynamic_cast[T](void *) except +
 
 
-cdef TDictionaryBuilderOptions CreateDictionaryBuilderOptions(occurence_lower_bound, max_dictionary_size):
+cdef TDictionaryBuilderOptions CreateDictionaryBuilderOptions(occurence_lower_bound, max_dictionary_size) except *:
     cdef TDictionaryBuilderOptions dict_builder_options
 
     if occurence_lower_bound is not None:
@@ -81,7 +81,7 @@ cdef TDictionaryOptions CreateDictionaryOptions(
     start_token_id,
     end_of_word_policy,
     end_of_sentence_policy,
-):
+) except *:
     cdef TDictionaryOptions dict_options
 
     if token_level_type is not None:
@@ -100,7 +100,7 @@ cdef TDictionaryOptions CreateDictionaryOptions(
     return dict_options
 
 
-cdef TBpeDictionaryOptions CreateBpeDictionaryOptions(num_bpe_units, skip_unknown):
+cdef TBpeDictionaryOptions CreateBpeDictionaryOptions(num_bpe_units, skip_unknown) except *:
     cdef TBpeDictionaryOptions bpe_dict_options
 
     if num_bpe_units is not None:

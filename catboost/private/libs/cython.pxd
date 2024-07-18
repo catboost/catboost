@@ -48,7 +48,7 @@ cdef extern from "catboost/private/libs/options/binarization_options.h" namespac
 
 cdef extern from "catboost/private/libs/options/enums.h" namespace "NCB":
     cdef cppclass ERawTargetType:
-        bool_t operator==(ERawTargetType)
+        bool_t operator==(ERawTargetType) noexcept
 
     cdef ERawTargetType ERawTargetType_Boolean "NCB::ERawTargetType::Boolean"
     cdef ERawTargetType ERawTargetType_Integer "NCB::ERawTargetType::Integer"
@@ -68,5 +68,5 @@ cdef extern from "catboost/private/libs/quantization_schema/schema.h" namespace 
 cdef extern from "catboost/private/libs/data_types/groupid.h":
     ctypedef ui64 TGroupId
     ctypedef ui32 TSubgroupId
-    cdef TGroupId CalcGroupIdFor(const TStringBuf& token)
-    cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token)
+    cdef TGroupId CalcGroupIdFor(const TStringBuf& token) noexcept
+    cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token) noexcept

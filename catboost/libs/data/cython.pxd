@@ -30,7 +30,7 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
         bool_t IsAvailable
 
     cdef cppclass TFeaturesLayout:
-        TFeaturesLayout()
+        TFeaturesLayout() noexcept
         TFeaturesLayout(const ui32 featureCount) except +ProcessException
         TFeaturesLayout(
             const ui32 featureCount,
@@ -42,17 +42,17 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
             bool_t allFeaturesAreSparse
         ) except +ProcessException
 
-        TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo()
+        TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() noexcept
         TVector[TString] GetExternalFeatureIds() except +ProcessException
         void SetExternalFeatureIds(TConstArrayRef[TString] featureIds) except +ProcessException
         EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) except +ProcessException
-        ui32 GetFloatFeatureCount()
-        ui32 GetCatFeatureCount()
-        ui32 GetEmbeddingFeatureCount()
-        ui32 GetExternalFeatureCount()
-        TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx()
-        TConstArrayRef[ui32] GetTextFeatureInternalIdxToExternalIdx()
-        TConstArrayRef[ui32] GetEmbeddingFeatureInternalIdxToExternalIdx()
+        ui32 GetFloatFeatureCount() noexcept
+        ui32 GetCatFeatureCount() noexcept
+        ui32 GetEmbeddingFeatureCount() noexcept
+        ui32 GetExternalFeatureCount() noexcept
+        TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() noexcept
+        TConstArrayRef[ui32] GetTextFeatureInternalIdxToExternalIdx() noexcept
+        TConstArrayRef[ui32] GetEmbeddingFeatureInternalIdxToExternalIdx() noexcept
 
     ctypedef TIntrusivePtr[TFeaturesLayout] TFeaturesLayoutPtr
 
@@ -81,7 +81,7 @@ cdef extern from "catboost/libs/data/meta_info.h" namespace "NCB":
 
         # ColumnsInfo is not here because it is not used for now
 
-        ui32 GetFeatureCount()
+        ui32 GetFeatureCount() noexcept
 
 cdef extern from "catboost/libs/data/order.h" namespace "NCB":
     cdef cppclass EObjectsOrder:
@@ -215,8 +215,8 @@ cdef extern from *:
 cdef extern from "catboost/libs/data/weights.h" namespace "NCB":
     cdef cppclass TWeights[T]:
         T operator[](ui32 idx) except +ProcessException
-        ui32 GetSize()
-        bool_t IsTrivial()
+        ui32 GetSize() noexcept
+        bool_t IsTrivial() noexcept
         TConstArrayRef[T] GetNonTrivialData() except +ProcessException
 
 
@@ -256,13 +256,13 @@ cdef extern from "catboost/libs/data/objects.h":
 
 cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
     cdef cppclass TObjectsDataProvider:
-        ui32 GetObjectCount()
+        ui32 GetObjectCount() noexcept
         bool_t EqualTo(const TObjectsDataProvider& rhs, bool_t ignoreSparsity) except +ProcessException
         TMaybeData[TConstArrayRef[TGroupId]] GetGroupIds() except +ProcessException
         TMaybeData[TConstArrayRef[TSubgroupId]] GetSubgroupIds() except +ProcessException
-        TMaybeData[TConstArrayRef[ui64]] GetTimestamp()
+        TMaybeData[TConstArrayRef[ui64]] GetTimestamp() noexcept
         const THashMap[ui32, TString]& GetCatFeaturesHashToString(ui32 catFeatureIdx) except +ProcessException
-        TFeaturesLayoutPtr GetFeaturesLayout()
+        TFeaturesLayoutPtr GetFeaturesLayout() noexcept
 
     cdef cppclass TRawObjectsDataProvider(TObjectsDataProvider):
         void SetGroupIds(TConstArrayRef[TStringBuf] groupStringIds) except +ProcessException
@@ -343,13 +343,13 @@ cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
 
 cdef extern from "catboost/libs/data/target.h" namespace "NCB":
     cdef cppclass TRawTargetDataProvider:
-        ERawTargetType GetTargetType()
+        ERawTargetType GetTargetType() noexcept
         void GetNumericTarget(TArrayRef[TArrayRef[float]] dst) except +ProcessException
         void GetStringTargetRef(TVector[TConstArrayRef[TString]]* dst) except +ProcessException
-        TMaybeData[TBaselineArrayRef] GetBaseline()
-        const TWeights[float]& GetWeights()
-        const TWeights[float]& GetGroupWeights()
-        TConstArrayRef[TPair] GetPairs()
+        TMaybeData[TBaselineArrayRef] GetBaseline() noexcept
+        const TWeights[float]& GetWeights() noexcept
+        const TWeights[float]& GetGroupWeights() noexcept
+        TConstArrayRef[TPair] GetPairs() noexcept
 
     cdef cppclass ETargetType:
         pass

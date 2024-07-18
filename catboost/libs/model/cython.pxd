@@ -68,20 +68,20 @@ cdef extern from "catboost/libs/model/model.h":
         THolder[IModelTreeData] Clone(ECloningPolicy policy) except +ProcessException
 
     cdef cppclass TModelTrees:
-        int GetDimensionCount()
-        TConstArrayRef[TCatFeature] GetCatFeatures()
-        TConstArrayRef[TTextFeature] GetTextFeatures()
-        TConstArrayRef[TEmbeddingFeature] GetEmbeddingFeatures()
-        TConstArrayRef[TFloatFeature] GetFloatFeatures()
+        int GetDimensionCount() noexcept
+        TConstArrayRef[TCatFeature] GetCatFeatures() noexcept
+        TConstArrayRef[TTextFeature] GetTextFeatures() noexcept
+        TConstArrayRef[TEmbeddingFeature] GetEmbeddingFeatures() noexcept
+        TConstArrayRef[TFloatFeature] GetFloatFeatures() noexcept
         void DropUnusedFeatures() except +ProcessException
         TVector[ui32] GetTreeLeafCounts() except +ProcessException
-        const THolder[IModelTreeData]& GetModelTreeData()
+        const THolder[IModelTreeData]& GetModelTreeData() noexcept
 
         void ConvertObliviousToAsymmetric() except +ProcessException
 
     cdef cppclass TCOWTreeWrapper:
-        const TModelTrees& operator*()
-        const TModelTrees* Get()
+        const TModelTrees& operator*() noexcept
+        const TModelTrees* Get() noexcept
         TModelTrees* GetMutable() except +ProcessException
 
     cdef cppclass TFullModel:
@@ -94,7 +94,7 @@ cdef extern from "catboost/libs/model/model.h":
         void Load(IInputStream* stream) except +ProcessException
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
-        size_t GetDimensionsCount() nogil
+        size_t GetDimensionsCount() noexcept nogil
         void Truncate(size_t begin, size_t end) except +ProcessException
         bool_t IsOblivious() except +ProcessException
         TString GetLossFunctionName() except +ProcessException

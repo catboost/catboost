@@ -5,7 +5,7 @@ from util.generic.vector cimport TVector
 
 cdef extern from "catboost/libs/monoforest/enums.h" namespace "NMonoForest":
     cdef cppclass EBinSplitType:
-        bool_t operator==(EBinSplitType)
+        bool_t operator==(EBinSplitType) noexcept
 
     cdef EBinSplitType EBinSplitType_TakeGreater "NMonoForest::EBinSplitType::TakeGreater"
     cdef EBinSplitType EBinSplitType_TakeEqual "NMonoForest::EBinSplitType::TakeBin"
@@ -13,7 +13,7 @@ cdef extern from "catboost/libs/monoforest/enums.h" namespace "NMonoForest":
 
 cdef extern from "catboost/libs/monoforest/enums.h" namespace "NMonoForest":
     cdef cppclass EFeatureType "NMonoForest::EFeatureType":
-        bool_t operator==(EFeatureType)
+        bool_t operator==(EFeatureType) noexcept
     cdef EFeatureType EMonoForestFeatureType_Float "NMonoForest::EFeatureType::Float"
     cdef EFeatureType EMonoForestFeatureType_OneHot "NMonoForest::EFeatureType::OneHot"
 

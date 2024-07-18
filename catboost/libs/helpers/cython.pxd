@@ -30,7 +30,7 @@ cdef extern from "catboost/libs/helpers/resource_holder.h" namespace "NCB":
 cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "NCB":
     cdef cppclass TMaybeOwningArrayHolder[T]:
         @staticmethod
-        TMaybeOwningArrayHolder[T] CreateNonOwning(TArrayRef[T] arrayRef)
+        TMaybeOwningArrayHolder[T] CreateNonOwning(TArrayRef[T] arrayRef) noexcept
 
         @staticmethod
         TMaybeOwningArrayHolder[T] CreateOwning(
@@ -42,7 +42,7 @@ cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "
 
     cdef cppclass TMaybeOwningConstArrayHolder[T]:
         @staticmethod
-        TMaybeOwningConstArrayHolder[T] CreateNonOwning(TConstArrayRef[T] arrayRef)
+        TMaybeOwningConstArrayHolder[T] CreateNonOwning(TConstArrayRef[T] arrayRef) noexcept
 
         @staticmethod
         TMaybeOwningConstArrayHolder[T] CreateOwning(

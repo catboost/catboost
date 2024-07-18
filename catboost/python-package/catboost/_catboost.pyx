@@ -250,7 +250,7 @@ cdef extern from "Python.h":
 
 cdef extern from "<future>" namespace "std":
     cdef cppclass future[T]:
-        bool_t valid()
+        bool_t valid() noexcept
         void get() except +ProcessException
 
 
@@ -262,8 +262,8 @@ cdef extern from "catboost/libs/logging/logging.h":
 
 
 cdef extern from "catboost/libs/cat_feature/cat_feature.h":
-    cdef ui32 CalcCatFeatureHash(TStringBuf feature)
-    cdef float ConvertCatFeatureHashToFloat(ui32 hashVal)
+    cdef ui32 CalcCatFeatureHash(TStringBuf feature) noexcept
+    cdef float ConvertCatFeatureHashToFloat(ui32 hashVal) noexcept
 
 
 cdef class Py_FloatSequencePtr:
@@ -858,7 +858,7 @@ cdef extern from "catboost/private/libs/algo/apply.h":
     )  nogil except +ProcessException
 
 cdef extern from "catboost/private/libs/algo/helpers.h":
-    cdef void ConfigureMalloc() nogil except *
+    cdef void ConfigureMalloc() except +ProcessException nogil 
 
 cdef extern from "catboost/private/libs/algo/confusion_matrix.h":
     cdef TVector[double] MakeConfusionMatrix(
@@ -873,12 +873,12 @@ cdef extern from "catboost/private/libs/algo/roc_curve.h":
         double FalseNegativeRate
         double FalsePositiveRate
 
-        TRocPoint() nogil
+        TRocPoint() noexcept nogil
 
-        TRocPoint(double boundary, double FalseNegativeRate, double FalsePositiveRate) nogil
+        TRocPoint(double boundary, double FalseNegativeRate, double FalsePositiveRate) noexcept nogil
 
     cdef cppclass TRocCurve:
-        TRocCurve() nogil
+        TRocCurve() noexcept nogil
 
         TRocCurve(
             const TFullModel& model,
@@ -912,11 +912,11 @@ cdef extern from "catboost/libs/eval_result/eval_helpers.h" namespace "NCB":
 
 cdef extern from "catboost/libs/eval_result/eval_result.h" namespace "NCB":
     cdef cppclass TEvalResult:
-        TVector[TVector[TVector[double]]] GetRawValuesRef() except * with gil
-        void ClearRawValues() except * with gil
+        TVector[TVector[TVector[double]]] GetRawValuesRef() except +ProcessException with gil
+        void ClearRawValues() except +ProcessException with gil
 
 cdef extern from "catboost/private/libs/init/init_reg.h" namespace "NCB":
-    cdef void LibraryInit() nogil except *
+    cdef void LibraryInit() except +ProcessException nogil
 
 cdef extern from "catboost/libs/fstr/partial_dependence.h":
     cdef TVector[double] GetPartialDependence(
@@ -1790,13 +1790,13 @@ def _try_jit_methods(obj, method_names, isCuda=False):
             _try_jit_method(obj, method_name, isCuda)
 
 # customGenerator should have method rvs()
-cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(object customGenerator):
+cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(object customGenerator) except *:
     cdef TCustomRandomDistributionGenerator descriptor
     descriptor.CustomData = <void*>customGenerator
     descriptor.EvalFunc = &_RandomDistGen
     return descriptor
 
-cdef TCustomMetricDescriptor _BuildCustomGpuMetricDescriptor(object metricObject):
+cdef TCustomMetricDescriptor _BuildCustomGpuMetricDescriptor(object metricObject) except *:
     cdef TCustomMetricDescriptor descriptor
     _try_jit_methods(metricObject, custom_gpu_metric_methods_to_optimize, isCuda=True)
     descriptor.CustomData = <void*>metricObject
@@ -1804,7 +1804,7 @@ cdef TCustomMetricDescriptor _BuildCustomGpuMetricDescriptor(object metricObject
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 
-cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
+cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject) except *:
     cdef TCustomMetricDescriptor descriptor
     _try_jit_methods(metricObject, custom_metric_methods_to_optimize)
     descriptor.CustomData = <void*>metricObject
@@ -1818,13 +1818,13 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
 
-cdef TCustomCallbackDescriptor _BuildCustomCallbackDescritor(object callbackObject):
+cdef TCustomCallbackDescriptor _BuildCustomCallbackDescritor(object callbackObject) except *:
     cdef TCustomCallbackDescriptor descriptor
     descriptor.CustomData = <void*>callbackObject
     descriptor.AfterIterationFunc = &_CallbackAfterIteration
     return descriptor
 
-cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject):
+cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject) except *:
     cdef TCustomObjectiveDescriptor descriptor
     _try_jit_methods(objectiveObject, custom_objective_methods_to_optimize)
     descriptor.CustomData = <void*>objectiveObject
@@ -1833,7 +1833,7 @@ cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objective
     descriptor.CalcDersMultiClass = &_ObjectiveCalcDersMultiClass
     return descriptor
 
-cdef TCustomObjectiveDescriptor _BuildCustomGpuObjectiveDescriptor(object objectiveObject):
+cdef TCustomObjectiveDescriptor _BuildCustomGpuObjectiveDescriptor(object objectiveObject) except *:
     cdef TCustomObjectiveDescriptor descriptor
     _try_jit_methods(objectiveObject, custom_gpu_objective_methods_to_optimize, isCuda=True)
     descriptor.CustomData = <void*>objectiveObject
@@ -2305,7 +2305,7 @@ cdef TFeaturesLayout* _init_features_layout(
         feature_tags_map,
         all_features_are_sparse)
 
-cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLayout, EFeatureType featureType) except +:
+cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLayout, EFeatureType featureType) except *:
     cdef TVector[bool_t] mask
     mask.resize(featuresLayout.GetExternalFeatureCount(), False)
 
@@ -2316,7 +2316,7 @@ cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLa
 
     return mask
 
-cdef TVector[ui32] _get_main_data_feature_idx_to_dst_feature_idx(const TFeaturesLayout* featuresLayout, bool_t hasSeparateEmbeddingFeaturesData) except +:
+cdef TVector[ui32] _get_main_data_feature_idx_to_dst_feature_idx(const TFeaturesLayout* featuresLayout, bool_t hasSeparateEmbeddingFeaturesData) except *:
     cdef TVector[ui32] result
 
     if hasSeparateEmbeddingFeaturesData:
@@ -6160,12 +6160,12 @@ cdef class _MetricCalcerBase:
         raise CatBoostError('Can\'t deepcopy _MetricCalcerBase object')
 
 
-cdef TVector[float] to_tvector_float(np.ndarray[float, ndim=1, mode="c"] x) except +:
+cdef TVector[float] to_tvector_float(np.ndarray[float, ndim=1, mode="c"] x) except *:
     cdef TVector[float] result
     result.assign(<float *>x.data, <float *>x.data + x.shape[0])
     return result
 
-cdef TVector[double] to_tvector_double(np.ndarray[double, ndim=1, mode="c"] x) except +:
+cdef TVector[double] to_tvector_double(np.ndarray[double, ndim=1, mode="c"] x) except *:
     cdef TVector[double] result
     result.assign(<double *>x.data, <double *>x.data + x.shape[0])
     return result
@@ -6314,7 +6314,7 @@ cpdef _library_init():
     LibraryInit()
 
 
-cdef size_t python_stream_read_func(char* whereToWrite, size_t bufLen, PyObject* stream, TString* errorMsg):
+cdef size_t python_stream_read_func(char* whereToWrite, size_t bufLen, PyObject* stream, TString* errorMsg) noexcept:
     BUF_SIZE = 64 * 1024
     cdef size_t total_read = 0
     while bufLen > 0:

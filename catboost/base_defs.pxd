@@ -24,7 +24,7 @@ cdef extern from "library/cpp/threading/local_executor/tbb_local_executor.h" nam
 
 
 cdef extern from "catboost/private/libs/options/json_helper.h":
-    cdef TString WriteTJsonValue(const TJsonValue& jsonValue) except +ProcessException
+    cdef TString WriteTJsonValue(const TJsonValue& jsonValue) except +ProcessException nogil
 
 
 cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
@@ -40,7 +40,7 @@ cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
         JSON_UINTEGER
 
     cdef cppclass TJsonValue:
-        EJsonValueType GetType()
+        EJsonValueType GetType() noexcept
         i64 GetInteger() except +ProcessException
         double GetDouble() except +ProcessException
         const TString& GetString() except +ProcessException
@@ -53,7 +53,7 @@ cdef extern from "util/stream/input.h":
 
 cdef extern from "catboost/libs/model/enums.h":
     cdef cppclass EFormulaEvaluatorType:
-        bool_t operator==(EFormulaEvaluatorType)
+        bool_t operator==(EFormulaEvaluatorType) noexcept
 
     cdef EFormulaEvaluatorType EFormulaEvaluatorType_CPU "EFormulaEvaluatorType::CPU"
     cdef EFormulaEvaluatorType EFormulaEvaluatorType_GPU "EFormulaEvaluatorType::GPU"
@@ -61,18 +61,18 @@ cdef extern from "catboost/libs/model/enums.h":
 
 cdef extern from "catboost/libs/model/scale_and_bias.h":
     cdef cppclass TScaleAndBias:
-        TScaleAndBias()
+        TScaleAndBias() noexcept
         TScaleAndBias(double scale, TVector[double]& bias) except +ProcessException
 
         double Scale
         TVector[double] Bias
 
-        TVector[double]& GetBiasRef()
+        TVector[double]& GetBiasRef() noexcept
 
 
 cdef extern from "catboost/private/libs/options/enums.h":
     cdef cppclass EFeatureType:
-        bool_t operator==(EFeatureType)
+        bool_t operator==(EFeatureType) noexcept
 
     cdef EFeatureType EFeatureType_Float "EFeatureType::Float"
     cdef EFeatureType EFeatureType_Categorical "EFeatureType::Categorical"
@@ -81,7 +81,7 @@ cdef extern from "catboost/private/libs/options/enums.h":
 
 
     cdef cppclass EPredictionType:
-        bool_t operator==(EPredictionType)
+        bool_t operator==(EPredictionType) noexcept
 
     cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
     cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
@@ -121,4 +121,4 @@ cdef extern from "catboost/private/libs/data_types/pair.h":
         ui32 WinnerId
         ui32 LoserId
         float Weight
-        TPair(ui32 winnerId, ui32 loserId, float weight)
+        TPair(ui32 winnerId, ui32 loserId, float weight) noexcept
