@@ -29,7 +29,7 @@ public:
      *
      * @param s                         String to read from.
      */
-    inline TStringInput(const TString& s) noexcept
+    inline TStringInput(const TString& s Y_LIFETIME_BOUND) noexcept
         : S_(&s)
         , Pos_(0)
     {
@@ -73,7 +73,7 @@ public:
      *
      * @param s                         String to append to.
      */
-    inline TStringOutput(TString& s) noexcept
+    inline TStringOutput(TString& s Y_LIFETIME_BOUND) noexcept
         : S_(&s)
     {
     }
