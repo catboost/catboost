@@ -139,7 +139,7 @@ def get_all_files_wo_built_artifacts(topdir, sub_path, exclude_regexp_str, verbo
 def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
     topnames = [
         'AUTHORS', 'LICENSE', 'CONTRIBUTING.md', 'README.md', 'RELEASE.md',
-        'conanfile.txt',
+        'conanfile.py',
         'build',
         os.path.join('catboost', 'base_defs.pxd'),
         os.path.join('catboost', 'cuda'),
