@@ -156,7 +156,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${_MSVC_COMMON_C_CXX_FLAGS} \
 # TODO - -DUSE_STL_SYSTEM
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${_MSVC_COMMON_C_CXX_FLAGS} \
-  /std:c++latest \
   /Zc:__cplusplus \
 ")
 
