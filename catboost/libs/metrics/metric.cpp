@@ -894,7 +894,7 @@ TMetricHolder TCoxMetric::Eval(
     const auto ndata = targets.ysize();
     TVector<int> labelOrder(ndata);
     std::iota(labelOrder.begin(), labelOrder.end(), 0);
-    std::sort(
+    StableSort(
         labelOrder.begin(),
         labelOrder.end(),
         [=] (int lhs, int rhs) {
@@ -943,7 +943,7 @@ double TCoxMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 void TCoxMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
-    *valueType = EMetricBestValue::Min;
+    *valueType = EMetricBestValue::Max;
     if (bestValue) {
         *bestValue = 0;
     }

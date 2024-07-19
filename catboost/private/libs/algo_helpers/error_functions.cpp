@@ -120,7 +120,7 @@ static TVector<int> ArgSort(
 ) {
     TVector<int> labelOrder(count);
     std::iota(labelOrder.begin(), labelOrder.end(), start);
-    std::sort(
+    StableSort(
         labelOrder.begin(),
         labelOrder.end(),
         [=] (int lhs, int rhs) {
@@ -197,7 +197,7 @@ void TCoxError::CalcDersRange(
 
         const double grad = static_cast<double>(y > 0) - expP * rk;
         const double hess = expP * rk - expP * expP * sk;
-        ders[ind].Der1 = - grad;
+        ders[ind].Der1 = grad;
         ders[ind].Der2 = - hess;
 
         lastExpP = expP;
@@ -248,7 +248,7 @@ void TCoxError::CalcFirstDerRange(
         }
 
         const double grad = static_cast<double>(y > 0) - expP * rk;
-        firstDers[ind] = - grad;
+        firstDers[ind] = grad;
 
         lastExpP = expP;
     }
