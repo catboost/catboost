@@ -12,7 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
 add_subdirectory(lib)
 
 add_executable(triecompiler)
@@ -22,10 +21,6 @@ target_link_libraries(triecompiler PUBLIC
   contrib-libs-cxxsupp
   yutil
   tools-triecompiler-lib
-)
-
-target_allocator(triecompiler
-  system_allocator
 )
 
 target_link_options(triecompiler PRIVATE
@@ -43,5 +38,9 @@ target_sources(triecompiler PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/triecompiler/main.cpp
 )
 
+target_allocator(triecompiler
+  system_allocator
+)
 
 vcs_info(triecompiler)
+

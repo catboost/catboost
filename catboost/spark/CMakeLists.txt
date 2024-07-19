@@ -13,7 +13,6 @@
 # changes in this file.
 
 if((NOT DEFINED CATBOOST_COMPONENTS) OR (SPARK IN_LIST CATBOOST_COMPONENTS) OR (spark IN_LIST CATBOOST_COMPONENTS))
-
 add_subdirectory(catboost4j-spark)
 
 endif()

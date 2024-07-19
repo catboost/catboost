@@ -12,12 +12,10 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
 add_subdirectory(charset)
-add_subdirectory(draft)
-add_subdirectory(ut)
 add_subdirectory(datetime)
 add_subdirectory(digest)
+add_subdirectory(draft)
 add_subdirectory(folder)
 add_subdirectory(generic)
 add_subdirectory(memory)
@@ -27,6 +25,7 @@ add_subdirectory(stream)
 add_subdirectory(string)
 add_subdirectory(system)
 add_subdirectory(thread)
+add_subdirectory(ut)
 
 add_library(yutil)
 
@@ -52,7 +51,6 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/valgrind.cpp
   ${PROJECT_SOURCE_DIR}/util/system/mktemp_system.cpp
 )
-
 
 target_joined_source(yutil
   all_datetime.cpp
@@ -349,3 +347,4 @@ target_ragel_lexers(yutil
   ${PROJECT_SOURCE_DIR}/util/datetime/parser.rl6
   -CG2
 )
+

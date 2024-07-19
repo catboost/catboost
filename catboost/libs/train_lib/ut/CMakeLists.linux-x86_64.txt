@@ -29,11 +29,6 @@ target_link_libraries(catboost-libs-train_lib-ut PUBLIC
   catboost-libs-helpers
 )
 
-target_allocator(catboost-libs-train_lib-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
 target_link_options(catboost-libs-train_lib-ut PRIVATE
   -ldl
   -lrt
@@ -48,7 +43,6 @@ target_link_options(catboost-libs-train_lib-ut PRIVATE
 target_sources(catboost-libs-train_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/ut/train_model_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -83,15 +77,21 @@ set_yunittest_property(
   TEST
   catboost-libs-train_lib-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(catboost-libs-train_lib-ut)
 
 set_yunittest_property(
   TEST
   catboost-libs-train_lib-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(catboost-libs-train_lib-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
+vcs_info(catboost-libs-train_lib-ut)
+

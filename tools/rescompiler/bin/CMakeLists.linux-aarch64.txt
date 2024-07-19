@@ -22,10 +22,6 @@ target_link_libraries(rescompiler PUBLIC
   library-cpp-resource
 )
 
-target_allocator(rescompiler
-  cpp-malloc-jemalloc
-)
-
 target_link_options(rescompiler PRIVATE
   -ldl
   -lrt
@@ -41,5 +37,9 @@ target_sources(rescompiler PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/rescompiler/main.cpp
 )
 
+target_allocator(rescompiler
+  cpp-malloc-jemalloc
+)
 
 vcs_info(rescompiler)
+

@@ -79,7 +79,6 @@ target_sources(libs-model-model_export.global PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
 )
 
-
 resources(libs-model-model_export.global
   ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
   INPUTS
@@ -99,3 +98,4 @@ resources(libs-model-model_export.global
   catboost_model_export_cpp_ctr_structs
   catboost_model_export_cpp_ctr_calcer
 )
+

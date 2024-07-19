@@ -36,7 +36,6 @@ target_sources(libs-cxxsupp-libcxxabi-parts PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_demangle.cpp
 )
 
-
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_thread_atexit.cpp
@@ -45,3 +44,4 @@ set_property(
   COMPILE_OPTIONS
   -fno-lto
 )
+

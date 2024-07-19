@@ -21,10 +21,6 @@ target_link_libraries(util-random-ut PUBLIC
   cpp-testing-unittest_main
 )
 
-target_allocator(util-random-ut
-  cpp-malloc-jemalloc
-)
-
 target_link_options(util-random-ut PRIVATE
   -ldl
   -Wl,--no-as-needed
@@ -42,7 +38,6 @@ target_sources(util-random-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/random/random_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/random/shuffle_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -77,15 +72,20 @@ set_yunittest_property(
   TEST
   util-random-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(util-random-ut)
 
 set_yunittest_property(
   TEST
   util-random-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(util-random-ut
+  cpp-malloc-jemalloc
+)
+
+vcs_info(util-random-ut)
+

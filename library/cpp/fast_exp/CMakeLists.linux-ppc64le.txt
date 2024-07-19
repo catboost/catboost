@@ -23,7 +23,7 @@ target_link_libraries(library-cpp-fast_exp PUBLIC
 )
 
 target_sources(library-cpp-fast_exp PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/fast_exp/fast_exp.cpp
 )
 

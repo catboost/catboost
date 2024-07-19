@@ -25,11 +25,6 @@ target_link_libraries(cuda_lib PUBLIC
   catboost-cuda-cuda_util
 )
 
-target_allocator(cuda_lib
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
 target_link_options(cuda_lib PRIVATE
   -ldl
   -lrt
@@ -54,5 +49,10 @@ target_sources(cuda_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_serialization.cpp
 )
 
+target_allocator(cuda_lib
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
 
 vcs_info(cuda_lib)
+

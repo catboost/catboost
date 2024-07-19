@@ -26,6 +26,7 @@ target_link_libraries(cpp-netliba-v6 PUBLIC
 )
 
 target_sources(cpp-netliba-v6 PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/net_queue_stat.h
   ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/stdafx.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/udp_address.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/udp_client_server.cpp
@@ -45,6 +46,5 @@ target_sources(cpp-netliba-v6 PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/net_request.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/ib_collective.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/ib_memstream.cpp
-  ${PROJECT_SOURCE_DIR}/library/cpp/netliba/v6/net_queue_stat.h
 )
 

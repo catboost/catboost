@@ -25,7 +25,6 @@ target_sources(libs-base64-neon32 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/neon32/lib.c
 )
 
-
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/neon32/codec_neon32.c
@@ -43,3 +42,4 @@ set_property(
   COMPILE_OPTIONS
   -std=c11
 )
+

@@ -28,11 +28,6 @@ target_link_libraries(util-charset-ut PUBLIC
   util-charset
 )
 
-target_allocator(util-charset-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
 target_link_options(util-charset-ut PRIVATE
   -ldl
   -lrt
@@ -48,7 +43,6 @@ target_sources(util-charset-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/charset/utf8_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/charset/wide_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -83,15 +77,21 @@ set_yunittest_property(
   TEST
   util-charset-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(util-charset-ut)
 
 set_yunittest_property(
   TEST
   util-charset-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(util-charset-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
+vcs_info(util-charset-ut)
+

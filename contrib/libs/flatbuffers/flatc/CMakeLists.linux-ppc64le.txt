@@ -31,10 +31,6 @@ target_link_libraries(flatc PUBLIC
   abseil-cpp-absl-base
 )
 
-target_allocator(flatc
-  system_allocator
-)
-
 target_link_options(flatc PRIVATE
   -ldl
   -lrt
@@ -85,5 +81,9 @@ target_sources(flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
 )
 
+target_allocator(flatc
+  system_allocator
+)
 
 vcs_info(flatc)
+

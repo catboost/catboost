@@ -57,10 +57,6 @@ target_link_libraries(catboost PUBLIC
   catboost-cuda-cuda_lib
 )
 
-target_allocator(catboost
-  cpp-malloc-mimalloc
-)
-
 target_link_options(catboost PRIVATE
   -ldl
   -lrt
@@ -95,13 +91,17 @@ target_sources(catboost PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/app/signal_handling.cpp
 )
 
-
 generate_enum_serilization(catboost
   ${PROJECT_SOURCE_DIR}/catboost/app/model_metainfo_helpers.h
   INCLUDE_HEADERS
   catboost/app/model_metainfo_helpers.h
 )
 
+target_allocator(catboost
+  cpp-malloc-mimalloc
+)
+
 vcs_info(catboost)
+
 
 endif()

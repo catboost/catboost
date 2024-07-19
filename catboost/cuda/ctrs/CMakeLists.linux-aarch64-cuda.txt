@@ -13,10 +13,13 @@
 # changes in this file.
 
 find_package(CUDAToolkit REQUIRED)
-
 add_subdirectory(ut)
 
 add_library(catboost-cuda-ctrs)
+
+target_cuda_sources(catboost-cuda-ctrs PRIVATE
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/kernel/ctr_calcers.cu
+)
 
 target_link_libraries(catboost-cuda-ctrs PUBLIC
   contrib-libs-linux-headers
@@ -30,10 +33,6 @@ target_link_libraries(catboost-cuda-ctrs PUBLIC
   contrib-libs-gamma_function_apache_math_port
 )
 
-target_cuda_sources(catboost-cuda-ctrs PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/kernel/ctr_calcers.cu
-)
-
 target_sources(catboost-cuda-ctrs PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/ctr_bins_builder.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/ctr_calcers.cpp
@@ -41,6 +40,7 @@ target_sources(catboost-cuda-ctrs PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/prior_estimator.cpp
 )
 
+target_cuda_cflags(catboost-cuda-ctrs)
 
 target_cuda_flags(catboost-cuda-ctrs
   -gencode=arch=compute_35,code=sm_35
@@ -64,6 +64,7 @@ target_cuda_flags(catboost-cuda-ctrs
   -gencode=arch=compute_89,code=sm_89
   -gencode=arch=compute_90,code=sm_90
 )
+
 
 add_global_library_for(catboost-cuda-ctrs.global
   catboost-cuda-ctrs

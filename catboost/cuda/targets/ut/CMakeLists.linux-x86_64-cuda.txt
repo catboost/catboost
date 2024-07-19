@@ -31,11 +31,6 @@ target_link_libraries(catboost-cuda-targets-ut PUBLIC
   library-cpp-float16
 )
 
-target_allocator(catboost-cuda-targets-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
 target_link_options(catboost-cuda-targets-ut PRIVATE
   -ldl
   -lrt
@@ -58,7 +53,6 @@ target_sources(catboost-cuda-targets-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_tweedie.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/ut/test_huber.cpp
 )
-
 
 set_property(
   TARGET
@@ -93,15 +87,21 @@ set_yunittest_property(
   TEST
   catboost-cuda-targets-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(catboost-cuda-targets-ut)
 
 set_yunittest_property(
   TEST
   catboost-cuda-targets-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(catboost-cuda-targets-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
+vcs_info(catboost-cuda-targets-ut)
+

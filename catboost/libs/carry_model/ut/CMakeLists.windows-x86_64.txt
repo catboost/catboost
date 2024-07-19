@@ -24,14 +24,9 @@ target_link_libraries(catboost-libs-carry_model-ut PUBLIC
   model-ut-lib
 )
 
-target_allocator(catboost-libs-carry_model-ut
-  system_allocator
-)
-
 target_sources(catboost-libs-carry_model-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/carry_model/ut/carry_model_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -66,15 +61,20 @@ set_yunittest_property(
   TEST
   catboost-libs-carry_model-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(catboost-libs-carry_model-ut)
 
 set_yunittest_property(
   TEST
   catboost-libs-carry_model-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(catboost-libs-carry_model-ut
+  system_allocator
+)
+
+vcs_info(catboost-libs-carry_model-ut)
+

@@ -12,7 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
-add_subdirectory(maybe_have_cuda)
-add_subdirectory(interface)
 add_subdirectory(force_no_cuda)
+add_subdirectory(interface)
+add_subdirectory(maybe_have_cuda)

@@ -12,6 +12,7 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+add_subdirectory(ut)
 
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -19,8 +20,6 @@ get_built_tool_path(
   tools/enum_parser/enum_parser
   enum_parser
 )
-
-add_subdirectory(ut)
 
 add_library(private-libs-quantization_schema)
 
@@ -41,9 +40,9 @@ target_sources(private-libs-quantization_schema PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema/serialization.cpp
 )
 
-
 generate_enum_serilization(private-libs-quantization_schema
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema/serialization.h
   INCLUDE_HEADERS
   catboost/private/libs/quantization_schema/serialization.h
 )
+

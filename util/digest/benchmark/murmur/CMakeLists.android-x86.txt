@@ -21,10 +21,6 @@ target_link_libraries(murmur PUBLIC
   cpp-testing-gbenchmark
 )
 
-target_allocator(murmur
-  cpp-malloc-jemalloc
-)
-
 target_link_options(murmur PRIVATE
   -ldl
   -Wl,--no-as-needed
@@ -35,7 +31,6 @@ target_link_options(murmur PRIVATE
 target_sources(murmur PRIVATE
   ${PROJECT_SOURCE_DIR}/util/digest/benchmark/murmur/main.cpp
 )
-
 
 add_test(
   NAME
@@ -52,8 +47,6 @@ set_property(
   SMALL
 )
 
-vcs_info(murmur)
-
 set_property(
   TEST
   murmur
@@ -61,3 +54,10 @@ set_property(
   PROCESSORS
   1
 )
+
+target_allocator(murmur
+  cpp-malloc-jemalloc
+)
+
+vcs_info(murmur)
+

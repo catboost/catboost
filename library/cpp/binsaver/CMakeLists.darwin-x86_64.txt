@@ -12,7 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
 add_subdirectory(ut_util)
 
 add_library(library-cpp-binsaver)
@@ -24,11 +23,11 @@ target_link_libraries(library-cpp-binsaver PUBLIC
 )
 
 target_sources(library-cpp-binsaver PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/class_factory.h
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/bin_saver.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/blob_io.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/buffered_io.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/mem_io.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/util_stream_io.cpp
-  ${PROJECT_SOURCE_DIR}/library/cpp/binsaver/class_factory.h
 )
 

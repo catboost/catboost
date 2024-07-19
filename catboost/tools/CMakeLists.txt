@@ -12,9 +12,8 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
+add_subdirectory(for_testing)
 add_subdirectory(limited_precision_dsv_diff)
 add_subdirectory(limited_precision_json_diff)
 add_subdirectory(model_comparator)
 add_subdirectory(model_perftest)
-add_subdirectory(for_testing)

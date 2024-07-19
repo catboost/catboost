@@ -17,7 +17,6 @@ find_package(Python3 REQUIRED COMPONENTS
 )
 
 add_shared_library(_catboost_no_cuda)
-
 set_property(TARGET _catboost_no_cuda PROPERTY OUTPUT_NAME
   _catboost
 )
@@ -26,10 +25,15 @@ target_compile_options(_catboost_no_cuda PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
+target_cython_sources(_catboost_no_cuda PRIVATE
+  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
+)
+
 target_link_libraries(_catboost_no_cuda PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-mimalloc
   Python3::Module
   libs-gpu_config-force_no_cuda
   catboost-libs-carry_model
@@ -62,10 +66,6 @@ target_link_libraries(_catboost_no_cuda PUBLIC
   cpp-text_processing-app_helpers
 )
 
-target_allocator(_catboost_no_cuda
-  cpp-malloc-mimalloc
-)
-
 target_link_options(_catboost_no_cuda PRIVATE
   -ldl
   -lrt
@@ -82,26 +82,13 @@ target_link_options(_catboost_no_cuda PRIVATE
   -lcudart_static
 )
 
-target_cython_sources(_catboost_no_cuda PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
-)
-
 target_sources(_catboost_no_cuda PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/monoforest_helpers.cpp
 )
 
-
-use_export_script(_catboost_no_cuda
-  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/catboost3.exports
-)
-
-target_cython_options(_catboost_no_cuda
-  -E
-  UNAME_SYSNAME=Linux
-  --module-name
-  _catboost
-  --cplus
+set_python_type_for_cython(_catboost_no_cuda
+  PY3
 )
 
 target_cython_include_directories(_catboost_no_cuda
@@ -112,8 +99,17 @@ target_cython_include_directories(_catboost_no_cuda
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )
 
-set_python_type_for_cython(_catboost_no_cuda
-  PY3
+target_cython_options(_catboost_no_cuda
+  -E
+  UNAME_SYSNAME=Linux
+  --module-name
+  _catboost
+  --cplus
+)
+
+use_export_script(_catboost_no_cuda
+  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/catboost3.exports
 )
 
 vcs_info(_catboost_no_cuda)
+

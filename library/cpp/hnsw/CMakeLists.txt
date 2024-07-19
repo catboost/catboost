@@ -12,8 +12,7 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
+add_subdirectory(helpers)
 add_subdirectory(index)
 add_subdirectory(index_builder)
-add_subdirectory(helpers)
 add_subdirectory(logging)

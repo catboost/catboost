@@ -23,10 +23,6 @@ target_link_libraries(util-network-ut PUBLIC
   cpp-threading-future
 )
 
-target_allocator(util-network-ut
-  system_allocator
-)
-
 target_link_options(util-network-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -41,7 +37,6 @@ target_sources(util-network-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/network/sock_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/network/socket_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -76,15 +71,20 @@ set_yunittest_property(
   TEST
   util-network-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(util-network-ut)
 
 set_yunittest_property(
   TEST
   util-network-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(util-network-ut
+  system_allocator
+)
+
+vcs_info(util-network-ut)
+

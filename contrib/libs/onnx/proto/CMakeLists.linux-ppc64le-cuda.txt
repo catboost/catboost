@@ -80,12 +80,6 @@ target_sources(libs-onnx-proto PRIVATE
   ${PROJECT_BINARY_DIR}/contrib/libs/onnx/onnx/onnx_operators_ml.pb.h
 )
 
-
-target_proto_outs(libs-onnx-proto
-  --cpp_out=${PROJECT_BINARY_DIR}/contrib/libs/onnx
-  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/contrib/libs/onnx
-)
-
 target_proto_addincls(libs-onnx-proto
   ./contrib/libs/onnx
   ${PROJECT_SOURCE_DIR}/contrib/libs/onnx
@@ -96,3 +90,9 @@ target_proto_addincls(libs-onnx-proto
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
+
+target_proto_outs(libs-onnx-proto
+  --cpp_out=${PROJECT_BINARY_DIR}/contrib/libs/onnx
+  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/contrib/libs/onnx
+)
+

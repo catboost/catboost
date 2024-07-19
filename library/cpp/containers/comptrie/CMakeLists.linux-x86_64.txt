@@ -26,6 +26,15 @@ target_link_libraries(cpp-containers-comptrie PUBLIC
 )
 
 target_sources(cpp-containers-comptrie PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/array_with_size.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/chunked_helpers_trie.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_packer.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_trie.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/first_symbol_iterator.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/key_selector.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/leaf_skipper.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/set.h
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_builder.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_impl.cpp
@@ -37,14 +46,5 @@ target_sources(cpp-containers-comptrie PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/search_iterator.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/write_trie_backwards.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/writeable_node.cpp
-  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/array_with_size.h
-  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/chunked_helpers_trie.h
-  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie.h
-  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_packer.h
-  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_trie.h
-  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/first_symbol_iterator.h
-  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/key_selector.h
-  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/leaf_skipper.h
-  ${PROJECT_SOURCE_DIR}/library/cpp/containers/comptrie/set.h
 )
 

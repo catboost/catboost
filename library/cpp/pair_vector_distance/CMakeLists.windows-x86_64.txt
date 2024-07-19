@@ -21,3 +21,7 @@ target_link_libraries(library-cpp-pair_vector_distance INTERFACE
   library-cpp-dot_product
 )
 
+target_sources(library-cpp-pair_vector_distance INTERFACE
+  ${PROJECT_SOURCE_DIR}/library/cpp/pair_vector_distance/pair_vector_similarity.h
+)
+

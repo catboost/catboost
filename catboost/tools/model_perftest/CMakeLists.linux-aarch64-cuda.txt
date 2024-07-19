@@ -12,7 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
 add_subdirectory(lib)
 
 add_executable(model_perftest)
@@ -23,10 +22,6 @@ target_link_libraries(model_perftest PUBLIC
   yutil
   tools-model_perftest-lib
   library-cpp-getopt
-)
-
-target_allocator(model_perftest
-  cpp-malloc-jemalloc
 )
 
 target_link_options(model_perftest PRIVATE
@@ -43,5 +38,9 @@ target_link_options(model_perftest PRIVATE
   -lcudart_static
 )
 
+target_allocator(model_perftest
+  cpp-malloc-jemalloc
+)
 
 vcs_info(model_perftest)
+

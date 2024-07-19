@@ -23,7 +23,7 @@ target_link_libraries(library-cpp-l2_distance PUBLIC
 )
 
 target_sources(library-cpp-l2_distance PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/l2_distance/l2_distance.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/l2_distance/l2_distance.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/l2_distance/l2_distance.cpp
 )
 

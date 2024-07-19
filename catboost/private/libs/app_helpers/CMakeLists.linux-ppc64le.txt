@@ -59,9 +59,9 @@ target_sources(private-libs-app_helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_normalize_model_helpers.cpp
 )
 
-
 generate_enum_serilization(private-libs-app_helpers
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/app_helpers/implementation_type_enum.h
   INCLUDE_HEADERS
   catboost/private/libs/app_helpers/implementation_type_enum.h
 )
+

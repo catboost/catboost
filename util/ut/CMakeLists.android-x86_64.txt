@@ -22,10 +22,6 @@ target_link_libraries(util-ut PUBLIC
   cpp-testing-unittest_main
 )
 
-target_allocator(util-ut
-  cpp-malloc-jemalloc
-)
-
 target_link_options(util-ut PRIVATE
   -ldl
   -Wl,--no-as-needed
@@ -36,7 +32,6 @@ target_link_options(util-ut PRIVATE
 target_sources(util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/ysaveload_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -71,15 +66,20 @@ set_yunittest_property(
   TEST
   util-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(util-ut)
 
 set_yunittest_property(
   TEST
   util-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(util-ut
+  cpp-malloc-jemalloc
+)
+
+vcs_info(util-ut)
+

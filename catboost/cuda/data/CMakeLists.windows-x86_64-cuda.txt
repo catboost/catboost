@@ -44,9 +44,9 @@ target_sources(catboost-cuda-data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/leaf_path.cpp
 )
 
-
 generate_enum_serilization(catboost-cuda-data
   ${PROJECT_SOURCE_DIR}/catboost/cuda/data/feature.h
   INCLUDE_HEADERS
   catboost/cuda/data/feature.h
 )
+

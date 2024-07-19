@@ -22,14 +22,9 @@ target_link_libraries(util-ut PUBLIC
   cpp-testing-unittest_main
 )
 
-target_allocator(util-ut
-  system_allocator
-)
-
 target_sources(util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/ysaveload_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -64,15 +59,20 @@ set_yunittest_property(
   TEST
   util-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(util-ut)
 
 set_yunittest_property(
   TEST
   util-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(util-ut
+  system_allocator
+)
+
+vcs_info(util-ut)
+

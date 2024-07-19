@@ -12,17 +12,16 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
-add_subdirectory(data_util)
-add_subdirectory(index_range)
-add_subdirectory(data_types)
 add_subdirectory(ctr_description)
-add_subdirectory(feature_estimator)
-add_subdirectory(embeddings)
+add_subdirectory(data_types)
+add_subdirectory(data_util)
 add_subdirectory(embedding_features)
-add_subdirectory(text_features)
-add_subdirectory(options)
-add_subdirectory(text_processing)
+add_subdirectory(embeddings)
+add_subdirectory(feature_estimator)
+add_subdirectory(index_range)
 add_subdirectory(labels)
+add_subdirectory(options)
 add_subdirectory(quantization)
 add_subdirectory(quantization_schema)
+add_subdirectory(text_features)
+add_subdirectory(text_processing)

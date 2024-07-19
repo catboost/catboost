@@ -29,7 +29,6 @@ target_sources(library-cpp-dot_product PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/dot_product/dot_product_simple.cpp
 )
 
-
 target_sources_custom(library-cpp-dot_product
   .avx2
   SRCS
@@ -41,3 +40,4 @@ target_sources_custom(library-cpp-dot_product
   -mbmi2
   -mfma
 )
+

@@ -13,20 +13,9 @@
 # changes in this file.
 
 find_package(CUDAToolkit REQUIRED)
-
 add_subdirectory(ut)
 
 add_library(catboost-cuda-cuda_util)
-
-target_link_libraries(catboost-cuda-cuda_util PUBLIC
-  contrib-libs-linux-headers
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-helpers
-  catboost-cuda-cuda_lib
-  libs-nvidia-cub
-  CUDA::toolkit
-)
 
 target_cuda_sources(catboost-cuda-cuda_util PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/bootstrap.cu
@@ -58,6 +47,17 @@ target_cuda_sources(catboost-cuda-cuda_util PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/kernel/update_part_props.cu
 )
 
+target_link_libraries(catboost-cuda-cuda_util PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  yutil
+  catboost-libs-helpers
+  catboost-cuda-cuda_lib
+  libs-nvidia-cub
+  CUDA::toolkit
+)
+
+target_cuda_cflags(catboost-cuda-cuda_util)
 
 target_cuda_flags(catboost-cuda-cuda_util
   -gencode=arch=compute_35,code=sm_35
@@ -81,6 +81,7 @@ target_cuda_flags(catboost-cuda-cuda_util
   -gencode=arch=compute_89,code=sm_89
   -gencode=arch=compute_90,code=sm_90
 )
+
 
 add_global_library_for(catboost-cuda-cuda_util.global
   catboost-cuda-cuda_util

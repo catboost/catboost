@@ -24,7 +24,6 @@ target_sources(libs-base64-avx2 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/avx2/lib.c
 )
 
-
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/avx2/codec_avx2.c
@@ -42,3 +41,4 @@ set_property(
   COMPILE_OPTIONS
   /D__AVX2__=1
 )
+

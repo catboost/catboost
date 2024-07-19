@@ -30,15 +30,10 @@ target_link_libraries(catboost-cuda-train_lib-ut PUBLIC
   catboost-libs-model
 )
 
-target_allocator(catboost-cuda-train_lib-ut
-  system_allocator
-)
-
 target_sources(catboost-cuda-train_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/ut/dummy_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/ut/train_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -73,15 +68,20 @@ set_yunittest_property(
   TEST
   catboost-cuda-train_lib-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(catboost-cuda-train_lib-ut)
 
 set_yunittest_property(
   TEST
   catboost-cuda-train_lib-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(catboost-cuda-train_lib-ut
+  system_allocator
+)
+
+vcs_info(catboost-cuda-train_lib-ut)
+

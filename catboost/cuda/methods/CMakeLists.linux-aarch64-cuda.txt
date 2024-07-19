@@ -13,32 +13,9 @@
 # changes in this file.
 
 find_package(CUDAToolkit REQUIRED)
-
 add_subdirectory(ut)
 
 add_library(catboost-cuda-methods)
-
-target_link_libraries(catboost-cuda-methods PUBLIC
-  contrib-libs-linux-headers
-  contrib-libs-cxxsupp
-  yutil
-  catboost-cuda-ctrs
-  catboost-cuda-cuda_lib
-  catboost-cuda-cuda_util
-  catboost-cuda-data
-  catboost-cuda-gpu_data
-  models
-  catboost-cuda-targets
-  private-libs-ctr_description
-  catboost-libs-data
-  catboost-libs-helpers
-  private-libs-lapack
-  catboost-libs-loggers
-  catboost-libs-metrics
-  catboost-libs-overfitting_detector
-  cpp-threading-local_executor
-  CUDA::toolkit
-)
 
 target_cuda_sources(catboost-cuda-methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/kernel/linear_cusolver_stub.cu
@@ -77,6 +54,28 @@ target_cuda_sources(catboost-cuda-methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/greedy_subsets_searcher/kernel/histogram_utils.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/greedy_subsets_searcher/kernel/split_points.cu
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/greedy_subsets_searcher/kernel/compute_scores.cu
+)
+
+target_link_libraries(catboost-cuda-methods PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  yutil
+  catboost-cuda-ctrs
+  catboost-cuda-cuda_lib
+  catboost-cuda-cuda_util
+  catboost-cuda-data
+  catboost-cuda-gpu_data
+  models
+  catboost-cuda-targets
+  private-libs-ctr_description
+  catboost-libs-data
+  catboost-libs-helpers
+  private-libs-lapack
+  catboost-libs-loggers
+  catboost-libs-metrics
+  catboost-libs-overfitting_detector
+  cpp-threading-local_executor
+  CUDA::toolkit
 )
 
 target_sources(catboost-cuda-methods PRIVATE
@@ -118,6 +117,7 @@ target_sources(catboost-cuda-methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/pairwise_oblivious_trees/pairwise_structure_searcher.cpp
 )
 
+target_cuda_cflags(catboost-cuda-methods)
 
 target_cuda_flags(catboost-cuda-methods
   -gencode=arch=compute_35,code=sm_35
@@ -141,6 +141,7 @@ target_cuda_flags(catboost-cuda-methods
   -gencode=arch=compute_89,code=sm_89
   -gencode=arch=compute_90,code=sm_90
 )
+
 
 add_global_library_for(catboost-cuda-methods.global
   catboost-cuda-methods

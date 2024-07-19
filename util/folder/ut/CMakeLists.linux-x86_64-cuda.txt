@@ -24,11 +24,6 @@ target_link_libraries(util-folder-ut PUBLIC
   cpp-threading-future
 )
 
-target_allocator(util-folder-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
 target_link_options(util-folder-ut PRIVATE
   -ldl
   -lrt
@@ -48,7 +43,6 @@ target_sources(util-folder-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/folder/path_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/folder/pathsplit_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -83,15 +77,21 @@ set_yunittest_property(
   TEST
   util-folder-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(util-folder-ut)
 
 set_yunittest_property(
   TEST
   util-folder-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(util-folder-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
+vcs_info(util-folder-ut)
+

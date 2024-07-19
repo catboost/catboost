@@ -27,10 +27,6 @@ target_link_libraries(catboost-private-libs-quantization_schema-ut PUBLIC
   idl-pool-proto
 )
 
-target_allocator(catboost-private-libs-quantization_schema-ut
-  system_allocator
-)
-
 target_link_options(catboost-private-libs-quantization_schema-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -40,7 +36,6 @@ target_link_options(catboost-private-libs-quantization_schema-ut PRIVATE
 target_sources(catboost-private-libs-quantization_schema-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantization_schema/ut/serialization_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -75,15 +70,20 @@ set_yunittest_property(
   TEST
   catboost-private-libs-quantization_schema-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(catboost-private-libs-quantization_schema-ut)
 
 set_yunittest_property(
   TEST
   catboost-private-libs-quantization_schema-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(catboost-private-libs-quantization_schema-ut
+  system_allocator
+)
+
+vcs_info(catboost-private-libs-quantization_schema-ut)
+

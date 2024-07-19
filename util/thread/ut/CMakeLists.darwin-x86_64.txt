@@ -23,10 +23,6 @@ target_link_libraries(util-thread-ut PUBLIC
   cpp-threading-future
 )
 
-target_allocator(util-thread-ut
-  system_allocator
-)
-
 target_link_options(util-thread-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -40,7 +36,6 @@ target_sources(util-thread-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/thread/pool_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/thread/singleton_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -75,15 +70,20 @@ set_yunittest_property(
   TEST
   util-thread-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(util-thread-ut)
 
 set_yunittest_property(
   TEST
   util-thread-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(util-thread-ut
+  system_allocator
+)
+
+vcs_info(util-thread-ut)
+

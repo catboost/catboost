@@ -24,13 +24,13 @@ target_link_libraries(archiver PUBLIC
   cpp-getopt-small
 )
 
-target_allocator(archiver
-  system_allocator
-)
-
 target_sources(archiver PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/archiver/main.cpp
 )
 
+target_allocator(archiver
+  system_allocator
+)
 
 vcs_info(archiver)
+

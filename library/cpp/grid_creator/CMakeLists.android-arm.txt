@@ -32,9 +32,9 @@ target_sources(library-cpp-grid_creator PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/grid_creator/binarization.cpp
 )
 
-
 generate_enum_serilization(library-cpp-grid_creator
   ${PROJECT_SOURCE_DIR}/library/cpp/grid_creator/binarization.h
   INCLUDE_HEADERS
   library/cpp/grid_creator/binarization.h
 )
+

@@ -23,10 +23,6 @@ target_link_libraries(enum_parser PUBLIC
   tools-enum_parser-parse_enum
 )
 
-target_allocator(enum_parser
-  system_allocator
-)
-
 target_link_options(enum_parser PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -37,5 +33,9 @@ target_sources(enum_parser PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/enum_parser/enum_parser/main.cpp
 )
 
+target_allocator(enum_parser
+  system_allocator
+)
 
 vcs_info(enum_parser)
+

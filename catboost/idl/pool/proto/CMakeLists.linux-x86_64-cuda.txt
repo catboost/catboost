@@ -60,12 +60,6 @@ target_sources(idl-pool-proto PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/idl/pool/proto/quantization_schema.pb.h
 )
 
-
-target_proto_outs(idl-pool-proto
-  --cpp_out=${PROJECT_BINARY_DIR}/
-  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
-)
-
 target_proto_addincls(idl-pool-proto
   ./
   ${PROJECT_SOURCE_DIR}/
@@ -75,3 +69,9 @@ target_proto_addincls(idl-pool-proto
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
+
+target_proto_outs(idl-pool-proto
+  --cpp_out=${PROJECT_BINARY_DIR}/
+  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
+)
+

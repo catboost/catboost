@@ -33,10 +33,6 @@ target_link_libraries(model_comparator PUBLIC
   cpp-string_utils-ztstrbuf
 )
 
-target_allocator(model_comparator
-  system_allocator
-)
-
 target_link_options(model_comparator PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -50,5 +46,9 @@ target_sources(model_comparator PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/pmml.cpp
 )
 
+target_allocator(model_comparator
+  system_allocator
+)
 
 vcs_info(model_comparator)
+

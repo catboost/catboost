@@ -23,11 +23,6 @@ target_link_libraries(util-memory-ut PUBLIC
   cpp-testing-unittest_main
 )
 
-target_allocator(util-memory-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
 target_link_options(util-memory-ut PRIVATE
   -ldl
   -lrt
@@ -46,7 +41,6 @@ target_sources(util-memory-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/memory/smallobj_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/memory/tempbuf_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -81,15 +75,21 @@ set_yunittest_property(
   TEST
   util-memory-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(util-memory-ut)
 
 set_yunittest_property(
   TEST
   util-memory-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(util-memory-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
+vcs_info(util-memory-ut)
+

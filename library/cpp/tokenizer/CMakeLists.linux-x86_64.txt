@@ -54,6 +54,20 @@ target_sources(library-cpp-tokenizer PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/tokenizer/special_tokens.cpp
 )
 
+add_custom_command(
+  OUTPUT
+  ${PROJECT_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
+  DEPENDS
+  ${TOOL_archiver_bin}
+  ${PROJECT_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
+  COMMAND
+  ${TOOL_archiver_bin}
+  -q
+  -p
+  ${PROJECT_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie:
+  -o
+  ${PROJECT_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
+)
 
 add_custom_command(
   OUTPUT
@@ -70,21 +84,6 @@ add_custom_command(
   -i
   ${PROJECT_SOURCE_DIR}/library/cpp/tokenizer/special_tokens.txt
   -w
-)
-
-add_custom_command(
-  OUTPUT
-  ${PROJECT_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
-  DEPENDS
-  ${TOOL_archiver_bin}
-  ${PROJECT_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
-  COMMAND
-  ${TOOL_archiver_bin}
-  -q
-  -p
-  ${PROJECT_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie:
-  -o
-  ${PROJECT_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
 )
 
 target_ragel_lexers(library-cpp-tokenizer
@@ -109,7 +108,7 @@ target_rodata_sources(library-cpp-tokenizer
 
 if(NOT CMAKE_CROSSCOMPILING)
   add_dependencies(library-cpp-tokenizer
-    triecompiler
     archiver
-  )
+    triecompiler
+)
 endif()

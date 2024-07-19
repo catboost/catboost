@@ -22,10 +22,6 @@ target_link_libraries(format PUBLIC
   cpp-testing-gbenchmark
 )
 
-target_allocator(format
-  system_allocator
-)
-
 target_link_options(format PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -35,7 +31,6 @@ target_link_options(format PRIVATE
 target_sources(format PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/benchmark/format/main.cpp
 )
-
 
 add_test(
   NAME
@@ -52,8 +47,6 @@ set_property(
   SMALL
 )
 
-vcs_info(format)
-
 set_property(
   TEST
   format
@@ -61,3 +54,10 @@ set_property(
   PROCESSORS
   1
 )
+
+target_allocator(format
+  system_allocator
+)
+
+vcs_info(format)
+

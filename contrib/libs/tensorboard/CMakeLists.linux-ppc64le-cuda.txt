@@ -124,12 +124,6 @@ target_sources(contrib-libs-tensorboard PRIVATE
   ${PROJECT_BINARY_DIR}/contrib/libs/tensorboard/types.pb.h
 )
 
-
-target_proto_outs(contrib-libs-tensorboard
-  --cpp_out=${PROJECT_BINARY_DIR}/
-  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
-)
-
 target_proto_addincls(contrib-libs-tensorboard
   ./
   ${PROJECT_SOURCE_DIR}/
@@ -139,3 +133,9 @@ target_proto_addincls(contrib-libs-tensorboard
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
+
+target_proto_outs(contrib-libs-tensorboard
+  --cpp_out=${PROJECT_BINARY_DIR}/
+  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
+)
+

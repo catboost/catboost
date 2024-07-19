@@ -46,7 +46,6 @@ target_sources(cpp-text_processing-tokenizer PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/tokenizer/tokenizer.cpp
 )
 
-
 generate_enum_serilization(cpp-text_processing-tokenizer
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/tokenizer/options.h
   INCLUDE_HEADERS
@@ -58,6 +57,7 @@ generate_enum_serilization(cpp-text_processing-tokenizer
   INCLUDE_HEADERS
   library/cpp/text_processing/tokenizer/lemmer_impl.h
 )
+
 
 add_global_library_for(cpp-text_processing-tokenizer.global
   cpp-text_processing-tokenizer

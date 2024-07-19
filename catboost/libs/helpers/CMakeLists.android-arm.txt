@@ -12,22 +12,21 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
-get_built_tool_path(
-  TOOL_enum_parser_bin
-  TOOL_enum_parser_dependency
-  tools/enum_parser/enum_parser
-  enum_parser
-)
-
-get_built_tool_path(
-  TOOL_enum_parser_bin
-  TOOL_enum_parser_dependency
-  tools/enum_parser/enum_parser
-  enum_parser
-)
-
 add_subdirectory(flatbuffers)
+
+get_built_tool_path(
+  TOOL_enum_parser_bin
+  TOOL_enum_parser_dependency
+  tools/enum_parser/enum_parser
+  enum_parser
+)
+
+get_built_tool_path(
+  TOOL_enum_parser_bin
+  TOOL_enum_parser_dependency
+  tools/enum_parser/enum_parser
+  enum_parser
+)
 
 add_library(catboost-libs-helpers)
 
@@ -100,7 +99,6 @@ target_sources(catboost-libs-helpers PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/xml_output.cpp
 )
 
-
 generate_enum_serilization(catboost-libs-helpers
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/sparse_array.h
   INCLUDE_HEADERS
@@ -112,3 +110,4 @@ generate_enum_serilization(catboost-libs-helpers
   INCLUDE_HEADERS
   catboost/libs/helpers/distribution_helpers.h
 )
+

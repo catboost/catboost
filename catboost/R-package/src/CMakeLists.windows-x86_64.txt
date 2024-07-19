@@ -22,6 +22,7 @@ target_include_directories(catboostr PRIVATE
 target_link_libraries(catboostr PUBLIC
   contrib-libs-cxxsupp
   yutil
+  system_allocator
   catboost-libs-cat_feature
   catboost-libs-data
   catboost-libs-eval_result
@@ -37,10 +38,6 @@ target_link_libraries(catboostr PUBLIC
   private-libs-options
 )
 
-target_allocator(catboostr
-  system_allocator
-)
-
 target_link_options(catboostr PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/R.lib
 )
@@ -50,5 +47,5 @@ target_sources(catboostr PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/init.c
 )
 
-
 vcs_info(catboostr)
+

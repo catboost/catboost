@@ -45,9 +45,6 @@ target_link_libraries(libs-model-flatbuffers PUBLIC
 )
 
 target_sources(libs-model-flatbuffers PRIVATE
-  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.cpp
-  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.cpp
-  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.cpp
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.iter.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.h
@@ -57,8 +54,10 @@ target_sources(libs-model-flatbuffers PRIVATE
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.bfbs
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.bfbs
   ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.bfbs
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/features.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/ctr_data.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/flatbuffers/model.fbs.cpp
 )
-
 
 target_fbs_source(libs-model-flatbuffers
   PRIVATE
@@ -86,3 +85,4 @@ target_fbs_source(libs-model-flatbuffers
   -I
   ${PROJECT_SOURCE_DIR}
 )
+

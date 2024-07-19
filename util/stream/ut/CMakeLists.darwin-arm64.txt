@@ -21,10 +21,6 @@ target_link_libraries(util-stream-ut PUBLIC
   cpp-testing-unittest_main
 )
 
-target_allocator(util-stream-ut
-  system_allocator
-)
-
 target_link_options(util-stream-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -53,7 +49,6 @@ target_sources(util-stream-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/stream/zerocopy_output_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/stream/zlib_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -88,15 +83,20 @@ set_yunittest_property(
   TEST
   util-stream-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(util-stream-ut)
 
 set_yunittest_property(
   TEST
   util-stream-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(util-stream-ut
+  system_allocator
+)
+
+vcs_info(util-stream-ut)
+

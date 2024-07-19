@@ -13,6 +13,7 @@
 # changes in this file.
 
 find_package(OpenSSL REQUIRED)
+add_subdirectory(asio)
 
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -20,8 +21,6 @@ get_built_tool_path(
   tools/enum_parser/enum_parser
   enum_parser
 )
-
-add_subdirectory(asio)
 
 add_library(library-cpp-neh)
 
@@ -73,9 +72,9 @@ target_sources(library-cpp-neh PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/neh/utils.cpp
 )
 
-
 generate_enum_serilization(library-cpp-neh
   ${PROJECT_SOURCE_DIR}/library/cpp/neh/http_common.h
   INCLUDE_HEADERS
   library/cpp/neh/http_common.h
 )
+

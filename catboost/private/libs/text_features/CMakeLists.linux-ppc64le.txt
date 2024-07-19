@@ -12,22 +12,21 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
-get_built_tool_path(
-  TOOL_flatc_bin
-  TOOL_flatc_dependency
-  contrib/libs/flatbuffers/flatc
-  flatc
-)
-
-get_built_tool_path(
-  TOOL_flatc_bin
-  TOOL_flatc_dependency
-  contrib/libs/flatbuffers/flatc
-  flatc
-)
-
 add_subdirectory(ut)
+
+get_built_tool_path(
+  TOOL_flatc_bin
+  TOOL_flatc_dependency
+  contrib/libs/flatbuffers/flatc
+  flatc
+)
+
+get_built_tool_path(
+  TOOL_flatc_bin
+  TOOL_flatc_dependency
+  contrib/libs/flatbuffers/flatc
+  flatc
+)
 
 add_library(private-libs-text_features)
 
@@ -45,19 +44,18 @@ target_link_libraries(private-libs-text_features PUBLIC
 )
 
 target_sources(private-libs-text_features PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/feature_calcer.cpp
-  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/text_feature_calcers.cpp
-  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/text_processing_collection.cpp
-  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.cpp
-  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.cpp
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.iter.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.iter.fbs.h
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.bfbs
   ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.bfbs
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/feature_calcer.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/text_feature_calcers.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/text_processing_collection.cpp
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.cpp
+  ${PROJECT_BINARY_DIR}/catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.cpp
 )
-
 
 target_fbs_source(private-libs-text_features
   PRIVATE
@@ -76,6 +74,7 @@ target_fbs_source(private-libs-text_features
   -I
   ${PROJECT_SOURCE_DIR}
 )
+
 
 add_global_library_for(private-libs-text_features.global
   private-libs-text_features

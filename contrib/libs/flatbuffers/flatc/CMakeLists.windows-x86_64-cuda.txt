@@ -30,10 +30,6 @@ target_link_libraries(flatc PUBLIC
   abseil-cpp-absl-base
 )
 
-target_allocator(flatc
-  system_allocator
-)
-
 target_sources(flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/cpp_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/go_generator.cc
@@ -75,5 +71,9 @@ target_sources(flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
 )
 
+target_allocator(flatc
+  system_allocator
+)
 
 vcs_info(flatc)
+

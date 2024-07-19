@@ -25,10 +25,6 @@ target_link_libraries(catboost-private-libs-feature_estimator-ut PUBLIC
   private-libs-text_processing
 )
 
-target_allocator(catboost-private-libs-feature_estimator-ut
-  system_allocator
-)
-
 target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -38,7 +34,6 @@ target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
 target_sources(catboost-private-libs-feature_estimator-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/ut/feature_estimator_ut.cpp
 )
-
 
 set_property(
   TARGET
@@ -73,15 +68,20 @@ set_yunittest_property(
   TEST
   catboost-private-libs-feature_estimator-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(catboost-private-libs-feature_estimator-ut)
 
 set_yunittest_property(
   TEST
   catboost-private-libs-feature_estimator-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(catboost-private-libs-feature_estimator-ut
+  system_allocator
+)
+
+vcs_info(catboost-private-libs-feature_estimator-ut)
+

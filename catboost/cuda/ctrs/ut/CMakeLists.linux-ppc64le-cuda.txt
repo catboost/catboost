@@ -26,10 +26,6 @@ target_link_libraries(catboost-cuda-ctrs-ut PUBLIC
   cpp-containers-2d_array
 )
 
-target_allocator(catboost-cuda-ctrs-ut
-  system_allocator
-)
-
 target_link_options(catboost-cuda-ctrs-ut PRIVATE
   -ldl
   -lrt
@@ -47,7 +43,6 @@ target_link_options(catboost-cuda-ctrs-ut PRIVATE
 target_sources(catboost-cuda-ctrs-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/ut/test_ctrs.cpp
 )
-
 
 set_property(
   TARGET
@@ -82,15 +77,20 @@ set_yunittest_property(
   TEST
   catboost-cuda-ctrs-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(catboost-cuda-ctrs-ut)
 
 set_yunittest_property(
   TEST
   catboost-cuda-ctrs-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(catboost-cuda-ctrs-ut
+  system_allocator
+)
+
+vcs_info(catboost-cuda-ctrs-ut)
+

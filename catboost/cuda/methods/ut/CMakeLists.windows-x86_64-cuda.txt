@@ -28,10 +28,6 @@ target_link_libraries(catboost-cuda-methods-ut PUBLIC
   private-libs-quantization
 )
 
-target_allocator(catboost-cuda-methods-ut
-  system_allocator
-)
-
 target_sources(catboost-cuda-methods-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_tree_searcher.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_pairwise_tree_searcher.cpp
@@ -39,7 +35,6 @@ target_sources(catboost-cuda-methods-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_exact_leaves_estimation.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_langevin.cpp
 )
-
 
 set_property(
   TARGET
@@ -74,15 +69,20 @@ set_yunittest_property(
   TEST
   catboost-cuda-methods-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-vcs_info(catboost-cuda-methods-ut)
 
 set_yunittest_property(
   TEST
   catboost-cuda-methods-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+target_allocator(catboost-cuda-methods-ut
+  system_allocator
+)
+
+vcs_info(catboost-cuda-methods-ut)
+

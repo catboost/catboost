@@ -24,11 +24,6 @@ target_link_libraries(enum_parser PUBLIC
   tools-enum_parser-parse_enum
 )
 
-target_allocator(enum_parser
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
 target_link_options(enum_parser PRIVATE
   -ldl
   -lrt
@@ -44,5 +39,10 @@ target_sources(enum_parser PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/enum_parser/enum_parser/main.cpp
 )
 
+target_allocator(enum_parser
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
 
 vcs_info(enum_parser)
+

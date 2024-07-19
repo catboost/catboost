@@ -43,7 +43,6 @@ target_sources(cpp-token-lite PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/token/token_util.cpp
 )
 
-
 generate_enum_serilization(cpp-token-lite
   ${PROJECT_SOURCE_DIR}/library/cpp/token/nlptypes.h
   INCLUDE_HEADERS
@@ -55,3 +54,4 @@ generate_enum_serilization(cpp-token-lite
   INCLUDE_HEADERS
   library/cpp/token/formtype.h
 )
+

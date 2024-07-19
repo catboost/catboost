@@ -21,10 +21,6 @@ target_link_libraries(resort_dsv_by_numeric_group_id PUBLIC
   private-libs-data_types
 )
 
-target_allocator(resort_dsv_by_numeric_group_id
-  system_allocator
-)
-
 target_link_options(resort_dsv_by_numeric_group_id PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -35,5 +31,9 @@ target_sources(resort_dsv_by_numeric_group_id PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/tools/for_testing/resort_dsv_by_numeric_group_id/resort_dsv_by_numeric_group_id.cpp
 )
 
+target_allocator(resort_dsv_by_numeric_group_id
+  system_allocator
+)
 
 vcs_info(resort_dsv_by_numeric_group_id)
+

@@ -44,9 +44,9 @@ target_sources(private-libs-documents_importance PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/ders_helpers.cpp
 )
 
-
 generate_enum_serilization(private-libs-documents_importance
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/documents_importance/enums.h
   INCLUDE_HEADERS
   catboost/private/libs/documents_importance/enums.h
 )
+

@@ -23,6 +23,7 @@ target_link_libraries(catboostr PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  cpp-malloc-mimalloc
   catboost-libs-cat_feature
   catboost-libs-data
   catboost-libs-eval_result
@@ -36,10 +37,6 @@ target_link_libraries(catboostr PUBLIC
   private-libs-documents_importance
   private-libs-init
   private-libs-options
-)
-
-target_allocator(catboostr
-  cpp-malloc-mimalloc
 )
 
 target_link_options(catboostr PRIVATE
@@ -59,9 +56,9 @@ target_sources(catboostr PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/init.c
 )
 
-
 use_export_script(catboostr
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/catboostr.exports
 )
 
 vcs_info(catboostr)
+

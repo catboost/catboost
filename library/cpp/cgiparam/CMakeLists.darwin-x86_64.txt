@@ -24,7 +24,7 @@ target_link_libraries(library-cpp-cgiparam PUBLIC
 )
 
 target_sources(library-cpp-cgiparam PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/cgiparam/cgiparam.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/cgiparam/cgiparam.h
+  ${PROJECT_SOURCE_DIR}/library/cpp/cgiparam/cgiparam.cpp
 )
 

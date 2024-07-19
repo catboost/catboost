@@ -12,6 +12,5 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-
 add_subdirectory(format)
 add_subdirectory(gmtime_r)
