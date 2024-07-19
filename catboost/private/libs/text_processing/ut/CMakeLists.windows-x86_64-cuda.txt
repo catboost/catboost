@@ -12,6 +12,7 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+
 add_subdirectory(lib)
 
 add_executable(catboost-private-libs-text_processing-ut)
@@ -25,10 +26,15 @@ target_link_libraries(catboost-private-libs-text_processing-ut PUBLIC
   text_processing-ut-lib
 )
 
+target_allocator(catboost-private-libs-text_processing-ut
+  system_allocator
+)
+
 target_sources(catboost-private-libs-text_processing-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/ut/dictionary_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/ut/text_dataset_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -63,20 +69,15 @@ set_yunittest_property(
   TEST
   catboost-private-libs-text_processing-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(catboost-private-libs-text_processing-ut)
 
 set_yunittest_property(
   TEST
   catboost-private-libs-text_processing-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(catboost-private-libs-text_processing-ut
-  system_allocator
-)
-
-vcs_info(catboost-private-libs-text_processing-ut)
-

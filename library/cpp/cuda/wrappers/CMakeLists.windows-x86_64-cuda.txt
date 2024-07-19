@@ -16,12 +16,6 @@ find_package(CUDAToolkit REQUIRED)
 
 add_library(cpp-cuda-wrappers)
 
-target_cuda_sources(cpp-cuda-wrappers PRIVATE
-  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel.cu
-  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel_helpers.cu
-  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/arch.cu
-)
-
 target_link_libraries(cpp-cuda-wrappers PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -41,7 +35,12 @@ target_sources(cpp-cuda-wrappers PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/stream_capture.cpp
 )
 
-target_cuda_cflags(cpp-cuda-wrappers)
+target_cuda_sources(cpp-cuda-wrappers PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel.cu
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/kernel_helpers.cu
+  ${PROJECT_SOURCE_DIR}/library/cpp/cuda/wrappers/arch.cu
+)
+
 
 target_cuda_flags(cpp-cuda-wrappers
   -gencode
@@ -68,4 +67,3 @@ target_cuda_flags(cpp-cuda-wrappers
   -gencode=arch=compute_89,code=sm_89
   -gencode=arch=compute_90,code=sm_90
 )
-

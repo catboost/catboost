@@ -22,6 +22,10 @@ target_link_libraries(util-digest-ut PUBLIC
   cpp-testing-unittest_main
 )
 
+target_allocator(util-digest-ut
+  cpp-malloc-jemalloc
+)
+
 target_link_options(util-digest-ut PRIVATE
   -ldl
   -lrt
@@ -40,6 +44,7 @@ target_sources(util-digest-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/digest/murmur_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/digest/sequence_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -74,20 +79,15 @@ set_yunittest_property(
   TEST
   util-digest-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(util-digest-ut)
 
 set_yunittest_property(
   TEST
   util-digest-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(util-digest-ut
-  cpp-malloc-jemalloc
-)
-
-vcs_info(util-digest-ut)
-

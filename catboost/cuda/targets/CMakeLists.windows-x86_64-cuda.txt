@@ -13,22 +13,11 @@
 # changes in this file.
 
 find_package(CUDAToolkit REQUIRED)
-add_subdirectory(bin)
+
 add_subdirectory(ut)
+add_subdirectory(bin)
 
 add_library(catboost-cuda-targets)
-
-target_cuda_sources(catboost-cuda-targets PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/dcg.cu
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/multilogit.cu
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/pair_logit.cu
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/pfound_f.cu
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/pointwise_targets.cu
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/query_cross_entropy.cu
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/query_rmse.cu
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/query_softmax.cu
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/yeti_rank_pointwise.cu
-)
 
 target_link_libraries(catboost-cuda-targets PUBLIC
   contrib-libs-cxxsupp
@@ -58,7 +47,18 @@ target_sources(catboost-cuda-targets PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/target_func.cpp
 )
 
-target_cuda_cflags(catboost-cuda-targets)
+target_cuda_sources(catboost-cuda-targets PRIVATE
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/dcg.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/multilogit.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/pair_logit.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/pfound_f.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/pointwise_targets.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/query_cross_entropy.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/query_rmse.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/query_softmax.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/kernel/yeti_rank_pointwise.cu
+)
+
 
 target_cuda_flags(catboost-cuda-targets
   -gencode=arch=compute_35,code=sm_35
@@ -82,7 +82,6 @@ target_cuda_flags(catboost-cuda-targets
   -gencode=arch=compute_89,code=sm_89
   -gencode=arch=compute_90,code=sm_90
 )
-
 
 add_global_library_for(catboost-cuda-targets.global
   catboost-cuda-targets

@@ -25,6 +25,11 @@ target_link_libraries(ctrs PUBLIC
   catboost-cuda-data
 )
 
+target_allocator(ctrs
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
 target_link_options(ctrs PRIVATE
   -ldl
   -lrt
@@ -44,10 +49,5 @@ target_sources(ctrs PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/ut/test_ctrs.cpp
 )
 
-target_allocator(ctrs
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
 
 vcs_info(ctrs)
-

@@ -33,6 +33,7 @@ target_sources(contrib-libs-crcutil PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/crcutil/multiword_64_64_intrinsic_i386_mmx.cc
 )
 
+
 target_sources_custom(contrib-libs-crcutil
   .sse4
   SRCS
@@ -43,4 +44,3 @@ target_sources_custom(contrib-libs-crcutil
   -mpopcnt
   -mcx16
 )
-

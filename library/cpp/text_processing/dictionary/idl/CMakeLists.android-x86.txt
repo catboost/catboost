@@ -29,11 +29,12 @@ target_link_libraries(text_processing-dictionary-idl PUBLIC
 )
 
 target_sources(text_processing-dictionary-idl PRIVATE
+  ${PROJECT_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.cpp
   ${PROJECT_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.h
   ${PROJECT_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.iter.fbs.h
   ${PROJECT_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.bfbs
-  ${PROJECT_BINARY_DIR}/library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.cpp
 )
+
 
 target_fbs_source(text_processing-dictionary-idl
   PRIVATE
@@ -43,4 +44,3 @@ target_fbs_source(text_processing-dictionary-idl
   -I
   ${PROJECT_SOURCE_DIR}
 )
-

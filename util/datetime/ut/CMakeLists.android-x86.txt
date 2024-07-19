@@ -21,6 +21,10 @@ target_link_libraries(util-datetime-ut PUBLIC
   cpp-testing-unittest_main
 )
 
+target_allocator(util-datetime-ut
+  cpp-malloc-jemalloc
+)
+
 target_link_options(util-datetime-ut PRIVATE
   -ldl
   -Wl,--no-as-needed
@@ -36,6 +40,7 @@ target_sources(util-datetime-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/process_uptime_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/uptime_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -70,20 +75,15 @@ set_yunittest_property(
   TEST
   util-datetime-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(util-datetime-ut)
 
 set_yunittest_property(
   TEST
   util-datetime-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(util-datetime-ut
-  cpp-malloc-jemalloc
-)
-
-vcs_info(util-datetime-ut)
-

@@ -12,12 +12,13 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(atomic)
-add_subdirectory(chunk_queue)
+
 add_subdirectory(future)
-add_subdirectory(hot_swap)
-add_subdirectory(local_executor)
-add_subdirectory(mux_event)
 add_subdirectory(poor_man_openmp)
-add_subdirectory(skip_list)
+add_subdirectory(local_executor)
+add_subdirectory(chunk_queue)
+add_subdirectory(atomic)
+add_subdirectory(mux_event)
 add_subdirectory(thread_local)
+add_subdirectory(hot_swap)
+add_subdirectory(skip_list)

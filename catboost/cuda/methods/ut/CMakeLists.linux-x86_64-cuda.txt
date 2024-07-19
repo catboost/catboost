@@ -29,6 +29,11 @@ target_link_libraries(catboost-cuda-methods-ut PUBLIC
   private-libs-quantization
 )
 
+target_allocator(catboost-cuda-methods-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
 target_link_options(catboost-cuda-methods-ut PRIVATE
   -ldl
   -lrt
@@ -50,6 +55,7 @@ target_sources(catboost-cuda-methods-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_exact_leaves_estimation.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_langevin.cpp
 )
+
 
 set_property(
   TARGET
@@ -84,21 +90,15 @@ set_yunittest_property(
   TEST
   catboost-cuda-methods-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(catboost-cuda-methods-ut)
 
 set_yunittest_property(
   TEST
   catboost-cuda-methods-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(catboost-cuda-methods-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
-vcs_info(catboost-cuda-methods-ut)
-

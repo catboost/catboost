@@ -26,13 +26,13 @@ target_link_libraries(protoc PUBLIC
   contrib-libs-protoc
 )
 
-target_sources(protoc PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/main.cc
-)
-
 target_allocator(protoc
   system_allocator
 )
 
-vcs_info(protoc)
+target_sources(protoc PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/main.cc
+)
 
+
+vcs_info(protoc)

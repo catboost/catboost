@@ -13,14 +13,10 @@
 # changes in this file.
 
 find_package(CUDAToolkit REQUIRED)
+
 add_subdirectory(ut)
 
 add_library(catboost-cuda-cuda_lib)
-
-target_cuda_sources(catboost-cuda-cuda_lib PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel/kernel.cu
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel/reduce.cu
-)
 
 target_link_libraries(catboost-cuda-cuda_lib PUBLIC
   contrib-libs-cxxsupp
@@ -70,7 +66,11 @@ target_sources(catboost-cuda-cuda_lib PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/worker_state.cpp
 )
 
-target_cuda_cflags(catboost-cuda-cuda_lib)
+target_cuda_sources(catboost-cuda-cuda_lib PRIVATE
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel/kernel.cu
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/kernel/reduce.cu
+)
+
 
 target_cuda_flags(catboost-cuda-cuda_lib
   -gencode=arch=compute_35,code=sm_35
@@ -94,7 +94,6 @@ target_cuda_flags(catboost-cuda-cuda_lib
   -gencode=arch=compute_89,code=sm_89
   -gencode=arch=compute_90,code=sm_90
 )
-
 
 add_global_library_for(catboost-cuda-cuda_lib.global
   catboost-cuda-cuda_lib

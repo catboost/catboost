@@ -13,6 +13,7 @@
 # changes in this file.
 
 if((NOT DEFINED CATBOOST_COMPONENTS) OR (jvm-packages IN_LIST CATBOOST_COMPONENTS) OR (JVM-PACKAGES IN_LIST CATBOOST_COMPONENTS))
+
 add_subdirectory(catboost4j-prediction)
 
 endif()

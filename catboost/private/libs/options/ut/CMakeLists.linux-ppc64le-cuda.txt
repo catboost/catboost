@@ -23,6 +23,10 @@ target_link_libraries(json_options_ut PUBLIC
   private-libs-options
 )
 
+target_allocator(json_options_ut
+  system_allocator
+)
+
 target_link_options(json_options_ut PRIVATE
   -ldl
   -lrt
@@ -40,6 +44,7 @@ target_sources(json_options_ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/text_options_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/all_losses_described.cpp
 )
+
 
 set_property(
   TARGET
@@ -74,20 +79,15 @@ set_yunittest_property(
   TEST
   json_options_ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(json_options_ut)
 
 set_yunittest_property(
   TEST
   json_options_ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(json_options_ut
-  system_allocator
-)
-
-vcs_info(json_options_ut)
-

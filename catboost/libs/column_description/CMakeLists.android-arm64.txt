@@ -34,11 +34,12 @@ target_link_libraries(catboost-libs-column_description PUBLIC
 )
 
 target_sources(catboost-libs-column_description PRIVATE
-  ${PROJECT_BINARY_DIR}/catboost/libs/column_description/column.h_serialized.h
   ${PROJECT_SOURCE_DIR}/catboost/libs/column_description/cd_parser.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/column_description/column.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/column_description/feature_tag.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/column_description/column.h_serialized.h
 )
+
 
 generate_enum_serilization(catboost-libs-column_description
   ${PROJECT_SOURCE_DIR}/catboost/libs/column_description/column.h
@@ -47,4 +48,3 @@ generate_enum_serilization(catboost-libs-column_description
   INCLUDE_HEADERS
   catboost/libs/column_description/column.h
 )
-

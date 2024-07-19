@@ -12,9 +12,10 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(benchmark)
-add_subdirectory(common)
-add_subdirectory(gbenchmark)
-add_subdirectory(hook)
-add_subdirectory(unittest)
+
 add_subdirectory(unittest_main)
+add_subdirectory(unittest)
+add_subdirectory(common)
+add_subdirectory(hook)
+add_subdirectory(benchmark)
+add_subdirectory(gbenchmark)

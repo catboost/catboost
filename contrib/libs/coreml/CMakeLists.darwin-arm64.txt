@@ -299,6 +299,12 @@ target_sources(contrib-libs-coreml PRIVATE
   ${PROJECT_BINARY_DIR}/contrib/libs/coreml/TreeEnsemble.pb.h
 )
 
+
+target_proto_outs(contrib-libs-coreml
+  --cpp_out=${PROJECT_BINARY_DIR}/
+  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
+)
+
 target_proto_addincls(contrib-libs-coreml
   ./
   ${PROJECT_SOURCE_DIR}/
@@ -308,9 +314,3 @@ target_proto_addincls(contrib-libs-coreml
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
-
-target_proto_outs(contrib-libs-coreml
-  --cpp_out=${PROJECT_BINARY_DIR}/
-  --cpp_styleguide_out=${PROJECT_BINARY_DIR}/
-)
-

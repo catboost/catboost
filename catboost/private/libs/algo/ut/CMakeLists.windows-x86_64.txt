@@ -34,6 +34,10 @@ target_link_libraries(catboost-private-libs-algo-ut PUBLIC
   cpp-threading-local_executor
 )
 
+target_allocator(catboost-private-libs-algo-ut
+  system_allocator
+)
+
 target_sources(catboost-private-libs-algo-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/apply_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/train_ut.cpp
@@ -43,6 +47,7 @@ target_sources(catboost-private-libs-algo-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/monotonic_constraints_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/nonsymmetric_index_calcer_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -77,20 +82,15 @@ set_yunittest_property(
   TEST
   catboost-private-libs-algo-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(catboost-private-libs-algo-ut)
 
 set_yunittest_property(
   TEST
   catboost-private-libs-algo-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(catboost-private-libs-algo-ut
-  system_allocator
-)
-
-vcs_info(catboost-private-libs-algo-ut)
-

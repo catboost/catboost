@@ -12,10 +12,11 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-find_package(Java REQUIRED)
 find_package(SWIG REQUIRED COMPONENTS
   java
 )
+find_package(Java REQUIRED)
+
 include(UseSWIG)
 include(UseJava)
 
@@ -28,6 +29,7 @@ add_swig_jni_library(catboost4j-spark-impl-cpp
 
   native_impl.swg
 )
+
 set_property(TARGET catboost4j-spark-impl-cpp PROPERTY OUTPUT_NAME
   catboost4j-spark-impl
 )
@@ -36,7 +38,6 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-mimalloc
   cpp-containers-2d_array
   library-cpp-dbg_output
   library-cpp-grid_creator
@@ -64,6 +65,7 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   contrib-libs-libunwind
   swig-Lib-java
   contrib-libs-jdk
+  cpp-malloc-mimalloc
 )
 
 target_link_options(catboost4j-spark-impl-cpp PRIVATE
@@ -102,6 +104,7 @@ target_sources(catboost4j-spark-impl-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/worker.cpp
 )
 
+
 add_jar(
   catboost4j-spark-impl
   SOURCES
@@ -109,4 +112,3 @@ add_jar(
 )
 
 vcs_info(catboost4j-spark-impl-cpp)
-

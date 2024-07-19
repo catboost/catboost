@@ -24,6 +24,7 @@ target_sources(libs-base64-neon64 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/neon64/lib.c
 )
 
+
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/neon64/codec_neon64.c
@@ -43,4 +44,3 @@ set_property(
   -march=armv8-a
   -std=c11
 )
-

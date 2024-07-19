@@ -27,6 +27,10 @@ target_link_libraries(catboost-private-libs-functools-ut PUBLIC
   private-libs-functools
 )
 
+target_allocator(catboost-private-libs-functools-ut
+  cpp-malloc-jemalloc
+)
+
 target_link_options(catboost-private-libs-functools-ut PRIVATE
   -ldl
   -lrt
@@ -41,6 +45,7 @@ target_link_options(catboost-private-libs-functools-ut PRIVATE
 target_sources(catboost-private-libs-functools-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/functools/ut/forward_as_const_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -75,20 +80,15 @@ set_yunittest_property(
   TEST
   catboost-private-libs-functools-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(catboost-private-libs-functools-ut)
 
 set_yunittest_property(
   TEST
   catboost-private-libs-functools-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(catboost-private-libs-functools-ut
-  cpp-malloc-jemalloc
-)
-
-vcs_info(catboost-private-libs-functools-ut)
-

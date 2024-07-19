@@ -27,10 +27,15 @@ target_link_libraries(catboost-private-libs-algo_helpers-ut PUBLIC
   private-libs-algo_helpers
 )
 
+target_allocator(catboost-private-libs-algo_helpers-ut
+  system_allocator
+)
+
 target_sources(catboost-private-libs-algo_helpers-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/ut/pairwise_leaves_calculation_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo_helpers/ut/multiquantile_derivatives_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -65,20 +70,15 @@ set_yunittest_property(
   TEST
   catboost-private-libs-algo_helpers-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(catboost-private-libs-algo_helpers-ut)
 
 set_yunittest_property(
   TEST
   catboost-private-libs-algo_helpers-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(catboost-private-libs-algo_helpers-ut
-  system_allocator
-)
-
-vcs_info(catboost-private-libs-algo_helpers-ut)
-

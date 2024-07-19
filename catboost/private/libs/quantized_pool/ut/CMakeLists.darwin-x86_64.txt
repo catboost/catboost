@@ -34,6 +34,10 @@ target_link_libraries(catboost-private-libs-quantized_pool-ut PUBLIC
   library-cpp-json
 )
 
+target_allocator(catboost-private-libs-quantized_pool-ut
+  system_allocator
+)
+
 target_link_options(catboost-private-libs-quantized_pool-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -45,6 +49,7 @@ target_sources(catboost-private-libs-quantized_pool-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/ut/serialization_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/quantized_pool/ut/print_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -79,20 +84,15 @@ set_yunittest_property(
   TEST
   catboost-private-libs-quantized_pool-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(catboost-private-libs-quantized_pool-ut)
 
 set_yunittest_property(
   TEST
   catboost-private-libs-quantized_pool-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(catboost-private-libs-quantized_pool-ut
-  system_allocator
-)
-
-vcs_info(catboost-private-libs-quantized_pool-ut)
-

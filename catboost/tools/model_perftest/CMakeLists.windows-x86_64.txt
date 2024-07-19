@@ -12,6 +12,7 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+
 add_subdirectory(lib)
 
 add_executable(model_perftest)
@@ -28,5 +29,5 @@ target_allocator(model_perftest
   system_allocator
 )
 
-vcs_info(model_perftest)
 
+vcs_info(model_perftest)

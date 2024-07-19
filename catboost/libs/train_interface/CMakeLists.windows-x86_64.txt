@@ -15,6 +15,7 @@
 if((NOT DEFINED CATBOOST_COMPONENTS) OR (LIBS IN_LIST CATBOOST_COMPONENTS) OR (libs IN_LIST CATBOOST_COMPONENTS) OR (API-LIBS IN_LIST CATBOOST_COMPONENTS) OR (api-libs IN_LIST CATBOOST_COMPONENTS))
 
 add_shared_library(catboost_train_interface)
+
 set_property(TARGET catboost_train_interface PROPERTY OUTPUT_NAME
   catboost
 )
@@ -26,7 +27,6 @@ target_compile_options(catboost_train_interface PRIVATE
 target_link_libraries(catboost_train_interface PUBLIC
   contrib-libs-cxxsupp
   yutil
-  system_allocator
   private-libs-algo
   catboost-libs-column_description
   catboost-libs-data
@@ -46,15 +46,19 @@ target_link_libraries(catboost_train_interface PUBLIC
   library-cpp-logger
 )
 
+target_allocator(catboost_train_interface
+  system_allocator
+)
+
 target_sources(catboost_train_interface PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp
 )
+
 
 use_export_script(catboost_train_interface
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_interface/catboost.exports
 )
 
 vcs_info(catboost_train_interface)
-
 
 endif()

@@ -16,10 +16,6 @@ find_package(CUDAToolkit REQUIRED)
 
 add_library(models)
 
-target_cuda_sources(models PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/kernel/add_model_value.cu
-)
-
 target_link_libraries(models PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
@@ -28,6 +24,10 @@ target_link_libraries(models PUBLIC
   catboost-cuda-cuda_util
   catboost-cuda-gpu_data
   CUDA::toolkit
+)
+
+target_cuda_sources(models PRIVATE
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/models/kernel/add_model_value.cu
 )
 
 target_sources(models PRIVATE
@@ -39,7 +39,6 @@ target_sources(models PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/models/compact_model.cpp
 )
 
-target_cuda_cflags(models)
 
 target_cuda_flags(models
   -gencode=arch=compute_35,code=sm_35
@@ -63,7 +62,6 @@ target_cuda_flags(models
   -gencode=arch=compute_89,code=sm_89
   -gencode=arch=compute_90,code=sm_90
 )
-
 
 add_global_library_for(models.global
   models

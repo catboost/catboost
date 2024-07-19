@@ -14,6 +14,7 @@
 
 if (NOT (CMAKE_GENERATOR MATCHES "Visual.Studio.*"))
 
+
 add_subdirectory(lib)
 
 add_recursive_library(catboostmodel_static)

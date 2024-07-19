@@ -12,16 +12,17 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(cpu_compatibility_helpers)
-add_subdirectory(ctrs)
-add_subdirectory(cuda_lib)
-add_subdirectory(cuda_util)
-add_subdirectory(data)
-add_subdirectory(gpu_data)
-add_subdirectory(methods)
-add_subdirectory(models)
-add_subdirectory(mpi_ut)
-add_subdirectory(targets)
+
 add_subdirectory(train_lib)
+add_subdirectory(cpu_compatibility_helpers)
+add_subdirectory(data)
+add_subdirectory(cuda_lib)
+add_subdirectory(models)
+add_subdirectory(cuda_util)
+add_subdirectory(gpu_data)
+add_subdirectory(ctrs)
+add_subdirectory(methods)
+add_subdirectory(targets)
 add_subdirectory(ut_helpers)
 add_subdirectory(utils)
+add_subdirectory(mpi_ut)

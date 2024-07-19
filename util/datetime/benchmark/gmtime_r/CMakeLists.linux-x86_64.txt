@@ -24,6 +24,11 @@ target_link_libraries(gmtime_r PUBLIC
   util-draft
 )
 
+target_allocator(gmtime_r
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
 target_link_options(gmtime_r PRIVATE
   -ldl
   -lrt
@@ -38,6 +43,7 @@ target_link_options(gmtime_r PRIVATE
 target_sources(gmtime_r PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/benchmark/gmtime_r/main.cpp
 )
+
 
 add_test(
   NAME
@@ -54,6 +60,8 @@ set_property(
   SMALL
 )
 
+vcs_info(gmtime_r)
+
 set_property(
   TEST
   gmtime_r
@@ -61,11 +69,3 @@ set_property(
   PROCESSORS
   1
 )
-
-target_allocator(gmtime_r
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
-vcs_info(gmtime_r)
-

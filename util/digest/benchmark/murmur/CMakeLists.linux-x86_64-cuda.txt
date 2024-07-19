@@ -23,6 +23,11 @@ target_link_libraries(murmur PUBLIC
   cpp-testing-gbenchmark
 )
 
+target_allocator(murmur
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
 target_link_options(murmur PRIVATE
   -ldl
   -lrt
@@ -37,6 +42,7 @@ target_link_options(murmur PRIVATE
 target_sources(murmur PRIVATE
   ${PROJECT_SOURCE_DIR}/util/digest/benchmark/murmur/main.cpp
 )
+
 
 add_test(
   NAME
@@ -53,6 +59,8 @@ set_property(
   SMALL
 )
 
+vcs_info(murmur)
+
 set_property(
   TEST
   murmur
@@ -60,11 +68,3 @@ set_property(
   PROCESSORS
   1
 )
-
-target_allocator(murmur
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
-vcs_info(murmur)
-

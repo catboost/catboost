@@ -12,5 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(exception)
+
 add_subdirectory(wrappers)
+add_subdirectory(exception)

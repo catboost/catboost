@@ -24,6 +24,11 @@ target_link_libraries(cuda_util PUBLIC
   catboost-cuda-cuda_util
 )
 
+target_allocator(cuda_util
+  cpp-malloc-tcmalloc
+  contrib-libs-tcmalloc
+)
+
 target_link_options(cuda_util PRIVATE
   -ldl
   -lrt
@@ -51,10 +56,5 @@ target_sources(cuda_util PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_transform.cpp
 )
 
-target_allocator(cuda_util
-  cpp-malloc-tcmalloc
-  contrib-libs-tcmalloc
-)
 
 vcs_info(cuda_util)
-

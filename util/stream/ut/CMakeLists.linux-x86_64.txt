@@ -23,6 +23,11 @@ target_link_libraries(util-stream-ut PUBLIC
   cpp-testing-unittest_main
 )
 
+target_allocator(util-stream-ut
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
 target_link_options(util-stream-ut PRIVATE
   -ldl
   -lrt
@@ -57,6 +62,7 @@ target_sources(util-stream-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/stream/zlib_ut.cpp
 )
 
+
 set_property(
   TARGET
   util-stream-ut
@@ -90,21 +96,15 @@ set_yunittest_property(
   TEST
   util-stream-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(util-stream-ut)
 
 set_yunittest_property(
   TEST
   util-stream-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(util-stream-ut
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
-
-vcs_info(util-stream-ut)
-

@@ -27,6 +27,11 @@ target_link_libraries(methods PUBLIC
   catboost-cuda-ut_helpers
 )
 
+target_allocator(methods
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
 target_link_options(methods PRIVATE
   -ldl
   -lrt
@@ -46,10 +51,5 @@ target_sources(methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_tree_searcher.cpp
 )
 
-target_allocator(methods
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
 
 vcs_info(methods)
-

@@ -23,6 +23,10 @@ target_link_libraries(catboost-cuda-cuda_util-ut PUBLIC
   catboost-cuda-cuda_util
 )
 
+target_allocator(catboost-cuda-cuda_util-ut
+  system_allocator
+)
+
 target_sources(catboost-cuda-cuda_util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_calculate_threshold.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_compression_cpu.cpp
@@ -36,6 +40,7 @@ target_sources(catboost-cuda-cuda_util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_sort.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_transform.cpp
 )
+
 
 set_property(
   TARGET
@@ -70,20 +75,15 @@ set_yunittest_property(
   TEST
   catboost-cuda-cuda_util-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(catboost-cuda-cuda_util-ut)
 
 set_yunittest_property(
   TEST
   catboost-cuda-cuda_util-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(catboost-cuda-cuda_util-ut
-  system_allocator
-)
-
-vcs_info(catboost-cuda-cuda_util-ut)
-

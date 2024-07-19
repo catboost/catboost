@@ -24,6 +24,10 @@ target_link_libraries(catboost-libs-carry_model-ut PUBLIC
   model-ut-lib
 )
 
+target_allocator(catboost-libs-carry_model-ut
+  cpp-malloc-jemalloc
+)
+
 target_link_options(catboost-libs-carry_model-ut PRIVATE
   -ldl
   -lrt
@@ -41,6 +45,7 @@ target_link_options(catboost-libs-carry_model-ut PRIVATE
 target_sources(catboost-libs-carry_model-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/carry_model/ut/carry_model_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -75,20 +80,15 @@ set_yunittest_property(
   TEST
   catboost-libs-carry_model-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(catboost-libs-carry_model-ut)
 
 set_yunittest_property(
   TEST
   catboost-libs-carry_model-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(catboost-libs-carry_model-ut
-  cpp-malloc-jemalloc
-)
-
-vcs_info(catboost-libs-carry_model-ut)
-

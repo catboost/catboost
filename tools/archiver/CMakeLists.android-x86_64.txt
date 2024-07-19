@@ -24,6 +24,10 @@ target_link_libraries(archiver PUBLIC
   cpp-getopt-small
 )
 
+target_allocator(archiver
+  cpp-malloc-jemalloc
+)
+
 target_link_options(archiver PRIVATE
   -ldl
   -Wl,--no-as-needed
@@ -35,9 +39,5 @@ target_sources(archiver PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/archiver/main.cpp
 )
 
-target_allocator(archiver
-  cpp-malloc-jemalloc
-)
 
 vcs_info(archiver)
-

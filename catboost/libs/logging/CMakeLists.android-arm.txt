@@ -34,9 +34,9 @@ target_sources(catboost-libs-logging PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/logging/logging.cpp
 )
 
+
 generate_enum_serilization(catboost-libs-logging
   ${PROJECT_SOURCE_DIR}/catboost/libs/logging/logging_level.h
   INCLUDE_HEADERS
   catboost/libs/logging/logging_level.h
 )
-

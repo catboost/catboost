@@ -21,13 +21,13 @@ target_link_libraries(ctrs PUBLIC
   library-cpp-cpuid_check
 )
 
-target_sources(ctrs PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/empty_main.cpp
-)
-
 target_allocator(ctrs
   system_allocator
 )
 
-vcs_info(ctrs)
+target_sources(ctrs PRIVATE
+  ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/empty_main.cpp
+)
 
+
+vcs_info(ctrs)

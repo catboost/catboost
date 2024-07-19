@@ -12,13 +12,14 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(assert)
-add_subdirectory(coding)
-add_subdirectory(exception)
-add_subdirectory(malloc)
-add_subdirectory(memory)
+
 add_subdirectory(misc)
-add_subdirectory(small_containers)
-add_subdirectory(string)
+add_subdirectory(exception)
+add_subdirectory(assert)
 add_subdirectory(yson)
 add_subdirectory(yson_string)
+add_subdirectory(coding)
+add_subdirectory(string)
+add_subdirectory(small_containers)
+add_subdirectory(malloc)
+add_subdirectory(memory)

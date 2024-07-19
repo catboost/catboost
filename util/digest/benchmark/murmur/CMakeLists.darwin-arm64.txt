@@ -21,6 +21,10 @@ target_link_libraries(murmur PUBLIC
   cpp-testing-gbenchmark
 )
 
+target_allocator(murmur
+  system_allocator
+)
+
 target_link_options(murmur PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -30,6 +34,7 @@ target_link_options(murmur PRIVATE
 target_sources(murmur PRIVATE
   ${PROJECT_SOURCE_DIR}/util/digest/benchmark/murmur/main.cpp
 )
+
 
 add_test(
   NAME
@@ -46,6 +51,8 @@ set_property(
   SMALL
 )
 
+vcs_info(murmur)
+
 set_property(
   TEST
   murmur
@@ -53,10 +60,3 @@ set_property(
   PROCESSORS
   1
 )
-
-target_allocator(murmur
-  system_allocator
-)
-
-vcs_info(murmur)
-

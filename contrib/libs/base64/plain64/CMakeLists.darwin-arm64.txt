@@ -24,6 +24,7 @@ target_sources(libs-base64-plain64 PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/plain64/lib.c
 )
 
+
 set_property(
   SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/base64/plain64/codec_plain.c
@@ -41,4 +42,3 @@ set_property(
   COMPILE_OPTIONS
   -std=c11
 )
-

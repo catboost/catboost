@@ -12,10 +12,11 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+
+add_subdirectory(model_interface)
 add_subdirectory(cat_feature)
-add_subdirectory(column_description)
 add_subdirectory(data)
+add_subdirectory(column_description)
 add_subdirectory(helpers)
 add_subdirectory(logging)
 add_subdirectory(model)
-add_subdirectory(model_interface)

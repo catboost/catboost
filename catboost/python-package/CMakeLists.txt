@@ -13,6 +13,7 @@
 # changes in this file.
 
 if((NOT DEFINED CATBOOST_COMPONENTS) OR (PYTHON-PACKAGE IN_LIST CATBOOST_COMPONENTS) OR (python-package IN_LIST CATBOOST_COMPONENTS))
+
 add_subdirectory(catboost)
 
 endif()

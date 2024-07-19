@@ -22,6 +22,10 @@ target_link_libraries(util-system-ut PUBLIC
   cpp-testing-benchmark
 )
 
+target_allocator(util-system-ut
+  system_allocator
+)
+
 target_link_options(util-system-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -83,6 +87,7 @@ target_sources(util-system-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/system/type_name_ut.cpp
 )
 
+
 set_property(
   TARGET
   util-system-ut
@@ -116,14 +121,6 @@ set_yunittest_property(
   TEST
   util-system-ut
   PROPERTY
-  PROCESSORS
-  1
-)
-
-set_yunittest_property(
-  TEST
-  util-system-ut
-  PROPERTY
   ENVIRONMENT
 )
 
@@ -135,9 +132,12 @@ set_yunittest_property(
   3600
 )
 
-target_allocator(util-system-ut
-  system_allocator
-)
-
 vcs_info(util-system-ut)
 
+set_yunittest_property(
+  TEST
+  util-system-ut
+  PROPERTY
+  PROCESSORS
+  1
+)

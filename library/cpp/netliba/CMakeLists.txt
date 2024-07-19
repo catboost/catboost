@@ -12,6 +12,7 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+
+add_subdirectory(v6)
 add_subdirectory(socket)
 add_subdirectory(v12)
-add_subdirectory(v6)

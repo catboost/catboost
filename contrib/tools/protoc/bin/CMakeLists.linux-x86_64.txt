@@ -27,6 +27,11 @@ target_link_libraries(protoc PUBLIC
   contrib-libs-protoc
 )
 
+target_allocator(protoc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
 target_link_options(protoc PRIVATE
   -ldl
   -lrt
@@ -42,10 +47,5 @@ target_sources(protoc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protoc/src/google/protobuf/compiler/main.cc
 )
 
-target_allocator(protoc
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
 
 vcs_info(protoc)
-

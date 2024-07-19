@@ -12,6 +12,7 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+
 add_subdirectory(ut)
 
 add_library(util-charset)
@@ -20,6 +21,7 @@ target_link_libraries(util-charset PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
+
 
 target_joined_source(util-charset
   all_charset.cpp
@@ -38,4 +40,3 @@ target_sources_custom(util-charset
   CUSTOM_FLAGS
   -msse4.1
 )
-

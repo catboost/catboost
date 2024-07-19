@@ -12,9 +12,10 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+
 add_subdirectory(avx2)
+add_subdirectory(ssse3)
 add_subdirectory(neon32)
 add_subdirectory(neon64)
 add_subdirectory(plain32)
 add_subdirectory(plain64)
-add_subdirectory(ssse3)

@@ -24,7 +24,7 @@ target_link_libraries(contrib-libs-fastlz PUBLIC
 )
 
 target_sources(contrib-libs-fastlz PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/fastlz/rename.h
   ${PROJECT_SOURCE_DIR}/contrib/libs/fastlz/fastlz.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/fastlz/rename.h
 )
 

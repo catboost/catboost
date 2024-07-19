@@ -20,6 +20,7 @@ target_link_libraries(cpp-float16-float16_avx_impl PUBLIC
   yutil
 )
 
+
 target_sources_custom(cpp-float16-float16_avx_impl
   .avx
   SRCS
@@ -28,4 +29,3 @@ target_sources_custom(cpp-float16-float16_avx_impl
   /arch:AVX
   /DAVX_ENABLED=1
 )
-

@@ -15,6 +15,7 @@
 find_package(Python3 REQUIRED COMPONENTS
   Development
 )
+
 add_subdirectory(no_cuda)
 
 add_shared_library(_catboost)
@@ -23,15 +24,10 @@ target_compile_options(_catboost PRIVATE
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
-target_cython_sources(_catboost PRIVATE
-  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
-)
-
 target_link_libraries(_catboost PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-mimalloc
   Python3::Module
   catboost-libs-carry_model
   catboost-libs-cat_feature
@@ -64,6 +60,10 @@ target_link_libraries(_catboost PUBLIC
   libs-gpu_config-maybe_have_cuda
 )
 
+target_allocator(_catboost
+  cpp-malloc-mimalloc
+)
+
 target_link_options(_catboost PRIVATE
   -ldl
   -lrt
@@ -77,21 +77,18 @@ target_link_options(_catboost PRIVATE
   -ldl
 )
 
+target_cython_sources(_catboost PRIVATE
+  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
+)
+
 target_sources(_catboost PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/monoforest_helpers.cpp
 )
 
-set_python_type_for_cython(_catboost
-  PY3
-)
 
-target_cython_include_directories(_catboost
-  ${PROJECT_BINARY_DIR}
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_SOURCE_DIR}/contrib/tools/cython/Cython/Includes
-  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
-  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
+use_export_script(_catboost
+  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/catboost3.exports
 )
 
 target_cython_options(_catboost
@@ -102,9 +99,16 @@ target_cython_options(_catboost
   --cplus
 )
 
-use_export_script(_catboost
-  ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/catboost3.exports
+target_cython_include_directories(_catboost
+  ${PROJECT_BINARY_DIR}
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/contrib/tools/cython/Cython/Includes
+  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
+  ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
+)
+
+set_python_type_for_cython(_catboost
+  PY3
 )
 
 vcs_info(_catboost)
-

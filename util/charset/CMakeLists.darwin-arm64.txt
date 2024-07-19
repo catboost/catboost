@@ -12,6 +12,7 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+
 add_subdirectory(ut)
 
 add_library(util-charset)
@@ -23,6 +24,7 @@ target_link_libraries(util-charset PUBLIC
 target_sources(util-charset PRIVATE
   ${PROJECT_SOURCE_DIR}/util/charset/wide_sse41.cpp
 )
+
 
 set_property(
   SOURCE
@@ -42,4 +44,3 @@ target_joined_source(util-charset
   ${PROJECT_SOURCE_DIR}/util/charset/utf8.cpp
   ${PROJECT_SOURCE_DIR}/util/charset/wide.cpp
 )
-

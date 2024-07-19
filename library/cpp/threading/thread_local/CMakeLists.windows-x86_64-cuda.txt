@@ -34,9 +34,9 @@ target_sources(cpp-threading-thread_local PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.cpp
 )
 
+
 generate_enum_serilization(cpp-threading-thread_local
   ${PROJECT_SOURCE_DIR}/library/cpp/threading/thread_local/thread_local.h
   INCLUDE_HEADERS
   library/cpp/threading/thread_local/thread_local.h
 )
-

@@ -23,6 +23,10 @@ target_link_libraries(archiver PUBLIC
   cpp-getopt-small
 )
 
+target_allocator(archiver
+  system_allocator
+)
+
 target_link_options(archiver PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
@@ -33,9 +37,5 @@ target_sources(archiver PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/archiver/main.cpp
 )
 
-target_allocator(archiver
-  system_allocator
-)
 
 vcs_info(archiver)
-

@@ -12,7 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(idl)
 
 get_built_tool_path(
   TOOL_enum_parser_bin
@@ -20,6 +19,8 @@ get_built_tool_path(
   tools/enum_parser/enum_parser
   enum_parser
 )
+
+add_subdirectory(idl)
 
 add_library(cpp-text_processing-dictionary)
 
@@ -51,9 +52,9 @@ target_sources(cpp-text_processing-dictionary PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/util.cpp
 )
 
+
 generate_enum_serilization(cpp-text_processing-dictionary
   ${PROJECT_SOURCE_DIR}/library/cpp/text_processing/dictionary/types.h
   INCLUDE_HEADERS
   library/cpp/text_processing/dictionary/types.h
 )
-

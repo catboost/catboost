@@ -26,6 +26,11 @@ target_link_libraries(gpu_data PUBLIC
   catboost-cuda-ut_helpers
 )
 
+target_allocator(gpu_data
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
+)
+
 target_link_options(gpu_data PRIVATE
   -ldl
   -lrt
@@ -46,10 +51,5 @@ target_sources(gpu_data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_binarization.cpp
 )
 
-target_allocator(gpu_data
-  cpp-malloc-tcmalloc
-  libs-tcmalloc-no_percpu_cache
-)
 
 vcs_info(gpu_data)
-

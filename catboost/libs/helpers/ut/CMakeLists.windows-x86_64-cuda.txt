@@ -28,6 +28,10 @@ target_link_libraries(catboost-libs-helpers-ut PUBLIC
   cpp-binsaver-ut_util
 )
 
+target_allocator(catboost-libs-helpers-ut
+  system_allocator
+)
+
 target_sources(catboost-libs-helpers-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/ut/array_subset_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/ut/checksum_ut.cpp
@@ -51,6 +55,7 @@ target_sources(catboost-libs-helpers-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/ut/wx_test_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/helpers/ut/xml_output_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -85,20 +90,15 @@ set_yunittest_property(
   TEST
   catboost-libs-helpers-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(catboost-libs-helpers-ut)
 
 set_yunittest_property(
   TEST
   catboost-libs-helpers-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(catboost-libs-helpers-ut
-  system_allocator
-)
-
-vcs_info(catboost-libs-helpers-ut)
-

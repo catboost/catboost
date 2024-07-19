@@ -23,6 +23,10 @@ target_link_libraries(util-thread-ut PUBLIC
   cpp-threading-future
 )
 
+target_allocator(util-thread-ut
+  cpp-malloc-jemalloc
+)
+
 target_link_options(util-thread-ut PRIVATE
   -ldl
   -lrt
@@ -41,6 +45,7 @@ target_sources(util-thread-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/thread/pool_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/thread/singleton_ut.cpp
 )
+
 
 set_property(
   TARGET
@@ -75,20 +80,15 @@ set_yunittest_property(
   TEST
   util-thread-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(util-thread-ut)
 
 set_yunittest_property(
   TEST
   util-thread-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(util-thread-ut
-  cpp-malloc-jemalloc
-)
-
-vcs_info(util-thread-ut)
-

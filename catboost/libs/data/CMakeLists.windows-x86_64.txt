@@ -12,28 +12,29 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+
+get_built_tool_path(
+  TOOL_enum_parser_bin
+  TOOL_enum_parser_dependency
+  tools/enum_parser/enum_parser
+  enum_parser
+)
+
+get_built_tool_path(
+  TOOL_enum_parser_bin
+  TOOL_enum_parser_dependency
+  tools/enum_parser/enum_parser
+  enum_parser
+)
+
+get_built_tool_path(
+  TOOL_enum_parser_bin
+  TOOL_enum_parser_dependency
+  tools/enum_parser/enum_parser
+  enum_parser
+)
+
 add_subdirectory(ut)
-
-get_built_tool_path(
-  TOOL_enum_parser_bin
-  TOOL_enum_parser_dependency
-  tools/enum_parser/enum_parser
-  enum_parser
-)
-
-get_built_tool_path(
-  TOOL_enum_parser_bin
-  TOOL_enum_parser_dependency
-  tools/enum_parser/enum_parser
-  enum_parser
-)
-
-get_built_tool_path(
-  TOOL_enum_parser_bin
-  TOOL_enum_parser_dependency
-  tools/enum_parser/enum_parser
-  enum_parser
-)
 
 add_library(catboost-libs-data)
 
@@ -106,6 +107,7 @@ target_sources(catboost-libs-data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/weights.cpp
 )
 
+
 generate_enum_serilization(catboost-libs-data
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/columns.h
   INCLUDE_HEADERS
@@ -123,7 +125,6 @@ generate_enum_serilization(catboost-libs-data
   INCLUDE_HEADERS
   catboost/libs/data/visitor.h
 )
-
 
 add_global_library_for(catboost-libs-data.global
   catboost-libs-data

@@ -54,6 +54,7 @@ target_sources(cpp-coroutine-engine PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/coroutine/engine/trampoline.cpp
 )
 
+
 generate_enum_serilization(cpp-coroutine-engine
   ${PROJECT_SOURCE_DIR}/library/cpp/coroutine/engine/poller.h
   INCLUDE_HEADERS
@@ -65,4 +66,3 @@ generate_enum_serilization(cpp-coroutine-engine
   INCLUDE_HEADERS
   library/cpp/coroutine/engine/stack/stack_common.h
 )
-

@@ -22,6 +22,10 @@ target_link_libraries(util-generic-ut PUBLIC
   cpp-testing-unittest_main
 )
 
+target_allocator(util-generic-ut
+  system_allocator
+)
+
 target_link_options(util-generic-ut PRIVATE
   -ldl
   -lrt
@@ -86,6 +90,7 @@ target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/ymath_ut.cpp
 )
 
+
 set_property(
   TARGET
   util-generic-ut
@@ -119,20 +124,15 @@ set_yunittest_property(
   TEST
   util-generic-ut
   PROPERTY
-  PROCESSORS
-  1
+  ENVIRONMENT
 )
+
+vcs_info(util-generic-ut)
 
 set_yunittest_property(
   TEST
   util-generic-ut
   PROPERTY
-  ENVIRONMENT
+  PROCESSORS
+  1
 )
-
-target_allocator(util-generic-ut
-  system_allocator
-)
-
-vcs_info(util-generic-ut)
-
