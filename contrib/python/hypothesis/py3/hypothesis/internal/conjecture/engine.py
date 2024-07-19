@@ -552,7 +552,7 @@ class ConjectureRunner:
             if changed:
                 self.save_buffer(data.buffer)
                 self.interesting_examples[key] = data.as_result()  # type: ignore
-                self.__data_cache.pin(data.buffer)
+                self.__data_cache.pin(data.buffer, data.as_result())
                 self.shrunk_examples.discard(key)
 
             if self.shrinks >= MAX_SHRINKS:
@@ -899,7 +899,9 @@ class ConjectureRunner:
         zero_data = self.cached_test_function(bytes(BUFFER_SIZE))
         if zero_data.status > Status.OVERRUN:
             assert isinstance(zero_data, ConjectureResult)
-            self.__data_cache.pin(zero_data.buffer)
+            self.__data_cache.pin(
+                zero_data.buffer, zero_data.as_result()
+            )  # Pin forever
 
         if zero_data.status == Status.OVERRUN or (
             zero_data.status == Status.VALID

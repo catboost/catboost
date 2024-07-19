@@ -514,8 +514,9 @@ def from_typing_type(thing):
             for T in [*union_elems, elem_type]
         ):
             mapping.pop(bytes, None)
-            mapping.pop(collections.abc.ByteString, None)
-            mapping.pop(typing.ByteString, None)
+            if sys.version_info[:2] <= (3, 13):
+                mapping.pop(collections.abc.ByteString, None)
+                mapping.pop(typing.ByteString, None)
     elif (
         (not mapping)
         and isinstance(thing, typing.ForwardRef)
@@ -699,14 +700,16 @@ if sys.version_info[:2] >= (3, 9):
     # which includes this... but we don't actually ever want to build one.
     _global_type_lookup[os._Environ] = st.just(os.environ)
 
+if sys.version_info[:2] <= (3, 13):
+    # Note: while ByteString notionally also represents the bytearray and
+    # memoryview types, it is a subclass of Hashable and those types are not.
+    # We therefore only generate the bytes type. type-ignored due to deprecation.
+    _global_type_lookup[typing.ByteString] = st.binary()  # type: ignore
+    _global_type_lookup[collections.abc.ByteString] = st.binary()  # type: ignore
+
 
 _global_type_lookup.update(
     {
-        # Note: while ByteString notionally also represents the bytearray and
-        # memoryview types, it is a subclass of Hashable and those types are not.
-        # We therefore only generate the bytes type. type-ignored due to deprecation.
-        typing.ByteString: st.binary(),  # type: ignore
-        collections.abc.ByteString: st.binary(),  # type: ignore
         # TODO: SupportsAbs and SupportsRound should be covariant, ie have functions.
         typing.SupportsAbs: st.one_of(
             st.booleans(),

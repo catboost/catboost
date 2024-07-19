@@ -12,6 +12,8 @@ import threading
 
 import attr
 
+from hypothesis.errors import InvalidArgument
+
 
 @attr.s(slots=True)
 class Entry:
@@ -37,7 +39,8 @@ class GenericCache:
     Defines a dict-like mapping with a maximum size, where as well as mapping
     to a value, each key also maps to a score. When a write would cause the
     dict to exceed its maximum size, it first evicts the existing key with
-    the smallest score, then adds the new key to the map.
+    the smallest score, then adds the new key to the map. If due to pinning
+    no key can be evicted, ValueError is raised.
 
     A key has the following lifecycle:
 
@@ -45,7 +48,7 @@ class GenericCache:
        self.new_entry(key, value)
     2. whenever an existing key is read or written, self.on_access(key, value,
        score) is called. This returns a new score for the key.
-    3. When a key is evicted, self.on_evict(key, value, score) is called.
+    3. After a key is evicted, self.on_evict(key, value, score) is called.
 
     The cache will be in a valid state in all of these cases.
 
@@ -56,6 +59,9 @@ class GenericCache:
     __slots__ = ("max_size", "_threadlocal")
 
     def __init__(self, max_size):
+        if max_size <= 0:
+            raise InvalidArgument("Cache size must be at least one.")
+
         self.max_size = max_size
 
         # Implementation: We store a binary heap of Entry objects in self.data,
@@ -81,14 +87,6 @@ class GenericCache:
             self._threadlocal.data = []
             return self._threadlocal.data
 
-    @property
-    def __pinned_entry_count(self):
-        return getattr(self._threadlocal, "_pinned_entry_count", 0)
-
-    @__pinned_entry_count.setter
-    def __pinned_entry_count(self, value):
-        self._threadlocal._pinned_entry_count = value
-
     def __len__(self):
         assert len(self.keys_to_indices) == len(self.data)
         return len(self.data)
@@ -99,25 +97,21 @@ class GenericCache:
     def __getitem__(self, key):
         i = self.keys_to_indices[key]
         result = self.data[i]
-        self.on_access(result.key, result.value, result.score)
-        self.__balance(i)
+        self.__entry_was_accessed(i)
         return result.value
 
     def __setitem__(self, key, value):
-        if self.max_size == 0:
-            return
         evicted = None
         try:
             i = self.keys_to_indices[key]
         except KeyError:
-            if self.max_size == self.__pinned_entry_count:
-                raise ValueError(
-                    "Cannot increase size of cache where all keys have been pinned."
-                ) from None
             entry = Entry(key, value, self.new_entry(key, value))
             if len(self.data) >= self.max_size:
                 evicted = self.data[0]
-                assert evicted.pins == 0
+                if evicted.pins > 0:
+                    raise ValueError(
+                        "Cannot increase size of cache where all keys have been pinned."
+                    ) from None
                 del self.keys_to_indices[evicted.key]
                 i = 0
                 self.data[0] = entry
@@ -125,45 +119,44 @@ class GenericCache:
                 i = len(self.data)
                 self.data.append(entry)
             self.keys_to_indices[key] = i
+            self.__balance(i)
         else:
             entry = self.data[i]
             assert entry.key == key
             entry.value = value
-            entry.score = self.on_access(entry.key, entry.value, entry.score)
-
-        self.__balance(i)
+            self.__entry_was_accessed(i)
 
         if evicted is not None:
             if self.data[0] is not entry:
-                assert evicted.score <= self.data[0].score
+                assert evicted.sort_key <= self.data[0].sort_key
             self.on_evict(evicted.key, evicted.value, evicted.score)
 
     def __iter__(self):
         return iter(self.keys_to_indices)
 
-    def pin(self, key):
-        """Mark ``key`` as pinned. That is, it may not be evicted until
-        ``unpin(key)`` has been called. The same key may be pinned multiple
-        times and will not be unpinned until the same number of calls to
-        unpin have been made."""
+    def pin(self, key, value):
+        """Mark ``key`` as pinned (with the given value). That is, it may not
+        be evicted until ``unpin(key)`` has been called. The same key may be
+        pinned multiple times, possibly changing its value, and will not be
+        unpinned until the same number of calls to unpin have been made.
+        """
+        self[key] = value
+
         i = self.keys_to_indices[key]
         entry = self.data[i]
         entry.pins += 1
         if entry.pins == 1:
-            self.__pinned_entry_count += 1
-            assert self.__pinned_entry_count <= self.max_size
             self.__balance(i)
 
     def unpin(self, key):
-        """Undo one previous call to ``pin(key)``. Once all calls are
-        undone this key may be evicted as normal."""
+        """Undo one previous call to ``pin(key)``. The value stays the same.
+        Once all calls are undone this key may be evicted as normal."""
         i = self.keys_to_indices[key]
         entry = self.data[i]
         if entry.pins == 0:
             raise ValueError(f"Key {key!r} has not been pinned")
         entry.pins -= 1
         if entry.pins == 0:
-            self.__pinned_entry_count -= 1
             self.__balance(i)
 
     def is_pinned(self, key):
@@ -172,10 +165,9 @@ class GenericCache:
         return self.data[i].pins > 0
 
     def clear(self):
-        """Remove all keys, clearing their pinned status."""
+        """Remove all keys, regardless of their pinned status."""
         del self.data[:]
         self.keys_to_indices.clear()
-        self.__pinned_entry_count = 0
 
     def __repr__(self):
         return "{" + ", ".join(f"{e.key!r}: {e.value!r}" for e in self.data) + "}"
@@ -206,11 +198,22 @@ class GenericCache:
         Asserts that all of the cache's invariants hold. When everything
         is working correctly this should be an expensive no-op.
         """
+        assert len(self.keys_to_indices) == len(self.data)
         for i, e in enumerate(self.data):
             assert self.keys_to_indices[e.key] == i
             for j in [i * 2 + 1, i * 2 + 2]:
                 if j < len(self.data):
-                    assert e.score <= self.data[j].score, self.data
+                    assert e.sort_key <= self.data[j].sort_key, self.data
+
+    def __entry_was_accessed(self, i):
+        entry = self.data[i]
+        new_score = self.on_access(entry.key, entry.value, entry.score)
+        if new_score != entry.score:
+            entry.score = new_score
+            # changing the score of a pinned entry cannot unbalance the heap, as
+            # we place all pinned entries after unpinned ones, regardless of score.
+            if entry.pins == 0:
+                self.__balance(i)
 
     def __swap(self, i, j):
         assert i < j
@@ -220,28 +223,23 @@ class GenericCache:
         self.keys_to_indices[self.data[j].key] = j
 
     def __balance(self, i):
-        """When we have made a modification to the heap such that means that
+        """When we have made a modification to the heap such that
         the heap property has been violated locally around i but previously
         held for all other indexes (and no other values have been modified),
         this fixes the heap so that the heap property holds everywhere."""
-        while i > 0:
-            parent = (i - 1) // 2
+        # bubble up (if score is too low for current position)
+        while (parent := (i - 1) // 2) >= 0:
             if self.__out_of_order(parent, i):
                 self.__swap(parent, i)
                 i = parent
             else:
-                # This branch is never taken on versions of Python where dicts
-                # preserve their insertion order (pypy or cpython >= 3.7)
-                break  # pragma: no cover
-        while True:
-            children = [j for j in (2 * i + 1, 2 * i + 2) if j < len(self.data)]
-            if len(children) == 2:
-                children.sort(key=lambda j: self.data[j].score)
-            for j in children:
-                if self.__out_of_order(i, j):
-                    self.__swap(i, j)
-                    i = j
-                    break
+                break
+        # or bubble down (if score is too high for current position)
+        while children := [j for j in (2 * i + 1, 2 * i + 2) if j < len(self.data)]:
+            smallest_child = min(children, key=lambda j: self.data[j].sort_key)
+            if self.__out_of_order(i, smallest_child):
+                self.__swap(i, smallest_child)
+                i = smallest_child
             else:
                 break
 
@@ -258,10 +256,10 @@ class LRUReusedCache(GenericCache):
     """The only concrete implementation of GenericCache we use outside of tests
     currently.
 
-    Adopts a modified least-frequently used eviction policy: It evicts the key
+    Adopts a modified least-recently used eviction policy: It evicts the key
     that has been used least recently, but it will always preferentially evict
-    keys that have only ever been accessed once. Among keys that have been
-    accessed more than once, it ignores the number of accesses.
+    keys that have never been accessed after insertion. Among keys that have been
+    accessed, it ignores the number of accesses.
 
     This retains most of the benefits of an LRU cache, but adds an element of
     scan-resistance to the process: If we end up scanning through a large
@@ -280,22 +278,7 @@ class LRUReusedCache(GenericCache):
         return self.__tick
 
     def new_entry(self, key, value):
-        return [1, self.tick()]
+        return (1, self.tick())
 
     def on_access(self, key, value, score):
-        score[0] = 2
-        score[1] = self.tick()
-        return score
-
-    def pin(self, key):
-        try:
-            super().pin(key)
-        except KeyError:
-            # The whole point of an LRU cache is that it might drop things for you
-            assert key not in self.keys_to_indices
-
-    def unpin(self, key):
-        try:
-            super().unpin(key)
-        except KeyError:
-            assert key not in self.keys_to_indices
+        return (2, self.tick())

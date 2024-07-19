@@ -1072,10 +1072,8 @@ def ir_value_permitted(value, ir_type, kwargs):
         if max_value is not None and value > max_value:
             return False
 
-        if (max_value is None or min_value is None) and (
-            value - shrink_towards
-        ).bit_length() >= 128:
-            return False
+        if max_value is None or min_value is None:
+            return (value - shrink_towards).bit_length() < 128
 
         return True
     elif ir_type == "float":

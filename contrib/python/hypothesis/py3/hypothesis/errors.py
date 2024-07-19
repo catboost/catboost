@@ -175,10 +175,8 @@ class DidNotReproduce(HypothesisException):
     pass
 
 
-class Found(Exception):
+class Found(HypothesisException):
     """Signal that the example matches condition. Internal use only."""
-
-    hypothesis_internal_never_escalate = True
 
 
 class RewindRecursive(Exception):

@@ -57,7 +57,9 @@ def integers_for_field(min_value, max_value):
 def timezones():
     # From Django 4.0, the default is to use zoneinfo instead of pytz.
     assert getattr(django.conf.settings, "USE_TZ", False)
-    if getattr(django.conf.settings, "USE_DEPRECATED_PYTZ", True):
+    if django.VERSION < (5, 0, 0) and getattr(
+        django.conf.settings, "USE_DEPRECATED_PYTZ", True
+    ):
         from hypothesis.extra.pytz import timezones
     else:
         from hypothesis.strategies import timezones

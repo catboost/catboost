@@ -18,6 +18,7 @@ import io
 import math
 import sys
 import time
+import traceback
 import types
 import unittest
 import warnings
@@ -60,6 +61,7 @@ from hypothesis.errors import (
     Flaky,
     Found,
     HypothesisDeprecationWarning,
+    HypothesisException,
     HypothesisWarning,
     InvalidArgument,
     NoSuchExample,
@@ -86,9 +88,9 @@ from hypothesis.internal.entropy import deterministic_PRNG
 from hypothesis.internal.escalation import (
     InterestingOrigin,
     current_pytest_item,
-    escalate_hypothesis_internal_error,
     format_exception,
     get_trimmed_traceback,
+    is_hypothesis_file,
 )
 from hypothesis.internal.healthcheck import fail_health_check
 from hypothesis.internal.observability import (
@@ -1071,7 +1073,11 @@ class StateForActualGivenExecution:
         except failure_exceptions_to_catch() as e:
             # If the error was raised by Hypothesis-internal code, re-raise it
             # as a fatal error instead of treating it as a test failure.
-            escalate_hypothesis_internal_error()
+            filepath = traceback.extract_tb(e.__traceback__)[-1][0]
+            if is_hypothesis_file(filepath) and not isinstance(
+                e, (HypothesisException, StopTest, UnsatisfiedAssumption)
+            ):
+                raise
 
             if data.frozen:
                 # This can happen if an error occurred in a finally
