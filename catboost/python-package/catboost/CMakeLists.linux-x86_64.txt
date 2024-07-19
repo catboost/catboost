@@ -31,7 +31,6 @@ target_link_libraries(_catboost PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-mimalloc
   Python3::Module
   catboost-libs-carry_model
   catboost-libs-cat_feature
@@ -84,6 +83,10 @@ target_sources(_catboost PRIVATE
 
 set_python_type_for_cython(_catboost
   PY3
+)
+
+target_allocator(_catboost
+  cpp-malloc-mimalloc
 )
 
 target_cython_include_directories(_catboost

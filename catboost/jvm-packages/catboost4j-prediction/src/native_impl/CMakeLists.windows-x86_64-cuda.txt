@@ -18,7 +18,6 @@ add_shared_library(catboost4j-prediction)
 target_link_libraries(catboost4j-prediction PUBLIC
   contrib-libs-cxxsupp
   yutil
-  system_allocator
   catboost-libs-helpers
   catboost-libs-model
   libs-model-model_export
@@ -28,6 +27,10 @@ target_link_libraries(catboost4j-prediction PUBLIC
 
 target_sources(catboost4j-prediction PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/jvm-packages/catboost4j-prediction/src/native_impl/ai_catboost_CatBoostJNIImpl.cpp
+)
+
+target_allocator(catboost4j-prediction
+  system_allocator
 )
 
 vcs_info(catboost4j-prediction)

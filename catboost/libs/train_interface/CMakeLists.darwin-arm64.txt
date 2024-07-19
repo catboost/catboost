@@ -22,7 +22,6 @@ set_property(TARGET catboost_train_interface PROPERTY OUTPUT_NAME
 target_link_libraries(catboost_train_interface PUBLIC
   contrib-libs-cxxsupp
   yutil
-  cpp-malloc-jemalloc
   private-libs-algo
   catboost-libs-column_description
   catboost-libs-data
@@ -52,6 +51,10 @@ target_link_options(catboost_train_interface PRIVATE
 
 target_sources(catboost_train_interface PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp
+)
+
+target_allocator(catboost_train_interface
+  cpp-malloc-jemalloc
 )
 
 use_export_script(catboost_train_interface
