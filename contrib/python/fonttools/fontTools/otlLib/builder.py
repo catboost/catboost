@@ -544,6 +544,10 @@ class ChainContextualBuilder(LookupBuilder):
                 f"{classRuleAttr}Count",
                 getattr(setForThisRule, f"{classRuleAttr}Count") + 1,
             )
+        for i, classSet in enumerate(classSets):
+            if not getattr(classSet, classRuleAttr):
+                # class sets can be null so replace nop sets with None
+                classSets[i] = None
         setattr(st, self.ruleSetAttr_(format=2, chaining=chaining), classSets)
         setattr(
             st, self.ruleSetAttr_(format=2, chaining=chaining) + "Count", len(classSets)
@@ -781,14 +785,14 @@ class ChainContextSubstBuilder(ChainContextualBuilder):
                             )
         return result
 
-    def find_chainable_single_subst(self, mapping):
-        """Helper for add_single_subst_chained_()"""
+    def find_chainable_subst(self, mapping, builder_class):
+        """Helper for add_{single,multi}_subst_chained_()"""
         res = None
         for rule in self.rules[::-1]:
             if rule.is_subtable_break:
                 return res
             for sub in rule.lookups:
-                if isinstance(sub, SingleSubstBuilder) and not any(
+                if isinstance(sub, builder_class) and not any(
                     g in mapping and mapping[g] != sub.mapping[g] for g in sub.mapping
                 ):
                     res = sub

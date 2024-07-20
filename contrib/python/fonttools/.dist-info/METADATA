@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.53.0
+Version: 4.53.1
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -306,7 +306,8 @@ How to make a new release
 2) Use semantic versioning to decide whether the new release will be a 'major',
    'minor' or 'patch' release. It's usually one of the latter two, depending on
    whether new backward compatible APIs were added, or simply some bugs were fixed.
-3) Run ``python setup.py release`` command from the tip of the ``main`` branch.
+3) From inside a venv, first do ``pip install -r dev-requirements.txt``, then run
+   the ``python setup.py release`` command from the tip of the ``main`` branch.
    By default this bumps the third or 'patch' digit only, unless you pass ``--major``
    or ``--minor`` to bump respectively the first or second digit.
    This bumps the package version string, extracts the changes since the latest
@@ -374,6 +375,13 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.53.1 (released 2024-07-05)
+----------------------------
+
+- [feaLib] Improve the sharing of inline chained lookups (#3559)
+- [otlLib] Correct the calculation of OS/2.usMaxContext with reversed chaining contextual single substitutions (#3569)
+- [misc.visitor] Visitors search the inheritance chain of objects they are visiting (#3581)
 
 4.53.0 (released 2024-05-31)
 ----------------------------

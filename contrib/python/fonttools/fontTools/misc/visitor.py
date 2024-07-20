@@ -61,9 +61,10 @@ class Visitor(object):
             if _visitors is None:
                 break
 
-            m = celf._visitors.get(typ, None)
-            if m is not None:
-                return m
+            for base in typ.mro():
+                m = celf._visitors.get(base, None)
+                if m is not None:
+                    return m
 
         return _default
 

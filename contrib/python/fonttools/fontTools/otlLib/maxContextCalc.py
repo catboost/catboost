@@ -92,5 +92,5 @@ def maxCtxContextualRule(maxCtx, st, chain):
     if not chain:
         return max(maxCtx, st.GlyphCount)
     elif chain == "Reverse":
-        return max(maxCtx, st.GlyphCount + st.LookAheadGlyphCount)
+        return max(maxCtx, 1 + st.LookAheadGlyphCount)
     return max(maxCtx, st.InputGlyphCount + st.LookAheadGlyphCount)

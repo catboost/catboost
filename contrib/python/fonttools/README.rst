@@ -232,7 +232,8 @@ How to make a new release
 2) Use semantic versioning to decide whether the new release will be a 'major',
    'minor' or 'patch' release. It's usually one of the latter two, depending on
    whether new backward compatible APIs were added, or simply some bugs were fixed.
-3) Run ``python setup.py release`` command from the tip of the ``main`` branch.
+3) From inside a venv, first do ``pip install -r dev-requirements.txt``, then run
+   the ``python setup.py release`` command from the tip of the ``main`` branch.
    By default this bumps the third or 'patch' digit only, unless you pass ``--major``
    or ``--minor`` to bump respectively the first or second digit.
    This bumps the package version string, extracts the changes since the latest
