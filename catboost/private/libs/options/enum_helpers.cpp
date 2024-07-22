@@ -252,6 +252,11 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsGroupwise
         | EMetricAttribute::HasGpuImplementation
     ),
+    RankingRegistree(GroupQuantile, ERankingType::AbsoluteValue,
+        EMetricAttribute::IsRegression
+        | EMetricAttribute::IsGroupwise
+        | EMetricAttribute::HasGpuImplementation
+    ),
     RankingRegistree(QueryAUC, ERankingType::AbsoluteValue,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
@@ -579,6 +584,7 @@ static const TVector<ELossFunction> RankingObjectives = {
     ELossFunction::YetiRank,
     ELossFunction::YetiRankPairwise,
     ELossFunction::QueryRMSE,
+    ELossFunction::GroupQuantile,
     ELossFunction::QueryAUC,
     ELossFunction::QuerySoftMax,
     ELossFunction::QueryCrossEntropy,

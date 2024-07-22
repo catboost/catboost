@@ -171,6 +171,7 @@ namespace NCB {
                 return Logit(bestProbability);
             }
             case ELossFunction::Quantile:
+            case ELossFunction::GroupQuantile:
             case ELossFunction::MAE: {
                 const auto& params = lossDescription.GetLossParamsMap();
                 auto it = params.find("alpha");

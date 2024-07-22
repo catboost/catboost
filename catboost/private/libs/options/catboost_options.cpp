@@ -113,16 +113,12 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         case ELossFunction::MAE:
         case ELossFunction::MAPE:
         case ELossFunction::Quantile:
-        case ELossFunction::MultiQuantile: {
-            defaultEstimationMethod = ELeavesEstimation::Gradient;
-            defaultNewtonIterations = 1;
-            defaultGradientIterations = 1;
-            break;
-        }
+        case ELossFunction::GroupQuantile:
+        case ELossFunction::MultiQuantile:
         case ELossFunction::LogLinQuantile: {
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
-            defaultEstimationMethod = ELeavesEstimation::Gradient;
             break;
         }
         case ELossFunction::Expectile: {
@@ -284,7 +280,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     if (lossFunctionConfig.GetLossFunction() == ELossFunction::UserQuerywiseMetric) {
         treeConfig.PairwiseNonDiagReg.SetDefault(0);
     }
-    const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile, ELossFunction::MultiQuantile)
+    const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile, ELossFunction::GroupQuantile, ELossFunction::MultiQuantile)
             && SystemOptions->IsSingleHost()
             && (
                 (TaskType == ETaskType::GPU && BoostingOptions->BoostingType == EBoostingType::Plain)
@@ -340,8 +336,8 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
 
     if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Exact) {
         auto loss = lossFunctionConfig.GetLossFunction();
-        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::LogCosh, ELossFunction::MultiQuantile),
-            "Exact method is only available for Quantile, MultiQuantile, MAE, MAPE and LogCosh loss functions.");
+        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::GroupQuantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::LogCosh, ELossFunction::MultiQuantile),
+            "Exact method is only available for Quantile, GroupQuantile, MultiQuantile, MAE, MAPE and LogCosh loss functions.");
         CB_ENSURE(
             BoostingOptions->BoostingType == EBoostingType::Plain || TaskType == ETaskType::CPU,
             "Exact leaf estimation method don't work with ordered boosting on GPU"

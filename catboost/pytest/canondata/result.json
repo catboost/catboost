@@ -5930,6 +5930,11 @@
             "uri": "file://test.test_logloss_with_not_binarized_target_calc_block=60-Plain_/test.eval"
         }
     ],
+    "test.test_loss_change_fstr[GroupQuantile]": [
+        {
+            "uri": "file://test.test_loss_change_fstr_GroupQuantile_/fstr.tsv"
+        }
+    ],
     "test.test_loss_change_fstr[PairLogitPairwise]": [
         {
             "uri": "file://test.test_loss_change_fstr_PairLogitPairwise_/fstr.tsv"
@@ -8280,6 +8285,11 @@
             "uri": "file://test.test_quantile_exact_distributed/test_1.eval"
         }
     ],
+    "test.test_quantile_targets[Ordered-SymmetricTree-GroupQuantile]": [
+        {
+            "uri": "file://test.test_quantile_targets_Ordered-SymmetricTree-GroupQuantile_/test.eval"
+        }
+    ],
     "test.test_quantile_targets[Ordered-SymmetricTree-LogLinQuantile]": [
         {
             "uri": "file://test.test_quantile_targets_Ordered-SymmetricTree-LogLinQuantile_/test.eval"
@@ -8288,6 +8298,11 @@
     "test.test_quantile_targets[Ordered-SymmetricTree-Quantile]": [
         {
             "uri": "file://test.test_quantile_targets_Ordered-SymmetricTree-Quantile_/test.eval"
+        }
+    ],
+    "test.test_quantile_targets[Plain-Depthwise-GroupQuantile]": [
+        {
+            "uri": "file://test.test_quantile_targets_Plain-Depthwise-GroupQuantile_/test.eval"
         }
     ],
     "test.test_quantile_targets[Plain-Depthwise-LogLinQuantile]": [
@@ -8300,6 +8315,11 @@
             "uri": "file://test.test_quantile_targets_Plain-Depthwise-Quantile_/test.eval"
         }
     ],
+    "test.test_quantile_targets[Plain-Lossguide-GroupQuantile]": [
+        {
+            "uri": "file://test.test_quantile_targets_Plain-Lossguide-GroupQuantile_/test.eval"
+        }
+    ],
     "test.test_quantile_targets[Plain-Lossguide-LogLinQuantile]": [
         {
             "uri": "file://test.test_quantile_targets_Plain-Lossguide-LogLinQuantile_/test.eval"
@@ -8308,6 +8328,11 @@
     "test.test_quantile_targets[Plain-Lossguide-Quantile]": [
         {
             "uri": "file://test.test_quantile_targets_Plain-Lossguide-Quantile_/test.eval"
+        }
+    ],
+    "test.test_quantile_targets[Plain-SymmetricTree-GroupQuantile]": [
+        {
+            "uri": "file://test.test_quantile_targets_Plain-SymmetricTree-GroupQuantile_/test.eval"
         }
     ],
     "test.test_quantile_targets[Plain-SymmetricTree-LogLinQuantile]": [

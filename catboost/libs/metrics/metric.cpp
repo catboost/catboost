@@ -2619,7 +2619,178 @@ void TQueryRMSEMetric::GetBestValue(EMetricBestValue* valueType, float* bestValu
 
 TVector<TParamSet> TQueryRMSEMetric::ValidParamSets() {
     return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
-};
+}
+
+/* GroupQuantile */
+
+namespace {
+    struct TGroupQuantileMetric final: public TAdditiveSingleTargetMetric {
+        TGroupQuantileMetric(ELossFunction lossFunction, const TLossParams& params, double alpha, double delta);
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
+
+        TMetricHolder EvalSingleThread(
+            TConstArrayRef<TConstArrayRef<double>> approx,
+            TConstArrayRef<TConstArrayRef<double>> approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int queryStartIndex,
+            int queryEndIndex
+        ) const override;
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
+    private:
+        static constexpr double MaeAlpha = 0.5;
+        static constexpr double MaeDelta = 1e-6;
+        ELossFunction LossFunction;
+        double Alpha;
+        double Delta;
+
+    private:
+        template <bool HasDelta, bool HasWeight>
+        double CalcQueryAvrg(
+            int start,
+            int count,
+            TConstArrayRef<double> approxes,
+            TConstArrayRef<double> approxDelta,
+            TConstArrayRef<float> targets,
+            TConstArrayRef<float> weights
+        ) const;
+    };
+}
+
+TVector<THolder<IMetric>> TGroupQuantileMetric::Create(const TMetricConfig& config) {
+    double alpha = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "alpha", 0.5);
+    double delta = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "delta", 1e-6);
+
+    config.ValidParams->insert("alpha");
+    config.ValidParams->insert("delta");
+
+    return AsVector(MakeHolder<TGroupQuantileMetric>(config.Metric, config.Params, alpha, delta));
+}
+
+TGroupQuantileMetric::TGroupQuantileMetric(ELossFunction lossFunction, const TLossParams& params, double alpha, double delta)
+    : TAdditiveSingleTargetMetric(lossFunction, params)
+    , LossFunction(lossFunction)
+    , Alpha(alpha)
+    , Delta(delta)
+{
+    CB_ENSURE(
+        Delta >= 0 && Delta <= 1e-2,
+        "Parameter delta for quantile metric should be in interval [0, 0.01]"
+    );
+    CB_ENSURE_INTERNAL(
+        lossFunction == ELossFunction::GroupQuantile,
+        "lossFunction " << lossFunction
+    );
+    CB_ENSURE(Alpha > -1e-6 && Alpha < 1.0 + 1e-6, "Alpha parameter for quantile metric should be in interval [0, 1]");
+}
+
+TMetricHolder TGroupQuantileMetric::EvalSingleThread(
+    TConstArrayRef<TConstArrayRef<double>> approxRef,
+    TConstArrayRef<TConstArrayRef<double>> approxDeltaRef,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> queriesInfo,
+    int queryStartIndex,
+    int queryEndIndex
+) const {
+    Y_ASSERT(!isExpApprox);
+    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+        TConstArrayRef<double> approx = approxRef[0];
+        TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
+        TMetricHolder error(2);
+        for (int queryIndex : xrange(queryStartIndex, queryEndIndex)) {
+            const int begin = queriesInfo[queryIndex].Begin;
+            const int end = queriesInfo[queryIndex].End;
+            const double queryAvrg = CalcQueryAvrg<hasDelta, hasWeight>(begin, end - begin, approx, approxDelta, target, weight);
+            for (int docId : xrange(begin, end)) {
+                double val = target[docId] - approx[docId] - queryAvrg;
+                if (hasDelta) {
+                    val -= approxDelta[docId];
+                }
+                const double multiplier = (abs(val) < Delta) ? 0 : ((val > 0) ? Alpha : -(1 - Alpha));
+                if (val < -Delta) {
+                    val += Delta;
+                } else if (val > Delta) {
+                    val -= Delta;
+                }
+
+                const double w = hasWeight ? weight[docId] : 1;
+                error.Stats[0] += (multiplier * val) * w;
+                error.Stats[1] += w;
+            }
+        }
+        return error;
+    };
+    return DispatchGenericLambda(impl, !approxDeltaRef.empty(), !weight.empty());
+}
+
+template <bool HasDelta, bool HasWeight>
+double TGroupQuantileMetric::CalcQueryAvrg(
+    int start,
+    int count,
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<double> approxDelta,
+    TConstArrayRef<float> targets,
+    TConstArrayRef<float> weights
+) const {
+    double qsum = 0;
+    double qcount = 0;
+    for (int docId : xrange(start, start + count)) {
+        const double w = HasWeight ? weights[docId] : 1;
+        const double delta = HasDelta ? approxDelta[docId] : 0;
+        qsum += (targets[docId] - approxes[docId] - delta) * w;
+        qcount += w;
+    }
+
+    double qavrg = 0;
+    if (qcount > 0) {
+        qavrg = qsum / qcount;
+    }
+    return qavrg;
+}
+
+EErrorType TGroupQuantileMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+void TGroupQuantileMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
+    *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
+}
+
+TString TGroupQuantileMetric::GetDescription() const {
+    Y_ASSERT(LossFunction == ELossFunction::GroupQuantile);
+    if (Delta == 1e-6) {
+        const TMetricParam<double> alpha("alpha", Alpha, /*userDefined*/true);
+        return BuildDescription(LossFunction, UseWeights, "%.3g", alpha);
+    }
+    const TMetricParam<double> alpha("alpha", Alpha, /*userDefined*/true);
+    const TMetricParam<double> delta("delta", Delta, /*userDefined*/true);
+    return BuildDescription(LossFunction, UseWeights, "%.3g", alpha, "%g", delta);
+}
+
+TVector<TParamSet> TGroupQuantileMetric::ValidParamSets() {
+    return {
+        TParamSet{
+            {
+                TParamInfo{"use_weights", false, true},
+                TParamInfo{"alpha", false, MaeAlpha},
+                TParamInfo{"delta", false, MaeDelta} // ToDo: Delete (MAE part)
+            },
+            ""
+        }
+    };
+}
 
 /* PFound */
 
@@ -6173,6 +6344,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::QueryRMSE:
             AppendTemporaryMetricsVector(TQueryRMSEMetric::Create(config), &result);
             break;
+        case ELossFunction::GroupQuantile:
+            AppendTemporaryMetricsVector(TGroupQuantileMetric::Create(config), &result);
+            break;
         case ELossFunction::QueryAUC:
             AppendTemporaryMetricsVector(TQueryAUCMetric::Create(config), &result);
             break;
@@ -6412,6 +6586,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TPairLogitMetric::ValidParamSets();
         case ELossFunction::QueryRMSE:
             return TQueryRMSEMetric::ValidParamSets();
+        case ELossFunction::GroupQuantile:
+            return TGroupQuantileMetric::ValidParamSets();
         case ELossFunction::QueryAUC:
             return TQueryAUCMetric::ValidParamSets();
         case ELossFunction::QuerySoftMax:

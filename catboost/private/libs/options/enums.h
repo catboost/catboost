@@ -159,6 +159,7 @@ enum class ELossFunction {
     YetiRank,
     YetiRankPairwise,
     QueryRMSE,
+    GroupQuantile,
     QuerySoftMax,
     QueryCrossEntropy,
     StochasticFilter,

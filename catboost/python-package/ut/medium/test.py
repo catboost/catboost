@@ -2627,7 +2627,7 @@ def test_generated_metrics_default_params():
         metrics.NormalizedGini, metrics.BrierScore, metrics.Precision, metrics.HingeLoss, metrics.ZeroOneLoss,
         metrics.WKappa, metrics.Combination, metrics.MAE, metrics.PairLogit, metrics.Kappa, metrics.MRR, metrics.RMSE,
         metrics.Poisson, metrics.BalancedAccuracy, metrics.Accuracy, metrics.MultiClass, metrics.HammingLoss,
-        metrics.QueryRMSE, metrics.RMSEWithUncertainty, metrics.QueryAUC, metrics.LogLinQuantile, metrics.Recall,
+        metrics.QueryRMSE, metrics.GroupQuantile, metrics.RMSEWithUncertainty, metrics.QueryAUC, metrics.LogLinQuantile, metrics.Recall,
         metrics.BalancedErrorRate, metrics.MultiRMSE, metrics.Quantile, metrics.PFound, metrics.Cox,
         metrics.PairLogitPairwise, metrics.UserPerObjMetric, metrics.SurvivalAft
     )
@@ -2798,7 +2798,7 @@ def test_generated_ranking_groupwise_metric():
         Pool(data=QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE),
         Pool(data=QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE),
         {
-            'QueryRMSE': metrics.QueryRMSE(), 'PFound': metrics.PFound(),
+            'QueryRMSE': metrics.QueryRMSE(), 'GroupQuantile:alpha=0.5': metrics.GroupQuantile(), 'PFound': metrics.PFound(),
             # Metric descriptions should be 'NDCG' & 'DCG' instead of 'NDCG:type=Base' & 'DCG:type=Base' respectively
             'NDCG:type=Base': metrics.NDCG(), 'DCG:type=Base': metrics.DCG(),
             'FilteredDCG': metrics.FilteredDCG(), 'AverageGain:top=5': metrics.AverageGain(top=5),
@@ -6716,6 +6716,7 @@ class Metrics(object):
             'PairLogit',
             'PairAccuracy',
             'QueryRMSE',
+            'GroupQuantile',
             'QuerySoftMax',
             'PFound',
             'NDCG',
@@ -6774,6 +6775,7 @@ class Metrics(object):
             'QueryAverage:top=5',
             'QueryCrossEntropy',
             'QueryRMSE',
+            'GroupQuantile',
             'QuerySoftMax',
             'R2',
             'Recall',
@@ -6891,7 +6893,7 @@ class TestUseWeights(object):
         set_random_weight(train_pool, prng=prng)
         set_random_weight(test_pool, prng=prng)
 
-        if metric == 'QueryRMSE':
+        if metric in ('QueryRMSE', 'GroupQuantile'):
             loss_function = 'QueryRMSE'
         else:
             loss_function = 'PairLogit'

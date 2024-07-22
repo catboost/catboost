@@ -907,6 +907,100 @@ private:
     }
 };
 
+class TGroupQuantileError final : public IDerCalcer {
+public:
+    static constexpr double QUANTILE_DER2_AND_DER3 = 0.0;
+
+public:
+    const double Alpha;
+    const double Delta;
+
+public:
+    explicit TGroupQuantileError(bool isExpApprox)
+        : IDerCalcer(isExpApprox, EErrorType::QuerywiseError)
+        , Alpha(0.5)
+        , Delta(1e-6)
+    {
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+    explicit TGroupQuantileError(double alpha, double delta, bool isExpApprox)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 3, /* errorType */ EErrorType::QuerywiseError)
+        , Alpha(alpha)
+        , Delta(delta)
+    {
+        Y_ASSERT(Alpha > -1e-6 && Alpha < 1.0 + 1e-6);
+        Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+    void CalcDersForQueries(
+        int queryStartIndex,
+        int queryEndIndex,
+        const TVector<double>& approxes,
+        const TVector<float>& targets,
+        const TVector<float>& weights,
+        const TVector<TQueryInfo>& queriesInfo,
+        TArrayRef<TDers> ders,
+        ui64 /*randomSeed*/,
+        NPar::ILocalExecutor* localExecutor
+    ) const override {
+        const int start = queriesInfo[queryStartIndex].Begin;
+        NPar::ParallelFor(
+            *localExecutor,
+            queryStartIndex,
+            queryEndIndex,
+            [&] (ui32 queryIndex) {
+                const int begin = queriesInfo[queryIndex].Begin;
+                const int end = queriesInfo[queryIndex].End;
+                const int querySize = end - begin;
+
+                const double queryAvrg = CalcQueryAvrg(begin, querySize, approxes, targets, weights);
+                for (int docId = begin; docId < end; ++docId) {
+                    const double val = targets[docId] - approxes[docId] - queryAvrg;
+                    ders[docId - start].Der2 = QUANTILE_DER2_AND_DER3;
+                    ders[docId - start].Der3 = QUANTILE_DER2_AND_DER3;
+                    if (!weights.empty()) {
+                        ders[docId - start].Der2 *= weights[docId];
+                        ders[docId - start].Der3 *= weights[docId];
+                    }
+                    if (abs(val) < Delta) {
+                        ders[docId - start].Der1 = 0;
+                        continue;
+                    }
+                    ders[docId - start].Der1 = (val > 0) ? Alpha : -(1 - Alpha);
+                    if (!weights.empty()) {
+                        ders[docId - start].Der1 *= weights[docId];
+                    }
+                }
+            }
+        );
+    }
+
+private:
+    double CalcQueryAvrg(
+        int start,
+        int count,
+        const TVector<double>& approxes,
+        const TVector<float>& targets,
+        const TVector<float>& weights
+    ) const {
+        double querySum = 0;
+        double queryCount = 0;
+        for (int docId = start; docId < start + count; ++docId) {
+            double w = weights.empty() ? 1 : weights[docId];
+            querySum += (targets[docId] - approxes[docId]) * w;
+            queryCount += w;
+        }
+
+        double queryAvrg = 0;
+        if (queryCount > 0) {
+            queryAvrg = querySum / queryCount;
+        }
+        return queryAvrg;
+    }
+};
+
 class TQuerySoftMaxError final : public IDerCalcer {
 public:
     const double LambdaReg;

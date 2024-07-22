@@ -45,7 +45,7 @@ MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 CLASSIFICATION_LOSSES = BINCLASS_LOSSES + MULTICLASS_LOSSES
 REGRESSION_LOSSES = ['MAE', 'MAPE', 'Poisson', 'Quantile', 'RMSE', 'RMSEWithUncertainty', 'LogLinQuantile', 'Lq']
 PAIRWISE_LOSSES = ['PairLogit', 'PairLogitPairwise']
-GROUPWISE_LOSSES = ['YetiRank', 'YetiRankPairwise', 'QueryRMSE', 'QuerySoftMax']
+GROUPWISE_LOSSES = ['YetiRank', 'YetiRankPairwise', 'QueryRMSE', 'GroupQuantile', 'QuerySoftMax']
 RANKING_LOSSES = PAIRWISE_LOSSES + GROUPWISE_LOSSES
 ALL_LOSSES = CLASSIFICATION_LOSSES + REGRESSION_LOSSES + RANKING_LOSSES
 
@@ -1494,7 +1494,7 @@ def test_yetirank(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'PairLogit', 'YetiRank', 'PairLogitPairwise', 'YetiRankPairwise'])
+@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'GroupQuantile', 'PairLogit', 'YetiRank', 'PairLogitPairwise', 'YetiRankPairwise'])
 def test_pairwise_reproducibility(loss_function):
 
     def run_catboost(threads, model_path, eval_path):
@@ -3409,7 +3409,7 @@ def make_model_normalized(model_path):
     ])
 
 
-@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'PairLogit', 'YetiRank', 'PairLogitPairwise', 'YetiRankPairwise'])
+@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'GroupQuantile', 'PairLogit', 'YetiRank', 'PairLogitPairwise', 'YetiRankPairwise'])
 def test_loss_change_fstr(loss_function):
     return do_test_loss_change_fstr(loss_function, normalize=False)
 
@@ -4313,7 +4313,7 @@ def test_const_feature(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
-QUANTILE_LOSS_FUNCTIONS = ['Quantile', 'LogLinQuantile']
+QUANTILE_LOSS_FUNCTIONS = ['Quantile', 'GroupQuantile', 'LogLinQuantile']
 
 
 @pytest.mark.parametrize('loss_function', QUANTILE_LOSS_FUNCTIONS)
@@ -4325,9 +4325,9 @@ def test_quantile_targets(loss_function, boosting_type, grow_policy):
     cmd = (
         '--use-best-model', 'false',
         '--loss-function', loss_function + ':alpha=0.9',
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
         '--boosting-type', boosting_type,
         '--grow-policy', grow_policy,
         '-i', '5',
@@ -8137,15 +8137,16 @@ def test_pairwise_bernoulli_bootstrap(subsample, sampling_unit, loss_function, d
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool(eps))]
 
 
-@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE'])
-@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'AUC', 'PFound'])
+@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE', 'GroupQuantile'])
+@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'AUC', 'PFound', 'GroupQuantile'])
 def test_bad_metrics_combination(loss_function, metric):
     BAD_PAIRS = {
-        'Logloss': ['RMSE', 'MultiClass'],
+        'Logloss': ['RMSE', 'MultiClass', 'GroupQuantile'],
         'RMSE': ['Logloss', 'MultiClass'],
-        'MultiClass': ['Logloss', 'RMSE', 'QuerySoftMax', 'PFound'],
-        'QuerySoftMax': ['RMSE', 'MultiClass', 'QueryRMSE'],
+        'MultiClass': ['Logloss', 'RMSE', 'QuerySoftMax', 'PFound', 'GroupQuantile'],
+        'QuerySoftMax': ['RMSE', 'MultiClass', 'QueryRMSE', 'GroupQuantile'],
         'QueryRMSE': ['Logloss', 'MultiClass', 'QuerySoftMax'],
+        'GroupQuantile': ['Logloss', 'MultiClass', 'QuerySoftMax'],
         'YetiRank': ['Logloss', 'RMSE', 'MultiClass']
     }
 

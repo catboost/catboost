@@ -5986,6 +5986,7 @@ class CatBoostRanker(CatBoost):
         'StochasticRank'
         'QueryCrossEntropy'
         'QueryRMSE'
+        'GroupQuantile'
         'QuerySoftMax'
         'PairLogit'
         'PairLogitPairwise'
@@ -6347,7 +6348,7 @@ class CatBoostRanker(CatBoost):
         if not (is_ranking or is_regression):
             raise CatBoostError("Invalid loss_function='{}': for ranker use "
                                 "YetiRank, YetiRankPairwise, StochasticFilter, StochasticRank, "
-                                "QueryCrossEntropy, QueryRMSE, QuerySoftMax, PairLogit, PairLogitPairwise. "
+                                "QueryCrossEntropy, QueryRMSE, GroupQuantile, QuerySoftMax, PairLogit, PairLogitPairwise. "
                                 "It's also possible to use a regression loss".format(loss_function))
 
 

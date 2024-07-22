@@ -80,6 +80,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::PairLogit:
         case ELossFunction::PairLogitPairwise:
         case ELossFunction::QueryRMSE:
+        case ELossFunction::GroupQuantile:
         case ELossFunction::QuerySoftMax:
         case ELossFunction::YetiRank:
         case ELossFunction::YetiRankPairwise:
