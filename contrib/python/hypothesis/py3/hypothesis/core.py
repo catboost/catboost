@@ -1119,6 +1119,10 @@ class StateForActualGivenExecution:
                     self.settings.backend != "hypothesis"
                     and not getattr(runner, "_switch_to_hypothesis_provider", False)
                 )
+                data._observability_args = data.provider.realize(
+                    data._observability_args
+                )
+                self._string_repr = data.provider.realize(self._string_repr)
                 tc = make_testcase(
                     start_timestamp=self._start_timestamp,
                     test_name_or_nodeid=self.test_identifier,

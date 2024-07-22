@@ -1206,18 +1206,34 @@ class PrimitiveProvider(abc.ABC):
     # Non-hypothesis providers probably want to set a lifetime of test_function.
     lifetime = "test_function"
 
+    # Solver-based backends such as hypothesis-crosshair use symbolic values
+    # which record operations performed on them in order to discover new paths.
+    # If avoid_realization is set to True, hypothesis will avoid interacting with
+    # ir values (symbolics) returned by the provider in any way that would force the
+    # solver to narrow the range of possible values for that symbolic.
+    #
+    # Setting this to True disables some hypothesis features, such as
+    # DataTree-based deduplication, and some internal optimizations, such as
+    # caching kwargs. Only enable this if it is necessary for your backend.
+    avoid_realization = False
+
     def __init__(self, conjecturedata: Optional["ConjectureData"], /) -> None:
         self._cd = conjecturedata
 
-    def post_test_case_hook(self, value: IRType) -> IRType:
-        # hook for providers to modify values returned by draw_* after a full
-        # test case concludes. Originally exposed for crosshair to reify its
-        # symbolic values into actual values.
-        # I'm not tied to this exact function name or design.
-        return value
-
     def per_test_case_context_manager(self):
         return contextlib.nullcontext()
+
+    def realize(self, value: T) -> T:
+        """
+        Called whenever hypothesis requires a concrete (non-symbolic) value from
+        a potentially symbolic value. Hypothesis will not check that `value` is
+        symbolic before calling `realize`, so you should handle the case where
+        `value` is non-symbolic.
+
+        The returned value should be non-symbolic.
+        """
+
+        return value
 
     @abc.abstractmethod
     def draw_boolean(
@@ -1888,6 +1904,14 @@ AVAILABLE_PROVIDERS = {
 }
 
 
+# eventually we'll want to expose this publicly, but for now it lives as psuedo-internal.
+def realize(value: object) -> object:
+    from hypothesis.control import current_build_context
+
+    context = current_build_context()
+    return context.data.provider.realize(value)
+
+
 class ConjectureData:
     @classmethod
     def for_buffer(
@@ -2280,6 +2304,10 @@ class ConjectureData:
 
     def _pooled_kwargs(self, ir_type, kwargs):
         """Memoize common dictionary objects to reduce memory pressure."""
+        # caching runs afoul of nondeterminism checks
+        if self.provider.avoid_realization:
+            return kwargs
+
         key = []
         for k, v in kwargs.items():
             if ir_type == "float" and k in ["min_value", "max_value"]:

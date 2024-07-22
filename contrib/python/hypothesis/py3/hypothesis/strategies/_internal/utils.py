@@ -65,10 +65,15 @@ def clear_cache() -> None:
 
 
 def cacheable(fn: "T") -> "T":
+    from hypothesis.control import _current_build_context
     from hypothesis.strategies._internal.strategies import SearchStrategy
 
     @proxies(fn)
     def cached_strategy(*args, **kwargs):
+        context = _current_build_context.value
+        if context is not None and context.data.provider.avoid_realization:
+            return fn(*args, **kwargs)
+
         try:
             kwargs_cache_key = {(k, convert_value(v)) for k, v in kwargs.items()}
         except TypeError:
