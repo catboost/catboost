@@ -87,7 +87,7 @@ public:
     //! Constructs a TRange from an std::vector.
     template <class A>
     TRange(const std::vector<T, A>& elements)
-        : Data_(elements.empty() ? nullptr : elements.data())
+        : Data_(elements.data())
         , Length_(elements.size())
     { }
 
