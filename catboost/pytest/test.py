@@ -14,6 +14,7 @@ import sys
 import catboost
 
 from lib import (
+    is_open_source,
     apply_catboost,
     compare_evals_with_precision,
     compare_fit_evals_with_precision,
@@ -7869,7 +7870,11 @@ def test_shap_verbose():
         yatest.common.execute(cmd_shap, stdout=log)
     with open(output_log, 'r') as log:
         line_count = sum(1 for line in log)
-        assert line_count == 7
+        if is_open_source():
+            expected_line_count = 5
+        else:
+            expected_line_count = 7
+        assert line_count == expected_line_count
 
 
 def test_shap_approximate():

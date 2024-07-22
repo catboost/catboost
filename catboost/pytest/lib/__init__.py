@@ -24,6 +24,10 @@ except ImportError:
 import yatest.common.network  # noqa
 
 
+def is_open_source():
+    return not getattr(sys, 'is_standalone_binary', False)
+
+
 def get_catboost_binary_path():
     if _use_cmake_paths:
         return os.path.join(
