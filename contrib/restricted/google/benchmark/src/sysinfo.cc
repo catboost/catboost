@@ -508,7 +508,8 @@ int GetNumCPUsImpl() {
   int max_id = -1;
   std::ifstream f("/proc/cpuinfo");
   if (!f.is_open()) {
-    PrintErrorAndDie("Failed to open /proc/cpuinfo");
+    std::cerr << "Failed to open /proc/cpuinfo\n";
+    return -1;
   }
 #if defined(__alpha__)
   const std::string Key = "cpus detected";
@@ -557,9 +558,8 @@ int GetNumCPUsImpl() {
 int GetNumCPUs() {
   const int num_cpus = GetNumCPUsImpl();
   if (num_cpus < 1) {
-    PrintErrorAndDie(
-        "Unable to extract number of CPUs.  If your platform uses "
-        "/proc/cpuinfo, custom support may need to be added.");
+    std::cerr << "Unable to extract number of CPUs.  If your platform uses "
+                 "/proc/cpuinfo, custom support may need to be added.\n";
   }
   return num_cpus;
 }
