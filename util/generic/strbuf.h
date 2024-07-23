@@ -5,6 +5,8 @@
 #include "utility.h"
 #include "typetraits.h"
 
+#include <util/system/compiler.h>
+
 #include <string_view>
 
 using namespace std::string_view_literals;
@@ -123,7 +125,7 @@ public:
     }
 
     template <typename T, typename A>
-    inline TBasicStringBuf(const std::basic_string<TCharType, T, A>& str) noexcept
+    inline TBasicStringBuf(const std::basic_string<TCharType, T, A>& str Y_LIFETIME_BOUND) noexcept
         : TStringView(str)
     {
     }
