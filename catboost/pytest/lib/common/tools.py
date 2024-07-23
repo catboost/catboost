@@ -5,6 +5,7 @@ import functools
 import math
 import os
 import re
+import shutil
 import sys
 
 
@@ -414,3 +415,12 @@ def colorize_pytest_error(text):
         blocks.append(bt)
         blocks.append('[[bad]]' + error)
         blocks.append(tail)
+
+
+def cleanup_dir_contents(dir):
+    for item in os.listdir(dir):
+        item_full_path = os.path.join(dir, item)
+        if os.path.isdir(item_full_path):
+            shutil.rmtree(item_full_path)
+        else:
+            os.remove(item_full_path)
