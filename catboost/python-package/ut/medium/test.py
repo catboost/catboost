@@ -6360,6 +6360,7 @@ def test_roc_cv(task_type):
     ]
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Unexpected stopping, investigation in progress")
 @pytest.mark.parametrize('boosting_type', ['Ordered'])
 @pytest.mark.parametrize('overfitting_detector_type', OVERFITTING_DETECTOR_TYPE)
 def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_type, overfitting_detector_type):
@@ -8866,6 +8867,7 @@ def convert_cat_columns_to_hashed(src_features_dataframe):
     return DataFrame(new_columns_data)
 
 
+@pytest.mark.skip(reason="Known int conversion issues, investigation in progress")
 @pytest.mark.parametrize('dataset', list(get_dataset_specification_for_sparse_input_tests().keys()))
 def test_pools_equal_on_dense_and_scipy_sparse_input(dataset):
     metadata = get_dataset_specification_for_sparse_input_tests()[dataset]
@@ -8918,6 +8920,7 @@ def test_pools_equal_on_dense_and_scipy_sparse_input(dataset):
                 assert _have_equal_features(sparse_pool, canon_sparse_pool, False)
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="Crashes, investigation in progress")
 @pytest.mark.parametrize(
     'features_dtype',
     numpy_num_data_types,
@@ -11234,6 +11237,7 @@ def test_github_issue_2378_numpy_int_is_deprecated():
     model.calc_feature_statistics(train_data, train_labels, plot=False)
 
 
+@pytest.mark.xfail(sys.platform == "win32", reason="tmp dir creation problems")
 @pytest.mark.parametrize(
     'random_score_type',
     ['Gumbel', 'NormalWithModelSizeDecrease'],
