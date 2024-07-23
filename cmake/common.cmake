@@ -2,6 +2,8 @@
 
 find_package(Python3 REQUIRED)
 
+add_compile_definitions(ARCADIA_ROOT=${PROJECT_SOURCE_DIR})
+add_compile_definitions(ARCADIA_BUILD_ROOT=${PROJECT_BINARY_DIR})
 add_compile_definitions(CATBOOST_OPENSOURCE=yes)
 
 # assumes ToolName is always both the binary and the target name
