@@ -44,7 +44,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             defaultGradientIterations = 1;
             break;
         }
-       case ELossFunction::MultiRMSEWithMissingValues: {
+        case ELossFunction::MultiRMSEWithMissingValues: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
