@@ -32,7 +32,7 @@ namespace NGTest {
     {
         if (!NDetail::MatchOrUpdateGolden(std::string_view(arg.data(), arg.size()), TString(filename))) {
             *result_listener
-                << "\nCall `ya m -rA --test-param GTEST_UPDATE_GOLDEN=1` to update the golden file";
+                << "\nCall `ya test --test-param GTEST_UPDATE_GOLDEN=1` to update the golden file";
             return false;
         }
         return true;
