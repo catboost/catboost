@@ -40,7 +40,8 @@ class WorkdirProcessor(object):
         def get_wrapper(obj):
             def wrapper(*args, **kwargs):
                 test_output_path = yatest.common.test_output_path()
-                work_dir = tempfile.mkdtemp(dir=test_output_path, prefix='work_dir_')
+                # TODO: have to create in standard tmp dir because of max path length issues on Windows
+                work_dir = tempfile.mkdtemp(prefix='work_dir_')
                 prev_cwd = None
                 try:
                     prev_cwd = os.getcwd()
