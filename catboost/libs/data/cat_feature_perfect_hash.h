@@ -213,7 +213,7 @@ namespace NCB {
 
         void FreeRam(const TString& tmpDir) const {
             if (!StorageTempFile) {
-                StorageTempFile = MakeHolder<TTempFile>(
+                StorageTempFile = MakeHolder<TTempFileHandle>(
                     JoinFsPaths(tmpDir, TString::Join("cat_feature_index.", CreateGuidAsString(), ".tmp"))
                 );
             }
@@ -226,7 +226,8 @@ namespace NCB {
         void Load() const {
             if (!HasHashInRam) {
                 CB_ENSURE(StorageTempFile, "Need a file to load cat features hash");
-                TIFStream inputStream(StorageTempFile->Name());
+                StorageTempFile->Seek(0, sSet);
+                TIFStream inputStream(*StorageTempFile);
                 FeaturesPerfectHash.clear();
                 ::Load(&inputStream, FeaturesPerfectHash);
                 HasHashInRam = true;
@@ -242,7 +243,9 @@ namespace NCB {
     private:
         void Save() const {
             CB_ENSURE(StorageTempFile, "Need a file to load cat features hash");
-            TOFStream out(StorageTempFile->Name());
+            StorageTempFile->Seek(0, sSet);
+            StorageTempFile->Resize(0);
+            TOFStream out(*StorageTempFile);
             ::Save(&out, FeaturesPerfectHash);
         }
 
@@ -261,6 +264,6 @@ namespace NCB {
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqValuesCountsVector; // [catFeatureIdx]
         mutable TVector<TCatFeaturePerfectHash> FeaturesPerfectHash; // [catFeatureIdx]
         mutable bool HasHashInRam = true;
-        mutable THolder<TTempFile> StorageTempFile;
+        mutable THolder<TTempFileHandle> StorageTempFile;
     };
 }
