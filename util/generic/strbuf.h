@@ -124,6 +124,12 @@ public:
     {
     }
 
+    template <typename T>
+    inline TBasicStringBuf(const TBasicString<TCharType, T>& str Y_STRING_LIFETIME_BOUND) noexcept
+        : TStringView(str.data(), str.size())
+    {
+    }
+
     template <typename T, typename A>
     inline TBasicStringBuf(const std::basic_string<TCharType, T, A>& str Y_LIFETIME_BOUND) noexcept
         : TStringView(str)

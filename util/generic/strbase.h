@@ -552,3 +552,21 @@ private:
         return toCopy;
     }
 };
+
+/**
+ * @def Y_STRING_LIFETIME_BOUND
+ *
+ * The attribute on a string-like function parameter can be used to tell the compiler
+ * that function return value may refer that parameter.
+ * this macro differs from the Y_LIFETIME_BOUND  in that it does not check
+ * the lifetime of copy-on-write strings if that implementation is used.
+ */
+#if defined(TSTRING_IS_STD_STRING)
+    #define Y_STRING_LIFETIME_BOUND Y_LIFETIME_BOUND
+#else
+    // It is difficult to determine the lifetime of a copy-on-write
+    // string using static analysis, as some copies of the string may
+    // extend the buffer's lifetime.
+    // Therefore, checking the lifetime of such strings has not yet been implemented.
+    #define Y_STRING_LIFETIME_BOUND
+#endif
