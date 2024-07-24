@@ -10,6 +10,7 @@ import timeit
 import json
 import shutil
 import sys
+import tempfile
 
 import catboost
 
@@ -9070,6 +9071,8 @@ class TestModelWithoutParams(object):
         learn_set = data_file('querywise', 'train')
         test_set = data_file('querywise', 'test')
         cd = data_file('querywise', 'train.cd')
+
+        train_dir = tempfile.mkdtemp(prefix='catboost_train_dir_')
         cmd = (
             '--loss-function', loss,
             '--learn-set', learn_set,
@@ -9078,9 +9081,12 @@ class TestModelWithoutParams(object):
             '--iterations', '10',
             '--model-file', model_json,
             '--model-format', 'Json',
-            '--use-best-model', 'false'
+            '--use-best-model', 'false',
+            '--train-dir', train_dir,
         )
         execute_catboost_fit('CPU', cmd)
+        shutil.rmtree(train_dir)
+
         model = json.load(open(model_json))
         if cut == 'cut-info':
             model.pop('model_info')
