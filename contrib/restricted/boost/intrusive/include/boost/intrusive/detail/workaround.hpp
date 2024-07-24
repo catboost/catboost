@@ -48,8 +48,11 @@
 #elif defined(BOOST_MSVC) && (_MSC_VER < 1900 || defined(_DEBUG))
    //"__forceinline" and MSVC seems to have some bugs in old versions and in debug mode
    #define BOOST_INTRUSIVE_FORCEINLINE inline
-#elif defined(BOOST_GCC) && ((__GNUC__ <= 5) || defined(__MINGW32__))
+#elif defined(BOOST_CLANG) || (defined(BOOST_GCC) && ((__GNUC__ <= 5) || defined(__MINGW32__)))
    //Older GCCs have problems with forceinline
+   //Clang can have code bloat issues with forceinline, see
+   //https://lists.boost.org/boost-users/2023/04/91445.php and
+   //https://github.com/llvm/llvm-project/issues/62202
    #define BOOST_INTRUSIVE_FORCEINLINE inline
 #else
    #define BOOST_INTRUSIVE_FORCEINLINE BOOST_FORCEINLINE
@@ -79,6 +82,34 @@
 #    endif
 #    define BOOST_INTRUSIVE_RETHROW
 #    define BOOST_INTRUSIVE_CATCH_END }
+#endif
+
+#ifndef BOOST_NO_CXX11_STATIC_ASSERT
+#  ifndef BOOST_NO_CXX11_VARIADIC_MACROS
+#     define BOOST_INTRUSIVE_STATIC_ASSERT( ... ) static_assert(__VA_ARGS__, #__VA_ARGS__)
+#  else
+#     define BOOST_INTRUSIVE_STATIC_ASSERT( B ) static_assert(B, #B)
+#  endif
+#else
+namespace boost {
+namespace intrusive {
+namespace detail {
+
+template<bool B>
+struct STATIC_ASSERTION_FAILURE;
+
+template<>
+struct STATIC_ASSERTION_FAILURE<true>{};
+
+template<unsigned> struct static_assert_test {};
+
+}}}
+
+#define BOOST_INTRUSIVE_STATIC_ASSERT(B) \
+         typedef ::boost::intrusive::detail::static_assert_test<\
+            (unsigned)sizeof(::boost::intrusive::detail::STATIC_ASSERTION_FAILURE<bool(B)>)>\
+               BOOST_JOIN(boost_intrusive_static_assert_typedef_, __LINE__) BOOST_ATTRIBUTE_UNUSED
+
 #endif
 
 #endif   //#ifndef BOOST_INTRUSIVE_DETAIL_WORKAROUND_HPP

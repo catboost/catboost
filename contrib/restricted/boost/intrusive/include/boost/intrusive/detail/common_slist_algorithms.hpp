@@ -52,7 +52,7 @@ class common_slist_algorithms
       return p;
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE static void init(node_ptr this_node) BOOST_NOEXCEPT
+   inline static void init(node_ptr this_node) BOOST_NOEXCEPT
    {  NodeTraits::set_next(this_node, node_ptr());  }
 
    static bool unique(const_node_ptr this_node) BOOST_NOEXCEPT
@@ -61,16 +61,16 @@ class common_slist_algorithms
       return !next || next == this_node;
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE static bool inited(const_node_ptr this_node) BOOST_NOEXCEPT
+   inline static bool inited(const_node_ptr this_node) BOOST_NOEXCEPT
    {  return !NodeTraits::get_next(this_node); }
 
-   BOOST_INTRUSIVE_FORCEINLINE static void unlink_after(node_ptr prev_node) BOOST_NOEXCEPT
+   inline static void unlink_after(node_ptr prev_node) BOOST_NOEXCEPT
    {
       const_node_ptr this_node(NodeTraits::get_next(prev_node));
       NodeTraits::set_next(prev_node, NodeTraits::get_next(this_node));
    }
 
-   BOOST_INTRUSIVE_FORCEINLINE static void unlink_after(node_ptr prev_node, node_ptr last_node) BOOST_NOEXCEPT
+   inline static void unlink_after(node_ptr prev_node, node_ptr last_node) BOOST_NOEXCEPT
    {  NodeTraits::set_next(prev_node, last_node);  }
 
    static void link_after(node_ptr prev_node, node_ptr this_node) BOOST_NOEXCEPT
@@ -216,7 +216,7 @@ class common_slist_algorithms
    //!
    //! <b>Throws</b>: Nothing.
    template<class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE static void unlink_after_and_dispose(node_ptr bb, Disposer disposer) BOOST_NOEXCEPT
+   inline static void unlink_after_and_dispose(node_ptr bb, Disposer disposer) BOOST_NOEXCEPT
    {
       node_ptr i = node_traits::get_next(bb);
       node_traits::set_next(bb, node_traits::get_next(i));

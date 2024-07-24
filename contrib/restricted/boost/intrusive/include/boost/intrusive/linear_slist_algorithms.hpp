@@ -151,8 +151,8 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static void init_header(node_ptr this_node) BOOST_NOEXCEPT
-   {  NodeTraits::set_next(this_node, node_ptr ());  }
+   inline static void init_header(node_ptr this_node) BOOST_NOEXCEPT
+   {  NodeTraits::set_next(this_node, node_ptr());  }
 
    //! <b>Requires</b>: 'p' is the first node of a list.
    //!
@@ -161,7 +161,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant time.
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static node_ptr end_node(const_node_ptr) BOOST_NOEXCEPT
+   inline static node_ptr end_node(const_node_ptr) BOOST_NOEXCEPT
    {  return node_ptr();   }
 
    //! <b>Effects</b>: Returns true if this_node_points to an empty list.
@@ -169,7 +169,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static bool is_empty(const_node_ptr this_node) BOOST_NOEXCEPT
+   inline static bool is_empty(const_node_ptr this_node) BOOST_NOEXCEPT
    {  return !NodeTraits::get_next(this_node);  }
 
    //! <b>Effects</b>: Returns true if this_node points to a sentinel node.
@@ -177,7 +177,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static bool is_sentinel(const_node_ptr this_node) BOOST_NOEXCEPT
+   inline static bool is_sentinel(const_node_ptr this_node) BOOST_NOEXCEPT
    {  return NodeTraits::get_next(this_node) == this_node;  }
 
    //! <b>Effects</b>: Marks this node as a "sentinel" node, a special state that is different from "empty",
@@ -186,7 +186,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static void set_sentinel(node_ptr this_node) BOOST_NOEXCEPT
+   inline static void set_sentinel(node_ptr this_node) BOOST_NOEXCEPT
    {  NodeTraits::set_next(this_node, this_node);   }
 
    //! <b>Requires</b>: this_node and prev_init_node must be in the same linear list.
@@ -198,7 +198,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Linear to the number of elements between prev_init_node and this_node.
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static node_ptr
+   inline static node_ptr
       get_previous_node(node_ptr prev_init_node, node_ptr this_node) BOOST_NOEXCEPT
    {  return base_t::get_previous_node(prev_init_node, this_node);   }
 
@@ -230,7 +230,7 @@ class linear_slist_algorithms
    //! <b>Complexity</b>: Constant
    //!
    //! <b>Throws</b>: Nothing.
-   BOOST_INTRUSIVE_FORCEINLINE static void swap_trailing_nodes(node_ptr this_node, node_ptr other_node) BOOST_NOEXCEPT
+   inline static void swap_trailing_nodes(node_ptr this_node, node_ptr other_node) BOOST_NOEXCEPT
    {
       node_ptr this_nxt    = NodeTraits::get_next(this_node);
       node_ptr other_nxt   = NodeTraits::get_next(other_node);
@@ -400,7 +400,7 @@ class linear_slist_algorithms
    //!
    //! <b>Throws</b>: Nothing.
    template<class Disposer>
-   BOOST_INTRUSIVE_FORCEINLINE static std::size_t detach_and_dispose(node_ptr p, Disposer disposer) BOOST_NOEXCEPT
+   inline static std::size_t detach_and_dispose(node_ptr p, Disposer disposer) BOOST_NOEXCEPT
    {  return base_t::unlink_after_and_dispose(p, node_ptr(), disposer);   }
 };
 

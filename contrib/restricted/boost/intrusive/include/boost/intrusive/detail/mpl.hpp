@@ -66,6 +66,12 @@ using boost::move_detail::eval_if_c;
 using boost::move_detail::eval_if;
 using boost::move_detail::unvoid_ref;
 using boost::move_detail::add_const_if_c;
+using boost::move_detail::is_integral;
+using boost::move_detail::make_unsigned;
+using boost::move_detail::is_enum;
+using boost::move_detail::is_floating_point;
+using boost::move_detail::is_scalar;
+using boost::move_detail::is_unsigned;
 
 template<std::size_t S>
 struct ls_zeros
