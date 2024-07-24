@@ -39,6 +39,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install pytest with plugins
+        shell: pwsh
+        run: |
+          python -m pip install pytest pytest-xdist pytest-randomly
+
       - name: Env setup
         shell: pwsh
         run: |
@@ -161,7 +166,7 @@ jobs:
           $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
           $Env:HAVE_CUDA = 0
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/pytest
-          python -m pytest
+          python -m pytest -n auto
 
       - name: Run python package tests
         shell: pwsh
@@ -173,4 +178,4 @@ jobs:
           $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
           $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/python-package/ut/medium
-          python -m pytest
+          python -m pytest -n auto
