@@ -1,4 +1,5 @@
 import argparse
+import os
 import tempfile
 import shlex
 import subprocess
@@ -31,11 +32,14 @@ def get_shuffled_chunk(tests, modulo, modulo_index):
 
 
 def list_tests(binary):
-    with tempfile.NamedTemporaryFile() as tmpfile:
-        cmd = [binary, "--list-verbose", "--list-path", tmpfile.name]
+    # can't use NamedTemporaryFile or mkstemp because of child process access issues on Windows
+    # https://stackoverflow.com/questions/66744497/python-tempfile-namedtemporaryfile-cant-use-generated-tempfile
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        list_file = os.path.join(tmp_dir, 'list')
+        cmd = [binary, "--list-verbose", "--list-path", list_file]
         subprocess.check_call(cmd)
 
-        with open(tmpfile.name) as afile:
+        with open(list_file) as afile:
             lines = afile.read().strip().split("\n")
             lines = [x.strip() for x in lines]
             return [x for x in lines if x]
