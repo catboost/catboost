@@ -167,6 +167,7 @@ jobs:
           $Env:HAVE_CUDA = 0
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/pytest
           python -m pytest -n auto
+          python -m pytest -n auto test.py
 
       - name: Run python package tests
         shell: pwsh
@@ -179,3 +180,4 @@ jobs:
           $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/python-package/ut/medium
           python -m pytest -n auto
+          python -m pytest -n auto test.py
