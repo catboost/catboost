@@ -293,7 +293,9 @@ def customize_compiler(compiler):  # noqa: C901
     Mainly needed on Unix, so we can plug in the information that
     varies across Unices and is stored in Python's Makefile.
     """
-    if compiler.compiler_type in ["unix", "cygwin", "mingw32"]:
+    if compiler.compiler_type in ["unix", "cygwin"] or (
+        compiler.compiler_type == "mingw32" and is_mingw()
+    ):
         _customize_macos()
 
         (

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 70.2.0
+Version: 70.3.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Author-email: Python Packaging Authority <distutils-sig@python.org>
 Project-URL: Source, https://github.com/pypa/setuptools
