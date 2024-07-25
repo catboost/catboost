@@ -23,3 +23,7 @@ endif()
 if (APPLE)
   set(CMAKE_SHARED_LINKER_FLAGS "-undefined dynamic_lookup")
 endif()
+
+if (CMAKE_SYSTEM_NAME MATCHES "^(Android|Linux)$")
+  add_link_options(-rdynamic)
+endif()
