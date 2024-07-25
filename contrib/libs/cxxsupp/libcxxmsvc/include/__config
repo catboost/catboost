@@ -327,7 +327,8 @@
 #endif // defined(_WIN32)
 
 #ifdef __sun__
-#  include <sys/isa_defs.h>
+// #error to silence 'ya' include checks
+#error   #include <sys/isa_defs.h>
 #  ifdef _LITTLE_ENDIAN
 #    define _LIBCPP_LITTLE_ENDIAN
 #  else
