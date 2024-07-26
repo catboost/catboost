@@ -98,6 +98,12 @@ namespace NThreading {
         void TryRethrow() const;
         bool HasException() const;
 
+        // returns true if exception or value was set.
+        //   allows to check readiness without locking cheker-thread
+        //   NOTE: returns true even if value was extracted from promise
+        //   good replace for HasValue() || HasException()
+        bool IsReady() const;
+
         void Wait() const;
         bool Wait(TDuration timeout) const;
         bool Wait(TInstant deadline) const;
@@ -152,6 +158,11 @@ namespace NThreading {
 
         void TryRethrow() const;
         bool HasException() const;
+
+        // returns true if exception or value was set.
+        //   allows to check readiness without locking cheker-thread
+        //   good replace for HasValue() || HasException()
+        bool IsReady() const;
 
         void Wait() const;
         bool Wait(TDuration timeout) const;
@@ -216,6 +227,12 @@ namespace NThreading {
 
         void TryRethrow() const;
         bool HasException() const;
+
+        // returns true if exception or value was set.
+        //   allows to check readiness without locking cheker-thread
+        //   NOTE: returns true even if value was extracted from promise
+        //   good replace for HasValue() || HasException()
+        bool IsReady() const;
         void SetException(const TString& e);
         void SetException(std::exception_ptr e);
         bool TrySetException(std::exception_ptr e);
@@ -256,6 +273,11 @@ namespace NThreading {
 
         void TryRethrow() const;
         bool HasException() const;
+
+        // returns true if exception or value was set.
+        //   allows to check readiness without locking cheker-thread
+        //   good replace for HasValue() || HasException()
+        bool IsReady() const;
         void SetException(const TString& e);
         void SetException(std::exception_ptr e);
         bool TrySetException(std::exception_ptr e);

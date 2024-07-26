@@ -105,6 +105,7 @@ namespace {
 
             future = MakeFuture(345);
             UNIT_ASSERT(future.HasValue());
+            UNIT_ASSERT(future.IsReady());
             UNIT_ASSERT_EQUAL(future.GetValue(), 345);
         }
 
@@ -115,6 +116,7 @@ namespace {
 
             TFuture<void> future = promise.GetFuture();
             UNIT_ASSERT(future.HasValue());
+            UNIT_ASSERT(future.IsReady());
 
             future = MakeFuture();
             UNIT_ASSERT(future.HasValue());
@@ -523,6 +525,7 @@ namespace {
         {
             auto future1 = MakeErrorFuture<void>(std::make_exception_ptr(TFutureException()));
             UNIT_ASSERT(future1.HasException());
+            UNIT_ASSERT(future1.IsReady());
             UNIT_CHECK_GENERATED_EXCEPTION(future1.GetValue(), TFutureException);
 
             auto future2 = MakeErrorFuture<int>(std::make_exception_ptr(TFutureException()));
@@ -563,6 +566,7 @@ namespace {
             promise2.SetException("foo-exception");
             wait.Wait();
             UNIT_ASSERT(future2.HasException());
+            UNIT_ASSERT(!future1.IsReady());
             UNIT_ASSERT(!future1.HasValue() && !future1.HasException());
         }
 

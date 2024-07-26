@@ -116,6 +116,9 @@ namespace NThreading {
             bool HasException() const {
                 return AtomicGet(State) == ExceptionSet;
             }
+            bool IsReady() const {
+                return AtomicGet(State) != NotReady;
+            }
 
             const T& GetValue(TDuration timeout = TDuration::Zero()) const {
                 AccessValue(timeout, ValueRead);
@@ -296,6 +299,9 @@ namespace NThreading {
 
             bool HasException() const {
                 return AtomicGet(State) == ExceptionSet;
+            }
+            bool IsReady() const {
+                return AtomicGet(State) != NotReady;
             }
 
             void GetValue(TDuration timeout = TDuration::Zero()) const {
@@ -583,6 +589,10 @@ namespace NThreading {
     inline bool TFuture<T>::HasException() const {
         return State && State->HasException();
     }
+    template <typename T>
+    inline bool TFuture<T>::IsReady() const {
+        return State && State->IsReady();
+    }
 
     template <typename T>
     inline void TFuture<T>::Wait() const {
@@ -687,6 +697,9 @@ namespace NThreading {
 
     inline bool TFuture<void>::HasException() const {
         return State && State->HasException();
+    }
+    inline bool TFuture<void>::IsReady() const {
+        return State && State->IsReady();
     }
 
     inline void TFuture<void>::Wait() const {
@@ -824,6 +837,11 @@ namespace NThreading {
     }
 
     template <typename T>
+    inline bool TPromise<T>::IsReady() const {
+        return State && State->IsReady();
+    }
+
+    template <typename T>
     inline void TPromise<T>::SetException(const TString& e) {
         EnsureInitialized();
         State->SetException(std::make_exception_ptr(yexception() << e));
@@ -902,6 +920,10 @@ namespace NThreading {
 
     inline bool TPromise<void>::HasException() const {
         return State && State->HasException();
+    }
+
+    inline bool TPromise<void>::IsReady() const {
+        return State && State->IsReady();
     }
 
     inline void TPromise<void>::SetException(const TString& e) {
