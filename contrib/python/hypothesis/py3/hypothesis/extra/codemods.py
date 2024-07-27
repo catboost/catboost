@@ -68,7 +68,7 @@ def refactor(code: str) -> str:
     transforms: List[VisitorBasedCodemodCommand] = [
         HypothesisFixPositionalKeywonlyArgs(context),
         HypothesisFixComplexMinMagnitude(context),
-        HypothesisFixHealthcheckAll(context),
+        HypothesisFixHealthCheckAll(context),
         HypothesisFixCharactersArguments(context),
     ]
     for transform in transforms:
@@ -228,16 +228,16 @@ class HypothesisFixPositionalKeywonlyArgs(VisitorBasedCodemodCommand):
         return updated_node.with_changes(args=newargs)
 
 
-class HypothesisFixHealthcheckAll(VisitorBasedCodemodCommand):
-    """Replace Healthcheck.all() with list(Healthcheck)"""
+class HypothesisFixHealthCheckAll(VisitorBasedCodemodCommand):
+    """Replace HealthCheck.all() with list(HealthCheck)"""
 
-    DESCRIPTION = "Replace Healthcheck.all() with list(Healthcheck)"
+    DESCRIPTION = "Replace HealthCheck.all() with list(HealthCheck)"
 
-    @m.leave(m.Call(func=m.Attribute(m.Name("Healthcheck"), m.Name("all")), args=[]))
+    @m.leave(m.Call(func=m.Attribute(m.Name("HealthCheck"), m.Name("all")), args=[]))
     def replace_healthcheck(self, original_node, updated_node):
         return updated_node.with_changes(
             func=cst.Name("list"),
-            args=[cst.Arg(value=cst.Name("Healthcheck"))],
+            args=[cst.Arg(value=cst.Name("HealthCheck"))],
         )
 
 

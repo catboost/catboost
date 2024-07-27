@@ -60,7 +60,6 @@ from hypothesis.errors import (
     FailedHealthCheck,
     Flaky,
     Found,
-    HypothesisDeprecationWarning,
     HypothesisException,
     HypothesisWarning,
     InvalidArgument,
@@ -799,6 +798,15 @@ class StateForActualGivenExecution:
             current_pytest_item.value, "nodeid", None
         ) or get_pretty_function_description(self.wrapped_test)
 
+    def _should_trace(self):
+        _trace_obs = TESTCASE_CALLBACKS and OBSERVABILITY_COLLECT_COVERAGE
+        _trace_failure = (
+            self.failed_normally
+            and not self.failed_due_to_deadline
+            and {Phase.shrink, Phase.explain}.issubset(self.settings.phases)
+        )
+        return _trace_obs or _trace_failure
+
     def execute_once(
         self,
         data,
@@ -1007,35 +1015,7 @@ class StateForActualGivenExecution:
         """
         trace: Trace = set()
         try:
-            # this is actually covered by our tests, but only on >= 3.12.
-            if (
-                sys.version_info[:2] >= (3, 12)
-                and sys.monitoring.get_tool(MONITORING_TOOL_ID) is not None
-            ):  # pragma: no cover
-                warnings.warn(
-                    "avoiding tracing test function because tool id "
-                    f"{MONITORING_TOOL_ID} is already taken by tool "
-                    f"{sys.monitoring.get_tool(MONITORING_TOOL_ID)}.",
-                    HypothesisWarning,
-                    # I'm not sure computing a correct stacklevel is reasonable
-                    # given the number of entry points here.
-                    stacklevel=1,
-                )
-
-            _can_trace = (
-                (sys.version_info[:2] < (3, 12) and sys.gettrace() is None)
-                or (
-                    sys.version_info[:2] >= (3, 12)
-                    and sys.monitoring.get_tool(MONITORING_TOOL_ID) is None
-                )
-            ) and not PYPY
-            _trace_obs = TESTCASE_CALLBACKS and OBSERVABILITY_COLLECT_COVERAGE
-            _trace_failure = (
-                self.failed_normally
-                and not self.failed_due_to_deadline
-                and {Phase.shrink, Phase.explain}.issubset(self.settings.phases)
-            )
-            if _can_trace and (_trace_obs or _trace_failure):  # pragma: no cover
+            if self._should_trace() and Tracer.can_trace():  # pragma: no cover
                 # This is in fact covered by our *non-coverage* tests, but due to the
                 # settrace() contention *not* by our coverage tests.  Ah well.
                 with Tracer() as tracer:
@@ -1063,7 +1043,6 @@ class StateForActualGivenExecution:
             # OK to re-raise it.
             raise
         except (
-            HypothesisDeprecationWarning,
             FailedHealthCheck,
             *skip_exceptions_to_reraise(),
         ):
@@ -1071,12 +1050,11 @@ class StateForActualGivenExecution:
             # engine, so we re-raise them.
             raise
         except failure_exceptions_to_catch() as e:
-            # If the error was raised by Hypothesis-internal code, re-raise it
-            # as a fatal error instead of treating it as a test failure.
+            # If an unhandled (i.e., non-Hypothesis) error was raised by
+            # Hypothesis-internal code, re-raise it as a fatal error instead
+            # of treating it as a test failure.
             filepath = traceback.extract_tb(e.__traceback__)[-1][0]
-            if is_hypothesis_file(filepath) and not isinstance(
-                e, (HypothesisException, StopTest, UnsatisfiedAssumption)
-            ):
+            if is_hypothesis_file(filepath) and not isinstance(e, HypothesisException):
                 raise
 
             if data.frozen:
@@ -1184,6 +1162,23 @@ class StateForActualGivenExecution:
                 rep = get_pretty_function_description(self.test)
                 raise Unsatisfiable(f"Unable to satisfy assumptions of {rep}")
 
+        # If we have not traced executions, warn about that now (but only when
+        # we'd expect to do so reliably, i.e. on CPython>=3.12)
+        if (
+            sys.version_info[:2] >= (3, 12)
+            and not PYPY
+            and self._should_trace()
+            and not Tracer.can_trace()
+        ):  # pragma: no cover
+            # actually covered by our tests, but only on >= 3.12
+            warnings.warn(
+                "avoiding tracing test function because tool id "
+                f"{MONITORING_TOOL_ID} is already taken by tool "
+                f"{sys.monitoring.get_tool(MONITORING_TOOL_ID)}.",
+                HypothesisWarning,
+                stacklevel=3,
+            )
+
         if not self.falsifying_examples:
             return
         elif not (self.settings.report_multiple_bugs and pytest_shows_exceptiongroups):
@@ -1222,10 +1217,20 @@ class StateForActualGivenExecution:
                             info._expected_traceback,
                         ),
                     )
-            except (UnsatisfiedAssumption, StopTest) as e:
+            except StopTest:
+                err = Flaky(
+                    "Inconsistent results: An example which failed on the "
+                    "first run now succeeds (or fails with another error)."
+                )
+                # Link the expected exception from the first run. Not sure
+                # how to access the current exception, if it failed
+                # differently on this run.
+                err.__cause__ = err.__context__ = info._expected_exception
+                errors_to_report.append((fragments, err))
+            except UnsatisfiedAssumption as e:  # pragma: no cover  # ironically flaky
                 err = Flaky(
                     "Unreliable assumption: An example which satisfied "
-                    "assumptions on the first run now fails it.",
+                    "assumptions on the first run now fails it."
                 )
                 err.__cause__ = err.__context__ = e
                 errors_to_report.append((fragments, err))

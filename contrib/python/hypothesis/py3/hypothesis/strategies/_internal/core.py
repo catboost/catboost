@@ -21,7 +21,7 @@ import warnings
 from contextvars import ContextVar
 from decimal import Context, Decimal, localcontext
 from fractions import Fraction
-from functools import lru_cache, reduce
+from functools import reduce
 from inspect import Parameter, Signature, isabstract, isclass
 from types import FunctionType
 from typing import (
@@ -137,6 +137,7 @@ from hypothesis.strategies._internal.strings import (
     BytesStrategy,
     OneCharStringStrategy,
     TextStrategy,
+    _check_is_single_character,
 )
 from hypothesis.strategies._internal.utils import (
     cacheable,
@@ -789,19 +790,6 @@ characters.__signature__ = (__sig := get_signature(characters)).replace(  # type
 )
 
 
-# Cache size is limited by sys.maxunicode, but passing None makes it slightly faster.
-@lru_cache(maxsize=None)
-def _check_is_single_character(c):
-    # In order to mitigate the performance cost of this check, we use a shared cache,
-    # even at the cost of showing the culprit strategy in the error message.
-    if not isinstance(c, str):
-        type_ = get_pretty_function_description(type(c))
-        raise InvalidArgument(f"Got non-string {c!r} (type {type_})")
-    if len(c) != 1:
-        raise InvalidArgument(f"Got {c!r} (length {len(c)} != 1)")
-    return c
-
-
 @cacheable
 @defines_strategy(force_reusable_values=True)
 def text(
@@ -924,19 +912,7 @@ def from_regex(
         check_type((str, SearchStrategy), alphabet, "alphabet")
         if not isinstance(pattern, str):
             raise InvalidArgument("alphabet= is not supported for bytestrings")
-
-        if isinstance(alphabet, str):
-            alphabet = characters(categories=(), include_characters=alphabet)
-        char_strategy = unwrap_strategies(alphabet)
-        if isinstance(char_strategy, SampledFromStrategy):
-            alphabet = characters(
-                categories=(),
-                include_characters=alphabet.elements,  # type: ignore
-            )
-        elif not isinstance(char_strategy, OneCharStringStrategy):
-            raise InvalidArgument(
-                f"{alphabet=} must be a sampled_from() or characters() strategy"
-            )
+        alphabet = OneCharStringStrategy.from_alphabet(alphabet)
     elif isinstance(pattern, str):
         alphabet = characters(codec="utf-8")
 

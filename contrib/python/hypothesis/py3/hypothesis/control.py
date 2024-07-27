@@ -138,13 +138,11 @@ class BuildContext:
         # The printer will discard duplicates which return different representations.
         self.known_object_printers = defaultdict(list)
 
-    def record_call(self, obj, func, args, kwargs, arg_slices=None):
+    def record_call(self, obj, func, args, kwargs):
         name = get_pretty_function_description(func)
         self.known_object_printers[IDKey(obj)].append(
-            lambda obj, p, cycle: (
-                p.text("<...>")
-                if cycle
-                else p.repr_call(name, args, kwargs, arg_slices=arg_slices)
+            lambda obj, p, cycle: p.maybe_repr_known_object_as_call(
+                obj, cycle, name, args, kwargs
             )
         )
 

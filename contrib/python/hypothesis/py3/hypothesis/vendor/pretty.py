@@ -62,6 +62,7 @@ Inheritance diagram:
 :license: BSD License.
 """
 
+import ast
 import datetime
 import re
 import struct
@@ -69,7 +70,7 @@ import sys
 import types
 import warnings
 from collections import defaultdict, deque
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from enum import Flag
 from io import StringIO
 from math import copysign, isnan
@@ -373,6 +374,29 @@ class RepresentationPrinter:
         self.flush()
         return self.output.getvalue()
 
+    def maybe_repr_known_object_as_call(self, obj, cycle, name, args, kwargs):
+        # pprint this object as a call, _unless_ the call would be invalid syntax
+        # and the repr would be valid and there are not comments on arguments.
+        if cycle:
+            return self.text("<...>")
+        # Since we don't yet track comments for sub-argument parts, we omit the
+        # "if no comments" condition here for now.  Add it when we revive
+        # https://github.com/HypothesisWorks/hypothesis/pull/3624/
+        with suppress(Exception):
+            # Check whether the repr is valid syntax:
+            ast.parse(repr(obj))
+            # Given that the repr is valid syntax, check the call:
+            p = RepresentationPrinter()
+            p.stack = self.stack.copy()
+            p.known_object_printers = self.known_object_printers
+            p.repr_call(name, args, kwargs)
+            # If the call is not valid syntax, use the repr
+            try:
+                ast.parse(p.getvalue())
+            except Exception:
+                return _repr_pprint(obj, self, cycle)
+        return self.repr_call(name, args, kwargs)
+
     def repr_call(
         self,
         func_name,
@@ -423,6 +447,7 @@ class RepresentationPrinter:
                         self.text(leading_comment)
                     self.break_()
                 else:
+                    assert leading_comment is None  # only passed by top-level report
                     self.breakable(" " if i else "")
                 if k:
                     self.text(f"{k}=")

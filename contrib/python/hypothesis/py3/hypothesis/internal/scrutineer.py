@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 from hypothesis._settings import Phase, Verbosity
+from hypothesis.internal.compat import PYPY
 from hypothesis.internal.escalation import is_hypothesis_file
 
 if TYPE_CHECKING:
@@ -58,6 +59,16 @@ class Tracer:
         self.branches: Trace = set()
         self._previous_location = None
 
+    @staticmethod
+    def can_trace():
+        return (
+            (sys.version_info[:2] < (3, 12) and sys.gettrace() is None)
+            or (
+                sys.version_info[:2] >= (3, 12)
+                and sys.monitoring.get_tool(MONITORING_TOOL_ID) is None
+            )
+        ) and not PYPY
+
     def trace(self, frame, event, arg):
         try:
             if event == "call":
@@ -80,8 +91,9 @@ class Tracer:
             self._previous_location = current_location
 
     def __enter__(self):
+        assert self.can_trace()  # caller checks in core.py
+
         if sys.version_info[:2] < (3, 12):
-            assert sys.gettrace() is None  # caller checks in core.py
             sys.settrace(self.trace)
             return self
 

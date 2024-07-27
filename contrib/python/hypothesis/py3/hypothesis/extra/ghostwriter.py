@@ -603,10 +603,14 @@ def _assert_eq(style: str, a: str, b: str) -> str:
 
 def _imports_for_object(obj):
     """Return the imports for `obj`, which may be empty for e.g. lambdas"""
+    if type(obj) is getattr(types, "UnionType", object()):
+        return {mod for mod, _ in set().union(*map(_imports_for_object, obj.__args__))}
     if isinstance(obj, (re.Pattern, re.Match)):
         return {"re"}
     if isinstance(obj, st.SearchStrategy):
         return _imports_for_strategy(obj)
+    if isinstance(obj, getattr(sys.modules.get("numpy"), "dtype", ())):
+        return {("numpy", "dtype")}
     try:
         if is_generic_type(obj):
             if isinstance(obj, TypeVar):
@@ -772,7 +776,7 @@ def _get_module(obj):
     raise RuntimeError(f"Could not find module for ufunc {obj.__name__} ({obj!r}")
 
 
-def _get_qualname(obj, *, include_module=False):
+def _get_qualname(obj: Any, *, include_module: bool = False) -> str:
     # Replacing angle-brackets for objects defined in `.<locals>.`
     qname = getattr(obj, "__qualname__", obj.__name__)
     qname = qname.replace("<", "_").replace(">", "_").replace(" ", "")
@@ -1133,6 +1137,60 @@ ROUNDTRIP_PAIRS = (
 )
 
 
+def _get_testable_functions(thing: object) -> Dict[str, Callable]:
+    by_name = {}
+    if callable(thing):
+        funcs: List[Optional[Any]] = [thing]
+    elif isinstance(thing, types.ModuleType):
+        if hasattr(thing, "__all__"):
+            funcs = [getattr(thing, name, None) for name in thing.__all__]
+        elif hasattr(thing, "__package__"):
+            pkg = thing.__package__
+            funcs = [
+                v
+                for k, v in vars(thing).items()
+                if callable(v)
+                and not is_mock(v)
+                and ((not pkg) or getattr(v, "__module__", pkg).startswith(pkg))
+                and not k.startswith("_")
+            ]
+            if pkg and any(getattr(f, "__module__", pkg) == pkg for f in funcs):
+                funcs = [f for f in funcs if getattr(f, "__module__", pkg) == pkg]
+    else:
+        raise InvalidArgument(f"Can't test non-module non-callable {thing!r}")
+
+    for f in list(funcs):
+        if inspect.isclass(f):
+            funcs += [
+                v.__get__(f)
+                for k, v in vars(f).items()
+                if hasattr(v, "__func__") and not is_mock(v) and not k.startswith("_")
+            ]
+    for f in funcs:
+        try:
+            if (
+                (not is_mock(f))
+                and callable(f)
+                and _get_params(f)
+                and not isinstance(f, enum.EnumMeta)
+            ):
+                if getattr(thing, "__name__", None):
+                    if inspect.isclass(thing):
+                        KNOWN_FUNCTION_LOCATIONS[f] = _get_module_helper(thing)
+                    elif isinstance(thing, types.ModuleType):
+                        KNOWN_FUNCTION_LOCATIONS[f] = thing.__name__
+                try:
+                    _get_params(f)
+                    by_name[_get_qualname(f, include_module=True)] = f
+                except Exception:
+                    # usually inspect.signature on C code such as socket.inet_aton,
+                    # or Pandas 'CallableDynamicDoc' object has no attr. '__name__'
+                    pass
+        except (TypeError, ValueError):
+            pass
+    return by_name
+
+
 def magic(
     *modules_or_functions: Union[Callable, types.ModuleType],
     except_: Except = (),
@@ -1157,84 +1215,41 @@ def magic(
     _check_style(style)
     if not modules_or_functions:
         raise InvalidArgument("Must pass at least one function or module to test.")
-    functions = set()
-    for thing in modules_or_functions:
-        if callable(thing):
-            functions.add(thing)
-            # class need to be added for exploration
-            if inspect.isclass(thing):
-                funcs: List[Optional[Any]] = [thing]
-            else:
-                funcs = []
-        elif isinstance(thing, types.ModuleType):
-            if hasattr(thing, "__all__"):
-                funcs = [getattr(thing, name, None) for name in thing.__all__]
-            elif hasattr(thing, "__package__"):
-                pkg = thing.__package__
-                funcs = [
-                    v
-                    for k, v in vars(thing).items()
-                    if callable(v)
-                    and not is_mock(v)
-                    and ((not pkg) or getattr(v, "__module__", pkg).startswith(pkg))
-                    and not k.startswith("_")
-                ]
-                if pkg and any(getattr(f, "__module__", pkg) == pkg for f in funcs):
-                    funcs = [f for f in funcs if getattr(f, "__module__", pkg) == pkg]
-        else:
-            raise InvalidArgument(f"Can't test non-module non-callable {thing!r}")
 
-        for f in list(funcs):
-            if inspect.isclass(f):
-                funcs += [
-                    v.__get__(f)
-                    for k, v in vars(f).items()
-                    if hasattr(v, "__func__")
-                    and not is_mock(v)
-                    and not k.startswith("_")
-                ]
-        for f in funcs:
-            try:
+    parts = []
+    by_name = {}
+    imports = set()
+
+    for thing in modules_or_functions:
+        by_name.update(found := _get_testable_functions(thing))
+        if (not found) and isinstance(thing, types.ModuleType):
+            msg = f"# Found no testable functions in {thing.__name__} (from {thing.__file__!r})"
+            mods: list = []
+            for k in sorted(sys.modules, key=len):
                 if (
-                    (not is_mock(f))
-                    and callable(f)
-                    and _get_params(f)
-                    and not isinstance(f, enum.EnumMeta)
+                    k.startswith(f"{thing.__name__}.")
+                    and "._" not in k[len(thing.__name__) :]
+                    and not k.startswith(tuple(f"{m}." for m in mods))
+                    and _get_testable_functions(sys.modules[k])
                 ):
-                    functions.add(f)
-                    if getattr(thing, "__name__", None):
-                        if inspect.isclass(thing):
-                            KNOWN_FUNCTION_LOCATIONS[f] = _get_module_helper(thing)
-                        else:
-                            KNOWN_FUNCTION_LOCATIONS[f] = thing.__name__
-            except (TypeError, ValueError):
-                pass
+                    mods.append(k)
+            if mods:
+                msg += (
+                    f"\n# Try writing tests for submodules, e.g. by using:\n"
+                    f"#     hypothesis write {' '.join(sorted(mods))}"
+                )
+            parts.append(msg)
+
+    if not by_name:
+        return "\n\n".join(parts)
 
     if annotate is None:
-        annotate = _are_annotations_used(*functions)
-
-    imports = set()
-    parts = []
+        annotate = _are_annotations_used(*by_name.values())
 
     def make_(how, *args, **kwargs):
         imp, body = how(*args, **kwargs, except_=except_, style=style)
         imports.update(imp)
         parts.append(body)
-
-    by_name = {}
-    for f in functions:
-        try:
-            _get_params(f)
-            by_name[_get_qualname(f, include_module=True)] = f
-        except Exception:
-            # usually inspect.signature on C code such as socket.inet_aton, sometimes
-            # e.g. Pandas 'CallableDynamicDoc' object has no attribute '__name__'
-            pass
-    if not by_name:
-        return (
-            f"# Found no testable functions in\n"
-            f"# {functions!r} from {modules_or_functions}\n"
-        )
 
     # Look for pairs of functions that roundtrip, based on known naming patterns.
     for writename, readname in ROUNDTRIP_PAIRS:
