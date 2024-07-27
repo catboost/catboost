@@ -99,12 +99,12 @@ public:
      */
     constexpr inline TBasicStringBuf(std::nullptr_t begin, size_t size) = delete;
 
-    constexpr inline TBasicStringBuf(const TCharType* data, size_t size) noexcept
+    constexpr inline TBasicStringBuf(const TCharType* data Y_LIFETIME_BOUND, size_t size) noexcept
         : TStringView(data, size)
     {
     }
 
-    constexpr TBasicStringBuf(const TCharType* data) noexcept
+    constexpr TBasicStringBuf(const TCharType* data Y_LIFETIME_BOUND) noexcept
         /*
          * WARN: TBase::StrLen properly handles nullptr,
          * while std::string_view (using std::char_traits) will abort in such case
@@ -113,7 +113,7 @@ public:
     {
     }
 
-    constexpr inline TBasicStringBuf(const TCharType* beg, const TCharType* end) noexcept
+    constexpr inline TBasicStringBuf(const TCharType* beg Y_LIFETIME_BOUND, const TCharType* end Y_LIFETIME_BOUND) noexcept
         : TStringView(beg, end - beg)
     {
     }
