@@ -71,6 +71,40 @@ namespace NUrl {
         return {host, path};
     }
 
+    bool HasLowerHost(const TStringBuf &url) {
+        for (size_t n = 0; n < url.length(); ++n) {
+            if (url[n] == '/')
+                break;
+            if (isupper(url[n]))
+                return false;
+        }
+        return true;
+    }
+
+    TStringBuf CutHttpWwwPrefixes(const TStringBuf &url) {
+        TStringBuf urlCut = CutWWWPrefix(CutHttpPrefix(url));
+        if (!urlCut.empty() && urlCut.back() == '/')
+            urlCut = urlCut.substr(0, urlCut.length() - 1);
+        return urlCut;
+    }
+
+    TString MakeLowerHost(const TStringBuf &url, size_t shift) {
+        TString urlFixed(url);
+        for (char *c = urlFixed.begin() + shift; *c && (*c != '/'); ++c) {
+            *c = tolower(*c);
+        }
+
+        return urlFixed;
+    }
+
+    TString MakeNormalized(const TStringBuf &url) {
+        TStringBuf urlCut = CutHttpWwwPrefixes(url);
+        if (HasLowerHost(urlCut)) {
+            return ToString(urlCut);
+        }
+        return MakeLowerHost(urlCut);
+    }
+
 } // namespace NUrl
 
 size_t GetHttpPrefixSize(const char* url, bool ignorehttps) noexcept {

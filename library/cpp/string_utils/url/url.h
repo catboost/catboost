@@ -21,6 +21,11 @@ namespace NUrl {
     Y_PURE_FUNCTION
     TSplitUrlToHostAndPathResult SplitUrlToHostAndPath(const TStringBuf url);
 
+    bool HasLowerHost(const TStringBuf &url);
+    TStringBuf CutHttpWwwPrefixes(const TStringBuf &url);
+    TString MakeLowerHost(const TStringBuf &url, size_t shift = 0);
+    TString MakeNormalized(const TStringBuf &url);
+
 } // namespace NUrl
 
 Y_PURE_FUNCTION
@@ -170,4 +175,3 @@ TStringBuf RemoveFinalSlash(TStringBuf str) noexcept;
 
 TStringBuf CutUrlPrefixes(TStringBuf url) noexcept;
 bool DoesUrlPathStartWithToken(TStringBuf url, const TStringBuf& token) noexcept;
-
