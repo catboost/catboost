@@ -103,7 +103,7 @@ elif os.name == 'posix':  # pragma: no cover
     LOCKER = fcntl.flock
 
     def lock(file_: typing.Union[typing.IO, int], flags: LockFlags):
-        assert LOCKER is not None, 'We need a locing function in `LOCKER` '
+        assert LOCKER is not None, 'We need a locking function in `LOCKER` '
         # Locking with NON_BLOCKING without EXCLUSIVE or SHARED enabled
         # results in an error
         if (flags & LockFlags.NON_BLOCKING) and not flags & (
@@ -147,7 +147,7 @@ elif os.name == 'posix':  # pragma: no cover
             ) from exc_value
 
     def unlock(file_: typing.IO):
-        assert LOCKER is not None, 'We need a locing function in `LOCKER` '
+        assert LOCKER is not None, 'We need a locking function in `LOCKER` '
         LOCKER(file_.fileno(), LockFlags.UNBLOCK)
 
 else:  # pragma: no cover

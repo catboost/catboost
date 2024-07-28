@@ -14,7 +14,12 @@ from typing import List, Optional, Union
 
 import attr
 
-from hypothesis.errors import Flaky, HypothesisException, StopTest
+from hypothesis.errors import (
+    FlakyReplay,
+    FlakyStrategyDefinition,
+    HypothesisException,
+    StopTest,
+)
 from hypothesis.internal import floats as flt
 from hypothesis.internal.compat import int_to_bytes
 from hypothesis.internal.conjecture.data import (
@@ -45,7 +50,7 @@ class PreviouslyUnseenBehaviour(HypothesisException):
 
 
 def inconsistent_generation():
-    raise Flaky(
+    raise FlakyStrategyDefinition(
         "Inconsistent data generation! Data generation behaved differently "
         "between different runs. Is your data generation depending on external "
         "state?"
@@ -469,7 +474,7 @@ class TreeNode:
         Splits the tree so that it can incorporate a decision at the draw call
         corresponding to the node at position i.
 
-        Raises Flaky if node i was forced.
+        Raises FlakyStrategyDefinition if node i was forced.
         """
 
         if i in self.forced:
@@ -1142,10 +1147,13 @@ class TreeRecordingObserver(DataObserver):
                 node.transition.status != Status.INTERESTING
                 or new_transition.status != Status.VALID
             ):
-                raise Flaky(
+                old_origin = node.transition.interesting_origin
+                new_origin = new_transition.interesting_origin
+                raise FlakyReplay(
                     f"Inconsistent results from replaying a test case!\n"
-                    f"  last: {node.transition.status.name} from {node.transition.interesting_origin}\n"
-                    f"  this: {new_transition.status.name} from {new_transition.interesting_origin}"
+                    f"  last: {node.transition.status.name} from {old_origin}\n"
+                    f"  this: {new_transition.status.name} from {new_origin}",
+                    (old_origin, new_origin),
                 )
         else:
             node.transition = new_transition

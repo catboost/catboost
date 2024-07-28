@@ -19,6 +19,7 @@ from functools import lru_cache
 from typing import Dict, Tuple
 
 from hypothesis.configuration import storage_directory
+from hypothesis.control import _current_build_context
 from hypothesis.errors import InvalidArgument
 from hypothesis.internal.intervalsets import IntervalSet
 
@@ -214,10 +215,14 @@ def _query_for_key(key):
     >>> _query_for_key(('Zl', 'Zp', 'Co'))
     ((8232, 8233), (57344, 63743), (983040, 1048573), (1048576, 1114109))
     """
-    try:
-        return category_index_cache[key]
-    except KeyError:
-        pass
+    context = _current_build_context.value
+    if context is None or not context.data.provider.avoid_realization:
+        try:
+            return category_index_cache[key]
+        except KeyError:
+            pass
+    elif not key:  # pragma: no cover  # only on alternative backends
+        return ()
     assert key
     if set(key) == set(categories()):
         result = IntervalSet([(0, sys.maxunicode)])
@@ -226,7 +231,8 @@ def _query_for_key(key):
             IntervalSet(charmap()[key[-1]])
         )
     assert isinstance(result, IntervalSet)
-    category_index_cache[key] = result.intervals
+    if context is None or not context.data.provider.avoid_realization:
+        category_index_cache[key] = result.intervals
     return result.intervals
 
 
@@ -268,15 +274,18 @@ def query(
         character_intervals.intervals,
         exclude_intervals.intervals,
     )
-    try:
-        return limited_category_index_cache[qkey]
-    except KeyError:
-        pass
+    context = _current_build_context.value
+    if context is None or not context.data.provider.avoid_realization:
+        try:
+            return limited_category_index_cache[qkey]
+        except KeyError:
+            pass
     base = _query_for_key(catkey)
     result = []
     for u, v in base:
         if v >= min_codepoint and u <= max_codepoint:
             result.append((max(u, min_codepoint), min(v, max_codepoint)))
     result = (IntervalSet(result) | character_intervals) - exclude_intervals
-    limited_category_index_cache[qkey] = result
+    if context is None or not context.data.provider.avoid_realization:
+        limited_category_index_cache[qkey] = result
     return result

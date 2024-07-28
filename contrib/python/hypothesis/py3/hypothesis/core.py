@@ -58,7 +58,8 @@ from hypothesis.errors import (
     DeadlineExceeded,
     DidNotReproduce,
     FailedHealthCheck,
-    Flaky,
+    FlakyFailure,
+    FlakyReplay,
     Found,
     HypothesisException,
     HypothesisWarning,
@@ -999,11 +1000,26 @@ class StateForActualGivenExecution:
                 )
             else:
                 report("Failed to reproduce exception. Expected: \n" + traceback)
-            raise Flaky(
+            raise FlakyFailure(
                 f"Hypothesis {text_repr} produces unreliable results: "
-                "Falsified on the first call but did not on a subsequent one"
-            ) from exception
+                "Falsified on the first call but did not on a subsequent one",
+                [exception],
+            )
         return result
+
+    def _flaky_replay_to_failure(
+        self, err: FlakyReplay, context: BaseException
+    ) -> FlakyFailure:
+        interesting_examples = [
+            self._runner.interesting_examples[io]
+            for io in err._interesting_origins
+            if io
+        ]
+        exceptions = [
+            ie.extra_information._expected_exception for ie in interesting_examples
+        ]
+        exceptions.append(context)  # the offending assume (or whatever)
+        return FlakyFailure(err.reason, exceptions)
 
     def _execute_once_for_engine(self, data: ConjectureData) -> None:
         """Wrapper around ``execute_once`` that intercepts test failure
@@ -1037,7 +1053,12 @@ class StateForActualGivenExecution:
         except UnsatisfiedAssumption as e:
             # An "assume" check failed, so instead we inform the engine that
             # this test run was invalid.
-            data.mark_invalid(e.reason)
+            try:
+                data.mark_invalid(e.reason)
+            except FlakyReplay as err:
+                # This was unexpected, meaning that the assume was flaky.
+                # Report it as such.
+                raise self._flaky_replay_to_failure(err, e) from None
         except StopTest:
             # The engine knows how to handle this control exception, so it's
             # OK to re-raise it.
@@ -1217,22 +1238,28 @@ class StateForActualGivenExecution:
                             info._expected_traceback,
                         ),
                     )
-            except StopTest:
-                err = Flaky(
-                    "Inconsistent results: An example which failed on the "
-                    "first run now succeeds (or fails with another error)."
-                )
+            except StopTest as e:
                 # Link the expected exception from the first run. Not sure
                 # how to access the current exception, if it failed
-                # differently on this run.
-                err.__cause__ = err.__context__ = info._expected_exception
+                # differently on this run. In fact, in the only known
+                # reproducer, the StopTest is caused by OVERRUN before the
+                # test is even executed. Possibly because all initial examples
+                # failed until the final non-traced replay, and something was
+                # exhausted? Possibly a FIXME, but sufficiently weird to
+                # ignore for now.
+                err = FlakyFailure(
+                    "Inconsistent results: An example failed on the "
+                    "first run but now succeeds (or fails with another "
+                    "error, or is for some reason not runnable).",
+                    [info._expected_exception or e],  # (note: e is a BaseException)
+                )
                 errors_to_report.append((fragments, err))
             except UnsatisfiedAssumption as e:  # pragma: no cover  # ironically flaky
-                err = Flaky(
+                err = FlakyFailure(
                     "Unreliable assumption: An example which satisfied "
-                    "assumptions on the first run now fails it."
+                    "assumptions on the first run now fails it.",
+                    [e],
                 )
-                err.__cause__ = err.__context__ = e
                 errors_to_report.append((fragments, err))
             except BaseException as e:
                 # If we have anything for explain-mode, this is the time to report.

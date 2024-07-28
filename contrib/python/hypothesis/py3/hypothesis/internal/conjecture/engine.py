@@ -10,6 +10,7 @@
 
 import importlib
 import math
+import textwrap
 import time
 from collections import defaultdict
 from contextlib import contextmanager
@@ -39,7 +40,12 @@ import attr
 from hypothesis import HealthCheck, Phase, Verbosity, settings as Settings
 from hypothesis._settings import local_settings
 from hypothesis.database import ExampleDatabase
-from hypothesis.errors import Flaky, HypothesisException, InvalidArgument, StopTest
+from hypothesis.errors import (
+    FlakyReplay,
+    HypothesisException,
+    InvalidArgument,
+    StopTest,
+)
 from hypothesis.internal.cache import LRUReusedCache
 from hypothesis.internal.compat import (
     NotRequired,
@@ -297,7 +303,7 @@ class ConjectureRunner:
 
     def __stoppable_test_function(self, data: ConjectureData) -> None:
         """Run ``self._test_function``, but convert a ``StopTest`` exception
-        into a normal return and avoid raising Flaky for RecursionErrors.
+        into a normal return and avoid raising anything flaky for RecursionErrors.
         """
         # We ensure that the test has this much stack space remaining, no
         # matter the size of the stack when called, to de-flake RecursionErrors
@@ -528,18 +534,24 @@ class ConjectureRunner:
                 # drive the ir tree through the test function to convert it
                 # to a buffer
                 initial_origin = data.interesting_origin
+                initial_traceback = data.extra_information._expected_traceback  # type: ignore
                 data = ConjectureData.for_ir_tree(data.examples.ir_tree_nodes)
                 self.__stoppable_test_function(data)
                 data.freeze()
-                # we'd like to use expected_failure machinery here from
-                # StateForActualGivenExecution for better diagnostic reports of eg
-                # flaky deadlines, but we're too low down in the engine for that.
-                # for now a worse generic flaky error will have to do.
+                # TODO: Convert to FlakyFailure on the way out. Should same-origin
+                #       also be checked?
                 if data.status != Status.INTERESTING:
-                    raise Flaky(
+                    desc_new_status = {
+                        data.status.VALID: "passed",
+                        data.status.INVALID: "failed filters",
+                        data.status.OVERRUN: "overran",
+                    }[data.status]
+                    wrapped_tb = textwrap.indent(initial_traceback, "  | ")
+                    raise FlakyReplay(
                         f"Inconsistent results from replaying a failing test case!\n"
-                        f"  last: {Status.INTERESTING.name} from {initial_origin}\n"
-                        f"  this: {data.status.name}"
+                        f"{wrapped_tb}on backend={self.settings.backend!r} but "
+                        f"{desc_new_status} under backend='hypothesis'",
+                        interesting_origins=[initial_origin],
                     )
 
                 self._cache(data)

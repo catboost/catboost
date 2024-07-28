@@ -8,6 +8,8 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+from hypothesis.internal.compat import ExceptionGroup
+
 
 class HypothesisException(Exception):
     """Generic parent class for exceptions thrown by Hypothesis."""
@@ -52,9 +54,42 @@ class Unsatisfiable(_Trimmable):
 
 
 class Flaky(_Trimmable):
+    """Base class for indeterministic failures. Usually one of the more
+    specific subclasses (FlakyFailure or FlakyStrategyDefinition) is raised."""
+
+
+class FlakyReplay(Flaky):
+    """Internal error raised by the conjecture engine if flaky failures are
+    detected during replay.
+
+    Carries information allowing the runner to reconstruct the flakiness as
+    a FlakyFailure exception group for final presentation.
+    """
+
+    def __init__(self, reason, interesting_origins=None):
+        super().__init__(reason)
+        self.reason = reason
+        self._interesting_origins = interesting_origins
+
+
+class FlakyStrategyDefinition(Flaky):
+    """This function appears to cause inconsistent data generation.
+
+    Common causes for this problem are:
+        1. The strategy depends on external state. e.g. it uses an external
+           random number generator. Try to make a version that passes all the
+           relevant state in from Hypothesis.
+    """
+
+
+class _WrappedBaseException(Exception):
+    """Used internally for wrapping BaseExceptions as components of FlakyFailure."""
+
+
+class FlakyFailure(ExceptionGroup, Flaky):
     """This function appears to fail non-deterministically: We have seen it
     fail when passed this example at least once, but a subsequent invocation
-    did not fail.
+    did not fail, or caused a distinct error.
 
     Common causes for this problem are:
         1. The function depends on external state. e.g. it uses an external
@@ -66,6 +101,19 @@ class Flaky(_Trimmable):
            how long it takes. Try breaking it up into smaller functions which
            don't do that and testing those instead.
     """
+
+    def __new__(cls, msg, group):
+        # The Exception mixin forces this an ExceptionGroup (only accepting
+        # Exceptions, not BaseException). Usually BaseException is raised
+        # directly and will hence not be part of a FlakyFailure, but I'm not
+        # sure this assumption holds everywhere. So wrap any BaseExceptions.
+        group = list(group)
+        for i, exc in enumerate(group):
+            if not isinstance(exc, Exception):
+                err = _WrappedBaseException()
+                err.__cause__ = err.__context__ = exc
+                group[i] = err
+        return ExceptionGroup.__new__(cls, msg, group)
 
 
 class InvalidArgument(_Trimmable, TypeError):
