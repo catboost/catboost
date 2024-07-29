@@ -88,9 +88,9 @@ struct TStripImpl {
 
         if (StripRange(b, e, criterion)) {
             if constexpr (::TIsTemplateBaseOf<std::basic_string_view, T>::value) {
-                to = T(b, e - b);
+                to = T(b, e);
             } else {
-                to.assign(b, e - b);
+                to.assign(b, e);
             }
 
             return true;
