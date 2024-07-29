@@ -297,6 +297,11 @@ def target(observation: Union[int, float], *, label: str = "") -> Union[int, flo
             "Calling target() outside of a test is invalid.  "
             "Consider guarding this call with `if currently_in_test_context(): ...`"
         )
+    elif context.data.provider.avoid_realization:
+        # We could in principle realize this in the engine, but it seems more
+        # efficient to have our alternative backend optimize it for us.
+        # See e.g. https://github.com/pschanely/hypothesis-crosshair/issues/3
+        return observation  # pragma: no cover
     verbose_report(f"Saw target({observation!r}, {label=})")
 
     if label in context.data.target_observations:

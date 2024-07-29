@@ -2273,10 +2273,9 @@ class ConjectureData:
         #
         # Note that even if we lift this 64 bit restriction in the future, p
         # cannot be 0 (1) when forced is True (False).
-        if forced is True:
-            assert p > 2 ** (-64)
-        if forced is False:
-            assert p < (1 - 2 ** (-64))
+        eps = 2 ** (-64) if isinstance(self.provider, HypothesisProvider) else 0
+        assert (forced is not True) or (0 + eps) < p
+        assert (forced is not False) or p < (1 - eps)
 
         kwargs: BooleanKWargs = self._pooled_kwargs("boolean", {"p": p})
 
