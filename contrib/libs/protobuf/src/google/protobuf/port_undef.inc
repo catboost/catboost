@@ -154,6 +154,10 @@
 #pragma GCC diagnostic pop
 #endif
 
+#if defined(__clang__) && defined(FIX_UNUSED_PARAMETR_PLS)
+#pragma clang diagnostic pop
+#endif
+
 // Pop the warning(push) from port_def.inc
 #ifdef _MSC_VER
 #pragma warning(pop)
