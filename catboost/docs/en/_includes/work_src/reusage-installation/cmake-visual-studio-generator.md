@@ -1,3 +1,3 @@
 Alternatively, on Windows you could also use Visual Studio generators for CMake.
-- For builds with CUDA use `Visual Studio 16 2019` generator and also specify the required toolset version when calling CMake by adding `-T version=14.28` to the command line.
+- For builds with CUDA use `Visual Studio 16 2019` or `Visual Studio 17 2022` generator and also specify the required toolset version when calling CMake by adding `-T version=<toolset_version>` to the command line. Currently supported toolset versions are `14.28` and `14.29`.
 - For builds without CUDA use `Visual Studio 17 2022` generator and also specify the required `ClangCL` toolset when calling CMake by adding `-T ClangCL` to the command line.
