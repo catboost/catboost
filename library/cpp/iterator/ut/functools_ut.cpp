@@ -99,7 +99,7 @@ using namespace NFuncTools;
 
     struct TTestSentinel {};
     struct TTestIterator {
-        int operator*() {
+        int operator*() const {
             return X;
         }
         void operator++() {
@@ -138,6 +138,18 @@ using namespace NFuncTools;
             }
             EXPECT_EQ(j, v.size());
         }
+
+        // Test correctness of iterator traits.
+        auto enumerated = Enumerate(a);
+        static_assert(std::ranges::input_range<decltype(enumerated)>);
+        static_assert(
+            std::is_same_v<decltype(enumerated.begin())::pointer,
+            std::iterator_traits<decltype(enumerated.begin())>::pointer>);
+
+        // Post-increment test.
+        auto it = enumerated.begin();
+        EXPECT_EQ(*(it++), (std::tuple{0, 1}));
+        EXPECT_EQ(*it, (std::tuple{1, 2}));
 
         TVector<size_t> d = {0, 0, 0};
         FOR_DISPATCH_2(i, x, Enumerate(d)) {

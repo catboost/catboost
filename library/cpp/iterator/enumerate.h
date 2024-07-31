@@ -27,23 +27,30 @@ namespace NPrivate {
         struct TIterator {
             using difference_type = std::ptrdiff_t;
             using value_type = TValue;
-            using pointer = TValue*;
-            using reference = TValue&;
+            using pointer = void;
+            using reference = value_type;
             using iterator_category = std::input_iterator_tag;
 
-            TValue operator*() {
+            reference operator*() const {
                 return {Index_, *Iterator_};
             }
-            TValue operator*() const {
-                return {Index_, *Iterator_};
-            }
-            void operator++() {
+
+            TIterator& operator++() {
                 ++Index_;
                 ++Iterator_;
+                return *this;
             }
+
+            TIterator operator++(int) {
+                TIterator result = *this;
+                ++(*this);
+                return result;
+            }
+
             bool operator!=(const TSentinel& other) const {
                 return Iterator_ != other.Iterator_;
             }
+
             bool operator==(const TSentinel& other) const {
                 return Iterator_ == other.Iterator_;
             }
@@ -51,6 +58,7 @@ namespace NPrivate {
             std::size_t Index_;
             TIteratorState Iterator_;
         };
+
     public:
         using iterator = TIterator;
         using const_iterator = TIterator;
