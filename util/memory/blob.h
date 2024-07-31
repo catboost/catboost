@@ -198,7 +198,7 @@ public:
     static TBlob Copy(const void* data, size_t length);
 
     /// Creates a blob which doesn't own data. No refcounter, no memory allocation, no data copy.
-    static TBlob NoCopy(const void* data, size_t length);
+    static TBlob NoCopy(const void* data Y_LIFETIME_BOUND, size_t length);
 
     /// Creates a blob with a single-threaded (non atomic) refcounter. It maps the file on the path as data.
     static TBlob FromFileSingleThreaded(const TString& path, EMappingMode);
