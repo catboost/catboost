@@ -256,7 +256,7 @@ size_t GetByteSize(TRange<T> parts)
 template <class T>
 size_t GetByteSize(const std::vector<T>& parts)
 {
-    return GetByteSize(MakeRange(parts));
+    return GetByteSize(TRange(parts));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

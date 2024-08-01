@@ -191,7 +191,7 @@ TSharedRange<T> DoMakeSharedRange(TContainer&& elements, THolders&&... holders)
     holder->Holders = std::tuple<THolders...>(std::forward<THolders>(holders)...);
     holder->Elements = std::forward<TContainer>(elements);
 
-    auto range = MakeRange<T>(holder->Elements);
+    auto range = TRange<T>(holder->Elements);
 
     return TSharedRange<T>(range, std::move(holder));
 }

@@ -4,10 +4,11 @@
 
 #include <library/cpp/yt/misc/hash.h>
 
-#include <vector>
 #include <array>
-#include <optional>
 #include <initializer_list>
+#include <optional>
+#include <span>
+#include <vector>
 
 // For size_t.
 #include <stddef.h>
@@ -91,6 +92,12 @@ public:
         , Length_(elements.size())
     { }
 
+    //! Constructs a TRange from an std::span.
+    TRange(const std::span<T>& elements)
+        : Data_(elements.data())
+        , Length_(elements.size())
+    { }
+
     //! Constructs a TRange from a C array.
     template <size_t N>
     TRange(const T (&elements)[N])
@@ -116,6 +123,19 @@ public:
     explicit TRange(const std::optional<T>& element)
         : Data_(element ? &*element : nullptr)
         , Length_(element ? 1 : 0)
+    { }
+
+    //! Constructs a TRange from RepeatedField.
+    TRange(const google::protobuf::RepeatedField<T>& elements)
+        : Data_(elements.data())
+        , Length_(elements.size())
+    { }
+
+    //! Constructs a TRange from RepeatedPtrField.
+    template<class TPointed>
+    TRange(const google::protobuf::RepeatedPtrField<TPointed>& elements)
+        : Data_(elements.data())
+        , Length_(elements.size())
     { }
 
     const_iterator Begin() const
@@ -227,6 +247,10 @@ typename TRange<T>::const_iterator end(TRange<T> ref)
 {
     return ref.End();
 }
+
+// Deduction guide for the constructor from RepeatedPtrField.
+template<class TPointed>
+TRange(const google::protobuf::RepeatedPtrField<TPointed>& elements) -> TRange<const TPointed*>;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -348,6 +372,11 @@ public:
         : TRange<T>(elements)
     { }
 
+    //! Constructs a TMutableRange from an std::span.
+    TMutableRange(std::span<T>& elements)
+        : TRange<T>(elements)
+    { }
+
     //! Constructs a TMutableRange from std::array.
     template <size_t N>
     TMutableRange(std::array<T, N>& elements)
@@ -363,6 +392,17 @@ public:
     //! Constructs a TMutableRange from a C array.
     template <size_t N>
     TMutableRange(T (& elements)[N])
+        : TRange<T>(elements)
+    { }
+
+    //! Constructs a TMutableRange from RepeatedField.
+    TMutableRange(google::protobuf::RepeatedField<T>& elements)
+        : TRange<T>(elements)
+    { }
+
+    //! Constructs a TMutableRange from RepeatedPtrField.
+    template<class TPointed>
+    TMutableRange(google::protobuf::RepeatedPtrField<TPointed>& elements)
         : TRange<T>(elements)
     { }
 
@@ -438,6 +478,10 @@ typename TMutableRange<T>::iterator end(TMutableRange<T> ref)
 {
     return ref.End();
 }
+
+// Deduction guide for the constructor from RepeatedPtrField.
+template<class TPointed>
+TMutableRange(google::protobuf::RepeatedPtrField<TPointed>& elements) -> TMutableRange<TPointed*>;
 
 ////////////////////////////////////////////////////////////////////////////////
 
