@@ -22,8 +22,12 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
         {"\n \t\r", "", "", ""},
         {"", "", "", ""},
         {"abc", "abc", "abc", "abc"},
+        {"  abc  ", "abc  ", "  abc", "abc"},
         {"a c", "a c", "a c", "a c"},
         {"  long string to avoid SSO            \n", "long string to avoid SSO            \n", "  long string to avoid SSO", "long string to avoid SSO"},
+        {"  набор не-ascii букв  ", "набор не-ascii букв  ", "  набор не-ascii букв", "набор не-ascii букв"},
+        // Russian "х" ends with \x85, whis is a space character in some encodings.
+        {"последней буквой идет х ", "последней буквой идет х ", "последней буквой идет х", "последней буквой идет х"},
     };
 
     Y_UNIT_TEST(TestStrip) {
@@ -32,20 +36,23 @@ Y_UNIT_TEST_SUITE(TStripStringTest) {
 
             TString s;
             Strip(inputStr, s);
-            UNIT_ASSERT_EQUAL(s, test.StripRes);
+            UNIT_ASSERT_VALUES_EQUAL(s, test.StripRes);
 
-            UNIT_ASSERT_EQUAL(StripString(inputStr), test.StripRes);
-            UNIT_ASSERT_EQUAL(StripStringLeft(inputStr), test.StripLeftRes);
-            UNIT_ASSERT_EQUAL(StripStringRight(inputStr), test.StripRightRes);
+            UNIT_ASSERT_VALUES_EQUAL(StripString(inputStr), test.StripRes);
+            UNIT_ASSERT_VALUES_EQUAL(StripStringLeft(inputStr), test.StripLeftRes);
+            UNIT_ASSERT_VALUES_EQUAL(StripStringRight(inputStr), test.StripRightRes);
 
             TStringBuf inputStrBuf(test.Str);
-            UNIT_ASSERT_EQUAL(StripString(inputStrBuf), test.StripRes);
-            UNIT_ASSERT_EQUAL(StripStringLeft(inputStrBuf), test.StripLeftRes);
-            UNIT_ASSERT_EQUAL(StripStringRight(inputStrBuf), test.StripRightRes);
+            UNIT_ASSERT_VALUES_EQUAL(StripString(inputStrBuf), test.StripRes);
+            UNIT_ASSERT_VALUES_EQUAL(StripStringLeft(inputStrBuf), test.StripLeftRes);
+            UNIT_ASSERT_VALUES_EQUAL(StripStringRight(inputStrBuf), test.StripRightRes);
         };
     }
 
     Y_UNIT_TEST(TestStripInPlace) {
+        // On Darwin default locale is set to a value which interprets certain cyrillic utf-8 sequences as spaces.
+        // Which we do not use ::isspace and only strip ASCII spaces, we want to ensure that this will not change in the future.
+        std::setlocale(LC_ALL, "");
         for (const auto& test : StripTests) {
             TString str(test.Str);
             Y_ASSERT(str.IsDetached() || str.empty()); // prerequisite of the test; check that we don't try to modify shared COW-string in-place by accident
