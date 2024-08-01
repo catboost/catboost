@@ -26,6 +26,7 @@ namespace NCB {
     TDataProviderPtr ReadAndQuantizeDataset(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath,
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -47,6 +48,7 @@ namespace NCB {
     TDataProviderPtr ReadAndQuantizeDataset(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath,
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited

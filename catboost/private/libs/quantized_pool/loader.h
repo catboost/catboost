@@ -50,6 +50,7 @@ namespace NCB {
         TVector<bool> IsFeatureIgnored;
         TQuantizedPool QuantizedPool;
         TPathWithScheme PairsPath;
+        TPathWithScheme GraphPath;
         TPathWithScheme GroupWeightsPath;
         TPathWithScheme BaselinePath;
         TPathWithScheme TimestampsPath;

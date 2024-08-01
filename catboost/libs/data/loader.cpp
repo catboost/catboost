@@ -192,6 +192,23 @@ namespace NCB {
         }
     }
 
+    void SetGraph(const TPathWithScheme& graphPath, TDatasetSubset loadSubset, IDatasetVisitor* visitor) {
+        DumpMemUsage("Before data read graphPath");
+        if (graphPath.Inited()) {
+            auto pairsDataLoader = GetProcessor<IPairsDataLoader>(
+                graphPath,
+                TPairsDataLoaderArgs{graphPath, loadSubset}
+            );
+            pairsDataLoader->IsPairs = false;
+            if (pairsDataLoader->NeedGroupIdToIdxMap()) {
+                auto maybeGroupIds = visitor->GetGroupIds();
+                CB_ENSURE(maybeGroupIds, "Cannot load graph data with group ids for a dataset without groups");
+                pairsDataLoader->SetGroupIdToIdxMap(*maybeGroupIds);
+            }
+            pairsDataLoader->Do(visitor);
+        }
+    }
+
     void SetGroupWeights(
         const TPathWithScheme& groupWeightsPath,
         ui32 objectCount,

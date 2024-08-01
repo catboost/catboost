@@ -399,6 +399,18 @@ void TRawTargetData::Check(
             }
         );
     }
+    if (Graph) {
+        tasks.emplace_back(
+            [&, this]() {
+                std::visit(
+                    [&] (const auto& pairsData) {
+                        CheckPairs(pairsData, objectsGrouping);
+                    },
+                    *Graph
+                );
+            }
+        );
+    }
 
     ExecuteTasksInParallel(&tasks, localExecutor);
 }

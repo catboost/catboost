@@ -82,6 +82,7 @@ namespace NCB {
         bool HasWeights = false;
         bool HasTimestamp = false;
         bool HasPairs = false;
+        bool HasGraph = false;
         bool StoreStringColumns = false;
         bool ForceUnitAutoPairWeights = false;
 
@@ -101,6 +102,7 @@ namespace NCB {
             bool hasAdditionalGroupWeight,
             bool hasTimestamp,
             bool hasPairs,
+            bool hasGraph,
             bool loadSampleIds, // special flag because they are rarely used
             bool forceUnitAutoPairWeights,
             TMaybe<ui32> additionalBaselineCount = Nothing(),
@@ -162,6 +164,7 @@ struct TDumper<NCB::TDataMetaInfo> {
         PRINT_META_INFO_FIELD(HasWeights);
         PRINT_META_INFO_FIELD(HasTimestamp);
         PRINT_META_INFO_FIELD(HasPairs);
+        PRINT_META_INFO_FIELD(HasGraph);
 
         s << "ClassLabels=" << DbgDump(metaInfo.ClassLabels) << Endl;
 

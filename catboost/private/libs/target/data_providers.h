@@ -65,6 +65,7 @@ namespace NCB {
         bool knownIsClassification,
         const TInputClassificationInfo& inputClassificationInfo,
         bool allowConstLabel,
+        bool hasGraph,
         bool skipMinMaxPairsCheck=false);
 
     TTargetCreationOptions MakeTargetCreationOptions(
@@ -73,6 +74,7 @@ namespace NCB {
         TMaybe<ui32> knownModelApproxDimension,
         const TInputClassificationInfo& inputClassificationInfo,
         bool allowConstLabel,
+        bool hasGraph,
         bool skipMinMaxPairsCheck=false);
 
     void CheckTargetConsistency(

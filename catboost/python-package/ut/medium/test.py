@@ -11677,3 +11677,49 @@ Own!<br/><br/><b>EXTRAS:</b> ",43.936883800000,13.815509557963773"""
     model = CatBoostRegressor(text_features=['ad_text'], **params)
     train_pool = Pool(data=X_train, label=y_train, text_features=['ad_text'])
     model.fit(train_pool)
+
+
+def test_graph_features(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, graph=QUERYWISE_TRAIN_PAIRS_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE, graph=QUERYWISE_TEST_PAIRS_FILE)
+    model = CatBoostRegressor(iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='RMSE')
+
+    model.fit(pool)
+    pred = model.predict(test_pool)
+
+    model.get_feature_importance(type=EFstrType.PredictionValuesChange, data=test_pool)
+
+    if task_type == 'CPU':
+        preds_path = test_output_path(PREDS_TXT_PATH)
+        np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+
+        return local_canonical_file(preds_path)
+
+
+def test_graph_features_quantization(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, graph=QUERYWISE_TRAIN_PAIRS_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE, graph=QUERYWISE_TEST_PAIRS_FILE)
+    borders_file = test_output_path('output_borders_file.dat')
+
+    model = CatBoostRegressor(
+        iterations=20, learning_rate=0.03, task_type=task_type, devices='0', loss_function='RMSE', output_borders=borders_file)
+
+    model.fit(pool)
+
+    l_pred = model.predict(pool)
+    pool.quantize(input_borders=borders_file)
+    pool.save(OUTPUT_QUANTIZED_POOL_PATH)
+    pool = Pool(get_quantized_path(OUTPUT_QUANTIZED_POOL_PATH))
+    l_pred2 = model.predict(pool)
+    assert np.all(l_pred == l_pred2)
+
+    pred = model.predict(test_pool)
+    test_pool.quantize(input_borders=borders_file)
+    pred2 = model.predict(test_pool)
+    assert np.all(pred == pred2)
+
+    test_pool.save(OUTPUT_QUANTIZED_POOL_PATH)
+    test_pool = Pool(get_quantized_path(OUTPUT_QUANTIZED_POOL_PATH))
+
+    pred2 = model.predict(test_pool)
+    assert np.all(pred == pred2)

@@ -64,6 +64,7 @@ static TDataProviderPtr ReadDatasetForSampler(
     return ReadDataset(
         std::move(lineDataReader),
         /*pairsFilePath*/ TPathWithScheme(),
+        /*graphFilePath*/ TPathWithScheme(),
         /*groupWeightsFilePath*/ TPathWithScheme(),
         /*timestampsFilePath*/ TPathWithScheme(),
         /*baselineFilePath*/ TPathWithScheme(),

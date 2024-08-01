@@ -77,6 +77,7 @@ namespace NCB {
                 /*taskType*/Nothing(),
                 readDatasetMainParams.PoolPath,
                 readDatasetMainParams.PairsFilePath, // can be uninited
+                readDatasetMainParams.GraphFilePath, // can be uninited
                 readDatasetMainParams.GroupWeightsFilePath, // can be uninited
                 /*timestampsFilePath*/TPathWithScheme(),
                 readDatasetMainParams.BaselineFilePath, // can be uninited
@@ -114,6 +115,7 @@ namespace NCB {
         datasetReadingParams.ColumnarPoolFormatParams = readDatasetMainParams.ColumnarPoolFormatParams;
         datasetReadingParams.PoolPath = readDatasetMainParams.PoolPath;
         datasetReadingParams.PairsFilePath = readDatasetMainParams.PairsFilePath;
+        datasetReadingParams.GraphFilePath = readDatasetMainParams.GraphFilePath;
         datasetReadingParams.FeatureNamesPath = readDatasetMainParams.FeatureNamesFilePath;
 
         NPar::TLocalExecutor localExecutor;

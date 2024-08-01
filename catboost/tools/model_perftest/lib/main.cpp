@@ -204,6 +204,7 @@ int DoMain(int argc, char** argv) {
         NCB::TPathWithScheme(),
         NCB::TPathWithScheme(),
         NCB::TPathWithScheme(),
+        NCB::TPathWithScheme(),
         columnarPoolFormatParams,
         TVector<ui32>(),
         NCB::EObjectsOrder::Undefined,

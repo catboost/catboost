@@ -41,6 +41,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
         /*hasAdditionalGroupWeight*/ false,
         /*hasTimestamps*/ false,
         hasPairs,
+        /*hasGraph*/ false,
         /*forceUnitAutoPairWeights*/ false,
         /*loadSampleIds*/ false,
         /*additionalBaselineCount*/ Nothing(),

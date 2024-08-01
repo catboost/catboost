@@ -100,6 +100,9 @@ namespace NCB {
             !Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
             "TLibSvmDataLoader:PairsFilePath does not exist");
         CB_ENSURE(
+            !Args.GraphFilePath.Inited() || CheckExists(Args.GraphFilePath),
+            "TLibSvmDataLoader:GraphFilePath does not exist");
+        CB_ENSURE(
             !Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
             "TLibSvmDataLoader:GroupWeightsFilePath does not exist"
         );
@@ -144,6 +147,7 @@ namespace NCB {
             /*textFeatures*/ TVector<ui32>{},
             /*embeddingFeatures*/ TVector<ui32>{},
             featureNames,
+            /*graph*/ false,
             poolMetaInfoOptions.Tags.Get(),
             /*allFeaturesAreSparse*/ true
         );

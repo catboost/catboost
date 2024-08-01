@@ -526,6 +526,7 @@ def quantize(
     data_path,
     column_description=None,
     pairs=None,
+    graph=None,
     delimiter='\t',
     has_header=False,
     ignore_csv_quoting=False,
@@ -565,6 +566,9 @@ def quantize(
 
     pairs : string or pathlib.Path, [default=None]
         Path to the file with pairs description.
+
+    graph : string or pathlib.Path, [default=None]
+        Path to the file with graph description.
 
     has_header : bool, [default=False]
         If True, read column names from first line.
@@ -680,6 +684,7 @@ def quantize(
         data_path,
         column_description=column_description,
         pairs=pairs,
+        graph=graph,
         feature_names=feature_names,
         delimiter=delimiter,
         has_header=has_header,
@@ -692,6 +697,7 @@ def quantize(
         data_path,
         column_description,
         pairs,
+        graph,
         feature_names,
         delimiter,
         has_header,

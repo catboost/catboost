@@ -123,6 +123,50 @@ def test_eval_metric_equals_loss_metric():
     fit_catboost_gpu(params)
 
 
+@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'RMSE'])
+def test_graph_features(loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('predictions_fit.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    output_calc_eval_path = yatest.common.test_output_path('predictions_test.tsv')
+
+    learn_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+    cd_file = data_file('querywise', 'train.cd')
+    learn_graph = data_file('querywise', 'train.pairs')
+    test_graph = data_file('querywise', 'test.pairs')
+
+    params = (
+        '--loss-function', loss_function,
+        '-f', learn_file,
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--learn-graph', learn_graph,
+        '--test-graph', test_graph,
+        '--l2-leaf-reg', '0',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+        '--output-columns', 'RawFormulaVal',
+    )
+
+    fit_catboost_gpu(params)
+    apply_catboost(output_model_path, test_file, cd_file, output_calc_eval_path, output_columns=['RawFormulaVal'], args=f'--input-graph {test_graph}')
+    assert compare_evals_with_precision(
+        output_eval_path,
+        output_calc_eval_path,
+        rtol=1e-4,
+        atol=1e-6,
+        skip_last_column_in_fit=False
+    )
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('qwise_loss', ['QueryRMSE', 'RMSE'])
 def test_queryrmse(boosting_type, qwise_loss):

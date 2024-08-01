@@ -38,6 +38,7 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
             const TVector[ui32]& textFeatureIndices,
             const TVector[ui32]& embeddingFeatureIndices,
             const TVector[TString]& featureId,
+            bool_t hasGraph,
             const THashMap[TString, TTagDescription]& featureTags,
             bool_t allFeaturesAreSparse
         ) except +ProcessException
@@ -78,6 +79,7 @@ cdef extern from "catboost/libs/data/meta_info.h" namespace "NCB":
         bool_t HasWeights
         bool_t HasTimestamp
         bool_t HasPairs
+        bool_t HasGraph
 
         # ColumnsInfo is not here because it is not used for now
 
@@ -157,6 +159,7 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
         void AddGroupWeight(ui32 localObjectIdx, float value) except +ProcessException
 
         void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
+        void SetGraph(TConstArrayRef[TPair] pairs) except +ProcessException
 
         void Finish() except +ProcessException
 
@@ -199,6 +202,7 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
         void AddGroupWeights(TConstArrayRef[float] value) except +ProcessException
 
         void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
+        void SetGraph(TConstArrayRef[TPair] pairs) except +ProcessException
 
         void Finish() except +ProcessException
 
@@ -294,6 +298,7 @@ cdef extern from "catboost/libs/data/data_provider.h" namespace "NCB":
         void SetGroupIds(TConstArrayRef[TGroupId] groupIds) except +ProcessException
         void SetGroupWeights(TConstArrayRef[float] groupWeights) except +ProcessException
         void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
+        void SetGraph(TConstArrayRef[TPair] pairs) except +ProcessException
         void SetSubgroupIds(TConstArrayRef[TSubgroupId] subgroupIds) except +ProcessException
         void SetWeights(TConstArrayRef[float] weights) except +ProcessException
         void SetTimestamps(TConstArrayRef[ui64] timestamps) except +ProcessException

@@ -30,6 +30,7 @@ namespace NCB {
         TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -50,6 +51,7 @@ namespace NCB {
         TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -69,6 +71,7 @@ namespace NCB {
     TDataProviderPtr ReadDataset(
         THolder<ILineDataReader>&& lineReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited

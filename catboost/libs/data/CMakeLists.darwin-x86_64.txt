@@ -35,6 +35,13 @@ get_built_tool_path(
   enum_parser
 )
 
+get_built_tool_path(
+  TOOL_enum_parser_bin
+  TOOL_enum_parser_dependency
+  tools/enum_parser/enum_parser
+  enum_parser
+)
+
 add_library(catboost-libs-data)
 
 target_link_libraries(catboost-libs-data PUBLIC
@@ -49,6 +56,7 @@ target_link_libraries(catboost-libs-data PUBLIC
   cpp-threading-local_executor
   catboost-libs-cat_feature
   catboost-libs-column_description
+  private-libs-options
   private-libs-ctr_description
   private-libs-data_types
   private-libs-data_util
@@ -58,7 +66,6 @@ target_link_libraries(catboost-libs-data PUBLIC
   private-libs-labels
   catboost-libs-logging
   catboost-libs-model
-  private-libs-options
   private-libs-text_processing
   private-libs-quantization
   private-libs-quantization_schema
@@ -83,6 +90,7 @@ target_sources(catboost-libs-data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/features_layout.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/features_layout_helpers.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/feature_names_converter.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/graph.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/lazy_columns.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/load_data.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/load_and_quantize_data.cpp
@@ -104,6 +112,12 @@ target_sources(catboost-libs-data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/util.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/visitor.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/data/weights.cpp
+)
+
+generate_enum_serilization(catboost-libs-data
+  ${PROJECT_SOURCE_DIR}/catboost/libs/data/graph.h
+  INCLUDE_HEADERS
+  catboost/libs/data/graph.h
 )
 
 generate_enum_serilization(catboost-libs-data
@@ -141,6 +155,7 @@ target_link_libraries(catboost-libs-data.global PUBLIC
   cpp-threading-local_executor
   catboost-libs-cat_feature
   catboost-libs-column_description
+  private-libs-options
   private-libs-ctr_description
   private-libs-data_types
   private-libs-data_util
@@ -150,7 +165,6 @@ target_link_libraries(catboost-libs-data.global PUBLIC
   private-libs-labels
   catboost-libs-logging
   catboost-libs-model
-  private-libs-options
   private-libs-text_processing
   private-libs-quantization
   private-libs-quantization_schema

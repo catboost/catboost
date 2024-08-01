@@ -351,6 +351,7 @@ namespace NCB {
         bool knownIsClassification,
         const TInputClassificationInfo& inputClassificationInfo,
         bool allowConstLabel,
+        bool hasGraph,
         bool skipMinMaxPairsCheck
     ) {
         auto isAnyOfMetrics = [&](bool predicate(ELossFunction)) {
@@ -471,6 +472,7 @@ namespace NCB {
             /*CreateGroups*/ (
                 hasGroupwiseMetrics
                 || (dataHasGroups && hasUserDefinedMetrics)
+                || hasGraph
             ),
             /*CreatePairs*/ isAnyOfMetrics(IsPairwiseMetric),
             /*SkipMinMaxPairsCheck*/ skipMinMaxPairsCheck,
@@ -486,8 +488,10 @@ namespace NCB {
         TMaybe<ui32> knownModelApproxDimension,
         const TInputClassificationInfo& inputClassificationInfo,
         bool allowConstLabel,
+        bool hasGraph,
         bool skipMinMaxPairsCheck
     ) {
+        CB_ENSURE(!(hasGraph && rawData.GetObjectsGrouping()->IsTrivial()), "Graph features require nontrivial groups");
         return MakeTargetCreationOptions(
             !rawData.GetWeights().IsTrivial(),
             rawData.GetTargetDimension(),
@@ -497,6 +501,7 @@ namespace NCB {
             /*knownIsClassification*/ false,
             inputClassificationInfo,
             allowConstLabel,
+            hasGraph,
             skipMinMaxPairsCheck
         );
     }
@@ -1078,6 +1083,7 @@ namespace NCB {
             model.GetDimensionsCount(),
             inputClassificationInfo,
             /*allowConstLabel*/ true, // won't be used in this case anyway
+            srcData.MetaInfo.FeaturesLayout->HasGraphForAggregatedFeatures(),
             skipMinMaxPairsCheck
         );
         result.TargetData = CreateTargetDataProvider(
@@ -1233,7 +1239,8 @@ namespace NCB {
             metricsDescriptions,
             model.GetDimensionsCount(),
             inputClassificationInfo,
-            /*allowConstLabel*/ true // won't be used in this case anyway
+            /*allowConstLabel*/ true, // won't be used in this case anyway
+            srcData.MetaInfo.FeaturesLayout->HasGraphForAggregatedFeatures()
         );
         result.TargetData = CreateTargetDataProvider(
             srcData.RawTargetData,

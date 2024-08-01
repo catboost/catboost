@@ -306,6 +306,11 @@ public:
         Y_UNUSED(pairs);
     }
 
+    void SetGraph(TRawPairsData&& pairs) override {
+        Y_UNUSED(pairs);
+        CB_ENSURE_INTERNAL(false, "Unsupported");
+    }
+
     TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
         return Nothing();
     }
@@ -530,6 +535,11 @@ public:
 
     void SetPairs(TRawPairsData&& pairs) override {
         Y_UNUSED(pairs);
+    }
+
+    void SetGraph(TRawPairsData&& pairs) override {
+        Y_UNUSED(pairs);
+        CB_ENSURE(false, "Unsupported");
     }
 
     TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {

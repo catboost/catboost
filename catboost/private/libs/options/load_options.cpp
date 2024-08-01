@@ -61,6 +61,11 @@ void NCatboostOptions::TPoolLoadParams::ValidateLearn() const {
         CB_ENSURE(CheckExists(PairsFilePath), "Error: pairs file '" << PairsFilePath << "' doesn't exist");
     }
 
+    if (GraphFilePath.Inited()) {
+        CB_ENSURE(CheckExists(GraphFilePath), "Error: graph file '" << GraphFilePath << "' doesn't exist");
+    }
+
+
     if (GroupWeightsFilePath.Inited()) {
         CB_ENSURE(CheckExists(GroupWeightsFilePath), "Error: group weights file '" << GroupWeightsFilePath << "' doesn't exist");
     }
@@ -78,6 +83,9 @@ bool NCatboostOptions::TPoolLoadParams::HavePairs() const {
     return PairsFilePath.Inited() || TestPairsFilePath.Inited();
 }
 
+bool NCatboostOptions::TPoolLoadParams::HaveGraph() const {
+    return GraphFilePath.Inited() || TestGraphFilePath.Inited();
+}
 
 void NCatboostOptions::ValidatePoolParams(
     const NCB::TPathWithScheme& poolPath,

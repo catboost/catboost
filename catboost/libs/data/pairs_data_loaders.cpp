@@ -95,7 +95,11 @@ namespace NCB {
             ++progressIndex;
         }
 
-        visitor->SetPairs(TRawPairsData(std::move(pairs)));
+        if (IsPairs) {
+            visitor->SetPairs(TRawPairsData(std::move(pairs)));
+        } else {
+            visitor->SetGraph(TRawPairsData(std::move(pairs)));
+        }
     }
 
 
@@ -217,7 +221,11 @@ namespace NCB {
                 }
             }
 
-            visitor->SetPairs(TRawPairsData(std::move(pairs)));
+            if (IsPairs) {
+                visitor->SetPairs(TRawPairsData(std::move(pairs)));
+            } else {
+                visitor->SetGraph(TRawPairsData(std::move(pairs)));
+            }
         }
 
     private:

@@ -60,6 +60,7 @@ namespace NCB {
         bool HasWeights = false;
         bool HasTimestamp = false;
         bool HasPairs = false;
+        bool HasGraph = false;
 
         // set only for dsv format pools
         // TODO(akhropov): temporary, serialization details shouldn't be here

@@ -76,6 +76,7 @@ namespace NCB {
         TWeights<float> GroupWeights; // [objectIdx]
 
         TMaybeData<TRawPairsData> Pairs;
+        TMaybeData<TRawPairsData> Graph;
     public:
         bool operator==(const TRawTargetData& rhs) const;
 

@@ -67,6 +67,10 @@ namespace NCB {
             "TCBDsvDataLoader:PairsFilePath does not exist"
         );
         CB_ENSURE(
+            !Args.GraphFilePath.Inited() || CheckExists(Args.GraphFilePath),
+            "TCBDsvDataLoader:GraphFilePath does not exist"
+        );
+        CB_ENSURE(
             !Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
             "TCBDsvDataLoader:GroupWeightsFilePath does not exist"
         );
@@ -112,6 +116,7 @@ namespace NCB {
             Args.GroupWeightsFilePath.Inited(),
             Args.TimestampsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
+            Args.GraphFilePath.Inited(),
             Args.LoadSampleIds,
             Args.ForceUnitAutoPairWeights,
             BaselineReader ? TMaybe<ui32>(BaselineReader->GetBaselineCount()) : Nothing(),
@@ -632,6 +637,7 @@ namespace NCB {
             auto dataset = ReadDataset(
                 std::move(subsetLineDataReader),
                 /*pairsFilePath*/ TPathWithScheme(),
+                /*groupFilePath*/ TPathWithScheme(),
                 /*groupWeightsFilePath*/ TPathWithScheme(),
                 /*timestampsFilePath*/ TPathWithScheme(),
                 /*baselineFilePath*/ TPathWithScheme(),

@@ -111,6 +111,20 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
             loadParamsPtr->TestPairsFilePath = TPathWithScheme(str, "dsv-flat");
         });
 
+    parser->AddLongOption("learn-graph", "path to learn dataset graph")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->GraphFilePath = TPathWithScheme(str, "dsv-flat");
+        })
+        .Help("graph is used for calculating aggregation features");
+
+    parser->AddLongOption("test-graph", "path to test dataset graph")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->TestGraphFilePath = TPathWithScheme(str, "dsv-flat");
+        })
+        .Help("graph is used for calculating aggregation features");
+
     parser->AddLongOption("learn-group-weights", "path to learn group weights")
         .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {

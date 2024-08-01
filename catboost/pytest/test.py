@@ -11025,3 +11025,223 @@ def test_apply_multiple_models():
 
     yatest.common.execute(calc_cmd)
     return [local_canonical_file(eval_path)]
+
+
+def run_train_with_graph_features(
+    loss_function,
+    learn_file, test_file, cd_file, learn_graph, test_graph,
+    output_model_path, output_eval_path, learn_error_path=None, test_error_path=None, cv=False
+):
+    cmd = [
+        '--loss-function', loss_function,
+        '-f', learn_file,
+        '--column-description', cd_file,
+        '--learn-graph', learn_graph,
+        '--l2-leaf-reg', '0',
+        '-i', '20',
+        '-I', '2:4',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    ]
+    if not cv:
+        cmd += [
+            '-t', test_file,
+            '--test-graph', test_graph,
+            '--learn-err-log', learn_error_path,
+            '--test-err-log', test_error_path,
+            '--use-best-model', 'false',
+            '--output-columns', 'SampleId,RawFormulaVal',
+        ]
+    else:
+        is_inverted = False
+        cmd += [
+            '--cv', format_crossvalidation(is_inverted, 2, 7),
+            '--cv-rand', '42',
+        ]
+
+    execute_catboost_fit('CPU', cmd)
+
+
+@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'RMSE'])
+def test_graph_features(loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    predictions_path_test = yatest.common.test_output_path('predictions_test.tsv')
+
+    learn_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+    cd_file = data_file('querywise', 'train.cd')
+    learn_graph = data_file('querywise', 'train.pairs')
+    test_graph = data_file('querywise', 'test.pairs')
+
+    run_train_with_graph_features(
+        loss_function,
+        learn_file, test_file, cd_file, learn_graph, test_graph,
+        output_model_path, output_eval_path, learn_error_path, test_error_path)
+
+    apply_catboost(output_model_path, test_file, cd_file, predictions_path_test, args=f'--input-graph {test_graph}')
+
+    canonization = [local_canonical_file(learn_error_path),
+                    local_canonical_file(test_error_path),
+                    local_canonical_file(output_eval_path)]
+
+    assert filecmp.cmp(output_eval_path, predictions_path_test), \
+        "fit and predict result should be equal"
+
+    return canonization
+
+
+@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'RMSE'])
+@pytest.mark.parametrize('use_groups', [True, False])
+def test_graph_features_cv(loss_function, use_groups):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    learn_file = data_file('querywise', 'train')
+    cd_file = data_file('querywise', 'train.cd' if use_groups else 'train.cd.no_group')
+    learn_graph = data_file('querywise', 'train.pairs')
+
+    failed = False
+    try:
+        run_train_with_graph_features(
+            loss_function,
+            learn_file, None, cd_file, learn_graph, None,
+            output_model_path, output_eval_path, cv=True)
+    except Exception:
+        failed = True
+
+    if not use_groups:
+        assert failed
+        return
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'RMSE'])
+def test_graph_features_fstr(loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    learn_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+    cd_file = data_file('querywise', 'train.cd')
+    learn_graph = data_file('querywise', 'train.pairs')
+    test_graph = data_file('querywise', 'test.pairs')
+
+    def do_test_fstr(fstr_type):
+        fstr_cmd = (
+            CATBOOST_PATH,
+            'fstr',
+            '--input-path', test_file,
+            '--column-description', cd_file,
+            '--input-graph', test_graph,
+            '-m', output_model_path,
+            '-o', output_fstr_path,
+            '--fstr-type', fstr_type
+        )
+        yatest.common.execute(fstr_cmd)
+
+    run_train_with_graph_features(
+        loss_function,
+        learn_file, test_file, cd_file, learn_graph, test_graph,
+        output_model_path, output_eval_path, learn_error_path, test_error_path)
+
+    canonization = []
+
+    for fstr_type in ['PredictionValuesChange', 'LossFunctionChange', 'ShapValues', 'InternalFeatureImportance', 'InternalInteraction']:
+        output_fstr_path = yatest.common.test_output_path(f'fstr_{fstr_type}.tsv')
+        do_test_fstr(fstr_type)
+        canonization.append(local_canonical_file(output_fstr_path))
+
+    return canonization
+
+
+def test_graph_features_python_wrapper():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_py_model_path = yatest.common.test_output_path('model2.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    predictions_path_test = yatest.common.test_output_path('predictions_test.tsv')
+
+    learn_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+    cd_file = data_file('querywise', 'train.cd')
+    learn_graph = data_file('querywise', 'train.pairs')
+    test_graph = data_file('querywise', 'test.pairs')
+
+    loss_function = 'RMSE'
+
+    run_train_with_graph_features(
+        loss_function,
+        learn_file, test_file, cd_file, learn_graph, test_graph,
+        output_model_path, output_eval_path, learn_error_path, test_error_path)
+
+    pool = catboost.Pool(learn_file, column_description=cd_file, graph=learn_graph)
+    test_pool = catboost.Pool(test_file, column_description=cd_file, graph=test_graph)
+
+    def compare_predicts(model, output_model_path):
+        pred = model.predict(test_pool)
+        apply_catboost(output_model_path, test_file, cd_file, predictions_path_test, output_columns=['RawFormulaVal'], args=f'--input-graph {test_graph}')
+
+        cli_pred = np.loadtxt(predictions_path_test, delimiter='\t', skiprows=1)
+
+        is_close = np.isclose(pred, cli_pred, rtol=1e-6, atol=1e-8)
+        if np.any(is_close == 0):
+            assert False, "cli and python result should be equal"
+
+    model = catboost.CatBoost().load_model(output_model_path)
+    compare_predicts(model, output_model_path)
+
+    model = catboost.CatBoostRegressor(iterations=20, learning_rate=0.03, loss_function=loss_function)
+    model.fit(pool)
+
+    model.save_model(output_py_model_path)
+    compare_predicts(model, output_py_model_path)
+
+
+def test_graph_features_cat_features():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    predictions_path_test = yatest.common.test_output_path('predictions_test.tsv')
+
+    learn_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+    input_cd_file = data_file('querywise', 'train.cd')
+    learn_graph = data_file('querywise', 'train.pairs')
+    test_graph = data_file('querywise', 'test.pairs')
+
+    cd_file = yatest.common.test_output_path('train.cd')
+
+    with open(input_cd_file, "rt") as f:
+        cd_lines = f.readlines()
+    with open(cd_file, "wt") as f:
+        for cd_line in cd_lines:
+            if cd_line.split() == ('4', 'Auxiliary'):
+                cd_line = cd_line.replace('Auxiliary', 'Categ')
+            f.write(cd_line)
+
+    run_train_with_graph_features(
+        'RMSE',
+        learn_file, test_file, cd_file, learn_graph, test_graph,
+        output_model_path, output_eval_path, learn_error_path, test_error_path)
+
+    apply_catboost(output_model_path, test_file, cd_file, predictions_path_test, args=f'--input-graph {test_graph}')
+
+    canonization = [local_canonical_file(learn_error_path),
+                    local_canonical_file(test_error_path),
+                    local_canonical_file(output_eval_path)]
+
+    assert filecmp.cmp(output_eval_path, predictions_path_test), \
+        "fit and predict result should be equal"
+
+    return canonization

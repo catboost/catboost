@@ -649,6 +649,9 @@
     "test.test_get_metric_evals[CPU]": {
         "uri": "file://test.test_get_metric_evals_CPU_/evals.txt"
     },
+    "test.test_graph_features[CPU]": {
+        "uri": "file://test.test_graph_features_CPU_/predictions.txt"
+    },
     "test.test_grow_policy_restriction[CPU-Depthwise]": {
         "uri": "file://test.test_grow_policy_restriction_CPU-Depthwise_/predictions.npy"
     },

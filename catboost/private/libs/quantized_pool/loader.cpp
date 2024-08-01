@@ -48,6 +48,7 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
         )
       )
     , PairsPath(args.CommonArgs.PairsFilePath)
+    , GraphPath(args.CommonArgs.GraphFilePath)
     , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
     , BaselinePath(args.CommonArgs.BaselineFilePath)
     , TimestampsPath(args.CommonArgs.TimestampsFilePath)
@@ -66,6 +67,9 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
     CB_ENSURE(
         !PairsPath.Inited() || CheckExists(PairsPath),
         "TCBQuantizedDataLoader:PairsFilePath does not exist");
+    CB_ENSURE(
+        !GraphPath.Inited() || CheckExists(GraphPath),
+        "TCBQuantizedDataLoader:GraphFilePath does not supported");
     CB_ENSURE(
         !GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
         "TCBQuantizedDataLoader:GroupWeightsFilePath does not exist");

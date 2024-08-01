@@ -19,6 +19,7 @@ namespace NCB {
         TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -46,6 +47,7 @@ namespace NCB {
 
                 TDatasetLoaderCommonArgs {
                     pairsFilePath,
+                    graphFilePath,
                     groupWeightsFilePath,
                     baselineFilePath,
                     timestampsFilePath,
@@ -92,6 +94,7 @@ namespace NCB {
         TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -115,6 +118,7 @@ namespace NCB {
             taskType,
             poolPath,
             pairsFilePath,
+            graphFilePath,
             groupWeightsFilePath,
             timestampsFilePath,
             baselineFilePath,
@@ -137,6 +141,7 @@ namespace NCB {
     TDataProviderPtr ReadDataset(
         THolder<ILineDataReader>&& poolReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& graphFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
@@ -169,6 +174,7 @@ namespace NCB {
 
                 TDatasetLoaderCommonArgs {
                     pairsFilePath,
+                    graphFilePath,
                     groupWeightsFilePath,
                     baselineFilePath,
                     timestampsFilePath,
@@ -219,6 +225,7 @@ namespace NCB {
                 taskType,
                 loadOptions.LearnSetPath,
                 loadOptions.PairsFilePath,
+                loadOptions.GraphFilePath,
                 loadOptions.GroupWeightsFilePath,
                 loadOptions.TimestampsFilePath,
                 loadOptions.BaselineFilePath,
@@ -246,6 +253,8 @@ namespace NCB {
                 const NCB::TPathWithScheme& testSetPath = loadOptions.TestSetPaths[testIdx];
                 const NCB::TPathWithScheme& testPairsFilePath =
                         testIdx == 0 ? loadOptions.TestPairsFilePath : NCB::TPathWithScheme();
+                const NCB::TPathWithScheme& testGraphFilePath =
+                        testIdx == 0 ? loadOptions.TestGraphFilePath : NCB::TPathWithScheme();
                 const NCB::TPathWithScheme& testGroupWeightsFilePath =
                     testIdx == 0 ? loadOptions.TestGroupWeightsFilePath : NCB::TPathWithScheme();
                 const NCB::TPathWithScheme& testTimestampsFilePath =
@@ -257,6 +266,7 @@ namespace NCB {
                     taskType,
                     testSetPath,
                     testPairsFilePath,
+                    testGraphFilePath,
                     testGroupWeightsFilePath,
                     testTimestampsFilePath,
                     testBaselineFilePath,

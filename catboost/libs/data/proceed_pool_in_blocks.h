@@ -72,6 +72,7 @@ inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingPa
 
             NCB::TDatasetLoaderCommonArgs {
                 params.PairsFilePath,
+                params.GraphFilePath,
                 /*GroupWeightsFilePath=*/NCB::TPathWithScheme(),
                 /*BaselineFilePath=*/NCB::TPathWithScheme(),
                 /*TimestampsFilePath*/NCB::TPathWithScheme(),
@@ -91,10 +92,10 @@ inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingPa
             }
         }
     );
-
+    CB_ENSURE(!params.PairsFilePath.Inited() or !params.GraphFilePath.Inited(), "Only one file (pairs or graph) can be inited");
     ReadAndProceedPoolInBlocks(
         std::move(datasetLoader),
-        params.PairsFilePath.Inited(),
+        params.PairsFilePath.Inited() or params.GraphFilePath.Inited(),
         std::move(poolConsumer),
         localExecutor
     );

@@ -203,7 +203,7 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeI
         for (const auto& feature: model.ModelTrees->GetCatFeatures()) {
             catFeaturesExternalIndexes.push_back(feature.Position.FlatIndex);
         }
-        featuresLayout = NCB::TFeaturesLayout(model.GetNumFloatFeatures() + model.GetNumCatFeatures(), catFeaturesExternalIndexes, {}, {}, {});
+        featuresLayout = NCB::TFeaturesLayout(model.GetNumFloatFeatures() + model.GetNumCatFeatures(), catFeaturesExternalIndexes, {}, {}, {}, false);
     }
 
     for (size_t splitIdx = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx]; splitIdx < treeSplitEnd; ++splitIdx) {

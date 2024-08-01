@@ -1,6 +1,7 @@
 #include "features_layout.h"
 
 #include "util.h"
+#include "graph.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/json_helpers.h>
@@ -38,7 +39,7 @@ TFeatureMetaInfo::operator NJson::TJsonValue() const {
 }
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
-    : TFeaturesLayout(featureCount, {}, {}, {}, {})
+    : TFeaturesLayout(featureCount, {}, {}, {}, {}, /*graph*/ false)
 {}
 
 TFeaturesLayout::TFeaturesLayout(
@@ -47,10 +48,13 @@ TFeaturesLayout::TFeaturesLayout(
     const TVector<ui32>& textFeatureIndices,
     const TVector<ui32>& embeddingFeatureIndices,
     const TVector<TString>& featureId,
+    bool hasGraph,
     const THashMap<TString, TTagDescription>& featureTags,
     bool allFeaturesAreSparse)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
+
+    HasGraph = hasGraph;
 
     ExternalIdxToMetaInfo.reserve((size_t)featureCount);
     for (auto externalFeatureIdx : xrange(featureCount)) {
@@ -157,7 +161,8 @@ TFeaturesLayout::TFeaturesLayout(
 TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
     TConstArrayRef<TColumn> columns,
     TMaybe<const TVector<TString>*> featureNames,
-    TMaybe<const THashMap<TString, TTagDescription>*> featureTags
+    TMaybe<const THashMap<TString, TTagDescription>*> featureTags,
+    bool hasGraph
 ) {
     TVector<TString> finalFeatureNames;
     if (featureNames) {
@@ -202,6 +207,7 @@ TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
         textFeatureIndices,
         embeddingFeatureIndices,
         finalFeatureNames,
+        hasGraph,
         featureTags.Defined()
             ? **featureTags
             : THashMap<TString, TTagDescription>{});
@@ -298,6 +304,28 @@ bool TFeaturesLayout::IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx
 ui32 TFeaturesLayout::GetFloatFeatureCount() const noexcept {
     // cast is safe because of size invariant established in constructors
     return (ui32)FloatFeatureInternalIdxToExternalIdx.size();
+}
+
+ui32 TFeaturesLayout::GetFloatAggregatedFeatureCount() const noexcept {
+    if (!HasGraph) {
+        return 0;
+    }
+    ui32 size = 0;
+    for (auto& meta: ExternalIdxToMetaInfo) {
+        if (meta.Type == EFeatureType::Float && !meta.IsSparse && !meta.IsAggregated) {
+            size++;
+        }
+    }
+    return size * NCB::kFloatAggregationFeaturesCount;
+}
+
+ui32 TFeaturesLayout::GetAggregatedFeatureCount(EFeatureType type) const noexcept {
+    switch (type) {
+        case EFeatureType::Float:
+            return GetFloatAggregatedFeatureCount();
+        default:
+            return 0;
+    }
 }
 
 ui32 TFeaturesLayout::GetCatFeatureCount() const noexcept {

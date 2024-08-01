@@ -608,6 +608,7 @@ class Pool(_PoolBase):
         embedding_features_data=None,
         column_description=None,
         pairs=None,
+        graph=None,
         delimiter='\t',
         has_header=False,
         ignore_csv_quoting=False,
@@ -687,6 +688,10 @@ class Pool(_PoolBase):
             the index of loser object in the training set.
             If string or pathlib.Path, giving the path to the file with pairs description.
 
+        graph: list or numpy.ndarray or pandas.DataFrame or string or pathlib.Path
+            The graph description.
+            ...
+
         delimiter : string, optional (default='\t')
             Delimiter to use for separate features in file.
             Should be only one symbol, otherwise would be taken only the first character of the string.
@@ -764,6 +769,8 @@ class Pool(_PoolBase):
                 self._check_data_empty(data)
                 if pairs is not None and isinstance(data, PATH_TYPES) != isinstance(pairs, PATH_TYPES):
                     raise CatBoostError("data and pairs parameters should be the same types.")
+                if graph is not None and isinstance(data, PATH_TYPES) != isinstance(graph, PATH_TYPES):
+                    raise CatBoostError("data and graph parameters should be the same types.")
                 if column_description is not None and not isinstance(data, PATH_TYPES):
                     raise CatBoostError("data should be the string or pathlib.Path type if column_description parameter is specified.")
                 if isinstance(data, PATH_TYPES):
@@ -777,7 +784,7 @@ class Pool(_PoolBase):
                         raise CatBoostError(
                             "feature_names should have None or string or pathlib.Path type when the pool is read from the file."
                         )
-                    self._read(data, column_description, pairs, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count)
+                    self._read(data, column_description, pairs, graph, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count)
                 else:
                     if isinstance(data, FeaturesData):
                         if any(v is not None for v in [cat_features, text_features, embedding_features, embedding_features_data, feature_names]):
@@ -845,25 +852,22 @@ class Pool(_PoolBase):
                             "python objects."
                         )
 
-                    self._init(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
+                    self._init(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, graph, weight,
                                group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
             elif not data_can_be_none:
                 raise CatBoostError("'data' parameter can't be None")
             super(Pool, self).__init__()
 
-    def _check_files(self, data, column_description, pairs):
+    def _check_files(self, data, column_description, pairs, graph):
         """
         Check files existence.
         """
-        data = fspath(data)
-        column_description = fspath(column_description)
-        pairs = fspath(pairs)
-        if data.find('://') == -1 and not os.path.isfile(data):
-            raise CatBoostError("Invalid data path='{}': file does not exist.".format(data))
-        if column_description is not None and column_description.find('://') == -1 and not os.path.isfile(column_description):
-            raise CatBoostError("Invalid column_description path='{}': file does not exist.".format(column_description))
-        if pairs is not None and pairs.find('://') == -1 and not os.path.isfile(pairs):
-            raise CatBoostError("Invalid pairs path='{}': file does not exist.".format(pairs))
+        for item, name in zip((data, column_description, pairs, graph), ('data', 'column_description', 'pairs', 'graph')):
+            item = fspath(item)
+            if item is None:
+                continue
+            if item.find('://') == -1 and not os.path.isfile(item):
+                raise CatBoostError("Invalid {} path='{}': file does not exist.".format(name, item))
 
     def _check_delimiter(self, delimiter):
         if not isinstance(delimiter, STRING_TYPES):
@@ -1304,6 +1308,7 @@ class Pool(_PoolBase):
         pool_file,
         column_description,
         pairs,
+        graph,
         feature_names_path,
         delimiter,
         has_header,
@@ -1318,21 +1323,21 @@ class Pool(_PoolBase):
         """
 
         with log_fixup(log_cout, log_cerr):
-            self._check_files(pool_file, column_description, pairs)
+            self._check_files(pool_file, column_description, pairs, graph)
             self._check_delimiter(delimiter)
             if column_description is None:
                 column_description = ''
             else:
                 self._check_column_description_type(column_description)
-            if pairs is None:
-                pairs = ''
-            if feature_names_path is None:
-                feature_names_path = ''
+            for item in [pairs, feature_names_path, graph]:
+                if item is None:
+                    item = ''
             self._check_thread_count(thread_count)
             self._read_pool(
                 pool_file,
                 column_description,
                 pairs,
+                graph,
                 feature_names_path,
                 delimiter[0],
                 has_header,
@@ -1380,7 +1385,7 @@ class Pool(_PoolBase):
         text_features,
         embedding_features,
         embedding_features_data,
-        pairs, weight,
+        pairs, graph, weight,
         group_id,
         group_weight,
         subgroup_id,
@@ -1447,6 +1452,11 @@ class Pool(_PoolBase):
                 pairs = pairs.values
             self._check_pairs_value(pairs)
             pairs_len = np.shape(pairs)[0]
+        if graph is not None:
+            self._check_pairs_type(graph)
+            if isinstance(graph, DataFrame):
+                graph = graph.values
+            self._check_pairs_value(graph)
         if weight is not None:
             self._check_weight_type(weight)
             weight = self._if_pandas_to_numpy(weight)
@@ -1478,11 +1488,11 @@ class Pool(_PoolBase):
             self._check_timestamp_shape(timestamp, samples_count)
         if feature_tags is not None:
             feature_tags = self._check_transform_tags(feature_tags, feature_names)
-        self._init_pool(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
+        self._init_pool(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, graph, weight,
                         group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
 
 
-def _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description):
+def _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, graph, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description):
     train_pool = None
     if isinstance(X, Pool):
         train_pool = X
@@ -1496,11 +1506,11 @@ def _build_train_pool(X, y, cat_features, text_features, embedding_features, pai
         if y is not None:
             raise CatBoostError("Incorrect value of y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
     elif isinstance(X, PATH_TYPES):
-        train_pool = Pool(data=X, pairs=pairs, column_description=column_description)
+        train_pool = Pool(data=X, pairs=pairs, graph=graph, column_description=column_description)
     else:
         if y is None:
             raise CatBoostError("y has not initialized in fit(): X is not catboost.Pool object, y must be not None in fit().")
-        train_pool = Pool(X, y, cat_features=cat_features, text_features=text_features, embedding_features=embedding_features, pairs=pairs, weight=sample_weight, group_id=group_id,
+        train_pool = Pool(X, y, cat_features=cat_features, text_features=text_features, embedding_features=embedding_features, pairs=pairs, graph=graph, weight=sample_weight, group_id=group_id,
                           group_weight=group_weight, subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline)
     return train_pool
 
@@ -2242,7 +2252,7 @@ class CatBoost(_CatBoostBase):
         )
 
     def _prepare_train_params(self, X=None, y=None, cat_features=None, text_features=None, embedding_features=None,
-                              pairs=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None,
+                              pairs=None, graph=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None,
                               pairs_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
                               logging_level=None, plot=None, plot_file=None, column_description=None, verbose_eval=None,
                               metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None,
@@ -2262,7 +2272,7 @@ class CatBoost(_CatBoostBase):
         text_features = _process_feature_indices(text_features, X, params, 'text_features')
         embedding_features = _process_feature_indices(embedding_features, X, params, 'embedding_features')
 
-        train_pool = _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs,
+        train_pool = _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, graph,
                                        sample_weight, group_id, group_weight, subgroup_id, pairs_weight,
                                        baseline, column_description)
         if train_pool.is_empty_:
@@ -2370,7 +2380,7 @@ class CatBoost(_CatBoostBase):
             "init_model": init_model
         }
 
-    def _fit(self, X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
+    def _fit(self, X, y, cat_features, text_features, embedding_features, pairs, graph, sample_weight, group_id, group_weight, subgroup_id,
              pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, plot_file,
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
              save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout=None, log_cerr=None):
@@ -2384,7 +2394,7 @@ class CatBoost(_CatBoostBase):
 
             train_params = self._prepare_train_params(
                 X=X, y=y, cat_features=cat_features, text_features=text_features, embedding_features=embedding_features,
-                pairs=pairs, sample_weight=sample_weight, group_id=group_id, group_weight=group_weight,
+                pairs=pairs, graph=graph, sample_weight=sample_weight, group_id=group_id, group_weight=group_weight,
                 subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline, use_best_model=use_best_model,
                 eval_set=eval_set, verbose=verbose, logging_level=logging_level, plot=plot, plot_file=plot_file,
                 column_description=column_description, verbose_eval=verbose_eval, metric_period=metric_period,
@@ -2421,6 +2431,7 @@ class CatBoost(_CatBoostBase):
                             text_features,
                             embedding_features,
                             pairs,
+                            graph,
                             sample_weight,
                             group_id,
                             group_weight,
@@ -2438,7 +2449,7 @@ class CatBoost(_CatBoostBase):
 
         return self
 
-    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, pairs=None, sample_weight=None, group_id=None,
+    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, pairs=None, graph=None, sample_weight=None, group_id=None,
             group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
@@ -2481,6 +2492,10 @@ class CatBoost(_CatBoostBase):
             The shape should be Nx2, where N is the pairs' count. The first element of the pair is
             the index of the winner object in the training set. The second element of the pair is
             the index of the loser object in the training set.
+
+        graph : list or numpy.ndarray or pandas.DataFrame
+            The graph edges list description.
+            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
 
         sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
@@ -2571,7 +2586,7 @@ class CatBoost(_CatBoostBase):
         -------
         model : CatBoost
         """
-        return self._fit(X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
+        return self._fit(X, y, cat_features, text_features, embedding_features, pairs, graph, sample_weight, group_id, group_weight, subgroup_id,
                          pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, plot_file,
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
@@ -5114,7 +5129,7 @@ class CatBoostClassifier(CatBoost):
 
         super(CatBoostClassifier, self).__init__(params)
 
-    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, sample_weight=None, baseline=None, use_best_model=None,
+    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, graph=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
@@ -5145,6 +5160,10 @@ class CatBoostClassifier(CatBoost):
         embedding_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Embedding columns indices.
             Use only if X is not catboost.Pool.
+
+        graph : list or numpy.ndarray or pandas.DataFrame
+            The graph edges list description.
+            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
 
         sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
@@ -5223,7 +5242,7 @@ class CatBoostClassifier(CatBoost):
         if 'loss_function' in params:
             CatBoostClassifier._check_is_compatible_loss(params['loss_function'])
 
-        self._fit(X, y, cat_features, text_features, embedding_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
+        self._fit(X, y, cat_features, text_features, embedding_features, None, graph, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, plot_file, column_description, verbose_eval, metric_period,
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
         return self
@@ -5740,7 +5759,7 @@ class CatBoostRegressor(CatBoost):
 
         super(CatBoostRegressor, self).__init__(params)
 
-    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None,
+    def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, graph=None,
             sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
@@ -5770,6 +5789,10 @@ class CatBoostRegressor(CatBoost):
         embedding_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Embedding columns indices.
             Use only if X is not catboost.Pool.
+
+        graph : list or numpy.ndarray or pandas.DataFrame
+            The graph edges list description.
+            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
 
         sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
@@ -5847,8 +5870,7 @@ class CatBoostRegressor(CatBoost):
         _process_synonyms(params)
         if 'loss_function' in params:
             CatBoostRegressor._check_is_compatible_loss(params['loss_function'])
-
-        return self._fit(X, y, cat_features, text_features, embedding_features, None, sample_weight, None, None, None, None, baseline,
+        return self._fit(X, y, cat_features, text_features, embedding_features, None, graph, sample_weight, None, None, None, None, baseline,
                          use_best_model, eval_set, verbose, logging_level, plot, plot_file, column_description,
                          verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
@@ -6148,7 +6170,7 @@ class CatBoostRanker(CatBoost):
         super(CatBoostRanker, self).__init__(params)
 
     def fit(self, X, y=None, group_id=None, cat_features=None, text_features=None,
-            embedding_features=None, pairs=None, sample_weight=None, group_weight=None,
+            embedding_features=None, pairs=None, graph=None, sample_weight=None, group_weight=None,
             subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
@@ -6181,6 +6203,9 @@ class CatBoostRanker(CatBoost):
             N is the number of pairs.
             The first element of the pair is the zero-based index of the winner object from the input dataset for pairwise comparison.
             The second element of the pair is the zero-based index of the loser object from the input dataset for pairwise comparison.
+        graph : list or numpy.ndarray or pandas.DataFrame
+            The graph edges list description.
+            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
         sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
         group_weight : list or numpy.ndarray (default=None)
@@ -6255,7 +6280,7 @@ class CatBoostRanker(CatBoost):
         if 'loss_function' in params:
             CatBoostRanker._check_is_compatible_loss(params['loss_function'])
 
-        self._fit(X, y, cat_features, text_features, embedding_features, pairs,
+        self._fit(X, y, cat_features, text_features, embedding_features, pairs, graph,
                   sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, plot_file, column_description, verbose_eval, metric_period,
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)

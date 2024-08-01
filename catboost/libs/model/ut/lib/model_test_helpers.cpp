@@ -121,6 +121,7 @@ TDataProviderPtr GetAdultPool() {
         TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
+        TPathWithScheme(),
         readDatasetMainParams.ColumnarPoolFormatParams,
         /*ignoredFeatures*/ {},
         EObjectsOrder::Undefined,
@@ -164,6 +165,7 @@ TDataProviderPtr GetMultiClassPool() {
     return ReadDataset(
         /*taskType*/Nothing(),
         readDatasetMainParams.PoolPath,
+        TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),

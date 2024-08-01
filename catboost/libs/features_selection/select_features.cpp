@@ -197,6 +197,7 @@ namespace NCB {
             catBoostOptions.GetTaskType(),
             poolLoadParams->LearnSetPath,
             poolLoadParams->PairsFilePath,
+            poolLoadParams->GraphFilePath,
             poolLoadParams->GroupWeightsFilePath,
             poolLoadParams->TimestampsFilePath,
             poolLoadParams->BaselineFilePath,

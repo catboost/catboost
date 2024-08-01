@@ -44,6 +44,7 @@ namespace NCatboostOptions {
         TVector<NJson::TJsonValue> ClassLabels;
 
         NCB::TPathWithScheme PairsFilePath;
+        NCB::TPathWithScheme GraphFilePath;
 
         bool LoadSampleIds = false;
         bool ForceUnitAutoPairWeights = false;

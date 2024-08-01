@@ -34,6 +34,8 @@ namespace NCB {
 
         virtual void SetGroupIdToIdxMap(TConstArrayRef<TGroupId> groupIdsArray);
         virtual void Do(IDatasetVisitor* visitor) = 0;
+
+        bool IsPairs = true;
     };
 
     using TPairsDataLoaderFactory =

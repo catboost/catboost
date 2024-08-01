@@ -438,6 +438,7 @@ cdef extern from "catboost/private/libs/options/dataset_reading_params.h" namesp
         TPathWithScheme PoolPath
         TVector[TJsonValue] ClassLabels
         TPathWithScheme PairsFilePath
+        TPathWithScheme GraphFilePath
         TPathWithScheme FeatureNamesPath
         TPathWithScheme PoolMetaInfoPath
         bool_t ForceUnitAutoPairWeights
@@ -508,6 +509,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         TMaybe[ETaskType] taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
+        const TPathWithScheme& graphFilePath,
         const TPathWithScheme& groupWeightsFilePath,
         const TPathWithScheme& timestampsFilePath,
         const TPathWithScheme& baselineFilePath,
@@ -527,6 +529,7 @@ cdef extern from "catboost/libs/data/load_and_quantize_data.h" namespace "NCB":
     cdef TDataProviderPtr ReadAndQuantizeDataset(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
+        const TPathWithScheme& graphFilePath,
         const TPathWithScheme& groupWeightsFilePath,
         const TPathWithScheme& timestampsFilePath,
         const TPathWithScheme& baselineFilePath,
@@ -2257,7 +2260,8 @@ cdef TFeaturesLayout* _init_features_layout(
     text_features,
     embedding_features,
     feature_names,
-    feature_tags
+    feature_tags,
+    has_graph
 ) except *:
     cdef TVector[ui32] cat_features_vector
     cdef TVector[ui32] text_features_vector
@@ -2302,6 +2306,7 @@ cdef TFeaturesLayout* _init_features_layout(
         text_features_vector,
         embedding_features_vector,
         feature_names_vector,
+        has_graph,
         feature_tags_map,
         all_features_are_sparse)
 
@@ -3831,6 +3836,10 @@ cdef _set_pairs(pairs, pairs_weight, IBuilderVisitor* builder_visitor):
     cdef TVector[TPair] pairs_vector = _make_pairs_vector(pairs, pairs_weight)
     builder_visitor[0].SetPairs(TConstArrayRef[TPair](pairs_vector.data(), pairs_vector.size()))
 
+cdef _set_graph(graph, IBuilderVisitor* builder_visitor):
+   cdef TVector[TPair] pairs_vector = _make_pairs_vector(graph, pairs_weight=None)
+   builder_visitor[0].SetGraph(TConstArrayRef[TPair](pairs_vector.data(), pairs_vector.size()))
+
 cdef _set_weight(weight, IRawObjectsOrderDataVisitor* builder_visitor):
     cdef int i
     cdef int weights_len = len(weight)
@@ -4044,13 +4053,16 @@ cdef class _PoolBase:
                 builder_visitor[0].AddTarget(target_idx, <TConstArrayRef[TString]>string_target_data)
 
 
-    cpdef _read_pool(self, pool_file, cd_file, pairs_file, feature_names_file, delimiter, bool_t has_header, bool_t ignore_csv_quoting, int thread_count, dict quantization_params):
+    cpdef _read_pool(self, pool_file, cd_file, pairs_file, graph_file, feature_names_file, delimiter, bool_t has_header, bool_t ignore_csv_quoting, int thread_count, dict quantization_params):
         cdef TPathWithScheme pool_file_path
         pool_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(pool_file)), TStringBuf(<char*>'dsv'))
 
         cdef TPathWithScheme pairs_file_path
         if pairs_file:
             pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(pairs_file)), TStringBuf(<char*>'dsv-flat'))
+        cdef TPathWithScheme graph_file_path
+        if graph_file:
+            graph_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(graph_file)), TStringBuf(<char*>'dsv-flat'))
 
         cdef TPathWithScheme feature_names_file_path
         if feature_names_file:
@@ -4076,6 +4088,7 @@ cdef class _PoolBase:
             self.__pool = ReadAndQuantizeDataset(
                 pool_file_path,
                 pairs_file_path,
+                graph_file_path,
                 TPathWithScheme(),
                 TPathWithScheme(),
                 TPathWithScheme(),
@@ -4096,6 +4109,7 @@ cdef class _PoolBase:
                 TMaybe[ETaskType](),
                 pool_file_path,
                 pairs_file_path,
+                graph_file_path,
                 TPathWithScheme(),
                 TPathWithScheme(),
                 TPathWithScheme(),
@@ -4121,6 +4135,7 @@ cdef class _PoolBase:
         const TDataMetaInfo& data_meta_info,
         label,
         pairs,
+        graph,
         weight,
         group_id,
         group_weight,
@@ -4217,6 +4232,8 @@ cdef class _PoolBase:
             _set_pairs(pairs, pairs_weight, builder_visitor)
         elif pairs_weight is not None:
             raise CatBoostError('"pairs_weight" is specified but "pairs" is not')
+        if graph is not None:
+            _set_graph(graph, builder_visitor)
         if baseline is not None:
             _set_baseline_features_order(baseline, builder_visitor)
         if weight is not None:
@@ -4244,6 +4261,7 @@ cdef class _PoolBase:
         const TDataMetaInfo& data_meta_info,
         label,
         pairs,
+        graph,
         weight,
         group_id,
         group_weight,
@@ -4276,6 +4294,8 @@ cdef class _PoolBase:
             _set_pairs(pairs, pairs_weight, builder_visitor)
         elif pairs_weight is not None:
             raise CatBoostError('"pairs_weight" is specified but "pairs" is not')
+        if graph is not None:
+            _set_graph(graph, builder_visitor)
         if baseline is not None:
             _set_baseline(baseline, builder_visitor)
         if weight is not None:
@@ -4295,7 +4315,7 @@ cdef class _PoolBase:
         self.__data_holders = new_data_holders
 
 
-    cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
+    cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, graph, weight,
                      group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags,
                      thread_count):
         if group_weight is not None and weight is not None:
@@ -4316,6 +4336,7 @@ cdef class _PoolBase:
         data_meta_info.HasWeights = weight is not None
         data_meta_info.HasTimestamp = timestamp is not None
         data_meta_info.HasPairs = pairs is not None
+        data_meta_info.HasGraph = graph is not None
 
         data_meta_info.FeaturesLayout = _init_features_layout(
             data,
@@ -4324,7 +4345,8 @@ cdef class _PoolBase:
             text_features,
             embedding_features,
             feature_names,
-            feature_tags
+            feature_tags,
+            data_meta_info.HasGraph
         )
 
         do_use_raw_data_in_features_order = False
@@ -4352,6 +4374,7 @@ cdef class _PoolBase:
                 data_meta_info,
                 label,
                 pairs,
+                graph,
                 weight,
                 group_id,
                 group_weight,
@@ -4369,6 +4392,7 @@ cdef class _PoolBase:
                 data_meta_info,
                 label,
                 pairs,
+                graph,
                 weight,
                 group_id,
                 group_weight,

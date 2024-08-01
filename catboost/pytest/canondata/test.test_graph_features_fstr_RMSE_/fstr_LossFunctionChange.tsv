@@ -1,0 +1,200 @@
+0.002846381084	47
+0.001369091578	MaxAggregated for float 20
+0.001030223206	MeanAggregated for float 32
+0.0009966471144	31
+0.0009563615009	MaxAggregated for float 46
+0.0008715791558	32
+0.0008633286231	MinAggregated for float 46
+0.0008573450302	MinAggregated for float 16
+0.0007182128152	MinAggregated for float 35
+0.000683990025	24
+0.0006678867555	MeanAggregated for float 31
+0.0005888184054	MaxAggregated for float 22
+0.0005475200179	MeanAggregated for float 48
+0.0004682810974	MaxAggregated for float 48
+0.0004429023563	MinAggregated for float 21
+0.0003851905183	48
+0.0003815040107	MinAggregated for float 9
+0.000341575467	MaxAggregated for float 24
+0.0003318428369	MinAggregated for float 36
+0.0002982797597	MeanAggregated for float 46
+0.0002859108555	MinAggregated for float 28
+0.0002626122358	MinAggregated for float 14
+0.0002485511996	MaxAggregated for float 29
+0.0002289377368	MaxAggregated for float 0
+0.0002278760437	MinAggregated for float 38
+0.0002025286906	1
+0.0001975206891	MinAggregated for float 1
+0.0001917139314	MinAggregated for float 39
+0.0001886057159	MaxAggregated for float 6
+0.0001518944882	19
+0.0001428527765	38
+9.687921944e-05	MeanAggregated for float 1
+9.342947369e-05	MinAggregated for float 15
+7.841710325e-05	MaxAggregated for float 16
+7.194626165e-05	MinAggregated for float 0
+6.23187727e-05	MeanAggregated for float 17
+5.661707731e-05	MaxAggregated for float 11
+3.886468552e-05	16
+2.495680307e-05	39
+2.377258228e-05	MeanAggregated for float 37
+1.565474201e-05	MeanAggregated for float 20
+8.459468908e-06	MeanAggregated for float 11
+5.701194936e-06	MeanAggregated for float 5
+5.082399513e-06	13
+4.917198149e-06	MeanAggregated for float 38
+5.338718186e-07	MeanAggregated for float 13
+0	2
+0	3
+0	4
+0	5
+0	6
+0	7
+0	8
+0	9
+0	10
+0	11
+0	12
+0	15
+0	18
+0	21
+0	22
+0	23
+0	25
+0	26
+0	27
+0	28
+0	29
+0	30
+0	34
+0	36
+0	37
+0	40
+0	41
+0	42
+0	43
+0	44
+0	45
+0	49
+0	MeanAggregated for float 0
+0	MaxAggregated for float 1
+0	MeanAggregated for float 2
+0	MinAggregated for float 2
+0	MaxAggregated for float 2
+0	MeanAggregated for float 3
+0	MinAggregated for float 3
+0	MaxAggregated for float 3
+0	MeanAggregated for float 4
+0	MinAggregated for float 4
+0	MaxAggregated for float 4
+0	MaxAggregated for float 5
+0	MinAggregated for float 6
+0	MinAggregated for float 7
+0	MaxAggregated for float 7
+0	MinAggregated for float 8
+0	MaxAggregated for float 8
+0	MeanAggregated for float 9
+0	MaxAggregated for float 9
+0	MeanAggregated for float 10
+0	MinAggregated for float 10
+0	MaxAggregated for float 10
+0	MinAggregated for float 11
+0	MeanAggregated for float 12
+0	MinAggregated for float 12
+0	MaxAggregated for float 12
+0	MinAggregated for float 13
+0	MaxAggregated for float 13
+0	MeanAggregated for float 14
+0	MaxAggregated for float 14
+0	MeanAggregated for float 15
+0	MaxAggregated for float 15
+0	MeanAggregated for float 16
+0	MinAggregated for float 17
+0	MaxAggregated for float 17
+0	MeanAggregated for float 18
+0	MinAggregated for float 18
+0	MaxAggregated for float 18
+0	MeanAggregated for float 19
+0	MinAggregated for float 19
+0	MaxAggregated for float 19
+0	MinAggregated for float 20
+0	MaxAggregated for float 21
+0	MeanAggregated for float 22
+0	MinAggregated for float 22
+0	MeanAggregated for float 23
+0	MinAggregated for float 23
+0	MaxAggregated for float 23
+0	MeanAggregated for float 25
+0	MinAggregated for float 25
+0	MaxAggregated for float 25
+0	MeanAggregated for float 26
+0	MinAggregated for float 26
+0	MaxAggregated for float 26
+0	MeanAggregated for float 27
+0	MinAggregated for float 27
+0	MaxAggregated for float 28
+0	MeanAggregated for float 29
+0	MinAggregated for float 29
+0	MeanAggregated for float 30
+0	MinAggregated for float 30
+0	MaxAggregated for float 30
+0	MinAggregated for float 31
+0	MaxAggregated for float 31
+0	MinAggregated for float 32
+0	MaxAggregated for float 32
+0	MinAggregated for float 33
+0	MaxAggregated for float 33
+0	MeanAggregated for float 34
+0	MinAggregated for float 34
+0	MaxAggregated for float 34
+0	MeanAggregated for float 35
+0	MaxAggregated for float 35
+0	MeanAggregated for float 36
+0	MaxAggregated for float 36
+0	MinAggregated for float 37
+0	MaxAggregated for float 37
+0	MeanAggregated for float 39
+0	MaxAggregated for float 39
+0	MeanAggregated for float 40
+0	MinAggregated for float 40
+0	MaxAggregated for float 40
+0	MeanAggregated for float 41
+0	MinAggregated for float 41
+0	MaxAggregated for float 41
+0	MeanAggregated for float 42
+0	MinAggregated for float 42
+0	MaxAggregated for float 42
+0	MeanAggregated for float 43
+0	MinAggregated for float 43
+0	MaxAggregated for float 43
+0	MeanAggregated for float 44
+0	MinAggregated for float 44
+0	MaxAggregated for float 44
+0	MeanAggregated for float 45
+0	MinAggregated for float 45
+0	MaxAggregated for float 45
+0	MeanAggregated for float 47
+0	MinAggregated for float 47
+0	MaxAggregated for float 47
+0	MinAggregated for float 48
+0	MeanAggregated for float 49
+0	MaxAggregated for float 49
+-3.129904269e-07	MaxAggregated for float 27
+-1.026559049e-06	MeanAggregated for float 8
+-5.99707887e-06	MeanAggregated for float 28
+-2.18342981e-05	MeanAggregated for float 21
+-2.417550565e-05	MeanAggregated for float 33
+-3.17827404e-05	MeanAggregated for float 6
+-3.632543673e-05	MinAggregated for float 49
+-4.980001912e-05	35
+-5.59184808e-05	0
+-7.925492616e-05	MeanAggregated for float 7
+-0.000101933154	MeanAggregated for float 24
+-0.0001093596376	46
+-0.0001103286144	20
+-0.0001238863775	33
+-0.0001660755628	MinAggregated for float 24
+-0.0001677198011	MaxAggregated for float 38
+-0.0001759183695	14
+-0.0002095660099	17
+-0.0002879979397	MinAggregated for float 5

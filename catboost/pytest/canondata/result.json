@@ -4902,6 +4902,83 @@
             "uri": "file://test.test_gradient_walker/test.eval"
         }
     ],
+    "test.test_graph_features[QueryRMSE]": [
+        {
+            "uri": "file://test.test_graph_features_QueryRMSE_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_QueryRMSE_/test_error.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_QueryRMSE_/test.eval"
+        }
+    ],
+    "test.test_graph_features[RMSE]": [
+        {
+            "uri": "file://test.test_graph_features_RMSE_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_RMSE_/test_error.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_RMSE_/test.eval"
+        }
+    ],
+    "test.test_graph_features_cat_features": [
+        {
+            "uri": "file://test.test_graph_features_cat_features/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_cat_features/test_error.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_cat_features/test.eval"
+        }
+    ],
+    "test.test_graph_features_cv[True-QueryRMSE]": [
+        {
+            "uri": "file://test.test_graph_features_cv_True-QueryRMSE_/test.eval"
+        }
+    ],
+    "test.test_graph_features_cv[True-RMSE]": [
+        {
+            "uri": "file://test.test_graph_features_cv_True-RMSE_/test.eval"
+        }
+    ],
+    "test.test_graph_features_fstr[QueryRMSE]": [
+        {
+            "uri": "file://test.test_graph_features_fstr_QueryRMSE_/fstr_PredictionValuesChange.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_fstr_QueryRMSE_/fstr_LossFunctionChange.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_fstr_QueryRMSE_/fstr_ShapValues.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_fstr_QueryRMSE_/fstr_InternalFeatureImportance.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_fstr_QueryRMSE_/fstr_InternalInteraction.tsv"
+        }
+    ],
+    "test.test_graph_features_fstr[RMSE]": [
+        {
+            "uri": "file://test.test_graph_features_fstr_RMSE_/fstr_PredictionValuesChange.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_fstr_RMSE_/fstr_LossFunctionChange.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_fstr_RMSE_/fstr_ShapValues.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_fstr_RMSE_/fstr_InternalFeatureImportance.tsv"
+        },
+        {
+            "uri": "file://test.test_graph_features_fstr_RMSE_/fstr_InternalInteraction.tsv"
+        }
+    ],
     "test.test_group_features": [
         {
             "uri": "file://test.test_group_features/learn_error.tsv"

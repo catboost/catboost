@@ -389,6 +389,11 @@ namespace {
             UnsampledData.Pairs = std::move(pairs);
         }
 
+        void SetGraph(TRawPairsData&& graph) override {
+            Y_UNUSED(graph);
+            CB_ENSURE(false, "Unimplemented");
+        }
+
         void SetTimestamps(TVector<ui64>&& timestamps) override {
             // TODO(vetaleha): fill for sample, if needed for quantization
             UnsampledData.Timestamps = std::move(timestamps);
@@ -755,6 +760,7 @@ namespace {
 TDataProviderPtr NCB::ReadAndQuantizeDataset(
     const TPathWithScheme& poolPath,
     const TPathWithScheme& pairsFilePath,        // can be uninited
+    const TPathWithScheme& graphFilePath,        // can be uninited
     const TPathWithScheme& groupWeightsFilePath, // can be uninited
     const TPathWithScheme& timestampsFilePath,   // can be uninited
     const TPathWithScheme& baselineFilePath,     // can be uninited
@@ -797,6 +803,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
             poolPath,
             TDatasetLoaderCommonArgs {
                 pairsFilePath,
+                graphFilePath,
                 groupWeightsFilePath,
                 baselineFilePath,
                 timestampsFilePath,
@@ -870,6 +877,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
 TDataProviderPtr NCB::ReadAndQuantizeDataset(
     const TPathWithScheme& poolPath,
     const TPathWithScheme& pairsFilePath,        // can be uninited
+    const TPathWithScheme& graphFilePath,
     const TPathWithScheme& groupWeightsFilePath, // can be uninited
     const TPathWithScheme& timestampsFilePath,   // can be uninited
     const TPathWithScheme& baselineFilePath,     // can be uninited
@@ -894,6 +902,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     TDataProviderPtr dataProviderPtr = ReadAndQuantizeDataset(
         poolPath,
         pairsFilePath,
+        graphFilePath,
         groupWeightsFilePath,
         timestampsFilePath,
         baselineFilePath,

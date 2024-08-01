@@ -57,6 +57,7 @@ TDataMetaInfo::TDataMetaInfo(
     bool hasAdditionalGroupWeight,
     bool hasTimestamp,
     bool hasPairs,
+    bool hasGraph,
     bool loadSampleIds,
     bool forceUnitAutoPairWeights,
     TMaybe<ui32> additionalBaselineCount,
@@ -70,7 +71,7 @@ TDataMetaInfo::TDataMetaInfo(
 {
     ColumnsInfo->Validate();
 
-    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames, featureTags);
+    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames, featureTags, hasGraph);
 
     TargetCount = ColumnsInfo->CountColumns(EColumn::Label);
     if (TargetCount) {
@@ -96,6 +97,7 @@ TDataMetaInfo::TDataMetaInfo(
     HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0 || hasTimestamp;
     HasPairs = hasPairs;
+    HasGraph = hasGraph;
     ForceUnitAutoPairWeights = forceUnitAutoPairWeights;
 
     Validate();
@@ -125,6 +127,7 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         HasWeights,
         HasTimestamp,
         HasPairs,
+        HasGraph,
         StoreStringColumns,
         ClassLabels,
         ColumnsInfo
@@ -139,6 +142,7 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         rhs.HasWeights,
         rhs.HasTimestamp,
         rhs.HasPairs,
+        rhs.HasGraph,
         rhs.StoreStringColumns,
         ClassLabels,
         rhs.ColumnsInfo
@@ -187,6 +191,7 @@ TDataMetaInfo::operator NJson::TJsonValue() const {
     result.InsertValue("HasWeights"sv, HasWeights);
     result.InsertValue("HasTimestamp"sv, HasTimestamp);
     result.InsertValue("HasPairs"sv, HasPairs);
+    result.InsertValue("HasGraph"sv, HasGraph);
     result.InsertValue("StoreStringColumns"sv, StoreStringColumns);
     result.InsertValue("ForceUnitAutoPairWeights"sv, ForceUnitAutoPairWeights);
 
@@ -258,6 +263,7 @@ void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
         data->HasWeights,
         data->HasTimestamp,
         data->HasPairs,
+        data->HasGraph,
         data->StoreStringColumns,
         data->ClassLabels,
         data->ColumnsInfo

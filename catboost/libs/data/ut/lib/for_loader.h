@@ -45,6 +45,7 @@ namespace NCB {
     struct TReadDatasetMainParams {
         TPathWithScheme PoolPath;
         TPathWithScheme PairsFilePath; // can be uninited
+        TPathWithScheme GraphFilePath; // can be uninited
         TPathWithScheme GroupWeightsFilePath; // can be uninited
         TPathWithScheme BaselineFilePath; // can be uninited
         TPathWithScheme FeatureNamesFilePath; // can be uninited

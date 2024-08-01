@@ -148,6 +148,7 @@ static THolder<IDatasetLoader> GetDatasetLoader(
     auto getDatasetLoaderCommonArgs = [&] () {
         return TDatasetLoaderCommonArgs{
             params.PairsFilePath,
+            params.GraphFilePath,
             /*GroupWeightsFilePath=*/NCB::TPathWithScheme(),
             /*BaselineFilePath=*/NCB::TPathWithScheme(),
             /*TimestampsFilePath*/ NCB::TPathWithScheme(),

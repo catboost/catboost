@@ -195,7 +195,8 @@ void TClassTargetPreprocessor::ProcessDistinctTargetValuesImpl(
         /*knownModelApproxDimension*/ Nothing(),
         /*knownIsClassification*/ true,
         inputClassificationInfo,
-        dataProcessingOptions.AllowConstLabel.Get()
+        dataProcessingOptions.AllowConstLabel.Get(),
+        /* hasGraph */ false
     );
 
     TMaybe<ui32> knownClassCount;

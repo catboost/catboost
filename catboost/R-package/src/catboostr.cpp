@@ -121,6 +121,7 @@ extern "C" {
 EXPORT_FUNCTION CatBoostCreateFromFile_R(SEXP poolFileParam,
                               SEXP cdFileParam,
                               SEXP pairsFileParam,
+                              SEXP graphFileParam,
                               SEXP featureNamesFileParam,
                               SEXP delimiterParam,
                               SEXP numVectorDelimiterParam,
@@ -144,12 +145,15 @@ EXPORT_FUNCTION CatBoostCreateFromFile_R(SEXP poolFileParam,
     }
 
     TStringBuf pairsPathWithScheme(CHAR(asChar(pairsFileParam)));
+    TStringBuf graphPathWithScheme(CHAR(asChar(graphFileParam)));
     TStringBuf featureNamesPathWithScheme(CHAR(asChar(featureNamesFileParam)));
 
     TDataProviderPtr poolPtr = ReadDataset(/*taskType*/Nothing(),
                                            TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv"),
                                            !pairsPathWithScheme.empty() ?
                                                TPathWithScheme(pairsPathWithScheme, "dsv-flat") : TPathWithScheme(),
+                                           !graphPathWithScheme.empty() ?
+                                               TPathWithScheme(graphPathWithScheme, "dsv-flat") : TPathWithScheme(),
                                            /*groupWeightsFilePath=*/TPathWithScheme(),
                                            /*timestampsFilePath=*/TPathWithScheme(),
                                            /*baselineFilePath=*/TPathWithScheme(),
@@ -178,6 +182,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
                                 SEXP textMatrixParam,
                                 SEXP textFeaturesIndicesParam,
                                 SEXP pairsParam,
+                                SEXP graphParam,
                                 SEXP weightParam,
                                 SEXP groupIdParam,
                                 SEXP groupWeightParam,
@@ -236,6 +241,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
         metaInfo.HasSubgroupIds = subgroupIdParam != R_NilValue;
         metaInfo.HasWeights = weightParam != R_NilValue;
         metaInfo.HasTimestamp = false;
+        metaInfo.HasGraph = graphParam != R_NilValue;
 
         visitor->Start(metaInfo, dataRows, EObjectsOrder::Undefined, {});
 
@@ -321,7 +327,10 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
                 indexFloatAndCatMatrix++;
             }
         }
-
+        if (graphParam != R_NilValue) {
+            CB_ENSURE(pairsParam == R_NilValue, "Only one option graph or param should be set");
+            pairsParam = graphParam;
+        }
         if (pairsParam != R_NilValue) {
             TVector<TPair> pairs;
             size_t pairsCount = static_cast<size_t>(INTEGER(getAttrib(pairsParam, R_DimSymbol))[0]);
@@ -338,7 +347,11 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
                     weight
                 );
             }
-            visitor->SetPairs(TRawPairsData(std::move(pairs)));
+            if (metaInfo.HasGraph) {
+                visitor->SetGraph(TRawPairsData(std::move(pairs)));
+            } else {
+                visitor->SetPairs(TRawPairsData(std::move(pairs)));
+            }
         }
         visitor->Finish();
     };

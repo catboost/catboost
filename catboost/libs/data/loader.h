@@ -60,6 +60,7 @@ namespace NCB {
 
     struct TDatasetLoaderCommonArgs {
         TPathWithScheme PairsFilePath;
+        TPathWithScheme GraphFilePath;
         TPathWithScheme GroupWeightsFilePath;
         TPathWithScheme BaselineFilePath;
         TPathWithScheme TimestampsFilePath;
@@ -190,6 +191,10 @@ namespace NCB {
         const TPathWithScheme& pairsPath,
         TDatasetSubset loadSubset,
         IDatasetVisitor* visitor);
+    void SetGraph(
+        const TPathWithScheme& graphPath,
+        TDatasetSubset loadSubset,
+        IDatasetVisitor* visitor);
     void SetGroupWeights(
         const TPathWithScheme& groupWeightsPath,
         ui32 objectCount,
@@ -292,6 +297,7 @@ namespace NCB {
                 const ui32 objectCount = GetObjectCountSynchronized();
                 SetGroupWeights(Args.GroupWeightsFilePath, objectCount, Args.DatasetSubset, visitor);
                 SetPairs(Args.PairsFilePath, Args.DatasetSubset, visitor);
+                SetGraph(Args.GraphFilePath, Args.DatasetSubset, visitor);
                 SetTimestamps(Args.TimestampsFilePath, objectCount, Args.DatasetSubset, visitor);
             }
             visitor->Finish();

@@ -104,6 +104,7 @@ TDataProviderPtr BuildApproxAsPoolAndGetMetric(NPar::TLocalExecutor* executor, T
                     TPathWithScheme(),
                     TPathWithScheme(),
                     TPathWithScheme(),
+                    TPathWithScheme(),
                     columnarPoolFormatParams,
         /*ignoredFeatures*/ {},
                     EObjectsOrder::Undefined,

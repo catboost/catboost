@@ -45,6 +45,7 @@ namespace {
                 Dataset = NCB::ReadDataset(/*taskType*/Nothing(),
                                            Params.DatasetReadingParams.PoolPath,
                                            Params.DatasetReadingParams.PairsFilePath,
+                                           Params.DatasetReadingParams.GraphFilePath,
                                            /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                            /*baselineFilePath=*/ NCB::TPathWithScheme(),
                                            /*timestampsFilePath=*/ NCB::TPathWithScheme(),

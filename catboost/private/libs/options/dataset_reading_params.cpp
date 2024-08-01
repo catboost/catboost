@@ -49,6 +49,12 @@ void NCatboostOptions::TDatasetReadingParams::BindParserOpts(NLastGetopt::TOpts*
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PairsFilePath = TPathWithScheme(pathWithScheme, "dsv-flat");
         });
+
+    parser->AddLongOption("input-graph", "Path to graph data")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
+            GraphFilePath = TPathWithScheme(pathWithScheme, "dsv-flat");
+        });
 }
 
 void NCatboostOptions::TDatasetReadingParams::ValidatePoolParams() const {
