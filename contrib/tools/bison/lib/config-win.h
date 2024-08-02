@@ -1701,6 +1701,7 @@ char *strsignal (int signum);
 /* Define as a macro for copying va_list variables. */
 #define va_copy gl_va_copy
 
+#define M4 "/var/empty/gnum4-1.4.19/bin/m4"
 #define M4_GNU_OPTION "--gnu"
 #define PACKAGE_COPYRIGHT_YEAR 2013
 #define _GL_ATTRIBUTE_MALLOC 

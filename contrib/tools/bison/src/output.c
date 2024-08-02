@@ -48,9 +48,6 @@
 
 #include <contrib/tools/bison/arcadia_root.h>
 
-#undef M4
-#define M4 (m4_path)
-
 #define STR(a) XSTR(a)
 #define XSTR(a) #a
 

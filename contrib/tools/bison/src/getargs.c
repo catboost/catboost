@@ -65,8 +65,6 @@ const char *skeleton = NULL;
 int language_prio = default_prio;
 struct bison_language const *language = &valid_languages[0];
 
-const char* m4_path = NULL;
-
 /** Decode an option's key.
  *
  *  \param opt      option being decoded.
@@ -496,7 +494,6 @@ enum
   LOCATIONS_OPTION = CHAR_MAX + 1,
   PRINT_LOCALEDIR_OPTION,
   PRINT_DATADIR_OPTION,
-  M4_PATH,
   REPORT_FILE_OPTION
 };
 
@@ -525,7 +522,6 @@ static struct option const long_options[] =
 
   /* Hidden. */
   { "trace",         optional_argument,   0,     'T' },
-  { "m4",            required_argument,   0,     M4_PATH },
 
   /* Output.  */
   { "defines",     optional_argument,   0,   'd' },
@@ -732,10 +728,6 @@ getargs (int argc, char *argv[])
       case REPORT_FILE_OPTION:
         free (spec_verbose_file);
         spec_verbose_file = xstrdup (AS_FILE_NAME (optarg));
-        break;
-
-      case M4_PATH:
-        m4_path = xstrdup (AS_FILE_NAME (optarg));
         break;
 
       default:

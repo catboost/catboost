@@ -42,8 +42,6 @@ extern bool token_table_flag;           /* for -k */
 extern location yacc_loc;               /* for -y */
 extern bool update_flag;                /* for -u */
 
-extern const char* m4_path;
-
 /* GLR_PARSER is true if the input file says to use the GLR
    (Generalized LR) parser, and to output some additional information
    used by the GLR algorithm.  */
