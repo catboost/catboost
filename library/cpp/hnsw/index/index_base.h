@@ -107,8 +107,9 @@ namespace NHnsw {
             TPriorityQueue<TResultItem, TVector<TResultItem>, decltype(neighborGreater)> candidates(neighborGreater);
             TDenseHashSet<ui32> visited(/*emptyKey*/ Max<ui32>());
 
-
-            nearest.push({entryDist, entryId});
+            if (!NPrivate::IsItemMarkedDeleted(itemStorage, entryId)) {
+                nearest.push({entryDist, entryId});
+            }
 
             candidates.push({entryDist, entryId});
             visited.Insert(entryId);
@@ -116,7 +117,7 @@ namespace NHnsw {
             while (!candidates.empty() && !distanceCalcLimitReached) {
                 auto cur = candidates.top();
                 candidates.pop();
-                if (distanceLess(nearest.top().Dist, cur.Dist)) {
+                if (!nearest.empty() && distanceLess(nearest.top().Dist, cur.Dist)) {
                     break;
                 }
                 const ui32* neighbors = GetNeighbors(/*level*/ 0, cur.Id);
