@@ -6,6 +6,8 @@
 
 #include "serialize.h"
 
+#include <library/cpp/yt/system/exit.h>
+
 #include <library/cpp/yt/malloc/malloc.h>
 
 #include <util/system/align.h>
@@ -29,6 +31,10 @@ TDerived* TAllocationHolder::Allocate(size_t size, TRefCountedTypeCookie cookie)
 {
     auto requestedSize = sizeof(TDerived) + size;
     auto* ptr = ::malloc(requestedSize);
+
+    if (!ptr) {
+        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
+    }
 
 #ifndef _win_
     auto allocatedSize = ::malloc_usable_size(ptr);
