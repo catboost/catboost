@@ -254,69 +254,6 @@ TRange(const google::protobuf::RepeatedPtrField<TPointed>& elements) -> TRange<c
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! Constructs a TRange from a pointer and length.
-template <class T>
-TRange<T> MakeRange(const T* data, size_t length)
-{
-    return TRange<T>(data, length);
-}
-
-//! Constructs a TRange from a native range.
-template <class T>
-TRange<T> MakeRange(const T* begin, const T* end)
-{
-    return TRange<T>(begin, end);
-}
-
-//! Constructs a TRange from a TCompactVector.
-template <class T, size_t N>
-TRange<T> MakeRange(const TCompactVector<T, N>& elements)
-{
-    return elements;
-}
-
-//! "Copy-constructor".
-template <class T>
-TRange<T> MakeRange(TRange<T> range)
-{
-    return range;
-}
-
-//! Constructs a TRange from an std::vector.
-template <class T>
-TRange<T> MakeRange(const std::vector<T>& elements)
-{
-    return elements;
-}
-
-//! Constructs a TRange from an std::array.
-template <class T, size_t N>
-TRange<T> MakeRange(const std::array<T, N>& elements)
-{
-    return elements;
-}
-
-//! Constructs a TRange from a C array.
-template <class T, size_t N>
-TRange<T> MakeRange(const T (& elements)[N])
-{
-    return TRange<T>(elements);
-}
-
-//! Constructs a TRange from RepeatedField.
-template <class T>
-TRange<T> MakeRange(const google::protobuf::RepeatedField<T>& elements)
-{
-    return TRange<T>(elements.data(), elements.size());
-}
-
-//! Constructs a TRange from RepeatedPtrField.
-template <class T>
-TRange<const T*> MakeRange(const google::protobuf::RepeatedPtrField<T>& elements)
-{
-    return TRange<const T*>(elements.data(), elements.size());
-}
-
 template <class U, class T>
 TRange<U> ReinterpretCastRange(TRange<T> range)
 {
@@ -484,69 +421,6 @@ template<class TPointed>
 TMutableRange(google::protobuf::RepeatedPtrField<TPointed>& elements) -> TMutableRange<TPointed*>;
 
 ////////////////////////////////////////////////////////////////////////////////
-
-//! Constructs a TMutableRange from a pointer and length.
-template <class T>
-TMutableRange<T> MakeMutableRange(T* data, size_t length)
-{
-    return TMutableRange<T>(data, length);
-}
-
-//! Constructs a TMutableRange from a native range.
-template <class T>
-TMutableRange<T> MakeMutableRange(T* begin, T* end)
-{
-    return TMutableRange<T>(begin, end);
-}
-
-//! Constructs a TMutableRange from a TCompactVector.
-template <class T, size_t N>
-TMutableRange<T> MakeMutableRange(TCompactVector<T, N>& elements)
-{
-    return elements;
-}
-
-//! "Copy-constructor".
-template <class T>
-TMutableRange<T> MakeMutableRange(TMutableRange<T> range)
-{
-    return range;
-}
-
-//! Constructs a TMutableRange from an std::vector.
-template <class T>
-TMutableRange<T> MakeMutableRange(std::vector<T>& elements)
-{
-    return elements;
-}
-
-//! Constructs a TMutableRange from an std::array.
-template <class T, size_t N>
-TMutableRange<T> MakeMutableRange(std::array<T, N>& elements)
-{
-    return elements;
-}
-
-//! Constructs a TMutableRange from a C array.
-template <class T, size_t N>
-TMutableRange<T> MakeMutableRange(T (& elements)[N])
-{
-    return TMutableRange<T>(elements);
-}
-
-//! Constructs a TMutableRange from RepeatedField.
-template <class T>
-TMutableRange<T> MakeMutableRange(google::protobuf::RepeatedField<T>& elements)
-{
-    return TMutableRange<T>(elements.data(), elements.size());
-}
-
-//! Constructs a TMutableRange from RepeatedPtrField.
-template <class T>
-TMutableRange<T*> MakeMutableRange(google::protobuf::RepeatedPtrField<T>& elements)
-{
-    return TMutableRange<const T*>(elements.data(), elements.size());
-}
 
 template <class U, class T>
 TMutableRange<U> ReinterpretCastMutableRange(TMutableRange<T> range)
