@@ -1,6 +1,6 @@
 /* Variable array bitsets.
 
-   Copyright (C) 2002-2006, 2009-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002-2006, 2009-2015, 2018-2020 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -23,6 +23,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#include "xalloc.h"
 
 /* This file implements variable size bitsets stored as a variable
    length array of words.  Any unused bits in the last word must be
@@ -74,13 +76,12 @@ vbitset_resize (bitset src, bitset_bindex n_bits)
 
           bitset_windex size = oldsize == 0 ? newsize : newsize + newsize / 4;
           VBITSET_WORDS (src)
-            = realloc (VBITSET_WORDS (src), size * sizeof (bitset_word));
+            = xrealloc (VBITSET_WORDS (src), size * sizeof (bitset_word));
           VBITSET_ASIZE (src) = size;
         }
 
       memset (VBITSET_WORDS (src) + oldsize, 0,
               (newsize - oldsize) * sizeof (bitset_word));
-      VBITSET_SIZE (src) = newsize;
     }
   else
     {
@@ -88,16 +89,19 @@ vbitset_resize (bitset src, bitset_bindex n_bits)
          the memory unless it is shrinking by a reasonable amount.  */
       if ((oldsize - newsize) >= oldsize / 2)
         {
-          VBITSET_WORDS (src)
+          void *p
             = realloc (VBITSET_WORDS (src), newsize * sizeof (bitset_word));
-          VBITSET_ASIZE (src) = newsize;
+          if (p)
+            {
+              VBITSET_WORDS (src) = p;
+              VBITSET_ASIZE (src) = newsize;
+            }
         }
 
       /* Need to prune any excess bits.  FIXME.  */
-
-      VBITSET_SIZE (src) = newsize;
     }
 
+  VBITSET_SIZE (src) = newsize;
   BITSET_NBITS_ (src) = n_bits;
   return n_bits;
 }
@@ -467,7 +471,6 @@ vbitset_and (bitset dst, bitset src1, bitset src2)
 static bool
 vbitset_and_cmp (bitset dst, bitset src1, bitset src2)
 {
-  bool changed = false;
   vbitset_resize (dst, max (BITSET_SIZE_ (src1), BITSET_SIZE_ (src2)));
 
   bitset_windex dsize = VBITSET_SIZE (dst);
@@ -477,6 +480,7 @@ vbitset_and_cmp (bitset dst, bitset src1, bitset src2)
   bitset_word *src1p = VBITSET_WORDS (src1);
   bitset_word *src2p = VBITSET_WORDS (src2);
 
+  bool changed = false;
   unsigned i;
   for (i = 0; i < min (ssize1, ssize2); i++, dstp++)
     {
@@ -546,7 +550,6 @@ vbitset_andn (bitset dst, bitset src1, bitset src2)
 static bool
 vbitset_andn_cmp (bitset dst, bitset src1, bitset src2)
 {
-  bool changed = false;
   vbitset_resize (dst, max (BITSET_SIZE_ (src1), BITSET_SIZE_ (src2)));
 
   bitset_windex dsize = VBITSET_SIZE (dst);
@@ -556,6 +559,7 @@ vbitset_andn_cmp (bitset dst, bitset src1, bitset src2)
   bitset_word *src1p = VBITSET_WORDS (src1);
   bitset_word *src2p = VBITSET_WORDS (src2);
 
+  bool changed = false;
   unsigned i;
   for (i = 0; i < min (ssize1, ssize2); i++, dstp++)
     {
@@ -633,8 +637,6 @@ vbitset_or (bitset dst, bitset src1, bitset src2)
 static bool
 vbitset_or_cmp (bitset dst, bitset src1, bitset src2)
 {
-  bool changed = false;
-
   vbitset_resize (dst, max (BITSET_SIZE_ (src1), BITSET_SIZE_ (src2)));
 
   bitset_windex dsize = VBITSET_SIZE (dst);
@@ -644,6 +646,7 @@ vbitset_or_cmp (bitset dst, bitset src1, bitset src2)
   bitset_word *src1p = VBITSET_WORDS (src1);
   bitset_word *src2p = VBITSET_WORDS (src2);
 
+  bool changed = false;
   unsigned i;
   for (i = 0; i < min (ssize1, ssize2); i++, dstp++)
     {
@@ -711,7 +714,6 @@ vbitset_xor (bitset dst, bitset src1, bitset src2)
 static bool
 vbitset_xor_cmp (bitset dst, bitset src1, bitset src2)
 {
-  bool changed = false;
   vbitset_resize (dst, max (BITSET_SIZE_ (src1), BITSET_SIZE_ (src2)));
 
   bitset_windex dsize = VBITSET_SIZE (dst);
@@ -721,6 +723,7 @@ vbitset_xor_cmp (bitset dst, bitset src1, bitset src2)
   bitset_word *src1p = VBITSET_WORDS (src1);
   bitset_word *src2p = VBITSET_WORDS (src2);
 
+  bool changed = false;
   unsigned i;
   for (i = 0; i < min (ssize1, ssize2); i++, dstp++)
     {
@@ -903,8 +906,8 @@ vbitset_or_and_cmp (bitset dst, bitset src1, bitset src2, bitset src3)
   bitset_word *dstp = VBITSET_WORDS (dst);
   bitset_windex size = VBITSET_SIZE (dst);
 
-  unsigned i;
   bool changed = false;
+  unsigned i;
   for (i = 0; i < size; i++, dstp++)
     {
       bitset_word tmp = (*src1p++ | *src2p++) & *src3p++;
@@ -926,6 +929,13 @@ vbitset_copy (bitset dst, bitset src)
     vbitset_copy1 (dst, src);
   else
     bitset_copy_ (dst, src);
+}
+
+
+static void
+vbitset_free (bitset bset)
+{
+  free (VBITSET_WORDS (bset));
 }
 
 
@@ -962,7 +972,7 @@ struct bitset_vtable vbitset_vtable = {
   vbitset_or_and_cmp,
   vbitset_list,
   vbitset_list_reverse,
-  NULL,
+  vbitset_free,
   BITSET_VECTOR
 };
 

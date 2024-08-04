@@ -1,6 +1,6 @@
 /* IELR's inadequacy annotation list.
 
-   Copyright (C) 2009-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -25,7 +25,7 @@
 # include "InadequacyList.h"
 # include "state.h"
 
-typedef unsigned AnnotationIndex;
+typedef int AnnotationIndex;
 
 /**
  * A node in a list of annotations on a particular LR(0) state.  Each

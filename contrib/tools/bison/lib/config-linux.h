@@ -31,9 +31,6 @@
 /* Define to 1 if using `alloca.c'. */
 /* #undef C_ALLOCA */
 
-/* Define to 1 if the C locale may have encoding errors. */
-#define C_LOCALE_MAYBE_EILSEQ 1
-
 /* Define as the bit index in the word where to find bit 0 of the exponent of
    'double'. */
 #define DBL_EXPBIT0_BIT 20
@@ -113,7 +110,7 @@
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module lock shall be considered present. */
-/* #undef GNULIB_LOCK */
+#define GNULIB_LOCK 1
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module malloc-gnu shall be considered present. */
@@ -187,8 +184,14 @@
 /* Define to 1 when the gnulib module fstat should be tested. */
 /* #undef GNULIB_TEST_FSTAT */
 
+/* Define to 1 when the gnulib module fsync should be tested. */
+#define GNULIB_TEST_FSYNC 1
+
 /* Define to 1 when the gnulib module getdtablesize should be tested. */
 #define GNULIB_TEST_GETDTABLESIZE 1
+
+/* Define to 1 when the gnulib module getopt-posix should be tested. */
+#define GNULIB_TEST_GETOPT_POSIX 1
 
 /* Define to 1 when the gnulib module getrusage should be tested. */
 #define GNULIB_TEST_GETRUSAGE 1
@@ -207,6 +210,15 @@
 
 /* Define to 1 when the gnulib module isnanl should be tested. */
 #define GNULIB_TEST_ISNANL 1
+
+/* Define to 1 when the gnulib module iswblank should be tested. */
+#define GNULIB_TEST_ISWBLANK 1
+
+/* Define to 1 when the gnulib module iswdigit should be tested. */
+#define GNULIB_TEST_ISWDIGIT 1
+
+/* Define to 1 when the gnulib module iswxdigit should be tested. */
+#define GNULIB_TEST_ISWXDIGIT 1
 
 /* Define to 1 when the gnulib module ldexpl should be tested. */
 #define GNULIB_TEST_LDEXPL 1
@@ -301,6 +313,9 @@
 /* Define to 1 when the gnulib module rmdir should be tested. */
 /* #undef GNULIB_TEST_RMDIR */
 
+/* Define to 1 when the gnulib module setlocale_null should be tested. */
+#define GNULIB_TEST_SETLOCALE_NULL 1
+
 /* Define to 1 when the gnulib module sigaction should be tested. */
 #define GNULIB_TEST_SIGACTION 1
 
@@ -349,6 +364,9 @@
 /* Define to 1 when the gnulib module unsetenv should be tested. */
 #define GNULIB_TEST_UNSETENV 1
 
+/* Define to 1 when the gnulib module vasprintf should be tested. */
+#define GNULIB_TEST_VASPRINTF 1
+
 /* Define to 1 when the gnulib module vfprintf-posix should be tested. */
 #define GNULIB_TEST_VFPRINTF_POSIX 1
 
@@ -363,6 +381,9 @@
 
 /* Define to 1 when the gnulib module wcwidth should be tested. */
 #define GNULIB_TEST_WCWIDTH 1
+
+/* Define if your system defines TIOCGWINSZ in sys/ioctl.h. */
+#define GWINSZ_IN_SYS_IOCTL 1
 
 /* Define to 1 if you have 'alloca' after including <alloca.h>, a header that
    may be supplied by this distribution. */
@@ -391,10 +412,6 @@
    CoreFoundation framework. */
 /* #undef HAVE_CFLOCALECOPYCURRENT */
 
-/* Define to 1 if you have the Mac OS X function
-   CFLocaleCopyPreferredLanguages in the CoreFoundation framework. */
-/* #undef HAVE_CFLOCALECOPYPREFERREDLANGUAGES */
-
 /* Define to 1 if you have the Mac OS X function CFPreferencesCopyAppValue in
    the CoreFoundation framework. */
 /* #undef HAVE_CFPREFERENCESCOPYAPPVALUE */
@@ -419,6 +436,9 @@
 /* Define if the copysign function is declared in <math.h> and available in
    libc. */
 /* #undef HAVE_COPYSIGN_IN_LIBC */
+
+/* Define to 1 if you have the `copy_file_range' function. */
+/* #undef HAVE_COPY_FILE_RANGE */
 
 /* Define to 1 if you have the <crtdefs.h> header file. */
 /* #undef HAVE_CRTDEFS_H */
@@ -494,6 +514,10 @@
 /* Define to 1 if you have the declaration of `gethrtime', and to 0 if you
    don't. */
 #define HAVE_DECL_GETHRTIME 0
+
+/* Define to 1 if you have the declaration of `iswblank', and to 0 if you
+   don't. */
+#define HAVE_DECL_ISWBLANK 1
 
 /* Define to 1 if you have the declaration of `mbrtowc', and to 0 if you
    don't. */
@@ -597,6 +621,9 @@
 /* Define if the frexp function is available in libc. */
 #define HAVE_FREXP_IN_LIBC 1
 
+/* Define to 1 if you have the `fsync' function. */
+#define HAVE_FSYNC 1
+
 /* Define to 1 if you have the `getcwd' function. */
 #define HAVE_GETCWD 1
 
@@ -649,6 +676,9 @@
 /* Define if the isnan(long double) function is available in libc. */
 #define HAVE_ISNANL_IN_LIBC 1
 
+/* Define to 1 if you have the `iswblank' function. */
+#define HAVE_ISWBLANK 1
+
 /* Define to 1 if you have the `iswcntrl' function. */
 #define HAVE_ISWCNTRL 1
 
@@ -663,6 +693,9 @@
 
 /* Define if the ldexp function is available in libc. */
 #define HAVE_LDEXP_IN_LIBC 1
+
+/* Define if you have the libtextstyle library. */
+/* #undef HAVE_LIBTEXTSTYLE */
 
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
@@ -754,11 +787,14 @@
 /* Define to 1 if the system has the type `posix_spawn_file_actions_t'. */
 #define HAVE_POSIX_SPAWN_FILE_ACTIONS_T 1
 
+/* Define if you have the <pthread.h> header and the POSIX threads API. */
+#define HAVE_PTHREAD_API 1
+
 /* Define if the <pthread.h> defines PTHREAD_MUTEX_RECURSIVE. */
-/* #undef HAVE_PTHREAD_MUTEX_RECURSIVE */
+#define HAVE_PTHREAD_MUTEX_RECURSIVE 1
 
 /* Define if the POSIX multithreading library has read/write locks. */
-/* #undef HAVE_PTHREAD_RWLOCK */
+#define HAVE_PTHREAD_RWLOCK 1
 
 /* Define if the 'pthread_rwlock_rdlock' function prefers a writer to a
    reader. */
@@ -786,7 +822,7 @@
 /* #undef HAVE_SAME_LONG_DOUBLE_AS_DOUBLE */
 
 /* Define to 1 if you have the <sched.h> header file. */
-/* #undef HAVE_SCHED_H */
+#define HAVE_SCHED_H 1
 
 /* Define to 1 if you have the `sched_setparam' function. */
 /* #undef HAVE_SCHED_SETPARAM */
@@ -956,6 +992,15 @@
 /* Define to 1 if you have the <sys/wait.h> header file. */
 #define HAVE_SYS_WAIT_H 1
 
+/* Define to 1 if you have the `tcdrain' function. */
+#define HAVE_TCDRAIN 1
+
+/* Define to 1 if you have the `thrd_create' function. */
+/* #undef HAVE_THRD_CREATE */
+
+/* Define to 1 if you have the <threads.h> header file. */
+#define HAVE_THREADS_H 1
+
 /* Define to 1 if you have the `towlower' function. */
 #define HAVE_TOWLOWER 1
 
@@ -977,8 +1022,15 @@
 /* Define to 1 if you have the `vasnprintf' function. */
 /* #undef HAVE_VASNPRINTF */
 
+/* Define to 1 if you have the `vasprintf' function. */
+#define HAVE_VASPRINTF 1
+
 /* Define to 1 if you have the `vfork' function. */
 /* #undef HAVE_VFORK */
+
+/* Define to 1 or 0, depending whether the compiler supports simple visibility
+   declarations. */
+/* #undef HAVE_VISIBILITY */
 
 /* Define to 1 if you have the `vsnprintf' function. */
 #define HAVE_VSNPRINTF 1
@@ -1007,6 +1059,10 @@
 /* Define to 1 if you have the `wcwidth' function. */
 #define HAVE_WCWIDTH 1
 
+/* Define to 1 if the compiler and linker support weak declarations of
+   symbols. */
+#define HAVE_WEAK_SYMBOLS 1
+
 /* Define to 1 if you have the <winsock2.h> header file. */
 /* #undef HAVE_WINSOCK2_H */
 
@@ -1018,6 +1074,9 @@
 
 /* Define to 1 if O_NOFOLLOW works. */
 #define HAVE_WORKING_O_NOFOLLOW 1
+
+/* Define to 1 if you have the <xlocale.h> header file. */
+/* #undef HAVE_XLOCALE_H */
 
 /* Define to 1 if the system has the type `_Bool'. */
 #define HAVE__BOOL 1
@@ -1031,11 +1090,14 @@
 /* Define to 1 if you have the `__fseterr' function. */
 /* #undef HAVE___FSETERR */
 
+/* Define to 1 if the compiler supports the keyword '__inline'. */
+/* #undef HAVE___INLINE */
+
 /* Define to 1 if you have the `__xpg_strerror_r' function. */
 #define HAVE___XPG_STRERROR_R 1
 
 /* Define to the value of ${prefix}, as a string. */
-#define INSTALLPREFIX "/var/empty/bison-3.3.2"
+#define INSTALLPREFIX "/var/empty/bison-3.5.4"
 
 /* Define as the bit index in the word where to find bit 0 of the exponent of
    'long double'. */
@@ -1071,6 +1133,10 @@
    */
 /* #undef MBRTOWC_EMPTY_INPUT_BUG */
 
+/* Define if the mbrtowc function may signal encoding errors in the C locale.
+   */
+#define MBRTOWC_IN_C_LOCALE_MAYBE_EILSEQ 1
+
 /* Define if the mbrtowc function has the NULL pwc argument bug. */
 /* #undef MBRTOWC_NULL_ARG1_BUG */
 
@@ -1082,6 +1148,10 @@
 
 /* Define if the mbrtowc function returns a wrong return value. */
 /* #undef MBRTOWC_RETVAL_BUG */
+
+/* Define if the mbrtowc function stores a wide character when reporting
+   incomplete input. */
+/* #undef MBRTOWC_STORES_INCOMPLETE_BUG */
 
 /* Use GNU style printf and scanf.  */
 #ifndef __USE_MINGW_ANSI_STDIO
@@ -1150,22 +1220,22 @@
 #define PACKAGE_BUGREPORT "bug-bison@gnu.org"
 
 /* The copyright year for this package */
-#define PACKAGE_COPYRIGHT_YEAR 2019
+#define PACKAGE_COPYRIGHT_YEAR 2020
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "GNU Bison"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU Bison 3.3.2"
+#define PACKAGE_STRING "GNU Bison 3.5.4"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "bison"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL "http://www.gnu.org/software/bison/"
+#define PACKAGE_URL "https://www.gnu.org/software/bison/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.3.2"
+#define PACKAGE_VERSION "3.5.4"
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 /* #undef PRI_MACROS_BROKEN */
@@ -1225,10 +1295,18 @@
    implementation. */
 #define REPLACE_VFPRINTF_POSIX 1
 
+/* Define to 1 if setlocale (LC_ALL, NULL) is multithread-safe. */
+#define SETLOCALE_NULL_ALL_MTSAFE 1
+
+/* Define to 1 if setlocale (category, NULL) is multithread-safe. */
+#define SETLOCALE_NULL_ONE_MTSAFE 1
+
 /* File name of the Bourne shell.  */
-#if defined __CYGWIN__
-/* Omit the directory part because for 32-bit Cygwin programs in a
-   64-bit Cygwin environment, the Cygwin mounts are not visible.  */
+#if defined __CYGWIN__ || defined __ANDROID__
+/* Omit the directory part because
+   - For 32-bit Cygwin programs in a 64-bit Cygwin environment, the Cygwin
+     mounts are not visible.
+   - On Android, /bin/sh does not exist. It's /system/bin/sh instead.  */
 # define BOURNE_SHELL "sh"
 #else
 # define BOURNE_SHELL "/bin/sh"
@@ -1276,26 +1354,19 @@
    an underscore or empty. */
 #define USER_LABEL_PREFIX 
 
+/* Define if the combination of the ISO C and POSIX multithreading APIs can be
+   used. */
+/* #undef USE_ISOC_AND_POSIX_THREADS */
+
+/* Define if the ISO C multithreading library can be used. */
+/* #undef USE_ISOC_THREADS */
+
 /* Define if the POSIX multithreading library can be used. */
 #define USE_POSIX_THREADS 1
 
 /* Define if references to the POSIX multithreading library should be made
    weak. */
 #define USE_POSIX_THREADS_WEAK 1
-
-/* Define if the GNU Pth multithreading library can be used. */
-/* #undef USE_PTH_THREADS */
-
-/* Define if references to the GNU Pth multithreading library should be made
-   weak. */
-/* #undef USE_PTH_THREADS_WEAK */
-
-/* Define if the old Solaris multithreading library can be used. */
-/* #undef USE_SOLARIS_THREADS */
-
-/* Define if references to the old Solaris multithreading library should be
-   made weak. */
-/* #undef USE_SOLARIS_THREADS_WEAK */
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
@@ -1379,7 +1450,7 @@
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "3.3.2"
+#define VERSION "3.5.4"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 /* #undef VOID_UNSETENV */
@@ -1388,12 +1459,12 @@
    'wchar_t'. */
 /* #undef WCHAR_T_SUFFIX */
 
+/* Define if sys/ptem.h is required for struct winsize. */
+/* #undef WINSIZE_IN_PTEM */
+
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'wint_t'. */
 /* #undef WINT_T_SUFFIX */
-
-/* Define if using the dmalloc debugging malloc package */
-/* #undef WITH_DMALLOC */
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -1414,14 +1485,14 @@
    `char[]'. */
 /* #undef YYTEXT_POINTER */
 
-/* Enable large inode numbers on Mac OS X 10.5. */
-#define _DARWIN_USE_64_BIT_INODE 1
-
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */
 
 /* Define for large files, on AIX-style hosts. */
 /* #undef _LARGE_FILES */
+
+/* Define to 1 on Solaris. */
+/* #undef _LCONV_C99 */
 
 /* Define to 1 if on MINIX. */
 /* #undef _MINIX */
@@ -1431,10 +1502,23 @@
 
 /* The _Noreturn keyword of C11.  */
 #ifndef _Noreturn
-# if 201103 <= (defined __cplusplus ? __cplusplus : 0)
+# if (defined __cplusplus \
+      && ((201103 <= __cplusplus && !(__GNUC__ == 4 && __GNUC_MINOR__ == 7)) \
+          || (defined _MSC_VER && 1900 <= _MSC_VER)) \
+      && 0)
+    /* [[noreturn]] is not practically usable, because with it the syntax
+         extern _Noreturn void func (...);
+       would not be valid; such a declaration would only be valid with 'extern'
+       and '_Noreturn' swapped, or without the 'extern' keyword.  However, some
+       AIX system header files and several gnulib header files use precisely
+       this syntax with 'extern'.  */
 #  define _Noreturn [[noreturn]]
-# elif (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) \
-        || 4 < __GNUC__ + (7 <= __GNUC_MINOR__))
+# elif ((!defined __cplusplus || defined __clang__) \
+        && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)  \
+            || 4 < __GNUC__ + (7 <= __GNUC_MINOR__) \
+            || (defined __apple_build_version__ \
+                ? 6000000 <= __apple_build_version__ \
+                : 3 < __clang_major__ + (5 <= __clang_minor__))))
    /* _Noreturn works as-is.  */
 # elif 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || 0x5110 <= __SUNPRO_C
 #  define _Noreturn __attribute__ ((__noreturn__))
@@ -1466,6 +1550,33 @@
 /* Define to 1 if the system <stdint.h> predates C++11. */
 /* #undef __STDC_LIMIT_MACROS */
 
+/* The _GL_ASYNC_SAFE marker should be attached to functions that are
+   signal handlers (for signals other than SIGABRT, SIGPIPE) or can be
+   invoked from such signal handlers.  Such functions have some restrictions:
+     * All functions that it calls should be marked _GL_ASYNC_SAFE as well,
+       or should be listed as async-signal-safe in POSIX
+       <https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_04>
+       section 2.4.3.  Note that malloc(), sprintf(), and fwrite(), in
+       particular, are NOT async-signal-safe.
+     * All memory locations (variables and struct fields) that these functions
+       access must be marked 'volatile'.  This holds for both read and write
+       accesses.  Otherwise the compiler might optimize away stores to and
+       reads from such locations that occur in the program, depending on its
+       data flow analysis.  For example, when the program contains a loop
+       that is intended to inspect a variable set from within a signal handler
+           while (!signal_occurred)
+             ;
+       the compiler is allowed to transform this into an endless loop if the
+       variable 'signal_occurred' is not declared 'volatile'.
+   Additionally, recall that:
+     * A signal handler should not modify errno (except if it is a handler
+       for a fatal signal and ends by raising the same signal again, thus
+       provoking the termination of the process).  If it invokes a function
+       that may clobber errno, it needs to save and restore the value of
+       errno.  */
+#define _GL_ASYNC_SAFE
+
+
 /* Please see the Gnulib manual for how to use these macros.
 
    Suppress extern inline with HP-UX cc, as it appears to be broken; see
@@ -1490,7 +1601,7 @@
      https://lists.gnu.org/r/bug-gnulib/2012-12/msg00023.html
 
      DragonFly; see
-     http://muscles.dragonflybsd.org/bulk/bleeding-edge-potential/latest-per-pkg/ah-tty-0.3.12.log
+     http://muscles.dragonflybsd.org/bulk/clang-master-potential/20141111_102002/logs/ah-tty-0.3.12.log
 
      FreeBSD; see:
      https://lists.gnu.org/r/bug-gnulib/2014-07/msg00104.html
@@ -1612,12 +1723,13 @@
    nothing if this is not supported.  Do not define if restrict is
    supported directly.  */
 #define restrict __restrict
-/* Work around a bug in Sun C++: it does not support _Restrict or
-   __restrict__, even though the corresponding Sun C compiler ends up with
-   "#define restrict _Restrict" or "#define restrict __restrict__" in the
-   previous line.  Perhaps some future version of Sun C++ will work with
-   restrict; if so, hopefully it defines __RESTRICT like Sun C does.  */
-#if defined __SUNPRO_CC && !defined __RESTRICT
+/* Work around a bug in older versions of Sun C++, which did not
+   #define __restrict__ or support _Restrict or __restrict__
+   even though the corresponding Sun C compiler ended up with
+   "#define restrict _Restrict" or "#define restrict __restrict__"
+   in the previous line.  This workaround can be removed once
+   we assume Oracle Developer Studio 12.5 (2016) or later.  */
+#if defined __SUNPRO_CC && !defined __RESTRICT && !defined __restrict__
 # define _Restrict
 # define __restrict__
 #endif
@@ -1678,4 +1790,5 @@
 # define _GL_ATTRIBUTE_MALLOC /* empty */
 #endif
 
+#undef HAVE_THREADS_H
 #define _GL_ATTRIBUTE_FORMAT_PRINTF(...)

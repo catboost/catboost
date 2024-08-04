@@ -1,6 +1,6 @@
 /* Type definitions for the finite state machine for Bison.
 
-   Copyright (C) 2001-2007, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2001-2007, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -19,13 +19,16 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include "state.h"
+
 #include "system.h"
 
 #include <hash.h>
 
+#include "closure.h"
 #include "complain.h"
+#include "getargs.h"
 #include "gram.h"
-#include "state.h"
 #include "print-xml.h"
 
 
@@ -39,31 +42,24 @@
 `-----------------------------------------*/
 
 static transitions *
-transitions_new (int num, state **the_states)
+transitions_new (int num, state **dst)
 {
-  size_t states_size = num * sizeof *the_states;
+  size_t states_size = num * sizeof *dst;
   transitions *res = xmalloc (offsetof (transitions, states) + states_size);
   res->num = num;
-  memcpy (res->states, the_states, states_size);
+  memcpy (res->states, dst, states_size);
   return res;
 }
 
 
-/*-------------------------------------------------------.
-| Return the state such that SHIFTS contain a shift/goto |
-| to it on SYM.  Abort if none found.                    |
-`-------------------------------------------------------*/
-
 state *
-transitions_to (transitions *shifts, symbol_number sym)
+transitions_to (state *s, symbol_number sym)
 {
-  int j;
-  for (j = 0; ; j++)
-    {
-      aver (j < shifts->num);
-      if (TRANSITION_SYMBOL (shifts, j) == sym)
-        return shifts->states[j];
-    }
+  transitions *trans = s->transitions;
+  for (int i = 0; i < trans->num; ++i)
+    if (TRANSITION_SYMBOL (trans, i) == sym)
+      return trans->states[i];
+  abort ();
 }
 
 
@@ -82,7 +78,8 @@ errs_new (int num, symbol **tokens)
   size_t symbols_size = num * sizeof *tokens;
   errs *res = xmalloc (offsetof (errs, symbols) + symbols_size);
   res->num = num;
-  memcpy (res->symbols, tokens, symbols_size);
+  if (tokens)
+    memcpy (res->symbols, tokens, symbols_size);
   return res;
 }
 
@@ -131,12 +128,10 @@ state *
 state_new (symbol_number accessing_symbol,
            size_t nitems, item_number *core)
 {
-  state *res;
-  size_t items_size = nitems * sizeof *core;
-
   aver (nstates < STATE_NUMBER_MAXIMUM);
 
-  res = xmalloc (offsetof (state, items) + items_size);
+  size_t items_size = nitems * sizeof *core;
+  state *res = xmalloc (offsetof (state, items) + items_size);
   res->number = nstates++;
   res->accessing_symbol = accessing_symbol;
   res->transitions = NULL;
@@ -158,12 +153,10 @@ state_new (symbol_number accessing_symbol,
 state *
 state_new_isocore (state const *s)
 {
-  state *res;
-  size_t items_size = s->nitems * sizeof *s->items;
-
   aver (nstates < STATE_NUMBER_MAXIMUM);
 
-  res = xmalloc (offsetof (state, items) + items_size);
+  size_t items_size = s->nitems * sizeof *s->items;
+  state *res = xmalloc (offsetof (state, items) + items_size);
   res->number = nstates++;
   res->accessing_symbol = s->accessing_symbol;
   res->transitions =
@@ -196,15 +189,32 @@ state_free (state *s)
 }
 
 
+void
+state_transitions_print (const state *s, FILE *out)
+{
+  const transitions *trans = s->transitions;
+  fprintf (out, "transitions of %d (%d):\n",
+           s->number, trans->num);
+  for (int i = 0; i < trans->num; ++i)
+    fprintf (out, "  %d: (%d, %s, %d)\n",
+             i,
+             s->number,
+             symbols[s->transitions->states[i]->accessing_symbol]->tag,
+             s->transitions->states[i]->number);
+}
+
+
 /*---------------------------.
 | Set the transitions of S.  |
 `---------------------------*/
 
 void
-state_transitions_set (state *s, int num, state **trans)
+state_transitions_set (state *s, int num, state **dst)
 {
   aver (!s->transitions);
-  s->transitions = transitions_new (num, trans);
+  s->transitions = transitions_new (num, dst);
+  if (trace_flag & trace_automaton)
+    state_transitions_print (s, stderr);
 }
 
 
@@ -221,14 +231,13 @@ state_reductions_set (state *s, int num, rule **reds)
 
 
 int
-state_reduction_find (state *s, rule *r)
+state_reduction_find (state *s, rule const *r)
 {
-  int i;
   reductions *reds = s->reductions;
-  for (i = 0; i < reds->num; ++i)
+  for (int i = 0; i < reds->num; ++i)
     if (reds->rules[i] == r)
       return i;
-  return -1;
+  abort ();
 }
 
 
@@ -251,7 +260,7 @@ state_errs_set (state *s, int num, symbol **tokens)
 `--------------------------------------------------*/
 
 void
-state_rule_lookahead_tokens_print (state *s, rule *r, FILE *out)
+state_rule_lookahead_tokens_print (state *s, rule const *r, FILE *out)
 {
   /* Find the reduction we are handling.  */
   reductions *reds = s->reductions;
@@ -274,7 +283,7 @@ state_rule_lookahead_tokens_print (state *s, rule *r, FILE *out)
 }
 
 void
-state_rule_lookahead_tokens_print_xml (state *s, rule *r,
+state_rule_lookahead_tokens_print_xml (state *s, rule const *r,
                                        FILE *out, int level)
 {
   /* Find the reduction we are handling.  */
@@ -310,12 +319,10 @@ static struct hash_table *state_table = NULL;
 static inline bool
 state_compare (state const *s1, state const *s2)
 {
-  size_t i;
-
   if (s1->nitems != s2->nitems)
     return false;
 
-  for (i = 0; i < s1->nitems; ++i)
+  for (size_t i = 0; i < s1->nitems; ++i)
     if (s1->items[i] != s2->items[i])
       return false;
 
@@ -333,8 +340,7 @@ state_hash (state const *s, size_t tablesize)
 {
   /* Add up the state's item numbers to get a hash key.  */
   size_t key = 0;
-  size_t i;
-  for (i = 0; i < s->nitems; ++i)
+  for (size_t i = 0; i < s->nitems; ++i)
     key += s->items[i];
   return key % tablesize;
 }
@@ -353,11 +359,11 @@ state_hasher (void const *s, size_t tablesize)
 void
 state_hash_new (void)
 {
-  state_table = hash_initialize (HT_INITIAL_CAPACITY,
-                                 NULL,
-                                 state_hasher,
-                                 state_comparator,
-                                 NULL);
+  state_table = hash_xinitialize (HT_INITIAL_CAPACITY,
+                                  NULL,
+                                  state_hasher,
+                                  state_comparator,
+                                  NULL);
 }
 
 
@@ -394,11 +400,9 @@ state_hash_lookup (size_t nitems, item_number *core)
 {
   size_t items_size = nitems * sizeof *core;
   state *probe = xmalloc (offsetof (state, items) + items_size);
-  state *entry;
-
   probe->nitems = nitems;
   memcpy (probe->items, core, items_size);
-  entry = hash_lookup (state_table, probe);
+  state *entry = hash_lookup (state_table, probe);
   free (probe);
   return entry;
 }
@@ -414,12 +418,9 @@ state_record_reachable_states (state *s, bitset reachable)
   if (bitset_test (reachable, s->number))
     return;
   bitset_set (reachable, s->number);
-  {
-    int i;
-    for (i = 0; i < s->transitions->num; ++i)
-      if (!TRANSITION_IS_DISABLED (s->transitions, i))
-        state_record_reachable_states (s->transitions->states[i], reachable);
-  }
+  for (int i = 0; i < s->transitions->num; ++i)
+    if (!TRANSITION_IS_DISABLED (s->transitions, i))
+      state_record_reachable_states (s->transitions->states[i], reachable);
 }
 
 void
@@ -428,23 +429,20 @@ state_remove_unreachable_states (state_number old_to_new[])
   state_number nstates_reachable = 0;
   bitset reachable = bitset_create (nstates, BITSET_FIXED);
   state_record_reachable_states (states[0], reachable);
-  {
-    state_number i;
-    for (i = 0; i < nstates; ++i)
-      {
-        if (bitset_test (reachable, states[i]->number))
-          {
-            states[nstates_reachable] = states[i];
-            states[nstates_reachable]->number = nstates_reachable;
-            old_to_new[i] = nstates_reachable++;
-          }
-        else
-          {
-            state_free (states[i]);
-            old_to_new[i] = nstates;
-          }
-      }
-  }
+  for (state_number i = 0; i < nstates; ++i)
+    {
+      if (bitset_test (reachable, states[i]->number))
+        {
+          states[nstates_reachable] = states[i];
+          states[nstates_reachable]->number = nstates_reachable;
+          old_to_new[i] = nstates_reachable++;
+        }
+      else
+        {
+          state_free (states[i]);
+          old_to_new[i] = nstates;
+        }
+    }
   nstates = nstates_reachable;
   bitset_free (reachable);
 }
@@ -460,8 +458,8 @@ state **states = NULL;
 void
 states_free (void)
 {
-  state_number i;
-  for (i = 0; i < nstates; ++i)
+  closure_free ();
+  for (state_number i = 0; i < nstates; ++i)
     state_free (states[i]);
   free (states);
 }

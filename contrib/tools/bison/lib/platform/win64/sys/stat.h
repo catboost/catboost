@@ -653,8 +653,8 @@ _GL_WARN_ON_USE (fchmodat, "fchmodat is not portable - "
 #endif
 
 
-#if 1
-# if 1
+#if 0 
+# if 0
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef fstat
 #   define fstat rpl_fstat
@@ -665,7 +665,7 @@ _GL_CXXALIAS_RPL (fstat, int, (int fd, struct stat *buf));
 _GL_CXXALIAS_SYS (fstat, int, (int fd, struct stat *buf));
 # endif
 _GL_CXXALIASWARN (fstat);
-#elif 1
+#elif 0
 /* Above, we define stat to _stati64.  */
 # define fstat _fstati64
 #elif defined GNULIB_POSIXCHECK

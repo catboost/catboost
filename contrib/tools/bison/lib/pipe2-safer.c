@@ -1,5 +1,5 @@
 /* Invoke pipe2, but avoid some glitches.
-   Copyright (C) 2005-2006, 2009-2019 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2009-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

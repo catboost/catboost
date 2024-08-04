@@ -1,6 +1,6 @@
 /* xmemdup0.c -- copy a block of arbitrary bytes, plus a trailing NUL
 
-   Copyright (C) 2008-2019 Free Software Foundation, Inc.
+   Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,7 +38,8 @@ char *
 xmemdup0 (void const *p, size_t s)
 {
   char *result = xcharalloc (s + 1);
-  memcpy (result, p, s);
+  if (s > 0)
+    memcpy (result, p, s);
   result[s] = 0;
   return result;
 }

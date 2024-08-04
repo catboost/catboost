@@ -1,6 +1,6 @@
 /* Base bitset stuff.
 
-   Copyright (C) 2002-2004, 2006, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2002-2004, 2006, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _BITSET_BASE_H
 #define _BITSET_BASE_H
@@ -54,8 +54,6 @@ enum bitset_type {BITSET_ARRAY, BITSET_LIST, BITSET_TABLE, BITSET_VECTOR,
 #define BITSET_TYPE_NAMES {"abitset", "lbitset", "tbitset", "vbitset"}
 
 extern const char * const bitset_type_names[];
-
-enum bitset_alloc_type {BITSET_MALLOC, BITSET_OBALLOC};
 
 /* Data type used to store a word of bits.  */
 typedef unsigned long bitset_word;

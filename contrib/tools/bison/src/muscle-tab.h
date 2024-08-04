@@ -1,6 +1,6 @@
 /* Muscle table manager for Bison,
 
-   Copyright (C) 2001-2003, 2006-2015, 2018-2019 Free Software
+   Copyright (C) 2001-2003, 2006-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -118,6 +118,11 @@ void muscle_pair_list_grow (const char *muscle,
    with digraphs, so it must not contain '[' or ']'.  */
 void muscle_user_name_list_grow (char const *key, char const *user_name,
                                  location loc);
+
+/* In the format '[[file_name:line.column]], [[file_name:line.column]]',
+   append LOC to MUSCLE.  Use digraphs for special characters in each
+   file name.  */
+void muscle_location_grow (char const *key, location loc);
 
 /* Indicates whether a variable's value was specified with -D/--define, with
    -F/--force-define, or in the grammar file.  */

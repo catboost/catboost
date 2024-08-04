@@ -1,6 +1,6 @@
 /* Functions to support link list bitsets.
 
-   Copyright (C) 2002-2004, 2006, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2002-2004, 2006, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -859,7 +859,8 @@ lbitset_unused_clear (bitset dst)
       bitset_word *srcp = elt->words;
       bitset_windex windex = n_bits / BITSET_WORD_BITS;
 
-      srcp[windex - elt->index] &= ((bitset_word) 1 << last_bit) - 1;
+      srcp[windex - elt->index]
+        &= ((bitset_word) 1 << (last_bit % BITSET_WORD_BITS)) - 1;
       windex++;
 
       for (; (windex - elt->index) < LBITSET_ELT_WORDS; windex++)

@@ -1,5 +1,5 @@
 /* Decomposed printf argument list.
-   Copyright (C) 1999, 2002-2003, 2006-2007, 2011-2019 Free Software
+   Copyright (C) 1999, 2002-2003, 2006-2007, 2011-2020 Free Software
    Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -57,10 +57,8 @@ typedef enum
   TYPE_UINT,
   TYPE_LONGINT,
   TYPE_ULONGINT,
-#if HAVE_LONG_LONG_INT
   TYPE_LONGLONGINT,
   TYPE_ULONGLONGINT,
-#endif
   TYPE_DOUBLE,
   TYPE_LONGDOUBLE,
   TYPE_CHAR,
@@ -75,10 +73,8 @@ typedef enum
   TYPE_COUNT_SCHAR_POINTER,
   TYPE_COUNT_SHORT_POINTER,
   TYPE_COUNT_INT_POINTER,
-  TYPE_COUNT_LONGINT_POINTER
-#if HAVE_LONG_LONG_INT
-, TYPE_COUNT_LONGLONGINT_POINTER
-#endif
+  TYPE_COUNT_LONGINT_POINTER,
+  TYPE_COUNT_LONGLONGINT_POINTER
 #if ENABLE_UNISTDIO
   /* The unistdio extensions.  */
 , TYPE_U8_STRING
@@ -101,10 +97,8 @@ typedef struct
     unsigned int                a_uint;
     long int                    a_longint;
     unsigned long int           a_ulongint;
-#if HAVE_LONG_LONG_INT
     long long int               a_longlongint;
     unsigned long long int      a_ulonglongint;
-#endif
     float                       a_float;
     double                      a_double;
     long double                 a_longdouble;
@@ -121,9 +115,7 @@ typedef struct
     short *                     a_count_short_pointer;
     int *                       a_count_int_pointer;
     long int *                  a_count_longint_pointer;
-#if HAVE_LONG_LONG_INT
     long long int *             a_count_longlongint_pointer;
-#endif
 #if ENABLE_UNISTDIO
     /* The unistdio extensions.  */
     const uint8_t *             a_u8_string;

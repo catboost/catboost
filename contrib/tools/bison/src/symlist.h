@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -26,7 +26,9 @@
 # include "symtab.h"
 # include "named-ref.h"
 
-/* A list of symbols, used during the parsing to store the rules.  */
+/* A list of symbols, used during the parsing for many different
+   purposes: rules, symbol declarations or properties (such as
+   %destructor, etc.)...  */
 typedef struct symbol_list
 {
   /**
@@ -48,7 +50,6 @@ typedef struct symbol_list
      */
     semantic_type *sem_type;
   } content;
-  location location;
 
   /* Named reference. */
   named_ref *named_ref;
@@ -67,9 +68,13 @@ typedef struct symbol_list
   struct symbol_list *midrule_parent_rule;
   int midrule_parent_rhs_index;
 
-  /* ---------------------------------------------- */
-  /* Apply to the rule (attached to the LHS only).  */
-  /* ---------------------------------------------- */
+  /*--------------------------------------------------------------.
+  | Used for rules only (attached to the "LHS", one per rule even |
+  | when several RHSs are bound to a single lhs via "|").         |
+  `--------------------------------------------------------------*/
+
+  /* Location of the RHS. */
+  location rhs_loc;
 
   /* Precedence/associativity.  */
   symbol *ruleprec;
@@ -79,13 +84,13 @@ typedef struct symbol_list
   code_props action_props;
 
   /* The location of the first %empty for this rule, or \a
-     empty_location.  */
+     empty_loc.  */
   location percent_empty_loc;
 
   int dprec;
-  location dprec_location;
+  location dprec_loc;
   int merger;
-  location merger_declaration_location;
+  location merger_declaration_loc;
 
   /* Counts of the number of expected conflicts for this rule, or -1 if none
      given. */

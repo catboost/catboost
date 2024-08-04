@@ -1,5 +1,5 @@
 /* Compare strings while treating digits characters numerically.
-   Copyright (C) 1997-2019 Free Software Foundation, Inc.
+   Copyright (C) 1997-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Jean-François Bignolles <bignolle@ecoledoc.ibp.fr>, 1997.
 
@@ -17,10 +17,8 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#if !_LIBC
-# include <config.h>
-#endif
 
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -35,27 +33,25 @@
 #define  CMP    2
 #define  LEN    3
 
-#ifndef weak_alias
-# define __strverscmp strverscmp
-#endif
 
 /* Compare S1 and S2 as strings holding indices/version numbers,
    returning less than, equal to or greater than zero if S1 is less than,
    equal to or greater than S2 (for more info, see the texinfo doc).
 */
 
+#ifndef weak_alias
+#define __strverscmp strverscmp
+#endif
+
 int
 __strverscmp (const char *s1, const char *s2)
 {
   const unsigned char *p1 = (const unsigned char *) s1;
   const unsigned char *p2 = (const unsigned char *) s2;
-  unsigned char c1, c2;
-  int state;
-  int diff;
 
   /* Symbol(s)    0       [1-9]   others
      Transition   (10) 0  (01) d  (00) x   */
-  static const unsigned char next_state[] =
+  static const uint_least8_t next_state[] =
   {
       /* state    x    d    0  */
       /* S_N */  S_N, S_I, S_Z,
@@ -64,7 +60,7 @@ __strverscmp (const char *s1, const char *s2)
       /* S_Z */  S_N, S_F, S_Z
   };
 
-  static const signed char result_type[] =
+  static const int_least8_t result_type[] =
   {
       /* state   x/x  x/d  x/0  d/x  d/d  d/0  0/x  0/d  0/0  */
 
@@ -77,15 +73,16 @@ __strverscmp (const char *s1, const char *s2)
   if (p1 == p2)
     return 0;
 
-  c1 = *p1++;
-  c2 = *p2++;
+  unsigned char c1 = *p1++;
+  unsigned char c2 = *p2++;
   /* Hint: '0' is a digit too.  */
-  state = S_N + ((c1 == '0') + (isdigit (c1) != 0));
+  int state = S_N + ((c1 == '0') + (isdigit (c1) != 0));
 
+  int diff;
   while ((diff = c1 - c2) == 0)
     {
       if (c1 == '\0')
-        return diff;
+	return diff;
 
       state = next_state[state];
       c1 = *p1++;
@@ -96,20 +93,20 @@ __strverscmp (const char *s1, const char *s2)
   state = result_type[state * 3 + (((c2 == '0') + (isdigit (c2) != 0)))];
 
   switch (state)
-    {
+  {
     case CMP:
       return diff;
 
     case LEN:
       while (isdigit (*p1++))
-        if (!isdigit (*p2++))
-          return 1;
+	if (!isdigit (*p2++))
+	  return 1;
 
       return isdigit (*p2) ? -1 : diff;
 
     default:
       return state;
-    }
+  }
 }
 #ifdef weak_alias
 libc_hidden_def (__strverscmp)

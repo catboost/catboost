@@ -1,6 +1,6 @@
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2015, 2018-2019 Free Software Foundation, Inc.
+# Copyright (C) 2002-2015, 2018-2020 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 m4_pushdef([b4_copyright_years],
-           [2002-2015, 2018-2019])
+           [2002-2015, 2018-2020])
 
 
 # b4_position_file
@@ -62,11 +62,14 @@ m4_define([b4_location_define],
 [[  /// A point in a source file.
   class position
   {
-  public:]m4_ifdef([b4_location_constructors], [[
+  public:
+    /// Type for line and column numbers.
+    typedef int counter_type;
+]m4_ifdef([b4_location_constructors], [[
     /// Construct a position.
     explicit position (]b4_percent_define_get([[filename_type]])[* f = YY_NULLPTR,
-                       unsigned l = ]b4_location_initial_line[u,
-                       unsigned c = ]b4_location_initial_column[u)
+                       counter_type l = ]b4_location_initial_line[,
+                       counter_type c = ]b4_location_initial_column[)
       : filename (f)
       , line (l)
       , column (c)
@@ -75,8 +78,8 @@ m4_define([b4_location_define],
 ]])[
     /// Initialization.
     void initialize (]b4_percent_define_get([[filename_type]])[* fn = YY_NULLPTR,
-                     unsigned l = ]b4_location_initial_line[u,
-                     unsigned c = ]b4_location_initial_column[u)
+                     counter_type l = ]b4_location_initial_line[,
+                     counter_type c = ]b4_location_initial_column[)
     {
       filename = fn;
       line = l;
@@ -86,17 +89,17 @@ m4_define([b4_location_define],
     /** \name Line and Column related manipulators
      ** \{ */
     /// (line related) Advance to the COUNT next lines.
-    void lines (int count = 1)
+    void lines (counter_type count = 1)
     {
       if (count)
         {
-          column = ]b4_location_initial_column[u;
+          column = ]b4_location_initial_column[;
           line = add_ (line, count, ]b4_location_initial_line[);
         }
     }
 
     /// (column related) Advance to the COUNT next columns.
-    void columns (int count = 1)
+    void columns (counter_type count = 1)
     {
       column = add_ (column, count, ]b4_location_initial_column[);
     }
@@ -105,22 +108,21 @@ m4_define([b4_location_define],
     /// File name to which this position refers.
     ]b4_percent_define_get([[filename_type]])[* filename;
     /// Current line number.
-    unsigned line;
+    counter_type line;
     /// Current column number.
-    unsigned column;
+    counter_type column;
 
   private:
     /// Compute max (min, lhs+rhs).
-    static unsigned add_ (unsigned lhs, int rhs, int min)
+    static counter_type add_ (counter_type lhs, counter_type rhs, counter_type min)
     {
-      return static_cast<unsigned> (std::max (min,
-                                              static_cast<int> (lhs) + rhs));
+      return lhs + rhs < min ? min : lhs + rhs;
     }
   };
 
   /// Add \a width columns, in place.
   inline position&
-  operator+= (position& res, int width)
+  operator+= (position& res, position::counter_type width)
   {
     res.columns (width);
     return res;
@@ -128,21 +130,21 @@ m4_define([b4_location_define],
 
   /// Add \a width columns.
   inline position
-  operator+ (position res, int width)
+  operator+ (position res, position::counter_type width)
   {
     return res += width;
   }
 
   /// Subtract \a width columns, in place.
   inline position&
-  operator-= (position& res, int width)
+  operator-= (position& res, position::counter_type width)
   {
     return res += -width;
   }
 
   /// Subtract \a width columns.
   inline position
-  operator- (position res, int width)
+  operator- (position res, position::counter_type width)
   {
     return res -= width;
   }
@@ -182,6 +184,8 @@ m4_define([b4_location_define],
   class location
   {
   public:
+    /// Type for line and column numbers.
+    typedef position::counter_type counter_type;
 ]m4_ifdef([b4_location_constructors], [
     /// Construct a location from \a b to \a e.
     location (const position& b, const position& e)
@@ -197,8 +201,8 @@ m4_define([b4_location_define],
 
     /// Construct a 0-width location in \a f, \a l, \a c.
     explicit location (]b4_percent_define_get([[filename_type]])[* f,
-                       unsigned l = ]b4_location_initial_line[u,
-                       unsigned c = ]b4_location_initial_column[u)
+                       counter_type l = ]b4_location_initial_line[,
+                       counter_type c = ]b4_location_initial_column[)
       : begin (f, l, c)
       , end (f, l, c)
     {}
@@ -206,8 +210,8 @@ m4_define([b4_location_define],
 ])[
     /// Initialization.
     void initialize (]b4_percent_define_get([[filename_type]])[* f = YY_NULLPTR,
-                     unsigned l = ]b4_location_initial_line[u,
-                     unsigned c = ]b4_location_initial_column[u)
+                     counter_type l = ]b4_location_initial_line[,
+                     counter_type c = ]b4_location_initial_column[)
     {
       begin.initialize (f, l, c);
       end = begin;
@@ -223,13 +227,13 @@ m4_define([b4_location_define],
     }
 
     /// Extend the current location to the COUNT next columns.
-    void columns (int count = 1)
+    void columns (counter_type count = 1)
     {
       end += count;
     }
 
     /// Extend the current location to the COUNT next lines.
-    void lines (int count = 1)
+    void lines (counter_type count = 1)
     {
       end.lines (count);
     }
@@ -244,39 +248,45 @@ m4_define([b4_location_define],
   };
 
   /// Join two locations, in place.
-  inline location& operator+= (location& res, const location& end)
+  inline location&
+  operator+= (location& res, const location& end)
   {
     res.end = end.end;
     return res;
   }
 
   /// Join two locations.
-  inline location operator+ (location res, const location& end)
+  inline location
+  operator+ (location res, const location& end)
   {
     return res += end;
   }
 
   /// Add \a width columns to the end position, in place.
-  inline location& operator+= (location& res, int width)
+  inline location&
+  operator+= (location& res, location::counter_type width)
   {
     res.columns (width);
     return res;
   }
 
   /// Add \a width columns to the end position.
-  inline location operator+ (location res, int width)
+  inline location
+  operator+ (location res, location::counter_type width)
   {
     return res += width;
   }
 
   /// Subtract \a width columns to the end position, in place.
-  inline location& operator-= (location& res, int width)
+  inline location&
+  operator-= (location& res, location::counter_type width)
   {
     return res += -width;
   }
 
   /// Subtract \a width columns to the end position.
-  inline location operator- (location res, int width)
+  inline location
+  operator- (location res, location::counter_type width)
   {
     return res -= width;
   }
@@ -305,7 +315,8 @@ m4_define([b4_location_define],
   std::basic_ostream<YYChar>&
   operator<< (std::basic_ostream<YYChar>& ostr, const location& loc)
   {
-    unsigned end_col = 0 < loc.end.column ? loc.end.column - 1 : 0;
+    location::counter_type end_col
+      = 0 < loc.end.column ? loc.end.column - 1 : 0;
     ostr << loc.begin;
     if (loc.end.filename
         && (!loc.begin.filename
@@ -327,7 +338,7 @@ m4_ifdef([b4_position_file], [[
 // used to define is now defined in "]b4_location_file[".
 //
 // To get rid of this file:
-// 1. add 'require "3.2"' (or newer) to your grammar file
+// 1. add '%require "3.2"' (or newer) to your grammar file
 // 2. remove references to this file from your build system
 // 3. if you used to include it, include "]b4_location_file[" instead.
 
@@ -346,7 +357,6 @@ m4_ifdef([b4_location_file], [[
 
 ]b4_cpp_guard_open([b4_location_path])[
 
-# include <algorithm> // std::max
 # include <iostream>
 # include <string>
 

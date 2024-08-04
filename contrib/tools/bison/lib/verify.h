@@ -1,6 +1,6 @@
 /* Compile-time assert-like macros.
 
-   Copyright (C) 2005-2006, 2009-2019 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2009-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,29 +21,37 @@
 #define _GL_VERIFY_H
 
 
-/* Define _GL_HAVE__STATIC_ASSERT to 1 if _Static_assert works as per C11.
-   This is supported by GCC 4.6.0 and later, in C mode, and its use
-   here generates easier-to-read diagnostics when verify (R) fails.
+/* Define _GL_HAVE__STATIC_ASSERT to 1 if _Static_assert (R, DIAGNOSTIC)
+   works as per C11.  This is supported by GCC 4.6.0 and later, in C
+   mode.
 
-   Define _GL_HAVE_STATIC_ASSERT to 1 if static_assert works as per C++11.
-   This is supported by GCC 6.1.0 and later, in C++ mode.
+   Define _GL_HAVE__STATIC_ASSERT1 to 1 if _Static_assert (R) works as
+   per C2X, and define _GL_HAVE_STATIC_ASSERT1 if static_assert (R)
+   works as per C++17.  This is supported by GCC 9.1 and later.
 
-   Use this only with GCC.  If we were willing to slow 'configure'
-   down we could also use it with other compilers, but since this
-   affects only the quality of diagnostics, why bother?  */
-#if (4 < __GNUC__ + (6 <= __GNUC_MINOR__) \
-     && (201112L <= __STDC_VERSION__  || !defined __STRICT_ANSI__) \
-     && !defined __cplusplus)
-# define _GL_HAVE__STATIC_ASSERT 1
-#endif
-#if (6 <= __GNUC__) && defined __cplusplus
-# define _GL_HAVE_STATIC_ASSERT 1
+   Support compilers claiming conformance to the relevant standard,
+   and also support GCC when not pedantic.  If we were willing to slow
+   'configure' down we could also use it with other compilers, but
+   since this affects only the quality of diagnostics, why bother?  */
+#ifndef __cplusplus
+# if (201112L <= __STDC_VERSION__ \
+      || (!defined __STRICT_ANSI__ && 4 < __GNUC__ + (6 <= __GNUC_MINOR__)))
+#  define _GL_HAVE__STATIC_ASSERT 1
+# endif
+# if (202000L <= __STDC_VERSION__ \
+      || (!defined __STRICT_ANSI__ && 9 <= __GNUC__))
+#  define _GL_HAVE__STATIC_ASSERT1 1
+# endif
+#else
+# if 201703L <= __cplusplus || 9 <= __GNUC__
+#  define _GL_HAVE_STATIC_ASSERT1 1
+# endif
 #endif
 
 /* FreeBSD 9.1 <sys/cdefs.h>, included by <stddef.h> and lots of other
    system headers, defines a conflicting _Static_assert that is no
    better than ours; override it.  */
-#ifndef _GL_HAVE_STATIC_ASSERT
+#ifndef _GL_HAVE__STATIC_ASSERT
 # include <stddef.h>
 # undef _Static_assert
 #endif
@@ -141,9 +149,9 @@
      which do not support _Static_assert, also do not warn about the
      last declaration mentioned above.
 
-   * GCC warns if -Wnested-externs is enabled and verify() is used
+   * GCC warns if -Wnested-externs is enabled and 'verify' is used
      within a function body; but inside a function, you can always
-     arrange to use verify_expr() instead.
+     arrange to use verify_expr instead.
 
    * In C++, any struct definition inside sizeof is invalid.
      Use a template type to work around the problem.  */
@@ -195,47 +203,60 @@ template <int w>
 #endif
 
 /* Verify requirement R at compile-time, as a declaration without a
-   trailing ';'.  If R is false, fail at compile-time, preferably
-   with a diagnostic that includes the string-literal DIAGNOSTIC.
+   trailing ';'.  If R is false, fail at compile-time.
+
+   This macro requires three or more arguments but uses at most the first
+   two, so that the _Static_assert macro optionally defined below supports
+   both the C11 two-argument syntax and the C2X one-argument syntax.
 
    Unfortunately, unlike C11, this implementation must appear as an
    ordinary declaration, and cannot appear inside struct { ... }.  */
 
-#ifdef _GL_HAVE__STATIC_ASSERT
-# define _GL_VERIFY _Static_assert
+#if defined _GL_HAVE__STATIC_ASSERT
+# define _GL_VERIFY(R, DIAGNOSTIC, ...) _Static_assert (R, DIAGNOSTIC)
 #else
-# define _GL_VERIFY(R, DIAGNOSTIC)				       \
+# define _GL_VERIFY(R, DIAGNOSTIC, ...)                                \
     extern int (*_GL_GENSYM (_gl_verify_function) (void))	       \
       [_GL_VERIFY_TRUE (R, DIAGNOSTIC)]
 #endif
 
 /* _GL_STATIC_ASSERT_H is defined if this code is copied into assert.h.  */
 #ifdef _GL_STATIC_ASSERT_H
-# if !defined _GL_HAVE__STATIC_ASSERT && !defined _Static_assert
-#  define _Static_assert(R, DIAGNOSTIC) _GL_VERIFY (R, DIAGNOSTIC)
+# if !defined _GL_HAVE__STATIC_ASSERT1 && !defined _Static_assert
+#  define _Static_assert(...) \
+     _GL_VERIFY (__VA_ARGS__, "static assertion failed", -)
 # endif
-# if !defined _GL_HAVE_STATIC_ASSERT && !defined static_assert
+# if !defined _GL_HAVE_STATIC_ASSERT1 && !defined static_assert
 #  define static_assert _Static_assert /* C11 requires this #define.  */
 # endif
 #endif
 
 /* @assert.h omit start@  */
 
+#if 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))
+# define _GL_HAS_BUILTIN_TRAP 1
+#elif defined __has_builtin
+# define _GL_HAS_BUILTIN_TRAP __has_builtin (__builtin_trap)
+#else
+# define _GL_HAS_BUILTIN_TRAP 0
+#endif
+
+#if 4 < __GNUC__ + (5 <= __GNUC_MINOR__)
+# define _GL_HAS_BUILTIN_UNREACHABLE 1
+#elif defined __has_builtin
+# define _GL_HAS_BUILTIN_UNREACHABLE __has_builtin (__builtin_unreachable)
+#else
+# define _GL_HAS_BUILTIN_UNREACHABLE 0
+#endif
+
 /* Each of these macros verifies that its argument R is nonzero.  To
    be portable, R should be an integer constant expression.  Unlike
    assert (R), there is no run-time overhead.
 
    There are two macros, since no single macro can be used in all
-   contexts in C.  verify_true (R) is for scalar contexts, including
+   contexts in C.  verify_expr (R, E) is for scalar contexts, including
    integer constant expression contexts.  verify (R) is for declaration
    contexts, e.g., the top level.  */
-
-/* Verify requirement R at compile-time, as an integer constant expression.
-   Return 1.  This is equivalent to verify_expr (R, 1).
-
-   verify_true is obsolescent; please use verify_expr instead.  */
-
-#define verify_true(R) _GL_VERIFY_TRUE (R, "verify_true (" #R ")")
 
 /* Verify requirement R at compile-time.  Return the value of the
    expression E.  */
@@ -244,31 +265,28 @@ template <int w>
    (_GL_VERIFY_TRUE (R, "verify_expr (" #R ", " #E ")") ? (E) : (E))
 
 /* Verify requirement R at compile-time, as a declaration without a
-   trailing ';'.  */
+   trailing ';'.  verify (R) acts like static_assert (R) except that
+   it is portable to C11/C++14 and earlier, it can issue better
+   diagnostics, and its name is shorter and may be more convenient.  */
 
-#ifdef __GNUC__
-# define verify(R) _GL_VERIFY (R, "verify (" #R ")")
+#ifdef __PGI
+/* PGI barfs if R is long.  */
+# define verify(R) _GL_VERIFY (R, "verify (...)", -)
 #else
-/* PGI barfs if R is long.  Play it safe.  */
-# define verify(R) _GL_VERIFY (R, "verify (...)")
+# define verify(R) _GL_VERIFY (R, "verify (" #R ")", -)
 #endif
 
-#ifndef __has_builtin
-# define __has_builtin(x) 0
-#endif
+/* Assume that R always holds.  Behavior is undefined if R is false,
+   fails to evaluate, or has side effects.  Although assuming R can
+   help a compiler generate better code or diagnostics, performance
+   can suffer if R uses hard-to-optimize features such as function
+   calls not inlined by the compiler.  */
 
-/* Assume that R always holds.  This lets the compiler optimize
-   accordingly.  R should not have side-effects; it may or may not be
-   evaluated.  Behavior is undefined if R is false.  */
-
-#if (__has_builtin (__builtin_unreachable) \
-     || 4 < __GNUC__ + (5 <= __GNUC_MINOR__))
+#if _GL_HAS_BUILTIN_UNREACHABLE
 # define assume(R) ((R) ? (void) 0 : __builtin_unreachable ())
 #elif 1200 <= _MSC_VER
 # define assume(R) __assume (R)
-#elif ((defined GCC_LINT || defined lint) \
-       && (__has_builtin (__builtin_trap) \
-           || 3 < __GNUC__ + (3 < __GNUC_MINOR__ + (4 <= __GNUC_PATCHLEVEL__))))
+#elif (defined GCC_LINT || defined lint) && _GL_HAS_BUILTIN_TRAP
   /* Doing it this way helps various packages when configured with
      --enable-gcc-warnings, which compiles with -Dlint.  It's nicer
      when 'assume' silences warnings even with older GCCs.  */

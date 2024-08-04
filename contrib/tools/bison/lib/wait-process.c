@@ -1,5 +1,5 @@
 /* Waiting for a subprocess to finish.
-   Copyright (C) 2001-2003, 2005-2019 Free Software Foundation, Inc.
+   Copyright (C) 2001-2003, 2005-2020 Free Software Foundation, Inc.
    Written by Bruno Haible <haible@clisp.cons.org>, 2001.
 
    This program is free software: you can redistribute it and/or modify
@@ -80,7 +80,7 @@ static size_t slaves_allocated = SIZEOF (static_slaves);
 #endif
 
 /* The cleanup action.  It gets called asynchronously.  */
-static void
+static _GL_ASYNC_SAFE void
 cleanup_slaves (void)
 {
   for (;;)
@@ -102,6 +102,14 @@ cleanup_slaves (void)
     }
 }
 
+/* The cleanup action, taking a signal argument.
+   It gets called asynchronously.  */
+static _GL_ASYNC_SAFE void
+cleanup_slaves_action (int sig _GL_UNUSED)
+{
+  cleanup_slaves ();
+}
+
 /* Register a subprocess as being a slave process.  This means that the
    subprocess will be terminated when its creator receives a catchable fatal
    signal or exits normally.  Registration ends when wait_subprocess()
@@ -113,7 +121,7 @@ register_slave_subprocess (pid_t child)
   if (!cleanup_slaves_registered)
     {
       atexit (cleanup_slaves);
-      at_fatal_signal (cleanup_slaves);
+      at_fatal_signal (cleanup_slaves_action);
       cleanup_slaves_registered = true;
     }
 

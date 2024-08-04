@@ -1,5 +1,5 @@
 /* Manipulating the FPU control word.  -*- coding: utf-8 -*-
-   Copyright (C) 2007-2019 Free Software Foundation, Inc.
+   Copyright (C) 2007-2020 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2007.
 
    This program is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@
 
    See Vincent Lefèvre's page https://www.vinc17.net/research/extended.en.html
    for a good explanation.
-   See http://www.uwsg.iu.edu/hypermail/linux/kernel/0103.0/0453.html for
+   See https://web.archive.org/web/20060905133417/http://www.uwsg.iu.edu/hypermail/linux/kernel/0103.0/0453.html
    some argumentation which setting should be the default.  */
 
 /* This header file provides the following facilities:
@@ -70,12 +70,12 @@ typedef unsigned short fpucw_t; /* glibc calls this fpu_control_t */
 # define FPU_PC_DOUBLE 0x200    /* glibc calls this _FPU_DOUBLE */
 # define FPU_PC_EXTENDED 0x300  /* glibc calls this _FPU_EXTENDED */
 
-# define GET_FPUCW() \
+# define GET_FPUCW() __extension__ \
   ({ fpucw_t _cw;                                               \
      __asm__ __volatile__ ("fnstcw %0" : "=m" (*&_cw));         \
      _cw;                                                       \
    })
-# define SET_FPUCW(word) \
+# define SET_FPUCW(word) __extension__ \
   (void)({ fpucw_t _ncw = (word);                               \
            __asm__ __volatile__ ("fldcw %0" : : "m" (*&_ncw));  \
          })

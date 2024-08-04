@@ -1,5 +1,422 @@
 GNU Bison NEWS
 
+* Noteworthy changes in release 3.5.4 (2020-04-05) [stable]
+
+** WARNING: Future backward-incompatibilities!
+
+  TL;DR: replace "#define YYERROR_VERBOSE 1" by "%define parse.error verbose".
+
+  Bison 3.6 will no longer support the YYERROR_VERBOSE macro; the parsers
+  that still depend on it will produce Yacc-like error messages (just
+  "syntax error").  It was superseded by the "%error-verbose" directive in
+  Bison 1.875 (2003-01-01).  Bison 2.6 (2012-07-19) clearly announced that
+  support for YYERROR_VERBOSE would be removed.  Note that since Bison 3.0
+  (2013-07-25), "%error-verbose" is deprecated in favor of "%define
+  parse.error verbose".
+
+** Bug fixes
+
+  Fix portability issues of the package itself on old compilers.
+
+  Fix api.token.raw support in Java.
+
+* Noteworthy changes in release 3.5.3 (2020-03-08) [stable]
+
+** Bug fixes
+
+  Error messages could quote lines containing zero-width characters (such as
+  \005) with incorrect styling.  Fixes for similar issues with unexpectedly
+  short lines (e.g., the file was changed between parsing and diagnosing).
+
+  Several unlikely crashes found by fuzzing have been fixed.
+
+* Noteworthy changes in release 3.5.2 (2020-02-13) [stable]
+
+** Bug fixes
+
+  Portability issues and minor cosmetic issues.
+
+  The lalr1.cc skeleton properly rejects unsupported values for parse.lac
+  (as yacc.c does).
+
+* Noteworthy changes in release 3.5.1 (2020-01-19) [stable]
+
+** Bug fixes
+
+  Portability fixes.
+
+  Fix compiler warnings.
+
+* Noteworthy changes in release 3.5 (2019-12-11) [stable]
+
+** Backward incompatible changes
+
+  Lone carriage-return characters (aka \r or ^M) in the grammar files are no
+  longer treated as end-of-lines.  This changes the diagnostics, and in
+  particular their locations.
+
+  In C++, line numbers and columns are now represented as 'int' not
+  'unsigned', so that integer overflow on positions is easily checkable via
+  'gcc -fsanitize=undefined' and the like.  This affects the API for
+  positions.  The default position and location classes now expose
+  'counter_type' (int), used to define line and column numbers.
+
+** Deprecated features
+
+  The YYPRINT macro, which works only with yacc.c and only for tokens, was
+  obsoleted long ago by %printer, introduced in Bison 1.50 (November 2002).
+  It is deprecated and its support will be removed eventually.
+
+** New features
+
+*** Lookahead correction in C++
+
+  Contributed by Adrian Vogelsgesang.
+
+  The C++ deterministic skeleton (lalr1.cc) now supports LAC, via the
+  %define variable parse.lac.
+
+*** Variable api.token.raw: Optimized token numbers (all skeletons)
+
+  In the generated parsers, tokens have two numbers: the "external" token
+  number as returned by yylex (which starts at 257), and the "internal"
+  symbol number (which starts at 3).  Each time yylex is called, a table
+  lookup maps the external token number to the internal symbol number.
+
+  When the %define variable api.token.raw is set, tokens are assigned their
+  internal number, which saves one table lookup per token, and also saves
+  the generation of the mapping table.
+
+  The gain is typically moderate, but in extreme cases (very simple user
+  actions), a 10% improvement can be observed.
+
+*** Generated parsers use better types for states
+
+  Stacks now use the best integral type for state numbers, instead of always
+  using 15 bits.  As a result "small" parsers now have a smaller memory
+  footprint (they use 8 bits), and there is support for large automata (16
+  bits), and extra large (using int, i.e., typically 31 bits).
+
+*** Generated parsers prefer signed integer types
+
+  Bison skeletons now prefer signed to unsigned integer types when either
+  will do, as the signed types are less error-prone and allow for better
+  checking with 'gcc -fsanitize=undefined'.  Also, the types chosen are now
+  portable to unusual machines where char, short and int are all the same
+  width.  On non-GNU platforms this may entail including <limits.h> and (if
+  available) <stdint.h> to define integer types and constants.
+
+*** A skeleton for the D programming language
+
+  For the last few releases, Bison has shipped a stealth experimental
+  skeleton: lalr1.d.  It was first contributed by Oliver Mangold, based on
+  Paolo Bonzini's lalr1.java, and was cleaned and improved thanks to
+  H. S. Teoh.
+
+  However, because nobody has committed to improving, testing, and
+  documenting this skeleton, it is not clear that it will be supported in
+  the future.
+
+  The lalr1.d skeleton *is functional*, and works well, as demonstrated in
+  examples/d/calc.d.  Please try it, enjoy it, and... commit to support it.
+
+*** Debug traces in Java
+
+  The Java backend no longer emits code and data for parser tracing if the
+  %define variable parse.trace is not defined.
+
+** Diagnostics
+
+*** New diagnostic: -Wdangling-alias
+
+  String literals, which allow for better error messages, are (too)
+  liberally accepted by Bison, which might result in silent errors.  For
+  instance
+
+    %type <exVal> cond "condition"
+
+  does not define "condition" as a string alias to 'cond' (nonterminal
+  symbols do not have string aliases).  It is rather equivalent to
+
+    %nterm <exVal> cond
+    %token <exVal> "condition"
+
+  i.e., it gives the type 'exVal' to the "condition" token, which was
+  clearly not the intention.
+
+  Also, because string aliases need not be defined, typos such as "baz"
+  instead of "bar" will be not reported.
+
+  The option -Wdangling-alias catches these situations.  On
+
+    %token BAR "bar"
+    %type <ival> foo "foo"
+    %%
+    foo: "baz" {}
+
+  bison -Wdangling-alias reports
+
+    warning: string literal not attached to a symbol
+          | %type <ival> foo "foo"
+          |                  ^~~~~
+    warning: string literal not attached to a symbol
+          | foo: "baz" {}
+          |      ^~~~~
+
+   The -Wall option does not (yet?) include -Wdangling-alias.
+
+*** Better POSIX Yacc compatibility diagnostics
+
+  POSIX Yacc restricts %type to nonterminals.  This is now diagnosed by
+  -Wyacc.
+
+    %token TOKEN1
+    %type  <ival> TOKEN1 TOKEN2 't'
+    %token TOKEN2
+    %%
+    expr:
+
+  gives with -Wyacc
+
+    input.y:2.15-20: warning: POSIX yacc reserves %type to nonterminals [-Wyacc]
+        2 | %type  <ival> TOKEN1 TOKEN2 't'
+          |               ^~~~~~
+    input.y:2.29-31: warning: POSIX yacc reserves %type to nonterminals [-Wyacc]
+        2 | %type  <ival> TOKEN1 TOKEN2 't'
+          |                             ^~~
+    input.y:2.22-27: warning: POSIX yacc reserves %type to nonterminals [-Wyacc]
+        2 | %type  <ival> TOKEN1 TOKEN2 't'
+          |                      ^~~~~~
+
+*** Diagnostics with insertion
+
+  The diagnostics now display the suggestion below the underlined source.
+  Replacement for undeclared symbols are now also suggested.
+
+    $ cat /tmp/foo.y
+    %%
+    list: lis '.' |
+
+    $ bison -Wall foo.y
+    foo.y:2.7-9: error: symbol 'lis' is used, but is not defined as a token and has no rules; did you mean 'list'?
+        2 | list: lis '.' |
+          |       ^~~
+          |       list
+    foo.y:2.16: warning: empty rule without %empty [-Wempty-rule]
+        2 | list: lis '.' |
+          |                ^
+          |                %empty
+    foo.y: warning: fix-its can be applied.  Rerun with option '--update'. [-Wother]
+
+*** Diagnostics about long lines
+
+  Quoted sources may now be truncated to fit the screen.  For instance, on a
+  30-column wide terminal:
+
+    $ cat foo.y
+    %token FOO                       FOO                         FOO
+    %%
+    exp: FOO
+    $ bison foo.y
+    foo.y:1.34-36: warning: symbol FOO redeclared [-Wother]
+        1 | …         FOO                  …
+          |           ^~~
+    foo.y:1.8-10:      previous declaration
+        1 | %token FOO                     …
+          |        ^~~
+    foo.y:1.62-64: warning: symbol FOO redeclared [-Wother]
+        1 | …         FOO
+          |           ^~~
+    foo.y:1.8-10:      previous declaration
+        1 | %token FOO                     …
+          |        ^~~
+
+** Changes
+
+*** Debugging glr.c and glr.cc
+
+  The glr.c skeleton always had asserts to check its own behavior (not the
+  user's).  These assertions are now under the control of the parse.assert
+  %define variable (disabled by default).
+
+*** Clean up
+
+  Several new compiler warnings in the generated output have been avoided.
+  Some unused features are no longer emitted.  Cleaner generated code in
+  general.
+
+** Bug Fixes
+
+  Portability issues in the test suite.
+
+  In theory, parsers using %nonassoc could crash when reporting verbose
+  error messages. This unlikely bug has been fixed.
+
+  In Java, %define api.prefix was ignored.  It now behaves as expected.
+
+* Noteworthy changes in release 3.4.2 (2019-09-12) [stable]
+
+** Bug fixes
+
+  In some cases, when warnings are disabled, bison could emit tons of white
+  spaces as diagnostics.
+
+  When running out of memory, bison could crash (found by fuzzing).
+
+  When defining twice the EOF token, bison would crash.
+
+  New warnings from recent compilers have been addressed in the generated
+  parsers (yacc.c, glr.c, glr.cc).
+
+  When lone carriage-return characters appeared in the input file,
+  diagnostics could hang forever.
+
+* Noteworthy changes in release 3.4.1 (2019-05-22) [stable]
+
+** Bug fixes
+
+  Portability fixes.
+
+* Noteworthy changes in release 3.4 (2019-05-19) [stable]
+
+** Deprecated features
+
+  The %pure-parser directive is deprecated in favor of '%define api.pure'
+  since Bison 2.3b (2008-05-27), but no warning was issued; there is one
+  now.  Note that since Bison 2.7 you are strongly encouraged to use
+  '%define api.pure full' instead of '%define api.pure'.
+
+** New features
+
+*** Colored diagnostics
+
+  As an experimental feature, diagnostics are now colored, controlled by the
+  new options --color and --style.
+
+  To use them, install the libtextstyle library before configuring Bison.
+  It is available from
+
+    https://alpha.gnu.org/gnu/gettext/
+
+  for instance
+
+    https://alpha.gnu.org/gnu/gettext/libtextstyle-0.8.tar.gz
+
+  The option --color supports the following arguments:
+    - always, yes: Enable colors.
+    - never, no: Disable colors.
+    - auto, tty (default): Enable colors if the output device is a tty.
+
+  To customize the styles, create a CSS file similar to
+
+    /* bison-bw.css */
+    .warning   { }
+    .error     { font-weight: 800; text-decoration: underline; }
+    .note      { }
+
+  then invoke bison with --style=bison-bw.css, or set the BISON_STYLE
+  environment variable to "bison-bw.css".
+
+*** Disabling output
+
+  When given -fsyntax-only, the diagnostics are reported, but no output is
+  generated.
+
+  The name of this option is somewhat misleading as bison does more than
+  just checking the syntax: every stage is run (including checking for
+  conflicts for instance), except the generation of the output files.
+
+*** Include the generated header (yacc.c)
+
+  Before, when --defines is used, bison generated a header, and pasted an
+  exact copy of it into the generated parser implementation file.  If the
+  header name is not "y.tab.h", it is now #included instead of being
+  duplicated.
+
+  To use an '#include' even if the header name is "y.tab.h" (which is what
+  happens with --yacc, or when using the Autotools' ylwrap), define
+  api.header.include to the exact argument to pass to #include.  For
+  instance:
+
+    %define api.header.include {"parse.h"}
+
+  or
+
+    %define api.header.include {<parser/parse.h>}
+
+*** api.location.type is now supported in C (yacc.c, glr.c)
+
+  The %define variable api.location.type defines the name of the type to use
+  for locations.  When defined, Bison no longer defines YYLTYPE.
+
+  This can be used in programs with several parsers to factor their
+  definition of locations: let one of them generate them, and the others
+  just use them.
+
+** Changes
+
+*** Graphviz output
+
+  In conformance with the recommendations of the Graphviz team, if %require
+  "3.4" (or better) is specified, the option --graph generates a *.gv file
+  by default, instead of *.dot.
+
+*** Diagnostics overhaul
+
+  Column numbers were wrong with multibyte characters, which would also
+  result in skewed diagnostics with carets.  Beside, because we were
+  indenting the quoted source with a single space, lines with tab characters
+  were incorrectly underlined.
+
+  To address these issues, and to be clearer, Bison now issues diagnostics
+  as GCC9 does.  For instance it used to display (there's a tab before the
+  opening brace):
+
+    foo.y:3.37-38: error: $2 of ‘expr’ has no declared type
+     expr: expr '+' "number"        { $$ = $1 + $2; }
+                                         ^~
+  It now reports
+
+    foo.y:3.37-38: error: $2 of ‘expr’ has no declared type
+        3 | expr: expr '+' "number" { $$ = $1 + $2; }
+          |                                     ^~
+
+  Other constructs now also have better locations, resulting in more precise
+  diagnostics.
+
+*** Fix-it hints for %empty
+
+  Running Bison with -Wempty-rules and --update will remove incorrect %empty
+  annotations, and add the missing ones.
+
+*** Generated reports
+
+  The format of the reports (parse.output) was improved for readability.
+
+*** Better support for --no-line.
+
+  When --no-line is used, the generated files are now cleaner: no lines are
+  generated instead of empty lines.  Together with using api.header.include,
+  that should help people saving the generated files into version control
+  systems get smaller diffs.
+
+** Documentation
+
+  A new example in C shows an simple infix calculator with a hand-written
+  scanner (examples/c/calc).
+
+  A new example in C shows a reentrant parser (capable of recursive calls)
+  built with Flex and Bison (examples/c/reccalc).
+
+  There is a new section about the history of Yaccs and Bison.
+
+** Bug fixes
+
+  A few obscure bugs were fixed, including the second oldest (known) bug in
+  Bison: it was there when Bison was entered in the RCS version control
+  system, in December 1987.  See the NEWS of Bison 3.3 for the previous
+  oldest bug.
+
 * Noteworthy changes in release 3.3.2 (2019-02-03) [stable]
 
 ** Bug fixes
@@ -737,10 +1154,10 @@ GNU Bison NEWS
 
   bison used to report:
 
-    /tmp/foo.yy:2.10-11: error: %printer redeclaration for FOO
+    foo.yy:2.10-11: error: %printer redeclaration for FOO
      %printer {} "foo"
               ^^
-    /tmp/foo.yy:3.10-11:     previous declaration
+    foo.yy:3.10-11:     previous declaration
      %printer {} FOO
               ^^
 
@@ -3441,7 +3858,7 @@ Output file does not redefine const for C++.
 
 -----
 
-Copyright (C) 1995-2015, 2018-2019 Free Software Foundation, Inc.
+Copyright (C) 1995-2015, 2018-2020 Free Software Foundation, Inc.
 
 This file is part of Bison, the GNU Parser Generator.
 
@@ -3482,12 +3899,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  LocalWords:  redeclaration sval fcaret reentrant XSLT xsl Wmaybe yyvsp Tedi
  LocalWords:  pragmas noreturn untyped Rozenman unexpanded Wojciech Polak
  LocalWords:  Alexandre MERCHANTABILITY yytype emplace ptr automove lvalues
- LocalWords:  nonterminal yy args Pragma dereference yyformat rhs docdir
+ LocalWords:  nonterminal yy args Pragma dereference yyformat rhs docdir bw
  LocalWords:  Redeclarations rpcalc Autoconf YFLAGS Makefiles PROG DECL num
  LocalWords:  Heimbigner AST src ast Makefile srcdir MinGW xxlex XXSTYPE
  LocalWords:  XXLTYPE strictfp IDEs ffixit fdiagnostics parseable fixits
  LocalWords:  Wdeprecated yytext Variadic variadic yyrhs yyphrs RCS README
- LocalWords:  noexcept constexpr ispell american deprecations
+ LocalWords:  noexcept constexpr ispell american deprecations backend Teoh
+ LocalWords:  YYPRINT Mangold Bonzini's Wdangling exVal baz checkable gcc
+ LocalWords:  fsanitize Vogelsgesang lis redeclared stdint automata
 
 Local Variables:
 ispell-dictionary: "american"

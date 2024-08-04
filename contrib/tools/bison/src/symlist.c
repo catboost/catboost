@@ -1,6 +1,6 @@
 /* Lists of symbols for Bison
 
-   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2002, 2005-2007, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -34,7 +34,7 @@ symbol_list_sym_new (symbol *sym, location loc)
 
   res->content_type = SYMLIST_SYMBOL;
   res->content.sym = sym;
-  res->location = res->sym_loc = loc;
+  res->sym_loc = loc;
   res->named_ref = NULL;
 
   res->midrule = NULL;
@@ -42,13 +42,14 @@ symbol_list_sym_new (symbol *sym, location loc)
   res->midrule_parent_rhs_index = 0;
 
   /* Members used for LHS only.  */
+  res->rhs_loc = empty_loc;
   res->ruleprec = NULL;
-  res->percent_empty_loc = empty_location;
+  res->percent_empty_loc = empty_loc;
   code_props_none_init (&res->action_props);
   res->dprec = 0;
-  res->dprec_location = empty_location;
+  res->dprec_loc = empty_loc;
   res->merger = 0;
-  res->merger_declaration_location = empty_location;
+  res->merger_declaration_loc = empty_loc;
   res->expected_sr_conflicts = -1;
   res->expected_rr_conflicts = -1;
 
@@ -73,7 +74,7 @@ symbol_list_type_new (uniqstr type_name, location loc)
   res->content.sem_type->location = loc;
   res->content.sem_type->status = undeclared;
 
-  res->location = res->sym_loc = loc;
+  res->sym_loc = loc;
   res->named_ref = NULL;
   res->next = NULL;
 
@@ -97,6 +98,7 @@ symbol_list_type_set (symbol_list *syms, uniqstr type_name, location loc)
 void
 symbol_list_syms_print (const symbol_list *l, FILE *f)
 {
+  fputc ('[', f);
   char const *sep = "";
   for (/* Nothing. */; l && l->content.sym; l = l->next)
     {
@@ -105,10 +107,12 @@ symbol_list_syms_print (const symbol_list *l, FILE *f)
              : l->content_type == SYMLIST_TYPE ? "type: "
              : "invalid content_type: ",
              f);
-      symbol_print (l->content.sym, f);
-      fputs (l->action_props.is_value_used ? " used" : " unused", f);
+      if (l->content_type == SYMLIST_SYMBOL)
+        symbol_print (l->content.sym, f);
+      fputs (l->action_props.is_value_used ? " (used)" : " (unused)", f);
       sep = ", ";
     }
+  fputc (']', f);
 }
 
 
@@ -148,14 +152,13 @@ symbol_list_append (symbol_list *list, symbol_list *node)
 void
 symbol_list_free (symbol_list *list)
 {
-  symbol_list *node, *next;
-  for (node = list; node; node = next)
+  for (symbol_list *next; list; list = next)
     {
-      next = node->next;
-      named_ref_free (node->named_ref);
-      if (node->content_type == SYMLIST_TYPE)
-        free (node->content.sem_type);
-      free (node);
+      next = list->next;
+      named_ref_free (list->named_ref);
+      if (list->content_type == SYMLIST_TYPE)
+        free (list->content.sem_type);
+      free (list);
     }
 }
 

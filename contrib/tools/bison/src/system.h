@@ -1,6 +1,6 @@
 /* System-dependent definitions for Bison.
 
-   Copyright (C) 2000-2007, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2000-2007, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -72,6 +72,24 @@ typedef size_t uintptr_t;
 # include <unlocked-io.h>
 # include <verify.h>
 # include <xalloc.h>
+
+// Clang and ICC like to pretend they are GCC.
+# if defined __GNUC__ && !defined __clang__ && !defined __ICC
+#  define GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
+# endif
+
+// See https://lists.gnu.org/archive/html/bug-bison/2019-10/msg00061.html
+// and https://trac.macports.org/ticket/59927.
+# if defined GCC_VERSION && 405 <= GCC_VERSION
+#  define IGNORE_TYPE_LIMITS_BEGIN \
+     _Pragma ("GCC diagnostic push") \
+     _Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
+#  define IGNORE_TYPE_LIMITS_END \
+     _Pragma ("GCC diagnostic pop")
+# else
+#  define IGNORE_TYPE_LIMITS_BEGIN
+#  define IGNORE_TYPE_LIMITS_END
+# endif
 
 
 /*-----------------.
@@ -196,10 +214,10 @@ typedef size_t uintptr_t;
 
 /* Output Str both quoted for M4 (i.e., embed in [[...]]), and escaped
    for our postprocessing (i.e., escape M4 special characters).  If
-   Str is empty (or NULL), output "[]" instead of "[[]]" as it make M4
-   programming easier (m4_ifval can be used).
+   Str is empty (or NULL), output "[]" instead of "[[]]" as it makes
+   M4 programming easier (m4_ifval can be used).
 
-   For instance "[foo]" -> "[[@{foo@}]]", "$$" -> "[[$][$][]]". */
+   For instance "[foo]" -> "[[@{foo@}]]", "$$" -> "[[$][$][]]".  */
 
 # define obstack_quote(Obs, Str)                \
   do {                                          \
@@ -248,15 +266,5 @@ typedef size_t uintptr_t;
         free (_node);                           \
       }                                         \
   } while (0)
-
-
-/*---------------------------------------------.
-| Debugging memory allocation (must be last).  |
-`---------------------------------------------*/
-
-# if WITH_DMALLOC
-#  define DMALLOC_FUNC_CHECK
-#  include <dmalloc.h>
-# endif /* WITH_DMALLOC */
 
 #endif  /* ! BISON_SYSTEM_H */

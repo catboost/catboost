@@ -1,6 +1,6 @@
 /* File names and variables for bison,
 
-   Copyright (C) 1984, 1989, 2000-2002, 2006-2007, 2009-2015, 2018-2019
+   Copyright (C) 1984, 1989, 2000-2002, 2006-2007, 2009-2015, 2018-2020
    Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -48,7 +48,7 @@ extern char *spec_graph_file;
 extern char *spec_xml_file;
 
 /* File name specified with --defines.  */
-extern char *spec_defines_file;
+extern char *spec_header_file;
 
 /* Directory prefix of output file names.  */
 extern char *dir_prefix;
@@ -58,11 +58,11 @@ extern char *dir_prefix;
    and therefore GCC warns about a name clash. */
 extern uniqstr grammar_file;
 
-/* The current file name.  Might change with #line.  */
-extern uniqstr current_file;
-
 /* The computed base for output file names.  */
 extern char *all_but_ext;
+
+/* Where our data files are installed.  */
+char const *pkgdatadir (void);
 
 void compute_output_file_names (void);
 void output_file_names_free (void);

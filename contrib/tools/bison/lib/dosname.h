@@ -1,6 +1,6 @@
 /* File names on MS-DOS/Windows systems.
 
-   Copyright (C) 2000-2001, 2004-2006, 2009-2019 Free Software Foundation, Inc.
+   Copyright (C) 2000-2001, 2004-2006, 2009-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

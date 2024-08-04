@@ -1,6 +1,6 @@
 /* quotearg.h - quote arguments for output
 
-   Copyright (C) 1998-2002, 2004, 2006, 2008-2019 Free Software Foundation,
+   Copyright (C) 1998-2002, 2004, 2006, 2008-2020 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -323,7 +323,7 @@ void set_custom_quoting (struct quoting_options *o,
    On output, BUFFER might contain embedded null bytes if ARGSIZE was
    not -1, the style of O does not use backslash escapes, and the
    flags of O do not request elision of null bytes.*/
-size_t quotearg_buffer (char *buffer, size_t buffersize,
+size_t quotearg_buffer (char *restrict buffer, size_t buffersize,
                         char const *arg, size_t argsize,
                         struct quoting_options const *o);
 

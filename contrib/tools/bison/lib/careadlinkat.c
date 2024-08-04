@@ -1,6 +1,6 @@
 /* Read symbolic links into a buffer without size limitation, relative to fd.
 
-   Copyright (C) 2001, 2003-2004, 2007, 2009-2019 Free Software Foundation,
+   Copyright (C) 2001, 2003-2004, 2007, 2009-2020 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -54,7 +54,7 @@
 
    The PREADLINKAT function specifies how to read links.  It operates
    like POSIX readlinkat()
-   <http://pubs.opengroup.org/onlinepubs/9699919799/functions/readlink.html>
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/readlink.html>
    but can assume that its first argument is the same as FD.
 
    If successful, return the buffer address; otherwise return NULL and

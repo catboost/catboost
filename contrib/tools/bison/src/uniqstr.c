@@ -1,6 +1,6 @@
 /* Keep a unique copy of strings.
 
-   Copyright (C) 2002-2005, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2002-2005, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -157,11 +157,11 @@ hash_uniqstr (void const *m, size_t tablesize)
 void
 uniqstrs_new (void)
 {
-  uniqstrs_table = hash_initialize (HT_INITIAL_CAPACITY,
-                                    NULL,
-                                    hash_uniqstr,
-                                    hash_compare_uniqstr,
-                                    free);
+  uniqstrs_table = hash_xinitialize (HT_INITIAL_CAPACITY,
+                                     NULL,
+                                     hash_uniqstr,
+                                     hash_compare_uniqstr,
+                                     free);
 }
 
 

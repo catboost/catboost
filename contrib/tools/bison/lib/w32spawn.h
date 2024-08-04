@@ -1,5 +1,5 @@
 /* Auxiliary functions for the creation of subprocesses.  Native Windows API.
-   Copyright (C) 2001, 2003-2019 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2003-2020 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2003.
 
    This program is free software: you can redistribute it and/or modify

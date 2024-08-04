@@ -1,6 +1,6 @@
 /* Bitset vectors.
 
-   Copyright (C) 2002, 2004, 2009-2015, 2018-2019 Free Software Foundation,
+   Copyright (C) 2002, 2004, 2009-2015, 2018-2020 Free Software Foundation,
    Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _BITSETV_H
 #define _BITSETV_H
@@ -33,7 +33,7 @@ bitsetv bitsetv_alloc (bitset_bindex, bitset_bindex, enum bitset_type);
    attribute hints specified by ATTR.  */
 bitsetv bitsetv_create (bitset_bindex, bitset_bindex, unsigned);
 
-/* Free vector of bitsets.  */
+/* Free vector of bitsets.  Do nothing if NULL.  */
 void bitsetv_free (bitsetv);
 
 /* Zero vector of bitsets.  */

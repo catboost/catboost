@@ -1,5 +1,5 @@
 /* Decomposed printf argument list.
-   Copyright (C) 1999, 2002-2003, 2005-2007, 2009-2019 Free Software
+   Copyright (C) 1999, 2002-2003, 2005-2007, 2009-2020 Free Software
    Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -65,14 +65,12 @@ PRINTF_FETCHARGS (va_list args, arguments *a)
       case TYPE_ULONGINT:
         ap->a.a_ulongint = va_arg (args, unsigned long int);
         break;
-#if HAVE_LONG_LONG_INT
       case TYPE_LONGLONGINT:
         ap->a.a_longlongint = va_arg (args, long long int);
         break;
       case TYPE_ULONGLONGINT:
         ap->a.a_ulonglongint = va_arg (args, unsigned long long int);
         break;
-#endif
       case TYPE_DOUBLE:
         ap->a.a_double = va_arg (args, double);
         break;
@@ -135,11 +133,9 @@ PRINTF_FETCHARGS (va_list args, arguments *a)
       case TYPE_COUNT_LONGINT_POINTER:
         ap->a.a_count_longint_pointer = va_arg (args, long int *);
         break;
-#if HAVE_LONG_LONG_INT
       case TYPE_COUNT_LONGLONGINT_POINTER:
         ap->a.a_count_longlongint_pointer = va_arg (args, long long int *);
         break;
-#endif
 #if ENABLE_UNISTDIO
       /* The unistdio extensions.  */
       case TYPE_U8_STRING:

@@ -1,5 +1,5 @@
 /* bitrotate.h - Rotate bits in integers
-   Copyright (C) 2008-2019 Free Software Foundation, Inc.
+   Copyright (C) 2008-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -95,7 +95,8 @@ rotr_sz (size_t x, int n)
 BITROTATE_INLINE uint16_t
 rotl16 (uint16_t x, int n)
 {
-  return ((x << n) | (x >> (16 - n))) & UINT16_MAX;
+  return (((unsigned int) x << n) | ((unsigned int) x >> (16 - n)))
+         & UINT16_MAX;
 }
 
 /* Given an unsigned 16-bit argument X, return the value corresponding
@@ -106,7 +107,8 @@ rotl16 (uint16_t x, int n)
 BITROTATE_INLINE uint16_t
 rotr16 (uint16_t x, int n)
 {
-  return ((x >> n) | (x << (16 - n))) & UINT16_MAX;
+  return (((unsigned int) x >> n) | ((unsigned int) x << (16 - n)))
+         & UINT16_MAX;
 }
 
 /* Given an unsigned 8-bit argument X, return the value corresponding
@@ -117,7 +119,7 @@ rotr16 (uint16_t x, int n)
 BITROTATE_INLINE uint8_t
 rotl8 (uint8_t x, int n)
 {
-  return ((x << n) | (x >> (8 - n))) & UINT8_MAX;
+  return (((unsigned int) x << n) | ((unsigned int) x >> (8 - n))) & UINT8_MAX;
 }
 
 /* Given an unsigned 8-bit argument X, return the value corresponding
@@ -128,7 +130,7 @@ rotl8 (uint8_t x, int n)
 BITROTATE_INLINE uint8_t
 rotr8 (uint8_t x, int n)
 {
-  return ((x >> n) | (x << (8 - n))) & UINT8_MAX;
+  return (((unsigned int) x >> n) | ((unsigned int) x << (8 - n))) & UINT8_MAX;
 }
 
 _GL_INLINE_HEADER_END

@@ -1,7 +1,7 @@
 /* Closures for Bison
 
    Copyright (C) 1984, 1989, 2000-2002, 2004-2005, 2007, 2009-2015,
-   2018-2019 Free Software Foundation, Inc.
+   2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -35,6 +35,9 @@
 item_number *itemset;
 size_t nitemset;
 
+/* RULESET contains a bit for each rule.  CLOSURE sets the bits for
+   all rules which could potentially describe the next input to be
+   read.  */
 static bitset ruleset;
 
 /* internal data.  See comments before set_fderives and set_firsts.  */
@@ -51,7 +54,7 @@ static bitsetv firsts = NULL;
 `-----------------*/
 
 static void
-print_closure (char const *title, item_number const *array, size_t size)
+closure_print (char const *title, item_number const *array, size_t size)
 {
   fprintf (stderr, "Closure: %s\n", title);
   for (size_t i = 0; i < size; ++i)
@@ -167,7 +170,7 @@ set_fderives (void)
 
 
 void
-new_closure (unsigned n)
+closure_new (int n)
 {
   itemset = xnmalloc (n, sizeof *itemset);
 
@@ -181,8 +184,8 @@ new_closure (unsigned n)
 void
 closure (item_number const *core, size_t n)
 {
-  if (trace_flag & trace_sets)
-    print_closure ("input", core, n);
+  if (trace_flag & trace_closure)
+    closure_print ("input", core, n);
 
   bitset_zero (ruleset);
 
@@ -192,12 +195,12 @@ closure (item_number const *core, size_t n)
 
   /* core is sorted on item index in ritem, which is sorted on rule number.
      Compute itemset with the same sort.  */
+  nitemset = 0;
+  size_t c = 0;
+
   /* A bit index over RULESET. */
   rule_number ruleno;
   bitset_iterator iter;
-
-  nitemset = 0;
-  size_t c = 0;
   BITSET_FOR_EACH (iter, ruleset, ruleno, 0)
     {
       item_number itemno = rules[ruleno].rhs - ritem;
@@ -218,13 +221,13 @@ closure (item_number const *core, size_t n)
       c++;
     }
 
-  if (trace_flag & trace_sets)
-    print_closure ("output", itemset, nitemset);
+  if (trace_flag & trace_closure)
+    closure_print ("output", itemset, nitemset);
 }
 
 
 void
-free_closure (void)
+closure_free (void)
 {
   free (itemset);
   bitset_free (ruleset);

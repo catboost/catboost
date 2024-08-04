@@ -1,5 +1,5 @@
 /* Emergency actions in case of a fatal signal.
-   Copyright (C) 2003-2004, 2009-2019 Free Software Foundation, Inc.
+   Copyright (C) 2003-2004, 2009-2020 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2003.
 
    This program is free software: you can redistribute it and/or modify
@@ -36,7 +36,8 @@ extern "C" {
    occurs.
 
    Restrictions for the cleanup function:
-     - The cleanup function can do all kinds of system calls.
+     - The cleanup function can do all kinds of system calls.  It may also
+       modify (clobber) errno.
      - It can also access application dependent memory locations and data
        structures provided they are in a consistent state. One way to ensure
        this is through block_fatal_signals()/unblock_fatal_signals(), see
@@ -51,7 +52,7 @@ extern "C" {
    The cleanup function is executed asynchronously.  It is unspecified
    whether during its execution the catchable fatal signals are blocked
    or not.  */
-extern void at_fatal_signal (void (*function) (void));
+extern void at_fatal_signal (_GL_ASYNC_SAFE void (*function) (int sig));
 
 
 /* Sometimes it is necessary to block the usually fatal signals while the
@@ -69,6 +70,12 @@ extern void block_fatal_signals (void);
 
 /* Stop delaying the catchable fatal signals.  */
 extern void unblock_fatal_signals (void);
+
+
+/* Return the list of signals that block_fatal_signals/unblock_fatal_signals
+   would block or unblock.
+   Fills signals[0..count-1] and returns count.  */
+extern unsigned int get_fatal_signals (int signals[64]);
 
 
 #ifdef __cplusplus

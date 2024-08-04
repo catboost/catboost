@@ -1,7 +1,7 @@
 /* Top level entry point of Bison.
 
    Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2002, 2004-2015,
-   2018-2019 Free Software Foundation, Inc.
+   2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -23,14 +23,14 @@
 
 #include <bitset.h>
 #include <bitset/stats.h>
+#include <closeout.h>
 #include <configmake.h>
 #include <progname.h>
+#include <quote.h>
 #include <quotearg.h>
 #include <relocatable.h> /* relocate2 */
 #include <timevar.h>
 
-#include "LR0.h"
-#include "closeout.h"
 #include "complain.h"
 #include "conflicts.h"
 #include "derives.h"
@@ -38,15 +38,15 @@
 #include "fixits.h"
 #include "getargs.h"
 #include "gram.h"
-#include "lalr.h"
 #include "ielr.h"
+#include "lalr.h"
+#include "lr0.h"
 #include "muscle-tab.h"
 #include "nullable.h"
 #include "output.h"
-#include "print.h"
-#include "print_graph.h"
+#include "print-graph.h"
 #include "print-xml.h"
-#include <quote.h>
+#include "print.h"
 #include "reader.h"
 #include "reduce.h"
 #include "scan-code.h"
@@ -92,7 +92,7 @@ main (int argc, char *argv[])
      the grammar; see gram.h.  */
 
   timevar_push (tv_reader);
-  reader ();
+  reader (grammar_file);
   timevar_pop (tv_reader);
 
   if (complaint_status == status_complaint)
@@ -147,7 +147,10 @@ main (int argc, char *argv[])
 
   print_precedence_warnings ();
 
-  if (!update_flag)
+  /* Whether to generate output files.  */
+  bool generate = !(feature_flag & feature_syntax_only);
+
+  if (generate)
     {
       /* Output file names. */
       compute_output_file_names ();
@@ -188,12 +191,14 @@ main (int argc, char *argv[])
   timevar_pop (tv_free);
 
   /* Output the tables and the parser to ftable.  In file output.  */
-  if (!update_flag)
+  if (generate)
     {
       timevar_push (tv_parser);
       output ();
       timevar_pop (tv_parser);
     }
+
+ finish:
 
   timevar_push (tv_free);
   nullable_free ();
@@ -211,19 +216,14 @@ main (int argc, char *argv[])
   muscle_free ();
   code_scanner_free ();
   skel_scanner_free ();
-  quotearg_free ();
   timevar_pop (tv_free);
 
   if (trace_flag & trace_bitsets)
     bitset_stats_dump (stderr);
 
- finish:
-
   /* Stop timing and print the times.  */
   timevar_stop (tv_total);
   timevar_print (stderr);
-
-  cleanup_caret ();
 
   /* Fix input file now, even if there are errors: that's less
      warnings in the following runs.  */
@@ -237,6 +237,9 @@ main (int argc, char *argv[])
       fixits_free ();
     }
   uniqstrs_free ();
+
+  complain_free ();
+  quotearg_free ();
 
   return complaint_status ? EXIT_FAILURE : EXIT_SUCCESS;
 }

@@ -1,6 +1,6 @@
 /* Functions to support expandable bitsets.
 
-   Copyright (C) 2002-2006, 2009-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002-2006, 2009-2015, 2018-2020 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include "obstack.h"
+#include "xalloc.h"
 
 /* This file implements expandable bitsets.  These bitsets can be of
    arbitrary length and are more efficient than arrays of bits for
@@ -142,7 +143,7 @@ tbitset_resize (bitset src, bitset_bindex n_bits)
 
           bitset_windex size = oldsize == 0 ? newsize : newsize + newsize / 4;
           EBITSET_ELTS (src)
-            = realloc (EBITSET_ELTS (src), size * sizeof (tbitset_elt *));
+            = xrealloc (EBITSET_ELTS (src), size * sizeof (tbitset_elt *));
           EBITSET_ASIZE (src) = size;
         }
 
@@ -155,9 +156,13 @@ tbitset_resize (bitset src, bitset_bindex n_bits)
          the memory unless it is shrinking by a reasonable amount.  */
       if ((oldsize - newsize) >= oldsize / 2)
         {
-          EBITSET_ELTS (src)
+          void *p
             = realloc (EBITSET_ELTS (src), newsize * sizeof (tbitset_elt *));
-          EBITSET_ASIZE (src) = newsize;
+          if (p)
+            {
+              EBITSET_ELTS (src) = p;
+              EBITSET_ASIZE (src) = newsize;
+            }
         }
 
       /* Need to prune any excess bits.  FIXME.  */
@@ -188,21 +193,21 @@ tbitset_elt_alloc (void)
           /* Let particular systems override the size of a chunk.  */
 
 #ifndef OBSTACK_CHUNK_SIZE
-#define OBSTACK_CHUNK_SIZE 0
+# define OBSTACK_CHUNK_SIZE 0
 #endif
 
           /* Let them override the alloc and free routines too.  */
 
 #ifndef OBSTACK_CHUNK_ALLOC
-#define OBSTACK_CHUNK_ALLOC xmalloc
+# define OBSTACK_CHUNK_ALLOC xmalloc
 #endif
 
 #ifndef OBSTACK_CHUNK_FREE
-#define OBSTACK_CHUNK_FREE free
+# define OBSTACK_CHUNK_FREE free
 #endif
 
 #if ! defined __GNUC__ || __GNUC__ < 2
-#define __alignof__(type) 0
+# define __alignof__(type) 0
 #endif
 
           obstack_specify_allocation (&tbitset_obstack, OBSTACK_CHUNK_SIZE,
@@ -300,7 +305,7 @@ tbitset_elt_find (bitset bset, bitset_bindex bindex,
       abort ();
 
     case EBITSET_FIND:
-      return 0;
+      return NULL;
 
     case EBITSET_CREATE:
       if (eindex >= size)
@@ -588,8 +593,8 @@ tbitset_list_reverse (bitset bset, bitset_bindex *list,
 
 
 /* Find list of up to NUM bits set in BSET starting from and including
- *NEXT and store in array LIST.  Return with actual number of bits
- found and with *NEXT indicating where search stopped.  */
+   *NEXT and store in array LIST.  Return with actual number of bits
+   found and with *NEXT indicating where search stopped.  */
 static bitset_bindex
 tbitset_list (bitset bset, bitset_bindex *list,
               bitset_bindex num, bitset_bindex *next)
@@ -607,17 +612,14 @@ tbitset_list (bitset bset, bitset_bindex *list,
   if (bitno % EBITSET_ELT_BITS)
     {
       /* We need to start within an element.  This is not very common.  */
-
       tbitset_elt *elt = elts[eindex];
       if (elt)
         {
-          bitset_windex woffset;
           bitset_word *srcp = EBITSET_WORDS (elt);
+          bitset_windex woffset = eindex * EBITSET_ELT_WORDS;
 
-          bitset_windex windex = bitno / BITSET_WORD_BITS;
-          woffset = eindex * EBITSET_ELT_WORDS;
-
-          for (; (windex - woffset) < EBITSET_ELT_WORDS; windex++)
+          for (bitset_windex windex = bitno / BITSET_WORD_BITS;
+               (windex - woffset) < EBITSET_ELT_WORDS; windex++)
             {
               bitset_word word = srcp[windex - woffset] >> (bitno % BITSET_WORD_BITS);
 
@@ -781,7 +783,8 @@ tbitset_unused_clear (bitset dst)
           bitset_windex windex = n_bits / BITSET_WORD_BITS;
           bitset_windex woffset = eindex * EBITSET_ELT_WORDS;
 
-          srcp[windex - woffset] &= ((bitset_word) 1 << last_bit) - 1;
+          srcp[windex - woffset]
+            &= ((bitset_word) 1 << (last_bit % BITSET_WORD_BITS)) - 1;
           windex++;
           for (; (windex - woffset) < EBITSET_ELT_WORDS; windex++)
             srcp[windex - woffset] = 0;
@@ -1020,13 +1023,9 @@ tbitset_op3_cmp (bitset dst, bitset src1, bitset src2, enum bitset_ops op)
         }
 
       if (!tbitset_elt_zero_p (delt))
-        {
-          tbitset_elt_add (dst, delt, j);
-        }
+        tbitset_elt_add (dst, delt, j);
       else
-        {
-          tbitset_elt_free (delt);
-        }
+        tbitset_elt_free (delt);
     }
 
   /* If we have elements of DST left over, free them all.  */
@@ -1061,7 +1060,8 @@ tbitset_and_cmp (bitset dst, bitset src1, bitset src2)
       tbitset_zero (dst);
       return changed;
     }
-  return tbitset_op3_cmp (dst, src1, src2, BITSET_OP_AND);
+  else
+    return tbitset_op3_cmp (dst, src1, src2, BITSET_OP_AND);
 }
 
 
@@ -1076,9 +1076,7 @@ static bool
 tbitset_andn_cmp (bitset dst, bitset src1, bitset src2)
 {
   if (EBITSET_ZERO_P (src2))
-    {
-      return tbitset_copy_cmp (dst, src1);
-    }
+    return tbitset_copy_cmp (dst, src1);
   else if (EBITSET_ZERO_P (src1))
     {
       tbitset_weed (dst);
@@ -1086,7 +1084,8 @@ tbitset_andn_cmp (bitset dst, bitset src1, bitset src2)
       tbitset_zero (dst);
       return changed;
     }
-  return tbitset_op3_cmp (dst, src1, src2, BITSET_OP_ANDN);
+  else
+    return tbitset_op3_cmp (dst, src1, src2, BITSET_OP_ANDN);
 }
 
 
@@ -1101,14 +1100,11 @@ static bool
 tbitset_or_cmp (bitset dst, bitset src1, bitset src2)
 {
   if (EBITSET_ZERO_P (src2))
-    {
-      return tbitset_copy_cmp (dst, src1);
-    }
+    return tbitset_copy_cmp (dst, src1);
   else if (EBITSET_ZERO_P (src1))
-    {
-      return tbitset_copy_cmp (dst, src2);
-    }
-  return tbitset_op3_cmp (dst, src1, src2, BITSET_OP_OR);
+    return tbitset_copy_cmp (dst, src2);
+  else
+    return tbitset_op3_cmp (dst, src1, src2, BITSET_OP_OR);
 }
 
 
@@ -1123,14 +1119,11 @@ static bool
 tbitset_xor_cmp (bitset dst, bitset src1, bitset src2)
 {
   if (EBITSET_ZERO_P (src2))
-    {
-      return tbitset_copy_cmp (dst, src1);
-    }
+    return tbitset_copy_cmp (dst, src1);
   else if (EBITSET_ZERO_P (src1))
-    {
-      return tbitset_copy_cmp (dst, src2);
-    }
-  return tbitset_op3_cmp (dst, src1, src2, BITSET_OP_XOR);
+    return tbitset_copy_cmp (dst, src2);
+  else
+    return tbitset_op3_cmp (dst, src1, src2, BITSET_OP_XOR);
 }
 
 

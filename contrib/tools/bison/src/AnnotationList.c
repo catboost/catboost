@@ -1,6 +1,6 @@
 /* IELR's inadequacy annotation list.
 
-   Copyright (C) 2009-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -269,7 +269,7 @@ AnnotationList__computePredecessorAnnotations (
                   if (item_number_is_rule_number (ritem[s->items[self_item]
                                                         - 2]))
                     {
-                      unsigned rulei;
+                      int rulei;
                       for (rulei = s->items[self_item];
                            !item_number_is_rule_number (ritem[rulei]);
                            ++rulei)

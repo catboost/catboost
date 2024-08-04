@@ -1,6 +1,6 @@
 /* Determine a canonical name for the current locale's character encoding.
 
-   Copyright (C) 2000-2006, 2008-2019 Free Software Foundation, Inc.
+   Copyright (C) 2000-2006, 2008-2020 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -58,6 +58,9 @@
 #elif defined WINDOWS_NATIVE
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
+  /* For the use of setlocale() below, the Gnulib override in setlocale.c is
+     not needed; see the platform lists in setlocale_null.m4.  */
+# undef setlocale
 #endif
 #if defined OS2
 # define INCL_DOS
@@ -150,7 +153,8 @@ static const struct table_entry alias_table[] =
     { "ISO8859-2",  "ISO-8859-2" },
     { "ISO8859-4",  "ISO-8859-4" },
     { "ISO8859-5",  "ISO-8859-5" },
-    { "ISO8859-7",  "ISO-8859-7" }
+    { "ISO8859-7",  "ISO-8859-7" },
+    { "US-ASCII",   "ASCII" }
 #   define alias_table_defined
 #  endif
 #  if defined __APPLE__ && defined __MACH__                 /* Mac OS X */
@@ -377,27 +381,164 @@ static const struct table_entry alias_table[] =
     /* The list of encodings is taken from "List of OS/2 Codepages"
        by Alex Taylor:
        <http://altsan.org/os2/toolkits/uls/index.html#codepages>.
-       See also "IBM Globalization - Code page identifiers":
-       <https://www-01.ibm.com/software/globalization/cp/cp_cpgid.html>.  */
-    { "CP1089", "ISO-8859-6" },
-    { "CP1208", "UTF-8" },
-    { "CP1381", "GB2312" },
-    { "CP1386", "GBK" },
-    { "CP3372", "EUC-JP" },
-    { "CP813",  "ISO-8859-7" },
-    { "CP819",  "ISO-8859-1" },
-    { "CP878",  "KOI8-R" },
-    { "CP912",  "ISO-8859-2" },
-    { "CP913",  "ISO-8859-3" },
-    { "CP914",  "ISO-8859-4" },
-    { "CP915",  "ISO-8859-5" },
-    { "CP916",  "ISO-8859-8" },
-    { "CP920",  "ISO-8859-9" },
-    { "CP921",  "ISO-8859-13" },
-    { "CP923",  "ISO-8859-15" },
-    { "CP954",  "EUC-JP" },
-    { "CP964",  "EUC-TW" },
-    { "CP970",  "EUC-KR" }
+       See also "__convcp() of kLIBC":
+       <https://github.com/bitwiseworks/libc/blob/master/src/emx/src/lib/locale/__convcp.c>.  */
+    { "CP1004",        "CP1252" },
+  /*{ "CP1041",        "CP943" },*/
+  /*{ "CP1088",        "CP949" },*/
+    { "CP1089",        "ISO-8859-6" },
+  /*{ "CP1114",        "CP950" },*/
+  /*{ "CP1115",        "GB2312" },*/
+    { "CP1208",        "UTF-8" },
+  /*{ "CP1380",        "GB2312" },*/
+    { "CP1381",        "GB2312" },
+    { "CP1383",        "GB2312" },
+    { "CP1386",        "GBK" },
+  /*{ "CP301",         "CP943" },*/
+    { "CP3372",        "EUC-JP" },
+    { "CP4946",        "CP850" },
+  /*{ "CP5048",        "JIS_X0208-1990" },*/
+  /*{ "CP5049",        "JIS_X0212-1990" },*/
+  /*{ "CP5067",        "KS_C_5601-1987" },*/
+    { "CP813",         "ISO-8859-7" },
+    { "CP819",         "ISO-8859-1" },
+    { "CP878",         "KOI8-R" },
+  /*{ "CP897",         "CP943" },*/
+    { "CP912",         "ISO-8859-2" },
+    { "CP913",         "ISO-8859-3" },
+    { "CP914",         "ISO-8859-4" },
+    { "CP915",         "ISO-8859-5" },
+    { "CP916",         "ISO-8859-8" },
+    { "CP920",         "ISO-8859-9" },
+    { "CP921",         "ISO-8859-13" },
+    { "CP923",         "ISO-8859-15" },
+  /*{ "CP941",         "CP943" },*/
+  /*{ "CP947",         "CP950" },*/
+  /*{ "CP951",         "CP949" },*/
+  /*{ "CP952",         "JIS_X0208-1990" },*/
+  /*{ "CP953",         "JIS_X0212-1990" },*/
+    { "CP954",         "EUC-JP" },
+    { "CP964",         "EUC-TW" },
+    { "CP970",         "EUC-KR" },
+  /*{ "CP971",         "KS_C_5601-1987" },*/
+    { "IBM-1004",      "CP1252" },
+  /*{ "IBM-1006",      "?" },*/
+  /*{ "IBM-1008",      "?" },*/
+  /*{ "IBM-1041",      "CP943" },*/
+  /*{ "IBM-1051",      "?" },*/
+  /*{ "IBM-1088",      "CP949" },*/
+    { "IBM-1089",      "ISO-8859-6" },
+  /*{ "IBM-1098",      "?" },*/
+  /*{ "IBM-1114",      "CP950" },*/
+  /*{ "IBM-1115",      "GB2312" },*/
+  /*{ "IBM-1116",      "?" },*/
+  /*{ "IBM-1117",      "?" },*/
+  /*{ "IBM-1118",      "?" },*/
+  /*{ "IBM-1119",      "?" },*/
+    { "IBM-1124",      "CP1124" },
+    { "IBM-1125",      "CP1125" },
+    { "IBM-1131",      "CP1131" },
+    { "IBM-1208",      "UTF-8" },
+    { "IBM-1250",      "CP1250" },
+    { "IBM-1251",      "CP1251" },
+    { "IBM-1252",      "CP1252" },
+    { "IBM-1253",      "CP1253" },
+    { "IBM-1254",      "CP1254" },
+    { "IBM-1255",      "CP1255" },
+    { "IBM-1256",      "CP1256" },
+    { "IBM-1257",      "CP1257" },
+  /*{ "IBM-1275",      "?" },*/
+  /*{ "IBM-1276",      "?" },*/
+  /*{ "IBM-1277",      "?" },*/
+  /*{ "IBM-1280",      "?" },*/
+  /*{ "IBM-1281",      "?" },*/
+  /*{ "IBM-1282",      "?" },*/
+  /*{ "IBM-1283",      "?" },*/
+  /*{ "IBM-1380",      "GB2312" },*/
+    { "IBM-1381",      "GB2312" },
+    { "IBM-1383",      "GB2312" },
+    { "IBM-1386",      "GBK" },
+  /*{ "IBM-301",       "CP943" },*/
+    { "IBM-3372",      "EUC-JP" },
+    { "IBM-367",       "ASCII" },
+    { "IBM-437",       "CP437" },
+    { "IBM-4946",      "CP850" },
+  /*{ "IBM-5048",      "JIS_X0208-1990" },*/
+  /*{ "IBM-5049",      "JIS_X0212-1990" },*/
+  /*{ "IBM-5067",      "KS_C_5601-1987" },*/
+    { "IBM-813",       "ISO-8859-7" },
+    { "IBM-819",       "ISO-8859-1" },
+    { "IBM-850",       "CP850" },
+  /*{ "IBM-851",       "?" },*/
+    { "IBM-852",       "CP852" },
+    { "IBM-855",       "CP855" },
+    { "IBM-856",       "CP856" },
+    { "IBM-857",       "CP857" },
+  /*{ "IBM-859",       "?" },*/
+    { "IBM-860",       "CP860" },
+    { "IBM-861",       "CP861" },
+    { "IBM-862",       "CP862" },
+    { "IBM-863",       "CP863" },
+    { "IBM-864",       "CP864" },
+    { "IBM-865",       "CP865" },
+    { "IBM-866",       "CP866" },
+  /*{ "IBM-868",       "?" },*/
+    { "IBM-869",       "CP869" },
+    { "IBM-874",       "CP874" },
+    { "IBM-878",       "KOI8-R" },
+  /*{ "IBM-895",       "?" },*/
+  /*{ "IBM-897",       "CP943" },*/
+  /*{ "IBM-907",       "?" },*/
+  /*{ "IBM-909",       "?" },*/
+    { "IBM-912",       "ISO-8859-2" },
+    { "IBM-913",       "ISO-8859-3" },
+    { "IBM-914",       "ISO-8859-4" },
+    { "IBM-915",       "ISO-8859-5" },
+    { "IBM-916",       "ISO-8859-8" },
+    { "IBM-920",       "ISO-8859-9" },
+    { "IBM-921",       "ISO-8859-13" },
+    { "IBM-922",       "CP922" },
+    { "IBM-923",       "ISO-8859-15" },
+    { "IBM-932",       "CP932" },
+  /*{ "IBM-941",       "CP943" },*/
+  /*{ "IBM-942",       "?" },*/
+    { "IBM-943",       "CP943" },
+  /*{ "IBM-947",       "CP950" },*/
+    { "IBM-949",       "CP949" },
+    { "IBM-950",       "CP950" },
+  /*{ "IBM-951",       "CP949" },*/
+  /*{ "IBM-952",       "JIS_X0208-1990" },*/
+  /*{ "IBM-953",       "JIS_X0212-1990" },*/
+    { "IBM-954",       "EUC-JP" },
+  /*{ "IBM-955",       "?" },*/
+    { "IBM-964",       "EUC-TW" },
+    { "IBM-970",       "EUC-KR" },
+  /*{ "IBM-971",       "KS_C_5601-1987" },*/
+    { "IBM-eucCN",     "GB2312" },
+    { "IBM-eucJP",     "EUC-JP" },
+    { "IBM-eucKR",     "EUC-KR" },
+    { "IBM-eucTW",     "EUC-TW" },
+    { "IBM33722",      "EUC-JP" },
+    { "ISO8859-1",     "ISO-8859-1" },
+    { "ISO8859-2",     "ISO-8859-2" },
+    { "ISO8859-3",     "ISO-8859-3" },
+    { "ISO8859-4",     "ISO-8859-4" },
+    { "ISO8859-5",     "ISO-8859-5" },
+    { "ISO8859-6",     "ISO-8859-6" },
+    { "ISO8859-7",     "ISO-8859-7" },
+    { "ISO8859-8",     "ISO-8859-8" },
+    { "ISO8859-9",     "ISO-8859-9" },
+  /*{ "JISX0201-1976", "JISX0201-1976" },*/
+  /*{ "JISX0208-1978", "?" },*/
+  /*{ "JISX0208-1983", "JIS_X0208-1983" },*/
+  /*{ "JISX0208-1990", "JIS_X0208-1990" },*/
+  /*{ "JISX0212-1990", "JIS_X0212-1990" },*/
+  /*{ "KSC5601-1987",  "KS_C_5601-1987" },*/
+    { "SJIS-1",        "CP943" },
+    { "SJIS-2",        "CP943" },
+    { "eucJP",         "EUC-JP" },
+    { "eucKR",         "EUC-KR" },
+    { "eucTW-1993",    "EUC-TW" }
 #   define alias_table_defined
 #  endif
 #  if defined VMS                                           /* OpenVMS */
@@ -675,8 +816,11 @@ static const struct table_entry locale_table[] =
 
 
 /* Determine the current locale's character encoding, and canonicalize it
-   into one of the canonical names listed in localcharset.h.
-   The result must not be freed; it is statically allocated.
+   into one of the canonical names listed below.
+   The result must not be freed; it is statically allocated.  The result
+   becomes invalid when setlocale() is used to change the global locale, or
+   when the value of one of the environment variables LC_ALL, LC_CTYPE, LANG
+   is changed; threads in multithreaded programs should not do this.
    If the canonical name cannot be determined, the result is a non-canonical
    name.  */
 
@@ -687,6 +831,13 @@ const char *
 locale_charset (void)
 {
   const char *codeset;
+
+  /* This function must be multithread-safe.  To achieve this without using
+     thread-local storage, we use a simple strcpy or memcpy to fill this static
+     buffer.  Filling it through, for example, strcpy + strcat would not be
+     guaranteed to leave the buffer's contents intact if another thread is
+     currently accessing it.  If necessary, the contents is first assembled in
+     a stack-allocated buffer.  */
 
 #if HAVE_LANGINFO_CODESET || defined WINDOWS_NATIVE || defined OS2
 
@@ -702,7 +853,7 @@ locale_charset (void)
   if (codeset != NULL && strcmp (codeset, "US-ASCII") == 0)
     {
       const char *locale;
-      static char buf[2 + 10 + 1];
+      static char resultbuf[2 + 10 + 1];
 
       locale = getenv ("LC_ALL");
       if (locale == NULL || locale[0] == '\0')
@@ -726,11 +877,12 @@ locale_charset (void)
               modifier = strchr (dot, '@');
               if (modifier == NULL)
                 return dot;
-              if (modifier - dot < sizeof (buf))
+              if (modifier - dot < sizeof (resultbuf))
                 {
-                  memcpy (buf, dot, modifier - dot);
-                  buf [modifier - dot] = '\0';
-                  return buf;
+                  /* This way of filling resultbuf is multithread-safe.  */
+                  memcpy (resultbuf, dot, modifier - dot);
+                  resultbuf [modifier - dot] = '\0';
+                  return resultbuf;
                 }
             }
         }
@@ -746,8 +898,13 @@ locale_charset (void)
          converting to GetConsoleOutputCP().  This leads to correct results,
          except when SetConsoleOutputCP has been called and a raster font is
          in use.  */
-      sprintf (buf, "CP%u", GetACP ());
-      codeset = buf;
+      {
+        char buf[2 + 10 + 1];
+
+        sprintf (buf, "CP%u", GetACP ());
+        strcpy (resultbuf, buf);
+        codeset = resultbuf;
+      }
     }
 #  endif
 
@@ -757,42 +914,44 @@ locale_charset (void)
 
 # elif defined WINDOWS_NATIVE
 
-  static char buf[2 + 10 + 1];
+  char buf[2 + 10 + 1];
+  static char resultbuf[2 + 10 + 1];
 
   /* The Windows API has a function returning the locale's codepage as
      a number, but the value doesn't change according to what the
      'setlocale' call specified.  So we use it as a last resort, in
      case the string returned by 'setlocale' doesn't specify the
      codepage.  */
-  char *current_locale = setlocale (LC_ALL, NULL);
-  char *pdot;
+  char *current_locale = setlocale (LC_CTYPE, NULL);
+  char *pdot = strrchr (current_locale, '.');
 
-  /* If they set different locales for different categories,
-     'setlocale' will return a semi-colon separated list of locale
-     values.  To make sure we use the correct one, we choose LC_CTYPE.  */
-  if (strchr (current_locale, ';'))
-    current_locale = setlocale (LC_CTYPE, NULL);
-
-  pdot = strrchr (current_locale, '.');
   if (pdot && 2 + strlen (pdot + 1) + 1 <= sizeof (buf))
     sprintf (buf, "CP%s", pdot + 1);
   else
     {
       /* The Windows API has a function returning the locale's codepage as a
-        number: GetACP().
-        When the output goes to a console window, it needs to be provided in
-        GetOEMCP() encoding if the console is using a raster font, or in
-        GetConsoleOutputCP() encoding if it is using a TrueType font.
-        But in GUI programs and for output sent to files and pipes, GetACP()
-        encoding is the best bet.  */
+         number: GetACP().
+         When the output goes to a console window, it needs to be provided in
+         GetOEMCP() encoding if the console is using a raster font, or in
+         GetConsoleOutputCP() encoding if it is using a TrueType font.
+         But in GUI programs and for output sent to files and pipes, GetACP()
+         encoding is the best bet.  */
       sprintf (buf, "CP%u", GetACP ());
     }
-  codeset = buf;
+  /* For a locale name such as "French_France.65001", in Windows 10,
+     setlocale now returns "French_France.utf8" instead.  */
+  if (strcmp (buf + 2, "65001") == 0 || strcmp (buf + 2, "utf8") == 0)
+    codeset = "UTF-8";
+  else
+    {
+      strcpy (resultbuf, buf);
+      codeset = resultbuf;
+    }
 
 # elif defined OS2
 
   const char *locale;
-  static char buf[2 + 10 + 1];
+  static char resultbuf[2 + 10 + 1];
   ULONG cp[3];
   ULONG cplen;
 
@@ -821,11 +980,12 @@ locale_charset (void)
           modifier = strchr (dot, '@');
           if (modifier == NULL)
             return dot;
-          if (modifier - dot < sizeof (buf))
+          if (modifier - dot < sizeof (resultbuf))
             {
-              memcpy (buf, dot, modifier - dot);
-              buf [modifier - dot] = '\0';
-              return buf;
+              /* This way of filling resultbuf is multithread-safe.  */
+              memcpy (resultbuf, dot, modifier - dot);
+              resultbuf [modifier - dot] = '\0';
+              return resultbuf;
             }
         }
 
@@ -841,8 +1001,11 @@ locale_charset (void)
         codeset = "";
       else
         {
+          char buf[2 + 10 + 1];
+
           sprintf (buf, "CP%u", cp[0]);
-          codeset = buf;
+          strcpy (resultbuf, buf);
+          codeset = resultbuf;
         }
     }
 

@@ -1,6 +1,6 @@
 /* Parse command line arguments for bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2019 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2020 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -41,7 +41,7 @@ extern bool no_lines_flag;              /* for -l */
 extern bool token_table_flag;           /* for -k */
 extern location yacc_loc;               /* for -y */
 extern bool update_flag;                /* for -u */
-
+extern bool color_debug;                /* --color=debug. */
 /* GLR_PARSER is true if the input file says to use the GLR
    (Generalized LR) parser, and to output some additional information
    used by the GLR algorithm.  */
@@ -103,6 +103,8 @@ enum trace
     trace_m4        = 1 << 10, /**< M4 traces. */
     trace_muscles   = 1 << 11, /**< M4 definitions of the muscles. */
     trace_ielr      = 1 << 12, /**< IELR conversion. */
+    trace_closure   = 1 << 13, /**< Input/output of closure(). */
+    trace_locations = 1 << 14, /**< Full display of locations. */
     trace_all       = ~0       /**< All of the above.  */
   };
 /** What debug items bison displays during its run.  */
@@ -114,10 +116,11 @@ extern int trace_flag;
 
 enum feature
   {
-    feature_none           = 0,       /**< No additional feature.  */
-    feature_caret          = 1 << 0,  /**< Output errors with carets.  */
-    feature_fixit_parsable = 1 << 1,  /**< Issue instructions to fix the sources.  */
-    feature_all            = ~0       /**< All above features.  */
+    feature_none             = 0,      /**< No additional feature.  */
+    feature_caret            = 1 << 0, /**< Output errors with carets.  */
+    feature_fixit            = 1 << 1, /**< Issue instructions to fix the sources.  */
+    feature_syntax_only      = 1 << 2, /**< Don't generate output.  */
+    feature_all              = ~0      /**< All above features.  */
   };
 /** What additional features to use.  */
 extern int feature_flag;

@@ -138,9 +138,10 @@ The macro `b4_symbol(NUM, FIELD)` gives access to the following FIELDS:
 - `printer`: string
 - `printer_file`: string
 - `printer_line`: integer
+- `printer_loc`: location
   If the symbol has a printer, everything about it.
 
-- `has_destructor`, `destructor`, `destructor_file`, `destructor_line`
+- `has_destructor`, `destructor`, `destructor_file`, `destructor_line`, `destructor_loc`
   Likewise.
 
 ### `b4_symbol_value(VAL, [SYMBOL-NUM], [TYPE-TAG])`
@@ -173,7 +174,7 @@ fill-column: 76
 ispell-dictionary: "american"
 End:
 
-Copyright (C) 2002, 2008-2015, 2018-2019 Free Software Foundation, Inc.
+Copyright (C) 2002, 2008-2015, 2018-2020 Free Software Foundation, Inc.
 
 This file is part of GNU Bison.
 

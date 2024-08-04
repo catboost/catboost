@@ -1,6 +1,6 @@
 /* Print information on generated parser, for bison,
 
-   Copyright (C) 1984, 1986, 1989, 2000-2005, 2007, 2009-2015, 2018-2019
+   Copyright (C) 1984, 1986, 1989, 2000-2005, 2007, 2009-2015, 2018-2020
    Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -23,13 +23,13 @@
 
 #include <bitset.h>
 
-#include "LR0.h"
 #include "closure.h"
 #include "conflicts.h"
 #include "files.h"
 #include "getargs.h"
 #include "gram.h"
 #include "lalr.h"
+#include "lr0.h"
 #include "muscle-tab.h"
 #include "print.h"
 #include "reader.h"
@@ -63,8 +63,6 @@ print_core (FILE *out, state *s)
 {
   item_number *sitems = s->items;
   size_t snritems = s->nitems;
-  sym_content *previous_lhs = NULL;
-
   /* Output all the items of a state, not only its kernel.  */
   if (report_flag & report_itemsets)
     {
@@ -78,33 +76,18 @@ print_core (FILE *out, state *s)
 
   fputc ('\n', out);
 
+  rule const *previous_rule = NULL;
   for (size_t i = 0; i < snritems; i++)
     {
       item_number *sp1 = ritem + sitems[i];
-
-      item_number *sp = sp1;
-      while (*sp >= 0)
-        sp++;
-
-      rule_number r = item_number_as_rule_number (*sp);
-
-      rule_lhs_print (&rules[r], previous_lhs, out);
-      previous_lhs = rules[r].lhs;
-
-      for (sp = rules[r].rhs; sp < sp1; sp++)
-        fprintf (out, " %s", symbols[*sp]->tag);
-      fputs (" .", out);
-      if (0 <= *rules[r].rhs)
-        for (/* Nothing */; 0 <= *sp; ++sp)
-          fprintf (out, " %s", symbols[*sp]->tag);
-      else
-        fprintf (out, " %%empty");
+      rule const *r = item_rule (sp1);
+      item_print (sp1, previous_rule, out);
+      previous_rule = r;
 
       /* Display the lookahead tokens?  */
       if (report_flag & report_lookahead_tokens
           && item_number_is_rule_number (*sp1))
-        state_rule_lookahead_tokens_print (s, &rules[r], out);
-
+        state_rule_lookahead_tokens_print (s, r, out);
       fputc ('\n', out);
     }
 }
@@ -336,7 +319,7 @@ print_reductions (FILE *out, state *s)
 
 /*--------------------------------------------------------------.
 | Report on OUT all the actions (shifts, gotos, reductions, and |
-| explicit erros from %nonassoc) of S.                          |
+| explicit errors from %nonassoc) of S.                         |
 `--------------------------------------------------------------*/
 
 static void
@@ -374,17 +357,6 @@ print_state (FILE *out, state *s)
 | Print information on the whole grammar.  |
 `-----------------------------------------*/
 
-#define END_TEST(End)                           \
-  do {                                          \
-    if (column + strlen (buffer) > (End))       \
-      {                                         \
-        fprintf (out, "%s\n   ", buffer);       \
-        column = 3;                             \
-        buffer[0] = 0;                          \
-      }                                         \
-  } while (0)
-
-
 static void
 print_terminal_symbols (FILE *out)
 {
@@ -394,29 +366,20 @@ print_terminal_symbols (FILE *out)
     if (token_translations[i] != undeftoken->content->number)
       {
         const char *tag = symbols[token_translations[i]]->tag;
-        int column = strlen (tag);
-        char buffer[90];
-
-        buffer[0] = 0;
-        fputs (tag, out);
-        END_TEST (65);
+        fprintf (out, "%4s%s", "", tag);
         if (symbols[token_translations[i]]->content->type_name)
-          {
-            column += fprintf (out, " <%s>",
-                               symbols[token_translations[i]]->content->type_name);
-            END_TEST (65);
-          }
-        sprintf (buffer, " (%d)", i);
+          fprintf (out, " <%s>",
+                   symbols[token_translations[i]]->content->type_name);
+        fprintf (out, " (%d)", i);
 
         for (rule_number r = 0; r < nrules; r++)
           for (item_number *rhsp = rules[r].rhs; *rhsp >= 0; rhsp++)
             if (item_number_as_symbol_number (*rhsp) == token_translations[i])
               {
-                END_TEST (65);
-                sprintf (buffer + strlen (buffer), " %d", r);
+                fprintf (out, " %d", r);
                 break;
               }
-        fprintf (out, "%s\n", buffer);
+        fputc ('\n', out);
       }
   fputs ("\n\n", out);
 }
@@ -429,64 +392,46 @@ print_nonterminal_symbols (FILE *out)
   for (symbol_number i = ntokens; i < nsyms; i++)
     {
       const char *tag = symbols[i]->tag;
-      int column = strlen (tag);
-      int left_count = 0, right_count = 0;
+      bool on_left = false;
+      bool on_right = false;
 
       for (rule_number r = 0; r < nrules; r++)
         {
-          if (rules[r].lhs->number == i)
-            left_count++;
-          for (item_number *rhsp = rules[r].rhs; *rhsp >= 0; rhsp++)
-            if (item_number_as_symbol_number (*rhsp) == i)
-              {
-                right_count++;
-                break;
-              }
+          on_left |= rules[r].lhs->number == i;
+          for (item_number *rhsp = rules[r].rhs; !on_right && 0 <= *rhsp; ++rhsp)
+            on_right |= item_number_as_symbol_number (*rhsp) == i;
+          if (on_left && on_right)
+            break;
         }
 
-      fputs (tag, out);
+      int column = 4 + strlen (tag);
+      fprintf (out, "%4s%s", "", tag);
       if (symbols[i]->content->type_name)
         column += fprintf (out, " <%s>",
                            symbols[i]->content->type_name);
-      char buffer[90];
-      buffer[0] = 0;
-      sprintf (buffer, " (%d)", i);
-      END_TEST (0);
+      fprintf (out, " (%d)\n", i);
 
-      if (left_count > 0)
+      if (on_left)
         {
-          END_TEST (65);
-          sprintf (buffer + strlen (buffer), _(" on left:"));
-
+          fprintf (out, "%8s%s", "", _("on left:"));
           for (rule_number r = 0; r < nrules; r++)
-            {
-              if (rules[r].lhs->number == i)
+            if (rules[r].lhs->number == i)
+              fprintf (out, " %d", r);
+          fputc ('\n', out);
+        }
+
+      if (on_right)
+        {
+          fprintf (out, "%8s%s", "", _("on right:"));
+          for (rule_number r = 0; r < nrules; r++)
+            for (item_number *rhsp = rules[r].rhs; 0 <= *rhsp; ++rhsp)
+              if (item_number_as_symbol_number (*rhsp) == i)
                 {
-                  END_TEST (65);
-                  sprintf (buffer + strlen (buffer), " %d", r);
+                  fprintf (out, " %d", r);
+                  break;
                 }
-            }
+          fputc ('\n', out);
         }
-
-      if (right_count > 0)
-        {
-          if (left_count > 0)
-            sprintf (buffer + strlen (buffer), ",");
-          END_TEST (65);
-          sprintf (buffer + strlen (buffer), _(" on right:"));
-          for (rule_number r = 0; r < nrules; r++)
-            {
-              item_number *rhsp;
-              for (rhsp = rules[r].rhs; *rhsp >= 0; rhsp++)
-                if (item_number_as_symbol_number (*rhsp) == i)
-                  {
-                    END_TEST (65);
-                    sprintf (buffer + strlen (buffer), " %d", r);
-                    break;
-                  }
-            }
-        }
-      fprintf (out, "%s\n", buffer);
     }
 }
 
@@ -507,17 +452,11 @@ print_results (void)
   print_terminal_symbols (out);
   print_nonterminal_symbols (out);
 
-  /* If the whole state item sets, not only the kernels, are wanted,
-     'closure' will be run, which needs memory allocation/deallocation.   */
-  if (report_flag & report_itemsets)
-    new_closure (nritems);
   /* Storage for print_reductions.  */
   no_reduce_set = bitset_create (ntokens, BITSET_FIXED);
   for (state_number i = 0; i < nstates; i++)
     print_state (out, states[i]);
   bitset_free (no_reduce_set);
-  if (report_flag & report_itemsets)
-    free_closure ();
 
   xfclose (out);
 }

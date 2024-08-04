@@ -1,6 +1,6 @@
 /* Open and close files for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2019 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2020 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -21,11 +21,13 @@
 #include <config.h>
 #include "system.h"
 
+#include <configmake.h> /* PKGDATADIR */
 #include <error.h>
 #include <dirname.h>
 #include <get-errno.h>
 #include <quote.h>
 #include <quotearg.h>
+#include <relocatable.h> /* relocate2 */
 #include <stdio-safer.h>
 #include <xstrndup.h>
 
@@ -49,7 +51,7 @@ location spec_name_prefix_loc = EMPTY_LOCATION_INIT;
 char *spec_verbose_file = NULL;  /* for --verbose. */
 char *spec_graph_file = NULL;    /* for -g. */
 char *spec_xml_file = NULL;      /* for -x. */
-char *spec_defines_file = NULL;  /* for --defines. */
+char *spec_header_file = NULL;  /* for --defines. */
 char *parser_file_name;
 
 /* All computed output file names.  */
@@ -66,7 +68,6 @@ static generated_file *generated_files = NULL;
 static int generated_files_size = 0;
 
 uniqstr grammar_file = NULL;
-uniqstr current_file = NULL;
 
 /* If --output=dir/foo.c was specified,
    DIR_PREFIX is 'dir/' and ALL_BUT_EXT and ALL_BUT_TAB_EXT are 'dir/foo'.
@@ -343,14 +344,15 @@ compute_output_file_names (void)
 
   if (defines_flag)
     {
-      if (! spec_defines_file)
-        spec_defines_file = concat2 (all_but_ext, header_extension);
+      if (! spec_header_file)
+        spec_header_file = concat2 (all_but_ext, header_extension);
     }
 
   if (graph_flag)
     {
       if (! spec_graph_file)
-        spec_graph_file = concat2 (all_but_tab_ext, ".dot");
+        spec_graph_file = concat2 (all_but_tab_ext,
+                                   304 <= required_version ? ".gv" : ".dot");
       output_file_name_check (&spec_graph_file, false);
     }
 
@@ -414,6 +416,30 @@ unlink_generated_sources (void)
       unlink (generated_files[i].name);
 }
 
+/* Memory allocated by relocate2, to free.  */
+static char *relocate_buffer = NULL;
+
+#include "uniqstr.h"
+#include <contrib/tools/bison/arcadia_root.h>
+#define STR(a) XSTR(a)
+#define XSTR(a) #a
+char const *
+pkgdatadir (void)
+{
+  const char* arc_path  = getenv("ARCADIA_ROOT_DISTBUILD");
+  if (arc_path == NULL)
+    arc_path = ArcadiaRoot();
+  return uniqstr_concat(3, arc_path, "/", STR(BISON_DATA_DIR));
+  
+  if (relocate_buffer)
+    return relocate_buffer;
+  else
+    {
+      char const *cp = getenv ("BISON_PKGDATADIR");
+      return cp ? cp : relocate2 (PKGDATADIR, &relocate_buffer);
+    }
+}
+
 void
 output_file_names_free (void)
 {
@@ -421,10 +447,11 @@ output_file_names_free (void)
   free (spec_verbose_file);
   free (spec_graph_file);
   free (spec_xml_file);
-  free (spec_defines_file);
+  free (spec_header_file);
   free (parser_file_name);
   free (dir_prefix);
   for (int i = 0; i < generated_files_size; i++)
     free (generated_files[i].name);
   free (generated_files);
+  free (relocate_buffer);
 }

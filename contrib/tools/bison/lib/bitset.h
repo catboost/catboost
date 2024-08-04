@@ -1,6 +1,6 @@
 /* Generic bitsets.
 
-   Copyright (C) 2002-2004, 2009-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002-2004, 2009-2015, 2018-2020 Free Software Foundation, Inc.
 
    Contributed by Michael Hayes (m.hayes@elec.canterbury.ac.nz).
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _GL_BITSET_H
 #define _GL_BITSET_H
@@ -109,7 +109,7 @@ enum bitset_type bitset_type_choose (bitset_bindex, bitset_attrs);
 /* Create a bitset of desired type and size.  The bitset is zeroed.  */
 bitset bitset_alloc (bitset_bindex, enum bitset_type);
 
-/* Free bitset.  */
+/* Free bitset.  Do nothing if NULL.  */
 void bitset_free (bitset);
 
 /* Create a bitset of desired type and size using an obstack.  The
@@ -117,7 +117,7 @@ void bitset_free (bitset);
 bitset bitset_obstack_alloc (struct obstack *bobstack,
                              bitset_bindex, enum bitset_type);
 
-/* Free bitset allocated on obstack.  */
+/* Free bitset allocated on obstack.  Do nothing if NULL.  */
 void bitset_obstack_free (bitset);
 
 /* Create a bitset of desired size and attributes.  The bitset is zeroed.  */
@@ -178,8 +178,9 @@ bitset_test (bitset bset, bitset_bindex bitno)
 /* Return size in bits of bitset SRC.  */
 #define bitset_size(SRC) BITSET_SIZE_ (SRC)
 
-/* Change size of bitset.  */
-void bitset_resize (bitset, bitset_bindex);
+/* Change size in bits of bitset.  New bits are zeroed.  Return
+   SIZE.  */
+#define bitset_resize(DST, SIZE) BITSET_RESIZE_ (DST, SIZE)
 
 /* Return number of bits set in bitset SRC.  */
 #define bitset_count(SRC) BITSET_COUNT_ (SRC)

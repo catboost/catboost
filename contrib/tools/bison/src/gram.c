@@ -1,6 +1,6 @@
 /* Allocate input grammar variables for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 2001-2003, 2005-2015, 2018-2019 Free
+   Copyright (C) 1984, 1986, 1989, 2001-2003, 2005-2015, 2018-2020 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -32,7 +32,7 @@
 /* Comments for these variables are in gram.h.  */
 
 item_number *ritem = NULL;
-unsigned nritems = 0;
+int nritems = 0;
 
 rule *rules = NULL;
 rule_number nrules = 0;
@@ -47,6 +47,34 @@ symbol_number *token_translations = NULL;
 int max_user_token_number = 256;
 
 int required_version = 0;
+
+rule const *
+item_rule (item_number const *item)
+{
+  item_number const *sp = item;
+  while (0 <= *sp)
+    ++sp;
+  rule_number r = item_number_as_rule_number (*sp);
+  return &rules[r];
+}
+
+
+void
+item_print (item_number *item, rule const *previous_rule, FILE *out)
+{
+  rule const *r = item_rule (item);
+  rule_lhs_print (r, previous_rule ? previous_rule->lhs : NULL, out);
+
+  for (item_number *sp = r->rhs; sp < item; sp++)
+    fprintf (out, " %s", symbols[*sp]->tag);
+  fputs (" .", out);
+  if (0 <= *r->rhs)
+    for (item_number *sp = item; 0 <= *sp; ++sp)
+      fprintf (out, " %s", symbols[*sp]->tag);
+  else
+    fprintf (out, " %%empty");
+}
+
 
 bool
 rule_useful_in_grammar_p (rule const *r)
@@ -64,6 +92,12 @@ bool
 rule_useless_in_parser_p (rule const *r)
 {
   return !r->useful && rule_useful_in_grammar_p (r);
+}
+
+bool
+rule_useless_chain_p (rule const *r)
+{
+  return rule_rhs_length (r) == 1 && !r->action;
 }
 
 void
@@ -86,7 +120,7 @@ size_t
 rule_rhs_length (rule const *r)
 {
   size_t res = 0;
-  for (item_number *rhsp = r->rhs; *rhsp >= 0; ++rhsp)
+  for (item_number *rhsp = r->rhs; 0 <= *rhsp; ++rhsp)
     ++res;
   return res;
 }
@@ -95,8 +129,8 @@ void
 rule_rhs_print (rule const *r, FILE *out)
 {
   if (0 <= *r->rhs)
-    for (item_number *rp = r->rhs; *rp >= 0; rp++)
-      fprintf (out, " %s", symbols[*rp]->tag);
+    for (item_number *rhsp = r->rhs; 0 <= *rhsp; ++rhsp)
+      fprintf (out, " %s", symbols[*rhsp]->tag);
   else
     fputs (" %empty", out);
 }
@@ -107,9 +141,9 @@ rule_rhs_print_xml (rule const *r, FILE *out, int level)
   if (*r->rhs >= 0)
     {
       xml_puts (out, level, "<rhs>");
-      for (item_number *rp = r->rhs; *rp >= 0; rp++)
+      for (item_number *rhsp = r->rhs; 0 <= *rhsp; ++rhsp)
         xml_printf (out, level + 1, "<symbol>%s</symbol>",
-                    xml_escape (symbols[*rp]->tag));
+                    xml_escape (symbols[*rhsp]->tag));
       xml_puts (out, level, "</rhs>");
     }
   else
@@ -121,10 +155,17 @@ rule_rhs_print_xml (rule const *r, FILE *out, int level)
 }
 
 void
+rule_print (rule const *r, rule const *prev_rule, FILE *out)
+{
+  rule_lhs_print (r, prev_rule ? prev_rule->lhs : NULL, out);
+  rule_rhs_print (r, out);
+}
+
+void
 ritem_print (FILE *out)
 {
   fputs ("RITEM\n", out);
-  for (unsigned i = 0; i < nritems; ++i)
+  for (int i = 0; i < nritems; ++i)
     if (ritem[i] >= 0)
       fprintf (out, "  %s", symbols[ritem[i]]->tag);
     else
@@ -138,7 +179,7 @@ ritem_longest_rhs (void)
   int max = 0;
   for (rule_number r = 0; r < nrules; ++r)
     {
-      int length = rule_rhs_length (&rules[r]);
+      size_t length = rule_rhs_length (&rules[r]);
       if (length > max)
         max = length;
     }
@@ -151,7 +192,7 @@ grammar_rules_partial_print (FILE *out, const char *title,
                              rule_filter filter)
 {
   bool first = true;
-  sym_content *previous_lhs = NULL;
+  rule *previous_rule = NULL;
 
   /* rule # : LHS -> RHS */
   for (rule_number r = 0; r < nrules + nuseless_productions; r++)
@@ -160,13 +201,12 @@ grammar_rules_partial_print (FILE *out, const char *title,
         continue;
       if (first)
         fprintf (out, "%s\n\n", title);
-      else if (previous_lhs && previous_lhs != rules[r].lhs)
+      else if (previous_rule && previous_rule->lhs != rules[r].lhs)
         fputc ('\n', out);
       first = false;
-      rule_lhs_print (&rules[r], previous_lhs, out);
-      rule_rhs_print (&rules[r], out);
-      fprintf (out, "\n");
-      previous_lhs = rules[r].lhs;
+      rule_print (&rules[r], previous_rule, out);
+      fputc ('\n', out);
+      previous_rule = &rules[r];
     }
   if (!first)
     fputs ("\n\n", out);
@@ -189,13 +229,10 @@ grammar_rules_print_xml (FILE *out, int level)
         xml_puts (out, level + 1, "<rules>");
       first = false;
       {
-        char const *usefulness;
-        if (rule_useless_in_grammar_p (&rules[r]))
-          usefulness = "useless-in-grammar";
-        else if (rule_useless_in_parser_p (&rules[r]))
-          usefulness = "useless-in-parser";
-        else
-          usefulness = "useful";
+        char const *usefulness
+          = rule_useless_in_grammar_p (&rules[r]) ? "useless-in-grammar"
+          : rule_useless_in_parser_p (&rules[r])  ? "useless-in-parser"
+          :                                         "useful";
         xml_indent (out, level + 2);
         fprintf (out, "<rule number=\"%d\" usefulness=\"%s\"",
                  rules[r].number, usefulness);
@@ -222,12 +259,11 @@ grammar_dump (FILE *out, const char *title)
            "ntokens = %d, nvars = %d, nsyms = %d, nrules = %d, nritems = %d\n\n",
            ntokens, nvars, nsyms, nrules, nritems);
 
-
-  fprintf (out, "Variables\n---------\n\n");
+  fprintf (out, "Tokens\n------\n\n");
   {
     fprintf (out, "Value  Sprec  Sassoc  Tag\n");
 
-    for (symbol_number i = ntokens; i < nsyms; i++)
+    for (symbol_number i = 0; i < ntokens; i++)
       fprintf (out, "%5d  %5d   %5d  %s\n",
                i,
                symbols[i]->content->prec, symbols[i]->content->assoc,
@@ -235,42 +271,49 @@ grammar_dump (FILE *out, const char *title)
     fprintf (out, "\n\n");
   }
 
+  fprintf (out, "Non terminals\n-------------\n\n");
+  {
+    fprintf (out, "Value  Tag\n");
+
+    for (symbol_number i = ntokens; i < nsyms; i++)
+      fprintf (out, "%5d  %s\n",
+               i, symbols[i]->tag);
+    fprintf (out, "\n\n");
+  }
+
   fprintf (out, "Rules\n-----\n\n");
   {
     fprintf (out,
-             "Num (Prec, Assoc, Useful, Ritem Range) Lhs"
-             " -> Rhs (Ritem range) [Num]\n");
-    for (rule_number i = 0; i < nrules + nuseless_productions; i++)
+             "Num (Prec, Assoc, Useful, UselessChain) Lhs"
+             " -> (Ritem Range) Rhs\n");
+    for (rule_number i = 0; i < nrules + nuseless_productions; ++i)
       {
         rule const *rule_i = &rules[i];
-        unsigned const rhs_itemno = rule_i->rhs - ritem;
-        /* Find the last RHS index in ritems. */
-        unsigned rhs_count = 0;
-        for (item_number *rp = rule_i->rhs; *rp >= 0; ++rp)
-          ++rhs_count;
-        fprintf (out, "%3d (%2d, %2d, %2d, %2u-%2u)   %2d ->",
+        int const rhs_itemno = rule_i->rhs - ritem;
+        int length = rule_rhs_length (rule_i);
+        aver (item_number_as_rule_number (rule_i->rhs[length]) == i);
+        fprintf (out, "%3d (%2d, %2d, %2s, %2s)   %2d -> (%2u-%2u)",
                  i,
                  rule_i->prec ? rule_i->prec->prec : 0,
                  rule_i->prec ? rule_i->prec->assoc : 0,
-                 rule_i->useful,
-                 rhs_itemno,
-                 rhs_itemno + rhs_count - 1,
-                 rule_i->lhs->number);
+                 rule_i->useful ? "t" : "f",
+                 rule_useless_chain_p (rule_i) ? "t" : "f",
+                 rule_i->lhs->number,
+                 rhs_itemno, rhs_itemno + length - 1);
         /* Dumped the RHS. */
-        for (item_number *rp = rule_i->rhs; *rp >= 0; ++rp)
-          fprintf (out, " %3d", *rp);
-        fprintf (out, "  [%d]\n",
-                 item_number_as_rule_number (rule_i->rhs[rhs_count+1]));
+        for (item_number *rhsp = rule_i->rhs; 0 <= *rhsp; ++rhsp)
+          fprintf (out, " %3d", *rhsp);
+        fputc ('\n', out);
       }
   }
   fprintf (out, "\n\n");
 
   fprintf (out, "Rules interpreted\n-----------------\n\n");
-  for (rule_number r = 0; r < nrules + nuseless_productions; r++)
+  for (rule_number r = 0; r < nrules + nuseless_productions; ++r)
     {
       fprintf (out, "%-5d  %s:", r, rules[r].lhs->symbol->tag);
       rule_rhs_print (&rules[r], out);
-      fprintf (out, "\n");
+      fputc ('\n', out);
     }
   fprintf (out, "\n\n");
 }
@@ -278,7 +321,7 @@ grammar_dump (FILE *out, const char *title)
 void
 grammar_rules_useless_report (const char *message)
 {
-  for (rule_number r = 0; r < nrules ; ++r)
+  for (rule_number r = 0; r < nrules; ++r)
     /* Don't complain about rules whose LHS is useless, we already
        complained about it.  */
     if (!reduce_nonterminal_useless_in_grammar (rules[r].lhs)

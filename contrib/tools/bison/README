@@ -1,15 +1,67 @@
-This package contains the GNU Bison parser generator.
+GNU Bison is a general-purpose parser generator that converts an annotated
+context-free grammar into a deterministic LR or generalized LR (GLR) parser
+employing LALR(1) parser tables.  Bison can also generate IELR(1) or
+canonical LR(1) parser tables.  Once you are proficient with Bison, you can
+use it to develop a wide range of language parsers, from those used in
+simple desk calculators to complex programming languages.
 
-* Installation
-** Build
+Bison is upward compatible with Yacc: all properly-written Yacc grammars
+work with Bison with no change.  Anyone familiar with Yacc should be able to
+use Bison with little trouble.  You need to be fluent in C, C++ or Java
+programming in order to use Bison.
+
+Bison and the parsers it generates are portable, they do not require any
+specific compilers.
+
+GNU Bison's home page is https://gnu.org/software/bison/.
+
+# Installation
+## Build from git
+Here are basic installation instructions for a repository checkout:
+
+    $ git submodule update --init
+    $ ./bootstrap
+
+then proceed with the usual `configure && make` steps.
+
+The file README-hacking.md is about building, modifying and checking Bison.
+
+## Build from tarball
 See the file INSTALL for generic compilation and installation instructions.
 
-Bison requires GNU m4 1.4.6 or later.  See:
+Bison requires GNU m4 1.4.6 or later.  See
+https://ftp.gnu.org/gnu/m4/m4-1.4.6.tar.gz.
 
-      https://ftp.gnu.org/gnu/m4/m4-1.4.6.tar.gz
+## Running a non installed bison
+Once you ran `make`, you might want to toy with this fresh bison before
+installing it.  In that case, do not use `src/bison`: it would use the
+*installed* files (skeletons, etc.), not the local ones.  Use `tests/bison`.
 
-** Relocatability
-If you pass '--enable-relocatable' to 'configure', Bison is relocatable.
+## Colored diagnostics
+As an experimental feature, diagnostics are now colored, controlled by the
+`--color` and `--style` options.
+
+To use them, install the libtextstyle library before configuring Bison.  It
+is available from https://alpha.gnu.org/gnu/gettext/, for instance
+https://alpha.gnu.org/pub/gnu/gettext/libtextstyle-0.20.5.tar.gz.
+
+The option --color supports the following arguments:
+- always, yes: Enable colors.
+- never, no: Disable colors.
+- auto, tty (default): Enable colors if the output device is a tty.
+
+To customize the styles, create a CSS file, say `bison-bw.css`, similar to
+
+    /* bison-bw.css */
+    .warning   { }
+    .error     { font-weight: 800; text-decoration: underline; }
+    .note      { }
+
+then invoke bison with `--style=bison-bw.css`, or set the `BISON_STYLE`
+environment variable to `bison-bw.css`.
+
+## Relocatability
+If you pass `--enable-relocatable` to `configure`, Bison is relocatable.
 
 A relocatable program can be moved or copied to a different location on the
 file system.  It can also be used through mount points for network sharing.
@@ -18,7 +70,7 @@ invoke them through the symlink.
 
 See "Enabling Relocatability" in the documentation.
 
-** Internationalization
+## Internationalization
 Bison supports two catalogs: one for Bison itself (i.e., for the
 maintainer-side parser generation), and one for the generated parsers (i.e.,
 for the user-side parser execution).  The requirements between both differ:
@@ -28,49 +80,46 @@ generated parsers could have been localized.  See
 http://lists.gnu.org/archive/html/bug-bison/2009-08/msg00006.html for more
 details.
 
-* Questions
+# Questions
 See the section FAQ in the documentation (doc/bison.info) for frequently
 asked questions.  The documentation is also available in PDF and HTML,
-provided you have a recent version of Texinfo installed: run "make pdf" or
-"make html".
+provided you have a recent version of Texinfo installed: run `make pdf` or
+`make html`.
 
 If you have questions about using Bison and the documentation does not
 answer them, please send mail to <help-bison@gnu.org>.
 
-* Bug reports
+# Bug reports
 Please send bug reports to <bug-bison@gnu.org>.  Be sure to include the
-version number from 'bison --version', and a complete, self-contained test
+version number from `bison --version`, and a complete, self-contained test
 case in each bug report.
 
-* Copyright statements
+# Copyright statements
 For any copyright year range specified as YYYY-ZZZZ in this package, note
 that the range specifies every single year in that closed interval.
 
------
+<!--
 
-Local Variables:
-mode: outline
-fill-column: 76
-ispell-dictionary: "american"
-End:
-
-Copyright (C) 1992, 1998-1999, 2003-2005, 2008-2015, 2018-2019 Free
+Copyright (C) 1992, 1998-1999, 2003-2005, 2008-2015, 2018-2020 Free
 Software Foundation, Inc.
 
 This file is part of GNU bison, the GNU Compiler Compiler.
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the "GNU Free
+Documentation License" file as part of this distribution.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+Local Variables:
+mode: markdown
+fill-column: 76
+ispell-dictionary: "american"
+End:
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+LocalWords:  parsers ngettext Texinfo pdf html YYYY ZZZZ ispell american md
+LocalWords:  MERCHANTABILITY GLR LALR IELR submodule init README src bw
+LocalWords:  Relocatability symlinks symlink
 
-# LocalWords:  parsers ngettext Texinfo pdf html YYYY ZZZZ ispell american
-# LocalWords:  MERCHANTABILITY
+-->

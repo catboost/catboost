@@ -1,6 +1,6 @@
 /* Timing variables for measuring application performance.
 
-   Copyright (C) 2000, 2002, 2004, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2000, 2002, 2004, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    Contributed by Alex Samuel <samuel@codesourcery.com>
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef _TIMEVAR_H
 # define _TIMEVAR_H 1

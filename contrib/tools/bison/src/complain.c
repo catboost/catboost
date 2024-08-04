@@ -1,6 +1,6 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2004-2006, 2009-2015, 2018-2019 Free
+   Copyright (C) 2000-2002, 2004-2006, 2009-2015, 2018-2020 Free
    Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -23,8 +23,10 @@
 #include "system.h"
 
 #include <argmatch.h>
-#include <stdarg.h>
 #include <progname.h>
+#include <stdarg.h>
+#include <sys/stat.h>
+#include <textstyle.h>
 
 #include "complain.h"
 #include "files.h"
@@ -39,9 +41,9 @@ bool warnings_are_errors = false;
 /** Whether -Werror/-Wno-error was applied to a warning.  */
 typedef enum
   {
-    errority_unset = 0,     /** No explict status.  */
-    errority_disabled = 1,  /** Explictly disabled with -Wno-error=foo.  */
-    errority_enabled = 2    /** Explictly enabled with -Werror=foo. */
+    errority_unset = 0,     /** No explicit status.  */
+    errority_disabled = 1,  /** Explicitly disabled with -Wno-error=foo.  */
+    errority_enabled = 2    /** Explicitly enabled with -Werror=foo. */
   } errority;
 
 /** For each warning type, its errority.  */
@@ -61,52 +63,105 @@ typedef enum
 /** For each warning type, its severity.  */
 static severity warnings_flag[warnings_size];
 
-static unsigned *indent_ptr = 0;
+styled_ostream_t errstream = NULL;
+
+void
+begin_use_class (const char *s, FILE *out)
+{
+  if (out == stderr)
+    {
+      if (color_debug)
+        fprintf (out, "<%s>", s);
+      else
+        {
+          styled_ostream_begin_use_class (errstream, s);
+          styled_ostream_flush_to_current_style (errstream);
+        }
+    }
+}
+
+void
+end_use_class (const char *s, FILE *out)
+{
+  if (out == stderr)
+    {
+      if (color_debug)
+        fprintf (out, "</%s>", s);
+      else
+        {
+          styled_ostream_end_use_class (errstream, s);
+          styled_ostream_flush_to_current_style (errstream);
+        }
+    }
+}
+
+void
+flush (FILE *out)
+{
+  if (out == stderr)
+    ostream_flush (errstream, FLUSH_THIS_STREAM);
+  fflush (out);
+}
 
 /*------------------------.
 | --warnings's handling.  |
 `------------------------*/
 
-static const char * const warnings_args[] =
+ARGMATCH_DEFINE_GROUP (warning, warnings)
+
+static const argmatch_warning_doc argmatch_warning_docs[] =
 {
-  "none",
-  "midrule-values",
-  "yacc",
-  "conflicts-sr",
-  "conflicts-rr",
-  "deprecated",
-  "empty-rule",
-  "precedence",
-  "other",
-  "all",
-  "error",
-  "everything",
-  0
+  { "conflicts-sr",     N_("S/R conflicts (enabled by default)") },
+  { "conflicts-rr",     N_("R/R conflicts (enabled by default)") },
+  { "dangling-alias",   N_("string aliases not attached to a symbol") },
+  { "deprecated",       N_("obsolete constructs") },
+  { "empty-rule",       N_("empty rules without %empty") },
+  { "midrule-values",   N_("unset or unused midrule values") },
+  { "precedence",       N_("useless precedence and associativity") },
+  { "yacc",             N_("incompatibilities with POSIX Yacc") },
+  { "other",            N_("all other warnings (enabled by default)") },
+  { "all",              N_("all the warnings except 'dangling-alias' and 'yacc'") },
+  { "no-CATEGORY",      N_("turn off warnings in CATEGORY") },
+  { "none",             N_("turn off all the warnings") },
+  { "error[=CATEGORY]", N_("treat warnings as errors") },
+  { NULL, NULL }
 };
 
-static const warnings warnings_types[] =
+static const argmatch_warning_arg argmatch_warning_args[] =
 {
-  Wnone,
-  Wmidrule_values,
-  Wyacc,
-  Wconflicts_sr,
-  Wconflicts_rr,
-  Wdeprecated,
-  Wempty_rule,
-  Wprecedence,
-  Wother,
-  Wall,
-  Werror,
-  Weverything
+  { "all",            Wall },
+  { "conflicts-rr",   Wconflicts_rr },
+  { "conflicts-sr",   Wconflicts_sr },
+  { "dangling-alias", Wdangling_alias },
+  { "deprecated",     Wdeprecated },
+  { "empty-rule",     Wempty_rule },
+  { "everything",     Weverything },
+  { "midrule-values", Wmidrule_values },
+  { "none",           Wnone },
+  { "other",          Wother },
+  { "precedence",     Wprecedence },
+  { "yacc",           Wyacc },
+  { NULL, Wnone }
 };
 
-ARGMATCH_VERIFY (warnings_args, warnings_types);
+const argmatch_warning_group_type argmatch_warning_group =
+{
+  argmatch_warning_args,
+  argmatch_warning_docs,
+  N_("Warning categories include:"),
+  NULL
+};
+
+void
+warning_usage (FILE *out)
+{
+  argmatch_warning_usage (out);
+}
 
 void
 warning_argmatch (char const *arg, size_t no, size_t err)
 {
-  int value = XARGMATCH ("--warning", arg + no + err,
-                         warnings_args, warnings_types);
+  int value = *argmatch_warning_value ("--warning", arg + no + err);
 
   /* -Wnone == -Wno-everything, and -Wno-none == -Weverything.  */
   if (!value)
@@ -145,7 +200,14 @@ warning_argmatch (char const *arg, size_t no, size_t err)
 void
 warnings_argmatch (char *args)
 {
-  if (args)
+  if (!args)
+    warning_argmatch ("all", 0, 0);
+  else if (STREQ (args, "help"))
+    {
+      warning_usage (stdout);
+      exit (EXIT_SUCCESS);
+    }
+  else
     for (args = strtok (args, ","); args; args = strtok (NULL, ","))
       if (STREQ (args, "error"))
         warnings_are_errors = true;
@@ -161,8 +223,43 @@ warnings_argmatch (char *args)
 
           warning_argmatch (args, no, err);
         }
-  else
-    warning_argmatch ("all", 0, 0);
+}
+
+/* Color style for this type of message.  */
+static const char*
+severity_style (severity s)
+{
+  switch (s)
+    {
+    case severity_disabled:
+    case severity_unset:
+      return "note";
+    case severity_warning:
+      return "warning";
+    case severity_error:
+    case severity_fatal:
+      return "error";
+    }
+  abort ();
+}
+
+/* Prefix for this type of message.  */
+static const char*
+severity_prefix (severity s)
+{
+  switch (s)
+    {
+    case severity_disabled:
+    case severity_unset:
+      return "";
+    case severity_warning:
+      return _("warning");
+    case severity_error:
+      return  _("error");
+    case severity_fatal:
+      return _("fatal error");
+    }
+  abort ();
 }
 
 
@@ -171,8 +268,52 @@ warnings_argmatch (char *args)
 `-----------*/
 
 void
+complain_init_color (void)
+{
+#if HAVE_LIBTEXTSTYLE
+  if (color_mode == color_yes
+      || color_mode == color_html
+      || (color_mode == color_tty && isatty (STDERR_FILENO)))
+    {
+      style_file_prepare ("BISON_STYLE", "BISON_STYLEDIR", pkgdatadir (),
+                          "bison-default.css");
+      /* As a fallback, use the default in the current directory.  */
+      struct stat statbuf;
+      if ((style_file_name == NULL || stat (style_file_name, &statbuf) < 0)
+          && stat ("bison-default.css", &statbuf) == 0)
+        style_file_name = "bison-default.css";
+    }
+  else
+    /* No styling.  */
+    style_file_name = NULL;
+#endif
+
+  /* Workaround clang's warning (starting at Clang 3.5) about the stub
+     code of html_styled_ostream_create:
+
+     | src/complain.c:274:7: error: code will never be executed [-Werror,-Wunreachable-code]
+     |     ? html_styled_ostream_create (file_ostream_create (stderr),
+     |       ^~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#if defined __clang__
+# pragma clang diagnostic push
+# pragma clang diagnostic ignored "-Wunreachable-code"
+#endif
+  errstream =
+    color_mode == color_html
+    ? html_styled_ostream_create (file_ostream_create (stderr),
+                                  style_file_name)
+    : styled_ostream_create (STDERR_FILENO, "(stderr)", TTYCTL_AUTO,
+                             style_file_name);
+#if defined __clang__
+# pragma clang diagnostic pop
+#endif
+}
+
+void
 complain_init (void)
 {
+  caret_init ();
+
   warnings warnings_default =
     Wconflicts_sr | Wconflicts_rr | Wdeprecated | Wother;
 
@@ -185,6 +326,12 @@ complain_init (void)
     }
 }
 
+void
+complain_free (void)
+{
+  caret_free ();
+  styled_ostream_free (errstream);
+}
 
 /* A diagnostic with FLAGS is about to be issued.  With what severity?
    (severity_fatal, severity_error, severity_disabled, or
@@ -229,19 +376,31 @@ warning_is_unset (warnings flags)
   return true;
 }
 
-/** Display a "[-Wyacc]" like message on \a f.  */
+bool
+warning_is_enabled (warnings flags)
+{
+  return severity_warning <= warning_severity (flags);
+}
+
+/** Display a "[-Wyacc]" like message on \a out.  */
 
 static void
-warnings_print_categories (warnings warn_flags, FILE *f)
+warnings_print_categories (warnings warn_flags, FILE *out)
 {
-  /* Display only the first match, the second is "-Wall".  */
-  for (size_t i = 0; warnings_args[i]; ++i)
-    if (warn_flags & warnings_types[i])
+  for (int wbit = 0; wbit < warnings_size; ++wbit)
+    if (warn_flags & (1 << wbit))
       {
-        severity s = warning_severity (warnings_types[i]);
-        fprintf (f, " [-W%s%s]",
+        warnings w = 1 << wbit;
+        severity s = warning_severity (w);
+        const char* style = severity_style (s);
+        fputs (" [", out);
+        begin_use_class (style, out);
+        fprintf (out, "-W%s%s",
                  s == severity_error ? "error=" : "",
-                 warnings_args[i]);
+                 argmatch_warning_argument (&w));
+        end_use_class (style, out);
+        fputc (']', out);
+        /* Display only the first match, the second is "-Wall".  */
         return;
       }
 }
@@ -250,8 +409,10 @@ warnings_print_categories (warnings warn_flags, FILE *f)
  *
  * \param loc     the location, defaulting to the current file,
  *                or the program name.
+ * \param indent  optional indentation for the error message.
  * \param flags   the category for this message.
- * \param prefix  put before the message (e.g., "warning").
+ * \param sever   to decide the prefix to put before the message
+ *                (e.g., "warning").
  * \param message the error message, a printf format string.  Iff it
  *                ends with ": ", then no trailing newline is printed,
  *                and the caller should print the remaining
@@ -260,35 +421,41 @@ warnings_print_categories (warnings warn_flags, FILE *f)
  */
 static
 void
-error_message (const location *loc, warnings flags, const char *prefix,
-               const char *message, va_list args)
+error_message (const location *loc, int *indent, warnings flags,
+               severity sever, const char *message, va_list args)
 {
-  unsigned pos = 0;
+  int pos = 0;
 
   if (loc)
     pos += location_print (*loc, stderr);
   else
-    pos += fprintf (stderr, "%s", current_file ? current_file : program_name);
+    pos += fprintf (stderr, "%s", grammar_file ? grammar_file : program_name);
   pos += fprintf (stderr, ": ");
 
-  if (indent_ptr)
+  if (indent)
     {
-      if (*indent_ptr)
-        prefix = NULL;
-      if (!*indent_ptr)
-        *indent_ptr = pos;
-      else if (*indent_ptr > pos)
-        fprintf (stderr, "%*s", *indent_ptr - pos, "");
-      indent_ptr = NULL;
+      if (*indent)
+        sever = severity_disabled;
+      if (!*indent)
+        *indent = pos;
+      else if (*indent > pos)
+        fprintf (stderr, "%*s", *indent - pos, "");
     }
 
-  if (prefix)
-    fprintf (stderr, "%s: ", prefix);
+  const char* style = severity_style (sever);
+
+  if (sever != severity_disabled)
+    {
+      begin_use_class (style, stderr);
+      fprintf (stderr, "%s:", severity_prefix (sever));
+      end_use_class (style, stderr);
+      fputc (' ', stderr);
+    }
 
   vfprintf (stderr, message, args);
   /* Print the type of warning, only if this is not a sub message
      (in which case the prefix is null).  */
-  if (! (flags & silent) && prefix)
+  if (! (flags & silent) && sever != severity_disabled)
     warnings_print_categories (flags, stderr);
 
   {
@@ -296,20 +463,19 @@ error_message (const location *loc, warnings flags, const char *prefix,
     if (l < 2 || message[l - 2] != ':' || message[l - 1] != ' ')
       {
         putc ('\n', stderr);
-        fflush (stderr);
+        flush (stderr);
         if (loc && feature_flag & feature_caret && !(flags & no_caret))
-          location_caret (*loc, stderr);
+          location_caret (*loc, style, stderr);
       }
   }
-  fflush (stderr);
+  flush (stderr);
 }
 
-/** Raise a complaint. That can be a fatal error, an error or just a
-    warning.  */
+/** Raise a complaint (fatal error, error or just warning).  */
 
 static void
-complains (const location *loc, warnings flags, const char *message,
-           va_list args)
+complains (const location *loc, int *indent, warnings flags,
+           const char *message, va_list args)
 {
   severity s = warning_severity (flags);
   if ((flags & complaint) && complaint_status < status_complaint)
@@ -317,13 +483,9 @@ complains (const location *loc, warnings flags, const char *message,
 
   if (severity_warning <= s)
     {
-      const char* prefix =
-        s == severity_fatal ? _("fatal error")
-        : s == severity_error ? _("error")
-        : _("warning");
       if (severity_error <= s && ! complaint_status)
         complaint_status = status_warning_as_error;
-      error_message (loc, flags, prefix, message, args);
+      error_message (loc, indent, flags, s, message, args);
     }
 
   if (flags & fatal)
@@ -335,23 +497,22 @@ complain (location const *loc, warnings flags, const char *message, ...)
 {
   va_list args;
   va_start (args, message);
-  complains (loc, flags, message, args);
+  complains (loc, NULL, flags, message, args);
   va_end (args);
 }
 
 void
-complain_indent (location const *loc, warnings flags, unsigned *indent,
+complain_indent (location const *loc, warnings flags, int *indent,
                  const char *message, ...)
 {
   va_list args;
-  indent_ptr = indent;
   va_start (args, message);
-  complains (loc, flags, message, args);
+  complains (loc, indent, flags, message, args);
   va_end (args);
 }
 
 void
-complain_args (location const *loc, warnings w, unsigned *indent,
+complain_args (location const *loc, warnings w, int *indent,
                int argc, char *argv[])
 {
   switch (argc)
@@ -389,24 +550,23 @@ bison_directive (location const *loc, char const *directive)
 void
 deprecated_directive (location const *loc, char const *old, char const *upd)
 {
-  if (feature_flag & feature_caret)
-    complain (loc, Wdeprecated,
-              _("deprecated directive, use %s"),
-              quote_n (1, upd));
-  else
-    complain (loc, Wdeprecated,
-              _("deprecated directive: %s, use %s"),
-              quote (old), quote_n (1, upd));
-  /* Register updates only if -Wdeprecated is enabled.  */
-  if (warnings_flag[warning_deprecated] != severity_disabled)
-    fixits_register (loc, upd);
+  if (warning_is_enabled (Wdeprecated))
+    {
+      complain (loc, Wdeprecated,
+                _("deprecated directive: %s, use %s"),
+                quote (old), quote_n (1, upd));
+      if (feature_flag & feature_caret)
+        location_caret_suggestion (*loc, upd, stderr);
+      /* Register updates only if -Wdeprecated is enabled.  */
+      fixits_register (loc, upd);
+    }
 }
 
 void
 duplicate_directive (char const *directive,
                      location first, location second)
 {
-  unsigned i = 0;
+  int i = 0;
   if (feature_flag & feature_caret)
     complain_indent (&second, Wother, &i, _("duplicate directive"));
   else
@@ -420,7 +580,7 @@ void
 duplicate_rule_directive (char const *directive,
                           location first, location second)
 {
-  unsigned i = 0;
+  int i = 0;
   complain_indent (&second, complaint, &i,
                    _("only one %s allowed per rule"), directive);
   i += SUB_INDENT;

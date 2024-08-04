@@ -1,6 +1,6 @@
 /* Parse command line arguments for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2019 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2020 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -19,8 +19,9 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include "getargs.h"
+
 #include "system.h"
-#include "output.h"
 
 #include <argmatch.h>
 #include <c-strcase.h>
@@ -28,12 +29,13 @@
 #include <error.h>
 #include <getopt.h>
 #include <progname.h>
+#include <quote.h>
+#include <textstyle.h>
 
 #include "complain.h"
 #include "files.h"
-#include "getargs.h"
 #include "muscle-tab.h"
-#include "quote.h"
+#include "output.h"
 #include "uniqstr.h"
 
 bool defines_flag = false;
@@ -43,6 +45,7 @@ bool no_lines_flag = false;
 bool token_table_flag = false;
 location yacc_loc = EMPTY_LOCATION_INIT;
 bool update_flag = false; /* for -u */
+bool color_debug = false;
 
 bool nondeterministic_parser = false;
 bool glr_parser = false;
@@ -65,28 +68,28 @@ const char *skeleton = NULL;
 int language_prio = default_prio;
 struct bison_language const *language = &valid_languages[0];
 
+typedef int* (xargmatch_fn) (const char *context, const char *arg);
+
 /** Decode an option's key.
  *
- *  \param opt      option being decoded.
- *  \param keys     array of valid subarguments.
- *  \param values   array of corresponding (int) values.
- *  \param all      the all value.
- *  \param flags    the flags to update
- *  \param arg      the subarguments to decode.
- *                  If null, then activate all the flags.
- *  \param no       length of the potential "no-" prefix.
- *                  Can be 0 or 3. If 3, negate the action of the subargument.
+ *  \param opt        option being decoded.
+ *  \param xargmatch  matching function.
+ *  \param all        the value of the argument 'all'.
+ *  \param flags      the flags to update
+ *  \param arg        the subarguments to decode.
+ *                    If null, then activate all the flags.
+ *  \param no         length of the potential "no-" prefix.
+ *                    Can be 0 or 3. If 3, negate the action of the subargument.
  *
  *  If VALUE != 0 then KEY sets flags and no-KEY clears them.
  *  If VALUE == 0 then KEY clears all flags from \c all and no-KEY sets all
  *  flags from \c all.  Thus no-none = all and no-all = none.
  */
 static void
-flag_argmatch (const char *opt,
-               const char *const keys[], const int values[],
+flag_argmatch (const char *opt, xargmatch_fn xargmatch,
                int all, int *flags, char *arg, size_t no)
 {
-  int value = XARGMATCH (opt, arg + no, keys, values);
+  int value = *xargmatch (opt, arg + no);
 
   /* -rnone == -rno-all, and -rno-none == -rall.  */
   if (!value)
@@ -101,30 +104,38 @@ flag_argmatch (const char *opt,
     *flags |= value;
 }
 
+typedef void (usage_fn) (FILE *out);
+
 /** Decode an option's set of keys.
  *
- *  \param opt      option being decoded (e.g., --report).
- *  \param keys     array of valid subarguments.
- *  \param values   array of corresponding (int) values.
- *  \param all      the all value.
- *  \param flags    the flags to update
- *  \param args     comma separated list of effective subarguments to decode.
- *                  If 0, then activate all the flags.
+ *  \param opt        option being decoded (e.g., --report).
+ *  \param xargmatch  matching function.
+ *  \param usage      function that implement --help for this option.
+ *  \param all        the value of the argument 'all'.
+ *  \param flags      the flags to update
+ *  \param args       comma separated list of effective subarguments to decode.
+ *                    If 0, then activate all the flags.
  */
 static void
 flags_argmatch (const char *opt,
-                const char * const keys[], const int values[],
+                xargmatch_fn xargmatch,
+                usage_fn usage,
                 int all, int *flags, char *args)
 {
-  if (args)
+  if (!args)
+    *flags |= all;
+  else if (STREQ (args, "help"))
+    {
+      usage (stdout);
+      exit (EXIT_SUCCESS);
+    }
+  else
     for (args = strtok (args, ","); args; args = strtok (NULL, ","))
       {
         size_t no = STRPREFIX_LIT ("no-", args) ? 3 : 0;
-        flag_argmatch (opt, keys,
-                       values, all, flags, args, no);
+        flag_argmatch (opt, xargmatch,
+                       all, flags, args, no);
       }
-  else
-    *flags |= all;
 }
 
 
@@ -139,110 +150,188 @@ flags_argmatch (const char *opt,
  *  \arg FlagName_flag   the flag to update.
  */
 #define FLAGS_ARGMATCH(FlagName, Args, All)                             \
-  flags_argmatch ("--" #FlagName, FlagName ## _args, FlagName ## _types, \
+  flags_argmatch ("--" #FlagName,                                       \
+                  (xargmatch_fn*) argmatch_## FlagName ## _value,        \
+                  argmatch_## FlagName ## _usage,                       \
                   All, &FlagName ## _flag, Args)
+
+/*---------------------.
+| --color's handling.  |
+`---------------------*/
+
+enum color
+  {
+    color_always,
+    color_never,
+    color_auto
+  };
+
+ARGMATCH_DEFINE_GROUP (color, enum color)
+
+static const argmatch_color_doc argmatch_color_docs[] =
+{
+  { "always",     N_("colorize the output") },
+  { "never",      N_("don't colorize the output") },
+  { "auto",       N_("colorize if the output device is a tty") },
+  { NULL, NULL },
+};
+
+static const argmatch_color_arg argmatch_color_args[] =
+{
+  { "always",   color_always },
+  { "yes",      color_always },
+  { "never",    color_never },
+  { "no",       color_never },
+  { "auto",     color_auto },
+  { "tty",      color_auto },
+  { NULL, color_always },
+};
+
+const argmatch_color_group_type argmatch_color_group =
+{
+  argmatch_color_args,
+  argmatch_color_docs,
+  /* TRANSLATORS: Use the same translation for WHEN as in the
+     --color=WHEN help message.  */
+  N_("WHEN can be one of the following:"),
+  NULL
+};
 
 
 /*----------------------.
 | --report's handling.  |
 `----------------------*/
 
-static const char * const report_args[] =
+ARGMATCH_DEFINE_GROUP (report, enum report)
+
+static const argmatch_report_doc argmatch_report_docs[] =
 {
-  /* In a series of synonyms, present the most meaningful first, so
-     that argmatch_valid be more readable.  */
-  "none",
-  "state", "states",
-  "itemset", "itemsets",
-  "lookahead", "lookaheads", "look-ahead",
-  "solved",
-  "all",
-  0
+  { "states",     N_("describe the states") },
+  { "itemsets",   N_("complete the core item sets with their closure") },
+  { "lookaheads", N_("explicitly associate lookahead tokens to items") },
+  { "solved",     N_("describe shift/reduce conflicts solving") },
+  { "all",        N_("include all the above information") },
+  { "none",       N_("disable the report") },
+  { NULL, NULL },
 };
 
-static const int report_types[] =
+static const argmatch_report_arg argmatch_report_args[] =
 {
-  report_none,
-  report_states, report_states,
-  report_states | report_itemsets, report_states | report_itemsets,
-  report_states | report_lookahead_tokens,
-  report_states | report_lookahead_tokens,
-  report_states | report_lookahead_tokens,
-  report_states | report_solved_conflicts,
-  report_all
+  { "none",        report_none },
+  { "states",      report_states },
+  { "itemsets",    report_states | report_itemsets },
+  { "lookaheads",  report_states | report_lookahead_tokens },
+  { "solved",      report_states | report_solved_conflicts },
+  { "all",         report_all },
+  { NULL, report_none },
 };
 
-ARGMATCH_VERIFY (report_args, report_types);
-
+const argmatch_report_group_type argmatch_report_group =
+{
+  argmatch_report_args,
+  argmatch_report_docs,
+  /* TRANSLATORS: Use the same translation for THINGS as in the
+     --report=THINGS help message.  */
+  N_("THINGS is a list of comma separated words that can include:"),
+  NULL
+};
 
 /*---------------------.
 | --trace's handling.  |
 `---------------------*/
 
-static const char * const trace_args[] =
+ARGMATCH_DEFINE_GROUP (trace, enum trace)
+
+static const argmatch_trace_doc argmatch_trace_docs[] =
 {
-  "none       - no traces",
-  "scan       - grammar scanner traces",
-  "parse      - grammar parser traces",
-  "automaton  - construction of the automaton",
-  "bitsets    - use of bitsets",
-  "grammar    - reading, reducing the grammar",
-  "resource   - memory consumption (where available)",
-  "sets       - grammar sets: firsts, nullable etc.",
-  "muscles    - m4 definitions passed to the skeleton",
-  "tools      - m4 invocation",
-  "m4         - m4 traces",
-  "skeleton   - skeleton postprocessing",
-  "time       - time consumption",
-  "ielr       - IELR conversion",
-  "all        - all of the above",
-  0
+  /* Meant for developers only, don't translate them.  */
+  { "none",       "no traces" },
+  { "locations",  "full display of the locations" },
+  { "scan",       "grammar scanner traces" },
+  { "parse",      "grammar parser traces" },
+  { "automaton",  "construction of the automaton" },
+  { "bitsets",    "use of bitsets" },
+  { "closure",    "input/output of closure" },
+  { "grammar",    "reading, reducing the grammar" },
+  { "resource",   "memory consumption (where available)" },
+  { "sets",       "grammar sets: firsts, nullable etc." },
+  { "muscles",    "m4 definitions passed to the skeleton" },
+  { "tools",      "m4 invocation" },
+  { "m4",         "m4 traces" },
+  { "skeleton",   "skeleton postprocessing" },
+  { "time",       "time consumption" },
+  { "ielr",       "IELR conversion" },
+  { "all",        "all of the above" },
+  { NULL, NULL},
 };
 
-static const int trace_types[] =
+static const argmatch_trace_arg argmatch_trace_args[] =
 {
-  trace_none,
-  trace_scan,
-  trace_parse,
-  trace_automaton,
-  trace_bitsets,
-  trace_grammar,
-  trace_resource,
-  trace_sets,
-  trace_muscles,
-  trace_tools,
-  trace_m4,
-  trace_skeleton,
-  trace_time,
-  trace_ielr,
-  trace_all
+  { "none",      trace_none },
+  { "locations", trace_locations },
+  { "scan",      trace_scan },
+  { "parse",     trace_parse },
+  { "automaton", trace_automaton },
+  { "bitsets",   trace_bitsets },
+  { "closure",   trace_closure },
+  { "grammar",   trace_grammar },
+  { "resource",  trace_resource },
+  { "sets",      trace_sets },
+  { "muscles",   trace_muscles },
+  { "tools",     trace_tools },
+  { "m4",        trace_m4 },
+  { "skeleton",  trace_skeleton },
+  { "time",      trace_time },
+  { "ielr",      trace_ielr },
+  { "all",       trace_all },
+  { NULL,        trace_none},
 };
 
-ARGMATCH_VERIFY (trace_args, trace_types);
-
+const argmatch_trace_group_type argmatch_trace_group =
+{
+  argmatch_trace_args,
+  argmatch_trace_docs,
+  N_("TRACES is a list of comma separated words that can include:"),
+  NULL
+};
 
 /*-----------------------.
 | --feature's handling.  |
 `-----------------------*/
 
-static const char * const feature_args[] =
+ARGMATCH_DEFINE_GROUP (feature, enum feature)
+
+static const argmatch_feature_doc argmatch_feature_docs[] =
 {
-  "none",
-  "caret", "diagnostics-show-caret",
-  "fixit", "diagnostics-parseable-fixits",
-  "all",
-  0
+  { "caret",       N_("show errors with carets") },
+  { "fixit",       N_("show machine-readable fixes") },
+  { "syntax-only", N_("do not generate any file") },
+  { "all",         N_("all of the above") },
+  { "none",        N_("disable all of the above") },
+  { NULL, NULL }
 };
 
-static const int feature_types[] =
+static const argmatch_feature_arg argmatch_feature_args[] =
 {
-  feature_none,
-  feature_caret, feature_caret,
-  feature_fixit_parsable, feature_fixit_parsable,
-  feature_all
+  { "none",                          feature_none },
+  { "caret",                         feature_caret },
+  { "diagnostics-show-caret",        feature_caret },
+  { "fixit",                         feature_fixit },
+  { "diagnostics-parseable-fixits",  feature_fixit },
+  { "syntax-only",                   feature_syntax_only },
+  { "all",                           feature_all },
+  { NULL, feature_none}
 };
 
-ARGMATCH_VERIFY (feature_args, feature_types);
+const argmatch_feature_group_type argmatch_feature_group =
+{
+  argmatch_feature_args,
+  argmatch_feature_docs,
+  /* TRANSLATORS: Use the same translation for FEATURES as in the
+     --feature=FEATURES help message.  */
+  N_("FEATURES is a list of comma separated words that can include:"),
+  NULL
+};
 
 /*-------------------------------------------.
 | Display the help message and exit STATUS.  |
@@ -266,8 +355,7 @@ usage (int status)
       printf (_("Usage: %s [OPTION]... FILE\n"), program_name);
       fputs (_("\
 Generate a deterministic LR or generalized LR (GLR) parser employing\n\
-LALR(1), IELR(1), or canonical LR(1) parser tables.  IELR(1) and\n\
-canonical LR(1) support is experimental.\n\
+LALR(1), IELR(1), or canonical LR(1) parser tables.\n\
 \n\
 "), stdout);
 
@@ -277,10 +365,10 @@ Mandatory arguments to long options are mandatory for short options too.\n\
       fputs (_("\
 The same is true for optional arguments.\n\
 "), stdout);
+      putc ('\n', stdout);
 
       fputs (_("\
-\n\
-Operation modes:\n\
+Operation Modes:\n\
   -h, --help                 display this help and exit\n\
   -V, --version              output version information and exit\n\
       --print-localedir      output directory containing locale-dependent data\n\
@@ -288,32 +376,48 @@ Operation modes:\n\
       --print-datadir        output directory containing skeletons and XSLT\n\
                              and exit\n\
   -u, --update               apply fixes to the source grammar file and exit\n\
-  -y, --yacc                 emulate POSIX Yacc\n\
-  -W, --warnings[=CATEGORY]  report the warnings falling in CATEGORY\n\
-  -f, --feature[=FEATURE]    activate miscellaneous features\n\
+  -f, --feature[=FEATURES]   activate miscellaneous features\n\
 \n\
 "), stdout);
 
+      argmatch_feature_usage (stdout);
+      putc ('\n', stdout);
+
       fputs (_("\
-Parser:\n\
+Diagnostics:\n\
+  -W, --warnings[=CATEGORY]  report the warnings falling in CATEGORY\n\
+      --color[=WHEN]         whether to colorize the diagnostics\n\
+      --style=FILE           specify the CSS FILE for colorizer diagnostics\n\
+\n\
+"), stdout);
+
+      warning_usage (stdout);
+      putc ('\n', stdout);
+
+      argmatch_color_usage (stdout);
+      putc ('\n', stdout);
+
+      fputs (_("\
+Tuning the Parser:\n\
   -L, --language=LANGUAGE          specify the output programming language\n\
   -S, --skeleton=FILE              specify the skeleton to use\n\
   -t, --debug                      instrument the parser for tracing\n\
                                    same as '-Dparse.trace'\n\
       --locations                  enable location support\n\
-  -D, --define=NAME[=VALUE]        similar to '%define NAME \"VALUE\"'\n\
-  -F, --force-define=NAME[=VALUE]  override '%define NAME \"VALUE\"'\n\
+  -D, --define=NAME[=VALUE]        similar to '%define NAME VALUE'\n\
+  -F, --force-define=NAME[=VALUE]  override '%define NAME VALUE'\n\
   -p, --name-prefix=PREFIX         prepend PREFIX to the external symbols\n\
-                                   deprecated by '-Dapi.prefix=PREFIX'\n\
+                                   deprecated by '-Dapi.prefix={PREFIX}'\n\
   -l, --no-lines                   don't generate '#line' directives\n\
   -k, --token-table                include a table of token names\n\
+  -y, --yacc                       emulate POSIX Yacc\n\
 "), stdout);
       putc ('\n', stdout);
 
       /* Keep -d and --defines separate so that ../build-aux/cross-options.pl
        * won't assume that -d also takes an argument.  */
       fputs (_("\
-Output:\n\
+Output Files:\n\
       --defines[=FILE]       also produce a header file\n\
   -d                         likewise but cannot specify FILE (for POSIX Yacc)\n\
   -r, --report=THINGS        also produce details on the automaton\n\
@@ -323,46 +427,12 @@ Output:\n\
   -o, --output=FILE          leave output to FILE\n\
   -g, --graph[=FILE]         also output a graph of the automaton\n\
   -x, --xml[=FILE]           also output an XML report of the automaton\n\
-                             (the XML schema is experimental)\n\
 "), stdout);
       putc ('\n', stdout);
 
-      fputs (_("\
-Warning categories include:\n\
-  'midrule-values'    unset or unused midrule values\n\
-  'yacc'              incompatibilities with POSIX Yacc\n\
-  'conflicts-sr'      S/R conflicts (enabled by default)\n\
-  'conflicts-rr'      R/R conflicts (enabled by default)\n\
-  'deprecated'        obsolete constructs\n\
-  'empty-rule'        empty rules without %empty\n\
-  'precedence'        useless precedence and associativity\n\
-  'other'             all other warnings (enabled by default)\n\
-  'all'               all the warnings except 'yacc'\n\
-  'no-CATEGORY'       turn off warnings in CATEGORY\n\
-  'none'              turn off all the warnings\n\
-  'error[=CATEGORY]'  treat warnings as errors\n\
-"), stdout);
+      argmatch_report_usage (stdout);
       putc ('\n', stdout);
 
-      fputs (_("\
-THINGS is a list of comma separated words that can include:\n\
-  'state'        describe the states\n\
-  'itemset'      complete the core item sets with their closure\n\
-  'lookahead'    explicitly associate lookahead tokens to items\n\
-  'solved'       describe shift/reduce conflicts solving\n\
-  'all'          include all the above information\n\
-  'none'         disable the report\n\
-"), stdout);
-      putc ('\n', stdout);
-
-      fputs (_("\
-FEATURE is a list of comma separated words that can include:\n\
-  'caret'        show errors with carets\n\
-  'all'          all of the above\n\
-  'none'         disable all of the above\n\
-  "), stdout);
-
-      putc ('\n', stdout);
       printf (_("Report bugs to <%s>.\n"), PACKAGE_BUGREPORT);
       printf (_("%s home page: <%s>.\n"), PACKAGE_NAME, PACKAGE_URL);
       fputs (_("General help using GNU software: "
@@ -436,7 +506,7 @@ skeleton_arg (char const *arg, int prio, location loc)
 void
 language_argmatch (char const *arg, int prio, location loc)
 {
-  char const *msg;
+  char const *msg = NULL;
 
   if (prio < language_prio)
     {
@@ -451,10 +521,9 @@ language_argmatch (char const *arg, int prio, location loc)
     }
   else if (language_prio == prio)
     msg = _("multiple language declarations are invalid");
-  else
-    return;
 
-  complain (&loc, complaint, msg, quotearg_colon (arg));
+  if (msg)
+    complain (&loc, complaint, msg, quotearg_colon (arg));
 }
 
 /*----------------------.
@@ -491,12 +560,16 @@ static char const short_options[] =
 /* Values for long options that do not have single-letter equivalents.  */
 enum
 {
-  LOCATIONS_OPTION = CHAR_MAX + 1,
-  PRINT_LOCALEDIR_OPTION,
+  COLOR_OPTION = CHAR_MAX + 1,
+  FIXED_OUTPUT_FILES_OPTION,
+  LOCATIONS_OPTION,
   PRINT_DATADIR_OPTION,
-  REPORT_FILE_OPTION
+  PRINT_LOCALEDIR_OPTION,
+  REPORT_FILE_OPTION,
+  STYLE_OPTION
 };
 
+/* In the same order as in usage(), and in the documentation.  */
 static struct option const long_options[] =
 {
   /* Operation modes. */
@@ -505,52 +578,42 @@ static struct option const long_options[] =
   { "print-localedir", no_argument,       0,   PRINT_LOCALEDIR_OPTION },
   { "print-datadir",   no_argument,       0,   PRINT_DATADIR_OPTION   },
   { "update",          no_argument,       0,   'u' },
-  { "warnings",        optional_argument, 0,   'W' },
+  { "feature",         optional_argument, 0,   'f' },
 
-  /* Parser. */
-  { "name-prefix",   required_argument,   0,   'p' },
+  /* Diagnostics.  */
+  { "warnings",        optional_argument,  0, 'W' },
+  { "color",           optional_argument,  0,  COLOR_OPTION },
+  { "style",           optional_argument,  0,  STYLE_OPTION },
 
-  /* Output. */
-  { "file-prefix", required_argument,   0,   'b' },
-  { "output",      required_argument,   0,   'o' },
-  { "output-file", required_argument,   0,   'o' },
-  { "graph",       optional_argument,   0,   'g' },
-  { "xml",         optional_argument,   0,   'x' },
+  /* Tuning the Parser. */
+  { "language",       required_argument,   0, 'L' },
+  { "skeleton",       required_argument,   0, 'S' },
+  { "debug",          no_argument,         0, 't' },
+  { "locations",      no_argument,         0, LOCATIONS_OPTION },
+  { "define",         required_argument,   0, 'D' },
+  { "force-define",   required_argument,   0, 'F' },
+  { "name-prefix",    required_argument,   0, 'p' },
+  { "no-lines",       no_argument,         0, 'l' },
+  { "token-table",    no_argument,         0, 'k' },
+  { "yacc",           no_argument,         0, 'y' },
+
+  /* Output Files. */
+  { "defines",     optional_argument,   0,   'd' },
   { "report",      required_argument,   0,   'r' },
   { "report-file", required_argument,   0,   REPORT_FILE_OPTION },
   { "verbose",     no_argument,         0,   'v' },
+  { "file-prefix", required_argument,   0,   'b' },
+  { "output",      required_argument,   0,   'o' },
+  { "graph",       optional_argument,   0,   'g' },
+  { "xml",         optional_argument,   0,   'x' },
 
   /* Hidden. */
-  { "trace",         optional_argument,   0,     'T' },
-
-  /* Output.  */
-  { "defines",     optional_argument,   0,   'd' },
-  { "feature",     optional_argument,   0,   'f' },
-
-  /* Operation modes.  */
-  { "fixed-output-files", no_argument,  0,   'y' },
-  { "yacc",               no_argument,  0,   'y' },
-
-  /* Parser.  */
-  { "debug",          no_argument,               0,   't' },
-  { "define",         required_argument,         0,   'D' },
-  { "force-define",   required_argument,         0,   'F' },
-  { "locations",      no_argument,               0, LOCATIONS_OPTION },
-  { "no-lines",       no_argument,               0,   'l' },
-  { "skeleton",       required_argument,         0,   'S' },
-  { "language",       required_argument,         0,   'L' },
-  { "token-table",    no_argument,               0,   'k' },
+  { "fixed-output-files", no_argument,       0,  FIXED_OUTPUT_FILES_OPTION },
+  { "output-file",        required_argument, 0,  'o' },
+  { "trace",              optional_argument, 0,  'T' },
 
   {0, 0, 0, 0}
 };
-
-/* Under DOS, there is no difference on the case.  This can be
-   troublesome when looking for '.tab' etc.  */
-#ifdef MSDOS
-# define AS_FILE_NAME(File) (strlwr (File), (File))
-#else
-# define AS_FILE_NAME(File) (File)
-#endif
 
 /* Build a location for the current command line argument. */
 static
@@ -559,19 +622,52 @@ command_line_location (void)
 {
   location res;
   /* "<command line>" is used in GCC's messages about -D. */
-  boundary_set (&res.start, uniqstr_new ("<command line>"), optind - 1, -1);
+  boundary_set (&res.start, uniqstr_new ("<command line>"), optind - 1, -1, -1);
   res.end = res.start;
   return res;
+}
+
+
+/* Handle the command line options for color support.  Do it early, so
+   that error messages from getargs be also colored as per the user's
+   request.  This is consistent with the way GCC and Clang behave.  */
+
+static void
+getargs_colors (int argc, char *argv[])
+{
+  for (int i = 1; i < argc; i++)
+    {
+      const char *arg = argv[i];
+      if (STRPREFIX_LIT ("--color=", arg))
+        {
+          const char *color = arg + strlen ("--color=");
+          if (STREQ (color, "debug"))
+            color_debug = true;
+          else
+            handle_color_option (color);
+        }
+      else if (STREQ ("--color", arg))
+        handle_color_option (NULL);
+      else if (STRPREFIX_LIT ("--style=", arg))
+        {
+          const char *style = arg + strlen ("--style=");
+          handle_style_option (style);
+        }
+    }
+  complain_init_color ();
 }
 
 
 void
 getargs (int argc, char *argv[])
 {
-  int c;
+  getargs_colors (argc, argv);
 
+  int c;
   while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
          != -1)
+  {
+    location loc = command_line_location ();
     switch (c)
       {
         /* ASCII Sorting for short options (i.e., upper case then
@@ -604,7 +700,7 @@ getargs (int argc, char *argv[])
                   *end = 0;
                 }
             }
-          muscle_percent_define_insert (name, command_line_location (),
+          muscle_percent_define_insert (name, loc,
                                         kind, value ? value : "",
                                         c == 'D' ? MUSCLE_PERCENT_DEFINE_D
                                                  : MUSCLE_PERCENT_DEFINE_F);
@@ -612,13 +708,11 @@ getargs (int argc, char *argv[])
         break;
 
       case 'L':
-        language_argmatch (optarg, command_line_prio,
-                           command_line_location ());
+        language_argmatch (optarg, command_line_prio, loc);
         break;
 
       case 'S':
-        skeleton_arg (AS_FILE_NAME (optarg), command_line_prio,
-                      command_line_location ());
+        skeleton_arg (optarg, command_line_prio, loc);
         break;
 
       case 'T':
@@ -638,7 +732,7 @@ getargs (int argc, char *argv[])
         break;
 
       case 'b':
-        spec_file_prefix = AS_FILE_NAME (optarg);
+        spec_file_prefix = optarg;
         break;
 
       case 'd':
@@ -646,8 +740,8 @@ getargs (int argc, char *argv[])
         defines_flag = true;
         if (optarg)
           {
-            free (spec_defines_file);
-            spec_defines_file = xstrdup (AS_FILE_NAME (optarg));
+            free (spec_header_file);
+            spec_header_file = xstrdup (optarg);
           }
         break;
 
@@ -656,7 +750,7 @@ getargs (int argc, char *argv[])
         if (optarg)
           {
             free (spec_graph_file);
-            spec_graph_file = xstrdup (AS_FILE_NAME (optarg));
+            spec_graph_file = xstrdup (optarg);
           }
         break;
 
@@ -672,7 +766,7 @@ getargs (int argc, char *argv[])
         break;
 
       case 'o':
-        spec_outfile = AS_FILE_NAME (optarg);
+        spec_outfile = optarg;
         break;
 
       case 'p':
@@ -685,13 +779,14 @@ getargs (int argc, char *argv[])
 
       case 't':
         muscle_percent_define_insert ("parse.trace",
-                                      command_line_location (),
+                                      loc,
                                       muscle_keyword, "",
                                       MUSCLE_PERCENT_DEFINE_D);
         break;
 
       case 'u':
         update_flag = true;
+        feature_flag |= feature_syntax_only;
         break;
 
       case 'v':
@@ -703,18 +798,28 @@ getargs (int argc, char *argv[])
         if (optarg)
           {
             free (spec_xml_file);
-            spec_xml_file = xstrdup (AS_FILE_NAME (optarg));
+            spec_xml_file = xstrdup (optarg);
           }
         break;
 
       case 'y':
         warning_argmatch ("yacc", 0, 0);
-        yacc_loc = command_line_location ();
+        yacc_loc = loc;
+        break;
+
+      case COLOR_OPTION:
+        /* Handled in getargs_colors. */
+        break;
+
+      case FIXED_OUTPUT_FILES_OPTION:
+        complain (&loc, Wdeprecated,
+                  _("deprecated option: %s, use %s"),
+                  quote ("--fixed-output-files"), quote_n (1, "-o y.tab.c"));
+        spec_outfile = "y.tab.c";
         break;
 
       case LOCATIONS_OPTION:
-        muscle_percent_define_ensure ("locations",
-                                      command_line_location (), true);
+        muscle_percent_define_ensure ("locations", loc, true);
         break;
 
       case PRINT_LOCALEDIR_OPTION:
@@ -727,12 +832,17 @@ getargs (int argc, char *argv[])
 
       case REPORT_FILE_OPTION:
         free (spec_verbose_file);
-        spec_verbose_file = xstrdup (AS_FILE_NAME (optarg));
+        spec_verbose_file = xstrdup (optarg);
+        break;
+
+      case STYLE_OPTION:
+        /* Handled in getargs_colors. */
         break;
 
       default:
         usage (EXIT_FAILURE);
       }
+  }
 
   if (argc - optind != 1)
     {
@@ -743,7 +853,7 @@ getargs (int argc, char *argv[])
       usage (EXIT_FAILURE);
     }
 
-  current_file = grammar_file = uniqstr_new (argv[optind]);
+  grammar_file = uniqstr_new (argv[optind]);
   MUSCLE_INSERT_C_STRING ("file_name", grammar_file);
 }
 

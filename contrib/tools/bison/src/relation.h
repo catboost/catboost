@@ -1,6 +1,6 @@
 /* Binary relations.
 
-   Copyright (C) 2002, 2004, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2002, 2004, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -33,18 +33,23 @@ typedef size_t relation_node;
 typedef relation_node *relation_nodes;
 typedef relation_nodes *relation;
 
+typedef void (relation_node_print) (relation_node node, FILE* out);
 
 /* Report a relation R that has SIZE vertices.  */
-void relation_print (relation r, relation_node size, FILE *out);
+void relation_print (const char *title,
+                     relation r, size_t size,
+                     relation_node_print print, FILE *out);
 
 /* Compute the transitive closure of the FUNCTION on the relation R
    with SIZE vertices.
 
-   If R (NODE-1, NODE-2) then on exit FUNCTION[NODE - 1] was extended
-   (unioned) with FUNCTION[NODE - 2].  */
-void relation_digraph (relation r, relation_node size, bitsetv *function);
+   If R (NODE1, NODE2) then on exit FUNCTION[NODE1] was extended
+   (unioned) with FUNCTION[NODE2].
 
-/* Destructively transpose *R_ARG, of size N.  */
-void relation_transpose (relation *R_arg, relation_node n);
+   FUNCTION is in-out, R is read only.  */
+void relation_digraph (const relation r, relation_node size, bitsetv function);
+
+/* Destructively transpose *R_ARG, of size SIZE.  */
+void relation_transpose (relation *R_arg, relation_node size);
 
 #endif /* ! RELATION_H_ */

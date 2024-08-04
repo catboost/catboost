@@ -1,5 +1,5 @@
 /* vsprintf with automatic memory allocation.
-   Copyright (C) 1999, 2002-2019 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2002-2020 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1553,16 +1553,13 @@ MAX_ROOM_NEEDED (const arguments *ap, size_t arg_index, FCHAR_T conversion,
   switch (conversion)
     {
     case 'd': case 'i': case 'u':
-# if HAVE_LONG_LONG_INT
       if (type == TYPE_LONGLONGINT || type == TYPE_ULONGLONGINT)
         tmp_length =
           (unsigned int) (sizeof (unsigned long long) * CHAR_BIT
                           * 0.30103 /* binary -> decimal */
                          )
           + 1; /* turn floor into ceil */
-      else
-# endif
-      if (type == TYPE_LONGINT || type == TYPE_ULONGINT)
+      else if (type == TYPE_LONGINT || type == TYPE_ULONGINT)
         tmp_length =
           (unsigned int) (sizeof (unsigned long) * CHAR_BIT
                           * 0.30103 /* binary -> decimal */
@@ -1583,16 +1580,13 @@ MAX_ROOM_NEEDED (const arguments *ap, size_t arg_index, FCHAR_T conversion,
       break;
 
     case 'o':
-# if HAVE_LONG_LONG_INT
       if (type == TYPE_LONGLONGINT || type == TYPE_ULONGLONGINT)
         tmp_length =
           (unsigned int) (sizeof (unsigned long long) * CHAR_BIT
                           * 0.333334 /* binary -> octal */
                          )
           + 1; /* turn floor into ceil */
-      else
-# endif
-      if (type == TYPE_LONGINT || type == TYPE_ULONGINT)
+      else if (type == TYPE_LONGINT || type == TYPE_ULONGINT)
         tmp_length =
           (unsigned int) (sizeof (unsigned long) * CHAR_BIT
                           * 0.333334 /* binary -> octal */
@@ -1611,16 +1605,13 @@ MAX_ROOM_NEEDED (const arguments *ap, size_t arg_index, FCHAR_T conversion,
       break;
 
     case 'x': case 'X':
-# if HAVE_LONG_LONG_INT
       if (type == TYPE_LONGLONGINT || type == TYPE_ULONGLONGINT)
         tmp_length =
           (unsigned int) (sizeof (unsigned long long) * CHAR_BIT
                           * 0.25 /* binary -> hexadecimal */
                          )
           + 1; /* turn floor into ceil */
-      else
-# endif
-      if (type == TYPE_LONGINT || type == TYPE_ULONGINT)
+      else if (type == TYPE_LONGINT || type == TYPE_ULONGINT)
         tmp_length =
           (unsigned int) (sizeof (unsigned long) * CHAR_BIT
                           * 0.25 /* binary -> hexadecimal */
@@ -1939,11 +1930,9 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
                   case TYPE_COUNT_LONGINT_POINTER:
                     *a.arg[dp->arg_index].a.a_count_longint_pointer = length;
                     break;
-#if HAVE_LONG_LONG_INT
                   case TYPE_COUNT_LONGLONGINT_POINTER:
                     *a.arg[dp->arg_index].a.a_count_longlongint_pointer = length;
                     break;
-#endif
                   default:
                     abort ();
                   }
@@ -4835,17 +4824,15 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
 
                 switch (type)
                   {
-#if HAVE_LONG_LONG_INT
                   case TYPE_LONGLONGINT:
                   case TYPE_ULONGLONGINT:
-# if defined _WIN32 && ! defined __CYGWIN__
+#if defined _WIN32 && ! defined __CYGWIN__
                     *fbp++ = 'I';
                     *fbp++ = '6';
                     *fbp++ = '4';
                     break;
-# else
+#else
                     *fbp++ = 'l';
-# endif
 #endif
                     FALLTHROUGH;
                   case TYPE_LONGINT:
@@ -4917,7 +4904,7 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
                    Windows Vista, the use of %n in format strings by default
                    crashes the program. See
                      <https://gcc.gnu.org/ml/gcc/2007-06/msg00122.html> and
-                     <https://msdn.microsoft.com/en-us/library/ms175782.aspx>
+                     <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/set-printf-count-output>
                    So we should avoid %n in this situation.  */
                 fbp[1] = '\0';
 # endif
@@ -5063,7 +5050,6 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
                           SNPRINTF_BUF (arg);
                         }
                         break;
-#if HAVE_LONG_LONG_INT
                       case TYPE_LONGLONGINT:
                         {
                           long long int arg = a.arg[dp->arg_index].a.a_longlongint;
@@ -5076,7 +5062,6 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
                           SNPRINTF_BUF (arg);
                         }
                         break;
-#endif
                       case TYPE_DOUBLE:
                         {
                           double arg = a.arg[dp->arg_index].a.a_double;

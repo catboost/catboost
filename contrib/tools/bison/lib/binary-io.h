@@ -1,5 +1,5 @@
 /* Binary mode I/O.
-   Copyright (C) 2001, 2003, 2005, 2008-2019 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2003, 2005, 2008-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,25 +61,21 @@ __gl_setmode (int fd _GL_UNUSED, int mode _GL_UNUSED)
 }
 #endif
 
-#if defined __DJGPP__ || defined __EMX__
-extern int __gl_setmode_check (int);
-#else
-BINARY_IO_INLINE int
-__gl_setmode_check (int fd _GL_UNUSED) { return 0; }
-#endif
-
 /* Set FD's mode to MODE, which should be either O_TEXT or O_BINARY.
    Return the old mode if successful, -1 (setting errno) on failure.
    Ordinarily this function would be called 'setmode', since that is
    its name on MS-Windows, but it is called 'set_binary_mode' here
    to avoid colliding with a BSD function of another name.  */
 
+#if defined __DJGPP__ || defined __EMX__
+extern int set_binary_mode (int fd, int mode);
+#else
 BINARY_IO_INLINE int
 set_binary_mode (int fd, int mode)
 {
-  int r = __gl_setmode_check (fd);
-  return r != 0 ? r : __gl_setmode (fd, mode);
+  return __gl_setmode (fd, mode);
 }
+#endif
 
 /* This macro is obsolescent.  */
 #define SET_BINARY(fd) ((void) set_binary_mode (fd, O_BINARY))

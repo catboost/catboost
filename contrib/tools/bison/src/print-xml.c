@@ -1,6 +1,6 @@
 /* Print an xml on generated parser, for Bison,
 
-   Copyright (C) 2007, 2009-2015, 2018-2019 Free Software Foundation,
+   Copyright (C) 2007, 2009-2015, 2018-2020 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -19,21 +19,21 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include "print-xml.h"
+
 #include "system.h"
 
+#include <bitset.h>
 #include <stdarg.h>
 
-#include <bitset.h>
-
-#include "LR0.h"
 #include "closure.h"
 #include "conflicts.h"
 #include "files.h"
 #include "getargs.h"
 #include "gram.h"
 #include "lalr.h"
+#include "lr0.h"
 #include "print.h"
-#include "print-xml.h"
 #include "reader.h"
 #include "reduce.h"
 #include "state.h"
@@ -57,7 +57,6 @@ static struct escape_buf escape_bufs[num_escape_bufs];
 static void
 print_core (FILE *out, int level, state *s)
 {
-  size_t i;
   item_number *sitems = s->items;
   size_t snritems = s->nitems;
 
@@ -74,18 +73,12 @@ print_core (FILE *out, int level, state *s)
 
   xml_puts (out, level, "<itemset>");
 
-  for (i = 0; i < snritems; i++)
+  for (size_t i = 0; i < snritems; i++)
     {
       bool printed = false;
       item_number *sp1 = ritem + sitems[i];
-      item_number *sp = sp1;
-      rule *r;
-
-      while (0 <= *sp)
-        sp++;
-
-      r = &rules[item_number_as_rule_number (*sp)];
-      sp = r->rhs;
+      rule const *r = item_rule (sp1);
+      item_number *sp = r->rhs;
 
       /* Display the lookahead tokens?  */
       if (item_number_is_rule_number (*sp1))
@@ -336,7 +329,7 @@ print_reductions (FILE *out, int level, state *s)
 
 /*--------------------------------------------------------------.
 | Report on OUT all the actions (shifts, gotos, reductions, and |
-| explicit erros from %nonassoc) of S.                          |
+| explicit errors from %nonassoc) of S.                         |
 `--------------------------------------------------------------*/
 
 static void
@@ -380,15 +373,13 @@ print_state (FILE *out, int level, state *s)
 static void
 print_grammar (FILE *out, int level)
 {
-  symbol_number i;
-
   fputc ('\n', out);
   xml_puts (out, level, "<grammar>");
   grammar_rules_print_xml (out, level);
 
   /* Terminals */
   xml_puts (out, level + 1, "<terminals>");
-  for (i = 0; i < max_user_token_number + 1; i++)
+  for (symbol_number i = 0; i < max_user_token_number + 1; i++)
     if (token_translations[i] != undeftoken->content->number)
       {
         char const *tag = symbols[token_translations[i]]->tag;
@@ -411,7 +402,7 @@ print_grammar (FILE *out, int level)
 
   /* Nonterminals */
   xml_puts (out, level + 1, "<nonterminals>");
-  for (i = ntokens; i < nsyms + nuseless_nonterminals; i++)
+  for (symbol_number i = ntokens; i < nsyms + nuseless_nonterminals; i++)
     {
       char const *tag = symbols[i]->tag;
       xml_printf (out, level + 2,
@@ -428,8 +419,7 @@ print_grammar (FILE *out, int level)
 void
 xml_indent (FILE *out, int level)
 {
-  int i;
-  for (i = 0; i < level; i++)
+  for (int i = 0; i < level; i++)
     fputs ("  ", out);
 }
 
@@ -460,14 +450,13 @@ xml_escape_string (struct escape_buf *buf, char const *str)
 {
   size_t len = strlen (str);
   size_t max_expansion = sizeof "&quot;" - 1;
-  char *p;
 
   if (buf->size <= max_expansion * len)
     {
       buf->size = max_expansion * len + 1;
       buf->ptr = x2realloc (buf->ptr, &buf->size);
     }
-  p = buf->ptr;
+  char *p = buf->ptr;
 
   for (; *str; str++)
     switch (*str)
@@ -498,11 +487,11 @@ xml_escape (char const *str)
 void
 print_xml (void)
 {
-  int level = 0;
-
   FILE *out = xfopen (spec_xml_file, "w");
 
   fputs ("<?xml version=\"1.0\"?>\n\n", out);
+
+  int level = 0;
   xml_printf (out, level,
               "<bison-xml-report version=\"%s\" bug-report=\"%s\""
               " url=\"%s\">",
@@ -517,29 +506,21 @@ print_xml (void)
   /* print grammar */
   print_grammar (out, level + 1);
 
-  new_closure (nritems);
-  no_reduce_set =  bitset_create (ntokens, BITSET_FIXED);
+  no_reduce_set = bitset_create (ntokens, BITSET_FIXED);
 
   /* print automaton */
   fputc ('\n', out);
   xml_puts (out, level + 1, "<automaton>");
-  {
-    state_number i;
-    for (i = 0; i < nstates; i++)
-      print_state (out, level + 2, states[i]);
-  }
+  for (state_number i = 0; i < nstates; i++)
+    print_state (out, level + 2, states[i]);
   xml_puts (out, level + 1, "</automaton>");
 
   bitset_free (no_reduce_set);
-  free_closure ();
 
   xml_puts (out, 0, "</bison-xml-report>");
 
-  {
-    int i;
-    for (i = 0; i < num_escape_bufs; ++i)
-      free (escape_bufs[i].ptr);
-  }
+  for (int i = 0; i < num_escape_bufs; ++i)
+    free (escape_bufs[i].ptr);
 
   xfclose (out);
 }

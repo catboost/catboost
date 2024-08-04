@@ -1,6 +1,6 @@
 /* Output the generated parsing program for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2019 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2020 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -21,12 +21,10 @@
 #include <config.h>
 #include "system.h"
 
-#include <configmake.h>
 #include <filename.h> /* IS_PATH_WITH_DIR */
 #include <get-errno.h>
 #include <path-join.h>
 #include <quotearg.h>
-#include <relocatable.h> /* relocate2 */
 #include <spawn-pipe.h>
 #include <timevar.h>
 #include <wait-process.h>
@@ -44,28 +42,7 @@
 #include "symtab.h"
 #include "tables.h"
 
-#include "uniqstr.h"
-
-#include <contrib/tools/bison/arcadia_root.h>
-
-#define STR(a) XSTR(a)
-#define XSTR(a) #a
-
-const char*
-default_pkgdatadir()
-{
-    const char* arc_path  = getenv("ARCADIA_ROOT_DISTBUILD");
-    if (arc_path == NULL)
-        arc_path = ArcadiaRoot();
-    return uniqstr_concat(3, arc_path, "/", STR(BISON_DATA_DIR));
-}
-#undef PKGDATADIR
-#define PKGDATADIR (default_pkgdatadir())
-
 static struct obstack format_obstack;
-
-/* Memory allocated by relocate2, to free.  */
-static char *relocate_buffer = NULL;
 
 
 /*-------------------------------------------------------------------.
@@ -114,7 +91,6 @@ Name (char const *name, Type *table_data, Type first,                   \
   MUSCLE_INSERT_LONG_INT (obstack_finish0 (&format_obstack), lmax);     \
 }
 
-GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_unsigned_table, unsigned)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_int_table, int)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_base_table, base_number)
 GENERATE_MUSCLE_INSERT_TABLE (muscle_insert_rule_number_table, rule_number)
@@ -156,9 +132,8 @@ string_output (FILE *out, char const *string)
 }
 
 
-/*----------------------------.
-| Prepare the symbols names.  |
-`----------------------------*/
+/* Generate the b4_<MUSCLE_NAME> (e.g., b4_tname) table with the
+   symbol names (aka tags). */
 
 static void
 prepare_symbol_names (char const *muscle_name)
@@ -238,17 +213,17 @@ prepare_symbols (void)
 static void
 prepare_rules (void)
 {
-  unsigned *prhs = xnmalloc (nrules, sizeof *prhs);
+  int *prhs = xnmalloc (nrules, sizeof *prhs);
   item_number *rhs = xnmalloc (nritems, sizeof *rhs);
-  unsigned *rline = xnmalloc (nrules, sizeof *rline);
+  int *rline = xnmalloc (nrules, sizeof *rline);
   symbol_number *r1 = xnmalloc (nrules, sizeof *r1);
-  unsigned *r2 = xnmalloc (nrules, sizeof *r2);
+  int *r2 = xnmalloc (nrules, sizeof *r2);
   int *dprec = xnmalloc (nrules, sizeof *dprec);
   int *merger = xnmalloc (nrules, sizeof *merger);
   int *immediate = xnmalloc (nrules, sizeof *immediate);
 
   /* Index in RHS.  */
-  unsigned i = 0;
+  int i = 0;
   for (rule_number r = 0; r < nrules; ++r)
     {
       /* Index of rule R in RHS. */
@@ -275,10 +250,10 @@ prepare_rules (void)
   aver (i == nritems);
 
   muscle_insert_item_number_table ("rhs", rhs, ritem[0], 1, nritems);
-  muscle_insert_unsigned_table ("prhs", prhs, 0, 0, nrules);
-  muscle_insert_unsigned_table ("rline", rline, 0, 0, nrules);
+  muscle_insert_int_table ("prhs", prhs, 0, 0, nrules);
+  muscle_insert_int_table ("rline", rline, 0, 0, nrules);
   muscle_insert_symbol_number_table ("r1", r1, 0, 0, nrules);
-  muscle_insert_unsigned_table ("r2", r2, 0, 0, nrules);
+  muscle_insert_int_table ("r2", r2, 0, 0, nrules);
   muscle_insert_int_table ("dprec", dprec, 0, 0, nrules);
   muscle_insert_int_table ("merger", merger, 0, 0, nrules);
   muscle_insert_int_table ("immediate", immediate, 0, 0, nrules);
@@ -383,9 +358,9 @@ symbol_numbers_output (FILE *out)
 }
 
 
-/*---------------------------------.
-| Output the user actions to OUT.  |
-`---------------------------------*/
+/*-------------------------------------------.
+| Output the user reduction actions to OUT.  |
+`-------------------------------------------*/
 
 static void
 user_actions_output (FILE *out)
@@ -394,11 +369,20 @@ user_actions_output (FILE *out)
   for (rule_number r = 0; r < nrules; ++r)
     if (rules[r].action)
       {
-        fprintf (out, "%s(%d, [b4_syncline(%d, ",
+        /* The useless "" is there to pacify syntax-check.  */
+        fprintf (out, "%s""(%d, [",
                  rules[r].is_predicate ? "b4_predicate_case" : "b4_case",
-                 r + 1, rules[r].action_location.start.line);
-        string_output (out, rules[r].action_location.start.file);
-        fprintf (out, ")\n[    %s]])\n\n", rules[r].action);
+                 r + 1);
+        if (!no_lines_flag)
+          {
+            fprintf (out, "b4_syncline(%d, ",
+                     rules[r].action_loc.start.line);
+            string_output (out, rules[r].action_loc.start.file);
+            fprintf (out, ")dnl\n");
+          }
+        fprintf (out, "[%*s%s]])\n\n",
+                 rules[r].action_loc.start.column - 1, "",
+                 rules[r].action);
       }
   fputs ("])\n\n", out);
 }
@@ -457,13 +441,13 @@ prepare_symbol_definitions (void)
       key = obstack_finish0 (&format_obstack);
 
       /* Whether the symbol has an identifier.  */
-      const char *value = symbol_id_get (sym);
+      const char *id = symbol_id_get (sym);
       SET_KEY ("has_id");
-      MUSCLE_INSERT_INT (key, !!value);
+      MUSCLE_INSERT_INT (key, !!id);
 
       /* Its identifier.  */
       SET_KEY ("id");
-      MUSCLE_INSERT_STRING (key, value ? value : "");
+      MUSCLE_INSERT_STRING (key, id ? id : "");
 
       /* Its tag.  Typically for documentation purpose.  */
       SET_KEY ("tag");
@@ -502,8 +486,13 @@ prepare_symbol_definitions (void)
               SET_KEY2 (pname, "line");
               MUSCLE_INSERT_INT (key, p->location.start.line);
 
+              SET_KEY2 (pname, "loc");
+              muscle_location_grow (key, p->location);
+
               SET_KEY (pname);
-              MUSCLE_INSERT_STRING_RAW (key, p->code);
+              obstack_printf (&muscle_obstack,
+                              "%*s%s", p->location.start.column - 1, "", p->code);
+              muscle_insert (key, obstack_finish0 (&muscle_obstack));
             }
         }
 #undef SET_KEY2
@@ -553,10 +542,10 @@ prepare_actions (void)
      parser, so we could avoid accidents by not writing them out in
      that case.  Nevertheless, it seems even better to be able to use
      the GLR skeletons even without the non-deterministic tables.  */
-  muscle_insert_unsigned_table ("conflict_list_heads", conflict_table,
-                                conflict_table[0], 1, high + 1);
-  muscle_insert_unsigned_table ("conflicting_rules", conflict_list,
-                                0, 1, conflict_list_cnt);
+  muscle_insert_int_table ("conflict_list_heads", conflict_table,
+                           conflict_table[0], 1, high + 1);
+  muscle_insert_int_table ("conflicting_rules", conflict_list,
+                           0, 1, conflict_list_cnt);
 }
 
 
@@ -703,7 +692,7 @@ prepare (void)
 #define DEFINE(Name) MUSCLE_INSERT_STRING (#Name, Name ? Name : "")
   DEFINE (dir_prefix);
   DEFINE (parser_file_name);
-  DEFINE (spec_defines_file);
+  DEFINE (spec_header_file);
   DEFINE (spec_file_prefix);
   DEFINE (spec_graph_file);
   DEFINE (spec_name_prefix);
@@ -755,17 +744,4 @@ output (void)
     unlink_generated_sources ();
 
   obstack_free (&format_obstack, NULL);
-  free (relocate_buffer);
-}
-
-char const *
-pkgdatadir (void)
-{
-  if (relocate_buffer)
-    return relocate_buffer;
-  else
-    {
-      char const *cp = getenv ("BISON_PKGDATADIR");
-      return cp ? cp : relocate2 (PKGDATADIR, &relocate_buffer);
-    }
 }

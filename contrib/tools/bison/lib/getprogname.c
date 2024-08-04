@@ -1,5 +1,5 @@
 /* Program name management.
-   Copyright (C) 2016-2019 Free Software Foundation, Inc.
+   Copyright (C) 2016-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -70,10 +70,10 @@ getprogname (void)
     p = "?";
   return last_component (p);
 # elif HAVE_DECL___ARGV                                     /* mingw, MSVC */
-  /* https://msdn.microsoft.com/en-us/library/dn727674.aspx */
+  /* https://docs.microsoft.com/en-us/cpp/c-runtime-library/argc-argv-wargv */
   const char *p = __argv && __argv[0] ? __argv[0] : "?";
   return last_component (p);
-# elif HAVE_VAR___PROGNAME                                  /* OpenBSD, QNX */
+# elif HAVE_VAR___PROGNAME                                  /* OpenBSD, Android, QNX */
   /* https://man.openbsd.org/style.9 */
   /* http://www.qnx.de/developers/docs/6.5.0/index.jsp?topic=%2Fcom.qnx.doc.neutrino_lib_ref%2Fp%2F__progname.html */
   /* Be careful to declare this only when we absolutely need it
@@ -82,7 +82,11 @@ getprogname (void)
      malfunction (have zero length) with Fedora 25's glibc.  */
   extern char *__progname;
   const char *p = __progname;
+#  if defined __ANDROID__
+  return last_component (p);
+#  else
   return p && p[0] ? p : "?";
+#  endif
 # elif _AIX                                                 /* AIX */
   /* Idea by Bastien ROUCARIÈS,
      https://lists.gnu.org/r/bug-gnulib/2010-12/msg00095.html
@@ -229,12 +233,13 @@ getprogname (void)
         {
           char *name = buf.pr_fname;
           size_t namesize = sizeof buf.pr_fname;
+          /* It may not be NUL-terminated.  */
           char *namenul = memchr (name, '\0', namesize);
           size_t namelen = namenul ? namenul - name : namesize;
           char *namecopy = malloc (namelen + 1);
           if (namecopy)
             {
-              namecopy[namelen] = 0;
+              namecopy[namelen] = '\0';
               return memcpy (namecopy, name, namelen);
             }
         }

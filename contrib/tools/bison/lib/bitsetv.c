@@ -1,6 +1,6 @@
 /* Bitset vectors.
 
-   Copyright (C) 2001-2002, 2004-2006, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2001-2002, 2004-2006, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -41,7 +41,7 @@ bitsetv_alloc (bitset_bindex n_vecs, bitset_bindex n_bits,
   /* Allocate vector table at head of bitset array.  */
   size_t vector_bytes = (n_vecs + 1) * sizeof (bitset) + bytes - 1;
   vector_bytes -= vector_bytes % bytes;
-  bitset *bsetv = xcalloc (1, vector_bytes + bytes * n_vecs);
+  bitset *bsetv = xzalloc (vector_bytes + bytes * n_vecs);
 
   bitset_bindex i = 0;
   for (i = 0; i < n_vecs; i++)
@@ -71,9 +71,12 @@ bitsetv_create (bitset_bindex n_vecs, bitset_bindex n_bits, unsigned attr)
 void
 bitsetv_free (bitsetv bsetv)
 {
-  for (bitset_bindex i = 0; bsetv[i]; i++)
-    BITSET_FREE_ (bsetv[i]);
-  free (bsetv);
+  if (bsetv)
+    {
+      for (bitset_bindex i = 0; bsetv[i]; i++)
+        BITSET_FREE_ (bsetv[i]);
+      free (bsetv);
+    }
 }
 
 

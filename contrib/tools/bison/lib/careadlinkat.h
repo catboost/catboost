@@ -1,6 +1,6 @@
 /* Read symbolic links into a buffer without size limitation, relative to fd.
 
-   Copyright (C) 2011-2019 Free Software Foundation, Inc.
+   Copyright (C) 2011-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,14 +40,14 @@ struct allocator;
 
    The PREADLINKAT function specifies how to read links.  It operates
    like POSIX readlinkat()
-   <http://pubs.opengroup.org/onlinepubs/9699919799/functions/readlink.html>
+   <https://pubs.opengroup.org/onlinepubs/9699919799/functions/readlink.html>
    but can assume that its first argument is the same as FD.
 
    If successful, return the buffer address; otherwise return NULL and
    set errno.  */
 
 char *careadlinkat (int fd, char const *filename,
-                    char *buffer, size_t buffer_size,
+                    char *restrict buffer, size_t buffer_size,
                     struct allocator const *alloc,
                     ssize_t (*preadlinkat) (int, char const *,
                                             char *, size_t));

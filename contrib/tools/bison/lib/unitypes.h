@@ -1,6 +1,6 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Elementary types and macros for the GNU UniString library.
-   Copyright (C) 2002, 2005-2006, 2009-2019 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2005-2006, 2009-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published
@@ -41,6 +41,19 @@ typedef uint32_t ucs4_t;
 #  define _UC_ATTRIBUTE_PURE __attribute__ ((__pure__))
 # else
 #  define _UC_ATTRIBUTE_PURE
+# endif
+#endif
+
+/* Qualifier in a function declaration, that asserts that the caller must
+   pass a pointer to a different object in the specified pointer argument
+   than in the other pointer arguments.  */
+#ifndef _UC_RESTRICT
+# if defined __restrict || 2 < __GNUC__ + (95 <= __GNUC_MINOR__)
+#  define _UC_RESTRICT __restrict
+# elif 199901L <= __STDC_VERSION__ || defined restrict
+#  define _UC_RESTRICT restrict
+# else
+#  define _UC_RESTRICT
 # endif
 #endif
 

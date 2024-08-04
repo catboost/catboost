@@ -1,6 +1,6 @@
 /* IELR main implementation.
 
-   Copyright (C) 2009-2015, 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -36,7 +36,36 @@
 #include "symtab.h"
 
 /** Records the value of the \%define variable lr.type.  */
-typedef enum { LR_TYPE__LALR, LR_TYPE__IELR, LR_TYPE__CANONICAL_LR } LrType;
+typedef enum
+  {
+   LR_TYPE__LR0,
+   LR_TYPE__LALR,
+   LR_TYPE__IELR,
+   LR_TYPE__CANONICAL_LR
+  } LrType;
+
+/* The user's requested LR type.  */
+static LrType
+lr_type_get (void)
+{
+  char *type = muscle_percent_define_get ("lr.type");
+  LrType res;
+  if (STREQ (type, "lr""(0)"))
+    res = LR_TYPE__LR0;
+  else if (STREQ (type, "lalr"))
+    res = LR_TYPE__LALR;
+  else if (STREQ (type, "ielr"))
+    res = LR_TYPE__IELR;
+  else if (STREQ (type, "canonical-lr"))
+    res = LR_TYPE__CANONICAL_LR;
+  else
+    {
+      aver (false);
+      abort ();
+    }
+  free (type);
+  return res;
+}
 
 /**
  * \post:
@@ -49,7 +78,7 @@ static bitset
 ielr_compute_ritem_sees_lookahead_set (void)
 {
   bitset result = bitset_create (nritems, BITSET_FIXED);
-  unsigned i = nritems-1;
+  int i = nritems-1;
   while (0 < i)
     {
       --i;
@@ -167,10 +196,7 @@ ielr_compute_internal_follow_edges (bitset ritem_sees_lookahead_set,
   relation_transpose (edgesp, ngotos);
 
   if (trace_flag & trace_ielr)
-    {
-      fprintf (stderr, "internal_follow_edges:\n");
-      relation_print (*edgesp, ngotos, stderr);
-    }
+    relation_print ("internal_follow_edges", *edgesp, ngotos, NULL, stderr);
 }
 
 /**
@@ -215,7 +241,7 @@ ielr_compute_follow_kernel_items (bitset ritem_sees_lookahead_set,
             && bitset_test (ritem_sees_lookahead_set, items[j]))
           bitset_set ((*follow_kernel_itemsp)[i], j);
     }
-  relation_digraph (internal_follow_edges, ngotos, follow_kernel_itemsp);
+  relation_digraph (internal_follow_edges, ngotos, *follow_kernel_itemsp);
 
   if (trace_flag & trace_ielr)
     {
@@ -271,12 +297,11 @@ ielr_compute_always_follows (goto_number ***edgesp,
       }
     free (edge_array);
   }
-  relation_digraph (*edgesp, ngotos, always_followsp);
+  relation_digraph (*edgesp, ngotos, *always_followsp);
 
   if (trace_flag & trace_ielr)
     {
-      fprintf (stderr, "always follow edges:\n");
-      relation_print (*edgesp, ngotos, stderr);
+      relation_print ("always follow edges", *edgesp, ngotos, NULL, stderr);
       fprintf (stderr, "always_follows:\n");
       debug_bitsetv (*always_followsp);
     }
@@ -393,7 +418,7 @@ ielr_item_has_lookahead (state *s, symbol_number lhs, size_t item,
              top-level invocation), go get it.  */
           if (!lhs)
             {
-              unsigned i;
+              int i;
               for (i = s->items[item];
                    !item_number_is_rule_number (ritem[i]);
                    ++i)
@@ -471,7 +496,7 @@ ielr_compute_annotation_lists (bitsetv follow_kernel_items,
   AnnotationIndex *annotation_counts =
     xnmalloc (nstates, sizeof *annotation_counts);
   ContributionIndex max_contributions = 0;
-  unsigned total_annotations = 0;
+  int total_annotations = 0;
 
   *inadequacy_listsp = xnmalloc (nstates, sizeof **inadequacy_listsp);
   *annotation_listsp = xnmalloc (nstates, sizeof **annotation_listsp);
@@ -540,7 +565,7 @@ typedef struct state_list
   /**
    * nextIsocore is the next state in a circularly linked-list of all states
    * with the same core.  The one originally computed by generate_states in
-   * LR0.c is lr0Isocore.
+   * lr0.c is lr0Isocore.
    */
   struct state_list *lr0Isocore;
   struct state_list *nextIsocore;
@@ -608,7 +633,7 @@ ielr_compute_lookaheads (bitsetv follow_kernel_items, bitsetv always_follows,
         {
           if (item_number_is_rule_number (ritem[t->items[t_item] - 2]))
             {
-              unsigned rule_item;
+              int rule_item;
               for (rule_item = t->items[t_item];
                    !item_number_is_rule_number (ritem[rule_item]);
                    ++rule_item)
@@ -1051,41 +1076,40 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
     }
 }
 
+
 void
 ielr (void)
 {
-  LrType lr_type;
-
-  /* Examine user options.  */
-  {
-    char *type = muscle_percent_define_get ("lr.type");
-    if (STREQ (type, "lalr"))
-      lr_type = LR_TYPE__LALR;
-    else if (STREQ (type, "ielr"))
-      lr_type = LR_TYPE__IELR;
-    else if (STREQ (type, "canonical-lr"))
-      lr_type = LR_TYPE__CANONICAL_LR;
-    else
-      {
-        aver (false);
-        abort ();
-      }
-    free (type);
-  }
+  LrType lr_type = lr_type_get ();
 
   /* Phase 0: LALR(1).  */
-  timevar_push (tv_lalr);
-  if (lr_type == LR_TYPE__CANONICAL_LR)
-    set_goto_map ();
-  else
-    lalr ();
-  if (lr_type == LR_TYPE__LALR)
+  switch (lr_type)
     {
+    case LR_TYPE__LR0:
+      timevar_push (tv_lalr);
+      set_goto_map ();
+      timevar_pop (tv_lalr);
+      return;
+
+    case LR_TYPE__CANONICAL_LR:
+      timevar_push (tv_lalr);
+      set_goto_map ();
+      timevar_pop (tv_lalr);
+      break;
+
+    case LR_TYPE__LALR:
+      timevar_push (tv_lalr);
+      lalr ();
       bitsetv_free (goto_follows);
       timevar_pop (tv_lalr);
       return;
+
+    case LR_TYPE__IELR:
+      timevar_push (tv_lalr);
+      lalr ();
+      timevar_pop (tv_lalr);
+      break;
     }
-  timevar_pop (tv_lalr);
 
   {
     bitsetv follow_kernel_items;

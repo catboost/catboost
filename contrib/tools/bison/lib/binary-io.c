@@ -1,5 +1,5 @@
 /* Binary mode I/O.
-   Copyright 2017-2019 Free Software Foundation, Inc.
+   Copyright 2017-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,18 +20,20 @@
 #include "binary-io.h"
 
 #if defined __DJGPP__ || defined __EMX__
-# include <errno.h>
 # include <unistd.h>
 
 int
-__gl_setmode_check (int fd)
+set_binary_mode (int fd, int mode)
 {
   if (isatty (fd))
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    /* If FD refers to a console (not a pipe, not a regular file),
+       O_TEXT is the only reasonable mode, both on input and on output.
+       Silently ignore the request.  If we were to return -1 here,
+       all programs that use xset_binary_mode would fail when run
+       with console input or console output.  */
+    return O_TEXT;
   else
-    return 0;
+    return __gl_setmode (fd, mode);
 }
+
 #endif

@@ -1,6 +1,6 @@
 /* hard-locale.c -- Determine whether a locale is hard.
 
-   Copyright (C) 1997-1999, 2002-2004, 2006-2007, 2009-2019 Free Software
+   Copyright (C) 1997-1999, 2002-2004, 2006-2007, 2009-2020 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -19,54 +19,18 @@
 #include <config.h>
 
 #include "hard-locale.h"
+#include "setlocale_null.h"
 
 #include <locale.h>
-#include <stdlib.h>
 #include <string.h>
 
-#ifdef __GLIBC__
-# define GLIBC_VERSION __GLIBC__
-#elif defined __UCLIBC__
-# define GLIBC_VERSION 2
-#else
-# define GLIBC_VERSION 0
-#endif
-
-/* Return true if the current CATEGORY locale is hard, i.e. if you
-   can't get away with assuming traditional C or POSIX behavior.  */
 bool
 hard_locale (int category)
 {
-  bool hard = true;
-  char const *p = setlocale (category, NULL);
+  char locale[SETLOCALE_NULL_MAX];
 
-  if (p)
-    {
-      if (2 <= GLIBC_VERSION)
-        {
-          if (strcmp (p, "C") == 0 || strcmp (p, "POSIX") == 0)
-            hard = false;
-        }
-      else
-        {
-          char *locale = strdup (p);
-          if (locale)
-            {
-              /* Temporarily set the locale to the "C" and "POSIX" locales
-                 to find their names, so that we can determine whether one
-                 or the other is the caller's locale.  */
-              if (((p = setlocale (category, "C"))
-                   && strcmp (p, locale) == 0)
-                  || ((p = setlocale (category, "POSIX"))
-                      && strcmp (p, locale) == 0))
-                hard = false;
+  if (setlocale_null_r (category, locale, sizeof (locale)))
+    return false;
 
-              /* Restore the caller's locale.  */
-              setlocale (category, locale);
-              free (locale);
-            }
-        }
-    }
-
-  return hard;
+  return !(strcmp (locale, "C") == 0 || strcmp (locale, "POSIX") == 0);
 }

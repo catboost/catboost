@@ -1,5 +1,5 @@
 /* Emergency actions in case of a fatal signal.
-   Copyright (C) 2003-2004, 2006-2019 Free Software Foundation, Inc.
+   Copyright (C) 2003-2004, 2006-2020 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2003.
 
    This program is free software: you can redistribute it and/or modify
@@ -107,7 +107,7 @@ init_fatal_signals (void)
 /* ========================================================================= */
 
 
-typedef void (*action_t) (void);
+typedef _GL_ASYNC_SAFE void (*action_t) (int sig);
 
 /* Type of an entry in the actions array.
    The 'action' field is accessed from within the fatal_signal_handler(),
@@ -131,7 +131,7 @@ static struct sigaction saved_sigactions[64];
 
 
 /* Uninstall the handlers.  */
-static void
+static _GL_ASYNC_SAFE void
 uninstall_handlers (void)
 {
   size_t i;
@@ -148,7 +148,7 @@ uninstall_handlers (void)
 
 
 /* The signal handler.  It gets called asynchronously.  */
-static void
+static _GL_ASYNC_SAFE void
 fatal_signal_handler (int sig)
 {
   for (;;)
@@ -162,7 +162,7 @@ fatal_signal_handler (int sig)
       actions_count = n;
       action = actions[n].action;
       /* Execute the action.  */
-      action ();
+      action (sig);
     }
 
   /* Now execute the signal's default action.
@@ -283,4 +283,21 @@ unblock_fatal_signals (void)
 {
   init_fatal_signal_set ();
   sigprocmask (SIG_UNBLOCK, &fatal_signal_set, NULL);
+}
+
+
+unsigned int
+get_fatal_signals (int signals[64])
+{
+  init_fatal_signal_set ();
+
+  {
+    int *p = signals;
+    size_t i;
+
+    for (i = 0; i < num_fatal_signals; i++)
+      if (fatal_signals[i] >= 0)
+        *p++ = fatal_signals[i];
+    return p - signals;
+  }
 }

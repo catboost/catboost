@@ -2,7 +2,7 @@
 
 # C skeleton dispatching for Bison.
 
-# Copyright (C) 2006-2007, 2009-2015, 2018-2019 Free Software
+# Copyright (C) 2006-2007, 2009-2015, 2018-2020 Free Software
 # Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify

@@ -1,6 +1,6 @@
 /* Report a memory allocation failure and exit.
 
-   Copyright (C) 1997-2000, 2002-2004, 2006, 2009-2019 Free Software
+   Copyright (C) 1997-2000, 2002-2004, 2006, 2009-2020 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify

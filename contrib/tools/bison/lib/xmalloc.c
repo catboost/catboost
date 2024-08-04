@@ -1,6 +1,6 @@
 /* xmalloc.c -- malloc with out of memory checking
 
-   Copyright (C) 1990-2000, 2002-2006, 2008-2019 Free Software Foundation, Inc.
+   Copyright (C) 1990-2000, 2002-2006, 2008-2020 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -76,14 +76,14 @@ x2realloc (void *p, size_t *pn)
   return x2nrealloc (p, pn, 1);
 }
 
-/* Allocate S bytes of zeroed memory dynamically, with error checking.
+/* Allocate N bytes of zeroed memory dynamically, with error checking.
    There's no need for xnzalloc (N, S), since it would be equivalent
    to xcalloc (N, S).  */
 
 void *
-xzalloc (size_t s)
+xzalloc (size_t n)
 {
-  return memset (xmalloc (s), 0, s);
+  return xcalloc (n, 1);
 }
 
 /* Allocate zeroed memory for N elements of S bytes, with error

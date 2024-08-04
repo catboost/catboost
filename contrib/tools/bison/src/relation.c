@@ -1,6 +1,6 @@
 /* Binary relations.
 
-   Copyright (C) 2002, 2004-2005, 2009-2015, 2018-2019 Free Software
+   Copyright (C) 2002, 2004-2005, 2009-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -27,19 +27,31 @@
 #include "relation.h"
 
 void
-relation_print (relation r, relation_node size, FILE *out)
+relation_print (const char *title,
+                relation r, relation_node size,
+                relation_node_print print, FILE *out)
 {
-  relation_node i;
-  relation_node j;
-
-  for (i = 0; i < size; ++i)
-    {
-      fprintf (out, "%3lu: ", (unsigned long) i);
-      if (r[i])
-        for (j = 0; r[i][j] != END_NODE; ++j)
-          fprintf (out, "%3lu ", (unsigned long) r[i][j]);
-      fputc ('\n', out);
-    }
+  if (title)
+    fprintf (out, "%s:\n", title);
+  for (relation_node i = 0; i < size; ++i)
+    if (r[i])
+      {
+        fputs ("    ", out);
+        if (print)
+          print (i, out);
+        else
+          fprintf (out, "%3ld", (long) i);
+        fputc (':', out);
+        for (relation_node j = 0; r[i][j] != END_NODE; ++j)
+          {
+            fputc (' ', out);
+            if (print)
+              print (r[i][j], out);
+            else
+              fprintf (out, "%3ld", (long) r[i][j]);
+          }
+        fputc ('\n', out);
+      }
   fputc ('\n', out);
 }
 
@@ -52,8 +64,8 @@ relation_print (relation r, relation_node size, FILE *out)
 `---------------------------------------------------------------*/
 
 static relation R;
-static relation_nodes INDEX;
-static relation_nodes VERTICES;
+static relation_nodes indexes;
+static relation_nodes vertices;
 static relation_node top;
 static relation_node infinity;
 static bitsetv F;
@@ -61,29 +73,26 @@ static bitsetv F;
 static void
 traverse (relation_node i)
 {
-  relation_node j;
-  relation_node height;
-
-  VERTICES[++top] = i;
-  INDEX[i] = height = top;
+  vertices[++top] = i;
+  relation_node height = indexes[i] = top;
 
   if (R[i])
-    for (j = 0; R[i][j] != END_NODE; ++j)
+    for (relation_node j = 0; R[i][j] != END_NODE; ++j)
       {
-        if (INDEX[R[i][j]] == 0)
+        if (indexes[R[i][j]] == 0)
           traverse (R[i][j]);
 
-        if (INDEX[i] > INDEX[R[i][j]])
-          INDEX[i] = INDEX[R[i][j]];
+        if (indexes[i] > indexes[R[i][j]])
+          indexes[i] = indexes[R[i][j]];
 
         bitset_or (F[i], F[i], F[R[i][j]]);
       }
 
-  if (INDEX[i] == height)
+  if (indexes[i] == height)
     for (;;)
       {
-        j = VERTICES[top--];
-        INDEX[j] = infinity;
+        relation_node j = vertices[top--];
+        indexes[j] = infinity;
 
         if (i == j)
           break;
@@ -94,26 +103,24 @@ traverse (relation_node i)
 
 
 void
-relation_digraph (relation r, relation_node size, bitsetv *function)
+relation_digraph (relation r, relation_node size, bitsetv function)
 {
-  relation_node i;
-
   infinity = size + 2;
-  INDEX = xcalloc (size + 1, sizeof *INDEX);
-  VERTICES = xnmalloc (size + 1, sizeof *VERTICES);
+  indexes = xcalloc (size + 1, sizeof *indexes);
+  vertices = xnmalloc (size + 1, sizeof *vertices);
   top = 0;
 
   R = r;
-  F = *function;
+  F = function;
 
-  for (i = 0; i < size; i++)
-    if (INDEX[i] == 0 && R[i])
+  for (relation_node i = 0; i < size; i++)
+    if (indexes[i] == 0 && R[i])
       traverse (i);
 
-  free (INDEX);
-  free (VERTICES);
+  free (indexes);
+  free (vertices);
 
-  *function = F;
+  function = F;
 }
 
 
@@ -122,32 +129,27 @@ relation_digraph (relation r, relation_node size, bitsetv *function)
 `-------------------------------------------*/
 
 void
-relation_transpose (relation *R_arg, relation_node n)
+relation_transpose (relation *R_arg, relation_node size)
 {
   relation r = *R_arg;
-  /* The result. */
-  relation new_R = xnmalloc (n, sizeof *new_R);
-  /* END_R[I] -- next entry of NEW_R[I]. */
-  relation end_R = xnmalloc (n, sizeof *end_R);
-  /* NEDGES[I] -- total size of NEW_R[I]. */
-  size_t *nedges = xcalloc (n, sizeof *nedges);
-  relation_node i;
-  relation_node j;
 
   if (trace_flag & trace_sets)
-    {
-      fputs ("relation_transpose: input\n", stderr);
-      relation_print (r, n, stderr);
-    }
+    relation_print ("relation_transpose", r, size, NULL, stderr);
 
   /* Count. */
-  for (i = 0; i < n; i++)
+  /* NEDGES[I] -- total size of NEW_R[I]. */
+  size_t *nedges = xcalloc (size, sizeof *nedges);
+  for (relation_node i = 0; i < size; i++)
     if (r[i])
-      for (j = 0; r[i][j] != END_NODE; ++j)
+      for (relation_node j = 0; r[i][j] != END_NODE; ++j)
         ++nedges[r[i][j]];
 
   /* Allocate. */
-  for (i = 0; i < n; i++)
+  /* The result. */
+  relation new_R = xnmalloc (size, sizeof *new_R);
+  /* END_R[I] -- next entry of NEW_R[I]. */
+  relation end_R = xnmalloc (size, sizeof *end_R);
+  for (relation_node i = 0; i < size; i++)
     {
       relation_node *sp = NULL;
       if (nedges[i] > 0)
@@ -160,24 +162,21 @@ relation_transpose (relation *R_arg, relation_node n)
     }
 
   /* Store. */
-  for (i = 0; i < n; i++)
+  for (relation_node i = 0; i < size; i++)
     if (r[i])
-      for (j = 0; r[i][j] != END_NODE; ++j)
+      for (relation_node j = 0; r[i][j] != END_NODE; ++j)
         *end_R[r[i][j]]++ = i;
 
   free (nedges);
   free (end_R);
 
   /* Free the input: it is replaced with the result. */
-  for (i = 0; i < n; i++)
+  for (relation_node i = 0; i < size; i++)
     free (r[i]);
   free (r);
 
   if (trace_flag & trace_sets)
-    {
-      fputs ("relation_transpose: output\n", stderr);
-      relation_print (new_R, n, stderr);
-    }
+    relation_print ("relation_transpose: output", new_R, size, NULL, stderr);
 
   *R_arg = new_R;
 }

@@ -1,6 +1,6 @@
 /* Associativity information.
 
-   Copyright (C) 2002, 2005-2006, 2008-2015, 2018-2019 Free Software
+   Copyright (C) 2002, 2005-2006, 2008-2015, 2018-2020 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -29,9 +29,6 @@ assoc_to_string (assoc a)
 {
   switch (a)
     {
-    default:
-      abort ();
-
     case undef_assoc:
       return "undefined associativity";
 
@@ -47,4 +44,5 @@ assoc_to_string (assoc a)
     case precedence_assoc:
       return "%precedence";
     }
+  abort ();
 }
