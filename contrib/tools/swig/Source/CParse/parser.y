@@ -13,7 +13,7 @@
  * some point.  Beware.
  * ----------------------------------------------------------------------------- */
 
-%require "3.3"
+%require "3.5"
 
 /* There are a small number of known shift-reduce conflicts in this file, fail
    compilation if any more are introduced.
@@ -28,6 +28,7 @@
  * which saves Bison generating a lookup table to map between them, giving
  * a smaller and faster generated parser.
  */
+%define api.token.raw
 
 %{
 /* doh.h uses #pragma GCC poison with GCC to prevent direct calls to certain
