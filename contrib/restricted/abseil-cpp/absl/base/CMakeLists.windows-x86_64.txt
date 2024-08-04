@@ -31,6 +31,7 @@ target_link_libraries(abseil-cpp-absl-base PUBLIC
 target_sources(abseil-cpp-absl-base PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/cycleclock.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc.cc
+  ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/poison.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/raw_logging.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/scoped_set_env.cc
   ${PROJECT_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/base/internal/spinlock.cc
