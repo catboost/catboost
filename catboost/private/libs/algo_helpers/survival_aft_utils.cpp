@@ -3,6 +3,7 @@
 #include <library/cpp/fast_log/fast_log.h>
 
 #include <util/generic/ymath.h>
+#include <util/system/compiler.h>
 
 
 namespace NCB {
@@ -38,6 +39,7 @@ namespace NCB {
                         return std::make_tuple(TDerivativeConstants::MinSecondDer, 1 / Sqr(scale));
                 }
         }
+        Y_UNREACHABLE();
     }
 
 
@@ -64,6 +66,7 @@ namespace NCB {
                         return std::make_tuple(TDerivativeConstants::MinSecondDer, TDerivativeConstants::MinSecondDer);
                 }
         }
+        Y_UNREACHABLE();
     }
 
     template<>
@@ -88,6 +91,7 @@ namespace NCB {
                         return std::make_tuple(TDerivativeConstants::MinSecondDer, TDerivativeConstants::MinSecondDer);
                 }
         }
+        Y_UNREACHABLE();
     }
 
     std::tuple<double, double> DispatchDerivativeLimits(EDistributionType type, EDerivativeOrder derivativeOrder, ECensoredType censoredType, double scale) {
@@ -99,5 +103,6 @@ namespace NCB {
             case EDistributionType::Logistic:
                 return GetDerivativeLimits<EDistributionType::Logistic>(derivativeOrder, censoredType, scale);
             }
+        Y_UNREACHABLE();
     }
 }

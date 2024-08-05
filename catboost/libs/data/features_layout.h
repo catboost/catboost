@@ -18,6 +18,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
 namespace NCB {
@@ -184,6 +185,7 @@ namespace NCB {
                 case EFeatureType::Embedding:
                     return EmbeddingFeatureInternalIdxToExternalIdx[internalFeatureIdx];
             }
+            Y_UNREACHABLE();
         }
 
         ui32 GetInternalFeatureIdx(ui32 externalFeatureIdx) const;

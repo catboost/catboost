@@ -17,6 +17,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
 #include <util/generic/vector.h>
+#include <util/system/compiler.h>
 #include <util/system/types.h>
 #include <util/str_stl.h>
 #include <util/ysaveload.h>
@@ -102,6 +103,7 @@ public:
             case ESplitType::OnlineCtr:
                 return Ctr == other.Ctr;
         }
+        Y_UNREACHABLE();
     }
 
     SAVELOAD(Ctr, FeatureIdx, IsOnlineEstimatedFeature, Type);
@@ -307,6 +309,7 @@ public:
                 return (other.Type == ESplitEnsembleType::FeaturesGroup) &&
                        (FeaturesGroupRef == other.FeaturesGroupRef);
         }
+        Y_UNREACHABLE();
     }
 
     SAVELOAD(
@@ -337,6 +340,7 @@ public:
             case ESplitEnsembleType::FeaturesGroup:
                 return MultiHash(IsEstimated, IsOnlineEstimated, FeaturesGroupHash, FeaturesGroupRef.GroupIdx);
         }
+        Y_UNREACHABLE();
     }
 
     bool IsSplitOfType(ESplitType type) const {
@@ -420,6 +424,7 @@ public:
                 return (other.Type == ESplitEnsembleType::FeaturesGroup) &&
                     (FeaturesGroup == other.FeaturesGroup);
         }
+        Y_UNREACHABLE();
     }
 
     static TSplitEnsembleSpec OneSplit(ESplitType splitType) {

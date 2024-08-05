@@ -4,6 +4,7 @@
 
 #include <catboost/private/libs/ctr_description/ctr_type.h>
 
+#include <util/system/compiler.h>
 #include <util/system/types.h>
 
 constexpr ui32 GetMaxBinCount() {
@@ -43,6 +44,7 @@ constexpr bool IsSupportedCtrType(ETaskType taskType, ECtrType ctrType) {
             }
         }
     }
+    Y_UNREACHABLE();
 }
 
 

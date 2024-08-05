@@ -292,6 +292,7 @@ bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeat
         case EFeatureType::Embedding:
             return (size_t)internalFeatureIdx < EmbeddingFeatureInternalIdxToExternalIdx.size();
     }
+    Y_UNREACHABLE();
 }
 
 bool TFeaturesLayout::IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const noexcept {
@@ -359,6 +360,7 @@ ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const noexcept {
         case EFeatureType::Embedding:
             return GetEmbeddingFeatureCount();
     }
+    Y_UNREACHABLE();
 }
 
 bool TFeaturesLayout::HasSparseFeatures(bool checkOnlyAvailable) const noexcept {
