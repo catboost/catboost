@@ -21,7 +21,7 @@ def main(args):
 
     try:
         subprocess.run(cmd, stdin=None, stderr=subprocess.STDOUT, text=True, check=True)
-    except subrocess.CalledProcessError as e:
+    except subprocess.CalledProcessError as e:
         sys.stderr.write(f'{e.cmd} returned non-zero exit code {e.returncode}.\n{e.output}\n')
         return e.returncode
 
