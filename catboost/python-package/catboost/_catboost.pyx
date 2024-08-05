@@ -3255,8 +3255,9 @@ cdef _set_data_from_scipy_bsr_sparse(
     cdef int feature_block_idx
     cdef int feature_in_block_idx
     cdef int feature_block_start_idx
-    cdef int indptr_begin
-    cdef int indptr_end
+    cdef size_t indptr
+    cdef size_t indptr_begin
+    cdef size_t indptr_end
     cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
 
     for doc_block_idx in xrange(doc_block_count):
@@ -3596,7 +3597,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
     cdef ui32 src_feature_idx
     cdef ui32 dst_feature_idx
     cdef ui32 feature_nonzero_count
-    cdef ui32 data_idx
+    cdef numpy_indices_dtype data_idx
 
     cdef TMaybeOwningConstArrayHolder[ui32] feature_indices_holder
 
@@ -3607,8 +3608,8 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
 
     cdef bool_t is_float_value = False
 
-    cdef int indptr_begin
-    cdef int indptr_end
+    cdef numpy_indices_dtype indptr_begin
+    cdef numpy_indices_dtype indptr_end
 
     if (numpy_num_or_bool_dtype is np.float32_t) or (numpy_num_or_bool_dtype is np.float64_t):
         is_float_value = True
@@ -3903,13 +3904,13 @@ cdef inline TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids) except *:
 
 cdef _set_subgroup_id(subgroup_id, IBuilderVisitor* builder_visitor):
     cdef ui32 subgroup_id_len = len(subgroup_id)
-    cdef int i
+    cdef ui32 i
     for i in xrange(subgroup_id_len):
         builder_visitor[0].AddSubgroupId(i, _calc_subgroup_id_for(i, subgroup_id))
 
 cdef _set_baseline(baseline, IRawObjectsOrderDataVisitor* builder_visitor):
     cdef ui32 baseline_len = len(baseline)
-    cdef int i
+    cdef ui32 i
     for i in xrange(baseline_len):
         for j, value in enumerate(baseline[i]):
             builder_visitor[0].AddBaseline(i, j, float(value))

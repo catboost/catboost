@@ -195,7 +195,7 @@ public:
             TVector<CPPTYPE>* self = *(TVector<CPPTYPE>**)&jarg1;
             jobject result = nullptr;
             size_t sizeInBytes = self->size() * sizeof(CPPTYPE);
-            if (sizeInBytes > Max<jlong>()) {
+            if (sizeInBytes > (size_t)Max<jlong>()) {
                 SWIG_JavaThrowException(
                     jenv,
                     SWIG_JavaRuntimeException,
