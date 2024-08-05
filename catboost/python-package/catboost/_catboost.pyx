@@ -2247,8 +2247,9 @@ class FeaturesData(object):
         return self.num_feature_names + self.cat_feature_names
 
 
-cdef void list_to_vector(values_list, TVector[ui32]* values_vector) except *:
+cdef list_to_vector(values_list, TVector[ui32]* values_vector):
     if values_list is not None:
+        values_vector[0].reserve(len(values_list))
         for value in values_list:
             values_vector[0].push_back(value)
 
