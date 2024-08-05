@@ -226,6 +226,7 @@ default:
   error-function__QueryRMSE: QueryRMSE
   error-function__QueryAverage: AverageGain
   error-function__QuerySoftMax: QuerySoftMax
+  error-function__GroupQuantile: GroupQuantile
   error-function__Brierscore: BrierScore
   error-function__HingeLoss: HingeLoss
   error-function__Kappa: Kappa

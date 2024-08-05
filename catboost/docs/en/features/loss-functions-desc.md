@@ -45,6 +45,7 @@ Classes:
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryRMSE }}
 - {{ error-function__QuerySoftMax }}
+- {{ error-function__GroupQuantile }}
 - {{ error-function__Tweedie }}
 
 - {{ error-function__YetiRank }}
@@ -184,6 +185,7 @@ Method:  [catboost.train](../concepts/r-reference_catboost-train.md)
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryRMSE }}
 - {{ error-function__QuerySoftMax }}
+- {{ error-function__GroupQuantile }}
 - {{ error-function__Tweedie }}
 
 - {{ error-function__YetiRank }}
@@ -292,6 +294,7 @@ Format:
 - {{ error-function__PairLogitPairwise }}
 - {{ error-function__QueryRMSE }}
 - {{ error-function__QuerySoftMax }}
+- {{ error-function__GroupQuantile }}
 - {{ error-function__Tweedie }}
 
 - {{ error-function__YetiRank }}
