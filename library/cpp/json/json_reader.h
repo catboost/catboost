@@ -20,6 +20,8 @@ namespace NJson {
         bool AllowComments = false;
         bool DontValidateUtf8 = false;
         bool AllowEscapedApostrophe = false;
+        // Allow to read Nan and Inf as integer values
+        bool AllowReadNanInf = false;
 
         ui64 MaxDepth = 0;
 
@@ -48,6 +50,7 @@ namespace NJson {
     bool ReadJson(IInputStream* in, const TJsonReaderConfig* config, TJsonCallbacks* callbacks);
 
     enum ReaderConfigFlags {
+        NANINF = 0b10000,
         ITERATIVE = 0b1000,
         COMMENTS = 0b0100,
         VALIDATE = 0b0010,

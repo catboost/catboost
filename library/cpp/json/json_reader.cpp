@@ -336,6 +336,9 @@ namespace NJson {
         constexpr ui32 ConvertToRapidJsonFlags(ui8 flags) {
             ui32 rapidjsonFlags = rapidjson::kParseNoFlags;
 
+            if (flags & ReaderConfigFlags::NANINF) {
+                rapidjsonFlags |= rapidjson::kParseNanAndInfFlag;
+            }
             if (flags & ReaderConfigFlags::ITERATIVE) {
                 rapidjsonFlags |= rapidjson::kParseIterativeFlag;
             }
@@ -371,6 +374,7 @@ namespace NJson {
         ); \
     }
 
+            TRY_EXTRACT_FLAG(ReaderConfigFlags::NANINF);
             TRY_EXTRACT_FLAG(ReaderConfigFlags::ITERATIVE);
             TRY_EXTRACT_FLAG(ReaderConfigFlags::COMMENTS);
             TRY_EXTRACT_FLAG(ReaderConfigFlags::VALIDATE);
@@ -404,6 +408,9 @@ namespace NJson {
 
             if (config.AllowEscapedApostrophe) {
                 flags |= ReaderConfigFlags::ESCAPE;
+            }
+            if (config.AllowReadNanInf) {
+                flags |= ReaderConfigFlags::NANINF;
             }
 
             return ReadWithRuntimeFlags(flags, reader, is, handler);
