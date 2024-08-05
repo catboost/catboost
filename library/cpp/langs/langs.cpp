@@ -248,19 +248,19 @@ namespace {
         }
 
         inline const char* FullNameByLanguage(ELanguage language) const {
-            if (language < 0 || static_cast<size_t>(language) >= FullNames.size())
+            if (static_cast<size_t>(language) >= FullNames.size())
                 return nullptr;
 
             return FullNames[language];
         }
         inline const char* BiblioNameByLanguage(ELanguage language) const {
-            if (language < 0 || static_cast<size_t>(language) >= BiblioNames.size())
+            if (static_cast<size_t>(language) >= BiblioNames.size())
                 return nullptr;
 
             return BiblioNames[language];
         }
         inline const char* IsoNameByLanguage(ELanguage language) const {
-            if (language < 0 || static_cast<size_t>(language) >= IsoNames.size())
+            if (static_cast<size_t>(language) >= IsoNames.size())
                 return nullptr;
 
             return IsoNames[language];
