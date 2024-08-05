@@ -534,6 +534,7 @@ basic_string<char32_t> operator "" s( const char32_t *str, size_t len ); // C++1
 #include <initializer_list>
 #include <iosfwd>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <stdexcept>
 #include <string_view>
@@ -772,7 +773,7 @@ private:
 
 public:
     _LIBCPP_TEMPLATE_DATA_VIS
-    static const size_type npos = -1;
+    static const size_type npos = numeric_limits<size_type>::max();
 
     _LIBCPP_INLINE_VISIBILITY basic_string()
         _NOEXCEPT_(is_nothrow_default_constructible<allocator_type>::value);
