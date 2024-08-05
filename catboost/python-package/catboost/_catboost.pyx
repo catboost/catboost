@@ -1281,6 +1281,7 @@ cdef bool_t _CallbackAfterIteration(
 cdef np.ndarray _constarrayref_of_double_to_np_array(const TConstArrayRef[double] arr):
     cdef np.ndarray[np.float64_t, ndim=1] result = np.empty(arr.size(), dtype=_npfloat64)
     cdef np.float64_t[::1] result_view = result
+    cdef size_t i
     for i in xrange(arr.size()):
         result_view[i] = arr[i]
     return result
@@ -1296,6 +1297,7 @@ cdef np.ndarray _2d_vector_of_double_to_np_array(const TVector[TVector[double]]&
     cdef np.ndarray[np.float64_t, ndim=2] result = np.empty([vectors.size(), subvec_size], dtype=_npfloat64)
     cdef np.float64_t[:,::1] result_view = result
 
+    cdef size_t i, j
     for i in xrange(vectors.size()):
         assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
         for j in xrange(subvec_size):
@@ -1313,6 +1315,7 @@ cdef np.ndarray _3d_vector_of_double_to_np_array(const TVector[TVector[TVector[d
     )
     cdef np.float64_t[:,:,::1] result_view = result
 
+    cdef size_t i, j, k
     for i in xrange(vectors.size()):
         assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
         for j in xrange(subvec_size):
@@ -1366,6 +1369,7 @@ cdef np.ndarray _vector_of_uints_to_np_array(const TVector[ui32]& vec):
     cdef np.ndarray[np.uint32_t, ndim=1] result = np.empty(vec.size(), dtype=np.uint32)
     cdef np.uint32_t[::1] result_view = result
 
+    cdef size_t i
     for i in xrange(vec.size()):
         result_view[i] = vec[i]
     return result
@@ -1375,6 +1379,7 @@ cdef np.ndarray _vector_of_ints_to_np_array(const TVector[int]& vec):
     cdef np.ndarray[np.int_t, ndim=1] result = np.empty(vec.size(), dtype=np.int_)
     cdef np.int_t[::1] result_view = result
 
+    cdef size_t i
     for i in xrange(vec.size()):
         result_view[i] = vec[i]
     return result
@@ -1386,6 +1391,7 @@ cdef np.ndarray _vector_of_uints_to_2d_np_array(const TVector[ui32]& vec, int ro
     cdef np.ndarray[np.uint32_t, ndim=2] result = np.empty((row_count, column_count), dtype=np.uint32)
     cdef np.uint32_t[:,::1] result_view = result
 
+    cdef int row_num, col_num
     for row_num in xrange(row_count):
         for col_num in xrange(column_count):
             result[row_num, col_num] = vec[row_num * column_count + col_num]
@@ -1396,6 +1402,7 @@ cdef np.ndarray _vector_of_floats_to_np_array(const TVector[float]& vec):
     cdef np.ndarray[np.float32_t, ndim=1] result = np.empty(vec.size(), dtype=_npfloat32)
     cdef np.float32_t[::1] result_view = result
 
+    cdef size_t i
     for i in xrange(vec.size()):
         result_view[i] = vec[i]
     return result
@@ -1405,6 +1412,7 @@ cdef np.ndarray _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
     cdef np.ndarray[np.uint32_t, ndim=1] result = np.empty(vec.size(), dtype=np.uint32)
     cdef np.uint32_t[::1] result_view = result
 
+    cdef size_t i
     for i in xrange(vec.size()):
         result_view[i] = vec[i]
     return result
@@ -2055,6 +2063,9 @@ cdef _npfloat64 = np.float64
 cpdef _prepare_cv_result(metric_name, const TVector[ui32]& iterations,
         const TVector[double]& average_train, const TVector[double]& std_dev_train,
         const TVector[double]& average_test, const TVector[double]& std_dev_test, result):
+
+    cdef size_t it
+
     # sklearn-style preparation
     fill_iterations_column = 'iterations' not in result
     if fill_iterations_column:
@@ -6300,6 +6311,7 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
     cdef TRocCurve rocCurve
     cdef TVector[TRocPoint] points
     cdef TVector[TDataProviderPtr] pools
+    cdef Py_ssize_t size, i
 
     if data is not None:
         for pool in data:
