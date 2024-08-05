@@ -385,7 +385,7 @@ cdef class Dictionary:
 
         cdef TVector[TString] tokens
         dereference(self.__dictionary_holder.Get()).GetTokens(<TConstArrayRef[TTokenId]>tokenIds, &tokens)
-        return [to_native_str(tokens[i]) for i in xrange(tokens.size())]
+        return [to_native_str(token) for token in tokens]
 
     def get_top_tokens(self, top_size=None):
         """
