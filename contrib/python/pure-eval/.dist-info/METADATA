@@ -1,19 +1,19 @@
 Metadata-Version: 2.1
-Name: pure-eval
-Version: 0.2.2
+Name: pure_eval
+Version: 0.2.3
 Summary: Safely evaluate AST nodes without side effects
 Home-page: http://github.com/alexmojaki/pure_eval
 Author: Alex Hall
 Author-email: alex.mojaki@gmail.com
 License: MIT
-Platform: UNKNOWN
 Classifier: Intended Audience :: Developers
-Classifier: Programming Language :: Python :: 3.5
-Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Description-Content-Type: text/markdown
@@ -23,7 +23,7 @@ Requires-Dist: pytest ; extra == 'tests'
 
 # `pure_eval`
 
-[![Build Status](https://travis-ci.org/alexmojaki/pure_eval.svg?branch=master)](https://travis-ci.org/alexmojaki/pure_eval) [![Coverage Status](https://coveralls.io/repos/github/alexmojaki/pure_eval/badge.svg?branch=master)](https://coveralls.io/github/alexmojaki/pure_eval?branch=master) [![Supports Python versions 3.5+](https://img.shields.io/pypi/pyversions/pure_eval.svg)](https://pypi.python.org/pypi/pure_eval)
+[![Build Status](https://travis-ci.org/alexmojaki/pure_eval.svg?branch=master)](https://travis-ci.org/alexmojaki/pure_eval) [![Coverage Status](https://coveralls.io/repos/github/alexmojaki/pure_eval/badge.svg?branch=master)](https://coveralls.io/github/alexmojaki/pure_eval?branch=master) [![Supports Python versions 3.7+](https://img.shields.io/pypi/pyversions/pure_eval.svg)](https://pypi.python.org/pypi/pure_eval)
 
 This is a Python package that lets you safely evaluate certain AST nodes without triggering arbitrary code that may have unwanted side effects.
 
@@ -225,5 +225,3 @@ d = {1: 2}
 y = 2
 d[x] = 2
 ```
-
-

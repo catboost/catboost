@@ -184,7 +184,12 @@ def copy_ast_without_context(x):
             if field != 'ctx'
             if hasattr(x, field)
         }
-        return type(x)(**kwargs)
+        a = type(x)(**kwargs)
+        if hasattr(a, 'ctx'):
+            # Python 3.13.0b2+ defaults to Load when we don't pass ctx
+            # https://github.com/python/cpython/pull/118871
+            del a.ctx
+        return a
     elif isinstance(x, list):
         return list(map(copy_ast_without_context, x))
     else:

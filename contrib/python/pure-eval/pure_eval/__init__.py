@@ -6,3 +6,12 @@ try:
 except ImportError:
     # version.py is auto-generated with the git tag when building
     __version__ = "???"
+
+__all__ = [
+    "Evaluator",
+    "CannotEval",
+    "group_expressions",
+    "is_expression_interesting",
+    "getattr_static",
+    "__version__",
+]

@@ -1,6 +1,6 @@
 # `pure_eval`
 
-[![Build Status](https://travis-ci.org/alexmojaki/pure_eval.svg?branch=master)](https://travis-ci.org/alexmojaki/pure_eval) [![Coverage Status](https://coveralls.io/repos/github/alexmojaki/pure_eval/badge.svg?branch=master)](https://coveralls.io/github/alexmojaki/pure_eval?branch=master) [![Supports Python versions 3.5+](https://img.shields.io/pypi/pyversions/pure_eval.svg)](https://pypi.python.org/pypi/pure_eval)
+[![Build Status](https://travis-ci.org/alexmojaki/pure_eval.svg?branch=master)](https://travis-ci.org/alexmojaki/pure_eval) [![Coverage Status](https://coveralls.io/repos/github/alexmojaki/pure_eval/badge.svg?branch=master)](https://coveralls.io/github/alexmojaki/pure_eval?branch=master) [![Supports Python versions 3.7+](https://img.shields.io/pypi/pyversions/pure_eval.svg)](https://pypi.python.org/pypi/pure_eval)
 
 This is a Python package that lets you safely evaluate certain AST nodes without triggering arbitrary code that may have unwanted side effects.
 
