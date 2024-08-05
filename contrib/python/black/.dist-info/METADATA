@@ -1,9 +1,11 @@
 Metadata-Version: 2.3
 Name: black
-Version: 24.4.2
+Version: 24.8.0
 Summary: The uncompromising code formatter.
+Project-URL: Documentation, https://black.readthedocs.io/
 Project-URL: Changelog, https://github.com/psf/black/blob/main/CHANGES.md
-Project-URL: Homepage, https://github.com/psf/black
+Project-URL: Repository, https://github.com/psf/black
+Project-URL: Issues, https://github.com/psf/black/issues
 Author-email: Łukasz Langa <lukasz@langa.pl>
 License: MIT
 License-File: AUTHORS.md
@@ -274,6 +276,36 @@ Flying Circus is expected. We are not savages.
 
 And if you _really_ need to slap somebody, do it with a fish while dancing.
 # Change Log
+
+## 24.8.0
+
+### Stable style
+
+- Fix crash when `# fmt: off` is used before a closing parenthesis or bracket. (#4363)
+
+### Packaging
+
+- Packaging metadata updated: docs are explictly linked, the issue tracker is now also
+  linked. This improves the PyPI listing for Black. (#4345)
+
+### Parser
+
+- Fix regression where Black failed to parse a multiline f-string containing another
+  multiline string (#4339)
+- Fix regression where Black failed to parse an escaped single quote inside an f-string
+  (#4401)
+- Fix bug with Black incorrectly parsing empty lines with a backslash (#4343)
+- Fix bugs with Black's tokenizer not handling `\{` inside f-strings very well (#4422)
+- Fix incorrect line numbers in the tokenizer for certain tokens within f-strings
+  (#4423)
+
+### Performance
+
+- Improve performance when a large directory is listed in `.gitignore` (#4415)
+
+### _Blackd_
+
+- Fix blackd (and all extras installs) for docker container (#4357)
 
 ## 24.4.2
 
