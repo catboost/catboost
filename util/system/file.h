@@ -61,7 +61,7 @@ enum SeekDir {
     sEnd = 2,
 };
 
-class TFileHandle: public TNonCopyable {
+class TFileHandle: TMoveOnly {
 public:
     constexpr TFileHandle() = default;
 
@@ -83,6 +83,12 @@ public:
 
     inline ~TFileHandle() {
         Close();
+    }
+
+    TFileHandle& operator=(TFileHandle&& other) noexcept {
+        Close();
+        Fd_ = other.Release();
+        return *this;
     }
 
     bool Close() noexcept;
