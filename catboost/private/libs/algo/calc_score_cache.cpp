@@ -411,7 +411,9 @@ static inline void SetElementsToConstant(
     auto* __restrict destinationData = dstRef.data();
     const size_t destinationCount = dstRef.size();
     size_t endElementIdx = 0;
-#pragma unroll(4)
+#if defined(__clang__)
+    #pragma unroll(4)
+#endif
     for (size_t sourceIdx = 0; sourceIdx < sourceCount && endElementIdx < destinationCount; ++sourceIdx) {
         destinationData[endElementIdx] = constant;
         endElementIdx += controlData[sourceIdx];

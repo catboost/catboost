@@ -340,7 +340,7 @@ static void CalcCrossEntropyDerRangeImpl(
         }
     }
     if (weights != nullptr) {
-#if !defined(CLANG_COVERAGE) && !defined(undefined_sanitizer_enabled)
+#if defined(__clang__) && !defined(CLANG_COVERAGE) && !defined(undefined_sanitizer_enabled)
 #pragma clang loop vectorize_width(4) interleave_count(2)
 #endif
         for (int i = start; i < start + count; ++i) {
