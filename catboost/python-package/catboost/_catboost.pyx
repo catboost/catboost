@@ -255,7 +255,7 @@ cdef extern from "<future>" namespace "std":
 
 
 cdef extern from "catboost/libs/logging/logging.h":
-    ctypedef void(*TCustomLoggingFunctionPtr)(const char *, size_t len, void *) except * with gil
+    ctypedef void(*TCustomLoggingFunctionPtr)(const char *, size_t len, void *) with gil
     cdef void SetCustomLoggingFunction(TCustomLoggingFunctionPtr, TCustomLoggingFunctionPtr, void*, void*) except +ProcessException
     cdef void RestoreOriginalLogger() except +ProcessException
     cdef void ResetTraceBackend(const TString&) except +ProcessException
@@ -659,10 +659,10 @@ cdef extern from "catboost/libs/metrics/metric.h":
         TMaybe[TGpuEvalFuncPtr] GpuEvalFunc
         TMaybe[TEvalMultiTargetFuncPtr] EvalMultiTargetFunc
 
-        TString (*GetDescriptionFunc)(void *customData) except * with gil
-        bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
-        bool_t (*IsAdditiveFunc)(void *customData) except * with gil
-        double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) except * with gil
+        TString (*GetDescriptionFunc)(void *customData) with gil
+        bool_t (*IsMaxOptimalFunc)(void *customData) with gil
+        bool_t (*IsAdditiveFunc)(void *customData) with gil
+        double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) with gil
     cdef bool_t IsMaxOptimal(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsMinOptimal(const TString& metricName) nogil except +ProcessException
 
@@ -775,7 +775,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         bool_t (*AfterIterationFunc)(
             const TMetricsAndTimeLeftHistory& history,
             void *customData
-        ) except * with gil
+        ) with gil
 
 cdef extern from "catboost/libs/data/quantization.h"  namespace "NCB":
     cdef TQuantizedObjectsDataProviderPtr ConstructQuantizedPoolFromRawPool(
@@ -1229,14 +1229,14 @@ cpdef _float_or_nan(obj):
     return _FloatOrNan(obj)
 
 
-cdef TString _MetricGetDescription(void* customData) except * with gil:
+cdef TString _MetricGetDescription(void* customData) with gil:
     cdef metricObject = <object>customData
     name = metricObject.__class__.__name__
     if PY_MAJOR_VERSION >= 3:
         name = name.encode()
     return TString(<const char*>name)
 
-cdef bool_t _MetricIsMaxOptimal(void* customData) except * with gil:
+cdef bool_t _MetricIsMaxOptimal(void* customData) with gil:
     cdef metricObject = <object>customData
     try:
         return metricObject.is_max_optimal()
@@ -1245,11 +1245,11 @@ cdef bool_t _MetricIsMaxOptimal(void* customData) except * with gil:
         with nogil:
             ThrowCppExceptionWithMessage(errorMessage)
 
-cdef bool_t _MetricIsAdditive(void* customData) except * with gil:
+cdef bool_t _MetricIsAdditive(void* customData) with gil:
     cdef metricObject = <object>customData
     return hasattr(metricObject, 'is_additive') and metricObject.is_additive()
 
-cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) except * with gil:
+cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) with gil:
     # TODO(nikitxskv): use error.Stats for custom metrics.
     cdef metricObject = <object>customData
     try:
@@ -1262,7 +1262,7 @@ cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) e
 cdef bool_t _CallbackAfterIteration(
         const TMetricsAndTimeLeftHistory& history,
         void* customData
-    ) except * with gil:
+    ) with gil:
     cdef callbackObject = <object>customData
     if PY_MAJOR_VERSION >= 3:
         info = types.SimpleNamespace()
@@ -6317,7 +6317,7 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
     return rocCurve.SelectDecisionBoundaryByIntersection()
 
 
-cdef void _WriteLog(const char* str, size_t len, void* targetObject) except * with gil:
+cdef void _WriteLog(const char* str, size_t len, void* targetObject) with gil:
     cdef streamLikeObject = <object> targetObject
     cdef bytes bytes_str = str[:len]
     streamLikeObject.write(to_native_str(bytes_str))
