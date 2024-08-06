@@ -99,7 +99,7 @@ static const char* SkipUTF8Chars(const char* begin, const char* end, size_t numC
     return begin;
 }
 
-TStringBuf SubstrUTF8(const TStringBuf str, size_t pos, size_t len) {
+TStringBuf SubstrUTF8(const TStringBuf str Y_LIFETIME_BOUND, size_t pos, size_t len) {
     const char* start = SkipUTF8Chars(str.begin(), str.end(), pos);
     const char* end = SkipUTF8Chars(start, str.end(), len);
     return TStringBuf(start, end - start);

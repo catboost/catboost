@@ -388,7 +388,7 @@ inline void WriteUTF8Char(wchar32 rune, size_t& rune_len, unsigned char* s) {
     }
 }
 
-TStringBuf SubstrUTF8(const TStringBuf str, size_t pos, size_t len);
+TStringBuf SubstrUTF8(const TStringBuf str Y_LIFETIME_BOUND, size_t pos, size_t len);
 
 enum EUTF8Detect {
     NotUTF8,

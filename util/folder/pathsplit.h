@@ -110,4 +110,4 @@ using TPathSplitWindows = TPathSplitBase<TPathSplitTraitsWindows>;
 
 TString JoinPaths(const TPathSplit& p1, const TPathSplit& p2);
 
-TStringBuf CutExtension(const TStringBuf fileName);
+TStringBuf CutExtension(const TStringBuf fileName Y_LIFETIME_BOUND);
