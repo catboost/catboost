@@ -159,13 +159,13 @@ public:
          */
     }
 
-    inline TBasicStringBuf(const TBasicStringBuf& src, size_t pos, size_t n) noexcept
+    inline TBasicStringBuf(const TBasicStringBuf src Y_LIFETIME_BOUND, size_t pos, size_t n) noexcept
         : TBasicStringBuf(src)
     {
         Skip(pos).Trunc(n);
     }
 
-    inline TBasicStringBuf(const TBasicStringBuf& src, size_t pos) noexcept
+    inline TBasicStringBuf(const TBasicStringBuf src Y_LIFETIME_BOUND, size_t pos) noexcept
         : TBasicStringBuf(src, pos, TBase::npos)
     {
     }
