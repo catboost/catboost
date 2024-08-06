@@ -9,6 +9,7 @@
 #include <optional>
 #include <span>
 #include <vector>
+#include <type_traits>
 
 // For size_t.
 #include <stddef.h>
@@ -59,6 +60,12 @@ public:
     using iterator = const T*;
     using const_iterator = const T*;
     using size_type = size_t;
+
+    static constexpr bool CAnyRepeatedField = requires {
+        { google::protobuf::RepeatedField<T>{} }
+            ->
+        std::same_as<google::protobuf::RepeatedField<T>>;
+    };
 
     //! Constructs a null TRange.
     TRange()
@@ -126,7 +133,9 @@ public:
     { }
 
     //! Constructs a TRange from RepeatedField.
-    TRange(const google::protobuf::RepeatedField<T>& elements)
+    template<std::same_as<T> U = T>
+    requires CAnyRepeatedField
+    TRange(const google::protobuf::RepeatedField<U>& elements)
         : Data_(elements.data())
         , Length_(elements.size())
     { }
@@ -333,7 +342,9 @@ public:
     { }
 
     //! Constructs a TMutableRange from RepeatedField.
-    TMutableRange(google::protobuf::RepeatedField<T>& elements)
+    template<std::same_as<T> U = T>
+    requires TRange<T>::CAnyRepeatedField
+    TMutableRange(google::protobuf::RepeatedField<U>& elements)
         : TRange<T>(elements)
     { }
 
