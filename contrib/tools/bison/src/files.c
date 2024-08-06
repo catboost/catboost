@@ -419,18 +419,9 @@ unlink_generated_sources (void)
 /* Memory allocated by relocate2, to free.  */
 static char *relocate_buffer = NULL;
 
-#include "uniqstr.h"
-#include <contrib/tools/bison/arcadia_root.h>
-#define STR(a) XSTR(a)
-#define XSTR(a) #a
 char const *
 pkgdatadir (void)
 {
-  const char* arc_path  = getenv("ARCADIA_ROOT_DISTBUILD");
-  if (arc_path == NULL)
-    arc_path = ArcadiaRoot();
-  return uniqstr_concat(3, arc_path, "/", STR(BISON_DATA_DIR));
-  
   if (relocate_buffer)
     return relocate_buffer;
   else
