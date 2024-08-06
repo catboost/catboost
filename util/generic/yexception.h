@@ -56,7 +56,7 @@ namespace NPrivateException {
             ZeroTerminate();
         }
 
-        TStringBuf AsStrBuf() const;
+        TStringBuf AsStrBuf() const Y_LIFETIME_BOUND;
 
     private:
         void ZeroTerminate() noexcept;
@@ -67,14 +67,14 @@ namespace NPrivateException {
 
     template <class E, class T>
     static inline std::enable_if_t<std::is_base_of<yexception, std::decay_t<E>>::value, E&&>
-    operator<<(E&& e, const T& t) {
+    operator<<(E&& e Y_LIFETIME_BOUND, const T& t) {
         e.Append(t);
 
         return std::forward<E>(e);
     }
 
     template <class T>
-    static inline T&& operator+(const TSourceLocation& sl, T&& t) {
+    static inline T&& operator+(const TSourceLocation& sl, T&& t Y_LIFETIME_BOUND) {
         return std::forward<T>(t << sl << TStringBuf(": "));
     }
 }
