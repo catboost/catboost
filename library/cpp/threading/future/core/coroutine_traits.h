@@ -4,7 +4,7 @@
 
 #include <coroutine>
 
-template<typename... Args>
+template <typename... Args>
 struct std::coroutine_traits<NThreading::TFuture<void>, Args...> {
     struct promise_type {
 
@@ -28,7 +28,7 @@ struct std::coroutine_traits<NThreading::TFuture<void>, Args...> {
     };
 };
 
-template<typename T, typename... Args>
+template <typename T, typename... Args>
 struct std::coroutine_traits<NThreading::TFuture<T>, Args...> {
     struct promise_type {
         NThreading::TFuture<T> get_return_object() {
@@ -53,11 +53,16 @@ struct std::coroutine_traits<NThreading::TFuture<T>, Args...> {
 
 namespace NThreading {
 
-    template<typename T>
+    template <typename T, bool Extracting = false>
     struct TFutureAwaitable {
         NThreading::TFuture<T> Future;
 
-        TFutureAwaitable(NThreading::TFuture<T> future) noexcept
+        TFutureAwaitable(const NThreading::TFuture<T>& future) noexcept requires (!Extracting)
+            : Future{future}
+        {
+        }
+
+        TFutureAwaitable(NThreading::TFuture<T>&& future) noexcept
             : Future{std::move(future)}
         {
         }
@@ -68,12 +73,12 @@ namespace NThreading {
 
         void await_suspend(auto h) noexcept {
             /*
-             * This library assumes that resume never throws an exception.
-             * This assumption is made due to the fact that the users of these library in most cases do not need to write their own coroutine handlers,
-             * and all coroutine handlers provided by the library do not throw exception from resume.
-             *
-             * WARNING: do not change subscribe to apply or something other here, creating an extra future state degrades performance.
-             */
+            * This library assumes that resume never throws an exception.
+            * This assumption is made due to the fact that the users of these library in most cases do not need to write their own coroutine handlers,
+            * and all coroutine handlers provided by the library do not throw exception from resume.
+            *
+            * WARNING: do not change subscribe to apply or something other here, creating an extra future state degrades performance.
+            */
             Future.NoexceptSubscribe(
                 [h](auto) mutable noexcept {
                     h();
@@ -82,22 +87,43 @@ namespace NThreading {
         }
 
         decltype(auto) await_resume() {
-            return Future.GetValue();
+            if constexpr (Extracting && !std::is_same_v<T, void>) {  // Future<void> has only GetValue()
+                return Future.ExtractValue();
+            } else {
+                return Future.GetValue();
+            }
         }
     };
 
+    template <typename T>
+    using TExtractingFutureAwaitable = TFutureAwaitable<T, true>;
+
 } // namespace NThreading
 
-template<typename T>
-auto operator co_await(const NThreading::TFuture<T>& future) {
+template <typename T>
+auto operator co_await(const NThreading::TFuture<T>& future) noexcept {
     return NThreading::TFutureAwaitable{future};
+}
+
+template <typename T>
+auto operator co_await(NThreading::TFuture<T>&& future) noexcept {
+    // Not TExtractongFutureAwaitable, because TFuture works like std::shared_future.
+    // auto value = co_await GetCachedFuture();
+    // If GetCachedFuture stores a future in some cache and returns its copies,
+    // then subsequent uses of co_await will return a moved-from value.
+    return NThreading::TFutureAwaitable{std::move(future)};
 }
 
 namespace NThreading {
 
-    template<typename T>
-    auto AsAwaitable(const NThreading::TFuture<T>& fut) {
-        return operator co_await(fut);
+    template <typename T>
+    auto AsAwaitable(const NThreading::TFuture<T>& fut) noexcept {
+        return TFutureAwaitable(fut);
+    }
+
+    template <typename T>
+    auto AsExtractingAwaitable(NThreading::TFuture<T>&& fut) noexcept {
+        return TExtractingFutureAwaitable<T>(std::move(fut));
     }
 
 } // namespace NThreading

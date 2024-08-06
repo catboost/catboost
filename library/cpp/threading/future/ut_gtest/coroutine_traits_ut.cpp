@@ -187,3 +187,21 @@ TEST(TestFutureTraits, CrashOnExceptionInCoroutineHandlerResume) {
 #endif
     );
 }
+
+TEST(ExtractingFutureAwaitable, Simple) {
+    NThreading::TPromise<THolder<size_t>> suspendPromise = NThreading::NewPromise<THolder<size_t>>();
+    auto coro = [](NThreading::TFuture<THolder<size_t>> future) -> NThreading::TFuture<THolder<size_t>> {
+        auto value = co_await NThreading::AsExtractingAwaitable(std::move(future));
+        co_return value;
+    };
+
+    NThreading::TFuture<THolder<size_t>> getHolder = coro(suspendPromise.GetFuture());
+    EXPECT_FALSE(getHolder.HasValue());
+    EXPECT_FALSE(getHolder.HasException());
+    suspendPromise.SetValue(MakeHolder<size_t>(42));
+
+    EXPECT_TRUE(getHolder.HasValue());
+    auto holder = getHolder.ExtractValue();
+    ASSERT_NE(holder, nullptr);
+    EXPECT_EQ(*holder, 42u);
+}
