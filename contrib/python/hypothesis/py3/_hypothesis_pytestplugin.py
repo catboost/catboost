@@ -309,7 +309,7 @@ else:
                     with current_pytest_item.with_value(item):
                         yield
             if store.results:
-                item.hypothesis_report_information = list(store.results)
+                item.hypothesis_report_information = "\n".join(store.results)
 
     def _stash_get(config, key, default):
         if hasattr(config, "stash"):
@@ -325,9 +325,7 @@ else:
     def pytest_runtest_makereport(item, call):
         report = (yield).get_result()
         if hasattr(item, "hypothesis_report_information"):
-            report.sections.append(
-                ("Hypothesis", "\n".join(item.hypothesis_report_information))
-            )
+            report.sections.append(("Hypothesis", item.hypothesis_report_information))
         if report.when != "teardown":
             return
 

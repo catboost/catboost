@@ -8,8 +8,6 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
-import inspect
-
 from hypothesis._settings import Verbosity, settings
 from hypothesis.internal.compat import escape_unicode_characters
 from hypothesis.utils.dynamicvariables import DynamicVariable
@@ -37,14 +35,6 @@ def current_verbosity():
     return settings.default.verbosity
 
 
-def to_text(textish):
-    if inspect.isfunction(textish):
-        textish = textish()
-    if isinstance(textish, bytes):
-        textish = textish.decode()
-    return textish
-
-
 def verbose_report(text):
     if current_verbosity() >= Verbosity.verbose:
         base_report(text)
@@ -61,4 +51,5 @@ def report(text):
 
 
 def base_report(text):
-    current_reporter()(to_text(text))
+    assert isinstance(text, str), f"unexpected non-str {text=}"
+    current_reporter()(text)

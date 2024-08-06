@@ -421,6 +421,10 @@ _gc_initialized = False
 _gc_start = 0
 _gc_cumulative_time = 0
 
+# Since gc_callback potentially runs in test context, and perf_counter
+# might be monkeypatched, we store a reference to the real one.
+_perf_counter = time.perf_counter
+
 
 def gc_cumulative_time() -> float:
     global _gc_initialized
@@ -430,7 +434,7 @@ def gc_cumulative_time() -> float:
             def gc_callback(phase, info):
                 global _gc_start, _gc_cumulative_time
                 try:
-                    now = time.perf_counter()
+                    now = _perf_counter()
                     if phase == "start":
                         _gc_start = now
                     elif phase == "stop" and _gc_start > 0:
