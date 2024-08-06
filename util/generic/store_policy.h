@@ -10,7 +10,7 @@ struct TWithRefCount: public TBase, public TRefCounted<TWithRefCount<TBase, TCou
 
 template <class T>
 struct TPtrPolicy {
-    inline TPtrPolicy(T* t)
+    inline TPtrPolicy(T* t Y_LIFETIME_BOUND)
         : T_(t)
     {
     }
@@ -93,7 +93,7 @@ template <class T, bool IsReference = std::is_reference<T>::value>
 struct TAutoEmbedOrPtrPolicy: TPtrPolicy<std::remove_reference_t<T>> {
     using TBase = TPtrPolicy<std::remove_reference_t<T>>;
 
-    TAutoEmbedOrPtrPolicy(T& reference)
+    TAutoEmbedOrPtrPolicy(T& reference Y_LIFETIME_BOUND)
         : TBase(&reference)
     {
     }
