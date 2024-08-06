@@ -137,13 +137,13 @@ public:
     }
 
     template <typename TCharTraits>
-    constexpr TBasicStringBuf(std::basic_string_view<TCharType, TCharTraits> view) noexcept
+    constexpr TBasicStringBuf(std::basic_string_view<TCharType, TCharTraits> view Y_LIFETIME_BOUND) noexcept
         : TStringView(view)
     {
     }
 
     template <typename TCharTraits>
-    constexpr TBasicStringBuf(TBasicStringBuf<TCharType, TCharTraits> sb) noexcept
+    constexpr TBasicStringBuf(TBasicStringBuf<TCharType, TCharTraits> sb Y_LIFETIME_BOUND) noexcept
         : TStringView(sb)
     {
     }
