@@ -1,6 +1,6 @@
 # distutils: language = c++
 # coding: utf-8
-# cython: wraparound=False
+# cython: wraparound=False, boundscheck=False
 
 from cpython.ref cimport PyObject, Py_DECREF
 
