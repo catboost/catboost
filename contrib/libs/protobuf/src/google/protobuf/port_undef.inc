@@ -154,7 +154,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#if defined(__clang__) && defined(FIX_UNUSED_PARAMETR_PLS)
+#if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
 
