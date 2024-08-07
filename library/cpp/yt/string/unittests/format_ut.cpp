@@ -13,6 +13,44 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+struct TWithCustomFlags
+{
+    [[maybe_unused]]
+    friend void FormatValue(TStringBuilderBase* builder, const TWithCustomFlags&, TStringBuf spec)
+    {
+        if (spec.Contains('R')) {
+            builder->AppendString("R");
+        }
+        if (spec.Contains('N')) {
+            builder->AppendString("N");
+        }
+
+        builder->AppendString("P");
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+} // namespace
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <>
+struct TFormatArg<TWithCustomFlags>
+{
+    [[maybe_unused]] static constexpr std::array ConversionSpecifiers = {
+        'v',
+    };
+
+    [[maybe_unused]] static constexpr std::array FlagSpecifiers = {
+        'R', 'N',
+    };
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
 // Some compile-time sanity checks.
 static_assert(CFormattable<int>);
 static_assert(CFormattable<double>);
@@ -22,6 +60,7 @@ static_assert(CFormattable<TStringBuf>);
 static_assert(CFormattable<TString>);
 static_assert(CFormattable<std::span<int>>);
 static_assert(CFormattable<std::vector<int>>);
+static_assert(CFormattable<std::array<int, 5>>);
 
 // N.B. TCompactVector<int, 1> is not buildable on Windows
 static_assert(CFormattable<TCompactVector<int, 2>>);
@@ -39,6 +78,8 @@ static_assert(CFormattable<TInstant>);
 struct TUnformattable
 { };
 static_assert(!CFormattable<TUnformattable>);
+
+static_assert(CFormattable<TWithCustomFlags>);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -221,6 +262,67 @@ TEST(TFormatTest, RuntimeFormat)
 {
     TString format = "Hello %v";
     EXPECT_EQ(Format(TRuntimeFormat(format), "World"), "Hello World");
+}
+
+TEST(TFormatTest, CustomFlagsSimple)
+{
+    EXPECT_EQ(Format("%v", TWithCustomFlags{}), TString("P"));
+    EXPECT_EQ(Format("%Rv", TWithCustomFlags{}), TString("RP"));
+    EXPECT_EQ(Format("%Nv", TWithCustomFlags{}), TString("NP"));
+    EXPECT_EQ(Format("%RNv", TWithCustomFlags{}), TString("RNP"));
+    EXPECT_EQ(Format("%NRv", TWithCustomFlags{}), TString("RNP"));
+}
+
+TEST(TFormatTest, CustomFlagsCollection)
+{
+    constexpr int elementCount = 5;
+    auto toCollection = [] (TString pattern) {
+        TString ret = "[";
+        for (int i = 0; i < elementCount - 1; ++i) {
+            ret += pattern + ", ";
+        }
+
+        ret += pattern + "]";
+
+        return ret;
+    };
+
+    std::vector vec(elementCount, TWithCustomFlags{});
+
+    EXPECT_EQ(Format("%v", vec), toCollection("P"));
+    EXPECT_EQ(Format("%Rv", vec), toCollection("RP"));
+    EXPECT_EQ(Format("%Nv", vec), toCollection("NP"));
+    EXPECT_EQ(Format("%RNv", vec), toCollection("RNP"));
+    EXPECT_EQ(Format("%NRv", vec), toCollection("RNP"));
+}
+
+TEST(TFormatTest, CustomFlagsCollectionTwoLevels)
+{
+    constexpr int elementCount1 = 5;
+    constexpr int elementCount2 = 3;
+    auto toCollection = [] (int count, TString pattern) {
+        TString ret = "[";
+        for (int i = 0; i < count - 1; ++i) {
+            ret += pattern + ", ";
+        }
+
+        ret += pattern + "]";
+
+        return ret;
+    };
+    auto toCollectionD2 = [&] (TString pattern) {
+        return toCollection(elementCount2, toCollection(elementCount1, std::move(pattern)));
+    };
+
+    std::vector vec(elementCount1, TWithCustomFlags{});
+    std::array<decltype(vec), elementCount2> arr;
+    std::ranges::fill(arr, vec);
+
+    EXPECT_EQ(Format("%v", arr), toCollectionD2("P"));
+    EXPECT_EQ(Format("%Rv", arr), toCollectionD2("RP"));
+    EXPECT_EQ(Format("%Nv", arr), toCollectionD2("NP"));
+    EXPECT_EQ(Format("%RNv", arr), toCollectionD2("RNP"));
+    EXPECT_EQ(Format("%NRv", arr), toCollectionD2("RNP"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

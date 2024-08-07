@@ -27,7 +27,7 @@ private:
 
 // This class used to properly bind to
 // string literals and allow compile-time parsing/checking
-// of those. If you need a runtime format, use TRuntimeFormat
+// of those. If you need a runtime format, use TRuntimeFormat.
 template <class... TArgs>
 class TBasicFormatString
 {
@@ -50,7 +50,7 @@ private:
     static void CrashCompilerClassIsNotFormattable();
 };
 
-// Used to properly infer template arguments if Format.
+// Used to properly infer template arguments in Format.
 template <class... TArgs>
 using TFormatString = TBasicFormatString<std::type_identity_t<TArgs>...>;
 

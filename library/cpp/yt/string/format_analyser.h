@@ -15,7 +15,7 @@ public:
     template <class... TArgs>
     static consteval void ValidateFormat(std::string_view fmt);
 
-private:
+public:
     // Non-constexpr function call will terminate compilation.
     // Purposefully undefined and non-constexpr/consteval
     template <class T>

@@ -27,6 +27,25 @@ struct TDefaultFormatter
     }
 };
 
+//! Bind spec to a formatter.
+//! Used in ranges processing.
+class TSpecBoundFormatter
+{
+public:
+    explicit TSpecBoundFormatter(TStringBuf spec)
+        : Spec_(spec)
+    { }
+
+    template <class T>
+    void operator()(TStringBuilderBase* builder, const T& obj) const
+    {
+        FormatValue(builder, obj, Spec_);
+    }
+
+private:
+    TStringBuf Spec_;
+};
+
 static constexpr TStringBuf DefaultJoinToStringDelimiter = ", ";
 static constexpr TStringBuf DefaultKeyValueDelimiter = ": ";
 static constexpr TStringBuf DefaultRangeEllipsisFormat = "...";
