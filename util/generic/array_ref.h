@@ -41,19 +41,19 @@ public:
     {
     }
 
-    constexpr inline TArrayRef(T* data, size_t len) noexcept
+    constexpr inline TArrayRef(T* data Y_LIFETIME_BOUND, size_t len) noexcept
         : T_(data)
         , S_(len)
     {
     }
 
-    constexpr inline TArrayRef(T* begin, T* end) noexcept
+    constexpr inline TArrayRef(T* begin Y_LIFETIME_BOUND, T* end Y_LIFETIME_BOUND) noexcept
         : T_(begin)
         , S_(end - begin)
     {
     }
 
-    constexpr inline TArrayRef(std::initializer_list<T> list) noexcept
+    constexpr inline TArrayRef(std::initializer_list<T> list Y_LIFETIME_BOUND) noexcept
         : T_(list.begin())
         , S_(list.size())
     {
@@ -70,7 +70,7 @@ public:
     }
 
     template <size_t N>
-    constexpr inline TArrayRef(T (&array)[N]) noexcept
+    constexpr inline TArrayRef(T (&array)[N] Y_LIFETIME_BOUND) noexcept
         : T_(array)
         , S_(N)
     {
@@ -234,7 +234,7 @@ private:
  * Named as its std counterparts, std::as_bytes.
  */
 template <typename T>
-TArrayRef<const char> as_bytes(TArrayRef<T> arrayRef) noexcept {
+TArrayRef<const char> as_bytes(TArrayRef<T> arrayRef Y_LIFETIME_BOUND) noexcept {
     return TArrayRef<const char>(
         reinterpret_cast<const char*>(arrayRef.data()),
         arrayRef.size_bytes());
@@ -246,7 +246,7 @@ TArrayRef<const char> as_bytes(TArrayRef<T> arrayRef) noexcept {
  * Named as its std counterparts, std::as_writable_bytes.
  */
 template <typename T>
-TArrayRef<char> as_writable_bytes(TArrayRef<T> arrayRef) noexcept {
+TArrayRef<char> as_writable_bytes(TArrayRef<T> arrayRef Y_LIFETIME_BOUND) noexcept {
     return TArrayRef<char>(
         reinterpret_cast<char*>(arrayRef.data()),
         arrayRef.size_bytes());
@@ -273,11 +273,11 @@ constexpr TArrayRef<const typename Range::value_type> MakeConstArrayRef(Range& r
 }
 
 template <class T>
-constexpr TArrayRef<T> MakeArrayRef(T* data, size_t size) {
+constexpr TArrayRef<T> MakeArrayRef(T* data Y_LIFETIME_BOUND, size_t size) {
     return TArrayRef<T>(data, size);
 }
 
 template <class T>
-constexpr TArrayRef<T> MakeArrayRef(T* begin, T* end) {
+constexpr TArrayRef<T> MakeArrayRef(T* begin Y_LIFETIME_BOUND, T* end Y_LIFETIME_BOUND) {
     return TArrayRef<T>(begin, end);
 }
