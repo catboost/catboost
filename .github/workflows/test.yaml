@@ -54,11 +54,13 @@ jobs:
           cache: 'maven'
           cache-dependency-path: |
             catboost/catboost/jvm-packages/common/pom.xml
+            catboost/catboost/jvm-packages/catboost4j-prediction/pom.xml
 
       - name: Env setup
         shell: pwsh
         run: |
           New-Item -Path catboost_python_package_dist -ItemType Directory
+          New-Item -Path catboost4j-prediction_resources -ItemType Directory
           New-Item -Path build_native_root/catboost -ItemType Directory
           Set-Location -LiteralPath ${{ github.workspace }}/build_native_root/catboost
           New-Item -Path app -ItemType Directory
@@ -154,6 +156,36 @@ jobs:
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
 
+      - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: Download catboost4j-prediction_resources for Ubuntu
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-prediction_resources-linux-${{ inputs.artifacts_version }}
+          path: catboost4j-prediction_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.runs-on_value == 'macos-13'
+        name: Download catboost4j-prediction_resources for macOS
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-prediction_resources-darwin-${{ inputs.artifacts_version }}
+          path: catboost4j-prediction_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.runs-on_value == 'windows-2022'
+        name: Download catboost4j-prediction_resources for Windows
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-prediction_resources-windows-${{ inputs.artifacts_version }}
+          path: catboost4j-prediction_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
       - name: Prepare binaries from artifacts
         shell: pwsh
         run: |
@@ -200,3 +232,9 @@ jobs:
         run: |
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/common
           mvn test
+
+      - name: Run catboost4j-prediction tests
+        shell: pwsh
+        run: |
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/catboost4j-prediction
+          mvn -D"prebuilt.native.resources.dir"=${{ github.workspace }}/catboost4j-prediction_resources/ test
