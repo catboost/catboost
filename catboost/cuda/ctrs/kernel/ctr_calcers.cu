@@ -2,6 +2,8 @@
 #include <catboost/cuda/cuda_util/kernel/index_wrapper.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
+#include <cstdint>
+
 
 namespace NKernel {
 
@@ -337,7 +339,7 @@ namespace NKernel {
         if (i < size) {
             const ui32 idx = __ldg(indices + i);
             const ui32 groupId = __ldg(groupIds + (idx & mask));
-            const ui32 nextIdx = (i + 1 < size) ? __ldg(indices + i + 1) : -1;
+            const ui32 nextIdx = (i + 1 < size) ? __ldg(indices + i + 1) : UINT32_MAX;
             const ui32 nextGroupId = (i + 1 < size) ? __ldg(groupIds + (nextIdx & mask)) : groupId + 1;
 
             const bool isStartOfNewCategory = (nextIdx & (~mask));

@@ -87,7 +87,7 @@ namespace NKernel {
 
         while (i < size) {
             ui32 bin0 = __ldg(sortedBins + i);
-            ui32 bin1 = i ? __ldg(sortedBins + i - 1) : -1;
+            ui32 bin1 = i ? __ldg(sortedBins + i - 1) : UINT32_MAX;
             if (bin0 != bin1) {
                 ui32 b = bin0;
                 while (b != bin1) {
