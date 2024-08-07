@@ -780,7 +780,7 @@ constexpr TO CopyIf(TI begin, TI end, TO to, P pred) {
 }
 
 template <class T>
-constexpr std::pair<const T&, const T&> MinMax(const T& first, const T& second) {
+constexpr std::pair<const T&, const T&> MinMax(const T& first Y_LIFETIME_BOUND, const T& second Y_LIFETIME_BOUND) {
     return std::minmax(first, second);
 }
 
