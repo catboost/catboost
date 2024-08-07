@@ -24,7 +24,7 @@ from ._compat import (
     install,
 )
 from ._functools import method_cache, pass_none
-from ._itertools import always_iterable, unique_everseen
+from ._itertools import always_iterable, bucket, unique_everseen
 from ._meta import PackageMetadata, SimplePath
 
 from contextlib import suppress
@@ -393,7 +393,7 @@ class Distribution(metaclass=abc.ABCMeta):
         if not name:
             raise ValueError("A distribution name is required.")
         try:
-            return next(iter(cls.discover(name=name)))
+            return next(iter(cls._prefer_valid(cls.discover(name=name))))
         except StopIteration:
             raise PackageNotFoundError(name)
 
@@ -416,6 +416,16 @@ class Distribution(metaclass=abc.ABCMeta):
         return itertools.chain.from_iterable(
             resolver(context) for resolver in cls._discover_resolvers()
         )
+
+    @staticmethod
+    def _prefer_valid(dists: Iterable[Distribution]) -> Iterable[Distribution]:
+        """
+        Prefer (move to the front) distributions that have metadata.
+
+        Ref python/importlib_resources#489.
+        """
+        buckets = bucket(dists, lambda dist: bool(dist.metadata))
+        return itertools.chain(buckets[True], buckets[False])
 
     @staticmethod
     def at(path: str | os.PathLike[str]) -> Distribution:
