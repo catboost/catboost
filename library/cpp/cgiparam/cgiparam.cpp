@@ -159,7 +159,7 @@ void TCgiParameters::ScanAddAll(const TStringBuf query) {
 TString TCgiParameters::Print() const {
     TString res;
 
-    res.reserve(PrintSize());
+    res.ReserveAndResize(PrintSize());
     const char* end = Print(res.begin());
     res.ReserveAndResize(end - res.data());
 
@@ -246,7 +246,7 @@ bool TCgiParameters::Has(const TStringBuf name, const TStringBuf value) const no
 }
 
 TQuickCgiParam::TQuickCgiParam(const TStringBuf cgiParamStr) {
-    UnescapeBuf.reserve(CgiUnescapeBufLen(cgiParamStr.size()));
+    UnescapeBuf.ReserveAndResize(CgiUnescapeBufLen(cgiParamStr.size()));
     char* buf = UnescapeBuf.begin();
 
     auto f = [this, &buf](const TStringBuf key, const TStringBuf val) {
