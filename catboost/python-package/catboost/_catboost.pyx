@@ -861,7 +861,7 @@ cdef extern from "catboost/private/libs/algo/apply.h":
     )  nogil except +ProcessException
 
 cdef extern from "catboost/private/libs/algo/helpers.h":
-    cdef void ConfigureMalloc() except +ProcessException nogil 
+    cdef void ConfigureMalloc() except +ProcessException nogil
 
 cdef extern from "catboost/private/libs/algo/confusion_matrix.h":
     cdef TVector[double] MakeConfusionMatrix(
@@ -973,6 +973,11 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TDataProviderPtr dataset
     ) nogil except +ProcessException
 
+cdef extern from "catboost/libs/fstr/util.h":
+    cdef bool_t NeedDatasetForLeavesWeights(
+        const TFullModel& model,
+        bool_t fstrOnTrainPool
+    ) nogil except +ProcessException
 
 cdef extern from "catboost/private/libs/documents_importance/docs_importance.h":
     cdef cppclass TDStrResult:
@@ -1452,7 +1457,7 @@ cdef _ToPythonObjArrayRefOnGpu(size_t size, uint64_t data):
         'typestr' : 'f4',
         'data' : (data, True),
         'version' : 2
-    })  
+    })
 
 
 cdef void _GpuObjectiveCalcDersRange(
@@ -1707,7 +1712,7 @@ def _check_object_and_class_methods_match(object_method, class_method):
     return inspect.getsource(object_method) == inspect.getsource(class_method)
 
 def _jit_common_checks(obj, method_name):
-    
+
     object_method = getattr(obj, method_name, None)
     class_method = getattr(obj.__class__, method_name, None)
 
@@ -1764,7 +1769,7 @@ def _try_jit_method(obj, method_name, isCuda=False):
     object_method = getattr(obj, method_name, None)
     class_method = getattr(obj.__class__, method_name, None)
     optimizer = numba_cuda.jit if isCuda else numba.njit
-    
+
     try:
         optimized = optimizer(class_method)
     except numba.core.errors.NumbaError as err:
@@ -6446,6 +6451,11 @@ cpdef get_experiment_name(ui32 feature_set_idx, ui32 fold_idx):
     cdef const char* c_experiment_name_string = experiment_name.c_str()
     cdef bytes py_experiment_name_str = c_experiment_name_string[:experiment_name.size()]
     return py_experiment_name_str
+
+
+cpdef need_dataset_for_leaves_weights(model, bool_t is_on_train_pool):
+    assert hasattr(model, '_object'), "Expect catboost model as first argument"
+    return NeedDatasetForLeavesWeights(dereference((<_CatBoost>model._object).__model), is_on_train_pool)
 
 
 cpdef convert_features_to_indices(indices_or_names, cd_path, feature_names_path, pool_metainfo_path):

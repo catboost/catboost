@@ -30,6 +30,8 @@ bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescr
 
 bool HasNonZeroApproxForZeroWeightLeaf(const TFullModel& model);
 
+bool NeedDatasetForLeavesWeights(const TFullModel& model, bool fstrOnTrainPool);
+
 TVector<int> GetBinFeatureCombinationClassByDepth(
     const TModelTrees& forest,
     const TVector<int>& binFeatureCombinationClass,

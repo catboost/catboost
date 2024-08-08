@@ -10,6 +10,7 @@ is_maximizable_metric = _catboost.is_maximizable_metric
 is_minimizable_metric = _catboost.is_minimizable_metric
 is_user_defined_metric = _catboost.is_user_defined_metric
 has_gpu_implementation_metric = _catboost.has_gpu_implementation_metric
+need_dataset_for_leaves_weights = _catboost.need_dataset_for_leaves_weights
 get_experiment_name = _catboost.get_experiment_name
 convert_features_to_indices = _catboost.convert_features_to_indices
 get_num_feature_values_sample = _catboost.get_num_feature_values_sample

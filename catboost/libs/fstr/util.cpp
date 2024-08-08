@@ -125,6 +125,13 @@ bool HasNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
     return false;
 }
 
+bool NeedDatasetForLeavesWeights(const TFullModel& model, bool fstrOnTrainPool) {
+    const auto leafWeightsOfModels = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
+    const bool needSumModelAndDatasetWeights = !fstrOnTrainPool && HasNonZeroApproxForZeroWeightLeaf(model);
+    const bool output = leafWeightsOfModels.empty() || needSumModelAndDatasetWeights;
+    return output;
+}
+
 TVector<int> GetBinFeatureCombinationClassByDepth(
     const TModelTrees& forest,
     const TVector<int>& binFeatureCombinationClass,
