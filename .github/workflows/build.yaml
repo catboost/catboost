@@ -312,7 +312,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: catboost4j-spark_core_resources_classes-${{ inputs.artifacts_version }}
-          path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/ru
+          path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/ru*
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
