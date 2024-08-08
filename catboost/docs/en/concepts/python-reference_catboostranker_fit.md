@@ -15,6 +15,7 @@ fit(X,
     text_features=None,
     embedding_features=None,
     pairs=None,
+    graph=None,
     sample_weight=None,
     group_id=None,
     group_weight=None,
@@ -375,6 +376,33 @@ None
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
+
+### graph
+
+#### Description
+
+The graph description in the form of a two-dimensional matrix of shape `N` by 2:
+
+- `N` is the number of edges.
+- The first element of the edge is the zero-based index of start vertex (object) from the input dataset.
+- The second element of the edge is the zero-based index of end vertex (object) from the input dataset.
+
+{% include [reusage-graph__where_is_used](../_includes/work_src/reusage/graph__where_is_used.md) %}
+
+**Possible types**
+
+- {{ python-type--list }}
+- {{ python-type--numpy-ndarray }}
+- {{ python-type--pandasDataFrame }}
+
+
+**Default value**
+
+None
+
+**Supported processing units**
+
+{% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 
 ### use_best_model

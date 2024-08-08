@@ -61,6 +61,21 @@ Omitted
 
 Pairwise metrics require pairs of data. If this data is not provided explicitly by specifying this parameter, pairs are generated automatically in each group using object label values
 
+
+### --input-graph
+
+#### Description
+
+The path to the input file that contains the [graph information](../../../concepts/input-data_graph-description.md) for the dataset.
+
+This information is used for calculation of [](../../../features/graph-aggregated-features.md).
+
+
+**{{ cli__params-table__title__default }}**
+
+Omitted
+
+
 ### -o, --output-path
 
 #### Description

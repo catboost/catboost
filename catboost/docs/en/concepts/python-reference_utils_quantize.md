@@ -8,6 +8,7 @@
 quantize(data_path,
          column_description=None,
          pairs=None,
+         graph=None,
          delimiter='\t',
          has_header=False,
          feature_names=None,
@@ -77,6 +78,22 @@ The path to the input file that contains the [pairs description](../concepts/in
 **Default value**
 
 {% include [methods-param-desc-python__pairs__default-short](../_includes/work_src/reusage/python__pairs__default-short.md) %}
+
+### graph
+
+#### Description
+
+The path to the input file that contains the [graph information](../concepts/input-data_graph-description.md) for the dataset.
+
+{% include [reusage-graph__where_is_used](../_includes/work_src/reusage/graph__where_is_used.md) %}
+
+**Possible types**
+
+{{ python-type--string }}
+
+**Default value**
+
+None
 
 ### delimiter
 

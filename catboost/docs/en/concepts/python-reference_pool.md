@@ -8,6 +8,7 @@ class Pool(data,
            embedding_features=None,
            column_description=None,
            pairs=None,
+           graph=None,
            delimiter='\t',
            has_header=False,
            weight=None,
@@ -198,6 +199,34 @@ The pairs description in the form of a two-dimensional matrix of shape `N` by 2
 The path to the input file that contains the [pairs description](../concepts/input-data_pairs-description.md).
 
 {% include [reusage-learn_pairs__where_is_used](../_includes/work_src/reusage/learn_pairs__where_is_used.md) %}
+
+
+{% endcut %}
+
+### graph
+
+#### Description
+
+The description is different for each group of possible types.
+
+**Possible types**
+
+
+{% cut "{{ python-type--list }}, {{ python-type--numpy-ndarray }}, {{ python-type--pandasDataFrame }}" %}
+
+The graph description in the form of a two-dimensional matrix of shape `N` by 2:
+
+
+- `N` is the number of edges.
+- The first element of the edge is the zero-based index of start vertex (object) from the input dataset.
+- The second element of the edge is the zero-based index of end vertex (object) from the input dataset.
+
+{% endcut %}
+
+
+{% cut "{{ python-type--string }}" %}
+
+The path to the input file that contains the [graph information](../concepts/input-data_graph-description.md).
 
 
 {% endcut %}

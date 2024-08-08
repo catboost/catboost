@@ -138,6 +138,8 @@ items:
           name: Text features
         - href: features/embeddings-features.md
           name: Embeddings features
+        - href: features/graph-aggregated-features.md
+          name: Aggregated graph features
         - href: features/loss-functions-desc.md
           name: Implemented metrics
         - href: features/export-model-to-python.md
@@ -1022,6 +1024,8 @@ items:
             name: Group weights
           - href: concepts/input-data_baseline.md
             name: Baseline
+          - href: concepts/input-data_graph-description.md
+            name: Graph description
         name: Input data
       - items:
           - href: concepts/output-data.md
