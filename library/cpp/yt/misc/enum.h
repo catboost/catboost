@@ -197,6 +197,20 @@ constexpr bool None(E value) noexcept;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <typename E, typename = void>
+    requires TEnumTraits<E>::IsEnum
+struct TEnumHasDefaultValue
+    : std::false_type
+{ };
+
+template <typename E>
+    requires TEnumTraits<E>::IsEnum
+struct TEnumHasDefaultValue<E, std::void_t<decltype(GetDefaultValue(std::declval<E>()))>>
+    : std::is_same<decltype(GetDefaultValue(std::declval<E>())), E>
+{ };
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
 
 #define ENUM_INL_H_
