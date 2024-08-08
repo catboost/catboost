@@ -308,6 +308,14 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: catboost4j-spark-impl-sources'
+        uses: actions/upload-artifact@v4
+        with:
+          name: catboost4j-spark-impl-sources-${{ inputs.artifacts_version }}
+          path: catboost/catboost/spark/catboost4j-spark/core/target/catboost4j-spark-impl-sources.jar
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - if: inputs.runs-on_value == 'ubuntu-latest'
         name: 'Upload artifact: catboost4j-spark_core_resources_classes'
         uses: actions/upload-artifact@v4
         with:
