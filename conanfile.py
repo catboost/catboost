@@ -9,7 +9,10 @@ class App(ConanFile):
 
     requires = "openssl/1.1.1t"
 
+
     tool_requires = "ragel/6.10", "swig/4.0.2", "yasm/1.3.0"
+
+
     generators = "cmake_find_package", "cmake_paths"
 
     def imports(self):
