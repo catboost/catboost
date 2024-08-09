@@ -60,7 +60,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -Path catboost_python_package_dist -ItemType Directory
-          New-Item -Path catboost4j-prediction_resources -ItemType Directory
+          New-Item -Path prebuilt/catboost4j-prediction_resources -ItemType Directory
           New-Item -Path build_native_root/catboost -ItemType Directory
           Set-Location -LiteralPath ${{ github.workspace }}/build_native_root/catboost
           New-Item -Path app -ItemType Directory
@@ -161,7 +161,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: catboost4j-prediction_resources-linux-${{ inputs.artifacts_version }}
-          path: catboost4j-prediction_resources/
+          path: prebuilt/catboost4j-prediction_resources/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
@@ -171,7 +171,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: catboost4j-prediction_resources-darwin-${{ inputs.artifacts_version }}
-          path: catboost4j-prediction_resources/
+          path: prebuilt/catboost4j-prediction_resources/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
@@ -181,7 +181,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: catboost4j-prediction_resources-windows-${{ inputs.artifacts_version }}
-          path: catboost4j-prediction_resources/
+          path: prebuilt/catboost4j-prediction_resources/
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
@@ -237,4 +237,4 @@ jobs:
         shell: pwsh
         run: |
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/catboost4j-prediction
-          mvn -D"prebuilt.native.resources.dir"=${{ github.workspace }}/catboost4j-prediction_resources/ test
+          mvn -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/ test
