@@ -172,6 +172,8 @@ static const char *common_simple_types[] = {
     EQ("WINSTA", "HANDLE"),
     EQ("WORD", "unsigned short"),
     EQ("WPARAM", "UINT_PTR"),
+    EQ("_Dcomplex", "_cffi_double_complex_t"),
+    EQ("_Fcomplex", "_cffi_float_complex_t"),
 #endif
 
     EQ("bool", "_Bool"),

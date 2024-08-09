@@ -951,7 +951,7 @@ class Recompiler:
                 if cname is None or fbitsize >= 0:
                     offset = '(size_t)-1'
                 elif named_ptr is not None:
-                    offset = '((char *)&((%s)0)->%s) - (char *)0' % (
+                    offset = '((char *)&((%s)4096)->%s) - (char *)4096' % (
                         named_ptr.name, fldname)
                 else:
                     offset = 'offsetof(%s, %s)' % (tp.get_c_name(''), fldname)

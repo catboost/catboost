@@ -331,7 +331,9 @@ PyAPI_DATA(void *volatile) _PyThreadState_Current;
 
 static PyThreadState *get_current_ts(void)
 {
-#if PY_VERSION_HEX >= 0x03060000
+#if PY_VERSION_HEX >= 0x030D0000
+    return PyThreadState_GetUnchecked();
+#elif PY_VERSION_HEX >= 0x03060000
     return _PyThreadState_UncheckedGet();
 #elif defined(_Py_atomic_load_relaxed)
     return (PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current);

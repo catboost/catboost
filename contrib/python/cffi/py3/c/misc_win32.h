@@ -167,14 +167,30 @@ static PyObject *b_getwinerror(PyObject *self, PyObject *args, PyObject *kwds)
 #define RTLD_GLOBAL 0
 #define RTLD_LOCAL  0
 
-static void *dlopen(const char *filename, int flag)
+static void *dlopen(const char *filename, int flags)
 {
-    return (void *)LoadLibraryA(filename);
+    if (flags == 0) {
+        for (const char *p = filename; *p != 0; p++)
+            if (*p == '\\' || *p == '/') {
+                flags = LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+                        LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR;
+                break;
+            }
+    }
+    return (void *)LoadLibraryExA(filename, NULL, flags);
 }
 
-static void *dlopenW(const wchar_t *filename)
+static void *dlopenWinW(const wchar_t *filename, int flags)
 {
-    return (void *)LoadLibraryW(filename);
+    if (flags == 0) {
+        for (const wchar_t *p = filename; *p != 0; p++)
+            if (*p == '\\' || *p == '/') {
+                flags = LOAD_LIBRARY_SEARCH_DEFAULT_DIRS |
+                        LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR;
+                break;
+            }
+    }
+    return (void *)LoadLibraryExW(filename, NULL, flags);
 }
 
 static void *dlsym(void *handle, const char *symbol)

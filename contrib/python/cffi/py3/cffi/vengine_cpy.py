@@ -246,6 +246,9 @@ class VCPythonEngine(object):
             if tp.is_integer_type() and tp.name != '_Bool':
                 converter = '_cffi_to_c_int'
                 extraarg = ', %s' % tp.name
+            elif tp.is_complex_type():
+                raise VerificationError(
+                    "not implemented in verify(): complex types")
             else:
                 converter = '(%s)_cffi_to_c_%s' % (tp.get_c_name(''),
                                                    tp.name.replace(' ', '_'))
@@ -856,11 +859,15 @@ cffimod_header = r'''
     typedef unsigned char _Bool;
 #  endif
 # endif
+# define _cffi_float_complex_t   _Fcomplex    /* include <complex.h> for it */
+# define _cffi_double_complex_t  _Dcomplex    /* include <complex.h> for it */
 #else
 # include <stdint.h>
 # if (defined (__SVR4) && defined (__sun)) || defined(_AIX) || defined(__hpux)
 #  include <alloca.h>
 # endif
+# define _cffi_float_complex_t   float _Complex
+# define _cffi_double_complex_t  double _Complex
 #endif
 
 #if PY_MAJOR_VERSION < 3

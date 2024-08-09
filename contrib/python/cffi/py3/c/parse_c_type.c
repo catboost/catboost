@@ -535,6 +535,8 @@ int search_standard_typename(const char *p, size_t size)
 
     case 'i':
         if (size == 9 && !memcmp(p, "ptrdiff", 7)) return _CFFI_PRIM_PTRDIFF;
+        if (size == 21 && !memcmp(p, "_cffi_float_complex", 19)) return _CFFI_PRIM_FLOATCOMPLEX;
+        if (size == 22 && !memcmp(p, "_cffi_double_complex", 20)) return _CFFI_PRIM_DOUBLECOMPLEX;
         break;
 
     case 'l':

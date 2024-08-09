@@ -30,6 +30,7 @@ inline static void MarkAsIntentionallyLeaked(const void* ptr) {
 struct CPyExtFunc_s {
     PyMethodDef md;
     void *direct_fn;
+    PyObject *direct_fn_cdata;
     int type_index;
     char doc[1];
 };
@@ -675,6 +676,31 @@ static LibObject *lib_internal_new(FFIObject *ffi, const char *module_name,
     return NULL;
 }
 
+static PyObject* try_extract_directfnptr(PyObject *x)
+{
+    /* returns: borrowed ref or NULL */
+    LibObject *lib;
+    PyObject *ct;
+    struct CPyExtFunc_s *exf = _cpyextfunc_get(x);
+    if (exf == NULL)
+        return NULL;       /* wrong type */
+    if (exf->direct_fn_cdata != NULL)
+        return exf->direct_fn_cdata;    /* common case: cached */
+
+    if (exf->direct_fn == NULL)
+        return x;          /* backward compatibility: no direct_fn */
+
+    lib = (LibObject *)PyCFunction_GET_SELF(x);
+    ct = _cpyextfunc_type(lib, exf);
+    if (ct == NULL)
+        return NULL;       /* error */
+
+    x = new_simple_cdata(exf->direct_fn, (CTypeDescrObject *)ct);
+    Py_DECREF(ct);
+    exf->direct_fn_cdata = x;  /* caches x, which becomes immortal like exf */
+    return x;
+}
+
 static PyObject *address_of_global_var(PyObject *args)
 {
     LibObject *lib;
@@ -696,20 +722,15 @@ static PyObject *address_of_global_var(PyObject *args)
         return cg_addressof_global_var((GlobSupportObject *)x);
     }
     else {
-        struct CPyExtFunc_s *exf = _cpyextfunc_get(x);
-        if (exf != NULL) {  /* an OP_CPYTHON_BLTN: '&func' returns a cdata */
-            PyObject *ct;
-            if (exf->direct_fn == NULL) {
-                Py_INCREF(x);    /* backward compatibility */
-                return x;
-            }
-            ct = _cpyextfunc_type(lib, exf);
-            if (ct == NULL)
-                return NULL;
-            x = new_simple_cdata(exf->direct_fn, (CTypeDescrObject *)ct);
-            Py_DECREF(ct);
-            return x;
+        PyObject *func_cdata = try_extract_directfnptr(x);
+        if (func_cdata != NULL) {
+            /* an OP_CPYTHON_BLTN: '&func' returns a cdata */
+            Py_INCREF(func_cdata);
+            return func_cdata;
         }
+        if (PyErr_Occurred())
+            return NULL;
+
         if (CData_Check(x) &&  /* a constant functionptr cdata: 'f == &f' */
                 (((CDataObject *)x)->c_type->ct_flags & CT_FUNCTIONPTR) != 0) {
             Py_INCREF(x);

@@ -329,6 +329,7 @@ class Parser(object):
         # called <cdef source string> from line 1
         csourcelines.append('# 1 "%s"' % (CDEF_SOURCE_STRING,))
         csourcelines.append(csource)
+        csourcelines.append('')   # see test_missing_newline_bug
         fullcsource = '\n'.join(csourcelines)
         if lock is not None:
             lock.acquire()     # pycparser is not thread-safe...
@@ -430,7 +431,15 @@ class Parser(object):
                             typedef_example="*(%s *)0" % (decl.name,))
                     self._declare('typedef ' + decl.name, realtype, quals=quals)
                 elif decl.__class__.__name__ == 'Pragma':
-                    pass    # skip pragma, only in pycparser 2.15
+                    # skip pragma, only in pycparser 2.15
+                    import warnings
+                    warnings.warn(
+                        "#pragma in cdef() are entirely ignored. "
+                        "They should be removed for now, otherwise your "
+                        "code might behave differently in a future version "
+                        "of CFFI if #pragma support gets added. Note that "
+                        "'#pragma pack' needs to be replaced with the "
+                        "'packed' keyword argument to cdef().")
                 else:
                     raise CDefError("unexpected <%s>: this construct is valid "
                                     "C but not valid in cdef()" %
