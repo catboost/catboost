@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
 import argparse
-import distutils.dir_util
 import os
 import shutil
+import sys
 import zipfile
+
+if sys.version_info[0] == 2:
+    import distutils.dir_util
 
 
 def _main():
@@ -26,7 +29,10 @@ def _main():
 
     if args.src_dirs is not None:
         for src_dir in args.src_dirs:
-            distutils.dir_util.copy_tree(src_dir, args.dst_dir)
+            if sys.version_info[0] == 2:
+                distutils.dir_util.copy_tree(src_dir, args.dst_dir)
+            else:
+                shutil.copytree(src_dir, args.dst_dir, dirs_exist_ok=True)
 
     if args.src_jars is not None:
         for src_jar in args.src_jars:
