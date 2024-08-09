@@ -1,4 +1,4 @@
-iter	DCG:type=Base
+iter	DCG:type=Base;denominator=Position
 0	0.2049593326
 1	0.2472116494
 2	0.2484199828

@@ -2985,7 +2985,12 @@ TVector<THolder<IMetric>> TDcgMetric::Create(const TMetricConfig& config) {
 TString TDcgMetric::GetDescription() const {
     const TMetricParam<int> topSize("top", TopSize, TopSize != DefaultTopSize);
     const TMetricParam<ENdcgMetricType> type("type", MetricType, true);
-    return BuildDescription(Normalized ? ELossFunction::NDCG : ELossFunction::DCG, UseWeights, topSize, type);
+    if (DenominatorType != DefaultDenominatorType) {
+        const TMetricParam<ENdcgDenominatorType> denominator("denominator", DenominatorType, true);
+        return BuildDescription(Normalized ? ELossFunction::NDCG : ELossFunction::DCG, UseWeights, topSize, type, denominator);
+    } else {
+        return BuildDescription(Normalized ? ELossFunction::NDCG : ELossFunction::DCG, UseWeights, topSize, type);
+    }
 }
 
 TDcgMetric::TDcgMetric(ELossFunction lossFunction, const TLossParams& params,

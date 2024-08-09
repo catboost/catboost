@@ -1,4 +1,4 @@
-iter	NDCG:top=1;type=Base
+iter	NDCG:top=1;type=Base;denominator=Position
 0	0.4317992043
 1	0.5524426353
 2	0.5859403781

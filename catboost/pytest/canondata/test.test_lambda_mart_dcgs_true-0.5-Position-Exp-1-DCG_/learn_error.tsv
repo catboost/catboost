@@ -1,4 +1,4 @@
-iter	DCG:top=1;type=Exp
+iter	DCG:top=1;type=Exp;denominator=Position
 0	0.04709002495
 1	0.0761363465
 2	0.08726506792

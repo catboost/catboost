@@ -1,4 +1,4 @@
-iter	QueryRMSE	DCG:top=10;type=Exp
+iter	QueryRMSE	DCG:top=10;type=Exp;denominator=Position
 0	0.07597006085	0.1091956125
 1	0.07586109321	0.1709749955
 2	0.07582489263	0.1683457674
