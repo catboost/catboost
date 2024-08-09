@@ -215,14 +215,14 @@ namespace NPyBind {
 
     template <typename TFunctor, typename Tuple, typename ResType, typename=std::enable_if_t<!std::is_same_v<ResType, void>>>
     void ApplyFunctor(TFunctor functor, Tuple resultArgs, PyObject*& res) {
-        res = BuildPyObject(std::move(Apply(functor, resultArgs)));
+        res = BuildPyObject(std::move(std::apply(functor, resultArgs)));
     }
 
     template <typename TFunctor, typename Tuple, typename ResType, typename=std::enable_if_t<std::is_same_v<ResType, void>>, typename=void>
     void ApplyFunctor(TFunctor functor, Tuple resultArgs, PyObject*& res) {
         Py_INCREF(Py_None);
         res = Py_None;
-        Apply(functor, resultArgs);
+        std::apply(functor, resultArgs);
     }
 
     template <typename TObjType, typename TResType, typename... Args>
@@ -332,7 +332,7 @@ namespace NPyBind {
                     TSubObject* Sub;
                     TMethod Method;
                 };
-                res = BuildPyObject(std::move(Apply(Applicant{sub, Method}, GetArguments<Args...>(args))));
+                res = BuildPyObject(std::move(std::apply(Applicant{sub, Method}, GetArguments<Args...>(args))));
             } catch (cast_exception) {
                 return false;
             } catch (const TPyNativeErrorException&) {
@@ -384,7 +384,7 @@ namespace NPyBind {
                     TMethod Method;
                 };
 
-                Apply(Applicant{sub, Method}, GetArguments<Args...>(args));
+                std::apply(Applicant{sub, Method}, GetArguments<Args...>(args));
 
                 Py_INCREF(Py_None);
                 res = Py_None;

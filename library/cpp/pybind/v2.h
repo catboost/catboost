@@ -8,6 +8,8 @@
 #include <util/generic/string.h>
 #include <util/generic/xrange.h>
 
+#include <tuple>
+
 namespace NPyBind {
 #define DEFINE_CONVERTERS_IMPL(TClass)                            \
     PyObject* BuildPyObject(typename TClass::TBase&& base) {      \
@@ -289,7 +291,7 @@ namespace NPyBind {
                         if (args && (!PyTuple_Check(args) || PyTuple_Size(args) != sizeof...(ConstructorArgs))) {
                             ythrow yexception() << "Method takes " << sizeof...(ConstructorArgs) << " arguments, " << PyTuple_Size(args) << " provided";
                         }
-                        ::THolder<TBaseClass> basePtr{Apply([](auto&&... unpackedArgs) {return new TBase(std::forward<decltype(unpackedArgs)>(unpackedArgs)...); }, GetArguments<ConstructorArgs...>(args))};
+                        ::THolder<TBaseClass> basePtr{std::apply([](auto&&... unpackedArgs) {return new TBase(std::forward<decltype(unpackedArgs)>(unpackedArgs)...); }, GetArguments<ConstructorArgs...>(args))};
                         return new THolder(std::move(basePtr));
                     }
                 } else {

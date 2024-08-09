@@ -174,13 +174,13 @@ namespace NPyBind {
         template <typename TResult, typename... Args>
         struct TCaller {
             static PyObject* Call(PyObject* args) {
-                return BuildPyObject(Apply(method, GetArguments<Args...>(args)));
+                return BuildPyObject(std::apply(method, GetArguments<Args...>(args)));
             }
         };
 
         template <typename TResult, typename... Args>
         static PyObject* InternalCall(TResult (*)(Args...), PyObject* args) {
-            return BuildPyObject(Apply(method, GetArguments<Args...>(args)));
+            return BuildPyObject(std::apply(method, GetArguments<Args...>(args)));
         }
 
     public:

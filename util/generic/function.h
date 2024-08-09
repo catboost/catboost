@@ -97,10 +97,3 @@ struct TFunctionArgImpl {
 
 template <typename C, size_t N>
 using TFunctionArg = typename TFunctionArgImpl<C, N>::TResult;
-
-// temporary before std::apply appearance
-
-template <typename F, typename Tuple>
-constexpr decltype(auto) Apply(F&& f, Tuple&& t) {
-    return std::apply(std::forward<F>(f), std::forward<Tuple>(t));
-}
