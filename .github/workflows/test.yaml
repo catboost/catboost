@@ -44,6 +44,13 @@ jobs:
         run: |
           python -m pip install pytest pytest-xdist pytest-randomly
 
+      - if: inputs.runs-on_value != 'windows-2022' 
+        name: Generate CatBoost for Apache Spark projects
+        shell: pwsh
+        run: |
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark
+          python ./generate_projects/generate.py
+
       # TODO: maybe test on other Java versions as well
 
       - name: Setup JDK 8 for running tests
@@ -55,12 +62,15 @@ jobs:
           cache-dependency-path: |
             catboost/catboost/jvm-packages/common/pom.xml
             catboost/catboost/jvm-packages/catboost4j-prediction/pom.xml
+            catboost/catboost/spark/catboost4j-spark/projects/**/pom.xml
 
       - name: Env setup
         shell: pwsh
         run: |
           New-Item -Path catboost_python_package_dist -ItemType Directory
           New-Item -Path prebuilt/catboost4j-prediction_resources -ItemType Directory
+          New-Item -Path prebuilt/spark -ItemType Directory
+          New-Item -Path prebuilt/spark/catboost4j-spark_core_resources -ItemType Directory
           New-Item -Path build_native_root/catboost -ItemType Directory
           Set-Location -LiteralPath ${{ github.workspace }}/build_native_root/catboost
           New-Item -Path app -ItemType Directory
@@ -186,6 +196,46 @@ jobs:
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
 
+      - if: inputs.runs-on_value != 'windows-2022'
+        name: Download catboost4j-spark-impl-sources
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-spark-impl-sources-${{ inputs.artifacts_version }}
+          path: prebuilt/spark/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.runs-on_value != 'windows-2022'
+        name: Download catboost4j-spark_core_resources_classes
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-spark_core_resources_classes-${{ inputs.artifacts_version }}
+          path: prebuilt/spark/catboost4j-spark_core_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: Download catboost4j-spark_core_resources for Ubuntu
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-spark_core_resources-linux-${{ inputs.artifacts_version }}
+          path: prebuilt/spark/catboost4j-spark_core_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.runs-on_value == 'macos-13'
+        name: Download catboost4j-spark_core_resources for macOS
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-spark_core_resources-darwin-${{ inputs.artifacts_version }}
+          path: prebuilt/spark/catboost4j-spark_core_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
       - name: Prepare binaries from artifacts
         shell: pwsh
         run: |
@@ -238,3 +288,13 @@ jobs:
         run: |
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/catboost4j-prediction
           mvn -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/ test
+
+      # TODO: maybe test on other Spark versions as well
+
+      # temporarily disabled until issues with tests diffs are resolved
+      - if: false #inputs.runs-on_value != 'windows-2022'
+        name: Run catboost4j-spark tests
+        shell: pwsh
+        run: |
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark/projects/spark_3.5_2.12
+          mvn -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar test
