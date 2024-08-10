@@ -65,6 +65,20 @@ static bool *used_assoc = NULL;
 bool tag_seen = false;
 
 
+/* Whether SYM was defined by the user.  */
+
+static bool
+symbol_is_user_defined (symbol *sym)
+{
+  const bool eof_is_user_defined
+    = !endtoken->alias || STRNEQ (endtoken->alias->tag, "$end");
+  return sym->tag[0] != '$'
+    && (eof_is_user_defined || (sym != endtoken && sym->alias != errtoken))
+    && sym != errtoken && sym->alias != errtoken
+    && sym != undeftoken && sym->alias != undeftoken;
+}
+
+
 /*--------------------------.
 | Create a new sym_content. |
 `--------------------------*/
@@ -111,6 +125,7 @@ symbol_new (uniqstr tag, location loc)
 
   res->tag = tag;
   res->location = loc;
+  res->translatable = false;
   res->location_of_lhs = false;
   res->alias = NULL;
   res->content = sym_content_new (res);
@@ -151,9 +166,9 @@ symbol_free (void *ptr)
 /* If needed, swap first and second so that first has the earliest
    location (according to location_cmp).
 
-   Many symbol features (e.g., user token numbers) are not assigned
-   during the parsing, but in a second step, via a traversal of the
-   symbol table sorted on tag.
+   Many symbol features (e.g., token codes) are not assigned during
+   parsing, but in a second step, via a traversal of the symbol table
+   sorted on tag.
 
    However, error messages make more sense if we keep the first
    declaration first.
@@ -278,6 +293,7 @@ is_identifier (uniqstr s)
 /*-----------------------------------------------.
 | Get the identifier associated to this symbol.  |
 `-----------------------------------------------*/
+
 uniqstr
 symbol_id_get (symbol const *sym)
 {
@@ -296,42 +312,29 @@ static void
 complain_symbol_redeclared (symbol *s, const char *what, location first,
                             location second)
 {
-  int i = 0;
   locations_sort (&first, &second);
-  complain_indent (&second, complaint, &i,
-                   _("%s redeclaration for %s"), what, s->tag);
-  i += SUB_INDENT;
-  complain_indent (&first, complaint, &i,
-                   _("previous declaration"));
+  complain (&second, complaint, _("%s redeclaration for %s"), what, s->tag);
+  subcomplain (&first, complaint, _("previous declaration"));
 }
 
 static void
 complain_semantic_type_redeclared (semantic_type *s, const char *what, location first,
                                    location second)
 {
-  int i = 0;
   locations_sort (&first, &second);
-  complain_indent (&second, complaint, &i,
-                   _("%s redeclaration for <%s>"), what, s->tag);
-  i += SUB_INDENT;
-  complain_indent (&first, complaint, &i,
-                   _("previous declaration"));
+  complain (&second, complaint, _("%s redeclaration for <%s>"), what, s->tag);
+  subcomplain (&first, complaint, _("previous declaration"));
 }
 
 static void
 complain_class_redeclared (symbol *sym, symbol_class class, location second)
 {
-  int i = 0;
-  complain_indent (&second, complaint, &i,
-                   class == token_sym
-                   ? _("symbol %s redeclared as a token")
-                   : _("symbol %s redeclared as a nonterminal"), sym->tag);
+  complain (&second, complaint,
+            class == token_sym
+            ? _("symbol %s redeclared as a token")
+            : _("symbol %s redeclared as a nonterminal"), sym->tag);
   if (!location_empty (sym->location))
-    {
-      i += SUB_INDENT;
-      complain_indent (&sym->location, complaint, &i,
-                       _("previous definition"));
-    }
+    subcomplain (&sym->location, complaint, _("previous definition"));
 }
 
 static const symbol *
@@ -431,6 +434,7 @@ symbol_code_props_set (symbol *sym, code_props_type kind,
     sym->content->props[kind] = *code;
 }
 
+
 /*-----------------------------------------------------.
 | Set the DESTRUCTOR or PRINTER associated with TYPE.  |
 `-----------------------------------------------------*/
@@ -469,7 +473,7 @@ symbol_code_props_get (symbol *sym, code_props_type kind)
     }
 
   /* Apply default code props's only to user-defined symbols.  */
-  if (sym->tag[0] != '$' && sym != errtoken)
+  if (symbol_is_user_defined (sym))
     {
       code_props *code = &semantic_type_get (sym->content->type_name ? "*" : "",
                                              NULL)->props[kind];
@@ -547,12 +551,10 @@ symbol_class_set (symbol *sym, symbol_class class, location loc, bool declaring)
         {
           if (s->status == declared)
             {
-              int i = 0;
-              complain_indent (&loc, Wother, &i,
-                               _("symbol %s redeclared"), sym->tag);
-              i += SUB_INDENT;
-              complain_indent (&sym->location, Wother, &i,
-                               _("previous declaration"));
+              complain (&loc, Wother,
+                        _("symbol %s redeclared"), sym->tag);
+              subcomplain (&sym->location, Wother,
+                           _("previous declaration"));
             }
           else
             {
@@ -574,13 +576,13 @@ symbol_user_token_number_set (symbol *sym, int user_token_number, location loc)
   int *user_token_numberp = &sym->content->user_token_number;
   if (sym->content->class != token_sym)
     complain (&loc, complaint,
-              _("nonterminals cannot be given an explicit number"));
+              _("nonterminals cannot be given a token code"));
   else if (*user_token_numberp != USER_NUMBER_UNDEFINED
            && *user_token_numberp != user_token_number)
-    complain (&loc, complaint, _("redefining user token number of %s"),
+    complain (&loc, complaint, _("redefining code of token %s"),
               sym->tag);
   else if (user_token_number == INT_MAX)
-    complain (&loc, complaint, _("user token number of %s too large"),
+    complain (&loc, complaint, _("code of token %s too large"),
               sym->tag);
   else
     {
@@ -723,49 +725,47 @@ symbol_make_alias (symbol *sym, symbol *str, location loc)
 `-------------------------------------------------------------------*/
 
 static void
-symbol_pack (symbol *this)
+symbol_pack (symbol *sym)
 {
-  aver (this->content->number != NUMBER_UNDEFINED);
-  if (this->content->class == nterm_sym)
-    this->content->number += ntokens;
+  aver (sym->content->number != NUMBER_UNDEFINED);
+  if (sym->content->class == nterm_sym)
+    sym->content->number += ntokens;
 
-  symbols[this->content->number] = this->content->symbol;
+  symbols[sym->content->number] = sym->content->symbol;
 }
 
 static void
 complain_user_token_number_redeclared (int num, symbol *first, symbol *second)
 {
-  int i = 0;
   symbols_sort (&first, &second);
-  complain_indent (&second->location, complaint, &i,
-                   _("user token number %d redeclaration for %s"),
-                   num, second->tag);
-  i += SUB_INDENT;
-  complain_indent (&first->location, complaint, &i,
-                   _("previous declaration for %s"),
-                   first->tag);
+  complain (&second->location, complaint,
+            _("code %d reassigned to token %s"),
+            num, second->tag);
+  subcomplain (&first->location, complaint,
+               _("previous declaration for %s"),
+               first->tag);
 }
 
-/*--------------------------------------------------.
-| Put THIS in TOKEN_TRANSLATIONS if it is a token.  |
-`--------------------------------------------------*/
+/*-------------------------------------------------.
+| Put SYM in TOKEN_TRANSLATIONS if it is a token.  |
+`-------------------------------------------------*/
 
 static void
-symbol_translation (symbol *this)
+symbol_translation (symbol *sym)
 {
   /* Nonterminal? */
-  if (this->content->class == token_sym
-      && !this->is_alias)
+  if (sym->content->class == token_sym
+      && !sym->is_alias)
     {
       /* A token which translation has already been set?*/
-      if (token_translations[this->content->user_token_number]
+      if (token_translations[sym->content->user_token_number]
           != undeftoken->content->number)
         complain_user_token_number_redeclared
-          (this->content->user_token_number,
-           symbols[token_translations[this->content->user_token_number]], this);
+          (sym->content->user_token_number,
+           symbols[token_translations[sym->content->user_token_number]], sym);
       else
-        token_translations[this->content->user_token_number]
-          = this->content->number;
+        token_translations[sym->content->user_token_number]
+          = sym->content->number;
     }
 }
 
@@ -847,16 +847,26 @@ symbols_new (void)
   accept->content->class = nterm_sym;
   accept->content->number = nvars++;
 
-  /* Construct the error token */
-  errtoken = symbol_get ("error", empty_loc);
+  /* Construct the YYerror/"error" token */
+  errtoken = symbol_get ("YYerror", empty_loc);
   errtoken->content->class = token_sym;
   errtoken->content->number = ntokens++;
+  {
+    symbol *alias = symbol_get ("error", empty_loc);
+    symbol_class_set (alias, token_sym, empty_loc, false);
+    symbol_make_alias (errtoken, alias, empty_loc);
+  }
 
-  /* Construct a token that represents all undefined literal tokens.
-     It is always token number 2.  */
-  undeftoken = symbol_get ("$undefined", empty_loc);
+  /* Construct the YYUNDEF/"$undefined" token that represents all
+     undefined literal tokens.  It is always symbol number 2.  */
+  undeftoken = symbol_get ("YYUNDEF", empty_loc);
   undeftoken->content->class = token_sym;
   undeftoken->content->number = ntokens++;
+  {
+    symbol *alias = symbol_get ("$undefined", empty_loc);
+    symbol_class_set (alias, token_sym, empty_loc, false);
+    symbol_make_alias (undeftoken, alias, empty_loc);
+  }
 
   semantic_type_table = hash_xinitialize (HT_INITIAL_CAPACITY,
                                           NULL,
@@ -959,7 +969,7 @@ dummy_symbol_get (location loc)
 }
 
 bool
-symbol_is_dummy (const symbol *sym)
+symbol_is_dummy (symbol const *sym)
 {
   return sym->tag[0] == '@' || (sym->tag[0] == '$' && sym->tag[1] == '@');
 }
@@ -1034,17 +1044,17 @@ symbols_token_translations_init (void)
 {
   bool num_256_available_p = true;
 
-  /* Find the highest user token number, and whether 256, the POSIX
-     preferred user token number for the error token, is used.  */
+  /* Find the highest token code, and whether 256, the POSIX preferred
+     token code for the error token, is used.  */
   max_user_token_number = 0;
   for (int i = 0; i < ntokens; ++i)
     {
-      sym_content *this = symbols[i]->content;
-      if (this->user_token_number != USER_NUMBER_UNDEFINED)
+      sym_content *sym = symbols[i]->content;
+      if (sym->user_token_number != USER_NUMBER_UNDEFINED)
         {
-          if (this->user_token_number > max_user_token_number)
-            max_user_token_number = this->user_token_number;
-          if (this->user_token_number == 256)
+          if (sym->user_token_number > max_user_token_number)
+            max_user_token_number = sym->user_token_number;
+          if (sym->user_token_number == 256)
             num_256_available_p = false;
         }
     }
@@ -1060,17 +1070,17 @@ symbols_token_translations_init (void)
 
   for (int i = 0; i < ntokens; ++i)
     {
-      sym_content *this = symbols[i]->content;
-      if (this->user_token_number == USER_NUMBER_UNDEFINED)
+      sym_content *sym = symbols[i]->content;
+      if (sym->user_token_number == USER_NUMBER_UNDEFINED)
         {
           IGNORE_TYPE_LIMITS_BEGIN
           if (INT_ADD_WRAPV (max_user_token_number, 1, &max_user_token_number))
             complain (NULL, fatal, _("token number too large"));
           IGNORE_TYPE_LIMITS_END
-          this->user_token_number = max_user_token_number;
+          sym->user_token_number = max_user_token_number;
         }
-      if (this->user_token_number > max_user_token_number)
-        max_user_token_number = this->user_token_number;
+      if (sym->user_token_number > max_user_token_number)
+        max_user_token_number = sym->user_token_number;
     }
 
   token_translations = xnmalloc (max_user_token_number + 1,
@@ -1084,6 +1094,21 @@ symbols_token_translations_init (void)
     symbol_translation (symbols_sorted[i]);
 }
 
+
+/* Whether some symbol requires internationalization.  */
+static bool
+has_translations (void)
+{
+  for (const void *entry = hash_get_first (symbol_table);
+       entry;
+       entry = hash_get_next (symbol_table, entry))
+    {
+      const symbol *sym = (const symbol *) entry;
+      if (sym->translatable)
+        return true;
+    }
+  return false;
+}
 
 /*----------------------------------------------------------------.
 | Assign symbol numbers, and write definition of token names into |
@@ -1127,6 +1152,18 @@ symbols_pack (void)
     complain (&startsymbol_loc, fatal,
               _("the start symbol %s is a token"),
               startsymbol->tag);
+
+  // If some user tokens are internationalized, the internal ones
+  // should be too.
+  if (has_translations ())
+    {
+      const bool eof_is_user_defined
+        = !endtoken->alias || STRNEQ (endtoken->alias->tag, "$end");
+      if (!eof_is_user_defined)
+        endtoken->alias->translatable = true;
+      undeftoken->alias->translatable = true;
+      errtoken->alias->translatable = true;
+    }
 }
 
 /*---------------------------------.

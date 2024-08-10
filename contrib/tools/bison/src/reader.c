@@ -124,16 +124,13 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
   aver (merge_function != NULL && merger_find == merger);
   if (merge_function->type != NULL && !UNIQSTR_EQ (merge_function->type, type))
     {
-      int indent = 0;
-      complain_indent (&declaration_loc, complaint, &indent,
-                       _("result type clash on merge function %s: "
-                         "<%s> != <%s>"),
-                       quote (merge_function->name), type,
-                       merge_function->type);
-      indent += SUB_INDENT;
-      complain_indent (&merge_function->type_declaration_loc, complaint,
-                       &indent,
-                       _("previous declaration"));
+      complain (&declaration_loc, complaint,
+                _("result type clash on merge function %s: "
+                "<%s> != <%s>"),
+                quote (merge_function->name), type,
+                merge_function->type);
+      subcomplain (&merge_function->type_declaration_loc, complaint,
+                   _("previous declaration"));
     }
   merge_function->type = uniqstr_new (type);
   merge_function->type_declaration_loc = declaration_loc;
@@ -781,11 +778,16 @@ check_and_convert_grammar (void)
   /* If the user did not define her ENDTOKEN, do it now. */
   if (!endtoken)
     {
-      endtoken = symbol_get ("$end", empty_loc);
+      endtoken = symbol_get ("YYEOF", empty_loc);
       endtoken->content->class = token_sym;
       endtoken->content->number = 0;
       /* Value specified by POSIX.  */
       endtoken->content->user_token_number = 0;
+      {
+        symbol *alias = symbol_get ("$end", empty_loc);
+        symbol_class_set (alias, token_sym, empty_loc, false);
+        symbol_make_alias (endtoken, alias, empty_loc);
+      }
     }
 
   /* Report any undefined symbols and consider them nonterminals.  */
@@ -820,9 +822,9 @@ check_and_convert_grammar (void)
   /* Assign the symbols their symbol numbers.  */
   symbols_pack ();
 
-  /* Scan rule actions after invoking symbol_check_alias_consistency (in
-     symbols_pack above) so that token types are set correctly before the rule
-     action type checking.
+  /* Scan rule actions after invoking symbol_check_alias_consistency
+     (in symbols_pack above) so that token types are set correctly
+     before the rule action type checking.
 
      Before invoking grammar_rule_check_and_complete (in packgram
      below) on any rule, make sure all actions have already been

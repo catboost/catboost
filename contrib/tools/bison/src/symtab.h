@@ -97,6 +97,9 @@ struct symbol
   /** The "defining" location.  */
   location location;
 
+  /** Whether this symbol is translatable. */
+  bool translatable;
+
   /** Whether \a location is about the first uses as left-hand side
       symbol of a rule (true), or simply the first occurrence (e.g.,
       in a %type, or as a rhs symbol of a rule).  The former type of
@@ -117,6 +120,8 @@ struct symbol
 
 struct sym_content
 {
+  /** The main symbol that denotes this content (it contains the
+      possible alias). */
   symbol *symbol;
 
   /** Its \c \%type.
@@ -179,7 +184,7 @@ symbol *dummy_symbol_get (location loc);
 void symbol_print (symbol const *s, FILE *f);
 
 /** Is this a dummy nonterminal?  */
-bool symbol_is_dummy (const symbol *sym);
+bool symbol_is_dummy (symbol const *sym);
 
 /** The name of the code_props type: "\%destructor" or "\%printer".  */
 char const *code_props_type_string (code_props_type kind);

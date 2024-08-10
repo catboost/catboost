@@ -115,6 +115,13 @@ m4_define([b4_value_type_declare],
       new (yyas_<T> ()) T (YY_MOVE (t));
     }
 
+#if 201103L <= YY_CPLUSPLUS
+    /// Non copyable.
+    semantic_type (const self_type&) = delete;
+    /// Non copyable.
+    self_type& operator= (const self_type&) = delete;
+#endif
+
     /// Destruction, allowed only if empty.
     ~semantic_type () YY_NOEXCEPT
     {]b4_parse_assert_if([
@@ -258,9 +265,12 @@ m4_define([b4_value_type_declare],
     }
 
   private:
-    /// Prohibit blind copies.
-    self_type& operator= (const self_type&);
+#if YY_CPLUSPLUS < 201103L
+    /// Non copyable.
     semantic_type (const self_type&);
+    /// Non copyable.
+    self_type& operator= (const self_type&);
+#endif
 
     /// Accessor to raw memory as \a T.
     template <typename T>

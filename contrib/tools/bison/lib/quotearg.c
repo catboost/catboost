@@ -29,6 +29,7 @@
 #include "quotearg.h"
 #include "quote.h"
 
+#include "attribute.h"
 #include "minmax.h"
 #include "xalloc.h"
 #include "c-strcaseeq.h"
@@ -53,14 +54,6 @@
 #endif
 
 #define INT_BITS (sizeof (int) * CHAR_BIT)
-
-#ifndef FALLTHROUGH
-# if __GNUC__ < 7
-#  define FALLTHROUGH ((void) 0)
-# else
-#  define FALLTHROUGH __attribute__ ((__fallthrough__))
-# endif
-#endif
 
 struct quoting_options
 {

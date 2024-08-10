@@ -52,6 +52,8 @@ extern void gl_list_node_set_value (gl_list_t list, gl_list_node_t node,
                                     const void *elt);
 extern gl_list_node_t gl_list_set_at (gl_list_t list, size_t position,
                                       const void *elt);
+extern gl_list_node_t gl_list_set_first (gl_list_t list, const void *elt);
+extern gl_list_node_t gl_list_set_last (gl_list_t list, const void *elt);
 extern gl_list_node_t gl_list_add_first (gl_list_t list, const void *elt);
 extern gl_list_node_t gl_list_add_last (gl_list_t list, const void *elt);
 extern gl_list_node_t gl_list_add_before (gl_list_t list, gl_list_node_t node,
@@ -108,6 +110,24 @@ GL_XLIST_INLINE gl_list_node_t
 gl_list_set_at (gl_list_t list, size_t position, const void *elt)
 {
   gl_list_node_t result = gl_list_nx_set_at (list, position, elt);
+  if (result == NULL)
+    xalloc_die ();
+  return result;
+}
+
+GL_XLIST_INLINE gl_list_node_t
+gl_list_set_first (gl_list_t list, const void *elt)
+{
+  gl_list_node_t result = gl_list_nx_set_first (list, elt);
+  if (result == NULL)
+    xalloc_die ();
+  return result;
+}
+
+GL_XLIST_INLINE gl_list_node_t
+gl_list_set_last (gl_list_t list, const void *elt)
+{
+  gl_list_node_t result = gl_list_nx_set_last (list, elt);
   if (result == NULL)
     xalloc_die ();
   return result;

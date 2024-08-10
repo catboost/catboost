@@ -110,7 +110,9 @@ open (const char *filename, int flags, ...)
          directories,
        - if O_WRONLY or O_RDWR is specified, open() must fail because the
          file does not contain a '.' directory.  */
-  if (flags & (O_CREAT | O_WRONLY | O_RDWR))
+  if ((flags & O_CREAT)
+      || (flags & O_ACCMODE) == O_RDWR
+      || (flags & O_ACCMODE) == O_WRONLY)
     {
       size_t len = strlen (filename);
       if (len > 0 && filename[len - 1] == '/')

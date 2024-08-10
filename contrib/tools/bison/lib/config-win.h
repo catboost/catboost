@@ -1226,7 +1226,7 @@ char *strsignal (int signum);
 /* #undef PACKAGE_PACKAGER_VERSION */
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU Bison 3.5.4"
+#define PACKAGE_STRING "GNU Bison 3.6.4"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "m4"
@@ -1235,7 +1235,7 @@ char *strsignal (int signum);
 #define PACKAGE_URL "http://www.gnu.org/software/m4/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.5.4"
+#define PACKAGE_VERSION "3.6.4"
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 /* #undef PRI_MACROS_BROKEN */
@@ -1398,7 +1398,7 @@ char *strsignal (int signum);
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "3.5.4"
+#define VERSION "3.6.4"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 /* #undef VOID_UNSETENV */
@@ -1704,9 +1704,17 @@ char *strsignal (int signum);
 #define M4 "/var/empty/gnum4-1.4.19/bin/m4"
 #define M4_GNU_OPTION "--gnu"
 #define PACKAGE_COPYRIGHT_YEAR 2013
-#define _GL_ATTRIBUTE_MALLOC 
-#define HAVE_DECL___ARGV 1
+
+#define _GL_ASYNC_SAFE
+#define _GL_ATTRIBUTE_ALLOC_SIZE(...)
+#define _GL_ATTRIBUTE_FALLTHROUGH
+#define _GL_ATTRIBUTE_FORMAT(...) 
 #define _GL_ATTRIBUTE_FORMAT_PRINTF(...) 
+#define _GL_ATTRIBUTE_MALLOC
+#define _GL_ATTRIBUTE_MAYBE_UNUSED
+#define _GL_ATTRIBUTE_NODISCARD
+#define _GL_GNUC_PREREQ(...) 0
+
+#define HAVE_DECL___ARGV 1
 #define HAVE_ISNANL_IN_LIBC 1
 #define HAVE_ISNAND_IN_LIBC 1
-#define _GL_ASYNC_SAFE

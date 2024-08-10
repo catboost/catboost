@@ -27,6 +27,9 @@
 # include <stdint.h>
 #endif
 
+/* Get ATTRIBUTE_PURE.  */
+#include "attribute.h"
+
 #ifndef _GL_INLINE_HEADER_BEGIN
  #error "Please include config.h first."
 #endif
@@ -56,10 +59,7 @@ _GL_INLINE_HEADER_BEGIN
   ((N) <= SIZE_MAX ? (size_t) (N) : SIZE_MAX)
 
 /* Sum of two sizes, with overflow check.  */
-XSIZE_INLINE size_t
-#if __GNUC__ >= 3
-__attribute__ ((__pure__))
-#endif
+XSIZE_INLINE size_t ATTRIBUTE_PURE
 xsum (size_t size1, size_t size2)
 {
   size_t sum = size1 + size2;
@@ -67,30 +67,21 @@ xsum (size_t size1, size_t size2)
 }
 
 /* Sum of three sizes, with overflow check.  */
-XSIZE_INLINE size_t
-#if __GNUC__ >= 3
-__attribute__ ((__pure__))
-#endif
+XSIZE_INLINE size_t ATTRIBUTE_PURE
 xsum3 (size_t size1, size_t size2, size_t size3)
 {
   return xsum (xsum (size1, size2), size3);
 }
 
 /* Sum of four sizes, with overflow check.  */
-XSIZE_INLINE size_t
-#if __GNUC__ >= 3
-__attribute__ ((__pure__))
-#endif
+XSIZE_INLINE size_t ATTRIBUTE_PURE
 xsum4 (size_t size1, size_t size2, size_t size3, size_t size4)
 {
   return xsum (xsum (xsum (size1, size2), size3), size4);
 }
 
 /* Maximum of two sizes, with overflow check.  */
-XSIZE_INLINE size_t
-#if __GNUC__ >= 3
-__attribute__ ((__pure__))
-#endif
+XSIZE_INLINE size_t ATTRIBUTE_PURE
 xmax (size_t size1, size_t size2)
 {
   /* No explicit check is needed here, because for any n:

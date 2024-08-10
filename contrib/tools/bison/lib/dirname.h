@@ -21,7 +21,7 @@
 
 # include <stdbool.h>
 # include <stddef.h>
-# include "dosname.h"
+# include "filename.h"
 
 # ifndef DIRECTORY_SEPARATOR
 #  define DIRECTORY_SEPARATOR '/'

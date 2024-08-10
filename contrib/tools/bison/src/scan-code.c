@@ -2699,14 +2699,14 @@ static void
 show_sub_message (warnings warning,
                   const char* cp, bool explicit_bracketing,
                   int midrule_rhs_index, char dollar_or_at,
-                  int indent, const variant *var)
+                  const variant *var)
 {
   const char *at_spec = get_at_spec (var->symbol_index);
 
   if (var->err == 0)
-    complain_indent (&var->loc, warning, &indent,
-                     _("refers to: %c%s at %s"), dollar_or_at,
-                     var->id, at_spec);
+    subcomplain (&var->loc, warning,
+                 _("refers to: %c%s at %s"), dollar_or_at,
+                 var->id, at_spec);
   else
     {
       const char *id;
@@ -2753,8 +2753,8 @@ show_sub_message (warnings warning,
                         _(", cannot be accessed from midrule action at $%d"),
                         midrule_rhs_index);
 
-      complain_indent (&id_loc, warning, &indent, "%s",
-                        obstack_finish0 (&msg_buf));
+      subcomplain (&id_loc, warning, "%s",
+                   obstack_finish0 (&msg_buf));
       obstack_free (&msg_buf, 0);
     }
 }
@@ -2762,14 +2762,13 @@ show_sub_message (warnings warning,
 static void
 show_sub_messages (warnings warning,
                    const char* cp, bool explicit_bracketing,
-                   int midrule_rhs_index, char dollar_or_at,
-                   int indent)
+                   int midrule_rhs_index, char dollar_or_at)
 {
   for (int i = 0; i < variant_count; ++i)
     show_sub_message (warning | silent,
                       cp, explicit_bracketing,
                       midrule_rhs_index, dollar_or_at,
-                      indent, &variant_table[i]);
+                      &variant_table[i]);
 }
 
 /* Returned from "parse_ref" when the reference
@@ -2870,47 +2869,44 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
       {
         int len = (explicit_bracketing || !ref_tail_fields) ?
           cp_end - cp : ref_tail_fields - cp;
-        int indent = 0;
 
-        complain_indent (text_loc, complaint, &indent,
-                         _("invalid reference: %s"), quote (text));
-        indent += SUB_INDENT;
+        complain (text_loc, complaint,
+                     _("invalid reference: %s"), quote (text));
         if (len == 0)
           {
             location sym_loc = *text_loc;
             sym_loc.start.column += 1;
             sym_loc.end = sym_loc.start;
-            complain_indent (&sym_loc, complaint, &indent,
-                             _("syntax error after '%c', expecting integer, "
-                               "letter, '_', '[', or '$'"),
-                             dollar_or_at);
+            subcomplain (&sym_loc, complaint,
+                         _("syntax error after '%c', expecting integer, "
+                         "letter, '_', '[', or '$'"),
+                         dollar_or_at);
           }
         else if (midrule_rhs_index)
-          complain_indent (&rule->rhs_loc, complaint, &indent,
-                           _("symbol not found in production before $%d: "
-                             "%.*s"),
-                           midrule_rhs_index, len, cp);
+          subcomplain (&rule->rhs_loc, complaint,
+                       _("symbol not found in production before $%d: "
+                       "%.*s"),
+                       midrule_rhs_index, len, cp);
         else
-          complain_indent (&rule->rhs_loc, complaint, &indent,
-                           _("symbol not found in production: %.*s"),
-                           len, cp);
+          subcomplain (&rule->rhs_loc, complaint,
+                       _("symbol not found in production: %.*s"),
+                       len, cp);
 
         if (variant_count > 0)
           show_sub_messages (complaint,
                              cp, explicit_bracketing, midrule_rhs_index,
-                             dollar_or_at, indent);
+                             dollar_or_at);
         return INVALID_REF;
       }
     case 1:
       {
-        int indent = 0;
         if (variant_count > 1)
           {
-            complain_indent (text_loc, Wother, &indent,
-                             _("misleading reference: %s"), quote (text));
+            complain (text_loc, Wother,
+                         _("misleading reference: %s"), quote (text));
             show_sub_messages (Wother,
                                cp, explicit_bracketing, midrule_rhs_index,
-                               dollar_or_at, indent + SUB_INDENT);
+                               dollar_or_at);
           }
         {
           int symbol_index =
@@ -2921,12 +2917,11 @@ parse_ref (char *cp, symbol_list *rule, int rule_length,
     case 2:
     default:
       {
-        int indent = 0;
-        complain_indent (text_loc, complaint, &indent,
-                         _("ambiguous reference: %s"), quote (text));
+        complain (text_loc, complaint,
+                  _("ambiguous reference: %s"), quote (text));
         show_sub_messages (complaint,
                            cp, explicit_bracketing, midrule_rhs_index,
-                           dollar_or_at, indent + SUB_INDENT);
+                           dollar_or_at);
         return INVALID_REF;
       }
     }

@@ -1,5 +1,270 @@
 GNU Bison NEWS
 
+* Noteworthy changes in release 3.6.4 (2020-06-15) [stable]
+
+** Bug fixes
+
+  In glr.cc some internal macros leaked in the user's code, and could damage
+  access to the token kinds.
+
+* Noteworthy changes in release 3.6.3 (2020-06-03) [stable]
+
+** Bug fixes
+
+  Incorrect comments in the generated parsers.
+
+  Warnings in push parsers (yacc.c).
+
+  Incorrect display of gotos in LAC traces (lalr1.cc).
+
+* Noteworthy changes in release 3.6.2 (2020-05-17) [stable]
+
+** Bug fixes
+
+  Some tests were fixed.
+
+  When token aliases contain comment delimiters:
+
+    %token FOO "/* foo */"
+
+  bison used to emit "nested" comments, which is invalid C.
+
+* Noteworthy changes in release 3.6.1 (2020-05-10) [stable]
+
+** Bug fixes
+
+  Restored ANSI-C compliance in yacc.c.
+
+  GNU readline portability issues.
+
+  In C++, yy::parser::symbol_name is now a public member, as was intended.
+
+** New features
+
+  In C++, yy::parser::symbol_type now has a public name() member function.
+
+* Noteworthy changes in release 3.6 (2020-05-08) [stable]
+
+** Backward incompatible changes
+
+  TL;DR: replace "#define YYERROR_VERBOSE 1" by "%define parse.error verbose".
+
+  The YYERROR_VERBOSE macro is no longer supported; the parsers that still
+  depend on it will now produce Yacc-like error messages (just "syntax
+  error").  It was superseded by the "%error-verbose" directive in Bison
+  1.875 (2003-01-01).  Bison 2.6 (2012-07-19) clearly announced that support
+  for YYERROR_VERBOSE would be removed.  Note that since Bison 3.0
+  (2013-07-25), "%error-verbose" is deprecated in favor of "%define
+  parse.error verbose".
+
+** Deprecated features
+
+  The YYPRINT macro, which works only with yacc.c and only for tokens, was
+  obsoleted long ago by %printer, introduced in Bison 1.50 (November 2002).
+  It is deprecated and its support will be removed eventually.
+
+** New features
+
+*** Improved syntax error messages
+
+  Two new values for the %define parse.error variable offer more control to
+  the user.  Available in all the skeletons (C, C++, Java).
+
+**** %define parse.error detailed
+
+  The behavior of "%define parse.error detailed" is closely resembling that
+  of "%define parse.error verbose" with a few exceptions.  First, it is safe
+  to use non-ASCII characters in token aliases (with 'verbose', the result
+  depends on the locale with which bison was run).  Second, a yysymbol_name
+  function is exposed to the user, instead of the yytnamerr function and the
+  yytname table.  Third, token internationalization is supported (see
+  below).
+
+**** %define parse.error custom
+
+  With this directive, the user forges and emits the syntax error message
+  herself by defining the yyreport_syntax_error function.  A new type,
+  yypcontext_t, captures the circumstances of the error, and provides the
+  user with functions to get details, such as yypcontext_expected_tokens to
+  get the list of expected token kinds.
+
+  A possible implementation of yyreport_syntax_error is:
+
+    int
+    yyreport_syntax_error (const yypcontext_t *ctx)
+    {
+      int res = 0;
+      YY_LOCATION_PRINT (stderr, *yypcontext_location (ctx));
+      fprintf (stderr, ": syntax error");
+      // Report the tokens expected at this point.
+      {
+        enum { TOKENMAX = 10 };
+        yysymbol_kind_t expected[TOKENMAX];
+        int n = yypcontext_expected_tokens (ctx, expected, TOKENMAX);
+        if (n < 0)
+          // Forward errors to yyparse.
+          res = n;
+        else
+          for (int i = 0; i < n; ++i)
+            fprintf (stderr, "%s %s",
+                     i == 0 ? ": expected" : " or", yysymbol_name (expected[i]));
+      }
+      // Report the unexpected token.
+      {
+        yysymbol_kind_t lookahead = yypcontext_token (ctx);
+        if (lookahead != YYSYMBOL_YYEMPTY)
+          fprintf (stderr, " before %s", yysymbol_name (lookahead));
+      }
+      fprintf (stderr, "\n");
+      return res;
+    }
+
+**** Token aliases internationalization
+
+  When the %define variable parse.error is set to `custom` or `detailed`,
+  one may specify which token aliases are to be translated using _().  For
+  instance
+
+    %token
+        PLUS   "+"
+        MINUS  "-"
+      <double>
+        NUM _("number")
+      <symrec*>
+        FUN _("function")
+        VAR _("variable")
+
+  In that case the user must define _() and N_(), and yysymbol_name returns
+  the translated symbol (i.e., it returns '_("variable")' rather that
+  '"variable"').  In Java, the user must provide an i18n() function.
+
+*** List of expected tokens (yacc.c)
+
+  Push parsers may invoke yypstate_expected_tokens at any point during
+  parsing (including even before submitting the first token) to get the list
+  of possible tokens.  This feature can be used to propose autocompletion
+  (see below the "bistromathic" example).
+
+  It makes little sense to use this feature without enabling LAC (lookahead
+  correction).
+
+*** Returning the error token
+
+  When the scanner returns an invalid token or the undefined token
+  (YYUNDEF), the parser generates an error message and enters error
+  recovery.  Because of that error message, most scanners that find lexical
+  errors generate an error message, and then ignore the invalid input
+  without entering the error-recovery.
+
+  The scanners may now return YYerror, the error token, to enter the
+  error-recovery mode without triggering an additional error message.  See
+  the bistromathic for an example.
+
+*** Deep overhaul of the symbol and token kinds
+
+  To avoid the confusion with types in programming languages, we now refer
+  to token and symbol "kinds" instead of token and symbol "types".  The
+  documentation and error messages have been revised.
+
+  All the skeletons have been updated to use dedicated enum types rather
+  than integral types.  Special symbols are now regular citizens, instead of
+  being declared in ad hoc ways.
+
+**** Token kinds
+
+  The "token kind" is what is returned by the scanner, e.g., PLUS, NUMBER,
+  LPAREN, etc.  While backward compatibility is of course ensured, users are
+  nonetheless invited to replace their uses of "enum yytokentype" by
+  "yytoken_kind_t".
+
+  This type now also includes tokens that were previously hidden: YYEOF (end
+  of input), YYUNDEF (undefined token), and YYerror (error token).  They
+  now have string aliases, internationalized when internationalization is
+  enabled.  Therefore, by default, error messages now refer to "end of file"
+  (internationalized) rather than the cryptic "$end", or to "invalid token"
+  rather than "$undefined".
+
+  Therefore in most cases it is now useless to define the end-of-line token
+  as follows:
+
+    %token T_EOF 0 "end of file"
+
+  Rather simply use "YYEOF" in your scanner.
+
+**** Symbol kinds
+
+  The "symbol kinds" is what the parser actually uses.  (Unless the
+  api.token.raw %define variable is used, the symbol kind of a terminal
+  differs from the corresponding token kind.)
+
+  They are now exposed as a enum, "yysymbol_kind_t".
+
+  This allows users to tailor the error messages the way they want, or to
+  process some symbols in a specific way in autocompletion (see the
+  bistromathic example below).
+
+*** Modernize display of explanatory statements in diagnostics
+
+  Since Bison 2.7, output was indented four spaces for explanatory
+  statements.  For example:
+
+    input.y:2.7-13: error: %type redeclaration for exp
+    input.y:1.7-11:     previous declaration
+
+  Since the introduction of caret-diagnostics, it became less clear.  This
+  indentation has been removed and submessages are displayed similarly as in
+  GCC:
+
+    input.y:2.7-13: error: %type redeclaration for exp
+        2 | %type <float> exp
+          |       ^~~~~~~
+    input.y:1.7-11: note: previous declaration
+        1 | %type <int> exp
+          |       ^~~~~
+
+  Contributed by Victor Morales Cayuela.
+
+*** C++
+
+  The token and symbol kinds are yy::parser::token_kind_type and
+  yy::parser::symbol_kind_type.
+
+  The symbol_type::kind() member function allows to get the kind of a
+  symbol.  This can be used to write unit tests for scanners, e.g.,
+
+    yy::parser::symbol_type t = make_NUMBER ("123");
+    assert (t.kind () == yy::parser::symbol_kind::S_NUMBER);
+    assert (t.value.as<int> () == 123);
+
+** Documentation
+
+*** User Manual
+
+  In order to avoid ambiguities with "type" as in "typing", we now refer to
+  the "token kind" (e.g., `PLUS`, `NUMBER`, etc.) rather than the "token
+  type".  We now also refer to the "symbol type" (e.g., `PLUS`, `expr`,
+  etc.).
+
+*** Examples
+
+  There are now examples/java: a very simple calculator, and a more complete
+  one (push-parser, location tracking, and debug traces).
+
+  The lexcalc example (a simple example in C based on Flex and Bison) now
+  also demonstrates location tracking.
+
+
+  A new C example, bistromathic, is a fully featured interactive calculator
+  using many Bison features: pure interface, push parser, autocompletion
+  based on the current parser state (using yypstate_expected_tokens),
+  location tracking, internationalized custom error messages, lookahead
+  correction, rich debug traces, etc.
+
+  It shows how to depend on the symbol kinds to tailor autocompletion.  For
+  instance it recognizes the symbol kind "VARIABLE" to propose
+  autocompletion on the existing variables, rather than of the word
+  "variable".
+
 * Noteworthy changes in release 3.5.4 (2020-04-05) [stable]
 
 ** WARNING: Future backward-incompatibilities!
@@ -2314,7 +2579,7 @@ GNU Bison NEWS
   Running "make install-pdf" (or -dvi, -html, -info, and -ps) no longer
   halts in the middle of its course.
 
-* Changes in version 2.5 (2011-05-14):
+* Noteworthy changes in release 2.5 (2011-05-14)
 
 ** Grammar symbol names can now contain non-initial dashes:
 
@@ -2669,7 +2934,7 @@ GNU Bison NEWS
 
   This bug has been fixed.
 
-* Changes in version 2.4.3 (2010-08-05):
+* Noteworthy changes in release 2.4.3 (2010-08-05)
 
 ** Bison now obeys -Werror and --warnings=error for warnings about
    grammar rules that are useless in the parser due to conflicts.
@@ -2689,7 +2954,7 @@ GNU Bison NEWS
 
 ** Minor documentation fixes.
 
-* Changes in version 2.4.2 (2010-03-20):
+* Noteworthy changes in release 2.4.2 (2010-03-20)
 
 ** Some portability problems that resulted in failures and livelocks
    in the test suite on some versions of at least Solaris, AIX, HP-UX,
@@ -2783,7 +3048,7 @@ GNU Bison NEWS
   message translations were not installed although supported by the
   host system.
 
-* Changes in version 2.4.1 (2008-12-11):
+* Noteworthy changes in release 2.4.1 (2008-12-11)
 
 ** In the GLR defines file, unexpanded M4 macros in the yylval and yylloc
    declarations have been fixed.
@@ -2808,7 +3073,7 @@ GNU Bison NEWS
 
 ** A few minor improvements to the Bison manual.
 
-* Changes in version 2.4 (2008-11-02):
+* Noteworthy changes in release 2.4 (2008-11-02)
 
 ** %language is an experimental feature.
 
@@ -2823,7 +3088,7 @@ GNU Bison NEWS
 ** Several bugs in the C++ skeleton and the experimental Java skeleton have been
   fixed.
 
-* Changes in version 2.3b (2008-05-27):
+* Noteworthy changes in release 2.3b (2008-05-27)
 
 ** The quotes around NAME that used to be required in the following directive
   are now deprecated:
@@ -3009,7 +3274,7 @@ GNU Bison NEWS
 ** The nonfunctional --no-parser, -n, and %no-parser options have been
   completely removed from Bison.
 
-* Changes in version 2.3a, 2006-09-13:
+* Noteworthy changes in release 2.3a (2006-09-13)
 
 ** Instead of %union, you can define and use your own union type
   YYSTYPE if your grammar contains at least one <type> tag.
@@ -3123,7 +3388,7 @@ GNU Bison NEWS
   The old spelling still works, but is not documented and may be removed
   in a future release.
 
-* Changes in version 2.3, 2006-06-05:
+* Noteworthy changes in release 2.3 (2006-06-05)
 
 ** GLR grammars should now use "YYRECOVERING ()" instead of "YYRECOVERING",
   for compatibility with LALR(1) grammars.
@@ -3131,7 +3396,7 @@ GNU Bison NEWS
 ** It is now documented that any definition of YYSTYPE or YYLTYPE should
   be to a type name that does not contain parentheses or brackets.
 
-* Changes in version 2.2, 2006-05-19:
+* Noteworthy changes in release 2.2 (2006-05-19)
 
 ** The distribution terms for all Bison-generated parsers now permit
   using the parsers in nonfree programs.  Previously, this permission
@@ -3213,7 +3478,7 @@ GNU Bison NEWS
 
 ** DJGPP support added.
 
-* Changes in version 2.1, 2005-09-16:
+* Noteworthy changes in release 2.1 (2005-09-16)
 
 ** The C++ lalr1.cc skeleton supports %lex-param.
 
@@ -3239,7 +3504,7 @@ GNU Bison NEWS
   print 'syntax error, unexpected number' instead of 'syntax error,
   unexpected "number"'.
 
-* Changes in version 2.0, 2004-12-25:
+* Noteworthy changes in release 2.0 (2004-12-25)
 
 ** Possibly-incompatible changes
 
@@ -3302,7 +3567,7 @@ GNU Bison NEWS
 
   - Semicolons are now allowed before "|" in grammar rules, as POSIX requires.
 
-* Changes in version 1.875, 2003-01-01:
+* Noteworthy changes in release 1.875 (2003-01-01)
 
 ** The documentation license has been upgraded to version 1.2
   of the GNU Free Documentation License.
@@ -3422,7 +3687,7 @@ GNU Bison NEWS
   ago, but nobody noticed until we recently asked someone to try
   building Bison with a K&R C compiler.
 
-* Changes in version 1.75, 2002-10-14:
+* Noteworthy changes in release 1.75 (2002-10-14)
 
 ** Bison should now work on 64-bit hosts.
 
@@ -3453,7 +3718,7 @@ GNU Bison NEWS
   was incorrectly rejected: $1 is defined in the second midrule
   action, and is equal to the $$ of the first midrule action.
 
-* Changes in version 1.50, 2002-10-04:
+* Noteworthy changes in release 1.50 (2002-10-04)
 
 ** GLR parsing
   The declaration
@@ -3597,7 +3862,7 @@ GNU Bison NEWS
 
 ** GNU M4 is now required when using Bison.
 
-* Changes in version 1.35, 2002-03-25:
+* Noteworthy changes in release 1.35 (2002-03-25)
 
 ** C Skeleton
   Some projects use Bison's C parser with C++ compilers, and define
@@ -3612,7 +3877,7 @@ GNU Bison NEWS
   This kludge also addresses some C++ problems when the stack was
   extended.
 
-* Changes in version 1.34, 2002-03-12:
+* Noteworthy changes in release 1.34 (2002-03-12)
 
 ** File name clashes are detected
   $ bison foo.y -d -o foo.x
@@ -3632,7 +3897,7 @@ GNU Bison NEWS
 
 ** Fix test suite portability problems.
 
-* Changes in version 1.33, 2002-02-07:
+* Noteworthy changes in release 1.33 (2002-02-07)
 
 ** Fix C++ issues
   Groff could not be compiled for the definition of size_t was lacking
@@ -3641,7 +3906,7 @@ GNU Bison NEWS
 ** Catch invalid @n
   As is done with $n.
 
-* Changes in version 1.32, 2002-01-23:
+* Noteworthy changes in release 1.32 (2002-01-23)
 
 ** Fix Yacc output file names
 
@@ -3649,7 +3914,7 @@ GNU Bison NEWS
 
 ** Italian, Dutch translations
 
-* Changes in version 1.31, 2002-01-14:
+* Noteworthy changes in release 1.31 (2002-01-14)
 
 ** Many Bug Fixes
 
@@ -3736,7 +4001,7 @@ GNU Bison NEWS
 ** --output
   New, aliasing "--output-file".
 
-* Changes in version 1.30, 2001-10-26:
+* Noteworthy changes in release 1.30 (2001-10-26)
 
 ** "--defines" and "--graph" have now an optional argument which is the
   output file name. "-d" and "-g" do not change; they do not take any
@@ -3747,7 +4012,7 @@ GNU Bison NEWS
 
 ** Portability fixes.
 
-* Changes in version 1.29, 2001-09-07:
+* Noteworthy changes in release 1.29 (2001-09-07)
 
 ** The output file does not define const, as this caused problems when used
   with common autoconfiguration schemes.  If you still use ancient compilers
@@ -3782,7 +4047,7 @@ GNU Bison NEWS
 ** @$
   Automatic location tracking.
 
-* Changes in version 1.28, 1999-07-06:
+* Noteworthy changes in release 1.28 (1999-07-06)
 
 ** Should compile better now with K&R compilers.
 
@@ -3792,12 +4057,12 @@ GNU Bison NEWS
 
 ** There is now a FAQ.
 
-* Changes in version 1.27:
+* Noteworthy changes in release 1.27
 
 ** The make rule which prevented bison.simple from being created on
   some systems has been fixed.
 
-* Changes in version 1.26:
+* Noteworthy changes in release 1.26
 
 ** Bison now uses Automake.
 
@@ -3814,7 +4079,7 @@ GNU Bison NEWS
 ** Generated parsers should now work even on operating systems which do
   not provide alloca().
 
-* Changes in version 1.25, 1995-10-16:
+* Noteworthy changes in release 1.25 (1995-10-16)
 
 ** Errors in the input grammar are not fatal; Bison keeps reading
 the grammar file, and reports all the errors found in it.
@@ -3839,7 +4104,7 @@ the parser engine; a project can now use its own parser engine.
 The actions go into a separate file called NAME.act, in the form of
 a switch statement body.
 
-* Changes in version 1.23:
+* Noteworthy changes in release 1.23
 
 The user can define YYPARSE_PARAM as the name of an argument to be
 passed into yyparse.  The argument should have type void *.  It should
@@ -3848,11 +4113,11 @@ by casting it to the proper pointer type.
 
 Line numbers in output file corrected.
 
-* Changes in version 1.22:
+* Noteworthy changes in release 1.22
 
 --help option added.
 
-* Changes in version 1.20:
+* Noteworthy changes in release 1.20
 
 Output file does not redefine const for C++.
 
@@ -3906,7 +4171,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  LocalWords:  Wdeprecated yytext Variadic variadic yyrhs yyphrs RCS README
  LocalWords:  noexcept constexpr ispell american deprecations backend Teoh
  LocalWords:  YYPRINT Mangold Bonzini's Wdangling exVal baz checkable gcc
- LocalWords:  fsanitize Vogelsgesang lis redeclared stdint automata
+ LocalWords:  fsanitize Vogelsgesang lis redeclared stdint automata yytname
+ LocalWords:  yysymbol yytnamerr yyreport ctx ARGMAX yysyntax stderr LPAREN
+ LocalWords:  symrec yypcontext TOKENMAX yyexpected YYEMPTY yypstate YYEOF
+ LocalWords:  autocompletion bistromathic submessages Cayuela lexcalc hoc
+ LocalWords:  yytoken YYUNDEF YYerror
 
 Local Variables:
 ispell-dictionary: "american"

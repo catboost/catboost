@@ -27,7 +27,7 @@ public interface Lexer
    * to the next token and prepares to return the semantic value
    * and beginning/ending positions of the token.
    * @return the token identifier corresponding to the next token. */
-  YYTokenType yylex ();
+  TokenKind yylex ();
 
   /**
    * Entry point for error reporting.  Emits an error
@@ -39,7 +39,7 @@ public interface Lexer
    void yyerror (YYLocation loc, string s);
 }
 
-- semantic types are handled by D usions (same as for C/C++ parsers)
+- semantic types are handled by D unions (same as for C/C++ parsers)
 
 - the following (non-standard) %defines are supported:
 

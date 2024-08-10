@@ -1,5 +1,6 @@
+#line 1 "src/scan-skel.c"
 
-#line 2 "lex.skel_.c"
+#line 3 "src/scan-skel.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -836,7 +837,7 @@ char *yytext;
 #line 1 "src/scan-skel.l"
 /* Scan Bison Skeletons.                                       -*- C -*-
 
-   Copyright (C) 2001-2015, 2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2015, 2018-2020 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -854,23 +855,23 @@ char *yytext;
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define YY_NO_INPUT 1
 #line 24 "src/scan-skel.l"
-/* Work around a bug in flex 2.5.31.  See Debian bug 333231
-   <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=333231>.  */
-#undef skel_wrap
-#define skel_wrap() 1
-
-#define FLEX_PREFIX(Id) skel_ ## Id
-#include <src/flex-scanner.h>
-
-#include <error.h>
 #include <dirname.h>
+#include <error.h>
 #include <path-join.h>
 #include <quotearg.h>
 
 #include <src/complain.h>
-#include <src/getargs.h>
 #include <src/files.h>
+#include <src/getargs.h>
 #include <src/scan-skel.h>
+
+#define FLEX_PREFIX(Id) skel_ ## Id
+#include <src/flex-scanner.h>
+
+/* Work around a bug in flex 2.5.31.  See Debian bug 333231
+   <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=333231>.  */
+#undef skel_wrap
+#define skel_wrap() 1
 
 #define YY_DECL static int skel_lex (void)
 YY_DECL;
@@ -883,9 +884,9 @@ static void at_output (int argc, char *argv[], char **name, int *lineno);
 static void fail_for_at_directive_too_many_args (char const *at_directive_name);
 static void fail_for_at_directive_too_few_args (char const *at_directive_name);
 static void fail_for_invalid_at (char const *at);
-#line 886 "lex.skel_.c"
+#line 887 "src/scan-skel.c"
 
-#line 888 "lex.skel_.c"
+#line 889 "src/scan-skel.c"
 
 #define INITIAL 0
 #define SC_AT_DIRECTIVE_ARGS 1
@@ -1182,7 +1183,7 @@ YY_DECL
   at_directive at_ptr = NULL;
 
 
-#line 1185 "lex.skel_.c"
+#line 1186 "src/scan-skel.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1431,7 +1432,7 @@ YY_RULE_SETUP
 #line 145 "src/scan-skel.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1434 "lex.skel_.c"
+#line 1435 "src/scan-skel.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2586,7 +2587,7 @@ flag (const char *arg)
   else if (STREQ (arg, "fatal"))
     return fatal;
   else if (STREQ (arg, "note"))
-    return silent | complaint | no_caret;
+    return silent | complaint | no_caret | note;
   else if (STREQ (arg, "warn"))
     return Wother;
   else
@@ -2606,29 +2607,23 @@ at_basename (int argc, char *argv[], char **out_namep, int *out_linenop)
 static void
 at_complain (int argc, char *argv[], char **out_namep, int *out_linenop)
 {
-  static unsigned indent;
-  warnings w = flag (argv[1]);
-  location loc;
-  location *locp = NULL;
+  if (argc < 4)
+    fail_for_at_directive_too_few_args (argv[0]);
 
   (void) out_namep;
   (void) out_linenop;
 
-  if (argc < 4)
-    fail_for_at_directive_too_few_args (argv[0]);
+  warnings w = flag (argv[1]);
+
+  location loc;
+  location *locp = NULL;
   if (argv[2] && argv[2][0])
     {
       boundary_set_from_string (&loc.start, argv[2]);
       boundary_set_from_string (&loc.end, argv[3]);
       locp = &loc;
     }
-  if (w & silent)
-    indent += SUB_INDENT;
-  else
-    indent = 0;
-  complain_args (locp, w, &indent, argc - 4, argv + 4);
-  if (w & silent)
-    indent -= SUB_INDENT;
+  complain_args (locp, w, argc - 4, argv + 4);
 }
 
 static void

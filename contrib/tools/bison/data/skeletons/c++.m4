@@ -22,6 +22,8 @@ b4_percent_define_ifdef([[api.value.union.name]],
   [b4_complain_at(b4_percent_define_get_loc([[api.value.union.name]]),
                   [named %union is invalid in C++])])
 
+b4_percent_define_default([[api.symbol.prefix]], [[S_]])
+
 m4_include(b4_skeletonsdir/[c.m4])
 
 b4_percent_define_check_kind([api.namespace], [code], [deprecated])
@@ -160,18 +162,40 @@ m4_bpatsubst(m4_dquote(m4_bpatsubst(m4_dquote(b4_namespace_ref[ ]),
              [::\([^][:]\|:[^:]\)*], [} ])[} // ]b4_namespace_ref])])
 
 
+## ------------- ##
+## Token kinds.  ##
+## ------------- ##
+
+
 # b4_token_enums
 # --------------
-# Output the definition of the tokens as enums.
+# Output the definition of the token kinds.
 m4_define([b4_token_enums],
-[[enum yytokentype
+[[enum token_kind_type
       {
-        ]m4_join([,
-        ],
-                 b4_symbol_map([b4_token_enum]))[
-      };]dnl
+        ]b4_symbol([-2], [id])[ = -2,
+]b4_symbol_foreach([b4_token_enum])dnl
+[      };]dnl
 ])
 
+
+
+## -------------- ##
+## Symbol kinds.  ##
+## -------------- ##
+
+# b4_declare_symbol_enum
+# ----------------------
+# The definition of the symbol internal numbers as an enum.
+# Defining YYEMPTY here is important: it forces the compiler
+# to use a signed type, which matters for yytoken.
+m4_define([b4_declare_symbol_enum],
+[[enum symbol_kind_type
+      {
+        YYNTOKENS = ]b4_tokens_number[, ///< Number of tokens.
+        ]b4_symbol_kind([-2])[ = -2,
+]b4_symbol_foreach([      b4_symbol_enum])dnl
+[      };]])
 
 
 
@@ -231,23 +255,31 @@ m4_define([b4_public_types_declare],
       location_type location;])[
     };
 
-    /// Tokens.
+    /// Token kinds.
     struct token
     {
       ]b4_token_enums[
+      /// Backward compatibility alias (Bison 3.6).
+      typedef token_kind_type yytokentype;
     };
 
-    /// (External) token type, as returned by yylex.
-    typedef token::yytokentype token_type;
+    /// Token kind, as returned by yylex.
+    typedef token::yytokentype token_kind_type;
 
-    /// Symbol type: an internal symbol number.
-    typedef int symbol_number_type;
+    /// Backward compatibility alias (Bison 3.6).
+    typedef token_kind_type token_type;
 
-    /// The symbol type number to denote an empty symbol.
-    enum { empty_symbol = -2 };
+    /// Symbol kinds.
+    struct symbol_kind
+    {
+      ]b4_declare_symbol_enum[
+    };
 
-    /// Internal symbol number for tokens (subsumed by symbol_number_type).
-    typedef ]b4_int_type_for([b4_translate])[ token_number_type;
+    /// (Internal) symbol kind.
+    typedef symbol_kind::symbol_kind_type symbol_kind_type;
+
+    /// The number of tokens.
+    static const symbol_kind_type YYNTOKENS = symbol_kind::YYNTOKENS;
 ]])
 
 
@@ -258,8 +290,8 @@ m4_define([b4_public_types_declare],
 m4_define([b4_symbol_type_define],
 [[    /// A complete symbol.
     ///
-    /// Expects its Base type to provide access to the symbol type
-    /// via type_get ().
+    /// Expects its Base type to provide access to the symbol kind
+    /// via kind ().
     ///
     /// Provide access to semantic value]b4_locations_if([ and location])[.
     template <typename Base>
@@ -276,7 +308,14 @@ m4_define([b4_symbol_type_define],
 
 #if 201103L <= YY_CPLUSPLUS
       /// Move constructor.
-      basic_symbol (basic_symbol&& that);
+      basic_symbol (basic_symbol&& that)
+        : Base (std::move (that))
+        , value (]b4_variant_if([], [std::move (that.value)]))b4_locations_if([
+        , location (std::move (that.location))])[
+      {]b4_variant_if([
+        b4_symbol_variant([this->kind ()], [value], [move],
+                          [std::move (that.value)])
+      ])[}
 #endif
 
       /// Copy constructor.
@@ -303,20 +342,46 @@ m4_define([b4_symbol_type_define],
       void clear ()
       {]b4_variant_if([[
         // User destructor.
-        symbol_number_type yytype = this->type_get ();
+        symbol_kind_type yykind = this->kind ();
         basic_symbol<Base>& yysym = *this;
         (void) yysym;
-        switch (yytype)
+        switch (yykind)
         {
 ]b4_symbol_foreach([b4_symbol_destructor])dnl
 [       default:
           break;
         }
 
-        // Type destructor.
-]b4_symbol_variant([[yytype]], [[value]], [[template destroy]])])[
+        // Value type destructor.
+]b4_symbol_variant([[yykind]], [[value]], [[template destroy]])])[
         Base::clear ();
       }
+
+]b4_parse_error_bmatch(
+[custom\|detailed],
+[[      /// The user-facing name of this symbol.
+      const char *name () const YY_NOEXCEPT
+      {
+        return ]b4_parser_class[::symbol_name (this->kind ());
+      }]],
+[simple],
+[[#if ]b4_api_PREFIX[DEBUG || ]b4_token_table_flag[
+      /// The user-facing name of this symbol.
+      const char *name () const YY_NOEXCEPT
+      {
+        return ]b4_parser_class[::symbol_name (this->kind ());
+      }
+#endif // #if ]b4_api_PREFIX[DEBUG || ]b4_token_table_flag[
+]],
+[verbose],
+[[      /// The user-facing name of this symbol.
+      std::string name () const YY_NOEXCEPT
+      {
+        return ]b4_parser_class[::symbol_name (this->kind ());
+      }]])[
+
+      /// Backward compatibility (Bison 3.6).
+      symbol_kind_type type_get () const YY_NOEXCEPT;
 
       /// Whether empty.
       bool empty () const YY_NOEXCEPT;
@@ -338,46 +403,51 @@ m4_define([b4_symbol_type_define],
     };
 
     /// Type access provider for token (enum) based symbols.
-    struct by_type
+    struct by_kind
     {
       /// Default constructor.
-      by_type ();
+      by_kind ();
 
 #if 201103L <= YY_CPLUSPLUS
       /// Move constructor.
-      by_type (by_type&& that);
+      by_kind (by_kind&& that);
 #endif
 
       /// Copy constructor.
-      by_type (const by_type& that);
+      by_kind (const by_kind& that);
 
-      /// The symbol type as needed by the constructor.
-      typedef token_type kind_type;
+      /// The symbol kind as needed by the constructor.
+      typedef token_kind_type kind_type;
 
       /// Constructor from (external) token numbers.
-      by_type (kind_type t);
+      by_kind (kind_type t);
 
       /// Record that this symbol is empty.
       void clear ();
 
-      /// Steal the symbol type from \a that.
-      void move (by_type& that);
+      /// Steal the symbol kind from \a that.
+      void move (by_kind& that);
 
       /// The (internal) type number (corresponding to \a type).
       /// \a empty when empty.
-      symbol_number_type type_get () const YY_NOEXCEPT;
+      symbol_kind_type kind () const YY_NOEXCEPT;
 
-      /// The symbol type.
-      /// \a empty_symbol when empty.
-      /// An int, not token_number_type, to be able to store empty_symbol.
-      int type;
+      /// Backward compatibility (Bison 3.6).
+      symbol_kind_type type_get () const YY_NOEXCEPT;
+
+      /// The symbol kind.
+      /// \a ]b4_symbol_prefix[YYEMPTY when empty.
+      symbol_kind_type kind_;
     };
 
+    /// Backward compatibility for a private implementation detail (Bison 3.6).
+    typedef by_kind by_type;
+
     /// "External" symbols: returned by the scanner.
-    struct symbol_type : basic_symbol<by_type>
+    struct symbol_type : basic_symbol<by_kind>
     {]b4_variant_if([[
       /// Superclass.
-      typedef basic_symbol<by_type> super_type;
+      typedef basic_symbol<by_kind> super_type;
 
       /// Empty symbol.
       symbol_type () {}
@@ -393,25 +463,13 @@ m4_define([b4_symbol_type_define],
 # Provide the implementation needed by the public types.
 m4_define([b4_public_types_define],
 [[  // basic_symbol.
-#if 201103L <= YY_CPLUSPLUS
-  template <typename Base>
-  ]b4_parser_class[::basic_symbol<Base>::basic_symbol (basic_symbol&& that)
-    : Base (std::move (that))
-    , value (]b4_variant_if([], [std::move (that.value)]))b4_locations_if([
-    , location (std::move (that.location))])[
-  {]b4_variant_if([
-    b4_symbol_variant([this->type_get ()], [value], [move],
-                      [std::move (that.value)])
-  ])[}
-#endif
-
   template <typename Base>
   ]b4_parser_class[::basic_symbol<Base>::basic_symbol (const basic_symbol& that)
     : Base (that)
     , value (]b4_variant_if([], [that.value]))b4_locations_if([
     , location (that.location)])[
   {]b4_variant_if([
-    b4_symbol_variant([this->type_get ()], [value], [copy],
+    b4_symbol_variant([this->kind ()], [value], [copy],
                       [YY_MOVE (that.value)])
   ])[}
 
@@ -436,13 +494,20 @@ m4_define([b4_public_types_define],
     , location (YY_MOVE (l))])[
   {]b4_variant_if([[
     (void) v;
-    ]b4_symbol_variant([this->type_get ()], [value], [YY_MOVE_OR_COPY], [YY_MOVE (v)])])[}]])[
+    ]b4_symbol_variant([this->kind ()], [value], [YY_MOVE_OR_COPY], [YY_MOVE (v)])])[}]])[
+
+  template <typename Base>
+  ]b4_parser_class[::symbol_kind_type
+  ]b4_parser_class[::basic_symbol<Base>::type_get () const YY_NOEXCEPT
+  {
+    return this->kind ();
+  }
 
   template <typename Base>
   bool
   ]b4_parser_class[::basic_symbol<Base>::empty () const YY_NOEXCEPT
   {
-    return Base::type_get () == empty_symbol;
+    return this->kind () == symbol_kind::]b4_symbol_prefix[YYEMPTY;
   }
 
   template <typename Base>
@@ -450,50 +515,56 @@ m4_define([b4_public_types_define],
   ]b4_parser_class[::basic_symbol<Base>::move (basic_symbol& s)
   {
     super_type::move (s);
-    ]b4_variant_if([b4_symbol_variant([this->type_get ()], [value], [move],
+    ]b4_variant_if([b4_symbol_variant([this->kind ()], [value], [move],
                                       [YY_MOVE (s.value)])],
                    [value = YY_MOVE (s.value);])[]b4_locations_if([
     location = YY_MOVE (s.location);])[
   }
 
-  // by_type.
-  ]b4_inline([$1])b4_parser_class[::by_type::by_type ()
-    : type (empty_symbol)
+  // by_kind.
+  ]b4_inline([$1])b4_parser_class[::by_kind::by_kind ()
+    : kind_ (symbol_kind::]b4_symbol_prefix[YYEMPTY)
   {}
 
 #if 201103L <= YY_CPLUSPLUS
-  ]b4_inline([$1])b4_parser_class[::by_type::by_type (by_type&& that)
-    : type (that.type)
+  ]b4_inline([$1])b4_parser_class[::by_kind::by_kind (by_kind&& that)
+    : kind_ (that.kind_)
   {
     that.clear ();
   }
 #endif
 
-  ]b4_inline([$1])b4_parser_class[::by_type::by_type (const by_type& that)
-    : type (that.type)
+  ]b4_inline([$1])b4_parser_class[::by_kind::by_kind (const by_kind& that)
+    : kind_ (that.kind_)
   {}
 
-  ]b4_inline([$1])b4_parser_class[::by_type::by_type (token_type t)
-    : type (yytranslate_ (t))
+  ]b4_inline([$1])b4_parser_class[::by_kind::by_kind (token_kind_type t)
+    : kind_ (yytranslate_ (t))
   {}
 
   ]b4_inline([$1])[void
-  ]b4_parser_class[::by_type::clear ()
+  ]b4_parser_class[::by_kind::clear ()
   {
-    type = empty_symbol;
+    kind_ = symbol_kind::]b4_symbol_prefix[YYEMPTY;
   }
 
   ]b4_inline([$1])[void
-  ]b4_parser_class[::by_type::move (by_type& that)
+  ]b4_parser_class[::by_kind::move (by_kind& that)
   {
-    type = that.type;
+    kind_ = that.kind_;
     that.clear ();
   }
 
-  ]b4_inline([$1])[int
-  ]b4_parser_class[::by_type::type_get () const YY_NOEXCEPT
+  ]b4_inline([$1])[]b4_parser_class[::symbol_kind_type
+  ]b4_parser_class[::by_kind::kind () const YY_NOEXCEPT
   {
-    return type;
+    return kind_;
+  }
+
+  ]b4_inline([$1])[]b4_parser_class[::symbol_kind_type
+  ]b4_parser_class[::by_kind::type_get () const YY_NOEXCEPT
+  {
+    return this->kind ();
   }
 ]])
 
@@ -510,15 +581,15 @@ m4_define([b4_token_constructor_define], [])
 # Define yytranslate_.  Sometimes used in the header file ($1=hh),
 # sometimes in the cc file.
 m4_define([b4_yytranslate_define],
-[  b4_inline([$1])b4_parser_class[::token_number_type
+[  b4_inline([$1])b4_parser_class[::symbol_kind_type
   ]b4_parser_class[::yytranslate_ (int t)
   {
 ]b4_api_token_raw_if(
-[[    return static_cast<token_number_type> (t);]],
+[[    return static_cast<symbol_kind_type> (t);]],
 [[    // YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to
     // TOKEN-NUM as returned by yylex.
     static
-    const token_number_type
+    const ]b4_int_type_for([b4_translate])[
     translate_table[] =
     {
   ]b4_translate[
@@ -526,11 +597,11 @@ m4_define([b4_yytranslate_define],
     const int user_token_number_max_ = ]b4_user_token_number_max[;
 
     if (t <= 0)
-      return yyeof_;
+      return symbol_kind::]b4_symbol_prefix[YYEOF;
     else if (t <= user_token_number_max_)
-      return translate_table[t];
+      return YY_CAST (symbol_kind_type, translate_table[t]);
     else
-      return yy_undef_token_;]])[
+      return symbol_kind::]b4_symbol_prefix[YYUNDEF;]])[
   }
 ]])
 

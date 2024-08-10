@@ -187,8 +187,14 @@
 /* Define to 1 when the gnulib module fsync should be tested. */
 #define GNULIB_TEST_FSYNC 1
 
+/* Define to 1 when the gnulib module getdelim should be tested. */
+/* #undef GNULIB_TEST_GETDELIM */
+
 /* Define to 1 when the gnulib module getdtablesize should be tested. */
 #define GNULIB_TEST_GETDTABLESIZE 1
+
+/* Define to 1 when the gnulib module getline should be tested. */
+#define GNULIB_TEST_GETLINE 1
 
 /* Define to 1 when the gnulib module getopt-posix should be tested. */
 #define GNULIB_TEST_GETOPT_POSIX 1
@@ -507,6 +513,10 @@
    don't. */
 #define HAVE_DECL_GETC_UNLOCKED 1
 
+/* Define to 1 if you have the declaration of `getdelim', and to 0 if you
+   don't. */
+#define HAVE_DECL_GETDELIM 1
+
 /* Define to 1 if you have the declaration of `getdtablesize', and to 0 if you
    don't. */
 #define HAVE_DECL_GETDTABLESIZE 1
@@ -514,6 +524,10 @@
 /* Define to 1 if you have the declaration of `gethrtime', and to 0 if you
    don't. */
 #define HAVE_DECL_GETHRTIME 0
+
+/* Define to 1 if you have the declaration of `getline', and to 0 if you
+   don't. */
+#define HAVE_DECL_GETLINE 1
 
 /* Define to 1 if you have the declaration of `iswblank', and to 0 if you
    don't. */
@@ -615,6 +629,9 @@
 /* Define to 1 if you have the <features.h> header file. */
 #define HAVE_FEATURES_H 1
 
+/* Define to 1 if you have the `flockfile' function. */
+/* #undef HAVE_FLOCKFILE */
+
 /* Define if the frexpl function is available in libc. */
 #define HAVE_FREXPL_IN_LIBC 1
 
@@ -624,8 +641,14 @@
 /* Define to 1 if you have the `fsync' function. */
 #define HAVE_FSYNC 1
 
+/* Define to 1 if you have the `funlockfile' function. */
+/* #undef HAVE_FUNLOCKFILE */
+
 /* Define to 1 if you have the `getcwd' function. */
 #define HAVE_GETCWD 1
+
+/* Define to 1 if you have the `getdelim' function. */
+#define HAVE_GETDELIM 1
 
 /* Define to 1 if you have the `getdtablesize' function. */
 #define HAVE_GETDTABLESIZE 1
@@ -805,6 +828,15 @@
 
 /* Define to 1 if you have the `rawmemchr' function. */
 /* #undef HAVE_RAWMEMCHR */
+
+/* Define if you have the readline library. */
+/* #undef HAVE_READLINE */
+
+/* Define to 1 if you have the <readline/history.h> header file. */
+/* #undef HAVE_READLINE_HISTORY_H */
+
+/* Define to 1 if you have the <readline/readline.h> header file. */
+/* #undef HAVE_READLINE_READLINE_H */
 
 /* Define to 1 if you have the `readlink' function. */
 #define HAVE_READLINK 1
@@ -1097,7 +1129,7 @@
 #define HAVE___XPG_STRERROR_R 1
 
 /* Define to the value of ${prefix}, as a string. */
-#define INSTALLPREFIX "/var/empty/bison-3.5.4"
+#define INSTALLPREFIX "/var/empty/bison-3.6.4"
 
 /* Define as the bit index in the word where to find bit 0 of the exponent of
    'long double'. */
@@ -1226,7 +1258,7 @@
 #define PACKAGE_NAME "GNU Bison"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU Bison 3.5.4"
+#define PACKAGE_STRING "GNU Bison 3.6.4"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "bison"
@@ -1235,7 +1267,7 @@
 #define PACKAGE_URL "https://www.gnu.org/software/bison/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.5.4"
+#define PACKAGE_VERSION "3.6.4"
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 /* #undef PRI_MACROS_BROKEN */
@@ -1450,7 +1482,7 @@
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "3.5.4"
+#define VERSION "3.6.4"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 /* #undef VOID_UNSETENV */
@@ -1488,6 +1520,15 @@
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */
 
+/* True if the compiler says it groks GNU C version MAJOR.MINOR.  */
+#if defined __GNUC__ && defined __GNUC_MINOR__
+# define _GL_GNUC_PREREQ(major, minor) \
+    ((major) < __GNUC__ + ((minor) <= __GNUC_MINOR__))
+#else
+# define _GL_GNUC_PREREQ(major, minor) 0
+#endif
+
+
 /* Define for large files, on AIX-style hosts. */
 /* #undef _LARGE_FILES */
 
@@ -1515,12 +1556,12 @@
 #  define _Noreturn [[noreturn]]
 # elif ((!defined __cplusplus || defined __clang__) \
         && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)  \
-            || 4 < __GNUC__ + (7 <= __GNUC_MINOR__) \
+            || _GL_GNUC_PREREQ (4, 7) \
             || (defined __apple_build_version__ \
                 ? 6000000 <= __apple_build_version__ \
                 : 3 < __clang_major__ + (5 <= __clang_minor__))))
    /* _Noreturn works as-is.  */
-# elif 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || 0x5110 <= __SUNPRO_C
+# elif _GL_GNUC_PREREQ (2, 8) || 0x5110 <= __SUNPRO_C
 #  define _Noreturn __attribute__ ((__noreturn__))
 # elif 1200 <= (defined _MSC_VER ? _MSC_VER : 0)
 #  define _Noreturn __declspec (noreturn)
@@ -1575,6 +1616,206 @@
        that may clobber errno, it needs to save and restore the value of
        errno.  */
 #define _GL_ASYNC_SAFE
+
+
+/* Attributes.  */
+#ifdef __has_attribute
+# define _GL_HAS_ATTRIBUTE(attr) __has_attribute (__##attr##__)
+#else
+# define _GL_HAS_ATTRIBUTE(attr) _GL_ATTR_##attr
+# define _GL_ATTR_alloc_size _GL_GNUC_PREREQ (4, 3)
+# define _GL_ATTR_always_inline _GL_GNUC_PREREQ (3, 2)
+# define _GL_ATTR_artificial _GL_GNUC_PREREQ (4, 3)
+# define _GL_ATTR_cold _GL_GNUC_PREREQ (4, 3)
+# define _GL_ATTR_const _GL_GNUC_PREREQ (2, 95)
+# define _GL_ATTR_deprecated _GL_GNUC_PREREQ (3, 1)
+# define _GL_ATTR_error _GL_GNUC_PREREQ (4, 3)
+# define _GL_ATTR_externally_visible _GL_GNUC_PREREQ (4, 1)
+# define _GL_ATTR_fallthrough _GL_GNUC_PREREQ (7, 0)
+# define _GL_ATTR_format _GL_GNUC_PREREQ (2, 7)
+# define _GL_ATTR_leaf _GL_GNUC_PREREQ (4, 6)
+# ifdef _ICC
+#  define _GL_ATTR_may_alias 0
+# else
+#  define _GL_ATTR_may_alias _GL_GNUC_PREREQ (3, 3)
+# endif
+# define _GL_ATTR_malloc _GL_GNUC_PREREQ (3, 0)
+# define _GL_ATTR_noinline _GL_GNUC_PREREQ (3, 1)
+# define _GL_ATTR_nonnull _GL_GNUC_PREREQ (3, 3)
+# define _GL_ATTR_nonstring _GL_GNUC_PREREQ (8, 0)
+# define _GL_ATTR_nothrow _GL_GNUC_PREREQ (3, 3)
+# define _GL_ATTR_packed _GL_GNUC_PREREQ (2, 7)
+# define _GL_ATTR_pure _GL_GNUC_PREREQ (2, 96)
+# define _GL_ATTR_returns_nonnull _GL_GNUC_PREREQ (4, 9)
+# define _GL_ATTR_sentinel _GL_GNUC_PREREQ (4, 0)
+# define _GL_ATTR_unused _GL_GNUC_PREREQ (2, 7)
+# define _GL_ATTR_warn_unused_result _GL_GNUC_PREREQ (3, 4)
+#endif
+
+
+#if _GL_HAS_ATTRIBUTE (alloc_size)
+# define _GL_ATTRIBUTE_ALLOC_SIZE(args) __attribute__ ((__alloc_size__ args))
+#else
+# define _GL_ATTRIBUTE_ALLOC_SIZE(args)
+#endif
+
+#if _GL_HAS_ATTRIBUTE (always_inline)
+# define _GL_ATTRIBUTE_ALWAYS_INLINE __attribute__ ((__always_inline__))
+#else
+# define _GL_ATTRIBUTE_ALWAYS_INLINE
+#endif
+
+#if _GL_HAS_ATTRIBUTE (artificial)
+# define _GL_ATTRIBUTE_ARTIFICIAL __attribute__ ((__artificial__))
+#else
+# define _GL_ATTRIBUTE_ARTIFICIAL
+#endif
+
+/* Avoid __attribute__ ((cold)) on MinGW; see thread starting at
+   <https://lists.gnu.org/r/emacs-devel/2019-04/msg01152.html>. */
+#if _GL_HAS_ATTRIBUTE (cold) && !defined __MINGW32__
+# define _GL_ATTRIBUTE_COLD __attribute__ ((__cold__))
+#else
+# define _GL_ATTRIBUTE_COLD
+#endif
+
+#if _GL_HAS_ATTRIBUTE (const)
+# define _GL_ATTRIBUTE_CONST __attribute__ ((__const__))
+#else
+# define _GL_ATTRIBUTE_CONST
+#endif
+
+#if 201710L < __STDC_VERSION__
+# define _GL_ATTRIBUTE_DEPRECATED [[__deprecated__]]
+#elif _GL_HAS_ATTRIBUTE (deprecated)
+# define _GL_ATTRIBUTE_DEPRECATED __attribute__ ((__deprecated__))
+#else
+# define _GL_ATTRIBUTE_DEPRECATED
+#endif
+
+#if _GL_HAS_ATTRIBUTE (error)
+# define _GL_ATTRIBUTE_ERROR(msg) __attribute__ ((__error__ (msg)))
+# define _GL_ATTRIBUTE_WARNING(msg) __attribute__ ((__warning__ (msg)))
+#else
+# define _GL_ATTRIBUTE_ERROR(msg)
+# define _GL_ATTRIBUTE_WARNING(msg)
+#endif
+
+#if _GL_HAS_ATTRIBUTE (externally_visible)
+# define _GL_ATTRIBUTE_EXTERNALLY_VISIBLE __attribute__ ((externally_visible))
+#else
+# define _GL_ATTRIBUTE_EXTERNALLY_VISIBLE
+#endif
+
+/* FALLTHROUGH is special, because it always expands to something.  */
+#if 201710L < __STDC_VERSION__
+# define _GL_ATTRIBUTE_FALLTHROUGH [[__fallthrough__]]
+#elif _GL_HAS_ATTRIBUTE (fallthrough)
+# define _GL_ATTRIBUTE_FALLTHROUGH __attribute__ ((__fallthrough__))
+#else
+# define _GL_ATTRIBUTE_FALLTHROUGH ((void) 0)
+#endif
+
+#if _GL_HAS_ATTRIBUTE (format)
+# define _GL_ATTRIBUTE_FORMAT(spec) __attribute__ ((__format__ spec))
+#else
+# define _GL_ATTRIBUTE_FORMAT(spec)
+#endif
+
+#if _GL_HAS_ATTRIBUTE (leaf)
+# define _GL_ATTRIBUTE_LEAF __attribute__ ((__leaf__))
+#else
+# define _GL_ATTRIBUTE_LEAF
+#endif
+
+#if _GL_HAS_ATTRIBUTE (may_alias)
+# define _GL_ATTRIBUTE_MAY_ALIAS __attribute__ ((__may_alias__))
+#else
+# define _GL_ATTRIBUTE_MAY_ALIAS
+#endif
+
+#if 201710L < __STDC_VERSION__
+# define _GL_ATTRIBUTE_MAYBE_UNUSED [[__maybe_unused__]]
+#elif _GL_HAS_ATTRIBUTE (unused)
+# define _GL_ATTRIBUTE_MAYBE_UNUSED __attribute__ ((__unused__))
+#else
+# define _GL_ATTRIBUTE_MAYBE_UNUSED
+#endif
+/* Earlier spellings of this macro.  */
+#define _GL_UNUSED _GL_ATTRIBUTE_MAYBE_UNUSED
+#define _UNUSED_PARAMETER_ _GL_ATTRIBUTE_MAYBE_UNUSED
+
+#if _GL_HAS_ATTRIBUTE (malloc)
+# define _GL_ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
+#else
+# define _GL_ATTRIBUTE_MALLOC
+#endif
+
+#if 201710L < __STDC_VERSION__
+# define _GL_ATTRIBUTE_NODISCARD [[__nodiscard__]]
+#elif _GL_HAS_ATTRIBUTE (warn_unused_result)
+# define _GL_ATTRIBUTE_NODISCARD __attribute__ ((__warn_unused_result__))
+#else
+# define _GL_ATTRIBUTE_NODISCARD
+#endif
+
+#if _GL_HAS_ATTRIBUTE (noinline)
+# define _GL_ATTRIBUTE_NOINLINE __attribute__ ((__noinline__))
+#else
+# define _GL_ATTRIBUTE_NOINLINE
+#endif
+
+#if _GL_HAS_ATTRIBUTE (nonnull)
+# define _GL_ATTRIBUTE_NONNULL(args) __attribute__ ((__nonnull__ args))
+#else
+# define _GL_ATTRIBUTE_NONNULL(args)
+#endif
+
+#if _GL_HAS_ATTRIBUTE (nonstring)
+# define _GL_ATTRIBUTE_NONSTRING __attribute__ ((__nonstring__))
+#else
+# define _GL_ATTRIBUTE_NONSTRING
+#endif
+
+/* There is no _GL_ATTRIBUTE_NORETURN; use _Noreturn instead.  */
+
+#if _GL_HAS_ATTRIBUTE (nothrow) && !defined __cplusplus
+# define _GL_ATTRIBUTE_NOTHROW __attribute__ ((__nothrow__))
+#else
+# define _GL_ATTRIBUTE_NOTHROW
+#endif
+
+#if _GL_HAS_ATTRIBUTE (packed)
+# define _GL_ATTRIBUTE_PACKED __attribute__ ((__packed__))
+#else
+# define _GL_ATTRIBUTE_PACKED
+#endif
+
+#if _GL_HAS_ATTRIBUTE (pure)
+# define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
+#else
+# define _GL_ATTRIBUTE_PURE
+#endif
+
+#if _GL_HAS_ATTRIBUTE (returns_nonnull)
+# define _GL_ATTRIBUTE_RETURNS_NONNULL __attribute__ ((__returns_nonnull__))
+#else
+# define _GL_ATTRIBUTE_RETURNS_NONNULL
+#endif
+
+#if _GL_HAS_ATTRIBUTE (sentinel)
+# define _GL_ATTRIBUTE_SENTINEL(pos) __attribute__ ((__sentinel__ pos))
+#else
+# define _GL_ATTRIBUTE_SENTINEL(pos)
+#endif
+
+
+/* To support C++ as well as C, use _GL_UNUSED_LABEL with trailing ';'.  */
+#if !defined __cplusplus || _GL_GNUC_PREREQ (4, 5)
+# define _GL_UNUSED_LABEL _GL_ATTRIBUTE_MAYBE_UNUSED
+#else
+# define _GL_UNUSED_LABEL
+#endif
 
 
 /* Please see the Gnulib manual for how to use these macros.
@@ -1746,49 +1987,5 @@
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 /* #undef uid_t */
-
-/* Define as a marker that can be attached to declarations that might not
-    be used.  This helps to reduce warnings, such as from
-    GCC -Wunused-parameter.  */
-#if __GNUC__ >= 3 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
-# define _GL_UNUSED __attribute__ ((__unused__))
-#else
-# define _GL_UNUSED
-#endif
-/* The name _UNUSED_PARAMETER_ is an earlier spelling, although the name
-   is a misnomer outside of parameter lists.  */
-#define _UNUSED_PARAMETER_ _GL_UNUSED
-
-/* gcc supports the "unused" attribute on possibly unused labels, and
-   g++ has since version 4.5.  Note to support C++ as well as C,
-   _GL_UNUSED_LABEL should be used with a trailing ;  */
-#if !defined __cplusplus || __GNUC__ > 4 \
-    || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-# define _GL_UNUSED_LABEL _GL_UNUSED
-#else
-# define _GL_UNUSED_LABEL
-#endif
-
-/* The __pure__ attribute was added in gcc 2.96.  */
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96)
-# define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
-#else
-# define _GL_ATTRIBUTE_PURE /* empty */
-#endif
-
-/* The __const__ attribute was added in gcc 2.95.  */
-#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
-# define _GL_ATTRIBUTE_CONST __attribute__ ((__const__))
-#else
-# define _GL_ATTRIBUTE_CONST /* empty */
-#endif
-
-/* The __malloc__ attribute was added in gcc 3.  */
-#if 3 <= __GNUC__
-# define _GL_ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
-#else
-# define _GL_ATTRIBUTE_MALLOC /* empty */
-#endif
-
 #undef HAVE_THREADS_H
 #define _GL_ATTRIBUTE_FORMAT_PRINTF(...)

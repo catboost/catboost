@@ -100,11 +100,12 @@ enum trace
     trace_grammar   = 1 << 7,  /**< Reading, reducing the grammar. */
     trace_time      = 1 << 8,  /**< Time consumption. */
     trace_skeleton  = 1 << 9,  /**< Skeleton postprocessing. */
-    trace_m4        = 1 << 10, /**< M4 traces. */
-    trace_muscles   = 1 << 11, /**< M4 definitions of the muscles. */
-    trace_ielr      = 1 << 12, /**< IELR conversion. */
-    trace_closure   = 1 << 13, /**< Input/output of closure(). */
-    trace_locations = 1 << 14, /**< Full display of locations. */
+    trace_m4_early  = 1 << 10, /**< M4 early traces. */
+    trace_m4        = 1 << 11, /**< M4 traces. */
+    trace_muscles   = 1 << 12, /**< M4 definitions of the muscles. */
+    trace_ielr      = 1 << 13, /**< IELR conversion. */
+    trace_closure   = 1 << 14, /**< Input/output of closure(). */
+    trace_locations = 1 << 15, /**< Full display of locations. */
     trace_all       = ~0       /**< All of the above.  */
   };
 /** What debug items bison displays during its run.  */

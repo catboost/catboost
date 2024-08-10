@@ -50,17 +50,10 @@
 
 # endif
 
+# include "attribute.h"
 # include "verify.h"
 # error #include "lc-charset-dispatch.h"
 # error #include "mbtowc-lock.h"
-
-# ifndef FALLTHROUGH
-#  if __GNUC__ < 7
-#   define FALLTHROUGH ((void) 0)
-#  else
-#   define FALLTHROUGH __attribute__ ((__fallthrough__))
-#  endif
-# endif
 
 verify (sizeof (mbstate_t) >= 4);
 static char internal_state[4];

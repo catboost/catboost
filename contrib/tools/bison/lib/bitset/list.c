@@ -1276,7 +1276,7 @@ struct bitset_vtable lbitset_vtable = {
 
 /* Return size of initial structure.  */
 size_t
-lbitset_bytes (bitset_bindex n_bits ATTRIBUTE_UNUSED)
+lbitset_bytes (bitset_bindex n_bits MAYBE_UNUSED)
 {
   return sizeof (struct lbitset_struct);
 }
@@ -1284,7 +1284,7 @@ lbitset_bytes (bitset_bindex n_bits ATTRIBUTE_UNUSED)
 
 /* Initialize a bitset.  */
 bitset
-lbitset_init (bitset bset, bitset_bindex n_bits ATTRIBUTE_UNUSED)
+lbitset_init (bitset bset, bitset_bindex n_bits MAYBE_UNUSED)
 {
   BITSET_NBITS_ (bset) = n_bits;
   bset->b.vtable = &lbitset_vtable;

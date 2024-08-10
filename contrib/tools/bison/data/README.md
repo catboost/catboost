@@ -83,18 +83,20 @@ field), where field can `has_id`, `id`, etc.: see
 
 The macro `b4_symbol(NUM, FIELD)` gives access to the following FIELDS:
 
-- `has_id`: 0 or 1.
-
+- `has_id`: 0 or 1
   Whether the symbol has an id.
 
 - `id`: string
   If has_id, the id (prefixed by api.token.prefix if defined), otherwise
-  defined as empty.  Guaranteed to be usable as a C identifier.
+  defined as empty.  Guaranteed to be usable as a C identifier.  This is
+  used to define the token kind (i.e., the enum used by the return value of
+  yylex).
 
-- `tag`: string.
-  A representation of the symbol.  Can be 'foo', 'foo.id', '"foo"' etc.
+- `tag`: string
+  A human representation of the symbol.  Can be 'foo', 'foo.id', '"foo"' etc.
 
 - `user_number`: integer
+  The code associated to the `id`.
   The external number as used by yylex.  Can be ASCII code when a character,
   some number chosen by bison, or some user number in the case of
   %token FOO <NUM>.  Corresponds to yychar in yacc.c.
@@ -102,7 +104,12 @@ The macro `b4_symbol(NUM, FIELD)` gives access to the following FIELDS:
 - `is_token`: 0 or 1
   Whether this is a terminal symbol.
 
+- `kind`: string
+  The symbol kind, i.e., the enumerator of this symbol (token or nonterminal)
+  which is mapping to its `number`.
+
 - `number`: integer
+  The code associated to the `kind`.
   The internal number (computed from the external number by yytranslate).
   Corresponds to yytoken in yacc.c.  This is the same number that serves as
   key in b4_symbol(NUM, FIELD).
