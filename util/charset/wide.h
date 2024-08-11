@@ -465,6 +465,16 @@ inline TString WideToUTF8(const wchar16* text, size_t len) {
     return s;
 }
 
+#if defined(_win_)
+inline TString WideToUTF8(const wchar_t* text, size_t len) {
+    return WideToUTF8(reinterpret_cast<const wchar16*>(text), len);
+}
+
+inline std::string WideToUTF8(std::wstring_view text) {
+    return WideToUTF8(text.data(), text.size()).ConstRef();
+}
+#endif
+
 inline TString WideToUTF8(const wchar32* text, size_t len) {
     TString s = TString::Uninitialized(WideToUTF8BufferSize(len));
     size_t written = 0;
