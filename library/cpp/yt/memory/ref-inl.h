@@ -96,6 +96,11 @@ Y_FORCE_INLINE TMutableRef TMutableRef::FromString(TString& str)
     return TMutableRef(str.begin(), str.length());
 }
 
+Y_FORCE_INLINE TMutableRef TMutableRef::FromString(std::string& str)
+{
+    return TMutableRef(str.data(), str.length());
+}
+
 Y_FORCE_INLINE TMutableRef TMutableRef::Slice(size_t startOffset, size_t endOffset) const
 {
     YT_ASSERT(endOffset >= startOffset && endOffset <= Size());

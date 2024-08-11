@@ -90,9 +90,12 @@ public:
     template <class T>
     static TMutableRef FromPod(T& data);
 
-    //! Creates a non-owning TMutableRef for a given string.
+    //! Creates a non-owning TMutableRef for a given TString.
     //! Ensures that the string is not shared.
     static TMutableRef FromString(TString& str);
+
+    //! Creates a non-owning TMutableRef for a given std::string.
+    static TMutableRef FromString(std::string& str);
 
     //! Creates a TMutableRef for a part of existing range.
     TMutableRef Slice(size_t startOffset, size_t endOffset) const;
