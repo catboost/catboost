@@ -17,17 +17,18 @@ GNU Bison's home page is https://gnu.org/software/bison/.
 
 # Installation
 ## Build from git
-Here are basic installation instructions for a repository checkout:
+The [README-hacking.md file](README-hacking.md) is about building, modifying
+and checking Bison.  See its "Working from the Repository" section to build
+Bison from the git repo.  Roughly, run:
 
     $ git submodule update --init
     $ ./bootstrap
 
 then proceed with the usual `configure && make` steps.
 
-The file README-hacking.md is about building, modifying and checking Bison.
-
 ## Build from tarball
-See the file INSTALL for generic compilation and installation instructions.
+See the [INSTALL file](INSTALL) for generic compilation and installation
+instructions.
 
 Bison requires GNU m4 1.4.6 or later.  See
 https://ftp.gnu.org/gnu/m4/m4-1.4.6.tar.gz.
@@ -41,9 +42,11 @@ installing it.  In that case, do not use `src/bison`: it would use the
 As an experimental feature, diagnostics are now colored, controlled by the
 `--color` and `--style` options.
 
-To use them, install the libtextstyle library before configuring Bison.  It
-is available from https://alpha.gnu.org/gnu/gettext/, for instance
-https://alpha.gnu.org/pub/gnu/gettext/libtextstyle-0.20.5.tar.gz.
+To use them, install the libtextstyle library, 0.20.5 or newer, before
+configuring Bison.  It is available from https://alpha.gnu.org/gnu/gettext/,
+for instance https://alpha.gnu.org/gnu/gettext/libtextstyle-0.20.5.tar.gz,
+or as part of Gettext 0.21 or newer, for instance
+https://ftp.gnu.org/gnu/gettext/gettext-0.21.tar.gz.
 
 The option --color supports the following arguments:
 - always, yes: Enable colors.
@@ -59,6 +62,13 @@ To customize the styles, create a CSS file, say `bison-bw.css`, similar to
 
 then invoke bison with `--style=bison-bw.css`, or set the `BISON_STYLE`
 environment variable to `bison-bw.css`.
+
+In some diagnostics, bison uses libtextstyle to emit special escapes to
+generate clickable hyperlinks.  The environment variable
+`NO_TERM_HYPERLINKS` can be used to suppress them.  This may be useful for
+terminal emulators which produce garbage output when they receive the escape
+sequence for a hyperlink. Currently (as of 2020), this affects some versions
+of emacs, guake, konsole, lxterminal, rxvt, yakuake.
 
 ## Relocatability
 If you pass `--enable-relocatable` to `configure`, Bison is relocatable.
@@ -77,7 +87,7 @@ for the user-side parser execution).  The requirements between both differ:
 bison needs ngettext, the generated parsers do not.  To simplify the build
 system, neither are installed if ngettext is not supported, even if
 generated parsers could have been localized.  See
-http://lists.gnu.org/archive/html/bug-bison/2009-08/msg00006.html for more
+https://lists.gnu.org/r/bug-bison/2009-08/msg00006.html for more
 details.
 
 # Questions
@@ -100,7 +110,17 @@ that the range specifies every single year in that closed interval.
 
 <!--
 
-Copyright (C) 1992, 1998-1999, 2003-2005, 2008-2015, 2018-2020 Free
+LocalWords:  parsers ngettext Texinfo pdf html YYYY ZZZZ ispell american md
+LocalWords:  MERCHANTABILITY GLR LALR IELR submodule init README src bw
+LocalWords:  Relocatability symlinks symlink
+
+Local Variables:
+mode: markdown
+fill-column: 76
+ispell-dictionary: "american"
+End:
+
+Copyright (C) 1992, 1998-1999, 2003-2005, 2008-2015, 2018-2021 Free
 Software Foundation, Inc.
 
 This file is part of GNU bison, the GNU Compiler Compiler.
@@ -111,15 +131,5 @@ any later version published by the Free Software Foundation; with no
 Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
 Texts.  A copy of the license is included in the "GNU Free
 Documentation License" file as part of this distribution.
-
-Local Variables:
-mode: markdown
-fill-column: 76
-ispell-dictionary: "american"
-End:
-
-LocalWords:  parsers ngettext Texinfo pdf html YYYY ZZZZ ispell american md
-LocalWords:  MERCHANTABILITY GLR LALR IELR submodule init README src bw
-LocalWords:  Relocatability symlinks symlink
 
 -->

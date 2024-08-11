@@ -1,6 +1,6 @@
 /* Keep a unique copy of strings.
 
-   Copyright (C) 2002-2005, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2002-2005, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,11 +16,12 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
 
+#include <attribute.h>
 #include <error.h>
 #include <hash.h>
 #include <quotearg.h>
@@ -49,8 +50,7 @@ uniqstr_new (char const *str)
     {
       /* First insertion in the hash. */
       res = xstrdup (str);
-      if (!hash_insert (uniqstrs_table, res))
-        xalloc_die ();
+      hash_xinsert (uniqstrs_table, res);
     }
   return res;
 }
@@ -80,9 +80,7 @@ uniqstr_concat (int nargs, ...)
   va_end (args);
 
   *p = '\0';
-  uniqstr res = hash_insert (uniqstrs_table, str);
-  if (!res)
-    xalloc_die ();
+  uniqstr res = hash_xinsert (uniqstrs_table, str);
   if (res != str)
     free (str);
   return res;
@@ -117,11 +115,10 @@ uniqstr_print (uniqstr ustr)
 }
 
 static bool
-uniqstr_print_processor (void *ustr, void *null ATTRIBUTE_UNUSED)
+uniqstr_print_processor (void *ustr, void *null MAYBE_UNUSED)
 {
   return uniqstr_print (ustr);
 }
-
 
 int
 uniqstr_cmp (uniqstr l, uniqstr r)

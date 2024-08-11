@@ -52,5 +52,5 @@ c_strcasecmp (const char *s1, const char *s2)
     /* On machines where 'char' and 'int' are types of the same size, the
        difference of two 'unsigned char' values - including the sign bit -
        doesn't fit in an 'int'.  */
-    return (c1 > c2 ? 1 : c1 < c2 ? -1 : 0);
+    return _GL_CMP (c1, c2);
 }

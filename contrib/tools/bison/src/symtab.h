@@ -1,6 +1,6 @@
 /* Definitions for symtab.c and callers, part of Bison.
 
-   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015, 2018-2020 Free
+   Copyright (C) 1984, 1989, 1992, 2000-2002, 2004-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /**
  * \file symtab.h
@@ -149,20 +149,12 @@ struct sym_content
   int prec;
   assoc assoc;
 
-  /** The user specified token number.
-
-      E.g., %token FOO 42.*/
-  int user_token_number;
+  /** Token code, possibly specified by the user (%token FOO 42).  */
+  int code;
 
   symbol_class class;
   declaration_status status;
 };
-
-/** Undefined user number.  */
-# define USER_NUMBER_UNDEFINED -1
-
-/* Undefined internal token number.  */
-# define NUMBER_UNDEFINED (-1)
 
 /** Fetch (or create) the symbol associated to KEY.  */
 symbol *symbol_from_uniqstr (const uniqstr key, location loc);
@@ -235,8 +227,8 @@ void symbol_precedence_set (symbol *sym, int prec, assoc a, location loc);
 void symbol_class_set (symbol *sym, symbol_class class, location loc,
                        bool declaring);
 
-/** Set the \c user_token_number associated with \c sym.  */
-void symbol_user_token_number_set (symbol *sym, int user_number, location loc);
+/** Set the token \c code of \c sym, specified by the user at \c loc.  */
+void symbol_code_set (symbol *sym, int code, location loc);
 
 
 
@@ -249,11 +241,11 @@ extern symbol *errtoken;
 /** The token for unknown tokens.  */
 extern symbol *undeftoken;
 /** The end of input token.  */
-extern symbol *endtoken;
+extern symbol *eoftoken;
 /** The genuine start symbol.
 
    $accept: start-symbol $end */
-extern symbol *accept;
+extern symbol *acceptsymbol;
 
 /** The user start symbol. */
 extern symbol *startsymbol;

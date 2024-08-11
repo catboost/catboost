@@ -51,10 +51,14 @@
      EXTRA_CONTEXT_FIELDS    Declarations of fields for 'struct context'.
      NOTE_DELETE(ctxt, xoff) Record the removal of the object xvec[xoff].
      NOTE_INSERT(ctxt, yoff) Record the insertion of the object yvec[yoff].
+     NOTE_ORDERED            (Optional) A boolean expression saying that
+                             NOTE_DELETE and NOTE_INSERT calls must be
+                             issued in offset order.
      EARLY_ABORT(ctxt)       (Optional) A boolean expression that triggers an
                              early abort of the computation.
      USE_HEURISTIC           (Optional) Define if you want to support the
                              heuristic for large vectors.
+
    It is also possible to use this file with abstract arrays.  In this case,
    xvec and yvec are not represented in memory.  They only exist conceptually.
    In this case, the list of defines above is amended as follows:
@@ -63,6 +67,7 @@
      XVECREF_YVECREF_EQUAL(ctxt, xoff, yoff)
                              A three-argument macro: References xvec[xoff] and
                              yvec[yoff] and tests these elements for equality.
+
    Before including this file, you also need to include:
      #include <limits.h>
      #include <stdbool.h>
@@ -78,6 +83,10 @@
 # define EARLY_ABORT(ctxt) false
 #endif
 
+#ifndef NOTE_ORDERED
+# define NOTE_ORDERED false
+#endif
+
 /* Use this to suppress gcc's "...may be used before initialized" warnings.
    Beware: The Code argument must not contain commas.  */
 #ifndef IF_LINT
@@ -85,15 +94,6 @@
 #  define IF_LINT(Code) Code
 # else
 #  define IF_LINT(Code) /* empty */
-# endif
-#endif
-
-/* As above, but when Code must contain one comma. */
-#ifndef IF_LINT2
-# if defined GCC_LINT || defined lint
-#  define IF_LINT2(Code1, Code2) Code1, Code2
-# else
-#  define IF_LINT2(Code1, Code2) /* empty */
 # endif
 #endif
 
@@ -468,49 +468,89 @@ compareseq (OFFSET xoff, OFFSET xlim, OFFSET yoff, OFFSET ylim,
   #define XREF_YREF_EQUAL(x,y)  XVECREF_YVECREF_EQUAL (ctxt, x, y)
 #endif
 
-  /* Slide down the bottom initial diagonal.  */
-  while (xoff < xlim && yoff < ylim && XREF_YREF_EQUAL (xoff, yoff))
+  while (true)
     {
-      xoff++;
-      yoff++;
-    }
+      /* Slide down the bottom initial diagonal.  */
+      while (xoff < xlim && yoff < ylim && XREF_YREF_EQUAL (xoff, yoff))
+        {
+          xoff++;
+          yoff++;
+        }
 
-  /* Slide up the top initial diagonal. */
-  while (xoff < xlim && yoff < ylim && XREF_YREF_EQUAL (xlim - 1, ylim - 1))
-    {
-      xlim--;
-      ylim--;
-    }
+      /* Slide up the top initial diagonal. */
+      while (xoff < xlim && yoff < ylim && XREF_YREF_EQUAL (xlim - 1, ylim - 1))
+        {
+          xlim--;
+          ylim--;
+        }
 
-  /* Handle simple cases. */
-  if (xoff == xlim)
-    while (yoff < ylim)
-      {
-        NOTE_INSERT (ctxt, yoff);
-        if (EARLY_ABORT (ctxt))
-          return true;
-        yoff++;
-      }
-  else if (yoff == ylim)
-    while (xoff < xlim)
-      {
-        NOTE_DELETE (ctxt, xoff);
-        if (EARLY_ABORT (ctxt))
-          return true;
-        xoff++;
-      }
-  else
-    {
-      struct partition part IF_LINT2 (= { .xmid = 0, .ymid = 0 });
+      /* Handle simple cases. */
+      if (xoff == xlim)
+        {
+          while (yoff < ylim)
+            {
+              NOTE_INSERT (ctxt, yoff);
+              if (EARLY_ABORT (ctxt))
+                return true;
+              yoff++;
+            }
+          break;
+        }
+      if (yoff == ylim)
+        {
+          while (xoff < xlim)
+            {
+              NOTE_DELETE (ctxt, xoff);
+              if (EARLY_ABORT (ctxt))
+                return true;
+              xoff++;
+            }
+          break;
+        }
+
+      struct partition part;
 
       /* Find a point of correspondence in the middle of the vectors.  */
       diag (xoff, xlim, yoff, ylim, find_minimal, &part, ctxt);
 
       /* Use the partitions to split this problem into subproblems.  */
-      if (compareseq (xoff, part.xmid, yoff, part.ymid, part.lo_minimal, ctxt))
-        return true;
-      if (compareseq (part.xmid, xlim, part.ymid, ylim, part.hi_minimal, ctxt))
-        return true;
+      OFFSET xoff1, xlim1, yoff1, ylim1, xoff2, xlim2, yoff2, ylim2;
+      bool find_minimal1, find_minimal2;
+      if (!NOTE_ORDERED
+          && ((xlim + ylim) - (part.xmid + part.ymid)
+              < (part.xmid + part.ymid) - (xoff + yoff)))
+        {
+          /* The second problem is smaller and the caller doesn't
+             care about order, so do the second problem first to
+             lessen recursion.  */
+          xoff1 = part.xmid; xlim1 = xlim;
+          yoff1 = part.ymid; ylim1 = ylim;
+          find_minimal1 = part.hi_minimal;
+
+          xoff2 = xoff; xlim2 = part.xmid;
+          yoff2 = yoff; ylim2 = part.ymid;
+          find_minimal2 = part.lo_minimal;
+        }
+      else
+        {
+          xoff1 = xoff; xlim1 = part.xmid;
+          yoff1 = yoff; ylim1 = part.ymid;
+          find_minimal1 = part.lo_minimal;
+
+          xoff2 = part.xmid; xlim2 = xlim;
+          yoff2 = part.ymid; ylim2 = ylim;
+          find_minimal2 = part.hi_minimal;
+        }
+
+      /* Recurse to do one subproblem.  */
+      bool early = compareseq (xoff1, xlim1, yoff1, ylim1, find_minimal1, ctxt);
+      if (early)
+        return early;
+
+      /* Iterate to do the other subproblem.  */
+      xoff = xoff2; xlim = xlim2;
+      yoff = yoff2; ylim = ylim2;
+      find_minimal = find_minimal2;
     }
 
   return false;

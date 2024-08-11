@@ -175,7 +175,7 @@
 #  define fp_ fp
 # endif
 
-# if defined _SCO_DS                /* OpenServer */
+# if defined _SCO_DS || (defined __SCO_VERSION__ || defined __sysv5__)  /* OpenServer 5, OpenServer 6, UnixWare 7 */
 #  define _cnt __cnt
 #  define _ptr __ptr
 #  define _base __base

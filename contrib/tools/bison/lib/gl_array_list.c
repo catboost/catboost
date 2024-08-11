@@ -111,7 +111,7 @@ gl_array_nx_create (gl_list_implementation_t implementation,
   return NULL;
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_array_size (gl_list_t list)
 {
   return list->count;
@@ -189,7 +189,7 @@ gl_array_nx_set_at (gl_list_t list, size_t position, const void *elt)
   return INDEX_TO_NODE (position);
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_array_indexof_from_to (gl_list_t list, size_t start_index, size_t end_index,
                           const void *elt)
 {
@@ -232,7 +232,7 @@ gl_array_indexof_from_to (gl_list_t list, size_t start_index, size_t end_index,
   return (size_t)(-1);
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_array_search_from_to (gl_list_t list, size_t start_index, size_t end_index,
                          const void *elt)
 {
@@ -441,7 +441,7 @@ gl_array_list_free (gl_list_t list)
 
 /* --------------------- gl_list_iterator_t Data Type --------------------- */
 
-static gl_list_iterator_t
+static gl_list_iterator_t _GL_ATTRIBUTE_PURE
 gl_array_iterator (gl_list_t list)
 {
   gl_list_iterator_t result;
@@ -459,7 +459,7 @@ gl_array_iterator (gl_list_t list)
   return result;
 }
 
-static gl_list_iterator_t
+static gl_list_iterator_t _GL_ATTRIBUTE_PURE
 gl_array_iterator_from_to (gl_list_t list, size_t start_index, size_t end_index)
 {
   gl_list_iterator_t result;
@@ -509,13 +509,13 @@ gl_array_iterator_next (gl_list_iterator_t *iterator,
 }
 
 static void
-gl_array_iterator_free (gl_list_iterator_t *iterator _GL_UNUSED)
+gl_array_iterator_free (gl_list_iterator_t *iterator _GL_ATTRIBUTE_MAYBE_UNUSED)
 {
 }
 
 /* ---------------------- Sorted gl_list_t Data Type ---------------------- */
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_array_sortedlist_indexof_from_to (gl_list_t list,
                                      gl_listelement_compar_fn compar,
                                      size_t low, size_t high,
@@ -574,7 +574,7 @@ gl_array_sortedlist_indexof_from_to (gl_list_t list,
   return (size_t)(-1);
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_array_sortedlist_indexof (gl_list_t list, gl_listelement_compar_fn compar,
                              const void *elt)
 {
@@ -582,7 +582,7 @@ gl_array_sortedlist_indexof (gl_list_t list, gl_listelement_compar_fn compar,
                                               elt);
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_array_sortedlist_search_from_to (gl_list_t list,
                                     gl_listelement_compar_fn compar,
                                     size_t low, size_t high,
@@ -593,7 +593,7 @@ gl_array_sortedlist_search_from_to (gl_list_t list,
   return INDEX_TO_NODE (index);
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_array_sortedlist_search (gl_list_t list, gl_listelement_compar_fn compar,
                             const void *elt)
 {

@@ -1,6 +1,6 @@
 /* Data definitions for internal representation of Bison's input.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2001-2007, 2009-2015, 2018-2020
+   Copyright (C) 1984, 1986, 1989, 1992, 2001-2007, 2009-2015, 2018-2021
    Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,16 +16,16 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef GRAM_H_
 # define GRAM_H_
 
 /* Representation of the grammar rules:
 
-   NTOKENS is the number of tokens, and NVARS is the number of
+   NTOKENS is the number of tokens, and NNTERMS is the number of
    variables (nonterminals).  NSYMS is the total number, ntokens +
-   nvars.
+   nnterms.
 
    Each symbol (either token or variable) receives a symbol number.
    Numbers 0 to NTOKENS - 1 are for tokens, and NTOKENS to NSYMS - 1
@@ -101,6 +101,8 @@
 
    Associativities are recorded similarly in SYMBOLS[I]->assoc.  */
 
+# include "system.h"
+
 # include "location.h"
 # include "symtab.h"
 
@@ -109,12 +111,16 @@
 
 extern int nsyms;
 extern int ntokens;
-extern int nvars;
+extern int nnterms;
 
+/* Elements of ritem. */
 typedef int item_number;
 # define ITEM_NUMBER_MAX INT_MAX
 extern item_number *ritem;
 extern int nritems;
+
+/* Indices into ritem. */
+typedef unsigned int item_index;
 
 /* There is weird relationship between OT1H item_number and OTOH
    symbol_number and rule_number: we store the latter in
@@ -173,7 +179,7 @@ typedef struct
 {
   /* The number of the rule in the source.  It is usually the index in
      RULES too, except if there are useless rules.  */
-  rule_number user_number;
+  rule_number code;
 
   /* The index in RULES.  Usually the rule number in the source,
      except if some rules are useless.  */
@@ -210,7 +216,15 @@ extern rule *rules;
 extern rule_number nrules;
 
 /* Get the rule associated to this item.  ITEM points inside RITEM.  */
-rule const *item_rule (item_number const *item);
+static inline rule const *
+item_rule (item_number const *item)
+{
+  item_number const *sp = item;
+  while (!item_number_is_rule_number (*sp))
+    ++sp;
+  rule_number r = item_number_as_rule_number (*sp);
+  return &rules[r];
+}
 
 /* Pretty-print this ITEM (as in the report).  ITEM points inside
    RITEM.  PREVIOUS_RULE is used to see if the lhs is common, in which
@@ -262,7 +276,7 @@ extern symbol **symbols;
    by the user's yylex routine, it yields the internal token number
    used by the parser and throughout bison.  */
 extern symbol_number *token_translations;
-extern int max_user_token_number;
+extern int max_code;
 
 
 

@@ -2,7 +2,7 @@
 
 # C M4 Macros for Bison.
 
-# Copyright (C) 2002, 2004-2015, 2018-2020 Free Software Foundation,
+# Copyright (C) 2002, 2004-2015, 2018-2021 Free Software Foundation,
 # Inc.
 
 # This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 m4_include(b4_skeletonsdir/[c-like.m4])
 
@@ -58,11 +58,11 @@ m4_define([b4_cpp_guard_close],
 # b4_pull_flag if they use the values of the %define variables api.pure or
 # api.push-pull.
 m4_define([b4_identification],
-[[/* Identify Bison output.  */
-#define YYBISON 1
+[[/* Identify Bison output, and Bison version.  */
+#define YYBISON ]b4_version[
 
-/* Bison version.  */
-#define YYBISON_VERSION "]b4_version["
+/* Bison version string.  */
+#define YYBISON_VERSION "]b4_version_string["
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME ]b4_skeleton[]m4_ifdef([b4_pure_flag], [[
@@ -160,11 +160,11 @@ m4_popdef([$1])dnl
 
 # b4_parse_param_use([VAL], [LOC])
 # --------------------------------
-# 'YYUSE' VAL, LOC if locations are enabled, and all the parse-params.
+# 'YY_USE' VAL, LOC if locations are enabled, and all the parse-params.
 m4_define([b4_parse_param_use],
-[m4_ifvaln([$1], [  YYUSE ([$1]);])dnl
-b4_locations_if([m4_ifvaln([$2], [  YYUSE ([$2]);])])dnl
-b4_parse_param_for([Decl], [Formal], [  YYUSE (Formal);
+[m4_ifvaln([$1], [  YY_USE ([$1]);])dnl
+b4_locations_if([m4_ifvaln([$2], [  YY_USE ([$2]);])])dnl
+b4_parse_param_for([Decl], [Formal], [  YY_USE (Formal);
 ])dnl
 ])
 
@@ -240,6 +240,18 @@ typedef __INT_LEAST16_TYPE__ yytype_int16;
 typedef int_least16_t yytype_int16;
 #else
 typedef short yytype_int16;
+#endif
+
+/* Work around bug in HP-UX 11.23, which defines these macros
+   incorrectly for preprocessor constants.  This workaround can likely
+   be removed in 2023, as HPE has promised support for HP-UX 11.23
+   (aka HP-UX 11i v2) only through the end of 2022; see Table 2 of
+   <https://h20195.www2.hpe.com/V2/getpdf.aspx/4AA4-7673ENW.pdf>.  */
+#ifdef __hpux
+# undef UINT_LEAST8_MAX
+# undef UINT_LEAST16_MAX
+# define UINT_LEAST8_MAX 255
+# define UINT_LEAST16_MAX 65535
 #endif
 
 #if defined __UINT_LEAST8_MAX__ && __UINT_LEAST8_MAX__ <= __INT_MAX__
@@ -355,17 +367,27 @@ m4_define([b4_attribute_define],
 #endif
 
 ]m4_bmatch([$1], [\bnoreturn\b], [[/* The _Noreturn keyword of C11.  */
-]dnl This is an exact copy of lib/_Noreturn.h.
+]dnl This is close to lib/_Noreturn.h, except that we do enable
+dnl the use of [[noreturn]], because _Noreturn is used in places
+dnl where [[noreturn]] works in C++.  We need this in particular
+dnl because of glr.cc which compiles code from glr.c in C++.
+dnl And the C++ compiler chokes on _Noreturn.  Also, we do not
+dnl use C' _Noreturn in C++, to avoid -Wc11-extensions warnings.
 [#ifndef _Noreturn
 # if (defined __cplusplus \
       && ((201103 <= __cplusplus && !(__GNUC__ == 4 && __GNUC_MINOR__ == 7)) \
           || (defined _MSC_VER && 1900 <= _MSC_VER)))
 #  define _Noreturn [[noreturn]]
 # elif ((!defined __cplusplus || defined __clang__) \
-        && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0)  \
-            || 4 < __GNUC__ + (7 <= __GNUC_MINOR__)))
+        && (201112 <= (defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) \
+            || (!defined __STRICT_ANSI__ \
+                && (__4 < __GNUC__ + (7 <= __GNUC_MINOR__) \
+                    || (defined __apple_build_version__ \
+                        ? 6000000 <= __apple_build_version__ \
+                        : 3 < __clang_major__ + (5 <= __clang_minor__))))))
    /* _Noreturn works as-is.  */
-# elif 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || 0x5110 <= __SUNPRO_C
+# elif (2 < __GNUC__ + (8 <= __GNUC_MINOR__) || defined __clang__ \
+        || 0x5110 <= __SUNPRO_C)
 #  define _Noreturn __attribute__ ((__noreturn__))
 # elif 1200 <= (defined _MSC_VER ? _MSC_VER : 0)
 #  define _Noreturn __declspec (noreturn)
@@ -376,9 +398,9 @@ m4_define([b4_attribute_define],
 
 ]])[/* Suppress unused-variable warnings by "using" E.  */
 #if ! defined lint || defined __GNUC__
-# define YYUSE(E) ((void) (E))
+# define YY_USE(E) ((void) (E))
 #else
-# define YYUSE(E) /* empty */
+# define YY_USE(E) /* empty */
 #endif
 
 #if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
@@ -501,10 +523,11 @@ m4_define([b4_token_define],
 # ----------------
 # Output the definition of the tokens.
 m4_define([b4_token_defines],
-[b4_any_token_visible_if([/* Token kinds.  */
-m4_join([
+[[/* Token kinds.  */
+#define ]b4_symbol([-2], [id])[ -2
+]m4_join([
 ], b4_symbol_map([b4_token_define]))
-])])
+])
 
 
 # b4_token_enum(TOKEN-NUM)
@@ -515,7 +538,7 @@ m4_define([b4_token_enum],
     [m4_format([    %-30s %s],
                m4_format([[%s = %s%s%s]],
                          b4_symbol([$1], [id]),
-                         b4_symbol([$1], b4_api_token_raw_if([[number]], [[user_number]])),
+                         b4_symbol([$1], b4_api_token_raw_if([[number]], [[code]])),
                          m4_if([$1], b4_last_enum_token, [], [[,]])),
                [b4_symbol_tag_comment([$1])])])])
 
@@ -564,7 +587,7 @@ m4_define([b4_symbol_translate],
 m4_define([b4_symbol_enum],
 [m4_format([  %-40s %s],
            m4_format([[%s = %s%s%s]],
-                     b4_symbol([$1], [kind]),
+                     b4_symbol([$1], [kind_base]),
                      [$1],
                      m4_if([$1], b4_last_symbol, [], [[,]])),
            [b4_symbol_tag_comment([$1])])])
@@ -579,7 +602,7 @@ m4_define([b4_declare_symbol_enum],
 [[/* Symbol kind.  */
 enum yysymbol_kind_t
 {
-  ]b4_symbol_kind([-2])[ = -2,
+  ]b4_symbol([-2], kind_base)[ = -2,
 ]b4_symbol_foreach([b4_symbol_enum])dnl
 [};
 typedef enum yysymbol_kind_t yysymbol_kind_t;
@@ -658,10 +681,10 @@ m4_define([b4_sync_start], [[#]line $1 $2])
 ## User actions.  ##
 ## -------------- ##
 
-# b4_case(LABEL, STATEMENTS)
-# --------------------------
+# b4_case(LABEL, STATEMENTS, [COMMENTS])
+# --------------------------------------
 m4_define([b4_case],
-[  case $1:
+[  case $1:m4_ifval([$3], [ b4_comment([$3])])
 $2
 b4_syncline([@oline@], [@ofile@])dnl
     break;])

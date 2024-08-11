@@ -1,7 +1,7 @@
 /* Input parser for Bison
 
    Copyright (C) 1984, 1986, 1989, 1992, 1998, 2000-2003, 2005-2007,
-   2009-2015, 2018-2020 Free Software Foundation, Inc.
+   2009-2015, 2018-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
@@ -41,7 +41,7 @@ static void check_and_convert_grammar (void);
 
 static symbol_list *grammar = NULL;
 static bool start_flag = false;
-merger_list *merge_functions;
+merger_list *merge_functions = NULL;
 
 /* Was %union seen?  */
 bool union_seen = false;
@@ -93,27 +93,27 @@ get_merge_function (uniqstr name)
       syms->next->name = uniqstr_new (name);
       /* After all symbol type declarations have been parsed, packgram invokes
          record_merge_function_type to set the type.  */
-      syms->next->type = NULL;
+      syms->next->sym = NULL;
       syms->next->next = NULL;
       merge_functions = head.next;
     }
   return n;
 }
 
-/*-------------------------------------------------------------------------.
-| For the existing merging function with index MERGER, record the result   |
-| type as TYPE as required by the lhs of the rule whose %merge declaration |
-| is at DECLARATION_LOC.                                                   |
-`-------------------------------------------------------------------------*/
+/*-------------------------------------------------------------------.
+| For the existing merging function with index MERGER, record that   |
+| the result type is that of SYM, as required by the lhs (i.e., SYM) |
+| of the rule whose %merge declaration is at DECLARATION_LOC.        |
+`-------------------------------------------------------------------*/
 
 static void
-record_merge_function_type (int merger, uniqstr type, location declaration_loc)
+record_merge_function_type (int merger, symbol *sym, location declaration_loc)
 {
   if (merger <= 0)
     return;
 
-  if (type == NULL)
-    type = uniqstr_new ("");
+  uniqstr type
+    = sym->content->type_name ? sym->content->type_name : uniqstr_new ("");
 
   merger_list *merge_function;
   int merger_find = 1;
@@ -122,18 +122,24 @@ record_merge_function_type (int merger, uniqstr type, location declaration_loc)
        merge_function = merge_function->next)
     merger_find += 1;
   aver (merge_function != NULL && merger_find == merger);
-  if (merge_function->type != NULL && !UNIQSTR_EQ (merge_function->type, type))
+  if (merge_function->sym && merge_function->sym->content->type_name)
     {
-      complain (&declaration_loc, complaint,
-                _("result type clash on merge function %s: "
-                "<%s> != <%s>"),
-                quote (merge_function->name), type,
-                merge_function->type);
-      subcomplain (&merge_function->type_declaration_loc, complaint,
-                   _("previous declaration"));
+      if (!UNIQSTR_EQ (merge_function->sym->content->type_name, type))
+        {
+          complain (&declaration_loc, complaint,
+                    _("result type clash on merge function %s: "
+                      "<%s> != <%s>"),
+                    quote (merge_function->name), type,
+                    merge_function->sym->content->type_name);
+          subcomplain (&merge_function->type_declaration_loc, complaint,
+                       _("previous declaration"));
+        }
     }
-  merge_function->type = uniqstr_new (type);
-  merge_function->type_declaration_loc = declaration_loc;
+  else
+    {
+      merge_function->sym = sym;
+      merge_function->type_declaration_loc = declaration_loc;
+    }
 }
 
 /*--------------------------------------.
@@ -406,8 +412,8 @@ grammar_midrule_action (void)
      action.  Create the MIDRULE.  */
   location dummy_loc = current_rule->action_props.location;
   symbol *dummy = dummy_symbol_get (dummy_loc);
-  symbol_type_set(dummy,
-                  current_rule->action_props.type, current_rule->action_props.location);
+  symbol_type_set (dummy,
+                   current_rule->action_props.type, current_rule->action_props.location);
   symbol_list *midrule = symbol_list_sym_new (dummy, dummy_loc);
 
   /* Remember named_ref of previous action. */
@@ -576,8 +582,8 @@ grammar_current_rule_predicate_append (const char *pred, location loc)
                                /* is_predicate */ true);
 }
 
-/* Set the expected number of shift-reduce (reduce-reduce) conflicts for
- * the current rule.  If a midrule is encountered later, the count
+/* Set the expected number of shift/reduce (reduce/reduce) conflicts
+ * for the current rule.  If a midrule is encountered later, the count
  * is transferred to it and reset in the current rule to -1. */
 
 void
@@ -616,7 +622,7 @@ packgram (void)
   for (symbol_list *p = grammar; p; p = p->next)
     {
       symbol_list *lhs = p;
-      record_merge_function_type (lhs->merger, lhs->content.sym->content->type_name,
+      record_merge_function_type (lhs->merger, lhs->content.sym,
                                   lhs->merger_declaration_loc);
       /* If the midrule's $$ is set or its $n is used, remove the '$' from the
          symbol name so that it's a user-defined symbol so that the default
@@ -634,7 +640,7 @@ packgram (void)
       if (lhs != grammar)
         grammar_rule_check_and_complete (lhs);
 
-      rules[ruleno].user_number = ruleno;
+      rules[ruleno].code = ruleno;
       rules[ruleno].number = ruleno;
       rules[ruleno].lhs = lhs->content.sym->content;
       rules[ruleno].rhs = ritem + itemno;
@@ -695,12 +701,10 @@ packgram (void)
 }
 
 
-/*------------------------------------------------------------------.
-| Read in the grammar specification and record it in the format     |
-| described in gram.h.  All actions are copied into ACTION_OBSTACK, |
-| in each case forming the body of a C function (YYACTION) which    |
-| contains a switch statement to decide which action to execute.    |
-`------------------------------------------------------------------*/
+/*--------------------------------------------------------------.
+| Read in the grammar specification and record it in the format |
+| described in gram.h.                                          |
+`--------------------------------------------------------------*/
 
 void
 reader (const char *gram)
@@ -710,6 +714,7 @@ reader (const char *gram)
   symbols_new ();
 
   gram_scanner_open (gram);
+  parser_init ();
   gram_parse ();
   gram_scanner_close ();
 
@@ -775,18 +780,18 @@ check_and_convert_grammar (void)
   if (nrules == 0)
     complain (NULL, fatal, _("no rules in the input grammar"));
 
-  /* If the user did not define her ENDTOKEN, do it now. */
-  if (!endtoken)
+  /* If the user did not define her EOFTOKEN, do it now. */
+  if (!eoftoken)
     {
-      endtoken = symbol_get ("YYEOF", empty_loc);
-      endtoken->content->class = token_sym;
-      endtoken->content->number = 0;
+      eoftoken = symbol_get ("YYEOF", empty_loc);
+      eoftoken->content->class = token_sym;
+      eoftoken->content->number = 0;
       /* Value specified by POSIX.  */
-      endtoken->content->user_token_number = 0;
+      eoftoken->content->code = 0;
       {
         symbol *alias = symbol_get ("$end", empty_loc);
         symbol_class_set (alias, token_sym, empty_loc, false);
-        symbol_make_alias (endtoken, alias, empty_loc);
+        symbol_make_alias (eoftoken, alias, empty_loc);
       }
     }
 
@@ -805,10 +810,10 @@ check_and_convert_grammar (void)
 
      $accept: %start $end.  */
   {
-    symbol_list *p = symbol_list_sym_new (accept, empty_loc);
+    symbol_list *p = symbol_list_sym_new (acceptsymbol, empty_loc);
     p->rhs_loc = grammar->rhs_loc;
     p->next = symbol_list_sym_new (startsymbol, empty_loc);
-    p->next->next = symbol_list_sym_new (endtoken, empty_loc);
+    p->next->next = symbol_list_sym_new (eoftoken, empty_loc);
     p->next->next->next = symbol_list_sym_new (NULL, empty_loc);
     p->next->next->next->next = grammar;
     nrules += 1;
@@ -816,8 +821,11 @@ check_and_convert_grammar (void)
     grammar = p;
   }
 
-  aver (nsyms <= SYMBOL_NUMBER_MAXIMUM);
-  aver (nsyms == ntokens + nvars);
+  if (SYMBOL_NUMBER_MAXIMUM - nnterms < ntokens)
+    complain (NULL, fatal, "too many symbols in input grammar (limit is %d)",
+              SYMBOL_NUMBER_MAXIMUM);
+
+  nsyms = ntokens + nnterms;
 
   /* Assign the symbols their symbol numbers.  */
   symbols_pack ();

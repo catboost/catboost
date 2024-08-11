@@ -1,6 +1,6 @@
 This directory contains data needed by Bison.
 
-# Directory content
+# Directory Content
 ## Skeletons
 Bison skeletons: the general shapes of the different parser kinds, that are
 specialized for specific grammars by the bison program.
@@ -48,7 +48,7 @@ various formats.
 - xml2xhtml.xsl
   Conversion into XHTML.
 
-# Implementation note about the skeletons
+# Implementation Notes About the Skeletons
 
 "Skeleton" in Bison parlance means "backend": a skeleton is fed by the bison
 executable with LR tables, facts about the symbols, etc. and they generate
@@ -84,29 +84,35 @@ field), where field can `has_id`, `id`, etc.: see
 The macro `b4_symbol(NUM, FIELD)` gives access to the following FIELDS:
 
 - `has_id`: 0 or 1
-  Whether the symbol has an id.
+  Whether the symbol has an `id`.
 
-- `id`: string
-  If has_id, the id (prefixed by api.token.prefix if defined), otherwise
-  defined as empty.  Guaranteed to be usable as a C identifier.  This is
-  used to define the token kind (i.e., the enum used by the return value of
-  yylex).
+- `id`: string (e.g., `exp`, `NUM`, or `TOK_NUM` with api.token.prefix)
+  If `has_id`, the name of the token kind (prefixed by api.token.prefix if
+  defined), otherwise empty.  Guaranteed to be usable as a C identifier.
+  This is used to define the token kind (i.e., the enum used by the return
+  value of yylex).  Should be named `token_kind`.
 
 - `tag`: string
-  A human representation of the symbol.  Can be 'foo', 'foo.id', '"foo"' etc.
+  A human readable representation of the symbol.  Can be `'foo'`,
+  `'foo.id'`, `'"foo"'` etc.
 
-- `user_number`: integer
-  The code associated to the `id`.
+- `code`: integer
+  The token code associated to the token kind `id`.
   The external number as used by yylex.  Can be ASCII code when a character,
-  some number chosen by bison, or some user number in the case of
-  %token FOO <NUM>.  Corresponds to yychar in yacc.c.
+  some number chosen by bison, or some user number in the case of `%token
+  FOO <NUM>`.  Corresponds to `yychar` in `yacc.c`.
 
 - `is_token`: 0 or 1
   Whether this is a terminal symbol.
 
+- `kind_base`: string (e.g., `YYSYMBOL_exp`, `YYSYMBOL_NUM`)
+  The base of the symbol kind, i.e., the enumerator of this symbol (token or
+  nonterminal) which is mapped to its `number`.
+
 - `kind`: string
-  The symbol kind, i.e., the enumerator of this symbol (token or nonterminal)
-  which is mapping to its `number`.
+  Same as `kind_base`, but possibly with a prefix in some languages.  E.g.,
+  EOF's `kind_base` and `kind` are `YYSYMBOL_YYEOF` in C, but are
+  `S_YYEMPTY` and `symbol_kind::S_YYEMPTY` in C++.
 
 - `number`: integer
   The code associated to the `kind`.
@@ -136,10 +142,16 @@ The macro `b4_symbol(NUM, FIELD)` gives access to the following FIELDS:
   When api.value.type=union, the generated name for the union member.
   yytype_INT etc. for symbols that has_id, otherwise yytype_1 etc.
 
-- `type`
+- `type`: string
   If it has a semantic value, its type tag, or, if variant are used,
   its type.
   In the case of api.value.type=union, type is the real type (e.g. int).
+
+- `slot`: string
+  If it has a semantic value, the name of the union member (i.e., bounces to
+  either `type_tag` or `type`).  It would be better to fix our mess and
+  always use `type` for the true type of the member, and `type_tag` for the
+  name of the union member.
 
 - `has_printer`: 0, 1
 - `printer`: string
@@ -173,7 +185,7 @@ The data corresponding to the symbol `#POS`, where the current rule has
 Expansion of `$<TYPE>POS`, where the current rule has `RULE-LENGTH` symbols
 on RHS.
 
------
+<!--
 
 Local Variables:
 mode: markdown
@@ -181,7 +193,7 @@ fill-column: 76
 ispell-dictionary: "american"
 End:
 
-Copyright (C) 2002, 2008-2015, 2018-2020 Free Software Foundation, Inc.
+Copyright (C) 2002, 2008-2015, 2018-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Bison.
 
@@ -196,4 +208,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+-->

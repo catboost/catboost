@@ -1,6 +1,6 @@
 # C++ GLR skeleton for Bison
 
-# Copyright (C) 2002-2015, 2018-2020 Free Software Foundation, Inc.
+# Copyright (C) 2002-2015, 2018-2021 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 # This skeleton produces a C++ class that encapsulates a C glr parser.
@@ -66,12 +66,6 @@ m4_defn([b4_parse_param]))],
            [[b4_namespace_ref::b4_parser_class[& yyparser], [[yyparser]]]])
 ])
 
-# b4_declare_symbol_enum
-# ----------------------
-m4_append([b4_declare_symbol_enum],
-[[typedef symbol_kind_type yysymbol_kind_t;
-]])
-
 
 # b4_yy_symbol_print_define
 # -------------------------
@@ -105,9 +99,9 @@ yyerror (]b4_locations_if([[const ]b4_namespace_ref::b4_parser_class[::location_
          ]])[]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param),
          ])[const char* msg);]])[
 
-# Hijack the epilogue to define implementations (yyerror, parser member
+# Inserted before the epilogue to define implementations (yyerror, parser member
 # functions etc.).
-]m4_append([b4_epilogue],
+]m4_define([b4_glr_cc_pre_epilogue],
 [b4_syncline([@oline@], [@ofile@])dnl
 [
 /*------------------.
@@ -150,7 +144,7 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
   int
   ]b4_parser_class[::parse ()
   {
-    return ::yyparse (*this]b4_user_args[);
+    return ::yy_parse_impl (*this]b4_user_args[);
   }
 
 #if ]b4_api_PREFIX[DEBUG
@@ -163,11 +157,11 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
                            const semantic_type* yyvaluep]b4_locations_if([[,
                            const location_type* yylocationp]])[) const
   {]b4_locations_if([[
-    YYUSE (yylocationp);]])[
-    YYUSE (yyvaluep);
+    YY_USE (yylocationp);]])[
+    YY_USE (yyvaluep);
     std::ostream& yyo = debug_stream ();
     std::ostream& yyoutput = yyo;
-    YYUSE (yyoutput);
+    YY_USE (yyoutput);
     ]b4_symbol_actions([printer])[
   }
 
@@ -178,7 +172,7 @@ m4_pushdef([b4_parse_param], m4_defn([b4_parse_param_orig]))dnl
                            const location_type* yylocationp]])[) const
   {
     *yycdebug_ << (yykind < YYNTOKENS ? "token" : "nterm")
-               << ' ' << yytname[yykind] << " ("]b4_locations_if([[
+               << ' ' << yysymbol_name (yykind) << " ("]b4_locations_if([[
                << *yylocationp << ": "]])[;
     yy_symbol_value_print_ (yykind, yyvaluep]b4_locations_if([[, yylocationp]])[);
     *yycdebug_ << ')';
@@ -216,6 +210,12 @@ b4_namespace_close[]dnl
 ])
 
 
+m4_define([b4_define_symbol_kind],
+[m4_format([#define %-15s %s],
+           b4_symbol($][1, kind_base),
+           b4_namespace_ref[::]b4_parser_class[::symbol_kind::]b4_symbol($1, kind_base))
+])
+
 # b4_glr_cc_setup
 # ---------------
 # Setup redirections for glr.c: Map the names used in c.m4 to the ones used
@@ -236,10 +236,15 @@ m4_define([b4_glr_cc_setup],
 #endif
 
 typedef ]b4_namespace_ref[::]b4_parser_class[::symbol_kind_type yysymbol_kind_t;
-#define ]b4_symbol_prefix[YYEMPTY  ]b4_namespace_ref[::]b4_parser_class[::symbol_kind::]b4_symbol_prefix[YYEMPTY
-#define ]b4_symbol_prefix[YYerror  ]b4_namespace_ref[::]b4_parser_class[::symbol_kind::]b4_symbol_prefix[YYerror
-#define ]b4_symbol_prefix[YYEOF    ]b4_namespace_ref[::]b4_parser_class[::symbol_kind::]b4_symbol_prefix[YYEOF
-#define ]b4_symbol_prefix[YYUNDEF  ]b4_namespace_ref[::]b4_parser_class[::symbol_kind::]b4_symbol_prefix[YYUNDEF
+
+// Expose C++ symbol kinds to C.
+]b4_define_symbol_kind(-2)dnl
+b4_symbol_foreach([b4_define_symbol_kind])])[
+]])
+
+
+m4_define([b4_undef_symbol_kind],
+[[#undef ]b4_symbol($1, kind_base)[
 ]])
 
 
@@ -247,20 +252,13 @@ typedef ]b4_namespace_ref[::]b4_parser_class[::symbol_kind_type yysymbol_kind_t;
 # -----------------
 # Remove redirections for glr.c.
 m4_define([b4_glr_cc_cleanup],
-[b4_percent_define_flag_if([[global_tokens_and_yystype]], [],
 [[#undef ]b4_symbol(-2, [id])[
 #undef ]b4_symbol(0, [id])[
 #undef ]b4_symbol(1, [id])[
-]])[
 
-#undef ]b4_api_PREFIX[STYPE
-#undef ]b4_api_PREFIX[LTYPE
-
-#undef ]b4_symbol_prefix[YYEMPTY
-#undef ]b4_symbol_prefix[YYerror
-#undef ]b4_symbol_prefix[YYEOF
-#undef ]b4_symbol_prefix[YYUNDEF
-]])
+]b4_undef_symbol_kind(-2)dnl
+b4_symbol_foreach([b4_undef_symbol_kind])dnl
+])
 
 
 # b4_shared_declarations(hh|cc)
@@ -374,10 +372,6 @@ b4_percent_code_get([[requires]])[
 ]b4_parse_param_vars[
   };
 
-]dnl Redirections for glr.c.
-b4_percent_define_flag_if([[global_tokens_and_yystype]],
-[b4_token_defines
-])[
 ]b4_namespace_close[
 
 ]b4_percent_code_get([[provides]])[
@@ -387,13 +381,13 @@ b4_percent_define_flag_if([[global_tokens_and_yystype]],
 ]b4_defines_if(
 [b4_output_begin([b4_spec_header_file])
 b4_copyright([Skeleton interface for Bison GLR parsers in C++],
-             [2002-2015, 2018-2020])[
+             [2002-2015, 2018-2021])[
 // C++ GLR parser skeleton written by Akim Demaille.
 
 ]b4_disclaimer[
-]b4_cpp_guard_open([b4_spec_header_file])[
+]b4_cpp_guard_open([b4_spec_mapped_header_file])[
 ]b4_shared_declarations[
-]b4_cpp_guard_close([b4_spec_header_file])[
+]b4_cpp_guard_close([b4_spec_mapped_header_file])[
 ]b4_output_end])
 
 # Let glr.c (and b4_shared_declarations) believe that the user

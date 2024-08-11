@@ -51,7 +51,13 @@
 # include <sys/procfs.h>
 #endif
 
-#include "dirname.h"
+#if defined __SCO_VERSION__ || defined __sysv5__
+# include <fcntl.h>
+# include <stdlib.h>
+# include <string.h>
+#endif
+
+#include "basename-lgpl.h"
 
 #ifndef HAVE_GETPROGNAME             /* not Mac OS X, FreeBSD, NetBSD, OpenBSD >= 5.4, Cygwin */
 char const *
@@ -223,7 +229,7 @@ getprogname (void)
   int fd;
 
   sprintf (filename, "/proc/pinfo/%d", (int) getpid ());
-  fd = open (filename, O_RDONLY);
+  fd = open (filename, O_RDONLY | O_CLOEXEC);
   if (0 <= fd)
     {
       prpsinfo_t buf;
@@ -245,6 +251,38 @@ getprogname (void)
         }
     }
   return NULL;
+# elif defined __SCO_VERSION__ || defined __sysv5__                /* SCO OpenServer6/UnixWare */
+  char buf[80];
+  int fd;
+  sprintf (buf, "/proc/%d/cmdline", getpid());
+  fd = open (buf, O_RDONLY);
+  if (0 <= fd)
+    {
+      size_t n = read (fd, buf, 79);
+      if (n > 0)
+        {
+          buf[n] = '\0'; /* Guarantee null-termination */
+          char *progname;
+          progname = strrchr (buf, '/');
+          if (progname)
+            {
+              progname = progname + 1; /* Skip the '/' */
+            }
+          else
+            {
+              progname = buf;
+            }
+          char *ret;
+          ret = malloc (strlen (progname) + 1);
+          if (ret)
+            {
+              strcpy (ret, progname);
+              return ret;
+            }
+        }
+      close (fd);
+    }
+  return "?";
 # else
 #  error "getprogname module not ported to this OS"
 # endif

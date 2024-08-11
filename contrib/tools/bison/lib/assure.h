@@ -21,12 +21,32 @@
 #define _GL_ASSURE_H
 
 #include <assert.h>
+#include "verify.h"
+
+/* Evaluate an assertion E that is guaranteed to be true.
+   If NDEBUG is not defined, abort the program if E is false.
+   If NDEBUG is defined, the compiler can assume E and behavior is
+   undefined if E is false, fails to evaluate, or has side effects.
+
+   Unlike standard 'assert', this macro evaluates E even when NDEBUG
+   is defined, so as to catch typos, avoid some GCC warnings, and
+   improve performance when E is simple enough.
+
+   Also see the documentation for 'assume' in verify.h.  */
+
+#ifdef NDEBUG
+# define affirm(E) assume (E)
+#else
+# define affirm(E) assert (E)
+#endif
 
 /* Check E's value at runtime, and report an error and abort if not.
    However, do nothing if NDEBUG is defined.
 
-   Unlike standard 'assert', this macro always compiles E even when NDEBUG
-   is defined, so as to catch typos and avoid some GCC warnings.  */
+   Unlike standard 'assert', this macro compiles E even when NDEBUG
+   is defined, so as to catch typos and avoid some GCC warnings.
+   Unlike 'affirm', it is OK for E to use hard-to-optimize features,
+   since E is not executed if NDEBUG is defined.  */
 
 #ifdef NDEBUG
 # define assure(E) ((void) (0 && (E)))

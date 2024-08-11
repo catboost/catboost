@@ -1,6 +1,6 @@
 /* IELR main implementation.
 
-   Copyright (C) 2009-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,12 +15,13 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include "system.h"
 
 #include "ielr.h"
+
+#include "system.h"
 
 #include <bitset.h>
 #include <timevar.h>
@@ -230,7 +231,7 @@ ielr_compute_follow_kernel_items (bitset ritem_sees_lookahead_set,
   for (goto_number i = 0; i < ngotos; ++i)
     {
       size_t nitems = states[from_state[i]]->nitems;
-      item_number *items = states[from_state[i]]->items;
+      item_index *items = states[from_state[i]]->items;
       for (size_t j = 0; j < nitems; ++j)
         /* If this item has this goto and if all subsequent symbols in this
            RHS (if any) are nullable nonterminals, then record this item as
@@ -318,7 +319,7 @@ static state ***
 ielr_compute_predecessors (void)
 {
   int *predecessor_counts = xnmalloc (nstates, sizeof *predecessor_counts);
-  state ***result = xnmalloc (nstates, sizeof *result);
+  state ***res = xnmalloc (nstates, sizeof *res);
   for (state_number i = 0; i < nstates; ++i)
     predecessor_counts[i] = 0;
   for (state_number i = 0; i < nstates; ++i)
@@ -326,18 +327,18 @@ ielr_compute_predecessors (void)
       ++predecessor_counts[states[i]->transitions->states[j]->number];
   for (state_number i = 0; i < nstates; ++i)
     {
-      result[i] = xnmalloc (predecessor_counts[i]+1, sizeof *result[i]);
-      result[i][predecessor_counts[i]] = NULL;
+      res[i] = xnmalloc (predecessor_counts[i]+1, sizeof *res[i]);
+      res[i][predecessor_counts[i]] = NULL;
       predecessor_counts[i] = 0;
     }
   for (state_number i = 0; i < nstates; ++i)
     for (int j = 0; j < states[i]->transitions->num; ++j)
       {
         state_number k = states[i]->transitions->states[j]->number;
-        result[k][predecessor_counts[k]++] = states[i];
+        res[k][predecessor_counts[k]++] = states[i];
       }
   free (predecessor_counts);
-  return result;
+  return res;
 }
 
 /**
@@ -417,19 +418,12 @@ ielr_item_has_lookahead (state *s, symbol_number lhs, size_t item,
           /* If the LHS symbol of this item isn't known (because this is a
              top-level invocation), go get it.  */
           if (!lhs)
-            {
-              int i;
-              for (i = s->items[item];
-                   !item_number_is_rule_number (ritem[i]);
-                   ++i)
-                continue;
-              lhs = rules[item_number_as_rule_number (ritem[i])].lhs->number;
-            }
+            lhs = item_rule (&ritem[s->items[item]])->lhs->number;
           /* If this kernel item is next to the beginning of the RHS, then
              check all predecessors' goto follows for the LHS.  */
           if (item_number_is_rule_number (ritem[s->items[item] - 2]))
             {
-              aver (lhs != accept->content->number);
+              aver (lhs != acceptsymbol->content->number);
               for (state **predecessor = predecessors[s->number];
                    *predecessor;
                    ++predecessor)
@@ -632,17 +626,10 @@ ielr_compute_lookaheads (bitsetv follow_kernel_items, bitsetv always_follows,
           && !bitset_empty_p (lookahead_filter[t_item]))
         {
           if (item_number_is_rule_number (ritem[t->items[t_item] - 2]))
-            {
-              int rule_item;
-              for (rule_item = t->items[t_item];
-                   !item_number_is_rule_number (ritem[rule_item]);
-                   ++rule_item)
-                ;
-              ielr_compute_goto_follow_set (
-                follow_kernel_items, always_follows, s,
-                rules[item_number_as_rule_number (ritem[rule_item])].lhs,
-                lookaheads[t_item]);
-            }
+            ielr_compute_goto_follow_set (
+              follow_kernel_items, always_follows, s,
+              item_rule (&ritem[t->items[t_item]])->lhs,
+              lookaheads[t_item]);
           else if (s->lookaheads)
             {
               /* We don't have to start the s item search at the beginning
@@ -709,15 +696,17 @@ ielr_compute_state (bitsetv follow_kernel_items, bitsetv always_follows,
   /* Determine whether there's an isocore of t with which these lookaheads can
      be merged.  */
   {
-    AnnotationIndex ai;
-    AnnotationList *a;
     if (annotation_lists)
-      for (ai = 0, a = annotation_lists[lr0_isocore->state->number];
+      {
+        AnnotationIndex ai;
+        AnnotationList *a;
+        for (ai = 0, a = annotation_lists[lr0_isocore->state->number];
            a;
            ++ai, a = a->next)
         work1[ai] =
           AnnotationList__computeDominantContribution (
             a, lr0_isocore->state->nitems, lookaheads, false);
+      }
     for (this_isocorep = &t->state_list;
          this_isocorep == &t->state_list || *this_isocorep != t->state_list;
          this_isocorep = &(*this_isocorep)->nextIsocore)
@@ -726,6 +715,8 @@ ielr_compute_state (bitsetv follow_kernel_items, bitsetv always_follows,
           break;
         if (annotation_lists)
           {
+            AnnotationIndex ai;
+            AnnotationList *a;
             for (ai = 0, a = annotation_lists[lr0_isocore->state->number];
                  a;
                  ++ai, a = a->next)
@@ -789,15 +780,14 @@ ielr_compute_state (bitsetv follow_kernel_items, bitsetv always_follows,
          actually new.  */
       if (has_lookaheads)
         {
-          size_t i;
           if (!(*this_isocorep)->lookaheads)
             {
               (*this_isocorep)->lookaheads =
                 xnmalloc (t->nitems, sizeof (*this_isocorep)->lookaheads);
-              for (i = 0; i < t->nitems; ++i)
+              for (size_t i = 0; i < t->nitems; ++i)
                 (*this_isocorep)->lookaheads[i] = NULL;
             }
-          for (i = 0; i < t->nitems; ++i)
+          for (size_t i = 0; i < t->nitems; ++i)
             if (!bitset_empty_p (lookaheads[i]))
               {
                 if (!(*this_isocorep)->lookaheads[i])
@@ -1030,12 +1020,12 @@ ielr_split_states (bitsetv follow_kernel_items, bitsetv always_follows,
         if (!node->state->consistent)
           {
             size_t i = 0;
-            item_number *itemset = node->state->items;
+            item_index *itemset = node->state->items;
             for (size_t r = 0; r < node->state->reductions->num; ++r)
               {
                 rule *this_rule = node->state->reductions->rules[r];
                 bitset lookahead_set =
-                  node->state->reductions->lookahead_tokens[r];
+                  node->state->reductions->lookaheads[r];
                 if (item_number_is_rule_number (*this_rule->rhs))
                   ielr_compute_goto_follow_set (follow_kernel_items,
                                                 always_follows, node,

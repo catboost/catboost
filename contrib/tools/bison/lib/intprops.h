@@ -48,7 +48,7 @@
 /* Minimum and maximum values for integer types and expressions.  */
 
 /* The width in bits of the integer type or expression T.
-   Do not evaluate T.
+   Do not evaluate T.  T must not be a bit-field expression.
    Padding bits are not supported; this is checked at compile-time below.  */
 #define TYPE_WIDTH(t) (sizeof (t) * CHAR_BIT)
 
@@ -70,7 +70,7 @@
    ? _GL_SIGNED_INT_MAXIMUM (e)                                         \
    : _GL_INT_NEGATE_CONVERT (e, 1))
 #define _GL_SIGNED_INT_MAXIMUM(e)                                       \
-  (((_GL_INT_CONVERT (e, 1) << (TYPE_WIDTH ((e) + 0) - 2)) - 1) * 2 + 1)
+  (((_GL_INT_CONVERT (e, 1) << (TYPE_WIDTH (+ (e)) - 2)) - 1) * 2 + 1)
 
 /* Work around OpenVMS incompatibility with C99.  */
 #if !defined LLONG_MAX && defined __INT64_MAX
@@ -86,6 +86,7 @@
 /* Does the __typeof__ keyword work?  This could be done by
    'configure', but for now it's easier to do it by hand.  */
 #if (2 <= __GNUC__ \
+     || (4 <= __clang_major__) \
      || (1210 <= __IBMC__ && defined __IBM__TYPEOF__) \
      || (0x5110 <= __SUNPRO_C && !__STDC__))
 # define _GL_HAVE___TYPEOF__ 1
@@ -94,8 +95,9 @@
 #endif
 
 /* Return 1 if the integer type or expression T might be signed.  Return 0
-   if it is definitely unsigned.  This macro does not evaluate its argument,
-   and expands to an integer constant expression.  */
+   if it is definitely unsigned.  T must not be a bit-field expression.
+   This macro does not evaluate its argument, and expands to an
+   integer constant expression.  */
 #if _GL_HAVE___TYPEOF__
 # define _GL_SIGNED_TYPE_OR_EXPR(t) TYPE_SIGNED (__typeof__ (t))
 #else
@@ -108,6 +110,8 @@
 #define INT_BITS_STRLEN_BOUND(b) (((b) * 146 + 484) / 485)
 
 /* Bound on length of the string representing an integer type or expression T.
+   T must not be a bit-field expression.
+
    Subtract 1 for the sign bit if T is signed, and then add 1 more for
    a minus sign if needed.
 
@@ -119,7 +123,7 @@
    + _GL_SIGNED_TYPE_OR_EXPR (t))
 
 /* Bound on buffer size needed to represent an integer type or expression T,
-   including the terminating null.  */
+   including the terminating null.  T must not be a bit-field expression.  */
 #define INT_BUFSIZE_BOUND(t) (INT_STRLEN_BOUND (t) + 1)
 
 
@@ -239,8 +243,14 @@
 #endif
 
 /* True if __builtin_add_overflow_p (A, B, C) works, and similarly for
-   __builtin_mul_overflow_p and __builtin_mul_overflow_p.  */
-#define _GL_HAS_BUILTIN_OVERFLOW_P (7 <= __GNUC__)
+   __builtin_sub_overflow_p and __builtin_mul_overflow_p.  */
+#ifdef __clang__
+/* Clang 9 lacks __builtin_mul_overflow_p, and even if it did it would
+   presumably run afoul of Clang bug 16404.  */
+# define _GL_HAS_BUILTIN_OVERFLOW_P 0
+#else
+# define _GL_HAS_BUILTIN_OVERFLOW_P (7 <= __GNUC__)
+#endif
 
 /* The _GL*_OVERFLOW macros have the same restrictions as the
    *_RANGE_OVERFLOW macros, except that they do not assume that operands
@@ -395,7 +405,7 @@
    For now, assume all versions of GCC-like compilers generate bogus
    warnings for _Generic.  This matters only for compilers that
    lack relevant builtins.  */
-#if __GNUC__
+#if __GNUC__ || defined __clang__
 # define _GL__GENERIC_BOGUS 1
 #else
 # define _GL__GENERIC_BOGUS 0
@@ -565,7 +575,7 @@
       ? (EXPR_SIGNED (_GL_INT_CONVERT (tmax, b)) \
          ? (a) < (tmax) / (b) \
          : ((INT_NEGATE_OVERFLOW (b) \
-             ? _GL_INT_CONVERT (b, tmax) >> (TYPE_WIDTH (b) - 1) \
+             ? _GL_INT_CONVERT (b, tmax) >> (TYPE_WIDTH (+ (b)) - 1) \
              : (tmax) / -(b)) \
             <= -1 - (a))) \
       : INT_NEGATE_OVERFLOW (_GL_INT_CONVERT (b, tmin)) && (b) == -1 \

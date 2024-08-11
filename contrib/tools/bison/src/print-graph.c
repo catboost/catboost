@@ -1,6 +1,6 @@
 /* Output a graph of the generated parser, for Bison.
 
-   Copyright (C) 2001-2007, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2001-2007, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "print-graph.h"
@@ -47,7 +47,7 @@
 static void
 print_core (struct obstack *oout, state *s)
 {
-  item_number const *sitems = s->items;
+  item_index const *sitems = s->items;
   sym_content *previous_lhs = NULL;
   size_t snritems = s->nitems;
 
@@ -72,22 +72,31 @@ print_core (struct obstack *oout, state *s)
         obstack_printf (oout, "%*s| ",
                         (int) strlen (previous_lhs->symbol->tag), "");
       else
-        obstack_printf (oout, "%s: ", escape (r->lhs->symbol->tag));
+        {
+          obstack_backslash (oout, r->lhs->symbol->tag);
+          obstack_printf (oout, ": ");
+        }
       previous_lhs = r->lhs;
 
       for (item_number const *sp = r->rhs; sp < sp1; sp++)
-        obstack_printf (oout, "%s ", escape (symbols[*sp]->tag));
+        {
+          obstack_backslash (oout, symbols[*sp]->tag);
+          obstack_1grow (oout, ' ');
+        }
 
-      obstack_1grow (oout, '.');
+      obstack_sgrow (oout, "•");
 
       if (0 <= *r->rhs)
         for (item_number const *sp = sp1; 0 <= *sp; ++sp)
-          obstack_printf (oout, " %s", escape (symbols[*sp]->tag));
+          {
+            obstack_1grow (oout, ' ');
+            obstack_backslash (oout, symbols[*sp]->tag);
+          }
       else
-        obstack_printf (oout, " %%empty");
+        obstack_sgrow (oout, " %empty");
 
       /* Experimental feature: display the lookahead tokens. */
-      if (report_flag & report_lookahead_tokens
+      if (report_flag & report_lookaheads
           && item_number_is_rule_number (*sp1))
         {
           /* Find the reduction we are handling.  */
@@ -95,16 +104,16 @@ print_core (struct obstack *oout, state *s)
           int redno = state_reduction_find (s, r);
 
           /* Print them if there are.  */
-          if (reds->lookahead_tokens && redno != -1)
+          if (reds->lookaheads && redno != -1)
             {
               bitset_iterator biter;
               int k;
               char const *sep = "";
               obstack_sgrow (oout, "  [");
-              BITSET_FOR_EACH (biter, reds->lookahead_tokens[redno], k, 0)
+              BITSET_FOR_EACH (biter, reds->lookaheads[redno], k, 0)
                 {
                   obstack_sgrow (oout, sep);
-                  obstack_sgrow (oout, escape (symbols[k]->tag));
+                  obstack_backslash (oout, symbols[k]->tag);
                   sep = ", ";
                 }
               obstack_1grow (oout, ']');

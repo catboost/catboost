@@ -1,5 +1,7 @@
 #include "notification_handle.h"
 
+#include <library/cpp/yt/exception/exception.h>
+
 #include <library/cpp/yt/system/handle_eintr.h>
 
 #include <library/cpp/yt/assert/assert.h>
@@ -29,7 +31,9 @@ TNotificationHandle::TNotificationHandle(bool blocking)
         eventfd,
         0,
         EFD_CLOEXEC | (blocking ? 0 : EFD_NONBLOCK));
-    YT_VERIFY(EventFD_ >= 0);
+    if (EventFD_ < 0) {
+        throw TSimpleException("Error creating notification handle");
+    }
 #elif defined(_win_)
     TPipeHandle::Pipe(Reader_, Writer_, EOpenModeFlag::CloseOnExec);
     if (!blocking) {

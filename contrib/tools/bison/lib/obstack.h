@@ -153,7 +153,7 @@
 
 /* Not the same as _Noreturn, since it also works with function pointers.  */
 #ifndef __attribute_noreturn__
-# if 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || 0x5110 <= __SUNPRO_C
+# if 2 < __GNUC__ + (8 <= __GNUC_MINOR__) || defined __clang__ || 0x5110 <= __SUNPRO_C
 #  define __attribute_noreturn__ __attribute__ ((__noreturn__))
 # else
 #  define __attribute_noreturn__
@@ -283,8 +283,9 @@ extern int obstack_exit_failure;
 
 #define obstack_memory_used(h) _obstack_memory_used (h)
 
-#if defined __GNUC__
-# if !defined __GNUC_MINOR__ || __GNUC__ * 1000 + __GNUC_MINOR__ < 2008
+#if defined __GNUC__ || defined __clang__
+# if !(defined __GNUC_MINOR__ && __GNUC__ * 1000 + __GNUC_MINOR__ >= 2008 \
+       || defined __clang__)
 #  define __extension__
 # endif
 

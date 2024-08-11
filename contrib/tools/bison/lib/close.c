@@ -28,7 +28,8 @@
 
 #undef close
 
-#if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+#if defined _WIN32 && !defined __CYGWIN__
+# if HAVE_MSVC_INVALID_PARAMETER_HANDLER
 static int
 close_nothrow (int fd)
 {
@@ -36,7 +37,7 @@ close_nothrow (int fd)
 
   TRY_MSVC_INVAL
     {
-      result = close (fd);
+      result = _close (fd);
     }
   CATCH_MSVC_INVAL
     {
@@ -47,6 +48,9 @@ close_nothrow (int fd)
 
   return result;
 }
+# else
+#  define close_nothrow _close
+# endif
 #else
 # define close_nothrow close
 #endif

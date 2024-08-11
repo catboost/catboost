@@ -34,7 +34,6 @@ extern "C" {
 #endif
 
 #include "arg-nonnull.h"
-#include "verify.h"
 
 /* Inverse resolution of timespec timestamps (in units per second),
    and log base 10 of the inverse resolution.  */
@@ -59,46 +58,12 @@ make_timespec (time_t s, long int ns)
   return r;
 }
 
-/* Return negative, zero, positive if A < B, A == B, A > B, respectively.
-
-   For each timestamp T, this code assumes that either:
-
-     * T.tv_nsec is in the range 0..999999999; or
-     * T.tv_sec corresponds to a valid leap second on a host that supports
-       leap seconds, and T.tv_nsec is in the range 1000000000..1999999999; or
-     * T.tv_sec is the minimum time_t value and T.tv_nsec is -1; or
-       T.tv_sec is the maximum time_t value and T.tv_nsec is 2000000000.
-       This allows for special struct timespec values that are less or
-       greater than all possible valid timestamps.
-
-   In all these cases, it is safe to subtract two tv_nsec values and
-   convert the result to integer without worrying about overflow on
-   any platform of interest to the GNU project, since all such
-   platforms have 32-bit int or wider.
-
-   Replacing "a.tv_nsec - b.tv_nsec" with something like
-   "a.tv_nsec < b.tv_nsec ? -1 : a.tv_nsec > b.tv_nsec" would cause
-   this function to work in some cases where the above assumption is
-   violated, but not in all cases (e.g., a.tv_sec==1, a.tv_nsec==-2,
-   b.tv_sec==0, b.tv_nsec==999999999) and is arguably not worth the
-   extra instructions.  Using a subtraction has the advantage of
-   detecting some invalid cases on platforms that detect integer
-   overflow.  */
+/* Return negative, zero, positive if A < B, A == B, A > B, respectively.  */
 
 _GL_TIMESPEC_INLINE int _GL_ATTRIBUTE_PURE
 timespec_cmp (struct timespec a, struct timespec b)
 {
-  if (a.tv_sec < b.tv_sec)
-    return -1;
-  if (a.tv_sec > b.tv_sec)
-    return 1;
-
-  /* Pacify gcc -Wstrict-overflow (bleeding-edge circa 2017-10-02).  See:
-     https://lists.gnu.org/r/bug-gnulib/2017-10/msg00006.html  */
-  assume (-1 <= a.tv_nsec && a.tv_nsec <= 2 * TIMESPEC_HZ);
-  assume (-1 <= b.tv_nsec && b.tv_nsec <= 2 * TIMESPEC_HZ);
-
-  return a.tv_nsec - b.tv_nsec;
+  return 2 * _GL_CMP (a.tv_sec, b.tv_sec) + _GL_CMP (a.tv_nsec, b.tv_nsec);
 }
 
 /* Return -1, 0, 1, depending on the sign of A.  A.tv_nsec must be
@@ -106,7 +71,7 @@ timespec_cmp (struct timespec a, struct timespec b)
 _GL_TIMESPEC_INLINE int _GL_ATTRIBUTE_PURE
 timespec_sign (struct timespec a)
 {
-  return a.tv_sec < 0 ? -1 : a.tv_sec || a.tv_nsec;
+  return _GL_CMP (a.tv_sec, 0) + (!a.tv_sec & !!a.tv_nsec);
 }
 
 struct timespec timespec_add (struct timespec, struct timespec)

@@ -25,6 +25,10 @@
 #include <errno.h>
 #include <stdlib.h>
 
+/* Don't assume that UNICODE is not defined.  */
+#undef CreateEvent
+#define CreateEvent CreateEventA
+
 /* In this file, the waitqueues are implemented as circular arrays.  */
 #define glwthread_waitqueue_t glwthread_carray_waitqueue_t
 

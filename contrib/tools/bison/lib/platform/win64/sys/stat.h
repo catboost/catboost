@@ -943,7 +943,7 @@ _GL_WARN_ON_USE (mknodat, "mknodat is not portable - "
 #endif
 
 
-#if 1
+#if 0
 # if 1
 /* We can't use the object-like #define stat rpl_stat, because of
    struct stat.  This means that rpl_stat will not be used if the user

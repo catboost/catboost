@@ -1,6 +1,6 @@
 /* Allocate input grammar variables for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 2001-2003, 2005-2015, 2018-2020 Free
+   Copyright (C) 1984, 1986, 1989, 2001-2003, 2005-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,13 +16,14 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
 
 #include "complain.h"
 #include "getargs.h"
+#include "glyphs.h"
 #include "gram.h"
 #include "print-xml.h"
 #include "reader.h"
@@ -40,24 +41,13 @@ rule_number nrules = 0;
 symbol **symbols = NULL;
 int nsyms = 0;
 int ntokens = 1;
-int nvars = 0;
+int nnterms = 0;
 
 symbol_number *token_translations = NULL;
 
-int max_user_token_number = 256;
+int max_code = 256;
 
 int required_version = 0;
-
-rule const *
-item_rule (item_number const *item)
-{
-  item_number const *sp = item;
-  while (0 <= *sp)
-    ++sp;
-  rule_number r = item_number_as_rule_number (*sp);
-  return &rules[r];
-}
-
 
 void
 item_print (item_number *item, rule const *previous_rule, FILE *out)
@@ -67,7 +57,7 @@ item_print (item_number *item, rule const *previous_rule, FILE *out)
 
   for (item_number *sp = r->rhs; sp < item; sp++)
     fprintf (out, " %s", symbols[*sp]->tag);
-  fputs (" .", out);
+  fprintf (out, " %s", dot);
   if (0 <= *r->rhs)
     for (item_number *sp = item; 0 <= *sp; ++sp)
       fprintf (out, " %s", symbols[*sp]->tag);
@@ -202,10 +192,10 @@ grammar_rules_partial_print (FILE *out, const char *title,
       if (first)
         fprintf (out, "%s\n\n", title);
       else if (previous_rule && previous_rule->lhs != rules[r].lhs)
-        fputc ('\n', out);
+        putc ('\n', out);
       first = false;
       rule_print (&rules[r], previous_rule, out);
-      fputc ('\n', out);
+      putc ('\n', out);
       previous_rule = &rules[r];
     }
   if (!first)
@@ -251,15 +241,25 @@ grammar_rules_print_xml (FILE *out, int level)
    xml_puts (out, level + 1, "<rules/>");
 }
 
+static void
+section (FILE *out, const char *s)
+{
+  fprintf (out, "%s\n", s);
+  for (int i = strlen (s); 0 < i; --i)
+    putc ('-', out);
+  putc ('\n', out);
+  putc ('\n', out);
+}
+
 void
 grammar_dump (FILE *out, const char *title)
 {
   fprintf (out, "%s\n\n", title);
   fprintf (out,
-           "ntokens = %d, nvars = %d, nsyms = %d, nrules = %d, nritems = %d\n\n",
-           ntokens, nvars, nsyms, nrules, nritems);
+           "ntokens = %d, nnterms = %d, nsyms = %d, nrules = %d, nritems = %d\n\n",
+           ntokens, nnterms, nsyms, nrules, nritems);
 
-  fprintf (out, "Tokens\n------\n\n");
+  section (out, "Tokens");
   {
     fprintf (out, "Value  Sprec  Sassoc  Tag\n");
 
@@ -271,7 +271,7 @@ grammar_dump (FILE *out, const char *title)
     fprintf (out, "\n\n");
   }
 
-  fprintf (out, "Non terminals\n-------------\n\n");
+  section (out, "Nonterminals");
   {
     fprintf (out, "Value  Tag\n");
 
@@ -281,7 +281,7 @@ grammar_dump (FILE *out, const char *title)
     fprintf (out, "\n\n");
   }
 
-  fprintf (out, "Rules\n-----\n\n");
+  section (out, "Rules");
   {
     fprintf (out,
              "Num (Prec, Assoc, Useful, UselessChain) Lhs"
@@ -303,17 +303,17 @@ grammar_dump (FILE *out, const char *title)
         /* Dumped the RHS. */
         for (item_number *rhsp = rule_i->rhs; 0 <= *rhsp; ++rhsp)
           fprintf (out, " %3d", *rhsp);
-        fputc ('\n', out);
+        putc ('\n', out);
       }
   }
   fprintf (out, "\n\n");
 
-  fprintf (out, "Rules interpreted\n-----------------\n\n");
+  section (out, "Rules interpreted");
   for (rule_number r = 0; r < nrules + nuseless_productions; ++r)
     {
       fprintf (out, "%-5d  %s:", r, rules[r].lhs->symbol->tag);
       rule_rhs_print (&rules[r], out);
-      fputc ('\n', out);
+      putc ('\n', out);
     }
   fprintf (out, "\n\n");
 }

@@ -1,6 +1,6 @@
 /* Parse command line arguments for bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2020 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef GETARGS_H_
 # define GETARGS_H_
@@ -77,8 +77,9 @@ enum report
     report_none             = 0,
     report_states           = 1 << 0,
     report_itemsets         = 1 << 1,
-    report_lookahead_tokens = 1 << 2,
+    report_lookaheads       = 1 << 2,
     report_solved_conflicts = 1 << 3,
+    report_cex              = 1 << 4,
     report_all              = ~0
   };
 /** What appears in the *.output file.  */
@@ -106,6 +107,7 @@ enum trace
     trace_ielr      = 1 << 13, /**< IELR conversion. */
     trace_closure   = 1 << 14, /**< Input/output of closure(). */
     trace_locations = 1 << 15, /**< Full display of locations. */
+    trace_cex       = 1 << 16, /**< Counterexample generation */
     trace_all       = ~0       /**< All of the above.  */
   };
 /** What debug items bison displays during its run.  */

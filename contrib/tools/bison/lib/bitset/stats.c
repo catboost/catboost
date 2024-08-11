@@ -245,7 +245,7 @@ bitset_stats_read (const char *file_name)
   if (!file_name)
     file_name = BITSET_STATS_FILE;
 
-  FILE *file = fopen (file_name, "r");
+  FILE *file = fopen (file_name, "re");
   if (file)
     {
       if (fread (&bitset_stats_info_data, sizeof (bitset_stats_info_data),
@@ -273,7 +273,7 @@ bitset_stats_write (const char *file_name)
   if (!file_name)
     file_name = BITSET_STATS_FILE;
 
-  FILE *file = fopen (file_name, "w");
+  FILE *file = fopen (file_name, "we");
   if (file)
     {
       if (fwrite (&bitset_stats_info_data, sizeof (bitset_stats_info_data),

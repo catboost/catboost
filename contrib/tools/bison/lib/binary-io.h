@@ -64,7 +64,7 @@ __gl_setmode (int fd _GL_UNUSED, int mode _GL_UNUSED)
 /* Set FD's mode to MODE, which should be either O_TEXT or O_BINARY.
    Return the old mode if successful, -1 (setting errno) on failure.
    Ordinarily this function would be called 'setmode', since that is
-   its name on MS-Windows, but it is called 'set_binary_mode' here
+   its old name on MS-Windows, but it is called 'set_binary_mode' here
    to avoid colliding with a BSD function of another name.  */
 
 #if defined __DJGPP__ || defined __EMX__

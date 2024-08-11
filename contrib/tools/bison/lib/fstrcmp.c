@@ -46,6 +46,7 @@
   ptrdiff_t edit_count;
 #define NOTE_DELETE(ctxt, xoff) ctxt->edit_count++
 #define NOTE_INSERT(ctxt, yoff) ctxt->edit_count++
+#define NOTE_ORDERED false
 #define EARLY_ABORT(ctxt) ctxt->edit_count > 0
 /* We don't need USE_HEURISTIC, since it is unlikely in typical uses of
    fstrcmp().  */

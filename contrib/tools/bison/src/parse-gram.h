@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.6.4.  */
+/* A Bison parser, made by GNU Bison 3.7.6.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -57,7 +57,7 @@ extern int gram_debug;
 
   #include "symlist.h"
   #include "symtab.h"
-#line 245 "src/parse-gram.y"
+#line 269 "src/parse-gram.y"
 
   typedef enum
   {
@@ -66,7 +66,7 @@ extern int gram_debug;
     param_parse  = 1 << 1,
     param_both   = param_lex | param_parse
   } param_type;
-#line 710 "src/parse-gram.y"
+#line 730 "src/parse-gram.y"
 
   #include "muscle-tab.h"
   typedef struct
@@ -127,7 +127,7 @@ extern int gram_debug;
     BRACED_CODE = 41,              /* "{...}"  */
     BRACED_PREDICATE = 42,         /* "%?{...}"  */
     BRACKETED_ID = 43,             /* "[identifier]"  */
-    CHAR = 44,                     /* "character literal"  */
+    CHAR_LITERAL = 44,             /* "character literal"  */
     COLON = 45,                    /* ":"  */
     EPILOGUE = 46,                 /* "epilogue"  */
     EQUAL = 47,                    /* "="  */
@@ -140,7 +140,7 @@ extern int gram_debug;
     TAG = 54,                      /* "<tag>"  */
     TAG_ANY = 55,                  /* "<*>"  */
     TAG_NONE = 56,                 /* "<>"  */
-    INT = 57,                      /* "integer literal"  */
+    INT_LITERAL = 57,              /* "integer literal"  */
     PERCENT_PARAM = 58,            /* "%param"  */
     PERCENT_UNION = 59,            /* "%union"  */
     PERCENT_EMPTY = 60             /* "%empty"  */
@@ -160,7 +160,7 @@ union GRAM_STYPE
   char* EPILOGUE;                          /* "epilogue"  */
   char* PROLOGUE;                          /* "%{...%}"  */
   code_props_type code_props_type;         /* code_props_type  */
-  int INT;                                 /* "integer literal"  */
+  int INT_LITERAL;                         /* "integer literal"  */
   int yykind_82;                           /* int.opt  */
   named_ref* yykind_95;                    /* named_ref.opt  */
   param_type PERCENT_PARAM;                /* "%param"  */
@@ -192,7 +192,7 @@ union GRAM_STYPE
   uniqstr yykind_74;                       /* tag.opt  */
   uniqstr tag;                             /* tag  */
   uniqstr variable;                        /* variable  */
-  unsigned char CHAR;                      /* "character literal"  */
+  unsigned char CHAR_LITERAL;              /* "character literal"  */
   value_type value;                        /* value  */
 
 #line 199 "src/parse-gram.h"
@@ -220,5 +220,14 @@ struct GRAM_LTYPE
 
 
 int gram_parse (void);
+/* "%code provides" blocks.  */
+#line 27 "src/parse-gram.y"
+
+  /* Initialize unquote.  */
+  void parser_init (void);
+  /* Deallocate storage for unquote.  */
+  void parser_free (void);
+
+#line 232 "src/parse-gram.h"
 
 #endif /* !YY_GRAM_SRC_PARSE_GRAM_H_INCLUDED  */

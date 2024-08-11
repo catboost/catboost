@@ -700,16 +700,15 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static const flex_int16_t yy_accept[72] =
+static const flex_int16_t yy_accept[70] =
     {   0,
         0,    0,    0,    0,    0,    0,   26,   14,   13,    1,
        12,   15,   22,   24,   23,   23,   14,    1,   12,    6,
        12,    5,    2,   12,   12,   12,    3,    4,   15,   22,
-       20,   22,   19,   21,   16,   17,   18,   12,   12,   12,
-       12,   12,    0,   12,   12,   12,   12,   12,   12,   12,
+       20,   19,   21,   16,   17,   18,   12,   12,   12,   12,
        12,   12,   12,   12,   12,   12,   12,   12,   12,   12,
-        8,    7,   12,   12,   12,   11,   12,   12,    9,   10,
-        0
+       12,   12,   12,   12,   12,   12,   12,   12,    8,    7,
+       12,   12,   12,   11,   12,   12,    9,   10,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -751,66 +750,66 @@ static const YY_CHAR yy_meta[25] =
         1,    1,    1,    1
     } ;
 
-static const flex_int16_t yy_base[79] =
+static const flex_int16_t yy_base[77] =
     {   0,
-        0,    2,   68,   67,    9,   12,   74,    0,  109,   69,
-       14,    0,   36,  109,  109,  109,    0,   68,   58,  109,
-       17,  109,  109,   62,   52,   13,  109,  109,    0,  109,
-      109,   26,  109,  109,  109,  109,  109,   49,   52,   53,
-       51,   43,   30,   50,   39,   42,   39,   36,   37,   38,
-       40,   39,   28,   40,   39,   39,   38,   24,   26,   22,
-      109,  109,   25,   15,    6,  109,    3,    1,  109,  109,
-      109,   82,   86,   90,   94,   97,  101,  104
+        0,    2,   63,   62,    9,   12,   69,    0,  109,   64,
+       14,    0,   36,  109,  109,  109,    0,   63,   58,  109,
+       17,  109,  109,   56,   46,   13,  109,  109,    0,  109,
+      109,  109,  109,  109,  109,  109,   42,   42,   43,   42,
+       34,   42,   34,   37,   34,   31,   32,   33,   35,   34,
+       23,   33,   31,   28,   26,   12,   15,   16,  109,  109,
+       23,   15,    6,  109,    3,    1,  109,  109,  109,   82,
+       86,   90,   94,   97,  101,  104
     } ;
 
-static const flex_int16_t yy_def[79] =
+static const flex_int16_t yy_def[77] =
     {   0,
-       72,   72,   73,   73,   74,   74,   71,   75,   71,   75,
-       76,   77,   78,   71,   71,   71,   75,   75,   76,   71,
-       19,   71,   71,   19,   19,   19,   71,   71,   77,   71,
-       71,   71,   71,   71,   71,   71,   71,   19,   19,   19,
-       19,   19,   71,   19,   19,   19,   19,   19,   19,   19,
+       70,   70,   71,   71,   72,   72,   69,   73,   69,   73,
+       74,   75,   76,   69,   69,   69,   73,   73,   74,   69,
+       19,   69,   69,   19,   19,   19,   69,   69,   75,   69,
+       69,   69,   69,   69,   69,   69,   19,   19,   19,   19,
        19,   19,   19,   19,   19,   19,   19,   19,   19,   19,
-       71,   71,   19,   19,   19,   71,   19,   19,   71,   71,
-        0,   71,   71,   71,   71,   71,   71,   71
+       19,   19,   19,   19,   19,   19,   19,   19,   69,   69,
+       19,   19,   19,   69,   19,   19,   69,   69,    0,   69,
+       69,   69,   69,   69,   69,   69
     } ;
 
 static const flex_int16_t yy_nxt[134] =
     {   0,
-       71,   71,    9,   10,    9,   10,   70,   11,   69,   11,
+       69,   69,    9,   10,    9,   10,   68,   11,   67,   11,
        15,   16,   15,   15,   16,   15,   20,   21,   22,   20,
-       21,   23,   68,   24,   25,   40,   67,   41,   31,   43,
-       66,   26,   31,   43,   42,   65,   27,   28,   31,   32,
-       33,   64,   34,   35,   63,   62,   61,   60,   59,   58,
-       57,   56,   55,   54,   53,   52,   51,   50,   36,   37,
-       71,   49,   71,   48,   47,   71,   46,   45,   44,   39,
-       38,   18,   18,   71,   13,   13,   71,   71,   71,   71,
-       71,   71,    8,    8,    8,    8,   12,   12,   12,   12,
-       14,   14,   14,   14,   17,   71,   17,   19,   19,   71,
+       21,   23,   66,   24,   25,   39,   65,   40,   64,   63,
+       62,   26,   61,   60,   41,   59,   27,   28,   31,   58,
+       32,   57,   33,   34,   56,   55,   54,   53,   52,   51,
+       50,   49,   48,   47,   46,   45,   44,   43,   35,   36,
+       69,   42,   69,   38,   37,   69,   18,   18,   69,   13,
+       13,   69,   69,   69,   69,   69,   69,   69,   69,   69,
+       69,   69,    8,    8,    8,    8,   12,   12,   12,   12,
+       14,   14,   14,   14,   17,   69,   17,   19,   19,   69,
 
-       19,   29,   29,   29,   30,   30,   30,   30,    7,   71,
-       71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
-       71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
-       71,   71,   71
+       19,   29,   29,   29,   30,   30,   30,   30,    7,   69,
+       69,   69,   69,   69,   69,   69,   69,   69,   69,   69,
+       69,   69,   69,   69,   69,   69,   69,   69,   69,   69,
+       69,   69,   69
     } ;
 
 static const flex_int16_t yy_chk[134] =
     {   0,
-        0,    0,    1,    1,    2,    2,   68,    1,   67,    2,
+        0,    0,    1,    1,    2,    2,   66,    1,   65,    2,
         5,    5,    5,    6,    6,    6,   11,   11,   11,   21,
-       21,   11,   65,   11,   11,   26,   64,   26,   32,   32,
-       63,   11,   43,   43,   26,   60,   11,   11,   13,   13,
-       13,   59,   13,   13,   58,   57,   56,   55,   54,   53,
-       52,   51,   50,   49,   48,   47,   46,   45,   13,   13,
-       19,   44,   19,   42,   41,   19,   40,   39,   38,   25,
-       24,   18,   10,    7,    4,    3,    0,    0,    0,    0,
-       19,   19,   72,   72,   72,   72,   73,   73,   73,   73,
-       74,   74,   74,   74,   75,    0,   75,   76,   76,    0,
+       21,   11,   63,   11,   11,   26,   62,   26,   61,   58,
+       57,   11,   56,   55,   26,   54,   11,   11,   13,   53,
+       13,   52,   13,   13,   51,   50,   49,   48,   47,   46,
+       45,   44,   43,   42,   41,   40,   39,   38,   13,   13,
+       19,   37,   19,   25,   24,   19,   18,   10,    7,    4,
+        3,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+       19,   19,   70,   70,   70,   70,   71,   71,   71,   71,
+       72,   72,   72,   72,   73,    0,   73,   74,   74,    0,
 
-       76,   77,   77,   77,   78,   78,   78,   78,   71,   71,
-       71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
-       71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
-       71,   71,   71
+       74,   75,   75,   75,   76,   76,   76,   76,   69,   69,
+       69,   69,   69,   69,   69,   69,   69,   69,   69,   69,
+       69,   69,   69,   69,   69,   69,   69,   69,   69,   69,
+       69,   69,   69
     } ;
 
 static yy_state_type yy_last_accepting_state;
@@ -821,9 +820,9 @@ int yy_flex_debug = 1;
 
 static const flex_int16_t yy_rule_linenum[25] =
     {   0,
-       74,   75,   76,   77,   78,   79,   81,   82,   84,   85,
-       86,   89,   90,   91,  104,  106,  107,  108,  109,  110,
-      112,  131,  136,  137
+       75,   76,   77,   78,   79,   80,   82,   83,   85,   86,
+       87,   90,   91,   92,  105,  107,  108,  109,  110,  111,
+      113,  132,  137,  138
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -837,7 +836,7 @@ char *yytext;
 #line 1 "src/scan-skel.l"
 /* Scan Bison Skeletons.                                       -*- C -*-
 
-   Copyright (C) 2001-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2015, 2018-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -852,7 +851,7 @@ char *yytext;
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 #define YY_NO_INPUT 1
 #line 24 "src/scan-skel.l"
 #include <dirname.h>
@@ -860,16 +859,16 @@ char *yytext;
 #include <path-join.h>
 #include <quotearg.h>
 
-#include <src/complain.h>
-#include <src/files.h>
-#include <src/getargs.h>
-#include <src/scan-skel.h>
+#include "src/complain.h"
+#include "src/files.h"
+#include "src/getargs.h"
+#include "src/scan-skel.h"
 
 #define FLEX_PREFIX(Id) skel_ ## Id
-#include <src/flex-scanner.h>
+#include "src/flex-scanner.h"
 
 /* Work around a bug in flex 2.5.31.  See Debian bug 333231
-   <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=333231>.  */
+   <https://bugs.debian.org/333231>.  */
 #undef skel_wrap
 #define skel_wrap() 1
 
@@ -884,6 +883,7 @@ static void at_output (int argc, char *argv[], char **name, int *lineno);
 static void fail_for_at_directive_too_many_args (char const *at_directive_name);
 static void fail_for_at_directive_too_few_args (char const *at_directive_name);
 static void fail_for_invalid_at (char const *at);
+static void output_mapped_file (char const *name);
 #line 887 "src/scan-skel.c"
 
 #line 889 "src/scan-skel.c"
@@ -1166,11 +1166,11 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 58 "src/scan-skel.l"
+#line 59 "src/scan-skel.l"
 
 
 
-#line 62 "src/scan-skel.l"
+#line 63 "src/scan-skel.l"
   int out_lineno PACIFY_CC (= 0);
   char *out_name = NULL;
 
@@ -1212,13 +1212,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 72 )
+				if ( yy_current_state >= 70 )
 					yy_c = yy_meta[yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_current_state != 71 );
+		while ( yy_current_state != 69 );
 		yy_cp = (yy_last_accepting_cpos);
 		yy_current_state = (yy_last_accepting_state);
 
@@ -1261,79 +1261,79 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 74 "src/scan-skel.l"
+#line 75 "src/scan-skel.l"
 continue;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 75 "src/scan-skel.l"
+#line 76 "src/scan-skel.l"
 fputc ('@', yyout);
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 76 "src/scan-skel.l"
+#line 77 "src/scan-skel.l"
 fputc ('[', yyout);
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 77 "src/scan-skel.l"
+#line 78 "src/scan-skel.l"
 fputc (']', yyout);
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 78 "src/scan-skel.l"
+#line 79 "src/scan-skel.l"
 continue;  /* Used by b4_cat in ../data/bison.m4.  */
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 79 "src/scan-skel.l"
+#line 80 "src/scan-skel.l"
 continue;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 81 "src/scan-skel.l"
+#line 82 "src/scan-skel.l"
 fprintf (yyout, "%d", out_lineno + 1);
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 82 "src/scan-skel.l"
-fputs (quotearg_style (c_quoting_style, out_name), yyout);
+#line 83 "src/scan-skel.l"
+output_mapped_file (out_name);
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 84 "src/scan-skel.l"
+#line 85 "src/scan-skel.l"
 at_init (&argc, argv, &at_ptr, &at_basename);
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 85 "src/scan-skel.l"
+#line 86 "src/scan-skel.l"
 at_init (&argc, argv, &at_ptr, &at_complain);
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 86 "src/scan-skel.l"
+#line 87 "src/scan-skel.l"
 at_init (&argc, argv, &at_ptr, &at_output);
 	YY_BREAK
 /* This pattern must not match more than the previous @ patterns. */
 case 12:
 YY_RULE_SETUP
-#line 89 "src/scan-skel.l"
+#line 90 "src/scan-skel.l"
 fail_for_invalid_at (yytext);
 	YY_BREAK
 case 13:
 /* rule 13 can match eol */
 YY_RULE_SETUP
-#line 90 "src/scan-skel.l"
+#line 91 "src/scan-skel.l"
 out_lineno++; ECHO;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 91 "src/scan-skel.l"
+#line 92 "src/scan-skel.l"
 ECHO;
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 93 "src/scan-skel.l"
+#line 94 "src/scan-skel.l"
 {
   if (out_name)
     {
@@ -1348,38 +1348,38 @@ case YY_STATE_EOF(INITIAL):
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 104 "src/scan-skel.l"
-STRING_GROW;
+#line 105 "src/scan-skel.l"
+STRING_GROW ();
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 106 "src/scan-skel.l"
-obstack_1grow (&obstack_for_string, '@');
+#line 107 "src/scan-skel.l"
+STRING_1GROW ('@');
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 107 "src/scan-skel.l"
-obstack_1grow (&obstack_for_string, '[');
+#line 108 "src/scan-skel.l"
+STRING_1GROW ('[');
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 108 "src/scan-skel.l"
-obstack_1grow (&obstack_for_string, ']');
+#line 109 "src/scan-skel.l"
+STRING_1GROW (']');
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 109 "src/scan-skel.l"
+#line 110 "src/scan-skel.l"
 continue; /* For starting an argument that begins with whitespace. */
 	YY_BREAK
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 110 "src/scan-skel.l"
+#line 111 "src/scan-skel.l"
 continue;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 112 "src/scan-skel.l"
+#line 113 "src/scan-skel.l"
 {
     if (argc >= ARGC_MAX)
       fail_for_at_directive_too_many_args (argv[0]);
@@ -1401,7 +1401,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 131 "src/scan-skel.l"
+#line 132 "src/scan-skel.l"
 fail_for_invalid_at (yytext);
 	YY_BREAK
 
@@ -1410,12 +1410,12 @@ fail_for_invalid_at (yytext);
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 136 "src/scan-skel.l"
+#line 137 "src/scan-skel.l"
 continue;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 137 "src/scan-skel.l"
+#line 138 "src/scan-skel.l"
 yyless (0); BEGIN SC_AT_DIRECTIVE_ARGS;
 	YY_BREAK
 
@@ -1423,13 +1423,13 @@ yyless (0); BEGIN SC_AT_DIRECTIVE_ARGS;
 
 case YY_STATE_EOF(SC_AT_DIRECTIVE_ARGS):
 case YY_STATE_EOF(SC_AT_DIRECTIVE_SKIP_WS):
-#line 142 "src/scan-skel.l"
+#line 143 "src/scan-skel.l"
 complain (NULL, fatal, _("unclosed %s directive in skeleton"), argv[0]);
 	YY_BREAK
 
 case 25:
 YY_RULE_SETUP
-#line 145 "src/scan-skel.l"
+#line 146 "src/scan-skel.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
 #line 1435 "src/scan-skel.c"
@@ -1751,7 +1751,7 @@ static int yy_get_next_buffer (void)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 72 )
+			if ( yy_current_state >= 70 )
 				yy_c = yy_meta[yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
@@ -1784,11 +1784,11 @@ static int yy_get_next_buffer (void)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 72 )
+		if ( yy_current_state >= 70 )
 			yy_c = yy_meta[yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
-	yy_is_jam = (yy_current_state == 71);
+	yy_is_jam = (yy_current_state == 69);
 
 		return yy_is_jam ? 0 : yy_current_state;
 }
@@ -2537,7 +2537,7 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 145 "src/scan-skel.l"
+#line 146 "src/scan-skel.l"
 
 
 static void
@@ -2661,5 +2661,13 @@ static void
 fail_for_invalid_at (char const *at)
 {
   complain (NULL, fatal, "invalid @ in skeleton: %s", at);
+}
+
+static void
+output_mapped_file (char const *name)
+{
+  char *f = map_file_name (name);
+  fputs (quotearg_style (c_quoting_style, f), yyout);
+  free (f);
 }
 

@@ -1,6 +1,6 @@
 /* A simple, memory-efficient bitset implementation.
 
-   Copyright (C) 2009-2015, 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2009-2015, 2018-2021 Free Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
 
@@ -15,7 +15,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef SBITSET_H_
 # define SBITSET_H_
@@ -81,6 +81,8 @@ void Sbitset__fprint (Sbitset self, Sbitset__Index nbits, FILE *file);
       *ptr_self = *ptr_other1 | *ptr_other2;                            \
   } while (0)
 
+/* ATTENTION: there are *two* loops here, "break" and "continue" will
+   not apply to the whole loop, just the inner one.  */
 # define SBITSET__FOR_EACH(SELF, NBITS, ITER, INDEX)                    \
   for ((ITER) = (SELF); (ITER) < (SELF) + Sbitset__nbytes (NBITS); ++(ITER)) \
     if (*(ITER) != 0)                                                   \

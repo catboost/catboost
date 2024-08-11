@@ -25,28 +25,26 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#if HAVE_DUP2
+#undef dup2
 
-# undef dup2
-
-# if defined _WIN32 && ! defined __CYGWIN__
+#if defined _WIN32 && ! defined __CYGWIN__
 
 /* Get declarations of the native Windows API functions.  */
-#  define WIN32_LEAN_AND_MEAN
-#  include <windows.h>
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
 
-#  if HAVE_MSVC_INVALID_PARAMETER_HANDLER
-#   include "msvc-inval.h"
-#  endif
+# if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+#  include "msvc-inval.h"
+# endif
 
 /* Get _get_osfhandle.  */
-#  if GNULIB_MSVC_NOTHROW
-#   include "msvc-nothrow.h"
-#  else
-#   include <io.h>
-#  endif
+# if GNULIB_MSVC_NOTHROW
+#  include "msvc-nothrow.h"
+# else
+#  include <io.h>
+# endif
 
-#  if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+# if HAVE_MSVC_INVALID_PARAMETER_HANDLER
 static int
 dup2_nothrow (int fd, int desired_fd)
 {
@@ -54,7 +52,7 @@ dup2_nothrow (int fd, int desired_fd)
 
   TRY_MSVC_INVAL
     {
-      result = dup2 (fd, desired_fd);
+      result = _dup2 (fd, desired_fd);
     }
   CATCH_MSVC_INVAL
     {
@@ -65,9 +63,9 @@ dup2_nothrow (int fd, int desired_fd)
 
   return result;
 }
-#  else
-#   define dup2_nothrow dup2
-#  endif
+# else
+#  define dup2_nothrow _dup2
+# endif
 
 static int
 ms_windows_dup2 (int fd, int desired_fd)
@@ -103,11 +101,11 @@ ms_windows_dup2 (int fd, int desired_fd)
   return result;
 }
 
-#  define dup2 ms_windows_dup2
+# define dup2 ms_windows_dup2
 
-# elif defined __KLIBC__
+#elif defined __KLIBC__
 
-#  error #include <InnoTekLIBC/backend.h>
+# error #include <InnoTekLIBC/backend.h>
 
 static int
 klibc_dup2dirfd (int fd, int desired_fd)
@@ -155,81 +153,37 @@ klibc_dup2 (int fd, int desired_fd)
   return dupfd;
 }
 
-#  define dup2 klibc_dup2
-# endif
+# define dup2 klibc_dup2
+#endif
 
 int
 rpl_dup2 (int fd, int desired_fd)
 {
   int result;
 
-# ifdef F_GETFL
+#ifdef F_GETFL
   /* On Linux kernels 2.6.26-2.6.29, dup2 (fd, fd) returns -EBADF.
      On Cygwin 1.5.x, dup2 (1, 1) returns 0.
      On Cygwin 1.7.17, dup2 (1, -1) dumps core.
      On Cygwin 1.7.25, dup2 (1, 256) can dump core.
      On Haiku, dup2 (fd, fd) mistakenly clears FD_CLOEXEC.  */
-#  if HAVE_SETDTABLESIZE
+# if HAVE_SETDTABLESIZE
   setdtablesize (desired_fd + 1);
-#  endif
+# endif
   if (desired_fd < 0)
     fd = desired_fd;
   if (fd == desired_fd)
     return fcntl (fd, F_GETFL) == -1 ? -1 : fd;
-# endif
+#endif
 
   result = dup2 (fd, desired_fd);
 
   /* Correct an errno value on FreeBSD 6.1 and Cygwin 1.5.x.  */
   if (result == -1 && errno == EMFILE)
     errno = EBADF;
-# if REPLACE_FCHDIR
+#if REPLACE_FCHDIR
   if (fd != desired_fd && result != -1)
     result = _gl_register_dup (fd, result);
-# endif
+#endif
   return result;
 }
-
-#else /* !HAVE_DUP2 */
-
-/* On older platforms, dup2 did not exist.  */
-
-# ifndef F_DUPFD
-static int
-dupfd (int fd, int desired_fd)
-{
-  int duplicated_fd = dup (fd);
-  if (duplicated_fd < 0 || duplicated_fd == desired_fd)
-    return duplicated_fd;
-  else
-    {
-      int r = dupfd (fd, desired_fd);
-      int e = errno;
-      close (duplicated_fd);
-      errno = e;
-      return r;
-    }
-}
-# endif
-
-int
-dup2 (int fd, int desired_fd)
-{
-  int result = fcntl (fd, F_GETFL) < 0 ? -1 : fd;
-  if (result == -1 || fd == desired_fd)
-    return result;
-  close (desired_fd);
-# ifdef F_DUPFD
-  result = fcntl (fd, F_DUPFD, desired_fd);
-#  if REPLACE_FCHDIR
-  if (0 <= result)
-    result = _gl_register_dup (fd, result);
-#  endif
-# else
-  result = dupfd (fd, desired_fd);
-# endif
-  if (result == -1 && (errno == EMFILE || errno == EINVAL))
-    errno = EBADF;
-  return result;
-}
-#endif /* !HAVE_DUP2 */

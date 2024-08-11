@@ -23,12 +23,7 @@
    non-IEEE-754 'long double' values. */
 #define CHECK_PRINTF_SAFE 1
 
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
-   */
-/* #undef CRAY_STACKSEG_END */
-
-/* Define to 1 if using `alloca.c'. */
+/* Define to 1 if using 'alloca.c'. */
 /* #undef C_ALLOCA */
 
 /* Define as the bit index in the word where to find bit 0 of the exponent of
@@ -77,9 +72,6 @@
    and handles trailing slash correctly. */
 #define FUNC_REALPATH_WORKS 1
 
-/* Define if gettimeofday clobbers the localtime buffer. */
-/* #undef GETTIMEOFDAY_CLOBBERS_LOCALTIME */
-
 /* Define this to 'void' or 'struct timezone' to match the system's
    declaration of the second argument to gettimeofday. */
 #define GETTIMEOFDAY_TIMEZONE void
@@ -99,6 +91,10 @@
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module fd-safer-flag shall be considered present. */
 #define GNULIB_FD_SAFER_FLAG 1
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module fopen-gnu shall be considered present. */
+#define GNULIB_FOPEN_GNU 1
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module fopen-safer shall be considered present. */
@@ -343,6 +339,9 @@
 /* Define to 1 when the gnulib module stpcpy should be tested. */
 #define GNULIB_TEST_STPCPY 1
 
+/* Define to 1 when the gnulib module stpncpy should be tested. */
+#define GNULIB_TEST_STPNCPY 1
+
 /* Define to 1 when the gnulib module strchrnul should be tested. */
 /* #undef GNULIB_TEST_STRCHRNUL */
 
@@ -388,6 +387,22 @@
 /* Define to 1 when the gnulib module wcwidth should be tested. */
 #define GNULIB_TEST_WCWIDTH 1
 
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module unistr/u8-mbtoucr shall be considered present. */
+#define GNULIB_UNISTR_U8_MBTOUCR 1
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module unistr/u8-uctomb shall be considered present. */
+#define GNULIB_UNISTR_U8_UCTOMB 1
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module xalloc shall be considered present. */
+#define GNULIB_XALLOC 1
+
+/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
+   whether the gnulib module xalloc-die shall be considered present. */
+#define GNULIB_XALLOC_DIE 1
+
 /* Define if your system defines TIOCGWINSZ in sys/ioctl.h. */
 #define GWINSZ_IN_SYS_IOCTL 1
 
@@ -395,8 +410,7 @@
    may be supplied by this distribution. */
 #define HAVE_ALLOCA 1
 
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
+/* Define to 1 if <alloca.h> works. */
 #define HAVE_ALLOCA_H 1
 
 /* Define if you have an arithmetic hrtime_t type. */
@@ -573,6 +587,10 @@
    don't. */
 #define HAVE_DECL_SNPRINTF 1
 
+/* Define to 1 if you have the declaration of `stpncpy', and to 0 if you
+   don't. */
+#define HAVE_DECL_STPNCPY 1
+
 /* Define to 1 if you have the declaration of `strdup', and to 0 if you don't.
    */
 #define HAVE_DECL_STRDUP 1
@@ -616,9 +634,6 @@
 /* Define to 1 if you have the declaration of `__fpending', and to 0 if you
    don't. */
 #define HAVE_DECL___FPENDING 1
-
-/* Define to 1 if you have the 'dup2' function. */
-#define HAVE_DUP2 1
 
 /* Define if you have the declaration of environ. */
 #define HAVE_ENVIRON_DECL 1
@@ -675,7 +690,15 @@
 #define HAVE_GETTIMEOFDAY 1
 
 /* Define if you have the iconv() function and it works. */
-/* #undef HAVE_ICONV */
+#define HAVE_ICONV 1
+
+/* Define to 1 if you have the <iconv.h> header file. */
+#define HAVE_ICONV_H 1
+
+/* Define to 1 if the compiler supports one of the keywords 'inline',
+   '__inline__', '__inline' and effectively inlines functions marked as such.
+   */
+#define HAVE_INLINE 1
 
 /* Define if you have the 'intmax_t' type in <stdint.h> or <inttypes.h>. */
 #define HAVE_INTMAX_T 1
@@ -760,9 +783,6 @@
 
 /* Define to 1 if <wchar.h> declares mbstate_t. */
 #define HAVE_MBSTATE_T 1
-
-/* Define to 1 if you have the <memory.h> header file. */
-#define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `microuptime' function. */
 /* #undef HAVE_MICROUPTIME */
@@ -862,6 +882,9 @@
 /* Define to 1 if you have the `sched_setscheduler' function. */
 /* #undef HAVE_SCHED_SETSCHEDULER */
 
+/* Define to 1 if you have the <sdkddkver.h> header file. */
+/* #undef HAVE_SDKDDKVER_H */
+
 /* Define to 1 if you have the <search.h> header file. */
 #define HAVE_SEARCH_H 1
 
@@ -915,6 +938,10 @@
    buffer had been large enough. */
 #define HAVE_SNPRINTF_RETVAL_C99 1
 
+/* Define if the string produced by the snprintf function is always NUL
+   terminated. */
+#define HAVE_SNPRINTF_TRUNCATION_C99 1
+
 /* Define to 1 if you have the <spawn.h> header file. */
 #define HAVE_SPAWN_H 1
 
@@ -928,17 +955,20 @@
 /* Define to 1 if you have the <stdio_ext.h> header file. */
 #define HAVE_STDIO_EXT_H 1
 
+/* Define to 1 if you have the <stdio.h> header file. */
+#define HAVE_STDIO_H 1
+
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
 
 /* Define to 1 if you have the `stpcpy' function. */
 #define HAVE_STPCPY 1
 
+/* Define if you have the stpncpy() function and it works. */
+#define HAVE_STPNCPY 1
+
 /* Define to 1 if you have the `strchrnul' function. */
 /* #undef HAVE_STRCHRNUL */
-
-/* Define to 1 if you have the `strdup' function. */
-#define HAVE_STRDUP 1
 
 /* Define to 1 if you have the `strerror_r' function. */
 #define HAVE_STRERROR_R 1
@@ -997,6 +1027,9 @@
 /* Define to 1 if you have the <sys/inttypes.h> header file. */
 /* #undef HAVE_SYS_INTTYPES_H */
 
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#define HAVE_SYS_IOCTL_H 1
+
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #define HAVE_SYS_MMAN_H 1
 
@@ -1005,6 +1038,9 @@
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
 #define HAVE_SYS_RESOURCE_H 1
+
+/* Define to 1 if you have the <sys/single_threaded.h> header file. */
+#define HAVE_SYS_SINGLE_THREADED_H 1
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #define HAVE_SYS_SOCKET_H 1
@@ -1026,6 +1062,9 @@
 
 /* Define to 1 if you have the `tcdrain' function. */
 #define HAVE_TCDRAIN 1
+
+/* Define to 1 if you have the <termios.h> header file. */
+#define HAVE_TERMIOS_H 1
 
 /* Define to 1 if you have the `thrd_create' function. */
 /* #undef HAVE_THRD_CREATE */
@@ -1119,6 +1158,16 @@
 /* Define to 1 if you have the `_set_invalid_parameter_handler' function. */
 /* #undef HAVE__SET_INVALID_PARAMETER_HANDLER */
 
+/* Define to 1 if the compiler supports __builtin_expect,
+   and to 2 if <builtins.h> does.  */
+#define HAVE___BUILTIN_EXPECT 1
+#ifndef HAVE___BUILTIN_EXPECT
+# define __builtin_expect(e, c) (e)
+#elif HAVE___BUILTIN_EXPECT == 2
+# include <builtins.h>
+#endif
+    
+
 /* Define to 1 if you have the `__fseterr' function. */
 /* #undef HAVE___FSETERR */
 
@@ -1128,8 +1177,15 @@
 /* Define to 1 if you have the `__xpg_strerror_r' function. */
 #define HAVE___XPG_STRERROR_R 1
 
+/* Define as const if the declaration of iconv() needs const. */
+#define ICONV_CONST 
+
+/* Define to a symbolic name denoting the flavor of iconv_open()
+   implementation. */
+/* #undef ICONV_FLAVOR */
+
 /* Define to the value of ${prefix}, as a string. */
-#define INSTALLPREFIX "/var/empty/bison-3.6.4"
+#define INSTALLPREFIX "/var/empty/bison-3.7.6"
 
 /* Define as the bit index in the word where to find bit 0 of the exponent of
    'long double'. */
@@ -1190,6 +1246,9 @@
 # define __USE_MINGW_ANSI_STDIO 1
 #endif
 
+
+/* Define to 1 on musl libc. */
+/* #undef MUSL_LIBC */
 
 /* Define to 1 if assertions should be disabled. */
 /* #undef NDEBUG */
@@ -1252,13 +1311,13 @@
 #define PACKAGE_BUGREPORT "bug-bison@gnu.org"
 
 /* The copyright year for this package */
-#define PACKAGE_COPYRIGHT_YEAR 2020
+#define PACKAGE_COPYRIGHT_YEAR 2021
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "GNU Bison"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU Bison 3.6.4"
+#define PACKAGE_STRING "GNU Bison 3.7.6"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "bison"
@@ -1267,10 +1326,7 @@
 #define PACKAGE_URL "https://www.gnu.org/software/bison/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.6.4"
-
-/* Define if <inttypes.h> exists and defines unusable PRI* macros. */
-/* #undef PRI_MACROS_BROKEN */
+#define PACKAGE_VERSION "3.7.6"
 
 /* Define to the type that is the result of default argument promotions of
    type mode_t. */
@@ -1369,7 +1425,9 @@
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
 /* #undef STAT_MACROS_BROKEN */
 
-/* Define to 1 if you have the ANSI C header files. */
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
 #define STDC_HEADERS 1
 
 /* Define to 1 if strerror_r returns char *. */
@@ -1482,7 +1540,7 @@
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "3.6.4"
+#define VERSION "3.7.6"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 /* #undef VOID_UNSETENV */
@@ -1561,7 +1619,7 @@
                 ? 6000000 <= __apple_build_version__ \
                 : 3 < __clang_major__ + (5 <= __clang_minor__))))
    /* _Noreturn works as-is.  */
-# elif _GL_GNUC_PREREQ (2, 8) || 0x5110 <= __SUNPRO_C
+# elif _GL_GNUC_PREREQ (2, 8) || defined __clang__ || 0x5110 <= __SUNPRO_C
 #  define _Noreturn __attribute__ ((__noreturn__))
 # elif 1200 <= (defined _MSC_VER ? _MSC_VER : 0)
 #  define _Noreturn __declspec (noreturn)
@@ -1629,6 +1687,7 @@
 # define _GL_ATTR_cold _GL_GNUC_PREREQ (4, 3)
 # define _GL_ATTR_const _GL_GNUC_PREREQ (2, 95)
 # define _GL_ATTR_deprecated _GL_GNUC_PREREQ (3, 1)
+# define _GL_ATTR_diagnose_if 0
 # define _GL_ATTR_error _GL_GNUC_PREREQ (4, 3)
 # define _GL_ATTR_externally_visible _GL_GNUC_PREREQ (4, 1)
 # define _GL_ATTR_fallthrough _GL_GNUC_PREREQ (7, 0)
@@ -1672,9 +1731,14 @@
 #endif
 
 /* Avoid __attribute__ ((cold)) on MinGW; see thread starting at
-   <https://lists.gnu.org/r/emacs-devel/2019-04/msg01152.html>. */
+   <https://lists.gnu.org/r/emacs-devel/2019-04/msg01152.html>.
+   Also, Oracle Studio 12.6 requires 'cold' not '__cold__'.  */
 #if _GL_HAS_ATTRIBUTE (cold) && !defined __MINGW32__
-# define _GL_ATTRIBUTE_COLD __attribute__ ((__cold__))
+# ifndef __SUNPRO_C
+#  define _GL_ATTRIBUTE_COLD __attribute__ ((__cold__))
+# else
+#  define _GL_ATTRIBUTE_COLD __attribute__ ((cold))
+# endif
 #else
 # define _GL_ATTRIBUTE_COLD
 #endif
@@ -1696,6 +1760,9 @@
 #if _GL_HAS_ATTRIBUTE (error)
 # define _GL_ATTRIBUTE_ERROR(msg) __attribute__ ((__error__ (msg)))
 # define _GL_ATTRIBUTE_WARNING(msg) __attribute__ ((__warning__ (msg)))
+#elif _GL_HAS_ATTRIBUTE (diagnose_if)
+# define _GL_ATTRIBUTE_ERROR(msg) __attribute__ ((__diagnose_if__ (1, msg, "error")))
+# define _GL_ATTRIBUTE_WARNING(msg) __attribute__ ((__diagnose_if__ (1, msg, "warning")))
 #else
 # define _GL_ATTRIBUTE_ERROR(msg)
 # define _GL_ATTRIBUTE_WARNING(msg)
@@ -1728,7 +1795,8 @@
 # define _GL_ATTRIBUTE_LEAF
 #endif
 
-#if _GL_HAS_ATTRIBUTE (may_alias)
+/* Oracle Studio 12.6 mishandles may_alias despite __has_attribute OK.  */
+#if _GL_HAS_ATTRIBUTE (may_alias) && !defined __SUNPRO_C
 # define _GL_ATTRIBUTE_MAY_ALIAS __attribute__ ((__may_alias__))
 #else
 # define _GL_ATTRIBUTE_MAY_ALIAS
@@ -1947,13 +2015,29 @@
 /* Define to a type if <wchar.h> does not define. */
 /* #undef mbstate_t */
 
+/* _GL_CMP (n1, n2) performs a three-valued comparison on n1 vs. n2, where
+   n1 and n2 are expressions without side effects, that evaluate to real
+   numbers (excluding NaN).
+   It returns
+     1  if n1 > n2
+     0  if n1 == n2
+     -1 if n1 < n2
+   The naïve code   (n1 > n2 ? 1 : n1 < n2 ? -1 : 0)  produces a conditional
+   jump with nearly all GCC versions up to GCC 10.
+   This variant     (n1 < n2 ? -1 : n1 > n2)  produces a conditional with many
+   GCC versions up to GCC 9.
+   The better code  (n1 > n2) - (n1 < n2)  from Hacker's Delight § 2-9
+   avoids conditional jumps in all GCC versions >= 3.4.  */
+#define _GL_CMP(n1, n2) (((n1) > (n2)) - ((n1) < (n2)))
+
+
 /* Define to `int' if <sys/types.h> does not define. */
 /* #undef mode_t */
 
 /* Define to the type of st_nlink in struct stat, or a supertype. */
 /* #undef nlink_t */
 
-/* Define to `int' if <sys/types.h> does not define. */
+/* Define as a signed integer type capable of holding a process identifier. */
 /* #undef pid_t */
 
 /* Define as the type of the result of subtracting two pointers, if the system
@@ -1988,4 +2072,5 @@
 /* Define to `int' if <sys/types.h> doesn't define. */
 /* #undef uid_t */
 #undef HAVE_THREADS_H
+#undef HAVE_SYS_SINGLE_THREADED_H
 #define _GL_ATTRIBUTE_FORMAT_PRINTF(...)

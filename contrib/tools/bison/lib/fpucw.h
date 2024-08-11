@@ -61,8 +61,8 @@
                                     'long double' safe operation precision
  */
 
-/* Inline assembler like this works only with GNU C.  */
-#if (defined __i386__ || defined __x86_64__) && defined __GNUC__
+/* Inline assembler like this works only with GNU C and clang.  */
+#if (defined __i386__ || defined __x86_64__) && (defined __GNUC__ || defined __clang__)
 
 typedef unsigned short fpucw_t; /* glibc calls this fpu_control_t */
 

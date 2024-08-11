@@ -1,6 +1,6 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2006, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2000-2002, 2006, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -14,10 +14,12 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef COMPLAIN_H_
 # define COMPLAIN_H_ 1
+
+# include <attribute.h>
 
 # include "location.h"
 
@@ -34,6 +36,8 @@ void end_use_class (const char *style, FILE *out);
 /** Flush \a out.  */
 void flush (FILE *out);
 
+/** Whether there's styling on OUT.  */
+bool is_styled (FILE *out);
 
 /*-------------.
 | --warnings.  |
@@ -44,6 +48,7 @@ typedef enum
   {
     warning_conflicts_rr,
     warning_conflicts_sr,
+    warning_counterexamples,
     warning_dangling_alias,
     warning_deprecated,
     warning_empty_rule,
@@ -104,6 +109,7 @@ typedef enum
 
     Wconflicts_rr     = 1 << warning_conflicts_rr,
     Wconflicts_sr     = 1 << warning_conflicts_sr,
+    Wcounterexamples  = 1 << warning_counterexamples,
     Wdangling_alias   = 1 << warning_dangling_alias,
     Wdeprecated       = 1 << warning_deprecated,
     Wempty_rule       = 1 << warning_empty_rule,
@@ -120,7 +126,7 @@ typedef enum
 
     /**< All above warnings.  */
     Weverything       = ~complaint & ~fatal & ~silent,
-    Wall              = Weverything & ~Wdangling_alias & ~Wyacc
+    Wall              = Weverything & ~Wcounterexamples & ~Wdangling_alias & ~Wyacc
   } warnings;
 
 /** Whether the warnings of \a flags are all unset.
@@ -132,7 +138,7 @@ bool warning_is_enabled (warnings flags);
 
 /** Make a complaint, with maybe a location.  */
 void complain (location const *loc, warnings flags, char const *message, ...)
-  __attribute__ ((__format__ (__printf__, 3, 4)));
+  ATTRIBUTE_FORMAT ((__printf__, 3, 4));
 
 /** Likewise, but with an \a argc/argv interface.  */
 void complain_args (location const *loc, warnings w,
@@ -141,7 +147,7 @@ void complain_args (location const *loc, warnings w,
 /** Make a subcomplain with location and note.  */
 void subcomplain (location const *loc, warnings flags,
                   char const *message, ...)
-  __attribute__ ((__format__ (__printf__, 3, 4)));
+  ATTRIBUTE_FORMAT ((__printf__, 3, 4));
 
 
 /** GNU Bison extension not valid with POSIX Yacc.  */

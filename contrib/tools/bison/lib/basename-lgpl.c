@@ -18,20 +18,20 @@
 
 #include <config.h>
 
-#include "dirname.h"
+/* Specification.  */
+#include "basename-lgpl.h"
 
+#include <stdbool.h>
 #include <string.h>
 
-/* Return the address of the last file name component of NAME.  If
-   NAME has no relative file name components because it is a file
-   system root, return the empty string.  */
+#include "filename.h"
 
 char *
 last_component (char const *name)
 {
   char const *base = name + FILE_SYSTEM_PREFIX_LEN (name);
   char const *p;
-  bool saw_slash = false;
+  bool last_was_slash = false;
 
   while (ISSLASH (*base))
     base++;
@@ -39,20 +39,16 @@ last_component (char const *name)
   for (p = base; *p; p++)
     {
       if (ISSLASH (*p))
-        saw_slash = true;
-      else if (saw_slash)
+        last_was_slash = true;
+      else if (last_was_slash)
         {
           base = p;
-          saw_slash = false;
+          last_was_slash = false;
         }
     }
 
   return (char *) base;
 }
-
-/* Return the length of the basename NAME.  Typically NAME is the
-   value returned by base_name or last_component.  Act like strlen
-   (NAME), except omit all trailing slashes.  */
 
 size_t
 base_len (char const *name)

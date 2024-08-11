@@ -4,7 +4,7 @@
 # Speeds up GNU M4 1.4.x by avoiding quadratic $@ recursion, but penalizes
 # GNU M4 1.6 by requiring more memory and macro expansions.
 #
-# Copyright (C) 2008-2017 Free Software Foundation, Inc.
+# Copyright (C) 2008-2017, 2020 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the

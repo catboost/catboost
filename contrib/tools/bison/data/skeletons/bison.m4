@@ -2,7 +2,7 @@
 
 # Language-independent M4 Macros for Bison.
 
-# Copyright (C) 2002, 2004-2015, 2018-2020 Free Software Foundation,
+# Copyright (C) 2002, 2004-2015, 2018-2021 Free Software Foundation,
 # Inc.
 
 # This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 
@@ -38,6 +38,8 @@ m4_define([b4_gsub],
                            [$4], [$5]),
               [$6], [$7])])
 
+# m4_shift2 and m4_shift3 are provided by m4sugar.
+m4_define([m4_shift4], [m4_shift(m4_shift(m4_shift(m4_shift($@))))])
 
 
 ## ---------------- ##
@@ -47,7 +49,7 @@ m4_define([b4_gsub],
 # b4_generated_by
 # ---------------
 m4_define([b4_generated_by],
-[b4_comment([A Bison parser, made by GNU Bison b4_version.])
+[b4_comment([A Bison parser, made by GNU Bison b4_version_string.])
 ])
 
 # b4_copyright(TITLE, [YEARS])
@@ -72,7 +74,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.])
+along with this program.  If not, see <https://www.gnu.org/licenses/>.])
 
 b4_comment([As a special exception, you may create a larger work that contains
 part or all of the Bison parser skeleton and distribute that work
@@ -183,7 +185,7 @@ m4_define([b4_error],
 [b4_cat([[@complain][(]$1[@,]$2[@,]$3[@,]$4[]]dnl
 [m4_if([$#], [4], [],
        [m4_foreach([b4_arg],
-                   m4_dquote(m4_shift(m4_shift(m4_shift(m4_shift($@))))),
+                   m4_dquote(m4_shift4($@)),
                    [[@,]b4_arg])])[@)]])])
 
 # b4_warn(FORMAT, [ARG1], [ARG2], ...)
@@ -436,14 +438,14 @@ m4_define([b4_symbol_token_kind],
 _b4_symbol([$1], [id])])
 
 
-# b4_symbol_kind(NUM)
-# -------------------
+# b4_symbol_kind_base(NUM)
+# ------------------------
 # Build the name of the kind of this symbol.  It must always exist,
 # otherwise some symbols might not be represented in the enum, which
 # might be compiled into too small a type to contain all the symbol
 # numbers.
 m4_define([b4_symbol_prefix], [b4_percent_define_get([api.symbol.prefix])])
-m4_define([b4_symbol_kind],
+m4_define([b4_symbol_kind_base],
 [b4_percent_define_get([api.symbol.prefix])dnl
 m4_case([$1],
   [-2],                             [[YYEMPTY]],
@@ -456,6 +458,26 @@ m4_case([$1],
                                     [m4_bpatsubst([$1-][]_b4_symbol([$1], [tag]), [[^a-zA-Z_0-9]+], [_])])])])])
 
 
+# b4_symbol_kind(NUM)
+# -------------------
+# Same as b4_symbol_kind, but possibly with a prefix in some
+# languages.  E.g., EOF's kind_base and kind are YYSYMBOL_YYEOF in C,
+# but are S_YYEMPTY and symbol_kind::S_YYEMPTY in C++.
+m4_copy([b4_symbol_kind_base], [b4_symbol_kind])
+
+
+# b4_symbol_slot(NUM)
+# -------------------
+# The name of union member that contains the value of these symbols.
+# Currently, we are messy, this should actually be type_tag, but type_tag
+# has several meanings.
+m4_define([b4_symbol_slot],
+[m4_case(b4_percent_define_get([[api.value.type]]),
+         [union],   [b4_symbol([$1], [type_tag])],
+         [variant], [b4_symbol([$1], [type_tag])],
+         [b4_symbol([$1], [type])])])
+
+
 # b4_symbol(NUM, FIELD)
 # ---------------------
 # Fetch FIELD of symbol #NUM (or "orig NUM").  Fail if undefined.
@@ -463,8 +485,10 @@ m4_case([$1],
 # If FIELD = id, prepend the token prefix.
 m4_define([b4_symbol],
 [m4_case([$2],
-         [id],    [b4_symbol_token_kind([$1])],
-         [kind],  [b4_symbol_kind([$1])],
+         [id],        [b4_symbol_token_kind([$1])],
+         [kind_base], [b4_symbol_kind_base([$1])],
+         [kind],      [b4_symbol_kind([$1])],
+         [slot],      [b4_symbol_slot([$1])],
          [_b4_symbol($@)])])
 
 
@@ -527,7 +551,7 @@ m4_defn([b4_actions_])[]dnl
         break;
     }dnl
 ],
-[YYUSE (m4_default([$2], [yykind]));])dnl
+[YY_USE (m4_default([$2], [yykind]));])dnl
 m4_popdef([b4_actions_])dnl
 ])
 
@@ -537,7 +561,7 @@ m4_popdef([b4_actions_])dnl
 # easier to use with m4_map, but then, use []dnl to suppress the last
 # one.
 m4_define([_b4_symbol_case],
-[case b4_symbol([$1], [number]): b4_symbol_tag_comment([$1])])
+[case b4_symbol([$1], [kind]): b4_symbol_tag_comment([$1])])
 ])
 
 
@@ -585,8 +609,8 @@ m4_define([b4_any_token_visible_if],
 m4_define([b4_token_format],
 [b4_token_visible_if([$2],
 [m4_format([[$1]],
-           m4_expand(b4_symbol([$2], [id])),
-           m4_expand(b4_symbol([$2], b4_api_token_raw_if([[number]], [[user_number]]))))])])
+           b4_symbol([$2], [id]),
+           b4_symbol([$2], b4_api_token_raw_if([[number]], [[code]])))])])
 
 
 # b4_last_enum_token
@@ -623,11 +647,11 @@ m4_define([_b4_type_action],
 
 ])])
 
-# b4_type_foreach(MACRO)
-# ----------------------
+# b4_type_foreach(MACRO, [SEP])
+# -----------------------------
 # Invoke MACRO(SYMBOL-NUMS) for each set of SYMBOL-NUMS for each type set.
 m4_define([b4_type_foreach],
-          [m4_map([$1], m4_defn([b4_type_names]))])
+          [m4_map_sep([$1], [$2], m4_defn([b4_type_names]))])
 
 
 
@@ -748,7 +772,7 @@ m4_define([b4_check_user_names],
 [m4_pushdef([b4_occurrence], b4_occurrence)dnl
 m4_pushdef([b4_user_name], m4_car(b4_occurrence))dnl
 m4_pushdef([b4_start], m4_car(m4_shift(b4_occurrence)))dnl
-m4_pushdef([b4_end], m4_shift(m4_shift(b4_occurrence)))dnl
+m4_pushdef([b4_end], m4_shift2(b4_occurrence))dnl
 m4_ifndef($3[(]m4_quote(b4_user_name)[)],
           [b4_complain_at([b4_start], [b4_end],
                           [[%s '%s' is not used]],

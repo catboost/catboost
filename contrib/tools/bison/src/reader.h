@@ -1,6 +1,6 @@
 /* Input parser for Bison
 
-   Copyright (C) 2000-2003, 2005-2007, 2009-2015, 2018-2020 Free
+   Copyright (C) 2000-2003, 2005-2007, 2009-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef READER_H_
 # define READER_H_
@@ -31,7 +31,10 @@ typedef struct merger_list
 {
   struct merger_list* next;
   uniqstr name;
-  uniqstr type;
+  /* One symbol whose type is the one used by all the symbols on which
+     this merging function is used.  */
+  symbol *sym;
+  /* Where SYM was bound to this merging function.  */
   location type_declaration_loc;
 } merger_list;
 

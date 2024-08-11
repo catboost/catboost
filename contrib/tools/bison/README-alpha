@@ -12,7 +12,7 @@ the problems you encounter.
 
 -----
 
-Copyright (C) 2002, 2004, 2009-2015, 2018-2020 Free Software Foundation,
+Copyright (C) 2002, 2004, 2009-2015, 2018-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Bison.
@@ -28,4 +28,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program.  If not, see <https://www.gnu.org/licenses/>.

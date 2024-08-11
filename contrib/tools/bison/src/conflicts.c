@@ -1,6 +1,6 @@
 /* Find and resolve or report lookahead conflicts for bison,
 
-   Copyright (C) 1984, 1989, 1992, 2000-2015, 2018-2020 Free Software
+   Copyright (C) 1984, 1989, 1992, 2000-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
@@ -25,6 +25,7 @@
 
 #include "complain.h"
 #include "conflicts.h"
+#include "counterexample.h"
 #include "files.h"
 #include "getargs.h"
 #include "gram.h"
@@ -47,6 +48,12 @@ static struct obstack solved_conflicts_xml_obstack;
 
 static bitset shift_set;
 static bitset lookahead_set;
+
+bool
+has_conflicts (const state *s)
+{
+  return conflicts[s->number];
+}
 
 
 
@@ -219,7 +226,7 @@ log_resolution (rule *r, symbol_number token,
 
 /*------------------------------------------------------------------.
 | Turn off the shift recorded for the specified token in the        |
-| specified state.  Used when we resolve a shift-reduce conflict in |
+| specified state.  Used when we resolve a shift/reduce conflict in |
 | favor of the reduction or as an error (%nonassoc).                |
 `------------------------------------------------------------------*/
 
@@ -238,19 +245,19 @@ flush_shift (state *s, int token)
 
 /*--------------------------------------------------------------------.
 | Turn off the reduce recorded for the specified token in the         |
-| specified lookahead set.  Used when we resolve a shift-reduce       |
+| specified lookahead set.  Used when we resolve a shift/reduce       |
 | conflict in favor of the shift or as an error (%nonassoc).          |
 `--------------------------------------------------------------------*/
 
 static void
-flush_reduce (bitset lookahead_tokens, int token)
+flush_reduce (bitset lookaheads, int token)
 {
-  bitset_reset (lookahead_tokens, token);
+  bitset_reset (lookaheads, token);
 }
 
 
 /*------------------------------------------------------------------.
-| Attempt to resolve shift-reduce conflict for one rule by means of |
+| Attempt to resolve shift/reduce conflict for one rule by means of |
 | precedence declarations.  It has already been checked that the    |
 | rule has a precedence.  A conflict is resolved by modifying the   |
 | shift or reduce tables so that there is no longer a conflict.     |
@@ -268,14 +275,14 @@ resolve_sr_conflict (state *s, int ruleno, symbol **errors, int *nerrs)
   /* Find the rule to reduce by to get precedence of reduction.  */
   rule *redrule = reds->rules[ruleno];
   int redprec = redrule->prec->prec;
-  bitset lookahead_tokens = reds->lookahead_tokens[ruleno];
+  bitset lookaheads = reds->lookaheads[ruleno];
 
   for (symbol_number i = 0; i < ntokens; ++i)
-    if (bitset_test (lookahead_tokens, i)
+    if (bitset_test (lookaheads, i)
         && bitset_test (lookahead_set, i)
         && symbols[i]->content->prec)
       {
-        /* Shift-reduce conflict occurs for token number i
+        /* Shift/reduce conflict occurs for token number i
            and it has a precedence.
            The precedence of shifting is that of token i.  */
         if (symbols[i]->content->prec < redprec)
@@ -288,7 +295,7 @@ resolve_sr_conflict (state *s, int ruleno, symbol **errors, int *nerrs)
           {
             register_precedence (i, redrule->prec->number);
             log_resolution (redrule, i, shift_resolution);
-            flush_reduce (lookahead_tokens, i);
+            flush_reduce (lookaheads, i);
           }
         else
           /* Matching precedence levels.
@@ -309,7 +316,7 @@ resolve_sr_conflict (state *s, int ruleno, symbol **errors, int *nerrs)
             case right_assoc:
               register_assoc (i, redrule->prec->number);
               log_resolution (redrule, i, right_resolution);
-              flush_reduce (lookahead_tokens, i);
+              flush_reduce (lookaheads, i);
               break;
 
             case left_assoc:
@@ -322,7 +329,7 @@ resolve_sr_conflict (state *s, int ruleno, symbol **errors, int *nerrs)
               register_assoc (i, redrule->prec->number);
               log_resolution (redrule, i, nonassoc_resolution);
               flush_shift (s, i);
-              flush_reduce (lookahead_tokens, i);
+              flush_reduce (lookaheads, i);
               /* Record an explicit error for this token.  */
               errors[(*nerrs)++] = symbols[i];
               break;
@@ -357,11 +364,12 @@ set_conflicts (state *s, symbol **errors)
   }
 
   /* Loop over all rules which require lookahead in this state.  First
-     check for shift-reduce conflict, and try to resolve using
+     check for shift/reduce conflict, and try to resolve using
      precedence.  */
   for (int i = 0; i < reds->num; ++i)
-    if (reds->rules[i]->prec && reds->rules[i]->prec->prec
-        && !bitset_disjoint_p (reds->lookahead_tokens[i], lookahead_set))
+    if (reds->rules[i]->prec
+        && reds->rules[i]->prec->prec
+        && !bitset_disjoint_p (reds->lookaheads[i], lookahead_set))
       resolve_sr_conflict (s, i, errors, &nerrs);
 
   if (nerrs)
@@ -377,13 +385,13 @@ set_conflicts (state *s, symbol **errors)
   /* Loop over all rules which require lookahead in this state.  Check
      for conflicts not resolved above.
 
-     reds->lookahead_tokens can be NULL if the LR type is LR(0).  */
-  if (reds->lookahead_tokens)
+     reds->lookaheads can be NULL if the LR type is LR(0).  */
+  if (reds->lookaheads)
     for (int i = 0; i < reds->num; ++i)
       {
-        if (!bitset_disjoint_p (reds->lookahead_tokens[i], lookahead_set))
+        if (!bitset_disjoint_p (reds->lookaheads[i], lookahead_set))
           conflicts[s->number] = true;
-        bitset_or (lookahead_set, lookahead_set, reds->lookahead_tokens[i]);
+        bitset_or (lookahead_set, lookahead_set, reds->lookaheads[i]);
       }
 }
 
@@ -452,7 +460,7 @@ count_state_sr_conflicts (const state *s)
   }
 
   for (int i = 0; i < reds->num; ++i)
-    bitset_or (lookahead_set, lookahead_set, reds->lookahead_tokens[i]);
+    bitset_or (lookahead_set, lookahead_set, reds->lookaheads[i]);
 
   bitset_and (lookahead_set, lookahead_set, shift_set);
 
@@ -491,7 +499,7 @@ count_state_rr_conflicts (const state *s)
     {
       int count = 0;
       for (int j = 0; j < reds->num; ++j)
-        count += bitset_test (reds->lookahead_tokens[j], i);
+        count += bitset_test (reds->lookaheads[j], i);
       if (2 <= count)
         res += count-1;
     }
@@ -526,7 +534,7 @@ count_rule_state_sr_conflicts (rule *r, state *s)
   for (int i = 0; i < reds->num; ++i)
     if (reds->rules[i] == r)
       {
-        bitset lookaheads = reds->lookahead_tokens[i];
+        bitset lookaheads = reds->lookaheads[i];
         int j;
         FOR_EACH_SHIFT (trans, j)
           res += bitset_test (lookaheads, TRANSITION_SYMBOL (trans, j));
@@ -568,8 +576,8 @@ count_rule_state_rr_conflicts (rule *r, state *s)
         if (reds->rules[j] != r)
           {
             bitset_and (lookaheads,
-                        reds->lookahead_tokens[i],
-                        reds->lookahead_tokens[j]);
+                        reds->lookaheads[i],
+                        reds->lookaheads[j]);
             res += bitset_count (lookaheads);
           }
   bitset_free (lookaheads);
@@ -624,12 +632,20 @@ conflicts_total_count (void)
   return count_sr_conflicts () + count_rr_conflicts ();
 }
 
-/*------------------------------.
-| Reporting per-rule conflicts. |
-`------------------------------*/
+static void
+report_counterexamples (void)
+{
+  for (state_number sn = 0; sn < nstates; ++sn)
+    if (conflicts[sn])
+      counterexample_report_state (states[sn], stderr, "");
+}
+
+/*------------------------------------------------.
+| Report per-rule %expect/%expect-rr mismatches.  |
+`------------------------------------------------*/
 
 static void
-rule_conflicts_print (void)
+report_rule_expectation_mismatches (void)
 {
   for (rule_number i = 0; i < nrules; i += 1)
     {
@@ -644,13 +660,13 @@ rule_conflicts_print (void)
             complain (&r->location, complaint,
                       _("shift/reduce conflicts for rule %d:"
                         " %d found, %d expected"),
-                      r->user_number, sr, expected_sr);
+                      r->code, sr, expected_sr);
           int rr = count_rule_rr_conflicts (r);
           if (rr != expected_rr && (rr != 0 || expected_rr != -1))
             complain (&r->location, complaint,
                       _("reduce/reduce conflicts for rule %d:"
                         " %d found, %d expected"),
-                      r->user_number, rr, expected_rr);
+                      r->code, rr, expected_rr);
         }
     }
 }
@@ -662,7 +678,7 @@ rule_conflicts_print (void)
 void
 conflicts_print (void)
 {
-  rule_conflicts_print ();
+  report_rule_expectation_mismatches ();
 
   if (! glr_parser && expected_rr_conflicts != -1)
     {
@@ -670,8 +686,10 @@ conflicts_print (void)
       expected_rr_conflicts = -1;
     }
 
-  /* Screams for factoring, but almost useless because of the
-     different strings to translate.  */
+  // The warning flags used to emit a diagnostic, if we did.
+  warnings unexpected_conflicts_warning = Wnone;
+  /* The following two blocks scream for factoring, but i18n support
+     would make it ugly.  */
   {
     int total = count_sr_conflicts ();
     /* If %expect is not used, but %expect-rr is, then expect 0 sr.  */
@@ -682,16 +700,23 @@ conflicts_print (void)
     if (expected != -1)
       {
         if (expected != total)
-          complain (NULL, complaint,
-                    _("shift/reduce conflicts: %d found, %d expected"),
-                    total, expected);
+          {
+            complain (NULL, complaint,
+                      _("shift/reduce conflicts: %d found, %d expected"),
+                      total, expected);
+            if (total)
+              unexpected_conflicts_warning = complaint;
+          }
       }
     else if (total)
-      complain (NULL, Wconflicts_sr,
-                ngettext ("%d shift/reduce conflict",
-                          "%d shift/reduce conflicts",
-                          total),
-                total);
+      {
+        complain (NULL, Wconflicts_sr,
+                  ngettext ("%d shift/reduce conflict",
+                            "%d shift/reduce conflicts",
+                            total),
+                  total);
+        unexpected_conflicts_warning = Wconflicts_sr;
+      }
   }
 
   {
@@ -704,17 +729,31 @@ conflicts_print (void)
     if (expected != -1)
       {
         if (expected != total)
-          complain (NULL, complaint,
-                    _("reduce/reduce conflicts: %d found, %d expected"),
-                    total, expected);
+          {
+            complain (NULL, complaint,
+                      _("reduce/reduce conflicts: %d found, %d expected"),
+                      total, expected);
+            if (total)
+              unexpected_conflicts_warning = complaint;
+          }
       }
     else if (total)
-      complain (NULL, Wconflicts_rr,
-                ngettext ("%d reduce/reduce conflict",
-                          "%d reduce/reduce conflicts",
-                          total),
-                total);
+      {
+        complain (NULL, Wconflicts_rr,
+                  ngettext ("%d reduce/reduce conflict",
+                            "%d reduce/reduce conflicts",
+                            total),
+                  total);
+        unexpected_conflicts_warning = Wconflicts_rr;
+      }
   }
+
+  if (warning_is_enabled (Wcounterexamples))
+    report_counterexamples ();
+  else if (unexpected_conflicts_warning != Wnone)
+    subcomplain (NULL, unexpected_conflicts_warning,
+                 _("rerun with option '-Wcounterexamples'"
+                   " to generate conflict counterexamples"));
 }
 
 void

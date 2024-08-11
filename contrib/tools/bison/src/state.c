@@ -1,6 +1,6 @@
 /* Type definitions for the finite state machine for Bison.
 
-   Copyright (C) 2001-2007, 2009-2015, 2018-2020 Free Software
+   Copyright (C) 2001-2007, 2009-2015, 2018-2021 Free Software
    Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "state.h"
@@ -101,7 +101,7 @@ reductions_new (int num, rule **reds)
   size_t rules_size = num * sizeof *reds;
   reductions *res = xmalloc (offsetof (reductions, rules) + rules_size);
   res->num = num;
-  res->lookahead_tokens = NULL;
+  res->lookaheads = NULL;
   memcpy (res->rules, reds, rules_size);
   return res;
 }
@@ -126,7 +126,7 @@ state *final_state = NULL;
 
 state *
 state_new (symbol_number accessing_symbol,
-           size_t nitems, item_number *core)
+           size_t nitems, item_index *core)
 {
   aver (nstates < STATE_NUMBER_MAXIMUM);
 
@@ -231,7 +231,7 @@ state_reductions_set (state *s, int num, rule **reds)
 
 
 int
-state_reduction_find (state *s, rule const *r)
+state_reduction_find (state const *s, rule const *r)
 {
   reductions *reds = s->reductions;
   for (int i = 0; i < reds->num; ++i)
@@ -260,20 +260,20 @@ state_errs_set (state *s, int num, symbol **tokens)
 `--------------------------------------------------*/
 
 void
-state_rule_lookahead_tokens_print (state *s, rule const *r, FILE *out)
+state_rule_lookaheads_print (state const *s, rule const *r, FILE *out)
 {
   /* Find the reduction we are handling.  */
   reductions *reds = s->reductions;
   int red = state_reduction_find (s, r);
 
   /* Print them if there are.  */
-  if (reds->lookahead_tokens && red != -1)
+  if (reds->lookaheads && red != -1)
     {
       bitset_iterator biter;
       int k;
       char const *sep = "";
       fprintf (out, "  [");
-      BITSET_FOR_EACH (biter, reds->lookahead_tokens[red], k, 0)
+      BITSET_FOR_EACH (biter, reds->lookaheads[red], k, 0)
         {
           fprintf (out, "%s%s", sep, symbols[k]->tag);
           sep = ", ";
@@ -283,7 +283,7 @@ state_rule_lookahead_tokens_print (state *s, rule const *r, FILE *out)
 }
 
 void
-state_rule_lookahead_tokens_print_xml (state *s, rule const *r,
+state_rule_lookaheads_print_xml (state const *s, rule const *r,
                                        FILE *out, int level)
 {
   /* Find the reduction we are handling.  */
@@ -291,12 +291,12 @@ state_rule_lookahead_tokens_print_xml (state *s, rule const *r,
   int red = state_reduction_find (s, r);
 
   /* Print them if there are.  */
-  if (reds->lookahead_tokens && red != -1)
+  if (reds->lookaheads && red != -1)
     {
       bitset_iterator biter;
       int k;
       xml_puts (out, level, "<lookaheads>");
-      BITSET_FOR_EACH (biter, reds->lookahead_tokens[red], k, 0)
+      BITSET_FOR_EACH (biter, reds->lookaheads[red], k, 0)
         {
           xml_printf (out, level + 1, "<symbol>%s</symbol>",
                       xml_escape (symbols[k]->tag));
@@ -385,8 +385,7 @@ state_hash_free (void)
 void
 state_hash_insert (state *s)
 {
-  if (!hash_insert (state_table, s))
-    xalloc_die ();
+  hash_xinsert (state_table, s);
 }
 
 
@@ -396,7 +395,7 @@ state_hash_insert (state *s)
 `------------------------------------------------------------------*/
 
 state *
-state_hash_lookup (size_t nitems, item_number *core)
+state_hash_lookup (size_t nitems, const item_index *core)
 {
   size_t items_size = nitems * sizeof *core;
   state *probe = xmalloc (offsetof (state, items) + items_size);

@@ -29,7 +29,7 @@
 
 /* Help GCC to generate good code for string comparisons with
    immediate strings. */
-#if defined (__GNUC__) && defined (__OPTIMIZE__)
+#if (defined __GNUC__ || defined __clang__) && defined __OPTIMIZE__
 
 static inline int
 streq9 (const char *s1, const char *s2)

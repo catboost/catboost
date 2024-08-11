@@ -3,7 +3,7 @@ divert(-1)#                                                  -*- Autoconf -*-
 # Base M4 layer.
 # Requires GNU M4.
 #
-# Copyright (C) 1999-2017 Free Software Foundation, Inc.
+# Copyright (C) 1999-2017, 2020 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the
@@ -2411,6 +2411,27 @@ m4_define([m4_strip],
 m4_define([m4_normalize],
 [m4_strip(m4_flatten([$1]))])
 
+
+# m4_validate_w(STRING)
+# ---------------------
+# Expands into m4_normalize(m4_expand([STRING])), but if that is not
+# the same as just m4_normalize([STRING]), issue a warning.
+#
+# This is used in several Autoconf macros that take a
+# whitespace-separated list of symbols as an argument.  Ideally that
+# list would not be expanded before use, but several packages used
+# `dnl' to put comments inside those lists, so they must be expanded
+# for compatibility's sake.
+m4_define([m4_validate_w],
+[_m4_validate_w(m4_normalize([$1]), m4_normalize(m4_expand([$1])))])
+
+m4_define([_m4_validate_w],
+[m4_if([$1], [$2], [],
+  [m4_warn([obsolete], [whitespace-separated list contains macros;
+in a future version of Autoconf they will not be expanded]dnl
+m4_if(m4_bregexp([$1], [\bdn[l]\b]), -1, [], [
+note: `dn@&t@l' is a macro]))])dnl
+[$2]])
 
 
 # m4_join(SEP, ARG1, ARG2...)

@@ -44,7 +44,7 @@
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 
-/* The return value of spawnvp() is really a process handle as returned
+/* The return value of _spawnvp() is really a process handle as returned
    by CreateProcess().  Therefore we can kill it using TerminateProcess.  */
 # define kill(pid,sig) TerminateProcess ((HANDLE) (pid), sig)
 

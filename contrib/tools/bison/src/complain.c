@@ -1,6 +1,6 @@
 /* Declaration for error-reporting function for Bison.
 
-   Copyright (C) 2000-2002, 2004-2006, 2009-2015, 2018-2020 Free
+   Copyright (C) 2000-2002, 2004-2006, 2009-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Based on error.c and error.h,
    written by David MacKenzie <djm@gnu.ai.mit.edu>.  */
@@ -34,6 +34,13 @@
 #include "fixits.h"
 #include "getargs.h"
 #include "quote.h"
+
+// The URL of the manual page about diagnostics.  Use the per-node
+// manual, to avoid downloading repeatedly the whole manual over the
+// Internet.
+static const char *diagnostics_url
+  = "https://www.gnu.org/software/bison/manual/html_node/Diagnostics.html";
+
 
 err_status complaint_status = status_none;
 
@@ -96,6 +103,20 @@ end_use_class (const char *s, FILE *out)
     }
 }
 
+static void
+begin_hyperlink (FILE *out, const char *ref)
+{
+  if (out == stderr)
+    styled_ostream_set_hyperlink (errstream, ref, NULL);
+}
+
+static void
+end_hyperlink (FILE *out)
+{
+  if (out == stderr)
+    styled_ostream_set_hyperlink (errstream, NULL, NULL);
+}
+
 void
 flush (FILE *out)
 {
@@ -103,6 +124,23 @@ flush (FILE *out)
     ostream_flush (errstream, FLUSH_THIS_STREAM);
   fflush (out);
 }
+
+bool
+is_styled (FILE *out)
+{
+  if (out != stderr)
+    return false;
+  if (color_debug)
+    return true;
+#if HAVE_LIBTEXTSTYLE
+  return (color_mode == color_yes
+          || color_mode == color_html
+          || (color_mode == color_tty && isatty (STDERR_FILENO)));
+#else
+  return false;
+#endif
+}
+
 
 /*------------------------.
 | --warnings's handling.  |
@@ -114,6 +152,7 @@ static const argmatch_warning_doc argmatch_warning_docs[] =
 {
   { "conflicts-sr",     N_("S/R conflicts (enabled by default)") },
   { "conflicts-rr",     N_("R/R conflicts (enabled by default)") },
+  { "counterexamples",  N_("generate conflict counterexamples") },
   { "dangling-alias",   N_("string aliases not attached to a symbol") },
   { "deprecated",       N_("obsolete constructs") },
   { "empty-rule",       N_("empty rules without %empty") },
@@ -121,7 +160,7 @@ static const argmatch_warning_doc argmatch_warning_docs[] =
   { "precedence",       N_("useless precedence and associativity") },
   { "yacc",             N_("incompatibilities with POSIX Yacc") },
   { "other",            N_("all other warnings (enabled by default)") },
-  { "all",              N_("all the warnings except 'dangling-alias' and 'yacc'") },
+  { "all",              N_("all the warnings except 'counterexamples', 'dangling-alias' and 'yacc'") },
   { "no-CATEGORY",      N_("turn off warnings in CATEGORY") },
   { "none",             N_("turn off all the warnings") },
   { "error[=CATEGORY]", N_("treat warnings as errors") },
@@ -130,18 +169,19 @@ static const argmatch_warning_doc argmatch_warning_docs[] =
 
 static const argmatch_warning_arg argmatch_warning_args[] =
 {
-  { "all",            Wall },
-  { "conflicts-rr",   Wconflicts_rr },
-  { "conflicts-sr",   Wconflicts_sr },
-  { "dangling-alias", Wdangling_alias },
-  { "deprecated",     Wdeprecated },
-  { "empty-rule",     Wempty_rule },
-  { "everything",     Weverything },
-  { "midrule-values", Wmidrule_values },
-  { "none",           Wnone },
-  { "other",          Wother },
-  { "precedence",     Wprecedence },
-  { "yacc",           Wyacc },
+  { "all",             Wall },
+  { "conflicts-rr",    Wconflicts_rr },
+  { "conflicts-sr",    Wconflicts_sr },
+  { "counterexamples", Wcounterexamples }, { "cex", Wcounterexamples }, // Show cex second.
+  { "dangling-alias",  Wdangling_alias },
+  { "deprecated",      Wdeprecated },
+  { "empty-rule",      Wempty_rule },
+  { "everything",      Weverything },
+  { "midrule-values",  Wmidrule_values },
+  { "none",            Wnone },
+  { "other",           Wother },
+  { "precedence",      Wprecedence },
+  { "yacc",            Wyacc },
   { NULL, Wnone }
 };
 
@@ -286,9 +326,7 @@ void
 complain_init_color (void)
 {
 #if HAVE_LIBTEXTSTYLE
-  if (color_mode == color_yes
-      || color_mode == color_html
-      || (color_mode == color_tty && isatty (STDERR_FILENO)))
+  if (is_styled (stderr))
     {
       style_file_prepare ("BISON_STYLE", "BISON_STYLEDIR", pkgdatadir (),
                           "bison-default.css");
@@ -410,9 +448,20 @@ warnings_print_categories (warnings warn_flags, FILE *out)
         const char* style = severity_style (s);
         fputs (" [", out);
         begin_use_class (style, out);
-        fprintf (out, "-W%s%s",
-                 s == severity_error ? "error=" : "",
-                 argmatch_warning_argument (&w));
+        // E.g., "counterexamples".
+        const char *warning = argmatch_warning_argument (&w);
+        char ref[200];
+        snprintf (ref, sizeof ref,
+                  "%s#W%s", diagnostics_url, warning);
+        begin_hyperlink (out, ref);
+        ostream_printf (errstream,
+                        "-W%s%s",
+                        s == severity_error ? "error=" : "",
+                        warning);
+        end_hyperlink (out);
+        // Because we mix stdio with ostream I/O, we need to flush
+        // here for sake of color == debug.
+        flush (out);
         end_use_class (style, out);
         fputc (']', out);
         /* Display only the first match, the second is "-Wall".  */

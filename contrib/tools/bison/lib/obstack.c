@@ -322,7 +322,7 @@ int obstack_exit_failure = EXIT_FAILURE;
 #   include <libio/iolibio.h>
 #  endif
 
-static _Noreturn void
+static __attribute_noreturn__ void
 print_and_abort (void)
 {
   /* Don't change any of these strings.  Yes, it would be possible to add

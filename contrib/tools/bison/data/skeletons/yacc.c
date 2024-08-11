@@ -1,11 +1,11 @@
 #                                                            -*- C -*-
 # Yacc compatible skeleton for Bison
 
-# Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software
+# Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software
 # Foundation, Inc.
 
 m4_pushdef([b4_copyright_years],
-           [1984, 1989-1990, 2000-2015, 2018-2020])
+           [1984, 1989-1990, 2000-2015, 2018-2021])
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ m4_pushdef([b4_copyright_years],
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 m4_include(b4_skeletonsdir/[c.m4])
 
@@ -47,6 +47,10 @@ m4_define([b4_pure_if],
 ## --------------- ##
 ## api.push-pull.  ##
 ## --------------- ##
+
+# b4_pull_if, b4_push_if
+# ----------------------
+# Whether the pull/push APIs are needed.  Both can be enabled.
 
 b4_percent_define_default([[api.push-pull]], [[pull]])
 b4_percent_define_check_values([[[[api.push-pull]],
@@ -155,7 +159,7 @@ m4_define([b4_rhs_location],
 # Declare the variables that are global, or local to YYPARSE if
 # pure-parser.
 m4_define([b4_declare_scanner_communication_variables], [[
-/* The lookahead symbol.  */
+/* Lookahead token kind.  */
 int yychar;
 
 ]b4_pure_if([[
@@ -176,68 +180,47 @@ YYLTYPE yylloc]b4_yyloc_default[;]])[
 int yynerrs;]])])
 
 
-# b4_declare_parser_state_variables
-# ---------------------------------
+# b4_declare_parser_state_variables([INIT])
+# -----------------------------------------
 # Declare all the variables that are needed to maintain the parser state
 # between calls to yypush_parse.
+# If INIT is non-null, initialize these variables.
 m4_define([b4_declare_parser_state_variables],
 [b4_pure_if([[
     /* Number of syntax errors so far.  */
-    int yynerrs;
+    int yynerrs]m4_ifval([$1], [ = 0])[;
 ]])[
-    yy_state_fast_t yystate;
+    yy_state_fast_t yystate]m4_ifval([$1], [ = 0])[;
     /* Number of tokens to shift before error messages enabled.  */
-    int yyerrstatus;
+    int yyerrstatus]m4_ifval([$1], [ = 0])[;
 
-    /* The stacks and their tools:
-       'yyss': related to states.
-       'yyvs': related to semantic values.]b4_locations_if([[
-       'yyls': related to locations.]])[
-
-       Refer to the stacks through separate pointers, to allow yyoverflow
+    /* Refer to the stacks through separate pointers, to allow yyoverflow
        to reallocate them elsewhere.  */
 
     /* Their size.  */
-    YYPTRDIFF_T yystacksize;
+    YYPTRDIFF_T yystacksize]m4_ifval([$1], [ = YYINITDEPTH])[;
 
-    /* The state stack.  */
+    /* The state stack: array, bottom, top.  */
     yy_state_t yyssa[YYINITDEPTH];
-    yy_state_t *yyss;
-    yy_state_t *yyssp;
+    yy_state_t *yyss]m4_ifval([$1], [ = yyssa])[;
+    yy_state_t *yyssp]m4_ifval([$1], [ = yyss])[;
 
-    /* The semantic value stack.  */
+    /* The semantic value stack: array, bottom, top.  */
     YYSTYPE yyvsa[YYINITDEPTH];
-    YYSTYPE *yyvs;
-    YYSTYPE *yyvsp;]b4_locations_if([[
+    YYSTYPE *yyvs]m4_ifval([$1], [ = yyvsa])[;
+    YYSTYPE *yyvsp]m4_ifval([$1], [ = yyvs])[;]b4_locations_if([[
 
-    /* The location stack.  */
+    /* The location stack: array, bottom, top.  */
     YYLTYPE yylsa[YYINITDEPTH];
-    YYLTYPE *yyls;
-    YYLTYPE *yylsp;]])[]b4_lac_if([[
+    YYLTYPE *yyls]m4_ifval([$1], [ = yylsa])[;
+    YYLTYPE *yylsp]m4_ifval([$1], [ = yyls])[;]])[]b4_lac_if([[
 
     yy_state_t yyesa@{]b4_percent_define_get([[parse.lac.es-capacity-initial]])[@};
-    yy_state_t *yyes;
-    YYPTRDIFF_T yyes_capacity;]])])
-
-
-# b4_initialize_parser_state_variables
-# ------------------------------------
-# Initialize these variables.
-m4_define([b4_initialize_parser_state_variables],
-[[  yynerrs = 0;
-  yystate = 0;
-  yyerrstatus = 0;
-
-  yystacksize = YYINITDEPTH;
-  yyssp = yyss = yyssa;
-  yyvsp = yyvs = yyvsa;]b4_locations_if([[
-  yylsp = yyls = yylsa;]])[]b4_lac_if([[
-
-  yyes = yyesa;
-  yyes_capacity = ]b4_percent_define_get([[parse.lac.es-capacity-initial]])[;
-  if (YYMAXDEPTH < yyes_capacity)
-    yyes_capacity = YYMAXDEPTH;]])[
-]])
+    yy_state_t *yyes]m4_ifval([$1], [ = yyesa])[;
+    YYPTRDIFF_T yyes_capacity][]m4_ifval([$1],
+            [m4_do([ = b4_percent_define_get([[parse.lac.es-capacity-initial]]) < YYMAXDEPTH],
+                   [ ? b4_percent_define_get([[parse.lac.es-capacity-initial]])],
+                   [ : YYMAXDEPTH])])[;]])])
 
 
 m4_define([b4_macro_define],
@@ -313,14 +296,14 @@ m4_define([b4_declare_yyparse],
 # Declaration that might either go into the header (if --defines)
 # or open coded in the parser body.
 m4_define([b4_shared_declarations],
-[b4_cpp_guard_open([b4_spec_header_file])[
+[b4_cpp_guard_open([b4_spec_mapped_header_file])[
 ]b4_declare_yydebug[
 ]b4_percent_code_get([[requires]])[
 ]b4_token_enums_defines[
 ]b4_declare_yylstype[
 ]b4_declare_yyparse[
 ]b4_percent_code_get([[provides]])[
-]b4_cpp_guard_close([b4_spec_header_file])[]dnl
+]b4_cpp_guard_close([b4_spec_mapped_header_file])[]dnl
 ])
 
 
@@ -335,7 +318,7 @@ m4_define([b4_header_include_if],
                                    [$2])],
           [$2])])
 
-m4_if(b4_spec_header_file, [[y.tab.h]],
+m4_if(b4_spec_header_file, [y.tab.h], [],
       [b4_percent_define_default([[api.header.include]],
                                  [["@basename(]b4_spec_header_file[@)"]])])
 
@@ -592,7 +575,8 @@ union yyalloc
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  ]b4_states_number[
 
-#define YYMAXUTOK   ]b4_user_token_number_max[
+/* YYMAXUTOK -- Last valid token kind.  */
+#define YYMAXUTOK   ]b4_code_max[
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -829,7 +813,8 @@ int yydebug;
 /* Parser data structure.  */
 struct yypstate
   {]b4_declare_parser_state_variables[
-    /* Whether this instance has not started parsing yet.  */
+    /* Whether this instance has not started parsing yet.
+     * If 2, it corresponds to a finished parsing.  */
     int yynew;
   };]b4_pure_if([], [[
 
@@ -1444,36 +1429,33 @@ yysyntax_error (YYPTRDIFF_T *yymsg_alloc, char **yymsg,
 int
 yyparse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[)
 {
-  return yypull_parse (YY_NULLPTR]b4_user_args[);
+  yypstate *yyps = yypstate_new ();
+  if (!yyps)
+    {]b4_pure_if([b4_locations_if([[
+      static YYLTYPE yyloc_default][]b4_yyloc_default[;
+      YYLTYPE yylloc = yyloc_default;]])[
+      yyerror (]b4_yyerror_args[YY_("memory exhausted"));]], [[
+      if (!yypstate_allocated)
+        yyerror (]b4_yyerror_args[YY_("memory exhausted"));]])[
+      return 2;
+    }
+  int yystatus = yypull_parse (yyps]b4_user_args[);
+  yypstate_delete (yyps);
+  return yystatus;
 }
 
 int
 yypull_parse (yypstate *yyps]b4_user_formals[)
-{]b4_pure_if([b4_locations_if([[
+{
+  YY_ASSERT (yyps);]b4_pure_if([b4_locations_if([[
   static YYLTYPE yyloc_default][]b4_yyloc_default[;
   YYLTYPE yylloc = yyloc_default;]])])[
-  yypstate *yyps_local;
-  if (yyps)
-    yyps_local = yyps;
-  else
-    {
-      yyps_local = yypstate_new ();
-      if (!yyps_local)
-        {]b4_pure_if([[
-          yyerror (]b4_yyerror_args[YY_("memory exhausted"));]], [[
-          if (!yypstate_allocated)
-            yyerror (]b4_yyerror_args[YY_("memory exhausted"));]])[
-          return 2;
-        }
-    }
   int yystatus;
   do {
 ]b4_pure_if([[    YYSTYPE yylval;
     int ]])[yychar = ]b4_lex[;
-    yystatus = yypush_parse (yyps_local]b4_pure_if([[, yychar, &yylval]b4_locations_if([[, &yylloc]])])m4_ifset([b4_parse_param], [, b4_args(b4_parse_param)])[);
+    yystatus = yypush_parse (yyps]b4_pure_if([[, yychar, &yylval]b4_locations_if([[, &yylloc]])])m4_ifset([b4_parse_param], [, b4_args(b4_parse_param)])[);
   } while (yystatus == YYPUSH_MORE);
-  if (!yyps)
-    yypstate_delete (yyps_local);
   return yystatus;
 }]])[
 
@@ -1483,10 +1465,18 @@ yypull_parse (yypstate *yyps]b4_user_formals[)
 static void
 yypstate_clear (yypstate *yyps)
 {
-]b4_initialize_parser_state_variables[
+  yynerrs = 0;
+  yystate = 0;
+  yyerrstatus = 0;
+
+  yyssp = yyss;
+  yyvsp = yyvs;]b4_locations_if([[
+  yylsp = yyls;]])[
+
   /* Initialize the state stack, in case yypcontext_expected_tokens is
      called before the first call to yyparse. */
   *yyssp = 0;
+  yyps->yynew = 1;
 }
 
 /* Initialize the parser data structure.  */
@@ -1496,11 +1486,18 @@ yypstate_new (void)
   yypstate *yyps;]b4_pure_if([], [[
   if (yypstate_allocated)
     return YY_NULLPTR;]])[
-  yyps = YY_CAST (yypstate *, malloc (sizeof *yyps));
+  yyps = YY_CAST (yypstate *, YYMALLOC (sizeof *yyps));
   if (!yyps)
-    return YY_NULLPTR;
-  yyps->yynew = 1;]b4_pure_if([], [[
+    return YY_NULLPTR;]b4_pure_if([], [[
   yypstate_allocated = 1;]])[
+  yystacksize = YYINITDEPTH;
+  yyss = yyssa;
+  yyvs = yyvsa;]b4_locations_if([[
+  yyls = yylsa;]])[]b4_lac_if([[
+  yyes = yyesa;
+  yyes_capacity = ]b4_percent_define_get([[parse.lac.es-capacity-initial]])[;
+  if (YYMAXDEPTH < yyes_capacity)
+    yyes_capacity = YYMAXDEPTH;]])[
   yypstate_clear (yyps);
   return yyps;
 }
@@ -1513,12 +1510,12 @@ yypstate_delete (yypstate *yyps)
 #ifndef yyoverflow
       /* If the stack was reallocated but the parse did not complete, then the
          stack still needs to be freed.  */
-      if (!yyps->yynew && yyss != yyssa)
+      if (yyss != yyssa)
         YYSTACK_FREE (yyss);
 #endif]b4_lac_if([[
-      if (!yyps->yynew && yyes != yyesa)
+      if (yyes != yyesa)
         YYSTACK_FREE (yyes);]])[
-      free (yyps);]b4_pure_if([], [[
+      YYFREE (yyps);]b4_pure_if([], [[
       yypstate_allocated = 0;]])[
     }
 }
@@ -1545,14 +1542,14 @@ yyparse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[)]])[
   YYSTYPE yypushed_val = yylval;]b4_locations_if([[
   YYLTYPE yypushed_loc = yylloc;]])
 ])],
-  [b4_declare_parser_state_variables
+  [b4_declare_parser_state_variables([init])
 ])b4_lac_if([[
   /* Whether LAC context is established.  A Boolean.  */
   int yy_lac_established = 0;]])[
   int yyn;
   /* The return value of yyparse.  */
   int yyresult;
-  /* Lookahead token as an internal (translated) token number.  */
+  /* Lookahead symbol kind.  */
   yysymbol_kind_t yytoken = ]b4_symbol(-2, kind)[;
   /* The variables used to return semantic value and location from the
      action routines.  */
@@ -1572,14 +1569,21 @@ yyparse (]m4_ifset([b4_parse_param], [b4_formals(b4_parse_param)], [void])[)]])[
 
   /* The number of symbols on the RHS of the reduced rule.
      Keep to zero when no symbol should be popped.  */
-  int yylen = 0;
-]b4_push_if([[
-  if (!yyps->yynew)
+  int yylen = 0;]b4_push_if([[
+
+  switch (yyps->yynew)
     {
+    case 0:
       yyn = yypact[yystate];
       goto yyread_pushed_token;
-    }]], [
-b4_initialize_parser_state_variables])[
+
+    case 2:
+      yypstate_clear (yyps);
+      break;
+
+    default:
+      break;
+    }]])[
 
   YYDPRINTF ((stderr, "Starting parse\n"));
 
@@ -2048,13 +2052,13 @@ yyabortlab:
 yyexhaustedlab:
   yyerror (]b4_yyerror_args[YY_("memory exhausted"));
   yyresult = 2;
-  /* Fall through.  */
+  goto yyreturn;
 #endif
 
 
-/*-----------------------------------------------------.
-| yyreturn -- parsing is finished, return the result.  |
-`-----------------------------------------------------*/
+/*-------------------------------------------------------.
+| yyreturn -- parsing is finished, clean up and return.  |
+`-------------------------------------------------------*/
 yyreturn:
   if (yychar != ]b4_symbol(-2, id)[)
     {
@@ -2073,21 +2077,21 @@ yyreturn:
       yydestruct ("Cleanup: popping",
                   YY_ACCESSING_SYMBOL (+*yyssp), yyvsp]b4_locations_if([, yylsp])[]b4_user_args[);
       YYPOPSTACK (1);
-    }
+    }]b4_push_if([[
+  yyps->yynew = 2;
+  goto yypushreturn;
+
+
+/*-------------------------.
+| yypushreturn -- return.  |
+`-------------------------*/
+yypushreturn:]], [[
 #ifndef yyoverflow
   if (yyss != yyssa)
     YYSTACK_FREE (yyss);
 #endif]b4_lac_if([[
   if (yyes != yyesa)
-    YYSTACK_FREE (yyes);]])b4_push_if([[
-  yypstate_clear (yyps);
-  yyps->yynew = 1;
-
-
-/*-----------------------------------------.
-| yypushreturn -- ask for the next token.  |
-`-----------------------------------------*/
-yypushreturn:]])[
+    YYSTACK_FREE (yyes);]])])[
 ]b4_parse_error_bmatch([detailed\|verbose],
 [[  if (yymsg != yymsgbuf)
     YYSTACK_FREE (yymsg);]])[

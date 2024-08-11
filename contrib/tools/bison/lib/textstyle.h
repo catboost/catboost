@@ -116,7 +116,7 @@ ostream_write_str (ostream_t stream, const char *string)
 
 static inline ptrdiff_t ostream_printf (ostream_t stream,
                                         const char *format, ...)
-#if (__GNUC__ == 3 && __GNUC_MINOR__ >= 1) || __GNUC__ > 3
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1) || defined __clang__
   __attribute__ ((__format__ (__printf__, 2, 3)))
 #endif
   ;
@@ -141,7 +141,7 @@ ostream_printf (ostream_t stream, const char *format, ...)
 
 static inline ptrdiff_t ostream_vprintf (ostream_t stream,
                                          const char *format, va_list args)
-#if (__GNUC__ == 3 && __GNUC_MINOR__ >= 1) || __GNUC__ > 3
+#if __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1) || defined __clang__
   __attribute__ ((__format__ (__printf__, 2, 0)))
 #endif
   ;

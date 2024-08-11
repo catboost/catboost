@@ -1,6 +1,6 @@
 # C++ skeleton for Bison
 
-# Copyright (C) 2002-2015, 2018-2020 Free Software Foundation, Inc.
+# Copyright (C) 2002-2015, 2018-2021 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 m4_include(b4_skeletonsdir/[c++.m4])
 
@@ -58,6 +58,13 @@ m4_define([b4_integral_parser_table_define],
   $2
   };dnl
 ])
+
+
+# b4_symbol_kind(NUM)
+# -------------------
+m4_define([b4_symbol_kind],
+[symbol_kind::b4_symbol_kind_base($@)])
+
 
 # b4_symbol_value_template(VAL, SYMBOL-NUM, [TYPE])
 # -------------------------------------------------
@@ -153,7 +160,7 @@ m4_ifdef([b4_lex_param], [, ]b4_lex_param))])])
 
 
 m4_pushdef([b4_copyright_years],
-           [2002-2015, 2018-2020])
+           [2002-2015, 2018-2021])
 
 m4_define([b4_parser_class],
           [b4_percent_define_get([[api.parser.class]])])
@@ -264,9 +271,9 @@ m4_define([b4_shared_declarations],
     {
     public:
       context (const ]b4_parser_class[& yyparser, const symbol_type& yyla);
-      const symbol_type& lookahead () const { return yyla_; }
-      symbol_kind_type token () const { return yyla_.kind (); }]b4_locations_if([[
-      const location_type& location () const { return yyla_.location; }
+      const symbol_type& lookahead () const YY_NOEXCEPT { return yyla_; }
+      symbol_kind_type token () const YY_NOEXCEPT { return yyla_.kind (); }]b4_locations_if([[
+      const location_type& location () const YY_NOEXCEPT { return yyla_.location; }
 ]])[
       /// Put in YYARG at most YYARGN of the expected tokens, and return the
       /// number of tokens stored in YYARG.  If YYARG is null, return the
@@ -486,14 +493,6 @@ m4_define([b4_shared_declarations],
 ]b4_public_types_define([$1])])[
 ]b4_namespace_close[
 
-]b4_percent_define_flag_if([[global_tokens_and_yystype]],
-[b4_token_defines
-
-#ifndef ]b4_api_PREFIX[STYPE
- // Redirection for backward compatibility.
-# define ]b4_api_PREFIX[STYPE b4_namespace_ref::b4_parser_class::semantic_type
-#endif
-])[
 ]b4_percent_code_get([[provides]])[
 ]])
 
@@ -506,16 +505,16 @@ b4_defines_if(
 b4_copyright([Skeleton interface for Bison LALR(1) parsers in C++])
 [
 /**
- ** \file ]b4_spec_header_file[
+ ** \file ]b4_spec_mapped_header_file[
  ** Define the ]b4_namespace_ref[::parser class.
  */
 
 // C++ LALR(1) parser skeleton written by Akim Demaille.
 
 ]b4_disclaimer[
-]b4_cpp_guard_open([b4_spec_header_file])[
+]b4_cpp_guard_open([b4_spec_mapped_header_file])[
 ]b4_shared_declarations(hh)[
-]b4_cpp_guard_close([b4_spec_header_file])[
+]b4_cpp_guard_close([b4_spec_mapped_header_file])[
 ]b4_output_end[
 ]])
 
@@ -598,7 +597,7 @@ m4_if(b4_prefix, [yy], [],
 #else // !]b4_api_PREFIX[DEBUG
 
 # define YYCDEBUG if (false) std::cerr
-# define YY_SYMBOL_PRINT(Title, Symbol)  YYUSE (Symbol)
+# define YY_SYMBOL_PRINT(Title, Symbol)  YY_USE (Symbol)
 # define YY_REDUCE_PRINT(Rule)           static_cast<void> (0)
 # define YY_STACK_PRINT()                static_cast<void> (0)
 
@@ -666,7 +665,7 @@ m4_if(b4_prefix, [yy], [],
   ]b4_parser_class[::by_state::kind () const YY_NOEXCEPT
   {
     if (state == empty_state)
-      return symbol_kind::]b4_symbol(-2, kind)[;
+      return ]b4_symbol(-2, kind)[;
     else
       return YY_CAST (symbol_kind_type, yystos_[+state]);
   }
@@ -691,7 +690,7 @@ m4_if(b4_prefix, [yy], [],
     b4_symbol_variant([that.kind ()],
                       [value], [move], [YY_MOVE (that.value)])])[
     // that is emptied.
-    that.kind_ = symbol_kind::]b4_symbol(-2, kind)[;
+    that.kind_ = ]b4_symbol(-2, kind)[;
   }
 
 #if YY_CPLUSPLUS < 201103L
@@ -737,7 +736,7 @@ m4_if(b4_prefix, [yy], [],
   ]b4_parser_class[::yy_print_ (std::ostream& yyo, const basic_symbol<Base>& yysym) const
   {
     std::ostream& yyoutput = yyo;
-    YYUSE (yyoutput);
+    YY_USE (yyoutput);
     if (yysym.empty ())
       yyo << "empty symbol";
     else
@@ -920,13 +919,13 @@ b4_dollar_popdef])[]dnl
       }
     YY_SYMBOL_PRINT ("Next token is", yyla);
 
-    if (yyla.kind () == ]symbol_kind::b4_symbol(1, kind)[)
+    if (yyla.kind () == ]b4_symbol(1, kind)[)
     {
       // The scanner already issued an error message, process directly
       // to error recovery.  But do not keep the error token as
       // lookahead, it is too special and may lead us to an endless
       // loop in error recovery. */
-      yyla.kind_ = ]symbol_kind::b4_symbol(2, kind)[;
+      yyla.kind_ = ]b4_symbol(2, kind)[;
       goto yyerrlab1;
     }
 
@@ -1063,7 +1062,7 @@ b4_dollar_popdef])[]dnl
            error, discard it.  */
 
         // Return failure if at end of input.
-        if (yyla.kind () == symbol_kind::]b4_symbol_prefix[YYEOF)
+        if (yyla.kind () == ]b4_symbol(0, kind)[)
           YYABORT;
         else if (!yyla.empty ())
           {
@@ -1104,9 +1103,9 @@ b4_dollar_popdef])[]dnl
         yyn = yypact_[+yystack_[0].state];
         if (!yy_pact_value_is_default_ (yyn))
           {
-            yyn += symbol_kind::]b4_symbol(1, kind)[;
+            yyn += ]b4_symbol(1, kind)[;
             if (0 <= yyn && yyn <= yylast_
-                && yycheck_[yyn] == symbol_kind::]b4_symbol(1, kind)[)
+                && yycheck_[yyn] == ]b4_symbol(1, kind)[)
               {
                 yyn = yytable_[yyn];
                 if (0 < yyn)
@@ -1298,8 +1297,8 @@ b4_dollar_popdef])[]dnl
     for (int yyx = 0; yyx < YYNTOKENS; ++yyx)
       {
         symbol_kind_type yysym = YY_CAST (symbol_kind_type, yyx);
-        if (yysym != symbol_kind::]b4_symbol(1, kind)[
-            && yysym != symbol_kind::]b4_symbol_prefix[YYUNDEF
+        if (yysym != ]b4_symbol(1, kind)[
+            && yysym != ]b4_symbol(2, kind)[
             && yyparser_.yy_lac_check_ (yysym))
           {
             if (!yyarg)
@@ -1321,7 +1320,7 @@ b4_dollar_popdef])[]dnl
         int yychecklim = yylast_ - yyn + 1;
         int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
         for (int yyx = yyxbegin; yyx < yyxend; ++yyx)
-          if (yycheck_[yyx + yyn] == yyx && yyx != symbol_kind::]b4_symbol(1, kind)[
+          if (yycheck_[yyx + yyn] == yyx && yyx != ]b4_symbol(1, kind)[
               && !yy_table_value_is_error_ (yytable_[yyx + yyn]))
             {
               if (!yyarg)
@@ -1334,7 +1333,7 @@ b4_dollar_popdef])[]dnl
       }
 ]])[
     if (yyarg && yycount == 0 && 0 < yyargn)
-      yyarg[0] = symbol_kind::]b4_symbol(-2, kind)[;
+      yyarg[0] = ]b4_symbol(-2, kind)[;
     return yycount;
   }
 

@@ -122,7 +122,7 @@ lbitset_elt_alloc (void)
 # define OBSTACK_CHUNK_FREE free
 #endif
 
-#if ! defined __GNUC__ || __GNUC__ < 2
+#if !(defined __GNUC__ || defined __clang__)
 # define __alignof__(type) 0
 #endif
 

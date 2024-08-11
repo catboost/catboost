@@ -1,6 +1,6 @@
 /* Locations for Bison
 
-   Copyright (C) 2002, 2005-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 2002, 2005-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "system.h"
@@ -39,18 +39,6 @@
 #include "location.h"
 
 location const empty_loc = EMPTY_LOCATION_INIT;
-
-static int
-min_int (int a, int b)
-{
-  return a < b ? a : b;
-}
-
-static int
-max_int (int a, int b)
-{
-  return a >= b ? a : b;
-}
 
 /* The terminal width.  Not less than 40.  */
 static int
@@ -167,7 +155,9 @@ int
 location_print (location loc, FILE *out)
 {
   int res = 0;
-  if (trace_flag & trace_locations)
+  if (location_empty (loc))
+    res += fprintf (out, "(empty location)");
+  else if (trace_flag & trace_locations)
     {
       res += boundary_print (&loc.start, out);
       res += fprintf (out, "-");

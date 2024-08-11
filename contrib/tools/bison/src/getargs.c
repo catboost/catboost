@@ -1,6 +1,6 @@
 /* Parse command line arguments for Bison.
 
-   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2020 Free
+   Copyright (C) 1984, 1986, 1989, 1992, 2000-2015, 2018-2021 Free
    Software Foundation, Inc.
 
    This file is part of Bison, the GNU Compiler Compiler.
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include "getargs.h"
@@ -151,8 +151,8 @@ flags_argmatch (const char *opt,
  */
 #define FLAGS_ARGMATCH(FlagName, Args, All)                             \
   flags_argmatch ("--" #FlagName,                                       \
-                  (xargmatch_fn*) argmatch_## FlagName ## _value,        \
-                  argmatch_## FlagName ## _usage,                       \
+                  (xargmatch_fn*) argmatch_## FlagName ## _value,       \
+                  argmatch_ ## FlagName ## _usage,                      \
                   All, &FlagName ## _flag, Args)
 
 /*---------------------.
@@ -206,23 +206,26 @@ ARGMATCH_DEFINE_GROUP (report, enum report)
 
 static const argmatch_report_doc argmatch_report_docs[] =
 {
-  { "states",     N_("describe the states") },
-  { "itemsets",   N_("complete the core item sets with their closure") },
-  { "lookaheads", N_("explicitly associate lookahead tokens to items") },
-  { "solved",     N_("describe shift/reduce conflicts solving") },
-  { "all",        N_("include all the above information") },
-  { "none",       N_("disable the report") },
+  { "states",          N_("describe the states") },
+  { "itemsets",        N_("complete the core item sets with their closure") },
+  { "lookaheads",      N_("explicitly associate lookahead tokens to items") },
+  { "solved",          N_("describe shift/reduce conflicts solving") },
+  { "counterexamples", N_("generate conflict counterexamples") },
+  { "all",             N_("include all the above information") },
+  { "none",            N_("disable the report") },
   { NULL, NULL },
 };
 
 static const argmatch_report_arg argmatch_report_args[] =
 {
-  { "none",        report_none },
-  { "states",      report_states },
-  { "itemsets",    report_states | report_itemsets },
-  { "lookaheads",  report_states | report_lookahead_tokens },
-  { "solved",      report_states | report_solved_conflicts },
-  { "all",         report_all },
+  { "none",            report_none },
+  { "states",          report_states },
+  { "itemsets",        report_states | report_itemsets },
+  { "lookaheads",      report_states | report_lookaheads },
+  { "solved",          report_states | report_solved_conflicts },
+  { "counterexamples", report_cex },
+  { "cex",             report_cex },
+  { "all",             report_all },
   { NULL, report_none },
 };
 
@@ -262,6 +265,7 @@ static const argmatch_trace_doc argmatch_trace_docs[] =
   { "skeleton",   "skeleton postprocessing" },
   { "time",       "time consumption" },
   { "ielr",       "IELR conversion" },
+  { "cex",        "counterexample generation"},
   { "all",        "all of the above" },
   { NULL, NULL},
 };
@@ -285,6 +289,7 @@ static const argmatch_trace_arg argmatch_trace_args[] =
   { "skeleton",  trace_skeleton },
   { "time",      trace_time },
   { "ielr",      trace_ielr },
+  { "cex",       trace_cex },
   { "all",       trace_all },
   { NULL,        trace_none},
 };
@@ -339,7 +344,8 @@ const argmatch_feature_group_type argmatch_feature_group =
 | Display the help message and exit STATUS.  |
 `-------------------------------------------*/
 
-static void usage (int) ATTRIBUTE_NORETURN;
+ _Noreturn
+static void usage (int);
 
 static void
 usage (int status)
@@ -420,15 +426,17 @@ Tuning the Parser:\n\
        * won't assume that -d also takes an argument.  */
       fputs (_("\
 Output Files:\n\
-      --defines[=FILE]       also produce a header file\n\
-  -d                         likewise but cannot specify FILE (for POSIX Yacc)\n\
-  -r, --report=THINGS        also produce details on the automaton\n\
-      --report-file=FILE     write report to FILE\n\
-  -v, --verbose              same as '--report=state'\n\
-  -b, --file-prefix=PREFIX   specify a PREFIX for output files\n\
-  -o, --output=FILE          leave output to FILE\n\
-  -g, --graph[=FILE]         also output a graph of the automaton\n\
-  -x, --xml[=FILE]           also output an XML report of the automaton\n\
+      --defines[=FILE]          also produce a header file\n\
+  -d                            likewise but cannot specify FILE (for POSIX Yacc)\n\
+  -r, --report=THINGS           also produce details on the automaton\n\
+      --report-file=FILE        write report to FILE\n\
+  -v, --verbose                 same as '--report=state'\n\
+  -b, --file-prefix=PREFIX      specify a PREFIX for output files\n\
+  -o, --output=FILE             leave output to FILE\n\
+  -g, --graph[=FILE]            also output a graph of the automaton\n\
+  -x, --xml[=FILE]              also output an XML report of the automaton\n\
+  -M, --file-prefix-map=OLD=NEW replace prefix OLD with NEW when writing file paths\n\
+                                in output files\n\
 "), stdout);
       putc ('\n', stdout);
 
@@ -438,7 +446,7 @@ Output Files:\n\
       printf (_("Report bugs to <%s>.\n"), PACKAGE_BUGREPORT);
       printf (_("%s home page: <%s>.\n"), PACKAGE_NAME, PACKAGE_URL);
       fputs (_("General help using GNU software: "
-               "<http://www.gnu.org/gethelp/>.\n"),
+               "<https://www.gnu.org/gethelp/>.\n"),
              stdout);
 
 #if (defined __GLIBC__ && __GLIBC__ >= 2) && !defined __UCLIBC__
@@ -447,13 +455,12 @@ Output Files:\n\
          man page.  */
       const char *lc_messages = setlocale (LC_MESSAGES, NULL);
       if (lc_messages && !STREQ (lc_messages, "en_"))
-        /* TRANSLATORS: Replace LANG_CODE in this URL with your language
-           code <http://translationproject.org/team/LANG_CODE.html> to
-           form one of the URLs at http://translationproject.org/team/.
+        /* TRANSLATORS: Replace LANG_CODE in this URL with your language code to
+           form one of the URLs at https://translationproject.org/team/.
            Otherwise, replace the entire URL with your translation team's
            email address.  */
         fputs (_("Report translation bugs to "
-                 "<http://translationproject.org/team/>.\n"), stdout);
+                 "<https://translationproject.org/team/>.\n"), stdout);
 #endif
       fputs (_("For complete documentation, run: info bison.\n"), stdout);
     }
@@ -549,6 +556,7 @@ static char const short_options[] =
   "h"
   "k"
   "l"
+  "M:"
   "o:"
   "p:"
   "r:"
@@ -600,14 +608,15 @@ static struct option const long_options[] =
   { "yacc",           no_argument,         0, 'y' },
 
   /* Output Files. */
-  { "defines",     optional_argument,   0,   'd' },
-  { "report",      required_argument,   0,   'r' },
-  { "report-file", required_argument,   0,   REPORT_FILE_OPTION },
-  { "verbose",     no_argument,         0,   'v' },
-  { "file-prefix", required_argument,   0,   'b' },
-  { "output",      required_argument,   0,   'o' },
-  { "graph",       optional_argument,   0,   'g' },
-  { "xml",         optional_argument,   0,   'x' },
+  { "defines",         optional_argument,   0,   'd' },
+  { "report",          required_argument,   0,   'r' },
+  { "report-file",     required_argument,   0,   REPORT_FILE_OPTION },
+  { "verbose",         no_argument,         0,   'v' },
+  { "file-prefix",     required_argument,   0,   'b' },
+  { "output",          required_argument,   0,   'o' },
+  { "graph",           optional_argument,   0,   'g' },
+  { "xml",             optional_argument,   0,   'x' },
+  { "file-prefix-map", required_argument,   0,   'M' },
 
   /* Hidden. */
   { "fixed-output-files", no_argument,       0,  FIXED_OUTPUT_FILES_OPTION },
@@ -711,6 +720,22 @@ getargs (int argc, char *argv[])
 
       case 'L':
         language_argmatch (optarg, command_line_prio, loc);
+        break;
+
+      case 'M': // -MOLDPREFIX=NEWPREFIX
+        {
+          char *newprefix = strchr (optarg, '=');
+          if (newprefix)
+            {
+              *newprefix = '\0';
+              add_prefix_map (optarg, newprefix + 1);
+            }
+          else
+            {
+              complain (&loc, complaint, _("invalid argument for %s: %s"),
+                        quote ("--file-prefix-map"), quotearg_n (1, optarg));
+            }
+        }
         break;
 
       case 'S':
@@ -862,7 +887,7 @@ getargs (int argc, char *argv[])
 void
 tr (char *s, char from, char to)
 {
-  for (; *s; s++)
+  for (; *s; ++s)
     if (*s == from)
       *s = to;
 }

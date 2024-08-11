@@ -70,14 +70,14 @@ dupfd (int oldfd, int newfd, int flags)
       return -1;
     }
   if (old_handle == INVALID_HANDLE_VALUE
-      || (mode = setmode (oldfd, O_BINARY)) == -1)
+      || (mode = _setmode (oldfd, O_BINARY)) == -1)
     {
       /* oldfd is not open, or is an unassigned standard file
          descriptor.  */
       errno = EBADF;
       return -1;
     }
-  setmode (oldfd, mode);
+  _setmode (oldfd, mode);
   flags |= mode;
 
   for (;;)
