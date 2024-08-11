@@ -114,10 +114,6 @@ static gl_list_t prefix_maps = NULL;
 | STR1, and STR2.                                                  |
 `-----------------------------------------------------------------*/
 
-#if defined _win_ || defined _WIN64 || defined _WIN32 || defined __WIN32__
-char *stpcpy(char *dst, const char *src);
-#endif
-
 static char *
 concat2 (char const *str1, char const *str2)
 {
@@ -250,19 +246,16 @@ compute_exts_from_gf (const char *ext)
   if (STREQ (ext, ".y"))
     {
       src_extension = xstrdup (language->src_extension);
-      header_extension = xstrdup(".h");
+      header_extension = xstrdup (language->header_extension);
     }
   else
     {
       src_extension = xstrdup (ext);
-      /*
       header_extension = xstrdup (ext);
       tr (src_extension, 'y', 'c');
       tr (src_extension, 'Y', 'C');
       tr (header_extension, 'y', 'h');
       tr (header_extension, 'Y', 'H');
-      */
-      header_extension = xstrdup(".h");
     }
 }
 
@@ -274,12 +267,9 @@ compute_exts_from_src (const char *ext)
      so the extensions must be computed unconditionally from the file name
      given by this option.  */
   src_extension = xstrdup (ext);
-  /*
   header_extension = xstrdup (ext);
   tr (header_extension, 'c', 'h');
   tr (header_extension, 'C', 'H');
-  */
-  header_extension = xstrdup(".h");
 }
 
 
