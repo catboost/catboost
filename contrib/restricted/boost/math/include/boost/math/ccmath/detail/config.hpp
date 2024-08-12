@@ -43,7 +43,7 @@
 //
 // Don't check here for msvc as they didn't get std lib configuration macros at the same time as C++17 <type_traits>
 //
-#if (__cpp_lib_bool_constant < 201505L) && !defined(BOOST_MATH_NO_CCMATH)
+#if (defined(__cpp_lib_bool_constant) && __cpp_lib_bool_constant < 201505L) && !defined(BOOST_MATH_NO_CCMATH)
 #  define BOOST_MATH_NO_CCMATH
 #endif
 #endif

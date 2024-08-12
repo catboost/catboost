@@ -197,7 +197,7 @@
 #endif
 
 // C++23
-#if __cplusplus > 202002L || _MSVC_LANG > 202002L
+#if __cplusplus > 202002L || (defined(_MSVC_LANG) &&_MSVC_LANG > 202002L)
 #  if __GNUC__ >= 13
      // libstdc++3 only defines to/from_chars for std::float128_t when one of these defines are set
      // otherwise we're right out of luck...

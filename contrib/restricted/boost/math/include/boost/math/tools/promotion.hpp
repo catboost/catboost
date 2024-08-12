@@ -27,7 +27,7 @@
 #include <type_traits>
 
 #if defined __has_include
-#  if __cplusplus > 202002L || _MSVC_LANG > 202002L 
+#  if __cplusplus > 202002L || (defined(_MSVC_LANG) && _MSVC_LANG > 202002L)
 #    if __has_include (<stdfloat>)
 #    error #include <stdfloat>
 #    endif
