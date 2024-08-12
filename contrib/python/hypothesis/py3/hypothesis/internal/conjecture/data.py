@@ -2083,11 +2083,17 @@ class ConjectureData:
             assert len(weights) == width
 
         if forced is not None and (min_value is None or max_value is None):
-            # We draw `forced=forced - shrink_towards` here internally. If that
-            # grows larger than a 128 bit signed integer, we can't represent it.
+            # We draw `forced=forced - shrink_towards` here internally, after clamping.
+            # If that grows larger than a 128 bit signed integer, we can't represent it.
             # Disallow this combination for now.
             # Note that bit_length() = 128 -> signed bit size = 129.
-            assert (forced - shrink_towards).bit_length() < 128
+            _shrink_towards = shrink_towards
+            if min_value is not None:
+                _shrink_towards = max(min_value, _shrink_towards)
+            if max_value is not None:
+                _shrink_towards = min(max_value, _shrink_towards)
+
+            assert (forced - _shrink_towards).bit_length() < 128
         if forced is not None and min_value is not None:
             assert min_value <= forced
         if forced is not None and max_value is not None:
