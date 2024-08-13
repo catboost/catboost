@@ -10,7 +10,7 @@ namespace NKernel {
     //it may be faster to cache in shared memory binValues, but for fold + bin + depth > 10 it'll be slower and may fail on shared memory allocation
     //so current impl more conservative with const-load cache
     template <int BLOCK_SIZE, int ELEMENTS_PER_THREAD>
-    __launch_bounds__(BLOCK_SIZE, 2048 / BLOCK_SIZE)
+    __launch_bounds__(BLOCK_SIZE, CUDA_MAX_THREADS_PER_SM / BLOCK_SIZE)
     __global__ void AddBinModelValueImpl(const float* binValues, ui32 binCount,
                                          const ui32* bins,
                                          ui32 size,

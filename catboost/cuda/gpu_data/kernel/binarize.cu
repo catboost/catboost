@@ -33,7 +33,7 @@ namespace NKernel {
 
 
     template <bool ATOMIC_UPDATE, int BLOCK_SIZE, int DOCS_PER_THREAD>
-    __launch_bounds__(BLOCK_SIZE, 2)
+    __launch_bounds__(BLOCK_SIZE, CUDA_MAX_THREADS_PER_SM / BLOCK_SIZE)
     __global__ void BinarizeFloatFeatureImpl(TCFeature feature, const float* values, ui32 docCount,
                                              const float* borders,
                                              const ui32* gatherIndex, ui32* dst) {

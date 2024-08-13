@@ -3,6 +3,13 @@
 #include <contrib/libs/nvidia/cub/cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
 
+#if __CUDA_ARCH__ == 750
+constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 1024;
+#elif __CUDA_ARCH__ == 860 || __CUDA_ARCH__ == 870
+constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 1536;
+#else
+constexpr uint32_t CUDA_MAX_THREADS_PER_SM = 2048;
+#endif
 
 namespace NKernel {
     template <class T>

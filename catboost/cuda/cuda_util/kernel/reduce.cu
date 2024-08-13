@@ -26,7 +26,7 @@ namespace NKernel {
     //TODO(noxoomo): special version for by-thread reduction in case of 1-4 elements per segment
     //TODO(noxoomo): Fallback to block-reduce if one of segments is too big (e.g. loopSize > 256)
     template <typename T, int BLOCK_SIZE, int LINE_SIZE>
-    __launch_bounds__(BLOCK_SIZE, 2048 / BLOCK_SIZE)
+    __launch_bounds__(BLOCK_SIZE, CUDA_MAX_THREADS_PER_SM / BLOCK_SIZE)
     __global__ void SegmentedReduceWarpPartPerSegmentImpl(const T* src,
                                                           const int* segmentStarts,
                                                           const int* segmentEnds,

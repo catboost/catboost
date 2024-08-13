@@ -323,7 +323,7 @@ namespace NKernel {
 
 
     template <int BLOCK_SIZE, int ELEMENTS_PER_THREAD, bool HAS_BORDER>
-    __launch_bounds__(BLOCK_SIZE, 2048 / BLOCK_SIZE)
+    __launch_bounds__(BLOCK_SIZE, CUDA_MAX_THREADS_PER_SM / BLOCK_SIZE)
     __global__ void CrossEntropyImpl(const float* targetClasses, const float* targetWeights, ui32 size,
                                      const float* predictions,
                                      float* functionValue, float* der, float* der2,

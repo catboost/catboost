@@ -6,7 +6,7 @@ namespace NKernel {
 
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiLogitValAndFirstDerImpl(const float* targetClasses, int numClasses, ui32 size,
                                                  const float* weights,
                                                  const float* predictions,
@@ -100,7 +100,7 @@ namespace NKernel {
 
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiLogitSecondDerRowImpl(const float* targetClasses, int numClasses, ui32 size,
                                                const float* weights,
                                                const float* predictions,
@@ -211,7 +211,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void RMSEWithUncertaintyValAndFirstDerImpl(
         const float* target, ui32 size,
         const float* weights,
@@ -265,7 +265,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void RMSEWithUncertaintySecondDerRowImpl(
         const float* target, ui32 size,
         const float* weights,
@@ -352,7 +352,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiCrossEntropyValueAndDerImpl(
         ui32 targetCount,
         ui32 size,
@@ -403,7 +403,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiCrossEntropySecondDerImpl(
         ui32 targetCount,
         ui32 size,
@@ -488,7 +488,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiRMSEValueAndDerImpl(
         ui32 targetCount,
         ui32 size,
@@ -537,7 +537,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiRMSESecondDerImpl(
         ui32 size,
         const float* weights,
@@ -609,7 +609,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiClassOneVsAllValAndFirstDerImpl(const float* targetClasses, int numClasses, ui32 size,
                                                          const float* weights,
                                                          const float* predictions,
@@ -671,7 +671,7 @@ namespace NKernel {
     }
 
     template <int BlockSize, int ElementsPerThread>
-    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __launch_bounds__(BlockSize, CUDA_MAX_THREADS_PER_SM / BlockSize)
     __global__ void MultiClassOneVsAllSecondDerImpl(const float* targetClasses, int numClasses, ui32 size,
                                                     const float* weights,
                                                     const float* predictions,
