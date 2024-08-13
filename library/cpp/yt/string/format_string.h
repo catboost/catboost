@@ -56,6 +56,13 @@ using TFormatString = TBasicFormatString<std::type_identity_t<TArgs>...>;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class T>
+concept CStringLiteral = requires (T& t) {
+    [] (const char*) { } (t);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
 } // namespace NYT
 
 #define FORMAT_STRING_INL_H_
