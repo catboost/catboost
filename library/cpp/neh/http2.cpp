@@ -1230,7 +1230,7 @@ namespace {
     void THttpRequest::OnResponse(TAutoPtr<THttpParser>& rsp) {
         DBGOUT("THttpRequest::OnResponse()");
         ReleaseConn();
-        if (Y_LIKELY(((rsp->RetCode() >= 200 && rsp->RetCode() < (!THttp2Options::RedirectionNotError ? 300 : 400)) || THttp2Options::AnyResponseIsNotError))) {
+        if (Y_LIKELY(((rsp->RetCode() >= 200u && rsp->RetCode() < (!THttp2Options::RedirectionNotError ? 300u : 400u)) || THttp2Options::AnyResponseIsNotError))) {
             NotifyResponse(rsp->DecodedContent(), rsp->FirstLine(), rsp->Headers());
         } else {
             TString message;
