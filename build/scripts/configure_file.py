@@ -53,7 +53,12 @@ if __name__ == "__main__":
         usage()
     varDict = {}
     for x in sys.argv[3:]:
-        key, value = str(x).split('=', 1)
+        try:
+            key, value = str(x).split('=', 1)
+            value = value.replace("#BACKSLASH#", "\\\\")
+            value = value.replace("#DOUBLE_QUOTE#", '"')
+        except Exception:
+            continue
         varDict[key] = value
 
     main(sys.argv[1], sys.argv[2], varDict)
