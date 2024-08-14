@@ -269,7 +269,7 @@ class RedisCluster(AbstractRedis, AbstractRedisCluster, AsyncRedisClusterCommand
         ssl_min_version: Optional[ssl.TLSVersion] = None,
         ssl_ciphers: Optional[str] = None,
         protocol: Optional[int] = 2,
-        address_remap: Optional[Callable[[str, int], Tuple[str, int]]] = None,
+        address_remap: Optional[Callable[[Tuple[str, int]], Tuple[str, int]]] = None,
     ) -> None:
         if db:
             raise RedisClusterException(
@@ -1098,7 +1098,7 @@ class NodesManager:
         startup_nodes: List["ClusterNode"],
         require_full_coverage: bool,
         connection_kwargs: Dict[str, Any],
-        address_remap: Optional[Callable[[str, int], Tuple[str, int]]] = None,
+        address_remap: Optional[Callable[[Tuple[str, int]], Tuple[str, int]]] = None,
     ) -> None:
         self.startup_nodes = {node.name: node for node in startup_nodes}
         self.require_full_coverage = require_full_coverage
@@ -1226,13 +1226,12 @@ class NodesManager:
         for startup_node in self.startup_nodes.values():
             try:
                 # Make sure cluster mode is enabled on this node
-                if not (await startup_node.execute_command("INFO")).get(
-                    "cluster_enabled"
-                ):
+                try:
+                    cluster_slots = await startup_node.execute_command("CLUSTER SLOTS")
+                except ResponseError:
                     raise RedisClusterException(
                         "Cluster mode is not enabled on this node"
                     )
-                cluster_slots = await startup_node.execute_command("CLUSTER SLOTS")
                 startup_nodes_reachable = True
             except Exception as e:
                 # Try the next startup node.
@@ -1433,7 +1432,8 @@ class ClusterPipeline(AbstractRedis, AbstractRedisCluster, AsyncRedisClusterComm
         self._command_stack = []
 
     def __bool__(self) -> bool:
-        return bool(self._command_stack)
+        "Pipeline instances should  always evaluate to True on Python 3+"
+        return True
 
     def __len__(self) -> int:
         return len(self._command_stack)

@@ -499,7 +499,7 @@ class RedisCluster(AbstractRedisCluster, RedisClusterCommands):
         read_from_replicas: bool = False,
         dynamic_startup_nodes: bool = True,
         url: Optional[str] = None,
-        address_remap: Optional[Callable[[str, int], Tuple[str, int]]] = None,
+        address_remap: Optional[Callable[[Tuple[str, int]], Tuple[str, int]]] = None,
         **kwargs,
     ):
         """
@@ -1310,7 +1310,7 @@ class NodesManager:
         lock=None,
         dynamic_startup_nodes=True,
         connection_pool_class=ConnectionPool,
-        address_remap: Optional[Callable[[str, int], Tuple[str, int]]] = None,
+        address_remap: Optional[Callable[[Tuple[str, int]], Tuple[str, int]]] = None,
         **kwargs,
     ):
         self.nodes_cache = {}
@@ -1513,11 +1513,12 @@ class NodesManager:
                     )
                     self.startup_nodes[startup_node.name].redis_connection = r
                 # Make sure cluster mode is enabled on this node
-                if bool(r.info().get("cluster_enabled")) is False:
+                try:
+                    cluster_slots = str_if_bytes(r.execute_command("CLUSTER SLOTS"))
+                except ResponseError:
                     raise RedisClusterException(
                         "Cluster mode is not enabled on this node"
                     )
-                cluster_slots = str_if_bytes(r.execute_command("CLUSTER SLOTS"))
                 startup_nodes_reachable = True
             except Exception as e:
                 # Try the next startup node.
