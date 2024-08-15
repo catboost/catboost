@@ -6,7 +6,7 @@
 
 class TRandomAccessFileInput: public IInputStream {
 public:
-    TRandomAccessFileInput(TDirectIOBufferedFile& file, ui64 position);
+    TRandomAccessFileInput(TDirectIOBufferedFile& file Y_LIFETIME_BOUND, ui64 position);
 
 protected:
     size_t DoRead(void* buf, size_t len) override;
@@ -19,7 +19,7 @@ private:
 
 class TRandomAccessFileOutput: public IOutputStream {
 public:
-    TRandomAccessFileOutput(TDirectIOBufferedFile& file);
+    TRandomAccessFileOutput(TDirectIOBufferedFile& file Y_LIFETIME_BOUND);
 
     TRandomAccessFileOutput(TRandomAccessFileOutput&&) noexcept = default;
     TRandomAccessFileOutput& operator=(TRandomAccessFileOutput&&) noexcept = default;

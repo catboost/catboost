@@ -12,7 +12,7 @@
  */
 class TTeeOutput: public IOutputStream {
 public:
-    TTeeOutput(IOutputStream* l, IOutputStream* r) noexcept;
+    TTeeOutput(IOutputStream* l Y_LIFETIME_BOUND, IOutputStream* r Y_LIFETIME_BOUND) noexcept;
     ~TTeeOutput() override;
 
 private:

@@ -12,7 +12,7 @@
  */
 class TMultiInput: public IInputStream {
 public:
-    TMultiInput(IInputStream* f, IInputStream* s) noexcept;
+    TMultiInput(IInputStream* f Y_LIFETIME_BOUND, IInputStream* s Y_LIFETIME_BOUND) noexcept;
     ~TMultiInput() override;
 
 private:

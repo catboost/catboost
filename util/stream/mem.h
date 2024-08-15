@@ -27,7 +27,7 @@ public:
      */
     TMemoryInput(const void* buf Y_LIFETIME_BOUND, size_t len) noexcept;
     TMemoryInput(TString&&) = delete;
-    explicit TMemoryInput(const TStringBuf buf) noexcept;
+    explicit TMemoryInput(const TStringBuf buf Y_LIFETIME_BOUND) noexcept;
     explicit TMemoryInput(const char* zstr Y_LIFETIME_BOUND)
         : TMemoryInput(TStringBuf(zstr))
     {
