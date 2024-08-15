@@ -423,7 +423,7 @@ This option requires a validation dataset to be provided.
 
 **Default value**
 
-True if a validation set is input (the `eval_set` parameter is defined) and at least one of the label values of objects in this set differs from the others. False otherwise.
+True if validation sets are specified (the `eval_set` parameter is defined) and at least one of the label values of objects in the last validation dataset differs from the others. False otherwise.
 
 **Supported processing units**
 
@@ -459,7 +459,7 @@ None
 
 {% note info %}
 
-Only a single validation dataset can be input if the training is performed on GPU
+GPU training does not support multiple validation datasets for now
 
 {% endnote %}
 
