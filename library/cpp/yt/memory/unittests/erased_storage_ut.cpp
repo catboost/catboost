@@ -46,6 +46,13 @@ private:
     [[maybe_unused]] std::array<std::byte, 8> Data_;
 };
 
+// Overshadow to bind template parameter.
+inline constexpr size_t TestSize = 32;
+
+template <class T>
+concept CTriviallyErasable = ::NYT::CTriviallyErasable<T, TestSize>;
+using TErasedStorage = ::NYT::TErasedStorage<TestSize>;
+
 ////////////////////////////////////////////////////////////////////////////////
 
 TEST(TErasedStorageTest, Types)
@@ -122,6 +129,21 @@ TEST(TErasedStorageTest, MutateStorage)
     ref = 88;
 
     EXPECT_EQ(stor.AsConcrete<int>(), 88);
+}
+
+TEST(TErasedStorageTest, EqualityComparison)
+{
+    struct TWidget
+    {
+        alignas(8) int Value;
+
+        alignas(16) bool Flag;
+    } widget{1, false};
+
+    TErasedStorage stor1(widget);
+    TErasedStorage stor2(widget);
+
+    EXPECT_EQ(stor1, stor2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
