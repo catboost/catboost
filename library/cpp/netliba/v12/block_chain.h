@@ -150,9 +150,8 @@ namespace NNetliba_v12 {
         TVector<TIntrusivePtr<TThrRefBase>, TCustomAllocator<TIntrusivePtr<TThrRefBase>>> AttachedStorage;
         TVector<TUdpRecvPacket*, TCustomAllocator<TUdpRecvPacket*>> PacketsStorage;
         char DefaultBuf[128]; // prevent allocs in most cases
-        enum {
-            N_DEFAULT_BLOCK_SIZE = 1024
-        };
+
+        static constexpr int N_DEFAULT_BLOCK_SIZE = 1024;
 
         char* Alloc(int sz) {
             char* res = nullptr;

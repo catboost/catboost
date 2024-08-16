@@ -20,9 +20,9 @@ namespace NNetlibaSocket {
     template <size_t TTNumWriterThreads>
     class TLockFreePacketQueue {
     private:
-        enum { MAX_PACKETS_IN_QUEUE = INT_MAX,
-               CMD_QUEUE_RESERVE = 1 << 20,
-               MAX_DATA_IN_QUEUE = 32 << 20 };
+        static constexpr int MAX_PACKETS_IN_QUEUE = INT_MAX;
+        static constexpr int CMD_QUEUE_RESERVE = 1 << 20;
+        static constexpr int MAX_DATA_IN_QUEUE = 32 << 20;
 
         typedef std::pair<TUdpRecvPacket*, TPacketMeta> TPacket;
         typedef std::conditional_t<TTNumWriterThreads == 1, NThreading::TOneOneQueue<TPacket>, NThreading::TManyOneQueue<TPacket, TTNumWriterThreads>> TImpl;

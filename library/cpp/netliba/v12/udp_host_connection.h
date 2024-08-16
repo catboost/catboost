@@ -29,11 +29,9 @@
 #include <array>
 
 namespace NNetliba_v12 {
-    enum {
-        PACKET_HEADERS_SIZE = 128, // 128 bytes are enough for any header (100 is not enough for PONG_IB)
-        UDP_PACKET_SIZE = UDP_PACKET_BUF_SIZE - PACKET_HEADERS_SIZE,
-        UDP_SMALL_PACKET_SIZE = 1350, // 1180 would be better taking into account that 1280 is guaranteed ipv6 minimum MTU
-    };
+    constexpr int PACKET_HEADERS_SIZE = 128; // 128 bytes are enough for any header (100 is not enough for PONG_IB)
+    constexpr int UDP_PACKET_SIZE = UDP_PACKET_BUF_SIZE - PACKET_HEADERS_SIZE;
+    constexpr int UDP_SMALL_PACKET_SIZE = 1350; // 1180 would be better taking into account that 1280 is guaranteed ipv6 minimum MTU
 
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -306,7 +304,7 @@ namespace NNetliba_v12 {
 
         friend class TConnection;
 
-        enum { WINDOW_SIZE = 128 }; // window size must be equal to max expected simultanious active transfers
+        static constexpr int WINDOW_SIZE = 128; // window size must be equal to max expected simultanious active transfers
 
         static size_t GetWindowIndexById(const size_t latest, const ui64 id) {
             Y_ASSERT(id <= latest);

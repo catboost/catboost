@@ -74,8 +74,8 @@ namespace NNetlibaSocket {
     ///////////////////////////////////////////////////////////////////////////////
 
     // currently netliba v6 version id is any number which's not equal to NETLIBA_V12_VERSION
-    enum { NETLIBA_ANY_VERSION = -1,
-           NETLIBA_V12_VERSION = 112 };
+    constexpr int NETLIBA_ANY_VERSION = -1;
+    constexpr int NETLIBA_V12_VERSION = 112;
 
     enum EFragFlag {
         FF_ALLOW_FRAG,

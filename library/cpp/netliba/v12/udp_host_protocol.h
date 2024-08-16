@@ -114,14 +114,12 @@ namespace NNetliba_v12 {
 
     //options per packet
     class TPacketOptions {
-        enum {
-            PO_INFLATE_CONGESTION = 128,
-            PO_USE_TOS_CONGESTION = 64,
-            PO_NETLIBA_COLOR_IS_CUSTOM = 32,
-            PO_ACK_TOS_IS_CUSTOM = 16,
-            PO_TRANSFER_ID_IS_LONG = 8,
-            PO_DO_NOT_USE_SHARED_MEMORY_FOR_LOCAL_CONNECTIONS = 4 //this is removed option
-        };
+        static constexpr int PO_INFLATE_CONGESTION = 128;
+        static constexpr int PO_USE_TOS_CONGESTION = 64;
+        static constexpr int PO_NETLIBA_COLOR_IS_CUSTOM = 32;
+        static constexpr int PO_ACK_TOS_IS_CUSTOM = 16;
+        static constexpr int PO_TRANSFER_ID_IS_LONG = 8;
+        static constexpr int PO_DO_NOT_USE_SHARED_MEMORY_FOR_LOCAL_CONNECTIONS = 4; //this is removed option
 
         ui8 PacketFlags;
         TMaybe<ui8> AckTOS;
@@ -247,10 +245,8 @@ namespace NNetliba_v12 {
 
     //Transfer Options are valid only for "zero" packet in transfer
     class TTransferOptions {
-        enum {
-            TO_HP_QUEUE = 128,
-            TO_HAS_SHM = 64,
-        };
+        static constexpr int TO_HP_QUEUE = 128;
+        static constexpr int TO_HAS_SHM = 64;
 
         ui8 TransferFlags;
         ui32 SharedMemorySize;
@@ -336,10 +332,8 @@ namespace NNetliba_v12 {
     //   - Add bit flag in the TOptionsVector
     //   - Modify Serialize/Deserialize function
     class TOptionsVector {
-        enum {
-            OV_HAS_PACKET_OPTIONS = 128,
-            OV_HAS_TRANSFER_OPTIONS = 64,
-        };
+        static constexpr int OV_HAS_PACKET_OPTIONS = 128;
+        static constexpr int OV_HAS_TRANSFER_OPTIONS = 64;
 
     public:
         TOptionsVector() {

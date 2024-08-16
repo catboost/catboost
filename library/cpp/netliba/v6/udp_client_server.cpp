@@ -31,12 +31,10 @@ namespace NNetliba {
     // тогда на приемнике повиснет пакет. Этот пакет мы зашибем по этому таймауту
     const float UDP_MAX_INPUT_DATA_WAIT = UDP_TRANSFER_TIMEOUT * 2;
 
-    enum {
-        UDP_PACKET_SIZE_FULL = 8900,  // used for ping to detect jumbo-frame support
-        UDP_PACKET_SIZE = 8800,       // max data in packet
-        UDP_PACKET_SIZE_SMALL = 1350, // 1180 would be better taking into account that 1280 is guaranteed ipv6 minimum MTU
-        UDP_PACKET_BUF_SIZE = UDP_PACKET_SIZE + 100,
-    };
+    constexpr int UDP_PACKET_SIZE_FULL = 8900;  // used for ping to detect jumbo-frame support
+    constexpr int UDP_PACKET_SIZE = 8800;       // max data in packet
+    constexpr int UDP_PACKET_SIZE_SMALL = 1350; // 1180 would be better taking into account that 1280 is guaranteed ipv6 minimum MTU
+    constexpr int UDP_PACKET_BUF_SIZE = UDP_PACKET_SIZE + 100;
 
     //////////////////////////////////////////////////////////////////////////
     struct TUdpCompleteInTransfer {

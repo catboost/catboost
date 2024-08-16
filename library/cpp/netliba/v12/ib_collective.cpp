@@ -343,9 +343,7 @@ namespace NNetliba_v12 {
 
     //////////////////////////////////////////////////////////////////////////
     struct TAllDataSync {
-        enum {
-            WR_COUNT = 64 * 2
-        };
+        static constexpr int WR_COUNT = 64 * 2;
 
         int CurrentBuffer;
         TIntrusivePtr<TIBMemBlock> MemBlock[2];

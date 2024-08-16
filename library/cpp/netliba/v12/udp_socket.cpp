@@ -100,13 +100,12 @@ namespace NNetliba_v12 {
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    enum {
-        UDP_CRC_SIZE = 8,
-        UDP_VERSION_OFFSET = 0 + UDP_CRC_SIZE,
-        UDP_PACKET_DATA_SIZE_OFFSET = UDP_VERSION_OFFSET + 1,
-        UDP_DATA_OFFSET = UDP_PACKET_DATA_SIZE_OFFSET + 2,
-    };
-    static_assert((int)UDP_LOW_LEVEL_HEADER_SIZE == (int)UDP_DATA_OFFSET, "expect (int)UDP_LOW_LEVEL_HEADER_SIZE == (int)UDP_DATA_OFFSET");
+    static constexpr int UDP_CRC_SIZE = 8;
+    static constexpr int UDP_VERSION_OFFSET = 0 + UDP_CRC_SIZE;
+    static constexpr int UDP_PACKET_DATA_SIZE_OFFSET = UDP_VERSION_OFFSET + 1;
+    static constexpr int UDP_DATA_OFFSET = UDP_PACKET_DATA_SIZE_OFFSET + 2;
+
+    static_assert(UDP_LOW_LEVEL_HEADER_SIZE == UDP_DATA_OFFSET, "expect UDP_LOW_LEVEL_HEADER_SIZE == UDP_DATA_OFFSET");
 
     ///////////////////////////////////////////////////////////////////////////////
 

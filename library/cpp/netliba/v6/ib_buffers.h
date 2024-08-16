@@ -11,11 +11,10 @@ namespace NNetliba {
 
     // single thread version
     class TIBBufferPool: public TThrRefBase, TNonCopyable {
-        enum {
-            BLOCK_SIZE_LN = 11,
-            BLOCK_SIZE = 1 << BLOCK_SIZE_LN,
-            BLOCK_COUNT = 1024
-        };
+        static constexpr int BLOCK_SIZE_LN = 11;
+        static constexpr int BLOCK_SIZE = 1 << BLOCK_SIZE_LN;
+        static constexpr int BLOCK_COUNT = 1024;
+
         struct TSingleBlock {
             TIntrusivePtr<TMemoryRegion> Mem;
             TVector<ui8> BlkRefCounts;

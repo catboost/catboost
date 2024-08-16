@@ -77,9 +77,9 @@ namespace NNetliba_v12 {
         int Port;
         int LID;
         TIntrusivePtr<TIBContext> IBCtx;
-        enum {
-            MAX_GID = 16
-        };
+
+        static constexpr int MAX_GID = 16;
+
         ibv_gid MyGidArr[MAX_GID];
 
     public:

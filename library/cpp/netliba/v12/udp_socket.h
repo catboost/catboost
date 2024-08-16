@@ -16,11 +16,9 @@
 #include "local_ip_params.h"
 
 namespace NNetliba_v12 {
-    enum {
-        UDP_NETLIBA_VERSION_V12 = 112,                                         // 100 (offset) + 12 (netliba version)
-        UDP_LOW_LEVEL_HEADER_SIZE = 8 + 1 + 2,                                 // crc + version + packet size
-        UDP_PACKET_BUF_SIZE = UDP_MAX_PACKET_SIZE - UDP_LOW_LEVEL_HEADER_SIZE, // for user
-    };
+    constexpr int UDP_NETLIBA_VERSION_V12 = 112;                                         // 100 (offset) + 12 (netliba version)
+    constexpr int UDP_LOW_LEVEL_HEADER_SIZE = 8 + 1 + 2;                                 // crc + version + packet size
+    constexpr int UDP_PACKET_BUF_SIZE = UDP_MAX_PACKET_SIZE - UDP_LOW_LEVEL_HEADER_SIZE; // for user
 
     struct TSockAddrPair {
         sockaddr_in6 RemoteAddr;

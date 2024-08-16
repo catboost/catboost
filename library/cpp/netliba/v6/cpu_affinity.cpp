@@ -13,7 +13,7 @@
 namespace NNetliba {
     class TCPUSet {
     public:
-        enum { MAX_SIZE = 128 };
+        static constexpr int MAX_SIZE = 128;
 
     private:
 #if defined(__FreeBSD__) && (__FreeBSD__ >= 7)
