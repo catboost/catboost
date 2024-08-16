@@ -7288,3 +7288,17 @@ class _TrainCallbacksWrapper(object):
             if not cb.after_iteration(info):
                 return False
         return True
+    
+### Function to add full Precision split
+def get_full_precision_splits(self, tree_idx, pool= None):
+    """
+    Returns the split information for the specified tree with full precision (8 significant digits).
+
+    :param tree_idx: The index of the tree for which to retrieve the splits.
+    :param pool: The data pool, optional.
+    :return: A list of split description with full precision
+    """
+
+    splits= self._object._get_tree_splits(tree_idx, pool)
+    full_precision_splits= [f"{split: .8g}" for split in splits]
+    return full_precision_splits
