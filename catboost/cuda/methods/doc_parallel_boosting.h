@@ -50,7 +50,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TModelBasedEvalOptions& ModelBasedEvalConfig;
         const NCatboostOptions::TLossDescription& TargetOptions;
-        const TMaybe<TCustomObjectiveDescriptor>& ObjectiveDescriptor;
+        const TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
 
         NPar::ILocalExecutor* LocalExecutor;
 

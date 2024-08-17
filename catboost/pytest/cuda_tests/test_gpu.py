@@ -2862,7 +2862,7 @@ def test_model_based_eval(dataset):
         return (
             '--data-partition', 'DocParallel',
             '--permutations', '1',
-            '--loss-function', 'RMSE',
+            '--loss-function', 'RMSE' if dataset['base'] != 'querywise' else 'YetiRank',
             '-f', get_table_path('train'),
             '-t', get_table_path('test'),
             '--cd', get_table_path('cd'),
