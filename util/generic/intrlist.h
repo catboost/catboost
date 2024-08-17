@@ -818,7 +818,7 @@ public:
         return End();
     }
 
-    //compat methods
+    // compat methods
     inline iterator begin() noexcept {
         return Begin();
     }

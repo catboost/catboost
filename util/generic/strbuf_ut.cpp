@@ -100,7 +100,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(str.AfterPrefix("cat_", r));
         UNIT_ASSERT_EQUAL(r, "dog");
 
-        //example:
+        // example:
         str = "http://ya.ru";
         if (str.AfterPrefix("http://", r)) {
             UNIT_ASSERT_EQUAL(r, "ya.ru");
@@ -127,7 +127,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(str.BeforeSuffix("_dog", r));
         UNIT_ASSERT_EQUAL(r, "cat");
 
-        //example:
+        // example:
         str = "maps.yandex.com.ua";
         if (str.BeforeSuffix(".ru", r)) {
             UNIT_ASSERT_EQUAL(r, "maps.yandex");

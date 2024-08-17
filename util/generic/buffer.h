@@ -132,7 +132,7 @@ public:
     }
 
     inline void Proceed(size_t pos) {
-        //Y_ASSERT(pos <= Len_); // see discussion in REVIEW:29021
+        // Y_ASSERT(pos <= Len_); // see discussion in REVIEW:29021
         Resize(pos);
     }
 

@@ -127,9 +127,9 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
     }
 
 #if defined(_asan_enabled_) || defined(_msan_enabled_)
-//setrlimit incompatible with asan runtime
+// setrlimit incompatible with asan runtime
 #elif defined(_cygwin_)
-//cygwin is not real unix :(
+// cygwin is not real unix :(
 #else
     Y_UNIT_TEST(TestNotGreedy) {
         unsigned page[4096 / sizeof(unsigned)];

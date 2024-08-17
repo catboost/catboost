@@ -99,7 +99,7 @@ Y_UNIT_TEST_SUITE(YSetTest) {
         std::pair<TSet<int>::iterator, TSet<int>::iterator> pit;
         std::pair<TSet<int>::const_iterator, TSet<int>::const_iterator> pcit;
 
-        //Check iterator on mutable set
+        // Check iterator on mutable set
         sit = s.lower_bound(2);
         UNIT_ASSERT(sit != s.end());
         UNIT_ASSERT(*sit == 3);
@@ -122,7 +122,7 @@ Y_UNIT_TEST_SUITE(YSetTest) {
         UNIT_ASSERT(pit.second != s.end());
         UNIT_ASSERT(*pit.second == 6);
 
-        //Check const_iterator on mutable set
+        // Check const_iterator on mutable set
         scit = s.lower_bound(2);
         UNIT_ASSERT(scit != s.end());
         UNIT_ASSERT(*scit == 3);
@@ -138,7 +138,7 @@ Y_UNIT_TEST_SUITE(YSetTest) {
         UNIT_ASSERT(pcit.second != s.end());
         UNIT_ASSERT(*pcit.second == 7);
 
-        //Check const_iterator on const set
+        // Check const_iterator on const set
         scit = crs.lower_bound(2);
         UNIT_ASSERT(scit != crs.end());
         UNIT_ASSERT(*scit == 3);

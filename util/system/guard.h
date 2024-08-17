@@ -21,7 +21,7 @@ struct TTryLockOps: public TCommonLockOps<T> {
     }
 };
 
-//must be used with great care
+// must be used with great care
 template <class TOps>
 struct TInverseLockOps: public TOps {
     template <class T>

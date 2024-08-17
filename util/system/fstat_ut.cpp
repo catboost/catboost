@@ -52,7 +52,7 @@ Y_UNIT_TEST_SUITE(TestFileStat) {
         UNIT_ASSERT(!fs.IsFile());
         UNIT_ASSERT(fs.IsDir());
         UNIT_ASSERT(!fs.IsSymlink());
-        //UNIT_ASSERT(fs.Size == 0); // it fails under unix
+        // UNIT_ASSERT(fs.Size == 0); // it fails under unix
         UNIT_ASSERT(NFs::Remove("tmpd"));
         fs = TFileStat("tmpd");
         UNIT_ASSERT(!fs.IsFile());

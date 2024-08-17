@@ -782,7 +782,7 @@ namespace NStringSplitPrivate {
             size_t successfullyFilled = 0;
             auto it = this->begin();
 
-            //FIXME: actually, some kind of TryApplyToMany is needed in order to stop iteration upon first failure
+            // FIXME: actually, some kind of TryApplyToMany is needed in order to stop iteration upon first failure
             ApplyToMany([&](auto&& arg) {
                 if (it != this->end()) {
                     if (TryDoFromString(it->Token(), arg)) {
@@ -1007,7 +1007,7 @@ namespace NStringSplitPrivate {
         {
         }
 
-        //does not own TDelim
+        // does not own TDelim
         template <class TDelim>
         inline TIt<TPtrPolicy<const TDelim>> Split(const TDelim& d) const noexcept {
             return {String_, &d};

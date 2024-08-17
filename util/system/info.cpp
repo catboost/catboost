@@ -19,7 +19,7 @@
 #endif
 
 #if defined(_bionic_)
-//TODO
+// TODO
 #elif defined(_cygwin_)
 static int getloadavg(double* loadavg, int nelem) {
     for (int i = 0; i < nelem; ++i) {

@@ -1,2 +1,2 @@
-//test for C-compiler compileability
+// test for C-compiler compileability
 #include "defaults.h"

@@ -27,7 +27,7 @@ inline ui64 millisec() {
 }
 /// Current time in seconds since epoch
 ui32 Seconds() noexcept;
-///Current thread time in microseconds
+/// Current thread time in microseconds
 ui64 ThreadCPUUserTime() noexcept;
 ui64 ThreadCPUSystemTime() noexcept;
 ui64 ThreadCPUTime() noexcept;

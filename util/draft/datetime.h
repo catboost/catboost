@@ -15,7 +15,7 @@ namespace NDatetime {
     extern const ui32 MonthDaysNewYear[2][13]; // !leapYear; !!leapYear
 
     inline ui32 YearDaysAD(ui32 year) {
-        year = Max<ui32>(year, 1) - 1; //1 AD comes straight after 1 BC, no 0 AD
+        year = Max<ui32>(year, 1) - 1; // 1 AD comes straight after 1 BC, no 0 AD
         return year * 365 + year / 4 - year / 100 + year / 400;
     }
 

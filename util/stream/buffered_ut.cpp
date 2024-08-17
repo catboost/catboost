@@ -111,21 +111,21 @@ Y_UNIT_TEST_SUITE(TestBufferedIO) {
         TString s("0123456789abcdefghijklmn");
         TBuffered<TStringInput> in(5, s);
         char c;
-        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); //1
+        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); // 1
         UNIT_ASSERT_VALUES_EQUAL(c, '0');
-        UNIT_ASSERT_VALUES_EQUAL(in.Skip(4), 4);     //5 end of buffer
-        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); //6
+        UNIT_ASSERT_VALUES_EQUAL(in.Skip(4), 4);     // 5 end of buffer
+        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); // 6
         UNIT_ASSERT_VALUES_EQUAL(c, '5');
-        UNIT_ASSERT_VALUES_EQUAL(in.Skip(3), 3);     //9
-        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); //10 end of buffer
+        UNIT_ASSERT_VALUES_EQUAL(in.Skip(3), 3);     // 9
+        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); // 10 end of buffer
         UNIT_ASSERT_VALUES_EQUAL(c, '9');
-        UNIT_ASSERT_VALUES_EQUAL(in.Skip(3), 3);     //13
-        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); //14 start new buffer
+        UNIT_ASSERT_VALUES_EQUAL(in.Skip(3), 3);     // 13
+        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); // 14 start new buffer
         UNIT_ASSERT_VALUES_EQUAL(c, 'd');
-        UNIT_ASSERT_VALUES_EQUAL(in.Skip(6), 6);     //20
-        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); //21 start new buffer
+        UNIT_ASSERT_VALUES_EQUAL(in.Skip(6), 6);     // 20
+        UNIT_ASSERT_VALUES_EQUAL(in.Read(&c, 1), 1); // 21 start new buffer
         UNIT_ASSERT_VALUES_EQUAL(c, 'k');
-        UNIT_ASSERT_VALUES_EQUAL(in.Skip(6), 3); //24 eof
+        UNIT_ASSERT_VALUES_EQUAL(in.Skip(6), 3); // 24 eof
     }
 
     Y_UNIT_TEST(TestReadTo) {

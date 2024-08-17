@@ -55,7 +55,7 @@ struct TTypeList<H, R...> {
     };
 };
 
-//FIXME: temporary to check overall build
+// FIXME: temporary to check overall build
 template <class T>
 struct TTypeList<T, TNone>: public TTypeList<T> {
 };

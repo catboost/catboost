@@ -88,7 +88,7 @@ bool NFs::MakeDirectoryRecursive(const TString& path, EFilePermissions mode, boo
         }
         return true;
     } else {
-        //NOTE: recursion is finite due to existence of "." and "/"
+        // NOTE: recursion is finite due to existence of "." and "/"
         if (!NFs::MakeDirectoryRecursive(TFsPath(path).Parent(), mode, false)) {
             return false;
         }

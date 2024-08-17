@@ -111,16 +111,16 @@ namespace {
     }
 
     //! use this function to dump UTF8 text into a file in case of any changes
-    //    void DumpUTF8Text() {
-    //        TString s = WideToUTF8(UnicodeText);
-    //        std::ofstream f("utf8.txt");
-    //        f << std::hex;
-    //        for (int i = 0; i < (int)s.size(); ++i) {
-    //            f << "0x" << std::setw(2) << std::setfill('0') << (int)(ui8)s[i] << ", ";
-    //            if ((i + 1) % 16 == 0)
-    //                f << std::endl;
-    //        }
-    //    }
+    // void DumpUTF8Text() {
+    //     TString s = WideToUTF8(UnicodeText);
+    //     std::ofstream f("utf8.txt");
+    //     f << std::hex;
+    //     for (int i = 0; i < (int)s.size(); ++i) {
+    //         f << "0x" << std::setw(2) << std::setfill('0') << (int)(ui8)s[i] << ", ";
+    //         if ((i + 1) % 16 == 0)
+    //             f << std::endl;
+    //     }
+    // }
 
     template <StrictUTF8 strictMode = StrictUTF8::No>
     void CheckRecodeOK(wchar32 expected, unsigned char* first, size_t n) {

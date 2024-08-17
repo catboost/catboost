@@ -18,14 +18,14 @@ Y_UNIT_TEST_SUITE(TMapFindPtrTest) {
         UNIT_ASSERT_EQUAL(*a.FindPtr(42), "cat");
         UNIT_ASSERT_EQUAL(a.FindPtr(0), nullptr);
 
-        //test mutation
+        // test mutation
         if (TString* p = a.FindPtr(42)) {
             *p = "dog";
         }
         UNIT_ASSERT(a.FindPtr(42));
         UNIT_ASSERT_EQUAL(*a.FindPtr(42), "dog");
 
-        //test const-overloaded functions too
+        // test const-overloaded functions too
         const TTestMap& b = a;
         UNIT_ASSERT(b.FindPtr(42) && *b.FindPtr(42) == "dog");
         UNIT_ASSERT_EQUAL(b.FindPtr(0), nullptr);

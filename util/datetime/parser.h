@@ -102,7 +102,7 @@ public:
 
 protected:
     TDateTimeFields DateTimeFields;
-    int cs; //for ragel
+    int cs; // for ragel
     int Sign;
     int I;
     int Dc;
@@ -256,7 +256,7 @@ public:
 
 protected:
     TDateTimeFieldsDeprecated DateTimeFields;
-    int cs; //for ragel
+    int cs; // for ragel
     int Sign;
     int I;
     int Dc;

@@ -3,7 +3,7 @@
 #include "guid.h"
 
 Y_UNIT_TEST_SUITE(TGuidTest) {
-    //TODO - make real constructor
+    // TODO - make real constructor
     static TGUID Construct(ui32 d1, ui32 d2, ui32 d3, ui32 d4) {
         TGUID ret;
 
@@ -66,7 +66,7 @@ Y_UNIT_TEST_SUITE(TGuidTest) {
     }
 
     Y_UNIT_TEST(Test3) {
-        //if this test failed, please, fix buffer size in GetGuidAsString()
+        // if this test failed, please, fix buffer size in GetGuidAsString()
         TGUID max = Construct(Max<ui32>(), Max<ui32>(), Max<ui32>(), Max<ui32>());
 
         UNIT_ASSERT_EQUAL(GetGuidAsString(max).length(), 35);

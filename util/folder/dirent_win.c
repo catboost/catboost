@@ -30,7 +30,7 @@ struct DIR* opendir(const char* dirname) {
     dir->readdir_buf = NULL;
 
     int len = strlen(dirname);
-    //Remove trailing slashes
+    // Remove trailing slashes
     while (len && (dirname[len - 1] == '\\' || dirname[len - 1] == '/')) {
         --len;
     }
@@ -122,4 +122,4 @@ void rewinddir(struct DIR* dir) {
     dir->file_no = 0;
 }
 
-#endif //_win_
+#endif // _win_

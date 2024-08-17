@@ -18,17 +18,17 @@ namespace NDetail {
     #include <emmintrin.h>
     #include <smmintrin.h>
 
-//processes to the first error, or until less then 16 bytes left
-//most code taken from https://woboq.com/blog/utf-8-processing-using-simd.html
+// processes to the first error, or until less then 16 bytes left
+// most code taken from https://woboq.com/blog/utf-8-processing-using-simd.html
 
-//return dstAdvance 0 in case of problems
+// return dstAdvance 0 in case of problems
 static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned char*& cur, __m128i& utf16Low, __m128i& utf16High) {
     unsigned char curAligned[16];
 
     memcpy(curAligned, cur, sizeof(__m128i));
     __m128i chunk = _mm_load_si128(reinterpret_cast<const __m128i*>(curAligned));
 
-    //only ascii characters - simple copy
+    // only ascii characters - simple copy
     if (!_mm_movemask_epi8(chunk)) {
         utf16Low = _mm_unpacklo_epi8(chunk, _mm_setzero_si128());
         utf16High = _mm_unpackhi_epi8(chunk, _mm_setzero_si128());
@@ -50,9 +50,9 @@ static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned ch
     __m128i chunkLow, chunkHigh;
 
     if (Y_LIKELY(!_mm_movemask_epi8(cond3))) {
-        //main case: no bloks of size 3 or 4
+        // main case: no bloks of size 3 or 4
 
-        //rune len for start of multi-byte sequences (0 for b0... and b10..., 2 for b110..., etc.)
+        // rune len for start of multi-byte sequences (0 for b0... and b10..., 2 for b110..., etc.)
         __m128i count = _mm_and_si128(state, _mm_set1_epi8(0x7));
 
         __m128i countSub1 = _mm_subs_epu8(count, _mm_set1_epi8(0x1));
@@ -68,7 +68,7 @@ static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned ch
         __m128i isBeginMultibyteMask = _mm_cmpgt_epi8(count, _mm_set1_epi8(0));
         __m128i needNoContinuationMask = _mm_cmpeq_epi8(continuation1, _mm_set1_epi8(0));
         __m128i isBeginMask = _mm_add_epi8(isBeginMultibyteMask, isAsciiMask);
-        //each symbol should be exactly one of ascii, continuation or begin
+        // each symbol should be exactly one of ascii, continuation or begin
         __m128i okMask = _mm_cmpeq_epi8(isBeginMask, needNoContinuationMask);
 
         if (_mm_movemask_epi8(okMask) != 0xFFFF) {
@@ -114,7 +114,7 @@ static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned ch
             return 0;
         }
 
-        //rune len for start of multi-byte sequences (0 for b0... and b10..., 2 for b110..., etc.)
+        // rune len for start of multi-byte sequences (0 for b0... and b10..., 2 for b110..., etc.)
         __m128i count = _mm_and_si128(state, _mm_set1_epi8(0x7));
 
         __m128i countSub1 = _mm_subs_epu8(count, _mm_set1_epi8(0x1));
@@ -132,7 +132,7 @@ static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned ch
         __m128i isBeginMultibyteMask = _mm_cmpgt_epi8(count, _mm_set1_epi8(0));
         __m128i needNoContinuationMask = _mm_cmpeq_epi8(continuationsRunelen, _mm_set1_epi8(0));
         __m128i isBeginMask = _mm_add_epi8(isBeginMultibyteMask, isAsciiMask);
-        //each symbol should be exactly one of ascii, continuation or begin
+        // each symbol should be exactly one of ascii, continuation or begin
         __m128i okMask = _mm_cmpeq_epi8(isBeginMask, needNoContinuationMask);
 
         if (_mm_movemask_epi8(okMask) != 0xFFFF) {
@@ -209,7 +209,7 @@ namespace NDetail {
             memcpy(dest, destAligned, sizeof(__m128i) * 2);
             dest += dstAdvance;
         }
-        //The rest will be handled sequencially.
+        // The rest will be handled sequencially.
         // Possible improvement: go back to the vectorized processing after the error or the 4 byte sequence
     }
 
@@ -225,7 +225,7 @@ namespace NDetail {
                 break;
             }
 
-            //NOTE: we only work in case without surrogat pairs, so we can make simple copying with zeroes in 2 high bytes
+            // NOTE: we only work in case without surrogat pairs, so we can make simple copying with zeroes in 2 high bytes
             __m128i utf32_lowlow = _mm_unpacklo_epi16(utf16Low, _mm_set1_epi8(0));
             __m128i utf32_lowhigh = _mm_unpackhi_epi16(utf16Low, _mm_set1_epi8(0));
             __m128i utf32_highlow = _mm_unpacklo_epi16(utf16High, _mm_set1_epi8(0));
@@ -239,7 +239,7 @@ namespace NDetail {
             memcpy(dest, destAligned, sizeof(__m128i) * 4);
             dest += dstAdvance;
         }
-        //The rest will be handled sequencially.
+        // The rest will be handled sequencially.
         // Possible improvement: go back to the vectorized processing after the error or the 4 byte sequence
     }
 }

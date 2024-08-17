@@ -120,7 +120,7 @@ public:
     bool FallocateNoResize(i64 length) noexcept;
     bool ShrinkToFit() noexcept;
     bool Flush() noexcept;
-    //flush data only, without file metadata
+    // flush data only, without file metadata
     bool FlushData() noexcept;
     i32 Read(void* buffer, ui32 byteCount) noexcept;
     i32 Write(const void* buffer, ui32 byteCount) noexcept;
@@ -131,22 +131,22 @@ public:
     FHANDLE Duplicate() const noexcept;
     int Duplicate2Posix(int dstHandle) const noexcept;
 
-    //dup2 - like semantics, return true on success
+    // dup2 - like semantics, return true on success
     bool LinkTo(const TFileHandle& fh) const noexcept;
 
-    //very low-level methods
+    // very low-level methods
     bool SetDirect();
     void ResetDirect();
 
     /* Manual file cache management, length = 0 means "as much as possible" */
 
-    //measure amount of cached data in bytes, returns -1 if failed
+    // measure amount of cached data in bytes, returns -1 if failed
     i64 CountCache(i64 offset = 0, i64 length = 0) const noexcept;
-    //read data into cache and optionally wait for completion
+    // read data into cache and optionally wait for completion
     void PrefetchCache(i64 offset = 0, i64 length = 0, bool wait = true) const noexcept;
-    //remove clean and unused data from cache
+    // remove clean and unused data from cache
     void EvictCache(i64 offset = 0, i64 length = 0) const noexcept;
-    //flush unwritten data in this range and optionally wait for completion
+    // flush unwritten data in this range and optionally wait for completion
     bool FlushCache(i64 offset = 0, i64 length = 0, bool wait = true) noexcept;
 
 private:
@@ -207,19 +207,19 @@ public:
 
     void Flock(int op);
 
-    //do not use, their meaning very platform-dependant
+    // do not use, their meaning very platform-dependant
     void SetDirect();
     void ResetDirect();
 
     /* Manual file cache management, length = 0 means "as much as possible" */
 
-    //measure amount of cached data in bytes, returns -1 if failed
+    // measure amount of cached data in bytes, returns -1 if failed
     i64 CountCache(i64 offset = 0, i64 length = 0) const noexcept;
-    //read data into cache and optionally wait for completion
+    // read data into cache and optionally wait for completion
     void PrefetchCache(i64 offset = 0, i64 length = 0, bool wait = true) const noexcept;
-    //remove clean and unused data from cache, incomplete pages could stay
+    // remove clean and unused data from cache, incomplete pages could stay
     void EvictCache(i64 offset = 0, i64 length = 0) const noexcept;
-    //flush unwritten data in this range and optionally wait for completion
+    // flush unwritten data in this range and optionally wait for completion
     void FlushCache(i64 offset = 0, i64 length = 0, bool wait = true);
 
     static TFile Temporary(const TString& prefix);

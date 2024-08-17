@@ -115,7 +115,7 @@ struct TCommonRNG {
         return ::NPrivate::ToRandReal4(Engine().GenRand64());
     }
 
-    //compatibility stuff
+    // compatibility stuff
     inline TResult operator()() noexcept {
         return Engine().GenRand();
     }

@@ -310,7 +310,7 @@ private:
     public:
         inline TAtforkQueueRestarter() {
 #if defined(_bionic_)
-//no pthread_atfork on android libc
+// no pthread_atfork on android libc
 #elif defined(_unix_)
             pthread_atfork(nullptr, nullptr, ProcessChildAction);
 #endif

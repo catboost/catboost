@@ -297,7 +297,7 @@ TFileHandle::TFileHandle(const std::filesystem::path& path, EOpenMode oMode) noe
     }
     #endif
 
-    //temp file
+    // temp file
     if (Fd_ >= 0 && (oMode & Transient)) {
         std::filesystem::remove(path);
     }
@@ -670,7 +670,7 @@ bool TFileHandle::LinkTo(const TFileHandle& fh) const noexcept {
         return false;
     }
 
-    //not thread-safe
+    // not thread-safe
     nh.Swap(*const_cast<TFileHandle*>(this));
 
     return true;
@@ -1336,7 +1336,7 @@ void TFile::LinkTo(const TFile& f) const {
 }
 
 TFile TFile::Temporary(const TString& prefix) {
-    //TODO - handle impossible case of name collision
+    // TODO - handle impossible case of name collision
     return TFile(prefix + ToString(MicroSeconds()) + "-" + ToString(RandomNumber<ui64>()), CreateNew | RdWr | Seq | Temp | Transient);
 }
 

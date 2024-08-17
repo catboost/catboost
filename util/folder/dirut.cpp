@@ -404,7 +404,7 @@ int mkpath(char* path, int mode) {
 // if it does not). Use RealLocation if that behaviour is required.
 TString RealPath(const TString& path) {
     TTempBuf result;
-    Y_ASSERT(result.Size() > MAX_PATH); //TMP_BUF_LEN > MAX_PATH
+    Y_ASSERT(result.Size() > MAX_PATH); // TMP_BUF_LEN > MAX_PATH
 #ifdef _win_
     if (GetFullPathName(path.data(), result.Size(), result.Data(), nullptr) == 0)
 #else

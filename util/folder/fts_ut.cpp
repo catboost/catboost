@@ -24,7 +24,7 @@ void MakeFile(const char* path) {
     TFile(path, CreateAlways);
 }
 
-//There potentially could be problems in listing order on different platforms
+// There potentially could be problems in listing order on different platforms
 int FtsCmp(const FTSENT** ent1, const FTSENT** ent2) {
     return strcmp((*ent1)->fts_accpath, (*ent2)->fts_accpath);
 }

@@ -207,7 +207,7 @@ public:
 
             Slave_->Write(parts, end - parts);
 
-            //grow buffer only on full flushes
+            // grow buffer only on full flushes
             OnBufferExhausted();
             Reset();
 

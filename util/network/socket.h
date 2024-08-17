@@ -423,5 +423,5 @@ private:
     TSocket S_;
 };
 
-//return -(error code) if error occured, or number of ready fds
+// return -(error code) if error occured, or number of ready fds
 ssize_t PollD(struct pollfd fds[], nfds_t nfds, const TInstant& deadLine) noexcept;

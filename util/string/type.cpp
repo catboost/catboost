@@ -59,7 +59,7 @@ namespace {
         }
         return false;
     }
-} //anonymous namespace
+} // anonymous namespace
 
 bool IsTrue(const TStringBuf v) noexcept {
     static constexpr std::array<TStringBuf, 7> trueOptions{

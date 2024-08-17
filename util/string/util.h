@@ -1,6 +1,6 @@
 #pragma once
 
-//THIS FILE A COMPAT STUB HEADER
+// THIS FILE A COMPAT STUB HEADER
 
 #include <cstring>
 #include <cstdarg>
@@ -36,7 +36,7 @@ inline void addIfNotLast(TString& s, int lastCh) {
 inline void addIfAbsent(TString& s, char lastCh1, char lastCh2) {
     size_t pos = s.find(lastCh2);
     if (pos == TString::npos) {
-        //s.append((char)lastCh1);
+        // s.append((char)lastCh1);
         addIfNotLast(s, lastCh1);
     } else if (pos < s.length() - 1) {
         addIfNotLast(s, lastCh2);

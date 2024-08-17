@@ -39,7 +39,7 @@ namespace {
 
         inline void BroadCast() noexcept {
             with_lock (Lock_) {
-                //TODO
+                // TODO
                 while (!Events_.Empty()) {
                     Events_.PopFront()->Signal();
                 }

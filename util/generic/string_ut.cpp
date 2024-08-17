@@ -179,7 +179,7 @@ protected:
         }
 
         {
-            //This is to test move constructor
+            // This is to test move constructor
             TVector<TStringType> str_vect;
 
             str_vect.push_back(short_str1);
@@ -279,7 +279,7 @@ protected:
     void null_char_of_empty() {
         const TStringType s;
 
-        //NOTE: https://a.yandex-team.ru/arcadia/junk/grechnik/test_string?rev=r12602052
+        // NOTE: https://a.yandex-team.ru/arcadia/junk/grechnik/test_string?rev=r12602052
         i64 i = s[s.size()];
         UNIT_ASSERT_VALUES_EQUAL(i, 0);
     }
@@ -350,7 +350,7 @@ protected:
         str.reserve(100);
         str = strorg;
 
-        //test self insertion:
+        // test self insertion:
         str.insert(10, str.c_str() + 5, 15);
         UNIT_ASSERT(str == Data_.This_is_teis_test_string_st_string_for_string_calls());
 
@@ -727,7 +727,7 @@ public:
     UNIT_TEST(TestAppendUtf16)
     UNIT_TEST(TestFillingAssign)
     UNIT_TEST(TestStdStreamApi)
-    //UNIT_TEST(TestOperatorsCI); must fail
+    // UNIT_TEST(TestOperatorsCI); must fail
     UNIT_TEST_SUITE_END();
 
     void TestAppendUtf16() {

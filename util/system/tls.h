@@ -45,9 +45,9 @@
 
     Example:
         @code
-        //the field declaration in header
+        // the field declaration in header
         Y_THREAD(TBuffer) TmpBuffer;
-        //...later somewhere in cpp...
+        // ...later somewhere in cpp...
         TmpBuffer.Clear();
         for (size_t i = 0; i < sz && TrieCursor[i].second.IsFork(); ++i) {
             TmpBuffer.Append(TrieCursor[i].second.Char);
@@ -56,9 +56,9 @@
 
     Example:
         @code
-        //the field decalrataion in header
+        // the field decalrataion in header
         Y_THREAD(TMyWriter*) ThreadLocalWriter;
-        //...later somewhere in cpp...
+        // ...later somewhere in cpp...
         TMyWriter*& writerRef = ThreadLocalWriter.Get();
         if (writerRef == nullptr) {
             THolder<TMyWriter> threadLocalWriter( new TMyWriter(
@@ -74,11 +74,11 @@
 
     Example:
         @code
-        //in header
+        // in header
         namespace TMorph {
             Y_THREAD(ELanguage) ThreadLocalMainLanguage;
         }
-        //in cpp
+        // in cpp
         Y_THREAD(ELanguage) TMorph::ThreadLocalMainLanguage(LANG_RUS);
         @endcode
 
@@ -192,7 +192,7 @@ namespace NTls {
             ~TDefaultConstructor() override = default;
 
             T* Construct(void* ptr) const override {
-                //memset(ptr, 0, sizeof(T));
+                // memset(ptr, 0, sizeof(T));
                 return ::new (ptr) T();
             }
         };

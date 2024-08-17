@@ -300,7 +300,7 @@ public:
 
     void Evict() {
 #if defined(_unix_)
-//        Evict(PtrStart_, Length_);
+// Evict(PtrStart_, Length_);
 #endif
     }
 

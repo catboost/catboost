@@ -384,7 +384,7 @@ namespace {
 Y_UNIT_TEST_SUITE(TTypeTraitsTestNg) {
     template <typename T>
     void TestImpl() {
-        //UNIT_ASSERT_EQUAL_ENUM(TTypeTraitsExpected<T>::IsPod, TTypeTraits<T>::IsPod);
+        // UNIT_ASSERT_EQUAL_ENUM(TTypeTraitsExpected<T>::IsPod, TTypeTraits<T>::IsPod);
         UNIT_ASSERT_EQUAL_ENUM(TTypeTraitsExpected<T>::IsVoid, std::is_void<T>::value);
         UNIT_ASSERT_EQUAL_ENUM(TTypeTraitsExpected<T>::IsEnum, std::is_enum<T>::value);
         UNIT_ASSERT_EQUAL_ENUM(TTypeTraitsExpected<T>::IsIntegral, std::is_integral<T>::value);

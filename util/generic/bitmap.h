@@ -575,14 +575,14 @@ public:
         if ((pos & ModMask) == 0) {
             if (sizeof(TChunk) >= sizeof(TTo))
                 to = (TTo)Mask.Data[chunkpos];
-            else //if (sizeof(TChunk) < sizeof(TTo))
+            else // if (sizeof(TChunk) < sizeof(TTo))
                 NBitMapPrivate::CopyData(&to, 1, Mask.Data + chunkpos, Min(((sizeof(TTo) * 8) >> DivCount), Mask.GetChunkCapacity() - chunkpos));
         } else if ((pos & (sizeof(TTo) * 8 - 1)) == 0 && sizeof(TChunk) >= 2 * sizeof(TTo))
             to = (TTo)(Mask.Data[chunkpos] >> (pos & ModMask));
         else {
             static constexpr size_t copyToSize = (sizeof(TChunk) >= sizeof(TTo)) ? (sizeof(TChunk) / sizeof(TTo)) + 2 : 3;
             TTo temp[copyToSize] = {0, 0};
-            //or use non defined by now TBitmap<copyToSize, TTo>::CopyData,RShift(pos & ModMask),Export(0,to)
+            // or use non defined by now TBitmap<copyToSize, TTo>::CopyData,RShift(pos & ModMask),Export(0,to)
             NBitMapPrivate::CopyData(temp, copyToSize, Mask.Data + chunkpos, Min((sizeof(TTo) / sizeof(TChunk)) + 1, Mask.GetChunkCapacity() - chunkpos));
             to = (temp[0] >> (pos & ModMask)) | (temp[1] << (8 * sizeof(TTo) - (pos & ModMask)));
         }

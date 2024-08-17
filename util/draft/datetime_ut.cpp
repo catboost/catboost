@@ -84,7 +84,7 @@ Y_UNIT_TEST_SUITE(TSimpleTMTest) {
 
         tzset();
 
-        TSimpleTM::New(-1); //should not die here
+        TSimpleTM::New(-1); // should not die here
 
         UNIT_ASSERT_VALUES_EQUAL((ui32)0, (ui32)TSimpleTM::New(0));
         UNIT_ASSERT((ui32)TSimpleTM::New(0).IsUTC());
@@ -95,7 +95,7 @@ Y_UNIT_TEST_SUITE(TSimpleTMTest) {
             Zero(tmt);
             gmtime_r(&t, &tmt);
             UNIT_ASSERT_VALUES_EQUAL_C((i64)t, (i64)TSimpleTM::New(t).AsTimeT(), ToString(t));   // time_t ->   gmt tm -> time_t
-            UNIT_ASSERT_VALUES_EQUAL_C((i64)t, (i64)TSimpleTM::New(tmt).AsTimeT(), ToString(t)); //   gmt tm -> time_t
+            UNIT_ASSERT_VALUES_EQUAL_C((i64)t, (i64)TSimpleTM::New(tmt).AsTimeT(), ToString(t)); // gmt tm -> time_t
             AssertStructTmEqual(PrintMarker("UTC:time_t", __LINE__, t),
                                 tmt, TSimpleTM::New(t));
             AssertStructTmEqual(PrintMarker("UTC:tm", __LINE__, t),

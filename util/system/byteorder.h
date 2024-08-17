@@ -2,7 +2,7 @@
 
 #include "defaults.h"
 
-//#define USE_GENERIC_ENDIAN_CVT
+// #define USE_GENERIC_ENDIAN_CVT
 
 #if defined(_linux_) && !defined(USE_GENERIC_ENDIAN_CVT)
     #include <byteswap.h>
@@ -66,7 +66,7 @@ inline ui64 SwapBytes64(ui64 val) noexcept {
 }
 #endif
 
-//for convenience
+// for convenience
 static inline ui8 SwapBytes8(ui8 v) noexcept {
     return v;
 }

@@ -27,17 +27,17 @@ Y_UNIT_TEST_SUITE(TUtfUtilTest) {
 
         {
             const char* weird = "\xC8\xBE"; // 'Ⱦ', U+023E. strlen(weird)==2, strlen(tolower_utf8(weird)) is 3
-            const char* turkI = "İ";        //strlen("İ") == 2, strlen(tolower_utf8("İ") == 1
+            const char* turkI = "İ";        // strlen("İ") == 2, strlen(tolower_utf8("İ") == 1
             TStringBuf chars[] = {"f", "F", "Б", "б", weird, turkI};
             const int N = Y_ARRAY_SIZE(chars);
-            //try all combinations of these letters.
+            // try all combinations of these letters.
             int numberOfVariants = 1;
             for (int len = 0; len <= 4; ++len) {
                 for (int i = 0; i < numberOfVariants; ++i) {
                     TString s;
                     int k = i;
                     for (int j = 0; j < len; ++j) {
-                        //Treat 'i' like number in base-N system with digits from 'chars'-array
+                        // Treat 'i' like number in base-N system with digits from 'chars'-array
                         s += chars[k % N];
                         k /= N;
                     }
@@ -67,17 +67,17 @@ Y_UNIT_TEST_SUITE(TUtfUtilTest) {
 
         {
             const char* weird = "\xC8\xBE"; // 'Ⱦ', U+023E. strlen(weird)==2, strlen(ToUpper_utf8(weird)) is 3
-            const char* turkI = "İ";        //strlen("İ") == 2, strlen(ToUpper_utf8("İ") == 1
+            const char* turkI = "İ";        // strlen("İ") == 2, strlen(ToUpper_utf8("İ") == 1
             TStringBuf chars[] = {"F", "f", "б", "Б", turkI, weird};
             const int N = Y_ARRAY_SIZE(chars);
-            //try all combinations of these letters.
+            // try all combinations of these letters.
             int numberOfVariants = 1;
             for (int len = 0; len <= 4; ++len) {
                 for (int i = 0; i < numberOfVariants; ++i) {
                     TString s;
                     int k = i;
                     for (int j = 0; j < len; ++j) {
-                        //Treat 'i' like number in base-N system with digits from 'chars'-array
+                        // Treat 'i' like number in base-N system with digits from 'chars'-array
                         s += chars[k % N];
                         k /= N;
                     }

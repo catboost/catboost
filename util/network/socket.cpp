@@ -943,7 +943,7 @@ void TSocketOutput::DoWriteV(const TPart* parts, size_t count) {
 }
 
 namespace {
-    //https://bugzilla.mozilla.org/attachment.cgi?id=503263&action=diff
+    // https://bugzilla.mozilla.org/attachment.cgi?id=503263&action=diff
 
     struct TLocalNames: public THashSet<TStringBuf> {
         inline TLocalNames() {

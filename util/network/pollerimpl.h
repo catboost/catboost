@@ -19,7 +19,7 @@
     #define HAVE_EPOLL_POLLER
 #endif
 
-//now we always have it
+// now we always have it
 #define HAVE_SELECT_POLLER
 
 #if defined(HAVE_KQUEUE_POLLER)

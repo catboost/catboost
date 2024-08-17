@@ -114,7 +114,7 @@ private:
     inline void TestSaveLoad() {
         TBufferStream S_;
 
-        //save part
+        // save part
         {
             Save(&S_, (ui8)1);
             Save(&S_, (ui16)2);
@@ -224,7 +224,7 @@ private:
             Save(&S_, mm);
         }
 
-        //load part
+        // load part
         {
             ui8 val;
 
@@ -463,7 +463,7 @@ private:
         TestOptionalImpl(std::optional<ui64>(std::nullopt));
     }
 
-    //  tests serialization of class with three public string members
+    // tests serialization of class with three public string members
     template <class TDerived, class TInterface = TDerived>
     void TestInheritClassImpl() {
         TBufferStream s;

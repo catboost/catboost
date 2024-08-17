@@ -126,7 +126,7 @@ namespace {
         }
 
         inline ~TMasterTls() override {
-            //explicitly call dtor for main thread
+            // explicitly call dtor for main thread
             Dtor(pthread_getspecific(Key_));
 
             Y_ABORT_UNLESS(!pthread_key_delete(Key_), "pthread_key_delete failed");

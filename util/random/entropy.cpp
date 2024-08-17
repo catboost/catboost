@@ -53,7 +53,7 @@ namespace {
                 try {
                     Save(&out, GetExecPath());
                 } catch (...) {
-                    //workaround - sometimes fails on FreeBSD
+                    // workaround - sometimes fails on FreeBSD
                 }
 
                 Save(&out, (size_t)Data());
@@ -93,7 +93,7 @@ namespace {
             {
                 TMemoryOutput out(Data(), Size());
 
-                //replace zlib header with hash
+                // replace zlib header with hash
                 Save(&out, CityHash64(Data(), Size()));
             }
 
@@ -101,7 +101,7 @@ namespace {
         }
     };
 
-    //not thread-safe
+    // not thread-safe
     class TMersenneInput: public IInputStream {
         using TKey = ui64;
         using TRnd = TMersenne<TKey>;

@@ -17,7 +17,7 @@
 #endif
 
 #if defined(_bionic_)
-//TODO
+// TODO
 #else
     #if !defined(HAVE_BACKTRACE) && defined(_cygwin_)
         #define CaptureStackBackTrace RtlCaptureStackBackTrace

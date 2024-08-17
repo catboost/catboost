@@ -25,7 +25,7 @@ namespace {
                 Accept4 = reinterpret_cast<TAccept4>(dlsym(RTLD_DEFAULT, "accept4"));
 
     #if defined(_musl_)
-                //musl always statically linked
+                // musl always statically linked
                 if (!Accept4) {
                     Accept4 = accept4;
                 }
@@ -60,7 +60,7 @@ namespace {
             const SOCKET ret = accept(s, addr, addrlen);
 
 #if !defined(_freebsd_)
-            //freebsd inherit O_NONBLOCK flag
+            // freebsd inherit O_NONBLOCK flag
             if (ret != INVALID_SOCKET) {
                 SetNonBlock(ret);
             }

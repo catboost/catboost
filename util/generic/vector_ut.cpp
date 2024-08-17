@@ -25,7 +25,7 @@ class TYVectorTest: public TTestBase {
     UNIT_TEST(TestAutoRef)
     UNIT_TEST(TestIterators)
     UNIT_TEST(TestShrink)
-    //UNIT_TEST(TestEbo)
+    // UNIT_TEST(TestEbo)
     UNIT_TEST(TestFillInConstructor)
     UNIT_TEST(TestYResize)
     UNIT_TEST(TestCrop)
@@ -283,7 +283,7 @@ private:
         v.clear();
         UNIT_ASSERT(v.empty());
 
-        //check that clear save reserved data
+        // check that clear save reserved data
         UNIT_ASSERT_EQUAL(curCapacity, v.capacity());
 
         v.insert(v.begin(), 5, 10);
@@ -318,7 +318,7 @@ private:
         }
 
         {
-            //Test that used to generate an assertion when using __debug_alloc.
+            // Test that used to generate an assertion when using __debug_alloc.
             TVector<TestStruct> va;
             va.reserve(1);
             va.reserve(2);
@@ -397,14 +397,14 @@ private:
 
         UNIT_ASSERT(vint.rbegin() == vint.rbegin());
         // Not Standard:
-        //UNIT_ASSERT(vint.rbegin() == crvint.rbegin());
-        //UNIT_ASSERT(crvint.rbegin() == vint.rbegin());
+        // UNIT_ASSERT(vint.rbegin() == crvint.rbegin());
+        // UNIT_ASSERT(crvint.rbegin() == vint.rbegin());
         UNIT_ASSERT(crvint.rbegin() == crvint.rbegin());
 
         UNIT_ASSERT(vint.rbegin() != vint.rend());
         // Not Standard:
-        //UNIT_ASSERT(vint.rbegin() != crvint.rend());
-        //UNIT_ASSERT(crvint.rbegin() != vint.rend());
+        // UNIT_ASSERT(vint.rbegin() != crvint.rend());
+        // UNIT_ASSERT(crvint.rbegin() != vint.rend());
         UNIT_ASSERT(crvint.rbegin() != crvint.rend());
     }
 

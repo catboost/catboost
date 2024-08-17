@@ -161,7 +161,7 @@ Y_UNIT_TEST_SUITE(TYMapTest) {
         {
             mmap::iterator ite(m.begin());
             mmap::const_iterator cite(m.begin());
-            //test compare between const_iterator and iterator
+            // test compare between const_iterator and iterator
             UNIT_ASSERT(ite == cite);
             UNIT_ASSERT(!(ite != cite));
             UNIT_ASSERT(cite == ite);

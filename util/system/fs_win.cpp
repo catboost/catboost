@@ -225,7 +225,7 @@ namespace NFsPrivate {
             size_t len = rdb->MountPointReparseBuffer.SubstituteNameLength / sizeof(wchar16);
             return WideToUTF8(str, len);
         }
-        //this reparse point is unsupported in arcadia
+        // this reparse point is unsupported in arcadia
         return TString();
     }
 
@@ -236,7 +236,7 @@ namespace NFsPrivate {
     }
 
     // we can't use this function to get an analog of unix inode due to a lot of NTFS folders do not have this GUID
-    //(it will be 'create' case really)
+    // (it will be 'create' case really)
     /*
 bool GetObjectId(const char* path, GUID* id) {
     TFileHandle h = CreateFileWithUtf8Name(path, 0, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,

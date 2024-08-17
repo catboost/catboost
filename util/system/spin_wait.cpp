@@ -16,7 +16,7 @@ namespace {
         return (t * 4 + (rndNum % t) * 2) / 5;
     }
 
-    //arbitrary values
+    // arbitrary values
     constexpr unsigned MIN_SLEEP_TIME = 500;
     constexpr unsigned MAX_SPIN_COUNT = 0x7FF;
 }

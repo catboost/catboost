@@ -16,7 +16,7 @@
     #if defined(_bionic_) || defined(_darwin_) && defined(_arm_)
         #include <fcntl.h>
     #else
-        #define USE_SYSV_SEMAPHORES //unixoids declared the standard but not implemented it...
+        #define USE_SYSV_SEMAPHORES // unixoids declared the standard but not implemented it...
     #endif
 #endif
 
@@ -83,7 +83,7 @@ namespace {
             Handle = ::CreateSemaphore(0, max_free_count, max_free_count, key);
 #else
     #ifdef USE_SYSV_SEMAPHORES
-            key_t key = TPCGMixer::Mix(CityHash64(name, strlen(name))); //32 bit hash
+            key_t key = TPCGMixer::Mix(CityHash64(name, strlen(name))); // 32 bit hash
             Handle = semget(key, 0, 0);                                 // try to open exist semaphore
             if (Handle == -1) {                                         // create new semaphore
                 Handle = semget(key, 1, 0666 | IPC_CREAT);
@@ -110,8 +110,8 @@ namespace {
 #else
     #ifdef USE_SYSV_SEMAPHORES
     // we DO NOT want 'semctl(Handle, 0, IPC_RMID)' for multiprocess tasks;
-    //struct sembuf ops[] = {{0, 0, IPC_NOWAIT}};
-    //if (semop(Handle, ops, 1) != 0) // close only if semaphore's value is zero
+    // struct sembuf ops[] = {{0, 0, IPC_NOWAIT}};
+    // if (semop(Handle, ops, 1) != 0) // close only if semaphore's value is zero
     //    semctl(Handle, 0, IPC_RMID);
     #else
             sem_close(Handle); // we DO NOT want sem_unlink(...)
@@ -133,8 +133,8 @@ namespace {
 #endif
         }
 
-        //The UNIX semaphore object does not support a timed "wait", and
-        //hence to maintain consistancy, for win32 case we use INFINITE or 0 timeout.
+        // The UNIX semaphore object does not support a timed "wait", and
+        // hence to maintain consistancy, for win32 case we use INFINITE or 0 timeout.
         inline void Acquire() noexcept {
 #ifdef _win_
             Y_ABORT_UNLESS(::WaitForSingleObject(Handle, INFINITE) == WAIT_OBJECT_0, "can not acquire semaphore");

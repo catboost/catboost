@@ -37,7 +37,7 @@ public:
         const TInstant now = Now();
 
         if (now < deadLine) {
-            //TODO
+            // TODO
             return WaitForSingleObject(cond, (deadLine - now).MilliSeconds()) == WAIT_OBJECT_0;
         }
 

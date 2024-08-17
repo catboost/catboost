@@ -46,7 +46,7 @@ public:
         WaitD(TInstant::Max());
     }
 
-    //return true if signaled, false if timed out.
+    // return true if signaled, false if timed out.
     inline bool Wait(ui32 timer) noexcept {
         return WaitT(TDuration::MilliSeconds(timer));
     }

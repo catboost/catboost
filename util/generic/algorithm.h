@@ -207,7 +207,7 @@ constexpr size_t FindIndexIf(C&& c, P p) {
     return it == end(c) ? NPOS : (it - begin(c));
 }
 
-//EqualToOneOf(x, "apple", "orange") means (x == "apple" || x == "orange")
+// EqualToOneOf(x, "apple", "orange") means (x == "apple" || x == "orange")
 template <typename T, typename... Other>
 constexpr bool EqualToOneOf(const T& x, const Other&... values) {
     return (... || (x == values));

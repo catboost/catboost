@@ -7,18 +7,18 @@
 #include <util/system/tls.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//   There are different templates of pointers:
-//     1. Simple pointers.
-//     2. TPtr with refereces.
-//     3. TObj/TMObj with ownership. After destruction of a TObj the object it referenced to is
-//        cleaned up and marked as non valid. Similarly does TMobj organizing the parallel ownership
-//        of an object.
+// There are different templates of pointers:
+//   1. Simple pointers.
+//   2. TPtr with refereces.
+//   3. TObj/TMObj with ownership. After destruction of a TObj the object it referenced to is
+//      cleaned up and marked as non valid. Similarly does TMobj organizing the parallel ownership
+//      of an object.
 //
-//   Limitations:
-//     1. It may be necessary to use BASIC_REGISTER_CLASS() in .cpp files to be able to use a
-//        pointer to a forward declared class.
-//     2. It's prohibited to override the 'new' operator, since the standard 'delete' will be used
-//        for destruction of objects (because of 'delete this').
+// Limitations:
+//   1. It may be necessary to use BASIC_REGISTER_CLASS() in .cpp files to be able to use a
+//      pointer to a forward declared class.
+//   2. It's prohibited to override the 'new' operator, since the standard 'delete' will be used
+//      for destruction of objects (because of 'delete this').
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSC_VER) && defined(_DEBUG)

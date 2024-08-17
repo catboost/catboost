@@ -88,7 +88,7 @@ void TDequeTest::TestDeque1() {
     UNIT_ASSERT(d[1] == 9);
     UNIT_ASSERT(d[2] == 25);
 
-    //Some compile time tests:
+    // Some compile time tests:
     TDeque<int>::iterator dit = d.begin();
     TDeque<int>::const_iterator cdit(d.begin());
 
@@ -109,67 +109,67 @@ void TDequeTest::TestInsert() {
 
     TDeque<int>::iterator dit;
 
-    //Insertion before begin:
+    // Insertion before begin:
     dit = d.insert(d.begin(), 3);
     UNIT_ASSERT(dit != d.end());
     UNIT_ASSERT(*dit == 3);
     UNIT_ASSERT(d.size() == 4);
     UNIT_ASSERT(d[0] == 3);
 
-    //Insertion after begin:
+    // Insertion after begin:
     dit = d.insert(d.begin() + 1, 4);
     UNIT_ASSERT(dit != d.end());
     UNIT_ASSERT(*dit == 4);
     UNIT_ASSERT(d.size() == 5);
     UNIT_ASSERT(d[1] == 4);
 
-    //Insertion at end:
+    // Insertion at end:
     dit = d.insert(d.end(), 5);
     UNIT_ASSERT(dit != d.end());
     UNIT_ASSERT(*dit == 5);
     UNIT_ASSERT(d.size() == 6);
     UNIT_ASSERT(d[5] == 5);
 
-    //Insertion before last element:
+    // Insertion before last element:
     dit = d.insert(d.end() - 1, 6);
     UNIT_ASSERT(dit != d.end());
     UNIT_ASSERT(*dit == 6);
     UNIT_ASSERT(d.size() == 7);
     UNIT_ASSERT(d[5] == 6);
 
-    //Insertion of several elements before begin
+    // Insertion of several elements before begin
     d.insert(d.begin(), 2, 7);
     UNIT_ASSERT(d.size() == 9);
     UNIT_ASSERT(d[0] == 7);
     UNIT_ASSERT(d[1] == 7);
 
-    //Insertion of several elements after begin
-    //There is more elements to insert than elements before insertion position
+    // Insertion of several elements after begin
+    // There is more elements to insert than elements before insertion position
     d.insert(d.begin() + 1, 2, 8);
     UNIT_ASSERT(d.size() == 11);
     UNIT_ASSERT(d[1] == 8);
     UNIT_ASSERT(d[2] == 8);
 
-    //There is less elements to insert than elements before insertion position
+    // There is less elements to insert than elements before insertion position
     d.insert(d.begin() + 3, 2, 9);
     UNIT_ASSERT(d.size() == 13);
     UNIT_ASSERT(d[3] == 9);
     UNIT_ASSERT(d[4] == 9);
 
-    //Insertion of several elements at end:
+    // Insertion of several elements at end:
     d.insert(d.end(), 2, 10);
     UNIT_ASSERT(d.size() == 15);
     UNIT_ASSERT(d[14] == 10);
     UNIT_ASSERT(d[13] == 10);
 
-    //Insertion of several elements before last:
-    //There is more elements to insert than elements after insertion position
+    // Insertion of several elements before last:
+    // There is more elements to insert than elements after insertion position
     d.insert(d.end() - 1, 2, 11);
     UNIT_ASSERT(d.size() == 17);
     UNIT_ASSERT(d[15] == 11);
     UNIT_ASSERT(d[14] == 11);
 
-    //There is less elements to insert than elements after insertion position
+    // There is less elements to insert than elements after insertion position
     d.insert(d.end() - 3, 2, 12);
     UNIT_ASSERT(d.size() == 19);
     UNIT_ASSERT(d[15] == 12);

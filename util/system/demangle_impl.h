@@ -18,4 +18,4 @@ namespace NPrivate {
         THolder<char, TFree> TmpBuf_;
     };
 
-} //namespace NPrivate
+} // namespace NPrivate

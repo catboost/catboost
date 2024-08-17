@@ -11,7 +11,7 @@
     #include "mutex.h"
     #include "condvar.h"
 
-//darwin rwlocks not recursive
+// darwin rwlocks not recursive
 class TRWMutex::TImpl {
 public:
     TImpl();

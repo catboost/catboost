@@ -132,7 +132,7 @@
     #endif
 #endif
 
-//to cheat compiler about strict aliasing or similar problems
+// to cheat compiler about strict aliasing or similar problems
 #if defined(__GNUC__)
     #define Y_FAKE_READ(X)                  \
         do {                                \

@@ -10,13 +10,13 @@
 
 namespace {
     static const int opts[] = {
-        //Auto
+        // Auto
         15 + 32,
-        //ZLib
+        // ZLib
         15 + 0,
-        //GZip
+        // GZip
         15 + 16,
-        //Raw
+        // Raw
         -15};
 
     class TZLibCommon {

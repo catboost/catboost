@@ -674,7 +674,7 @@ public:
     }
 #endif
 
-    //  Find family
+    // Find family
 
     void TestFind() {
         const TStringType s(Data._0123456_12345());
@@ -897,7 +897,7 @@ public:
         ComputeHash(sS); /*size_t hash_val = sS.hash();
 
         try {
-            //UNIT_ASSERT(hash_val == Data.HashOf_0123456());
+            // UNIT_ASSERT(hash_val == Data.HashOf_0123456());
         } catch (...) {
             Cerr << hash_val << Endl;
             throw;

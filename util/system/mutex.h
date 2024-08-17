@@ -55,7 +55,7 @@ public:
         Release();
     }
 
-    //return opaque pointer to real handler
+    // return opaque pointer to real handler
     void* Handle() const noexcept;
 
 private:

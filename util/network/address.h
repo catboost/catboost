@@ -31,7 +31,7 @@ namespace NAddr {
 
     socklen_t SockAddrLength(const sockaddr* addr);
 
-    //for accept, recvfrom - see LenPtr()
+    // for accept, recvfrom - see LenPtr()
     class TOpaqueAddr: public IRemoteAddr {
     public:
         inline TOpaqueAddr() noexcept
@@ -75,7 +75,7 @@ namespace NAddr {
         socklen_t L_;
     };
 
-    //for TNetworkAddress
+    // for TNetworkAddress
     class TAddrInfo: public IRemoteAddr {
     public:
         inline TAddrInfo(const addrinfo* ai) noexcept
@@ -95,7 +95,7 @@ namespace NAddr {
         const addrinfo* const AI_;
     };
 
-    //compat, for TIpAddress
+    // compat, for TIpAddress
     class TIPv4Addr: public IRemoteAddr {
     public:
         inline TIPv4Addr(const TIpAddress& addr) noexcept
@@ -115,7 +115,7 @@ namespace NAddr {
         const TIpAddress A_;
     };
 
-    //same, for ipv6 addresses
+    // same, for ipv6 addresses
     class TIPv6Addr: public IRemoteAddr {
     public:
         inline TIPv6Addr(const sockaddr_in6& a) noexcept

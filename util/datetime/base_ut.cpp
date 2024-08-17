@@ -207,8 +207,8 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
 
         UNIT_ASSERT(mlsecB + 90 < mlsecA);
         UNIT_ASSERT((mcrsecB + 90000 < mcrsecA));
-        //UNIT_ASSERT(ToMicroSeconds(&tvB) + 90000 < ToMicroSeconds(&tvA));
-        //UNIT_ASSERT(TVdiff(tvB, tvA) == long(ToMicroSeconds(&tvA) - ToMicroSeconds(&tvB)));
+        // UNIT_ASSERT(ToMicroSeconds(&tvB) + 90000 < ToMicroSeconds(&tvA));
+        // UNIT_ASSERT(TVdiff(tvB, tvA) == long(ToMicroSeconds(&tvA) - ToMicroSeconds(&tvB)));
     }
 
     Y_UNIT_TEST(TestCompatFuncs) {

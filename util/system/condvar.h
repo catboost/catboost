@@ -55,7 +55,7 @@ public:
         WaitD(m, TInstant::Max(), std::move(pred));
     }
 
-    //deprecated
+    // deprecated
     inline void Wait(TMutex& m) noexcept {
         WaitI(m);
     }

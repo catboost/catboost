@@ -34,7 +34,7 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         ref[0] = 5;
         UNIT_ASSERT_VALUES_EQUAL(a[0], 5);
 
-        //FIXME: size checks are implemented via Y_ASSERT, hence there is no way to test them
+        // FIXME: size checks are implemented via Y_ASSERT, hence there is no way to test them
     }
 
     Y_UNIT_TEST(TestFrontBack) {
@@ -165,7 +165,7 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
 
         TArrayRef<int> bSubRef(b, size - 1);
 
-        //Testing if operator== compares values, not pointers
+        // Testing if operator== compares values, not pointers
         UNIT_ASSERT_EQUAL(cRef, bSubRef);
     }
 
@@ -210,7 +210,7 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         UNIT_ASSERT_VALUES_EQUAL(s1.size(), 1);
         UNIT_ASSERT_VALUES_EQUAL(s1[0], 3);
 
-        //FIXME: size checks are implemented via Y_ASSERT, hence there is no way to test them
+        // FIXME: size checks are implemented via Y_ASSERT, hence there is no way to test them
     }
 
     Y_UNIT_TEST(SubRegion) {
@@ -240,8 +240,8 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
             bytesRef,
             MakeArrayRef(std::vector<char>{0x01, 0x00, 0x02, 0x00, 0x03, 0x00}));
 
-        //should not compile
-        //as_writable_bytes(constRef);
+        // should not compile
+        // as_writable_bytes(constRef);
     }
 
     Y_UNIT_TEST(TestAsWritableBytes) {
