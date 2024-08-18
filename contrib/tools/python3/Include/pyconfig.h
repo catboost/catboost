@@ -25,12 +25,10 @@
 #include "pyconfig-linux.h"
 #endif
 
-#if defined(__APPLE__)
-#  if defined(__arm64__)
-#    include "pyconfig-osx-arm64.h"
-#  else
-#    include "pyconfig-osx.h"
-#  endif
+#if defined(__APPLE__) && (defined(__aarch64__) || defined(_M_ARM64))
+#   include "pyconfig-osx-arm64.h"
+#elif defined(__APPLE__) && (defined(__x86_64__) || defined(_M_X64))
+#   include "pyconfig-osx-x86_64.h"
 #endif
 
 #if defined(_MSC_VER)
