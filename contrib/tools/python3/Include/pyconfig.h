@@ -1,25 +1,29 @@
 #pragma once
 
 #if defined(Py_BUILD_CORE) || defined(Py_BUILD_CORE_BUILTIN) || defined(Py_BUILD_CORE_MODULE)
+
 #define ABIFLAGS ""
+
+// Need for Modules/getpath.c
 #define PREFIX "/var/empty"
 #define EXEC_PREFIX "/var/empty"
-#define VERSION "3.10"
+#define VERSION "3.12"
 #define VPATH ""
-#define BLAKE2_USE_SSE
+#define PLATLIBDIR "lib"
+
 #define USE_ZLIB_CRC32
+
 #if defined(__linux__)
-#define PLATFORM "linux"
-#define MULTIARCH "x86_64-linux-gnu"
-#define SOABI "cpython-310-x86_64-linux-gnu"
+#   define PLATFORM "linux"
+#   define MULTIARCH "x86_64-linux-gnu"
+#   define SOABI "cpython-312-x86_64-linux-gnu"
 #elif defined(__APPLE__)
-#define PLATFORM "darwin"
-#define MULTIARCH "darwin"
-#define SOABI "cpython-310-darwin"
-#endif
+#   define PLATFORM "darwin"
+#   define MULTIARCH "darwin"
+#   define SOABI "cpython-312-darwin"
 #endif
 
-#define PLATLIBDIR "lib"
+#endif
 
 #if defined(__linux__)
 #include "pyconfig-linux.h"
