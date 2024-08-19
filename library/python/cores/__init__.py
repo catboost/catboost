@@ -162,21 +162,45 @@ def get_problem_stack(backtrace):
     return "\n".join(stack)
 
 
+BT_COLORS = {
+    "function_name": "[[c:cyan]]",
+    "function_arg": "[[c:green]]",
+    "stack_frame": "[[c:red]]",
+    "thread_prefix": "[[c:light-cyan]]",
+    "thread_id": "[[c:red]]",
+    "file_path": "[[c:light-grey]]",
+    "line_num": "[[c:magenta]]",
+    "address": "[[c:light-grey]]",
+}
+
+
 # XXX
-def colorize_backtrace(text):
+def colorize_backtrace(text, c=None):
+    if c is None:
+        c = BT_COLORS
+
     filters = [
         # Function names and the class they belong to
-        (re.compile(r"^(#[0-9]+ .*?)([a-zA-Z0-9_:\.@]+)(\s?\()", flags=re.MULTILINE), r"\1[[c:cyan]]\2[[rst]]\3"),
+        (
+            re.compile(r"^(#[0-9]+ .*?)([a-zA-Z0-9_:\.@]+)(\s?\()", flags=re.MULTILINE),
+            r"\1" + c['function_name'] + r"\2[[rst]]\3",
+        ),
         # Function argument names
-        (re.compile(r"([a-zA-Z0-9_#]*)(\s?=\s?)"), r"[[c:green]]\1[[rst]]\2"),
+        (re.compile(r"([a-zA-Z0-9_#]*)(\s?=\s?)"), c["function_arg"] + r"\1[[rst]]\2"),
         # Stack frame number
-        (re.compile(r"^(#[0-9]+)", flags=re.MULTILINE), r"[[c:red]]\1[[rst]]"),
+        (re.compile(r"^(#[0-9]+)", flags=re.MULTILINE), c["stack_frame"] + r"\1[[rst]]"),
         # Thread id colorization
-        (re.compile(r"^([ \*]) ([0-9]+)", flags=re.MULTILINE), r"[[c:light-cyan]]\1 [[c:red]]\2[[rst]]"),
+        (
+            re.compile(r"^([ \*]) ([0-9]+)", flags=re.MULTILINE),
+            c["thread_prefix"] + r"\1 " + c["thread_id"] + r"\2[[rst]]",
+        ),
         # File path and line number
-        (re.compile(r"(\.*[/A-Za-z0-9\+_\.\-]*):(([0-9]+)(:[0-9]+)?)$", flags=re.MULTILINE), r"[[c:light-grey]]\1[[rst]]:[[c:magenta]]\2[[rst]]"),
+        (
+            re.compile(r"(\.*[/A-Za-z0-9\+_\.\-]*):(([0-9]+)(:[0-9]+)?)$", flags=re.MULTILINE),
+            c["file_path"] + r"\1[[rst]]:" + c["line_num"] + r"\2[[rst]]",
+        ),
         # Addresses
-        (re.compile(r"\b(0x[a-f0-9]{6,})\b"), r"[[c:light-grey]]\1[[rst]]"),
+        (re.compile(r"\b(0x[a-f0-9]{6,})\b"), c["address"] + r"\1[[rst]]"),
     ]
 
     text = six.ensure_str(text)

@@ -1,6 +1,16 @@
 # coding: utf-8
 import re
 
+TEST_BT_COLORS = {
+    "function_name": "[[alt1]]",
+    "function_arg": "[[good]]",
+    "stack_frame": "[[bad]]",
+    "thread_prefix": "[[alt3]]",
+    "thread_id": "[[bad]]",
+    "file_path": "[[warn]]",
+    "line_num": "[[alt2]]",
+    "address": "[[unimp]]",
+}
 
 RESTART_TEST_INDICATOR = '##restart-test##'
 INFRASTRUCTURE_ERROR_INDICATOR = '##infrastructure-error##'
