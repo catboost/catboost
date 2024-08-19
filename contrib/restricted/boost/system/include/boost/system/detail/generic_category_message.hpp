@@ -39,7 +39,19 @@ inline char const * strerror_r_helper( int r, char const * buffer ) noexcept
 
 inline char const * generic_error_category_message( int ev, char * buffer, std::size_t len ) noexcept
 {
-    return strerror_r_helper( strerror_r( ev, buffer, len ), buffer );
+    if( buffer != nullptr )
+    {
+        return strerror_r_helper( strerror_r( ev, buffer, len ), buffer );
+    }
+    else
+    {
+        // strerror_r requires non-null buffer pointer
+
+        char tmp[ 1 ] = {};
+        char const* r = strerror_r_helper( strerror_r( ev, tmp, 0 ), buffer );
+
+        return r == tmp? nullptr: r;
+    }
 }
 
 inline std::string generic_error_category_message( int ev )
