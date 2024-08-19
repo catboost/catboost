@@ -143,8 +143,6 @@ class RepresentationPrinter:
         self.group_queue = GroupQueue(root_group)
         self.indentation = 0
 
-        self.snans = 0
-
         self.stack = []
         self.singleton_pprinters = {}
         self.type_pprinters = {}
@@ -358,12 +356,6 @@ class RepresentationPrinter:
 
     def flush(self):
         """Flush data that is left in the buffer."""
-        if self.snans:
-            # Reset self.snans *before* calling breakable(), which might flush()
-            snans = self.snans
-            self.snans = 0
-            self.breakable("  ")
-            self.text(f"# Saw {snans} signaling NaN" + "s" * (snans > 1))
         for data in self.buffer:
             self.output_width += data.output(self.output, self.output_width)
         self.buffer.clear()
@@ -747,19 +739,31 @@ def _exception_pprint(obj, p, cycle):
             p.pretty(arg)
 
 
+def _repr_integer(obj, p, cycle):
+    if abs(obj) < 1_000_000_000:
+        p.text(repr(obj))
+    elif abs(obj) < 10**640:
+        # add underscores for integers over ten decimal digits
+        p.text(f"{obj:#_d}")
+    else:
+        # for very very large integers, use hex because power-of-two bases are cheaper
+        # https://docs.python.org/3/library/stdtypes.html#integer-string-conversion-length-limitation
+        p.text(f"{obj:#_x}")
+
+
 def _repr_float_counting_nans(obj, p, cycle):
-    if isnan(obj) and hasattr(p, "snans"):
+    if isnan(obj):
         if struct.pack("!d", abs(obj)) != struct.pack("!d", float("nan")):
-            p.snans += 1
-        if copysign(1.0, obj) == -1.0:
-            p.text("-nan")
-            return
+            show = hex(*struct.unpack("Q", struct.pack("d", obj)))
+            return p.text(f"struct.unpack('d', struct.pack('Q', {show}))[0]")
+        elif copysign(1.0, obj) == -1.0:
+            return p.text("-nan")
     p.text(repr(obj))
 
 
 #: printers for builtin types
 _type_pprinters = {
-    int: _repr_pprint,
+    int: _repr_integer,
     float: _repr_float_counting_nans,
     str: _repr_pprint,
     tuple: _seq_pprinter_factory("(", ")", tuple),

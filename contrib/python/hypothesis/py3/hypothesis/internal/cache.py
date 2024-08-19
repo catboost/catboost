@@ -9,6 +9,7 @@
 # obtain one at https://mozilla.org/MPL/2.0/.
 
 import threading
+from collections import OrderedDict
 
 import attr
 
@@ -282,3 +283,64 @@ class LRUReusedCache(GenericCache):
 
     def on_access(self, key, value, score):
         return (2, self.tick())
+
+
+class LRUCache:
+    """
+    This is a drop-in replacement for a GenericCache (despite the lack of inheritance)
+    in performance critical environments. It turns out that GenericCache's heap
+    balancing for arbitrary scores can be quite expensive compared to the doubly
+    linked list approach of lru_cache or OrderedDict.
+
+    This class is a pure LRU and does not provide any sort of affininty towards
+    the number of accesses beyond recency. If soft-pinning entries which have been
+    accessed at least once is important, use LRUReusedCache.
+    """
+
+    # Here are some nice performance references for lru_cache vs OrderedDict:
+    # https://github.com/python/cpython/issues/72426#issuecomment-1093727671
+    # https://discuss.python.org/t/simplify-lru-cache/18192/6
+    #
+    # We use OrderedDict here because it is unclear to me we can provide the same
+    # api as GenericCache without messing with @lru_cache internals.
+    #
+    # Anecdotally, OrderedDict seems quite competitive with lru_cache, but perhaps
+    # that is localized to our access patterns.
+
+    def __init__(self, max_size):
+        assert max_size > 0
+        self.max_size = max_size
+        self._threadlocal = threading.local()
+
+    @property
+    def cache(self):
+        try:
+            return self._threadlocal.cache
+        except AttributeError:
+            self._threadlocal.cache = OrderedDict()
+            return self._threadlocal.cache
+
+    def __setitem__(self, key, value):
+        self.cache[key] = value
+        self.cache.move_to_end(key)
+
+        while len(self.cache) > self.max_size:
+            self.cache.popitem(last=False)
+
+    def __getitem__(self, key):
+        val = self.cache[key]
+        self.cache.move_to_end(key)
+        return val
+
+    def __iter__(self):
+        return iter(self.cache)
+
+    def __len__(self):
+        return len(self.cache)
+
+    def __contains__(self, key):
+        return key in self.cache
+
+    # implement GenericCache interface, for tests
+    def check_valid(self):
+        pass

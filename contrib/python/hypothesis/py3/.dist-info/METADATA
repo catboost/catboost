@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: hypothesis
-Version: 6.108.5
+Version: 6.108.8
 Summary: A library for property-based testing
 Home-page: https://hypothesis.works
 Author: David R. MacIver and Zac Hatfield-Dodds
@@ -41,10 +41,10 @@ Requires-Dist: exceptiongroup >=1.0.0 ; python_version < "3.11"
 Provides-Extra: all
 Requires-Dist: black >=19.10b0 ; extra == 'all'
 Requires-Dist: click >=7.0 ; extra == 'all'
-Requires-Dist: crosshair-tool >=0.0.63 ; extra == 'all'
+Requires-Dist: crosshair-tool >=0.0.65 ; extra == 'all'
 Requires-Dist: django >=3.2 ; extra == 'all'
 Requires-Dist: dpcontracts >=0.4 ; extra == 'all'
-Requires-Dist: hypothesis-crosshair >=0.0.9 ; extra == 'all'
+Requires-Dist: hypothesis-crosshair >=0.0.11 ; extra == 'all'
 Requires-Dist: lark >=0.10.1 ; extra == 'all'
 Requires-Dist: libcst >=0.3.16 ; extra == 'all'
 Requires-Dist: numpy >=1.17.3 ; extra == 'all'
@@ -63,8 +63,8 @@ Requires-Dist: rich >=9.0.0 ; extra == 'cli'
 Provides-Extra: codemods
 Requires-Dist: libcst >=0.3.16 ; extra == 'codemods'
 Provides-Extra: crosshair
-Requires-Dist: hypothesis-crosshair >=0.0.9 ; extra == 'crosshair'
-Requires-Dist: crosshair-tool >=0.0.63 ; extra == 'crosshair'
+Requires-Dist: hypothesis-crosshair >=0.0.11 ; extra == 'crosshair'
+Requires-Dist: crosshair-tool >=0.0.65 ; extra == 'crosshair'
 Provides-Extra: dateutil
 Requires-Dist: python-dateutil >=1.4 ; extra == 'dateutil'
 Provides-Extra: django

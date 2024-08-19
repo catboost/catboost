@@ -10,7 +10,7 @@
 
 from weakref import WeakKeyDictionary
 
-from hypothesis.control import note
+from hypothesis.control import note, should_note
 from hypothesis.errors import InvalidState
 from hypothesis.internal.reflection import (
     convert_positional_arguments,
@@ -50,13 +50,15 @@ class FunctionStrategy(SearchStrategy):
                 cache = self._cache.setdefault(inner, {})
                 if key not in cache:
                     cache[key] = data.draw(self.returns)
-                    rep = repr_call(self.like, args, kwargs, reorder=False)
-                    note(f"Called function: {rep} -> {cache[key]!r}")
+                    if should_note():  # optimization to avoid needless repr_call
+                        rep = repr_call(self.like, args, kwargs, reorder=False)
+                        note(f"Called function: {rep} -> {cache[key]!r}")
                 return cache[key]
             else:
                 val = data.draw(self.returns)
-                rep = repr_call(self.like, args, kwargs, reorder=False)
-                note(f"Called function: {rep} -> {val!r}")
+                if should_note():
+                    rep = repr_call(self.like, args, kwargs, reorder=False)
+                    note(f"Called function: {rep} -> {val!r}")
                 return val
 
         return inner

@@ -139,10 +139,9 @@ class BuildContext:
         self.known_object_printers = defaultdict(list)
 
     def record_call(self, obj, func, args, kwargs):
-        name = get_pretty_function_description(func)
         self.known_object_printers[IDKey(obj)].append(
-            lambda obj, p, cycle: p.maybe_repr_known_object_as_call(
-                obj, cycle, name, args, kwargs
+            lambda obj, p, cycle, *, _func=func: p.maybe_repr_known_object_as_call(
+                obj, cycle, get_pretty_function_description(_func), args, kwargs
             )
         )
 

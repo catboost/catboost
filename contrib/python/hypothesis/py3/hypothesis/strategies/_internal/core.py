@@ -59,6 +59,7 @@ from hypothesis.control import (
     current_build_context,
     deprecate_random_in_strategy,
     note,
+    should_note,
 )
 from hypothesis.errors import (
     HypothesisSideeffectWarning,
@@ -2115,9 +2116,11 @@ class DataObject:
         if TESTCASE_CALLBACKS:
             self.conjecture_data._observability_args[desc] = to_jsonable(result)
 
-        printer.text(desc)
-        printer.pretty(result)
-        note(printer.getvalue())
+        # optimization to avoid needless printer.pretty
+        if should_note():
+            printer.text(desc)
+            printer.pretty(result)
+            note(printer.getvalue())
         return result
 
 
