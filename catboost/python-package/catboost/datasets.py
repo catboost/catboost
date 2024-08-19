@@ -298,7 +298,7 @@ def adult():
         'https://proxy.sandbox.yandex-team.ru/779120000',
         'https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test', )
     test_md5 = '35238206dfdf7f1fe215bbb874adecdc'
-    fd_test, train_path = tempfile.mkstemp()
+    fd_test, test_path = tempfile.mkstemp()
     os.close(fd_test)
     _cached_download(test_urls, test_md5, test_path)
 
