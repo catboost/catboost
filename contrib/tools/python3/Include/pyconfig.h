@@ -25,28 +25,21 @@
 
 #endif
 
-#if defined(__linux__)
-#include "pyconfig-linux.h"
+#if !defined(NDEBUG) && !defined(Py_DEBUG) && !defined(Py_LIMITED_API) && !defined(DISABLE_PYDEBUG)
+#define Py_DEBUG
+#define GC_NDEBUG
 #endif
 
 #if defined(__APPLE__) && (defined(__aarch64__) || defined(_M_ARM64))
 #   include "pyconfig-osx-arm64.h"
 #elif defined(__APPLE__) && (defined(__x86_64__) || defined(_M_X64))
 #   include "pyconfig-osx-x86_64.h"
-#endif
-
-#if defined(_MSC_VER)
-#define NTDDI_VERSION 0x06020000
-#define _WIN32_WINNT 0x0602
-#define Py_NO_ENABLE_SHARED
-#include "../PC/pyconfig.h"
+#elif defined(_MSC_VER)
+#   include "pyconfig-win.h"
+#else
+#   include "pyconfig-linux.h"
 #endif
 
 #if defined(_musl_)
-#include "pyconfig-musl.h"
-#endif
-
-#if !defined(NDEBUG) && !defined(Py_DEBUG) && !defined(Py_LIMITED_API) && !defined(DISABLE_PYDEBUG)
-#define Py_DEBUG
-#define GC_NDEBUG
+#   include "pyconfig-musl.h"
 #endif
