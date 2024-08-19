@@ -2,6 +2,7 @@
 
 #if !defined(INCLUDE_FUTURE_INL_H)
 #error "you should never include future-inl.h directly"
+#include "future.h" // Fix LSP
 #endif // INCLUDE_FUTURE_INL_H
 
 namespace NThreading {
