@@ -1,6 +1,7 @@
 #include "queue.h"
+#include "deque.h"
 #include "list.h"
-#include "vector.h"
+#include "ptr.h"
 
 #include <library/cpp/testing/unittest/registar.h>
 
@@ -149,6 +150,41 @@ Y_UNIT_TEST_SUITE(TYQueueTest) {
         UNIT_ASSERT(q.top() == 42);
 
         q.pop();
+        UNIT_ASSERT(q.empty());
+    }
+
+    struct THolderWithPriority {
+        THolderWithPriority(const TString& value, int priority)
+            : Value(MakeHolder<TString>(value))
+            , Priority(priority)
+        {
+        }
+
+        THolder<TString> Value; // THolder to test move-ctor
+        int Priority;
+
+        std::weak_ordering operator<=>(const THolderWithPriority& other) const noexcept {
+            return Priority <=> other.Priority;
+        }
+    };
+
+    Y_UNIT_TEST(pqueue5) {
+        // Test move-and-pop
+        TPriorityQueue<THolderWithPriority> q;
+
+        UNIT_ASSERT(q.empty());
+        q.emplace("min", 1);
+        q.emplace("max", 3);
+        q.emplace("middle", 2);
+
+        auto value = q.PopValue().Value;
+        UNIT_ASSERT(*value == "max");
+
+        value = q.PopValue().Value;
+        UNIT_ASSERT(*value == "middle");
+
+        value = q.PopValue().Value;
+        UNIT_ASSERT(*value == "min");
         UNIT_ASSERT(q.empty());
     }
 
