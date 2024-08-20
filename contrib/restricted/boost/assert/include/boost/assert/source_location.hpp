@@ -174,9 +174,12 @@ template<class E, class T> std::basic_ostream<E, T> & operator<<( std::basic_ost
 
 # define BOOST_CURRENT_LOCATION ::boost::source_location(__builtin_FILE(), __builtin_LINE(), __builtin_FUNCTION(), __builtin_COLUMN())
 
-#elif defined(BOOST_GCC) && BOOST_GCC >= 70000
+#elif defined(BOOST_GCC) && BOOST_GCC >= 80000
 
 // The built-ins are available in 4.8+, but are not constant expressions until 7
+// In addition, reproducible builds require -ffile-prefix-map, which is GCC 8
+// https://github.com/boostorg/assert/issues/38
+
 # define BOOST_CURRENT_LOCATION ::boost::source_location(__builtin_FILE(), __builtin_LINE(), __builtin_FUNCTION())
 
 #elif defined(BOOST_GCC) && BOOST_GCC >= 50000
