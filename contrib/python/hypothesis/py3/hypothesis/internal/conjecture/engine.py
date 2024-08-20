@@ -999,7 +999,10 @@ class ConjectureRunner:
 
             self._current_phase = "generate"
             prefix = self.generate_novel_prefix()
-            assert len(prefix) <= BUFFER_SIZE
+            # it is possible, if unlikely, to generate a > BUFFER_SIZE novel prefix,
+            # as nodes in the novel tree may be variable sized due to eg integer
+            # probe retries.
+            prefix = prefix[:BUFFER_SIZE]
             if (
                 self.valid_examples <= small_example_cap
                 and self.call_count <= 5 * small_example_cap
