@@ -1957,6 +1957,9 @@ cdef class _PreprocessParams:
             for k in keys_to_replace:
                 params_to_json[k] = "PythonUserDefinedPerObject"
 
+        if "custom_metric" in params_to_json and type(params_to_json["custom_metric"]) == str:
+            params_to_json["custom_metric"] = params_to_json["custom_metric"].split(",")
+
         if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             if params.get("task_type") == "GPU":
                 self.customObjectiveDescriptor = _BuildCustomGpuObjectiveDescriptor(params["loss_function"])
