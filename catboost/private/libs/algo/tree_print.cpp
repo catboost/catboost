@@ -263,7 +263,7 @@ TConstArrayRef<TNonSymmetricTreeStepNode> GetTreeStepNodes(const TFullModel& mod
 
 TVector<ui32> GetTreeNodeToLeaf(const TFullModel& model, size_t treeIdx) {
     CB_ENSURE(treeIdx < model.GetTreeCount(),
-        "Requested tree step nodes for tree " << treeIdx << ", but model has " << model.GetTreeCount());
+        "Requested tree leaves for nodes for tree " << treeIdx << ", but model has " << model.GetTreeCount());
     Y_ASSERT(!model.IsOblivious());
     const size_t offset = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
     const auto start = model.ModelTrees->GetModelTreeData()->GetNonSymmetricNodeIdToLeafId().begin() + offset;
