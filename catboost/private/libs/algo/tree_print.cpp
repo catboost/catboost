@@ -270,9 +270,10 @@ TVector<ui32> GetTreeNodeToLeaf(const TFullModel& model, size_t treeIdx) {
     const auto end = start + model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
     auto applyData = model.ModelTrees->GetApplyData();
     const size_t firstLeafOffset = applyData->TreeFirstLeafOffsets[treeIdx];
+    const size_t dimensionsCount = model.GetDimensionsCount();
     TVector<ui32> nodeToLeaf(start, end);
     for (auto& value : nodeToLeaf) {
-        value -= firstLeafOffset;
+        value = (value - firstLeafOffset) / dimensionsCount;
     }
     return nodeToLeaf;
 }
