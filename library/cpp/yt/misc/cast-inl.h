@@ -124,10 +124,6 @@ T CheckedEnumCast(S value)
 {
     T result;
     if (!TryEnumCast<T>(value, &result)) {
-        if constexpr (TEnumHasDefaultValue<T>::value) {
-            return GetDefaultValue(T{});
-        }
-
         throw TSimpleException(Sprintf("Error casting %s value \"%d\" to enum %s",
             TypeName<S>().c_str(),
             static_cast<int>(value),

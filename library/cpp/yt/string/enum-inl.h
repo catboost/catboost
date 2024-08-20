@@ -87,11 +87,6 @@ T ParseEnum(TStringBuf value)
     if (auto optionalResult = TryParseEnum<T>(value)) {
         return *optionalResult;
     }
-
-    if constexpr (TEnumHasDefaultValue<T>::value) {
-        return GetDefaultValue(T{});
-    }
-
     NYT::NDetail::ThrowMalformedEnumValueException(TEnumTraits<T>::GetTypeName(), value);
 }
 
