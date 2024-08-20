@@ -63,6 +63,17 @@ namespace boost
                ? detail::ibeta_imp(T(a + k), b, x, pol, false, true, &xterm)
                : detail::ibeta_imp(b, T(a + k), y, pol, true, true, &xterm);
 
+            while (fabs(beta * pois) < tools::min_value<T>())
+            {
+               if ((k == 0) || (pois == 0))
+                  return init_val;
+               k /= 2;
+               pois = gamma_p_derivative(T(k + 1), l2, pol);
+               beta = x < y
+                  ? detail::ibeta_imp(T(a + k), b, x, pol, false, true, &xterm)
+                  : detail::ibeta_imp(b, T(a + k), y, pol, true, true, &xterm);
+            }
+
             xterm *= y / (a + b + k - 1);
             T poisf(pois), betaf(beta), xtermf(xterm);
             T sum = init_val;
@@ -80,7 +91,7 @@ namespace boost
             {
                T term = beta * pois;
                sum += term;
-               if(((fabs(term/sum) < errtol) && (last_term >= term)) || (term == 0))
+               if(((fabs(term/sum) < errtol) && (fabs(last_term) >= fabs(term))) || (term == 0))
                {
                   count = k - i;
                   break;
@@ -95,6 +106,7 @@ namespace boost
                
                last_term = term;
             }
+            last_term = 0;
             for(auto i = k + 1; ; ++i)
             {
                poisf *= l2 / i;
@@ -103,10 +115,11 @@ namespace boost
 
                T term = poisf * betaf;
                sum += term;
-               if((fabs(term/sum) < errtol) || (term == 0))
+               if(((fabs(term/sum) < errtol) && (fabs(last_term) >= fabs(term))) || (term == 0))
                {
                   break;
                }
+               last_term = term;
                if(static_cast<std::uintmax_t>(count + i - k) > max_iter)
                {
                   return policies::raise_evaluation_error("cdf(non_central_beta_distribution<%1%>, %1%)", "Series did not converge, closest value was %1%", sum, pol); // LCOV_EXCL_LINE
@@ -542,6 +555,24 @@ namespace boost
             T beta = x < y ?
                ibeta_derivative(a + k, b, x, pol)
                : ibeta_derivative(b, a + k, y, pol);
+
+            while (fabs(beta * pois) < tools::min_value<T>())
+            {
+               if ((k == 0) || (pois == 0))
+                  return 0;  // Nothing else we can do!
+               //
+               // We only get here when a+k and b are large and x is small,
+               // in that case reduce k (bisect) until both terms are finite:
+               //
+               k /= 2;
+               pois = gamma_p_derivative(T(k + 1), l2, pol);
+               // Starting beta term:
+               beta = x < y ?
+                  ibeta_derivative(a + k, b, x, pol)
+                  : ibeta_derivative(b, a + k, y, pol);
+            }
+
+
             T sum = 0;
             T poisf(pois);
             T betaf(beta);
@@ -550,15 +581,19 @@ namespace boost
             // Stable backwards recursion first:
             //
             std::uintmax_t count = k;
+            T ratio = 0;
+            T old_ratio = 0;
             for(auto i = k; i >= 0; --i)
             {
                T term = beta * pois;
                sum += term;
-               if((fabs(term/sum) < errtol) || (term == 0))
+               ratio = fabs(term / sum);
+               if(((ratio < errtol) && (ratio < old_ratio)) || (term == 0))
                {
                   count = k - i;
                   break;
                }
+               ratio = old_ratio;
                pois *= i / l2;
 
                if (a + b + i != 1)
@@ -566,6 +601,7 @@ namespace boost
                   beta *= (a + i - 1) / (x * (a + i + b - 1));
                }
             }
+            old_ratio = 0;
             for(auto i = k + 1; ; ++i)
             {
                poisf *= l2 / i;
@@ -573,10 +609,12 @@ namespace boost
 
                T term = poisf * betaf;
                sum += term;
-               if((fabs(term/sum) < errtol) || (term == 0))
+               ratio = fabs(term / sum);
+               if(((ratio < errtol) && (ratio < old_ratio)) || (term == 0))
                {
                   break;
                }
+               old_ratio = ratio;
                if(static_cast<std::uintmax_t>(count + i - k) > max_iter)
                {
                   return policies::raise_evaluation_error("pdf(non_central_beta_distribution<%1%>, %1%)", "Series did not converge, closest value was %1%", sum, pol); // LCOV_EXCL_LINE

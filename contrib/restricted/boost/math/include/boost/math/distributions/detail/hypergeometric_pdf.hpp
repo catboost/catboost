@@ -297,7 +297,7 @@ T hypergeometric_pdf_prime_loop_imp(hypergeometric_pdf_prime_loop_data& data, hy
    while(data.current_prime <= data.N)
    {
       std::uint64_t base = data.current_prime;
-      std::int64_t prime_powers = 0;
+      std::uint64_t prime_powers = 0;
       while(base <= data.N)
       {
          prime_powers += data.n / base;
@@ -313,7 +313,7 @@ T hypergeometric_pdf_prime_loop_imp(hypergeometric_pdf_prime_loop_data& data, hy
       }
       if(prime_powers)
       {
-         T p = integer_power<T>(static_cast<T>(data.current_prime), prime_powers);
+         T p = integer_power<T>(static_cast<T>(data.current_prime), static_cast<int>(prime_powers));
          if((p > 1) && (tools::max_value<T>() / p < result.value))
          {
             //
@@ -321,7 +321,7 @@ T hypergeometric_pdf_prime_loop_imp(hypergeometric_pdf_prime_loop_data& data, hy
             // to sidestep the issue:
             //
             hypergeometric_pdf_prime_loop_result_entry<T> t = { p, &result };
-            data.current_prime = prime(++data.prime_index);
+            data.current_prime = prime(static_cast<unsigned>(++data.prime_index));
             return hypergeometric_pdf_prime_loop_imp<T>(data, t);
          }
          if((p < 1) && (tools::min_value<T>() / p > result.value))
@@ -331,12 +331,12 @@ T hypergeometric_pdf_prime_loop_imp(hypergeometric_pdf_prime_loop_data& data, hy
             // to sidestep the issue:
             //
             hypergeometric_pdf_prime_loop_result_entry<T> t = { p, &result };
-            data.current_prime = prime(++data.prime_index);
+            data.current_prime = prime(static_cast<unsigned>(++data.prime_index));
             return hypergeometric_pdf_prime_loop_imp<T>(data, t);
          }
          result.value *= p;
       }
-      data.current_prime = prime(++data.prime_index);
+      data.current_prime = prime(static_cast<unsigned>(++data.prime_index));
    }
    //
    // When we get to here we have run out of prime factors,
@@ -395,18 +395,18 @@ T hypergeometric_pdf_factorial_imp(std::uint64_t x, std::uint64_t r, std::uint64
 {
    BOOST_MATH_STD_USING
    BOOST_MATH_ASSERT(N <= boost::math::max_factorial<T>::value);
-   T result = boost::math::unchecked_factorial<T>(n);
+   T result = boost::math::unchecked_factorial<T>(static_cast<unsigned>(n));
    T num[3] = {
-      boost::math::unchecked_factorial<T>(r),
-      boost::math::unchecked_factorial<T>(N - n),
-      boost::math::unchecked_factorial<T>(N - r)
+      boost::math::unchecked_factorial<T>(static_cast<unsigned>(r)),
+      boost::math::unchecked_factorial<T>(static_cast<unsigned>(N - n)),
+      boost::math::unchecked_factorial<T>(static_cast<unsigned>(N - r))
    };
    T denom[5] = {
-      boost::math::unchecked_factorial<T>(N),
-      boost::math::unchecked_factorial<T>(x),
-      boost::math::unchecked_factorial<T>(n - x),
-      boost::math::unchecked_factorial<T>(r - x),
-      boost::math::unchecked_factorial<T>(N - n - r + x)
+      boost::math::unchecked_factorial<T>(static_cast<unsigned>(N)),
+      boost::math::unchecked_factorial<T>(static_cast<unsigned>(x)),
+      boost::math::unchecked_factorial<T>(static_cast<unsigned>(n - x)),
+      boost::math::unchecked_factorial<T>(static_cast<unsigned>(r - x)),
+      boost::math::unchecked_factorial<T>(static_cast<unsigned>(N - n - r + x))
    };
    std::size_t i = 0;
    std::size_t j = 0;

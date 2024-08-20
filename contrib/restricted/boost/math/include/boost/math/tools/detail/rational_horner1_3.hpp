@@ -26,7 +26,7 @@ inline V evaluate_rational_c_imp(const T* a, const U* b, const V&, const std::in
 template <class T, class U, class V>
 inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::integral_constant<int, 2>*) BOOST_MATH_NOEXCEPT(V)
 {
-   if(x <= 1)
+   if((-1 <= x) && (x <= 1))
      return static_cast<V>((a[1] * x + a[0]) / (b[1] * x + b[0]));
    else
    {
@@ -38,7 +38,7 @@ inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::
 template <class T, class U, class V>
 inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::integral_constant<int, 3>*) BOOST_MATH_NOEXCEPT(V)
 {
-   if(x <= 1)
+   if((-1 <= x) && (x <= 1))
      return static_cast<V>(((a[2] * x + a[1]) * x + a[0]) / ((b[2] * x + b[1]) * x + b[0]));
    else
    {

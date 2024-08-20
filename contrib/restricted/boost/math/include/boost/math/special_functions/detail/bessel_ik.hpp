@@ -322,83 +322,96 @@ int bessel_ik(T v, T x, T* result_I, T* result_K, int kind, const Policy& pol)
         v = -v;                             // v is non-negative from here
         kind |= need_k;
     }
-    n = iround(v, pol);
-    u = v - n;                              // -1/2 <= u < 1/2
-    BOOST_MATH_INSTRUMENT_VARIABLE(n);
-    BOOST_MATH_INSTRUMENT_VARIABLE(u);
 
-    BOOST_MATH_ASSERT(x > 0); // Error handling for x <= 0 handled in cyl_bessel_i and cyl_bessel_k
-
-    // x is positive until reflection
-    W = 1 / x;                                 // Wronskian
-    if (x <= 2)                                // x in (0, 2]
-    {
-        temme_ik(u, x, &Ku, &Ku1, pol);             // Temme series
-    }
-    else                                       // x in (2, \infty)
-    {
-        CF2_ik(u, x, &Ku, &Ku1, pol);               // continued fraction CF2_ik
-    }
-    BOOST_MATH_INSTRUMENT_VARIABLE(Ku);
-    BOOST_MATH_INSTRUMENT_VARIABLE(Ku1);
-    prev = Ku;
-    current = Ku1;
     T scale = 1;
     T scale_sign = 1;
-    for (k = 1; k <= n; k++)                   // forward recurrence for K
+
+    if (((kind & need_i) == 0) && (fabs(4 * v * v - 25) / (8 * x) < tools::forth_root_epsilon<T>()))
     {
-        T fact = 2 * (u + k) / x;
-        // Check for overflow: if (max - |prev|) / fact > max, then overflow
-        // (max - |prev|) / fact > max
-        // max * (1 - fact) > |prev|
-        // if fact < 1: safe to compute overflow check
-        // if fact >= 1:  won't overflow
-        const bool will_overflow = (fact < 1)
-          ? tools::max_value<T>() * (1 - fact) > fabs(prev)
-          : false;
-        if(!will_overflow && ((tools::max_value<T>() - fabs(prev)) / fact < fabs(current)))
-        {
-           prev /= current;
-           scale /= current;
-           scale_sign *= ((boost::math::signbit)(current) ? -1 : 1);
-           current = 1;
-        }
-        next = fact * current + prev;
-        prev = current;
-        current = next;
-    }
-    Kv = prev;
-    Kv1 = current;
-    BOOST_MATH_INSTRUMENT_VARIABLE(Kv);
-    BOOST_MATH_INSTRUMENT_VARIABLE(Kv1);
-    if(kind & need_i)
-    {
-       T lim = (4 * v * v + 10) / (8 * x);
-       lim *= lim;
-       lim *= lim;
-       lim /= 24;
-       if((lim < tools::epsilon<T>() * 10) && (x > 100))
-       {
-          // x is huge compared to v, CF1 may be very slow
-          // to converge so use asymptotic expansion for large
-          // x case instead.  Note that the asymptotic expansion
-          // isn't very accurate - so it's deliberately very hard
-          // to get here - probably we're going to overflow:
-          Iv = asymptotic_bessel_i_large_x(v, x, pol);
-       }
-       else if((v > 0) && (x / v < 0.25))
-       {
-          Iv = bessel_i_small_z_series(v, x, pol);
-       }
-       else
-       {
-          CF1_ik(v, x, &fv, pol);                         // continued fraction CF1_ik
-          Iv = scale * W / (Kv * fv + Kv1);                  // Wronskian relation
-       }
+       // A&S 9.7.2
+       Iv = std::numeric_limits<T>::quiet_NaN(); // any value will do
+       T mu = 4 * v * v;
+       T eight_z = 8 * x;
+       Kv = 1 + (mu - 1) / eight_z + (mu - 1) * (mu - 9) / (2 * eight_z * eight_z) + (mu - 1) * (mu - 9) * (mu - 25) / (6 * eight_z * eight_z * eight_z);
+       Kv *= exp(-x) * constants::root_pi<T>() / sqrt(2 * x);
     }
     else
-       Iv = std::numeric_limits<T>::quiet_NaN(); // any value will do
+    {
+       n = iround(v, pol);
+       u = v - n;                              // -1/2 <= u < 1/2
+       BOOST_MATH_INSTRUMENT_VARIABLE(n);
+       BOOST_MATH_INSTRUMENT_VARIABLE(u);
 
+       BOOST_MATH_ASSERT(x > 0); // Error handling for x <= 0 handled in cyl_bessel_i and cyl_bessel_k
+
+       // x is positive until reflection
+       W = 1 / x;                                 // Wronskian
+       if (x <= 2)                                // x in (0, 2]
+       {
+          temme_ik(u, x, &Ku, &Ku1, pol);             // Temme series
+       }
+       else                                       // x in (2, \infty)
+       {
+          CF2_ik(u, x, &Ku, &Ku1, pol);               // continued fraction CF2_ik
+       }
+       BOOST_MATH_INSTRUMENT_VARIABLE(Ku);
+       BOOST_MATH_INSTRUMENT_VARIABLE(Ku1);
+       prev = Ku;
+       current = Ku1;
+       for (k = 1; k <= n; k++)                   // forward recurrence for K
+       {
+          T fact = 2 * (u + k) / x;
+          // Check for overflow: if (max - |prev|) / fact > max, then overflow
+          // (max - |prev|) / fact > max
+          // max * (1 - fact) > |prev|
+          // if fact < 1: safe to compute overflow check
+          // if fact >= 1:  won't overflow
+          const bool will_overflow = (fact < 1)
+             ? tools::max_value<T>() * (1 - fact) > fabs(prev)
+             : false;
+          if (!will_overflow && ((tools::max_value<T>() - fabs(prev)) / fact < fabs(current)))
+          {
+             prev /= current;
+             scale /= current;
+             scale_sign *= ((boost::math::signbit)(current) ? -1 : 1);
+             current = 1;
+          }
+          next = fact * current + prev;
+          prev = current;
+          current = next;
+       }
+       Kv = prev;
+       Kv1 = current;
+       BOOST_MATH_INSTRUMENT_VARIABLE(Kv);
+       BOOST_MATH_INSTRUMENT_VARIABLE(Kv1);
+       if (kind & need_i)
+       {
+          T lim = (4 * v * v + 10) / (8 * x);
+          lim *= lim;
+          lim *= lim;
+          lim /= 24;
+          if ((lim < tools::epsilon<T>() * 10) && (x > 100))
+          {
+             // x is huge compared to v, CF1 may be very slow
+             // to converge so use asymptotic expansion for large
+             // x case instead.  Note that the asymptotic expansion
+             // isn't very accurate - so it's deliberately very hard
+             // to get here - probably we're going to overflow:
+             Iv = asymptotic_bessel_i_large_x(v, x, pol);
+          }
+          else if ((v > 0) && (x / v < 0.25))
+          {
+             Iv = bessel_i_small_z_series(v, x, pol);
+          }
+          else
+          {
+             CF1_ik(v, x, &fv, pol);                         // continued fraction CF1_ik
+             Iv = scale * W / (Kv * fv + Kv1);                  // Wronskian relation
+          }
+       }
+       else
+          Iv = std::numeric_limits<T>::quiet_NaN(); // any value will do
+    }
     if (reflect)
     {
         T z = (u + n % 2);

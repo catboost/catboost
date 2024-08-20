@@ -44,7 +44,7 @@ inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::
 template <class T, class U, class V>
 inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::integral_constant<int, 5>*) BOOST_MATH_NOEXCEPT(V)
 {
-   if(x <= 1)
+   if((-1 <= x) && (x <= 1))
    {
       V x2 = x * x;
       V t[4];
@@ -82,7 +82,7 @@ inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::
 template <class T, class U, class V>
 inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::integral_constant<int, 6>*) BOOST_MATH_NOEXCEPT(V)
 {
-   if(x <= 1)
+   if((-1 <= x) && (x <= 1))
    {
       V x2 = x * x;
       V t[4];
@@ -128,7 +128,7 @@ inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::
 template <class T, class U, class V>
 inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::integral_constant<int, 7>*) BOOST_MATH_NOEXCEPT(V)
 {
-   if(x <= 1)
+   if((-1 <= x) && (x <= 1))
    {
       V x2 = x * x;
       V t[4];
@@ -182,7 +182,7 @@ inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::
 template <class T, class U, class V>
 inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::integral_constant<int, 8>*) BOOST_MATH_NOEXCEPT(V)
 {
-   if(x <= 1)
+   if((-1 <= x) && (x <= 1))
    {
       V x2 = x * x;
       V t[4];
@@ -244,7 +244,7 @@ inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::
 template <class T, class U, class V>
 inline V evaluate_rational_c_imp(const T* a, const U* b, const V& x, const std::integral_constant<int, 9>*) BOOST_MATH_NOEXCEPT(V)
 {
-   if(x <= 1)
+   if((-1 <= x) && (x <= 1))
    {
       V x2 = x * x;
       V t[4];

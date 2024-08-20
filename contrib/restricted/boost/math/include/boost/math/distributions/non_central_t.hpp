@@ -16,6 +16,8 @@
 #include <boost/math/distributions/students_t.hpp>
 #include <boost/math/distributions/detail/generic_quantile.hpp> // quantile
 #include <boost/math/special_functions/trunc.hpp>
+#include <boost/math/special_functions/detail/hypergeometric_series.hpp>
+#include <boost/math/quadrature/exp_sinh.hpp>
 
 namespace boost
 {
@@ -58,6 +60,20 @@ namespace boost
             beta = x < y
                ? detail::ibeta_imp(T(k + 1), T(v / 2), x, pol, false, true, &xterm)
                : detail::ibeta_imp(T(v / 2), T(k + 1), y, pol, true, true, &xterm);
+
+            while (fabs(beta * pois) < tools::min_value<T>())
+            {
+               if ((k == 0) || (pois == 0))
+                  return init_val;
+               k /= 2;
+               pois = gamma_p_derivative(T(k + 1), d2, pol)
+                  * tgamma_delta_ratio(T(k + 1), T(0.5f))
+                  * delta / constants::root_two<T>();
+               beta = x < y
+                  ? detail::ibeta_imp(T(k + 1), T(v / 2), x, pol, false, true, &xterm)
+                  : detail::ibeta_imp(T(v / 2), T(k + 1), y, pol, true, true, &xterm);
+            }
+
             xterm *= y / (v / 2 + k);
             T poisf(pois), betaf(beta), xtermf(xterm);
             T sum = init_val;
@@ -262,7 +278,13 @@ namespace boost
                }
                else
                   result = 0;
-               result += cdf(boost::math::normal_distribution<T, Policy>(), -delta);
+               if (invert)
+               {
+                  result = cdf(complement(boost::math::normal_distribution<T, Policy>(), -delta)) - result;
+                  invert = false;
+               }
+               else
+                  result += cdf(boost::math::normal_distribution<T, Policy>(), -delta);
             }
             else
             {
@@ -371,6 +393,60 @@ namespace boost
          }
 
          template <class T, class Policy>
+         T non_central_t_pdf_integral(T x, T v, T mu, const Policy& pol)
+         {
+            BOOST_MATH_STD_USING
+            boost::math::quadrature::exp_sinh<T, Policy> integrator;
+            T integral = pow(v, v / 2) * exp(-v * mu * mu / (2 * (x * x + v)));
+            if (integral != 0)
+            {
+               integral *= integrator.integrate([&x, v, mu](T y) 
+                  {
+                     T p;
+                     if (v * log(y) < tools::log_max_value<T>())
+                        p = pow(y, v) * exp(boost::math::pow<2>((y - mu * x / sqrt(x * x + v))) / -2);
+                     else
+                        p = exp(log(y) * v + boost::math::pow<2>((y - mu * x / sqrt(x * x + v))) / -2);
+                     return p; 
+                  });
+            }
+            integral /= boost::math::constants::root_pi<T>() * boost::math::tgamma(v / 2, pol) * pow(T(2), (v - 1) / 2) * pow(x * x + v, (v + 1) / 2);
+            return integral;
+         }
+
+         template <class T, class Policy>
+         T non_central_t_pdf_hypergeometric(T x, T v, T mu, const Policy& pol)
+         {
+            BOOST_MATH_STD_USING
+            long long scale = 0;
+            const char* function = "non central T PDF";
+            //
+            // We only call this routine when we know that the series form of 1F1 is cheap to evaluate,
+            // so no need to call the whole 1F1 function, just the series will do:
+            //
+            T Av = hypergeometric_1F1_generic_series(static_cast<T>((v + 1) / 2), boost::math::constants::half<T>(), static_cast<T>(mu * mu * x * x / (2 * (x * x + v))), pol, scale, function);
+            Av = ldexp(Av, static_cast<int>(scale));
+            scale = 0;
+            T Bv = hypergeometric_1F1_generic_series(static_cast<T>(v / 2 + T(1)), static_cast<T>(T(3) / 2), static_cast<T>(mu * mu * x * x / (2 * (x * x + v))), pol, scale, function);
+            Bv = ldexp(Bv, static_cast<int>(scale));
+            Bv *= boost::math::tgamma_delta_ratio(v / 2 + T(1), -constants::half<T>(), pol);
+            Bv *= boost::math::constants::root_two<T>() * mu * x / sqrt(x * x + v);
+
+            T tolerance = tools::root_epsilon<T>() * Av * 4;
+            Av += Bv;
+
+            if (Av < tolerance)
+            {
+               // More than half the digits have cancelled, fall back to the integral method:
+               return non_central_t_pdf_integral(x, v, mu, pol);
+            }
+
+            Av *= exp(-mu * mu / 2) * pow(1 + x * x / v, -(v + 1) / 2) * boost::math::tgamma_delta_ratio(v / 2 + constants::half<T>(), -constants::half<T>(), pol);
+            Av /= sqrt(v) * boost::math::constants::root_pi<T>();
+            return Av;
+         }
+
+         template <class T, class Policy>
          T non_central_t2_pdf(T n, T delta, T x, T y, const Policy& pol, T init_val)
          {
             BOOST_MATH_STD_USING
@@ -398,10 +474,25 @@ namespace boost
                ? ibeta_derivative(T(k + 1), n / 2, x, pol)
                : ibeta_derivative(n / 2, T(k + 1), y, pol);
             BOOST_MATH_INSTRUMENT_VARIABLE(xterm);
+
+            while (fabs(xterm * pois) < tools::min_value<T>())
+            {
+               if (k == 0)
+                  return init_val;
+               k /= 2;
+               pois = gamma_p_derivative(T(k + 1), d2, pol)
+                  * tgamma_delta_ratio(T(k + 1), T(0.5f))
+                  * delta / constants::root_two<T>();
+               BOOST_MATH_INSTRUMENT_VARIABLE(pois);
+               // Starting beta term:
+               xterm = x < y
+                  ? ibeta_derivative(T(k + 1), n / 2, x, pol)
+                  : ibeta_derivative(n / 2, T(k + 1), y, pol);
+               BOOST_MATH_INSTRUMENT_VARIABLE(xterm);
+            }
+
             T poisf(pois), xtermf(xterm);
             T sum = init_val;
-            if((pois == 0) || (xterm == 0))
-               return init_val;
 
             //
             // Backwards recursion first, this is the stable
@@ -427,15 +518,18 @@ namespace boost
                }
             }
             BOOST_MATH_INSTRUMENT_VARIABLE(sum);
+            old_ratio = 0;
             for(auto i = k + 1; ; ++i)
             {
                poisf *= d2 / (i + 0.5f);
                xtermf *= (x * (n / 2 + i)) / (i);
                T term = poisf * xtermf;
                sum += term;
-               if((fabs(term/sum) < errtol) || (term == 0))
+               T ratio = fabs(term / sum);
+               if(((ratio < errtol) && (ratio < old_ratio)) || (term == 0))
                   break;
                ++count;
+               old_ratio = ratio;
                if(count > max_iter)
                {
                   return policies::raise_evaluation_error("pdf(non_central_t_distribution<%1%>, %1%)", "Series did not converge, closest value was %1%", sum, pol); // LCOV_EXCL_LINE
@@ -454,14 +548,7 @@ namespace boost
                normal_distribution<T, Policy> norm(delta, 1);
                return pdf(norm, t);
             }
-            //
-            // Otherwise, for t < 0 we have to use the reflection formula:
-            if(t < 0)
-            {
-               t = -t;
-               delta = -delta;
-            }
-            if(t == 0)
+            if(t * t < tools::epsilon<T>())
             {
                //
                // Handle this as a special case, using the formula
@@ -492,13 +579,30 @@ namespace boost
                return pdf(students_t_distribution<T, Policy>(n), t - delta);
             }
             //
+            // Figure out if the hypergeometric formula will be efficient or not, 
+            // based on where the summit of the series.
+            //
+            T a = (n + 1) / 2;
+            T x = delta * delta * t * t / (2 * (t * t + n));
+            T summit = (sqrt(x * (4 * a + x)) + x) / 2;
+            if (summit < 40)
+               return non_central_t_pdf_hypergeometric(t, n, delta, pol);
+            // 
+            // Otherwise, for t < 0 we have to use the reflection formula:
+            //
+            if (t < 0)
+            {
+               t = -t;
+               delta = -delta;
+            }
+            //
             // x and y are the corresponding random
             // variables for the noncentral beta distribution,
             // with y = 1 - x:
             //
-            T x = t * t / (n + t * t);
+            x = t * t / (n + t * t);
             T y = n / (n + t * t);
-            T a = 0.5f;
+            a = 0.5f;
             T b = n / 2;
             T d2 = delta * delta;
             //
@@ -508,12 +612,22 @@ namespace boost
             BOOST_MATH_INSTRUMENT_VARIABLE(dt);
             T result = non_central_beta_pdf(a, b, d2, x, y, pol);
             BOOST_MATH_INSTRUMENT_VARIABLE(result);
-            T tol = tools::epsilon<T>() * result * 500;
+            T tol = tools::root_epsilon<T>() * result;
             result = non_central_t2_pdf(n, delta, x, y, pol, result);
             BOOST_MATH_INSTRUMENT_VARIABLE(result);
-            if(result <= tol)
-               result = 0;
             result *= dt;
+            if (result <= tol)
+            {
+               // More than half the digits in the result have cancelled, 
+               // Try direct integration... super slow but reliable as far as we can tell...
+               if (delta < 0)
+               {
+                  // reflect back:
+                  delta = -delta;
+                  t = -t;
+               }
+               result = non_central_t_pdf_integral(t, n, delta, pol);
+            }
             return result;
          }
 

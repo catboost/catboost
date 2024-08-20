@@ -365,42 +365,62 @@ struct non_type {};
 #endif
 
 //
-// Tune performance options for specific compilers:
+// Tune performance options for specific compilers,
+// but check at each step that nothing has been previously defined by the user first
 //
 #ifdef _MSC_VER
-#  define BOOST_MATH_POLY_METHOD 2
+#  ifndef BOOST_MATH_POLY_METHOD
+#    define BOOST_MATH_POLY_METHOD 2
+#  endif
 #if _MSC_VER <= 1900
-#  define BOOST_MATH_RATIONAL_METHOD 1
+#  ifndef BOOST_MATH_POLY_METHOD
+#    define BOOST_MATH_RATIONAL_METHOD 1
+#  endif
 #else
-#  define BOOST_MATH_RATIONAL_METHOD 2
+#  ifndef BOOST_MATH_RATIONAL_METHOD
+#    define BOOST_MATH_RATIONAL_METHOD 2
+#  endif
 #endif
 #if _MSC_VER > 1900
-#  define BOOST_MATH_INT_TABLE_TYPE(RT, IT) RT
-#  define BOOST_MATH_INT_VALUE_SUFFIX(RV, SUF) RV##.0L
+#  ifndef BOOST_MATH_INT_TABLE_TYPE
+#    define BOOST_MATH_INT_TABLE_TYPE(RT, IT) RT
+#  endif
+#  ifndef BOOST_MATH_INT_VALUE_SUFFIX
+#    define BOOST_MATH_INT_VALUE_SUFFIX(RV, SUF) RV##.0L
+#  endif
 #endif
 
 #elif defined(__INTEL_COMPILER)
-#  define BOOST_MATH_POLY_METHOD 2
-#  define BOOST_MATH_RATIONAL_METHOD 1
+#  ifndef BOOST_MATH_POLY_METHOD
+#    define BOOST_MATH_POLY_METHOD 2
+#  endif
+#  ifndef BOOST_MATH_RATIONAL_METHOD
+#    define BOOST_MATH_RATIONAL_METHOD 1
+#  endif
 
 #elif defined(__GNUC__)
-#if __GNUC__ < 4
-#  define BOOST_MATH_POLY_METHOD 3
-#  define BOOST_MATH_RATIONAL_METHOD 3
-#  define BOOST_MATH_INT_TABLE_TYPE(RT, IT) RT
-#  define BOOST_MATH_INT_VALUE_SUFFIX(RV, SUF) RV##.0L
-#else
-#  define BOOST_MATH_POLY_METHOD 3
-#  define BOOST_MATH_RATIONAL_METHOD 3
-#endif
+#  ifndef BOOST_MATH_POLY_METHOD
+#    define BOOST_MATH_POLY_METHOD 3
+#  endif
+#  ifndef BOOST_MATH_RATIONAL_METHOD
+#    define BOOST_MATH_RATIONAL_METHOD 3
+#  endif
 
 #elif defined(__clang__)
 
 #if __clang__ > 6
-#  define BOOST_MATH_POLY_METHOD 3
-#  define BOOST_MATH_RATIONAL_METHOD 3
-#  define BOOST_MATH_INT_TABLE_TYPE(RT, IT) RT
-#  define BOOST_MATH_INT_VALUE_SUFFIX(RV, SUF) RV##.0L
+#  ifndef BOOST_MATH_POLY_METHOD
+#    define BOOST_MATH_POLY_METHOD 3
+#  endif
+#  ifndef BOOST_MATH_RATIONAL_METHOD
+#    define BOOST_MATH_RATIONAL_METHOD 3
+#  endif
+#  ifndef BOOST_MATH_INT_TABLE_TYPE
+#    define BOOST_MATH_INT_TABLE_TYPE(RT, IT) RT
+#  endif
+#  ifndef BOOST_MATH_INT_VALUE_SUFFIX
+#    define BOOST_MATH_INT_VALUE_SUFFIX(RV, SUF) RV##.0L
+#  endif
 #endif
 
 #endif

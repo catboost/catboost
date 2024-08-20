@@ -27,6 +27,10 @@
 #include <utility>
 #include <algorithm> // std::lower_bound, std::distance
 
+#ifdef BOOST_MATH_INSTRUMENT_SKEW_NORMAL_ITERATIONS
+extern std::uintmax_t global_iter_count;
+#endif
+
 namespace boost{ namespace math{
 
   namespace detail
@@ -614,32 +618,6 @@ namespace boost{ namespace math{
     return factor * y*y / (x*x);
   }
 
-  namespace detail
-  {
-
-    template <class RealType, class Policy>
-    struct skew_normal_quantile_functor
-    {
-      skew_normal_quantile_functor(const boost::math::skew_normal_distribution<RealType, Policy> dist, RealType const& p)
-        : distribution(dist), prob(p)
-      {
-      }
-
-      boost::math::tuple<RealType, RealType> operator()(RealType const& x)
-      {
-        RealType c = cdf(distribution, x);
-        RealType fx = c - prob;  // Difference cdf - value - to minimize.
-        RealType dx = pdf(distribution, x); // pdf is 1st derivative.
-        // return both function evaluation difference f(x) and 1st derivative f'(x).
-        return boost::math::make_tuple(fx, dx);
-      }
-    private:
-      const boost::math::skew_normal_distribution<RealType, Policy> distribution;
-      RealType prob;
-    };
-
-  } // namespace detail
-
   template <class RealType, class Policy>
   inline RealType quantile(const skew_normal_distribution<RealType, Policy>& dist, const RealType& p)
   {
@@ -681,14 +659,58 @@ namespace boost{ namespace math{
 
     // refine the result by numerically searching the root of (p-cdf)
 
-    const RealType search_min = support(dist).first;
-    const RealType search_max = support(dist).second;
-
     const int get_digits = policies::digits<RealType, Policy>();// get digits from policy,
     std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>(); // and max iterations.
 
-    result = tools::newton_raphson_iterate(detail::skew_normal_quantile_functor<RealType, Policy>(dist, p), result,
-      search_min, search_max, get_digits, max_iter);
+    if (result == 0)
+       result = tools::min_value<RealType>(); // we need to be one side of zero or the other for the root finder to work.
+
+    auto fun = [&, dist, p](const RealType& x)->RealType { return cdf(dist, x) - p; };
+
+    RealType f_result = fun(result);
+
+    if (f_result == 0)
+       return result;
+
+    if (f_result * result > 0)
+    {
+       // If the root is in the direction of zero, we need to check that we're the correct side of it:
+       RealType f_zero = fun(static_cast<RealType>(0));
+       if (f_zero * f_result > 0)
+       {
+          // we're the wrong side of zero:
+          result = -result;
+          f_result = fun(result);
+       }
+    }
+
+    RealType scaling_factor = 1.25;
+    if (f_result * result > 0)
+    {
+       // We're heading towards zero... it's a long way down so use a larger scaling factor:
+       scaling_factor = 16;
+    }
+
+    auto p_result = tools::bracket_and_solve_root(fun, result, scaling_factor, true, tools::eps_tolerance<RealType>(get_digits), max_iter, Policy());
+
+#ifdef BOOST_MATH_INSTRUMENT_SKEW_NORMAL_ITERATIONS
+    global_iter_count += max_iter;
+#endif
+
+    result = (p_result.first + p_result.second) / 2;
+
+    //
+    // Try one last Newton step, just to close up the interval:
+    //
+    RealType step = fun(result) / pdf(dist, result);
+
+    if (result - step <= p_result.first)
+       result = p_result.first;
+    else if (result - step >= p_result.second)
+       result = p_result.second;
+    else
+       result -= step;
+
     if (max_iter >= policies::get_max_root_iterations<Policy>())
     {
        return policies::raise_evaluation_error<RealType>(function, "Unable to locate solution in a reasonable time: either there is no answer to quantile" // LCOV_EXCL_LINE

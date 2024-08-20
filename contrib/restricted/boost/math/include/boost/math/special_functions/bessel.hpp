@@ -151,7 +151,7 @@ inline T sph_bessel_j_imp(unsigned n, T x, const Policy& pol)
    // Special case, n == 0 resolves down to the sinus cardinal of x:
    //
    if(n == 0)
-      return boost::math::sinc_pi(x, pol);
+      return (boost::math::isinf)(x) ? T(0) : boost::math::sinc_pi(x, pol);
    //
    // Special case for x == 0:
    //
