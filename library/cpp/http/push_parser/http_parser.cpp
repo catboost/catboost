@@ -261,13 +261,9 @@ void THttpParser::OnEof() {
     throw THttpException() << TStringBuf("incompleted http response");
 }
 
-bool THttpParser::DecodeContent() {
-    if (!DecodeContent_) {
-        return false;
-    }
-
+bool THttpParser::DecodeContent(TString& decodedContent) const {
     if (!ContentEncoding_ || ContentEncoding_ == "identity" || ContentEncoding_ == "none") {
-        DecodedContent_ = Content_;
+        decodedContent = Content_;
         return false;
     }
 
@@ -277,7 +273,7 @@ bool THttpParser::DecodeContent() {
         if (!GzipAllowMultipleStreams_) {
             decompressor.SetAllowMultipleStreams(false);
         }
-        DecodedContent_ = decompressor.ReadAll();
+        decodedContent = decompressor.ReadAll();
     } else if (ContentEncoding_ == "deflate") {
 
         //https://tools.ietf.org/html/rfc1950
@@ -291,14 +287,14 @@ bool THttpParser::DecodeContent() {
         }
 
         try {
-            DecodedContent_ = TZLibDecompress(&in, definitelyNoZlibHeader ? ZLib::Raw : ZLib::ZLib).ReadAll();
+            decodedContent = TZLibDecompress(&in, definitelyNoZlibHeader ? ZLib::Raw : ZLib::ZLib).ReadAll();
         }
         catch(...) {
             if (definitelyNoZlibHeader) {
                 throw;
             }
             TMemoryInput retryInput(Content_.data(), Content_.size());
-            DecodedContent_ = TZLibDecompress(&retryInput, ZLib::Raw).ReadAll();
+            decodedContent = TZLibDecompress(&retryInput, ZLib::Raw).ReadAll();
         }
     } else if (ContentEncoding_.StartsWith("z-")) {
         // opposite for library/cpp/http/io/stream.h
@@ -313,13 +309,13 @@ bool THttpParser::DecodeContent() {
             throw THttpParseException() << "Unsupported content-encoding method: " << exc.AsStrBuf();
         }
         NBlockCodecs::TDecodedInput decoder(&in, codec);
-        DecodedContent_ = decoder.ReadAll();
+        decodedContent = decoder.ReadAll();
     } else if (ContentEncoding_ == "lz4") {
         const auto* codec = NBlockCodecs::Codec(TStringBuf(ContentEncoding_));
-        DecodedContent_ = codec->Decode(Content_);
+        decodedContent = codec->Decode(Content_);
     } else if (ContentEncoding_ == "br") {
         TBrotliDecompress decoder(&in);
-        DecodedContent_ = decoder.ReadAll();
+        decodedContent = decoder.ReadAll();
     } else {
         throw THttpParseException() << "Unsupported content-encoding method: " << ContentEncoding_;
     }

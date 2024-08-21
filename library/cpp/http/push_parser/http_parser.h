@@ -53,7 +53,9 @@ public:
     /// sz == 0 signaling end of input stream
     bool Parse(const char* data, size_t sz) {
         if (ParseImpl(data, sz)) {
-            DecodeContent();
+            if (DecodeContent_) {
+                DecodeContent(DecodedContent_);
+            }
             return true;
         }
         return false;
@@ -111,6 +113,8 @@ public:
         FirstLine_.reserve(128);
     }
 
+    bool DecodeContent(TString& decodedContent) const;
+
 private:
     bool ParseImpl(const char* data, size_t sz) {
         Data_ = data;
@@ -135,7 +139,6 @@ private:
     void ParseHeaderLine();
 
     void OnEof();
-    bool DecodeContent();
 
     void ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val);
 
