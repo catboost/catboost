@@ -1,5 +1,6 @@
 #compdef -default-
 
+# argcomplete global completion loader for zsh and bash
 # Copyright 2012-2023, Andrey Kislyuk and argcomplete contributors.
 # Licensed under the Apache License. See https://github.com/kislyuk/argcomplete for more info.
 

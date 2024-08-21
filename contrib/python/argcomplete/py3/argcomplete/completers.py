@@ -22,7 +22,7 @@ class BaseCompleter:
 
     def __call__(
         self, *, prefix: str, action: argparse.Action, parser: argparse.ArgumentParser, parsed_args: argparse.Namespace
-    ):
+    ) -> None:
         raise NotImplementedError("This method should be implemented by a subclass.")
 
 
