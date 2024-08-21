@@ -204,7 +204,7 @@ def from_form(
 
     return _forms_impl(
         st.builds(
-            partial(form, **form_kwargs),
+            partial(form, **form_kwargs),  # type: ignore
             data=st.fixed_dictionaries(field_strategies),  # type: ignore
         )
     )

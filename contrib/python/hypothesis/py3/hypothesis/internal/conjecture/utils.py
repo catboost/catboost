@@ -51,6 +51,10 @@ ONE_FROM_MANY_LABEL = calc_label_from_name("one more from many()")
 T = TypeVar("T")
 
 
+def identity(v: T) -> T:
+    return v
+
+
 def check_sample(
     values: Union[Type[enum.Enum], Sequence[T]], strategy_name: str
 ) -> Sequence[T]:

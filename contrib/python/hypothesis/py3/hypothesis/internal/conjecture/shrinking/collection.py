@@ -10,10 +10,7 @@
 
 from hypothesis.internal.conjecture.shrinking.common import Shrinker
 from hypothesis.internal.conjecture.shrinking.ordering import Ordering
-
-
-def identity(v):
-    return v
+from hypothesis.internal.conjecture.utils import identity
 
 
 class Collection(Shrinker):

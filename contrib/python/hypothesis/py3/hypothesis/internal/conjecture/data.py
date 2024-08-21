@@ -155,9 +155,9 @@ class Status(IntEnum):
 
 
 @dataclass_transform()
-@attr.s(frozen=True, slots=True, auto_attribs=True)
+@attr.s(slots=True, frozen=True)
 class StructuralCoverageTag:
-    label: int
+    label: int = attr.ib()
 
 
 STRUCTURAL_COVERAGE_CACHE: Dict[int, StructuralCoverageTag] = {}

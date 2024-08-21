@@ -10,10 +10,7 @@
 
 from hypothesis.internal.conjecture.junkdrawer import find_integer
 from hypothesis.internal.conjecture.shrinking.common import Shrinker
-
-
-def identity(v):
-    return v
+from hypothesis.internal.conjecture.utils import identity
 
 
 class Ordering(Shrinker):
