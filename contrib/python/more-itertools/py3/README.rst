@@ -223,7 +223,7 @@ Blog posts about ``more-itertools``:
 
 * `Yo, I heard you like decorators <https://www.bbayles.com/index/decorator_factory>`__
 * `Tour of Python Itertools <https://martinheinz.dev/blog/16>`__ (`Alternate <https://dev.to/martinheinz/tour-of-python-itertools-4122>`__)
-* `Real-World Python More Itertools <https://www.gidware.com/real-world-more-itertools/>`_
+* `Real-World Python More Itertools <https://python.plainenglish.io/real-world-more-itertools-gideons-blog-a3901c607550>`_
 
 
 Development

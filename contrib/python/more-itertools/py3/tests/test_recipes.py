@@ -838,7 +838,7 @@ class TriplewiseTests(TestCase):
 
 
 class SlidingWindowTests(TestCase):
-    def test_basic(self):
+    def test_islice_version(self):
         for iterable, n, expected in [
             ([], 1, []),
             ([0], 1, [(0,)]),
@@ -852,6 +852,17 @@ class SlidingWindowTests(TestCase):
             with self.subTest(expected=expected):
                 actual = list(mi.sliding_window(iterable, n))
                 self.assertEqual(actual, expected)
+
+    def test_deque_version(self):
+        iterable = map(str, range(100))
+        all_windows = list(mi.sliding_window(iterable, 95))
+        self.assertEqual(all_windows[0], tuple(map(str, range(95))))
+        self.assertEqual(all_windows[-1], tuple(map(str, range(5, 100))))
+
+    def test_zero(self):
+        iterable = map(str, range(100))
+        with self.assertRaises(ValueError):
+            list(mi.sliding_window(iterable, 0))
 
 
 class SubslicesTests(TestCase):

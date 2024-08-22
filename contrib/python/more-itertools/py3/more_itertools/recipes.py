@@ -795,8 +795,30 @@ def triplewise(iterable):
     [('A', 'B', 'C'), ('B', 'C', 'D'), ('C', 'D', 'E')]
 
     """
-    for (a, _), (b, c) in pairwise(pairwise(iterable)):
-        yield a, b, c
+    # This deviates from the itertools documentation reciple - see
+    # https://github.com/more-itertools/more-itertools/issues/889
+    t1, t2, t3 = tee(iterable, 3)
+    next(t3, None)
+    next(t3, None)
+    next(t2, None)
+    return zip(t1, t2, t3)
+
+
+def _sliding_window_islice(iterable, n):
+    # Fast path for small, non-zero values of n.
+    iterators = tee(iterable, n)
+    for i, iterator in enumerate(iterators):
+        next(islice(iterator, i, i), None)
+    return zip(*iterators)
+
+
+def _sliding_window_deque(iterable, n):
+    # Normal path for other values of n.
+    it = iter(iterable)
+    window = deque(islice(it, n - 1), maxlen=n)
+    for x in it:
+        window.append(x)
+        yield tuple(window)
 
 
 def sliding_window(iterable, n):
@@ -812,11 +834,16 @@ def sliding_window(iterable, n):
 
     For a variant with more features, see :func:`windowed`.
     """
-    it = iter(iterable)
-    window = deque(islice(it, n - 1), maxlen=n)
-    for x in it:
-        window.append(x)
-        yield tuple(window)
+    if n > 20:
+        return _sliding_window_deque(iterable, n)
+    elif n > 2:
+        return _sliding_window_islice(iterable, n)
+    elif n == 2:
+        return pairwise(iterable)
+    elif n == 1:
+        return zip(iterable)
+    else:
+        raise ValueError(f'n should be at least one, not {n}')
 
 
 def subslices(iterable):
@@ -1038,9 +1065,6 @@ def totient(n):
     >>> totient(12)
     4
     """
-    # The itertools docs use unique_justseen instead of set; see
-    # https://github.com/more-itertools/more-itertools/issues/823
-    for p in set(factor(n)):
-        n = n // p * (p - 1)
-
+    for prime in set(factor(n)):
+        n -= n // prime
     return n
