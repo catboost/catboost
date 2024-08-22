@@ -212,6 +212,7 @@ def parse_args():
     parser.add_option('--soname')
     parser.add_option('--source-root')
     parser.add_option('--build-root')
+    parser.add_option('--fix-elf')
     parser.add_option('--linker-output')
     parser.add_option('--musl', action='store_true')
     parser.add_option('--dynamic-cuda', action='store_true')
@@ -266,6 +267,16 @@ if __name__ == '__main__':
         print >> sys.stderr, 'linker has failed with retcode:', proc.returncode
         print >> sys.stderr, 'linker command:', shlex_join(cmd)
         sys.exit(proc.returncode)
+
+    if opts.fix_elf:
+        cmd = [opts.fix_elf, opts.target]
+        proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
+        proc.communicate()
+
+        if proc.returncode:
+            print >> sys.stderr, 'fix_elf has failed with retcode:', proc.returncode
+            print >> sys.stderr, 'fix_elf command:', shlex_join(cmd)
+            sys.exit(proc.returncode)
 
     if opts.soname and opts.soname != opts.target:
         if os.path.exists(opts.soname):
