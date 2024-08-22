@@ -7,14 +7,13 @@ class App(ConanFile):
 
     options = {}
 
-    tool_requires = "ragel/6.10", "swig/4.0.2", "yasm/1.3.0"
-
     def requirements(self):
-        requires = [ "openssl/1.1.1t" ]
-        for require in requires:
-            if ("linux-headers" in require) and (self.settings.os != "Linux"):
-                continue
-            self.requires(require)
+        self.requires("openssl/1.1.1t")
+
+    def build_requirements(self):
+        self.tool_requires("ragel/6.10")
+        self.tool_requires("swig/4.0.2")
+        self.tool_requires("yasm/1.3.0")
 
     generators = "cmake_find_package", "cmake_paths"
 

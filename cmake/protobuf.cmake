@@ -1,11 +1,11 @@
 include(common)
 
-function(target_proto_plugin Tgt Name PluginTarget)
+function(target_proto_plugin Tgt Name PluginFullPath)
   set_property(TARGET ${Tgt} APPEND PROPERTY
-    PROTOC_OPTS --${Name}_out=${PROJECT_BINARY_DIR}/$<TARGET_PROPERTY:${Tgt},PROTO_NAMESPACE> --plugin=protoc-gen-${Name}=$<TARGET_FILE:${PluginTarget}>
+    PROTOC_OPTS --${Name}_out=${PROJECT_BINARY_DIR}/$<TARGET_PROPERTY:${Tgt},PROTO_NAMESPACE> --plugin=protoc-gen-${Name}=${PluginFullPath}
   )
   set_property(TARGET ${Tgt} APPEND PROPERTY
-    PROTOC_DEPS ${PluginTarget}
+    PROTOC_DEPS ${PluginFullPath}
   )
 endfunction()
 
