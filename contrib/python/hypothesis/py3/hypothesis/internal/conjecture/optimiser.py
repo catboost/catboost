@@ -8,9 +8,11 @@
 # v. 2.0. If a copy of the MPL was not distributed with this file, You can
 # obtain one at https://mozilla.org/MPL/2.0/.
 
+from typing import Union
+
 from hypothesis.internal.compat import int_from_bytes, int_to_bytes
-from hypothesis.internal.conjecture.data import Status
-from hypothesis.internal.conjecture.engine import BUFFER_SIZE
+from hypothesis.internal.conjecture.data import ConjectureResult, Status, _Overrun
+from hypothesis.internal.conjecture.engine import BUFFER_SIZE, ConjectureRunner
 from hypothesis.internal.conjecture.junkdrawer import find_integer
 from hypothesis.internal.conjecture.pareto import NO_SCORE
 
@@ -31,7 +33,13 @@ class Optimiser:
     Software Testing and Analysis. ACM, 2017.
     """
 
-    def __init__(self, engine, data, target, max_improvements=100):
+    def __init__(
+        self,
+        engine: ConjectureRunner,
+        data: ConjectureResult,
+        target: str,
+        max_improvements: int = 100,
+    ) -> None:
         """Optimise ``target`` starting from ``data``. Will stop either when
         we seem to have found a local maximum or when the target score has
         been improved ``max_improvements`` times. This limit is in place to
@@ -42,21 +50,22 @@ class Optimiser:
         self.max_improvements = max_improvements
         self.improvements = 0
 
-    def run(self):
+    def run(self) -> None:
         self.hill_climb()
 
-    def score_function(self, data):
+    def score_function(self, data: ConjectureResult) -> float:
         return data.target_observations.get(self.target, NO_SCORE)
 
     @property
-    def current_score(self):
+    def current_score(self) -> float:
         return self.score_function(self.current_data)
 
-    def consider_new_test_data(self, data):
+    def consider_new_data(self, data: Union[ConjectureResult, _Overrun]) -> bool:
         """Consider a new data object as a candidate target. If it is better
         than the current one, return True."""
         if data.status < Status.VALID:
             return False
+        assert isinstance(data, ConjectureResult)
         score = self.score_function(data)
         if score < self.current_score:
             return False
@@ -73,7 +82,7 @@ class Optimiser:
             return True
         return False
 
-    def hill_climb(self):
+    def hill_climb(self) -> None:
         """The main hill climbing loop where we actually do the work: Take
         data, and attempt to improve its score for target. select_example takes
         a data object and returns an index to an example where we should focus
@@ -104,7 +113,7 @@ class Optimiser:
             if existing_as_int == max_int_value:
                 continue
 
-            def attempt_replace(v):
+            def attempt_replace(v: int) -> bool:
                 """Try replacing the current block in the current best test case
                  with an integer of value i. Note that we use the *current*
                 best and not the one we started with. This helps ensure that
@@ -126,12 +135,14 @@ class Optimiser:
                         + bytes(BUFFER_SIZE),
                     )
 
-                    if self.consider_new_test_data(attempt):
+                    if self.consider_new_data(attempt):
                         return True
 
-                    if attempt.status < Status.INVALID or len(attempt.buffer) == len(
-                        self.current_data.buffer
-                    ):
+                    if attempt.status == Status.OVERRUN:
+                        return False
+
+                    assert isinstance(attempt, ConjectureResult)
+                    if len(attempt.buffer) == len(self.current_data.buffer):
                         return False
 
                     for i, ex in enumerate(self.current_data.examples):
@@ -143,7 +154,7 @@ class Optimiser:
                         if ex.length == ex_attempt.length:
                             continue  # pragma: no cover
                         replacement = attempt.buffer[ex_attempt.start : ex_attempt.end]
-                        if self.consider_new_test_data(
+                        if self.consider_new_data(
                             self.engine.cached_test_function(
                                 prefix
                                 + replacement

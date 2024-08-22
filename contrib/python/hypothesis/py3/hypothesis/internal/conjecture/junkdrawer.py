@@ -19,12 +19,14 @@ import time
 import warnings
 from random import Random
 from typing import (
+    Any,
     Callable,
     Dict,
     Generic,
     Iterable,
     Iterator,
     List,
+    Literal,
     Optional,
     Sequence,
     Tuple,
@@ -109,10 +111,10 @@ class IntList(Sequence[int]):
     def count(self, value: int) -> int:
         return self.__underlying.count(value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"IntList({list(self.__underlying)!r})"
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.__underlying)
 
     @overload
@@ -305,7 +307,7 @@ class ensure_free_stackframes:
     a reasonable value of N).
     """
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         cur_depth = stack_depth_of_caller()
         self.old_maxdepth = sys.getrecursionlimit()
         # The default CPython recursionlimit is 1000, but pytest seems to bump
@@ -418,8 +420,8 @@ class SelfOrganisingList(Generic[T]):
 
 
 _gc_initialized = False
-_gc_start = 0
-_gc_cumulative_time = 0
+_gc_start: float = 0
+_gc_cumulative_time: float = 0
 
 # Since gc_callback potentially runs in test context, and perf_counter
 # might be monkeypatched, we store a reference to the real one.
@@ -431,7 +433,9 @@ def gc_cumulative_time() -> float:
     if not _gc_initialized:
         if hasattr(gc, "callbacks"):
             # CPython
-            def gc_callback(phase, info):
+            def gc_callback(
+                phase: Literal["start", "stop"], info: Dict[str, int]
+            ) -> None:
                 global _gc_start, _gc_cumulative_time
                 try:
                     now = _perf_counter()
@@ -453,7 +457,7 @@ def gc_cumulative_time() -> float:
             gc.callbacks.insert(0, gc_callback)
         elif hasattr(gc, "hooks"):  # pragma: no cover  # pypy only
             # PyPy
-            def hook(stats):
+            def hook(stats: Any) -> None:
                 global _gc_cumulative_time
                 try:
                     _gc_cumulative_time += stats.duration

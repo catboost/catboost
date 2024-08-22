@@ -1295,6 +1295,12 @@ def _from_type(thing: Type[Ex]) -> SearchStrategy[Ex]:
         if types.is_a_union(thing):
             args = sorted(thing.__args__, key=types.type_sorting_key)
             return one_of([_from_type(t) for t in args])
+        if thing in types.LiteralStringTypes:  # pragma: no cover
+            # We can't really cover this because it needs either
+            # typing-extensions or python3.11+ typing.
+            # `LiteralString` from runtime's point of view is just a string.
+            # Fallback to regular text.
+            return text()
     # We also have a special case for TypeVars.
     # They are represented as instances like `~T` when they come here.
     # We need to work with their type instead.
@@ -1340,27 +1346,68 @@ def _from_type(thing: Type[Ex]) -> SearchStrategy[Ex]:
         or hasattr(types.typing_extensions, "_TypedDictMeta")  # type: ignore
         and type(thing) is types.typing_extensions._TypedDictMeta  # type: ignore
     ):  # pragma: no cover
+
+        def _get_annotation_arg(key, annotation_type):
+            try:
+                return get_args(annotation_type)[0]
+            except IndexError:
+                raise InvalidArgument(
+                    f"`{key}: {annotation_type.__name__}` is not a valid type annotation"
+                ) from None
+
+        # Taken from `Lib/typing.py` and modified:
+        def _get_typeddict_qualifiers(key, annotation_type):
+            qualifiers = []
+            while True:
+                annotation_origin = types.extended_get_origin(annotation_type)
+                if annotation_origin in types.AnnotatedTypes:
+                    if annotation_args := get_args(annotation_type):
+                        annotation_type = annotation_args[0]
+                    else:
+                        break
+                elif annotation_origin in types.RequiredTypes:
+                    qualifiers.append(types.RequiredTypes)
+                    annotation_type = _get_annotation_arg(key, annotation_type)
+                elif annotation_origin in types.NotRequiredTypes:
+                    qualifiers.append(types.NotRequiredTypes)
+                    annotation_type = _get_annotation_arg(key, annotation_type)
+                elif annotation_origin in types.ReadOnlyTypes:
+                    qualifiers.append(types.ReadOnlyTypes)
+                    annotation_type = _get_annotation_arg(key, annotation_type)
+                else:
+                    break
+            return set(qualifiers), annotation_type
+
         # The __optional_keys__ attribute may or may not be present, but if there's no
         # way to tell and we just have to assume that everything is required.
         # See https://github.com/python/cpython/pull/17214 for details.
         optional = set(getattr(thing, "__optional_keys__", ()))
+        required = set(
+            getattr(thing, "__required_keys__", get_type_hints(thing).keys())
+        )
         anns = {}
         for k, v in get_type_hints(thing).items():
-            origin = get_origin(v)
-            if origin in types.RequiredTypes + types.NotRequiredTypes:
-                if origin in types.NotRequiredTypes:
-                    optional.add(k)
-                else:
-                    optional.discard(k)
-                try:
-                    v = v.__args__[0]
-                except IndexError:
-                    raise InvalidArgument(
-                        f"`{k}: {v.__name__}` is not a valid type annotation"
-                    ) from None
+            qualifiers, v = _get_typeddict_qualifiers(k, v)
+            # We ignore `ReadOnly` type for now, only unwrap it.
+            if types.RequiredTypes in qualifiers:
+                optional.discard(k)
+                required.add(k)
+            if types.NotRequiredTypes in qualifiers:
+                optional.add(k)
+                required.discard(k)
+
             anns[k] = from_type_guarded(v)
             if anns[k] is ...:
                 anns[k] = _from_type_deferred(v)
+
+        if not required.isdisjoint(optional):  # pragma: no cover
+            # It is impossible to cover, because `typing.py` or `typing-extensions`
+            # won't allow creating incorrect TypedDicts,
+            # this is just a sanity check from our side.
+            raise InvalidArgument(
+                f"Required keys overlap with optional keys in a TypedDict:"
+                f" {required=}, {optional=}"
+            )
         if (
             (not anns)
             and thing.__annotations__
@@ -1368,7 +1415,7 @@ def _from_type(thing: Type[Ex]) -> SearchStrategy[Ex]:
         ):
             raise InvalidArgument("Failed to retrieve type annotations for local type")
         return fixed_dictionaries(  # type: ignore
-            mapping={k: v for k, v in anns.items() if k not in optional},
+            mapping={k: v for k, v in anns.items() if k in required},
             optional={k: v for k, v in anns.items() if k in optional},
         )
 

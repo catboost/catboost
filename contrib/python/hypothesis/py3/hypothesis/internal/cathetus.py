@@ -27,7 +27,7 @@ def cathetus(h, a):
     may be inaccurate up to a relative error of (around) floating-point
     epsilon.
 
-    Based on the C99 implementation https://github.com/jjgreen/cathetus
+    Based on the C99 implementation https://gitlab.com/jjg/cathetus
     """
     if isnan(h):
         return nan

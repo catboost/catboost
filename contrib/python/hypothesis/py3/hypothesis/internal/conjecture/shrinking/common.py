@@ -38,10 +38,10 @@ class Shrinker:
         self.debugging_enabled = debug
 
     @property
-    def calls(self):
+    def calls(self) -> int:
         return len(self.__seen)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}({}initial={!r}, current={!r})".format(
             type(self).__name__,
             "" if self.name is None else f"{self.name!r}, ",
@@ -75,7 +75,7 @@ class Shrinker:
 
         return other_class.shrink(initial, predicate, **kwargs)
 
-    def debug(self, *args):
+    def debug(self, *args: object) -> None:
         if self.debugging_enabled:
             print("DEBUG", self, *args)
 
