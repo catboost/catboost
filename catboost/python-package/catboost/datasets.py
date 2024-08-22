@@ -106,8 +106,8 @@ def _download_dataset(url, md5, dataset_name, train_file, test_file, cache=False
         fd_new_test, new_test_path = tempfile.mkstemp()
         os.close(fd_new_train)
         os.close(fd_new_test)
-        os.rename(train_path, new_train_path)
-        os.rename(test_path, new_test_path)
+        os.replace(train_path, new_train_path)
+        os.replace(test_path, new_test_path)
         shutil.rmtree(dir_path)
         train_path, test_path = new_train_path, new_test_path
     return train_path, test_path
