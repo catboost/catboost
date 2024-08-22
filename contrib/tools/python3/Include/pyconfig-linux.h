@@ -1612,7 +1612,10 @@
 #define PY_SUPPORT_TIER 1
 
 /* Define if you want to build an interpreter with many run-time checks. */
-/* #undef Py_DEBUG */
+#if !defined(NDEBUG) && !defined(Py_LIMITED_API) && !defined(DISABLE_PYDEBUG)
+#define Py_DEBUG
+#define GC_NDEBUG
+#endif
 
 /* Defined if Python is built as a shared library. */
 /* #undef Py_ENABLE_SHARED */
