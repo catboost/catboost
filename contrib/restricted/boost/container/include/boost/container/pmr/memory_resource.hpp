@@ -32,7 +32,7 @@ class memory_resource
 {
    public:
    // For exposition only
-   static BOOST_CONSTEXPR_OR_CONST std::size_t max_align =
+   BOOST_STATIC_CONSTEXPR std::size_t max_align =
       boost::move_detail::alignment_of<boost::move_detail::max_align_t>::value;
 
    //! <b>Effects</b>: Destroys
