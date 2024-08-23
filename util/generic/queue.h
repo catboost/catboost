@@ -50,9 +50,10 @@ public:
 
     inline T PopValue() {
         Y_ASSERT(!this->empty());
-        std::pop_heap(Container().begin(), Container().end(), this->comp);
-        T value = std::move(Container().back());
-        this->c.pop_back();
+        auto& container = this->c;
+        std::pop_heap(container.begin(), container.end(), this->comp);
+        T value = std::move(container.back());
+        container.pop_back();
         return value;
     }
 
