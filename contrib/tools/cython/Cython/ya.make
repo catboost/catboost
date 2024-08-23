@@ -1,5 +1,7 @@
 PY23_LIBRARY()
 
+VERSION(Service-proxy-version)
+
 LICENSE(Public-Domain)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
