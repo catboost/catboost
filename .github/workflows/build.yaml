@@ -90,11 +90,11 @@ jobs:
           mkdir -p Python
           cd Python
           ln -s $HOME/.pyenv/versions/3.7 ./3.7
-          ln -s $RUNNER_TOOL_CACHE/Python/3.8.18/x64 ./3.8
-          ln -s $RUNNER_TOOL_CACHE/Python/3.9.19/x64 ./3.9
-          ln -s $RUNNER_TOOL_CACHE/Python/3.10.14/x64 ./3.10
-          ln -s $RUNNER_TOOL_CACHE/Python/3.11.9/x64 ./3.11
-          ln -s $RUNNER_TOOL_CACHE/Python/3.12.4/x64 ./3.12
+          ln -s $RUNNER_TOOL_CACHE/Python/3.8.*/x64 ./3.8
+          ln -s $RUNNER_TOOL_CACHE/Python/3.9.*/x64 ./3.9
+          ln -s $RUNNER_TOOL_CACHE/Python/3.10.*/x64 ./3.10
+          ln -s $RUNNER_TOOL_CACHE/Python/3.11.*/x64 ./3.11
+          ln -s $RUNNER_TOOL_CACHE/Python/3.12.*/x64 ./3.12
 
           for PY_VER in 3.7 3.8 3.9 3.10 3.11 3.12
           do
@@ -146,12 +146,12 @@ jobs:
           Set-Location -Path $CMAKE_BUILD_ENV_ROOT\windows-x86_64
           New-Item -Path Python -ItemType Directory
           Set-Location -Path .\Python
-          New-Item -Path .\3.7 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.7.9\x64"
-          New-Item -Path .\3.8 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.8.10\x64"
-          New-Item -Path .\3.9 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.9.13\x64"
-          New-Item -Path .\3.10 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.10.11\x64"
-          New-Item -Path .\3.11 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.11.9\x64"
-          New-Item -Path .\3.12 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.12.4\x64"
+          New-Item -Path .\3.7 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.7.*\x64"
+          New-Item -Path .\3.8 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.8.*\x64"
+          New-Item -Path .\3.9 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.9.*\x64"
+          New-Item -Path .\3.10 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.10.*\x64"
+          New-Item -Path .\3.11 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.11.*\x64"
+          New-Item -Path .\3.12 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.12.*\x64"
 
           foreach($PY_VER in '3.7','3.8','3.9','3.10','3.11','3.12') {
             & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools wheel
