@@ -120,7 +120,11 @@ try:
 except AttributeError:  # pragma: no cover
     pass  # Is missing for `python<3.10`
 try:
-    TypeGuardTypes += (typing_extensions.TypeGuard,)
+    TypeGuardTypes += (typing.TypeIs,)  # type: ignore
+except AttributeError:  # pragma: no cover
+    pass  # Is missing for `python<3.13`
+try:
+    TypeGuardTypes += (typing_extensions.TypeGuard, typing_extensions.TypeIs)
 except AttributeError:  # pragma: no cover
     pass  # `typing_extensions` might not be installed
 
@@ -1067,7 +1071,7 @@ def resolve_Callable(thing):
     if get_origin(return_type) in TypeGuardTypes:
         raise InvalidArgument(
             "Hypothesis cannot yet construct a strategy for callables which "
-            f"are PEP-647 TypeGuards (got {return_type!r}).  "
+            f"are PEP-647 TypeGuards or PEP-742 TypeIs (got {return_type!r}).  "
             "Consider using an explicit strategy, or opening an issue."
         )
 
