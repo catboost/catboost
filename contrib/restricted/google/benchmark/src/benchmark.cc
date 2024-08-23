@@ -168,7 +168,8 @@ void UseCharPointer(char const volatile* const v) {
 State::State(std::string name, IterationCount max_iters,
              const std::vector<int64_t>& ranges, int thread_i, int n_threads,
              internal::ThreadTimer* timer, internal::ThreadManager* manager,
-             internal::PerfCountersMeasurement* perf_counters_measurement)
+             internal::PerfCountersMeasurement* perf_counters_measurement,
+             ProfilerManager* profiler_manager)
     : total_iterations_(0),
       batch_leftover_(0),
       max_iterations(max_iters),
@@ -182,7 +183,8 @@ State::State(std::string name, IterationCount max_iters,
       threads_(n_threads),
       timer_(timer),
       manager_(manager),
-      perf_counters_measurement_(perf_counters_measurement) {
+      perf_counters_measurement_(perf_counters_measurement),
+      profiler_manager_(profiler_manager) {
   BM_CHECK(max_iterations != 0) << "At least one iteration must be run";
   BM_CHECK_LT(thread_index_, threads_)
       << "thread_index must be less than threads";
@@ -207,7 +209,7 @@ State::State(std::string name, IterationCount max_iters,
 #if defined(__INTEL_COMPILER)
 #pragma warning push
 #pragma warning(disable : 1875)
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #endif
@@ -225,7 +227,7 @@ State::State(std::string name, IterationCount max_iters,
       offsetof(State, skipped_) <= (cache_line_size - sizeof(skipped_)), "");
 #if defined(__INTEL_COMPILER)
 #pragma warning pop
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 #if defined(__NVCC__)
@@ -302,6 +304,8 @@ void State::StartKeepRunning() {
   BM_CHECK(!started_ && !finished_);
   started_ = true;
   total_iterations_ = skipped() ? 0 : max_iterations;
+  if (BENCHMARK_BUILTIN_EXPECT(profiler_manager_ != nullptr, false))
+    profiler_manager_->AfterSetupStart();
   manager_->StartStopBarrier();
   if (!skipped()) ResumeTiming();
 }
@@ -315,6 +319,8 @@ void State::FinishKeepRunning() {
   total_iterations_ = 0;
   finished_ = true;
   manager_->StartStopBarrier();
+  if (BENCHMARK_BUILTIN_EXPECT(profiler_manager_ != nullptr, false))
+    profiler_manager_->BeforeTeardownStop();
 }
 
 namespace internal {

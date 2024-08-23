@@ -93,7 +93,6 @@ BenchmarkReporter::Run CreateRunReport(
   report.repetitions = repeats;
 
   if (!report.skipped) {
-    // This is the total time across all threads.
     if (b.use_manual_time()) {
       report.real_accumulated_time = results.manual_time_used;
     } else {
@@ -126,14 +125,15 @@ BenchmarkReporter::Run CreateRunReport(
 // Adds the stats collected for the thread into manager->results.
 void RunInThread(const BenchmarkInstance* b, IterationCount iters,
                  int thread_id, ThreadManager* manager,
-                 PerfCountersMeasurement* perf_counters_measurement) {
+                 PerfCountersMeasurement* perf_counters_measurement,
+                 ProfilerManager* profiler_manager) {
   internal::ThreadTimer timer(
       b->measure_process_cpu_time()
           ? internal::ThreadTimer::CreateProcessCpuTime()
           : internal::ThreadTimer::Create());
 
-  State st =
-      b->Run(iters, thread_id, &timer, manager, perf_counters_measurement);
+  State st = b->Run(iters, thread_id, &timer, manager,
+                    perf_counters_measurement, profiler_manager);
   BM_CHECK(st.skipped() || st.iterations() >= st.max_iterations)
       << "Benchmark returned before State::KeepRunning() returned false!";
   {
@@ -269,12 +269,14 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   // Run all but one thread in separate threads
   for (std::size_t ti = 0; ti < pool.size(); ++ti) {
     pool[ti] = std::thread(&RunInThread, &b, iters, static_cast<int>(ti + 1),
-                           manager.get(), perf_counters_measurement_ptr);
+                           manager.get(), perf_counters_measurement_ptr,
+                           /*profiler_manager=*/nullptr);
   }
   // And run one thread here directly.
   // (If we were asked to run just one thread, we don't create new threads.)
   // Yes, we need to do this here *after* we start the separate threads.
-  RunInThread(&b, iters, 0, manager.get(), perf_counters_measurement_ptr);
+  RunInThread(&b, iters, 0, manager.get(), perf_counters_measurement_ptr,
+              /*profiler_manager=*/nullptr);
 
   // The main thread has finished. Now let's wait for the other threads.
   manager->WaitForAllThreads();
@@ -290,10 +292,6 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   // And get rid of the manager.
   manager.reset();
 
-  // If we were measuring whole-process CPU usage then each thread reports
-  // total CPU time of all threads. Divide by threads to get real value.
-  if (b.measure_process_cpu_time()) i.results.cpu_time_used /= b.threads();
-
   BM_VLOG(2) << "Ran in " << i.results.cpu_time_used << "/"
              << i.results.real_time_used << "\n";
 
@@ -308,9 +306,6 @@ BenchmarkRunner::IterationResults BenchmarkRunner::DoNIterations() {
   } else if (b.use_real_time()) {
     i.seconds = i.results.real_time_used;
   }
-
-  // Adjust time stats to average since they were reported by all threads.
-  i.seconds /= b.threads();
 
   return i;
 }
@@ -417,7 +412,8 @@ MemoryManager::Result* BenchmarkRunner::RunMemoryManager(
   manager.reset(new internal::ThreadManager(1));
   b.Setup();
   RunInThread(&b, memory_iterations, 0, manager.get(),
-              perf_counters_measurement_ptr);
+              perf_counters_measurement_ptr,
+              /*profiler_manager=*/nullptr);
   manager->WaitForAllThreads();
   manager.reset();
   b.Teardown();
@@ -431,11 +427,10 @@ void BenchmarkRunner::RunProfilerManager() {
   std::unique_ptr<internal::ThreadManager> manager;
   manager.reset(new internal::ThreadManager(1));
   b.Setup();
-  profiler_manager->AfterSetupStart();
   RunInThread(&b, profile_iterations, 0, manager.get(),
-              /*perf_counters_measurement_ptr=*/nullptr);
+              /*perf_counters_measurement_ptr=*/nullptr,
+              /*profiler_manager=*/profiler_manager);
   manager->WaitForAllThreads();
-  profiler_manager->BeforeTeardownStop();
   manager.reset();
   b.Teardown();
 }
