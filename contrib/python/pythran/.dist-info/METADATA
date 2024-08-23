@@ -52,22 +52,22 @@ Requires-Python: >=3.7
 Description-Content-Type: text/x-rst
 License-File: LICENSE
 License-File: AUTHORS
-Requires-Dist: ply >=3.4
+Requires-Dist: ply>=3.4
 Requires-Dist: setuptools
-Requires-Dist: gast ~=0.5.0
+Requires-Dist: gast~=0.5.0
 Requires-Dist: numpy
-Requires-Dist: beniget ~=0.4.0
+Requires-Dist: beniget~=0.4.0
 Provides-Extra: doc
-Requires-Dist: numpy ; extra == 'doc'
-Requires-Dist: nbsphinx ; extra == 'doc'
-Requires-Dist: scipy ; extra == 'doc'
-Requires-Dist: guzzle-sphinx-theme ; extra == 'doc'
+Requires-Dist: numpy; extra == "doc"
+Requires-Dist: nbsphinx; extra == "doc"
+Requires-Dist: scipy; extra == "doc"
+Requires-Dist: guzzle-sphinx-theme; extra == "doc"
 Provides-Extra: test
-Requires-Dist: ipython ; extra == 'test'
-Requires-Dist: nbval ; extra == 'test'
-Requires-Dist: cython ; extra == 'test'
-Requires-Dist: wheel ; extra == 'test'
-Requires-Dist: packaging ; extra == 'test'
+Requires-Dist: ipython; extra == "test"
+Requires-Dist: nbval; extra == "test"
+Requires-Dist: cython; extra == "test"
+Requires-Dist: wheel; extra == "test"
+Requires-Dist: packaging; extra == "test"
 
 Pythran
 #######
