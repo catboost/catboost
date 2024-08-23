@@ -273,7 +273,7 @@ public:
         TGuard<TMutex> g(StopMutex);
         JoinListenerThreads();
 
-        while (ConnectionCount) {
+        while (AtomicGet(ConnectionCount)) {
             usleep(10000);
             Connections->Clear();
         }
