@@ -3,6 +3,7 @@
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/algorithm.h>
+#include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
 const float MINIMAL_CLASS_WEIGHT = 1e-8;
@@ -22,6 +23,7 @@ static std::function<float(ui64, ui64)> GetWeightFunction(EAutoClassWeightsType 
         case EAutoClassWeightsType::None:
             CB_ENSURE(false, "Unexcepted auto class weights type");
     }
+    Y_UNREACHABLE();
 }
 
 static TVector<float> CalculateSummaryClassWeight(
