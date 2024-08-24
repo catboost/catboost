@@ -32,7 +32,7 @@ namespace NCB::NModelEvaluation {
             if (NeedXorMask) {
                 Y_PREFETCH_READ(binFeaturePtr, 3);
                 Y_PREFETCH_WRITE(indexesVec, 3);
-                #ifndef _ubsan_enabled_
+                #if defined(__clang__) && !defined(_ubsan_enabled_)
                 #pragma clang loop vectorize_width(16)
                 #endif
                 for (size_t docId = START_BLOCK * SSE_BLOCK_SIZE; docId < docCountInBlock; ++docId) {
@@ -41,7 +41,7 @@ namespace NCB::NModelEvaluation {
             } else {
                 Y_PREFETCH_READ(binFeaturePtr, 3);
                 Y_PREFETCH_WRITE(indexesVec, 3);
-                #ifndef _ubsan_enabled_
+                #if defined(__clang__) && !defined(_ubsan_enabled_)
                 #pragma clang loop vectorize_width(16)
                 #endif
                 for (size_t docId = START_BLOCK * SSE_BLOCK_SIZE; docId < docCountInBlock; ++docId) {
