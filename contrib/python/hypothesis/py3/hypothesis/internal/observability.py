@@ -17,7 +17,7 @@ import time
 import warnings
 from datetime import date, timedelta
 from functools import lru_cache
-from typing import Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from hypothesis.configuration import storage_directory
 from hypothesis.errors import HypothesisWarning
@@ -42,6 +42,7 @@ def make_testcase(
     timing: Dict[str, float],
     coverage: Optional[Dict[str, List[int]]] = None,
     phase: Optional[str] = None,
+    backend_metadata: Optional[Dict[str, Any]] = None,
 ) -> dict:
     if data.interesting_origin:
         status_reason = str(data.interesting_origin)
@@ -74,6 +75,7 @@ def make_testcase(
         "metadata": {
             "traceback": getattr(data.extra_information, "_expected_traceback", None),
             "predicates": data._observability_predicates,
+            "backend": backend_metadata or {},
             **_system_metadata(),
         },
         "coverage": coverage,
