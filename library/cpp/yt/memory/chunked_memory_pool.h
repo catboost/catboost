@@ -117,7 +117,7 @@ public:
 
 private:
     const TRefCountedTypeCookie TagCookie_;
-    // A common usecase is to construct TChunkedMemoryPool with the default
+    // A common use case is to construct TChunkedMemoryPool with the default
     // memory chunk provider. The latter is ref-counted and is shared between
     // a multitude of TChunkedMemoryPool instances. This could potentially
     // lead to a contention over IMemoryChunkProvider's ref-counter.
