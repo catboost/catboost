@@ -40,7 +40,8 @@
 #include <iterator>
 #include <limits>
 
-#include <google/protobuf/stubs/logging.h>
+#include <y_absl/log/absl_log.h>
+#include <y_absl/log/absl_check.h>
 #include <google/protobuf/stubs/stl_util.h>
 
 #ifdef _WIN32
@@ -261,7 +262,7 @@ void SplitStringAllowEmpty(StringPiece full, const char *delim,
 template <class ITERATOR>
 static void JoinStringsIterator(const ITERATOR &start, const ITERATOR &end,
                                 const char *delim, TProtoStringType *result) {
-  GOOGLE_CHECK(result != nullptr);
+  Y_ABSL_CHECK(result != nullptr);
   result->clear();
   int delim_length = strlen(delim);
 
@@ -305,7 +306,7 @@ void JoinStrings(const std::vector<TProtoStringType> &components, const char *de
 
 // Protocol buffers doesn't ever care about errors, but I don't want to remove
 // the code.
-#define LOG_STRING(LEVEL, VECTOR) GOOGLE_LOG_IF(LEVEL, false)
+#define LOG_STRING(LEVEL, VECTOR) Y_ABSL_LOG_IF(LEVEL, false)
 
 int UnescapeCEscapeSequences(const char* source, char* dest) {
   return UnescapeCEscapeSequences(source, dest, nullptr);
@@ -313,7 +314,7 @@ int UnescapeCEscapeSequences(const char* source, char* dest) {
 
 int UnescapeCEscapeSequences(const char *source, char *dest,
                              std::vector<TProtoStringType> *errors) {
-  GOOGLE_DCHECK(errors == nullptr) << "Error reporting not implemented.";
+  Y_ABSL_DCHECK(errors == nullptr) << "Error reporting not implemented.";
 
   char* d = dest;
   const char* p = source;
@@ -453,7 +454,7 @@ int UnescapeCEscapeString(const TProtoStringType &src, TProtoStringType *dest,
                           std::vector<TProtoStringType> *errors) {
   std::unique_ptr<char[]> unescaped(new char[src.size() + 1]);
   int len = UnescapeCEscapeSequences(src.c_str(), unescaped.get(), errors);
-  GOOGLE_CHECK(dest);
+  Y_ABSL_CHECK(dest);
   dest->assign(unescaped.get(), len);
   return len;
 }
@@ -605,7 +606,7 @@ TProtoStringType Utf8SafeCEscape(const TProtoStringType &src) {
   std::unique_ptr<char[]> dest(new char[dest_length]);
   const int len = CEscapeInternal(src.data(), src.size(),
                                   dest.get(), dest_length, false, true);
-  GOOGLE_DCHECK_GE(len, 0);
+  Y_ABSL_DCHECK_GE(len, 0);
   return TProtoStringType(dest.get(), len);
 }
 
@@ -614,7 +615,7 @@ TProtoStringType CHexEscape(const TProtoStringType &src) {
   std::unique_ptr<char[]> dest(new char[dest_length]);
   const int len = CEscapeInternal(src.data(), src.size(),
                                   dest.get(), dest_length, true, false);
-  GOOGLE_DCHECK_GE(len, 0);
+  Y_ABSL_DCHECK_GE(len, 0);
   return TProtoStringType(dest.get(), len);
 }
 
@@ -884,7 +885,7 @@ char *FastInt32ToBuffer(arc_i32 i, char* buffer) {
 }
 
 char *FastHexToBuffer(int i, char* buffer) {
-  GOOGLE_CHECK(i >= 0) << "FastHexToBuffer() wants non-negative integers, not " << i;
+  Y_ABSL_CHECK(i >= 0) << "FastHexToBuffer() wants non-negative integers, not " << i;
 
   static const char *hexdigits = "0123456789abcdef";
   char *p = buffer + 21;
@@ -1065,7 +1066,7 @@ char* FastUInt64ToBufferLeft(arc_ui64 u64, char* buffer) {
   u = u64 - (top_11_digits * 1000000000);
 
   digits = u / 10000000;  // 10,000,000
-  GOOGLE_DCHECK_LT(digits, 100);
+  Y_ABSL_DCHECK_LT(digits, 100);
   ASCII_digits = two_ASCII_digits[digits];
   buffer[0] = ASCII_digits[0];
   buffer[1] = ASCII_digits[1];
@@ -1262,7 +1263,7 @@ char* DoubleToBuffer(double value, char* buffer) {
 
   // The snprintf should never overflow because the buffer is significantly
   // larger than the precision we asked for.
-  GOOGLE_DCHECK(snprintf_result > 0 && snprintf_result < kDoubleToBufferSize);
+  Y_ABSL_DCHECK(snprintf_result > 0 && snprintf_result < kDoubleToBufferSize);
 
   // We need to make parsed_value volatile in order to force the compiler to
   // write it out to the stack.  Otherwise, it may keep the value in a
@@ -1276,7 +1277,7 @@ char* DoubleToBuffer(double value, char* buffer) {
         snprintf(buffer, kDoubleToBufferSize, "%.*g", DBL_DIG + 2, value);
 
     // Should never overflow; see above.
-    GOOGLE_DCHECK(snprintf_result > 0 && snprintf_result < kDoubleToBufferSize);
+    Y_ABSL_DCHECK(snprintf_result > 0 && snprintf_result < kDoubleToBufferSize);
   }
 
   DelocalizeRadix(buffer);
@@ -1302,7 +1303,7 @@ inline bool CaseEqual(StringPiece s1, StringPiece s2) {
 }
 
 bool safe_strtob(StringPiece str, bool* value) {
-  GOOGLE_CHECK(value != nullptr) << "nullptr output boolean given.";
+  Y_ABSL_CHECK(value != nullptr) << "nullptr output boolean given.";
   if (CaseEqual(str, "true") || CaseEqual(str, "t") ||
       CaseEqual(str, "yes") || CaseEqual(str, "y") ||
       CaseEqual(str, "1")) {
@@ -1380,7 +1381,7 @@ char* FloatToBuffer(float value, char* buffer) {
 
   // The snprintf should never overflow because the buffer is significantly
   // larger than the precision we asked for.
-  GOOGLE_DCHECK(snprintf_result > 0 && snprintf_result < kFloatToBufferSize);
+  Y_ABSL_DCHECK(snprintf_result > 0 && snprintf_result < kFloatToBufferSize);
 
   float parsed_value;
   if (!safe_strtof(buffer, &parsed_value) || parsed_value != value) {
@@ -1388,7 +1389,7 @@ char* FloatToBuffer(float value, char* buffer) {
         snprintf(buffer, kFloatToBufferSize, "%.*g", FLT_DIG + 3, value);
 
     // Should never overflow; see above.
-    GOOGLE_DCHECK(snprintf_result > 0 && snprintf_result < kFloatToBufferSize);
+    Y_ABSL_DCHECK(snprintf_result > 0 && snprintf_result < kFloatToBufferSize);
   }
 
   DelocalizeRadix(buffer);
@@ -1474,7 +1475,7 @@ TProtoStringType StrCat(const AlphaNum &a, const AlphaNum &b) {
   result.resize(a.size() + b.size());
   char *const begin = &*result.begin();
   char *out = Append2(begin, a, b);
-  GOOGLE_DCHECK_EQ(out, begin + result.size());
+  Y_ABSL_DCHECK_EQ(out, begin + result.size());
   return result;
 }
 
@@ -1484,7 +1485,7 @@ TProtoStringType StrCat(const AlphaNum &a, const AlphaNum &b, const AlphaNum &c)
   char *const begin = &*result.begin();
   char *out = Append2(begin, a, b);
   out = Append1(out, c);
-  GOOGLE_DCHECK_EQ(out, begin + result.size());
+  Y_ABSL_DCHECK_EQ(out, begin + result.size());
   return result;
 }
 
@@ -1494,7 +1495,7 @@ TProtoStringType StrCat(const AlphaNum &a, const AlphaNum &b, const AlphaNum &c,
   result.resize(a.size() + b.size() + c.size() + d.size());
   char *const begin = &*result.begin();
   char *out = Append4(begin, a, b, c, d);
-  GOOGLE_DCHECK_EQ(out, begin + result.size());
+  Y_ABSL_DCHECK_EQ(out, begin + result.size());
   return result;
 }
 
@@ -1505,7 +1506,7 @@ TProtoStringType StrCat(const AlphaNum &a, const AlphaNum &b, const AlphaNum &c,
   char *const begin = &*result.begin();
   char *out = Append4(begin, a, b, c, d);
   out = Append1(out, e);
-  GOOGLE_DCHECK_EQ(out, begin + result.size());
+  Y_ABSL_DCHECK_EQ(out, begin + result.size());
   return result;
 }
 
@@ -1517,7 +1518,7 @@ TProtoStringType StrCat(const AlphaNum &a, const AlphaNum &b, const AlphaNum &c,
   char *const begin = &*result.begin();
   char *out = Append4(begin, a, b, c, d);
   out = Append2(out, e, f);
-  GOOGLE_DCHECK_EQ(out, begin + result.size());
+  Y_ABSL_DCHECK_EQ(out, begin + result.size());
   return result;
 }
 
@@ -1531,7 +1532,7 @@ TProtoStringType StrCat(const AlphaNum &a, const AlphaNum &b, const AlphaNum &c,
   char *out = Append4(begin, a, b, c, d);
   out = Append2(out, e, f);
   out = Append1(out, g);
-  GOOGLE_DCHECK_EQ(out, begin + result.size());
+  Y_ABSL_DCHECK_EQ(out, begin + result.size());
   return result;
 }
 
@@ -1544,7 +1545,7 @@ TProtoStringType StrCat(const AlphaNum &a, const AlphaNum &b, const AlphaNum &c,
   char *const begin = &*result.begin();
   char *out = Append4(begin, a, b, c, d);
   out = Append4(out, e, f, g, h);
-  GOOGLE_DCHECK_EQ(out, begin + result.size());
+  Y_ABSL_DCHECK_EQ(out, begin + result.size());
   return result;
 }
 
@@ -1558,7 +1559,7 @@ TProtoStringType StrCat(const AlphaNum &a, const AlphaNum &b, const AlphaNum &c,
   char *out = Append4(begin, a, b, c, d);
   out = Append4(out, e, f, g, h);
   out = Append1(out, i);
-  GOOGLE_DCHECK_EQ(out, begin + result.size());
+  Y_ABSL_DCHECK_EQ(out, begin + result.size());
   return result;
 }
 
@@ -1566,54 +1567,54 @@ TProtoStringType StrCat(const AlphaNum &a, const AlphaNum &b, const AlphaNum &c,
 // the string we're appending to.  However the results of this are random.
 // Therefore, check for this in debug mode.  Use unsigned math so we only have
 // to do one comparison.
-#define GOOGLE_DCHECK_NO_OVERLAP(dest, src) \
-    GOOGLE_DCHECK_GT(uintptr_t((src).data() - (dest).data()), \
+#define Y_ABSL_DCHECK_NO_OVERLAP(dest, src) \
+    Y_ABSL_DCHECK_GT(uintptr_t((src).data() - (dest).data()), \
                      uintptr_t((dest).size()))
 
 void StrAppend(TProtoStringType *result, const AlphaNum &a) {
-  GOOGLE_DCHECK_NO_OVERLAP(*result, a);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, a);
   result->append(a.data(), a.size());
 }
 
 void StrAppend(TProtoStringType *result, const AlphaNum &a, const AlphaNum &b) {
-  GOOGLE_DCHECK_NO_OVERLAP(*result, a);
-  GOOGLE_DCHECK_NO_OVERLAP(*result, b);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, a);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, b);
   TProtoStringType::size_type old_size = result->size();
   result->resize(old_size + a.size() + b.size());
   char *const begin = &*result->begin();
   char *out = Append2(begin + old_size, a, b);
-  GOOGLE_DCHECK_EQ(out, begin + result->size());
+  Y_ABSL_DCHECK_EQ(out, begin + result->size());
 }
 
 void StrAppend(TProtoStringType *result, const AlphaNum &a, const AlphaNum &b,
                const AlphaNum &c) {
-  GOOGLE_DCHECK_NO_OVERLAP(*result, a);
-  GOOGLE_DCHECK_NO_OVERLAP(*result, b);
-  GOOGLE_DCHECK_NO_OVERLAP(*result, c);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, a);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, b);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, c);
   TProtoStringType::size_type old_size = result->size();
   result->resize(old_size + a.size() + b.size() + c.size());
   char *const begin = &*result->begin();
   char *out = Append2(begin + old_size, a, b);
   out = Append1(out, c);
-  GOOGLE_DCHECK_EQ(out, begin + result->size());
+  Y_ABSL_DCHECK_EQ(out, begin + result->size());
 }
 
 void StrAppend(TProtoStringType *result, const AlphaNum &a, const AlphaNum &b,
                const AlphaNum &c, const AlphaNum &d) {
-  GOOGLE_DCHECK_NO_OVERLAP(*result, a);
-  GOOGLE_DCHECK_NO_OVERLAP(*result, b);
-  GOOGLE_DCHECK_NO_OVERLAP(*result, c);
-  GOOGLE_DCHECK_NO_OVERLAP(*result, d);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, a);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, b);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, c);
+  Y_ABSL_DCHECK_NO_OVERLAP(*result, d);
   TProtoStringType::size_type old_size = result->size();
   result->resize(old_size + a.size() + b.size() + c.size() + d.size());
   char *const begin = &*result->begin();
   char *out = Append4(begin + old_size, a, b, c, d);
-  GOOGLE_DCHECK_EQ(out, begin + result->size());
+  Y_ABSL_DCHECK_EQ(out, begin + result->size());
 }
 
 int GlobalReplaceSubstring(const TProtoStringType &substring,
                            const TProtoStringType &replacement, TProtoStringType *s) {
-  GOOGLE_CHECK(s != nullptr);
+  Y_ABSL_CHECK(s != nullptr);
   if (s->empty() || substring.empty())
     return 0;
   TProtoStringType tmp;
@@ -1929,7 +1930,7 @@ int Base64UnescapeInternal(const char *src_param, int szsrc,
 
     default:
       // state should have no other values at this point.
-      GOOGLE_LOG(FATAL) << "This can't happen; base64 decoder state = " << state;
+      Y_ABSL_LOG(FATAL) << "This can't happen; base64 decoder state = " << state;
   }
 
   // The remainder of the string should be all whitespace, mixed with
@@ -2072,7 +2073,7 @@ static bool Base64UnescapeInternal(const char *src, int slen, TProtoStringType *
   }
 
   // could be shorter if there was padding
-  GOOGLE_DCHECK_LE(len, dest_len);
+  Y_ABSL_DCHECK_LE(len, dest_len);
   dest->erase(len);
 
   return true;
@@ -2180,7 +2181,7 @@ int Base64EscapeInternal(const unsigned char *src, int szsrc,
     default:
       // Should not be reached: blocks of 4 bytes are handled
       // in the while loop before this switch statement.
-      GOOGLE_LOG(FATAL) << "Logic problem? szsrc = " << szsrc;
+      Y_ABSL_LOG(FATAL) << "Logic problem? szsrc = " << szsrc;
       break;
   }
   return (cur_dest - dest);
@@ -2212,7 +2213,7 @@ void Base64EscapeInternal(const unsigned char *src, int szsrc,
                                                dest->size(),
                                                base64_chars,
                                                do_padding);
-  GOOGLE_DCHECK_EQ(calc_escaped_size, escaped_len);
+  Y_ABSL_DCHECK_EQ(calc_escaped_size, escaped_len);
   dest->erase(escaped_len);
 }
 
@@ -2424,9 +2425,9 @@ TProtoStringType LocalizeRadix(const char *input, const char *radix_pos) {
   // thread-safe.
   char temp[16];
   int size = snprintf(temp, sizeof(temp), "%.1f", 1.5);
-  GOOGLE_CHECK_EQ(temp[0], '1');
-  GOOGLE_CHECK_EQ(temp[size - 1], '5');
-  GOOGLE_CHECK_LE(size, 6);
+  Y_ABSL_CHECK_EQ(temp[0], '1');
+  Y_ABSL_CHECK_EQ(temp[size - 1], '5');
+  Y_ABSL_CHECK_LE(size, 6);
 
   // Now replace the '.' in the input with it.
   TProtoStringType result;

@@ -32,23 +32,22 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/java/generator.h>
+#include "google/protobuf/compiler/java/generator.h"
+
+#include <utility>
+#include <vector>
 
 
 #include <memory>
 
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/stubs/stringprintf.h>
-#include <google/protobuf/compiler/java/file.h>
-#include <google/protobuf/compiler/java/generator_factory.h>
-#include <google/protobuf/compiler/java/helpers.h>
-#include <google/protobuf/compiler/java/name_resolver.h>
-#include <google/protobuf/compiler/java/options.h>
-#include <google/protobuf/compiler/java/shared_code_generator.h>
-#include <google/protobuf/descriptor.pb.h>
+#include "y_absl/strings/str_format.h"
+#include "google/protobuf/compiler/java/file.h"
+#include "google/protobuf/compiler/java/helpers.h"
+#include "google/protobuf/compiler/java/name_resolver.h"
+#include "google/protobuf/compiler/java/options.h"
+#include "google/protobuf/compiler/java/shared_code_generator.h"
+#include "google/protobuf/descriptor.pb.h"
 
-#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {
@@ -74,25 +73,27 @@ bool JavaGenerator::Generate(const FileDescriptor* file,
   ParseGeneratorParameter(parameter, &options);
   Options file_options;
 
-  for (int i = 0; i < options.size(); i++) {
-    if (options[i].first == "output_list_file") {
-      file_options.output_list_file = options[i].second;
-    } else if (options[i].first == "immutable") {
+  file_options.opensource_runtime = opensource_runtime_;
+
+  for (auto& option : options) {
+    if (option.first == "output_list_file") {
+      file_options.output_list_file = option.second;
+    } else if (option.first == "immutable") {
       file_options.generate_immutable_code = true;
-    } else if (options[i].first == "mutable") {
+    } else if (option.first == "mutable") {
       file_options.generate_mutable_code = true;
-    } else if (options[i].first == "shared") {
+    } else if (option.first == "shared") {
       file_options.generate_shared_code = true;
-    } else if (options[i].first == "lite") {
+    } else if (option.first == "lite") {
       // Note: Java Lite does not guarantee API/ABI stability. We may choose to
       // break existing API in order to boost performance / reduce code size.
       file_options.enforce_lite = true;
-    } else if (options[i].first == "annotate_code") {
+    } else if (option.first == "annotate_code") {
       file_options.annotate_code = true;
-    } else if (options[i].first == "annotation_list_file") {
-      file_options.annotation_list_file = options[i].second;
+    } else if (option.first == "annotation_list_file") {
+      file_options.annotation_list_file = option.second;
     } else {
-      *error = "Unknown generator option: " + options[i].first;
+      *error = y_absl::StrCat("Unknown generator option: ", option.first);
       return false;
     }
   }
@@ -117,35 +118,31 @@ bool JavaGenerator::Generate(const FileDescriptor* file,
   std::vector<TProtoStringType> all_annotations;
 
 
-  std::vector<FileGenerator*> file_generators;
+  std::vector<std::unique_ptr<FileGenerator>> file_generators;
   if (file_options.generate_immutable_code) {
-    file_generators.push_back(new FileGenerator(file, file_options,
-                                                /* immutable = */ true));
+    file_generators.emplace_back(
+        std::make_unique<FileGenerator>(file, file_options,
+                                        /* immutable = */ true));
   }
   if (file_options.generate_mutable_code) {
-    file_generators.push_back(new FileGenerator(file, file_options,
-                                                /* mutable = */ false));
+    file_generators.emplace_back(
+        std::make_unique<FileGenerator>(file, file_options,
+                                        /* mutable = */ false));
   }
 
-  for (int i = 0; i < file_generators.size(); ++i) {
-    if (!file_generators[i]->Validate(error)) {
-      for (int j = 0; j < file_generators.size(); ++j) {
-        delete file_generators[j];
-      }
+  for (auto& file_generator : file_generators) {
+    if (!file_generator->Validate(error)) {
       return false;
     }
   }
 
-  for (int i = 0; i < file_generators.size(); ++i) {
-    FileGenerator* file_generator = file_generators[i];
-
+  for (auto& file_generator : file_generators) {
     TProtoStringType package_dir = JavaPackageToDir(file_generator->java_package());
 
-    TProtoStringType java_filename = package_dir;
-    java_filename += file_generator->classname();
-    java_filename += ".java";
+    TProtoStringType java_filename =
+        y_absl::StrCat(package_dir, file_generator->classname(), ".java");
     all_files.push_back(java_filename);
-    TProtoStringType info_full_path = java_filename + ".pb.meta";
+    TProtoStringType info_full_path = y_absl::StrCat(java_filename, ".pb.meta");
     if (file_options.annotate_code) {
       all_annotations.push_back(info_full_path);
     }
@@ -174,9 +171,6 @@ bool JavaGenerator::Generate(const FileDescriptor* file,
   }
 
 
-  for (int i = 0; i < file_generators.size(); ++i) {
-    delete file_generators[i];
-  }
   file_generators.clear();
 
   // Generate output list if requested.

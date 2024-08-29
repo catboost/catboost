@@ -120,11 +120,13 @@ class DescriptorPool(object):
 
   if _USE_C_DESCRIPTORS:
 
-    def __new__(cls, descriptor_db=None):
-      # pylint: disable=protected-access
-      return descriptor._message.DescriptorPool(descriptor_db)
+   def __new__(cls, descriptor_db=None):
+     # pylint: disable=protected-access
+     return descriptor._message.DescriptorPool(descriptor_db)
 
-  def __init__(self, descriptor_db=None):
+  def __init__(
+      self, descriptor_db=None, use_deprecated_legacy_json_field_conflicts=False
+  ):
     """Initializes a Pool of proto buffs.
 
     The descriptor_db argument to the constructor is provided to allow
@@ -135,6 +137,8 @@ class DescriptorPool(object):
 
     Args:
       descriptor_db: A secondary source of file descriptors.
+      use_deprecated_legacy_json_field_conflicts: Unused, for compatibility with
+        C++.
     """
 
     self._internal_db = descriptor_database.DescriptorDatabase()
@@ -144,9 +148,6 @@ class DescriptorPool(object):
     self._service_descriptors = {}
     self._file_descriptors = {}
     self._toplevel_extensions = {}
-    # TODO(jieluo): Remove _file_desc_by_toplevel_extension after
-    # maybe year 2020 for compatibility issue (with 3.4.1 only).
-    self._file_desc_by_toplevel_extension = {}
     self._top_enum_values = {}
     # We store extensions in two two-level mappings: The first key is the
     # descriptor of the message being extended, the second key is the extension
@@ -220,7 +221,7 @@ class DescriptorPool(object):
     file_desc.serialized_pb = serialized_file_desc_proto
     return file_desc
 
-  # Add Descriptor to descriptor pool is dreprecated. Please use Add()
+  # Add Descriptor to descriptor pool is deprecated. Please use Add()
   # or AddSerializedFile() to add a FileDescriptorProto instead.
   @_Deprecated
   def AddDescriptor(self, desc):
@@ -245,7 +246,7 @@ class DescriptorPool(object):
     self._descriptors[desc.full_name] = desc
     self._AddFileDescriptor(desc.file)
 
-  # Add EnumDescriptor to descriptor pool is dreprecated. Please use Add()
+  # Add EnumDescriptor to descriptor pool is deprecated. Please use Add()
   # or AddSerializedFile() to add a FileDescriptorProto instead.
   @_Deprecated
   def AddEnumDescriptor(self, enum_desc):
@@ -286,7 +287,7 @@ class DescriptorPool(object):
         self._top_enum_values[full_name] = enum_value
     self._AddFileDescriptor(enum_desc.file)
 
-  # Add ServiceDescriptor to descriptor pool is dreprecated. Please use Add()
+  # Add ServiceDescriptor to descriptor pool is deprecated. Please use Add()
   # or AddSerializedFile() to add a FileDescriptorProto instead.
   @_Deprecated
   def AddServiceDescriptor(self, service_desc):
@@ -307,7 +308,7 @@ class DescriptorPool(object):
                                 service_desc.file.name)
     self._service_descriptors[service_desc.full_name] = service_desc
 
-  # Add ExtensionDescriptor to descriptor pool is dreprecated. Please use Add()
+  # Add ExtensionDescriptor to descriptor pool is deprecated. Please use Add()
   # or AddSerializedFile() to add a FileDescriptorProto instead.
   @_Deprecated
   def AddExtensionDescriptor(self, extension):
@@ -331,6 +332,8 @@ class DescriptorPool(object):
       raise TypeError('Expected an extension descriptor.')
 
     if extension.extension_scope is None:
+      self._CheckConflictRegister(
+          extension, extension.full_name, extension.file.name)
       self._toplevel_extensions[extension.full_name] = extension
 
     try:
@@ -372,12 +375,6 @@ class DescriptorPool(object):
     """
 
     self._AddFileDescriptor(file_desc)
-    # TODO(jieluo): This is a temporary solution for FieldDescriptor.file.
-    # FieldDescriptor.file is added in code gen. Remove this solution after
-    # maybe 2020 for compatibility reason (with 3.4.1 only).
-    for extension in file_desc.extensions_by_name.values():
-      self._file_desc_by_toplevel_extension[
-          extension.full_name] = file_desc
 
   def _AddFileDescriptor(self, file_desc):
     """Adds a FileDescriptor to the pool, non-recursively.
@@ -483,7 +480,7 @@ class DescriptorPool(object):
       pass
 
     try:
-      return self._file_desc_by_toplevel_extension[symbol]
+      return self._toplevel_extensions[symbol].file
     except KeyError:
       pass
 
@@ -792,8 +789,6 @@ class DescriptorPool(object):
                            file_descriptor.package, scope)
         file_descriptor.extensions_by_name[extension_desc.name] = (
             extension_desc)
-        self._file_desc_by_toplevel_extension[extension_desc.full_name] = (
-            file_descriptor)
 
       for desc_proto in file_proto.message_type:
         self._SetAllFieldTypes(file_proto.package, desc_proto, scope)

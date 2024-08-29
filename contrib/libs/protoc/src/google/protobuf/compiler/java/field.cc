@@ -32,27 +32,28 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/java/field.h>
+#include "google/protobuf/compiler/java/field.h"
 
 #include <memory>
+#include <string>
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/stubs/substitute.h>
-#include <google/protobuf/compiler/java/context.h>
-#include <google/protobuf/compiler/java/enum_field.h>
-#include <google/protobuf/compiler/java/enum_field_lite.h>
-#include <google/protobuf/compiler/java/helpers.h>
-#include <google/protobuf/compiler/java/map_field.h>
-#include <google/protobuf/compiler/java/map_field_lite.h>
-#include <google/protobuf/compiler/java/message_field.h>
-#include <google/protobuf/compiler/java/message_field_lite.h>
-#include <google/protobuf/compiler/java/primitive_field.h>
-#include <google/protobuf/compiler/java/primitive_field_lite.h>
-#include <google/protobuf/compiler/java/string_field.h>
-#include <google/protobuf/compiler/java/string_field_lite.h>
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/substitute.h"
+#include "google/protobuf/compiler/java/context.h"
+#include "google/protobuf/compiler/java/enum_field.h"
+#include "google/protobuf/compiler/java/enum_field_lite.h"
+#include "google/protobuf/compiler/java/helpers.h"
+#include "google/protobuf/compiler/java/map_field.h"
+#include "google/protobuf/compiler/java/map_field_lite.h"
+#include "google/protobuf/compiler/java/message_field.h"
+#include "google/protobuf/compiler/java/message_field_lite.h"
+#include "google/protobuf/compiler/java/primitive_field.h"
+#include "google/protobuf/compiler/java/primitive_field_lite.h"
+#include "google/protobuf/compiler/java/string_field.h"
+#include "google/protobuf/compiler/java/string_field_lite.h"
+#include "google/protobuf/io/printer.h"
 
 
 namespace google {
@@ -185,15 +186,15 @@ static inline void ReportUnexpectedPackedFieldsCall(io::Printer* printer) {
   //     but this method should be overridden.
   //   - This FieldGenerator doesn't support packing, and this method
   //     should never have been called.
-  GOOGLE_LOG(FATAL) << "GenerateParsingCodeFromPacked() "
-             << "called on field generator that does not support packing.";
+  Y_ABSL_LOG(FATAL) << "GenerateBuilderParsingCodeFromPacked() "
+                  << "called on field generator that does not support packing.";
 }
 
 }  // namespace
 
 ImmutableFieldGenerator::~ImmutableFieldGenerator() {}
 
-void ImmutableFieldGenerator::GenerateParsingCodeFromPacked(
+void ImmutableFieldGenerator::GenerateBuilderParsingCodeFromPacked(
     io::Printer* printer) const {
   ReportUnexpectedPackedFieldsCall(printer);
 }
@@ -241,16 +242,16 @@ template <>
 FieldGeneratorMap<ImmutableFieldLiteGenerator>::~FieldGeneratorMap() {}
 
 
-void SetCommonFieldVariables(const FieldDescriptor* descriptor,
-                             const FieldGeneratorInfo* info,
-                             std::map<TProtoStringType, TProtoStringType>* variables) {
+void SetCommonFieldVariables(
+    const FieldDescriptor* descriptor, const FieldGeneratorInfo* info,
+    y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* variables) {
   (*variables)["field_name"] = descriptor->name();
   (*variables)["name"] = info->name;
   (*variables)["classname"] = descriptor->containing_type()->name();
   (*variables)["capitalized_name"] = info->capitalized_name;
   (*variables)["disambiguated_reason"] = info->disambiguated_reason;
   (*variables)["constant_name"] = FieldConstantName(descriptor);
-  (*variables)["number"] = StrCat(descriptor->number());
+  (*variables)["number"] = y_absl::StrCat(descriptor->number());
   (*variables)["kt_dsl_builder"] = "_builder";
   // These variables are placeholders to pick out the beginning and ends of
   // identifiers for annotations (when doing so with existing variables would
@@ -258,46 +259,50 @@ void SetCommonFieldVariables(const FieldDescriptor* descriptor,
   // empty string.
   (*variables)["{"] = "";
   (*variables)["}"] = "";
-  (*variables)["kt_name"] =
-      IsForbiddenKotlin(info->name) ? info->name + "_" : info->name;
-  (*variables)["kt_capitalized_name"] = IsForbiddenKotlin(info->name)
-                                            ? info->capitalized_name + "_"
-                                            : info->capitalized_name;
+  (*variables)["kt_name"] = IsForbiddenKotlin(info->name)
+                                ? y_absl::StrCat(info->name, "_")
+                                : info->name;
+  (*variables)["kt_capitalized_name"] =
+      IsForbiddenKotlin(info->name) ? y_absl::StrCat(info->capitalized_name, "_")
+                                    : info->capitalized_name;
   if (!descriptor->is_repeated()) {
-    (*variables)["annotation_field_type"] = FieldTypeName(descriptor->type());
+    (*variables)["annotation_field_type"] =
+        TProtoStringType(FieldTypeName(descriptor->type()));
   } else if (GetJavaType(descriptor) == JAVATYPE_MESSAGE &&
              IsMapEntry(descriptor->message_type())) {
     (*variables)["annotation_field_type"] =
-        TProtoStringType(FieldTypeName(descriptor->type())) + "MAP";
+        y_absl::StrCat(FieldTypeName(descriptor->type()), "MAP");
   } else {
     (*variables)["annotation_field_type"] =
-        TProtoStringType(FieldTypeName(descriptor->type())) + "_LIST";
+        y_absl::StrCat(FieldTypeName(descriptor->type()), "_LIST");
     if (descriptor->is_packed()) {
-      (*variables)["annotation_field_type"] =
-          (*variables)["annotation_field_type"] + "_PACKED";
+      variables->insert(
+          {"annotation_field_type",
+           y_absl::StrCat(FieldTypeName(descriptor->type()), "_LIST_PACKED")});
     }
   }
 }
 
-void SetCommonOneofVariables(const FieldDescriptor* descriptor,
-                             const OneofGeneratorInfo* info,
-                             std::map<TProtoStringType, TProtoStringType>* variables) {
+void SetCommonOneofVariables(
+    const FieldDescriptor* descriptor, const OneofGeneratorInfo* info,
+    y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* variables) {
   (*variables)["oneof_name"] = info->name;
   (*variables)["oneof_capitalized_name"] = info->capitalized_name;
   (*variables)["oneof_index"] =
-      StrCat(descriptor->containing_oneof()->index());
+      y_absl::StrCat(descriptor->containing_oneof()->index());
   (*variables)["oneof_stored_type"] = GetOneofStoredType(descriptor);
   (*variables)["set_oneof_case_message"] =
-      info->name + "Case_ = " + StrCat(descriptor->number());
-  (*variables)["clear_oneof_case_message"] = info->name + "Case_ = 0";
+      y_absl::StrCat(info->name, "Case_ = ", descriptor->number());
+  (*variables)["clear_oneof_case_message"] =
+      y_absl::StrCat(info->name, "Case_ = 0");
   (*variables)["has_oneof_case_message"] =
-      info->name + "Case_ == " + StrCat(descriptor->number());
+      y_absl::StrCat(info->name, "Case_ == ", descriptor->number());
 }
 
-void PrintExtraFieldInfo(const std::map<TProtoStringType, TProtoStringType>& variables,
-                         io::Printer* printer) {
-  const std::map<TProtoStringType, TProtoStringType>::const_iterator it =
-      variables.find("disambiguated_reason");
+void PrintExtraFieldInfo(
+    const y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>& variables,
+    io::Printer* printer) {
+  auto it = variables.find("disambiguated_reason");
   if (it != variables.end() && !it->second.empty()) {
     printer->Print(
         variables,

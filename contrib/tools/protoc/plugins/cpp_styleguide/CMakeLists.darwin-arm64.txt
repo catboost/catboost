@@ -33,6 +33,8 @@ target_link_options(cpp_styleguide PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 target_sources(cpp_styleguide PRIVATE

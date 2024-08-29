@@ -36,10 +36,9 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_STRING_FIELD_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_STRING_FIELD_H__
 
-#include <map>
 #include <string>
 
-#include <google/protobuf/compiler/java/field.h>
+#include "google/protobuf/compiler/java/field.h"
 
 namespace google {
 namespace protobuf {
@@ -62,10 +61,15 @@ class ImmutableStringFieldGenerator : public ImmutableFieldGenerator {
   explicit ImmutableStringFieldGenerator(const FieldDescriptor* descriptor,
                                          int messageBitIndex,
                                          int builderBitIndex, Context* context);
+  ImmutableStringFieldGenerator(const ImmutableStringFieldGenerator&) = delete;
+  ImmutableStringFieldGenerator& operator=(
+      const ImmutableStringFieldGenerator&) = delete;
   ~ImmutableStringFieldGenerator() override;
 
   // implements ImmutableFieldGenerator
   // ---------------------------------------
+  int GetMessageBitIndex() const override;
+  int GetBuilderBitIndex() const override;
   int GetNumBitsForMessage() const override;
   int GetNumBitsForBuilder() const override;
   void GenerateInterfaceMembers(io::Printer* printer) const override;
@@ -75,8 +79,7 @@ class ImmutableStringFieldGenerator : public ImmutableFieldGenerator {
   void GenerateBuilderClearCode(io::Printer* printer) const override;
   void GenerateMergingCode(io::Printer* printer) const override;
   void GenerateBuildingCode(io::Printer* printer) const override;
-  void GenerateParsingCode(io::Printer* printer) const override;
-  void GenerateParsingDoneCode(io::Printer* printer) const override;
+  void GenerateBuilderParsingCode(io::Printer* printer) const override;
   void GenerateSerializationCode(io::Printer* printer) const override;
   void GenerateSerializedSizeCode(io::Printer* printer) const override;
   void GenerateFieldBuilderInitializationCode(
@@ -89,11 +92,10 @@ class ImmutableStringFieldGenerator : public ImmutableFieldGenerator {
 
  protected:
   const FieldDescriptor* descriptor_;
-  std::map<TProtoStringType, TProtoStringType> variables_;
+  int message_bit_index_;
+  int builder_bit_index_;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> variables_;
   ClassNameResolver* name_resolver_;
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableStringFieldGenerator);
 };
 
 class ImmutableStringOneofFieldGenerator
@@ -102,25 +104,33 @@ class ImmutableStringOneofFieldGenerator
   ImmutableStringOneofFieldGenerator(const FieldDescriptor* descriptor,
                                      int messageBitIndex, int builderBitIndex,
                                      Context* context);
+  ImmutableStringOneofFieldGenerator(
+      const ImmutableStringOneofFieldGenerator&) = delete;
+  ImmutableStringOneofFieldGenerator& operator=(
+      const ImmutableStringOneofFieldGenerator&) = delete;
   ~ImmutableStringOneofFieldGenerator() override;
 
  private:
   void GenerateMembers(io::Printer* printer) const override;
   void GenerateBuilderMembers(io::Printer* printer) const override;
+  void GenerateBuilderClearCode(io::Printer* printer) const override;
   void GenerateMergingCode(io::Printer* printer) const override;
   void GenerateBuildingCode(io::Printer* printer) const override;
-  void GenerateParsingCode(io::Printer* printer) const override;
+  void GenerateBuilderParsingCode(io::Printer* printer) const override;
   void GenerateSerializationCode(io::Printer* printer) const override;
   void GenerateSerializedSizeCode(io::Printer* printer) const override;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableStringOneofFieldGenerator);
 };
 
-class RepeatedImmutableStringFieldGenerator : public ImmutableFieldGenerator {
+class RepeatedImmutableStringFieldGenerator
+    : public ImmutableStringFieldGenerator {
  public:
   explicit RepeatedImmutableStringFieldGenerator(
       const FieldDescriptor* descriptor, int messageBitIndex,
       int builderBitIndex, Context* context);
+  RepeatedImmutableStringFieldGenerator(
+      const RepeatedImmutableStringFieldGenerator&) = delete;
+  RepeatedImmutableStringFieldGenerator& operator=(
+      const RepeatedImmutableStringFieldGenerator&) = delete;
   ~RepeatedImmutableStringFieldGenerator() override;
 
   // implements ImmutableFieldGenerator ---------------------------------------
@@ -133,8 +143,7 @@ class RepeatedImmutableStringFieldGenerator : public ImmutableFieldGenerator {
   void GenerateBuilderClearCode(io::Printer* printer) const override;
   void GenerateMergingCode(io::Printer* printer) const override;
   void GenerateBuildingCode(io::Printer* printer) const override;
-  void GenerateParsingCode(io::Printer* printer) const override;
-  void GenerateParsingDoneCode(io::Printer* printer) const override;
+  void GenerateBuilderParsingCode(io::Printer* printer) const override;
   void GenerateSerializationCode(io::Printer* printer) const override;
   void GenerateSerializedSizeCode(io::Printer* printer) const override;
   void GenerateFieldBuilderInitializationCode(
@@ -144,13 +153,6 @@ class RepeatedImmutableStringFieldGenerator : public ImmutableFieldGenerator {
   void GenerateKotlinDslMembers(io::Printer* printer) const override;
 
   TProtoStringType GetBoxedType() const override;
-
- private:
-  const FieldDescriptor* descriptor_;
-  std::map<TProtoStringType, TProtoStringType> variables_;
-  ClassNameResolver* name_resolver_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedImmutableStringFieldGenerator);
 };
 
 }  // namespace java

@@ -33,8 +33,10 @@
 
 #include <string>
 
+#include "y_absl/strings/string_view.h"
+
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -43,9 +45,22 @@ class Descriptor;
 class EnumDescriptor;
 class EnumValueDescriptor;
 class FieldDescriptor;
+class FileDescriptor;
 
 namespace compiler {
 namespace cpp {
+
+// Returns the fully qualified C++ namespace.
+//
+// For example, if you had:
+//   package foo.bar;
+//   message Baz { message Moo {} }
+// Then the qualified namespace for Moo would be:
+//   ::foo::bar
+PROTOC_EXPORT TProtoStringType Namespace(const FileDescriptor* d);
+PROTOC_EXPORT TProtoStringType Namespace(const Descriptor* d);
+PROTOC_EXPORT TProtoStringType Namespace(const FieldDescriptor* d);
+PROTOC_EXPORT TProtoStringType Namespace(const EnumDescriptor* d);
 
 // Returns the unqualified C++ name.
 //
@@ -54,8 +69,8 @@ namespace cpp {
 //   message Baz { message Moo {} }
 // Then the non-qualified version would be:
 //   Baz_Moo
-TProtoStringType ClassName(const Descriptor* descriptor);
-TProtoStringType ClassName(const EnumDescriptor* enum_descriptor);
+PROTOC_EXPORT TProtoStringType ClassName(const Descriptor* descriptor);
+PROTOC_EXPORT TProtoStringType ClassName(const EnumDescriptor* enum_descriptor);
 
 // Returns the fully qualified C++ name.
 //
@@ -64,34 +79,35 @@ TProtoStringType ClassName(const EnumDescriptor* enum_descriptor);
 //   message Baz { message Moo {} }
 // Then the qualified ClassName for Moo would be:
 //   ::foo::bar::Baz_Moo
-TProtoStringType QualifiedClassName(const Descriptor* d);
-TProtoStringType QualifiedClassName(const EnumDescriptor* d);
-TProtoStringType QualifiedExtensionName(const FieldDescriptor* d);
+PROTOC_EXPORT TProtoStringType QualifiedClassName(const Descriptor* d);
+PROTOC_EXPORT TProtoStringType QualifiedClassName(const EnumDescriptor* d);
+PROTOC_EXPORT TProtoStringType QualifiedExtensionName(const FieldDescriptor* d);
 
 // Get the (unqualified) name that should be used for this field in C++ code.
 // The name is coerced to lower-case to emulate proto1 behavior.  People
 // should be using lowercase-with-underscores style for proto field names
 // anyway, so normally this just returns field->name().
-TProtoStringType FieldName(const FieldDescriptor* field);
+PROTOC_EXPORT TProtoStringType FieldName(const FieldDescriptor* field);
 
 // Requires that this field is in a oneof. Returns the (unqualified) case
 // constant for this field.
-TProtoStringType OneofCaseConstantName(const FieldDescriptor* field);
+PROTOC_EXPORT TProtoStringType OneofCaseConstantName(const FieldDescriptor* field);
 // Returns the quafilied case constant for this field.
-TProtoStringType QualifiedOneofCaseConstantName(const FieldDescriptor* field);
+PROTOC_EXPORT TProtoStringType QualifiedOneofCaseConstantName(
+    const FieldDescriptor* field);
 
 // Get the (unqualified) name that should be used for this enum value in C++
 // code.
-TProtoStringType EnumValueName(const EnumValueDescriptor* enum_value);
+PROTOC_EXPORT TProtoStringType EnumValueName(const EnumValueDescriptor* enum_value);
 
 // Strips ".proto" or ".protodevel" from the end of a filename.
-PROTOC_EXPORT TProtoStringType StripProto(const TProtoStringType& filename);
+PROTOC_EXPORT TProtoStringType StripProto(y_absl::string_view filename);
 
 }  // namespace cpp
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CPP_NAMES_H__

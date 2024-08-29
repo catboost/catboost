@@ -66,7 +66,7 @@
 #include <google/protobuf/stubs/port.h>
 
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -92,6 +92,6 @@ bool GenerateCode(const CodeGeneratorRequest& request,
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_PLUGIN_H__

@@ -34,6 +34,8 @@ target_link_options(catboost4j-prediction PRIVATE
   -undefined
   dynamic_lookup
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 target_sources(catboost4j-prediction PRIVATE

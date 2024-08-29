@@ -31,6 +31,8 @@ target_link_options(catboost-libs-metrics-ut PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 target_sources(catboost-libs-metrics-ut PRIVATE

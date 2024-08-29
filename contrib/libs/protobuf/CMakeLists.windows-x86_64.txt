@@ -25,11 +25,17 @@ target_include_directories(contrib-libs-protobuf PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
 
+target_include_directories(contrib-libs-protobuf PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/third_party/utf8_range
+)
+
 target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-zlib
   cpp-sanitizer-include
+  abseil-cpp-tstring-y_absl-status
+  abseil-cpp-tstring-y_absl-log
 )
 
 target_sources(contrib-libs-protobuf PRIVATE
@@ -38,6 +44,8 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/any_lite.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/api.pb.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arena.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arena_align.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arena_config.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arenastring.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/arenaz_sampler.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.cc
@@ -53,6 +61,7 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_bases.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_reflection.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_tctable_full.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_tctable_gen.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/generated_message_tctable_lite.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/implicit_weak_message.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/inlined_string_field.cc
@@ -62,9 +71,19 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/printer.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/strtod.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/tokenizer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_sink.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream_impl.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/io/zero_copy_stream_impl_lite.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json/internal/lexer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json/internal/message_path.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json/internal/parser.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json/internal/unparser.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json/internal/untyped_message.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json/internal/writer.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json/internal/zero_copy_buffered_stream.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json/json.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json/old_json.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/json_util.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/map.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/map_field.cc
@@ -78,17 +97,12 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/service.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/source_context.pb.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/struct.pb.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/bytestream.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/common.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/int128.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/status.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/statusor.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/stringpiece.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/stringprintf.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/structurally_valid.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/strutil.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/substitute.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/stubs/time.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/text_format.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/timestamp.pb.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/type.pb.cc
@@ -96,26 +110,13 @@ target_sources(contrib-libs-protobuf PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/delimited_message_util.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/field_comparator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/field_mask_util.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/datapiece.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/default_value_objectwriter.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/error_listener.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/field_mask_utility.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_escaping.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_objectwriter.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/json_stream_parser.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/object_writer.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/proto_writer.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/protostream_objectsource.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/protostream_objectwriter.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/type_info.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/internal/utility.cc
-  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/json_util.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/message_differencer.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/time_util.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/util/type_resolver_util.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wire_format_lite.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src/google/protobuf/wrappers.pb.cc
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/third_party/utf8_range/utf8_validity.cc
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/any.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/api.proto
   ${PROJECT_BINARY_DIR}/contrib/libs/protobuf/src/google/protobuf/descriptor.proto
@@ -199,11 +200,17 @@ target_include_directories(contrib-libs-protobuf.global PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/src
 )
 
+target_include_directories(contrib-libs-protobuf.global PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/protobuf/third_party/utf8_range
+)
+
 target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-zlib
   cpp-sanitizer-include
+  abseil-cpp-tstring-y_absl-status
+  abseil-cpp-tstring-y_absl-log
 )
 
 target_sources(contrib-libs-protobuf.global PRIVATE

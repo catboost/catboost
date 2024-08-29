@@ -35,10 +35,10 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_DOC_COMMENT_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_DOC_COMMENT_H__
 
-#include <google/protobuf/descriptor.h>
+#include "google/protobuf/descriptor.h"
 
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -67,21 +67,27 @@ enum FieldAccessorType {
   LIST_MULTI_ADDER
 };
 
-void WriteMessageDocComment(io::Printer* printer, const Descriptor* message);
-void WriteFieldDocComment(io::Printer* printer, const FieldDescriptor* field);
+void WriteMessageDocComment(io::Printer* printer, const Descriptor* message,
+                            const bool kdoc = false);
+void WriteFieldDocComment(io::Printer* printer, const FieldDescriptor* field,
+                          const bool kdoc = false);
 void WriteFieldAccessorDocComment(io::Printer* printer,
                                   const FieldDescriptor* field,
                                   const FieldAccessorType type,
-                                  const bool builder = false);
+                                  const bool builder = false,
+                                  const bool kdoc = false);
 void WriteFieldEnumValueAccessorDocComment(io::Printer* printer,
                                            const FieldDescriptor* field,
                                            const FieldAccessorType type,
-                                           const bool builder = false);
+                                           const bool builder = false,
+                                           const bool kdoc = false);
 void WriteFieldStringBytesAccessorDocComment(io::Printer* printer,
                                              const FieldDescriptor* field,
                                              const FieldAccessorType type,
-                                             const bool builder = false);
-void WriteEnumDocComment(io::Printer* printer, const EnumDescriptor* enum_);
+                                             const bool builder = false,
+                                             const bool kdoc = false);
+void WriteEnumDocComment(io::Printer* printer, const EnumDescriptor* enum_,
+                         const bool kdoc = false);
 void WriteEnumValueDocComment(io::Printer* printer,
                               const EnumValueDescriptor* value);
 void WriteServiceDocComment(io::Printer* printer,
@@ -90,6 +96,7 @@ void WriteMethodDocComment(io::Printer* printer,
                            const MethodDescriptor* method);
 
 // Exposed for testing only.
+// Also called by proto1-Java code generator.
 PROTOC_EXPORT TProtoStringType EscapeJavadoc(const TProtoStringType& input);
 
 }  // namespace java
@@ -97,6 +104,6 @@ PROTOC_EXPORT TProtoStringType EscapeJavadoc(const TProtoStringType& input);
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_DOC_COMMENT_H__

@@ -32,17 +32,18 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/java/extension.h>
+#include "google/protobuf/compiler/java/extension.h"
 
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/compiler/java/context.h>
-#include <google/protobuf/compiler/java/doc_comment.h>
-#include <google/protobuf/compiler/java/helpers.h>
-#include <google/protobuf/compiler/java/name_resolver.h>
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/strings/str_cat.h"
+#include "google/protobuf/compiler/java/context.h"
+#include "google/protobuf/compiler/java/doc_comment.h"
+#include "google/protobuf/compiler/java/helpers.h"
+#include "google/protobuf/compiler/java/name_resolver.h"
+#include "google/protobuf/io/printer.h"
 
 // Must be last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -51,7 +52,9 @@ namespace java {
 
 ImmutableExtensionGenerator::ImmutableExtensionGenerator(
     const FieldDescriptor* descriptor, Context* context)
-    : descriptor_(descriptor), name_resolver_(context->GetNameResolver()) {
+    : descriptor_(descriptor),
+      name_resolver_(context->GetNameResolver()),
+      context_(context) {
   if (descriptor_->extension_scope() != NULL) {
     scope_ =
         name_resolver_->GetImmutableClassName(descriptor_->extension_scope());
@@ -66,19 +69,21 @@ ImmutableExtensionGenerator::~ImmutableExtensionGenerator() {}
 void ExtensionGenerator::InitTemplateVars(
     const FieldDescriptor* descriptor, const TProtoStringType& scope, bool immutable,
     ClassNameResolver* name_resolver,
-    std::map<TProtoStringType, TProtoStringType>* vars_pointer) {
-  std::map<TProtoStringType, TProtoStringType>& vars = *vars_pointer;
+    y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* vars_pointer,
+    Context* context) {
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>& vars = *vars_pointer;
   vars["scope"] = scope;
   vars["name"] = UnderscoresToCamelCaseCheckReserved(descriptor);
   vars["containing_type"] =
       name_resolver->GetClassName(descriptor->containing_type(), immutable);
-  vars["number"] = StrCat(descriptor->number());
+  vars["number"] = y_absl::StrCat(descriptor->number());
   vars["constant_name"] = FieldConstantName(descriptor);
-  vars["index"] = StrCat(descriptor->index());
+  vars["index"] = y_absl::StrCat(descriptor->index());
   vars["default"] = descriptor->is_repeated()
                         ? ""
-                        : DefaultValue(descriptor, immutable, name_resolver);
-  vars["type_constant"] = FieldTypeName(GetType(descriptor));
+                        : DefaultValue(descriptor, immutable, name_resolver,
+                                       context->options());
+  vars["type_constant"] = TProtoStringType(FieldTypeName(GetType(descriptor)));
   vars["packed"] = descriptor->is_packed() ? "true" : "false";
   vars["enum_map"] = "null";
   vars["prototype"] = "null";
@@ -89,12 +94,12 @@ void ExtensionGenerator::InitTemplateVars(
     case JAVATYPE_MESSAGE:
       singular_type =
           name_resolver->GetClassName(descriptor->message_type(), immutable);
-      vars["prototype"] = singular_type + ".getDefaultInstance()";
+      vars["prototype"] = y_absl::StrCat(singular_type, ".getDefaultInstance()");
       break;
     case JAVATYPE_ENUM:
       singular_type =
           name_resolver->GetClassName(descriptor->enum_type(), immutable);
-      vars["enum_map"] = singular_type + ".internalGetValueMap()";
+      vars["enum_map"] = y_absl::StrCat(singular_type, ".internalGetValueMap()");
       break;
     case JAVATYPE_STRING:
       singular_type = "java.lang.String";
@@ -103,20 +108,20 @@ void ExtensionGenerator::InitTemplateVars(
       singular_type = immutable ? "com.google.protobuf.ByteString" : "byte[]";
       break;
     default:
-      singular_type = BoxedPrimitiveTypeName(java_type);
+      singular_type = TProtoStringType(BoxedPrimitiveTypeName(java_type));
       break;
   }
   vars["type"] = descriptor->is_repeated()
-                     ? "java.util.List<" + singular_type + ">"
+                     ? y_absl::StrCat("java.util.List<", singular_type, ">")
                      : singular_type;
   vars["singular_type"] = singular_type;
 }
 
 void ImmutableExtensionGenerator::Generate(io::Printer* printer) {
-  std::map<TProtoStringType, TProtoStringType> vars;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> vars;
   const bool kUseImmutableNames = true;
   InitTemplateVars(descriptor_, scope_, kUseImmutableNames, name_resolver_,
-                   &vars);
+                   &vars, context_);
   printer->Print(vars, "public static final int $constant_name$ = $number$;\n");
 
   WriteFieldDocComment(printer, descriptor_);
@@ -156,7 +161,7 @@ int ImmutableExtensionGenerator::GenerateNonNestedInitializationCode(
     printer->Print(
         "$name$.internalInit(descriptor.getExtensions().get($index$));\n",
         "name", UnderscoresToCamelCaseCheckReserved(descriptor_), "index",
-        StrCat(descriptor_->index()));
+        y_absl::StrCat(descriptor_->index()));
     bytecode_estimate += 21;
   }
   return bytecode_estimate;
@@ -174,4 +179,4 @@ int ImmutableExtensionGenerator::GenerateRegistrationCode(
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

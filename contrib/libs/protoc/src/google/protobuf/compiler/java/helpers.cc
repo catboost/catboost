@@ -32,25 +32,31 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/java/helpers.h>
+#include "google/protobuf/compiler/java/helpers.h"
 
 #include <algorithm>
 #include <cstdint>
 #include <limits>
-#include <unordered_set>
 #include <vector>
 
-#include <google/protobuf/wire_format.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/stubs/stringprintf.h>
-#include <google/protobuf/stubs/substitute.h>
-#include <google/protobuf/compiler/java/name_resolver.h>
-#include <google/protobuf/compiler/java/names.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/stubs/hash.h>  // for hash<T *>
+#include "y_absl/container/flat_hash_set.h"
+#include "y_absl/log/absl_check.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/ascii.h"
+#include "y_absl/strings/escaping.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/str_format.h"
+#include "y_absl/strings/str_replace.h"
+#include "y_absl/strings/str_split.h"
+#include "y_absl/strings/string_view.h"
+#include "y_absl/strings/substitute.h"
+#include "google/protobuf/compiler/java/name_resolver.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/strtod.h"
+#include "google/protobuf/wire_format.h"
 
 // Must be last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -65,78 +71,9 @@ const char kThickSeparator[] =
 const char kThinSeparator[] =
     "// -------------------------------------------------------------------\n";
 
-namespace {
-
-const char* kDefaultPackage = "";
-
-// Names that should be avoided (in UpperCamelCase format).
-// Using them will cause the compiler to generate accessors whose names
-// collide with methods defined in base classes.
-// Keep this list in sync with specialFieldNames in
-// java/core/src/main/java/com/google/protobuf/DescriptorMessageInfoFactory.java
-const char* kForbiddenWordList[] = {
-    // java.lang.Object:
-    "Class",
-    // com.google.protobuf.MessageLiteOrBuilder:
-    "DefaultInstanceForType",
-    // com.google.protobuf.MessageLite:
-    "ParserForType",
-    "SerializedSize",
-    // com.google.protobuf.MessageOrBuilder:
-    "AllFields",
-    "DescriptorForType",
-    "InitializationErrorString",
-    "UnknownFields",
-    // obsolete. kept for backwards compatibility of generated code
-    "CachedSize",
-};
-
-const std::unordered_set<TProtoStringType>* kReservedNames =
-    new std::unordered_set<TProtoStringType>({
-        "abstract",   "assert",       "boolean",   "break",      "byte",
-        "case",       "catch",        "char",      "class",      "const",
-        "continue",   "default",      "do",        "double",     "else",
-        "enum",       "extends",      "final",     "finally",    "float",
-        "for",        "goto",         "if",        "implements", "import",
-        "instanceof", "int",          "interface", "long",       "native",
-        "new",        "package",      "private",   "protected",  "public",
-        "return",     "short",        "static",    "strictfp",   "super",
-        "switch",     "synchronized", "this",      "throw",      "throws",
-        "transient",  "try",          "void",      "volatile",   "while",
-    });
-
-bool IsForbidden(const TProtoStringType& field_name) {
-  for (int i = 0; i < GOOGLE_ARRAYSIZE(kForbiddenWordList); ++i) {
-    if (UnderscoresToCamelCase(field_name, true) == kForbiddenWordList[i]) {
-      return true;
-    }
-  }
-  return false;
-}
-
-TProtoStringType FieldName(const FieldDescriptor* field) {
-  TProtoStringType field_name;
-  // Groups are hacky:  The name of the field is just the lower-cased name
-  // of the group type.  In Java, though, we would like to retain the original
-  // capitalization of the type name.
-  if (GetType(field) == FieldDescriptor::TYPE_GROUP) {
-    field_name = field->message_type()->name();
-  } else {
-    field_name = field->name();
-  }
-  if (IsForbidden(field_name)) {
-    // Append a trailing "#" to indicate that the name should be decorated to
-    // avoid collision with other names.
-    field_name += "#";
-  }
-  return field_name;
-}
-
-
-}  // namespace
-
 void PrintGeneratedAnnotation(io::Printer* printer, char delimiter,
-                              const TProtoStringType& annotation_file) {
+                              y_absl::string_view annotation_file,
+                              Options options) {
   if (annotation_file.empty()) {
     return;
   }
@@ -149,14 +86,14 @@ void PrintGeneratedAnnotation(io::Printer* printer, char delimiter,
   printer->Print(ptemplate.c_str(), "annotation_file", annotation_file);
 }
 
-void PrintEnumVerifierLogic(io::Printer* printer,
-                            const FieldDescriptor* descriptor,
-                            const std::map<TProtoStringType, TProtoStringType>& variables,
-                            const char* var_name,
-                            const char* terminating_string, bool enforce_lite) {
+void PrintEnumVerifierLogic(
+    io::Printer* printer, const FieldDescriptor* descriptor,
+    const y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>& variables,
+    y_absl::string_view var_name, y_absl::string_view terminating_string,
+    bool enforce_lite) {
   TProtoStringType enum_verifier_string =
-      enforce_lite ? StrCat(var_name, ".internalGetVerifier()")
-                   : StrCat(
+      enforce_lite ? y_absl::StrCat(var_name, ".internalGetVerifier()")
+                   : y_absl::StrCat(
                          "new com.google.protobuf.Internal.EnumVerifier() {\n"
                          "        @java.lang.Override\n"
                          "        public boolean isInRange(int number) {\n"
@@ -165,14 +102,13 @@ void PrintEnumVerifierLogic(io::Printer* printer,
                          ".forNumber(number) != null;\n"
                          "        }\n"
                          "      }");
-  printer->Print(
-      variables,
-      StrCat(enum_verifier_string, terminating_string).c_str());
+  printer->Print(variables,
+                 y_absl::StrCat(enum_verifier_string, terminating_string));
 }
 
-TProtoStringType UnderscoresToCamelCase(const TProtoStringType& input,
+TProtoStringType UnderscoresToCamelCase(y_absl::string_view input,
                                    bool cap_next_letter) {
-  GOOGLE_CHECK(!input.empty());
+  Y_ABSL_CHECK(!input.empty());
   TProtoStringType result;
   // Note:  I distrust ctype.h due to locales.
   for (int i = 0; i < input.size(); i++) {
@@ -207,7 +143,7 @@ TProtoStringType UnderscoresToCamelCase(const TProtoStringType& input,
   return result;
 }
 
-TProtoStringType ToCamelCase(const TProtoStringType& input, bool lower_first) {
+TProtoStringType ToCamelCase(y_absl::string_view input, bool lower_first) {
   bool capitalize_next = !lower_first;
   TProtoStringType result;
   result.reserve(input.size());
@@ -216,7 +152,7 @@ TProtoStringType ToCamelCase(const TProtoStringType& input, bool lower_first) {
     if (i == '_') {
       capitalize_next = true;
     } else if (capitalize_next) {
-      result.push_back(ToUpperCh(i));
+      result.push_back(y_absl::ascii_toupper(i));
       capitalize_next = false;
     } else {
       result.push_back(i);
@@ -225,146 +161,83 @@ TProtoStringType ToCamelCase(const TProtoStringType& input, bool lower_first) {
 
   // Lower-case the first letter.
   if (lower_first && !result.empty()) {
-    result[0] = ToLowerCh(result[0]);
+    result[0] = y_absl::ascii_tolower(result[0]);
   }
 
   return result;
 }
 
-char ToUpperCh(char ch) {
-  return (ch >= 'a' && ch <= 'z') ? (ch - 'a' + 'A') : ch;
-}
-
-char ToLowerCh(char ch) {
-  return (ch >= 'A' && ch <= 'Z') ? (ch - 'A' + 'a') : ch;
-}
-
-TProtoStringType UnderscoresToCamelCase(const FieldDescriptor* field) {
-  return UnderscoresToCamelCase(FieldName(field), false);
-}
-
-TProtoStringType UnderscoresToCapitalizedCamelCase(const FieldDescriptor* field) {
-  return UnderscoresToCamelCase(FieldName(field), true);
-}
-
-TProtoStringType CapitalizedFieldName(const FieldDescriptor* field) {
-  return UnderscoresToCapitalizedCamelCase(field);
-}
-
-TProtoStringType UnderscoresToCamelCase(const MethodDescriptor* method) {
-  return UnderscoresToCamelCase(method->name(), false);
-}
-
-TProtoStringType UnderscoresToCamelCaseCheckReserved(const FieldDescriptor* field) {
-  TProtoStringType name = UnderscoresToCamelCase(field);
-  if (kReservedNames->find(name) != kReservedNames->end()) {
-    return name + "_";
-  }
-  return name;
-}
-
 // Names that should be avoided as field names in Kotlin.
 // All Kotlin hard keywords are in this list.
-const std::unordered_set<TProtoStringType>* kKotlinForbiddenNames =
-    new std::unordered_set<TProtoStringType>({
-        "as",    "as?",   "break", "class",  "continue",  "do",     "else",
-        "false", "for",   "fun",   "if",     "in",        "!in",    "interface",
-        "is",    "!is",   "null",  "object", "package",   "return", "super",
-        "this",  "throw", "true",  "try",    "typealias", "typeof", "val",
-        "var",   "when",  "while",
-    });
+bool IsForbiddenKotlin(y_absl::string_view field_name) {
+  static const auto& kKotlinForbiddenNames =
+      *new y_absl::flat_hash_set<y_absl::string_view>({
+          "as",      "as?",       "break",  "class", "continue", "do",
+          "else",    "false",     "for",    "fun",   "if",       "in",
+          "!in",     "interface", "is",     "!is",   "null",     "object",
+          "package", "return",    "super",  "this",  "throw",    "true",
+          "try",     "typealias", "typeof", "val",   "var",      "when",
+          "while",
+      });
 
-bool IsForbiddenKotlin(const TProtoStringType& field_name) {
-  return kKotlinForbiddenNames->find(field_name) !=
-         kKotlinForbiddenNames->end();
+  return kKotlinForbiddenNames.contains(field_name);
+}
+
+TProtoStringType EscapeKotlinKeywords(TProtoStringType name) {
+  std::vector<TProtoStringType> escaped_packages;
+  std::vector<TProtoStringType> packages = y_absl::StrSplit(name, ".");  // NOLINT
+  for (y_absl::string_view package : packages) {
+    if (IsForbiddenKotlin(package)) {
+      escaped_packages.push_back(y_absl::StrCat("`", package, "`"));
+    } else {
+      escaped_packages.emplace_back(package);
+    }
+  }
+  return y_absl::StrJoin(escaped_packages, ".");
 }
 
 TProtoStringType UniqueFileScopeIdentifier(const Descriptor* descriptor) {
-  return "static_" + StringReplace(descriptor->full_name(), ".", "_", true);
+  return y_absl::StrCat(
+      "static_", y_absl::StrReplaceAll(descriptor->full_name(), {{".", "_"}}));
 }
 
 TProtoStringType CamelCaseFieldName(const FieldDescriptor* field) {
   TProtoStringType fieldName = UnderscoresToCamelCase(field);
   if ('0' <= fieldName[0] && fieldName[0] <= '9') {
-    return '_' + fieldName;
+    return y_absl::StrCat("_", fieldName);
   }
   return fieldName;
 }
 
 TProtoStringType FileClassName(const FileDescriptor* file, bool immutable) {
-  ClassNameResolver name_resolver;
-  return name_resolver.GetFileClassName(file, immutable);
-}
-
-TProtoStringType FileJavaPackage(const FileDescriptor* file, bool immutable) {
-  TProtoStringType result;
-
-  if (file->options().has_java_package()) {
-    result = file->options().java_package();
-  } else {
-    result = kDefaultPackage;
-    if (!file->package().empty()) {
-      if (!result.empty()) result += '.';
-      result += file->package();
-    }
-  }
-
-  return result;
-}
-
-TProtoStringType FileJavaPackage(const FileDescriptor* file) {
-  return FileJavaPackage(file, true /* immutable */);
+  return ClassNameResolver().GetFileClassName(file, immutable);
 }
 
 TProtoStringType JavaPackageToDir(TProtoStringType package_name) {
-  TProtoStringType package_dir = StringReplace(package_name, ".", "/", true);
-  if (!package_dir.empty()) package_dir += "/";
+  TProtoStringType package_dir = y_absl::StrReplaceAll(package_name, {{".", "/"}});
+  if (!package_dir.empty()) y_absl::StrAppend(&package_dir, "/");
   return package_dir;
 }
 
-TProtoStringType ClassName(const Descriptor* descriptor) {
-  ClassNameResolver name_resolver;
-  return name_resolver.GetClassName(descriptor, true);
-}
-
-TProtoStringType ClassName(const EnumDescriptor* descriptor) {
-  ClassNameResolver name_resolver;
-  return name_resolver.GetClassName(descriptor, true);
-}
-
-TProtoStringType ClassName(const ServiceDescriptor* descriptor) {
-  ClassNameResolver name_resolver;
-  return name_resolver.GetClassName(descriptor, true);
-}
-
-TProtoStringType ClassName(const FileDescriptor* descriptor) {
-  ClassNameResolver name_resolver;
-  return name_resolver.GetClassName(descriptor, true);
-}
-
-
 TProtoStringType ExtraMessageInterfaces(const Descriptor* descriptor) {
-  TProtoStringType interfaces = "// @@protoc_insertion_point(message_implements:" +
-                           descriptor->full_name() + ")";
-  return interfaces;
+  return y_absl::StrCat("// @@protoc_insertion_point(message_implements:",
+                      descriptor->full_name(), ")");
 }
 
 
 TProtoStringType ExtraBuilderInterfaces(const Descriptor* descriptor) {
-  TProtoStringType interfaces = "// @@protoc_insertion_point(builder_implements:" +
-                           descriptor->full_name() + ")";
-  return interfaces;
+  return y_absl::StrCat("// @@protoc_insertion_point(builder_implements:",
+                      descriptor->full_name(), ")");
 }
 
 TProtoStringType ExtraMessageOrBuilderInterfaces(const Descriptor* descriptor) {
-  TProtoStringType interfaces = "// @@protoc_insertion_point(interface_extends:" +
-                           descriptor->full_name() + ")";
-  return interfaces;
+  return y_absl::StrCat("// @@protoc_insertion_point(interface_extends:",
+                      descriptor->full_name(), ")");
 }
 
 TProtoStringType FieldConstantName(const FieldDescriptor* field) {
-  TProtoStringType name = field->name() + "_FIELD_NUMBER";
-  ToUpper(&name);
+  TProtoStringType name = y_absl::StrCat(field->name(), "_FIELD_NUMBER");
+  y_absl::AsciiStrToUpper(&name);
   return name;
 }
 
@@ -414,11 +287,11 @@ JavaType GetJavaType(const FieldDescriptor* field) {
       // types are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return JAVATYPE_INT;
 }
 
-const char* PrimitiveTypeName(JavaType type) {
+y_absl::string_view PrimitiveTypeName(JavaType type) {
   switch (type) {
     case JAVATYPE_INT:
       return "int";
@@ -435,23 +308,23 @@ const char* PrimitiveTypeName(JavaType type) {
     case JAVATYPE_BYTES:
       return "com.google.protobuf.ByteString";
     case JAVATYPE_ENUM:
-      return NULL;
+      return {};
     case JAVATYPE_MESSAGE:
-      return NULL;
+      return {};
 
       // No default because we want the compiler to complain if any new
       // JavaTypes are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
-  return NULL;
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
+  return {};
 }
 
-const char* PrimitiveTypeName(const FieldDescriptor* descriptor) {
+y_absl::string_view PrimitiveTypeName(const FieldDescriptor* descriptor) {
   return PrimitiveTypeName(GetJavaType(descriptor));
 }
 
-const char* BoxedPrimitiveTypeName(JavaType type) {
+y_absl::string_view BoxedPrimitiveTypeName(JavaType type) {
   switch (type) {
     case JAVATYPE_INT:
       return "java.lang.Integer";
@@ -468,23 +341,23 @@ const char* BoxedPrimitiveTypeName(JavaType type) {
     case JAVATYPE_BYTES:
       return "com.google.protobuf.ByteString";
     case JAVATYPE_ENUM:
-      return NULL;
+      return {};
     case JAVATYPE_MESSAGE:
-      return NULL;
+      return {};
 
       // No default because we want the compiler to complain if any new
       // JavaTypes are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
-  return NULL;
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
+  return {};
 }
 
-const char* BoxedPrimitiveTypeName(const FieldDescriptor* descriptor) {
+y_absl::string_view BoxedPrimitiveTypeName(const FieldDescriptor* descriptor) {
   return BoxedPrimitiveTypeName(GetJavaType(descriptor));
 }
 
-const char* KotlinTypeName(JavaType type) {
+y_absl::string_view KotlinTypeName(JavaType type) {
   switch (type) {
     case JAVATYPE_INT:
       return "kotlin.Int";
@@ -501,16 +374,16 @@ const char* KotlinTypeName(JavaType type) {
     case JAVATYPE_BYTES:
       return "com.google.protobuf.ByteString";
     case JAVATYPE_ENUM:
-      return NULL;
+      return {};
     case JAVATYPE_MESSAGE:
-      return NULL;
+      return {};
 
       // No default because we want the compiler to complain if any new
       // JavaTypes are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
-  return NULL;
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
+  return {};
 }
 
 TProtoStringType GetOneofStoredType(const FieldDescriptor* field) {
@@ -519,13 +392,13 @@ TProtoStringType GetOneofStoredType(const FieldDescriptor* field) {
     case JAVATYPE_ENUM:
       return "java.lang.Integer";
     case JAVATYPE_MESSAGE:
-      return ClassName(field->message_type());
+      return ClassNameResolver().GetClassName(field->message_type(), true);
     default:
-      return BoxedPrimitiveTypeName(javaType);
+      return TProtoStringType(BoxedPrimitiveTypeName(javaType));
   }
 }
 
-const char* FieldTypeName(FieldDescriptor::Type field_type) {
+y_absl::string_view FieldTypeName(FieldDescriptor::Type field_type) {
   switch (field_type) {
     case FieldDescriptor::TYPE_INT32:
       return "INT32";
@@ -568,11 +441,11 @@ const char* FieldTypeName(FieldDescriptor::Type field_type) {
       // types are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
-  return NULL;
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
+  return {};
 }
 
-bool AllAscii(const TProtoStringType& text) {
+bool AllAscii(y_absl::string_view text) {
   for (int i = 0; i < text.size(); i++) {
     if ((text[i] & 0x80) != 0) {
       return false;
@@ -582,19 +455,19 @@ bool AllAscii(const TProtoStringType& text) {
 }
 
 TProtoStringType DefaultValue(const FieldDescriptor* field, bool immutable,
-                         ClassNameResolver* name_resolver) {
+                         ClassNameResolver* name_resolver, Options options) {
   // Switch on CppType since we need to know which default_value_* method
   // of FieldDescriptor to call.
   switch (field->cpp_type()) {
     case FieldDescriptor::CPPTYPE_INT32:
-      return StrCat(field->default_value_int32());
+      return y_absl::StrCat(field->default_value_int32());
     case FieldDescriptor::CPPTYPE_UINT32:
       // Need to print as a signed int since Java has no unsigned.
-      return StrCat(static_cast<arc_i32>(field->default_value_uint32()));
+      return y_absl::StrCat(static_cast<arc_i32>(field->default_value_uint32()));
     case FieldDescriptor::CPPTYPE_INT64:
-      return StrCat(field->default_value_int64()) + "L";
+      return y_absl::StrCat(field->default_value_int64(), "L");
     case FieldDescriptor::CPPTYPE_UINT64:
-      return StrCat(static_cast<arc_i64>(field->default_value_uint64())) +
+      return y_absl::StrCat(static_cast<arc_i64>(field->default_value_uint64())) +
              "L";
     case FieldDescriptor::CPPTYPE_DOUBLE: {
       double value = field->default_value_double();
@@ -605,7 +478,7 @@ TProtoStringType DefaultValue(const FieldDescriptor* field, bool immutable,
       } else if (value != value) {
         return "Double.NaN";
       } else {
-        return SimpleDtoa(value) + "D";
+        return y_absl::StrCat(io::SimpleDtoa(value), "D");
       }
     }
     case FieldDescriptor::CPPTYPE_FLOAT: {
@@ -617,7 +490,7 @@ TProtoStringType DefaultValue(const FieldDescriptor* field, bool immutable,
       } else if (value != value) {
         return "Float.NaN";
       } else {
-        return SimpleFtoa(value) + "F";
+        return y_absl::StrCat(io::SimpleFtoa(value), "F");
       }
     }
     case FieldDescriptor::CPPTYPE_BOOL:
@@ -626,37 +499,40 @@ TProtoStringType DefaultValue(const FieldDescriptor* field, bool immutable,
       if (GetType(field) == FieldDescriptor::TYPE_BYTES) {
         if (field->has_default_value()) {
           // See comments in Internal.java for gory details.
-          return strings::Substitute(
+          return y_absl::Substitute(
               "com.google.protobuf.Internal.bytesDefaultValue(\"$0\")",
-              CEscape(field->default_value_string()));
+              y_absl::CEscape(field->default_value_string()));
         } else {
           return "com.google.protobuf.ByteString.EMPTY";
         }
       } else {
         if (AllAscii(field->default_value_string())) {
           // All chars are ASCII.  In this case CEscape() works fine.
-          return "\"" + CEscape(field->default_value_string()) + "\"";
+          return y_absl::StrCat(
+              "\"", y_absl::CEscape(field->default_value_string()), "\"");
         } else {
           // See comments in Internal.java for gory details.
-          return strings::Substitute(
+          return y_absl::Substitute(
               "com.google.protobuf.Internal.stringDefaultValue(\"$0\")",
-              CEscape(field->default_value_string()));
+              y_absl::CEscape(field->default_value_string()));
         }
       }
 
     case FieldDescriptor::CPPTYPE_ENUM:
-      return name_resolver->GetClassName(field->enum_type(), immutable) + "." +
-             field->default_value_enum()->name();
+      return y_absl::StrCat(
+          name_resolver->GetClassName(field->enum_type(), immutable), ".",
+          field->default_value_enum()->name());
 
     case FieldDescriptor::CPPTYPE_MESSAGE:
-      return name_resolver->GetClassName(field->message_type(), immutable) +
-             ".getDefaultInstance()";
+      return y_absl::StrCat(
+          name_resolver->GetClassName(field->message_type(), immutable),
+          ".getDefaultInstance()");
 
       // No default because we want the compiler to complain if any new
       // types are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return "";
 }
 
@@ -688,7 +564,7 @@ bool IsDefaultValueJavaDefault(const FieldDescriptor* field) {
       // types are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return false;
 }
 
@@ -697,7 +573,7 @@ bool IsByteStringWithCustomDefaultValue(const FieldDescriptor* field) {
          field->default_value_string() != "";
 }
 
-const char* bit_masks[] = {
+constexpr y_absl::string_view bit_masks[] = {
     "0x00000001", "0x00000002", "0x00000004", "0x00000008",
     "0x00000010", "0x00000020", "0x00000040", "0x00000080",
 
@@ -712,10 +588,7 @@ const char* bit_masks[] = {
 };
 
 TProtoStringType GetBitFieldName(int index) {
-  TProtoStringType varName = "bitField";
-  varName += StrCat(index);
-  varName += "_";
-  return varName;
+  return y_absl::StrCat("bitField", index, "_");
 }
 
 TProtoStringType GetBitFieldNameForBit(int bitIndex) {
@@ -724,22 +597,19 @@ TProtoStringType GetBitFieldNameForBit(int bitIndex) {
 
 namespace {
 
-TProtoStringType GenerateGetBitInternal(const TProtoStringType& prefix, int bitIndex) {
-  TProtoStringType varName = prefix + GetBitFieldNameForBit(bitIndex);
+TProtoStringType GenerateGetBitInternal(y_absl::string_view prefix, int bitIndex) {
+  TProtoStringType varName = y_absl::StrCat(prefix, GetBitFieldNameForBit(bitIndex));
   int bitInVarIndex = bitIndex % 32;
 
-  TProtoStringType mask = bit_masks[bitInVarIndex];
-  TProtoStringType result = "((" + varName + " & " + mask + ") != 0)";
-  return result;
+  return y_absl::StrCat("((", varName, " & ", bit_masks[bitInVarIndex],
+                      ") != 0)");
 }
 
-TProtoStringType GenerateSetBitInternal(const TProtoStringType& prefix, int bitIndex) {
-  TProtoStringType varName = prefix + GetBitFieldNameForBit(bitIndex);
+TProtoStringType GenerateSetBitInternal(y_absl::string_view prefix, int bitIndex) {
+  TProtoStringType varName = y_absl::StrCat(prefix, GetBitFieldNameForBit(bitIndex));
   int bitInVarIndex = bitIndex % 32;
 
-  TProtoStringType mask = bit_masks[bitInVarIndex];
-  TProtoStringType result = varName + " |= " + mask;
-  return result;
+  return y_absl::StrCat(varName, " |= ", bit_masks[bitInVarIndex]);
 }
 
 }  // namespace
@@ -756,9 +626,8 @@ TProtoStringType GenerateClearBit(int bitIndex) {
   TProtoStringType varName = GetBitFieldNameForBit(bitIndex);
   int bitInVarIndex = bitIndex % 32;
 
-  TProtoStringType mask = bit_masks[bitInVarIndex];
-  TProtoStringType result = varName + " = (" + varName + " & ~" + mask + ")";
-  return result;
+  return y_absl::StrCat(varName, " = (", varName, " & ~",
+                      bit_masks[bitInVarIndex], ")");
 }
 
 TProtoStringType GenerateGetBitFromLocal(int bitIndex) {
@@ -802,11 +671,12 @@ bool IsReferenceType(JavaType type) {
       // JavaTypes are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return false;
 }
 
-const char* GetCapitalizedType(const FieldDescriptor* field, bool immutable) {
+y_absl::string_view GetCapitalizedType(const FieldDescriptor* field,
+                                     bool immutable, Options options) {
   switch (GetType(field)) {
     case FieldDescriptor::TYPE_INT32:
       return "Int32";
@@ -850,8 +720,8 @@ const char* GetCapitalizedType(const FieldDescriptor* field, bool immutable) {
       // types are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
-  return NULL;
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
+  return {};
 }
 
 // For encodings with fixed sizes, returns that size in bytes.  Otherwise
@@ -900,7 +770,7 @@ int FixedSize(FieldDescriptor::Type type) {
       // No default because we want the compiler to complain if any new
       // types are added.
   }
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return -1;
 }
 
@@ -923,7 +793,7 @@ const FieldDescriptor** SortFieldsByNumber(const Descriptor* descriptor) {
 // already_seen is used to avoid checking the same type multiple times
 // (and also to protect against recursion).
 bool HasRequiredFields(const Descriptor* type,
-                       std::unordered_set<const Descriptor*>* already_seen) {
+                       y_absl::flat_hash_set<const Descriptor*>* already_seen) {
   if (already_seen->count(type) > 0) {
     // The type is already in cache.  This means that either:
     // a. The type has no required fields.
@@ -958,7 +828,7 @@ bool HasRequiredFields(const Descriptor* type,
 }
 
 bool HasRequiredFields(const Descriptor* type) {
-  std::unordered_set<const Descriptor*> already_seen;
+  y_absl::flat_hash_set<const Descriptor*> already_seen;
   return HasRequiredFields(type, &already_seen);
 }
 
@@ -1036,7 +906,7 @@ int GetExperimentalJavaFieldTypeForPacked(const FieldDescriptor* field) {
   } else if (result > FieldDescriptor::TYPE_BYTES) {
     return result + 30;
   } else {
-    GOOGLE_LOG(FATAL) << field->full_name() << " can't be packed.";
+    Y_ABSL_LOG(FATAL) << field->full_name() << " can't be packed.";
     return 0;
   }
 }
@@ -1103,7 +973,7 @@ void EscapeUtf16ToString(uint16_t code, TProtoStringType* output) {
   } else if (code >= 0x20 && code <= 0x7f) {
     output->push_back(static_cast<char>(code));
   } else {
-    output->append(StringPrintf("\\u%04x", code));
+    output->append(y_absl::StrFormat("\\u%04x", code));
   }
 }
 
@@ -1112,4 +982,4 @@ void EscapeUtf16ToString(uint16_t code, TProtoStringType* output) {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

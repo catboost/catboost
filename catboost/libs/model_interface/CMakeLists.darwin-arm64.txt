@@ -32,6 +32,8 @@ target_link_options(catboostmodel PRIVATE
   -undefined
   dynamic_lookup
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 target_sources(catboostmodel PRIVATE

@@ -32,35 +32,45 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/cpp/helpers.h>
+#include "google/protobuf/compiler/cpp/helpers.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <limits>
-#include <map>
 #include <memory>
 #include <queue>
-#include <unordered_set>
+#include <string>
+#include <utility>
 #include <vector>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/compiler/cpp/names.h>
-#include <google/protobuf/compiler/cpp/options.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/compiler/scc.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/dynamic_message.h>
-#include <google/protobuf/wire_format.h>
-#include <google/protobuf/wire_format_lite.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/stubs/substitute.h>
-#include <google/protobuf/stubs/hash.h>
+#include "google/protobuf/stubs/common.h"
+#include "google/protobuf/compiler/scc.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/dynamic_message.h"
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/container/flat_hash_set.h"
+#include "y_absl/log/absl_check.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/ascii.h"
+#include "y_absl/strings/escaping.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/str_replace.h"
+#include "y_absl/strings/string_view.h"
+#include "y_absl/strings/strip.h"
+#include "y_absl/strings/substitute.h"
+#include "y_absl/synchronization/mutex.h"
+#include "google/protobuf/compiler/cpp/names.h"
+#include "google/protobuf/compiler/cpp/options.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/io/strtod.h"
+#include "google/protobuf/wire_format.h"
+#include "google/protobuf/wire_format_lite.h"
+
 
 // Must be last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -72,11 +82,12 @@ namespace {
 static const char kAnyMessageName[] = "Any";
 static const char kAnyProtoFile[] = "google/protobuf/any.proto";
 
-TProtoStringType DotsToColons(const TProtoStringType& name) {
-  return StringReplace(name, ".", "::", true);
+TProtoStringType DotsToColons(y_absl::string_view name) {
+  return y_absl::StrReplaceAll(name, {{".", "::"}});
 }
 
-static const char* const kKeywordList[] = {  //
+static const char* const kKeywordList[] = {
+    //
     "NULL",
     "alignas",
     "alignof",
@@ -163,48 +174,36 @@ static const char* const kKeywordList[] = {  //
     "wchar_t",
     "while",
     "xor",
-    "xor_eq"};
-
-static std::unordered_set<TProtoStringType>* MakeKeywordsMap() {
-  auto* result = new std::unordered_set<TProtoStringType>();
-  for (const auto keyword : kKeywordList) {
-    result->emplace(keyword);
-  }
-  return result;
-}
-
-static std::unordered_set<TProtoStringType>& kKeywords = *MakeKeywordsMap();
-
-TProtoStringType IntTypeName(const Options& options, const TProtoStringType& type) {
-  return "::NProtoBuf::" + type;
-}
-
-void SetIntVar(const Options& options, const TProtoStringType& type,
-               std::map<TProtoStringType, TProtoStringType>* variables) {
-  (*variables)[type] = IntTypeName(options, type);
-}
-
-// Returns true if the message can potentially allocate memory for its field.
-// This is used to determine if message-owned arena will be useful.
-bool AllocExpected(const Descriptor* descriptor) {
-  return false;
-}
-
-// Describes different approaches to detect non-canonical int32 encoding. Only
-// kNever or kAlways is eligible for *simple* verification methods.
-enum class VerifyInt32Type {
-  kCustom,  // Only check if field number matches.
-  kNever,   // Do not check.
-  kAlways,  // Always check.
+    "xor_eq",
+    "char8_t",
+    "char16_t",
+    "char32_t",
+    "concept",
+    "consteval",
+    "constinit",
+    "co_await",
+    "co_return",
+    "co_yield",
+    "requires",
 };
 
-inline VerifySimpleType VerifyInt32TypeToVerifyCustom(VerifyInt32Type t) {
-  static VerifySimpleType kCustomTypes[] = {
-      VerifySimpleType::kCustom, VerifySimpleType::kCustomInt32Never,
-      VerifySimpleType::kCustomInt32Always};
-  return kCustomTypes[static_cast<arc_i32>(t) -
-                      static_cast<arc_i32>(VerifyInt32Type::kCustom)];
+const y_absl::flat_hash_set<y_absl::string_view>& Keywords() {
+  static const auto* keywords = [] {
+    auto* keywords = new y_absl::flat_hash_set<y_absl::string_view>();
+
+    for (const auto keyword : kKeywordList) {
+      keywords->emplace(keyword);
+    }
+    return keywords;
+  }();
+  return *keywords;
 }
+
+TProtoStringType IntTypeName(const Options& options, y_absl::string_view type) {
+  return y_absl::StrCat("::NProtoBuf::", type);
+}
+
+
 
 }  // namespace
 
@@ -232,86 +231,69 @@ bool IsLazilyVerifiedLazy(const FieldDescriptor* field,
   return false;
 }
 
-void SetCommonVars(const Options& options,
-                   std::map<TProtoStringType, TProtoStringType>* variables) {
-  (*variables)["proto_ns"] = ProtobufNamespace(options);
-
-  // Warning: there is some clever naming/splitting here to avoid extract script
-  // rewrites.  The names of these variables must not be things that the extract
-  // script will rewrite.  That's why we use "CHK" (for example) instead of
-  // "GOOGLE_CHECK".
-  if (options.opensource_runtime) {
-    (*variables)["GOOGLE_PROTOBUF"] = "GOOGLE_PROTOBUF";
-    (*variables)["CHK"] = "GOOGLE_CHECK";
-    (*variables)["DCHK"] = "GOOGLE_DCHECK";
-  } else {
-    // These values are things the extract script would rewrite if we did not
-    // split them.  It might not strictly matter since we don't generate google3
-    // code in open-source.  But it's good to prevent surprising things from
-    // happening.
-    (*variables)["GOOGLE_PROTOBUF"] =
-        "GOOGLE3"
-        "_PROTOBUF";
-    (*variables)["CHK"] =
-        "CH"
-        "ECK";
-    (*variables)["DCHK"] =
-        "DCH"
-        "ECK";
-  }
-
-  SetIntVar(options, "int8", variables);
-  SetIntVar(options, "uint8", variables);
-  SetIntVar(options, "uint32", variables);
-  SetIntVar(options, "uint64", variables);
-  SetIntVar(options, "int32", variables);
-  SetIntVar(options, "int64", variables);
-  (*variables)["string"] = "TProtoStringType";
+y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> MessageVars(
+    const Descriptor* desc) {
+  y_absl::string_view prefix = IsMapEntryMessage(desc) ? "" : "_impl_.";
+  return {
+      {"any_metadata", y_absl::StrCat(prefix, "_any_metadata_")},
+      {"cached_size", y_absl::StrCat(prefix, "_cached_size_")},
+      {"extensions", y_absl::StrCat(prefix, "_extensions_")},
+      {"has_bits", y_absl::StrCat(prefix, "_has_bits_")},
+      {"inlined_string_donated_array",
+       y_absl::StrCat(prefix, "_inlined_string_donated_")},
+      {"oneof_case", y_absl::StrCat(prefix, "_oneof_case_")},
+      {"tracker", "Impl_::_tracker_"},
+      {"weak_field_map", y_absl::StrCat(prefix, "_weak_field_map_")},
+      {"split", y_absl::StrCat(prefix, "_split_")},
+      {"cached_split_ptr", "cached_split_ptr"},
+  };
 }
 
 void SetCommonMessageDataVariables(
     const Descriptor* descriptor,
-    std::map<TProtoStringType, TProtoStringType>* variables) {
-  TProtoStringType prefix = IsMapEntryMessage(descriptor) ? "" : "_impl_.";
-  (*variables)["any_metadata"] = prefix + "_any_metadata_";
-  (*variables)["cached_size"] = prefix + "_cached_size_";
-  (*variables)["extensions"] = prefix + "_extensions_";
-  (*variables)["has_bits"] = prefix + "_has_bits_";
-  (*variables)["inlined_string_donated_array"] =
-      prefix + "_inlined_string_donated_";
-  (*variables)["oneof_case"] = prefix + "_oneof_case_";
-  (*variables)["tracker"] = "Impl_::_tracker_";
-  (*variables)["weak_field_map"] = prefix + "_weak_field_map_";
-  (*variables)["split"] = prefix + "_split_";
-  (*variables)["cached_split_ptr"] = "cached_split_ptr";
+    y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* variables) {
+  for (auto& pair : MessageVars(descriptor)) {
+    variables->emplace(pair);
+  }
 }
 
-void SetUnknownFieldsVariable(const Descriptor* descriptor,
-                              const Options& options,
-                              std::map<TProtoStringType, TProtoStringType>* variables) {
-  TProtoStringType proto_ns = ProtobufNamespace(options);
+y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> UnknownFieldsVars(
+    const Descriptor* desc, const Options& opts) {
+  TProtoStringType proto_ns = ProtobufNamespace(opts);
+
   TProtoStringType unknown_fields_type;
-  if (UseUnknownFieldSet(descriptor->file(), options)) {
-    unknown_fields_type = "::" + proto_ns + "::UnknownFieldSet";
-    (*variables)["unknown_fields"] =
-        "_internal_metadata_.unknown_fields<" + unknown_fields_type + ">(" +
-        unknown_fields_type + "::default_instance)";
+  TProtoStringType default_instance;
+  if (UseUnknownFieldSet(desc->file(), opts)) {
+    unknown_fields_type = y_absl::StrCat("::", proto_ns, "::UnknownFieldSet");
+    default_instance = y_absl::StrCat(unknown_fields_type, "::default_instance");
   } else {
     unknown_fields_type =
-        PrimitiveTypeName(options, FieldDescriptor::CPPTYPE_STRING);
-    (*variables)["unknown_fields"] = "_internal_metadata_.unknown_fields<" +
-                                     unknown_fields_type + ">(::" + proto_ns +
-                                     "::internal::GetEmptyString)";
+        PrimitiveTypeName(opts, FieldDescriptor::CPPTYPE_STRING);
+    default_instance =
+        y_absl::StrCat("::", proto_ns, "::internal::GetEmptyString");
   }
-  (*variables)["unknown_fields_type"] = unknown_fields_type;
-  (*variables)["have_unknown_fields"] =
-      "_internal_metadata_.have_unknown_fields()";
-  (*variables)["mutable_unknown_fields"] =
-      "_internal_metadata_.mutable_unknown_fields<" + unknown_fields_type +
-      ">()";
+
+  return {
+      {"unknown_fields",
+       y_absl::Substitute("_internal_metadata_.unknown_fields<$0>($1)",
+                        unknown_fields_type, default_instance)},
+      {"unknown_fields_type", unknown_fields_type},
+      {"have_unknown_fields", "_internal_metadata_.have_unknown_fields()"},
+      {"mutable_unknown_fields",
+       y_absl::Substitute("_internal_metadata_.mutable_unknown_fields<$0>()",
+                        unknown_fields_type)},
+  };
 }
 
-TProtoStringType UnderscoresToCamelCase(const TProtoStringType& input,
+void SetUnknownFieldsVariable(
+    const Descriptor* descriptor, const Options& options,
+    y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* variables) {
+  for (auto& pair : UnknownFieldsVars(descriptor, options)) {
+    variables->emplace(pair);
+  }
+}
+
+TProtoStringType UnderscoresToCamelCase(y_absl::string_view input,
                                    bool cap_next_letter) {
   TProtoStringType result;
   // Note:  I distrust ctype.h due to locales.
@@ -342,7 +324,37 @@ const char kThickSeparator[] =
 const char kThinSeparator[] =
     "// -------------------------------------------------------------------\n";
 
-bool CanInitializeByZeroing(const FieldDescriptor* field) {
+bool CanInitializeByZeroing(const FieldDescriptor* field,
+                            const Options& options,
+                            MessageSCCAnalyzer* scc_analyzer) {
+  if (field->is_repeated() || field->is_extension()) return false;
+  switch (field->cpp_type()) {
+    case FieldDescriptor::CPPTYPE_ENUM:
+      return field->default_value_enum()->number() == 0;
+    case FieldDescriptor::CPPTYPE_INT32:
+      return field->default_value_int32() == 0;
+    case FieldDescriptor::CPPTYPE_INT64:
+      return field->default_value_int64() == 0;
+    case FieldDescriptor::CPPTYPE_UINT32:
+      return field->default_value_uint32() == 0;
+    case FieldDescriptor::CPPTYPE_UINT64:
+      return field->default_value_uint64() == 0;
+    case FieldDescriptor::CPPTYPE_FLOAT:
+      return field->default_value_float() == 0;
+    case FieldDescriptor::CPPTYPE_DOUBLE:
+      return field->default_value_double() == 0;
+    case FieldDescriptor::CPPTYPE_BOOL:
+      return field->default_value_bool() == false;
+    case FieldDescriptor::CPPTYPE_MESSAGE:
+      // Non-repeated, non-lazy message fields are raw pointers initialized to
+      // null.
+      return !IsLazy(field, options, scc_analyzer);
+    default:
+      return false;
+  }
+}
+
+bool CanClearByZeroing(const FieldDescriptor* field) {
   if (field->is_repeated() || field->is_extension()) return false;
   switch (field->cpp_type()) {
     case FieldDescriptor::CPPTYPE_ENUM:
@@ -366,12 +378,35 @@ bool CanInitializeByZeroing(const FieldDescriptor* field) {
   }
 }
 
+// Determines if swap can be implemented via memcpy.
+bool HasTrivialSwap(const FieldDescriptor* field, const Options& options,
+                    MessageSCCAnalyzer* scc_analyzer) {
+  if (field->is_repeated() || field->is_extension()) return false;
+  switch (field->cpp_type()) {
+    case FieldDescriptor::CPPTYPE_ENUM:
+    case FieldDescriptor::CPPTYPE_INT32:
+    case FieldDescriptor::CPPTYPE_INT64:
+    case FieldDescriptor::CPPTYPE_UINT32:
+    case FieldDescriptor::CPPTYPE_UINT64:
+    case FieldDescriptor::CPPTYPE_FLOAT:
+    case FieldDescriptor::CPPTYPE_DOUBLE:
+    case FieldDescriptor::CPPTYPE_BOOL:
+      return true;
+    case FieldDescriptor::CPPTYPE_MESSAGE:
+      // Non-repeated, non-lazy message fields are simply raw pointers, so we
+      // can swap them with memcpy.
+      return !IsLazy(field, options, scc_analyzer);
+    default:
+      return false;
+  }
+}
+
 TProtoStringType ClassName(const Descriptor* descriptor) {
   const Descriptor* parent = descriptor->containing_type();
   TProtoStringType res;
-  if (parent) res += ClassName(parent) + "_";
-  res += descriptor->name();
-  if (IsMapEntryMessage(descriptor)) res += "_DoNotUse";
+  if (parent) y_absl::StrAppend(&res, ClassName(parent), "_");
+  y_absl::StrAppend(&res, descriptor->name());
+  if (IsMapEntryMessage(descriptor)) y_absl::StrAppend(&res, "_DoNotUse");
   return ResolveKeyword(res);
 }
 
@@ -379,8 +414,8 @@ TProtoStringType ClassName(const EnumDescriptor* enum_descriptor) {
   if (enum_descriptor->containing_type() == nullptr) {
     return ResolveKeyword(enum_descriptor->name());
   } else {
-    return ClassName(enum_descriptor->containing_type()) + "_" +
-           enum_descriptor->name();
+    return y_absl::StrCat(ClassName(enum_descriptor->containing_type()), "_",
+                        enum_descriptor->name());
   }
 }
 
@@ -403,13 +438,13 @@ TProtoStringType QualifiedClassName(const EnumDescriptor* d) {
 
 TProtoStringType ExtensionName(const FieldDescriptor* d) {
   if (const Descriptor* scope = d->extension_scope())
-    return StrCat(ClassName(scope), "::", ResolveKeyword(d->name()));
+    return y_absl::StrCat(ClassName(scope), "::", ResolveKeyword(d->name()));
   return ResolveKeyword(d->name());
 }
 
 TProtoStringType QualifiedExtensionName(const FieldDescriptor* d,
                                    const Options& options) {
-  GOOGLE_DCHECK(d->is_extension());
+  Y_ABSL_DCHECK(d->is_extension());
   return QualifiedFileLevelSymbol(d->file(), ExtensionName(d), options);
 }
 
@@ -417,32 +452,38 @@ TProtoStringType QualifiedExtensionName(const FieldDescriptor* d) {
   return QualifiedExtensionName(d, Options());
 }
 
-TProtoStringType Namespace(const TProtoStringType& package) {
+TProtoStringType Namespace(y_absl::string_view package) {
   if (package.empty()) return "";
-  return "::" + DotsToColons(package);
+  return y_absl::StrCat("::", DotsToColons(package));
 }
 
+TProtoStringType Namespace(const FileDescriptor* d) { return Namespace(d, {}); }
 TProtoStringType Namespace(const FileDescriptor* d, const Options& options) {
-  TProtoStringType ret = Namespace(d->package());
+  TProtoStringType ns = Namespace(d->package());
   if (IsWellKnownMessage(d) && options.opensource_runtime) {
     // Written with string concatenation to prevent rewriting of
     // ::google::protobuf.
-    ret = StringReplace(ret,
-                        "::google::"
-                        "protobuf",
-                        "::PROTOBUF_NAMESPACE_ID", false);
+    constexpr y_absl::string_view prefix =
+        "::google::"  // prevent clang-format reflowing
+        "protobuf";
+    y_absl::string_view new_ns(ns);
+    y_absl::ConsumePrefix(&new_ns, prefix);
+    return y_absl::StrCat("::PROTOBUF_NAMESPACE_ID", new_ns);
   }
-  return ret;
+  return ns;
 }
 
+TProtoStringType Namespace(const Descriptor* d) { return Namespace(d, {}); }
 TProtoStringType Namespace(const Descriptor* d, const Options& options) {
   return Namespace(d->file(), options);
 }
 
+TProtoStringType Namespace(const FieldDescriptor* d) { return Namespace(d, {}); }
 TProtoStringType Namespace(const FieldDescriptor* d, const Options& options) {
   return Namespace(d->file(), options);
 }
 
+TProtoStringType Namespace(const EnumDescriptor* d) { return Namespace(d, {}); }
 TProtoStringType Namespace(const EnumDescriptor* d, const Options& options) {
   return Namespace(d->file(), options);
 }
@@ -455,13 +496,13 @@ TProtoStringType DefaultInstanceType(const Descriptor* descriptor,
 
 TProtoStringType DefaultInstanceName(const Descriptor* descriptor,
                                 const Options& /*options*/, bool split) {
-  return "_" + ClassName(descriptor, false) + (split ? "__Impl_Split" : "") +
-         "_default_instance_";
+  return y_absl::StrCat("_", ClassName(descriptor, false),
+                      (split ? "__Impl_Split" : ""), "_default_instance_");
 }
 
 TProtoStringType DefaultInstancePtr(const Descriptor* descriptor,
                                const Options& options, bool split) {
-  return DefaultInstanceName(descriptor, options, split) + "ptr_";
+  return y_absl::StrCat(DefaultInstanceName(descriptor, options, split), "ptr_");
 }
 
 TProtoStringType QualifiedDefaultInstanceName(const Descriptor* descriptor,
@@ -473,7 +514,8 @@ TProtoStringType QualifiedDefaultInstanceName(const Descriptor* descriptor,
 
 TProtoStringType QualifiedDefaultInstancePtr(const Descriptor* descriptor,
                                         const Options& options, bool split) {
-  return QualifiedDefaultInstanceName(descriptor, options, split) + "ptr_";
+  return y_absl::StrCat(QualifiedDefaultInstanceName(descriptor, options, split),
+                      "ptr_");
 }
 
 TProtoStringType DescriptorTableName(const FileDescriptor* file,
@@ -488,60 +530,61 @@ TProtoStringType FileDllExport(const FileDescriptor* file, const Options& option
 TProtoStringType SuperClassName(const Descriptor* descriptor,
                            const Options& options) {
   if (!HasDescriptorMethods(descriptor->file(), options)) {
-    return "::" + ProtobufNamespace(options) + "::MessageLite";
+    return y_absl::StrCat("::", ProtobufNamespace(options), "::MessageLite");
   }
   auto simple_base = SimpleBaseClass(descriptor, options);
   if (simple_base.empty()) {
-    return "::" + ProtobufNamespace(options) + "::Message";
+    return y_absl::StrCat("::", ProtobufNamespace(options), "::Message");
   }
-  return "::" + ProtobufNamespace(options) + "::internal::" + simple_base;
+  return y_absl::StrCat("::", ProtobufNamespace(options),
+                      "::internal::", simple_base);
 }
 
-TProtoStringType ResolveKeyword(const TProtoStringType& name) {
-  if (kKeywords.count(name) > 0) {
-    return name + "_";
+TProtoStringType ResolveKeyword(y_absl::string_view name) {
+  if (Keywords().count(name) > 0) {
+    return y_absl::StrCat(name, "_");
   }
-  return name;
+  return TProtoStringType(name);
 }
 
 TProtoStringType FieldName(const FieldDescriptor* field) {
   TProtoStringType result = field->name();
-  LowerString(&result);
-  if (kKeywords.count(result) > 0) {
+  y_absl::AsciiStrToLower(&result);
+  if (Keywords().count(result) > 0) {
     result.append("_");
   }
   return result;
 }
 
 TProtoStringType FieldMemberName(const FieldDescriptor* field, bool split) {
-  StringPiece prefix =
+  y_absl::string_view prefix =
       IsMapEntryMessage(field->containing_type()) ? "" : "_impl_.";
-  StringPiece split_prefix = split ? "_split_->" : "";
+  y_absl::string_view split_prefix = split ? "_split_->" : "";
   if (field->real_containing_oneof() == nullptr) {
-    return StrCat(prefix, split_prefix, FieldName(field), "_");
+    return y_absl::StrCat(prefix, split_prefix, FieldName(field), "_");
   }
   // Oneof fields are never split.
-  GOOGLE_CHECK(!split);
-  return StrCat(prefix, field->containing_oneof()->name(), "_.",
+  Y_ABSL_CHECK(!split);
+  return y_absl::StrCat(prefix, field->containing_oneof()->name(), "_.",
                       FieldName(field), "_");
 }
 
 TProtoStringType OneofCaseConstantName(const FieldDescriptor* field) {
-  GOOGLE_DCHECK(field->containing_oneof());
+  Y_ABSL_DCHECK(field->containing_oneof());
   TProtoStringType field_name = UnderscoresToCamelCase(field->name(), true);
-  return "k" + field_name;
+  return y_absl::StrCat("k", field_name);
 }
 
 TProtoStringType QualifiedOneofCaseConstantName(const FieldDescriptor* field) {
-  GOOGLE_DCHECK(field->containing_oneof());
+  Y_ABSL_DCHECK(field->containing_oneof());
   const TProtoStringType qualification =
       QualifiedClassName(field->containing_type());
-  return StrCat(qualification, "::", OneofCaseConstantName(field));
+  return y_absl::StrCat(qualification, "::", OneofCaseConstantName(field));
 }
 
 TProtoStringType EnumValueName(const EnumValueDescriptor* enum_value) {
   TProtoStringType result = enum_value->name();
-  if (kKeywords.count(result) > 0) {
+  if (Keywords().count(result) > 0) {
     result.append("_");
   }
   return result;
@@ -567,13 +610,13 @@ int EstimateAlignmentSize(const FieldDescriptor* field) {
     case FieldDescriptor::CPPTYPE_MESSAGE:
       return 8;
   }
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return -1;  // Make compiler happy.
 }
 
 TProtoStringType FieldConstantName(const FieldDescriptor* field) {
   TProtoStringType field_name = UnderscoresToCamelCase(field->name(), true);
-  TProtoStringType result = "k" + field_name + "FieldNumber";
+  TProtoStringType result = y_absl::StrCat("k", field_name, "FieldNumber");
 
   if (!field->is_extension() &&
       field->containing_type()->FindFieldByCamelcaseName(
@@ -581,7 +624,7 @@ TProtoStringType FieldConstantName(const FieldDescriptor* field) {
     // This field's camelcase name is not unique.  As a hack, add the field
     // number to the constant name.  This makes the constant rather useless,
     // but what can we do?
-    result += "_" + StrCat(field->number());
+    y_absl::StrAppend(&result, "_", field->number());
   }
 
   return result;
@@ -594,7 +637,7 @@ TProtoStringType FieldMessageTypeName(const FieldDescriptor* field,
   return QualifiedClassName(field->message_type(), options);
 }
 
-TProtoStringType StripProto(const TProtoStringType& filename) {
+TProtoStringType StripProto(y_absl::string_view filename) {
   /*
    * TODO(github/georgthegreat) remove this proxy method
    * once Google's internal codebase will become ready
@@ -605,13 +648,13 @@ TProtoStringType StripProto(const TProtoStringType& filename) {
 const char* PrimitiveTypeName(FieldDescriptor::CppType type) {
   switch (type) {
     case FieldDescriptor::CPPTYPE_INT32:
-      return "arc_i32";
+      return "::arc_i32";
     case FieldDescriptor::CPPTYPE_INT64:
-      return "arc_i64";
+      return "::arc_i64";
     case FieldDescriptor::CPPTYPE_UINT32:
-      return "arc_ui32";
+      return "::arc_ui32";
     case FieldDescriptor::CPPTYPE_UINT64:
-      return "arc_ui64";
+      return "::arc_ui64";
     case FieldDescriptor::CPPTYPE_DOUBLE:
       return "double";
     case FieldDescriptor::CPPTYPE_FLOAT:
@@ -629,7 +672,7 @@ const char* PrimitiveTypeName(FieldDescriptor::CppType type) {
       // CppTypes are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return nullptr;
 }
 
@@ -661,7 +704,7 @@ TProtoStringType PrimitiveTypeName(const Options& options,
       // CppTypes are added.
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return "";
 }
 
@@ -709,7 +752,7 @@ const char* DeclaredTypeMethodName(FieldDescriptor::Type type) {
       // No default because we want the compiler to complain if any new
       // types are added.
   }
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return "";
 }
 
@@ -717,9 +760,9 @@ TProtoStringType Int32ToString(int number) {
   if (number == std::numeric_limits<arc_i32>::min()) {
     // This needs to be special-cased, see explanation here:
     // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52661
-    return StrCat(number + 1, " - 1");
+    return y_absl::StrCat(number + 1, " - 1");
   } else {
-    return StrCat(number);
+    return y_absl::StrCat(number);
   }
 }
 
@@ -727,13 +770,13 @@ static TProtoStringType Int64ToString(arc_i64 number) {
   if (number == std::numeric_limits<arc_i64>::min()) {
     // This needs to be special-cased, see explanation here:
     // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52661
-    return StrCat("arc_i64{", number + 1, "} - 1");
+    return y_absl::StrCat("::arc_i64{", number + 1, "} - 1");
   }
-  return StrCat("arc_i64{", number, "}");
+  return y_absl::StrCat("::arc_i64{", number, "}");
 }
 
 static TProtoStringType UInt64ToString(arc_ui64 number) {
-  return StrCat("arc_ui64{", number, "u}");
+  return y_absl::StrCat("::arc_ui64{", number, "u}");
 }
 
 TProtoStringType DefaultValue(const FieldDescriptor* field) {
@@ -745,7 +788,7 @@ TProtoStringType DefaultValue(const Options& options, const FieldDescriptor* fie
     case FieldDescriptor::CPPTYPE_INT32:
       return Int32ToString(field->default_value_int32());
     case FieldDescriptor::CPPTYPE_UINT32:
-      return StrCat(field->default_value_uint32()) + "u";
+      return y_absl::StrCat(field->default_value_uint32(), "u");
     case FieldDescriptor::CPPTYPE_INT64:
       return Int64ToString(field->default_value_int64());
     case FieldDescriptor::CPPTYPE_UINT64:
@@ -759,7 +802,7 @@ TProtoStringType DefaultValue(const Options& options, const FieldDescriptor* fie
       } else if (value != value) {
         return "std::numeric_limits<double>::quiet_NaN()";
       } else {
-        return SimpleDtoa(value);
+        return io::SimpleDtoa(value);
       }
     }
     case FieldDescriptor::CPPTYPE_FLOAT: {
@@ -771,7 +814,7 @@ TProtoStringType DefaultValue(const Options& options, const FieldDescriptor* fie
       } else if (value != value) {
         return "std::numeric_limits<float>::quiet_NaN()";
       } else {
-        TProtoStringType float_value = SimpleFtoa(value);
+        TProtoStringType float_value = io::SimpleFtoa(value);
         // If floating point value contains a period (.) or an exponent
         // (either E or e), then append suffix 'f' to make it a float
         // literal.
@@ -786,73 +829,73 @@ TProtoStringType DefaultValue(const Options& options, const FieldDescriptor* fie
     case FieldDescriptor::CPPTYPE_ENUM:
       // Lazy:  Generate a static_cast because we don't have a helper function
       //   that constructs the full name of an enum value.
-      return strings::Substitute(
+      return y_absl::Substitute(
           "static_cast< $0 >($1)", ClassName(field->enum_type(), true),
           Int32ToString(field->default_value_enum()->number()));
     case FieldDescriptor::CPPTYPE_STRING:
-      return "\"" +
-             EscapeTrigraphs(CEscape(field->default_value_string())) +
-             "\"";
+      return y_absl::StrCat(
+          "\"", EscapeTrigraphs(y_absl::CEscape(field->default_value_string())),
+          "\"");
     case FieldDescriptor::CPPTYPE_MESSAGE:
-      return "*" + FieldMessageTypeName(field, options) +
-             "::internal_default_instance()";
+      return y_absl::StrCat("*", FieldMessageTypeName(field, options),
+                          "::internal_default_instance()");
   }
   // Can't actually get here; make compiler happy.  (We could add a default
   // case above but then we wouldn't get the nice compiler warning when a
   // new type is added.)
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return "";
 }
 
 // Convert a file name into a valid identifier.
-TProtoStringType FilenameIdentifier(const TProtoStringType& filename) {
+TProtoStringType FilenameIdentifier(y_absl::string_view filename) {
   TProtoStringType result;
   for (int i = 0; i < filename.size(); i++) {
-    if (ascii_isalnum(filename[i])) {
+    if (y_absl::ascii_isalnum(filename[i])) {
       result.push_back(filename[i]);
     } else {
       // Not alphanumeric.  To avoid any possibility of name conflicts we
       // use the hex code for the character.
-      StrAppend(&result, "_",
-                      strings::Hex(static_cast<uint8_t>(filename[i])));
+      y_absl::StrAppend(&result, "_",
+                      y_absl::Hex(static_cast<uint8_t>(filename[i])));
     }
   }
   return result;
 }
 
-TProtoStringType UniqueName(const TProtoStringType& name, const TProtoStringType& filename,
+TProtoStringType UniqueName(y_absl::string_view name, y_absl::string_view filename,
                        const Options& options) {
-  return name + "_" + FilenameIdentifier(filename);
+  return y_absl::StrCat(name, "_", FilenameIdentifier(filename));
 }
 
 // Return the qualified C++ name for a file level symbol.
 TProtoStringType QualifiedFileLevelSymbol(const FileDescriptor* file,
-                                     const TProtoStringType& name,
+                                     y_absl::string_view name,
                                      const Options& options) {
   if (file->package().empty()) {
-    return StrCat("::", name);
+    return y_absl::StrCat("::", name);
   }
-  return StrCat(Namespace(file, options), "::", name);
+  return y_absl::StrCat(Namespace(file, options), "::", name);
 }
 
 // Escape C++ trigraphs by escaping question marks to \?
-TProtoStringType EscapeTrigraphs(const TProtoStringType& to_escape) {
-  return StringReplace(to_escape, "?", "\\?", true);
+TProtoStringType EscapeTrigraphs(y_absl::string_view to_escape) {
+  return y_absl::StrReplaceAll(to_escape, {{"?", "\\?"}});
 }
 
 // Escaped function name to eliminate naming conflict.
 TProtoStringType SafeFunctionName(const Descriptor* descriptor,
                              const FieldDescriptor* field,
-                             const TProtoStringType& prefix) {
+                             y_absl::string_view prefix) {
   // Do not use FieldName() since it will escape keywords.
   TProtoStringType name = field->name();
-  LowerString(&name);
-  TProtoStringType function_name = prefix + name;
+  y_absl::AsciiStrToLower(&name);
+  TProtoStringType function_name = y_absl::StrCat(prefix, name);
   if (descriptor->FindFieldByName(function_name)) {
     // Single underscore will also make it conflicting with the private data
     // member. We use double underscore to escape function names.
     function_name.append("__");
-  } else if (kKeywords.count(name) > 0) {
+  } else if (Keywords().count(name) > 0) {
     // If the field name is a keyword, we append the underscore back to keep it
     // consistent with other function names.
     function_name.append("_");
@@ -860,6 +903,9 @@ TProtoStringType SafeFunctionName(const Descriptor* descriptor,
   return function_name;
 }
 
+bool IsProfileDriven(const Options& options) {
+  return options.access_info_map != nullptr;
+}
 bool IsStringInlined(const FieldDescriptor* descriptor,
                      const Options& options) {
   (void)descriptor;
@@ -906,6 +952,13 @@ bool HasLazyFields(const FileDescriptor* file, const Options& options,
 
 bool ShouldSplit(const Descriptor*, const Options&) { return false; }
 bool ShouldSplit(const FieldDescriptor*, const Options&) { return false; }
+
+bool ShouldForceAllocationOnConstruction(const Descriptor* desc,
+                                         const Options& options) {
+  (void)desc;
+  (void)options;
+  return false;
+}
 
 static bool HasRepeatedFields(const Descriptor* descriptor) {
   for (int i = 0; i < descriptor->field_count(); ++i) {
@@ -1045,7 +1098,7 @@ bool ShouldVerify(const FileDescriptor* file, const Options& options,
 
 bool IsUtf8String(const FieldDescriptor* field) {
   return IsProto3(field->file()) &&
-      field->type() == FieldDescriptor::TYPE_STRING;
+         field->type() == FieldDescriptor::TYPE_STRING;
 }
 
 VerifySimpleType ShouldVerifySimple(const Descriptor* descriptor) {
@@ -1069,13 +1122,13 @@ bool IsStringOrMessage(const FieldDescriptor* field) {
       return true;
   }
 
-  GOOGLE_LOG(FATAL) << "Can't get here.";
+  Y_ABSL_LOG(FATAL) << "Can't get here.";
   return false;
 }
 
 FieldOptions::CType EffectiveStringCType(const FieldDescriptor* field,
                                          const Options& options) {
-  GOOGLE_DCHECK(field->cpp_type() == FieldDescriptor::CPPTYPE_STRING);
+  Y_ABSL_DCHECK(field->cpp_type() == FieldDescriptor::CPPTYPE_STRING);
   if (options.opensource_runtime) {
     // Open-source protobuf release only supports STRING ctype.
     return FieldOptions::STRING;
@@ -1095,7 +1148,7 @@ bool IsAnyMessage(const Descriptor* descriptor, const Options& options) {
 }
 
 bool IsWellKnownMessage(const FileDescriptor* file) {
-  static const std::unordered_set<TProtoStringType> well_known_files{
+  static const auto* well_known_files = new y_absl::flat_hash_set<TProtoStringType>{
       "google/protobuf/any.proto",
       "google/protobuf/api.proto",
       "google/protobuf/compiler/plugin.proto",
@@ -1109,94 +1162,127 @@ bool IsWellKnownMessage(const FileDescriptor* file) {
       "google/protobuf/type.proto",
       "google/protobuf/wrappers.proto",
   };
-  return well_known_files.find(file->name()) != well_known_files.end();
+  return well_known_files->find(file->name()) != well_known_files->end();
 }
 
-static bool FieldEnforceUtf8(const FieldDescriptor* field,
-                             const Options& options) {
-  return true;
-}
-
-static bool FileUtf8Verification(const FileDescriptor* file,
-                                 const Options& options) {
-  return true;
-}
-
-// Which level of UTF-8 enforcemant is placed on this file.
-Utf8CheckMode GetUtf8CheckMode(const FieldDescriptor* field,
-                               const Options& options) {
-  if (field->file()->syntax() == FileDescriptor::SYNTAX_PROTO3 &&
-      FieldEnforceUtf8(field, options)) {
-    return Utf8CheckMode::kStrict;
-  } else if (GetOptimizeFor(field->file(), options) !=
-                 FileOptions::LITE_RUNTIME &&
-             FileUtf8Verification(field->file(), options)) {
-    return Utf8CheckMode::kVerify;
-  } else {
-    return Utf8CheckMode::kNone;
+void NamespaceOpener::ChangeTo(y_absl::string_view name) {
+  std::vector<TProtoStringType> new_stack =
+      y_absl::StrSplit(name, "::", y_absl::SkipEmpty());
+  size_t len = std::min(name_stack_.size(), new_stack.size());
+  size_t common_idx = 0;
+  while (common_idx < len) {
+    if (name_stack_[common_idx] != new_stack[common_idx]) {
+      break;
+    }
+    ++common_idx;
   }
+
+  for (size_t i = name_stack_.size(); i > common_idx; i--) {
+    const auto& ns = name_stack_[i - 1];
+    if (ns == "PROTOBUF_NAMESPACE_ID") {
+      p_->Emit(R"cc(
+        PROTOBUF_NAMESPACE_CLOSE
+      )cc");
+    } else {
+      p_->Emit({{"ns", ns}}, R"(
+          }  // namespace $ns$
+        )");
+    }
+  }
+  for (size_t i = common_idx; i < new_stack.size(); ++i) {
+    const auto& ns = new_stack[i];
+    if (ns == "PROTOBUF_NAMESPACE_ID") {
+      p_->Emit(R"cc(
+        PROTOBUF_NAMESPACE_OPEN
+      )cc");
+    } else {
+      p_->Emit({{"ns", ns}}, R"(
+        namespace $ns$ {
+      )");
+    }
+  }
+
+  name_stack_ = std::move(new_stack);
 }
 
-static void GenerateUtf8CheckCode(const FieldDescriptor* field,
+static void GenerateUtf8CheckCode(io::Printer* p, const FieldDescriptor* field,
                                   const Options& options, bool for_parse,
-                                  const char* parameters,
-                                  const char* strict_function,
-                                  const char* verify_function,
-                                  const Formatter& format) {
-  switch (GetUtf8CheckMode(field, options)) {
-    case Utf8CheckMode::kStrict: {
+                                  y_absl::string_view params,
+                                  y_absl::string_view strict_function,
+                                  y_absl::string_view verify_function) {
+  if (field->type() != FieldDescriptor::TYPE_STRING) return;
+
+  auto v = p->WithVars({
+      {"params", params},
+      {"Strict", strict_function},
+      {"Verify", verify_function},
+  });
+
+  bool is_lite =
+      GetOptimizeFor(field->file(), options) == FileOptions::LITE_RUNTIME;
+  switch (internal::cpp::GetUtf8CheckMode(field, is_lite)) {
+    case internal::cpp::Utf8CheckMode::kStrict:
       if (for_parse) {
-        format("DO_(");
-      }
-      format("::$proto_ns$::internal::WireFormatLite::$1$(\n", strict_function);
-      format.Indent();
-      format(parameters);
-      if (for_parse) {
-        format("::$proto_ns$::internal::WireFormatLite::PARSE,\n");
+        p->Emit(R"cc(
+          DO_($pbi$::WireFormatLite::$Strict$(
+              $params$ $pbi$::WireFormatLite::PARSE, "$pkg.Msg.field$"));
+        )cc");
       } else {
-        format("::$proto_ns$::internal::WireFormatLite::SERIALIZE,\n");
+        p->Emit(R"cc(
+          $pbi$::WireFormatLite::$Strict$(
+              $params$ $pbi$::WireFormatLite::SERIALIZE, "$pkg.Msg.field$");
+        )cc");
       }
-      format("\"$1$\")", field->full_name());
-      if (for_parse) {
-        format(")");
-      }
-      format(";\n");
-      format.Outdent();
       break;
-    }
-    case Utf8CheckMode::kVerify: {
-      format("::$proto_ns$::internal::WireFormat::$1$(\n", verify_function);
-      format.Indent();
-      format(parameters);
+
+    case internal::cpp::Utf8CheckMode::kVerify:
       if (for_parse) {
-        format("::$proto_ns$::internal::WireFormat::PARSE,\n");
+        p->Emit(R"cc(
+          $pbi$::WireFormat::$Verify$($params$ $pbi$::WireFormat::PARSE,
+                                      "$pkg.Msg.field$");
+        )cc");
       } else {
-        format("::$proto_ns$::internal::WireFormat::SERIALIZE,\n");
+        p->Emit(R"cc(
+          $pbi$::WireFormat::$Verify$($params$ $pbi$::WireFormat::SERIALIZE,
+                                      "$pkg.Msg.field$");
+        )cc");
       }
-      format("\"$1$\");\n", field->full_name());
-      format.Outdent();
       break;
-    }
-    case Utf8CheckMode::kNone:
+
+    case internal::cpp::Utf8CheckMode::kNone:
       break;
   }
 }
 
 void GenerateUtf8CheckCodeForString(const FieldDescriptor* field,
                                     const Options& options, bool for_parse,
-                                    const char* parameters,
+                                    y_absl::string_view parameters,
                                     const Formatter& format) {
-  GenerateUtf8CheckCode(field, options, for_parse, parameters,
-                        "VerifyUtf8String", "VerifyUTF8StringNamedField",
-                        format);
+  GenerateUtf8CheckCode(format.printer(), field, options, for_parse, parameters,
+                        "VerifyUtf8String", "VerifyUTF8StringNamedField");
 }
 
 void GenerateUtf8CheckCodeForCord(const FieldDescriptor* field,
                                   const Options& options, bool for_parse,
-                                  const char* parameters,
+                                  y_absl::string_view parameters,
                                   const Formatter& format) {
-  GenerateUtf8CheckCode(field, options, for_parse, parameters, "VerifyUtf8Cord",
-                        "VerifyUTF8CordNamedField", format);
+  GenerateUtf8CheckCode(format.printer(), field, options, for_parse, parameters,
+                        "VerifyUtf8Cord", "VerifyUTF8CordNamedField");
+}
+
+void GenerateUtf8CheckCodeForString(io::Printer* p,
+                                    const FieldDescriptor* field,
+                                    const Options& options, bool for_parse,
+                                    y_absl::string_view parameters) {
+  GenerateUtf8CheckCode(p, field, options, for_parse, parameters,
+                        "VerifyUtf8String", "VerifyUTF8StringNamedField");
+}
+
+void GenerateUtf8CheckCodeForCord(io::Printer* p, const FieldDescriptor* field,
+                                  const Options& options, bool for_parse,
+                                  y_absl::string_view parameters) {
+  GenerateUtf8CheckCode(p, field, options, for_parse, parameters,
+                        "VerifyUtf8Cord", "VerifyUTF8CordNamedField");
 }
 
 void FlattenMessagesInFile(const FileDescriptor* file,
@@ -1243,7 +1329,9 @@ bool IsImplicitWeakField(const FieldDescriptor* field, const Options& options,
 }
 
 MessageAnalysis MessageSCCAnalyzer::GetSCCAnalysis(const SCC* scc) {
-  if (analysis_cache_.count(scc)) return analysis_cache_[scc];
+  auto it = analysis_cache_.find(scc);
+  if (it != analysis_cache_.end()) return it->second;
+
   MessageAnalysis result;
   if (UsingImplicitWeakFields(scc->GetFile(), options_)) {
     result.contains_weak = true;
@@ -1298,7 +1386,7 @@ MessageAnalysis MessageSCCAnalyzer::GetSCCAnalysis(const SCC* scc) {
   // in the graph, the graph should be a DAG. Hence we shouldn't need to mark
   // nodes visited as we can never return to them. By inserting them here
   // we will go in an infinite loop if the SCC is not correct.
-  return analysis_cache_[scc] = result;
+  return analysis_cache_[scc] = std::move(result);
 }
 
 void ListAllFields(const Descriptor* d,
@@ -1341,23 +1429,26 @@ void ListAllTypesForServices(const FileDescriptor* fd,
   }
 }
 
-bool GetBootstrapBasename(const Options& options, const TProtoStringType& basename,
+bool GetBootstrapBasename(const Options& options, y_absl::string_view basename,
                           TProtoStringType* bootstrap_basename) {
   if (options.opensource_runtime) {
     return false;
   }
 
-  std::unordered_map<TProtoStringType, TProtoStringType> bootstrap_mapping{
-      {"net/proto2/proto/descriptor",
-       "third_party/protobuf/descriptor"},
-      {"net/proto2/compiler/proto/plugin",
-       "net/proto2/compiler/proto/plugin"},
-      {"net/proto2/compiler/proto/profile",
-       "net/proto2/compiler/proto/profile_bootstrap"},
-  };
-  auto iter = bootstrap_mapping.find(basename);
-  if (iter == bootstrap_mapping.end()) {
-    *bootstrap_basename = basename;
+  static const auto* bootstrap_mapping =
+      // TODO(b/242858704) Replace these with string_view once we remove
+      // StringPiece.
+      new y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>{
+          {"net/proto2/proto/descriptor",
+           "third_party/protobuf/descriptor"},
+          {"net/proto2/compiler/proto/plugin",
+           "net/proto2/compiler/proto/plugin"},
+          {"net/proto2/compiler/proto/profile",
+           "net/proto2/compiler/proto/profile_bootstrap"},
+      };
+  auto iter = bootstrap_mapping->find(basename);
+  if (iter == bootstrap_mapping->end()) {
+    *bootstrap_basename = TProtoStringType(basename);
     return false;
   } else {
     *bootstrap_basename = iter->second;
@@ -1381,70 +1472,64 @@ bool MaybeBootstrap(const Options& options, GeneratorContext* generator_context,
     // Adjust basename, but don't abort code generation.
     *basename = bootstrap_basename;
     return false;
-  } else {
-    const TProtoStringType& forward_to_basename = bootstrap_basename;
-
-    // Generate forwarding headers and empty .pb.cc.
-    {
-      std::unique_ptr<io::ZeroCopyOutputStream> output(
-          generator_context->Open(*basename + ".pb.h"));
-      io::Printer printer(output.get(), '$', nullptr);
-      printer.Print(
-          "#ifndef PROTOBUF_INCLUDED_$filename_identifier$_FORWARD_PB_H\n"
-          "#define PROTOBUF_INCLUDED_$filename_identifier$_FORWARD_PB_H\n"
-          "#include \"$forward_to_basename$.pb.h\"  // IWYU pragma: export\n"
-          "#endif  // PROTOBUF_INCLUDED_$filename_identifier$_FORWARD_PB_H\n",
-          "forward_to_basename", forward_to_basename, "filename_identifier",
-          FilenameIdentifier(*basename));
-
-      if (!options.opensource_runtime) {
-        // HACK HACK HACK, tech debt from the deeps of proto1 and SWIG
-        // protocoltype is SWIG'ed and we need to forward
-        if (*basename == "net/proto/protocoltype") {
-          printer.Print(
-              "#ifdef SWIG\n"
-              "%include \"$forward_to_basename$.pb.h\"\n"
-              "#endif  // SWIG\n",
-              "forward_to_basename", forward_to_basename);
-        }
-      }
-    }
-
-    {
-      std::unique_ptr<io::ZeroCopyOutputStream> output(
-          generator_context->Open(*basename + ".proto.h"));
-      io::Printer printer(output.get(), '$', nullptr);
-      printer.Print(
-          "#ifndef PROTOBUF_INCLUDED_$filename_identifier$_FORWARD_PROTO_H\n"
-          "#define PROTOBUF_INCLUDED_$filename_identifier$_FORWARD_PROTO_H\n"
-          "#include \"$forward_to_basename$.proto.h\"  // IWYU pragma: "
-          "export\n"
-          "#endif  // "
-          "PROTOBUF_INCLUDED_$filename_identifier$_FORWARD_PROTO_H\n",
-          "forward_to_basename", forward_to_basename, "filename_identifier",
-          FilenameIdentifier(*basename));
-    }
-
-    {
-      std::unique_ptr<io::ZeroCopyOutputStream> output(
-          generator_context->Open(*basename + ".pb.cc"));
-      io::Printer printer(output.get(), '$', nullptr);
-      printer.Print("\n");
-    }
-
-    {
-      std::unique_ptr<io::ZeroCopyOutputStream> output(
-          generator_context->Open(*basename + ".pb.h.meta"));
-    }
-
-    {
-      std::unique_ptr<io::ZeroCopyOutputStream> output(
-          generator_context->Open(*basename + ".proto.h.meta"));
-    }
-
-    // Abort code generation.
-    return true;
   }
+
+  auto pb_h = y_absl::WrapUnique(
+      generator_context->Open(y_absl::StrCat(*basename, ".pb.h")));
+
+  io::Printer p(pb_h.get());
+  p.Emit(
+      {
+          {"fwd_to", bootstrap_basename},
+          {"file", FilenameIdentifier(*basename)},
+          {"fwd_to_suffix", options.opensource_runtime ? "pb" : "proto"},
+          {"swig_evil",
+           [&] {
+             if (options.opensource_runtime) {
+               return;
+             }
+             p.Emit(R"(
+               #ifdef SWIG
+               %include "$fwd_to$.pb.h"
+               #endif  // SWIG
+             )");
+           }},
+      },
+      R"(
+          #ifndef PROTOBUF_INCLUDED_$file$_FORWARD_PB_H
+          #define PROTOBUF_INCLUDED_$file$_FORWARD_PB_H
+          #include "$fwd_to$.$fwd_to_suffix$.h"  // IWYU pragma: export
+          #endif  // PROTOBUF_INCLUDED_$file$_FORWARD_PB_H
+          $swig_evil$;
+      )");
+
+  auto proto_h = y_absl::WrapUnique(
+      generator_context->Open(y_absl::StrCat(*basename, ".proto.h")));
+  io::Printer(proto_h.get())
+      .Emit(
+          {
+              {"fwd_to", bootstrap_basename},
+              {"file", FilenameIdentifier(*basename)},
+          },
+          R"(
+            #ifndef PROTOBUF_INCLUDED_$file$_FORWARD_PROTO_H
+            #define PROTOBUF_INCLUDED_$file$_FORWARD_PROTO_H
+            #include "$fwd_to$.proto.h"  // IWYU pragma: export
+            #endif // PROTOBUF_INCLUDED_$file$_FORWARD_PROTO_H
+          )");
+
+  auto pb_cc = y_absl::WrapUnique(
+      generator_context->Open(y_absl::StrCat(*basename, ".pb.cc")));
+  io::Printer(pb_cc.get()).PrintRaw("\n");
+
+  (void)y_absl::WrapUnique(
+      generator_context->Open(y_absl::StrCat(*basename, ".pb.h.meta")));
+
+  (void)y_absl::WrapUnique(
+      generator_context->Open(y_absl::StrCat(*basename, ".proto.h.meta")));
+
+  // Abort code generation.
+  return true;
 }
 
 static bool HasExtensionFromFile(const Message& msg, const FileDescriptor* file,
@@ -1492,9 +1577,18 @@ static bool HasExtensionFromFile(const Message& msg, const FileDescriptor* file,
 static bool HasBootstrapProblem(const FileDescriptor* file,
                                 const Options& options,
                                 bool* has_opt_codesize_extension) {
-  static auto& cache = *new std::unordered_map<const FileDescriptor*, bool>;
-  auto it = cache.find(file);
-  if (it != cache.end()) return it->second;
+  struct BoostrapGlobals {
+    y_absl::Mutex mutex;
+    y_absl::flat_hash_set<const FileDescriptor*> cached Y_ABSL_GUARDED_BY(mutex);
+    y_absl::flat_hash_set<const FileDescriptor*> non_cached
+        Y_ABSL_GUARDED_BY(mutex);
+  };
+  static auto& bootstrap_cache = *new BoostrapGlobals();
+
+  y_absl::MutexLock lock(&bootstrap_cache.mutex);
+  if (bootstrap_cache.cached.contains(file)) return true;
+  if (bootstrap_cache.non_cached.contains(file)) return false;
+
   // In order to build the data structures for the reflective parse, it needs
   // to parse the serialized descriptor describing all the messages defined in
   // this file. Obviously this presents a bootstrap problem for descriptor
@@ -1530,9 +1624,13 @@ static bool HasBootstrapProblem(const FileDescriptor* file,
   Message* fd_proto = factory.GetPrototype(fd_proto_descriptor)->New();
   fd_proto->ParseFromString(linkedin_fd_proto.SerializeAsString());
 
-  bool& res = cache[file];
-  res = HasExtensionFromFile(*fd_proto, file, options,
-                             has_opt_codesize_extension);
+  bool res = HasExtensionFromFile(*fd_proto, file, options,
+                                  has_opt_codesize_extension);
+  if (res) {
+    bootstrap_cache.cached.insert(file);
+  } else {
+    bootstrap_cache.non_cached.insert(file);
+  }
   delete fd_proto;
   return res;
 }
@@ -1557,36 +1655,19 @@ FileOptions_OptimizeMode GetOptimizeFor(const FileDescriptor* file,
     case EnforceOptimizeMode::kNoEnforcement:
       if (file->options().optimize_for() == FileOptions::CODE_SIZE) {
         if (HasBootstrapProblem(file, options, has_opt_codesize_extension)) {
-          GOOGLE_LOG(WARNING) << "Proto states optimize_for = CODE_SIZE, but we "
-                          "cannot honor that because it contains custom option "
-                          "extensions defined in the same proto.";
+          Y_ABSL_LOG(WARNING)
+              << "Proto states optimize_for = CODE_SIZE, but we "
+                 "cannot honor that because it contains custom option "
+                 "extensions defined in the same proto.";
           return FileOptions::SPEED;
         }
       }
       return file->options().optimize_for();
   }
 
-  GOOGLE_LOG(FATAL) << "Unknown optimization enforcement requested.";
+  Y_ABSL_LOG(FATAL) << "Unknown optimization enforcement requested.";
   // The phony return below serves to silence a warning from GCC 8.
   return FileOptions::SPEED;
-}
-
-inline bool IsMessageOwnedArenaEligible(const Descriptor* desc,
-                                        const Options& options) {
-  return GetOptimizeFor(desc->file(), options) != FileOptions::LITE_RUNTIME &&
-         !options.bootstrap && !options.opensource_runtime &&
-         AllocExpected(desc);
-}
-
-bool EnableMessageOwnedArena(const Descriptor* desc, const Options& options) {
-  (void)desc;
-  (void)options;
-  return false;
-}
-
-bool EnableMessageOwnedArenaTrial(const Descriptor* desc,
-                                  const Options& options) {
-  return false;
 }
 
 bool HasMessageFieldOrExtension(const Descriptor* desc) {
@@ -1595,6 +1676,21 @@ bool HasMessageFieldOrExtension(const Descriptor* desc) {
     if (f->cpp_type() == FieldDescriptor::CPPTYPE_MESSAGE) return true;
   }
   return false;
+}
+
+std::vector<io::Printer::Sub> AnnotatedAccessors(
+    const FieldDescriptor* field, y_absl::Span<const y_absl::string_view> prefixes,
+    y_absl::optional<google::protobuf::io::AnnotationCollector::Semantic> semantic) {
+  auto field_name = FieldName(field);
+
+  std::vector<io::Printer::Sub> vars;
+  for (auto prefix : prefixes) {
+    vars.push_back(io::Printer::Sub(y_absl::StrCat(prefix, "name"),
+                                    y_absl::StrCat(prefix, field_name))
+                       .AnnotatedAs({field, semantic}));
+  }
+
+  return vars;
 }
 
 }  // namespace cpp

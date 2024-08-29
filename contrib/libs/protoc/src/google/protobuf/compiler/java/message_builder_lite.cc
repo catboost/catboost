@@ -32,29 +32,30 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/java/message_builder_lite.h>
+#include "google/protobuf/compiler/java/message_builder_lite.h"
 
 #include <algorithm>
-#include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/wire_format.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/stubs/substitute.h>
-#include <google/protobuf/compiler/java/context.h>
-#include <google/protobuf/compiler/java/doc_comment.h>
-#include <google/protobuf/compiler/java/enum.h>
-#include <google/protobuf/compiler/java/extension.h>
-#include <google/protobuf/compiler/java/generator_factory.h>
-#include <google/protobuf/compiler/java/helpers.h>
-#include <google/protobuf/compiler/java/name_resolver.h>
-#include <google/protobuf/descriptor.pb.h>
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/substitute.h"
+#include "google/protobuf/compiler/java/context.h"
+#include "google/protobuf/compiler/java/doc_comment.h"
+#include "google/protobuf/compiler/java/enum.h"
+#include "google/protobuf/compiler/java/extension.h"
+#include "google/protobuf/compiler/java/generator_factory.h"
+#include "google/protobuf/compiler/java/helpers.h"
+#include "google/protobuf/compiler/java/name_resolver.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/wire_format.h"
 
 // Must be last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -67,12 +68,13 @@ MessageBuilderLiteGenerator::MessageBuilderLiteGenerator(
       context_(context),
       name_resolver_(context->GetNameResolver()),
       field_generators_(descriptor, context_) {
-  GOOGLE_CHECK(!HasDescriptorMethods(descriptor->file(), context->EnforceLite()))
+  Y_ABSL_CHECK(!HasDescriptorMethods(descriptor->file(), context->EnforceLite()))
       << "Generator factory error: A lite message generator is used to "
          "generate non-lite messages.";
   for (int i = 0; i < descriptor_->field_count(); i++) {
     if (IsRealOneof(descriptor_->field(i))) {
-      oneofs_.insert(descriptor_->field(i)->containing_oneof());
+      const OneofDescriptor* oneof = descriptor_->field(i)->containing_oneof();
+      Y_ABSL_CHECK(oneofs_.emplace(oneof->index(), oneof).first->second == oneof);
     }
   }
 }
@@ -81,41 +83,51 @@ MessageBuilderLiteGenerator::~MessageBuilderLiteGenerator() {}
 
 void MessageBuilderLiteGenerator::Generate(io::Printer* printer) {
   WriteMessageDocComment(printer, descriptor_);
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> vars = {
+      {"{", ""},
+      {"}", ""},
+      {"classname", name_resolver_->GetImmutableClassName(descriptor_)},
+      {"extra_interfaces", ExtraBuilderInterfaces(descriptor_)},
+      {"extendible",
+       descriptor_->extension_range_count() > 0 ? "Extendable" : ""},
+  };
   printer->Print(
-      "public static final class Builder extends\n"
+      vars,
+      "public static final class ${$Builder$}$ extends\n"
       "    com.google.protobuf.GeneratedMessageLite.$extendible$Builder<\n"
       "      $classname$, Builder> implements\n"
       "    $extra_interfaces$\n"
-      "    $classname$OrBuilder {\n",
-      "classname", name_resolver_->GetImmutableClassName(descriptor_),
-      "extra_interfaces", ExtraBuilderInterfaces(descriptor_), "extendible",
-      descriptor_->extension_range_count() > 0 ? "Extendable" : "");
+      "    $classname$OrBuilder {\n");
+  printer->Annotate("{", "}", descriptor_);
   printer->Indent();
 
   GenerateCommonBuilderMethods(printer);
 
   // oneof
-  std::map<TProtoStringType, TProtoStringType> vars;
-  for (auto oneof : oneofs_) {
+  for (auto& kv : oneofs_) {
+    const OneofDescriptor* oneof = kv.second;
     vars["oneof_name"] = context_->GetOneofGeneratorInfo(oneof)->name;
     vars["oneof_capitalized_name"] =
         context_->GetOneofGeneratorInfo(oneof)->capitalized_name;
-    vars["oneof_index"] = StrCat(oneof->index());
+    vars["oneof_index"] = y_absl::StrCat(oneof->index());
 
     // oneofCase() and clearOneof()
     printer->Print(vars,
                    "@java.lang.Override\n"
                    "public $oneof_capitalized_name$Case\n"
-                   "    get$oneof_capitalized_name$Case() {\n"
+                   "    ${$get$oneof_capitalized_name$Case$}$() {\n"
                    "  return instance.get$oneof_capitalized_name$Case();\n"
-                   "}\n"
+                   "}\n");
+    printer->Annotate("{", "}", oneof);
+    printer->Print(vars,
                    "\n"
-                   "public Builder clear$oneof_capitalized_name$() {\n"
+                   "public Builder ${$clear$oneof_capitalized_name$$}$() {\n"
                    "  copyOnWrite();\n"
                    "  instance.clear$oneof_capitalized_name$();\n"
                    "  return this;\n"
                    "}\n"
                    "\n");
+    printer->Annotate("{", "}", oneof);
   }
 
   for (int i = 0; i < descriptor_->field_count(); i++) {
@@ -153,4 +165,4 @@ void MessageBuilderLiteGenerator::GenerateCommonBuilderMethods(
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

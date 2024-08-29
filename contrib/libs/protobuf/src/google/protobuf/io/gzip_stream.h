@@ -43,22 +43,20 @@
 #ifndef GOOGLE_PROTOBUF_IO_GZIP_STREAM_H__
 #define GOOGLE_PROTOBUF_IO_GZIP_STREAM_H__
 
-
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/port.h>
+#include "google/protobuf/stubs/common.h"
+#include "google/protobuf/io/zero_copy_stream.h"
+#include "google/protobuf/port.h"
 #include "zlib.h"
 
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
 namespace io {
 
 // A ZeroCopyInputStream that reads compressed data through zlib
-class PROTOBUF_EXPORT GzipInputStream PROTOBUF_FUTURE_FINAL
-    : public ZeroCopyInputStream {
+class PROTOBUF_EXPORT GzipInputStream final : public ZeroCopyInputStream {
  public:
   // Format key for constructor
   enum Format {
@@ -75,7 +73,9 @@ class PROTOBUF_EXPORT GzipInputStream PROTOBUF_FUTURE_FINAL
   // buffer_size and format may be -1 for default of 64kB and GZIP format
   explicit GzipInputStream(ZeroCopyInputStream* sub_stream,
                            Format format = AUTO, int buffer_size = -1);
-  virtual ~GzipInputStream();
+  GzipInputStream(const GzipInputStream&) = delete;
+  GzipInputStream& operator=(const GzipInputStream&) = delete;
+  ~GzipInputStream() override;
 
   // Return last error message or NULL if no error.
   inline const char* ZlibErrorMessage() const { return zcontext_.msg; }
@@ -102,12 +102,9 @@ class PROTOBUF_EXPORT GzipInputStream PROTOBUF_FUTURE_FINAL
 
   int Inflate(int flush);
   void DoNextOutput(const void** data, int* size);
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(GzipInputStream);
 };
 
-class PROTOBUF_EXPORT GzipOutputStream PROTOBUF_FUTURE_FINAL
-    : public ZeroCopyOutputStream {
+class PROTOBUF_EXPORT GzipOutputStream final : public ZeroCopyOutputStream {
  public:
   // Format key for constructor
   enum Format {
@@ -142,8 +139,10 @@ class PROTOBUF_EXPORT GzipOutputStream PROTOBUF_FUTURE_FINAL
 
   // Create a GzipOutputStream with the given options.
   GzipOutputStream(ZeroCopyOutputStream* sub_stream, const Options& options);
+  GzipOutputStream(const GzipOutputStream&) = delete;
+  GzipOutputStream& operator=(const GzipOutputStream&) = delete;
 
-  virtual ~GzipOutputStream();
+  ~GzipOutputStream() override;
 
   // Return last error message or NULL if no error.
   inline const char* ZlibErrorMessage() const { return zcontext_.msg; }
@@ -192,14 +191,12 @@ class PROTOBUF_EXPORT GzipOutputStream PROTOBUF_FUTURE_FINAL
   // Takes zlib flush mode.
   // Returns zlib error code.
   int Deflate(int flush);
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(GzipOutputStream);
 };
 
 }  // namespace io
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_IO_GZIP_STREAM_H__

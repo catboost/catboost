@@ -31,17 +31,19 @@
 // Author: anuraag@google.com (Anuraag Agrawal)
 // Author: tibell@google.com (Johan Tibell)
 
-#include <google/protobuf/pyext/message.h>
+#include "google/protobuf/pyext/message.h"
 
 #include <structmember.h>  // A Python header file.
 
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
-#include <google/protobuf/stubs/strutil.h>
+#include "y_absl/log/absl_check.h"
+#include "y_absl/strings/match.h"
 
 #ifndef PyVarObject_HEAD_INIT
 #define PyVarObject_HEAD_INIT(type, size) PyObject_HEAD_INIT(type) size,
@@ -49,33 +51,32 @@
 #ifndef Py_TYPE
 #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
 #endif
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/message.h>
-#include <google/protobuf/text_format.h>
-#include <google/protobuf/unknown_field_set.h>
-#include <google/protobuf/pyext/descriptor.h>
-#include <google/protobuf/pyext/descriptor_pool.h>
-#include <google/protobuf/pyext/extension_dict.h>
-#include <google/protobuf/pyext/field.h>
-#include <google/protobuf/pyext/map_container.h>
-#include <google/protobuf/pyext/message_factory.h>
-#include <google/protobuf/pyext/repeated_composite_container.h>
-#include <google/protobuf/pyext/repeated_scalar_container.h>
-#include <google/protobuf/pyext/safe_numerics.h>
-#include <google/protobuf/pyext/scoped_pyobject_ptr.h>
-#include <google/protobuf/pyext/unknown_field_set.h>
-#include <google/protobuf/pyext/unknown_fields.h>
-#include <google/protobuf/util/message_differencer.h>
-#include <google/protobuf/io/strtod.h>
-#include <google/protobuf/stubs/map_util.h>
+#include "google/protobuf/stubs/common.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/message.h"
+#include "google/protobuf/text_format.h"
+#include "google/protobuf/unknown_field_set.h"
+#include "google/protobuf/pyext/descriptor.h"
+#include "google/protobuf/pyext/descriptor_pool.h"
+#include "google/protobuf/pyext/extension_dict.h"
+#include "google/protobuf/pyext/field.h"
+#include "google/protobuf/pyext/map_container.h"
+#include "google/protobuf/pyext/message_factory.h"
+#include "google/protobuf/pyext/repeated_composite_container.h"
+#include "google/protobuf/pyext/repeated_scalar_container.h"
+#include "google/protobuf/pyext/safe_numerics.h"
+#include "google/protobuf/pyext/scoped_pyobject_ptr.h"
+#include "google/protobuf/pyext/unknown_field_set.h"
+#include "google/protobuf/pyext/unknown_fields.h"
+#include "google/protobuf/util/message_differencer.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/io/strtod.h"
+#include "google/protobuf/io/zero_copy_stream_impl_lite.h"
 
 // clang-format off
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 // clang-format on
 
 #define PyString_AsString(ob) \
@@ -87,6 +88,9 @@
               ? -1                                               \
               : 0)                                               \
        : PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
+
+#define PROTOBUF_PYTHON_PUBLIC "google.protobuf"
+#define PROTOBUF_PYTHON_INTERNAL "google.protobuf.internal"
 
 namespace google {
 namespace protobuf {
@@ -242,12 +246,12 @@ static PyObject* New(PyTypeObject* type, PyObject* args, PyObject* kwargs) {
   ScopedPyObjectPtr new_args;
 
   if (WKT_classes == nullptr) {
-    ScopedPyObjectPtr well_known_types(PyImport_ImportModule(
-        "google.protobuf.internal.well_known_types"));
-    GOOGLE_DCHECK(well_known_types != nullptr);
+    ScopedPyObjectPtr well_known_types(
+        PyImport_ImportModule(PROTOBUF_PYTHON_INTERNAL ".well_known_types"));
+    Y_ABSL_DCHECK(well_known_types != nullptr);
 
     WKT_classes = PyObject_GetAttrString(well_known_types.get(), "WKTBASES");
-    GOOGLE_DCHECK(WKT_classes != nullptr);
+    Y_ABSL_DCHECK(WKT_classes != nullptr);
   }
 
   PyObject* well_known_class = PyDict_GetItemString(
@@ -401,7 +405,7 @@ static PyObject* GetClassAttribute(CMessageClass *self, PyObject* name) {
   Py_ssize_t attr_size;
   static const char kSuffix[] = "_FIELD_NUMBER";
   if (PyString_AsStringAndSize(name, &attr, &attr_size) >= 0 &&
-      HasSuffixString(StringPiece(attr, attr_size), kSuffix)) {
+      y_absl::EndsWith(y_absl::string_view(attr, attr_size), kSuffix)) {
     TProtoStringType field_name(attr, attr_size - sizeof(kSuffix) + 1);
     LowerString(&field_name);
 
@@ -672,8 +676,8 @@ bool IsValidUTF8(PyObject* obj) {
 bool AllowInvalidUTF8(const FieldDescriptor* field) { return false; }
 
 PyObject* CheckString(PyObject* arg, const FieldDescriptor* descriptor) {
-  GOOGLE_DCHECK(descriptor->type() == FieldDescriptor::TYPE_STRING ||
-         descriptor->type() == FieldDescriptor::TYPE_BYTES);
+  Y_ABSL_DCHECK(descriptor->type() == FieldDescriptor::TYPE_STRING ||
+              descriptor->type() == FieldDescriptor::TYPE_BYTES);
   if (descriptor->type() == FieldDescriptor::TYPE_STRING) {
     if (!PyBytes_Check(arg) && !PyUnicode_Check(arg)) {
       FormatTypeError(arg, "bytes, unicode");
@@ -776,7 +780,7 @@ bool CheckFieldBelongsToMessage(const FieldDescriptor* field_descriptor,
 namespace cmessage {
 
 PyMessageFactory* GetFactoryForMessage(CMessage* message) {
-  GOOGLE_DCHECK(PyObject_TypeCheck(message, CMessage_Type));
+  Y_ABSL_DCHECK(PyObject_TypeCheck(message, CMessage_Type));
   return reinterpret_cast<CMessageClass*>(Py_TYPE(message))->py_message_factory;
 }
 
@@ -848,7 +852,7 @@ int AssureWritable(CMessage* self) {
   }
 
   // Toplevel messages are always mutable.
-  GOOGLE_DCHECK(self->parent);
+  Y_ABSL_DCHECK(self->parent);
 
   if (AssureWritable(self->parent) == -1) {
     return -1;
@@ -906,7 +910,7 @@ static PyObject* GetIntegerEnumValue(const FieldDescriptor& descriptor,
       return nullptr;
     }
     const EnumValueDescriptor* enum_value_descriptor =
-        enum_descriptor->FindValueByName(StringParam(enum_label, size));
+        enum_descriptor->FindValueByName(y_absl::string_view(enum_label, size));
     if (enum_value_descriptor == nullptr) {
       PyErr_Format(PyExc_ValueError, "unknown enum label \"%s\"", enum_label);
       return nullptr;
@@ -980,7 +984,7 @@ int DeleteRepeatedField(
   }
 
   Arena* arena = Arena::InternalGetArenaForAllocation(message);
-  GOOGLE_DCHECK_EQ(arena, nullptr)
+  Y_ABSL_DCHECK_EQ(arena, nullptr)
       << "python protobuf is expected to be allocated from heap";
   // Remove items, starting from the end.
   for (; length > to; length--) {
@@ -993,9 +997,10 @@ int DeleteRepeatedField(
     //
     // To work around a debug hardening (PROTOBUF_FORCE_COPY_IN_RELEASE),
     // explicitly use UnsafeArenaReleaseLast. To not break rare use cases where
-    // arena is used, we fallback to ReleaseLast (but GOOGLE_DCHECK to find/fix it).
+    // arena is used, we fallback to ReleaseLast (but Y_ABSL_DCHECK to find/fix
+    // it).
     //
-    // Note that arena is likely null and GOOGLE_DCHECK and ReleaesLast might be
+    // Note that arena is likely null and Y_ABSL_DCHECK and ReleaesLast might be
     // redundant. The current approach takes extra cautious path not to disrupt
     // production.
     Message* sub_message =
@@ -1092,7 +1097,8 @@ int InitAttributes(CMessage* self, PyObject* args, PyObject* kwargs) {
             reinterpret_cast<RepeatedCompositeContainer*>(container.get());
         ScopedPyObjectPtr iter(PyObject_GetIter(value));
         if (iter == nullptr) {
-          PyErr_SetString(PyExc_TypeError, "Value must be iterable");
+          PyErr_Format(PyExc_TypeError, "Value of field '%s' must be iterable",
+                       descriptor->name().c_str());
           return -1;
         }
         ScopedPyObjectPtr next;
@@ -1121,7 +1127,8 @@ int InitAttributes(CMessage* self, PyObject* args, PyObject* kwargs) {
             reinterpret_cast<RepeatedScalarContainer*>(container.get());
         ScopedPyObjectPtr iter(PyObject_GetIter(value));
         if (iter == nullptr) {
-          PyErr_SetString(PyExc_TypeError, "Value must be iterable");
+          PyErr_Format(PyExc_TypeError, "Value of field '%s' must be iterable",
+                       descriptor->name().c_str());
           return -1;
         }
         ScopedPyObjectPtr next;
@@ -1258,8 +1265,8 @@ static void Dealloc(CMessage* self) {
     PyObject_ClearWeakRefs(reinterpret_cast<PyObject*>(self));
   }
   // At this point all dependent objects have been removed.
-  GOOGLE_DCHECK(!self->child_submessages || self->child_submessages->empty());
-  GOOGLE_DCHECK(!self->composite_fields || self->composite_fields->empty());
+  Y_ABSL_DCHECK(!self->child_submessages || self->child_submessages->empty());
+  Y_ABSL_DCHECK(!self->composite_fields || self->composite_fields->empty());
   delete self->child_submessages;
   delete self->composite_fields;
   if (self->unknown_field_set) {
@@ -1333,7 +1340,7 @@ int HasFieldByDescriptor(CMessage* self,
 }
 
 const FieldDescriptor* FindFieldWithOneofs(const Message* message,
-                                           ConstStringParam field_name,
+                                           y_absl::string_view field_name,
                                            bool* in_oneof) {
   *in_oneof = false;
   const Descriptor* descriptor = message->GetDescriptor();
@@ -1382,8 +1389,8 @@ PyObject* HasField(CMessage* self, PyObject* arg) {
 
   Message* message = self->message;
   bool is_in_oneof;
-  const FieldDescriptor* field_descriptor =
-      FindFieldWithOneofs(message, StringParam(field_name, size), &is_in_oneof);
+  const FieldDescriptor* field_descriptor = FindFieldWithOneofs(
+      message, y_absl::string_view(field_name, size), &is_in_oneof);
   if (field_descriptor == nullptr) {
     if (!is_in_oneof) {
       PyErr_Format(PyExc_ValueError, "Protocol message %s has no field %s.",
@@ -1567,7 +1574,7 @@ PyObject* ClearField(CMessage* self, PyObject* arg) {
   AssureWritable(self);
   bool is_in_oneof;
   const FieldDescriptor* field_descriptor = FindFieldWithOneofs(
-      self->message, StringParam(field_name, field_size), &is_in_oneof);
+      self->message, y_absl::string_view(field_name, field_size), &is_in_oneof);
   if (field_descriptor == nullptr) {
     if (is_in_oneof) {
       // We gave the name of a oneof, and none of its fields are set.
@@ -1704,7 +1711,7 @@ static PyObject* InternalSerializeToString(
     coded_out.SetSerializationDeterministic(deterministic);
   }
   self->message->SerializeWithCachedSizes(&coded_out);
-  GOOGLE_CHECK(!coded_out.HadError());
+  Y_ABSL_CHECK(!coded_out.HadError());
   return result;
 }
 
@@ -1877,7 +1884,7 @@ static PyObject* MergeFromString(CMessage* self, PyObject* arg) {
   const char* ptr;
   internal::ParseContext ctx(
       depth, false, &ptr,
-      StringPiece(static_cast<const char*>(data.buf), data.len));
+      y_absl::string_view(static_cast<const char*>(data.buf), data.len));
   PyBuffer_Release(&data);
   ctx.data().pool = factory->pool->pool;
   ctx.data().factory = factory->message_factory;
@@ -1967,7 +1974,7 @@ static PyObject* WhichOneof(CMessage* self, PyObject* arg) {
   if (PyString_AsStringAndSize(arg, &name_data, &name_size) < 0) return nullptr;
   const OneofDescriptor* oneof_desc =
       self->message->GetDescriptor()->FindOneofByName(
-          StringParam(name_data, name_size));
+          y_absl::string_view(name_data, name_size));
   if (oneof_desc == nullptr) {
     PyErr_Format(PyExc_ValueError,
                  "Protocol message has no oneof \"%s\" field.", name_data);
@@ -2244,37 +2251,37 @@ int InternalSetNonOneofScalar(
 
   switch (field_descriptor->cpp_type()) {
     case FieldDescriptor::CPPTYPE_INT32: {
-      GOOGLE_CHECK_GET_INT32(arg, value, -1);
+      PROTOBUF_CHECK_GET_INT32(arg, value, -1);
       reflection->SetInt32(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_INT64: {
-      GOOGLE_CHECK_GET_INT64(arg, value, -1);
+      PROTOBUF_CHECK_GET_INT64(arg, value, -1);
       reflection->SetInt64(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_UINT32: {
-      GOOGLE_CHECK_GET_UINT32(arg, value, -1);
+      PROTOBUF_CHECK_GET_UINT32(arg, value, -1);
       reflection->SetUInt32(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_UINT64: {
-      GOOGLE_CHECK_GET_UINT64(arg, value, -1);
+      PROTOBUF_CHECK_GET_UINT64(arg, value, -1);
       reflection->SetUInt64(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_FLOAT: {
-      GOOGLE_CHECK_GET_FLOAT(arg, value, -1);
+      PROTOBUF_CHECK_GET_FLOAT(arg, value, -1);
       reflection->SetFloat(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_DOUBLE: {
-      GOOGLE_CHECK_GET_DOUBLE(arg, value, -1);
+      PROTOBUF_CHECK_GET_DOUBLE(arg, value, -1);
       reflection->SetDouble(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_BOOL: {
-      GOOGLE_CHECK_GET_BOOL(arg, value, -1);
+      PROTOBUF_CHECK_GET_BOOL(arg, value, -1);
       reflection->SetBool(message, field_descriptor, value);
       break;
     }
@@ -2286,7 +2293,7 @@ int InternalSetNonOneofScalar(
       break;
     }
     case FieldDescriptor::CPPTYPE_ENUM: {
-      GOOGLE_CHECK_GET_INT32(arg, value, -1);
+      PROTOBUF_CHECK_GET_INT32(arg, value, -1);
       if (reflection->SupportsUnknownEnumValues()) {
         reflection->SetEnumValue(message, field_descriptor, value);
       } else {
@@ -2366,7 +2373,7 @@ PyObject* DeepCopy(CMessage* self, PyObject* arg) {
 PyObject* ToUnicode(CMessage* self) {
   // Lazy import to prevent circular dependencies
   ScopedPyObjectPtr text_format(
-      PyImport_ImportModule("google.protobuf.text_format"));
+      PyImport_ImportModule(PROTOBUF_PYTHON_PUBLIC ".text_format"));
   if (text_format == nullptr) {
     return nullptr;
   }
@@ -2667,22 +2674,22 @@ CMessage* CMessage::BuildSubMessageFromPointer(
   if (!this->child_submessages) {
     this->child_submessages = new CMessage::SubMessagesMap();
   }
-  CMessage* cmsg = FindPtrOrNull(
-      *this->child_submessages, sub_message);
-  if (cmsg) {
-    Py_INCREF(cmsg);
-  } else {
-    cmsg = cmessage::NewEmptyMessage(message_class);
-
-    if (cmsg == nullptr) {
-      return nullptr;
-    }
-    cmsg->message = sub_message;
-    Py_INCREF(this);
-    cmsg->parent = this;
-    cmsg->parent_field_descriptor = field_descriptor;
-    cmessage::SetSubmessage(this, cmsg);
+  auto it = this->child_submessages->find(sub_message);
+  if (it != this->child_submessages->end()) {
+    Py_INCREF(it->second);
+    return it->second;
   }
+
+  CMessage* cmsg = cmessage::NewEmptyMessage(message_class);
+
+  if (cmsg == nullptr) {
+    return nullptr;
+  }
+  cmsg->message = sub_message;
+  Py_INCREF(this);
+  cmsg->parent = this;
+  cmsg->parent_field_descriptor = field_descriptor;
+  cmessage::SetSubmessage(this, cmsg);
   return cmsg;
 }
 
@@ -2690,11 +2697,10 @@ CMessage* CMessage::MaybeReleaseSubMessage(Message* sub_message) {
   if (!this->child_submessages) {
     return nullptr;
   }
-  CMessage* released = FindPtrOrNull(
-      *this->child_submessages, sub_message);
-  if (!released) {
-    return nullptr;
-  }
+  auto it = this->child_submessages->find(sub_message);
+  if (it == this->child_submessages->end()) return nullptr;
+  CMessage* released = it->second;
+
   // The target message will now own its content.
   Py_CLEAR(released->parent);
   released->parent_field_descriptor = nullptr;
@@ -3028,8 +3034,8 @@ bool InitProto2MessageModule(PyObject *m) {
   PyModule_AddObject(m, "MethodDescriptor",
                      reinterpret_cast<PyObject*>(&PyMethodDescriptor_Type));
 
-  PyObject* enum_type_wrapper = PyImport_ImportModule(
-      "google.protobuf.internal.enum_type_wrapper");
+  PyObject* enum_type_wrapper =
+      PyImport_ImportModule(PROTOBUF_PYTHON_INTERNAL ".enum_type_wrapper");
   if (enum_type_wrapper == nullptr) {
     return false;
   }
@@ -3037,8 +3043,8 @@ bool InitProto2MessageModule(PyObject *m) {
       PyObject_GetAttrString(enum_type_wrapper, "EnumTypeWrapper");
   Py_DECREF(enum_type_wrapper);
 
-  PyObject* message_module = PyImport_ImportModule(
-      "google.protobuf.message");
+  PyObject* message_module =
+      PyImport_ImportModule(PROTOBUF_PYTHON_PUBLIC ".message");
   if (message_module == nullptr) {
     return false;
   }

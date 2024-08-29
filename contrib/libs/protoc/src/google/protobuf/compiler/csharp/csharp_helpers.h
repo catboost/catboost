@@ -36,14 +36,16 @@
 #define GOOGLE_PROTOBUF_COMPILER_CSHARP_HELPERS_H__
 
 #include <string>
-#include <google/protobuf/port.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/io/printer.h>
 
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/compiler/code_generator.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/compiler/csharp/names.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/port.h"
+#include "google/protobuf/port_def.inc"
+#include "google/protobuf/stubs/common.h"
 
 namespace google {
 namespace protobuf {
@@ -72,15 +74,6 @@ enum CSharpType {
 // Converts field type to corresponding C# type.
 CSharpType GetCSharpType(FieldDescriptor::Type type);
 
-TProtoStringType StripDotProto(const TProtoStringType& proto_file);
-
-// Gets unqualified name of the reflection class
-TProtoStringType GetReflectionClassUnqualifiedName(const FileDescriptor* descriptor);
-// Gets unqualified name of the extension class
-TProtoStringType GetExtensionClassUnqualifiedName(const FileDescriptor* descriptor);
-
-TProtoStringType GetClassName(const EnumDescriptor* descriptor);
-
 TProtoStringType GetFieldName(const FieldDescriptor* descriptor);
 
 TProtoStringType GetFieldConstantName(const FieldDescriptor* field);
@@ -91,23 +84,13 @@ TProtoStringType GetOneofCaseName(const FieldDescriptor* descriptor);
 
 int GetFixedSize(FieldDescriptor::Type type);
 
-TProtoStringType UnderscoresToCamelCase(const TProtoStringType& input,
-                                   bool cap_next_letter,
-                                   bool preserve_period);
-
-inline TProtoStringType UnderscoresToCamelCase(const TProtoStringType& input, bool cap_next_letter) {
-  return UnderscoresToCamelCase(input, cap_next_letter, false);
-}
-
-TProtoStringType UnderscoresToPascalCase(const TProtoStringType& input);
-
 // Note that we wouldn't normally want to export this (we're not expecting
 // it to be used outside libprotoc itself) but this exposes it for testing.
-TProtoStringType PROTOC_EXPORT GetEnumValueName(const TProtoStringType& enum_name,
-                                           const TProtoStringType& enum_value_name);
+TProtoStringType PROTOC_EXPORT GetEnumValueName(y_absl::string_view enum_name,
+                                           y_absl::string_view enum_value_name);
 
 // TODO(jtattermusch): perhaps we could move this to strutil
-TProtoStringType StringToBase64(const TProtoStringType& input);
+TProtoStringType StringToBase64(y_absl::string_view input);
 
 TProtoStringType FileDescriptorToBase64(const FileDescriptor* descriptor);
 
@@ -193,6 +176,6 @@ inline bool RequiresPresenceBit(const FieldDescriptor* descriptor) {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_HELPERS_H__

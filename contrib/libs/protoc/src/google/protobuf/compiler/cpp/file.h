@@ -36,53 +36,47 @@
 #define GOOGLE_PROTOBUF_COMPILER_CPP_FILE_H__
 
 #include <algorithm>
+#include <functional>
 #include <memory>
-#include <set>
 #include <string>
 #include <vector>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/compiler/cpp/field.h>
-#include <google/protobuf/compiler/cpp/helpers.h>
-#include <google/protobuf/compiler/scc.h>
-#include <google/protobuf/compiler/cpp/options.h>
-
-namespace google {
-namespace protobuf {
-class FileDescriptor;  // descriptor.h
-namespace io {
-class Printer;  // printer.h
-}
-}  // namespace protobuf
-}  // namespace google
+#include "google/protobuf/stubs/common.h"
+#include "google/protobuf/compiler/scc.h"
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/container/flat_hash_set.h"
+#include "y_absl/log/absl_check.h"
+#include "google/protobuf/compiler/cpp/enum.h"
+#include "google/protobuf/compiler/cpp/extension.h"
+#include "google/protobuf/compiler/cpp/field.h"
+#include "google/protobuf/compiler/cpp/helpers.h"
+#include "google/protobuf/compiler/cpp/message.h"
+#include "google/protobuf/compiler/cpp/options.h"
+#include "google/protobuf/compiler/cpp/service.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/port.h"
 
 namespace google {
 namespace protobuf {
 namespace compiler {
 namespace cpp {
-
-class EnumGenerator;       // enum.h
-class MessageGenerator;    // message.h
-class ServiceGenerator;    // service.h
-class ExtensionGenerator;  // extension.h
-
 class FileGenerator {
  public:
-  // See generator.cc for the meaning of dllexport_decl.
   FileGenerator(const FileDescriptor* file, const Options& options);
-  ~FileGenerator();
 
-  // Shared code between the two header generators below.
-  void GenerateHeader(io::Printer* printer);
+  FileGenerator(const FileGenerator&) = delete;
+  FileGenerator& operator=(const FileGenerator&) = delete;
+
+  ~FileGenerator() = default;
 
   // info_path, if non-empty, should be the path (relative to printer's
   // output) to the metadata file describing this proto header.
-  void GenerateProtoHeader(io::Printer* printer, const TProtoStringType& info_path);
+  void GenerateProtoHeader(io::Printer* p, y_absl::string_view info_path);
   // info_path, if non-empty, should be the path (relative to printer's
   // output) to the metadata file describing this PB header.
-  void GeneratePBHeader(io::Printer* printer, const TProtoStringType& info_path);
-  void GeneratePBDeps(io::Printer* printer, const TProtoStringType& info_path);
-  void GenerateSource(io::Printer* printer);
+  void GeneratePBHeader(io::Printer* p, y_absl::string_view info_path);
+  void GenerateSource(io::Printer* p);
 
   // The following member functions are used when the lite_implicit_weak_fields
   // option is set. In this mode the code is organized a bit differently to
@@ -93,78 +87,86 @@ class FileGenerator {
   int NumMessages() const { return message_generators_.size(); }
   int NumExtensions() const { return extension_generators_.size(); }
   // Generates the source file for one message.
-  void GenerateSourceForMessage(int idx, io::Printer* printer);
+  void GenerateSourceForMessage(int idx, io::Printer* p);
   // Generates the source file for one extension.
-  void GenerateSourceForExtension(int idx, io::Printer* printer);
+  void GenerateSourceForExtension(int idx, io::Printer* p);
   // Generates a source file containing everything except messages and
   // extensions.
-  void GenerateGlobalSource(io::Printer* printer);
+  void GenerateGlobalSource(io::Printer* p);
 
  private:
+  // Generates a file, setting up the necessary accoutrements that start and
+  // end the file, calling `cb` in between.
+  //
+  // This includes header guards and file-global variables.
+  void GenerateFile(io::Printer* p, GeneratedFileType file_type,
+                    std::function<void()> cb);
+
+  // Shared code between the two header generators.
+  void GenerateSharedHeaderCode(io::Printer* p);
+
   // Internal type used by GenerateForwardDeclarations (defined in file.cc).
   class ForwardDeclarations;
   struct CrossFileReferences;
 
-  void IncludeFile(const TProtoStringType& google3_name, io::Printer* printer) {
-    DoIncludeFile(google3_name, false, printer);
+  void IncludeFile(y_absl::string_view google3_name, io::Printer* p) {
+    DoIncludeFile(google3_name, false, p);
   }
-  void IncludeFileAndExport(const TProtoStringType& google3_name,
-                            io::Printer* printer) {
-    DoIncludeFile(google3_name, true, printer);
+  void IncludeFileAndExport(y_absl::string_view google3_name, io::Printer* p) {
+    DoIncludeFile(google3_name, true, p);
   }
-  void DoIncludeFile(const TProtoStringType& google3_name, bool do_export,
-                     io::Printer* printer);
+  void DoIncludeFile(y_absl::string_view google3_name, bool do_export,
+                     io::Printer* p);
 
-  TProtoStringType CreateHeaderInclude(const TProtoStringType& basename,
+  TProtoStringType CreateHeaderInclude(y_absl::string_view basename,
                                   const FileDescriptor* file);
   void GetCrossFileReferencesForField(const FieldDescriptor* field,
                                       CrossFileReferences* refs);
   void GetCrossFileReferencesForFile(const FileDescriptor* file,
                                      CrossFileReferences* refs);
   void GenerateInternalForwardDeclarations(const CrossFileReferences& refs,
-                                           io::Printer* printer);
-  void GenerateSourceIncludes(io::Printer* printer);
-  void GenerateSourcePrelude(io::Printer* printer);
-  void GenerateSourceDefaultInstance(int idx, io::Printer* printer);
+                                           io::Printer* p);
+  void GenerateSourceIncludes(io::Printer* p);
+  void GenerateSourcePrelude(io::Printer* p);
+  void GenerateSourceDefaultInstance(int idx, io::Printer* p);
 
   void GenerateInitForSCC(const SCC* scc, const CrossFileReferences& refs,
-                          io::Printer* printer);
-  void GenerateReflectionInitializationCode(io::Printer* printer);
+                          io::Printer* p);
+  void GenerateReflectionInitializationCode(io::Printer* p);
 
   // For other imports, generates their forward-declarations.
-  void GenerateForwardDeclarations(io::Printer* printer);
+  void GenerateForwardDeclarations(io::Printer* p);
 
   // Generates top or bottom of a header file.
-  void GenerateTopHeaderGuard(io::Printer* printer, bool pb_h, bool deps = false);
-  void GenerateBottomHeaderGuard(io::Printer* printer, bool pb_h, bool deps = false);
+  void GenerateTopHeaderGuard(io::Printer* p, GeneratedFileType file_type);
+  void GenerateBottomHeaderGuard(io::Printer* p, GeneratedFileType file_type);
 
   // Generates #include directives.
-  void GenerateLibraryIncludes(io::Printer* printer);
-  void GenerateDependencyIncludes(io::Printer* printer);
+  void GenerateLibraryIncludes(io::Printer* p);
+  void GenerateDependencyIncludes(io::Printer* p);
 
   // Generate a pragma to pull in metadata using the given info_path (if
   // non-empty). info_path should be relative to printer's output.
-  void GenerateMetadataPragma(io::Printer* printer,
-                              const TProtoStringType& info_path);
+  void GenerateMetadataPragma(io::Printer* p, y_absl::string_view info_path);
 
   // Generates a couple of different pieces before definitions:
-  void GenerateGlobalStateFunctionDeclarations(io::Printer* printer);
+  void GenerateGlobalStateFunctionDeclarations(io::Printer* p);
 
   // Generates types for classes.
-  void GenerateMessageDefinitions(io::Printer* printer);
+  void GenerateMessageDefinitions(io::Printer* p);
 
-  void GenerateEnumDefinitions(io::Printer* printer);
+  void GenerateEnumDefinitions(io::Printer* p);
 
   // Generates generic service definitions.
-  void GenerateServiceDefinitions(io::Printer* printer);
+  void GenerateServiceDefinitions(io::Printer* p);
 
   // Generates extension identifiers.
-  void GenerateExtensionIdentifiers(io::Printer* printer);
+  void GenerateExtensionIdentifiers(io::Printer* p);
 
   // Generates inline function definitions.
-  void GenerateInlineFunctionDefinitions(io::Printer* printer);
+  void GenerateInlineFunctionDefinitions(io::Printer* p);
 
-  void GenerateProto2NamespaceEnumSpecializations(io::Printer* printer);
+  void GenerateProto2NamespaceEnumSpecializations(io::Printer* p);
 
   // Sometimes the names we use in a .proto file happen to be defined as
   // macros on some platforms (e.g., macro/minor used in plugin.proto are
@@ -173,24 +175,27 @@ class FileGenerator {
   // undef the macro for these few platforms, or rename the field name for all
   // platforms. Since these names are part of protobuf public API, renaming is
   // generally a breaking change so we prefer the #undef approach.
-  void GenerateMacroUndefs(io::Printer* printer);
+  void GenerateMacroUndefs(io::Printer* p);
 
   bool IsDepWeak(const FileDescriptor* dep) const {
     if (weak_deps_.count(dep) != 0) {
-      GOOGLE_CHECK(!options_.opensource_runtime);
+      Y_ABSL_CHECK(!options_.opensource_runtime);
       return true;
     }
     return false;
   }
 
-  std::set<const FileDescriptor*> weak_deps_;
+  y_absl::flat_hash_set<const FileDescriptor*> weak_deps_;
 
   const FileDescriptor* file_;
-  const Options options_;
+  Options options_;
 
   MessageSCCAnalyzer scc_analyzer_;
 
-  std::map<TProtoStringType, TProtoStringType> variables_;
+  // This member is unused and should be deleted once all old-style variable
+  // maps are gone.
+  // TODO(b/245791219)
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> variables_;
 
   // Contains the post-order walk of all the messages (and child messages) in
   // this file. If you need a pre-order walk just reverse iterate.
@@ -198,8 +203,6 @@ class FileGenerator {
   std::vector<std::unique_ptr<EnumGenerator>> enum_generators_;
   std::vector<std::unique_ptr<ServiceGenerator>> service_generators_;
   std::vector<std::unique_ptr<ExtensionGenerator>> extension_generators_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FileGenerator);
 };
 
 }  // namespace cpp

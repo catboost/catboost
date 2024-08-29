@@ -35,10 +35,10 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_EXTENSION_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_EXTENSION_H__
 
-#include <map>
 #include <string>
 
-#include <google/protobuf/stubs/common.h>
+#include "y_absl/container/flat_hash_map.h"
+#include "google/protobuf/port.h"
 
 namespace google {
 namespace protobuf {
@@ -66,6 +66,8 @@ namespace java {
 class ExtensionGenerator {
  public:
   explicit ExtensionGenerator() {}
+  ExtensionGenerator(const ExtensionGenerator&) = delete;
+  ExtensionGenerator& operator=(const ExtensionGenerator&) = delete;
   virtual ~ExtensionGenerator() {}
 
   virtual void Generate(io::Printer* printer) = 0;
@@ -82,16 +84,17 @@ class ExtensionGenerator {
   static void InitTemplateVars(
       const FieldDescriptor* descriptor, const TProtoStringType& scope,
       bool immutable, ClassNameResolver* name_resolver,
-      std::map<TProtoStringType, TProtoStringType>* vars_pointer);
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ExtensionGenerator);
+      y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>* vars_pointer,
+      Context* context);
 };
 
 class ImmutableExtensionGenerator : public ExtensionGenerator {
  public:
   explicit ImmutableExtensionGenerator(const FieldDescriptor* descriptor,
                                        Context* context);
+  ImmutableExtensionGenerator(const ImmutableExtensionGenerator&) = delete;
+  ImmutableExtensionGenerator& operator=(const ImmutableExtensionGenerator&) =
+      delete;
   ~ImmutableExtensionGenerator() override;
 
   void Generate(io::Printer* printer) override;
@@ -102,9 +105,7 @@ class ImmutableExtensionGenerator : public ExtensionGenerator {
   const FieldDescriptor* descriptor_;
   ClassNameResolver* name_resolver_;
   TProtoStringType scope_;
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableExtensionGenerator);
+  Context* context_;
 };
 
 }  // namespace java

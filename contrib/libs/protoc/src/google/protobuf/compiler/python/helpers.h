@@ -33,26 +33,29 @@
 
 #include <string>
 
-#include <google/protobuf/descriptor.h>
+#include "y_absl/strings/str_replace.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
 
 namespace google {
 namespace protobuf {
 namespace compiler {
 namespace python {
 
-
-TProtoStringType ModuleName(const TProtoStringType& filename);
-TProtoStringType StrippedModuleName(const TProtoStringType& filename);
-bool ContainsPythonKeyword(const TProtoStringType& module_name);
-bool IsPythonKeyword(const TProtoStringType& name);
-TProtoStringType ResolveKeyword(const TProtoStringType& name);
+TProtoStringType ModuleName(y_absl::string_view filename);
+TProtoStringType StrippedModuleName(y_absl::string_view filename);
+bool ContainsPythonKeyword(y_absl::string_view module_name);
+bool IsPythonKeyword(y_absl::string_view name);
+TProtoStringType ResolveKeyword(y_absl::string_view name);
 TProtoStringType GetFileName(const FileDescriptor* file_des,
-                        const TProtoStringType& suffix);
+                        y_absl::string_view suffix);
 bool HasGenericServices(const FileDescriptor* file);
+TProtoStringType GeneratedCodeToBase64(const GeneratedCodeInfo& annotations);
 
 template <typename DescriptorT>
 TProtoStringType NamePrefixedWithNestedTypes(const DescriptorT& descriptor,
-                                        const TProtoStringType& separator);
+                                        y_absl::string_view separator);
 
 }  // namespace python
 }  // namespace compiler

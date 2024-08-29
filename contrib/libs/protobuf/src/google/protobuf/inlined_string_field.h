@@ -34,15 +34,14 @@
 #include <string>
 #include <utility>
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/port.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/arenastring.h>
-#include <google/protobuf/message_lite.h>
+#include "google/protobuf/port.h"
+#include "y_absl/log/absl_check.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/arenastring.h"
+#include "google/protobuf/message_lite.h"
 
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 #ifdef SWIG
 #error "You cannot SWIG proto headers"
@@ -130,7 +129,7 @@ class PROTOBUF_EXPORT InlinedStringField {
   //   `donated == ((donating_states & ~mask) != 0)`
   //
   // This method never changes the `donating_states`.
-  void Set(ConstStringParam value, Arena* arena, bool donated,
+  void Set(y_absl::string_view value, Arena* arena, bool donated,
            arc_ui32* donating_states, arc_ui32 mask, MessageLite* msg);
 
   // Rvalue Set. If this field is donated, this method will undonate this field
@@ -149,7 +148,7 @@ class PROTOBUF_EXPORT InlinedStringField {
            ::google::protobuf::Arena* arena, bool donated, arc_ui32* donating_states,
            arc_ui32 mask, MessageLite* msg);
 
-  void SetBytes(ConstStringParam value, Arena* arena, bool donated,
+  void SetBytes(y_absl::string_view value, Arena* arena, bool donated,
                 arc_ui32* donating_states, arc_ui32 mask, MessageLite* msg);
 
   void SetBytes(TProtoStringType&& value, Arena* arena, bool donated,
@@ -167,7 +166,7 @@ class PROTOBUF_EXPORT InlinedStringField {
                 ::google::protobuf::Arena* arena, bool donated, arc_ui32* donating_states,
                 arc_ui32 mask, MessageLite* msg);
 
-  PROTOBUF_NDEBUG_INLINE void SetNoArena(StringPiece value);
+  PROTOBUF_NDEBUG_INLINE void SetNoArena(y_absl::string_view value);
   PROTOBUF_NDEBUG_INLINE void SetNoArena(TProtoStringType&& value);
 
   // Basic accessors.
@@ -228,7 +227,7 @@ class PROTOBUF_EXPORT InlinedStringField {
     return Release();
   }
 
-  void Set(const TProtoStringType*, ConstStringParam value, Arena* arena,
+  void Set(const TProtoStringType*, y_absl::string_view value, Arena* arena,
            bool donated, arc_ui32* donating_states, arc_ui32 mask,
            MessageLite* msg) {
     Set(value, arena, donated, donating_states, mask, msg);
@@ -261,7 +260,7 @@ class PROTOBUF_EXPORT InlinedStringField {
     Set(const_string_ref, arena, donated, donating_states, mask, msg);
   }
 
-  void SetBytes(const TProtoStringType*, ConstStringParam value, Arena* arena,
+  void SetBytes(const TProtoStringType*, y_absl::string_view value, Arena* arena,
                 bool donated, arc_ui32* donating_states, arc_ui32 mask,
                 MessageLite* msg) {
     Set(value, arena, donated, donating_states, mask, msg);
@@ -297,7 +296,7 @@ class PROTOBUF_EXPORT InlinedStringField {
              msg);
   }
 
-  void SetNoArena(const TProtoStringType*, StringPiece value) {
+  void SetNoArena(const TProtoStringType*, y_absl::string_view value) {
     SetNoArena(value);
   }
   void SetNoArena(const TProtoStringType*, TProtoStringType&& value) {
@@ -413,7 +412,7 @@ inline void InlinedStringField::DestroyNoArena(const TProtoStringType*) {
   this->~InlinedStringField();
 }
 
-inline void InlinedStringField::SetNoArena(StringPiece value) {
+inline void InlinedStringField::SetNoArena(y_absl::string_view value) {
   get_mutable()->assign(value.data(), value.length());
 }
 
@@ -427,7 +426,7 @@ inline PROTOBUF_NDEBUG_INLINE void InlinedStringField::InternalSwap(
     MessageLite* lhs_msg,  //
     InlinedStringField* rhs, Arena* rhs_arena, bool rhs_arena_dtor_registered,
     MessageLite* rhs_msg) {
-#if GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE
+#ifdef GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL_INLINE
   lhs->get_mutable()->swap(*rhs->get_mutable());
   if (!lhs_arena_dtor_registered && rhs_arena_dtor_registered) {
     lhs_msg->OnDemandRegisterArenaDtor(lhs_arena);
@@ -445,7 +444,7 @@ inline PROTOBUF_NDEBUG_INLINE void InlinedStringField::InternalSwap(
 #endif
 }
 
-inline void InlinedStringField::Set(ConstStringParam value, Arena* arena,
+inline void InlinedStringField::Set(y_absl::string_view value, Arena* arena,
                                     bool donated, arc_ui32* /*donating_states*/,
                                     arc_ui32 /*mask*/, MessageLite* /*msg*/) {
   (void)arena;
@@ -456,17 +455,17 @@ inline void InlinedStringField::Set(ConstStringParam value, Arena* arena,
 inline void InlinedStringField::Set(const char* str, ::google::protobuf::Arena* arena,
                                     bool donated, arc_ui32* donating_states,
                                     arc_ui32 mask, MessageLite* msg) {
-  Set(ConstStringParam(str), arena, donated, donating_states, mask, msg);
+  Set(y_absl::string_view(str), arena, donated, donating_states, mask, msg);
 }
 
 inline void InlinedStringField::Set(const char* str, size_t size,
                                     ::google::protobuf::Arena* arena, bool donated,
                                     arc_ui32* donating_states, arc_ui32 mask,
                                     MessageLite* msg) {
-  Set(ConstStringParam{str, size}, arena, donated, donating_states, mask, msg);
+  Set(y_absl::string_view{str, size}, arena, donated, donating_states, mask, msg);
 }
 
-inline void InlinedStringField::SetBytes(ConstStringParam value, Arena* arena,
+inline void InlinedStringField::SetBytes(y_absl::string_view value, Arena* arena,
                                          bool donated,
                                          arc_ui32* donating_states,
                                          arc_ui32 mask, MessageLite* msg) {
@@ -527,6 +526,6 @@ inline TProtoStringType* InlinedStringField::MutableNoCopy(std::nullptr_t) {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_INLINED_STRING_FIELD_H__

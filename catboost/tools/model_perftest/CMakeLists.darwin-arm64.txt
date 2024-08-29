@@ -32,6 +32,8 @@ target_link_options(model_perftest PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 

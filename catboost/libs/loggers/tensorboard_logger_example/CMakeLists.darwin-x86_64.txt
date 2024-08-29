@@ -30,6 +30,8 @@ target_link_options(tensorboard_logger_example PRIVATE
   -Wl,-platform_version,macos,11.0,11.0
   -fPIC
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 target_sources(tensorboard_logger_example PRIVATE

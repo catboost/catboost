@@ -36,14 +36,14 @@
 #include <type_traits>
 #include <utility>
 
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/arena.h>
-#include <google/protobuf/port.h>
-#include <google/protobuf/explicitly_constructed.h>
+#include "y_absl/log/absl_check.h"
+#include "google/protobuf/arena.h"
+#include "google/protobuf/port.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/explicitly_constructed.h"
 
 // must be last:
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 #ifdef SWIG
 #error "You cannot SWIG proto headers"
@@ -99,9 +99,9 @@ class TaggedStringPtr {
   // Bit flags qualifying string properties. We can use 2 bits as
   // ptr_ is guaranteed and enforced to be aligned on 4 byte boundaries.
   enum Flags {
-    kArenaBit = 0x1,      // ptr is arena allocated
-    kMutableBit = 0x2,    // ptr contents are fully mutable
-    kMask = 0x3           // Bit mask
+    kArenaBit = 0x1,    // ptr is arena allocated
+    kMutableBit = 0x2,  // ptr contents are fully mutable
+    kMask = 0x3         // Bit mask
   };
 
   // Composed logical types
@@ -167,7 +167,7 @@ class TaggedStringPtr {
 
   // If the current string is a heap-allocated mutable value, returns a pointer
   // to it.  Returns nullptr otherwise.
-  inline TProtoStringType *GetIfAllocated() const {
+  inline TProtoStringType* GetIfAllocated() const {
     auto allocated = as_int() ^ kAllocated;
     if (allocated & kMask) return nullptr;
 
@@ -197,11 +197,11 @@ class TaggedStringPtr {
 
  private:
   static inline void assert_aligned(const void* p) {
-    GOOGLE_DCHECK_EQ(reinterpret_cast<uintptr_t>(p) & kMask, 0UL);
+    Y_ABSL_DCHECK_EQ(reinterpret_cast<uintptr_t>(p) & kMask, 0UL);
   }
 
   inline TProtoStringType* TagAs(Type type, TProtoStringType* p) {
-    GOOGLE_DCHECK(p != nullptr);
+    Y_ABSL_DCHECK(p != nullptr);
     assert_aligned(p);
     ptr_ = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) | type);
     return p;
@@ -259,13 +259,16 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
   // instance known to not carry any heap allocated value.
   inline void InitAllocated(TProtoStringType* str, Arena* arena);
 
-  void Set(ConstStringParam value, Arena* arena);
+  void Set(const TProtoStringType& value, Arena* arena);
   void Set(TProtoStringType&& value, Arena* arena);
+  template <typename... OverloadDisambiguator>
+  void Set(const TProtoStringType& value, Arena* arena);
   void Set(const char* s, Arena* arena);
   void Set(const char* s, size_t n, Arena* arena);
 
-  void SetBytes(ConstStringParam value, Arena* arena);
   void SetBytes(TProtoStringType&& value, Arena* arena);
+  template <typename... OverloadDisambiguator>
+  void SetBytes(const TProtoStringType& value, Arena* arena);
   void SetBytes(const char* s, Arena* arena);
   void SetBytes(const void* p, size_t n, Arena* arena);
 
@@ -406,14 +409,19 @@ inline void ArenaStringPtr::InitAllocated(TProtoStringType* str, Arena* arena) {
 }
 
 inline void ArenaStringPtr::Set(const char* s, Arena* arena) {
-  Set(ConstStringParam{s}, arena);
+  Set(TProtoStringType{s}, arena);
 }
 
 inline void ArenaStringPtr::Set(const char* s, size_t n, Arena* arena) {
-  Set(ConstStringParam{s, n}, arena);
+  Set(TProtoStringType(s, s + n), arena);
 }
 
-inline void ArenaStringPtr::SetBytes(ConstStringParam value, Arena* arena) {
+template <>
+PROTOBUF_EXPORT void ArenaStringPtr::Set(const TProtoStringType& value,
+                                         Arena* arena);
+
+template <>
+inline void ArenaStringPtr::SetBytes(const TProtoStringType& value, Arena* arena) {
   Set(value, arena);
 }
 
@@ -426,7 +434,7 @@ inline void ArenaStringPtr::SetBytes(const char* s, Arena* arena) {
 }
 
 inline void ArenaStringPtr::SetBytes(const void* p, size_t n, Arena* arena) {
-  Set(ConstStringParam{static_cast<const char*>(p), n}, arena);
+  Set(TProtoStringType(static_cast<const char*>(p), static_cast<const char*>(p) + n), arena);
 }
 
 // Make sure rhs_arena allocated rhs, and lhs_arena allocated lhs.
@@ -465,8 +473,8 @@ inline void ArenaStringPtr::ClearNonDefaultToEmpty() {
 }
 
 inline TProtoStringType* ArenaStringPtr::UnsafeMutablePointer() {
-  GOOGLE_DCHECK(tagged_ptr_.IsMutable());
-  GOOGLE_DCHECK(tagged_ptr_.Get() != nullptr);
+  Y_ABSL_DCHECK(tagged_ptr_.IsMutable());
+  Y_ABSL_DCHECK(tagged_ptr_.Get() != nullptr);
   return tagged_ptr_.Get();
 }
 
@@ -475,6 +483,6 @@ inline TProtoStringType* ArenaStringPtr::UnsafeMutablePointer() {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_ARENASTRING_H__

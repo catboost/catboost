@@ -28,13 +28,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <google/protobuf/compiler/java/kotlin_generator.h>
+#include "google/protobuf/compiler/java/kotlin_generator.h"
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/compiler/java/file.h>
-#include <google/protobuf/compiler/java/generator.h>
-#include <google/protobuf/compiler/java/helpers.h>
-#include <google/protobuf/compiler/java/options.h>
+#include "google/protobuf/compiler/code_generator.h"
+#include "google/protobuf/compiler/java/file.h"
+#include "google/protobuf/compiler/java/generator.h"
+#include "google/protobuf/compiler/java/helpers.h"
+#include "google/protobuf/compiler/java/options.h"
 
 namespace google {
 namespace protobuf {
@@ -78,7 +78,7 @@ bool KotlinGenerator::Generate(const FileDescriptor* file,
     } else if (option.first == "annotation_list_file") {
       file_options.annotation_list_file = option.second;
     } else {
-      *error = "Unknown generator option: " + option.first;
+      *error = y_absl::StrCat("Unknown generator option: ", option.first);
       return false;
     }
   }
@@ -101,11 +101,10 @@ bool KotlinGenerator::Generate(const FileDescriptor* file,
     return std::unique_ptr<io::ZeroCopyOutputStream>(context->Open(filename));
   };
   TProtoStringType package_dir = JavaPackageToDir(file_generator->java_package());
-  TProtoStringType kotlin_filename = package_dir;
-  kotlin_filename += file_generator->GetKotlinClassname();
-  kotlin_filename += ".kt";
+  TProtoStringType kotlin_filename =
+      y_absl::StrCat(package_dir, file_generator->GetKotlinClassname(), ".kt");
   all_files.push_back(kotlin_filename);
-  TProtoStringType info_full_path = kotlin_filename + ".pb.meta";
+  TProtoStringType info_full_path = y_absl::StrCat(kotlin_filename, ".pb.meta");
   if (file_options.annotate_code) {
     all_annotations.push_back(info_full_path);
   }
@@ -118,6 +117,8 @@ bool KotlinGenerator::Generate(const FileDescriptor* file,
   io::Printer printer(
       output.get(), '$',
       file_options.annotate_code ? &annotation_collector : nullptr);
+
+  file_generator->GenerateKotlin(&printer);
 
   file_generator->GenerateKotlinSiblings(package_dir, context, &all_files,
                                          &all_annotations);

@@ -38,24 +38,24 @@
 #ifndef GOOGLE_PROTOBUF_EXTENSION_SET_H__
 #define GOOGLE_PROTOBUF_EXTENSION_SET_H__
 
-
 #include <algorithm>
 #include <cassert>
-#include <map>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/port.h>
-#include <google/protobuf/parse_context.h>
-#include <google/protobuf/repeated_field.h>
-#include <google/protobuf/wire_format_lite.h>
+#include "google/protobuf/stubs/common.h"
+#include "y_absl/container/btree_map.h"
+#include "y_absl/log/absl_check.h"
+#include "google/protobuf/port.h"
+#include "google/protobuf/port.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/parse_context.h"
+#include "google/protobuf/repeated_field.h"
+#include "google/protobuf/wire_format_lite.h"
 
 // clang-format off
-#include <google/protobuf/port_def.inc>  // Must be last
+#include "google/protobuf/port_def.inc"  // Must be last
 // clang-format on
 
 #ifdef SWIG
@@ -185,6 +185,8 @@ class PROTOBUF_EXPORT ExtensionSet {
   constexpr ExtensionSet();
   explicit ExtensionSet(Arena* arena);
   ExtensionSet(ArenaInitialized, Arena* arena) : ExtensionSet(arena) {}
+  ExtensionSet(const ExtensionSet&) = delete;
+  ExtensionSet& operator=(const ExtensionSet&) = delete;
   ~ExtensionSet();
 
   // These are called at startup by protocol-compiler-generated code to
@@ -208,7 +210,8 @@ class PROTOBUF_EXPORT ExtensionSet {
   // =================================================================
 
   // Add all fields which are currently present to the given vector.  This
-  // is useful to implement Reflection::ListFields().
+  // is useful to implement Reflection::ListFields(). Descriptors are appended
+  // in increasing tag order.
   void AppendToList(const Descriptor* extendee, const DescriptorPool* pool,
                     std::vector<const FieldDescriptor*>* output) const;
 
@@ -318,7 +321,7 @@ class PROTOBUF_EXPORT ExtensionSet {
 
   // This is an overload of MutableRawRepeatedField to maintain compatibility
   // with old code using a previous API. This version of
-  // MutableRawRepeatedField() will GOOGLE_CHECK-fail on a missing extension.
+  // MutableRawRepeatedField() will Y_ABSL_CHECK-fail on a missing extension.
   // (E.g.: borg/clients/internal/proto1/proto2_reflection.cc.)
   void* MutableRawRepeatedField(int number);
 
@@ -384,7 +387,7 @@ class PROTOBUF_EXPORT ExtensionSet {
   void SwapExtension(const MessageLite* extendee, ExtensionSet* other,
                      int number);
   void UnsafeShallowSwapExtension(ExtensionSet* other, int number);
-  bool IsInitialized() const;
+  bool IsInitialized(const MessageLite* extendee) const;
 
   // Lite parser
   const char* ParseField(arc_ui64 tag, const char* ptr,
@@ -537,8 +540,10 @@ class PROTOBUF_EXPORT ExtensionSet {
   // Interface of a lazily parsed singular message extension.
   class PROTOBUF_EXPORT LazyMessageExtension {
    public:
-    LazyMessageExtension() {}
-    virtual ~LazyMessageExtension() {}
+    LazyMessageExtension() = default;
+    LazyMessageExtension(const LazyMessageExtension&) = delete;
+    LazyMessageExtension& operator=(const LazyMessageExtension&) = delete;
+    virtual ~LazyMessageExtension() = default;
 
     virtual LazyMessageExtension* New(Arena* arena) const = 0;
     virtual const MessageLite& GetMessage(const MessageLite& prototype,
@@ -553,7 +558,8 @@ class PROTOBUF_EXPORT ExtensionSet {
     virtual MessageLite* UnsafeArenaReleaseMessage(const MessageLite& prototype,
                                                    Arena* arena) = 0;
 
-    virtual bool IsInitialized() const = 0;
+    virtual bool IsInitialized(const MessageLite* prototype,
+                               Arena* arena) const = 0;
 
     PROTOBUF_DEPRECATED_MSG("Please use ByteSizeLong() instead")
     virtual int ByteSize() const { return internal::ToIntSize(ByteSizeLong()); }
@@ -574,8 +580,6 @@ class PROTOBUF_EXPORT ExtensionSet {
 
    private:
     virtual void UnusedKeyMethod();  // Dummy key method to avoid weak vtable.
-
-    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(LazyMessageExtension);
   };
   // Give access to function defined below to see LazyMessageExtension.
   friend LazyMessageExtension* MaybeCreateLazyExtension(Arena* arena);
@@ -651,7 +655,8 @@ class PROTOBUF_EXPORT ExtensionSet {
     int GetSize() const;
     void Free();
     size_t SpaceUsedExcludingSelfLong() const;
-    bool IsInitialized() const;
+    bool IsInitialized(const ExtensionSet* ext_set, const MessageLite* extendee,
+                       int number, Arena* arena) const;
   };
 
   // The Extension struct is small enough to be passed by value, so we use it
@@ -677,7 +682,7 @@ class PROTOBUF_EXPORT ExtensionSet {
     };
   };
 
-  typedef std::map<int, Extension> LargeMap;
+  using LargeMap = y_absl::btree_map<int, Extension>;
 
   // Wrapper API that switches between flat-map and LargeMap.
 
@@ -787,8 +792,8 @@ class PROTOBUF_EXPORT ExtensionSet {
       return false;
     }
 
-    GOOGLE_DCHECK(extension->type > 0 &&
-           extension->type <= WireFormatLite::MAX_FIELD_TYPE);
+    Y_ABSL_DCHECK(extension->type > 0 &&
+                extension->type <= WireFormatLite::MAX_FIELD_TYPE);
     auto real_type = static_cast<WireFormatLite::FieldType>(extension->type);
 
     WireFormatLite::WireType expected_wire_type =
@@ -908,8 +913,6 @@ class PROTOBUF_EXPORT ExtensionSet {
   } map_;
 
   static void DeleteFlatMap(const KeyValue* flat, uint16_t flat_capacity);
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ExtensionSet);
 };
 
 constexpr ExtensionSet::ExtensionSet()
@@ -1256,12 +1259,14 @@ class EnumTypeTraits {
   }
   static inline void Set(int number, FieldType field_type, ConstType value,
                          ExtensionSet* set) {
-    GOOGLE_DCHECK(IsValid(value));
+    Y_ABSL_DCHECK(IsValid(value));
     set->SetEnum(number, field_type, value, nullptr);
   }
   template <typename ExtendeeT>
   static void Register(int number, FieldType type, bool is_packed,
                        LazyEagerVerifyFnType fn) {
+    // Avoid -Wunused-parameter
+    (void)fn;
     ExtensionSet::RegisterEnumExtension(&ExtendeeT::default_instance(), number,
                                         type, false, is_packed, IsValid);
   }
@@ -1286,12 +1291,12 @@ class RepeatedEnumTypeTraits {
   }
   static inline void Set(int number, int index, ConstType value,
                          ExtensionSet* set) {
-    GOOGLE_DCHECK(IsValid(value));
+    Y_ABSL_DCHECK(IsValid(value));
     set->SetRepeatedEnum(number, index, value);
   }
   static inline void Add(int number, FieldType field_type, bool is_packed,
                          ConstType value, ExtensionSet* set) {
-    GOOGLE_DCHECK(IsValid(value));
+    Y_ABSL_DCHECK(IsValid(value));
     set->AddEnum(number, field_type, is_packed, value, nullptr);
   }
   static inline const RepeatedField<Type>& GetRepeated(
@@ -1328,6 +1333,8 @@ class RepeatedEnumTypeTraits {
   template <typename ExtendeeT>
   static void Register(int number, FieldType type, bool is_packed,
                        LazyEagerVerifyFnType fn) {
+    // Avoid -Wunused-parameter
+    (void)fn;
     ExtensionSet::RegisterEnumExtension(&ExtendeeT::default_instance(), number,
                                         type, true, is_packed, IsValid);
   }
@@ -1556,6 +1563,5 @@ void LinkExtensionReflection(
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
-
+#include "google/protobuf/port_undef.inc"
 #endif  // GOOGLE_PROTOBUF_EXTENSION_SET_H__

@@ -73,6 +73,8 @@ target_link_options(_catboost_no_cuda PRIVATE
   -undefined
   dynamic_lookup
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 target_cython_sources(_catboost_no_cuda PRIVATE

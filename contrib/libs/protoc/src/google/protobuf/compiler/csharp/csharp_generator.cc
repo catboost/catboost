@@ -28,20 +28,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "google/protobuf/compiler/csharp/csharp_generator.h"
+
 #include <sstream>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/stubs/strutil.h>
-
-#include <google/protobuf/compiler/csharp/csharp_generator.h>
-#include <google/protobuf/compiler/csharp/csharp_helpers.h>
-#include <google/protobuf/compiler/csharp/csharp_names.h>
-#include <google/protobuf/compiler/csharp/csharp_options.h>
-#include <google/protobuf/compiler/csharp/csharp_reflection_class.h>
+#include "google/protobuf/compiler/code_generator.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/compiler/csharp/csharp_helpers.h"
+#include "google/protobuf/compiler/csharp/csharp_options.h"
+#include "google/protobuf/compiler/csharp/csharp_reflection_class.h"
+#include "google/protobuf/compiler/csharp/names.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/io/zero_copy_stream.h"
 
 namespace google {
 namespace protobuf {
@@ -70,7 +69,7 @@ bool Generator::Generate(const FileDescriptor* file,
 
   struct Options cli_options;
 
-  for (int i = 0; i < options.size(); i++) {
+  for (size_t i = 0; i < options.size(); i++) {
     if (options[i].first == "file_extension") {
       cli_options.file_extension = options[i].second;
     } else if (options[i].first == "base_namespace") {
@@ -81,7 +80,7 @@ bool Generator::Generate(const FileDescriptor* file,
     } else if (options[i].first == "serializable") {
       cli_options.serializable = true;
     } else {
-      *error = "Unknown generator option: " + options[i].first;
+      *error = y_absl::StrCat("Unknown generator option: ", options[i].first);
       return false;
     }
   }

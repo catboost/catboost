@@ -35,15 +35,15 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_PYTHON_PYI_GENERATOR_H__
 #define GOOGLE_PROTOBUF_COMPILER_PYTHON_PYI_GENERATOR_H__
 
-#include <map>
-#include <set>
 #include <string>
 
-#include <google/protobuf/stubs/mutex.h>
-#include <google/protobuf/compiler/code_generator.h>
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/container/flat_hash_set.h"
+#include "y_absl/synchronization/mutex.h"
+#include "google/protobuf/compiler/code_generator.h"
 
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -63,6 +63,8 @@ namespace python {
 class PROTOC_EXPORT PyiGenerator : public google::protobuf::compiler::CodeGenerator {
  public:
   PyiGenerator();
+  PyiGenerator(const PyiGenerator&) = delete;
+  PyiGenerator& operator=(const PyiGenerator&) = delete;
   ~PyiGenerator() override;
 
   // CodeGenerator methods.
@@ -75,39 +77,38 @@ class PROTOC_EXPORT PyiGenerator : public google::protobuf::compiler::CodeGenera
                 TProtoStringType* error) const override;
 
  private:
-  void PrintImportForDescriptor(const FileDescriptor& desc,
-                                std::map<TProtoStringType, TProtoStringType>* import_map,
-                                std::set<TProtoStringType>* seen_aliases) const;
-  void PrintImports(std::map<TProtoStringType, TProtoStringType>* item_map,
-                    std::map<TProtoStringType, TProtoStringType>* import_map) const;
-  void PrintEnum(const EnumDescriptor& enum_descriptor) const;
-  void AddEnumValue(const EnumDescriptor& enum_descriptor,
-                    std::map<TProtoStringType, TProtoStringType>* item_map,
-                    const std::map<TProtoStringType, TProtoStringType>& import_map) const;
+  void PrintImportForDescriptor(
+      const FileDescriptor& desc,
+      y_absl::flat_hash_set<TProtoStringType>* seen_aliases) const;
+  template <typename DescriptorT>
+  void Annotate(const TProtoStringType& label, const DescriptorT* descriptor) const;
+  void PrintImports() const;
   void PrintTopLevelEnums() const;
+  void PrintEnum(const EnumDescriptor& enum_descriptor) const;
+  void PrintEnumValues(const EnumDescriptor& enum_descriptor,
+                       bool is_classvar = false) const;
   template <typename DescriptorT>
-  void AddExtensions(const DescriptorT& descriptor,
-                     std::map<TProtoStringType, TProtoStringType>* item_map) const;
-  void PrintMessages(
-      const std::map<TProtoStringType, TProtoStringType>& import_map) const;
-  void PrintMessage(const Descriptor& message_descriptor, bool is_nested,
-                    const std::map<TProtoStringType, TProtoStringType>& import_map) const;
+  void PrintExtensions(const DescriptorT& descriptor) const;
+  void PrintMessages() const;
+  void PrintMessage(const Descriptor& message_descriptor, bool is_nested) const;
   void PrintServices() const;
-  void PrintItemMap(const std::map<TProtoStringType, TProtoStringType>& item_map) const;
   TProtoStringType GetFieldType(
-      const FieldDescriptor& field_des, const Descriptor& containing_des,
-      const std::map<TProtoStringType, TProtoStringType>& import_map) const;
+      const FieldDescriptor& field_des, const Descriptor& containing_des) const;
   template <typename DescriptorT>
-  TProtoStringType ModuleLevelName(
-      const DescriptorT& descriptor,
-      const std::map<TProtoStringType, TProtoStringType>& import_map) const;
+  TProtoStringType ModuleLevelName(const DescriptorT& descriptor) const;
+  TProtoStringType PublicPackage() const;
+  TProtoStringType InternalPackage() const;
+
+  bool opensource_runtime_ = true;
 
   // Very coarse-grained lock to ensure that Generate() is reentrant.
-  // Guards file_ and printer_.
-  mutable Mutex mutex_;
+  // Guards file_, printer_, and import_map_.
+  mutable y_absl::Mutex mutex_;
   mutable const FileDescriptor* file_;  // Set in Generate().  Under mutex_.
   mutable io::Printer* printer_;        // Set in Generate().  Under mutex_.
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(PyiGenerator);
+  // import_map will be a mapping from filename to module alias, e.g.
+  // "google3/foo/bar.py" -> "_bar"
+  mutable y_absl::flat_hash_map<TProtoStringType, TProtoStringType> import_map_;
 };
 
 }  // namespace python
@@ -115,6 +116,6 @@ class PROTOC_EXPORT PyiGenerator : public google::protobuf::compiler::CodeGenera
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_PYTHON_PYI_GENERATOR_H__

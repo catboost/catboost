@@ -28,20 +28,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <google/protobuf/arenastring.h>
+#include "google/protobuf/arenastring.h"
 
 #include <cstddef>
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/stubs/mutex.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/message_lite.h>
-#include <google/protobuf/parse_context.h>
-#include <google/protobuf/stubs/stl_util.h>
+
+#include "y_absl/log/absl_check.h"
+#include "y_absl/strings/string_view.h"
+#include "y_absl/synchronization/mutex.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/message_lite.h"
+#include "google/protobuf/parse_context.h"
 
 // clang-format off
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 // clang-format on
 
 namespace google {
@@ -50,7 +49,8 @@ namespace internal {
 
 namespace  {
 
-// Enforce that allocated data aligns to at least 8 bytes, and that
+// TaggedStringPtr::Flags uses the lower 2 bits as tags.
+// Enforce that allocated data aligns to at least 4 bytes, and that
 // the alignment of the global const string value does as well.
 // The alignment guaranteed by `new TProtoStringType` depends on both:
 // - new align = __STDCPP_DEFAULT_NEW_ALIGNMENT__ / max_align_t
@@ -64,13 +64,13 @@ constexpr size_t kNewAlign = alignof(std::max_align_t);
 #endif
 constexpr size_t kStringAlign = alignof(TProtoStringType);
 
-static_assert((kStringAlign > kNewAlign ? kStringAlign : kNewAlign) >= 8, "");
-static_assert(alignof(ExplicitlyConstructedArenaString) >= 8, "");
+static_assert((kStringAlign > kNewAlign ? kStringAlign : kNewAlign) >= 4, "");
+static_assert(alignof(ExplicitlyConstructedArenaString) >= 4, "");
 
 }  // namespace
 
 const TProtoStringType& LazyString::Init() const {
-  static WrappedMutex mu{GOOGLE_PROTOBUF_LINKER_INITIALIZED};
+  static y_absl::Mutex mu{y_absl::kConstInit};
   mu.Lock();
   const TProtoStringType* res = inited_.load(std::memory_order_acquire);
   if (res == nullptr) {
@@ -86,7 +86,7 @@ const TProtoStringType& LazyString::Init() const {
 namespace {
 
 
-#if defined(NDEBUG) || !GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
+#if defined(NDEBUG) || !defined(GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL)
 
 class ScopedCheckPtrInvariants {
  public:
@@ -96,17 +96,16 @@ class ScopedCheckPtrInvariants {
 #endif  // NDEBUG || !GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
 
 // Creates a heap allocated TProtoStringType value.
-inline TaggedStringPtr CreateString(ConstStringParam value) {
+inline TaggedStringPtr CreateString(const TProtoStringType& value) {
   TaggedStringPtr res;
-  // better than TProtoStringType(value.data(), value.length())
   res.SetAllocated(new TProtoStringType(value));
   return res;
 }
 
-#if !GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
+#ifndef GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
 
 // Creates an arena allocated TProtoStringType value.
-TaggedStringPtr CreateArenaString(Arena& arena, ConstStringParam s) {
+TaggedStringPtr CreateArenaString(Arena& arena, y_absl::string_view s) {
   TaggedStringPtr res;
   res.SetMutableArena(Arena::Create<TProtoStringType>(&arena, s.data(), s.length()));
   return res;
@@ -116,7 +115,7 @@ TaggedStringPtr CreateArenaString(Arena& arena, ConstStringParam s) {
 
 }  // namespace
 
-void ArenaStringPtr::Set(ConstStringParam value, Arena* arena) {
+void ArenaStringPtr::Set(const TProtoStringType& value, Arena* arena) {
   ScopedCheckPtrInvariants check(&tagged_ptr_);
   if (IsDefault()) {
     // If we're not on an arena, skip straight to a true string to avoid
@@ -124,7 +123,44 @@ void ArenaStringPtr::Set(ConstStringParam value, Arena* arena) {
     tagged_ptr_ = arena != nullptr ? CreateArenaString(*arena, value)
                                    : CreateString(value);
   } else {
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    if (arena == nullptr) {
+      auto* old = tagged_ptr_.GetIfAllocated();
+      tagged_ptr_ = CreateString(value);
+      delete old;
+    } else {
+      auto* old = UnsafeMutablePointer();
+      tagged_ptr_ = CreateArenaString(*arena, value);
+      old->assign("garbagedata");
+    }
+#else   // PROTOBUF_FORCE_COPY_DEFAULT_STRING
     UnsafeMutablePointer()->assign(value.data(), value.length());
+#endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  }
+}
+
+template <>
+void ArenaStringPtr::Set(const TProtoStringType& value, Arena* arena) {
+  ScopedCheckPtrInvariants check(&tagged_ptr_);
+  if (IsDefault()) {
+    // If we're not on an arena, skip straight to a true string to avoid
+    // possible copy cost later.
+    tagged_ptr_ = arena != nullptr ? CreateArenaString(*arena, value)
+                                   : CreateString(value);
+  } else {
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    if (arena == nullptr) {
+      auto* old = tagged_ptr_.GetIfAllocated();
+      tagged_ptr_ = CreateString(value);
+      delete old;
+    } else {
+      auto* old = UnsafeMutablePointer();
+      tagged_ptr_ = CreateArenaString(*arena, value);
+      old->assign("garbagedata");
+    }
+#else   // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    UnsafeMutablePointer()->assign(value);
+#endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   }
 }
 
@@ -166,7 +202,7 @@ TProtoStringType* ArenaStringPtr::MutableNoCopy(Arena* arena) {
   if (tagged_ptr_.IsMutable()) {
     return tagged_ptr_.Get();
   } else {
-    GOOGLE_DCHECK(IsDefault());
+    Y_ABSL_DCHECK(IsDefault());
     // Allocate empty. The contents are not relevant.
     return NewString(arena);
   }
@@ -175,7 +211,7 @@ TProtoStringType* ArenaStringPtr::MutableNoCopy(Arena* arena) {
 template <typename... Lazy>
 TProtoStringType* ArenaStringPtr::MutableSlow(::google::protobuf::Arena* arena,
                                          const Lazy&... lazy_default) {
-  GOOGLE_DCHECK(IsDefault());
+  Y_ABSL_DCHECK(IsDefault());
 
   // For empty defaults, this ends up calling the default constructor which is
   // more efficient than a copy construction from
@@ -249,7 +285,7 @@ const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
                                                 ArenaStringPtr* s,
                                                 Arena* arena) {
   ScopedCheckPtrInvariants check(&s->tagged_ptr_);
-  GOOGLE_DCHECK(arena != nullptr);
+  Y_ABSL_DCHECK(arena != nullptr);
 
   int size = ReadSize(&ptr);
   if (!ptr) return nullptr;
@@ -264,4 +300,4 @@ const char* EpsCopyInputStream::ReadArenaString(const char* ptr,
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

@@ -28,18 +28,21 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <google/protobuf/compiler/java/name_resolver.h>
+#include "google/protobuf/compiler/java/name_resolver.h"
 
-#include <map>
 #include <string>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/stubs/substitute.h>
-#include <google/protobuf/compiler/java/helpers.h>
-#include <google/protobuf/compiler/java/names.h>
+#include "y_absl/log/absl_check.h"
+#include "y_absl/strings/ascii.h"
+#include "y_absl/strings/str_replace.h"
+#include "y_absl/strings/substitute.h"
+#include "google/protobuf/compiler/code_generator.h"
+#include "google/protobuf/compiler/java/helpers.h"
+#include "google/protobuf/compiler/java/names.h"
+
 
 // Must be last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -56,8 +59,8 @@ const char* kOuterClassNameSuffix = "OuterClass";
 //   Full name   : foo.Bar.Baz
 //   Package name: foo
 //   After strip : Bar.Baz
-TProtoStringType StripPackageName(const TProtoStringType& full_name,
-                             const FileDescriptor* file) {
+y_absl::string_view StripPackageName(y_absl::string_view full_name,
+                                   const FileDescriptor* file) {
   if (file->package().empty()) {
     return full_name;
   } else {
@@ -69,7 +72,8 @@ TProtoStringType StripPackageName(const TProtoStringType& full_name,
 // Get the name of a message's Java class without package name prefix.
 TProtoStringType ClassNameWithoutPackage(const Descriptor* descriptor,
                                     bool immutable) {
-  return StripPackageName(descriptor->full_name(), descriptor->file());
+  return TProtoStringType(
+      StripPackageName(descriptor->full_name(), descriptor->file()));
 }
 
 TProtoStringType ClassNameWithoutPackageKotlin(const Descriptor* descriptor) {
@@ -77,7 +81,7 @@ TProtoStringType ClassNameWithoutPackageKotlin(const Descriptor* descriptor) {
   const Descriptor* temp = descriptor->containing_type();
 
   while (temp) {
-    result = temp->name() + "Kt." + result;
+    result = y_absl::StrCat(temp->name(), "Kt.", result);
     temp = temp->containing_type();
   }
   return result;
@@ -91,24 +95,24 @@ TProtoStringType ClassNameWithoutPackage(const EnumDescriptor* descriptor,
   if (message_descriptor == NULL) {
     return descriptor->name();
   } else {
-    return ClassNameWithoutPackage(message_descriptor, immutable) + "." +
-           descriptor->name();
+    return y_absl::StrCat(ClassNameWithoutPackage(message_descriptor, immutable),
+                        ".", descriptor->name());
   }
 }
 
 // Get the name of a service's Java class without package name prefix.
 TProtoStringType ClassNameWithoutPackage(const ServiceDescriptor* descriptor,
                                     bool immutable) {
-  TProtoStringType full_name =
+  y_absl::string_view full_name =
       StripPackageName(descriptor->full_name(), descriptor->file());
   // We don't allow nested service definitions.
-  GOOGLE_CHECK(full_name.find('.') == TProtoStringType::npos);
-  return full_name;
+  Y_ABSL_CHECK(!y_absl::StrContains(full_name, '.'));
+  return TProtoStringType(full_name);
 }
 
 // Return true if a and b are equals (case insensitive).
-NameEquality CheckNameEquality(const TProtoStringType& a, const TProtoStringType& b) {
-  if (ToUpper(a) == ToUpper(b)) {
+NameEquality CheckNameEquality(y_absl::string_view a, y_absl::string_view b) {
+  if (y_absl::AsciiStrToUpper(a) == y_absl::AsciiStrToUpper(b)) {
     if (a == b) {
       return NameEquality::EXACT_EQUAL;
     }
@@ -119,7 +123,7 @@ NameEquality CheckNameEquality(const TProtoStringType& a, const TProtoStringType
 
 // Check whether a given message or its nested types has the given class name.
 bool MessageHasConflictingClassName(const Descriptor* message,
-                                    const TProtoStringType& classname,
+                                    y_absl::string_view classname,
                                     NameEquality equality_mode) {
   if (CheckNameEquality(message->name(), classname) == equality_mode) {
     return true;
@@ -140,10 +144,6 @@ bool MessageHasConflictingClassName(const Descriptor* message,
 }
 
 }  // namespace
-
-ClassNameResolver::ClassNameResolver() {}
-
-ClassNameResolver::~ClassNameResolver() {}
 
 TProtoStringType ClassNameResolver::GetFileDefaultImmutableClassName(
     const FileDescriptor* file) {
@@ -182,18 +182,18 @@ TProtoStringType ClassNameResolver::GetFileClassName(const FileDescriptor* file,
 TProtoStringType ClassNameResolver::GetFileClassName(const FileDescriptor* file,
                                                 bool immutable, bool kotlin) {
   if (kotlin) {
-    return GetFileImmutableClassName(file) + "Kt";
+    return y_absl::StrCat(GetFileImmutableClassName(file), "Kt");
   } else if (immutable) {
     return GetFileImmutableClassName(file);
   } else {
-    return "Mutable" + GetFileImmutableClassName(file);
+    return y_absl::StrCat("Mutable", GetFileImmutableClassName(file));
   }
 }
 
 // Check whether there is any type defined in the proto file that has
 // the given class name.
 bool ClassNameResolver::HasConflictingClassName(const FileDescriptor* file,
-                                                const TProtoStringType& classname,
+                                                y_absl::string_view classname,
                                                 NameEquality equality_mode) {
   for (int i = 0; i < file->enum_type_count(); i++) {
     if (CheckNameEquality(file->enum_type(i)->name(), classname) ==
@@ -217,8 +217,12 @@ bool ClassNameResolver::HasConflictingClassName(const FileDescriptor* file,
 }
 
 TProtoStringType ClassNameResolver::GetDescriptorClassName(
-    const FileDescriptor* descriptor) {
-  return GetFileImmutableClassName(descriptor);
+    const FileDescriptor* file) {
+  if (options_.opensource_runtime) {
+    return GetFileImmutableClassName(file);
+  } else {
+    return y_absl::StrCat(GetFileImmutableClassName(file), "InternalDescriptors");
+  }
 }
 
 TProtoStringType ClassNameResolver::GetClassName(const FileDescriptor* descriptor,
@@ -228,7 +232,7 @@ TProtoStringType ClassNameResolver::GetClassName(const FileDescriptor* descripto
 
 TProtoStringType ClassNameResolver::GetClassName(const FileDescriptor* descriptor,
                                             bool immutable, bool kotlin) {
-  TProtoStringType result = FileJavaPackage(descriptor, immutable);
+  TProtoStringType result = FileJavaPackage(descriptor, immutable, options_);
   if (!result.empty()) result += '.';
   result += GetFileClassName(descriptor, immutable, kotlin);
   return result;
@@ -237,26 +241,26 @@ TProtoStringType ClassNameResolver::GetClassName(const FileDescriptor* descripto
 // Get the full name of a Java class by prepending the Java package name
 // or outer class name.
 TProtoStringType ClassNameResolver::GetClassFullName(
-    const TProtoStringType& name_without_package, const FileDescriptor* file,
+    y_absl::string_view name_without_package, const FileDescriptor* file,
     bool immutable, bool is_own_file) {
   return GetClassFullName(name_without_package, file, immutable, is_own_file,
                           false);
 }
 
 TProtoStringType ClassNameResolver::GetClassFullName(
-    const TProtoStringType& name_without_package, const FileDescriptor* file,
+    y_absl::string_view name_without_package, const FileDescriptor* file,
     bool immutable, bool is_own_file, bool kotlin) {
   TProtoStringType result;
   if (is_own_file) {
-    result = FileJavaPackage(file, immutable);
+    result = FileJavaPackage(file, immutable, options_);
   } else {
     result = GetClassName(file, immutable, kotlin);
   }
   if (!result.empty()) {
-    result += '.';
+    y_absl::StrAppend(&result, ".");
   }
-  result += name_without_package;
-  if (kotlin) result += "Kt";
+  y_absl::StrAppend(&result, name_without_package);
+  if (kotlin) y_absl::StrAppend(&result, "Kt");
   return result;
 }
 
@@ -298,23 +302,23 @@ TProtoStringType ClassNameResolver::GetClassName(const ServiceDescriptor* descri
 
 // Get the Java Class style full name of a message.
 TProtoStringType ClassNameResolver::GetJavaClassFullName(
-    const TProtoStringType& name_without_package, const FileDescriptor* file,
+    y_absl::string_view name_without_package, const FileDescriptor* file,
     bool immutable) {
   return GetJavaClassFullName(name_without_package, file, immutable, false);
 }
 
 TProtoStringType ClassNameResolver::GetJavaClassFullName(
-    const TProtoStringType& name_without_package, const FileDescriptor* file,
+    y_absl::string_view name_without_package, const FileDescriptor* file,
     bool immutable, bool kotlin) {
   TProtoStringType result;
   if (MultipleJavaFiles(file, immutable)) {
-    result = FileJavaPackage(file, immutable);
+    result = FileJavaPackage(file, immutable, options_);
     if (!result.empty()) result += '.';
   } else {
     result = GetClassName(file, immutable, kotlin);
     if (!result.empty()) result += '$';
   }
-  result += StringReplace(name_without_package, ".", "$", true);
+  result += y_absl::StrReplaceAll(name_without_package, {{".", "$"}});
   return result;
 }
 
@@ -325,14 +329,15 @@ TProtoStringType ClassNameResolver::GetExtensionIdentifierName(
 
 TProtoStringType ClassNameResolver::GetExtensionIdentifierName(
     const FieldDescriptor* descriptor, bool immutable, bool kotlin) {
-  return GetClassName(descriptor->containing_type(), immutable, kotlin) + "." +
-         descriptor->name();
+  return y_absl::StrCat(
+      GetClassName(descriptor->containing_type(), immutable, kotlin), ".",
+      descriptor->name());
 }
 
 TProtoStringType ClassNameResolver::GetKotlinFactoryName(
     const Descriptor* descriptor) {
   TProtoStringType name = ToCamelCase(descriptor->name(), /* lower_first = */ true);
-  return IsForbiddenKotlin(name) ? name + "_" : name;
+  return IsForbiddenKotlin(name) ? y_absl::StrCat(name, "_") : name;
 }
 
 TProtoStringType ClassNameResolver::GetJavaImmutableClassName(
@@ -367,14 +372,14 @@ TProtoStringType ClassNameResolver::GetJavaMutableClassName(
 
 TProtoStringType ClassNameResolver::GetDowngradedFileClassName(
     const FileDescriptor* file) {
-  return "Downgraded" + GetFileClassName(file, false);
+  return y_absl::StrCat("Downgraded", GetFileClassName(file, false));
 }
 
 TProtoStringType ClassNameResolver::GetDowngradedClassName(
     const Descriptor* descriptor) {
-  return FileJavaPackage(descriptor->file()) + "." +
-         GetDowngradedFileClassName(descriptor->file()) + "." +
-         ClassNameWithoutPackage(descriptor, false);
+  return y_absl::StrCat(FileJavaPackage(descriptor->file(), true, options_), ".",
+                      GetDowngradedFileClassName(descriptor->file()), ".",
+                      ClassNameWithoutPackage(descriptor, false));
 }
 
 }  // namespace java
@@ -382,4 +387,4 @@ TProtoStringType ClassNameResolver::GetDowngradedClassName(
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

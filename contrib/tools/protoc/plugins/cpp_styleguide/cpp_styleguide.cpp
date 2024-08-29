@@ -4,8 +4,6 @@
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/strutil.h>
 
 #include "cpp_styleguide.h"
 #include <util/stream/output.h>
@@ -494,7 +492,7 @@ namespace NPlugins {
             vars["extendee"     ] = ClassName(Descriptor_->containing_type(), true);
             vars["type_traits"  ] = type_traits_;
             vars["name"         ] = Descriptor_->name();
-            vars["field_type"   ] = SimpleItoa(static_cast<int>(Descriptor_->type()));
+            vars["field_type"   ] = std::to_string(static_cast<int>(Descriptor_->type()));
             vars["packed"       ] = Descriptor_->options().packed() ? "true" : "false";
 
             printer->Print(vars,

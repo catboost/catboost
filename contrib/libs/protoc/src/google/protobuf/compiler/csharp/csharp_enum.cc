@@ -28,19 +28,21 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "google/protobuf/compiler/csharp/csharp_enum.h"
+
 #include <sstream>
+#include <string>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/io/zero_copy_stream.h>
-#include <google/protobuf/stubs/strutil.h>
-
-#include <google/protobuf/compiler/csharp/csharp_doc_comment.h>
-#include <google/protobuf/compiler/csharp/csharp_enum.h>
-#include <google/protobuf/compiler/csharp/csharp_helpers.h>
-#include <google/protobuf/compiler/csharp/csharp_options.h>
+#include "google/protobuf/compiler/code_generator.h"
+#include "y_absl/container/flat_hash_set.h"
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/str_cat.h"
+#include "google/protobuf/compiler/csharp/csharp_doc_comment.h"
+#include "google/protobuf/compiler/csharp/csharp_helpers.h"
+#include "google/protobuf/compiler/csharp/csharp_options.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/printer.h"
 
 namespace google {
 namespace protobuf {
@@ -57,35 +59,42 @@ EnumGenerator::~EnumGenerator() {
 
 void EnumGenerator::Generate(io::Printer* printer) {
   WriteEnumDocComment(printer, descriptor_);
+  if (descriptor_->options().deprecated()) {
+    printer->Print("[global::System.ObsoleteAttribute]\n");
+  }
   printer->Print("$access_level$ enum $name$ {\n",
                  "access_level", class_access_level(),
                  "name", descriptor_->name());
   printer->Indent();
-  std::set<TProtoStringType> used_names;
-  std::set<int> used_number;
+  y_absl::flat_hash_set<TProtoStringType> used_names;
+  y_absl::flat_hash_set<int> used_number;
   for (int i = 0; i < descriptor_->value_count(); i++) {
       WriteEnumValueDocComment(printer, descriptor_->value(i));
+      if (descriptor_->value(i)->options().deprecated()) {
+        printer->Print("[global::System.ObsoleteAttribute]\n");
+      }
       TProtoStringType original_name = descriptor_->value(i)->name();
       TProtoStringType name =
           GetEnumValueName(descriptor_->name(), descriptor_->value(i)->name());
       // Make sure we don't get any duplicate names due to prefix removal.
       while (!used_names.insert(name).second) {
         // It's possible we'll end up giving this warning multiple times, but that's better than not at all.
-        GOOGLE_LOG(WARNING) << "Duplicate enum value " << name << " (originally " << original_name
-          << ") in " << descriptor_->name() << "; adding underscore to distinguish";
-        name += "_";
+        Y_ABSL_LOG(WARNING) << "Duplicate enum value " << name << " (originally "
+                          << original_name << ") in " << descriptor_->name()
+                          << "; adding underscore to distinguish";
+        y_absl::StrAppend(&name, "_");
       }
       int number = descriptor_->value(i)->number();
       if (!used_number.insert(number).second) {
           printer->Print("[pbr::OriginalName(\"$original_name$\", PreferredAlias = false)] $name$ = $number$,\n",
              "original_name", original_name,
              "name", name,
-             "number", StrCat(number));
+             "number", y_absl::StrCat(number));
       } else {
           printer->Print("[pbr::OriginalName(\"$original_name$\")] $name$ = $number$,\n",
              "original_name", original_name,
              "name", name,
-             "number", StrCat(number));
+             "number", y_absl::StrCat(number));
       }
   }
   printer->Outdent();

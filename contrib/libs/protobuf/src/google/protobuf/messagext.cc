@@ -14,7 +14,7 @@ namespace {
 namespace google::protobuf {
 
 //defined in message_lite.cc
-TProtoStringType InitializationErrorMessage(const char* action, const MessageLite& message);
+TProtoStringType InitializationErrorMessage(y_absl::string_view action, const MessageLite& message);
 
 } // namespace google::protobuf
 
@@ -64,7 +64,7 @@ bool SerializePartialToCodedStreamSeq(const Message* msg, io::CodedOutputStream*
 }
 
 bool SerializeToCodedStreamSeq(const Message* msg, io::CodedOutputStream* output) {
-    GOOGLE_DCHECK(msg->IsInitialized()) << InitializationErrorMessage("serialize", *msg);
+    Y_ABSL_DCHECK(msg->IsInitialized()) << InitializationErrorMessage("serialize", *msg);
     return SerializePartialToCodedStreamSeq(msg, output);
 }
 
@@ -78,9 +78,9 @@ int TInputStreamProxy::Read(void* buffer, int size) {
     try {
         return (int)mSlave->Read(buffer, (size_t)size);
     } catch (const yexception& e) {
-        GOOGLE_LOG(ERROR) << e.what();
+        Y_ABSL_LOG(ERROR) << e.what();
     } catch (...) {
-        GOOGLE_LOG(ERROR) << "unknown exception caught";
+        Y_ABSL_LOG(ERROR) << "unknown exception caught";
     }
     TErrorState::SetError();
     return -1;
@@ -92,9 +92,9 @@ bool TOutputStreamProxy::Write(const void* buffer, int size) {
         mSlave->Write(buffer, (size_t)size);
         return true;
     } catch (const yexception& e) {
-        GOOGLE_LOG(ERROR) << e.what();
+        Y_ABSL_LOG(ERROR) << e.what();
     } catch (...) {
-        GOOGLE_LOG(ERROR) << "unknown exception caught";
+        Y_ABSL_LOG(ERROR) << "unknown exception caught";
     }
     TErrorState::SetError();
     return false;

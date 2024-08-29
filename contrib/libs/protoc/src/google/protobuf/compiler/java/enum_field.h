@@ -35,10 +35,10 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_ENUM_FIELD_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_ENUM_FIELD_H__
 
-#include <map>
 #include <string>
 
-#include <google/protobuf/compiler/java/field.h>
+#include "y_absl/container/flat_hash_map.h"
+#include "google/protobuf/compiler/java/field.h"
 
 namespace google {
 namespace protobuf {
@@ -61,10 +61,15 @@ class ImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
   explicit ImmutableEnumFieldGenerator(const FieldDescriptor* descriptor,
                                        int messageBitIndex, int builderBitIndex,
                                        Context* context);
+  ImmutableEnumFieldGenerator(const ImmutableEnumFieldGenerator&) = delete;
+  ImmutableEnumFieldGenerator& operator=(const ImmutableEnumFieldGenerator&) =
+      delete;
   ~ImmutableEnumFieldGenerator() override;
 
   // implements ImmutableFieldGenerator
   // ---------------------------------------
+  int GetMessageBitIndex() const override;
+  int GetBuilderBitIndex() const override;
   int GetNumBitsForMessage() const override;
   int GetNumBitsForBuilder() const override;
   void GenerateInterfaceMembers(io::Printer* printer) const override;
@@ -72,10 +77,9 @@ class ImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
   void GenerateBuilderMembers(io::Printer* printer) const override;
   void GenerateInitializationCode(io::Printer* printer) const override;
   void GenerateBuilderClearCode(io::Printer* printer) const override;
+  void GenerateBuilderParsingCode(io::Printer* printer) const override;
   void GenerateMergingCode(io::Printer* printer) const override;
   void GenerateBuildingCode(io::Printer* printer) const override;
-  void GenerateParsingCode(io::Printer* printer) const override;
-  void GenerateParsingDoneCode(io::Printer* printer) const override;
   void GenerateSerializationCode(io::Printer* printer) const override;
   void GenerateSerializedSizeCode(io::Printer* printer) const override;
   void GenerateFieldBuilderInitializationCode(
@@ -88,11 +92,10 @@ class ImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
 
  protected:
   const FieldDescriptor* descriptor_;
-  std::map<TProtoStringType, TProtoStringType> variables_;
+  int message_bit_index_;
+  int builder_bit_index_;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> variables_;
   ClassNameResolver* name_resolver_;
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableEnumFieldGenerator);
 };
 
 class ImmutableEnumOneofFieldGenerator : public ImmutableEnumFieldGenerator {
@@ -100,27 +103,33 @@ class ImmutableEnumOneofFieldGenerator : public ImmutableEnumFieldGenerator {
   ImmutableEnumOneofFieldGenerator(const FieldDescriptor* descriptor,
                                    int messageBitIndex, int builderBitIndex,
                                    Context* context);
+  ImmutableEnumOneofFieldGenerator(const ImmutableEnumOneofFieldGenerator&) =
+      delete;
+  ImmutableEnumOneofFieldGenerator& operator=(
+      const ImmutableEnumOneofFieldGenerator&) = delete;
   ~ImmutableEnumOneofFieldGenerator() override;
 
   void GenerateMembers(io::Printer* printer) const override;
   void GenerateBuilderMembers(io::Printer* printer) const override;
+  void GenerateBuilderClearCode(io::Printer* printer) const override;
   void GenerateMergingCode(io::Printer* printer) const override;
   void GenerateBuildingCode(io::Printer* printer) const override;
-  void GenerateParsingCode(io::Printer* printer) const override;
+  void GenerateBuilderParsingCode(io::Printer* printer) const override;
   void GenerateSerializationCode(io::Printer* printer) const override;
   void GenerateSerializedSizeCode(io::Printer* printer) const override;
   void GenerateEqualsCode(io::Printer* printer) const override;
   void GenerateHashCode(io::Printer* printer) const override;
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableEnumOneofFieldGenerator);
 };
 
-class RepeatedImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
+class RepeatedImmutableEnumFieldGenerator : public ImmutableEnumFieldGenerator {
  public:
   explicit RepeatedImmutableEnumFieldGenerator(
       const FieldDescriptor* descriptor, int messageBitIndex,
       int builderBitIndex, Context* context);
+  RepeatedImmutableEnumFieldGenerator(
+      const RepeatedImmutableEnumFieldGenerator&) = delete;
+  RepeatedImmutableEnumFieldGenerator& operator=(
+      const RepeatedImmutableEnumFieldGenerator&) = delete;
   ~RepeatedImmutableEnumFieldGenerator() override;
 
   // implements ImmutableFieldGenerator ---------------------------------------
@@ -133,9 +142,9 @@ class RepeatedImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
   void GenerateBuilderClearCode(io::Printer* printer) const override;
   void GenerateMergingCode(io::Printer* printer) const override;
   void GenerateBuildingCode(io::Printer* printer) const override;
-  void GenerateParsingCode(io::Printer* printer) const override;
-  void GenerateParsingCodeFromPacked(io::Printer* printer) const override;
-  void GenerateParsingDoneCode(io::Printer* printer) const override;
+  void GenerateBuilderParsingCode(io::Printer* printer) const override;
+  void GenerateBuilderParsingCodeFromPacked(
+      io::Printer* printer) const override;
   void GenerateSerializationCode(io::Printer* printer) const override;
   void GenerateSerializedSizeCode(io::Printer* printer) const override;
   void GenerateFieldBuilderInitializationCode(
@@ -145,13 +154,6 @@ class RepeatedImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
   void GenerateKotlinDslMembers(io::Printer* printer) const override;
 
   TProtoStringType GetBoxedType() const override;
-
- private:
-  const FieldDescriptor* descriptor_;
-  std::map<TProtoStringType, TProtoStringType> variables_;
-  ClassNameResolver* name_resolver_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedImmutableEnumFieldGenerator);
 };
 
 }  // namespace java

@@ -49,6 +49,8 @@ target_link_options(catboostr PRIVATE
   -flat_namespace
   -dynamiclib
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 target_sources(catboostr PRIVATE

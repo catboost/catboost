@@ -30,19 +30,27 @@
 
 // Implements the DescriptorPool, which collects all descriptors.
 
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/pyext/descriptor.h>
-#include <google/protobuf/pyext/descriptor_database.h>
-#include <google/protobuf/pyext/descriptor_pool.h>
-#include <google/protobuf/pyext/message.h>
-#include <google/protobuf/pyext/message_factory.h>
-#include <google/protobuf/pyext/scoped_pyobject_ptr.h>
-#include <google/protobuf/stubs/hash.h>
+#include "google/protobuf/descriptor.pb.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/str_replace.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/pyext/descriptor.h"
+#include "google/protobuf/pyext/descriptor_database.h"
+#include "google/protobuf/pyext/descriptor_pool.h"
+#include "google/protobuf/pyext/message.h"
+#include "google/protobuf/pyext/message_factory.h"
+#include "google/protobuf/pyext/scoped_pyobject_ptr.h"
+
+// Must be included last.
+#include "google/protobuf/port_def.inc"
 
 #define PyString_AsStringAndSize(ob, charpp, sizep)              \
   (PyUnicode_Check(ob)                                           \
@@ -69,19 +77,19 @@ class BuildFileErrorCollector : public DescriptorPool::ErrorCollector {
  public:
   BuildFileErrorCollector() : error_message(""), had_errors_(false) {}
 
-  void AddError(const TProtoStringType& filename, const TProtoStringType& element_name,
-                const Message* descriptor, ErrorLocation location,
-                const TProtoStringType& message) override {
+  void RecordError(y_absl::string_view filename, y_absl::string_view element_name,
+                   const Message* descriptor, ErrorLocation location,
+                   y_absl::string_view message) override {
     // Replicates the logging behavior that happens in the C++ implementation
     // when an error collector is not passed in.
     if (!had_errors_) {
-      error_message +=
-          ("Invalid proto descriptor for file \"" + filename + "\":\n");
+      y_absl::StrAppend(&error_message, "Invalid proto descriptor for file \"",
+                      filename, "\":\n");
       had_errors_ = true;
     }
     // As this only happens on failure and will result in the program not
     // running at all, no effort is made to optimize this string manipulation.
-    error_message += ("  " + element_name + ": " + message + "\n");
+    y_absl::StrAppend(&error_message, "  ", element_name, ": ", message, "\n");
   }
 
   void Clear() {
@@ -151,20 +159,28 @@ static PyDescriptorPool* PyDescriptorPool_NewWithUnderlay(
 }
 
 static PyDescriptorPool* PyDescriptorPool_NewWithDatabase(
-    DescriptorDatabase* database) {
+    DescriptorDatabase* database,
+    bool use_deprecated_legacy_json_field_conflicts) {
   PyDescriptorPool* cpool = _CreateDescriptorPool();
   if (cpool == nullptr) {
     return nullptr;
   }
+  DescriptorPool* pool;
   if (database != nullptr) {
     cpool->error_collector = new BuildFileErrorCollector();
-    cpool->pool = new DescriptorPool(database, cpool->error_collector);
+    pool = new DescriptorPool(database, cpool->error_collector);
     cpool->is_mutable = false;
     cpool->database = database;
   } else {
-    cpool->pool = new DescriptorPool();
+    pool = new DescriptorPool();
     cpool->is_mutable = true;
   }
+  if (use_deprecated_legacy_json_field_conflicts) {
+    PROTOBUF_IGNORE_DEPRECATION_START
+    pool->UseDeprecatedLegacyJsonFieldConflicts();
+    PROTOBUF_IGNORE_DEPRECATION_STOP
+  }
+  cpool->pool = pool;
   cpool->is_owned = true;
 
   if (!descriptor_pool_map->insert(std::make_pair(cpool->pool, cpool)).second) {
@@ -179,6 +195,7 @@ static PyDescriptorPool* PyDescriptorPool_NewWithDatabase(
 // The public DescriptorPool constructor.
 static PyObject* New(PyTypeObject* type,
                      PyObject* args, PyObject* kwargs) {
+  int use_deprecated_legacy_json_field_conflicts = 0;
   static const char* kwlist[] = {"descriptor_db", nullptr};
   PyObject* py_database = nullptr;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O",
@@ -189,8 +206,8 @@ static PyObject* New(PyTypeObject* type,
   if (py_database && py_database != Py_None) {
     database = new PyDescriptorDatabase(py_database);
   }
-  return reinterpret_cast<PyObject*>(
-      PyDescriptorPool_NewWithDatabase(database));
+  return reinterpret_cast<PyObject*>(PyDescriptorPool_NewWithDatabase(
+      database, use_deprecated_legacy_json_field_conflicts));
 }
 
 static void Dealloc(PyObject* pself) {
@@ -249,7 +266,7 @@ static PyObject* FindMessageByName(PyObject* self, PyObject* arg) {
 
   const Descriptor* message_descriptor =
       reinterpret_cast<PyDescriptorPool*>(self)->pool->FindMessageTypeByName(
-          StringParam(name, name_size));
+          y_absl::string_view(name, name_size));
 
   if (message_descriptor == nullptr) {
     return SetErrorFromCollector(
@@ -273,7 +290,7 @@ static PyObject* FindFileByName(PyObject* self, PyObject* arg) {
 
   PyDescriptorPool* py_pool = reinterpret_cast<PyDescriptorPool*>(self);
   const FileDescriptor* file_descriptor =
-      py_pool->pool->FindFileByName(StringParam(name, name_size));
+      py_pool->pool->FindFileByName(y_absl::string_view(name, name_size));
 
   if (file_descriptor == nullptr) {
     return SetErrorFromCollector(py_pool->error_collector, name, "file");
@@ -289,7 +306,7 @@ PyObject* FindFieldByName(PyDescriptorPool* self, PyObject* arg) {
   }
 
   const FieldDescriptor* field_descriptor =
-      self->pool->FindFieldByName(StringParam(name, name_size));
+      self->pool->FindFieldByName(y_absl::string_view(name, name_size));
   if (field_descriptor == nullptr) {
     return SetErrorFromCollector(self->error_collector, name, "field");
   }
@@ -310,7 +327,7 @@ PyObject* FindExtensionByName(PyDescriptorPool* self, PyObject* arg) {
   }
 
   const FieldDescriptor* field_descriptor =
-      self->pool->FindExtensionByName(StringParam(name, name_size));
+      self->pool->FindExtensionByName(y_absl::string_view(name, name_size));
   if (field_descriptor == nullptr) {
     return SetErrorFromCollector(self->error_collector, name,
                                  "extension field");
@@ -332,7 +349,7 @@ PyObject* FindEnumTypeByName(PyDescriptorPool* self, PyObject* arg) {
   }
 
   const EnumDescriptor* enum_descriptor =
-      self->pool->FindEnumTypeByName(StringParam(name, name_size));
+      self->pool->FindEnumTypeByName(y_absl::string_view(name, name_size));
   if (enum_descriptor == nullptr) {
     return SetErrorFromCollector(self->error_collector, name, "enum");
   }
@@ -353,7 +370,7 @@ PyObject* FindOneofByName(PyDescriptorPool* self, PyObject* arg) {
   }
 
   const OneofDescriptor* oneof_descriptor =
-      self->pool->FindOneofByName(StringParam(name, name_size));
+      self->pool->FindOneofByName(y_absl::string_view(name, name_size));
   if (oneof_descriptor == nullptr) {
     return SetErrorFromCollector(self->error_collector, name, "oneof");
   }
@@ -375,7 +392,7 @@ static PyObject* FindServiceByName(PyObject* self, PyObject* arg) {
 
   const ServiceDescriptor* service_descriptor =
       reinterpret_cast<PyDescriptorPool*>(self)->pool->FindServiceByName(
-          StringParam(name, name_size));
+          y_absl::string_view(name, name_size));
   if (service_descriptor == nullptr) {
     return SetErrorFromCollector(
         reinterpret_cast<PyDescriptorPool*>(self)->error_collector, name,
@@ -395,7 +412,7 @@ static PyObject* FindMethodByName(PyObject* self, PyObject* arg) {
 
   const MethodDescriptor* method_descriptor =
       reinterpret_cast<PyDescriptorPool*>(self)->pool->FindMethodByName(
-          StringParam(name, name_size));
+          y_absl::string_view(name, name_size));
   if (method_descriptor == nullptr) {
     return SetErrorFromCollector(
         reinterpret_cast<PyDescriptorPool*>(self)->error_collector, name,
@@ -415,7 +432,7 @@ static PyObject* FindFileContainingSymbol(PyObject* self, PyObject* arg) {
 
   const FileDescriptor* file_descriptor =
       reinterpret_cast<PyDescriptorPool*>(self)->pool->FindFileContainingSymbol(
-          StringParam(name, name_size));
+          y_absl::string_view(name, name_size));
   if (file_descriptor == nullptr) {
     return SetErrorFromCollector(
         reinterpret_cast<PyDescriptorPool*>(self)->error_collector, name,
@@ -818,3 +835,5 @@ PyObject* PyDescriptorPool_FromPool(const DescriptorPool* pool) {
 }  // namespace python
 }  // namespace protobuf
 }  // namespace google
+
+#include "google/protobuf/port_undef.inc"

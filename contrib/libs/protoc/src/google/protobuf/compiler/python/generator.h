@@ -36,12 +36,14 @@
 #define GOOGLE_PROTOBUF_COMPILER_PYTHON_GENERATOR_H__
 
 #include <string>
+#include <vector>
 
-#include <google/protobuf/stubs/mutex.h>
-#include <google/protobuf/compiler/code_generator.h>
+#include "y_absl/strings/string_view.h"
+#include "y_absl/synchronization/mutex.h"
+#include "google/protobuf/compiler/code_generator.h"
 
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -64,9 +66,18 @@ namespace python {
 // If you create your own protocol compiler binary and you want it to support
 // Python output, you can do so by registering an instance of this
 // CodeGenerator with the CommandLineInterface in your main() function.
+
+struct GeneratorOptions {
+  bool generate_pyi = false;
+  bool annotate_pyi = false;
+  bool bootstrap = false;
+};
+
 class PROTOC_EXPORT Generator : public CodeGenerator {
  public:
   Generator();
+  Generator(const Generator&) = delete;
+  Generator& operator=(const Generator&) = delete;
   ~Generator() override;
 
   // CodeGenerator methods.
@@ -76,7 +87,13 @@ class PROTOC_EXPORT Generator : public CodeGenerator {
 
   uint64_t GetSupportedFeatures() const override;
 
+  void set_opensource_runtime(bool opensource) {
+    opensource_runtime_ = opensource;
+  }
+
  private:
+  GeneratorOptions ParseParameter(y_absl::string_view parameter,
+                                  TProtoStringType* error) const;
   void PrintImports() const;
   void PrintFileDescriptor() const;
   void PrintAllNestedEnumsInFile() const;
@@ -87,8 +104,8 @@ class PROTOC_EXPORT Generator : public CodeGenerator {
                             bool is_extension) const;
   void PrintFieldDescriptorsInDescriptor(
       const Descriptor& message_descriptor, bool is_extension,
-      const TProtoStringType& list_variable_name, int (Descriptor::*CountFn)() const,
-      const FieldDescriptor* (Descriptor::*GetterFn)(int)const) const;
+      y_absl::string_view list_variable_name, int (Descriptor::*CountFn)() const,
+      const FieldDescriptor* (Descriptor::*GetterFn)(int) const) const;
   void PrintFieldsInDescriptor(const Descriptor& message_descriptor) const;
   void PrintExtensionsInDescriptor(const Descriptor& message_descriptor) const;
   void PrintMessageDescriptors() const;
@@ -97,11 +114,11 @@ class PROTOC_EXPORT Generator : public CodeGenerator {
 
   void PrintMessages() const;
   void PrintMessage(const Descriptor& message_descriptor,
-                    const TProtoStringType& prefix,
+                    y_absl::string_view prefix,
                     std::vector<TProtoStringType>* to_register,
                     bool is_nested) const;
   void PrintNestedMessages(const Descriptor& containing_descriptor,
-                           const TProtoStringType& prefix,
+                           y_absl::string_view prefix,
                            std::vector<TProtoStringType>* to_register) const;
 
   void FixForeignFieldsInDescriptors() const;
@@ -110,14 +127,14 @@ class PROTOC_EXPORT Generator : public CodeGenerator {
       const Descriptor* containing_descriptor) const;
   void FixForeignFieldsInField(const Descriptor* containing_type,
                                const FieldDescriptor& field,
-                               const TProtoStringType& python_dict_name) const;
+                               y_absl::string_view python_dict_name) const;
   void AddMessageToFileDescriptor(const Descriptor& descriptor) const;
   void AddEnumToFileDescriptor(const EnumDescriptor& descriptor) const;
   void AddExtensionToFileDescriptor(const FieldDescriptor& descriptor) const;
   void AddServiceToFileDescriptor(const ServiceDescriptor& descriptor) const;
   TProtoStringType FieldReferencingExpression(
       const Descriptor* containing_type, const FieldDescriptor& field,
-      const TProtoStringType& python_dict_name) const;
+      y_absl::string_view python_dict_name) const;
   template <typename DescriptorT>
   void FixContainingTypeInDescriptor(
       const DescriptorT& descriptor,
@@ -128,6 +145,7 @@ class PROTOC_EXPORT Generator : public CodeGenerator {
       const FieldDescriptor& extension_field) const;
   void FixForeignFieldsInNestedExtensions(const Descriptor& descriptor) const;
 
+  void PrintTopBoilerplate() const;
   void PrintServices() const;
   void PrintServiceDescriptors() const;
   void PrintServiceDescriptor(const ServiceDescriptor& descriptor) const;
@@ -137,7 +155,7 @@ class PROTOC_EXPORT Generator : public CodeGenerator {
       const ServiceDescriptor& descriptor) const;
 
   void PrintEnumValueDescriptor(const EnumValueDescriptor& descriptor) const;
-  TProtoStringType OptionsValue(const TProtoStringType& serialized_options) const;
+  TProtoStringType OptionsValue(y_absl::string_view serialized_options) const;
   bool GeneratingDescriptorProto() const;
 
   template <typename DescriptorT>
@@ -145,11 +163,13 @@ class PROTOC_EXPORT Generator : public CodeGenerator {
   TProtoStringType ModuleLevelMessageName(const Descriptor& descriptor) const;
   TProtoStringType ModuleLevelServiceDescriptorName(
       const ServiceDescriptor& descriptor) const;
+  TProtoStringType PublicPackage() const;
+  TProtoStringType InternalPackage() const;
 
   template <typename DescriptorT, typename DescriptorProtoT>
   void PrintSerializedPbInterval(const DescriptorT& descriptor,
                                  DescriptorProtoT& proto,
-                                 const TProtoStringType& name) const;
+                                 y_absl::string_view name) const;
 
   void FixAllDescriptorOptions() const;
   void FixOptionsForField(const FieldDescriptor& field) const;
@@ -161,18 +181,17 @@ class PROTOC_EXPORT Generator : public CodeGenerator {
   void SetSerializedPbInterval() const;
   void SetMessagePbInterval(const Descriptor& descriptor) const;
 
-  void CopyPublicDependenciesAliases(const TProtoStringType& copy_from,
+  void CopyPublicDependenciesAliases(y_absl::string_view copy_from,
                                      const FileDescriptor* file) const;
 
   // Very coarse-grained lock to ensure that Generate() is reentrant.
   // Guards file_, printer_ and file_descriptor_serialized_.
-  mutable Mutex mutex_;
+  mutable y_absl::Mutex mutex_;
   mutable const FileDescriptor* file_;  // Set in Generate().  Under mutex_.
   mutable TProtoStringType file_descriptor_serialized_;
   mutable io::Printer* printer_;  // Set in Generate().  Under mutex_.
-  mutable bool pure_python_workable_;
 
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Generator);
+  bool opensource_runtime_ = true;
 };
 
 }  // namespace python
@@ -180,6 +199,6 @@ class PROTOC_EXPORT Generator : public CodeGenerator {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_PYTHON_GENERATOR_H__

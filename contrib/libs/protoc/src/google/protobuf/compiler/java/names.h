@@ -40,6 +40,12 @@
 
 #include <string>
 
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/compiler/java/options.h"
+
+// Must be last.
+#include "google/protobuf/port_def.inc"
+
 namespace google {
 namespace protobuf {
 
@@ -85,7 +91,8 @@ TProtoStringType ClassName(const ServiceDescriptor* descriptor);
 //
 // Returns:
 //   Java package name.
-TProtoStringType FileJavaPackage(const FileDescriptor* descriptor);
+TProtoStringType FileJavaPackage(const FileDescriptor* descriptor,
+                            Options options = {});
 
 // Requires:
 //   descriptor != NULL
@@ -93,8 +100,36 @@ TProtoStringType FileJavaPackage(const FileDescriptor* descriptor);
 //   Capitalized camel case name field name.
 TProtoStringType CapitalizedFieldName(const FieldDescriptor* descriptor);
 
+// Returns:
+//   Converts a name to camel-case. If cap_first_letter is true, capitalize the
+//   first letter.
+TProtoStringType UnderscoresToCamelCase(y_absl::string_view input,
+                                   bool cap_next_letter);
+// Requires:
+//   field != NULL
+// Returns:
+//   Converts the field's name to camel-case, e.g. "foo_bar_baz" becomes
+//   "fooBarBaz" or "FooBarBaz", respectively.
+TProtoStringType UnderscoresToCamelCase(const FieldDescriptor* field);
+
+// Requires:
+//   method != NULL
+// Returns:
+//   Similar, but for method names.  (Typically, this merely has the effect
+//   of lower-casing the first letter of the name.)
+TProtoStringType UnderscoresToCamelCase(const MethodDescriptor* method);
+
+// Requires:
+//   field != NULL
+// Returns:
+//   Same as UnderscoresToCamelCase, but checks for reserved keywords
+TProtoStringType UnderscoresToCamelCaseCheckReserved(const FieldDescriptor* field);
+
+
 }  // namespace java
 }  // namespace compiler
 }  // namespace protobuf
 }  // namespace google
+
+#include "google/protobuf/port_undef.inc"
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_NAMES_H__

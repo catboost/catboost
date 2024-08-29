@@ -30,7 +30,9 @@
 
 // Author: petar@google.com (Petar Petrov)
 
-#include <google/protobuf/pyext/descriptor.h>
+#include "google/protobuf/pyext/descriptor.h"
+
+#include "y_absl/log/absl_check.h"
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
@@ -40,15 +42,15 @@
 #include <string>
 #include <unordered_map>
 
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/dynamic_message.h>
-#include <google/protobuf/pyext/descriptor_containers.h>
-#include <google/protobuf/pyext/descriptor_pool.h>
-#include <google/protobuf/pyext/message.h>
-#include <google/protobuf/pyext/message_factory.h>
-#include <google/protobuf/pyext/scoped_pyobject_ptr.h>
-#include <google/protobuf/stubs/hash.h>
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/dynamic_message.h"
+#include "google/protobuf/pyext/descriptor_containers.h"
+#include "google/protobuf/pyext/descriptor_pool.h"
+#include "google/protobuf/pyext/message.h"
+#include "google/protobuf/pyext/message_factory.h"
+#include "google/protobuf/pyext/scoped_pyobject_ptr.h"
+#include "y_absl/strings/string_view.h"
+#include "google/protobuf/io/coded_stream.h"
 
 #define PyString_AsStringAndSize(ob, charpp, sizep)              \
   (PyUnicode_Check(ob)                                           \
@@ -404,7 +406,7 @@ PyObject* NewInternedDescriptor(PyTypeObject* type,
   std::unordered_map<const void*, PyObject*>::iterator it =
       interned_descriptors->find(descriptor);
   if (it != interned_descriptors->end()) {
-    GOOGLE_DCHECK(Py_TYPE(it->second) == type);
+    Y_ABSL_DCHECK(Py_TYPE(it->second) == type);
     Py_INCREF(it->second);
     return it->second;
   }
@@ -542,6 +544,12 @@ static PyObject* GetConcreteClass(PyBaseDescriptor* self, void *closure) {
       GetDescriptorPool_FromPool(
           _GetDescriptor(self)->file()->pool())->py_message_factory,
       _GetDescriptor(self)));
+
+  if (concrete_class == nullptr) {
+    PyErr_Clear();
+    return nullptr;
+  }
+
   Py_XINCREF(concrete_class);
   return concrete_class->AsPyObject();
 }
@@ -1179,6 +1187,11 @@ static PyObject* GetHasOptions(PyBaseDescriptor *self, void *closure) {
     Py_RETURN_FALSE;
   }
 }
+
+static PyObject* GetIsClosed(PyBaseDescriptor* self, void* closure) {
+  return PyBool_FromLong(_GetDescriptor(self)->is_closed());
+}
+
 static int SetHasOptions(PyBaseDescriptor *self, PyObject *value,
                          void *closure) {
   return CheckCalledFromGeneratedFile("has_options");
@@ -1222,6 +1235,7 @@ static PyGetSetDef Getters[] = {
      "Containing type"},
     {"has_options", (getter)GetHasOptions, (setter)SetHasOptions,
      "Has Options"},
+    {"is_closed", (getter)GetIsClosed, nullptr, "If the enum is closed"},
     {"_options", (getter) nullptr, (setter)SetOptions, "Options"},
     {"_serialized_options", (getter) nullptr, (setter)SetSerializedOptions,
      "Serialized Options"},
@@ -1793,7 +1807,8 @@ static PyObject* FindMethodByName(PyBaseDescriptor *self, PyObject* arg) {
   }
 
   const MethodDescriptor* method_descriptor =
-      _GetDescriptor(self)->FindMethodByName(StringParam(name, name_size));
+      _GetDescriptor(self)->FindMethodByName(
+          y_absl::string_view(name, name_size));
   if (method_descriptor == nullptr) {
     PyErr_Format(PyExc_KeyError, "Couldn't find method %.200s", name);
     return nullptr;

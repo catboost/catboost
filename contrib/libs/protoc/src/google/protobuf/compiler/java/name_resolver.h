@@ -31,13 +31,14 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_NAME_RESOLVER_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_NAME_RESOLVER_H__
 
-#include <map>
 #include <string>
 
-#include <google/protobuf/stubs/common.h>
+#include "y_absl/container/flat_hash_map.h"
+#include "google/protobuf/compiler/java/options.h"
+#include "google/protobuf/port.h"
 
 // Must be last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -58,8 +59,11 @@ enum NameEquality { NO_MATCH, EXACT_EQUAL, EQUAL_IGNORE_CASE };
 // Thread-safety note: This class is *not* thread-safe.
 class ClassNameResolver {
  public:
-  ClassNameResolver();
-  ~ClassNameResolver();
+  explicit ClassNameResolver(const Options& options = {}) : options_(options) {}
+  ~ClassNameResolver() = default;
+
+  ClassNameResolver(const ClassNameResolver&) = delete;
+  ClassNameResolver& operator=(const ClassNameResolver&) = delete;
 
   // Gets the unqualified outer class name for the file.
   TProtoStringType GetFileClassName(const FileDescriptor* file, bool immutable);
@@ -74,7 +78,7 @@ class ClassNameResolver {
   // Check whether there is any type defined in the proto file that has
   // the given class name.
   bool HasConflictingClassName(const FileDescriptor* file,
-                               const TProtoStringType& classname,
+                               y_absl::string_view classname,
                                NameEquality equality_mode);
 
   // Gets the name of the outer class that holds descriptor information.
@@ -128,25 +132,25 @@ class ClassNameResolver {
 
   // Get the full name of a Java class by prepending the Java package name
   // or outer class name.
-  TProtoStringType GetClassFullName(const TProtoStringType& name_without_package,
+  TProtoStringType GetClassFullName(y_absl::string_view name_without_package,
                                const FileDescriptor* file, bool immutable,
                                bool is_own_file);
-  TProtoStringType GetClassFullName(const TProtoStringType& name_without_package,
+  TProtoStringType GetClassFullName(y_absl::string_view name_without_package,
                                const FileDescriptor* file, bool immutable,
                                bool is_own_file, bool kotlin);
 
+  Options options_;
+
  private:
   // Get the Java Class style full name of a message.
-  TProtoStringType GetJavaClassFullName(const TProtoStringType& name_without_package,
+  TProtoStringType GetJavaClassFullName(y_absl::string_view name_without_package,
                                    const FileDescriptor* file, bool immutable);
-  TProtoStringType GetJavaClassFullName(const TProtoStringType& name_without_package,
+  TProtoStringType GetJavaClassFullName(y_absl::string_view name_without_package,
                                    const FileDescriptor* file, bool immutable,
                                    bool kotlin);
   // Caches the result to provide better performance.
-  std::map<const FileDescriptor*, TProtoStringType>
+  y_absl::flat_hash_map<const FileDescriptor*, TProtoStringType>
       file_immutable_outer_class_names_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ClassNameResolver);
 };
 
 }  // namespace java
@@ -154,6 +158,6 @@ class ClassNameResolver {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_NAME_RESOLVER_H__

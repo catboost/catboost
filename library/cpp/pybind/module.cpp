@@ -27,7 +27,7 @@ namespace NPyBind {
         TPyBindModuleRegistrar::TPyBindModuleRegistrar() {
             TPyObjectPtr modules(PySys_GetObject("modules"));
             Y_ENSURE(modules.Get());
-            if (Module = NPrivate::CreatePyBindModule()) {
+            if (auto Module = NPrivate::CreatePyBindModule(); Module) {
                 Y_ABORT_UNLESS(0 == PyDict_SetItemString(modules.Get(), "pybind", Module.RefGet()));
             }
             AddFinalizationCallBack([this]() {

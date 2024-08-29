@@ -1,5 +1,4 @@
 #include <contrib/libs/protobuf-mutator/src/libfuzzer/libfuzzer_macro.h>
-#include <google/protobuf/stubs/logging.h>
 
 #include <library/cpp/blockcodecs/codecs.h>
 #include <library/cpp/blockcodecs/fuzz/proto/case.pb.h>

@@ -37,7 +37,8 @@
 
 #include <string>
 #include <vector>
-#include <google/protobuf/descriptor.h>
+
+#include "google/protobuf/descriptor.h"
 
 namespace google {
 namespace protobuf {
@@ -62,6 +63,8 @@ class EnumLiteGenerator {
  public:
   EnumLiteGenerator(const EnumDescriptor* descriptor, bool immutable_api,
                     Context* context);
+  EnumLiteGenerator(const EnumLiteGenerator&) = delete;
+  EnumLiteGenerator& operator=(const EnumLiteGenerator&) = delete;
   ~EnumLiteGenerator();
 
   void Generate(io::Printer* printer);
@@ -86,8 +89,6 @@ class EnumLiteGenerator {
 
   Context* context_;
   ClassNameResolver* name_resolver_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EnumLiteGenerator);
 };
 
 }  // namespace java

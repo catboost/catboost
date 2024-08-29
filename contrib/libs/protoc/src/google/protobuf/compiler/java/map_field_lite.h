@@ -33,7 +33,7 @@
 
 #include <cstdint>
 
-#include <google/protobuf/compiler/java/field.h>
+#include "google/protobuf/compiler/java/field.h"
 
 namespace google {
 namespace protobuf {
@@ -61,7 +61,7 @@ class ImmutableMapFieldLiteGenerator : public ImmutableFieldLiteGenerator {
 
  private:
   const FieldDescriptor* descriptor_;
-  std::map<TProtoStringType, TProtoStringType> variables_;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> variables_;
   Context* context_;
   ClassNameResolver* name_resolver_;
 };

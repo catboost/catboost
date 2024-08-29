@@ -32,6 +32,11 @@
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_OPTIONS_H__
 
 #include <string>
+#include "util/generic/string.h"
+
+#include "google/protobuf/port_def.inc"
+
+using TProtoStringType = TString;
 
 namespace google {
 namespace protobuf {
@@ -54,6 +59,7 @@ struct Options {
   // When set, the protoc will generate the current files and all the transitive
   // dependencies as lite runtime.
   bool enforce_lite;
+  bool opensource_runtime = PROTO2_IS_OSS;
   // If true, we should build .meta files and emit @Generated annotations into
   // generated code.
   bool annotate_code;
@@ -70,4 +76,5 @@ struct Options {
 }  // namespace protobuf
 }  // namespace google
 
+#include "google/protobuf/port_undef.inc"
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_OPTIONS_H__

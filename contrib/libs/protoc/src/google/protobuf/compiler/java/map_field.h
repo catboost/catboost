@@ -31,7 +31,7 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_MAP_FIELD_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_MAP_FIELD_H__
 
-#include <google/protobuf/compiler/java/field.h>
+#include "google/protobuf/compiler/java/field.h"
 
 namespace google {
 namespace protobuf {
@@ -46,6 +46,8 @@ class ImmutableMapFieldGenerator : public ImmutableFieldGenerator {
   ~ImmutableMapFieldGenerator() override;
 
   // implements ImmutableFieldGenerator ---------------------------------------
+  int GetMessageBitIndex() const override;
+  int GetBuilderBitIndex() const override;
   int GetNumBitsForMessage() const override;
   int GetNumBitsForBuilder() const override;
   void GenerateInterfaceMembers(io::Printer* printer) const override;
@@ -55,8 +57,7 @@ class ImmutableMapFieldGenerator : public ImmutableFieldGenerator {
   void GenerateBuilderClearCode(io::Printer* printer) const override;
   void GenerateMergingCode(io::Printer* printer) const override;
   void GenerateBuildingCode(io::Printer* printer) const override;
-  void GenerateParsingCode(io::Printer* printer) const override;
-  void GenerateParsingDoneCode(io::Printer* printer) const override;
+  void GenerateBuilderParsingCode(io::Printer* printer) const override;
   void GenerateSerializationCode(io::Printer* printer) const override;
   void GenerateSerializedSizeCode(io::Printer* printer) const override;
   void GenerateFieldBuilderInitializationCode(
@@ -69,8 +70,11 @@ class ImmutableMapFieldGenerator : public ImmutableFieldGenerator {
 
  private:
   const FieldDescriptor* descriptor_;
-  std::map<TProtoStringType, TProtoStringType> variables_;
+  int message_bit_index_;
+  int builder_bit_index_;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> variables_;
   ClassNameResolver* name_resolver_;
+  Context* context_;
   void GenerateMapGetters(io::Printer* printer) const;
 };
 

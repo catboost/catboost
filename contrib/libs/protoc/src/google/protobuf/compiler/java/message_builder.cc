@@ -32,41 +32,63 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include <google/protobuf/compiler/java/message_builder.h>
+#include "google/protobuf/compiler/java/message_builder.h"
 
 #include <algorithm>
-#include <map>
 #include <memory>
 #include <vector>
 
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/wire_format.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/stubs/substitute.h>
-#include <google/protobuf/compiler/java/context.h>
-#include <google/protobuf/compiler/java/doc_comment.h>
-#include <google/protobuf/compiler/java/enum.h>
-#include <google/protobuf/compiler/java/extension.h>
-#include <google/protobuf/compiler/java/generator_factory.h>
-#include <google/protobuf/compiler/java/helpers.h>
-#include <google/protobuf/compiler/java/name_resolver.h>
-#include <google/protobuf/descriptor.pb.h>
+#include "y_absl/container/btree_set.h"
+#include "y_absl/container/flat_hash_map.h"
+#include "y_absl/strings/ascii.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/substitute.h"
+#include "google/protobuf/compiler/java/context.h"
+#include "google/protobuf/compiler/java/doc_comment.h"
+#include "google/protobuf/compiler/java/enum.h"
+#include "google/protobuf/compiler/java/extension.h"
+#include "google/protobuf/compiler/java/generator_factory.h"
+#include "google/protobuf/compiler/java/helpers.h"
+#include "google/protobuf/compiler/java/name_resolver.h"
+#include "google/protobuf/descriptor.pb.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/wire_format.h"
 
 // Must be last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
 namespace compiler {
 namespace java {
 
+using internal::WireFormat;
+using internal::WireFormatLite;
+
 namespace {
 TProtoStringType MapValueImmutableClassdName(const Descriptor* descriptor,
                                         ClassNameResolver* name_resolver) {
   const FieldDescriptor* value_field = descriptor->map_value();
-  GOOGLE_CHECK_EQ(FieldDescriptor::TYPE_MESSAGE, value_field->type());
+  Y_ABSL_CHECK_EQ(FieldDescriptor::TYPE_MESSAGE, value_field->type());
   return name_resolver->GetImmutableClassName(value_field->message_type());
+}
+
+bool BitfieldTracksMutability(const FieldDescriptor* const descriptor) {
+  if (!descriptor->is_repeated() || IsMapField(descriptor)) {
+    return false;
+  }
+  // TODO(b/255468704): update this to migrate repeated fields to use
+  // ProtobufList (which tracks immutability internally). That allows us to use
+  // the presence bit to skip work on the repeated field if it is not populated.
+  // Once all repeated fields are held in ProtobufLists, this method shouldn't
+  // be needed.
+  switch (descriptor->type()) {
+    case FieldDescriptor::TYPE_STRING:
+      return false;
+    default:
+      return true;
+  }
 }
 }  // namespace
 
@@ -76,12 +98,13 @@ MessageBuilderGenerator::MessageBuilderGenerator(const Descriptor* descriptor,
       context_(context),
       name_resolver_(context->GetNameResolver()),
       field_generators_(descriptor, context_) {
-  GOOGLE_CHECK(HasDescriptorMethods(descriptor->file(), context->EnforceLite()))
+  Y_ABSL_CHECK(HasDescriptorMethods(descriptor->file(), context->EnforceLite()))
       << "Generator factory error: A non-lite message generator is used to "
          "generate lite messages.";
   for (int i = 0; i < descriptor_->field_count(); i++) {
     if (IsRealOneof(descriptor_->field(i))) {
-      oneofs_.insert(descriptor_->field(i)->containing_oneof());
+      const OneofDescriptor* oneof = descriptor_->field(i)->containing_oneof();
+      Y_ABSL_CHECK(oneofs_.emplace(oneof->index(), oneof).first->second == oneof);
     }
   }
 }
@@ -122,12 +145,13 @@ void MessageBuilderGenerator::Generate(io::Printer* printer) {
   }
 
   // oneof
-  std::map<TProtoStringType, TProtoStringType> vars;
-  for (auto oneof : oneofs_) {
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> vars;
+  for (auto& kv : oneofs_) {
+    const OneofDescriptor* oneof = kv.second;
     vars["oneof_name"] = context_->GetOneofGeneratorInfo(oneof)->name;
     vars["oneof_capitalized_name"] =
         context_->GetOneofGeneratorInfo(oneof)->capitalized_name;
-    vars["oneof_index"] = StrCat(oneof->index());
+    vars["oneof_index"] = y_absl::StrCat(oneof->index());
     // oneofCase_ and oneof_
     printer->Print(vars,
                    "private int $oneof_name$Case_ = 0;\n"
@@ -142,12 +166,11 @@ void MessageBuilderGenerator::Generate(io::Printer* printer) {
                    "\n"
                    "public Builder clear$oneof_capitalized_name$() {\n"
                    "  $oneof_name$Case_ = 0;\n"
-                   "  $oneof_name$_ = null;\n");
-    printer->Print("  onChanged();\n");
-    printer->Print(
-        "  return this;\n"
-        "}\n"
-        "\n");
+                   "  $oneof_name$_ = null;\n"
+                   "  onChanged();\n"
+                   "  return this;\n"
+                   "}\n"
+                   "\n");
   }
 
   // Integers for bit fields.
@@ -168,24 +191,26 @@ void MessageBuilderGenerator::Generate(io::Printer* printer) {
         .GenerateBuilderMembers(printer);
   }
 
-  // Override methods declared in GeneratedMessage to return the concrete
-  // generated type so callsites won't depend on GeneratedMessage. This
-  // is needed to keep binary compatibility when we change generated code
-  // to subclass a different GeneratedMessage class (e.g., in v3.0.0 release
-  // we changed all generated code to subclass GeneratedMessageV3).
-  printer->Print(
-      "@java.lang.Override\n"
-      "public final Builder setUnknownFields(\n"
-      "    final com.google.protobuf.UnknownFieldSet unknownFields) {\n"
-      "  return super.setUnknownFields(unknownFields);\n"
-      "}\n"
-      "\n"
-      "@java.lang.Override\n"
-      "public final Builder mergeUnknownFields(\n"
-      "    final com.google.protobuf.UnknownFieldSet unknownFields) {\n"
-      "  return super.mergeUnknownFields(unknownFields);\n"
-      "}\n"
-      "\n");
+  if (context_->options().opensource_runtime) {
+    // Override methods declared in GeneratedMessage to return the concrete
+    // generated type so callsites won't depend on GeneratedMessage. This
+    // is needed to keep binary compatibility when we change generated code
+    // to subclass a different GeneratedMessage class (e.g., in v3.0.0 release
+    // we changed all generated code to subclass GeneratedMessageV3).
+    printer->Print(
+        "@java.lang.Override\n"
+        "public final Builder setUnknownFields(\n"
+        "    final com.google.protobuf.UnknownFieldSet unknownFields) {\n"
+        "  return super.setUnknownFields(unknownFields);\n"
+        "}\n"
+        "\n"
+        "@java.lang.Override\n"
+        "public final Builder mergeUnknownFields(\n"
+        "    final com.google.protobuf.UnknownFieldSet unknownFields) {\n"
+        "  return super.mergeUnknownFields(unknownFields);\n"
+        "}\n"
+        "\n");
+  }
 
   printer->Print(
       "\n"
@@ -231,7 +256,7 @@ void MessageBuilderGenerator::GenerateDescriptorMethods(io::Printer* printer) {
       printer->Print(
           "case $number$:\n"
           "  return internalGet$capitalized_name$();\n",
-          "number", StrCat(field->number()), "capitalized_name",
+          "number", y_absl::StrCat(field->number()), "capitalized_name",
           info->capitalized_name);
     }
     printer->Print(
@@ -256,7 +281,7 @@ void MessageBuilderGenerator::GenerateDescriptorMethods(io::Printer* printer) {
       printer->Print(
           "case $number$:\n"
           "  return internalGetMutable$capitalized_name$();\n",
-          "number", StrCat(field->number()), "capitalized_name",
+          "number", y_absl::StrCat(field->number()), "capitalized_name",
           info->capitalized_name);
     }
     printer->Print(
@@ -288,43 +313,63 @@ void MessageBuilderGenerator::GenerateDescriptorMethods(io::Printer* printer) {
 
 void MessageBuilderGenerator::GenerateCommonBuilderMethods(
     io::Printer* printer) {
+  // Decide if we really need to have the "maybeForceBuilderInitialization()"
+  // method.
+  // TODO(b/249158148): Remove the need for this entirely
+  bool need_maybe_force_builder_init = false;
+  for (int i = 0; i < descriptor_->field_count(); i++) {
+    if (descriptor_->field(i)->message_type() != nullptr &&
+        !IsRealOneof(descriptor_->field(i)) &&
+        HasHasbit(descriptor_->field(i))) {
+      need_maybe_force_builder_init = true;
+      break;
+    }
+  }
+
+  const char* force_builder_init = need_maybe_force_builder_init
+                                       ? "  maybeForceBuilderInitialization();"
+                                       : "";
+
   printer->Print(
       "// Construct using $classname$.newBuilder()\n"
       "private Builder() {\n"
-      "  maybeForceBuilderInitialization();\n"
+      "$force_builder_init$\n"
       "}\n"
       "\n",
-      "classname", name_resolver_->GetImmutableClassName(descriptor_));
+      "classname", name_resolver_->GetImmutableClassName(descriptor_),
+      "force_builder_init", force_builder_init);
 
   printer->Print(
       "private Builder(\n"
       "    com.google.protobuf.GeneratedMessage$ver$.BuilderParent parent) {\n"
       "  super(parent);\n"
-      "  maybeForceBuilderInitialization();\n"
+      "$force_builder_init$\n"
       "}\n",
       "classname", name_resolver_->GetImmutableClassName(descriptor_), "ver",
-      GeneratedCodeVersionSuffix());
+      GeneratedCodeVersionSuffix(), "force_builder_init", force_builder_init);
 
-  printer->Print(
-      "private void maybeForceBuilderInitialization() {\n"
-      "  if (com.google.protobuf.GeneratedMessage$ver$\n"
-      "          .alwaysUseFieldBuilders) {\n",
-      "ver", GeneratedCodeVersionSuffix());
+  if (need_maybe_force_builder_init) {
+    printer->Print(
+        "private void maybeForceBuilderInitialization() {\n"
+        "  if (com.google.protobuf.GeneratedMessage$ver$\n"
+        "          .alwaysUseFieldBuilders) {\n",
+        "ver", GeneratedCodeVersionSuffix());
 
-  printer->Indent();
-  printer->Indent();
-  for (int i = 0; i < descriptor_->field_count(); i++) {
-    if (!IsRealOneof(descriptor_->field(i))) {
-      field_generators_.get(descriptor_->field(i))
-          .GenerateFieldBuilderInitializationCode(printer);
+    printer->Indent();
+    printer->Indent();
+    for (int i = 0; i < descriptor_->field_count(); i++) {
+      if (!IsRealOneof(descriptor_->field(i))) {
+        field_generators_.get(descriptor_->field(i))
+            .GenerateFieldBuilderInitializationCode(printer);
+      }
     }
-  }
-  printer->Outdent();
-  printer->Outdent();
+    printer->Outdent();
+    printer->Outdent();
 
-  printer->Print(
-      "  }\n"
-      "}\n");
+    printer->Print(
+        "  }\n"
+        "}\n");
+  }
 
   printer->Print(
       "@java.lang.Override\n"
@@ -332,19 +377,22 @@ void MessageBuilderGenerator::GenerateCommonBuilderMethods(
       "  super.clear();\n");
 
   printer->Indent();
-
-  for (int i = 0; i < descriptor_->field_count(); i++) {
-    if (!IsRealOneof(descriptor_->field(i))) {
-      field_generators_.get(descriptor_->field(i))
-          .GenerateBuilderClearCode(printer);
-    }
+  int totalBuilderInts = (descriptor_->field_count() + 31) / 32;
+  for (int i = 0; i < totalBuilderInts; i++) {
+    printer->Print("$bit_field_name$ = 0;\n", "bit_field_name",
+                   GetBitFieldName(i));
   }
 
-  for (auto oneof : oneofs_) {
+  for (int i = 0; i < descriptor_->field_count(); i++) {
+    field_generators_.get(descriptor_->field(i))
+        .GenerateBuilderClearCode(printer);
+  }
+
+  for (auto& kv : oneofs_) {
     printer->Print(
         "$oneof_name$Case_ = 0;\n"
         "$oneof_name$_ = null;\n",
-        "oneof_name", context_->GetOneofGeneratorInfo(oneof)->name);
+        "oneof_name", context_->GetOneofGeneratorInfo(kv.second)->name);
   }
 
   printer->Outdent();
@@ -385,134 +433,7 @@ void MessageBuilderGenerator::GenerateCommonBuilderMethods(
       "\n",
       "classname", name_resolver_->GetImmutableClassName(descriptor_));
 
-  printer->Print(
-      "@java.lang.Override\n"
-      "public $classname$ buildPartial() {\n"
-      "  $classname$ result = new $classname$(this);\n",
-      "classname", name_resolver_->GetImmutableClassName(descriptor_));
-
-  printer->Indent();
-
-  int totalBuilderBits = 0;
-  int totalMessageBits = 0;
-  for (int i = 0; i < descriptor_->field_count(); i++) {
-    const ImmutableFieldGenerator& field =
-        field_generators_.get(descriptor_->field(i));
-    totalBuilderBits += field.GetNumBitsForBuilder();
-    totalMessageBits += field.GetNumBitsForMessage();
-  }
-  int totalBuilderInts = (totalBuilderBits + 31) / 32;
-  int totalMessageInts = (totalMessageBits + 31) / 32;
-
-  // Local vars for from and to bit fields to avoid accessing the builder and
-  // message over and over for these fields. Seems to provide a slight
-  // perforamance improvement in micro benchmark and this is also what proto1
-  // code does.
-  for (int i = 0; i < totalBuilderInts; i++) {
-    printer->Print("int from_$bit_field_name$ = $bit_field_name$;\n",
-                   "bit_field_name", GetBitFieldName(i));
-  }
-  for (int i = 0; i < totalMessageInts; i++) {
-    printer->Print("int to_$bit_field_name$ = 0;\n", "bit_field_name",
-                   GetBitFieldName(i));
-  }
-
-  // Output generation code for each field.
-  for (int i = 0; i < descriptor_->field_count(); i++) {
-    field_generators_.get(descriptor_->field(i)).GenerateBuildingCode(printer);
-  }
-
-  // Copy the bit field results to the generated message
-  for (int i = 0; i < totalMessageInts; i++) {
-    printer->Print("result.$bit_field_name$ = to_$bit_field_name$;\n",
-                   "bit_field_name", GetBitFieldName(i));
-  }
-
-  for (auto oneof : oneofs_) {
-    printer->Print("result.$oneof_name$Case_ = $oneof_name$Case_;\n",
-                   "oneof_name", context_->GetOneofGeneratorInfo(oneof)->name);
-  }
-
-  printer->Outdent();
-
-  printer->Print("  onBuilt();\n");
-
-  printer->Print(
-      "  return result;\n"
-      "}\n"
-      "\n",
-      "classname", name_resolver_->GetImmutableClassName(descriptor_));
-
-  // Override methods declared in GeneratedMessage to return the concrete
-  // generated type so callsites won't depend on GeneratedMessage. This
-  // is needed to keep binary compatibility when we change generated code
-  // to subclass a different GeneratedMessage class (e.g., in v3.0.0 release
-  // we changed all generated code to subclass GeneratedMessageV3).
-  printer->Print(
-      "@java.lang.Override\n"
-      "public Builder clone() {\n"
-      "  return super.clone();\n"
-      "}\n"
-      "@java.lang.Override\n"
-      "public Builder setField(\n"
-      "    com.google.protobuf.Descriptors.FieldDescriptor field,\n"
-      "    java.lang.Object value) {\n"
-      "  return super.setField(field, value);\n"
-      "}\n"
-      "@java.lang.Override\n"
-      "public Builder clearField(\n"
-      "    com.google.protobuf.Descriptors.FieldDescriptor field) {\n"
-      "  return super.clearField(field);\n"
-      "}\n"
-      "@java.lang.Override\n"
-      "public Builder clearOneof(\n"
-      "    com.google.protobuf.Descriptors.OneofDescriptor oneof) {\n"
-      "  return super.clearOneof(oneof);\n"
-      "}\n"
-      "@java.lang.Override\n"
-      "public Builder setRepeatedField(\n"
-      "    com.google.protobuf.Descriptors.FieldDescriptor field,\n"
-      "    int index, java.lang.Object value) {\n"
-      "  return super.setRepeatedField(field, index, value);\n"
-      "}\n"
-      "@java.lang.Override\n"
-      "public Builder addRepeatedField(\n"
-      "    com.google.protobuf.Descriptors.FieldDescriptor field,\n"
-      "    java.lang.Object value) {\n"
-      "  return super.addRepeatedField(field, value);\n"
-      "}\n");
-
-  if (descriptor_->extension_range_count() > 0) {
-    printer->Print(
-        "@java.lang.Override\n"
-        "public <Type> Builder setExtension(\n"
-        "    com.google.protobuf.GeneratedMessage.GeneratedExtension<\n"
-        "        $classname$, Type> extension,\n"
-        "    Type value) {\n"
-        "  return super.setExtension(extension, value);\n"
-        "}\n"
-        "@java.lang.Override\n"
-        "public <Type> Builder setExtension(\n"
-        "    com.google.protobuf.GeneratedMessage.GeneratedExtension<\n"
-        "        $classname$, java.util.List<Type>> extension,\n"
-        "    int index, Type value) {\n"
-        "  return super.setExtension(extension, index, value);\n"
-        "}\n"
-        "@java.lang.Override\n"
-        "public <Type> Builder addExtension(\n"
-        "    com.google.protobuf.GeneratedMessage.GeneratedExtension<\n"
-        "        $classname$, java.util.List<Type>> extension,\n"
-        "    Type value) {\n"
-        "  return super.addExtension(extension, value);\n"
-        "}\n"
-        "@java.lang.Override\n"
-        "public <Type> Builder clearExtension(\n"
-        "    com.google.protobuf.GeneratedMessage.GeneratedExtension<\n"
-        "        $classname$, ?> extension) {\n"
-        "  return super.clearExtension(extension);\n"
-        "}\n",
-        "classname", name_resolver_->GetImmutableClassName(descriptor_));
-  }
+  GenerateBuildPartial(printer);
 
   // -----------------------------------------------------------------
 
@@ -546,7 +467,8 @@ void MessageBuilderGenerator::GenerateCommonBuilderMethods(
     }
 
     // Merge oneof fields.
-    for (auto oneof : oneofs_) {
+    for (auto& kv : oneofs_) {
+      const OneofDescriptor* oneof = kv.second;
       printer->Print("switch (other.get$oneof_capitalized_name$Case()) {\n",
                      "oneof_capitalized_name",
                      context_->GetOneofGeneratorInfo(oneof)->capitalized_name);
@@ -554,7 +476,7 @@ void MessageBuilderGenerator::GenerateCommonBuilderMethods(
       for (int j = 0; j < oneof->field_count(); j++) {
         const FieldDescriptor* field = oneof->field(j);
         printer->Print("case $field_name$: {\n", "field_name",
-                       ToUpper(field->name()));
+                       y_absl::AsciiStrToUpper(field->name()));
         printer->Indent();
         field_generators_.get(field).GenerateMergingCode(printer);
         printer->Print("break;\n");
@@ -566,7 +488,7 @@ void MessageBuilderGenerator::GenerateCommonBuilderMethods(
           "  break;\n"
           "}\n",
           "cap_oneof_name",
-          ToUpper(context_->GetOneofGeneratorInfo(oneof)->name));
+          y_absl::AsciiStrToUpper(context_->GetOneofGeneratorInfo(oneof)->name));
       printer->Outdent();
       printer->Print("}\n");
     }
@@ -578,7 +500,7 @@ void MessageBuilderGenerator::GenerateCommonBuilderMethods(
       printer->Print("  this.mergeExtensionFields(other);\n");
     }
 
-    printer->Print("  this.mergeUnknownFields(other.unknownFields);\n");
+    printer->Print("  this.mergeUnknownFields(other.getUnknownFields());\n");
 
     printer->Print("  onChanged();\n");
 
@@ -587,6 +509,154 @@ void MessageBuilderGenerator::GenerateCommonBuilderMethods(
         "}\n"
         "\n");
   }
+}
+
+void MessageBuilderGenerator::GenerateBuildPartial(io::Printer* printer) {
+  printer->Print(
+      "@java.lang.Override\n"
+      "public $classname$ buildPartial() {\n"
+      "  $classname$ result = new $classname$(this);\n",
+      "classname", name_resolver_->GetImmutableClassName(descriptor_));
+
+  printer->Indent();
+
+  // Handle the repeated fields first so that the "mutable bits" are cleared.
+  bool has_repeated_fields = false;
+  for (int i = 0; i < descriptor_->field_count(); ++i) {
+    if (BitfieldTracksMutability(descriptor_->field(i))) {
+      has_repeated_fields = true;
+      printer->Print("buildPartialRepeatedFields(result);\n");
+      break;
+    }
+  }
+
+  // One buildPartial#() per from_bit_field
+  int totalBuilderInts = (descriptor_->field_count() + 31) / 32;
+  if (totalBuilderInts > 0) {
+    for (int i = 0; i < totalBuilderInts; ++i) {
+      printer->Print(
+          "if ($bit_field_name$ != 0) { buildPartial$piece$(result); }\n",
+          "bit_field_name", GetBitFieldName(i), "piece", y_absl::StrCat(i));
+    }
+  }
+
+  if (!oneofs_.empty()) {
+    printer->Print("buildPartialOneofs(result);\n");
+  }
+
+  printer->Outdent();
+  printer->Print(
+      "  onBuilt();\n"
+      "  return result;\n"
+      "}\n"
+      "\n",
+      "classname", name_resolver_->GetImmutableClassName(descriptor_));
+
+  // Build Repeated Fields
+  if (has_repeated_fields) {
+    printer->Print(
+        "private void buildPartialRepeatedFields($classname$ result) {\n",
+        "classname", name_resolver_->GetImmutableClassName(descriptor_));
+    printer->Indent();
+    for (int i = 0; i < descriptor_->field_count(); ++i) {
+      if (BitfieldTracksMutability(descriptor_->field(i))) {
+        const ImmutableFieldGenerator& field =
+            field_generators_.get(descriptor_->field(i));
+        field.GenerateBuildingCode(printer);
+      }
+    }
+    printer->Outdent();
+    printer->Print("}\n\n");
+  }
+
+  // Build non-oneof fields
+  int start_field = 0;
+  for (int i = 0; i < totalBuilderInts; i++) {
+    start_field = GenerateBuildPartialPiece(printer, i, start_field);
+  }
+
+  // Build Oneofs
+  if (!oneofs_.empty()) {
+    printer->Print("private void buildPartialOneofs($classname$ result) {\n",
+                   "classname",
+                   name_resolver_->GetImmutableClassName(descriptor_));
+    printer->Indent();
+    for (auto& kv : oneofs_) {
+      const OneofDescriptor* oneof = kv.second;
+      printer->Print(
+          "result.$oneof_name$Case_ = $oneof_name$Case_;\n"
+          "result.$oneof_name$_ = this.$oneof_name$_;\n",
+          "oneof_name", context_->GetOneofGeneratorInfo(oneof)->name);
+      for (int i = 0; i < oneof->field_count(); ++i) {
+        if (oneof->field(i)->message_type() != nullptr) {
+          const ImmutableFieldGenerator& field =
+              field_generators_.get(oneof->field(i));
+          field.GenerateBuildingCode(printer);
+        }
+      }
+    }
+    printer->Outdent();
+    printer->Print("}\n\n");
+  }
+}
+
+int MessageBuilderGenerator::GenerateBuildPartialPiece(io::Printer* printer,
+                                                       int piece,
+                                                       int first_field) {
+  printer->Print(
+      "private void buildPartial$piece$($classname$ result) {\n"
+      "  int from_$bit_field_name$ = $bit_field_name$;\n",
+      "classname", name_resolver_->GetImmutableClassName(descriptor_), "piece",
+      y_absl::StrCat(piece), "bit_field_name", GetBitFieldName(piece));
+  printer->Indent();
+  y_absl::btree_set<int> declared_to_bitfields;
+
+  int bit = 0;
+  int next = first_field;
+  for (; bit < 32 && next < descriptor_->field_count(); ++next) {
+    const ImmutableFieldGenerator& field =
+        field_generators_.get(descriptor_->field(next));
+    bit += field.GetNumBitsForBuilder();
+
+    // Skip oneof fields that are handled separately
+    if (IsRealOneof(descriptor_->field(next))) {
+      continue;
+    }
+
+    // Skip repeated fields because they are currently handled
+    // in separate buildPartial sub-methods.
+    if (BitfieldTracksMutability(descriptor_->field(next))) {
+      continue;
+    }
+    // Skip fields without presence bits in the builder
+    if (field.GetNumBitsForBuilder() == 0) {
+      continue;
+    }
+
+    // Track message bits if necessary
+    if (field.GetNumBitsForMessage() > 0) {
+      int to_bitfield = field.GetMessageBitIndex() / 32;
+      if (declared_to_bitfields.count(to_bitfield) == 0) {
+        printer->Print("int to_$bit_field_name$ = 0;\n", "bit_field_name",
+                       GetBitFieldName(to_bitfield));
+        declared_to_bitfields.insert(to_bitfield);
+      }
+    }
+
+    // Copy the field from the builder to the message
+    field.GenerateBuildingCode(printer);
+  }
+
+  // Copy the bit field results to the generated message
+  for (int to_bitfield : declared_to_bitfields) {
+    printer->Print("result.$bit_field_name$ |= to_$bit_field_name$;\n",
+                   "bit_field_name", GetBitFieldName(to_bitfield));
+  }
+
+  printer->Outdent();
+  printer->Print("}\n\n");
+
+  return next;
 }
 
 // ===================================================================
@@ -599,20 +669,92 @@ void MessageBuilderGenerator::GenerateBuilderParsingMethods(
       "    com.google.protobuf.CodedInputStream input,\n"
       "    com.google.protobuf.ExtensionRegistryLite extensionRegistry)\n"
       "    throws java.io.IOException {\n"
-      "  $classname$ parsedMessage = null;\n"
+      "  if (extensionRegistry == null) {\n"
+      "    throw new java.lang.NullPointerException();\n"
+      "  }\n"
       "  try {\n"
-      "    parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);\n"
+      "    boolean done = false;\n"
+      "    while (!done) {\n"
+      "      int tag = input.readTag();\n"
+      "      switch (tag) {\n"
+      "        case 0:\n"  // zero signals EOF / limit reached
+      "          done = true;\n"
+      "          break;\n");
+  printer->Indent();  // method
+  printer->Indent();  // try
+  printer->Indent();  // while
+  printer->Indent();  // switch
+  GenerateBuilderFieldParsingCases(printer);
+  printer->Outdent();  // switch
+  printer->Outdent();  // while
+  printer->Outdent();  // try
+  printer->Outdent();  // method
+  printer->Print(
+      "        default: {\n"
+      "          if (!super.parseUnknownField(input, extensionRegistry, tag)) "
+      "{\n"
+      "            done = true; // was an endgroup tag\n"
+      "          }\n"
+      "          break;\n"
+      "        } // default:\n"
+      "      } // switch (tag)\n"
+      "    } // while (!done)\n"
       "  } catch (com.google.protobuf.InvalidProtocolBufferException e) {\n"
-      "    parsedMessage = ($classname$) e.getUnfinishedMessage();\n"
       "    throw e.unwrapIOException();\n"
       "  } finally {\n"
-      "    if (parsedMessage != null) {\n"
-      "      mergeFrom(parsedMessage);\n"
-      "    }\n"
-      "  }\n"
+      "    onChanged();\n"
+      "  } // finally\n"
       "  return this;\n"
-      "}\n",
-      "classname", name_resolver_->GetImmutableClassName(descriptor_));
+      "}\n");
+}
+
+void MessageBuilderGenerator::GenerateBuilderFieldParsingCases(
+    io::Printer* printer) {
+  std::unique_ptr<const FieldDescriptor*[]> sorted_fields(
+      SortFieldsByNumber(descriptor_));
+  for (int i = 0; i < descriptor_->field_count(); i++) {
+    const FieldDescriptor* field = sorted_fields[i];
+    GenerateBuilderFieldParsingCase(printer, field);
+    if (field->is_packable()) {
+      GenerateBuilderPackedFieldParsingCase(printer, field);
+    }
+  }
+}
+
+void MessageBuilderGenerator::GenerateBuilderFieldParsingCase(
+    io::Printer* printer, const FieldDescriptor* field) {
+  arc_ui32 tag = WireFormatLite::MakeTag(
+      field->number(), WireFormat::WireTypeForFieldType(field->type()));
+  TProtoStringType tagString = y_absl::StrCat(static_cast<arc_i32>(tag));
+  printer->Print("case $tag$: {\n", "tag", tagString);
+  printer->Indent();
+
+  field_generators_.get(field).GenerateBuilderParsingCode(printer);
+
+  printer->Outdent();
+  printer->Print(
+      "  break;\n"
+      "} // case $tag$\n",
+      "tag", tagString);
+}
+
+void MessageBuilderGenerator::GenerateBuilderPackedFieldParsingCase(
+    io::Printer* printer, const FieldDescriptor* field) {
+  // To make packed = true wire compatible, we generate parsing code from a
+  // packed version of this field regardless of field->options().packed().
+  arc_ui32 tag = WireFormatLite::MakeTag(
+      field->number(), WireFormatLite::WIRETYPE_LENGTH_DELIMITED);
+  TProtoStringType tagString = y_absl::StrCat(static_cast<arc_i32>(tag));
+  printer->Print("case $tag$: {\n", "tag", tagString);
+  printer->Indent();
+
+  field_generators_.get(field).GenerateBuilderParsingCodeFromPacked(printer);
+
+  printer->Outdent();
+  printer->Print(
+      "  break;\n"
+      "} // case $tag$\n",
+      "tag", tagString);
 }
 
 // ===================================================================
@@ -714,4 +856,4 @@ void MessageBuilderGenerator::GenerateIsInitialized(io::Printer* printer) {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"

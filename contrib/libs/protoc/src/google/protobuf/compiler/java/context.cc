@@ -28,14 +28,18 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <google/protobuf/compiler/java/context.h>
+#include "google/protobuf/compiler/java/context.h"
 
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/stubs/strutil.h>
-#include <google/protobuf/compiler/java/field.h>
-#include <google/protobuf/compiler/java/helpers.h>
-#include <google/protobuf/compiler/java/name_resolver.h>
-#include <google/protobuf/stubs/map_util.h>
+#include <string>
+
+#include "y_absl/log/absl_log.h"
+#include "y_absl/strings/str_cat.h"
+#include "y_absl/strings/string_view.h"
+#include "y_absl/strings/strip.h"
+#include "google/protobuf/compiler/java/field.h"
+#include "google/protobuf/compiler/java/helpers.h"
+#include "google/protobuf/compiler/java/name_resolver.h"
+#include "google/protobuf/descriptor.h"
 
 namespace google {
 namespace protobuf {
@@ -43,7 +47,7 @@ namespace compiler {
 namespace java {
 
 Context::Context(const FileDescriptor* file, const Options& options)
-    : name_resolver_(new ClassNameResolver), options_(options) {
+    : name_resolver_(new ClassNameResolver(options)), options_(options) {
   InitializeFieldGeneratorInfo(file);
 }
 
@@ -54,11 +58,17 @@ ClassNameResolver* Context::GetNameResolver() const {
 }
 
 namespace {
+bool EqualWithSuffix(y_absl::string_view name1, y_absl::string_view suffix,
+                     y_absl::string_view name2) {
+  if (!y_absl::ConsumeSuffix(&name2, suffix)) return false;
+  return name1 == name2;
+}
+
 // Whether two fields have conflicting accessors (assuming name1 and name2
 // are different). name1 and name2 are field1 and field2's camel-case name
 // respectively.
-bool IsConflicting(const FieldDescriptor* field1, const TProtoStringType& name1,
-                   const FieldDescriptor* field2, const TProtoStringType& name2,
+bool IsConflicting(const FieldDescriptor* field1, y_absl::string_view name1,
+                   const FieldDescriptor* field2, y_absl::string_view name2,
                    TProtoStringType* info) {
   if (field1->is_repeated()) {
     if (field2->is_repeated()) {
@@ -66,16 +76,18 @@ bool IsConflicting(const FieldDescriptor* field1, const TProtoStringType& name1,
       return false;
     } else {
       // field1 is repeated, and field2 is not.
-      if (name1 + "Count" == name2) {
-        *info = "both repeated field \"" + field1->name() + "\" and singular " +
-                "field \"" + field2->name() + "\" generate the method \"" +
-                "get" + name1 + "Count()\"";
+      if (EqualWithSuffix(name1, "Count", name2)) {
+        *info = y_absl::StrCat("both repeated field \"", field1->name(),
+                             "\" and singular ", "field \"", field2->name(),
+                             "\" generate the method \"", "get", name1,
+                             "Count()\"");
         return true;
       }
-      if (name1 + "List" == name2) {
-        *info = "both repeated field \"" + field1->name() + "\" and singular " +
-                "field \"" + field2->name() + "\" generate the method \"" +
-                "get" + name1 + "List()\"";
+      if (EqualWithSuffix(name1, "List", name2)) {
+        *info =
+            y_absl::StrCat("both repeated field \"", field1->name(),
+                         "\" and singular ", "field \"", field2->name(),
+                         "\" generate the method \"", "get", name1, "List()\"");
         return true;
       }
       // Well, there are obviously many more conflicting cases, but it probably
@@ -131,15 +143,15 @@ void Context::InitializeFieldGeneratorInfoForFields(
   std::vector<TProtoStringType> conflict_reason(fields.size());
   for (int i = 0; i < fields.size(); ++i) {
     const FieldDescriptor* field = fields[i];
-    const TProtoStringType& name = UnderscoresToCapitalizedCamelCase(field);
+    const TProtoStringType& name = CapitalizedFieldName(field);
     for (int j = i + 1; j < fields.size(); ++j) {
       const FieldDescriptor* other = fields[j];
-      const TProtoStringType& other_name = UnderscoresToCapitalizedCamelCase(other);
+      const TProtoStringType& other_name = CapitalizedFieldName(other);
       if (name == other_name) {
         is_conflict[i] = is_conflict[j] = true;
         conflict_reason[i] = conflict_reason[j] =
-            "capitalized name of field \"" + field->name() +
-            "\" conflicts with field \"" + other->name() + "\"";
+            y_absl::StrCat("capitalized name of field \"", field->name(),
+                         "\" conflicts with field \"", other->name(), "\"");
       } else if (IsConflicting(field, name, other, other_name,
                                &conflict_reason[j])) {
         is_conflict[i] = is_conflict[j] = true;
@@ -147,20 +159,21 @@ void Context::InitializeFieldGeneratorInfoForFields(
       }
     }
     if (is_conflict[i]) {
-      GOOGLE_LOG(WARNING) << "field \"" << field->full_name() << "\" is conflicting "
-                   << "with another field: " << conflict_reason[i];
+      Y_ABSL_LOG(WARNING) << "field \"" << field->full_name()
+                        << "\" is conflicting "
+                        << "with another field: " << conflict_reason[i];
     }
   }
   for (int i = 0; i < fields.size(); ++i) {
     const FieldDescriptor* field = fields[i];
     FieldGeneratorInfo info;
     info.name = CamelCaseFieldName(field);
-    info.capitalized_name = UnderscoresToCapitalizedCamelCase(field);
+    info.capitalized_name = CapitalizedFieldName(field);
     // For fields conflicting with some other fields, we append the field
     // number to their field names in generated code to avoid conflicts.
     if (is_conflict[i]) {
-      info.name += StrCat(field->number());
-      info.capitalized_name += StrCat(field->number());
+      y_absl::StrAppend(&info.name, field->number());
+      y_absl::StrAppend(&info.capitalized_name, field->number());
       info.disambiguated_reason = conflict_reason[i];
     }
     field_generator_info_map_[field] = info;
@@ -169,24 +182,22 @@ void Context::InitializeFieldGeneratorInfoForFields(
 
 const FieldGeneratorInfo* Context::GetFieldGeneratorInfo(
     const FieldDescriptor* field) const {
-  const FieldGeneratorInfo* result =
-      FindOrNull(field_generator_info_map_, field);
-  if (result == NULL) {
-    GOOGLE_LOG(FATAL) << "Can not find FieldGeneratorInfo for field: "
-               << field->full_name();
+  auto it = field_generator_info_map_.find(field);
+  if (it == field_generator_info_map_.end()) {
+    Y_ABSL_LOG(FATAL) << "Can not find FieldGeneratorInfo for field: "
+                    << field->full_name();
   }
-  return result;
+  return &it->second;
 }
 
 const OneofGeneratorInfo* Context::GetOneofGeneratorInfo(
     const OneofDescriptor* oneof) const {
-  const OneofGeneratorInfo* result =
-      FindOrNull(oneof_generator_info_map_, oneof);
-  if (result == NULL) {
-    GOOGLE_LOG(FATAL) << "Can not find OneofGeneratorInfo for oneof: "
-               << oneof->name();
+  auto it = oneof_generator_info_map_.find(oneof);
+  if (it == oneof_generator_info_map_.end()) {
+    Y_ABSL_LOG(FATAL) << "Can not find OneofGeneratorInfo for oneof: "
+                    << oneof->name();
   }
-  return result;
+  return &it->second;
 }
 
 // Does this message class have generated parsing, serialization, and other

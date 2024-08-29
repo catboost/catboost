@@ -31,14 +31,16 @@
 #ifndef GOOGLE_PROTOBUF_SRC_GOOGLE_PROTOBUF_ARENAZ_SAMPLER_H__
 #define GOOGLE_PROTOBUF_SRC_GOOGLE_PROTOBUF_ARENAZ_SAMPLER_H__
 
+#include <array>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <utility>
 
 #include <google/protobuf/stubs/port.h>
 
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -46,33 +48,54 @@ namespace internal {
 
 #if defined(PROTOBUF_ARENAZ_SAMPLE)
 struct ThreadSafeArenaStats;
-void RecordResetSlow(ThreadSafeArenaStats* info);
-void RecordAllocateSlow(ThreadSafeArenaStats* info, size_t requested,
+void RecordAllocateSlow(ThreadSafeArenaStats* info, size_t used,
                         size_t allocated, size_t wasted);
 // Stores information about a sampled thread safe arena.  All mutations to this
 // *must* be made through `Record*` functions below.  All reads from this *must*
 // only occur in the callback to `ThreadSafeArenazSampler::Iterate`.
 struct ThreadSafeArenaStats
-    : public absl::profiling_internal::Sample<ThreadSafeArenaStats> {
+    : public y_absl::profiling_internal::Sample<ThreadSafeArenaStats> {
   // Constructs the object but does not fill in any fields.
   ThreadSafeArenaStats();
   ~ThreadSafeArenaStats();
 
   // Puts the object into a clean state, fills in the logically `const` members,
-  // blocking for any readers that are currently sampling the object.
-  void PrepareForSampling() ABSL_EXCLUSIVE_LOCKS_REQUIRED(init_mu);
+  // blocking for any readers that are currently sampling the object.  The
+  // 'stride' parameter is the number of ThreadSafeArenas that were instantiated
+  // between this sample and the previous one.
+  void PrepareForSampling(arc_i64 stride)
+      Y_ABSL_EXCLUSIVE_LOCKS_REQUIRED(init_mu);
 
   // These fields are mutated by the various Record* APIs and need to be
   // thread-safe.
-  std::atomic<int> num_allocations;
-  std::atomic<int> num_resets;
-  std::atomic<size_t> bytes_requested;
-  std::atomic<size_t> bytes_allocated;
-  std::atomic<size_t> bytes_wasted;
-  // Records the largest size an arena ever had.  Maintained across resets.
-  std::atomic<size_t> max_bytes_allocated;
-  // Bit i when set to 1 indicates that a thread with tid % 63 = i accessed the
-  // underlying arena.  The field is maintained across resets.
+  struct BlockStats {
+    std::atomic<int> num_allocations;
+    std::atomic<size_t> bytes_allocated;
+    std::atomic<size_t> bytes_used;
+    std::atomic<size_t> bytes_wasted;
+
+    void PrepareForSampling();
+  };
+
+  // block_histogram is a kBlockHistogramBins sized histogram.  The zeroth bin
+  // stores info about blocks of size \in [1, 1 << kLogMaxSizeForBinZero]. Bin
+  // i, where i > 0, stores info for blocks of size \in (max_size_bin (i-1),
+  // 1 << (kLogMaxSizeForBinZero + i)].  The final bin stores info about blocks
+  // of size \in [kMaxSizeForPenultimateBin + 1,
+  // std::numeric_limits<size_t>::max()].
+  static constexpr size_t kBlockHistogramBins = 15;
+  static constexpr size_t kLogMaxSizeForBinZero = 7;
+  static constexpr size_t kMaxSizeForBinZero = (1 << kLogMaxSizeForBinZero);
+  static constexpr size_t kMaxSizeForPenultimateBin =
+      1 << (kLogMaxSizeForBinZero + kBlockHistogramBins - 2);
+  std::array<BlockStats, kBlockHistogramBins> block_histogram;
+
+  // Records the largest block allocated for the arena.
+  std::atomic<size_t> max_block_size;
+  // Bit `i` is set to 1 indicates that a thread with `tid % 63 = i` accessed
+  // the underlying arena.  We use `% 63` as a rudimentary hash to ensure some
+  // bit mixing for thread-ids; `% 64` would only grab the low bits and might
+  // create sampling artifacts.
   std::atomic<arc_ui64> thread_ids;
 
   // All of the fields below are set by `PrepareForSampling`, they must not
@@ -83,14 +106,32 @@ struct ThreadSafeArenaStats
   static constexpr int kMaxStackDepth = 64;
   arc_i32 depth;
   void* stack[kMaxStackDepth];
-  static void RecordAllocateStats(ThreadSafeArenaStats* info, size_t requested,
+  static void RecordAllocateStats(ThreadSafeArenaStats* info, size_t used,
                                   size_t allocated, size_t wasted) {
     if (PROTOBUF_PREDICT_TRUE(info == nullptr)) return;
-    RecordAllocateSlow(info, requested, allocated, wasted);
+    RecordAllocateSlow(info, used, allocated, wasted);
   }
+
+  // Returns the bin for the provided size.
+  static size_t FindBin(size_t bytes);
+
+  // Returns the min and max bytes that can be stored in the histogram for
+  // blocks in the provided bin.
+  static std::pair<size_t, size_t> MinMaxBlockSizeForBin(size_t bin);
 };
 
-ThreadSafeArenaStats* SampleSlow(arc_i64* next_sample);
+struct SamplingState {
+  // Number of ThreadSafeArenas that should be instantiated before the next
+  // ThreadSafeArena is sampled.  This variable is decremented with each
+  // instantiation.
+  arc_i64 next_sample;
+  // When we make a sampling decision, we record that distance between from the
+  // previous sample so we can weight each sample.  'distance' here is the
+  // number of instantiations of ThreadSafeArena.
+  arc_i64 sample_stride;
+};
+
+ThreadSafeArenaStats* SampleSlow(SamplingState& sampling_state);
 void UnsampleSlow(ThreadSafeArenaStats* info);
 
 class ThreadSafeArenaStatsHandle {
@@ -105,20 +146,15 @@ class ThreadSafeArenaStatsHandle {
   }
 
   ThreadSafeArenaStatsHandle(ThreadSafeArenaStatsHandle&& other) noexcept
-      : info_(absl::exchange(other.info_, nullptr)) {}
+      : info_(y_absl::exchange(other.info_, nullptr)) {}
 
   ThreadSafeArenaStatsHandle& operator=(
       ThreadSafeArenaStatsHandle&& other) noexcept {
     if (PROTOBUF_PREDICT_FALSE(info_ != nullptr)) {
       UnsampleSlow(info_);
     }
-    info_ = absl::exchange(other.info_, nullptr);
+    info_ = y_absl::exchange(other.info_, nullptr);
     return *this;
-  }
-
-  void RecordReset() {
-    if (PROTOBUF_PREDICT_TRUE(info_ == nullptr)) return;
-    RecordResetSlow(info_);
   }
 
   ThreadSafeArenaStats* MutableStats() { return info_; }
@@ -135,26 +171,29 @@ class ThreadSafeArenaStatsHandle {
 };
 
 using ThreadSafeArenazSampler =
-    ::absl::profiling_internal::SampleRecorder<ThreadSafeArenaStats>;
+    ::y_absl::profiling_internal::SampleRecorder<ThreadSafeArenaStats>;
 
-extern PROTOBUF_THREAD_LOCAL arc_i64 global_next_sample;
+extern PROTOBUF_THREAD_LOCAL SamplingState global_sampling_state;
 
 // Returns an RAII sampling handle that manages registration and unregistation
 // with the global sampler.
 inline ThreadSafeArenaStatsHandle Sample() {
-  if (PROTOBUF_PREDICT_TRUE(--global_next_sample > 0)) {
+  if (PROTOBUF_PREDICT_TRUE(--global_sampling_state.next_sample > 0)) {
     return ThreadSafeArenaStatsHandle(nullptr);
   }
-  return ThreadSafeArenaStatsHandle(SampleSlow(&global_next_sample));
+  return ThreadSafeArenaStatsHandle(SampleSlow(global_sampling_state));
 }
 
 #else
+
+using SamplingState = arc_i64;
+
 struct ThreadSafeArenaStats {
   static void RecordAllocateStats(ThreadSafeArenaStats*, size_t /*requested*/,
                                   size_t /*allocated*/, size_t /*wasted*/) {}
 };
 
-ThreadSafeArenaStats* SampleSlow(arc_i64* next_sample);
+ThreadSafeArenaStats* SampleSlow(SamplingState& next_sample);
 void UnsampleSlow(ThreadSafeArenaStats* info);
 
 class ThreadSafeArenaStatsHandle {
@@ -188,14 +227,29 @@ inline ThreadSafeArenaStatsHandle Sample() {
 // Returns a global Sampler.
 ThreadSafeArenazSampler& GlobalThreadSafeArenazSampler();
 
+using ThreadSafeArenazConfigListener = void (*)();
+void SetThreadSafeArenazConfigListener(ThreadSafeArenazConfigListener l);
+
 // Enables or disables sampling for thread safe arenas.
 void SetThreadSafeArenazEnabled(bool enabled);
+void SetThreadSafeArenazEnabledInternal(bool enabled);
+
+// Returns true if sampling is on, false otherwise.
+bool IsThreadSafeArenazEnabled();
 
 // Sets the rate at which thread safe arena will be sampled.
 void SetThreadSafeArenazSampleParameter(arc_i32 rate);
+void SetThreadSafeArenazSampleParameterInternal(arc_i32 rate);
+
+// Returns the rate at which thread safe arena will be sampled.
+arc_i32 ThreadSafeArenazSampleParameter();
 
 // Sets a soft max for the number of samples that will be kept.
 void SetThreadSafeArenazMaxSamples(arc_i32 max);
+void SetThreadSafeArenazMaxSamplesInternal(arc_i32 max);
+
+// Returns the max number of samples that will be kept.
+size_t ThreadSafeArenazMaxSamples();
 
 // Sets the current value for when arenas should be next sampled.
 void SetThreadSafeArenazGlobalNextSample(arc_i64 next_sample);
@@ -204,5 +258,5 @@ void SetThreadSafeArenazGlobalNextSample(arc_i64 next_sample);
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 #endif  // GOOGLE_PROTOBUF_SRC_PROTOBUF_ARENAZ_SAMPLER_H__

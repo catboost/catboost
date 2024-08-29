@@ -52,6 +52,8 @@ target_link_options(catboost_train_interface PRIVATE
   -undefined
   dynamic_lookup
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 target_sources(catboost_train_interface PRIVATE

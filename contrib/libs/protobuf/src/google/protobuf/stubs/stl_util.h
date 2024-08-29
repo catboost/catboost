@@ -37,9 +37,6 @@
 
 #include <algorithm>
 
-// Must be last.
-#include <google/protobuf/port_def.inc>  // NOLINT
-
 namespace google {
 namespace protobuf {
 
@@ -50,7 +47,7 @@ namespace protobuf {
 // place in open source code.  Feel free to fill this function in with your
 // own disgusting hack if you want the perf boost.
 inline void STLStringResizeUninitialized(TProtoStringType* s, size_t new_size) {
-  s->ReserveAndResize(new_size);
+  s->resize(new_size);
 }
 
 // As above, but we make sure to follow amortized growth in which we always
@@ -60,7 +57,7 @@ inline void STLStringResizeUninitializedAmortized(TProtoStringType* s,
   const size_t cap = s->capacity();
   if (new_size > cap) {
     // Make sure to always grow by at least a factor of 2x.
-    s->reserve(std::max<size_t>(new_size, 2 * cap));
+    s->reserve(std::max(new_size, 2 * cap));
   }
   STLStringResizeUninitialized(s, new_size);
 }
@@ -77,6 +74,11 @@ inline void STLStringResizeUninitializedAmortized(TProtoStringType* s,
 // (http://www.open-std.org/JTC1/SC22/WG21/docs/lwg-active.html#530)
 // proposes this as the method. According to Matt Austern, this should
 // already work on all current implementations.
+inline char* string_as_array(std::string* str) {
+  // DO NOT USE const_cast<char*>(str->data())! See the unittest for why.
+  return str->empty() ? nullptr : &*str->begin();
+}
+
 inline char* string_as_array(TProtoStringType* str) {
   // DO NOT USE const_cast<char*>(str->data())! See the unittest for why.
   return str->empty() ? nullptr : &*str->begin();
@@ -84,7 +86,5 @@ inline char* string_as_array(TProtoStringType* str) {
 
 }  // namespace protobuf
 }  // namespace google
-
-#include <google/protobuf/port_undef.inc>  // NOLINT
 
 #endif  // GOOGLE_PROTOBUF_STUBS_STL_UTIL_H__

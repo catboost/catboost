@@ -31,72 +31,32 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_CPP_PARSE_FUNCTION_GENERATOR_H__
 #define GOOGLE_PROTOBUF_COMPILER_CPP_PARSE_FUNCTION_GENERATOR_H__
 
-#include <map>
 #include <string>
 #include <vector>
 
-#include <google/protobuf/io/printer.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/wire_format_lite.h>
-#include <google/protobuf/compiler/cpp/helpers.h>
-#include <google/protobuf/compiler/cpp/options.h>
+#include "google/protobuf/descriptor.h"
+#include "y_absl/container/flat_hash_map.h"
+#include "google/protobuf/compiler/cpp/helpers.h"
+#include "google/protobuf/compiler/cpp/options.h"
+#include "google/protobuf/generated_message_tctable_gen.h"
+#include "google/protobuf/io/printer.h"
+#include "google/protobuf/wire_format_lite.h"
 
 namespace google {
 namespace protobuf {
 namespace compiler {
 namespace cpp {
 
-// Helper class for generating tailcall parsing functions.
-struct TailCallTableInfo {
-  TailCallTableInfo(const Descriptor* descriptor, const Options& options,
-                    const std::vector<const FieldDescriptor*>& ordered_fields,
-                    const std::vector<int>& has_bit_indices,
-                    const std::vector<int>& inlined_string_indices,
-                    MessageSCCAnalyzer* scc_analyzer);
-
-  // Fields parsed by the table fast-path.
-  struct FastFieldInfo {
-    TProtoStringType func_name;
-    const FieldDescriptor* field;
-    uint16_t coded_tag;
-    uint8_t hasbit_idx;
-    uint8_t aux_idx;
-  };
-  std::vector<FastFieldInfo> fast_path_fields;
-
-  // Fields parsed by mini parsing routines.
-  struct FieldEntryInfo {
-    const FieldDescriptor* field;
-    int hasbit_idx;
-    int inlined_string_idx;
-    uint16_t aux_idx;
-    // True for enums entirely covered by the start/length fields of FieldAux:
-    bool is_enum_range;
-  };
-  std::vector<FieldEntryInfo> field_entries;
-  std::vector<TProtoStringType> aux_entries;
-
-  // Fields parsed by generated fallback function.
-  std::vector<const FieldDescriptor*> fallback_fields;
-
-  // Table size.
-  int table_size_log2;
-  // Mask for has-bits of required fields.
-  arc_ui32 has_hasbits_required_mask;
-  // True if a generated fallback function is required instead of generic.
-  bool use_generated_fallback;
-};
-
 // ParseFunctionGenerator generates the _InternalParse function for a message
 // (and any associated supporting members).
 class ParseFunctionGenerator {
  public:
-  ParseFunctionGenerator(const Descriptor* descriptor, int max_has_bit_index,
-                         const std::vector<int>& has_bit_indices,
-                         const std::vector<int>& inlined_string_indices,
-                         const Options& options,
-                         MessageSCCAnalyzer* scc_analyzer,
-                         const std::map<TProtoStringType, TProtoStringType>& vars);
+  ParseFunctionGenerator(
+      const Descriptor* descriptor, int max_has_bit_index,
+      const std::vector<int>& has_bit_indices,
+      const std::vector<int>& inlined_string_indices, const Options& options,
+      MessageSCCAnalyzer* scc_analyzer,
+      const y_absl::flat_hash_map<y_absl::string_view, TProtoStringType>& vars);
 
   // Emits class-level method declarations to `printer`:
   void GenerateMethodDecls(io::Printer* printer);
@@ -111,6 +71,8 @@ class ParseFunctionGenerator {
   void GenerateDataDefinitions(io::Printer* printer);
 
  private:
+  class GeneratedOptionProvider;
+
   // Returns true if tailcall table code should be generated.
   bool should_generate_tctable() const;
 
@@ -134,7 +96,6 @@ class ParseFunctionGenerator {
   void GenerateTailCallTable(Formatter& format);
   void GenerateFastFieldEntries(Formatter& format);
   void GenerateFieldEntries(Formatter& format);
-  int CalculateFieldNamesSize() const;
   void GenerateFieldNames(Formatter& format);
 
   // Generates parsing code for an `ArenaString` field.
@@ -165,8 +126,8 @@ class ParseFunctionGenerator {
   const Descriptor* descriptor_;
   MessageSCCAnalyzer* scc_analyzer_;
   const Options& options_;
-  std::map<TProtoStringType, TProtoStringType> variables_;
-  std::unique_ptr<TailCallTableInfo> tc_table_info_;
+  y_absl::flat_hash_map<y_absl::string_view, TProtoStringType> variables_;
+  std::unique_ptr<internal::TailCallTableInfo> tc_table_info_;
   std::vector<int> inlined_string_indices_;
   const std::vector<const FieldDescriptor*> ordered_fields_;
   int num_hasbits_;

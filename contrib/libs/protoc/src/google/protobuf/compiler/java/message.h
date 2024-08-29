@@ -35,10 +35,10 @@
 #ifndef GOOGLE_PROTOBUF_COMPILER_JAVA_MESSAGE_H__
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_MESSAGE_H__
 
-#include <map>
 #include <string>
 
-#include <google/protobuf/compiler/java/field.h>
+#include "y_absl/container/btree_map.h"
+#include "google/protobuf/compiler/java/field.h"
 
 namespace google {
 namespace protobuf {
@@ -64,6 +64,8 @@ static const int kMaxStaticSize = 1 << 15;  // aka 32k
 class MessageGenerator {
  public:
   explicit MessageGenerator(const Descriptor* descriptor);
+  MessageGenerator(const MessageGenerator&) = delete;
+  MessageGenerator& operator=(const MessageGenerator&) = delete;
   virtual ~MessageGenerator();
 
   // All static variables have to be declared at the top-level of the file
@@ -92,15 +94,15 @@ class MessageGenerator {
 
  protected:
   const Descriptor* descriptor_;
-  std::set<const OneofDescriptor*> oneofs_;
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MessageGenerator);
+  y_absl::btree_map<int, const OneofDescriptor*> oneofs_;
 };
 
 class ImmutableMessageGenerator : public MessageGenerator {
  public:
   ImmutableMessageGenerator(const Descriptor* descriptor, Context* context);
+  ImmutableMessageGenerator(const ImmutableMessageGenerator&) = delete;
+  ImmutableMessageGenerator& operator=(const ImmutableMessageGenerator&) =
+      delete;
   ~ImmutableMessageGenerator() override;
 
   void Generate(io::Printer* printer) override;
@@ -123,10 +125,6 @@ class ImmutableMessageGenerator : public MessageGenerator {
 
   void GenerateMessageSerializationMethods(io::Printer* printer);
   void GenerateParseFromMethods(io::Printer* printer);
-  void GenerateSerializeOneField(io::Printer* printer,
-                                 const FieldDescriptor* field);
-  void GenerateSerializeOneExtensionRange(
-      io::Printer* printer, const Descriptor::ExtensionRange* range);
 
   void GenerateBuilder(io::Printer* printer);
   void GenerateIsInitialized(io::Printer* printer);
@@ -143,8 +141,6 @@ class ImmutableMessageGenerator : public MessageGenerator {
   Context* context_;
   ClassNameResolver* name_resolver_;
   FieldGeneratorMap<ImmutableFieldGenerator> field_generators_;
-
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableMessageGenerator);
 };
 
 }  // namespace java

@@ -31,20 +31,20 @@
 // Author: anuraag@google.com (Anuraag Agrawal)
 // Author: tibell@google.com (Johan Tibell)
 
-#include <google/protobuf/pyext/repeated_scalar_container.h>
+#include "google/protobuf/pyext/repeated_scalar_container.h"
 
 #include <cstdint>
 #include <memory>
+#include <string>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/dynamic_message.h>
-#include <google/protobuf/message.h>
-#include <google/protobuf/pyext/descriptor.h>
-#include <google/protobuf/pyext/descriptor_pool.h>
-#include <google/protobuf/pyext/message.h>
-#include <google/protobuf/pyext/scoped_pyobject_ptr.h>
+#include "google/protobuf/stubs/common.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/dynamic_message.h"
+#include "google/protobuf/message.h"
+#include "google/protobuf/pyext/descriptor.h"
+#include "google/protobuf/pyext/descriptor_pool.h"
+#include "google/protobuf/pyext/message.h"
+#include "google/protobuf/pyext/scoped_pyobject_ptr.h"
 
 #define PyString_AsString(ob) \
   (PyUnicode_Check(ob) ? PyUnicode_AsUTF8(ob) : PyBytes_AsString(ob))
@@ -108,37 +108,37 @@ static int AssignItem(PyObject* pself, Py_ssize_t index, PyObject* arg) {
 
   switch (field_descriptor->cpp_type()) {
     case FieldDescriptor::CPPTYPE_INT32: {
-      GOOGLE_CHECK_GET_INT32(arg, value, -1);
+      PROTOBUF_CHECK_GET_INT32(arg, value, -1);
       reflection->SetRepeatedInt32(message, field_descriptor, index, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_INT64: {
-      GOOGLE_CHECK_GET_INT64(arg, value, -1);
+      PROTOBUF_CHECK_GET_INT64(arg, value, -1);
       reflection->SetRepeatedInt64(message, field_descriptor, index, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_UINT32: {
-      GOOGLE_CHECK_GET_UINT32(arg, value, -1);
+      PROTOBUF_CHECK_GET_UINT32(arg, value, -1);
       reflection->SetRepeatedUInt32(message, field_descriptor, index, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_UINT64: {
-      GOOGLE_CHECK_GET_UINT64(arg, value, -1);
+      PROTOBUF_CHECK_GET_UINT64(arg, value, -1);
       reflection->SetRepeatedUInt64(message, field_descriptor, index, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_FLOAT: {
-      GOOGLE_CHECK_GET_FLOAT(arg, value, -1);
+      PROTOBUF_CHECK_GET_FLOAT(arg, value, -1);
       reflection->SetRepeatedFloat(message, field_descriptor, index, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_DOUBLE: {
-      GOOGLE_CHECK_GET_DOUBLE(arg, value, -1);
+      PROTOBUF_CHECK_GET_DOUBLE(arg, value, -1);
       reflection->SetRepeatedDouble(message, field_descriptor, index, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_BOOL: {
-      GOOGLE_CHECK_GET_BOOL(arg, value, -1);
+      PROTOBUF_CHECK_GET_BOOL(arg, value, -1);
       reflection->SetRepeatedBool(message, field_descriptor, index, value);
       break;
     }
@@ -150,7 +150,7 @@ static int AssignItem(PyObject* pself, Py_ssize_t index, PyObject* arg) {
       break;
     }
     case FieldDescriptor::CPPTYPE_ENUM: {
-      GOOGLE_CHECK_GET_INT32(arg, value, -1);
+      PROTOBUF_CHECK_GET_INT32(arg, value, -1);
       if (reflection->SupportsUnknownEnumValues()) {
         reflection->SetRepeatedEnumValue(message, field_descriptor, index,
                                          value);
@@ -333,37 +333,37 @@ PyObject* Append(RepeatedScalarContainer* self, PyObject* item) {
   const Reflection* reflection = message->GetReflection();
   switch (field_descriptor->cpp_type()) {
     case FieldDescriptor::CPPTYPE_INT32: {
-      GOOGLE_CHECK_GET_INT32(item, value, nullptr);
+      PROTOBUF_CHECK_GET_INT32(item, value, nullptr);
       reflection->AddInt32(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_INT64: {
-      GOOGLE_CHECK_GET_INT64(item, value, nullptr);
+      PROTOBUF_CHECK_GET_INT64(item, value, nullptr);
       reflection->AddInt64(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_UINT32: {
-      GOOGLE_CHECK_GET_UINT32(item, value, nullptr);
+      PROTOBUF_CHECK_GET_UINT32(item, value, nullptr);
       reflection->AddUInt32(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_UINT64: {
-      GOOGLE_CHECK_GET_UINT64(item, value, nullptr);
+      PROTOBUF_CHECK_GET_UINT64(item, value, nullptr);
       reflection->AddUInt64(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_FLOAT: {
-      GOOGLE_CHECK_GET_FLOAT(item, value, nullptr);
+      PROTOBUF_CHECK_GET_FLOAT(item, value, nullptr);
       reflection->AddFloat(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_DOUBLE: {
-      GOOGLE_CHECK_GET_DOUBLE(item, value, nullptr);
+      PROTOBUF_CHECK_GET_DOUBLE(item, value, nullptr);
       reflection->AddDouble(message, field_descriptor, value);
       break;
     }
     case FieldDescriptor::CPPTYPE_BOOL: {
-      GOOGLE_CHECK_GET_BOOL(item, value, nullptr);
+      PROTOBUF_CHECK_GET_BOOL(item, value, nullptr);
       reflection->AddBool(message, field_descriptor, value);
       break;
     }
@@ -375,7 +375,7 @@ PyObject* Append(RepeatedScalarContainer* self, PyObject* item) {
       break;
     }
     case FieldDescriptor::CPPTYPE_ENUM: {
-      GOOGLE_CHECK_GET_INT32(item, value, nullptr);
+      PROTOBUF_CHECK_GET_INT32(item, value, nullptr);
       if (reflection->SupportsUnknownEnumValues()) {
         reflection->AddEnumValue(message, field_descriptor, value);
       } else {

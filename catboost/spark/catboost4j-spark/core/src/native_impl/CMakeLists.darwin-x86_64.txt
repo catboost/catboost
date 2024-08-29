@@ -73,6 +73,8 @@ target_link_options(catboost4j-spark-impl-cpp PRIVATE
   -undefined
   dynamic_lookup
   -fPIC
+  -framework
+  CoreFoundation
 )
 
 target_sources(catboost4j-spark-impl-cpp PRIVATE

@@ -38,10 +38,11 @@
 #define GOOGLE_PROTOBUF_COMPILER_JAVA_GENERATOR_H__
 
 #include <string>
-#include <google/protobuf/compiler/code_generator.h>
+
+#include "google/protobuf/compiler/code_generator.h"
 
 // Must be included last.
-#include <google/protobuf/port_def.inc>
+#include "google/protobuf/port_def.inc"
 
 namespace google {
 namespace protobuf {
@@ -55,6 +56,8 @@ namespace java {
 class PROTOC_EXPORT JavaGenerator : public CodeGenerator {
  public:
   JavaGenerator();
+  JavaGenerator(const JavaGenerator&) = delete;
+  JavaGenerator& operator=(const JavaGenerator&) = delete;
   ~JavaGenerator() override;
 
   // implements CodeGenerator ----------------------------------------
@@ -63,8 +66,12 @@ class PROTOC_EXPORT JavaGenerator : public CodeGenerator {
 
   uint64_t GetSupportedFeatures() const override;
 
+  void set_opensource_runtime(bool opensource) {
+    opensource_runtime_ = opensource;
+  }
+
  private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(JavaGenerator);
+  bool opensource_runtime_ = PROTO2_IS_OSS;
 };
 
 }  // namespace java
@@ -72,6 +79,6 @@ class PROTOC_EXPORT JavaGenerator : public CodeGenerator {
 }  // namespace protobuf
 }  // namespace google
 
-#include <google/protobuf/port_undef.inc>
+#include "google/protobuf/port_undef.inc"
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_GENERATOR_H__

@@ -32,7 +32,8 @@
 
 #include <google/protobuf/stubs/substitute.h>
 
-#include <google/protobuf/stubs/logging.h>
+#include <y_absl/log/absl_log.h>
+#include <y_absl/log/absl_check.h>
 #include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/stl_util.h>
 
@@ -81,7 +82,7 @@ void SubstituteAndAppend(TProtoStringType* output, const char* format,
       if (ascii_isdigit(format[i+1])) {
         int index = format[i+1] - '0';
         if (args_array[index]->size() == -1) {
-          GOOGLE_LOG(DFATAL)
+          Y_ABSL_LOG(FATAL)
             << "strings::Substitute format string invalid: asked for \"$"
             << index << "\", but only " << CountSubstituteArgs(args_array)
             << " args were given.  Full format string was: \""
@@ -94,7 +95,7 @@ void SubstituteAndAppend(TProtoStringType* output, const char* format,
         ++size;
         ++i;  // Skip next char.
       } else {
-        GOOGLE_LOG(DFATAL)
+        Y_ABSL_LOG(FATAL)
           << "Invalid strings::Substitute() format string: \""
           << CEscape(format) << "\".";
         return;
@@ -128,7 +129,7 @@ void SubstituteAndAppend(TProtoStringType* output, const char* format,
     }
   }
 
-  GOOGLE_DCHECK_EQ(target - output->data(), output->size());
+  Y_ABSL_DCHECK_EQ(target - output->data(), output->size());
 }
 
 }  // namespace strings
