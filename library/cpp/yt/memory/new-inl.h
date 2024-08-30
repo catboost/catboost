@@ -10,6 +10,8 @@
 
 #include <library/cpp/yt/malloc//malloc.h>
 
+#include <library/cpp/yt/system/exit.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -177,17 +179,41 @@ Y_FORCE_INLINE TIntrusivePtr<T> SafeConstruct(void* ptr, As&&... args)
 }
 
 template <size_t Size, size_t Alignment>
-void* AllocateConstSizeAligned()
+Y_FORCE_INLINE void* AllocateConstSizeAlignedOrCrash()
 {
+    void* ptr;
 #ifdef _win_
-    return ::aligned_malloc(Size, Alignment);
+    ptr = ::aligned_malloc(Size, Alignment);
 #else
     if (Alignment <= alignof(std::max_align_t)) {
-        return ::malloc(Size);
+        ptr = ::malloc(Size);
     } else {
-        return ::aligned_malloc(Size, Alignment);
+        ptr = ::aligned_malloc(Size, Alignment);
     }
 #endif
+    if (Y_UNLIKELY(!ptr)) {
+        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
+    }
+    return ptr;
+}
+
+template <size_t Alignment>
+Y_FORCE_INLINE void* AllocateOrCrash(size_t size)
+{
+    void* ptr;
+#ifdef _win_
+    ptr = ::aligned_malloc(size, Alignment);
+#else
+    if (Alignment <= alignof(std::max_align_t)) {
+        ptr = ::malloc(size);
+    } else {
+        ptr = ::aligned_malloc(size, Alignment);
+    }
+#endif
+    if (Y_UNLIKELY(!ptr)) {
+        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
+    }
+    return ptr;
 }
 
 } // namespace NDetail
@@ -198,10 +224,21 @@ template <class T, class... As, class>
 Y_FORCE_INLINE TIntrusivePtr<T> New(
     As&&... args)
 {
-    void* ptr = NYT::NDetail::AllocateConstSizeAligned<
+    void* ptr = NYT::NDetail::AllocateConstSizeAlignedOrCrash<
         NYT::NDetail::TConstructHelper<T>::Size,
         NYT::NDetail::TConstructHelper<T>::Alignment>();
+    return NYT::NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
+}
 
+template <class T, class... As, class>
+Y_FORCE_INLINE TIntrusivePtr<T> TryNew(
+    typename T::TAllocator* allocator,
+    As&&... args)
+{
+    auto* ptr = allocator->Allocate(NYT::NDetail::TConstructHelper<T>::Size);
+    if (Y_UNLIKELY(!ptr)) {
+        return nullptr;
+    }
     return NYT::NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
 }
 
@@ -210,11 +247,11 @@ Y_FORCE_INLINE TIntrusivePtr<T> New(
     typename T::TAllocator* allocator,
     As&&... args)
 {
-    auto* ptr = allocator->Allocate(NYT::NDetail::TConstructHelper<T>::Size);
-    if (!ptr) {
-        return nullptr;
+    auto obj = TryNew<T>(allocator, std::forward<As>(args)...);
+    if (Y_UNLIKELY(!obj)) {
+        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
     }
-    return NYT::NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
+    return obj;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -225,18 +262,21 @@ Y_FORCE_INLINE TIntrusivePtr<T> NewWithExtraSpace(
     As&&... args)
 {
     auto totalSize = NYT::NDetail::TConstructHelper<T>::Size + extraSpaceSize;
-    void* ptr = nullptr;
+    void* ptr = NYT::NDetail::AllocateOrCrash<NYT::NDetail::TConstructHelper<T>::Alignment>(totalSize);
+    return NYT::NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
+}
 
-#ifdef _win_
-    ptr = ::aligned_malloc(totalSize, NYT::NDetail::TConstructHelper<T>::Alignment);
-#else
-    if (NYT::NDetail::TConstructHelper<T>::Alignment <= alignof(std::max_align_t)) {
-        ptr = ::malloc(totalSize);
-    } else {
-        ptr = ::aligned_malloc(totalSize, NYT::NDetail::TConstructHelper<T>::Alignment);
+template <class T, class... As, class>
+Y_FORCE_INLINE TIntrusivePtr<T> TryNewWithExtraSpace(
+    typename T::TAllocator* allocator,
+    size_t extraSpaceSize,
+    As&&... args)
+{
+    auto totalSize = NYT::NDetail::TConstructHelper<T>::Size + extraSpaceSize;
+    auto* ptr = allocator->Allocate(totalSize);
+    if (Y_UNLIKELY(!ptr)) {
+        return nullptr;
     }
-#endif
-
     return NYT::NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
 }
 
@@ -246,12 +286,11 @@ Y_FORCE_INLINE TIntrusivePtr<T> NewWithExtraSpace(
     size_t extraSpaceSize,
     As&&... args)
 {
-    auto totalSize = NYT::NDetail::TConstructHelper<T>::Size + extraSpaceSize;
-    auto* ptr = allocator->Allocate(totalSize);
-    if (!ptr) {
-        return nullptr;
+    auto obj = TryNewWithExtraSpace<T>(allocator, extraSpaceSize, std::forward<As>(args)...);
+    if (Y_UNLIKELY(!obj)) {
+        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
     }
-    return NYT::NDetail::SafeConstruct<T>(ptr, std::forward<As>(args)...);
+    return obj;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -260,13 +299,11 @@ template <class T, class TDeleter, class... As>
 Y_FORCE_INLINE TIntrusivePtr<T> NewWithDeleter(TDeleter deleter, As&&... args)
 {
     using TWrapper = TRefCountedWrapperWithDeleter<T, TDeleter>;
-    void* ptr = NYT::NDetail::AllocateConstSizeAligned<sizeof(TWrapper), alignof(TWrapper)>();
-
+    void* ptr = NYT::NDetail::AllocateConstSizeAlignedOrCrash<sizeof(TWrapper), alignof(TWrapper)>();
     auto* instance = NYT::NDetail::NewEpilogue<TWrapper>(
         ptr,
         std::move(deleter),
         std::forward<As>(args)...);
-
     return TIntrusivePtr<T>(instance, /*addReference*/ false);
 }
 
@@ -278,16 +315,13 @@ Y_FORCE_INLINE TIntrusivePtr<T> NewWithLocation(
     As&&... args)
 {
     using TWrapper = TRefCountedWrapperWithCookie<T>;
-    void* ptr = NYT::NDetail::AllocateConstSizeAligned<sizeof(TWrapper), alignof(TWrapper)>();
-
+    void* ptr = NYT::NDetail::AllocateConstSizeAlignedOrCrash<sizeof(TWrapper), alignof(TWrapper)>();
     auto* instance = NYT::NDetail::NewEpilogue<TWrapper>(ptr, std::forward<As>(args)...);
-
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
     instance->InitializeTracking(GetRefCountedTypeCookieWithLocation<T, TTag, Counter>(location));
 #else
     Y_UNUSED(location);
 #endif
-
     return TIntrusivePtr<T>(instance, /*addReference*/ false);
 }
 

@@ -78,26 +78,43 @@ struct THasAllocator<T, std::void_t<typename T::TAllocator>>
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! Allocates a new instance of |T|.
+//! Allocates a new instance of |T| using the standard allocator.
+//! Aborts the process on out-of-memory condition.
 template <class T, class... As, class = typename THasAllocator<T>::TFalse>
 TIntrusivePtr<T> New(As&&... args);
 
+//! Allocates a new instance of |T| using a custom #allocator.
+//! Returns null on allocation failure.
+template <class T, class... As, class = typename THasAllocator<T>::TTrue>
+TIntrusivePtr<T> TryNew(typename T::TAllocator* allocator, As&&... args);
+
+//! Same as #TryNewWit but aborts on allocation failure.
 template <class T, class... As, class = typename THasAllocator<T>::TTrue>
 TIntrusivePtr<T> New(typename T::TAllocator* allocator, As&&... args);
 
-//! Allocates an instance of |T| with additional storage of #extraSpaceSize bytes.
+//! Allocates an instance of |T|
+//! Aborts the process on out-of-memory condition.
 template <class T, class... As, class = typename THasAllocator<T>::TFalse>
 TIntrusivePtr<T> NewWithExtraSpace(size_t extraSpaceSize, As&&... args);
 
+//! Allocates a new instance of |T| with additional storage of #extraSpaceSize bytes
+//! using a custom #allocator.
+//! Returns null on allocation failure.
+template <class T, class... As, class = typename THasAllocator<T>::TTrue>
+TIntrusivePtr<T> TryNewWithExtraSpace(typename T::TAllocator* allocator, size_t extraSpaceSize, As&&... args);
+
+//! Same as #TryNewWithExtraSpace but aborts on allocation failure.
 template <class T, class... As, class = typename THasAllocator<T>::TTrue>
 TIntrusivePtr<T> NewWithExtraSpace(typename T::TAllocator* allocator, size_t extraSpaceSize, As&&... args);
 
 //! Allocates a new instance of |T| with a custom #deleter.
+//! Aborts the process on out-of-memory condition.
 template <class T, class TDeleter, class... As>
 TIntrusivePtr<T> NewWithDeleter(TDeleter deleter, As&&... args);
 
 //! Allocates a new instance of |T|.
 //! The allocation is additionally marked with #location.
+//! Aborts the process on out-of-memory condition.
 template <class T, class TTag, int Counter, class... As>
 TIntrusivePtr<T> NewWithLocation(const TSourceLocation& location, As&&... args);
 
