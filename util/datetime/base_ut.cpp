@@ -534,7 +534,6 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
     }
 
     Y_UNIT_TEST(TestTDurationConstructorFromStdChronoDuration) {
-
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Zero(), TDuration(0ms));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::MicroSeconds(42), TDuration(42us));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::MicroSeconds(42000000000000L), TDuration(42000000000000us));

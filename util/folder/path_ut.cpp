@@ -259,7 +259,7 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
         // mkdir(2) places umask(2) on mode argument.
         const int mask = Umask(0);
         Umask(mask);
-        UNIT_ASSERT_VALUES_EQUAL(stat.Mode& MODE0777, mode & ~mask);
+        UNIT_ASSERT_VALUES_EQUAL(stat.Mode & MODE0777, mode & ~mask);
     }
 #endif
 

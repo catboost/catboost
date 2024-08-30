@@ -114,9 +114,9 @@ Y_UNIT_TEST_SUITE(TFlagsTest) {
     Y_UNIT_TEST(TestBaseType) {
         ui16 goodValue = 7;
         auto goodFlags = ETest1::FromBaseType(goodValue);
-        UNIT_ASSERT(goodFlags& ETestFlag1::Test1);
-        UNIT_ASSERT(goodFlags& ETestFlag1::Test2);
-        UNIT_ASSERT(goodFlags& ETestFlag1::Test4);
+        UNIT_ASSERT(goodFlags & ETestFlag1::Test1);
+        UNIT_ASSERT(goodFlags & ETestFlag1::Test2);
+        UNIT_ASSERT(goodFlags & ETestFlag1::Test4);
         UNIT_ASSERT_VALUES_EQUAL(goodValue, goodFlags.ToBaseType());
 
         // Passed value is not checked, but preserved as is
