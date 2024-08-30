@@ -1037,10 +1037,10 @@ class Shrinker:
         if attempt.status is Status.OVERRUN:
             return False
 
-        if attempt.status is Status.INVALID and attempt.invalid_at is None:
+        if attempt.status is Status.INVALID:
             return False
 
-        if attempt.status is Status.INVALID and attempt.invalid_at is not None:
+        if attempt.misaligned_at is not None:
             # we're invalid due to a misalignment in the tree. We'll try to fix
             # a very specific type of misalignment here: where we have a node of
             # {"size": n} and tried to draw the same node, but with {"size": m < n}.
@@ -1065,10 +1065,12 @@ class Shrinker:
             # case of this function of preserving from the right instead of
             # preserving from the left. see test_can_shrink_variable_string_draws.
 
-            node = self.nodes[len(attempt.examples.ir_tree_nodes)]
-            (attempt_ir_type, attempt_kwargs, _attempt_forced) = attempt.invalid_at
+            (index, attempt_ir_type, attempt_kwargs, _attempt_forced) = (
+                attempt.misaligned_at
+            )
+            node = self.nodes[index]
             if node.ir_type != attempt_ir_type:
-                return False
+                return False  # pragma: no cover
             if node.was_forced:
                 return False  # pragma: no cover
 

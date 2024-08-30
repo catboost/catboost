@@ -10,7 +10,7 @@
 
 import re
 import string
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import lru_cache
 from typing import Any, Callable, Dict, Type, TypeVar, Union
@@ -115,7 +115,12 @@ def register_for(field_type):
 @register_for(df.DateTimeField)
 def _for_datetime(field):
     if getattr(django.conf.settings, "USE_TZ", False):
-        return st.datetimes(timezones=timezones())
+        # avoid https://code.djangoproject.com/ticket/35683
+        return st.datetimes(
+            min_value=datetime.min + timedelta(days=1),
+            max_value=datetime.max - timedelta(days=1),
+            timezones=timezones(),
+        )
     return st.datetimes()
 
 
