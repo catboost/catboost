@@ -2,17 +2,24 @@
 cdef extern from "_yaml.h":
 
     void malloc(int l)
-    void memcpy(char *d, char *s, int l)
+    void memcpy(void *d, void *s, int l)
     int strlen(char *s)
     int PyString_CheckExact(object o)
     int PyUnicode_CheckExact(object o)
     char *PyString_AS_STRING(object o)
-    int PyString_GET_SIZE(object o)
-    object PyString_FromStringAndSize(char *v, int l)
     object PyUnicode_FromString(char *u)
     object PyUnicode_DecodeUTF8(char *u, int s, char *e)
     object PyUnicode_AsUTF8String(object o)
     int PY_MAJOR_VERSION
+
+    ctypedef unsigned char yaml_char_t
+
+    object PyUnicode_FromYamlString(void *u)
+    yaml_char_t *PyBytes_AS_Yaml_STRING(object o)
+    const char *PyBytes_AS_STRING(object o)
+    int PyBytes_CheckExact(object o)
+    int PyBytes_GET_SIZE(object o)
+    object PyBytes_FromStringAndSize(char *v, int l)
 
     ctypedef enum:
         SIZEOF_VOID_P
@@ -85,10 +92,10 @@ cdef extern from "_yaml.h":
         YAML_MAPPING_START_EVENT
         YAML_MAPPING_END_EVENT
 
-    ctypedef int yaml_read_handler_t(void *data, char *buffer,
+    ctypedef int yaml_read_handler_t(void *data, unsigned char *buffer,
             size_t size, size_t *size_read) except 0
 
-    ctypedef int yaml_write_handler_t(void *data, char *buffer,
+    ctypedef int yaml_write_handler_t(void *data, unsigned char *buffer,
             size_t size) except 0
 
     ctypedef struct yaml_mark_t:
@@ -99,8 +106,8 @@ cdef extern from "_yaml.h":
         int major
         int minor
     ctypedef struct yaml_tag_directive_t:
-        char *handle
-        char *prefix
+        yaml_char_t *handle
+        yaml_char_t *prefix
 
     ctypedef struct _yaml_token_stream_start_data_t:
         yaml_encoding_t encoding
@@ -208,23 +215,23 @@ cdef extern from "_yaml.h":
             int implicit)
     int yaml_document_end_event_initialize(yaml_event_t *event,
             int implicit)
-    int yaml_alias_event_initialize(yaml_event_t *event, char *anchor)
+    int yaml_alias_event_initialize(yaml_event_t *event, yaml_char_t *anchor)
     int yaml_scalar_event_initialize(yaml_event_t *event,
-            char *anchor, char *tag, char *value, size_t length,
+            yaml_char_t *anchor, yaml_char_t *tag, yaml_char_t *value, int length,
             int plain_implicit, int quoted_implicit,
             yaml_scalar_style_t style)
     int yaml_sequence_start_event_initialize(yaml_event_t *event,
-            char *anchor, char *tag, int implicit, yaml_sequence_style_t style)
+            yaml_char_t *anchor, yaml_char_t *tag, int implicit, yaml_sequence_style_t style)
     int yaml_sequence_end_event_initialize(yaml_event_t *event)
     int yaml_mapping_start_event_initialize(yaml_event_t *event,
-            char *anchor, char *tag, int implicit, yaml_mapping_style_t style)
+            yaml_char_t *anchor, yaml_char_t *tag, int implicit, yaml_mapping_style_t style)
     int yaml_mapping_end_event_initialize(yaml_event_t *event)
     void yaml_event_delete(yaml_event_t *event)
 
     int yaml_parser_initialize(yaml_parser_t *parser)
     void yaml_parser_delete(yaml_parser_t *parser)
     void yaml_parser_set_input_string(yaml_parser_t *parser,
-            char *input, size_t size)
+            const unsigned char *input, size_t size)
     void yaml_parser_set_input(yaml_parser_t *parser,
             yaml_read_handler_t *handler, void *data)
     void yaml_parser_set_encoding(yaml_parser_t *parser,
