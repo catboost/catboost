@@ -86,14 +86,14 @@ void __msvc_unlock(void* p);
 
 template<class _Out, class _Tp>
 static inline _Out __msvc_cast(_Tp __val) {
-    _Out __result;
+    alignas(_Out) char __result[sizeof(_Out)];
     volatile char* to = reinterpret_cast<volatile char*>(&__result);
     volatile char* end = to + sizeof(_Tp);
     char* from = reinterpret_cast<char*>(&__val);
     while (to != end) {
       *to++ = *from++;
     }
-    return __result;
+    return *reinterpret_cast<_Out*>(&__result);
 }
 
 
@@ -368,21 +368,20 @@ static inline __int64 __msvc_atomic_load64(volatile __int64* __a, memory_order _
 
 template<typename _Tp>
 static inline _Tp __c11_atomic_load(volatile _Atomic(_Tp)* __a, int __order) {
-    _Tp __result;
     if (sizeof(_Tp) == 1) {
-        __result = __msvc_cast<_Tp>(__msvc_atomic_load8((volatile char*)__a, (memory_order)__order));
+        return __msvc_cast<_Tp>(__msvc_atomic_load8((volatile char*)__a, (memory_order)__order));
     } else if (sizeof(_Tp) == 2 && alignof(_Tp) % 2 == 0) {
-        __result = __msvc_cast<_Tp>(__msvc_atomic_load16((volatile short*)__a, (memory_order)__order));
+        return __msvc_cast<_Tp>(__msvc_atomic_load16((volatile short*)__a, (memory_order)__order));
     } else if (sizeof(_Tp) == 4 && alignof(_Tp) % 4 == 0) {
-        __result = __msvc_cast<_Tp>(__msvc_atomic_load32((volatile long*)__a, (memory_order)__order));
+        return __msvc_cast<_Tp>(__msvc_atomic_load32((volatile long*)__a, (memory_order)__order));
     } else if (sizeof(_Tp) == 8 && alignof(_Tp) % 8 == 0) {
-        __result = __msvc_cast<_Tp>(__msvc_atomic_load64((volatile __int64*)__a, (memory_order)__order));
+        return __msvc_cast<_Tp>(__msvc_atomic_load64((volatile __int64*)__a, (memory_order)__order));
     } else {
         __msvc_lock((void*)__a);
-        __result = *(_Atomic(_Tp)*)__a;
+        _Tp __result = *(_Atomic(_Tp)*)__a;
         __msvc_unlock((void*)__a);
+        return __result;
     }
-    return __result;
 }
 
 template<typename _Tp>
