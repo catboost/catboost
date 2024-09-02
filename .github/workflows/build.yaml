@@ -277,6 +277,14 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: 'Upload artifact: python package visualization widget'
+        uses: actions/upload-artifact@v4
+        with:
+          name: catboost-python-package-widget-${{ inputs.artifacts_version }}
+          path: catboost/catboost/python-package/build/widget
+          retention-days: ${{ inputs.artifact_retention_days }}
+
+      - if: inputs.runs-on_value == 'ubuntu-latest'
         name: 'Upload artifact: R package for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
