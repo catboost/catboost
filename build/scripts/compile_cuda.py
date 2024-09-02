@@ -82,6 +82,7 @@ def main():
         '-flto',
         '-faligned-allocation',
         '-fsized-deallocation',
+        '-fexperimental-library',
         # While it might be reasonable to compile host part of .cu sources with these optimizations enabled,
         # nvcc passes these options down towards cicc which lacks x86_64 extensions support.
         '-msse2',
@@ -95,7 +96,7 @@ def main():
         skip_list.append('-nostdinc++')
 
     for flag in skip_list:
-        if flag in cflags:
+        while flag in cflags:
             cflags.remove(flag)
 
     skip_prefix_list = [
