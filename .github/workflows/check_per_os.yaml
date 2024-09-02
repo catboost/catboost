@@ -4,12 +4,25 @@ on:
       runs-on_value:
         required: true
         type: string
-      artifacts_version:
-        required: true
+      revision:
+        required: false
         type: string
+        default: ${{ github.sha }}
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost_dev
       catboost_package_version:
         required: true
         type: string
+      artifacts_version:
+        required: false
+        type: string
+        default: ${{ github.sha }}
+      artifact_retention_days:
+        required: false
+        type: number
+        default: 3
 
 jobs:
   build:
@@ -17,8 +30,11 @@ jobs:
     uses: ./.github/workflows/build.yaml
     with:
       runs-on_value: ${{ inputs.runs-on_value }}
-      artifacts_version: ${{ inputs.artifacts_version }}
+      revision: ${{ inputs.revision }}
+      catboost_package_name: ${{ inputs.catboost_package_name }}
       catboost_package_version: ${{ inputs.catboost_package_version }}
+      artifacts_version: ${{ inputs.artifacts_version }}
+      artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
   test:
     name: Test
@@ -28,4 +44,5 @@ jobs:
     with:
       runs-on_value: ${{ inputs.runs-on_value }}
       artifacts_version: ${{ inputs.artifacts_version }}
+      catboost_package_name: ${{ inputs.catboost_package_name }}
       catboost_package_version: ${{ inputs.catboost_package_version }}

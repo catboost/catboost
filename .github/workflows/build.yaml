@@ -4,9 +4,10 @@ on:
       runs-on_value:
         required: true
         type: string
-      artifacts_version:
-        required: true
+      revision:
+        required: false
         type: string
+        default: ${{ github.sha }}
       catboost_package_name:
         required: false
         type: string
@@ -14,6 +15,10 @@ on:
       catboost_package_version:
         required: true
         type: string
+      artifacts_version:
+        required: false
+        type: string
+        default: ${{ github.sha }}
       artifact_retention_days:
         required: false
         type: number
@@ -193,12 +198,12 @@ jobs:
               Set-Location -LiteralPath ${{ github.workspace }}/cmake_build_cache
               dir -R | foreach { $_.LastWriteTime = [System.DateTime]::Now }
               Start-Sleep -Seconds 2  # to make sure timestamps are different
-              Set-Location -LiteralPath ${{ github.workspace }}/catboost
-              git checkout ${{ github.sha }}
             }
           } else {
             New-Item -Path cmake_build_cache -ItemType Directory
           }
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost
+          git checkout ${{ inputs.revision }}
 
       - name: Fixup python package version
         shell: pwsh
@@ -225,7 +230,7 @@ jobs:
       - name: Save commit id to CMake build cache
         shell: pwsh
         run: |
-          Set-Content -Path cmake_build_cache/git_commit_sha -Value ${{ github.sha }}
+          Set-Content -Path cmake_build_cache/git_commit_sha -Value ${{ inputs.revision }}
 
 
       # Unfortunately, GitHub actions do not support uploading multiple artifacts in one step:
