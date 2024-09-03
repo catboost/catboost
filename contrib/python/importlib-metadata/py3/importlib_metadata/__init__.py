@@ -7,7 +7,6 @@ import sys
 import json
 import email
 import types
-import inspect
 import pathlib
 import operator
 import textwrap
@@ -232,8 +231,25 @@ class EntryPoint:
         >>> ep.matches(attr='bong')
         True
         """
+        self._disallow_dist(params)
         attrs = (getattr(self, param) for param in params)
         return all(map(operator.eq, params.values(), attrs))
+
+    @staticmethod
+    def _disallow_dist(params):
+        """
+        Querying by dist is not allowed (dist objects are not comparable).
+        >>> EntryPoint(name='fan', value='fav', group='fag').matches(dist='foo')
+        Traceback (most recent call last):
+        ...
+        ValueError: "dist" is not suitable for matching...
+        """
+        if "dist" in params:
+            raise ValueError(
+                '"dist" is not suitable for matching. '
+                "Instead, use Distribution.entry_points.select() on a "
+                "located distribution."
+            )
 
     def _key(self):
         return self.name, self.value, self.group
@@ -378,6 +394,17 @@ class Distribution(metaclass=abc.ABCMeta):
         """
         Given a path to a file in this distribution, return a SimplePath
         to it.
+
+        This method is used by callers of ``Distribution.files()`` to
+        locate files within the distribution. If it's possible for a
+        Distribution to represent files in the distribution as
+        ``SimplePath`` objects, it should implement this method
+        to resolve such objects.
+
+        Some Distribution providers may elect not to resolve SimplePath
+        objects within the distribution by raising a
+        NotImplementedError, but consumers of such a Distribution would
+        be unable to invoke ``Distribution.files()``.
         """
 
     @classmethod
@@ -1136,11 +1163,10 @@ def _get_toplevel_name(name: PackagePath) -> str:
     >>> _get_toplevel_name(PackagePath('foo.dist-info'))
     'foo.dist-info'
     """
-    return _topmost(name) or (
-        # python/typeshed#10328
-        inspect.getmodulename(name)  # type: ignore
-        or str(name)
-    )
+    # Defer import of inspect for performance (python/cpython#118761)
+    import inspect
+
+    return _topmost(name) or (inspect.getmodulename(name) or str(name))
 
 
 def _top_level_inferred(dist):
