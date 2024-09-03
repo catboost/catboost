@@ -80,7 +80,7 @@ private:
     using TSetConstIterator = typename std::set<T, C, A>::const_iterator;
     using TVectorConstIterator = typename TCompactVector<T, N>::const_iterator;
 
-    bool is_small() const;
+    bool IsSmall() const;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,4 +90,3 @@ private:
 #define COMPACT_SET_INL_H_
 #include "compact_set-inl.h"
 #undef COMPACT_SET_INL_H_
-

@@ -8,137 +8,140 @@ namespace NYT {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <class K, class V, size_t N>
+template <class TKey, class TValue, size_t N, class TKeyCompare>
 template <class TInputIterator>
-TCompactFlatMap<K, V, N>::TCompactFlatMap(TInputIterator begin, TInputIterator end)
+TCompactFlatMap<TKey, TValue, N, TKeyCompare>::TCompactFlatMap(TInputIterator begin, TInputIterator end)
 {
     insert(begin, end);
 }
 
-template <class K, class V, size_t N>
-TCompactFlatMap<K, V, N>::TCompactFlatMap(std::initializer_list<value_type> values)
-    : TCompactFlatMap<K, V, N>(values.begin(), values.end())
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+TCompactFlatMap<TKey, TValue, N, TKeyCompare>::TCompactFlatMap(std::initializer_list<value_type> values)
+    : TCompactFlatMap<TKey, TValue, N, TKeyCompare>(values.begin(), values.end())
 { }
 
-template <class K, class V, size_t N>
-bool TCompactFlatMap<K, V, N>::operator==(const TCompactFlatMap& rhs) const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+bool TCompactFlatMap<TKey, TValue, N, TKeyCompare>::operator==(const TCompactFlatMap& rhs) const
 {
     return Storage_ == rhs.Storage_;
 }
 
-template <class K, class V, size_t N>
-bool TCompactFlatMap<K, V, N>::operator!=(const TCompactFlatMap& rhs) const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+bool TCompactFlatMap<TKey, TValue, N, TKeyCompare>::operator!=(const TCompactFlatMap& rhs) const
 {
     return !(*this == rhs);
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::iterator TCompactFlatMap<K, V, N>::begin()
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::begin()
 {
     return Storage_.begin();
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::const_iterator TCompactFlatMap<K, V, N>::begin() const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::begin() const
 {
     return Storage_.begin();
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::const_iterator TCompactFlatMap<K, V, N>::cbegin() const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::cbegin() const
 {
     return Storage_.begin();
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::iterator TCompactFlatMap<K, V, N>::end()
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::end()
 {
     return Storage_.end();
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::const_iterator TCompactFlatMap<K, V, N>::end() const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::end() const
 {
     return Storage_.end();
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::const_iterator TCompactFlatMap<K, V, N>::cend() const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::cend() const
 {
     return Storage_.end();
 }
 
-template <class K, class V, size_t N>
-void TCompactFlatMap<K, V, N>::reserve(size_type n)
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+void TCompactFlatMap<TKey, TValue, N, TKeyCompare>::reserve(size_type n)
 {
     Storage_.reserve(n);
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::size_type TCompactFlatMap<K, V, N>::size() const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::size_type TCompactFlatMap<TKey, TValue, N, TKeyCompare>::size() const
 {
     return Storage_.size();
 }
 
-template <class K, class V, size_t N>
-int TCompactFlatMap<K, V, N>::ssize() const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+int TCompactFlatMap<TKey, TValue, N, TKeyCompare>::ssize() const
 {
     return static_cast<int>(Storage_.size());
 }
 
-template <class K, class V, size_t N>
-bool TCompactFlatMap<K, V, N>::empty() const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+bool TCompactFlatMap<TKey, TValue, N, TKeyCompare>::empty() const
 {
     return Storage_.empty();
 }
 
-template <class K, class V, size_t N>
-void TCompactFlatMap<K, V, N>::clear()
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+void TCompactFlatMap<TKey, TValue, N, TKeyCompare>::clear()
 {
     Storage_.clear();
 }
 
-template <class K, class V, size_t N>
-void TCompactFlatMap<K, V, N>::shrink_to_small()
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+void TCompactFlatMap<TKey, TValue, N, TKeyCompare>::shrink_to_small()
 {
     Storage_.shrink_to_small();
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::iterator TCompactFlatMap<K, V, N>::find(const K& k)
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::find(const TOtherKey& k)
 {
     auto [rangeBegin, rangeEnd] = equal_range(k);
     return rangeBegin == rangeEnd ? end() : rangeBegin;
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::const_iterator TCompactFlatMap<K, V, N>::find(const K& k) const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::find(const TOtherKey& k) const
 {
     auto [rangeBegin, rangeEnd] = equal_range(k);
     return rangeBegin == rangeEnd ? end() : rangeBegin;
 }
 
-template <class K, class V, size_t N>
-bool TCompactFlatMap<K, V, N>::contains(const K& k) const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+bool TCompactFlatMap<TKey, TValue, N, TKeyCompare>::contains(const TOtherKey& k) const
 {
     return find(k) != end();
 }
 
-template <class K, class V, size_t N>
-auto TCompactFlatMap<K, V, N>::insert(const value_type& value) -> std::pair<iterator, bool>
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+auto TCompactFlatMap<TKey, TValue, N, TKeyCompare>::insert(const value_type& value) -> std::pair<iterator, bool>
 {
     return do_insert(value);
 }
 
-template <class K, class V, size_t N>
-auto TCompactFlatMap<K, V, N>::insert(value_type&& value) -> std::pair<iterator, bool>
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+auto TCompactFlatMap<TKey, TValue, N, TKeyCompare>::insert(value_type&& value) -> std::pair<iterator, bool>
 {
     return do_insert(std::move(value));
 }
 
-template <class K, class V, size_t N>
+template <class TKey, class TValue, size_t N, class TKeyCompare>
 template <class TArg>
-auto TCompactFlatMap<K, V, N>::do_insert(TArg&& value) -> std::pair<iterator, bool>
+auto TCompactFlatMap<TKey, TValue, N, TKeyCompare>::do_insert(TArg&& value) -> std::pair<iterator, bool>
 {
     auto [rangeBegin, rangeEnd] = equal_range(value.first);
     if (rangeBegin != rangeEnd) {
@@ -149,38 +152,38 @@ auto TCompactFlatMap<K, V, N>::do_insert(TArg&& value) -> std::pair<iterator, bo
     }
 }
 
-template <class K, class V, size_t N>
+template <class TKey, class TValue, size_t N, class TKeyCompare>
 template <class TInputIterator>
-void TCompactFlatMap<K, V, N>::insert(TInputIterator begin, TInputIterator end)
+void TCompactFlatMap<TKey, TValue, N, TKeyCompare>::insert(TInputIterator begin, TInputIterator end)
 {
     for (auto it = begin; it != end; ++it) {
         insert(*it);
     }
 }
 
-template <class K, class V, size_t N>
+template <class TKey, class TValue, size_t N, class TKeyCompare>
 template <class... TArgs>
-auto TCompactFlatMap<K, V, N>::emplace(TArgs&&... args) -> std::pair<iterator, bool>
+auto TCompactFlatMap<TKey, TValue, N, TKeyCompare>::emplace(TArgs&&... args) -> std::pair<iterator, bool>
 {
     return insert(value_type(std::forward<TArgs>(args)...));
 }
 
-template <class K, class V, size_t N>
-V& TCompactFlatMap<K, V, N>::operator[](const K& k)
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+TValue& TCompactFlatMap<TKey, TValue, N, TKeyCompare>::operator[](const TKey& k)
 {
-    auto [it, inserted] = insert({k, V()});
+    auto [it, inserted] = insert({k, TValue()});
     return it->second;
 }
 
-template <class K, class V, size_t N>
-void TCompactFlatMap<K, V, N>::erase(const K& k)
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+void TCompactFlatMap<TKey, TValue, N, TKeyCompare>::erase(const TKey& k)
 {
     auto [rangeBegin, rangeEnd] = equal_range(k);
     erase(rangeBegin, rangeEnd);
 }
 
-template <class K, class V, size_t N>
-void TCompactFlatMap<K, V, N>::erase(iterator pos)
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+void TCompactFlatMap<TKey, TValue, N, TKeyCompare>::erase(iterator pos)
 {
     Storage_.erase(pos);
 
@@ -188,8 +191,8 @@ void TCompactFlatMap<K, V, N>::erase(iterator pos)
     Storage_.shrink_to_small();
 }
 
-template <class K, class V, size_t N>
-void TCompactFlatMap<K, V, N>::erase(iterator b, iterator e)
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+void TCompactFlatMap<TKey, TValue, N, TKeyCompare>::erase(iterator b, iterator e)
 {
     Storage_.erase(b, e);
 
@@ -197,46 +200,52 @@ void TCompactFlatMap<K, V, N>::erase(iterator b, iterator e)
     Storage_.shrink_to_small();
 }
 
-template <class K, class V, size_t N>
-std::pair<typename TCompactFlatMap<K, V, N>::iterator, typename TCompactFlatMap<K, V, N>::iterator>
-TCompactFlatMap<K, V, N>::equal_range(const K& k)
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+std::pair<typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator, typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator>
+TCompactFlatMap<TKey, TValue, N, TKeyCompare>::equal_range(const TOtherKey& k)
 {
-    auto result = std::equal_range(Storage_.begin(), Storage_.end(), k, TKeyComparer());
-    YT_ASSERT(std::distance(result.first, result.second) <= 1);
+    auto result = std::ranges::equal_range(Storage_, k, {}, &value_type::first);
+    YT_ASSERT(result.size() <= 1);
     return result;
 }
 
-template <class K, class V, size_t N>
-std::pair<typename TCompactFlatMap<K, V, N>::const_iterator, typename TCompactFlatMap<K, V, N>::const_iterator>
-TCompactFlatMap<K, V, N>::equal_range(const K& k) const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+std::pair<typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator, typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator>
+TCompactFlatMap<TKey, TValue, N, TKeyCompare>::equal_range(const TOtherKey& k) const
 {
-    auto result = std::equal_range(Storage_.begin(), Storage_.end(), k, TKeyComparer());
-    YT_ASSERT(std::distance(result.first, result.second) <= 1);
+    auto result = std::ranges::equal_range(Storage_, k, {}, &value_type::first);
+    YT_ASSERT(result.size() <= 1);
     return result;
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::const_iterator TCompactFlatMap<K, V, N>::lower_bound(const K& k) const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::lower_bound(const TOtherKey& k) const
 {
-    return std::lower_bound(Storage_.begin(), Storage_.end(), k, TKeyComparer());
+    return std::ranges::lower_bound(Storage_, k, {}, &value_type::first);
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::iterator TCompactFlatMap<K, V, N>::lower_bound(const K& k)
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::lower_bound(const TOtherKey& k)
 {
-    return std::lower_bound(Storage_.begin(), Storage_.end(), k, TKeyComparer());
+    return std::ranges::lower_bound(Storage_, k, {}, &value_type::first);
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::const_iterator TCompactFlatMap<K, V, N>::upper_bound(const K& k) const
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::const_iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::upper_bound(const TOtherKey& k) const
 {
-    return std::upper_bound(Storage_.begin(), Storage_.end(), k, TKeyComparer());
+    return std::ranges::upper_bound(Storage_, k, {}, &value_type::first);
 }
 
-template <class K, class V, size_t N>
-typename TCompactFlatMap<K, V, N>::iterator TCompactFlatMap<K, V, N>::upper_bound(const K& k)
+template <class TKey, class TValue, size_t N, class TKeyCompare>
+template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+typename TCompactFlatMap<TKey, TValue, N, TKeyCompare>::iterator TCompactFlatMap<TKey, TValue, N, TKeyCompare>::upper_bound(const TOtherKey& k)
 {
-    return std::upper_bound(Storage_.begin(), Storage_.end(), k, TKeyComparer());
+    return std::ranges::upper_bound(Storage_, k, {}, &value_type::first);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

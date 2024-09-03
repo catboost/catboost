@@ -4,9 +4,21 @@
 
 namespace NYT {
 
+namespace NDetail {
+
+template <typename T>
+concept CHasIsTransparentFlag = requires {
+    typename T::is_transparent;
+};
+
+template <typename T, typename U, typename TCompare>
+concept CComparisonAllowed = std::same_as<T, U> || CHasIsTransparentFlag<TCompare>;
+
+} // namespace NDetail
+
 ///////////////////////////////////////////////////////////////////////////////
 
-//! A flat map implementation over TCompactVector that tries to keep data inline.
+//! A flat map implementation over TCompactTValueector that tries to keep data inline.
 /*!
  *  Similarly to SmallSet, this is implemented via binary search over a sorted
  *  vector. Unlike SmallSet, however, this one never falls back to std::map (or
@@ -21,31 +33,19 @@ namespace NYT {
  *  Because of the latter, one should be very careful with iterators: virtually
  *  any call to insert or erase may potentially invalidate all iterators.
  */
-template <class K, class V, size_t N>
+template <class TKey, class TValue, size_t N, class TKeyCompare = std::ranges::less>
 class TCompactFlatMap
 {
 public:
-    // NB: can't make this pair<const K, V> as TCompactVector requires its type
+    // NB: can't make this pair<const TKey, TValue> as TCompactTValueector requires its type
     // parameter to be copy-assignable.
-    using value_type = std::pair<K, V>;
-    using key_type = K;
-    using mapped_type = V;
+    using value_type = std::pair<TKey, TValue>;
+    using key_type = TKey;
+    using mapped_type = TValue;
+    using key_compare = TKeyCompare;
 
 private:
     using TStorage = TCompactVector<value_type, N>;
-
-    struct TKeyComparer
-    {
-        bool operator()(const K& lhs, const value_type& rhs)
-        {
-            return lhs < rhs.first;
-        }
-
-        bool operator()(const value_type& lhs, const K& rhs)
-        {
-            return lhs.first < rhs;
-        }
-    };
 
 public:
     using iterator = typename TStorage::iterator;
@@ -80,17 +80,26 @@ public:
 
     void shrink_to_small();
 
-    iterator find(const K& k);
-    const_iterator find(const K& k) const;
+    template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+    iterator find(const TOtherKey& k);
+    template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+    const_iterator find(const TOtherKey& k) const;
 
-    iterator lower_bound(const K& k);
-    const_iterator lower_bound(const K& k) const;
-    iterator upper_bound(const K& k);
-    const_iterator upper_bound(const K& k) const;
-    std::pair<iterator, iterator> equal_range(const K& k);
-    std::pair<const_iterator, const_iterator> equal_range(const K& k) const;
+    template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+    iterator lower_bound(const TOtherKey& k);
+    template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+    const_iterator lower_bound(const TOtherKey& k) const;
+    template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+    iterator upper_bound(const TOtherKey& k);
+    template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+    const_iterator upper_bound(const TOtherKey& k) const;
+    template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+    std::pair<iterator, iterator> equal_range(const TOtherKey& k);
+    template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+    std::pair<const_iterator, const_iterator> equal_range(const TOtherKey& k) const;
 
-    bool contains(const K& k) const;
+    template <NDetail::CComparisonAllowed<TKey, TKeyCompare> TOtherKey>
+    bool contains(const TOtherKey& k) const;
 
     std::pair<iterator, bool> insert(const value_type& value);
     std::pair<iterator, bool> insert(value_type&& value);
@@ -101,9 +110,9 @@ public:
     template <class... TArgs>
     std::pair<iterator, bool> emplace(TArgs&&... args);
 
-    V& operator[](const K& k);
+    TValue& operator[](const TKey& k);
 
-    void erase(const K& k);
+    void erase(const TKey& k);
     void erase(iterator pos);
     void erase(iterator b, iterator e);
 
