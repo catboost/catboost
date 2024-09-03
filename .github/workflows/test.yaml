@@ -41,7 +41,7 @@ jobs:
         run: |
           python -m pip install pytest pytest-xdist pytest-randomly
 
-      - if: inputs.runs-on_value != 'windows-2022' 
+      - if: inputs.runs-on_value != 'windows-2022'
         name: Generate CatBoost for Apache Spark projects
         shell: pwsh
         run: |
