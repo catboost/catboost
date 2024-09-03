@@ -30,6 +30,8 @@ commands += [
         os.path.join('spark_3.3_2.13', 'core'),
         os.path.join('spark_3.4_2.12', 'core'),
         os.path.join('spark_3.4_2.13', 'core'),
+        os.path.join('spark_3.5_2.12', 'core'),
+        os.path.join('spark_3.5_2.13', 'core'),
     ]
 ]
 
