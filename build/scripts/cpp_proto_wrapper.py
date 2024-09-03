@@ -25,7 +25,7 @@ def main(namespace: argparse.Namespace) -> int:
         subprocess.check_output(namespace.subcommand, stdin=None, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         sys.stderr.write(
-            '{} returned non-zero exit code {}.\n{}\n'.format(' '.join(e.cmd), e.returncode, e.output.decode('utf-8'))
+            '{} returned non-zero exit code {}.\n{}\n'.format(' '.join(e.cmd), e.returncode, e.output.decode('utf-8', errors='ignore'))
         )
         return e.returncode
 
