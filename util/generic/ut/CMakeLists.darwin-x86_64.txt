@@ -74,6 +74,7 @@ target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/stack_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/store_policy_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/strbuf_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/string_transparent_hash_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/string_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/typelist_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/typetraits_ut.cpp
@@ -85,7 +86,6 @@ target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/yexception_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/ylimits_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/ymath_ut.cpp
-  ${PROJECT_SOURCE_DIR}/util/generic/string_transparent_hash_ut.cpp
 )
 
 
