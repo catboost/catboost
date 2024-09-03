@@ -436,10 +436,11 @@ struct common_params : common_policy_traits<SlotPolicy> {
 
   // This is an integral type large enough to hold as many slots as will fit a
   // node of TargetNodeSize bytes.
+  static constexpr bool fit_cond = 
+    kNodeSlotSpace / sizeof(slot_type) >
+    std::numeric_limits<uint8_t>::max();
   using node_count_type =
-      y_absl::conditional_t<(kNodeSlotSpace / sizeof(slot_type) >
-                           (std::numeric_limits<uint8_t>::max)()),
-                          uint16_t, uint8_t>;  // NOLINT
+      y_absl::conditional_t<fit_cond, uint16_t, uint8_t>;  // NOLINT
 };
 
 // An adapter class that converts a lower-bound compare into an upper-bound
