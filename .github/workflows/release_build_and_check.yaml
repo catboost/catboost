@@ -1,0 +1,43 @@
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost
+      artifact_retention_days:
+        required: false
+        type: number
+        default: 90
+
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        type: string
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost
+      artifact_retention_days:
+        required: false
+        type: number
+        default: 90
+
+jobs:
+  check:
+    name: Build and check per OS
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-13, windows-2022]
+      fail-fast: false
+    with:
+      runs-on_value: ${{ matrix.os }}
+      revision: v${{ inputs.version }}
+      catboost_package_name: ${{ inputs.catboost_package_name }}
+      artifacts_version: v${{ inputs.version }}
+      artifact_retention_days: ${{ fromJSON(inputs.artifact_retention_days) }}
+    uses: ./.github/workflows/check_per_os.yaml

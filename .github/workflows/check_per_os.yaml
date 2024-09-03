@@ -35,7 +35,7 @@ jobs:
       catboost_package_name: ${{ inputs.catboost_package_name }}
       catboost_package_version: ${{ inputs.catboost_package_version }}
       artifacts_version: ${{ inputs.artifacts_version }}
-      artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      artifact_retention_days: ${{ fromJSON(inputs.artifact_retention_days) }}
 
   test:
     name: Test

@@ -1,0 +1,70 @@
+name: 'Dowload artifacts for all platforms'
+description: 'Dowload artifacts for all platforms'
+inputs:
+  name:  # must be w/o spaces
+    required: true
+    type: string
+  artifacts_version:
+    required: true
+    type: string
+  artifacts_run_id:
+    required: false
+    type: string
+    default: ${{ github.run_id }}
+  artifacts_repository:
+    required: false
+    type: string
+    default: ${{ github.repository }}
+  github_token:
+    description: 'GITHUB_TOKEN'
+    default: '${{ github.token }}'
+  dst_path_prefix:
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Make dst dirs
+      shell: pwsh
+      run: |
+        New-Item -Path ${{ inputs.dst_path_prefix }}_darwin-universal2 -ItemType Directory
+        New-Item -Path ${{ inputs.dst_path_prefix }}_linux-aarch64 -ItemType Directory
+        New-Item -Path ${{ inputs.dst_path_prefix }}_linux-x86_64 -ItemType Directory
+        New-Item -Path ${{ inputs.dst_path_prefix }}_windows-x86_64 -ItemType Directory
+
+    - name: Download ${{ inputs.name }} for Darwin
+      uses: actions/download-artifact@v4
+      with:
+        name: catboost-${{ inputs.name }}-darwin-universal2-${{ inputs.artifacts_version }}
+        path: ${{ inputs.dst_path_prefix }}_darwin-universal2/
+        github-token: ${{ inputs.github_token }}
+        repository: ${{ inputs.artifacts_repository }}
+        run-id: ${{ inputs.artifacts_run_id }}
+
+    - name: Download ${{ inputs.name }} for Linux aarch64
+      uses: actions/download-artifact@v4
+      with:
+        name: catboost-${{ inputs.name }}-linux-aarch64-${{ inputs.artifacts_version }}
+        path: ${{ inputs.dst_path_prefix }}_linux-aarch64/
+        github-token: ${{ inputs.github_token }}
+        repository: ${{ inputs.artifacts_repository }}
+        run-id: ${{ inputs.artifacts_run_id }}
+
+    - name: Download ${{ inputs.name }} for Linux x86_64
+      uses: actions/download-artifact@v4
+      with:
+        name: catboost-${{ inputs.name }}-linux-x86_64-${{ inputs.artifacts_version }}
+        path: ${{ inputs.dst_path_prefix }}_linux-x86_64/
+        github-token: ${{ inputs.github_token }}
+        repository: ${{ inputs.artifacts_repository }}
+        run-id: ${{ inputs.artifacts_run_id }}
+
+    - name: Download ${{ inputs.name }} for Windows x86_64
+      uses: actions/download-artifact@v4
+      with:
+        name: catboost-${{ inputs.name }}-windows-x86_64-${{ inputs.artifacts_version }}
+        path: ${{ inputs.dst_path_prefix }}_windows-x86_64/
+        github-token: ${{ inputs.github_token }}
+        repository: ${{ inputs.artifacts_repository }}
+        run-id: ${{ inputs.artifacts_run_id }}

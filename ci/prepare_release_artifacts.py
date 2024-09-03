@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+import stat
 import tarfile
 import tempfile
 
@@ -17,10 +18,15 @@ def prepare_app(src_dir: str, dst_dir: str, release_version: str):
     for system, archs in get_sys_arch_list():
         bin_suff = '.exe' if system == 'windows' else ''
         for arch in archs:
+            dst_file = os.path.join(dst_dir, f'catboost-{system}-{arch}-{release_version}{bin_suff}')
             os.rename(
                 os.path.join(src_dir, f'bin_{system}-{arch}', 'catboost' + bin_suff),
-                os.path.join(dst_dir, f'catboost-{system}-{arch}-{release_version}{bin_suff}')
+                dst_file
             )
+            if system != 'windows':
+                # restore executable status that can be lost in GitHub actions artifacts
+                st = os.stat(dst_file)
+                os.chmod(dst_file, st.st_mode | stat.S_IEXEC)
 
     # legacy names for compatibility
     shutil.copy2(
