@@ -19,9 +19,6 @@ on:
         required: false
         type: string
         default: catboost_dev
-      catboost_package_version:
-        required: true
-        type: string
 
 jobs:
   test:

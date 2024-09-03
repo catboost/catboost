@@ -13,8 +13,9 @@ on:
         type: string
         default: catboost_dev
       catboost_package_version:
-        required: true
+        required: false
         type: string
+        default: ''   # version from repository will be used
       artifacts_version:
         required: false
         type: string
@@ -45,4 +46,3 @@ jobs:
       runs-on_value: ${{ inputs.runs-on_value }}
       artifacts_version: ${{ inputs.artifacts_version }}
       catboost_package_name: ${{ inputs.catboost_package_name }}
-      catboost_package_version: ${{ inputs.catboost_package_version }}

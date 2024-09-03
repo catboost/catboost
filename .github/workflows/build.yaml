@@ -13,8 +13,9 @@ on:
         type: string
         default: catboost_dev
       catboost_package_version:
-        required: true
+        required: false
         type: string
+        default: ''   # version from repository will be used
       artifacts_version:
         required: false
         type: string
@@ -32,6 +33,10 @@ jobs:
       CATBOOST_PACKAGE_VERSION: ${{ inputs.catboost_package_version }}
       CMAKE_BUILD_CACHE_DIR: cmake_build_cache
     steps:
+      - name: Get short SHA
+        shell: pwsh
+        run: echo "GITHUB_SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+
       - if: inputs.runs-on_value == 'ubuntu-latest'
         name: Maximize build space
         uses: easimon/maximize-build-space@master
@@ -259,7 +264,6 @@ jobs:
         with:
           artifacts_version: ${{ inputs.artifacts_version }}
           catboost_package_name: ${{ inputs.catboost_package_name }}
-          catboost_package_version: ${{ inputs.catboost_package_version }}
           platform_tag: manylinux2014_aarch64
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
@@ -269,7 +273,6 @@ jobs:
         with:
           artifacts_version: ${{ inputs.artifacts_version }}
           catboost_package_name: ${{ inputs.catboost_package_name }}
-          catboost_package_version: ${{ inputs.catboost_package_version }}
           platform_tag: manylinux2014_x86_64
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
@@ -389,7 +392,6 @@ jobs:
         with:
           artifacts_version: ${{ inputs.artifacts_version }}
           catboost_package_name: ${{ inputs.catboost_package_name }}
-          catboost_package_version: ${{ inputs.catboost_package_version }}
           platform_tag: macosx_11_0_universal2
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
@@ -450,7 +452,6 @@ jobs:
         with:
           artifacts_version: ${{ inputs.artifacts_version }}
           catboost_package_name: ${{ inputs.catboost_package_name }}
-          catboost_package_version: ${{ inputs.catboost_package_version }}
           platform_tag: win_amd64
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 

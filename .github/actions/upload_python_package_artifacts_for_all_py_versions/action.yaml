@@ -8,9 +8,6 @@ inputs:
     required: false
     type: string
     default: catboost_dev
-  catboost_package_version:
-    required: true
-    type: string
   platform_tag:
     required: true
     type: string
@@ -26,40 +23,40 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: catboost-python-package-dist-cp37-cp37m-${{ inputs.platform_tag }}-${{ inputs.artifacts_version }}
-        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-${{ inputs.catboost_package_version }}-cp37-cp37m-${{ inputs.platform_tag }}.whl
+        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-*-cp37-cp37m-${{ inputs.platform_tag }}.whl
         retention-days: ${{ inputs.artifact_retention_days }}
 
     - name: Upload python package artifact for cp38-cp38-${{ inputs.platform_tag }}
       uses: actions/upload-artifact@v4
       with:
         name: catboost-python-package-dist-cp38-cp38-${{ inputs.platform_tag }}-${{ inputs.artifacts_version }}
-        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-${{ inputs.catboost_package_version }}-cp38-cp38-${{ inputs.platform_tag }}.whl
+        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-*-cp38-cp38-${{ inputs.platform_tag }}.whl
         retention-days: ${{ inputs.artifact_retention_days }}
 
     - name: Upload python package artifact for cp39-cp39-${{ inputs.platform_tag }}
       uses: actions/upload-artifact@v4
       with:
         name: catboost-python-package-dist-cp39-cp39-${{ inputs.platform_tag }}-${{ inputs.artifacts_version }}
-        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-${{ inputs.catboost_package_version }}-cp39-cp39-${{ inputs.platform_tag }}.whl
+        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-*-cp39-cp39-${{ inputs.platform_tag }}.whl
         retention-days: ${{ inputs.artifact_retention_days }}
 
     - name: Upload python package artifact for cp310-cp310-${{ inputs.platform_tag }}
       uses: actions/upload-artifact@v4
       with:
         name: catboost-python-package-dist-cp310-cp310-${{ inputs.platform_tag }}-${{ inputs.artifacts_version }}
-        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-${{ inputs.catboost_package_version }}-cp310-cp310-${{ inputs.platform_tag }}.whl
+        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-*-cp310-cp310-${{ inputs.platform_tag }}.whl
         retention-days: ${{ inputs.artifact_retention_days }}
 
     - name: Upload python package artifact for cp311-cp311-${{ inputs.platform_tag }}
       uses: actions/upload-artifact@v4
       with:
         name: catboost-python-package-dist-cp311-cp311-${{ inputs.platform_tag }}-${{ inputs.artifacts_version }}
-        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-${{ inputs.catboost_package_version }}-cp311-cp311-${{ inputs.platform_tag }}.whl
+        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-*-cp311-cp311-${{ inputs.platform_tag }}.whl
         retention-days: ${{ inputs.artifact_retention_days }}
 
     - name: Upload python package artifact for cp312-cp312-${{ inputs.platform_tag }}
       uses: actions/upload-artifact@v4
       with:
         name: catboost-python-package-dist-cp312-cp312-${{ inputs.platform_tag }}-${{ inputs.artifacts_version }}
-        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-${{ inputs.catboost_package_version }}-cp312-cp312-${{ inputs.platform_tag }}.whl
+        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-*-cp312-cp312-${{ inputs.platform_tag }}.whl
         retention-days: ${{ inputs.artifact_retention_days }}
