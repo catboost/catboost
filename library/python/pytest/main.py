@@ -48,6 +48,10 @@ def main():
     m = MonkeyPatch()
     m.setattr(_pytest.assertion.rewrite, "AssertionRewritingHook", rewrite.AssertionRewritingHook)
 
+    # see https://st.yandex-team.ru/DEVTOOLSSUPPORT-50337
+    m.setattr(_pytest.assertion.truncate, "DEFAULT_MAX_LINES", 16)
+    m.setattr(_pytest.assertion.truncate, "DEFAULT_MAX_CHARS", 32 * 80)
+
     prefix = '__tests__.'
 
     test_modules = [
