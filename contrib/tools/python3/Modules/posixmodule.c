@@ -538,7 +538,7 @@ extern char        *ctermid_r(char *);
 #  include <sys/mman.h>
 #endif
 #ifdef HAVE_SYS_MEMFD_H
-#  include <sys/memfd.h>
+#  error #include <sys/memfd.h>
 #endif
 #ifdef HAVE_LINUX_MEMFD_H
 #  include <linux/memfd.h>
