@@ -1,3 +1,5 @@
+name: Check build and tests per OS
+
 on:
   workflow_call:
     inputs:

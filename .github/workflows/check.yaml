@@ -1,3 +1,5 @@
+name: Check build and tests
+
 on:
   push:
     branches:
