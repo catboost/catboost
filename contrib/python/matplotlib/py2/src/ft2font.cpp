@@ -182,7 +182,7 @@ int FT2Font::get_path_count()
 
     FT_Vector *point;
     FT_Vector *limit;
-    char *tags;
+    unsigned char *tags;
 
     int n;     // index of contour in outline
     int first; // index of first point in contour
@@ -300,7 +300,7 @@ void FT2Font::get_path(double *outpoints, unsigned char *outcodes)
 
     FT_Vector *point;
     FT_Vector *limit;
-    char *tags;
+    unsigned char *tags;
 
     int n;     // index of contour in outline
     int first; // index of first point in contour

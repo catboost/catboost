@@ -1,3 +1,43 @@
+CHANGES BETWEEN 2.13.2 and 2.13.3 (2024-Aug-11)
+
+  I. IMPORTANT CHANGES
+
+  - Some  fields  in  the  `FT_Outline` structure  have been   changed
+    from signed  to unsigned type,  which  better reflects  the actual
+    usage.   It  is  also  an  additional  means  to  protect  against
+    malformed input.
+
+
+  II. IMPORTANT BUG FIXES
+
+  - Rare double-free crashes in the cache subsystem have been fixed.
+
+  - Excessive stack allocation in the autohinter has been fixed.
+
+
+  III. MISCELLANEOUS
+
+  - The B/W  rasterizer has  received a major  upkeep that  results in
+    large performance improvements.  The rendering speed has increased
+    and even doubled for very complex glyphs.
+
+  - If the new configuration option `TT_CONFIG_OPTION_GPOS_KERNING` is
+    defined,  `FT_Get_Kerning`  understands rudimentary  GPOS  kerning
+    (for TrueType fonts  only).  This is not enabled  by default since
+    its usage  is very  limited, mainly  for legacy  applications that
+    have to support TrueType fonts automatically converted from 'kern'
+    tables to GPOS kerning.  If you need proper (GPOS) kerning support
+    please use a higher-level library like HarfBuzz.
+
+    Code contributed by David Saltzman <davidbsaltzman@gmail.com>.
+
+  - The internal structures  `PS_DesignMap` and `PS_Blend` related  to
+    parsing of old Multiple Masters fonts  have been removed  from the
+    public header file `t1tables.h`.
+
+
+======================================================================
+
 CHANGES BETWEEN 2.13.1 and 2.13.2 (2023-Aug-25)
 
   I. MISCELLANEOUS
@@ -5668,7 +5708,7 @@ Extensions support:
 
 ------------------------------------------------------------------------
 
-Copyright (C) 2000-2023 by
+Copyright (C) 2000-2024 by
 David Turner, Robert Wilhelm, and Werner Lemberg.
 
 This  file  is  part  of the  FreeType  project, and may  only be  used,
