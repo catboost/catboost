@@ -18,7 +18,7 @@ public class NativeLib {
     private static final String LOCK_EXT = ".lck";
 
     /**
-     * Load libName, first will try to load libName from default location then will try to load library from JAR.
+     * Load libName, first will try try to load libName from default location then will try to load library from JAR.
      *
      * @param libName
      * @throws IOException
