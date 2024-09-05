@@ -130,22 +130,21 @@ public class NativeLib {
 
         try (Stream<Path> dirList = Files.list(new File(System.getProperty("java.io.tmpdir")).toPath())) {
             dirList.filter(
-                            path ->
-                                    !path.getFileName().toString().endsWith(LOCK_EXT)
-                                            && path.getFileName()
-                                            .toString()
-                                            .startsWith(searchPattern))
-                    .forEach(
-                            nativeLib -> {
-                                Path lckFile = Paths.get(nativeLib + LOCK_EXT);
-                                if (Files.notExists(lckFile)) {
-                                    try {
-                                        Files.delete(nativeLib);
-                                    } catch (Exception e) {
-                                        logger.error("Failed to delete old native lib", e);
-                                    }
-                                }
-                            });
+                path -> !path.getFileName().toString().endsWith(LOCK_EXT)
+                    && path.getFileName()
+                        .toString()
+                        .startsWith(searchPattern))
+                .forEach(
+                    nativeLib -> {
+                        Path lckFile = Paths.get(nativeLib + LOCK_EXT);
+                        if (Files.notExists(lckFile)) {
+                            try {
+                                Files.delete(nativeLib);
+                            } catch (Exception e) {
+                                logger.error("Failed to delete old native lib", e);
+                            }
+                        }
+                    });
         } catch (IOException e) {
             logger.error("Failed to open directory", e);
         }
