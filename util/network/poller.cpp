@@ -7,7 +7,7 @@ namespace {
     struct TMutexLocking {
         using TMyMutex = TMutex;
     };
-}
+} // namespace
 
 class TSocketPoller::TImpl: public TPollerImpl<TMutexLocking> {
 public:

@@ -36,7 +36,7 @@ namespace {
 
         return now - beforeNow;
     }
-}
+} // namespace
 #endif // _darwin_
 
 TDuration Uptime() {

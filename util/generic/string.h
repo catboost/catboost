@@ -1252,7 +1252,7 @@ namespace std {
             return NHashPrivate::ComputeStringHash(s.data(), s.size());
         }
     };
-}
+} // namespace std
 
 #undef Y_NOEXCEPT
 

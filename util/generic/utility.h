@@ -94,7 +94,7 @@ namespace NSwapCheck {
             l.swap(r);
         }
     };
-}
+} // namespace NSwapCheck
 
 /*
  * DoSwap better than ::Swap in member functions...

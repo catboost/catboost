@@ -114,4 +114,4 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
         TestWrapperConstructors<TNoDefaultConstructible>();
         TestWrapperConstructors<TVector<short>>();
     }
-}
+} // Y_UNIT_TEST_SUITE(StorePolicy)

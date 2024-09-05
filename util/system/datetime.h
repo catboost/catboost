@@ -37,7 +37,7 @@ void NanoSleep(ui64 ns) noexcept;
 #if defined(_x86_)
 namespace NPrivate {
     bool HaveRdtscpImpl();
-}
+} // namespace NPrivate
 #endif
 
 // GetCycleCount guarantees to return synchronous values on different cores

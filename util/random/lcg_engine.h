@@ -9,7 +9,7 @@
 namespace NPrivate {
     template <typename T>
     T LcgAdvance(T seed, T lcgBase, T lcgAddend, T delta) noexcept;
-}
+} // namespace NPrivate
 
 template <typename T, T A, T C>
 struct TFastLcgIterator {

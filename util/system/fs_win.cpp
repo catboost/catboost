@@ -255,4 +255,4 @@ bool GetObjectId(const char* path, GUID* id) {
 }
 */
 
-}
+} // namespace NFsPrivate

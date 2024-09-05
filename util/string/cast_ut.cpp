@@ -616,4 +616,4 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(ok, "foo");
         UNIT_ASSERT_VALUES_EQUAL(ToString(ToString(ok)), "foo");
     }
-}
+} // Y_UNIT_TEST_SUITE(TCastTest)

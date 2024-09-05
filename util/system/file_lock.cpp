@@ -17,7 +17,7 @@ namespace {
         }
         Y_UNREACHABLE();
     }
-}
+} // namespace
 
 TFileLock::TFileLock(const TString& filename, const EFileLockType type)
     : TFile(filename, OpenAlways | RdOnly)

@@ -34,7 +34,7 @@ namespace NOuter::NInner {
     void Compare10And20() {
         Y_ENSURE(10 > 20);
     }
-}
+} // namespace NOuter::NInner
 
 class TExceptionTest: public TTestBase {
     UNIT_TEST_SUITE(TExceptionTest);

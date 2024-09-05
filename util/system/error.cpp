@@ -49,7 +49,7 @@ namespace {
 
         char data[1024];
     };
-}
+} // namespace
 #endif
 
 const char* LastSystemErrorText(int code) {

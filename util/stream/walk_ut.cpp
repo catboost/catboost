@@ -52,4 +52,4 @@ Y_UNIT_TEST_SUITE(TWalkTest) {
         TString tmp4 = input.ReadAll();
         UNIT_ASSERT_VALUES_EQUAL(tmp4, "66f");
     }
-}
+} // Y_UNIT_TEST_SUITE(TWalkTest)

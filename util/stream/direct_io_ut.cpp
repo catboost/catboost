@@ -67,4 +67,4 @@ Y_UNIT_TEST_SUITE(TDirectIOTests) {
     Y_UNIT_TEST(ReadWriteDirectSeqTest) {
         Test(Direct | Seq, 100 * 4);
     }
-}
+} // Y_UNIT_TEST_SUITE(TDirectIOTests)

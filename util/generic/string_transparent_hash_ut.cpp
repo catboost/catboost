@@ -28,4 +28,4 @@ Y_UNIT_TEST_SUITE(StringHashFunctorTests) {
         UNIT_ASSERT_UNEQUAL(s.find(TStringBuf("foo")), s.end());
         UNIT_ASSERT_EQUAL(s.find(TStringBuf("bar")), s.end());
     }
-}
+} // Y_UNIT_TEST_SUITE(StringHashFunctorTests)

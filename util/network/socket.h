@@ -94,7 +94,7 @@ static inline void FixIPv6ListenSocket(SOCKET s) {
 
 namespace NAddr {
     class IRemoteAddr;
-}
+} // namespace NAddr
 
 void SetSocketTimeout(SOCKET s, long timeout);
 void SetSocketTimeout(SOCKET s, long sec, long msec);

@@ -263,7 +263,7 @@ inline IInputStream& operator>>(IInputStream& in, T& value) {
 
 namespace NPrivate {
     IInputStream& StdInStream() noexcept;
-}
+} // namespace NPrivate
 
 /**
  * Standard input stream.

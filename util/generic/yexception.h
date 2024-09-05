@@ -77,7 +77,7 @@ namespace NPrivateException {
     static inline T&& operator+(const TSourceLocation& sl, T&& t Y_LIFETIME_BOUND) {
         return std::forward<T>(t << sl << TStringBuf(": "));
     }
-}
+} // namespace NPrivateException
 
 class yexception: public NPrivateException::yexception {
 };
@@ -150,7 +150,7 @@ namespace NPrivate {
 
     [[noreturn]] void ThrowYException(const TSimpleExceptionMessage& sm);
     [[noreturn]] void ThrowYExceptionWithBacktrace(const TSimpleExceptionMessage& sm);
-}
+} // namespace NPrivate
 
 void fputs(const std::exception& e, FILE* f = stderr);
 

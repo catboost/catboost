@@ -91,7 +91,7 @@ namespace NSwapBytes {
     DEF_SB(64)
 
 #undef DEF_SB
-}
+} // namespace NSwapBytes
 
 template <class T>
 inline T SwapBytes(T val) noexcept {

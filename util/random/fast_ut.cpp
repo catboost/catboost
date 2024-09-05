@@ -116,4 +116,4 @@ Y_UNIT_TEST_SUITE(TTestFastRng) {
 
         UNIT_ASSERT_VALUES_EQUAL(rng.GenRand(), ULL(6223876579076085114));
     }
-}
+} // Y_UNIT_TEST_SUITE(TTestFastRng)

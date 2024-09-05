@@ -19,4 +19,4 @@ Y_UNIT_TEST_SUITE(ArraySizeTest) {
 
         UNIT_ASSERT_VALUES_EQUAL(Y_ARRAY_SIZE(x), 1);
     }
-}
+} // Y_UNIT_TEST_SUITE(ArraySizeTest)

@@ -38,4 +38,4 @@ Y_UNIT_TEST_SUITE(YassertTest) {
             []() { Y_ABORT_UNLESS([]() {throw yexception{} << "check"; return false; }(), "hi %s", "there"); }(),
             yexception);
     }
-}
+} // Y_UNIT_TEST_SUITE(YassertTest)

@@ -154,7 +154,7 @@ using TMallocPtr = TAutoPtr<T, TFree>;
 // maybe
 namespace NMaybe {
     struct TPolicyUndefinedExcept;
-}
+} // namespace NMaybe
 
 template <class T, class Policy = ::NMaybe::TPolicyUndefinedExcept>
 class TMaybe;

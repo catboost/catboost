@@ -20,4 +20,4 @@ Y_UNIT_TEST_SUITE(TFnvTest) {
         UNIT_ASSERT_EQUAL(FnvHash<ui64>(nullptr, 0), FNV64INIT);
         UNIT_ASSERT_EQUAL(FnvHash<ui64>(TStringBuf()), FNV64INIT);
     }
-}
+} // Y_UNIT_TEST_SUITE(TFnvTest)

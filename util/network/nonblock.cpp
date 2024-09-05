@@ -93,7 +93,7 @@ namespace {
         TAccept4 Accept4;
         bool HaveSockNonBlock;
     };
-}
+} // namespace
 
 SOCKET Accept4(SOCKET s, struct sockaddr* addr, socklen_t* addrlen) {
     return TFeatureCheck::Instance()->FastAccept(s, addr, addrlen);

@@ -8,7 +8,7 @@ namespace NDetail {
     }
     void UTF8ToWideImplSSE41(const unsigned char*&, const unsigned char*, wchar32*&) noexcept {
     }
-}
+} // namespace NDetail
 
 #else
 
@@ -242,6 +242,6 @@ namespace NDetail {
         // The rest will be handled sequencially.
         // Possible improvement: go back to the vectorized processing after the error or the 4 byte sequence
     }
-}
+} // namespace NDetail
 
 #endif

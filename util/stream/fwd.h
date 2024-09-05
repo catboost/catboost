@@ -55,7 +55,7 @@ struct TZLibDecompressorError;
 
 namespace ZLib {
     enum StreamType: ui8;
-}
+} // namespace ZLib
 
 class TZLibDecompress;
 class TZLibCompress;

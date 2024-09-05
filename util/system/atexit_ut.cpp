@@ -99,4 +99,4 @@ Y_UNIT_TEST_SUITE(TestAtExit) {
 
         Singleton<T2>();
     }
-}
+} // Y_UNIT_TEST_SUITE(TestAtExit)

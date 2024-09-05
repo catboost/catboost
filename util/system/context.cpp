@@ -20,7 +20,7 @@ namespace __cxxabiv1 {
     };
 
     extern "C" __cxa_eh_globals* __cxa_get_globals();
-}
+} // namespace __cxxabiv1
     #endif
 #endif
 
@@ -132,7 +132,7 @@ namespace {
         Run(*(argPtr - 1));
     }
     #endif
-}
+} // namespace
 
     #if defined(USE_SANITIZER_CONTEXT)
 

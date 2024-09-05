@@ -45,7 +45,7 @@ namespace {
             *buf = '\0';
         }
     }
-}
+} // namespace
 
 Y_UNIT_TEST_SUITE(TestSprintDate) {
     Y_UNIT_TEST(Year9999) {
@@ -148,7 +148,7 @@ Y_UNIT_TEST_SUITE(TestSprintDate) {
 
         UNIT_ASSERT_VALUES_EQUAL(expectedYear, YearToString(timestamp));
     }
-}
+} // Y_UNIT_TEST_SUITE(TestSprintDate)
 
 Y_UNIT_TEST_SUITE(TDateTimeTest) {
     Y_UNIT_TEST(Test8601) {
@@ -336,7 +336,7 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
             UNIT_ASSERT(CompareTMFull(ptm0, ptm1));
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TDateTimeTest)
 
 Y_UNIT_TEST_SUITE(DateTimeTest) {
     Y_UNIT_TEST(TestDurationFromFloat) {
@@ -652,4 +652,4 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
         static_assert(TDuration::Zero() + 1s == 1s);
         static_assert(TInstant::Seconds(1) + 1s == TInstant::Seconds(2));
     }
-}
+} // Y_UNIT_TEST_SUITE(DateTimeTest)

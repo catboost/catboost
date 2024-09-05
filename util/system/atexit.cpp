@@ -110,7 +110,7 @@ namespace {
             return atExit;
         }
     }
-}
+} // namespace
 
 void ManualRunAtExitFinalizers() {
     OnExit();

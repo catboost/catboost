@@ -40,7 +40,7 @@ namespace NPrivate {
             return RandomNumber<long double>();
         }
     };
-}
+} // namespace NPrivate
 
 static inline ::NPrivate::TRandom Random() noexcept {
     return {};

@@ -228,4 +228,4 @@ Y_UNIT_TEST_SUITE(TSimpleTMTest) {
                            tt, 1449828548, 2015, 12, 11, 10, 9, 8);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TSimpleTMTest)

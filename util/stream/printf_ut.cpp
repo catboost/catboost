@@ -30,4 +30,4 @@ Y_UNIT_TEST_SUITE(TStreamPrintfTest) {
 
         UNIT_ASSERT_EQUAL(ss.Str(), s);
     }
-}
+} // Y_UNIT_TEST_SUITE(TStreamPrintfTest)

@@ -225,7 +225,7 @@ namespace NPrivate {
         fsPath /= TFsPath(arg);
         AppendToFsPath(fsPath, std::forward<Ts>(args)...);
     }
-}
+} // namespace NPrivate
 
 template <class... Ts>
 TString JoinFsPaths(Ts&&... args) {

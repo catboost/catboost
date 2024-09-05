@@ -40,7 +40,7 @@ Y_UNIT_TEST_SUITE(TMacroVarargMapTest) {
 #undef ADD_ARG
 #undef ID_ARG
     }
-}
+} // Y_UNIT_TEST_SUITE(TMacroVarargMapTest)
 
 Y_UNIT_TEST_SUITE(TestVaArgs) {
     Y_UNIT_TEST(Count) {
@@ -103,4 +103,4 @@ Y_UNIT_TEST_SUITE(TestVaArgs) {
 #undef I2
 #undef I1
     }
-}
+} // Y_UNIT_TEST_SUITE(TestVaArgs)

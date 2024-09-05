@@ -12,4 +12,4 @@ Y_UNIT_TEST_SUITE(TCityTest) {
         CityHash128WithSeed(s, uint128(1, 2));
         UNIT_ASSERT(s.empty());
     }
-}
+} // Y_UNIT_TEST_SUITE(TCityTest)

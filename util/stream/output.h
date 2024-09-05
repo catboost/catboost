@@ -262,7 +262,7 @@ static inline IOutputStream& operator<<(IOutputStream& o, wchar32* t) {
 namespace NPrivate {
     IOutputStream& StdOutStream() noexcept;
     IOutputStream& StdErrStream() noexcept;
-}
+} // namespace NPrivate
 
 /**
  * Standard output stream.

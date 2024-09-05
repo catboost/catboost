@@ -61,7 +61,7 @@ namespace NDetail {
     template <class T>
     inline void WriteSurrogatePair(wchar32 s, T& dest) noexcept;
 
-}
+} // namespace NDetail
 
 inline wchar16* SkipSymbol(wchar16* begin, const wchar16* end) noexcept {
     return begin + W16SymbolSize(begin, end);
@@ -333,7 +333,7 @@ namespace NDetail {
     void UTF8ToWideImplSSE41(const unsigned char*& cur, const unsigned char* last, wchar16*& dest) noexcept;
 
     void UTF8ToWideImplSSE41(const unsigned char*& cur, const unsigned char* last, wchar32*& dest) noexcept;
-}
+} // namespace NDetail
 
 //! @return len if robust and position where encoding stopped if not
 template <bool robust, typename TCharType>
@@ -639,7 +639,7 @@ namespace NDetail {
     }
 #endif // _sse2_
 
-}
+} // namespace NDetail
 
 //! returns @c true if character sequence has no symbols with value greater than 0x7F
 template <typename TChar>

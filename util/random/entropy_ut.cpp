@@ -10,4 +10,4 @@ Y_UNIT_TEST_SUITE(TestEntropy) {
             Seed().LoadOrFail(buf, i);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TestEntropy)

@@ -147,7 +147,7 @@ namespace {
     private:
         TIntrusiveSList<TPerThreadedBuf> Unused_;
     };
-}
+} // namespace
 
 static inline TTempBufManager* TempBufManager() {
     return FastTlsSingletonWithPriority<TTempBufManager, 2>();

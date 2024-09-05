@@ -47,4 +47,4 @@ Y_UNIT_TEST_SUITE(TestMultiInput) {
         case3.TestReadToResult('j', 5, "fghi");
         case3.TestReadToResult('k', 1, "", "TRASH");
     }
-}
+} // Y_UNIT_TEST_SUITE(TestMultiInput)

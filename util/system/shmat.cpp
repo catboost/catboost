@@ -86,7 +86,7 @@ namespace {
         return syscall(__NR_ipc, IPCOP_shmdt, 0, 0, 0, addr);
     }
     #endif
-}
+} // namespace
 #endif
 
 TSharedMemory::TSharedMemory()

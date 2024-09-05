@@ -58,7 +58,7 @@ namespace NPrivate {
         return RangeOk(static_cast<typename String::value_type>(c));
     }
 #endif
-}
+} // namespace NPrivate
 
 constexpr bool IsAscii(const int c) noexcept {
     return !(c & ~0x7f);

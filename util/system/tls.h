@@ -149,7 +149,7 @@
 
 namespace NPrivate {
     void FillWithTrash(void* ptr, size_t len);
-}
+} // namespace NPrivate
 
 namespace NTls {
     using TDtor = void (*)(void*);
@@ -289,7 +289,7 @@ namespace NTls {
         THolder<TConstructor> Constructor_;
         TKey Key_;
     };
-}
+} // namespace NTls
 
 template <class T>
 static inline T& TlsRef(NTls::TValue<T>& v) noexcept {

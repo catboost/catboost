@@ -30,7 +30,7 @@ namespace NPrivate {
             return Min<T>();
         }
     };
-}
+} // namespace NPrivate
 
 static constexpr ::NPrivate::TMax Max() noexcept {
     return {};
@@ -65,7 +65,7 @@ namespace NPrivate {
     constexpr double MaxCeilValue<0xFFFF'FFFF'FFFF'FFFFull>() {
         return 18446744073709551616.0; // 0x10000000000000000p0
     }
-}
+} // namespace NPrivate
 
 // MaxFloor<T> is the greatest double within the range of T.
 //

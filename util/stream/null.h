@@ -51,7 +51,7 @@ public:
 
 namespace NPrivate {
     TNullIO& StdNullStream() noexcept;
-}
+} // namespace NPrivate
 
 /**
  * Standard null stream.

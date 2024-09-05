@@ -367,7 +367,7 @@ namespace {
     };
 
     bool TAndroidStdIOStreams::Enabled = false;
-}
+} // namespace
 #endif // _android_
 
 namespace {
@@ -431,7 +431,7 @@ namespace {
             return *SingletonWithPriority<TStdIOStreams, 4>();
         }
     };
-}
+} // namespace
 
 IOutputStream& NPrivate::StdErrStream() noexcept {
 #if defined(_android_)

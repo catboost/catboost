@@ -211,7 +211,7 @@ namespace NDatetime {
 #endif
         return t;
     }
-}
+} // namespace NDatetime
 
 template <>
 void In<TMonth>(IInputStream& in, TMonth& t) {

@@ -225,4 +225,4 @@ Y_UNIT_TEST_SUITE(TestFileStat) {
         UNIT_ASSERT(!stat.IsNull());
     }
 #endif
-}
+} // Y_UNIT_TEST_SUITE(TestFileStat)

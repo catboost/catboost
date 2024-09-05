@@ -88,7 +88,7 @@ Y_UNIT_TEST_SUITE(TestCpuId) {
         Y_CPU_ID_ENUMERATE(Y_DEF_NAME)
 #undef Y_DEF_NAME
     }
-}
+} // Y_UNIT_TEST_SUITE(TestCpuId)
 
 #if defined(_x86_64_)
     #if defined(__GNUC__)

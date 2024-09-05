@@ -44,7 +44,7 @@ namespace {
 
         size_t Alignment;
     };
-}
+} // namespace
 
 TDirectIOBufferedFile::TDirectIOBufferedFile(const TString& path, EOpenMode oMode, size_t buflen /*= 1 << 17*/)
     : File(path, oMode)

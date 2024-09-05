@@ -344,7 +344,7 @@ namespace {
         TBuffer B_;
         ui64 N_;
     };
-}
+} // namespace
 
 TBufferedOutputBase::TBufferedOutputBase(IOutputStream* slave)
     : Impl_(new TAdaptiveImpl(slave))

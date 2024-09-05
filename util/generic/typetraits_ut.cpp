@@ -70,7 +70,7 @@ namespace {
     public:
         TEmptyClass Base;
     };
-}
+} // namespace
 
 #define ASSERT_SAME_TYPE(x, y)                     \
     {                                              \
@@ -257,7 +257,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_trivially_copyable<TNonTriviallyCopyConstructible>::value);
         UNIT_ASSERT(!std::is_trivially_copyable<TNonTriviallyDestructible>::value);
     }
-}
+} // Y_UNIT_TEST_SUITE(TTypeTraitsTest)
 
 namespace {
     template <typename T>
@@ -377,7 +377,7 @@ namespace {
         enum { IsArithmetic = false };
         enum { IsArray = true };
     };
-}
+} // namespace
 
 #define UNIT_ASSERT_EQUAL_ENUM(expected, actual) UNIT_ASSERT_VALUES_EQUAL((bool)(expected), (bool)(actual))
 
@@ -420,7 +420,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTestNg) {
     TYPE_TEST(NonPodClass, TNonPodClass)
     TYPE_TEST(NonPodClassReference, TNonPodClass&)
     TYPE_TEST(NonPodClassConstReference, const TNonPodClass&)
-}
+} // Y_UNIT_TEST_SUITE(TTypeTraitsTestNg)
 
 enum E4 {
     X

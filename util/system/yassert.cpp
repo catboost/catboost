@@ -33,10 +33,10 @@ extern "C" {
 namespace {
     struct TPanicLockHolder: public TAdaptiveLock {
     };
-}
+} // namespace
 namespace NPrivate {
     [[noreturn]] Y_NO_INLINE void InternalPanicImpl(int line, const char* function, const char* expr, int, int, int, const TStringBuf file, const char* errorMessage, size_t errorMessageSize) noexcept;
-}
+} // namespace NPrivate
 
 void ::NPrivate::Panic(const TStaticBuf& file, int line, const char* function, const char* expr, const char* format, ...) noexcept {
     try {
@@ -91,4 +91,4 @@ namespace NPrivate {
     } catch (...) {
         abort();
     }
-}
+} // namespace NPrivate

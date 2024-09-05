@@ -70,7 +70,7 @@ namespace {
         TWaitEvents Events_;
         TLock Lock_;
     };
-}
+} // namespace
 
 #if defined(_win_)
 class TCondVar::TImpl: public TCondVarImpl {

@@ -15,7 +15,7 @@ Y_UNIT_TEST_SUITE(TDemangleTest) {
         CppDemangle("");
         CppDemangle("Sfsdf$dfsdfTTSFSDF23234::SDFS:FSDFSDF#$%");
     }
-}
+} // Y_UNIT_TEST_SUITE(TDemangleTest)
 
 namespace NUtil::NTypeNameTest {
 
@@ -51,7 +51,7 @@ namespace NUtil::NTypeNameTest {
             return TypeName(*this);
         }
     };
-}
+} // namespace NUtil::NTypeNameTest
 
 using namespace NUtil::NTypeNameTest;
 
@@ -181,4 +181,4 @@ Y_UNIT_TEST_SUITE(TypeName) {
         UNIT_ASSERT_VALUES_EQUAL(TypeName(cvPtr), "char const volatile*");
 #endif
     }
-}
+} // Y_UNIT_TEST_SUITE(TypeName)

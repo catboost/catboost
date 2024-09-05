@@ -147,4 +147,4 @@ Y_UNIT_TEST_SUITE(TestFunctionRef) {
         ref(std::make_unique<int>(5), x);
         UNIT_ASSERT_EQUAL(x, 'a');
     }
-}
+} // Y_UNIT_TEST_SUITE(TestFunctionRef)

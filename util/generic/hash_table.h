@@ -1431,7 +1431,7 @@ namespace NPrivate {
     }
 
     [[noreturn]] void ThrowKeyNotFoundInHashTableException(const TStringBuf keyRepresentation);
-}
+} // namespace NPrivate
 
 // Cannot name it just 'Hash' because it clashes with too many class members in the code.
 template <class T>

@@ -95,4 +95,4 @@ Y_UNIT_TEST_SUITE(IteratorRange) {
         // we should be able to use TIteratorRange as a container parameter for standard algorithms
         UNIT_ASSERT(AllOf(range, [](int x) { return x > 0; }));
     }
-}
+} // Y_UNIT_TEST_SUITE(IteratorRange)

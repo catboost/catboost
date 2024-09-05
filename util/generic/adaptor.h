@@ -119,7 +119,7 @@ namespace NPrivate {
             return end(Base());
         }
     };
-}
+} // namespace NPrivate
 
 /**
  * Provides a reverse view into the provided container.

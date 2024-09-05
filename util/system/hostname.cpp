@@ -81,7 +81,7 @@ namespace {
 
         TString FQDNHostName;
     };
-}
+} // namespace
 
 const TString& HostName() {
     return (Singleton<THostNameHolder>())->HostName;

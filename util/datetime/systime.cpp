@@ -200,7 +200,7 @@ namespace {
     };
 
     constexpr TDayNoToYearLookupTable DAYS_TO_YEAR_LOOKUP;
-}
+} // namespace
 
 //! Inverse of gmtime: converts struct tm to time_t, assuming the data
 //! in tm is UTC rather than local timezone. This implementation

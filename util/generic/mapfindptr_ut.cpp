@@ -65,4 +65,4 @@ Y_UNIT_TEST_SUITE(TMapFindPtrTest) {
         UNIT_ASSERT_VALUES_EQUAL(a.ValueRef(2, str123), "123");
         UNIT_ASSERT_VALUES_EQUAL(a.ValueRef(3, str1234), "1234");
     }
-}
+} // Y_UNIT_TEST_SUITE(TMapFindPtrTest)

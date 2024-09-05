@@ -129,7 +129,7 @@ namespace NPrivate {
     using THashDivisor = ::NPrivate::TNaiveDivisor<ui32, ui64>;
     #endif
 #endif
-}
+} // namespace NPrivate
 
 Y_CONST_FUNCTION
 ::NPrivate::THashDivisor HashBucketCountExt(unsigned long elementCount);

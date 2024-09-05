@@ -268,7 +268,7 @@ namespace {
 
         return t.Get();
     }
-}
+} // namespace
 
 class TThread::TImpl: public TThreadBase {
 public:
@@ -382,7 +382,7 @@ namespace {
     static void* ThreadProcWrapper(void* param) {
         return reinterpret_cast<T*>(param)->ThreadProc();
     }
-}
+} // namespace
 
 ISimpleThread::ISimpleThread(size_t stackSize)
     : TThread(TParams(ThreadProcWrapper<ISimpleThread>, reinterpret_cast<void*>(this), stackSize))
@@ -463,7 +463,7 @@ namespace {
         TSetThreadDescription SetThreadDescription;
         TGetThreadDescription GetThreadDescription;
     };
-}
+} // namespace
 #endif // _win_
 
 void TThread::SetCurrentThreadName(const char* name) {

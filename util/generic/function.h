@@ -65,7 +65,7 @@ namespace NPrivate {
     struct TFuncInfo<R(Args...)> {
         typedef R TSignature(Args...);
     };
-}
+} // namespace NPrivate
 
 template <class C>
 using TFunctionSignature = typename ::NPrivate::TFuncInfo<::NPrivate::TRemoveClass<std::remove_reference_t<std::remove_pointer_t<C>>>>::TSignature;

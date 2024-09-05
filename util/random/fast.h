@@ -95,7 +95,7 @@ namespace NPrivate {
     struct TFastRngTraits<ui64> {
         using TResult = TFastRng64;
     };
-}
+} // namespace NPrivate
 
 template <typename T>
 using TFastRng = typename ::NPrivate::TFastRngTraits<T>::TResult;

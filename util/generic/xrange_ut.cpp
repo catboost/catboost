@@ -214,4 +214,4 @@ Y_UNIT_TEST_SUITE(XRange) {
             UNIT_ASSERT_VALUES_EQUAL(5, *it);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(XRange)

@@ -39,7 +39,7 @@ namespace NPrivate {
     struct TStringDeducer<wchar16> {
         using type = TUtf16String;
     };
-}
+} // namespace NPrivate
 
 template <typename C>
 TVector<typename ::NPrivate::TStringDeducer<C>::type>

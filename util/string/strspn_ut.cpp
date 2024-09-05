@@ -70,4 +70,4 @@ Y_UNIT_TEST_SUITE(TStrSpnTest) {
         TStringBuf empty;
         UNIT_ASSERT_EQUAL(TCompactStrSpn("abc").FindFirstNotOf(empty.rbegin(), empty.rend()), empty.rend());
     }
-}
+} // Y_UNIT_TEST_SUITE(TStrSpnTest)

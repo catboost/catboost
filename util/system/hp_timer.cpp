@@ -91,7 +91,7 @@ namespace {
         const double Rate;
         const ui64 CyclesPerSecond;
     };
-}
+} // namespace
 
 double NHPTimer::GetSeconds(const STime& a) noexcept {
     return TFreq::Instance().GetSeconds(a);

@@ -75,4 +75,4 @@ Y_UNIT_TEST_SUITE(TestMemIO) {
         const char* const result = "1234567890";
         UNIT_ASSERT(0 == memcmp(buffer, result, strlen(result)));
     }
-}
+} // Y_UNIT_TEST_SUITE(TestMemIO)

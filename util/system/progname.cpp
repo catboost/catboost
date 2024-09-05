@@ -15,7 +15,7 @@ namespace {
 
         TString ProgName;
     };
-}
+} // namespace
 
 const TString& GetProgramName() {
     return Singleton<TProgramNameHolder>()->ProgName;

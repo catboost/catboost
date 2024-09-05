@@ -130,7 +130,7 @@ namespace {
             os << Pad<2>(utcOffsetInMinutes % 60);
         }
     }
-}
+} // namespace
 
 template <>
 void Out<TDuration>(IOutputStream& os, TTypeTraits<TDuration>::TFuncParam duration) {

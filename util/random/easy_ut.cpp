@@ -32,4 +32,4 @@ Y_UNIT_TEST_SUITE(TEasyRndInterface) {
             UNIT_ASSERT(x != 0);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TEasyRndInterface)

@@ -76,7 +76,7 @@ namespace NPrivate {
             return s;
         }
     };
-}
+} // namespace NPrivate
 
 /*
  * some clever implementations...
@@ -199,7 +199,7 @@ namespace NPrivate {
             return FromString<T, TChar>(Data, Len);
         }
     };
-}
+} // namespace NPrivate
 
 template <typename TChar>
 inline ::NPrivate::TFromString<TChar> FromString(const TChar* data, size_t len) {

@@ -52,7 +52,7 @@ namespace {
     TTestDirectory::~TTestDirectory() {
         Path_.ForceDelete();
     }
-}
+} // namespace
 
 Y_UNIT_TEST_SUITE(TFsPathTests) {
     Y_UNIT_TEST(TestMkDirs) {
@@ -894,4 +894,4 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
             UNIT_ASSERT_VALUES_EQUAL(split2.at(1), DIR_B);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TFsPathTests)

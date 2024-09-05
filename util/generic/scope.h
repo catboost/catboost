@@ -36,7 +36,7 @@ namespace NPrivate {
             return std::forward<F>(function);
         }
     };
-}
+} // namespace NPrivate
 
 // \brief `Y_SCOPE_EXIT(captures) { body };`
 //

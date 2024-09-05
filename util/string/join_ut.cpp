@@ -160,4 +160,4 @@ Y_UNIT_TEST_SUITE(JoinStringTest) {
         UNIT_ASSERT_EQUAL(Join('a', 'a', 'a'), "97a97");
         UNIT_ASSERT_EQUAL(Join("a", "a", "a"), "aaa");
     }
-}
+} // Y_UNIT_TEST_SUITE(JoinStringTest)

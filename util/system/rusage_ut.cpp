@@ -8,4 +8,4 @@ Y_UNIT_TEST_SUITE(TRusageTest) {
         // just check it returns something
         r.Fill();
     }
-}
+} // Y_UNIT_TEST_SUITE(TRusageTest)

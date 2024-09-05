@@ -74,7 +74,7 @@ inline void YaDebugBreak() {
 namespace NPrivate {
     /// method should not be used directly
     [[noreturn]] void Panic(const TStaticBuf& file, int line, const char* function, const char* expr, const char* format, ...) noexcept Y_PRINTF_FORMAT(5, 6);
-}
+} // namespace NPrivate
 
 /// Assert that does not depend on NDEBUG macro and outputs message like printf
 #define Y_ABORT_UNLESS(expr, ...)                                                                    \
@@ -90,7 +90,7 @@ namespace NPrivate {
 #define Y_ABORT(...) Y_ABORT_UNLESS(false, __VA_ARGS__)
 
 #ifndef NDEBUG
-    /// Assert that depend on NDEBUG macro and outputs message like printf
+  /// Assert that depend on NDEBUG macro and outputs message like printf
     #define Y_DEBUG_ABORT_UNLESS Y_ABORT_UNLESS
 #else
     #define Y_DEBUG_ABORT_UNLESS(expr, ...)           \

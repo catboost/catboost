@@ -53,7 +53,7 @@ namespace {
         {
         }
     };
-}
+} // namespace
 
 TBufferOutput::TBufferOutput(size_t buflen)
     : Impl_(new TOwnedImpl(buflen))

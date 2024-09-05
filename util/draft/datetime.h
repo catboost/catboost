@@ -131,7 +131,7 @@ namespace NDatetime {
             return s != t;
         }
     };
-}
+} // namespace NDatetime
 
 inline TString date2str(const time_t date) {
     struct tm dateTm;

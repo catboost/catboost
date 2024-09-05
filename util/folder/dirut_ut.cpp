@@ -129,4 +129,4 @@ Y_UNIT_TEST_SUITE(TDirutTest) {
 
         RemoveDirWithContents(tmpDir);
     }
-}
+} // Y_UNIT_TEST_SUITE(TDirutTest)

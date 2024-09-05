@@ -82,4 +82,4 @@ Y_UNIT_TEST_SUITE(TBufferTest) {
 
         UNIT_ASSERT(0 == memcmp(buffer.data(), "1234567890", buffer.size()));
     }
-}
+} // Y_UNIT_TEST_SUITE(TBufferTest)

@@ -347,7 +347,7 @@ namespace {
     constexpr TBounds<ui64> lUBounds = {static_cast<ui64>(ULONG_MAX), 0};
     constexpr TBounds<ui64> llSBounds = {static_cast<ui64>(LLONG_MAX), static_cast<ui64>(ULLONG_MAX - LLONG_MAX)};
     constexpr TBounds<ui64> llUBounds = {static_cast<ui64>(ULLONG_MAX), 0};
-}
+} // namespace
 
 #define DEF_INT_SPEC_II(TYPE, ITYPE, BASE)                              \
     template <>                                                         \
@@ -729,7 +729,7 @@ namespace {
 
         return FixEnd(buf, FixZeros(buf, sb.SB->position()));
     }
-}
+} // namespace
 
 template <>
 size_t ToStringImpl<double>(double d, char* buf, size_t len) {

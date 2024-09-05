@@ -29,7 +29,7 @@ namespace {
                     return 1;
         }
     }
-}
+} // namespace
 
 void Collapse(TUtf16String& w) {
     CollapseImpl(w, w, 0, IsWhitespace);

@@ -14,7 +14,7 @@ namespace {
             c = AsciiToLower(c);
         }
     }
-}
+} // namespace
 
 TString TGUID::AsGuidString() const {
     TStringBuilder s;

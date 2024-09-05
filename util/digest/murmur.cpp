@@ -124,6 +124,6 @@ namespace NMurmurPrivate {
 
         return h;
     }
-}
+} // namespace NMurmurPrivate
 
 template size_t MurmurHash<size_t>(const void* buf, size_t len) noexcept;

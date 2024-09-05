@@ -16,7 +16,7 @@ namespace {
 
     struct TC: public TB {
     };
-}
+} // namespace
 
 Y_DECLARE_PODTYPE(TB);
 
@@ -110,4 +110,4 @@ Y_UNIT_TEST_SUITE(TestMemCopy) {
         UNIT_ASSERT(MemCopy(tmp, tmp, 0) == nullptr);
         UNIT_ASSERT(MemMove(tmp, tmp, 0) == nullptr);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestMemCopy)

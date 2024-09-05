@@ -34,7 +34,7 @@ namespace NIsInHelper {
             return c.find(e) != c.end();
         }
     };
-}
+} // namespace NIsInHelper
 
 template <class I, class T>
 constexpr bool IsIn(I f, I l, const T& v) {

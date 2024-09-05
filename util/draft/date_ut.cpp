@@ -33,4 +33,4 @@ Y_UNIT_TEST_SUITE(TDateTest) {
             UNIT_ASSERT_EQUAL(d.GetStartUTC(), 1297728000);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TDateTest)

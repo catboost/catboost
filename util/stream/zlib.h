@@ -35,7 +35,7 @@ namespace ZLib {
     enum {
         ZLIB_BUF_LEN = 8 * 1024
     };
-}
+} // namespace ZLib
 
 /**
  * Non-buffered ZLib decompressing stream.

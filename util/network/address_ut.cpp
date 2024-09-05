@@ -36,4 +36,4 @@ Y_UNIT_TEST_SUITE(IRemoteAddr_ToString) {
         TNetworkAddress localAddress2("127.0.0.1", 22);
         UNIT_ASSERT_VALUES_EQUAL(NAddr::IsLoopback(TAddrInfo(&*localAddress2.Begin())), true);
     }
-}
+} // Y_UNIT_TEST_SUITE(IRemoteAddr_ToString)

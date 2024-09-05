@@ -683,7 +683,7 @@ namespace {
             return **it;
         }
     };
-}
+} // namespace
 
 void THashTest::TestResizeOnInsertSmartPtrBug() {
     TItemMap map;
@@ -1255,7 +1255,7 @@ namespace {
             return A == o.A && B == o.B;
         }
     };
-}
+} // namespace
 
 template <>
 struct THash<TFoo> {

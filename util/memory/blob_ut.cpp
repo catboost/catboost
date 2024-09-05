@@ -76,4 +76,4 @@ Y_UNIT_TEST_SUITE(TBlobTest) {
         TFsPath(path).Touch();
         TBlob::LockedFromFile(path);
     }
-}
+} // Y_UNIT_TEST_SUITE(TBlobTest)

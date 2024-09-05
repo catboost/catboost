@@ -243,4 +243,4 @@ Y_UNIT_TEST_SUITE(TYQueueTest) {
 
         UNIT_ASSERT(q.empty());
     }
-}
+} // Y_UNIT_TEST_SUITE(TYQueueTest)

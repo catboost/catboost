@@ -123,4 +123,4 @@ Y_UNIT_TEST_SUITE(TUtfUtilTest) {
         wtextScalar.remove(wtextSSE.size());
         UNIT_ASSERT(wtextScalar == wtextSSE);
     }
-}
+} // Y_UNIT_TEST_SUITE(TUtfUtilTest)

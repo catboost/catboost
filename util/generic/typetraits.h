@@ -46,7 +46,7 @@ namespace NPrivate {
         }
         return false;
     }
-}
+} // namespace NPrivate
 
 #if _LIBCPP_STD_VER >= 17 && !defined(_MSC_VER)
 // Disable std::conjunction for MSVC by analogy with std::disjunction.
@@ -93,7 +93,7 @@ public:
 namespace NPrivate {
     template <class T>
     struct TIsSmall: std::integral_constant<bool, (sizeof(T) <= sizeof(void*))> {};
-}
+} // namespace NPrivate
 
 template <class T>
 class TTypeTraits: public TTypeTraitsBase<T> {
@@ -273,7 +273,7 @@ namespace NPrivate {
 
         using TType = decltype(Check(std::declval<TDerived*>()));
     };
-}
+} // namespace NPrivate
 
 template <template <class...> class T, class U>
 struct TIsSpecializationOf: std::false_type {};
@@ -328,7 +328,7 @@ namespace NPrivate {
 
     template <typename T>
     std::false_type IsIterableImpl(...);
-}
+} // namespace NPrivate
 
 template <typename T>
 using TIsIterable = decltype(NPrivate::IsIterableImpl<T>(0));

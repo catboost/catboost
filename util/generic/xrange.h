@@ -243,7 +243,7 @@ namespace NPrivate {
         const T Finish_;
     };
 
-}
+} // namespace NPrivate
 
 /**
  * generate arithmetic progression that starts at start with certain step and stop at finish (not including)

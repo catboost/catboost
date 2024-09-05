@@ -222,4 +222,4 @@ Y_UNIT_TEST_SUITE(TStringInputOutputTest) {
         UNIT_ASSERT_STRINGS_EQUAL(str, "Быть или не быть? Вот в чём вопрос");
         str.clear();
     }
-}
+} // Y_UNIT_TEST_SUITE(TStringInputOutputTest)

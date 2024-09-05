@@ -13,4 +13,4 @@ namespace NResolver {
 
         return GetHostIP(hostname, ip, &slots);
     }
-}
+} // namespace NResolver

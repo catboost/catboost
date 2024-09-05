@@ -34,6 +34,6 @@ namespace NPrivateStringBuilder {
 
         return std::move(builder);
     }
-}
+} // namespace NPrivateStringBuilder
 
 using TStringBuilder = NPrivateStringBuilder::TStringBuilder;

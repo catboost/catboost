@@ -38,4 +38,4 @@ Y_UNIT_TEST_SUITE(MakeTempFileSuite) {
             UNIT_ASSERT(TFsPath{tempFilePath}.Exists());
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(MakeTempFileSuite)

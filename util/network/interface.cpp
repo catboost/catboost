@@ -78,4 +78,4 @@ namespace NAddr {
 
         return result;
     }
-}
+} // namespace NAddr

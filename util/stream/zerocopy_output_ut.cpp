@@ -45,4 +45,4 @@ Y_UNIT_TEST_SUITE(TestZerocopyOutput) {
         output.Write(result.begin(), result.size());
         UNIT_ASSERT_STRINGS_EQUAL(str, result);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestZerocopyOutput)

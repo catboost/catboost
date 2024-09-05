@@ -69,4 +69,4 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
 
         Y_PRAGMA_DIAGNOSTIC_POP
     }
-}
+} // Y_UNIT_TEST_SUITE(TCompilerTest)

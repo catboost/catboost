@@ -27,4 +27,4 @@ namespace NPrivate {
 
     template ui32 LcgAdvance<ui32>(ui32, ui32, ui32, ui32) noexcept;
     template ui64 LcgAdvance<ui64>(ui64, ui64, ui64, ui64) noexcept;
-}
+} // namespace NPrivate

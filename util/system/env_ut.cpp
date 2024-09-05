@@ -56,4 +56,4 @@ Y_UNIT_TEST_SUITE(EnvTest) {
         UNIT_ASSERT_EXCEPTION(SetEnv("", "value"), yexception);
         UNIT_ASSERT_EXCEPTION(SetEnv("A=B", "C=D"), yexception);
     }
-}
+} // Y_UNIT_TEST_SUITE(EnvTest)

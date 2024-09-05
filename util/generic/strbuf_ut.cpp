@@ -362,7 +362,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         static_assert(std::is_same_v<decltype(s), TStringBuf>);
         UNIT_ASSERT_VALUES_EQUAL(s, TStringBuf("123"));
     }
-}
+} // Y_UNIT_TEST_SUITE(TStrBufTest)
 
 Y_UNIT_TEST_SUITE(TWtrBufTest) {
     Y_UNIT_TEST(TestConstExpr) {
@@ -388,4 +388,4 @@ Y_UNIT_TEST_SUITE(TWtrBufTest) {
 
         static_assert(str1 == str2);
     }
-}
+} // Y_UNIT_TEST_SUITE(TWtrBufTest)

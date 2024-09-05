@@ -20,7 +20,7 @@ namespace NPrivate {
     private:
         size_t Length_;
     };
-}
+} // namespace NPrivate
 
 template <class T>
 class alignas(::NPrivate::TAdditionalStorageInfo) TAdditionalStorage {

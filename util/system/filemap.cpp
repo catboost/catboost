@@ -65,7 +65,7 @@ namespace {
         const size_t GRANULARITY_;
         const size_t PAGE_SIZE_;
     };
-}
+} // namespace
 
 #define GRANULARITY (TSysInfo::Instance().GRANULARITY_)
 #define PAGE_SIZE (TSysInfo::Instance().PAGE_SIZE_)

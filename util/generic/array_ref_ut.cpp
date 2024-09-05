@@ -319,4 +319,4 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         const TVector<int> constData;
         Foo(MakeConstArrayRef(constData));
     }
-}
+} // Y_UNIT_TEST_SUITE(TestArrayRef)

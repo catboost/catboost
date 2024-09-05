@@ -34,4 +34,4 @@ Y_UNIT_TEST_SUITE(TSpinLock) {
     Y_UNIT_TEST(TAdaptiveLock_IsLocked) {
         TestLock<TAdaptiveLock>();
     }
-}
+} // Y_UNIT_TEST_SUITE(TSpinLock)

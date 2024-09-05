@@ -393,7 +393,7 @@ namespace {
         TStringListInput sli(lst);
         test(sli, "IWalkInput");
     }
-}
+} // namespace
 
 void TStreamsTest::TestReadTo() {
     TestStreamReadTo("111a222b333c444d555e666f", TestStreamReadTo1);

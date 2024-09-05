@@ -15,4 +15,4 @@ Y_UNIT_TEST_SUITE(TProgramNameTest) {
             throw;
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TProgramNameTest)

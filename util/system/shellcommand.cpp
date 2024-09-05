@@ -104,7 +104,7 @@ namespace {
         return std::string(str.begin(), str.end());
     }
 #endif
-}
+} // namespace
 
 // temporary measure to avoid rewriting all poll calls on win TPipeHandle
 #if defined(_win_)

@@ -226,4 +226,4 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
         UNIT_ASSERT_VALUES_EQUAL(thread.Join(), nullptr);
         UNIT_ASSERT(flag);
     }
-}
+} // Y_UNIT_TEST_SUITE(TSysThreadTest)

@@ -212,4 +212,4 @@ namespace NMemInfo {
 #endif
         return result;
     }
-}
+} // namespace NMemInfo

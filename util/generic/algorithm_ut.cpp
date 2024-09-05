@@ -903,4 +903,4 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         std::vector<int> v = {1, 2, 777};
         UNIT_ASSERT_VALUES_EQUAL(TString("begin;1;2;777"), Accumulate(v, TString("begin"), [](auto&& a, auto& b) { return a + ";" + ToString(b); }));
     }
-}
+} // Y_UNIT_TEST_SUITE(TAlgorithm)

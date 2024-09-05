@@ -20,4 +20,4 @@ Y_UNIT_TEST_SUITE(TestTypes) {
         sscanf("159", "%" SCNx64, &val64);
         UNIT_ASSERT(val64 == 345);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestTypes)

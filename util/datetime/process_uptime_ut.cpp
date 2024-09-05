@@ -14,4 +14,4 @@ Y_UNIT_TEST_SUITE(TestProcessUptimeSuite) {
         auto t2 = ProcessUptime();
         UNIT_ASSERT(t2 >= t1);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestProcessUptimeSuite)

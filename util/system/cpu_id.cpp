@@ -83,7 +83,7 @@ namespace {
     };
 
     static_assert(sizeof(TX86CpuInfo) == 16, "please, fix me");
-}
+} // namespace
 
 // https://en.wikipedia.org/wiki/CPUID
 bool NX86::HaveRDTSCP() noexcept {

@@ -58,7 +58,7 @@ namespace NPrivate {
 
         return rand % max;
     }
-}
+} // namespace NPrivate
 
 template <class TRandType, class T>
 struct TCommonRNG {

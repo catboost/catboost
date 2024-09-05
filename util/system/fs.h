@@ -159,6 +159,6 @@ namespace NFs {
         Y_ENSURE_EX(Exists(path), TFileError{} << "Path " << path << " does not exists (checked from cwd:" << NFs::CurrentWorkingDirectory() << ")");
         return path;
     }
-}
+} // namespace NFs
 
 Y_DECLARE_OPERATORS_FOR_FLAGS(NFs::EFilePermissions);

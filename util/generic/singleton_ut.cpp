@@ -43,4 +43,4 @@ Y_UNIT_TEST_SUITE(TestSingleton) {
         }
         UNIT_ASSERT_VALUES_EQUAL(Default<TWithParams>().Data1, 0);
     }
-}
+} // Y_UNIT_TEST_SUITE(TestSingleton)

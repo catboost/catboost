@@ -32,7 +32,7 @@ namespace NStringPrivate {
         Y_ASSERT(s);
         return strnlen(s, maxlen);
     }
-}
+} // namespace NStringPrivate
 
 template <typename TDerived, typename TCharType, typename TTraitsType = std::char_traits<TCharType>>
 class TStringBase {

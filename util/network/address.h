@@ -146,4 +146,4 @@ namespace NAddr {
     private:
         TSockAddrLocal SockAddr_;
     };
-}
+} // namespace NAddr

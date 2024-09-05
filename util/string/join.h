@@ -73,7 +73,7 @@ namespace NPrivate {
     size_t GetAppendLength(const TStringBuf delim, const TFirst& f, const TRest&... r) {
         return delim.length() + ::NPrivate::GetLength(f) + ::NPrivate::GetAppendLength(delim, r...);
     }
-}
+} // namespace NPrivate
 
 template <typename TCharType>
 inline void AppendJoinNoReserve(TBasicString<TCharType>&, TBasicStringBuf<TCharType>) {

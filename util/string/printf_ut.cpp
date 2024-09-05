@@ -27,4 +27,4 @@ Y_UNIT_TEST_SUITE(TStringPrintf) {
     Y_UNIT_TEST(TestExplicitPositions) {
         UNIT_ASSERT_EQUAL("abc xyz abc", Sprintf("%1$s %2$s %1$s", "abc", "xyz"));
     }
-}
+} // Y_UNIT_TEST_SUITE(TStringPrintf)

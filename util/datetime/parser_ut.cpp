@@ -575,7 +575,7 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
             UNIT_ASSERT(!TInstant::TryParseX509(s, iTry));
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TDateTimeParseTest)
 
 Y_UNIT_TEST_SUITE(TDurationParseTest) {
     Y_UNIT_TEST(TestParse) {
@@ -631,4 +631,4 @@ Y_UNIT_TEST_SUITE(TDurationParseTest) {
 
         UNIT_ASSERT_EQUAL(TDuration(), TDuration::Parse("10ns")); // TDuration has 1us precision.
     }
-}
+} // Y_UNIT_TEST_SUITE(TDurationParseTest)

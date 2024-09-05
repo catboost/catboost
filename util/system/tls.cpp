@@ -115,7 +115,7 @@ namespace {
 
         virtual ~TGenericTlsBase() = default;
     };
-}
+} // namespace
 
 #if defined(_unix_)
 namespace {
@@ -158,7 +158,7 @@ namespace {
     };
 
     using TKeyDescriptor = TMasterTls::TPerThreadStorage::TKey;
-}
+} // namespace
 
 class TKey::TImpl: public TKeyDescriptor {
 public:
@@ -211,7 +211,7 @@ namespace {
         TMutex Lock_;
         THashMap<TThread::TId, TPTSRef> Datas_;
     };
-}
+} // namespace
 
 class TKey::TImpl {
 public:

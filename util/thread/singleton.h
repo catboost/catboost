@@ -25,7 +25,7 @@ namespace NPrivate {
 #endif
         }
     };
-}
+} // namespace NPrivate
 
 template <class T, size_t Priority>
 Y_RETURNS_NONNULL static inline T* FastTlsSingletonWithPriority() {

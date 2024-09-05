@@ -294,7 +294,7 @@ namespace NBitMapPrivate {
         static constexpr size_t Value = 0;
     };
 
-}
+} // namespace NBitMapPrivate
 
 template <size_t BitCount, typename TChunkType>
 struct TFixedBitMapTraits {

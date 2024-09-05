@@ -125,4 +125,4 @@ Y_UNIT_TEST_SUITE(TGuidTest) {
         UNIT_ASSERT(!guid.empty());
         UNIT_ASSERT_EQUAL(guid[14], '1');
     }
-}
+} // Y_UNIT_TEST_SUITE(TGuidTest)

@@ -594,4 +594,4 @@ Y_UNIT_TEST_SUITE(TBitMapTest) {
             UNIT_ASSERT_VALUES_EQUAL(bm.Get(k), k >= 1 && k < 2048 ? 0 : 1);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TBitMapTest)

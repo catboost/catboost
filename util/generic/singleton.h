@@ -103,7 +103,7 @@ namespace NPrivate {
 
         T* D;
     };
-}
+} // namespace NPrivate
 
 #define Y_DECLARE_SINGLETON_FRIEND()                \
     template <class T, size_t P, class... TArgs>    \

@@ -120,4 +120,4 @@ namespace NUnicodeTable {
     };
 
     const size_t UNICODE_TABLE_SHIFT = 5;
-}
+} // namespace NUnicodeTable

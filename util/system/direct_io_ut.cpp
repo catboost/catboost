@@ -86,7 +86,7 @@ Y_UNIT_TEST_SUITE(TDirectIoTestSuite) {
             TestHugeFile(5 * 1024 * 1024 * 1024ULL + 1111);
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TDirectIoTestSuite)
 
 Y_UNIT_TEST_SUITE(TDirectIoErrorHandling) {
     Y_UNIT_TEST(Constructor) {
@@ -112,4 +112,4 @@ Y_UNIT_TEST_SUITE(TDirectIoErrorHandling) {
         UNIT_ASSERT_EXCEPTION(file.Finish(), TFileError);
         NFs::Remove(FileName_);
     }
-}
+} // Y_UNIT_TEST_SUITE(TDirectIoErrorHandling)

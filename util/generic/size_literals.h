@@ -42,7 +42,7 @@ namespace NPrivate {
                    ? static_cast<i64>(value)
                    : ythrow yexception() << "The resulting value " << value << " does not fit into the i64 type";
     }
-}
+} // namespace NPrivate
 
 constexpr i64 operator"" _KBs(const unsigned long long value) noexcept {
     return ::NPrivate::SignedCast(value * 1024);

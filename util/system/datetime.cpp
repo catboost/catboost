@@ -99,7 +99,7 @@ namespace NPrivate {
     bool HaveRdtscpImpl() {
         return NX86::HaveRDTSCP();
     }
-}
+} // namespace NPrivate
 #endif
 
 #ifdef Y_HAS_CLOCK_GETTIME

@@ -22,7 +22,7 @@ namespace {
 #endif
         }
     };
-}
+} // namespace
 
 void InitNetworkSubSystem() {
     (void)Singleton<TNetworkInit>();

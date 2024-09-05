@@ -152,6 +152,6 @@ namespace NX86 {
 
 #undef Y_LOOKUP_CPU_ID_IMPL
 
-}
+} // namespace NX86
 
 const char* CpuBrand(ui32 store[12]) noexcept;

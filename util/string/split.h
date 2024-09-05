@@ -47,7 +47,7 @@ namespace NStringSplitPrivate {
         return nullptr;
     }
 
-}
+} // namespace NStringSplitPrivate
 
 template <class I, class TDelim, class TConsumer>
 std::enable_if_t<::NStringSplitPrivate::TIsConsumerV<TConsumer, I>>
@@ -262,7 +262,7 @@ struct TSetDelimiter: private TFindFirstOf<const Char> {
 
 namespace NSplitTargetHasPushBack {
     Y_HAS_MEMBER(push_back, PushBack);
-}
+} // namespace NSplitTargetHasPushBack
 
 template <class T, class = void>
 struct TConsumerBackInserter;
@@ -1038,7 +1038,7 @@ namespace NStringSplitPrivate {
     auto MakeStringSplitter(String&& s) {
         return TStringSplitter<std::remove_reference_t<String>>(std::forward<String>(s));
     }
-}
+} // namespace NStringSplitPrivate
 
 template <class Iterator>
 auto StringSplitter(Iterator begin, Iterator end) {

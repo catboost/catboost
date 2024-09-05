@@ -1123,4 +1123,4 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         TMaybe<TStringBuf> v;
         UNIT_ASSERT_EXCEPTION_CONTAINS(v.GetRef(), yexception, "StringBuf");
     }
-}
+} // Y_UNIT_TEST_SUITE(TMaybeTest)

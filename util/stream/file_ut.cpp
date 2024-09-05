@@ -71,4 +71,4 @@ Y_UNIT_TEST_SUITE(TFileTest) {
         close(fds[1]);
     }
 #endif
-}
+} // Y_UNIT_TEST_SUITE(TFileTest)

@@ -190,7 +190,7 @@ namespace NDateTimeHelpers {
     struct TPrecisionHelper<double> {
         using THighPrecision = double;
     };
-}
+} // namespace NDateTimeHelpers
 
 class TDuration: public TTimeBase<TDuration> {
     using TBase = TTimeBase<TDuration>;
@@ -576,7 +576,7 @@ namespace NPrivate {
         {
         }
     };
-}
+} // namespace NPrivate
 
 /** @name Helpers for printing local times to `IOutputStream`s.
  *        The FormatLocal* functions create an opaque object that, when written to
@@ -645,7 +645,7 @@ namespace NDateTimeHelpers {
 
         return a < b ? 0 : a - b;
     }
-}
+} // namespace NDateTimeHelpers
 
 constexpr TDuration operator-(const TInstant& l, const TInstant& r) noexcept {
     return TDuration::FromValue(::NDateTimeHelpers::DiffWithSaturation(l.GetValue(), r.GetValue()));

@@ -14,4 +14,4 @@ Y_UNIT_TEST_SUITE(TTestSharedMemory) {
 
         UNIT_ASSERT_VALUES_EQUAL(*(ui32*)m2.GetPtr(), 123);
     }
-}
+} // Y_UNIT_TEST_SUITE(TTestSharedMemory)

@@ -18,7 +18,7 @@ namespace {
         {
         }
     };
-}
+} // namespace
 
 static const TExample CommonTestData[] = {
     // Should be valid UTF-8.
@@ -145,4 +145,4 @@ Y_UNIT_TEST_SUITE(TEscapeCTest) {
         UNIT_ASSERT_VALUES_EQUAL(UnescapeC("\\U00000020"), " ");
         UNIT_ASSERT_VALUES_EQUAL(UnescapeC("\\Uxxx"), "Uxxx");
     }
-}
+} // Y_UNIT_TEST_SUITE(TEscapeCTest)

@@ -385,7 +385,7 @@ namespace NTestIntrusiveConvertion {
 
     void Func(TIntrusiveConstPtr<TB>) {
     }
-}
+} // namespace NTestIntrusiveConvertion
 
 void TPointerTest::TestIntrusiveConvertion() {
     using namespace NTestIntrusiveConvertion;
@@ -559,7 +559,7 @@ namespace {
         }
     };
 
-}
+} // namespace
 
 void TPointerTest::TestOperatorBool() {
     using TVec = TVector<ui32>;

@@ -34,7 +34,7 @@ namespace {
         IOutputStream* Out;
         int Level;
     };
-}
+} // namespace
 
 template <>
 struct TSingletonTraits<TDbgSelector> {

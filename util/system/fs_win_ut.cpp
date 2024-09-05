@@ -68,4 +68,4 @@ Y_UNIT_TEST_SUITE(TFsWinTest) {
         NFsPrivate::WinRemove(dir1);
         UNIT_ASSERT(!NFsPrivate::WinExists(dir1));
     }
-}
+} // Y_UNIT_TEST_SUITE(TFsWinTest)

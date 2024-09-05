@@ -22,7 +22,7 @@ namespace {
             ResetRandomState();
         }
     };
-}
+} // namespace
 
 void RNGInitAtForkHandlers() {
     SingletonWithPriority<TInit, 0>();

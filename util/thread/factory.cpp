@@ -64,7 +64,7 @@ namespace {
     private:
         std::function<void()> Func;
     };
-}
+} // namespace
 
 THolder<IThread> IThreadFactory::Run(const std::function<void()>& func) {
     THolder<IThread> ret(DoCreate());

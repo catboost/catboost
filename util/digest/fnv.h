@@ -43,7 +43,7 @@ namespace NFnvPrivate {
     DEF_FNV(64)
 
 #undef DEF_FNV
-}
+} // namespace NFnvPrivate
 
 template <class T, class It>
 static constexpr T FnvHash(It b, It e, T init) {

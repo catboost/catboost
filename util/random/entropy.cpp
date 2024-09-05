@@ -206,7 +206,7 @@ namespace {
     };
 
     using TRandomTraits = TDefaultTraits;
-}
+} // namespace
 
 IInputStream& EntropyPool() {
     return TRandomTraits::Instance().EntropyPool();

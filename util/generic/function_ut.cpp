@@ -135,4 +135,4 @@ Y_UNIT_TEST_SUITE(TestFunctionSignature) {
         TestCT<decltype(fffn)>();
         TestCT<decltype(fffcn)>();
     }
-}
+} // Y_UNIT_TEST_SUITE(TestFunctionSignature)

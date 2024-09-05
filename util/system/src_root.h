@@ -70,6 +70,6 @@ namespace NPrivate {
     constexpr Y_FORCE_INLINE TStaticBuf StripRoot(const TStaticBuf& f) noexcept {
         return StripRoot(f, RootPrefixLength(f));
     }
-}
+} // namespace NPrivate
 
 #define __SOURCE_FILE_IMPL__ ::NPrivate::StripRoot(STATIC_BUF(__FILE__), std::integral_constant<unsigned, ::NPrivate::RootPrefixLength(STATIC_BUF(__FILE__))>::value)

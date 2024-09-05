@@ -197,8 +197,8 @@ namespace NBitOps {
         }
     #endif
 #endif
-    }
-}
+    } // namespace NPrivate
+} // namespace NBitOps
 
 /**
  * Computes the next power of 2 higher or equal to the integer parameter `t`.

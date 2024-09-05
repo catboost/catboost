@@ -210,7 +210,7 @@ namespace NFormatPrivate {
         double Value;
         ESizeFormat Format;
     };
-}
+} // namespace NFormatPrivate
 
 /**
  * Output manipulator basically equivalent to `std::setw` and `std::setfill`

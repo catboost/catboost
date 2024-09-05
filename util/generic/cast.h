@@ -32,7 +32,7 @@ namespace NPrivate {
     static T DynamicCast(F f) {
         return dynamic_cast<T>(f);
     }
-}
+} // namespace NPrivate
 
 /*
  * replacement for dynamic_cast(dynamic_cast in debug mode, else static_cast)
@@ -104,7 +104,7 @@ namespace NPrivate {
                                        ((std::is_signed<TSmallInt>::value == std::is_signed<TLargeInt>::value && sizeof(TSmallInt) >= sizeof(TLargeInt)) ||
                                         (std::is_signed<TSmallInt>::value && sizeof(TSmallInt) > sizeof(TLargeInt)));
     };
-}
+} // namespace NPrivate
 
 template <class TSmallInt, class TLargeInt>
 constexpr std::enable_if_t<::NPrivate::TSafelyConvertible<TSmallInt, TLargeInt>::Result, TSmallInt> SafeIntegerCast(TLargeInt largeInt) noexcept {

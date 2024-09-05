@@ -160,7 +160,7 @@ namespace {
         UNIT_ASSERT(n == len);
         UNIT_ASSERT(r == result);
     }
-}
+} // namespace
 
 class TConversionTest: public TTestBase {
 private:

@@ -24,4 +24,4 @@ Y_UNIT_TEST_SUITE(TestSourceRoot) {
         static_assert(!::NPrivate::IsProperPrefix(STATIC_BUF(""), STATIC_BUF("")), R"(IsProperPrefix("", "") failed)");
         static_assert(::NPrivate::IsProperPrefix(STATIC_BUF("dir"), STATIC_BUF("dir/file")), R"(IsProperPrefix("dir", "dir/file") failed)");
     }
-}
+} // Y_UNIT_TEST_SUITE(TestSourceRoot)

@@ -20,7 +20,7 @@ namespace {
     }
     void __tsan_set_fiber_name(void*, const char*) {
     }
-}
+} // namespace
     #endif
 #endif
 

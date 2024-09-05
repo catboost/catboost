@@ -9,7 +9,7 @@ namespace {
             return RandomNumber<T>();
         }
     };
-}
+} // namespace
 
 template <>
 float StdNormalRandom<float>() noexcept {

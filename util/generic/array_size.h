@@ -19,6 +19,6 @@ namespace NArraySizePrivate {
             Result = N
         };
     };
-}
+} // namespace NArraySizePrivate
 
 #define Y_ARRAY_SIZE(arr) ((size_t)::NArraySizePrivate::TArraySize<decltype(arr)>::Result)

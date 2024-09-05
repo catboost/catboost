@@ -493,4 +493,4 @@ Y_UNIT_TEST_SUITE(TYMapTest) {
         UNIT_ASSERT(movedM.contains(0));
         UNIT_ASSERT_VALUES_EQUAL(1, movedM[0]);
     }
-}
+} // Y_UNIT_TEST_SUITE(TYMapTest)

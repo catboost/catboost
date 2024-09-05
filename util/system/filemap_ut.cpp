@@ -356,4 +356,4 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
         }
         NFs::Remove(FileName_);
     }
-}
+} // Y_UNIT_TEST_SUITE(TFileMapTest)

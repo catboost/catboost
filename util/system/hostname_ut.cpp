@@ -22,4 +22,4 @@ Y_UNIT_TEST_SUITE(THostNameTest) {
             throw;
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(THostNameTest)

@@ -139,4 +139,4 @@ Y_UNIT_TEST_SUITE(TestBufferedIO) {
         UNIT_ASSERT_VALUES_EQUAL(in.ReadTo(t, 'z'), 4);
         UNIT_ASSERT_VALUES_EQUAL(t, "9abc");
     }
-}
+} // Y_UNIT_TEST_SUITE(TestBufferedIO)

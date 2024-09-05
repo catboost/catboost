@@ -178,7 +178,7 @@ namespace {
         TString ExecPath;
         TString PersistentExecPath;
     };
-}
+} // namespace
 
 const TString& GetExecPath() {
     return TExecPathsHolder::Instance()->ExecPath;

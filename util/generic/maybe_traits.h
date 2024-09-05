@@ -179,7 +179,7 @@ namespace NMaybe {
             return *this;
         }
     };
-}
+} // namespace NMaybe
 
 template <class T>
 using TMaybeBase = NMaybe::TMoveAssignBase<T>;

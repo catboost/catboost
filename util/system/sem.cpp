@@ -210,7 +210,7 @@ namespace {
     Y_PRAGMA_DIAGNOSTIC_POP
     #endif
 #endif
-}
+} // namespace
 
 class TSemaphore::TImpl: public TSemaphoreImpl {
 public:

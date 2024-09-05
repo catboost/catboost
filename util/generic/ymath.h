@@ -193,7 +193,7 @@ namespace NUtilMathPrivate {
             return (x % y) ? (quot + 1) : quot;
         }
     };
-}
+} // namespace NUtilMathPrivate
 
 /**
  * @returns Equivalent to ceil((double) x / (double) y) but using only integer arithmetic operations

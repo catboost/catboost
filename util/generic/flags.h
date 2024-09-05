@@ -9,7 +9,7 @@
 class IOutputStream;
 namespace NPrivate {
     void PrintFlags(IOutputStream& stream, ui64 value, size_t size);
-}
+} // namespace NPrivate
 
 /**
  * `TFlags` wrapper provides a type-safe mechanism for storing OR combinations

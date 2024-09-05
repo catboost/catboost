@@ -427,7 +427,7 @@ Y_UNIT_TEST_SUITE(TTestFileHandle) {
             Y_ENSURE(TStringBuf(buf, 2) == "12");
         }
     }
-}
+} // Y_UNIT_TEST_SUITE(TTestFileHandle)
 
 Y_UNIT_TEST_SUITE(TTestDecodeOpenMode) {
     Y_UNIT_TEST(It) {
@@ -437,4 +437,4 @@ Y_UNIT_TEST_SUITE(TTestDecodeOpenMode) {
         UNIT_ASSERT_VALUES_EQUAL("WrOnly|ForAppend", DecodeOpenMode(WrOnly | ForAppend));
         UNIT_ASSERT_VALUES_EQUAL("RdWr|CreateAlways|CreateNew|ForAppend|Transient|CloseOnExec|Temp|Sync|Direct|DirectAligned|Seq|NoReuse|NoReadAhead|AX|AR|AW|AWOther|0xF8888000", DecodeOpenMode(0xFFFFFFFF));
     }
-}
+} // Y_UNIT_TEST_SUITE(TTestDecodeOpenMode)

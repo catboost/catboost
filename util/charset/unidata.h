@@ -126,7 +126,7 @@ namespace NUnicode {
         inline bool IsBidi(wchar32 ch, ui32 type) {
             return ((NUnicode::NPrivate::CharInfo(ch) >> BIDI_OFFSET) & 15) == type;
         }
-    }
+    } // namespace NPrivate
 
     inline size_t UnicodeInstancesLimit() {
         return NPrivate::UnidataTable().Size();
@@ -142,7 +142,7 @@ namespace NUnicode {
     inline bool CharHasType(wchar32 ch, ui64 type_bits) {
         return (SHIFT(NUnicode::CharType(ch)) & type_bits) != 0;
     }
-}
+} // namespace NUnicode
 
 // all usefull properties
 

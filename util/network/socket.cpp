@@ -477,7 +477,7 @@ namespace {
         bool HasFastOpen_;
     };
 #endif
-}
+} // namespace
 
 void SetTcpFastOpen(SOCKET s, int qlen) {
 #if defined(TCP_FASTOPEN)
@@ -965,7 +965,7 @@ namespace {
             return contains(name);
         }
     };
-}
+} // namespace
 
 class TNetworkAddress::TImpl: public TAtomicRefCount<TImpl> {
 private:
