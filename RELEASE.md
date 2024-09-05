@@ -1,3 +1,41 @@
+# Release 1.2.6
+
+## Major changes
+* CatBoost open source build, test and release infrastructure has been switched to GitHub actions. It is possible to run it if you fork CatBoost repository as well. See [the announcement](https://github.com/catboost/catboost/discussions/2708) for details.
+
+## Python package
+* Adapt `numpy` dependency specification to prohibit `numpy >= 2.0` for now. #2671
+
+## New features
+* User-defined metric GPU evaluation for task_type=GPU. Thanks to @pnsemyon.
+* GPU Custom objective support. Thanks to @pnsemyon.
+* \[C/C++ applier\]. `APT_MULTI_PROBABILITY` prediction type is now supported. #2639. Thanks to @aivarasbaranauskas.
+* `GroupQuantile` metric
+* [Aggregated graph features](https://catboost.ai/en/docs/features/graph-aggregated-features)
+
+## Build & testing
+* \[Windows\]: Visual Studio 2022 with MSVC toolset 14.29.30133 is now supported. #2302
+
+## Speedups
+* \[GPU\]: Increase block size in `QueryCrossEntropy` (~3x faster on a100 for 6m samples, 350 features, query size near 1).
+
+## Improvements
+* \[datasets\] Use mkstemp to replace deprecated mktemp. #2660. Thanks to @fatmo666
+
+## Bugfixes
+* \[C/C++ applier\]. Add missed `PredictSpecificClassFlat` to calcer.exports. #2715
+* \[Linux\]. Restore readable backtraces
+* \[GPU\] Make CUDA_MAX_THREADS_PER_SM cuda arch-specific
+* \[JVM applier\]: Fixed bloating temp directory with copies of native libraries on Windows. #2622. Thanks to @DKARAGODIN.
+* Calculate F1, Precision, and Recall for all labels in multi-label classification
+* Synchronize values of NCB::NModelEvaluation::EPredictionType and EApiPredictionType. #2643
+* Fix sign of 2nd derivative for Tweedie loss
+* Fix 'Can't find borders for feature ...' error when using text features on GPU. #2657
+* Fix indexing of tokenized text features in model saver and dataset loader when some features are ignored
+* Fix descent direction for Cox regression fix #2701
+* Fix GetTreeNodeToLeaf in multidimensional case (fixes plot_tree for multidimensional approx with non-oblivious trees). #2668
+
+
 # Release 1.2.5
 
 ## New features
