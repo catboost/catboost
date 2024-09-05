@@ -5,10 +5,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 
 public class NativeLib {
     private static final Logger logger = LoggerFactory.getLogger(NativeLib.class);
+    private static final String LOCK_EXT = ".lck";
 
     /**
      * Load libName, first will try try to load libName from default location then will try to load library from JAR.
@@ -16,7 +21,8 @@ public class NativeLib {
      * @param libName
      * @throws IOException
      */
-    public static void smartLoad(final @NotNull String libName) throws IOException {
+    public static synchronized void smartLoad(final @NotNull String libName) throws IOException {
+        cleanup(libName);
         try {
             loadNativeLibraryFromJar(libName);
         } catch (IOException ioe) {
@@ -101,14 +107,46 @@ public class NativeLib {
         final String filename = parts[parts.length - 1];
 
         parts = filename.split("\\.", 2);
-        final String prefix = parts[0];
+        final String prefix = parts[0] + "-";
         final String suffix = parts.length > 1 ? "." + parts[parts.length - 1] : null;
 
         final File libOnDisk = File.createTempFile(prefix, suffix);
         libOnDisk.deleteOnExit();
 
+        final File libOnDiskLck = new File(libOnDisk.getAbsolutePath() + LOCK_EXT);
+        libOnDiskLck.createNewFile();
+        libOnDiskLck.deleteOnExit();
+
         copyFileFromJar(pathWithinJar, libOnDisk.getPath());
 
         return libOnDisk.getAbsolutePath();
+    }
+
+    /**
+     * Delete old native libraries
+     */
+    private static void cleanup(final @NotNull String libName) {
+        final String searchPattern = libName + "-";
+
+        try (Stream<Path> dirList = Files.list(new File(System.getProperty("java.io.tmpdir")).toPath())) {
+            dirList.filter(
+                path -> !path.getFileName().toString().endsWith(LOCK_EXT)
+                    && path.getFileName()
+                        .toString()
+                        .startsWith(searchPattern))
+                .forEach(
+                    nativeLib -> {
+                        Path lckFile = Paths.get(nativeLib + LOCK_EXT);
+                        if (Files.notExists(lckFile)) {
+                            try {
+                                Files.delete(nativeLib);
+                            } catch (Exception e) {
+                                logger.error("Failed to delete old native lib", e);
+                            }
+                        }
+                    });
+        } catch (IOException e) {
+            logger.error("Failed to open directory", e);
+        }
     }
 }
