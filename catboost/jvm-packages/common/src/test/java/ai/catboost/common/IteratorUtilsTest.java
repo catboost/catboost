@@ -1,5 +1,3 @@
-package ai.catboost.common;
-
 import java.util.Arrays;
 
 import org.apache.commons.math3.util.Precision;
