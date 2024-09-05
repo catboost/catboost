@@ -437,7 +437,7 @@ Y_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_STRINGS_EQUAL(ps.Reconstruct(), "../path");
     #endif
     }
-}
+} // Y_UNIT_TEST_SUITE(PSUF(PathSplit)
 
 Y_UNIT_TEST_SUITE(PSUF(PathSplitTraits)) {
     Y_UNIT_TEST(IsPathSep) {
@@ -475,7 +475,7 @@ Y_UNIT_TEST_SUITE(PSUF(PathSplitTraits)) {
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("#:\\somepath"), false);
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("#:/somepath"), false);
     }
-}
+} // Y_UNIT_TEST_SUITE(PSUF(PathSplitTraits)
 
     #undef TRUE_ONLY_WIN
 
