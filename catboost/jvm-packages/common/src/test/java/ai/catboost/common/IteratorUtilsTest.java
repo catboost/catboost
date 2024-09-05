@@ -1,85 +1,84 @@
 package ai.catboost.common;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 import org.apache.commons.math3.util.Precision;
 
+import junit.framework.TestCase;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import ai.catboost.common.IteratorUtils;
 
 public class IteratorUtilsTest {
     @Test
     public void testEmpty() {
-        assertTrue(
+        TestCase.assertTrue(
             IteratorUtils.elementsEqual(
                 Arrays.stream(new int[0]).iterator(),
                 Arrays.stream(new int[0]).iterator(),
-                    Objects::equals
+                (l, r) -> l == r
             )
         );
     }
 
     @Test
     public void testEmptyAndNonEmpty() {
-        assertFalse(
+        TestCase.assertFalse(
             IteratorUtils.elementsEqual(
                 Arrays.stream(new int[] {4, 5, 6, 1}).iterator(),
                 Arrays.stream(new int[0]).iterator(),
-                    Objects::equals
+                (l, r) -> l == r
             )
         );
     }
 
     @Test
     public void testSameSizeAndEqual() {
-        assertTrue(
+        TestCase.assertTrue(
             IteratorUtils.elementsEqual(
                 Arrays.stream(new String[] {"a", "b", "c"}).iterator(),
                 Arrays.stream(new String[] {"a", "b", "c"}).iterator(),
-                    String::equals
+                (l, r) -> l.equals(r)
             )
         );
     }
 
     @Test
     public void testSameSizeAndNonEqual() {
-        assertFalse(
+        TestCase.assertFalse(
             IteratorUtils.elementsEqual(
                 Arrays.stream(new int[] {4, 5, 6, 1}).iterator(),
                 Arrays.stream(new int[] {4, 5, 3, 1}).iterator(),
-                    Objects::equals
+                (l, r) -> l == r
             )
         );
     }
 
     @Test
     public void testDifferentSizeSamePrefix() {
-        assertFalse(
+        TestCase.assertFalse(
             IteratorUtils.elementsEqual(
                 Arrays.stream(new int[] {1, 2, 3, 4, 5}).iterator(),
                 Arrays.stream(new int[] {1, 2, 3}).iterator(),
-                    Objects::equals
+                (l, r) -> l == r
             )
         );
     }
 
     @Test
     public void testDifferentSizeDifferentPrefix() {
-        assertFalse(
+        TestCase.assertFalse(
             IteratorUtils.elementsEqual(
                 Arrays.stream(new String[] {"a", "z", "c", "d"}).iterator(),
                 Arrays.stream(new String[] {"a", "b", "c"}).iterator(),
-                    String::equals
+                (l, r) -> l.equals(r)
             )
         );
     }
 
     @Test
     public void testEqualWithPrecision() {
-        assertTrue(
+        TestCase.assertTrue(
             IteratorUtils.elementsEqual(
                 Arrays.stream(new double[] {1.e-4, 1.0}).iterator(),
                 Arrays.stream(new double[] {1.e-5, 1.0}).iterator(),
@@ -90,7 +89,7 @@ public class IteratorUtilsTest {
 
     @Test
     public void testNonEqualWithPrecision() {
-        assertFalse(
+        TestCase.assertFalse(
             IteratorUtils.elementsEqual(
                 Arrays.stream(new double[] {1.e-4, 1.0}).iterator(),
                 Arrays.stream(new double[] {1.e-5, 1.0}).iterator(),
