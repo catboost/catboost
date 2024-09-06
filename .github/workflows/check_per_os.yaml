@@ -30,7 +30,7 @@ on:
 jobs:
   build:
     name: Build
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/build_per_os.yaml
     with:
       runs-on_value: ${{ inputs.runs-on_value }}
       revision: ${{ inputs.revision }}
@@ -41,7 +41,7 @@ jobs:
 
   test:
     name: Test
-    uses: ./.github/workflows/test.yaml
+    uses: ./.github/workflows/test_per_os.yaml
     needs:
       - build
     with:

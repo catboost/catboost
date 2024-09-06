@@ -1,4 +1,4 @@
-name: Build
+name: Build per OS
 
 on:
   workflow_call:
