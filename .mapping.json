@@ -2,6 +2,7 @@
   ".":"catboost/github_toplevel/",
   ".gitattributes":"catboost/github_toplevel/.gitattributes",
   ".github/actions/download_artifacts_for_all_platforms/action.yaml":"catboost/github_toplevel/.github/actions/download_artifacts_for_all_platforms/action.yaml",
+  ".github/actions/retried_wait_for_mvn_dependency/action.yaml":"catboost/github_toplevel/.github/actions/retried_wait_for_mvn_dependency/action.yaml",
   ".github/actions/upload_python_package_artifacts_for_all_py_versions/action.yaml":"catboost/github_toplevel/.github/actions/upload_python_package_artifacts_for_all_py_versions/action.yaml",
   ".github/workflows/add_mac_os_extra_env_to_cache.yaml":"catboost/github_toplevel/.github/workflows/add_mac_os_extra_env_to_cache.yaml",
   ".github/workflows/build_per_os.yaml":"catboost/github_toplevel/.github/workflows/build_per_os.yaml",

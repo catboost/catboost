@@ -1,0 +1,39 @@
+name: 'Retried wait for mvn dependency'
+inputs:
+  groupId:
+    required: true
+    type: string
+  artifactId:
+    required: true
+    type: string
+  version:
+    required: true
+    type: string
+
+# assumes python and mvn have been set up
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Setup env
+      shell: pwsh
+      run:
+        python -m pip install tenacity
+
+    - name: 'mvn dependency:get'
+      shell: python
+      run: |
+        from tenacity import *
+        import subprocess
+        @retry(stop=stop_after_delay(7200), wait=wait_fixed(60))
+        def dependency_get():
+            subprocess.check_call(
+              'mvn -U'
+              ' -DgroupId=${{ inputs.groupId }}'
+              ' -DartifactId=${{ inputs.artifactId }}'
+              ' -Dversion=${{ inputs.version }}'
+              ' dependency:get',
+              shell=True
+            )
+        dependency_get()

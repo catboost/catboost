@@ -166,6 +166,7 @@ jobs:
           path: catboost
           ref: v${{ inputs.version }}
           sparse-checkout: |
+            .github/actions
             catboost/jvm-packages/catboost4j-prediction
             catboost/jvm-packages/tools
 
@@ -198,6 +199,13 @@ jobs:
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
 
+      - name: Wait for catboost-common availability on Maven Central
+        uses: ./catboost/.github/actions/retried_wait_for_mvn_dependency
+        with:
+          groupId: ai.catboost
+          artifactId: catboost-common
+          version: ${{ inputs.version }}
+
       - name: Publish package
         run: |
           export GPG_TTY=$(tty)
@@ -226,6 +234,7 @@ jobs:
           path: catboost
           ref: v${{ inputs.version }}
           sparse-checkout: |
+            .github/actions
             catboost/jvm-packages/tools
             catboost/spark/catboost4j-spark
 
@@ -273,6 +282,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
+
+      - name: Wait for catboost-common availability on Maven Central
+        uses: ./catboost/.github/actions/retried_wait_for_mvn_dependency
+        with:
+          groupId: ai.catboost
+          artifactId: catboost-common
+          version: ${{ inputs.version }}
 
       - name: Publish package
         run: |
