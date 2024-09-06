@@ -12,7 +12,7 @@ on:
       artifacts_repository:
         required: false
         type: string
-        default: andrey-khropov/catboost
+        default: catboost/catboost
       catboost_package_name:
         required: false
         type: string
