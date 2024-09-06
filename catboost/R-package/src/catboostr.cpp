@@ -328,7 +328,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP floatAndCatMatrixParam,
             }
         }
         if (graphParam != R_NilValue) {
-            CB_ENSURE(pairsParam == R_NilValue, "Only one option graph or param should be set");
+            CB_ENSURE(pairsParam == R_NilValue, "Only one of 'graph' or 'pairs' options can be set");
             pairsParam = graphParam;
         }
         if (pairsParam != R_NilValue) {
