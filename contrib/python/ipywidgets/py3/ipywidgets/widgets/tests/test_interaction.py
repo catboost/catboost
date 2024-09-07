@@ -6,6 +6,7 @@
 from unittest.mock import patch
 
 import os
+from enum import Enum
 from collections import OrderedDict
 import pytest
 
@@ -19,10 +20,19 @@ from ipywidgets import (interact, interact_manual, interactive,
 # Utility stuff
 #-----------------------------------------------------------------------------
 
-from .utils import setup, teardown
-
 def f(**kwargs):
     pass
+
+
+class Color(Enum):
+    red = 0
+    green = 1
+    blue = 2
+
+
+def g(a: str, b: bool, c: int, d: float, e: Color) -> None:
+    pass
+
 
 displayed = []
 @pytest.fixture()
@@ -625,3 +635,27 @@ def test_state_schema():
     with open(yc.source_path('contrib/python/ipywidgets/py3/ipywidgets/state.schema.json')) as f:
         schema = json.load(f)
     jsonschema.validate(state, schema)
+
+def test_type_hints():
+    c = interactive(g)
+    
+    assert len(c.children) == 6
+
+    check_widget_children(
+        c,
+        a={'cls': widgets.Text},
+        b={'cls': widgets.Checkbox},
+        c={'cls': widgets.IntText},
+        d={'cls': widgets.FloatText},
+        e={
+            'cls': widgets.Dropdown,
+            'options': {
+                'red': Color.red,
+                'green': Color.green,
+                'blue': Color.blue,
+            },
+            '_options_labels': ("red", "green", "blue"),
+            '_options_values': (Color.red, Color.green, Color.blue),
+        },
+    )
+

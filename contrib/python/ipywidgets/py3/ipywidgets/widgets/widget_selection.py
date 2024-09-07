@@ -478,6 +478,10 @@ class RadioButtons(_Selection):
     _view_name = Unicode('RadioButtonsView').tag(sync=True)
     _model_name = Unicode('RadioButtonsModel').tag(sync=True)
 
+    orientation = CaselessStrEnum(
+        values=['horizontal', 'vertical'], default_value='vertical',
+        help="Vertical or horizontal.").tag(sync=True)
+
 
 @register
 @doc_subst(_doc_snippets)

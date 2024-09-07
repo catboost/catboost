@@ -3,7 +3,7 @@
 
 from traitlets import Bool, Tuple, List
 
-from .utils import setup, teardown, DummyComm
+from .utils import setup
 
 from ipywidgets.widgets.widget import Widget
 

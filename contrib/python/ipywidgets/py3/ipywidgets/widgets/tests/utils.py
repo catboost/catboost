@@ -12,7 +12,7 @@ except ImportError:
     NEW_COMM_PACKAGE = False
 
 import ipykernel.comm
-
+import pytest
 
 class DummyComm():
     comm_id = 'a-b-c-d'
@@ -87,10 +87,10 @@ def teardown_test_comm():
             setattr(Widget, attr, value)
     _widget_attrs.clear()
 
+@pytest.fixture(autouse=True)
 def setup():
     setup_test_comm()
-
-def teardown():
+    yield
     teardown_test_comm()
 
 def call_method(method, *args, **kwargs):

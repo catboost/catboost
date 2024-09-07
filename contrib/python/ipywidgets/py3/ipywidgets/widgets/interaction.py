@@ -4,6 +4,7 @@
 """Interact with functions using widgets."""
 
 from collections.abc import Iterable, Mapping
+from enum import EnumMeta as EnumType
 from inspect import signature, Parameter
 from inspect import getcallargs
 from inspect import getfullargspec as check_argspec
@@ -11,8 +12,8 @@ import sys
 
 from IPython import get_ipython
 from . import (Widget, ValueWidget, Text,
-    FloatSlider, IntSlider, Checkbox, Dropdown,
-    VBox, Button, DOMWidget, Output)
+    FloatSlider, FloatText, IntSlider, IntText, Checkbox,
+    Dropdown, VBox, Button, DOMWidget, Output)
 from IPython.display import display, clear_output
 from traitlets import HasTraits, Any, Unicode, observe
 from numbers import Real, Integral
@@ -125,6 +126,8 @@ def _yield_abbreviations_for_parameter(param, kwargs):
             value = kwargs.pop(name)
         elif default is not empty:
             value = default
+        elif param.annotation:
+            value = param.annotation
         else:
             yield not_found
         yield (name, value, default)
@@ -304,6 +307,12 @@ class interactive(VBox):
                     # ignore failure to set default
                     pass
             return widget
+        
+        # Try type annotation
+        if isinstance(abbrev, type):
+            widget = cls.widget_from_annotation(abbrev)
+            if widget is not None:
+                return widget
 
         # Try single value
         widget = cls.widget_from_single_value(abbrev)
@@ -338,6 +347,22 @@ class interactive(VBox):
         elif isinstance(o, Real):
             min, max, value = _get_min_max_value(None, None, o)
             return FloatSlider(value=o, min=min, max=max)
+        else:
+            return None
+
+    @staticmethod
+    def widget_from_annotation(t):
+        """Make widgets from type annotation and optional default value."""
+        if t is str:
+            return Text()
+        elif t is bool:
+            return Checkbox()
+        elif t in {int, Integral}:
+            return IntText()
+        elif t in {float, Real}:
+            return FloatText()
+        elif isinstance(t, EnumType):
+            return Dropdown(options={option.name: option for option in t})
         else:
             return None
 

@@ -4,7 +4,6 @@
 import pytest
 
 from ipywidgets.widgets import jslink, jsdlink, ToggleButton
-from .utils import setup, teardown
 
 def test_jslink_args():
     with pytest.raises(TypeError):

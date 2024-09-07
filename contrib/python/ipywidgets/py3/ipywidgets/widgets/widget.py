@@ -684,7 +684,7 @@ class Widget(LoggingHasTraits):
         """Dynamically add trait attributes to the Widget."""
         super().add_traits(**traits)
         for name, trait in traits.items():
-            if trait.get_metadata('sync'):
+            if 'sync' in trait.metadata:
                 self.keys.append(name)
                 self.send_state(name)
 
