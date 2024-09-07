@@ -6,7 +6,7 @@
 
     <groupId>ai.catboost</groupId>
     <artifactId>catboost-prediction</artifactId>
-    <version>1.2.6</version>
+    <version>1.2.7</version>
     <packaging>jar</packaging>
     <name>CatBoost model applier</name>
     <description>Java module to apply CatBoost models</description>
@@ -200,7 +200,7 @@
         <dependency>
             <groupId>ai.catboost</groupId>
             <artifactId>catboost-common</artifactId>
-            <version>1.2.6</version>
+            <version>1.2.7</version>
         </dependency>
     </dependencies>
 

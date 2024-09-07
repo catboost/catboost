@@ -1,3 +1,12 @@
+# Release 1.2.7
+
+## Bugfixes
+* \[R-package\]: Restore basic functionality.
+
+## Build & testing
+* \[GPU\] Return configuration for multi-node GPU training with CMake-based build. See [documentation](https://catboost.ai/en/docs/installation/cli-installation-multi-node-installation).
+
+
 # Release 1.2.6
 
 ## Major changes
