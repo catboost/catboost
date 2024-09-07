@@ -26,6 +26,10 @@ on:
         required: False
         type: boolean
         default: true
+      components: # can't make individual choices due to GitHub limitations: https://github.com/orgs/community/discussions/8774
+        required: False
+        type: string
+        default: widget,python_package,jvm_catboost_common,jvm_catboost_prediction,jvm_catboost_spark,github
 
   workflow_dispatch:
     inputs:
@@ -51,10 +55,15 @@ on:
         required: False
         type: boolean
         default: true
+      components: # can't make individual choices due to GitHub limitations: https://github.com/orgs/community/discussions/8774
+        required: False
+        type: string
+        default: widget,python_package,jvm_catboost_common,jvm_catboost_prediction,jvm_catboost_spark,github
 
 
 jobs:
   publish_widget:
+    if: contains(inputs.components, 'widget')
     name: Publish catboost-widget on NPM
     runs-on: ubuntu-latest
     permissions:
@@ -88,6 +97,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish_python_package:
+    if: contains(inputs.components, 'python_package')
     name: Publish Python package to PyPI
     runs-on: ubuntu-latest
 
@@ -120,6 +130,7 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
 
   publish_jvm_catboost_common:
+    if: contains(inputs.components, 'jvm_catboost_common')
     name: Publish catboost-common package to Maven Central
     runs-on: ubuntu-latest
     steps:
@@ -155,6 +166,8 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
 
   publish_jvm_catboost_prediction:
+    # https://github.com/actions/runner/issues/491#issuecomment-850884422
+    if: always() && !cancelled() && !failure() && contains(inputs.components, 'jvm_catboost_prediction')
     name: Publish catboost-prediction package to Maven Central
     needs:
       - publish_jvm_catboost_common
@@ -218,6 +231,8 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
 
   publish_jvm_catboost_spark:
+    # https://github.com/actions/runner/issues/491#issuecomment-850884422
+    if: always() && !cancelled() && !failure() && contains(inputs.components, 'jvm_catboost_spark')
     name: Publish CatBoost for Apache Spark packages to Maven Central
     needs:
       - publish_jvm_catboost_common
@@ -301,6 +316,8 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
 
   publish_on_github:
+    # https://github.com/actions/runner/issues/491#issuecomment-850884422
+    if: always() && !cancelled() && !failure() && contains(inputs.components, 'github')
     name: Publish Release on GitHub
     needs:
       - publish_widget
