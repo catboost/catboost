@@ -127,3 +127,25 @@ target_sources(catboost-cuda-cuda_lib.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/tasks_impl/request_stream_task.cpp
 )
 
+if (USE_MPI)
+  set(MPI_ASSUME_NO_BUILTIN_MPI 1)
+  set(MPI_SKIP_COMPILER_WRAPPER 1)
+
+  find_package(MPI REQUIRED)
+
+  target_compile_definitions(catboost-cuda-cuda_lib PUBLIC USE_MPI)
+  target_link_libraries(catboost-cuda-cuda_lib PUBLIC MPI::MPI_C)
+
+  target_compile_definitions(catboost-cuda-cuda_lib.global PUBLIC USE_MPI)
+  target_link_libraries(catboost-cuda-cuda_lib.global PUBLIC MPI::MPI_C)
+
+  if (WITHOUT_CUDA_AWARE_MPI)
+    target_compile_definitions(catboost-cuda-cuda_lib PUBLIC WITHOUT_CUDA_AWARE_MPI)
+    target_compile_definitions(catboost-cuda-cuda_lib.global PUBLIC WITHOUT_CUDA_AWARE_MPI)
+  endif()
+
+  if (WRITE_MPI_MESSAGE_LOG)
+    target_compile_definitions(catboost-cuda-cuda_lib PUBLIC WRITE_MPI_MESSAGE_LOG)
+    target_compile_definitions(catboost-cuda-cuda_lib.global PUBLIC WRITE_MPI_MESSAGE_LOG)
+  endif()
+endif()

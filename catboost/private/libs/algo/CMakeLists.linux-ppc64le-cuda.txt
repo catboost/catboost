@@ -111,3 +111,6 @@ target_sources(private-libs-algo PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/confusion_matrix.cpp
 )
 
+if (USE_MPI)
+  target_compile_definitions(private-libs-algo PRIVATE USE_MPI)
+endif()
