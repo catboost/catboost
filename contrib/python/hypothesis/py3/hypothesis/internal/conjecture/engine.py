@@ -1112,7 +1112,7 @@ class ConjectureRunner:
                 (start1, end1), (start2, end2) = self.random.sample(sorted(group), 2)
                 if (start1 <= start2 <= end2 <= end1) or (
                     start2 <= start1 <= end1 <= end2
-                ):
+                ):  # pragma: no cover  # flaky on conjecture-cover tests
                     # one example entirely contains the other. give up.
                     # TODO use more intelligent mutation for containment, like
                     # replacing child with parent or vice versa. Would allow for

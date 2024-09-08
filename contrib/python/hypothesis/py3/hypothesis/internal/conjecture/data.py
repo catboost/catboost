@@ -1935,14 +1935,6 @@ AVAILABLE_PROVIDERS = {
 }
 
 
-# eventually we'll want to expose this publicly, but for now it lives as psuedo-internal.
-def realize(value: object) -> object:
-    from hypothesis.control import current_build_context
-
-    context = current_build_context()
-    return context.data.provider.realize(value)
-
-
 class ConjectureData:
     @classmethod
     def for_buffer(
