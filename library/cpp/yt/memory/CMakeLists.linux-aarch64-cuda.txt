@@ -31,6 +31,7 @@ target_link_libraries(cpp-yt-memory PUBLIC
 )
 
 target_sources(cpp-yt-memory PRIVATE
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/allocation_tags_hooks.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/blob.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/chunked_input_stream.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/memory/chunked_memory_allocator.cpp
