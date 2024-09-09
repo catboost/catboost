@@ -5,7 +5,7 @@ class App(ConanFile):
 
     settings = "os", "compiler", "build_type", "arch"
 
-    options = {}
+    default_options = {}
 
     def requirements(self):
         self.requires("openssl/1.1.1t")
