@@ -69,7 +69,7 @@ public:
     TCompactVector(TIterator first, TIterator last);
     TCompactVector(std::initializer_list<T> list);
 
-     ~TCompactVector();
+    ~TCompactVector();
 
     [[nodiscard]] bool empty() const;
 
