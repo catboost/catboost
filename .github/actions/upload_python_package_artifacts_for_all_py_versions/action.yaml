@@ -19,13 +19,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Upload python package artifact for cp37-cp37m-${{ inputs.platform_tag }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: catboost-python-package-dist-cp37-cp37m-${{ inputs.platform_tag }}-${{ inputs.artifacts_version }}
-        path: catboost/catboost/python-package/dist/${{ inputs.catboost_package_name }}-*-cp37-cp37m-${{ inputs.platform_tag }}.whl
-        retention-days: ${{ inputs.artifact_retention_days }}
-
     - name: Upload python package artifact for cp38-cp38-${{ inputs.platform_tag }}
       uses: actions/upload-artifact@v4
       with:
