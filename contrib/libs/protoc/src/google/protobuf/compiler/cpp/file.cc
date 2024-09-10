@@ -285,7 +285,7 @@ void FileGenerator::GenerateProtoHeader(io::Printer* p,
     }
     if (IsBootstrapProto(options_, file_)) {
       p->Emit({{"name", StripProto(file_->name())}}, R"cc(
-        // IWYU pragma: private, include "$name$.proto.h"
+        // IWYU pragma: private, include "$name$.pb.h"
       )cc");
     }
 
@@ -297,7 +297,7 @@ void FileGenerator::GenerateProtoHeader(io::Printer* p,
                for (int i = 0; i < file_->public_dependency_count(); ++i) {
                  const FileDescriptor* dep = file_->public_dependency(i);
                  p->Emit({{"name", StripProto(dep->name())}}, R"(
-                    #include "$name$.proto.h"
+                    #)" R"(include "$name$.pb.h"
                  )");
                }
              }},
@@ -485,7 +485,7 @@ void FileGenerator::GenerateSourceIncludes(io::Printer* p) {
         GetBootstrapBasename(options_, basename, &basename);
       }
       p->Emit({{"name", basename}}, R"(
-        #include "$name$.proto.h"
+        #)" R"(include "$name$.pb.h"
       )");
     }
   }

@@ -40,7 +40,8 @@ namespace NPlugins {
 
     TProtoStringType HeaderFileName(const FileDescriptor* file) {
         TProtoStringType basename = compiler::StripProto(file->name());
-        return basename.append(".pb.h");
+        bool use_proto_h = !!getenv("PROTOC_PLUGINS_LITE_HEADERS");
+        return use_proto_h ? basename.append(".proto.h") : basename.append(".pb.h");
     }
 
     TProtoStringType SourceFileName(const FileDescriptor* file) {
