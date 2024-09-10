@@ -35,7 +35,6 @@ from typing import List, Tuple
 IS_IN_GITHUB_ACTION = 'GITHUB_ACTION' in os.environ
 
 PYTHON_VERSIONS = [
-    (3,7),
     (3,8),
     (3,9),
     (3,10),
@@ -117,7 +116,7 @@ def get_python_root_dir(py_ver: Tuple[int, int])-> str:
     if sys.platform == 'linux':
         py_ver_str = f'{py_ver[0]}{py_ver[1]}'
         # manylinux2014 image conventions
-        return os.path.join('python', f'cp{py_ver_str}-cp{py_ver_str}m' if py_ver <= (3,7) else f'cp{py_ver_str}-cp{py_ver_str}')
+        return os.path.join('python', f'cp{py_ver_str}-cp{py_ver_str}')
 
 
 def get_python_version_include_and_library_paths(py_ver: Tuple[int, int]) -> Tuple[str, str]:
@@ -128,14 +127,13 @@ def get_python_version_include_and_library_paths(py_ver: Tuple[int, int]) -> Tup
     if sys.platform == 'win32':
         return (os.path.join(base_path, 'include'), os.path.join(base_path, 'libs', f'python{py_ver[0]}{py_ver[1]}.lib'))
 
-    # for some reason python versions for python <=3.7 contain 'm' suffix
-    python_sub_name = f'python{py_ver[0]}.{py_ver[1]}' + ('m' if py_ver <= (3,7) else '')
+    python_sub_name = f'python{py_ver[0]}.{py_ver[1]}'
 
     if sys.platform == 'darwin':
         lib_sub_path = os.path.join(
             'lib',
             f'python{py_ver[0]}.{py_ver[1]}',
-            f'config-{py_ver[0]}.{py_ver[1]}' + ('m' if py_ver <= (3,7) else '') + '-darwin'
+            f'config-{py_ver[0]}.{py_ver[1]}-darwin'
         )
     elif sys.platform == 'linux':
         lib_sub_path = 'lib'
