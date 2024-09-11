@@ -100,6 +100,8 @@ public:
 
     TString GetBestCompressionScheme() const;
 
+    const THashSet<TString>& AcceptedEncodings() const;
+
     const TString& Content() const noexcept {
         return Content_;
     }

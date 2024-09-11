@@ -49,6 +49,8 @@ Y_UNIT_TEST_SUITE(THttpParser) {
 
             UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), false);
             UNIT_ASSERT_VALUES_EQUAL(p.GetBestCompressionScheme(), "gzip");
+            THashSet<TString> acceptedEncodings = {"*"};
+            UNIT_ASSERT_VALUES_EQUAL(p.AcceptedEncodings(), acceptedEncodings);
             ui64 cl;
             UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
         }
@@ -65,6 +67,8 @@ Y_UNIT_TEST_SUITE(THttpParser) {
 
             UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), true);
             UNIT_ASSERT_VALUES_EQUAL(p.GetBestCompressionScheme(), "y-lzo");
+            THashSet<TString> acceptedEncodings = {"yyy123", "aaa", "y-lzq", "y-lzo", "bbb", "ccc"};
+            UNIT_ASSERT_VALUES_EQUAL(p.AcceptedEncodings(), acceptedEncodings);
             ui64 cl;
             UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
         }

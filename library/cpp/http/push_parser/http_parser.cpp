@@ -44,6 +44,10 @@ TString THttpParser::GetBestCompressionScheme() const {
     return TString();
 }
 
+const THashSet<TString>& THttpParser::AcceptedEncodings() const {
+    return AcceptEncodings_;
+}
+
 bool THttpParser::FirstLineParser() {
     if (Y_UNLIKELY(!ReadLine())) {
         return false;
