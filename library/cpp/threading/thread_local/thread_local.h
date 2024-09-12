@@ -222,16 +222,16 @@ public:
 
     template <typename ...ConsturctArgs>
     T* Get(TThread::TId tid, ConsturctArgs&& ...args) {
-        TNode* node = Head_.load(std::memory_order_relaxed);
-        for (; node; node = node->Next) {
+        TNode* head = Head_.load(std::memory_order_acquire);
+        for (TNode* node = head; node; node = node->Next) {
             if (node->Key == tid) {
                 return &node->Value;
             }
         }
 
-        TNode* newNode = AllocateNode(tid, node, std::forward<ConsturctArgs>(args)...);
-        while (!Head_.compare_exchange_weak(node, newNode, std::memory_order_release, std::memory_order_relaxed)) {
-            newNode->Next = node;
+        TNode* newNode = AllocateNode(tid, head, std::forward<ConsturctArgs>(args)...);
+        while (!Head_.compare_exchange_weak(head, newNode, std::memory_order_release, std::memory_order_relaxed)) {
+            newNode->Next = head;
         }
 
         return &newNode->Value;
