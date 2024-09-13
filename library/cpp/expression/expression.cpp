@@ -225,6 +225,7 @@ enum EOperation {
     O_SQR,                  // #SQR#
     O_SQRT,                 // #SQRT#
     O_SIGMOID,              // #SIGMOID#
+    O_HISTOGRAM_PERCENTILE, // #HISTOGRAM_PERCENTILE#
     O_STR_COND,             // ?@ / ternary operator for strings
     O_COND,                 // ?
     O_BINARY_BEGIN,         // binary operator
@@ -271,6 +272,7 @@ const TStringBuf EOperationsStrings[] = {
     TStringBuf("#SQR#"),
     TStringBuf("#SQRT#"),
     TStringBuf("#SIGMOID#"),
+    TStringBuf("#HISTOGRAM_PERCENTILE#"),
     TStringBuf("?@"),
     TStringBuf("?"),
     TStringBuf("#MIN#"),
@@ -301,7 +303,8 @@ const TStringBuf EOperationsStrings[] = {
     TStringBuf("-"),
     TStringBuf("*"),
     TStringBuf("/"),
-    TStringBuf("^")};
+    TStringBuf("^")
+};
 
 const int EOperationsPriority[] = {
     0, // "const"
@@ -314,6 +317,7 @@ const int EOperationsPriority[] = {
     0, // "#SQR#"
     0, // "#SQRT#"
     0, // "#SIGMOID#"
+    0, // "#HISTOGRAM_PERCENTILE#"
     0, // "?@"
     0, // "?"
     1, // "#MIN#"
@@ -345,9 +349,63 @@ const int EOperationsPriority[] = {
     6, // "*"
     6, // "/"
     7, // "^"
-    std::numeric_limits<int>::max()};
+    std::numeric_limits<int>::max()
+};
 
 constexpr size_t MaxOperands = 3;
+
+THistogramPointsAndBins::THistogramPointsAndBins()
+    : Points()
+    , Bins()
+    {
+    }
+
+THistogramPointsAndBins::THistogramPointsAndBins(TVector<double>& points, TVector<double>& bins)
+    : Points(points)
+    , Bins(bins)
+    {
+    }
+
+const TVector<double>& THistogramPointsAndBins::GetPoints() const {
+    return Points;
+}
+
+const TVector<double>& THistogramPointsAndBins::GetBins() const {
+    return Bins;
+}
+
+void THistogramPointsAndBins::SetPointsAndBins(TVector<double>& points, TVector<double>& bins) {
+    if (points.size() == (bins.size() - 1)) {
+        Points = points;
+        Bins = bins;
+    }
+}
+
+const std::pair<int, double> THistogramPointsAndBins::FindBinAndPartion(const double& percentile) const {
+    double targetSum = std::accumulate(Bins.begin(), Bins.end(), 0.0) * percentile / 100;
+    double currentSum = 0.0;
+
+    for (size_t i = 0; i < Bins.size(); ++i) {
+        currentSum += Bins[i];
+        if (currentSum == targetSum) {
+            return {i, 0.0};
+        } else if (currentSum > targetSum) {
+            return {i, 1.0 - (currentSum - targetSum) / Bins[i]};
+        }
+    }
+    return {Bins.size() - 1, 0.0};
+}
+
+template <>
+void Out<THistogramPointsAndBins>(IOutputStream& o, const THistogramPointsAndBins& pointsAndBins) {
+    for (const auto& point: pointsAndBins.GetPoints()) {
+        o << std::to_string(point) << ",";
+    }
+    o << ";";
+    for (const auto& bin: pointsAndBins.GetBins()) {
+        o << std::to_string(bin) << ",";
+    }
+}
 
 #define TVariant TAdHocVariant
 
@@ -356,12 +414,14 @@ public:
     TVariant()
         : IsStr(true)
         , BadNumber(true)
+        , IsHistogramPointsAndBins(false)
     {
     }
 
     TVariant(const TString& v)
         : IsStr(true)
         , BadNumber(false)
+        , IsHistogramPointsAndBins(false)
         , sValue(v)
     {
     }
@@ -369,13 +429,23 @@ public:
     TVariant(double v)
         : IsStr(false)
         , BadNumber(false)
+        , IsHistogramPointsAndBins(false)
         , dValue(v)
+    {
+    }
+
+    TVariant(const THistogramPointsAndBins& v)
+        : IsStr(false)
+        , BadNumber(true)
+        , IsHistogramPointsAndBins(true)
+        , hValue(v)
     {
     }
 
     explicit TVariant(bool v)
         : IsStr(false)
         , BadNumber(false)
+        , IsHistogramPointsAndBins(false)
         , dValue(v ? 1.0 : 0.0)
     {
     }
@@ -383,9 +453,12 @@ public:
     TVariant(const TVariant& v)
         : IsStr(v.IsStr)
         , BadNumber(v.BadNumber)
+        , IsHistogramPointsAndBins(v.IsHistogramPointsAndBins)
     {
         if (IsStr)
             sValue = v.sValue;
+        else if (IsHistogramPointsAndBins)
+            hValue = v.hValue;
         else
             dValue = v.dValue;
     }
@@ -393,6 +466,7 @@ public:
     TVariant& operator=(const TString& rhs) {
         IsStr = true;
         BadNumber = false;
+        IsHistogramPointsAndBins = false;
         sValue = rhs;
         return *this;
     }
@@ -400,15 +474,27 @@ public:
     TVariant& operator=(double rhs) {
         IsStr = false;
         BadNumber = false;
+        IsHistogramPointsAndBins = false;
         dValue = rhs;
+        return *this;
+    }
+
+    TVariant& operator=(THistogramPointsAndBins& rhs) {
+        IsStr = false;
+        BadNumber = true;
+        IsHistogramPointsAndBins = true;
+        hValue = rhs;
         return *this;
     }
 
     TVariant& operator=(const TVariant& rhs) {
         IsStr = rhs.IsStr;
         BadNumber = rhs.BadNumber;
+        IsHistogramPointsAndBins = rhs.IsHistogramPointsAndBins;
         if (IsStr)
             sValue = rhs.sValue;
+        else if (IsHistogramPointsAndBins)
+            hValue = rhs.hValue;
         else
             dValue = rhs.dValue;
         return *this;
@@ -425,6 +511,30 @@ public:
     }
     double Max(const TVariant& v) const {
         return G(v) ? ToDouble() : v.ToDouble();
+    }
+    double HistogramPercentile(TVariant& percentile) const {
+        if (ToHistogramPointsAndBins().GetPoints().size() == 0 || ToHistogramPointsAndBins().GetBins().size() == 0 || percentile.ToDouble() > 100 || percentile.ToDouble() <= 0) {
+            return 0;
+        }
+        const auto& result = ToHistogramPointsAndBins().FindBinAndPartion(percentile.ToDouble());
+        const auto& binIndex = result.first;
+        const auto& partion = result.second;
+
+        // [last point; +inf)
+        if (static_cast<size_t>(binIndex) == hValue.GetBins().size() - 1) {
+            return ToHistogramPointsAndBins().GetPoints().back() * 1.1;
+        }
+
+        // (-inf; first point]
+        if (binIndex == 0 && partion != 0) {
+            return ToHistogramPointsAndBins().GetPoints()[0] * 0.9;
+        }
+
+        // exactly in ponts
+        if (partion == 0) {
+            return ToHistogramPointsAndBins().GetPoints()[binIndex];
+        }
+        return ToHistogramPointsAndBins().GetPoints()[binIndex - 1] + (ToHistogramPointsAndBins().GetPoints()[binIndex] - ToHistogramPointsAndBins().GetPoints()[binIndex - 1]) * partion;
     }
     double Or(const TVariant& v) const {
         return !(IsEmpty() && v.IsEmpty());
@@ -621,6 +731,10 @@ public:
     }
 
     double ToDouble() const {
+        if (IsHistogramPointsAndBins) {
+            BadNumber = true;
+            return double();
+        }
         if (IsStr) {
             if (BadNumber)
                 return double();
@@ -639,7 +753,32 @@ public:
     }
 
     TString ToStr() const {
-        return IsStr ? sValue : ToString(dValue);
+        if (IsStr) {
+            return sValue;
+        }
+        if (IsHistogramPointsAndBins) {
+            sValue = ToString(hValue);
+            return sValue;
+        }
+        sValue = ToString(dValue);
+        return sValue;
+    }
+
+    THistogramPointsAndBins ToHistogramPointsAndBins() const {
+        if (IsHistogramPointsAndBins) {
+            return hValue;
+        }
+        if (!IsStr) {
+            return THistogramPointsAndBins();
+        }
+
+        if (TryParseFromStringToTHistogramPointsAndBins(hValue)) {
+            IsStr = false;
+            BadNumber = true;
+            IsHistogramPointsAndBins = true;
+            return hValue;
+        }
+        return THistogramPointsAndBins();
     }
 
 private:
@@ -648,15 +787,51 @@ private:
     }
 
     bool TryParse() const {
-        if (!IsStr)
+        if (!IsStr && !IsHistogramPointsAndBins)
             return true;
 
         if (TryFromString<double>(sValue, dValue)) {
             BadNumber = false;
             IsStr = false;
+            IsHistogramPointsAndBins = false;
             return true;
         }
         BadNumber = true;
+        return false;
+    }
+
+    bool TryParseDoubleVectorFromString(TVector<TString>& strVector, TVector<double>& doubleVector) const {
+        for (size_t i = 0; i < strVector.size(); i++) {
+            if (!TryFromString<double>(strVector[i], doubleVector[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool TryParseFromStringToTHistogramPointsAndBins(THistogramPointsAndBins& pointsAndBins) const {
+        auto strPointsAndBins = StringSplitter(sValue).Split(';').ToList<TString>();
+        if (strPointsAndBins.size() != 2) {
+            return false;
+        }
+
+        auto strPoints = StringSplitter(strPointsAndBins[0]).Split(',').ToList<TString>();
+        auto strBins = StringSplitter(strPointsAndBins[1]).Split(',').ToList<TString>();
+
+        if (strPoints.back() != "" || strBins.back() != "" || strPoints.size() != (strBins.size() - 1)) {
+            return false;
+        }
+
+        strPoints.pop_back();
+        strBins.pop_back();
+        TVector<double> points(strPoints.size());
+        TVector<double> bins(strBins.size());
+
+        if (TryParseDoubleVectorFromString(strPoints, points) && TryParseDoubleVectorFromString(strBins, bins)) {
+            pointsAndBins.SetPointsAndBins(points, bins);
+            return true;
+        }
+
         return false;
     }
 
@@ -675,6 +850,9 @@ private:
         if (IsStr && v.IsStr)
             return sValue == v.sValue;
 
+        if (IsHistogramPointsAndBins && v.IsHistogramPointsAndBins)
+            return ToString(hValue) == ToString(v.hValue);
+
         return false;
     }
 
@@ -682,8 +860,11 @@ private:
 
     mutable bool IsStr;
     mutable bool BadNumber;
-    TString sValue;
+    mutable bool IsHistogramPointsAndBins;
+
+    mutable TString sValue;
     mutable double dValue;
+    mutable THistogramPointsAndBins hValue;
 };
 
 const double TVariant::EPS = 1e-5;
@@ -915,6 +1096,14 @@ size_t TExpressionImpl::BuildExpression(TStringBuf str) {
         Operations.push_back(TOperator(O_SIGMOID));
         Operations[order].Input.push_back(BuildExpression(str.substr(9)));
         return order;
+    } else if (str.size() > 21 && str[0] == '#' && str[1] == 'H' && str[2] == 'I' && str[3] == 'S' && str[4] == 'T' && str[5] == 'O' && str[6] == 'G' && str[7] == 'R' && str[8] == 'A' && str[9] == 'M' && str[10] == '_' && str[11] == 'P' && str[12] == 'E' && str[13] == 'R' && str[14] == 'C' && str[15] == 'E' && str[16] == 'N' && str[17] == 'T' && str[18] == 'I' && str[19] == 'L' && str[20] == 'E' && str[21] == '#') {
+        Operations.push_back(TOperator(O_HISTOGRAM_PERCENTILE));
+        TVector<TString> splitByComma = StringSplitter(str.substr(22)).Split(',').ToList<TString>();
+        Operations[order].Input.push_back(BuildExpression(splitByComma[0]));
+        if (splitByComma.size() == 2) {
+            Operations[order].Input.push_back(BuildExpression(splitByComma[1]));
+        }
+        return order;
     } else {
         Operations.push_back(TOperator(O_TOKEN));
         Operations[order].Input.push_back(InsertOrUpdate(Tokens, ToString(str)));
@@ -954,6 +1143,9 @@ TVariant TExpressionImpl::CalcVariantExpression(const IExpressionAdaptor& data) 
                 break;
             case O_MAX:
                 values[i - 1] = values[Operations[i - 1].Input.front()].Max(values[Operations[i - 1].Input.back()]);
+                break;
+            case O_HISTOGRAM_PERCENTILE:
+                values[i - 1] = values[Operations[i - 1].Input.front()].HistogramPercentile(values[Operations[i - 1].Input.back()]);
                 break;
             case O_OR:
                 values[i - 1] = values[Operations[i - 1].Input.front()].Or(values[Operations[i - 1].Input.back()]);

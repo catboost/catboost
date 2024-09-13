@@ -275,3 +275,17 @@ private:
     TMaybe<TString> ExpressionStr;
     THolder<TExpression> Expression;
 };
+
+class THistogramPointsAndBins {
+    private:
+        TVector<double> Points;
+        TVector<double> Bins;
+    public:
+        THistogramPointsAndBins();
+        THistogramPointsAndBins(TVector<double>& points, TVector<double>& bins);
+
+        const TVector<double>& GetPoints() const;
+        const TVector<double>& GetBins() const;
+        void SetPointsAndBins(TVector<double>& points, TVector<double>& bins);
+        const std::pair<int, double> FindBinAndPartion(const double& percentile) const;
+};
