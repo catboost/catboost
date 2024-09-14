@@ -17,16 +17,17 @@ if TYPE_CHECKING:
 
 
 def dechunk_filled(filled: cpy.FillReturn, fill_type: FillType | str) -> cpy.FillReturn:
-    """Return the specified filled contours with all chunked data moved into the first chunk.
+    """Return the specified filled contours with chunked data moved into the first chunk.
 
     Filled contours that are not chunked (``FillType.OuterCode`` and ``FillType.OuterOffset``) and
     those that are but only contain a single chunk are returned unmodified. Individual polygons are
     unchanged, they are not geometrically combined.
 
     Args:
-        filled (sequence of arrays): Filled contour data as returned by
-            :func:`~contourpy.ContourGenerator.filled`.
-        fill_type (FillType or str): Type of ``filled`` as enum or string equivalent.
+        filled (sequence of arrays): Filled contour data, such as returned by
+            :meth:`.ContourGenerator.filled`.
+        fill_type (FillType or str): Type of :meth:`~.ContourGenerator.filled` as enum or string
+            equivalent.
 
     Return:
         Filled contours in a single chunk.
@@ -87,16 +88,17 @@ def dechunk_filled(filled: cpy.FillReturn, fill_type: FillType | str) -> cpy.Fil
 
 
 def dechunk_lines(lines: cpy.LineReturn, line_type: LineType | str) -> cpy.LineReturn:
-    """Return the specified contour lines with all chunked data moved into the first chunk.
+    """Return the specified contour lines with chunked data moved into the first chunk.
 
     Contour lines that are not chunked (``LineType.Separate`` and ``LineType.SeparateCode``) and
     those that are but only contain a single chunk are returned unmodified. Individual lines are
     unchanged, they are not geometrically combined.
 
     Args:
-        lines (sequence of arrays): Contour line data as returned by
-            :func:`~contourpy.ContourGenerator.lines`.
-        line_type (LineType or str): Type of ``lines`` as enum or string equivalent.
+        lines (sequence of arrays): Contour line data, such as returned by
+            :meth:`.ContourGenerator.lines`.
+        line_type (LineType or str): Type of :meth:`~.ContourGenerator.lines` as enum or string
+            equivalent.
 
     Return:
         Contour lines in a single chunk.
@@ -104,6 +106,7 @@ def dechunk_lines(lines: cpy.LineReturn, line_type: LineType | str) -> cpy.LineR
     .. versionadded:: 1.2.0
     """
     line_type = as_line_type(line_type)
+
     if line_type in (LineType.Separate, LineType.SeparateCode):
         # No-op if line_type is not chunked.
         return lines
@@ -142,3 +145,63 @@ def dechunk_lines(lines: cpy.LineReturn, line_type: LineType | str) -> cpy.LineR
         return ret3
     else:
         raise ValueError(f"Invalid LineType {line_type}")
+
+
+def dechunk_multi_filled(
+    multi_filled: list[cpy.FillReturn],
+    fill_type: FillType | str,
+) -> list[cpy.FillReturn]:
+    """Return multiple sets of filled contours with chunked data moved into the first chunks.
+
+    Filled contours that are not chunked (``FillType.OuterCode`` and ``FillType.OuterOffset``) and
+    those that are but only contain a single chunk are returned unmodified. Individual polygons are
+    unchanged, they are not geometrically combined.
+
+    Args:
+        multi_filled (nested sequence of arrays): Filled contour data, such as returned by
+            :meth:`.ContourGenerator.multi_filled`.
+        fill_type (FillType or str): Type of :meth:`~.ContourGenerator.filled` as enum or string
+            equivalent.
+
+    Return:
+        Multiple sets of filled contours in a single chunk.
+
+    .. versionadded:: 1.3.0
+    """
+    fill_type = as_fill_type(fill_type)
+
+    if fill_type in (FillType.OuterCode, FillType.OuterOffset):
+        # No-op if fill_type is not chunked.
+        return multi_filled
+
+    return [dechunk_filled(filled, fill_type) for filled in multi_filled]
+
+
+def dechunk_multi_lines(
+    multi_lines: list[cpy.LineReturn],
+    line_type: LineType | str,
+) -> list[cpy.LineReturn]:
+    """Return multiple sets of contour lines with all chunked data moved into the first chunks.
+
+    Contour lines that are not chunked (``LineType.Separate`` and ``LineType.SeparateCode``) and
+    those that are but only contain a single chunk are returned unmodified. Individual lines are
+    unchanged, they are not geometrically combined.
+
+    Args:
+        multi_lines (nested sequence of arrays): Contour line data, such as returned by
+            :meth:`.ContourGenerator.multi_lines`.
+        line_type (LineType or str): Type of :meth:`~.ContourGenerator.lines` as enum or string
+            equivalent.
+
+    Return:
+        Multiple sets of contour lines in a single chunk.
+
+    .. versionadded:: 1.3.0
+    """
+    line_type = as_line_type(line_type)
+
+    if line_type in (LineType.Separate, LineType.SeparateCode):
+        # No-op if line_type is not chunked.
+        return multi_lines
+
+    return [dechunk_lines(lines, line_type) for lines in multi_lines]

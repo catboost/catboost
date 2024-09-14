@@ -13,7 +13,7 @@ void Converter::check_max_offset(count_t max_offset)
 CodeArray Converter::convert_codes(
     count_t point_count, count_t cut_count, const offset_t* cut_start, offset_t subtract)
 {
-    assert(point_count > 0 && cut_count > 0 && subtract >= 0);
+    assert(point_count > 0 && cut_count > 0);
     assert(cut_start != nullptr);
 
     index_t codes_shape = static_cast<index_t>(point_count);
@@ -26,7 +26,7 @@ void Converter::convert_codes(
     count_t point_count, count_t cut_count, const offset_t* cut_start, offset_t subtract,
     CodeArray::value_type* codes)
 {
-    assert(point_count > 0 && cut_count > 0 && subtract >= 0);
+    assert(point_count > 0 && cut_count > 0);
     assert(cut_start != nullptr);
     assert(codes != nullptr);
 
@@ -105,7 +105,7 @@ void Converter::convert_codes_check_closed_single(
 OffsetArray Converter::convert_offsets(
     count_t offset_count, const offset_t* start, offset_t subtract)
 {
-    assert(offset_count > 0 && subtract >= 0);
+    assert(offset_count > 0);
     assert(start != nullptr);
 
     index_t offsets_shape = static_cast<index_t>(offset_count);
@@ -118,7 +118,7 @@ void Converter::convert_offsets(
     count_t offset_count, const offset_t* start, offset_t subtract,
     OffsetArray::value_type* offsets)
 {
-    assert(offset_count > 0 && subtract >= 0);
+    assert(offset_count > 0);
     assert(start != nullptr);
     assert(offsets != nullptr);
 

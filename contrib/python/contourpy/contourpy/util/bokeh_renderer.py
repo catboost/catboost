@@ -38,9 +38,8 @@ class BokehRenderer(Renderer):
             ``False``.
 
     Warning:
-        :class:`~contourpy.util.bokeh_renderer.BokehRenderer`, unlike
-        :class:`~contourpy.util.mpl_renderer.MplRenderer`, needs to be told in advance if output to
-        SVG format will be required later, otherwise it will assume PNG output.
+        :class:`~.BokehRenderer`, unlike :class:`~.MplRenderer`, needs to be told in advance if
+        output to SVG format will be required later, otherwise it will assume PNG output.
     """
     _figures: list[figure]
     _layout: GridPlot
@@ -99,9 +98,9 @@ class BokehRenderer(Renderer):
 
         Args:
             filled (sequence of arrays): Filled contour data as returned by
-                :func:`~contourpy.ContourGenerator.filled`.
-            fill_type (FillType or str): Type of ``filled`` data as returned by
-                :attr:`~contourpy.ContourGenerator.fill_type`, or a string equivalent.
+                :meth:`~.ContourGenerator.filled`.
+            fill_type (FillType or str): Type of :meth:`~.ContourGenerator.filled` data as returned
+                by :attr:`~.ContourGenerator.fill_type`, or a string equivalent.
             ax (int or Bokeh Figure, optional): Which plot to use, default ``0``.
             color (str, optional): Color to plot with. May be a string color or the letter ``"C"``
                 followed by an integer in the range ``"C0"`` to ``"C9"`` to use a color from the
@@ -179,9 +178,9 @@ class BokehRenderer(Renderer):
 
         Args:
             lines (sequence of arrays): Contour line data as returned by
-                :func:`~contourpy.ContourGenerator.lines`.
-            line_type (LineType or str): Type of ``lines`` data as returned by
-                :attr:`~contourpy.ContourGenerator.line_type`, or a string equivalent.
+                :meth:`~.ContourGenerator.lines`.
+            line_type (LineType or str): Type of :meth:`~.ContourGenerator.lines` data as returned
+                by :attr:`~.ContourGenerator.line_type`, or a string equivalent.
             ax (int or Bokeh Figure, optional): Which plot to use, default ``0``.
             color (str, optional): Color to plot lines. May be a string color or the letter ``"C"``
                 followed by an integer in the range ``"C0"`` to ``"C9"`` to use a color from the

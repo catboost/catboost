@@ -1,4 +1,5 @@
 #include "util.h"
+#include <cmath>
 #include <thread>
 
 namespace contourpy {
@@ -19,6 +20,11 @@ void Util::ensure_nan_loaded()
 index_t Util::get_max_threads()
 {
     return static_cast<index_t>(std::thread::hardware_concurrency());
+}
+
+bool Util::is_nan(double value)
+{
+    return std::isnan(value);
 }
 
 } // namespace contourpy

@@ -257,5 +257,5 @@ def split_points_at_nan(points: cpy.PointArray) -> list[cpy.PointArray]:
     if len(nan_offsets) == 0:
         return [points]
     else:
-        nan_offsets = np.concatenate(([-1], nan_offsets, [len(points)]))  # type: ignore[arg-type]
+        nan_offsets = np.concatenate(([-1], nan_offsets, [len(points)]))
         return [points[s+1:e] for s, e in zip(nan_offsets[:-1], nan_offsets[1:])]

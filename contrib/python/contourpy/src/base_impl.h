@@ -351,28 +351,13 @@ LineType BaseContourGenerator<Derived>::default_line_type()
 }
 
 template <typename Derived>
-py::sequence BaseContourGenerator<Derived>::filled(double lower_level, double upper_level)
+py::tuple BaseContourGenerator<Derived>::filled(double lower_level, double upper_level)
 {
-    if (lower_level >= upper_level)
-        throw std::invalid_argument("upper_level must be larger than lower_level");
+    check_levels(lower_level, upper_level);
+    pre_filled();
 
-    _filled = true;
     _lower_level = lower_level;
     _upper_level = upper_level;
-
-    _identify_holes = !(_fill_type == FillType::ChunkCombinedCode ||
-                        _fill_type == FillType::ChunkCombinedOffset);
-    _output_chunked = !(_fill_type == FillType::OuterCode || _fill_type == FillType::OuterOffset);
-    _direct_points = _output_chunked;
-    _direct_line_offsets = (_fill_type == FillType::ChunkCombinedOffset||
-                            _fill_type == FillType::ChunkCombinedOffsetOffset);
-    _direct_outer_offsets = (_fill_type == FillType::ChunkCombinedCodeOffset ||
-                             _fill_type == FillType::ChunkCombinedOffsetOffset);
-    _outer_offsets_into_points = (_fill_type == FillType::ChunkCombinedCodeOffset);
-    _nan_separated = false;
-    _return_list_count = (_fill_type == FillType::ChunkCombinedCodeOffset ||
-                          _fill_type == FillType::ChunkCombinedOffsetOffset) ? 3 : 2;
-
     return march_wrapper();
 }
 
@@ -1879,12 +1864,6 @@ void BaseContourGenerator<Derived>::interp(
 }
 
 template <typename Derived>
-bool BaseContourGenerator<Derived>::is_filled() const
-{
-    return _filled;
-}
-
-template <typename Derived>
 bool BaseContourGenerator<Derived>::is_point_in_chunk(index_t point, const ChunkLocal& local) const
 {
     return is_quad_in_bounds(point, local.istart-1, local.iend, local.jstart-1, local.jend);
@@ -1942,22 +1921,9 @@ void BaseContourGenerator<Derived>::line(const Location& start_location, ChunkLo
 template <typename Derived>
 py::sequence BaseContourGenerator<Derived>::lines(double level)
 {
-    _filled = false;
+    pre_lines();
+
     _lower_level = _upper_level = level;
-
-    _identify_holes = false;
-    _output_chunked = !(_line_type == LineType::Separate || _line_type == LineType::SeparateCode);
-    _direct_points = _output_chunked;
-    _direct_line_offsets = (_line_type == LineType::ChunkCombinedOffset);
-    _direct_outer_offsets = false;
-    _outer_offsets_into_points = false;
-    _return_list_count = (_line_type == LineType::Separate ||
-                          _line_type == LineType::ChunkCombinedNan) ? 1 : 2;
-    _nan_separated = (_line_type == LineType::ChunkCombinedNan);
-
-    if (_nan_separated)
-        Util::ensure_nan_loaded();
-
     return march_wrapper();
 }
 
@@ -2355,6 +2321,82 @@ void BaseContourGenerator<Derived>::move_to_next_boundary_edge(
 
         edge = _corner_mask ? (edge + 1) % 8 : (edge + 2) % 8;
     }
+}
+
+template <typename Derived>
+py::list BaseContourGenerator<Derived>::multi_filled(const LevelArray levels)
+{
+    check_levels(levels, true);
+    pre_filled();
+
+    auto levels_proxy = levels.unchecked<1>();
+    auto n = levels_proxy.size();
+
+    py::list ret(n-1);
+    _lower_level = levels_proxy[0];
+    for (decltype(n) i = 0; i < n-1; i++) {
+        _upper_level = levels_proxy[i+1];
+        ret[i] = march_wrapper();
+        _lower_level = _upper_level;
+    }
+
+    return ret;
+}
+
+template <typename Derived>
+py::list BaseContourGenerator<Derived>::multi_lines(const LevelArray levels)
+{
+    check_levels(levels, false);
+    pre_lines();
+
+    auto levels_proxy = levels.unchecked<1>();
+    auto n = levels_proxy.size();
+
+    py::list ret(n);
+    for (decltype(n) i = 0; i < n; i++) {
+        _lower_level = _upper_level = levels_proxy[i];
+        ret[i] = march_wrapper();
+    }
+
+    return ret;
+}
+
+template <typename Derived>
+void BaseContourGenerator<Derived>::pre_filled()
+{
+    _filled = true;
+
+    _identify_holes = !(_fill_type == FillType::ChunkCombinedCode ||
+                        _fill_type == FillType::ChunkCombinedOffset);
+    _output_chunked = !(_fill_type == FillType::OuterCode || _fill_type == FillType::OuterOffset);
+    _direct_points = _output_chunked;
+    _direct_line_offsets = (_fill_type == FillType::ChunkCombinedOffset||
+                            _fill_type == FillType::ChunkCombinedOffsetOffset);
+    _direct_outer_offsets = (_fill_type == FillType::ChunkCombinedCodeOffset ||
+                             _fill_type == FillType::ChunkCombinedOffsetOffset);
+    _outer_offsets_into_points = (_fill_type == FillType::ChunkCombinedCodeOffset);
+    _nan_separated = false;
+    _return_list_count = (_fill_type == FillType::ChunkCombinedCodeOffset ||
+                          _fill_type == FillType::ChunkCombinedOffsetOffset) ? 3 : 2;
+}
+
+template <typename Derived>
+void BaseContourGenerator<Derived>::pre_lines()
+{
+    _filled = false;
+
+    _identify_holes = false;
+    _output_chunked = !(_line_type == LineType::Separate || _line_type == LineType::SeparateCode);
+    _direct_points = _output_chunked;
+    _direct_line_offsets = (_line_type == LineType::ChunkCombinedOffset);
+    _direct_outer_offsets = false;
+    _outer_offsets_into_points = false;
+    _return_list_count = (_line_type == LineType::Separate ||
+                          _line_type == LineType::ChunkCombinedNan) ? 1 : 2;
+    _nan_separated = (_line_type == LineType::ChunkCombinedNan);
+
+    if (_nan_separated)
+        Util::ensure_nan_loaded();
 }
 
 template <typename Derived>

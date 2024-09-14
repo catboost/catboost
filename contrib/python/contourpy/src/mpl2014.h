@@ -270,11 +270,11 @@ public:
         const MaskArray& mask, bool corner_mask, index_t x_chunk_size, index_t y_chunk_size);
 
     // Destructor.
-    ~Mpl2014ContourGenerator();
+    virtual ~Mpl2014ContourGenerator();
 
     // Create and return polygons for a filled contour between the two
     // specified levels.
-    py::tuple filled(const double& lower_level, const double& upper_level);
+    py::tuple filled(double lower_level, double upper_level) override;
 
     py::tuple get_chunk_count() const;  // Return (y_chunk_count, x_chunk_count)
     py::tuple get_chunk_size() const;   // Return (y_chunk_size, x_chunk_size)
@@ -283,7 +283,7 @@ public:
 
     // Create and return polygons for a line (i.e. non-filled) contour at the
     // specified level.
-    py::tuple lines(const double& level);
+    py::sequence lines(double level) override;
 
 private:
     // Typedef for following either a boundary of the domain or the interior;

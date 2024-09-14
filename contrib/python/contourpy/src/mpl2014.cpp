@@ -483,16 +483,13 @@ void Mpl2014ContourGenerator::edge_interp(
            level, contour_line);
 }
 
-py::tuple Mpl2014ContourGenerator::filled(
-    const double& lower_level, const double& upper_level)
+py::tuple Mpl2014ContourGenerator::filled(double lower_level, double upper_level)
 {
-    if (lower_level >= upper_level)
-        throw std::invalid_argument("upper_level must be larger than lower_level");
+    check_levels(lower_level, upper_level);
 
     init_cache_levels(lower_level, upper_level);
 
     Contour contour;
-
     py::list vertices, codes;
 
     index_t ichunk, jchunk, istart, iend, jstart, jend;
@@ -1218,7 +1215,7 @@ bool Mpl2014ContourGenerator::is_edge_a_boundary(
     }
 }
 
-py::tuple Mpl2014ContourGenerator::lines(const double& level)
+py::sequence Mpl2014ContourGenerator::lines(double level)
 {
     init_cache_levels(level, level);
 

@@ -21,6 +21,7 @@ typedef uint32_t offset_t;
 // Input numpy array classes.
 typedef py::array_t<double, py::array::c_style | py::array::forcecast> CoordinateArray;
 typedef py::array_t<bool,   py::array::c_style | py::array::forcecast> MaskArray;
+typedef py::array_t<double> LevelArray;  // Doesn't have to be contiguous.
 
 // Output numpy array classes.
 typedef py::array_t<double>   PointArray;

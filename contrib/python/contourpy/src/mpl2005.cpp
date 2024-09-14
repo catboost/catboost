@@ -46,11 +46,9 @@ Mpl2005ContourGenerator::~Mpl2005ContourGenerator()
     cntr_del(_site);
 }
 
-py::tuple Mpl2005ContourGenerator::filled(const double& lower_level, const double& upper_level)
+py::tuple Mpl2005ContourGenerator::filled(double lower_level, double upper_level)
 {
-    if (lower_level >= upper_level)
-        throw std::invalid_argument("upper_level must be larger than lower_level");
-
+    check_levels(lower_level, upper_level);
     double levels[2] = {lower_level, upper_level};
     return cntr_trace(_site, levels, 2);
 }
@@ -67,7 +65,7 @@ py::tuple Mpl2005ContourGenerator::get_chunk_size() const
     return py::make_tuple(_site->j_chunk_size, _site->i_chunk_size);
 }
 
-py::tuple Mpl2005ContourGenerator::lines(const double& level)
+py::sequence Mpl2005ContourGenerator::lines(double level)
 {
     double levels[2] = {level, 0.0};
     return cntr_trace(_site, levels, 1);
