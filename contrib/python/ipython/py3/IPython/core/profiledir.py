@@ -14,6 +14,8 @@ from ..paths import get_ipython_package_dir
 from ..utils.path import expand_path, ensure_dir_exists
 from traitlets import Unicode, Bool, observe
 
+from typing import Optional
+
 #-----------------------------------------------------------------------------
 # Module errors
 #-----------------------------------------------------------------------------
@@ -68,18 +70,31 @@ class ProfileDir(LoggingConfigurable):
         self.pid_dir = os.path.join(new, self.pid_dir_name)
         self.static_dir = os.path.join(new, self.static_dir_name)
         self.check_dirs()
-    
-    def _mkdir(self, path, mode=None):
+
+    def _mkdir(self, path: str, mode: Optional[int] = None) -> bool:
         """ensure a directory exists at a given path
 
         This is a version of os.mkdir, with the following differences:
 
-        - returns True if it created the directory, False otherwise
+        - returns whether the directory has been created or not.
         - ignores EEXIST, protecting against race conditions where
           the dir may have been created in between the check and
           the creation
         - sets permissions if requested and the dir already exists
+
+        Parameters
+        ----------
+        path: str
+            path of the dir to create
+        mode: int
+            see `mode` of `os.mkdir`
+
+        Returns
+        -------
+        bool:
+            returns True if it created the directory, False otherwise
         """
+
         if os.path.exists(path):
             if mode and os.stat(path).st_mode != mode:
                 try:
@@ -109,14 +124,14 @@ class ProfileDir(LoggingConfigurable):
     
     @observe('startup_dir')
     def check_startup_dir(self, change=None):
-        self._mkdir(self.startup_dir)
+        if self._mkdir(self.startup_dir):
+            readme = os.path.join(self.startup_dir, "README")
 
-        readme = os.path.join(self.startup_dir, 'README')
-
-        if not os.path.exists(readme):
-            import pkgutil
-            with open(readme, 'wb') as f:
-                f.write(pkgutil.get_data(__name__, 'profile/README_STARTUP'))
+            if not os.path.exists(readme):
+                import pkgutil
+                with open(readme, "wb") as f:
+                    f.write(pkgutil.get_data(__name__, "profile/README_STARTUP"))
+                return
 
     @observe('security_dir')
     def check_security_dir(self, change=None):
