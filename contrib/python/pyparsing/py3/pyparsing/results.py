@@ -4,11 +4,13 @@ from collections.abc import (
     Mapping,
     MutableSequence,
     Iterator,
-    Sequence,
-    Container,
+    Iterable,
 )
 import pprint
 from typing import Tuple, Any, Dict, Set, List
+
+from .util import replaced_by_pep8
+
 
 str_type: Tuple[type, ...] = (str, bytes)
 _generator_type = type((_ for _ in ()))
@@ -573,20 +575,20 @@ class ParseResults:
         # replace values with copies if they are of known mutable types
         for i, obj in enumerate(self._toklist):
             if isinstance(obj, ParseResults):
-                self._toklist[i] = obj.deepcopy()
+                ret._toklist[i] = obj.deepcopy()
             elif isinstance(obj, (str, bytes)):
                 pass
             elif isinstance(obj, MutableMapping):
-                self._toklist[i] = dest = type(obj)()
+                ret._toklist[i] = dest = type(obj)()
                 for k, v in obj.items():
                     dest[k] = v.deepcopy() if isinstance(v, ParseResults) else v
-            elif isinstance(obj, Container):
-                self._toklist[i] = type(obj)(
+            elif isinstance(obj, Iterable):
+                ret._toklist[i] = type(obj)(
                     v.deepcopy() if isinstance(v, ParseResults) else v for v in obj
                 )
         return ret
 
-    def get_name(self):
+    def get_name(self) -> str:
         r"""
         Returns the results name for this token expression. Useful when several
         different expressions might match at a particular location.

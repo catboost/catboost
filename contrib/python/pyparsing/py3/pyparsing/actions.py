@@ -196,7 +196,7 @@ def with_class(classname, namespace=""):
     return with_attribute(**{classattr: classname})
 
 
-# pre-PEP8 compatibility symbols
+# Compatibility synonyms
 # fmt: off
 replaceWith = replaced_by_pep8("replaceWith", replace_with)
 removeQuotes = replaced_by_pep8("removeQuotes", remove_quotes)

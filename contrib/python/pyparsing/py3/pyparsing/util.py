@@ -246,7 +246,7 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
 
     # (Presence of 'self' arg in signature is used by explain_exception() methods, so we take
     # some extra steps to add it if present in decorated function.)
-    if "self" == list(inspect.signature(fn).parameters)[0]:
+    if ["self"] == list(inspect.signature(fn).parameters)[:1]:
 
         @wraps(fn)
         def _inner(self, *args, **kwargs):

@@ -782,9 +782,12 @@ def infix_notation(
 
     # if lpar and rpar are not suppressed, wrap in group
     if not (isinstance(lpar, Suppress) and isinstance(rpar, Suppress)):
-        lastExpr = base_expr | Group(lpar + ret + rpar)
+        lastExpr = base_expr | Group(lpar + ret + rpar).set_name(
+            f"nested_{base_expr.name}"
+        )
     else:
-        lastExpr = base_expr | (lpar + ret + rpar)
+        lastExpr = base_expr | (lpar + ret + rpar).set_name(f"nested_{base_expr.name}")
+    root_expr = lastExpr
 
     arity: int
     rightLeftAssoc: opAssoc
@@ -855,6 +858,7 @@ def infix_notation(
         thisExpr <<= (matchExpr | lastExpr).setName(term_name)
         lastExpr = thisExpr
     ret <<= lastExpr
+    root_expr.set_name("base_expr")
     return ret
 
 
@@ -1049,7 +1053,7 @@ def delimited_list(
     )
 
 
-# pre-PEP8 compatible names
+# Compatibility synonyms
 # fmt: off
 opAssoc = OpAssoc
 anyOpenTag = any_open_tag
