@@ -65,38 +65,47 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         UNIT_ASSERT_EQUAL(CalcExpression("2+(2==0)", m), 2);
         UNIT_ASSERT_EQUAL(CalcExpression("~big+~small+~azaza", m), 2);
 
-        THashMap<TString, THistogramPointsAndBins> histMap;
-        TVector<double> points1 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-        TVector<double> bins1 = {10, 0, 5, 17, 13, 105, 6, 100, 9, 10, 0};
-        auto data1 = THistogramPointsAndBins(points1, bins1);
-        TVector<double> points2 = {1, 2, 3};
-        TVector<double> bins2 = {100, 100, 100, 100};
-        auto data2 = THistogramPointsAndBins(points2, bins2);
+        THashMap<TString, THistogramPointsAndBins> histogramDataMap;
+        TVector<double> randomFilledPoints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        TVector<double> randomFilledBins = {10, 0, 5, 17, 13, 105, 6, 100, 9, 10, 0};
+        auto randomFilledHistogramData = THistogramPointsAndBins(randomFilledPoints, randomFilledBins);
+        TVector<double> equalPartsPoints = {1, 2, 3};
+        TVector<double> equalPartsBins = {100, 100, 100, 100};
+        auto equalPartsHistogramData = THistogramPointsAndBins(equalPartsPoints, equalPartsBins);
+        TVector<double> emptyPartsPoints = {1, 2, 3};
+        TVector<double> emptyPartsBins = {0, 0, 0, 0};
+        auto emptyPartsHistogramData = THistogramPointsAndBins(emptyPartsPoints, emptyPartsBins);
 
-        histMap["feature1"] = data1;
-        histMap["feature2%"] = data2;
+        histogramDataMap["random.feature"] = randomFilledHistogramData;
+        histogramDataMap["equal.parts.feature%"] = equalPartsHistogramData;
+        histogramDataMap["empty.parts.feature%"] = emptyPartsHistogramData;
 
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# feature1, 95", histMap), 8 + (1.0 - (265 - 261.25) / 9));
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# feature2%, 20", histMap), 0.9);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# feature2%, 25", histMap), 1);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# feature2%, 50", histMap), 2);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# feature2%, 75", histMap), 3);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# feature2%, 100", histMap), 3 * 1.1);
-        UNIT_ASSERT_EQUAL(CalcExpression("5 + #HISTOGRAM_PERCENTILE# feature2%, 50 - 3", histMap), 4);
-        UNIT_ASSERT_EQUAL(CalcExpression("5 + #HISTOGRAM_PERCENTILE# feature2%, 50 / 0.5", histMap), 9);
-        UNIT_ASSERT_EQUAL(CalcExpression("(5 + #HISTOGRAM_PERCENTILE# feature2%, 50) / 7", histMap), 1);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# feature2%, 50 + 5", histMap), 7);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# feature2%, 50 + #HISTOGRAM_PERCENTILE# feature2%, 75", histMap), 5);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# random.feature, 95", histogramDataMap), 8 + (1.0 - (265 - 261.25) / 9));
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 5", histogramDataMap), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 20", histogramDataMap), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 25", histogramDataMap), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 50", histogramDataMap), 2);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 75", histogramDataMap), 3);
+        UNIT_ASSERT_EQUAL(CalcExpression("5 + #HISTOGRAM_PERCENTILE# equal.parts.feature%, 50 - 3", histogramDataMap), 4);
+        UNIT_ASSERT_EQUAL(CalcExpression("5 + #HISTOGRAM_PERCENTILE# equal.parts.feature%, 50 / 0.5", histogramDataMap), 9);
+        UNIT_ASSERT_EQUAL(CalcExpression("(5 + #HISTOGRAM_PERCENTILE# equal.parts.feature%, 50) / 7", histogramDataMap), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 50 + 5", histogramDataMap), 7);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 50 + #HISTOGRAM_PERCENTILE# equal.parts.feature%, 75", histogramDataMap), 5);
 
         // Invalid #HISTOGRAM_PERCENTILE#
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE#", histMap), 0);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# 1,", histMap), 0);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# 1,,", histMap), 0);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# ,5", histMap), 0);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# ,105", histMap), 0);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# ,feature", histMap), 0);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# feature2%, 20, 20", histMap), 0);
-        UNIT_CHECK_GENERATED_EXCEPTION(CalcExpression("#HISTOGRAM_PERCENTILE# (feature2%, 20)", histMap), yexception);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, #HISTOGRAM_PERCENTILE# equal.parts.feature%, 5", histogramDataMap), 0); // make valid
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# #HISTOGRAM_PERCENTILE# equal.parts.feature%, 5, 5", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 0", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 100", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE#", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# 1,", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# 1,,", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# ,5", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# ,105", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# ,random.feature", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 20, 20", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# empty.parts.feature%, 75", histogramDataMap), 0);
+        UNIT_CHECK_GENERATED_EXCEPTION(CalcExpression("#HISTOGRAM_PERCENTILE# (equal.parts.feature%, 20)", histogramDataMap), yexception);
     }
 
     Y_UNIT_TEST(TestStringExpression) {

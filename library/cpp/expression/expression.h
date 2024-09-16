@@ -6,10 +6,10 @@
 #include <util/generic/hash.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
-#include <util/string/cast.h>
 #include <util/string/builder.h>
-#include <util/string/split.h>
-#include <util/string/strip.h>
+
+#include "histogram_points_and_bins.h"
+#include "expression_variable.h"
 
 
 class IExpressionAdaptor {
@@ -37,8 +37,9 @@ public:
     }
     bool FindValue(const TString& name, TString& value) const override {
         typename T::const_iterator it = Container.find(name);
-        if (it == Container.end())
+        if (it == Container.end()) {
             return false;
+        }
         value = ToString(it->second);
         return true;
     }
@@ -208,9 +209,7 @@ public:
 };
 
 template<>
-inline double TExpression::CalcExpression<IExpressionAdaptor>(
-    const IExpressionAdaptor& iadapter
-) const {
+inline double TExpression::CalcExpression<IExpressionAdaptor>(const IExpressionAdaptor& iadapter) const {
     return Pimpl->CalcExpression(iadapter);
 }
 
@@ -274,18 +273,4 @@ public:
 private:
     TMaybe<TString> ExpressionStr;
     THolder<TExpression> Expression;
-};
-
-class THistogramPointsAndBins {
-    private:
-        TVector<double> Points;
-        TVector<double> Bins;
-    public:
-        THistogramPointsAndBins();
-        THistogramPointsAndBins(TVector<double>& points, TVector<double>& bins);
-
-        const TVector<double>& GetPoints() const;
-        const TVector<double>& GetBins() const;
-        void SetPointsAndBins(TVector<double>& points, TVector<double>& bins);
-        const std::pair<int, double> FindBinAndPartion(const double& percentile) const;
 };

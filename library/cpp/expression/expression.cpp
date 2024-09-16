@@ -11,8 +11,9 @@
 
 
 static inline bool FastHasPrefix(const TStringBuf& suffix, const TStringBuf& prefix) {
-    if (suffix.size() < prefix.size())
+    if (suffix.size() < prefix.size()) {
         return false;
+    }
 
     switch (prefix.size()) {
         case 1:
@@ -81,14 +82,17 @@ static bool FindOperation(const char* expr, size_t a, size_t b, size_t& oa, size
     oper = EO_END;
     for (size_t i = b; i > a; --i) {
         if (expr[i - 1] == '"') {
-            for (--i; i > a; --i)
-                if (expr[i - 1] == '"')
+            for (--i; i > a; --i) {
+                if (expr[i - 1] == '"') {
                     break;
+                }
+            }
         } else if (expr[i - 1] == ')') {
             ++balance;
         } else if (expr[i - 1] == '(') {
-            if (balance == 0)
+            if (balance == 0) {
                 ythrow yexception() << "CalcExpression error: bad brackets balance";
+            }
             --balance;
         } else if (balance == 0) {
             for (TExpressionOperation o = EO_BEGIN; OperationsPriority[o] < OperationsPriority[oper]; o = static_cast<TExpressionOperation>(o + 1)) {
@@ -102,8 +106,9 @@ static bool FindOperation(const char* expr, size_t a, size_t b, size_t& oa, size
                 }
             }
         }
-        if (found && OperationsPriority[oper] == OperationsPriority[EO_BEGIN])
+        if (found && OperationsPriority[oper] == OperationsPriority[EO_BEGIN]) {
             break;
+        }
     }
     return found;
 }
@@ -122,8 +127,9 @@ static bool IsEmpty(const TString& str) {
 static bool IsEqual(const TString& a, const TString& b, const double eps) {
     double aVal = 0.0;
     double bVal = 0.0;
-    if (TryFromString<double>(a, aVal) && TryFromString<double>(b, bVal))
+    if (TryFromString<double>(a, aVal) && TryFromString<double>(b, bVal)) {
         return fabs(aVal - bVal) < eps;
+    }
     // okay, compare as strings
     return a == b;
 }
@@ -131,12 +137,11 @@ static bool IsEqual(const TString& a, const TString& b, const double eps) {
 static TString CalcExpression(const char* expr, size_t a, size_t b, const IExpressionAdaptor& data) {
     // Cannot compare values less than 1e-5
     static const double EPS = 1e-5;
-    for (; a < b && expr[a] == ' '; ++a) {
-    }
-    for (; a < b && expr[b - 1] == ' '; --b) {
-    }
-    if (a >= b)
+    for (; a < b && expr[a] == ' '; ++a) {}
+    for (; a < b && expr[b - 1] == ' '; --b) {}
+    if (a >= b) {
         return TString();
+    }
     size_t oa = 0;
     size_t ob = 0;
     TExpressionOperation op;
@@ -177,12 +182,14 @@ static TString CalcExpression(const char* expr, size_t a, size_t b, const IExpre
                 ythrow yexception() << "CalcExpression error: can't parse expression";
         }
     } else if (expr[a] == '(') {
-        if (expr[b - 1] != ')')
+        if (expr[b - 1] != ')') {
             ythrow yexception() << "CalcExpression error: extra symbols";
+        }
         return CalcExpression(expr, a + 1, b - 1, data);
     } else if (expr[a] == '"') {
-        if (expr[b - 1] != '"')
+        if (expr[b - 1] != '"') {
             ythrow yexception() << "CalcExpression error: extra symbols";
+        }
         return TString(&expr[a + 1], &expr[b - 1]);
     } else if (expr[a] == '-') {
         return ToString(-FromString<double>(CalcExpression(expr, a + 1, b, data)));
@@ -196,8 +203,9 @@ static TString CalcExpression(const char* expr, size_t a, size_t b, const IExpre
         }
         TString token(&expr[a], &expr[b]), val;
         bool found = data.FindValue(token, val);
-        if (isCheckVal)
+        if (isCheckVal) {
             return found ? "1.0" : "0.0";
+        }
         return found ? val : token;
     }
 }
@@ -353,521 +361,7 @@ const int EOperationsPriority[] = {
 };
 
 constexpr size_t MaxOperands = 3;
-
-THistogramPointsAndBins::THistogramPointsAndBins()
-    : Points()
-    , Bins()
-    {
-    }
-
-THistogramPointsAndBins::THistogramPointsAndBins(TVector<double>& points, TVector<double>& bins)
-    : Points(points)
-    , Bins(bins)
-    {
-    }
-
-const TVector<double>& THistogramPointsAndBins::GetPoints() const {
-    return Points;
-}
-
-const TVector<double>& THistogramPointsAndBins::GetBins() const {
-    return Bins;
-}
-
-void THistogramPointsAndBins::SetPointsAndBins(TVector<double>& points, TVector<double>& bins) {
-    if (points.size() == (bins.size() - 1)) {
-        Points = points;
-        Bins = bins;
-    }
-}
-
-const std::pair<int, double> THistogramPointsAndBins::FindBinAndPartion(const double& percentile) const {
-    double targetSum = std::accumulate(Bins.begin(), Bins.end(), 0.0) * percentile / 100;
-    double currentSum = 0.0;
-
-    for (size_t i = 0; i < Bins.size(); ++i) {
-        currentSum += Bins[i];
-        if (currentSum == targetSum) {
-            return {i, 0.0};
-        } else if (currentSum > targetSum) {
-            return {i, 1.0 - (currentSum - targetSum) / Bins[i]};
-        }
-    }
-    return {Bins.size() - 1, 0.0};
-}
-
-template <>
-void Out<THistogramPointsAndBins>(IOutputStream& o, const THistogramPointsAndBins& pointsAndBins) {
-    for (const auto& point: pointsAndBins.GetPoints()) {
-        o << std::to_string(point) << ",";
-    }
-    o << ";";
-    for (const auto& bin: pointsAndBins.GetBins()) {
-        o << std::to_string(bin) << ",";
-    }
-}
-
-#define TVariant TAdHocVariant
-
-class TVariant {
-public:
-    TVariant()
-        : IsStr(true)
-        , BadNumber(true)
-        , IsHistogramPointsAndBins(false)
-    {
-    }
-
-    TVariant(const TString& v)
-        : IsStr(true)
-        , BadNumber(false)
-        , IsHistogramPointsAndBins(false)
-        , sValue(v)
-    {
-    }
-
-    TVariant(double v)
-        : IsStr(false)
-        , BadNumber(false)
-        , IsHistogramPointsAndBins(false)
-        , dValue(v)
-    {
-    }
-
-    TVariant(const THistogramPointsAndBins& v)
-        : IsStr(false)
-        , BadNumber(true)
-        , IsHistogramPointsAndBins(true)
-        , hValue(v)
-    {
-    }
-
-    explicit TVariant(bool v)
-        : IsStr(false)
-        , BadNumber(false)
-        , IsHistogramPointsAndBins(false)
-        , dValue(v ? 1.0 : 0.0)
-    {
-    }
-
-    TVariant(const TVariant& v)
-        : IsStr(v.IsStr)
-        , BadNumber(v.BadNumber)
-        , IsHistogramPointsAndBins(v.IsHistogramPointsAndBins)
-    {
-        if (IsStr)
-            sValue = v.sValue;
-        else if (IsHistogramPointsAndBins)
-            hValue = v.hValue;
-        else
-            dValue = v.dValue;
-    }
-
-    TVariant& operator=(const TString& rhs) {
-        IsStr = true;
-        BadNumber = false;
-        IsHistogramPointsAndBins = false;
-        sValue = rhs;
-        return *this;
-    }
-
-    TVariant& operator=(double rhs) {
-        IsStr = false;
-        BadNumber = false;
-        IsHistogramPointsAndBins = false;
-        dValue = rhs;
-        return *this;
-    }
-
-    TVariant& operator=(THistogramPointsAndBins& rhs) {
-        IsStr = false;
-        BadNumber = true;
-        IsHistogramPointsAndBins = true;
-        hValue = rhs;
-        return *this;
-    }
-
-    TVariant& operator=(const TVariant& rhs) {
-        IsStr = rhs.IsStr;
-        BadNumber = rhs.BadNumber;
-        IsHistogramPointsAndBins = rhs.IsHistogramPointsAndBins;
-        if (IsStr)
-            sValue = rhs.sValue;
-        else if (IsHistogramPointsAndBins)
-            hValue = rhs.hValue;
-        else
-            dValue = rhs.dValue;
-        return *this;
-    }
-
-    double Not() {
-        return IsEmpty() ? 1.0 : 0.0;
-    }
-    double Minus() {
-        return -ToDouble();
-    }
-    double Min(const TVariant& v) const {
-        return Le(v) ? ToDouble() : v.ToDouble();
-    }
-    double Max(const TVariant& v) const {
-        return G(v) ? ToDouble() : v.ToDouble();
-    }
-    double HistogramPercentile(TVariant& percentile) const {
-        if (ToHistogramPointsAndBins().GetPoints().size() == 0 || ToHistogramPointsAndBins().GetBins().size() == 0 || percentile.ToDouble() > 100 || percentile.ToDouble() <= 0) {
-            return 0;
-        }
-        const auto& result = ToHistogramPointsAndBins().FindBinAndPartion(percentile.ToDouble());
-        const auto& binIndex = result.first;
-        const auto& partion = result.second;
-
-        // [last point; +inf)
-        if (static_cast<size_t>(binIndex) == hValue.GetBins().size() - 1) {
-            return ToHistogramPointsAndBins().GetPoints().back() * 1.1;
-        }
-
-        // (-inf; first point]
-        if (binIndex == 0 && partion != 0) {
-            return ToHistogramPointsAndBins().GetPoints()[0] * 0.9;
-        }
-
-        // exactly in ponts
-        if (partion == 0) {
-            return ToHistogramPointsAndBins().GetPoints()[binIndex];
-        }
-        return ToHistogramPointsAndBins().GetPoints()[binIndex - 1] + (ToHistogramPointsAndBins().GetPoints()[binIndex] - ToHistogramPointsAndBins().GetPoints()[binIndex - 1]) * partion;
-    }
-    double Or(const TVariant& v) const {
-        return !(IsEmpty() && v.IsEmpty());
-    }
-    double And(const TVariant& v) const {
-        return !(IsEmpty() || v.IsEmpty());
-    }
-    double Cond(const TVariant& v, const TVariant& u) const {
-        return !IsEmpty() ? v.ToDouble() : u.ToDouble();
-    }
-    TString StrCond(const TVariant& v, const TVariant& u) const {
-        return !IsEmpty() ? v.ToStr() : u.ToStr();
-    }
-    double Le(const TVariant& v) const {
-        return ToDouble() <= v.ToDouble() + EPS ? 1.0 : 0.0;
-    }
-    double L(const TVariant& v) const {
-        return ToDouble() < v.ToDouble() - EPS ? 1.0 : 0.0;
-    }
-    double Ge(const TVariant& v) const {
-        return ToDouble() >= v.ToDouble() - EPS ? 1.0 : 0.0;
-    }
-    double G(const TVariant& v) const {
-        return ToDouble() > v.ToDouble() + EPS ? 1.0 : 0.0;
-    }
-    double StrStartsWith(const TVariant& v) const {
-        return sValue.StartsWith(v.sValue) ? 1.0 : 0.0;
-    }
-    double StrLe(const TVariant& v) const {
-        return sValue <= v.sValue ? 1.0 : 0.0;
-    }
-    double StrL(const TVariant& v) const {
-        return sValue < v.sValue ? 1.0 : 0.0;
-    }
-    double StrGe(const TVariant& v) const {
-        return sValue >= v.sValue ? 1.0 : 0.0;
-    }
-    double StrG(const TVariant& v) const {
-        return sValue > v.sValue ? 1.0 : 0.0;
-    }
-    double VerComp(const TVariant& v, const double firstG, const double secondG) const {
-        /* Сравнение версий по стандарту uatraits:
-        1) Версию мы всегда считаем из первых четырех чисел, остальные игнорируем.
-        Если меньше четырех, добавляем недостающие нули.
-        2) Если в каком-то из операндов мусор, какие-то префиксы или постфиксы, то
-        операторы <#, <=#, >#, >=# и ==# вернут false, !=# вернёт true.
-        См. примеры в тестах */
-        const auto ss_first = StringSplitter(StripString(sValue)).Split('.').Take(4);
-        const auto ss_second = StringSplitter(StripString(v.sValue)).Split('.').Take(4);
-        auto first = ss_first.begin(), second = ss_second.begin();
-        ui32 first_val, second_val;
-
-        while (first != ss_first.end() && second != ss_second.end()) {
-            if (not TryFromString<ui32>(*first, first_val) || not TryFromString<ui32>(*second, second_val)){
-                return 0.0;
-            }
-            if (first_val > second_val) {
-                return firstG;
-            } else if (first_val < second_val) {
-                return secondG;
-            }
-            ++first;
-            ++second;
-        }
-
-        while (first != ss_first.end()) {
-            if (not TryFromString<ui32>(*first, first_val)){
-                return 0.0;
-            }
-            if (first_val > 0) {
-                return firstG;
-            }
-            ++first;
-        }
-
-        while (second != ss_second.end()) {
-            if (not TryFromString<ui32>(*second, second_val)){
-                return 0.0;
-            }
-            if (second_val > 0) {
-                return secondG;
-            }
-            ++second;
-        }
-
-        return 0.0;
-    }
-    double VerE(const TVariant& v) const {
-        /* Сравнение версий по стандарту uatraits:
-        1) Версию мы всегда считаем из первых четырех чисел, остальные игнорируем.
-        Если меньше четырех, добавляем недостающие нули.
-        2) Если в каком-то из операндов мусор, какие-то префиксы или постфиксы, то
-        операторы <#, <=#, >#, >=# и ==# вернут false, !=# вернёт true.
-        См. примеры в тестах */
-
-        const auto ss_first = StringSplitter(StripString(sValue)).Split('.').Take(4);
-        const auto ss_second = StringSplitter(StripString(v.sValue)).Split('.').Take(4);
-        auto first = ss_first.begin(), second = ss_second.begin();
-        ui32 first_val, second_val;
-
-        while (first != ss_first.end() && second != ss_second.end()) {
-            if (not TryFromString<ui32>(*first, first_val) || \
-                not TryFromString<ui32>(*second, second_val) || \
-                first_val != second_val){
-                return 0.0;
-            }
-            ++first;
-            ++second;
-        }
-
-        while (first != ss_first.end()) {
-            if (not TryFromString<ui32>(*first, first_val) || first_val != 0){
-                return 0.0;
-            }
-            ++first;
-        }
-
-        while (second != ss_second.end()) {
-            if (not TryFromString<ui32>(*second, second_val) || second_val != 0){
-                return 0.0;
-            }
-            ++second;
-        }
-
-        return 1.0;
-    }
-    double VerNe(const TVariant& v) const {
-        return VerE(v) == 1.0 ? 0.0 : 1.0;
-    }
-    double VerLe(const TVariant& v) const {
-        return (VerComp(v, 0.0, 1.0) || VerE(v)) ? 1.0 : 0.0;
-    }
-    double VerL(const TVariant& v) const {
-        return VerComp(v, 0.0, 1.0);
-    }
-    double VerGe(const TVariant& v) const {
-        return (VerComp(v, 1.0, 0.0) || VerE(v)) ? 1.0 : 0.0;
-    }
-    double VerG(const TVariant& v) const {
-        return VerComp(v, 1.0, 0.0);
-    }
-    double E(const TVariant& v) const {
-        return IsEqual(v, EPS) ? 1.0 : 0.0;
-    }
-    double Ne(const TVariant& v) const {
-        return IsEqual(v, EPS) ? 0.0 : 1.0;
-    }
-    double BitsOr(const TVariant& v) const {
-        return static_cast<size_t>(ToDouble()) | static_cast<size_t>(v.ToDouble());
-    }
-    double BitsAnd(const TVariant& v) const {
-        return static_cast<size_t>(ToDouble()) & static_cast<size_t>(v.ToDouble());
-    }
-    double Add(const TVariant& v) const {
-        return ToDouble() + v.ToDouble();
-    }
-    double Sub(const TVariant& v) const {
-        return ToDouble() - v.ToDouble();
-    }
-    double Mult(const TVariant& v) const {
-        return ToDouble() * v.ToDouble();
-    }
-    double Div(const TVariant& v) const {
-        double denominator = v.ToDouble();
-        if (denominator == 0) {
-            if (ToDouble() == 0) {
-                return std::numeric_limits<double>::quiet_NaN();
-            }
-            return std::numeric_limits<double>::infinity();
-        }
-        return ToDouble() / denominator;
-    }
-    double Pow(const TVariant& v) const {
-        double exponent = v.ToDouble();
-        if (exponent == 0 && ToDouble() == 0) {
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-        return std::pow(ToDouble(), exponent);
-    }
-    double Exp() const {
-        return exp(ToDouble());
-    }
-    double Log() const {
-        return log(ToDouble());
-    }
-    double Sqr() const {
-        return pow(ToDouble(), 2.);
-    }
-    double Sqrt() const {
-        return pow(ToDouble(), 0.5);
-    }
-    double Sigmoid() const {
-        return 1.0 / (1. + exp(-ToDouble()));
-    }
-
-    double ToDouble() const {
-        if (IsHistogramPointsAndBins) {
-            BadNumber = true;
-            return double();
-        }
-        if (IsStr) {
-            if (BadNumber)
-                return double();
-
-            // try to parse only once
-            if (TryFromString<double>(sValue, dValue)) {
-                IsStr = false;
-                BadNumber = false;
-                return dValue;
-            }
-
-            BadNumber = true;
-            return double();
-        }
-        return dValue;
-    }
-
-    TString ToStr() const {
-        if (IsStr) {
-            return sValue;
-        }
-        if (IsHistogramPointsAndBins) {
-            sValue = ToString(hValue);
-            return sValue;
-        }
-        sValue = ToString(dValue);
-        return sValue;
-    }
-
-    THistogramPointsAndBins ToHistogramPointsAndBins() const {
-        if (IsHistogramPointsAndBins) {
-            return hValue;
-        }
-        if (!IsStr) {
-            return THistogramPointsAndBins();
-        }
-
-        if (TryParseFromStringToTHistogramPointsAndBins(hValue)) {
-            IsStr = false;
-            BadNumber = true;
-            IsHistogramPointsAndBins = true;
-            return hValue;
-        }
-        return THistogramPointsAndBins();
-    }
-
-private:
-    bool IsEmpty() const {
-        return ToDouble() == 0.0;
-    }
-
-    bool TryParse() const {
-        if (!IsStr && !IsHistogramPointsAndBins)
-            return true;
-
-        if (TryFromString<double>(sValue, dValue)) {
-            BadNumber = false;
-            IsStr = false;
-            IsHistogramPointsAndBins = false;
-            return true;
-        }
-        BadNumber = true;
-        return false;
-    }
-
-    bool TryParseDoubleVectorFromString(TVector<TString>& strVector, TVector<double>& doubleVector) const {
-        for (size_t i = 0; i < strVector.size(); i++) {
-            if (!TryFromString<double>(strVector[i], doubleVector[i])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool TryParseFromStringToTHistogramPointsAndBins(THistogramPointsAndBins& pointsAndBins) const {
-        auto strPointsAndBins = StringSplitter(sValue).Split(';').ToList<TString>();
-        if (strPointsAndBins.size() != 2) {
-            return false;
-        }
-
-        auto strPoints = StringSplitter(strPointsAndBins[0]).Split(',').ToList<TString>();
-        auto strBins = StringSplitter(strPointsAndBins[1]).Split(',').ToList<TString>();
-
-        if (strPoints.back() != "" || strBins.back() != "" || strPoints.size() != (strBins.size() - 1)) {
-            return false;
-        }
-
-        strPoints.pop_back();
-        strBins.pop_back();
-        TVector<double> points(strPoints.size());
-        TVector<double> bins(strBins.size());
-
-        if (TryParseDoubleVectorFromString(strPoints, points) && TryParseDoubleVectorFromString(strBins, bins)) {
-            pointsAndBins.SetPointsAndBins(points, bins);
-            return true;
-        }
-
-        return false;
-    }
-
-    bool IsEqual(const TVariant& v, const double eps) const {
-        bool compareNumeric = true;
-
-        if (!TryParse())
-            compareNumeric = false;
-
-        if (!v.TryParse())
-            compareNumeric = false;
-
-        if (compareNumeric)
-            return fabs(dValue - v.dValue) < eps;
-
-        if (IsStr && v.IsStr)
-            return sValue == v.sValue;
-
-        if (IsHistogramPointsAndBins && v.IsHistogramPointsAndBins)
-            return ToString(hValue) == ToString(v.hValue);
-
-        return false;
-    }
-
-    static const double EPS;
-
-    mutable bool IsStr;
-    mutable bool BadNumber;
-    mutable bool IsHistogramPointsAndBins;
-
-    mutable TString sValue;
-    mutable double dValue;
-    mutable THistogramPointsAndBins hValue;
-};
-
-const double TVariant::EPS = 1e-5;
+const double TExpressionVariable::EPS = 1e-5;
 
 class TExpressionImpl: public IExpressionImpl {
 public:
@@ -880,20 +374,6 @@ public:
         EOperation Oper;
     };
 
-private:
-    TDeque<TOperator> Operations;
-    TVector<TString> Consts;
-    TVector<TString> Tokens;
-    TExpressionRegexMatcher Matcher;
-
-private:
-    size_t FindOperation(const TStringBuf& exp, std::array<TStringBuf, MaxOperands>& args, EOperation& oper);
-    size_t BuildExpression(TStringBuf str);
-    const TString& FindToken(const THashMap<TString, TString>& data, const TString& token) const;
-    double IsToken(const THashMap<TString, TString>& data, const TString& token) const;
-    TVariant CalcVariantExpression(const IExpressionAdaptor& data) const;
-
-public:
     TString CalcExpressionStr(const IExpressionAdaptor& iadapter) const override;
     double CalcExpression(const IExpressionAdaptor& iadapter) const override;
     TExpressionImpl(TStringBuf expr);
@@ -902,6 +382,18 @@ public:
     void SetRegexMatcher(TExpressionRegexMatcher&& matcher) override {
         Matcher = std::move(matcher);
     }
+
+private:
+    TDeque<TOperator> Operations;
+    TVector<TString> Consts;
+    TVector<TString> Tokens;
+    TExpressionRegexMatcher Matcher;
+
+    size_t FindOperation(const TStringBuf& exp, std::array<TStringBuf, MaxOperands>& args, EOperation& oper);
+    size_t BuildExpression(TStringBuf str);
+    const TString& FindToken(const THashMap<TString, TString>& data, const TString& token) const;
+    double IsToken(const THashMap<TString, TString>& data, const TString& token) const;
+    TExpressionVariable CalcVariantExpression(const IExpressionAdaptor& data) const;
 };
 
 TExpression::TExpression(TStringBuf expr)
@@ -911,9 +403,9 @@ TExpression::TExpression(TStringBuf expr)
 
 static inline void SkipQuoted(const char quote, const TStringBuf& exp, size_t& i) {
     Y_ASSERT(i >= 1);
-    if (quote != exp[i - 1])
+    if (quote != exp[i - 1]) {
         return;
-
+    }
     bool quoteFound = false;
     Y_ENSURE(i >= 1, "CalcExpression error: Opening quote not found. ");
 
@@ -930,15 +422,18 @@ static inline void SkipQuoted(const char quote, const TStringBuf& exp, size_t& i
 void TExpressionImpl::GetTokensWithSuffix(const TString& suffix, TVector<TString>& tokens) const {
     tokens.clear();
     for (const auto& token : Tokens)
-        if (token.EndsWith(suffix))
+        if (token.EndsWith(suffix)) {
             tokens.push_back(token);
+        }
 }
 
 void TExpressionImpl::GetTokensWithPrefix(const TString& prefix, TVector<TString>& tokens) const {
     tokens.clear();
-    for (const auto& token : Tokens)
-        if (token.StartsWith(prefix))
+    for (const auto& token : Tokens) {
+        if (token.StartsWith(prefix)) {
             tokens.push_back(token);
+        }
+    }
 }
 
 size_t TExpressionImpl::FindOperation(const TStringBuf& exp, std::array<TStringBuf, MaxOperands>& args, EOperation& oper) {
@@ -1015,18 +510,18 @@ size_t TExpressionImpl::FindOperation(const TStringBuf& exp, std::array<TStringB
 
 static bool Trim(TStringBuf& str) {
     size_t b = 0, e = 0;
-    for (e = str.size(); e > 0 && str[e - 1] == ' '; --e)
-        ;
-    for (b = 0; b <= e && (b == str.size() || str[b] == ' '); ++b)
-        ;
+    for (e = str.size(); e > 0 && str[e - 1] == ' '; --e) {}
+    for (b = 0; b <= e && (b == str.size() || str[b] == ' '); ++b) {}
     str = str.substr(b, e - b);
     return e != b;
 }
 
 static size_t InsertOrUpdate(TVector<TString>& values, const TString& v) {
-    for (size_t i = 0, size = values.size(); i < size; ++i)
-        if (values[i] == v)
+    for (size_t i = 0, size = values.size(); i < size; ++i) {
+        if (values[i] == v) {
             return i;
+        }
+    }
     values.push_back(v);
     return values.size() - 1;
 }
@@ -1038,11 +533,9 @@ size_t TExpressionImpl::BuildExpression(TStringBuf str) {
     size_t order = Operations.size();
     if (size_t numArgs = FindOperation(str, args, oper)) {
         Operations.push_back(TOperator(oper));
-
         for (size_t i = 0; i < numArgs; ++i) {
             Operations[order].Input.push_back(BuildExpression(args[i]));
         }
-
         return order;
     } else if (str.size() == 0) {
         Operations.push_back(TOperator(O_TOKEN));
@@ -1076,27 +569,27 @@ size_t TExpressionImpl::BuildExpression(TStringBuf str) {
         else
             Operations[order].Input.push_back(InsertOrUpdate(Tokens, ToString(str.substr(1))));
         return order;
-    } else if (str.size() > 4 && str[0] == '#' && str[1] == 'E' && str[2] == 'X' && str[3] == 'P' && str[4] == '#') {
+    } else if (str.size() > 4 && str.substr(0, 5) == "#EXP#") {
         Operations.push_back(TOperator(O_EXP));
         Operations[order].Input.push_back(BuildExpression(str.substr(5)));
         return order;
-    } else if (str.size() > 4 && str[0] == '#' && str[1] == 'L' && str[2] == 'O' && str[3] == 'G' && str[4] == '#') {
+    } else if (str.size() > 4 && str.substr(0, 5) == "#LOG#") {
         Operations.push_back(TOperator(O_LOG));
         Operations[order].Input.push_back(BuildExpression(str.substr(5)));
         return order;
-    } else if (str.size() > 4 && str[0] == '#' && str[1] == 'S' && str[2] == 'Q' && str[3] == 'R' && str[4] == '#') {
+    } else if (str.size() > 4 && str.substr(0, 5) == "#SQR#") {
         Operations.push_back(TOperator(O_SQR));
         Operations[order].Input.push_back(BuildExpression(str.substr(5)));
         return order;
-    } else if (str.size() > 5 && str[0] == '#' && str[1] == 'S' && str[2] == 'Q' && str[3] == 'R' && str[4] == 'T' && str[5] == '#') {
+    } else if (str.size() > 5 && str.substr(0, 6) == "#SQRT#") {
         Operations.push_back(TOperator(O_SQRT));
         Operations[order].Input.push_back(BuildExpression(str.substr(6)));
         return order;
-    } else if (str.size() > 8 && str[0] == '#' && str[1] == 'S' && str[2] == 'I' && str[3] == 'G' && str[4] == 'M' && str[5] == 'O' && str[6] == 'I' && str[7] == 'D' && str[8] == '#') {
+    } else if (str.size() > 8 && str.substr(0, 9) == "#SIGMOID#") {
         Operations.push_back(TOperator(O_SIGMOID));
         Operations[order].Input.push_back(BuildExpression(str.substr(9)));
         return order;
-    } else if (str.size() > 21 && str[0] == '#' && str[1] == 'H' && str[2] == 'I' && str[3] == 'S' && str[4] == 'T' && str[5] == 'O' && str[6] == 'G' && str[7] == 'R' && str[8] == 'A' && str[9] == 'M' && str[10] == '_' && str[11] == 'P' && str[12] == 'E' && str[13] == 'R' && str[14] == 'C' && str[15] == 'E' && str[16] == 'N' && str[17] == 'T' && str[18] == 'I' && str[19] == 'L' && str[20] == 'E' && str[21] == '#') {
+    } else if (str.size() > 21 && str.substr(0, 22) == "#HISTOGRAM_PERCENTILE#") {
         Operations.push_back(TOperator(O_HISTOGRAM_PERCENTILE));
         TVector<TString> splitByComma = StringSplitter(str.substr(22)).Split(',').ToList<TString>();
         Operations[order].Input.push_back(BuildExpression(splitByComma[0]));
@@ -1115,8 +608,8 @@ TExpressionImpl::TExpressionImpl(TStringBuf expr) {
     BuildExpression(expr);
 }
 
-TVariant TExpressionImpl::CalcVariantExpression(const IExpressionAdaptor& data) const {
-    TVector<TVariant> values(Operations.size());
+TExpressionVariable TExpressionImpl::CalcVariantExpression(const IExpressionAdaptor& data) const {
+    TVector<TExpressionVariable> values(Operations.size());
     TString v;
     for (size_t i = Operations.size(); i > 0; --i) {
         switch (Operations[i - 1].Oper) {
@@ -1184,7 +677,7 @@ TVariant TExpressionImpl::CalcVariantExpression(const IExpressionAdaptor& data) 
                 values[i - 1] = values[Operations[i - 1].Input.front()].Ne(values[Operations[i - 1].Input.back()]);
                 break;
             case O_MATCH:
-                values[i - 1] = Matcher ? TVariant{Matcher(values[Operations[i - 1].Input.front()].ToStr(), values[Operations[i - 1].Input.back()].ToStr())} : TVariant{};
+                values[i - 1] = Matcher ? TExpressionVariable{Matcher(values[Operations[i - 1].Input.front()].ToStr(), values[Operations[i - 1].Input.back()].ToStr())} : TExpressionVariable{};
                 break;
             case O_STARTS_WITH:
                 values[i - 1] = values[Operations[i - 1].Input.front()].StrStartsWith(values[Operations[i - 1].Input.back()]);
