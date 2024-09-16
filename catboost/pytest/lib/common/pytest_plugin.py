@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import os
 import sys
 
@@ -23,12 +25,40 @@ from . import *
 pytest_config = None
 
 
+# base path -> test_name -> list of files to canonize
+results_to_canonize = defaultdict(lambda: defaultdict())
+
+
+def get_canonical_name(item):
+    class_name, test_name = tools.split_node_id(item.nodeid)
+    filename = "{}.{}".format(class_name.split('.')[0], test_name)
+    if not filename:
+        filename = "test"
+    filename = filename.replace("[", "_").replace("]", "_")
+    filename = tools.normalize_filename(filename)
+    return filename
+
+def get_files_to_canonize(test_result):
+    if test_result is None:
+        return []
+    if not isinstance(test_result, list):
+        test_result = [test_result]
+    return [e['uri'][7:] for e in test_result]
+
+
+
 class CanonicalProcessor(object):
     @pytest.hookimpl(hookwrapper=True)
     def pytest_runtest_call(self, item):  # noqa
         def get_wrapper(obj):
             def wrapper(*args, **kwargs):
-                obj(*args, **kwargs)
+                global results_to_canonize
+
+                canonical_name = get_canonical_name(item)
+
+                res = obj(*args, **kwargs)
+                files_to_canonize = get_files_to_canonize(res)
+                results_to_canonize[os.path.dirname(item.path)][canonical_name] = files_to_canonize
             return wrapper
 
         item.obj = get_wrapper(item.obj)
