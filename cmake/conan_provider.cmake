@@ -210,16 +210,37 @@ function(detect_lib_cxx lib_cxx)
 endfunction()
 
 
-function(detect_compiler compiler compiler_version compiler_runtime compiler_runtime_type)
+
+function(detect_compiler_and_version language compiler compiler_version compiler_is_clang_cl)
+    if (${CMAKE_${language}_COMPILER_ID} STREQUAL Clang
+            AND "${CMAKE_${language}_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC"
+            AND "${CMAKE_${language}_SIMULATE_ID}" STREQUAL "MSVC")
+
+        # set it to MSVC because some packages like 'OpenSSL 1.1.1t' have issues with clang-cl.
+        set(_compiler MSVC)
+        set(${compiler_is_clang_cl} 1 PARENT_SCOPE)
+    else()
+        set(_compiler ${CMAKE_${language}_COMPILER_ID})
+        set(${compiler_is_clang_cl} 0 PARENT_SCOPE)
+    endif()
+    if(_compiler MATCHES MSVC)
+        string(SUBSTRING ${MSVC_VERSION} 0 3 _compiler_version)
+    else()
+        set(_compiler_version ${CMAKE_${language}_COMPILER_VERSION})
+    endif()
+    set(${compiler} ${_compiler} PARENT_SCOPE)
+    set(${compiler_version} ${_compiler_version} PARENT_SCOPE)
+endfunction()
+
+
+function(detect_compiler compiler compiler_version compiler_runtime compiler_runtime_type compiler_is_clang_cl)
     if(DEFINED CMAKE_CXX_COMPILER_ID)
-        set(_compiler ${CMAKE_CXX_COMPILER_ID})
-        set(_compiler_version ${CMAKE_CXX_COMPILER_VERSION})
+        detect_compiler_and_version(CXX _compiler _compiler_version _compiler_is_clang_cl)
     else()
         if(NOT DEFINED CMAKE_C_COMPILER_ID)
             message(FATAL_ERROR "C or C++ compiler not defined")
         endif()
-        set(_compiler ${CMAKE_C_COMPILER_ID})
-        set(_compiler_version ${CMAKE_C_COMPILER_VERSION})
+        detect_compiler_and_version(C _compiler _compiler_version _compiler_is_clang_cl)
     endif()
 
     message(STATUS "CMake-Conan: CMake compiler=${_compiler}")
@@ -227,7 +248,6 @@ function(detect_compiler compiler compiler_version compiler_runtime compiler_run
 
     if(_compiler MATCHES MSVC)
         set(_compiler "msvc")
-        string(SUBSTRING ${MSVC_VERSION} 0 3 _compiler_version)
         # Configure compiler.runtime and compiler.runtime_type settings for MSVC
         if(CMAKE_MSVC_RUNTIME_LIBRARY)
             set(_msvc_runtime_library ${CMAKE_MSVC_RUNTIME_LIBRARY})
@@ -293,6 +313,7 @@ function(detect_compiler compiler compiler_version compiler_runtime compiler_run
     set(${compiler_version} ${_compiler_version} PARENT_SCOPE)
     set(${compiler_runtime} ${_compiler_runtime} PARENT_SCOPE)
     set(${compiler_runtime_type} ${_compiler_runtime_type} PARENT_SCOPE)
+    set(${compiler_is_clang_cl} ${_compiler_is_clang_cl} PARENT_SCOPE)
 endfunction()
 
 
@@ -362,7 +383,7 @@ endmacro()
 function(detect_host_profile output_file)
     detect_os(os os_api_level os_sdk os_subsystem os_version)
     detect_arch(arch)
-    detect_compiler(compiler compiler_version compiler_runtime compiler_runtime_type)
+    detect_compiler(compiler compiler_version compiler_runtime compiler_runtime_type compiler_is_clang_cl)
     detect_cxx_standard(compiler_cppstd)
     detect_lib_cxx(compiler_libcxx)
     detect_build_type(build_type)
@@ -418,8 +439,12 @@ function(detect_host_profile output_file)
     string(APPEND profile "[conf]\n")
     string(APPEND profile "tools.cmake.cmaketoolchain:generator=${CMAKE_GENERATOR}\n")
 
-    # propagate compilers via profile
-    append_compiler_executables_configuration()
+    if (NOT compiler_is_clang_cl)
+        # propagate compilers via profile
+        append_compiler_executables_configuration()
+    else()
+        message(STATUS "CMake-Conan: do not propagate compilers via profile for clang-cl")
+    endif()
 
     if(os STREQUAL "Android")
         string(APPEND profile "tools.android:ndk_path=${CMAKE_ANDROID_NDK}\n")
