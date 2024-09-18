@@ -211,6 +211,8 @@ WINE32_TOOL = 'WINE32_TOOL_RESOURCE_GLOBAL'
 
 DEFAULT_CRASHED_STATUS_COMMENT = "Test crashed"
 
+DOCKER_LINK_RE = re.compile(r"(docker:\/\/)(\S+?)(\/\S*)?\@sha\d+:(\w+)")
+
 
 class Enum(object):
     @classmethod
