@@ -258,6 +258,7 @@ jobs:
           $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
           $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
           $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
+          $Env:PORT_SYNC_PATH = Join-Path ${{ github.workspace }} port_sync
           $Env:HAVE_CUDA = 0
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/pytest
           python -m pytest -n auto
@@ -272,6 +273,7 @@ jobs:
           $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
           $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
           $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
+          $Env:PORT_SYNC_PATH = Join-Path ${{ github.workspace }} port_sync
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/python-package/ut/medium
           python -m pytest -n auto
           python -m pytest -n auto test.py
