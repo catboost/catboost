@@ -16,7 +16,7 @@
 
 #include <library/cpp/yt/misc/concepts.h>
 #include <library/cpp/yt/misc/enum.h>
-#include <library/cpp/yt/misc/wrapper_traits.h>
+#include <library/cpp/yt/misc/source_location.h>
 
 #include <util/generic/maybe.h>
 
@@ -29,6 +29,10 @@
 #if __cplusplus >= 202302L
     #include <filesystem>
 #endif
+
+#ifdef __cpp_lib_source_location
+#include <source_location>
+#endif // __cpp_lib_source_location
 
 namespace NYT {
 
@@ -591,6 +595,57 @@ inline void FormatValue(TStringBuilderBase* builder, const std::filesystem::path
     FormatValue(builder, std::string(value), spec);
 }
 #endif
+
+#ifdef __cpp_lib_source_location
+// std::source_location
+inline void FormatValue(TStringBuilderBase* builder, const std::source_location& location, TStringBuf /*spec*/)
+{
+    if (location.file_name() != nullptr) {
+        builder->AppendFormat(
+            "%v:%v:%v",
+            location.file_name(),
+            location.line(),
+            location.column());
+    } else {
+        builder->AppendString("<unknown>");
+    }
+}
+#endif // __cpp_lib_source_location
+
+// TSourceLocation
+inline void FormatValue(TStringBuilderBase* builder, const TSourceLocation& location, TStringBuf /*spec*/)
+{
+    if (location.GetFileName() != nullptr) {
+        builder->AppendFormat(
+            "%v:%v",
+            location.GetFileName(),
+            location.GetLine());
+    } else {
+        builder->AppendString("<unknown>");
+    }
+}
+
+// std::monostate
+inline void FormatValue(TStringBuilderBase* builder, const std::monostate&, TStringBuf /*spec*/)
+{
+    builder->AppendString(TStringBuf("<monostate>"));
+}
+
+// std::variant
+template <class... Ts>
+void FormatValue(TStringBuilderBase* builder, const std::variant<Ts...>& variant, TStringBuf spec)
+{
+    [&] <size_t... Ids> (std::index_sequence<Ids...>) {
+        ([&] {
+            if (variant.index() == Ids) {
+                FormatValue(builder, std::get<Ids>(variant), spec);
+                return false;
+            }
+
+            return true;
+        } () && ...);
+    } (std::index_sequence_for<Ts...>());
+}
 
 // char
 inline void FormatValue(TStringBuilderBase* builder, char value, TStringBuf spec)

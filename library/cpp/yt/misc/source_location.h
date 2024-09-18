@@ -10,15 +10,6 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class TStringBuilderBase;
-
-// TODO(dgolear): Drop when LLVM-14 is eradicated.
-#ifdef __cpp_lib_source_location
-void FormatValue(TStringBuilderBase* builder, const std::source_location& location, TStringBuf /*spec*/);
-#endif // __cpp_lib_source_location
-
-////////////////////////////////////////////////////////////////////////////////
-
 class TSourceLocation
 {
 public:
@@ -46,8 +37,6 @@ private:
 #else
 #define YT_CURRENT_SOURCE_LOCATION ::NYT::TSourceLocation(__FILE__, __LINE__)
 #endif // __cpp_lib_source_location
-
-void FormatValue(TStringBuilderBase* builder, const TSourceLocation& location, TStringBuf spec);
 
 ////////////////////////////////////////////////////////////////////////////////
 
