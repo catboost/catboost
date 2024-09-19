@@ -972,11 +972,9 @@ y_absl::Status ParseFieldMask(JsonLexer& lex, const Desc<Traits>& desc,
     // Assume approximately six-letter words, so add one extra space for an
     // underscore for every six bytes.
     snake_path.reserve(path.size() * 7 / 6);
-
-    // Port from protobuf 21.x for entity/ugc (TODO remove?).
+    // Port from protobuf 21.x
     bool is_quoted = false;
     bool is_escaping = false;
-
     for (char c : path) {
       // Outputs quoted string as-is.
       if (is_quoted) {

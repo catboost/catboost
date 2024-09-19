@@ -1564,4 +1564,5 @@ void LinkExtensionReflection(
 }  // namespace google
 
 #include "google/protobuf/port_undef.inc"
+
 #endif  // GOOGLE_PROTOBUF_EXTENSION_SET_H__

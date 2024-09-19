@@ -34,9 +34,9 @@ target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-zlib
-  cpp-sanitizer-include
-  abseil-cpp-tstring-y_absl-status
   abseil-cpp-tstring-y_absl-log
+  abseil-cpp-tstring-y_absl-status
+  cpp-sanitizer-include
 )
 
 target_sources(contrib-libs-protobuf PRIVATE
@@ -210,9 +210,9 @@ target_link_libraries(contrib-libs-protobuf.global PUBLIC
   contrib-libs-cxxsupp
   yutil
   contrib-libs-zlib
-  cpp-sanitizer-include
-  abseil-cpp-tstring-y_absl-status
   abseil-cpp-tstring-y_absl-log
+  abseil-cpp-tstring-y_absl-status
+  cpp-sanitizer-include
 )
 
 target_sources(contrib-libs-protobuf.global PRIVATE

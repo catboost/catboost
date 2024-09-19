@@ -434,14 +434,10 @@ static SynchEvent* GetSynchEvent(const void* addr) {
 // if event recording is on
 static void PostSynchEvent(void* obj, int ev) {
   SynchEvent* e = GetSynchEvent(obj);
-#ifdef Y_ABSL_DONT_USE_DEBUG_LIBRARY
-  constexpr bool DONT_COLLECT_STACK_TRACE = 1;
-#else
-  constexpr bool DONT_COLLECT_STACK_TRACE = 0;
-#endif
+#ifndef Y_ABSL_DONT_USE_DEBUG_LIBRARY
   // logging is on if event recording is on and either there's no event struct,
   // or it explicitly says to log
-  if ((e == nullptr || e->log) && !DONT_COLLECT_STACK_TRACE) {
+  if (e == nullptr || e->log) {
     void* pcs[40];
     int n = y_absl::GetStackTrace(pcs, Y_ABSL_ARRAYSIZE(pcs), 1);
     // A buffer with enough space for the ASCII for all the PCs, even on a
@@ -460,6 +456,7 @@ static void PostSynchEvent(void* obj, int ev) {
     Y_ABSL_RAW_LOG(INFO, "%s%p %s %s", event_properties[ev].msg, obj,
                  (e == nullptr ? "" : e->name), buffer);
   }
+#endif
   const int flags = event_properties[ev].flags;
   if ((flags & SYNCH_F_LCK) != 0 && e != nullptr && e->invariant != nullptr) {
     // Calling the invariant as is causes problems under ThreadSanitizer.
@@ -1325,6 +1322,7 @@ static inline void DebugOnlyLockLeave(Mutex* mu) {
 
 static char* StackString(void** pcs, int n, char* buf, int maxlen,
                          bool symbolize) {
+#ifndef Y_ABSL_DONT_USE_DEBUG_LIBRARY
   static constexpr int kSymLen = 200;
   char sym[kSymLen];
   int len = 0;
@@ -1344,12 +1342,21 @@ static char* StackString(void** pcs, int n, char* buf, int maxlen,
     len += strlen(&buf[len]);
   }
   return buf;
+#else
+  buf[0] = 0;
+  return buf;
+#endif
 }
 
 static char* CurrentStackString(char* buf, int maxlen, bool symbolize) {
+#ifndef Y_ABSL_DONT_USE_DEBUG_LIBRARY
   void* pcs[40];
   return StackString(pcs, y_absl::GetStackTrace(pcs, Y_ABSL_ARRAYSIZE(pcs), 2), buf,
                      maxlen, symbolize);
+#else
+  buf[0] = 0;
+  return buf;
+#endif
 }
 
 namespace {
@@ -1375,7 +1382,11 @@ struct ScopedDeadlockReportBuffers {
 
 // Helper to pass to GraphCycles::UpdateStackTrace.
 int GetStack(void** stack, int max_depth) {
+#ifndef Y_ABSL_DONT_USE_DEBUG_LIBRARY
   return y_absl::GetStackTrace(stack, max_depth, 3);
+#else
+  return 0;
+#endif
 }
 }  // anonymous namespace
 
