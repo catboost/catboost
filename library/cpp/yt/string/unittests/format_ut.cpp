@@ -78,6 +78,7 @@ static_assert(CFormattable<TInstant>);
 struct TUnformattable
 { };
 static_assert(!CFormattable<TUnformattable>);
+static_assert(!CFormattable<std::variant<TUnformattable>>);
 
 static_assert(CFormattable<TWithCustomFlags>);
 

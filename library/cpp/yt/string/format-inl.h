@@ -633,6 +633,7 @@ inline void FormatValue(TStringBuilderBase* builder, const std::monostate&, TStr
 
 // std::variant
 template <class... Ts>
+    requires (CFormattable<Ts> && ...)
 void FormatValue(TStringBuilderBase* builder, const std::variant<Ts...>& variant, TStringBuf spec)
 {
     [&] <size_t... Ids> (std::index_sequence<Ids...>) {
