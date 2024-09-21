@@ -90,7 +90,7 @@ Y_FORCE_INLINE void DestroyRefCountedImpl(T* obj)
         return;
     }
 
-    YT_ASSERT(offset < std::numeric_limits<ui16>::max());
+    YT_ASSERT(offset < (1ULL << PackedPtrTagBits));
 
     auto* vTablePtr = reinterpret_cast<TPackedPtr*>(basePtr);
     *vTablePtr = TTaggedPtr<void(void*, ui16)>(&NYT::NDetail::TMemoryReleaser<T>::Do, offset).Pack();
@@ -187,7 +187,7 @@ Y_FORCE_INLINE void TRefCounter::Ref(int n) const noexcept
     // It is safe to use relaxed here, since new reference is always created from another live reference.
     auto value = StrongCount_.fetch_add(n, std::memory_order::relaxed);
     YT_ASSERT(value > 0);
-    YT_ASSERT(value <= std::numeric_limits<int>::max() - n);
+    YT_ASSERT(value <= std::numeric_limits<TRefCount>::max() - n);
 
     YT_ASSERT(WeakCount_.load(std::memory_order::relaxed) > 0);
 }
@@ -199,7 +199,7 @@ Y_FORCE_INLINE void TRefCounter::DangerousRef(int n) const noexcept
     // Relaxed is fine as per lukyan@, the caller guarantees object liveness.
     auto value = StrongCount_.fetch_add(n, std::memory_order::relaxed);
     YT_ASSERT(value >= 0);
-    YT_ASSERT(value <= std::numeric_limits<int>::max() - n);
+    YT_ASSERT(value <= std::numeric_limits<TRefCount>::max() - n);
 
     YT_ASSERT(WeakCount_.load(std::memory_order::relaxed) > 0);
 }
@@ -207,7 +207,7 @@ Y_FORCE_INLINE void TRefCounter::DangerousRef(int n) const noexcept
 Y_FORCE_INLINE bool TRefCounter::TryRef() const noexcept
 {
     auto value = StrongCount_.load(std::memory_order::relaxed);
-    YT_ASSERT(value >= 0 && value < std::numeric_limits<int>::max());
+    YT_ASSERT(value >= 0 && value < std::numeric_limits<TRefCount>::max());
     YT_ASSERT(WeakCount_.load(std::memory_order::relaxed) > 0);
 
     while (value != 0 && !StrongCount_.compare_exchange_weak(value, value + 1));

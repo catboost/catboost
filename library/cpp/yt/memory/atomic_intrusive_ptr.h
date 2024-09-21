@@ -6,13 +6,10 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Atomic ptr based on https://github.com/facebook/folly/blob/main/folly/concurrency/AtomicSharedPtr.h
-
-// Operators * and -> for TAtomicIntrusivePtr are useless because it is not safe to work with atomic ptr such way
-// Safe usage is to convert to TIntrusivePtr.
-
-// Max TAtomicIntrusivePtr count per object is (2**16 = 2**32 / 2**16).
-
+//! Atomic pointer with split reference counting.
+/*
+ *  \see https://github.com/facebook/folly/blob/main/folly/concurrency/AtomicSharedPtr.h
+*/
 template <class T>
 class TAtomicIntrusivePtr
 {
@@ -39,7 +36,7 @@ public:
     bool CompareAndSwap(TRawPtr& comparePtr, T* target);
     bool CompareAndSwap(TRawPtr& comparePtr, TIntrusivePtr<T> target);
 
-    // Result is suitable only for comparison. Not dereference.
+    //! Result is only suitable for comparison, not dereference.
     TRawPtr Get() const;
 
     explicit operator bool() const;
