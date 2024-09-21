@@ -182,8 +182,24 @@ Y_FORCE_INLINE int TRefCounter::GetRefCount() const noexcept
 
 Y_FORCE_INLINE void TRefCounter::Ref(int n) const noexcept
 {
+    YT_ASSERT(n >= 0);
+
     // It is safe to use relaxed here, since new reference is always created from another live reference.
-    StrongCount_.fetch_add(n, std::memory_order::relaxed);
+    auto value = StrongCount_.fetch_add(n, std::memory_order::relaxed);
+    YT_ASSERT(value > 0);
+    YT_ASSERT(value <= std::numeric_limits<int>::max() - n);
+
+    YT_ASSERT(WeakCount_.load(std::memory_order::relaxed) > 0);
+}
+
+Y_FORCE_INLINE void TRefCounter::DangerousRef(int n) const noexcept
+{
+    YT_ASSERT(n >= 0);
+
+    // Relaxed is fine as per lukyan@, the caller guarantees object liveness.
+    auto value = StrongCount_.fetch_add(n, std::memory_order::relaxed);
+    YT_ASSERT(value >= 0);
+    YT_ASSERT(value <= std::numeric_limits<int>::max() - n);
 
     YT_ASSERT(WeakCount_.load(std::memory_order::relaxed) > 0);
 }
@@ -191,6 +207,7 @@ Y_FORCE_INLINE void TRefCounter::Ref(int n) const noexcept
 Y_FORCE_INLINE bool TRefCounter::TryRef() const noexcept
 {
     auto value = StrongCount_.load(std::memory_order::relaxed);
+    YT_ASSERT(value >= 0 && value < std::numeric_limits<int>::max());
     YT_ASSERT(WeakCount_.load(std::memory_order::relaxed) > 0);
 
     while (value != 0 && !StrongCount_.compare_exchange_weak(value, value + 1));
@@ -199,6 +216,8 @@ Y_FORCE_INLINE bool TRefCounter::TryRef() const noexcept
 
 Y_FORCE_INLINE bool TRefCounter::Unref(int n) const
 {
+    YT_ASSERT(n >= 0);
+
     // We must properly synchronize last access to object with it destruction.
     // Otherwise compiler might reorder access to object past this decrement.
     //

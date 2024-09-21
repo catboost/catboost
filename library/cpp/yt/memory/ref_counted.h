@@ -40,7 +40,12 @@ public:
     int GetRefCount() const noexcept;
 
     //! Increments the strong reference counter.
+    //! The current strong RC must be positive.
     void Ref(int n = 1) const noexcept;
+
+    //! Increments the strong reference counter.
+    //! The current strong RC may be zero.
+    void DangerousRef(int n = 1) const noexcept;
 
     //! Increments the strong reference counter if it is not null.
     bool TryRef() const noexcept;
