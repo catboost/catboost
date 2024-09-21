@@ -6010,7 +6010,7 @@ class CatBoostRegressor(CatBoost):
         is_regression = CatBoost._is_regression_objective(loss_function) or CatBoost._is_multiregression_objective(loss_function) or CatBoost._is_survivalregression_objective(loss_function)
         if isinstance(loss_function, str) and not is_regression:
             raise CatBoostError("Invalid loss_function='{}': for regressor use "
-                                "RMSE, MultiRMSE, SurvivalAft, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
+                                "RMSE, MultiRMSE, SurvivalAft, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq, RMSPE or custom objective object".format(loss_function))
 
     def _get_default_prediction_type(self):
         # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
