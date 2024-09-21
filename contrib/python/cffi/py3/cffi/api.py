@@ -693,7 +693,8 @@ class FFI(object):
             raise TypeError("emit_c_code() is only for C extension modules, "
                             "not for dlopen()-style pure Python modules")
         recompile(self, module_name, source,
-                  c_file=filename, call_c_compiler=False, **kwds)
+                  c_file=filename, call_c_compiler=False,
+                  uses_ffiplatform=False, **kwds)
 
     def emit_python_code(self, filename):
         from .recompiler import recompile
@@ -705,7 +706,8 @@ class FFI(object):
             raise TypeError("emit_python_code() is only for dlopen()-style "
                             "pure Python modules, not for C extension modules")
         recompile(self, module_name, source,
-                  c_file=filename, call_c_compiler=False, **kwds)
+                  c_file=filename, call_c_compiler=False,
+                  uses_ffiplatform=False, **kwds)
 
     def compile(self, tmpdir='.', verbose=0, target=None, debug=None):
         """The 'target' argument gives the final file name of the

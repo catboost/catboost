@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: cffi
-Version: 1.17.0
+Version: 1.17.1
 Summary: Foreign Function Interface for Python calling C code.
 Home-page: http://cffi.readthedocs.org
 Author: Armin Rigo, Maciej Fijalkowski
