@@ -146,9 +146,31 @@ class Conclusion:
 MAX_CHILDREN_EFFECTIVELY_INFINITE = 100_000
 
 
-def compute_max_children(ir_type, kwargs):
-    from hypothesis.internal.conjecture.data import DRAW_STRING_DEFAULT_MAX_SIZE
+def _count_distinct_strings(*, alphabet_size, min_size, max_size):
+    # We want to estimate if we're going to have more children than
+    # MAX_CHILDREN_EFFECTIVELY_INFINITE, without computing a potentially
+    # extremely expensive pow. We'll check if the number of strings in
+    # the largest string size alone is enough to put us over this limit.
+    # We'll also employ a trick of estimating against log, which is cheaper
+    # than computing a pow.
+    #
+    # x = max_size
+    # y = alphabet_size
+    # n = MAX_CHILDREN_EFFECTIVELY_INFINITE
+    #
+    #     x**y > n
+    # <=> log(x**y)  > log(n)
+    # <=> y * log(x) > log(n)
+    definitely_too_large = max_size * math.log(alphabet_size) > math.log(
+        MAX_CHILDREN_EFFECTIVELY_INFINITE
+    )
+    if definitely_too_large:
+        return MAX_CHILDREN_EFFECTIVELY_INFINITE
 
+    return sum(alphabet_size**k for k in range(min_size, max_size + 1))
+
+
+def compute_max_children(ir_type, kwargs):
     if ir_type == "integer":
         min_value = kwargs["min_value"]
         max_value = kwargs["max_value"]
@@ -178,50 +200,27 @@ def compute_max_children(ir_type, kwargs):
             return 1
         return 2
     elif ir_type == "bytes":
-        return 2 ** (8 * kwargs["size"])
+        return _count_distinct_strings(
+            alphabet_size=2**8, min_size=kwargs["min_size"], max_size=kwargs["max_size"]
+        )
     elif ir_type == "string":
         min_size = kwargs["min_size"]
         max_size = kwargs["max_size"]
         intervals = kwargs["intervals"]
-
-        if max_size is None:
-            max_size = DRAW_STRING_DEFAULT_MAX_SIZE
 
         if len(intervals) == 0:
             # Special-case the empty alphabet to avoid an error in math.log(0).
             # Only possibility is the empty string.
             return 1
 
-        # We want to estimate if we're going to have more children than
-        # MAX_CHILDREN_EFFECTIVELY_INFINITE, without computing a potentially
-        # extremely expensive pow. We'll check if the number of strings in
-        # the largest string size alone is enough to put us over this limit.
-        # We'll also employ a trick of estimating against log, which is cheaper
-        # than computing a pow.
-        #
-        # x = max_size
-        # y = len(intervals)
-        # n = MAX_CHILDREN_EFFECTIVELY_INFINITE
-        #
-        #     x**y > n
-        # <=> log(x**y)  > log(n)
-        # <=> y * log(x) > log(n)
-
-        # avoid math.log(1) == 0 and incorrectly failing the below estimate,
-        # even when we definitely are too large.
-        if len(intervals) == 1:
-            definitely_too_large = max_size > MAX_CHILDREN_EFFECTIVELY_INFINITE
-        else:
-            definitely_too_large = max_size * math.log(len(intervals)) > math.log(
-                MAX_CHILDREN_EFFECTIVELY_INFINITE
-            )
-
-        if definitely_too_large:
+        # avoid math.log(1) == 0 and incorrectly failing our effectively_infinite
+        # estimate, even when we definitely are too large.
+        if len(intervals) == 1 and max_size > MAX_CHILDREN_EFFECTIVELY_INFINITE:
             return MAX_CHILDREN_EFFECTIVELY_INFINITE
 
-        # number of strings of length k, for each k in [min_size, max_size].
-        return sum(len(intervals) ** k for k in range(min_size, max_size + 1))
-
+        return _count_distinct_strings(
+            alphabet_size=len(intervals), min_size=min_size, max_size=max_size
+        )
     elif ir_type == "float":
         min_value = kwargs["min_value"]
         max_value = kwargs["max_value"]
@@ -306,8 +305,8 @@ def all_children(ir_type, kwargs):
         else:
             yield from [False, True]
     if ir_type == "bytes":
-        size = kwargs["size"]
-        yield from (int_to_bytes(i, size) for i in range(2 ** (8 * size)))
+        for size in range(kwargs["min_size"], kwargs["max_size"] + 1):
+            yield from (int_to_bytes(i, size) for i in range(2 ** (8 * size)))
     if ir_type == "string":
         min_size = kwargs["min_size"]
         max_size = kwargs["max_size"]

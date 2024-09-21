@@ -111,11 +111,12 @@ class FloatKWargs(TypedDict):
 class StringKWargs(TypedDict):
     intervals: IntervalSet
     min_size: int
-    max_size: Optional[int]
+    max_size: int
 
 
 class BytesKWargs(TypedDict):
-    size: int
+    min_size: int
+    max_size: int
 
 
 class BooleanKWargs(TypedDict):
@@ -206,7 +207,7 @@ NASTY_FLOATS.extend([-x for x in NASTY_FLOATS])
 FLOAT_INIT_LOGIC_CACHE = LRUCache(4096)
 POOLED_KWARGS_CACHE = LRUCache(4096)
 
-DRAW_STRING_DEFAULT_MAX_SIZE = 10**10  # "arbitrarily large"
+COLLECTION_DEFAULT_MAX_SIZE = 10**10  # "arbitrarily large"
 
 
 class Example:
@@ -1036,7 +1037,7 @@ class IRNode:
             return self.value == (minimal_char * self.kwargs["min_size"])
         if self.ir_type == "bytes":
             # smallest size and all-zero value.
-            return len(self.value) == self.kwargs["size"] and not any(self.value)
+            return len(self.value) == self.kwargs["min_size"] and not any(self.value)
 
         raise NotImplementedError(f"unhandled ir_type {self.ir_type}")
 
@@ -1095,7 +1096,9 @@ def ir_value_permitted(value, ir_type, kwargs):
             return False
         return all(ord(c) in kwargs["intervals"] for c in value)
     elif ir_type == "bytes":
-        return len(value) == kwargs["size"]
+        if len(value) < kwargs["min_size"]:
+            return False
+        return kwargs["max_size"] is None or len(value) <= kwargs["max_size"]
     elif ir_type == "boolean":
         if kwargs["p"] <= 2 ** (-64):
             return value is False
@@ -1314,7 +1317,7 @@ class PrimitiveProvider(abc.ABC):
         intervals: IntervalSet,
         *,
         min_size: int = 0,
-        max_size: Optional[int] = None,
+        max_size: int = COLLECTION_DEFAULT_MAX_SIZE,
         forced: Optional[str] = None,
         fake_forced: bool = False,
     ) -> str:
@@ -1322,7 +1325,12 @@ class PrimitiveProvider(abc.ABC):
 
     @abc.abstractmethod
     def draw_bytes(
-        self, size: int, *, forced: Optional[bytes] = None, fake_forced: bool = False
+        self,
+        min_size: int = 0,
+        max_size: int = COLLECTION_DEFAULT_MAX_SIZE,
+        *,
+        forced: Optional[bytes] = None,
+        fake_forced: bool = False,
     ) -> bytes:
         raise NotImplementedError
 
@@ -1606,14 +1614,10 @@ class HypothesisProvider(PrimitiveProvider):
         intervals: IntervalSet,
         *,
         min_size: int = 0,
-        max_size: Optional[int] = None,
+        max_size: int = COLLECTION_DEFAULT_MAX_SIZE,
         forced: Optional[str] = None,
         fake_forced: bool = False,
     ) -> str:
-        if max_size is None:
-            max_size = DRAW_STRING_DEFAULT_MAX_SIZE
-
-        assert forced is None or min_size <= len(forced) <= max_size
         assert self._cd is not None
 
         average_size = min(
@@ -1663,17 +1667,40 @@ class HypothesisProvider(PrimitiveProvider):
         return "".join(chars)
 
     def draw_bytes(
-        self, size: int, *, forced: Optional[bytes] = None, fake_forced: bool = False
+        self,
+        min_size: int = 0,
+        max_size: int = COLLECTION_DEFAULT_MAX_SIZE,
+        *,
+        forced: Optional[bytes] = None,
+        fake_forced: bool = False,
     ) -> bytes:
-        forced_i = None
-        if forced is not None:
-            forced_i = int_from_bytes(forced)
-            size = len(forced)
-
         assert self._cd is not None
-        return self._cd.draw_bits(
-            8 * size, forced=forced_i, fake_forced=fake_forced
-        ).to_bytes(size, "big")
+
+        buf = bytearray()
+        average_size = min(
+            max(min_size * 2, min_size + 5),
+            0.5 * (min_size + max_size),
+        )
+        elements = many(
+            self._cd,
+            min_size=min_size,
+            max_size=max_size,
+            average_size=average_size,
+            forced=None if forced is None else len(forced),
+            fake_forced=fake_forced,
+            observe=False,
+        )
+        while elements.more():
+            forced_i: Optional[int] = None
+            if forced is not None:
+                # implicit conversion from bytes to int by indexing here
+                forced_i = forced[elements.count - 1]
+
+            buf += self._cd.draw_bits(
+                8, forced=forced_i, fake_forced=fake_forced
+            ).to_bytes(1, "big")
+
+        return bytes(buf)
 
     def _draw_float(
         self,
@@ -2216,12 +2243,13 @@ class ConjectureData:
         intervals: IntervalSet,
         *,
         min_size: int = 0,
-        max_size: Optional[int] = None,
+        max_size: int = COLLECTION_DEFAULT_MAX_SIZE,
         forced: Optional[str] = None,
         fake_forced: bool = False,
         observe: bool = True,
     ) -> str:
-        assert forced is None or min_size <= len(forced)
+        assert forced is None or min_size <= len(forced) <= max_size
+        assert min_size >= 0
 
         kwargs: StringKWargs = self._pooled_kwargs(
             "string",
@@ -2255,17 +2283,19 @@ class ConjectureData:
 
     def draw_bytes(
         self,
-        # TODO move to min_size and max_size here.
-        size: int,
+        min_size: int = 0,
+        max_size: int = COLLECTION_DEFAULT_MAX_SIZE,
         *,
         forced: Optional[bytes] = None,
         fake_forced: bool = False,
         observe: bool = True,
     ) -> bytes:
-        assert forced is None or len(forced) == size
-        assert size >= 0
+        assert forced is None or min_size <= len(forced) <= max_size
+        assert min_size >= 0
 
-        kwargs: BytesKWargs = self._pooled_kwargs("bytes", {"size": size})
+        kwargs: BytesKWargs = self._pooled_kwargs(
+            "bytes", {"min_size": min_size, "max_size": max_size}
+        )
 
         if self.ir_tree_nodes is not None and observe:
             node_value = self._pop_ir_tree_node("bytes", kwargs, forced=forced)

@@ -1,6 +1,7 @@
 # cython: boundscheck=False
 # cython: wraparound=False
 # cython: cdivision=True
+# cython: cpow=True
 # Author: Christopher Moody <chrisemoody@gmail.com>
 # Author: Nick Travers <nickt@squareup.com>
 # Implementation by Chris Moody & Nick Travers
