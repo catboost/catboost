@@ -13,11 +13,11 @@ class THistogramPointsAndBins {
         TVector<double> Bins;
     public:
         THistogramPointsAndBins();
-        THistogramPointsAndBins(TVector<double>& points, TVector<double>& bins);
+        THistogramPointsAndBins(const TVector<double>& points, const TVector<double>& bins);
 
         const TVector<double>& GetPoints() const;
         const TVector<double>& GetBins() const;
-        void SetPointsAndBins(TVector<double>& points, TVector<double>& bins);
+        void SetPointsAndBins(const TVector<double>& points, const TVector<double>& bins);
         const std::pair<size_t, double> FindBinAndPartion(const double& percentile) const;
         bool IsBinsFilledWithZeros() const;
         bool IsEmptyData() const;

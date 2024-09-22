@@ -591,10 +591,10 @@ size_t TExpressionImpl::BuildExpression(TStringBuf str) {
         return order;
     } else if (str.size() > 21 && str.substr(0, 22) == "#HISTOGRAM_PERCENTILE#") {
         Operations.push_back(TOperator(O_HISTOGRAM_PERCENTILE));
-        TVector<TString> splitByComma = StringSplitter(str.substr(22)).Split(',').ToList<TString>();
+        TVector<TStringBuf> splitByComma = StringSplitter(str.substr(22)).Split(',').ToList<TStringBuf>();
         Operations[order].Input.push_back(BuildExpression(splitByComma[0]));
-        if (splitByComma.size() == 2) {
-            Operations[order].Input.push_back(BuildExpression(splitByComma[1]));
+        if (splitByComma.size() > 1) {
+            Operations[order].Input.push_back(BuildExpression(str.substr(23 + splitByComma[0].size()))); // take part after comma
         }
         return order;
     } else {

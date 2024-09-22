@@ -104,7 +104,7 @@ double TExpressionVariable::Min(const TExpressionVariable& secondOperand) const 
 double TExpressionVariable::Max(const TExpressionVariable& secondOperand) const {
     return G(secondOperand) ? ToDouble() : secondOperand.ToDouble();
 }
-double TExpressionVariable::HistogramPercentile(TExpressionVariable& percentile) const {
+double TExpressionVariable::HistogramPercentile(const TExpressionVariable& percentile) const {
     if (ToHistogramPointsAndBins().IsInvalidData(percentile.ToDouble())) {
         return 0;
     }

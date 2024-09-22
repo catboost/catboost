@@ -7,7 +7,7 @@ THistogramPointsAndBins::THistogramPointsAndBins()
     {
     }
 
-THistogramPointsAndBins::THistogramPointsAndBins(TVector<double>& points, TVector<double>& bins) {
+THistogramPointsAndBins::THistogramPointsAndBins(const TVector<double>& points, const TVector<double>& bins) {
     if (points.size() == (bins.size() - 1)) {
         Points = points;
         Bins = bins;
@@ -22,7 +22,7 @@ const TVector<double>& THistogramPointsAndBins::GetBins() const {
     return Bins;
 }
 
-void THistogramPointsAndBins::SetPointsAndBins(TVector<double>& points, TVector<double>& bins) {
+void THistogramPointsAndBins::SetPointsAndBins(const TVector<double>& points, const TVector<double>& bins) {
     if (points.size() == (bins.size() - 1)) {
         Points = points;
         Bins = bins;

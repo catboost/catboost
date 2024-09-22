@@ -25,7 +25,7 @@ public:
     double Minus();
     double Min(const TExpressionVariable& secondOperand) const;
     double Max(const TExpressionVariable& secondOperand) const;
-    double HistogramPercentile(TExpressionVariable& percentile) const;
+    double HistogramPercentile(const TExpressionVariable& percentile) const;
     double Or(const TExpressionVariable& secondOperand) const;
     double And(const TExpressionVariable& secondOperand) const;
     double Cond(const TExpressionVariable& secondOperand, const TExpressionVariable& u) const;
