@@ -385,6 +385,7 @@ namespace NNetliba_v12 {
             return MTUDiscovery.Get();
         }
         void SetMTU(int sz) {
+            // Cerr << "Setting MTU at " << ui64(this) << " to " << sz << Endl;
             MTU = sz;
             MTUDiscovery = nullptr;
             CalcMaxWindow();

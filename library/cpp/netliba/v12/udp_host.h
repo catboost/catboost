@@ -78,6 +78,7 @@ namespace NNetliba_v12 {
     void SetUdpMaxBandwidthPerIP(float f);
     void SetUdpSlowStart(bool enable);
     void DisableIBDetection();
+    void EnableXsPing();
 }
 
 template <>

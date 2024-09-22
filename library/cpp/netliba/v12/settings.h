@@ -62,6 +62,7 @@ namespace NNetliba_v12 {
         TConnectionSettings()
             : UseTosCongestionAlgo(false)
             , InflateCongestion(false)
+            , SmallMtuUseXs(false)
         {
         }
 
@@ -74,21 +75,29 @@ namespace NNetliba_v12 {
         bool GetInflateCongestion() const {
             return InflateCongestion;
         }
+        bool GetSmallMtuUseXs() const {
+            return SmallMtuUseXs;
+        }
         void SetUseTosCongestionAlgo(const bool useTosCongestionAlgo) {
             UseTosCongestionAlgo = useTosCongestionAlgo;
         }
         void SetInflateCongestion(const bool inflateCongestion) {
             InflateCongestion = inflateCongestion;
         }
+        void SetSmallMtuUseXs(const bool smallMtuUseXs) {
+            SmallMtuUseXs = smallMtuUseXs;
+        }
 
     private:
         bool UseTosCongestionAlgo;
         bool InflateCongestion;
+        bool SmallMtuUseXs;
     };
 
     inline bool operator==(const TConnectionSettings& lhv, const TConnectionSettings& rhv) {
         return lhv.GetUseTosCongestionAlgo() == rhv.GetUseTosCongestionAlgo() &&
-               lhv.GetInflateCongestion() == rhv.GetInflateCongestion();
+               lhv.GetInflateCongestion() == rhv.GetInflateCongestion() &&
+               lhv.GetSmallMtuUseXs() == rhv.GetSmallMtuUseXs();
     }
     inline bool operator!=(const TConnectionSettings& lhv, const TConnectionSettings& rhv) {
         return !(lhv == rhv);
