@@ -144,7 +144,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_SINCE_CXX17
     reference operator*() const {_Iter __tmp = current; return *--__tmp;}
 
-#if _LIBCPP_STD_VER >= 20
+#if (_LIBCPP_STD_VER >= 20) && !defined(__NVCC__)
     _LIBCPP_INLINE_VISIBILITY
     constexpr pointer operator->() const
       requires is_pointer_v<_Iter> || requires(const _Iter __i) { __i.operator->(); }
