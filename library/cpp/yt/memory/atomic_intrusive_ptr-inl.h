@@ -75,7 +75,6 @@ template <class T>
 void TAtomicIntrusivePtr<T>::Reset()
 {
     Exchange(nullptr);
-    ReleaseObject(Ptr_.exchange(0));
 }
 
 template <class T>
