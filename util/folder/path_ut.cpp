@@ -663,7 +663,7 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
     };
 #endif
 
-    Y_UNIT_TEST(TestForceDeleteErrorUnlink) {
+    Y_UNIT_TEST(TestForceDeleteErrorRemove) {
         TTempDir tempDir;
 
         const TFsPath testDir = TFsPath(tempDir()).Child("dir");
@@ -680,14 +680,17 @@ Y_UNIT_TEST_SUITE(TFsPathTests) {
         Y_DEFER {
             Chmod(testFile.c_str(), MODE0777);
         };
+        // Checks that dir/file with readonly attribute will be deleted
+        // on Windows
+        UNIT_ASSERT_NO_EXCEPTION(testFile.ForceDelete());
 #else
         Chmod(testDir.c_str(), S_IRUSR | S_IXUSR);
         Y_DEFER {
             Chmod(testDir.c_str(), MODE0777);
         };
+        UNIT_ASSERT_EXCEPTION_CONTAINS(testFile.ForceDelete(), TIoException,
+                                       "failed to delete");
 #endif
-
-        UNIT_ASSERT_EXCEPTION_CONTAINS(testFile.ForceDelete(), TIoException, "failed to delete");
     }
 
     Y_UNIT_TEST(TestForceDeleteErrorRmdir) {

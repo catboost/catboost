@@ -406,8 +406,7 @@ void TFsPath::DeleteIfExists() const {
         return;
     }
 
-    ::unlink(this->c_str());
-    ::rmdir(this->c_str());
+    NFs::Remove(GetPath());
     if (Exists()) {
         ythrow TIoException() << "failed to delete " << Path_;
     }
@@ -441,7 +440,7 @@ void TFsPath::ForceDelete() const {
         return;
     }
 
-    TFileStat stat(GetPath().c_str(), true);
+    TFileStat stat(GetPath(), true);
     if (stat.IsNull()) {
         const int err = LastSystemError();
 #ifdef _win_
@@ -455,19 +454,15 @@ void TFsPath::ForceDelete() const {
         }
     }
 
-    bool succ;
     if (stat.IsDir()) {
         TVector<TFsPath> children;
         List(children);
         for (auto& i : children) {
             i.ForceDelete();
         }
-        succ = ::rmdir(this->c_str()) == 0;
-    } else {
-        succ = ::unlink(this->c_str()) == 0;
     }
 
-    if (!succ && LastSystemError()) {
+    if (!NFs::Remove(GetPath())) {
         ythrow TIoException() << "failed to delete " << Path_;
     }
 }
