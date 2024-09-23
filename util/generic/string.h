@@ -861,7 +861,7 @@ public:
         return this->ConstRef();
     }
 
-    operator TStringType&() {
+    operator TStringType&() & {
         return this->MutRef();
     }
 
