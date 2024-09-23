@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import sys
+import types
 
-from types import TracebackType
 from typing import (
     Any,
     Callable,
@@ -42,7 +42,7 @@ _Raisable = BaseException | Type[BaseException]
 
 # The type of isinstance's second argument (from typeshed builtins)
 if sys.version_info >= (3, 10):
-    _ClassInfo = type | UnionType | tuple[_ClassInfo, ...]
+    _ClassInfo = type | types.UnionType | tuple[_ClassInfo, ...]
 else:
     _ClassInfo = type | tuple[_ClassInfo, ...]
 
@@ -619,7 +619,7 @@ class callback_iter(Generic[_T], Iterator[_T]):
         self,
         exc_type: Type[BaseException] | None,
         exc_value: BaseException | None,
-        traceback: TracebackType | None,
+        traceback: types.TracebackType | None,
     ) -> bool | None: ...
     def __iter__(self) -> callback_iter[_T]: ...
     def __next__(self) -> _T: ...

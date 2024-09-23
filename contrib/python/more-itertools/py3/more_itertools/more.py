@@ -3017,7 +3017,7 @@ def circular_shifts(iterable, steps=1):
     n = len(buffer)
     n //= math.gcd(n, steps)
 
-    for __ in repeat(None, n):
+    for _ in repeat(None, n):
         buffer.rotate(steps)
         yield tuple(buffer)
 

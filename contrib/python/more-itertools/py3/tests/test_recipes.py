@@ -2,11 +2,12 @@ from decimal import Decimal
 from doctest import DocTestSuite
 from fractions import Fraction
 from functools import reduce
-from itertools import combinations, count, permutations
+from itertools import combinations, count, groupby, permutations
 from operator import mul
 from math import factorial
 from sys import version_info
 from unittest import TestCase, skipIf
+from unittest.mock import patch
 
 import more_itertools as mi
 
@@ -157,6 +158,22 @@ class AllEqualTests(TestCase):
     def test_key(self):
         self.assertTrue(mi.all_equal('4٤໔４৪', key=int))
         self.assertFalse(mi.all_equal('Abc', key=str.casefold))
+
+    @patch('more_itertools.recipes.groupby', autospec=True)
+    def test_groupby_calls(self, mock_groupby):
+        next_count = 0
+
+        class _groupby(groupby):
+            def __next__(true_self):
+                nonlocal next_count
+                next_count += 1
+                return super().__next__()
+
+        mock_groupby.side_effect = _groupby
+        iterable = iter('aaaaa')
+        self.assertTrue(mi.all_equal(iterable))
+        self.assertEqual(list(iterable), [])
+        self.assertEqual(next_count, 2)
 
 
 class QuantifyTests(TestCase):
