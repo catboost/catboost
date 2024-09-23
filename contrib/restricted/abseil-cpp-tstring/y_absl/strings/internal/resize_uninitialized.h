@@ -49,6 +49,16 @@ struct ResizeUninitializedTraits<
   }
 };
 
+template <typename string_type>
+struct ResizeUninitializedTraits<
+    string_type, y_absl::void_t<decltype(std::declval<string_type&>()
+                                           .ReserveAndResize(237))> > {
+  using HasMember = std::true_type;
+  static void Resize(string_type* s, size_t new_size) {
+    s->ReserveAndResize(new_size);
+  }
+};
+
 // Returns true if the TString implementation supports a resize where
 // the new characters added to the TString are left untouched.
 //
@@ -95,6 +105,15 @@ struct AppendUninitializedTraits<
                                            .__append_default_init(237))> > {
   static void Append(string_type* s, size_t n) {
     s->__append_default_init(n);
+  }
+};
+
+template <typename string_type>
+struct AppendUninitializedTraits<
+    string_type, y_absl::void_t<decltype(std::declval<string_type&>()
+                                           .ReserveAndResize(237))> > {
+  static void Append(string_type* s, size_t n) {
+    s->ReserveAndResize(s->size() + n);
   }
 };
 
