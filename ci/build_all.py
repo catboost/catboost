@@ -402,6 +402,7 @@ def build_all_for_one_platform(
     platform_name:str,  # either "{system}-{arch}' of 'darwin-universal2'
     native_built_tools_root_dir:str=None,
     cmake_target_toolchain:str=None,
+    conan_build_profile:str=None,
     conan_host_profile:str=None,
     cmake_extra_args:List[str]=None,
     build_test_tools:bool=False,
@@ -466,6 +467,7 @@ def build_all_for_one_platform(
             build_root_dir=build_root_dir,
             targets=targets,
             cmake_target_toolchain=cmake_target_toolchain,
+            conan_build_profile=conan_build_profile,
             conan_host_profile=conan_host_profile,
             have_cuda=have_cuda,
             cuda_root_dir=CUDA_ROOT if have_cuda else None,
@@ -625,14 +627,20 @@ def build_all(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = F
 
     if platform_name.startswith('linux'):
         cmake_target_toolchain=os.path.join(src_root_dir, 'ci', 'toolchains', 'clangs.toolchain')
+        conan_build_profile=os.path.join(src_root_dir, 'ci', 'conan', 'profiles', 'build.manylinux2014.x86_64.profile')
+        conan_host_profile=os.path.join(src_root_dir, 'ci', 'conan', 'profiles', 'manylinux2014.x86_64.profile')
     else:
         cmake_target_toolchain=None
+        conan_build_profile=None
+        conan_host_profile=None
 
     build_all_for_one_platform(
         src_root_dir=src_root_dir,
         built_output_root_dir=build_native_root_dir,
         platform_name=platform_name,
         cmake_target_toolchain=cmake_target_toolchain,
+        conan_build_profile=conan_build_profile,
+        conan_host_profile=conan_host_profile,
         build_test_tools=build_test_tools,
         dry_run=dry_run,
         verbose=verbose
@@ -647,7 +655,8 @@ def build_all(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = F
             built_output_root_dir=build_native_root_dir,
             platform_name='linux-aarch64',
             cmake_target_toolchain=os.path.join(src_root_dir, 'ci', 'toolchains', 'dockcross.manylinux2014_aarch64.clangs.toolchain'),
-            conan_host_profile=os.path.join(src_root_dir, 'ci', 'conan-profiles', 'dockcross.manylinux2014_aarch64.profile'),
+            conan_build_profile=conan_build_profile,
+            conan_host_profile=os.path.join(src_root_dir, 'ci', 'conan', 'profiles', 'dockcross.manylinux2014_aarch64.profile'),
             build_test_tools=build_test_tools,
             dry_run=dry_run,
             verbose=verbose,

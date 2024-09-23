@@ -39,7 +39,6 @@ include(cmake/global_flags.cmake)
 include(cmake/global_vars.cmake)
 include(cmake/archive.cmake)
 include(cmake/common.cmake)
-include(cmake/conan1_deprecated.cmake)
 include(cmake/cuda.cmake)
 include(cmake/cython.cmake)
 include(cmake/fbs.cmake)
@@ -47,21 +46,6 @@ include(cmake/protobuf.cmake)
 include(cmake/recursive_library.cmake)
 include(cmake/shared_libs.cmake)
 include(cmake/swig.cmake)
-
-if (CMAKE_CROSSCOMPILING)
-  include(${PROJECT_BINARY_DIR}/conan_paths.cmake)
-else()
-  conan_cmake_autodetect(settings)
-  conan_cmake_install(
-    PATH_OR_REFERENCE ${PROJECT_SOURCE_DIR}
-    INSTALL_FOLDER ${PROJECT_BINARY_DIR}
-    BUILD missing
-    REMOTE conancenter
-    SETTINGS ${settings}
-    ENV "CONAN_CMAKE_GENERATOR=${CMAKE_GENERATOR}"
-    CONF "tools.cmake.cmaketoolchain:generator=${CMAKE_GENERATOR}"
-  )
-endif()
 
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND NOT HAVE_CUDA)

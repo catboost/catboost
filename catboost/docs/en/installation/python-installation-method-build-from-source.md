@@ -36,7 +36,7 @@ For building with earlier versions see these pages:
         - setuptools
         -  wheel
         - jupyterlab (3.x, 4.x is not supported yet, see [the relevant issue](https://github.com/catboost/catboost/issues/2533))
-        - conan (1.62.0+, but 1.x series, 2.x is not supported yet, see [the relevant issue](https://github.com/catboost/catboost/issues/2582))
+        - conan (2.4.1+, for revisions before X only conan 1.x with versions 1.62.0+ is supported)
 
     {% endnote %}
 

@@ -1,2 +1,2 @@
 [build-system]
-requires = ["setuptools >= 64.0", "wheel", "jupyterlab (>=3.0.6, == 3.*)", "conan ~= 1.62"]
+requires = ["setuptools >= 64.0", "wheel", "jupyterlab (>=3.0.6, == 3.*)", "conan ~= 2.4.1"]

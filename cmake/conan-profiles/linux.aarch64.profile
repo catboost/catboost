@@ -1,6 +1,6 @@
-include(default)
+{% set target_host = 'aarch64-linux-gnu' %}
 
-target_host=aarch64-linux-gnu
+include(default)
 
 [settings]
 arch=armv8
@@ -12,17 +12,18 @@ compiler.cppstd=20
 os=Linux
 [options]
 
-[env]
-CONAN_CMAKE_FIND_ROOT_PATH=/usr/$target_host
-CONAN_CMAKE_SYSROOT=/usr/$target_host
-SYSROOT=/usr/$target_host
-CC=$target_host-gcc
-CXX=$target_host-g++
-CXXFLAGS="-I/usr/$target_host/include/"
-CFLAGS="-I/usr/$target_host/include/"
-CHOST=$target_host
-AR=$target_host-ar
-AS=$target_host-as
-RANLIB=$target_host-ranlib
-LD=$target_host-ld
-STRIP=$target_host-strip
+[buildenv]
+PATH=+(path)/usr/{{target_host}}/bin
+CONAN_CMAKE_FIND_ROOT_PATH=/usr/{{target_host}}
+CONAN_CMAKE_SYSROOT=/usr/{{target_host}}
+SYSROOT=/usr/{{target_host}}
+CC={{target_host}}-gcc
+CXX={{target_host}}-g++
+CXXFLAGS=-I/usr/{{target_host}}/include/
+CFLAGS=-I/usr/{{target_host}}/include/
+CHOST={{target_host}}
+AR={{target_host}}-ar
+AS={{target_host}}-as
+RANLIB={{target_host}}-ranlib
+LD={{target_host}}-ld
+STRIP={{target_host}}-strip

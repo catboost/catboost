@@ -22,6 +22,10 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
 ### [CMake](https://cmake.org/)
 
+  Version 3.24+
+
+  Before commit X:
+
   |Condition|Minimum version|
   |---------|---------|
   | Target OS is Windows, build without CUDA support | 3.24 |
@@ -91,7 +95,9 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
 ### [Conan](https://conan.io/) {#conan}
 
-  Version 1.57.0 - 1.62.0. Version 1.62.0 is required if you use python 3.12. Version 2.x support is [in progress](https://github.com/catboost/catboost/issues/2582).
+  Version 2.4.1+.
+
+  For revisions before X versions 1.57.0 - 1.62.0 are supported and version 1.62.0 is required if you use python 3.12+.
 
   Used for some dependencies.
 

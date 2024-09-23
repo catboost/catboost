@@ -1,0 +1,4 @@
+os:
+    Linux:
+        libc: ["gnu"]
+        libc_version: ["2.17"]

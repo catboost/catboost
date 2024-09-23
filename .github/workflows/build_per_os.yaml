@@ -65,7 +65,7 @@ jobs:
       - if: inputs.runs-on_value == 'macos-13'
         name: Env setup on macOS
         run: |
-          python3 -m pip install -U conan==1.62.0 setuptools wheel jupyterlab==3.0.6 build
+          python3 -m pip install -U conan==2.4.1 setuptools wheel jupyterlab==3.0.6 build
 
           brew update
           brew install ninja
@@ -124,7 +124,7 @@ jobs:
       - if: inputs.runs-on_value == 'windows-2022'
         name: Env setup on Windows
         run: |
-          python -m pip install -U conan==1.62.0 setuptools wheel jupyterlab==3.0.6 build
+          python -m pip install -U conan==2.4.1 setuptools wheel jupyterlab==3.0.6 build
 
           choco install ninja
 
@@ -206,7 +206,7 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/catboost_build_home
           rm -fr ${{ github.workspace }}/catboost_build_home/*
-          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan $HOME/  && cd /src/catboost && ./ci/build_all.py  --build-test-tools"
+          docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan2 $HOME/ && python -m pip install conan==2.4.1 && cd /src/catboost && ./ci/build_all.py  --build-test-tools"
 
       - if: inputs.runs-on_value != 'ubuntu-latest'
         name: Build all without container

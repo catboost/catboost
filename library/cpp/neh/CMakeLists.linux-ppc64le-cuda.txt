@@ -30,7 +30,7 @@ target_link_libraries(library-cpp-neh PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  OpenSSL::OpenSSL
+  openssl::openssl
   cpp-containers-intrusive_rb_tree
   cpp-coroutine-engine
   cpp-coroutine-listener

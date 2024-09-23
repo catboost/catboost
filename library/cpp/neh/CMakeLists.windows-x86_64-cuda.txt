@@ -29,7 +29,7 @@ add_library(library-cpp-neh)
 target_link_libraries(library-cpp-neh PUBLIC
   contrib-libs-cxxsupp
   yutil
-  OpenSSL::OpenSSL
+  openssl::openssl
   cpp-containers-intrusive_rb_tree
   cpp-coroutine-engine
   cpp-coroutine-listener

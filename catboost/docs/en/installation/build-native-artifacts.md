@@ -112,7 +112,8 @@ For most common scenarios it is easier to run [`build_native.py` descibed above]
     ```
     See [GitHub issue #2527](https://github.com/catboost/catboost/issues/2527) for details.
 
-1. Call `cmake` with `$CATBOOST_SRC_ROOT` as a source tree root and a build root specification: `-B $CMAKE_BINARY_DIR`. See [CMake CLI documentation](https://cmake.org/cmake/help/latest/manual/cmake.1.html) for details. Other important options and definitions for this call are [described below](#cmake-options-and-definitions).
+1. Call `cmake` with `$CATBOOST_SRC_ROOT` as a source tree root and a build root specification: `-B $CMAKE_BINARY_DIR`. See [CMake CLI documentation](https://cmake.org/cmake/help/latest/manual/cmake.1.html) for details. It is necessary to specify `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=$CATBOOST_SRC_ROOT/cmake/conan_provider.cmake` for a proper `conan` integration.
+Other important options and definitions for this call are [described below](#cmake-options-and-definitions).
 
 1. Call the build tool (depending on what generator has been specified in the `cmake` call above) with the build specification files generated in `$CMAKE_BINARY_DIR`.
     For `ninja` this will be:
@@ -127,7 +128,7 @@ For most common scenarios it is easier to run [`build_native.py` descibed above]
 
 1. Choose some directory as a build root for host platform tools (build as parts of {{ product }}'s CMake project). This directory is referred to as `$CMAKE_NATIVE_TOOLS_BINARY_DIR` later.
 
-1. Call `cmake` with `$CATBOOST_SRC_ROOT` as a source tree root and a build root specification: `-B $CMAKE_NATIVE_TOOLS_BINARY_DIR`. Also pass `-DCATBOOST_COMPONENTS=none` to disable building components of {{ product }} itself - we need only tools here.
+1. Call `cmake` with `$CATBOOST_SRC_ROOT` as a source tree root and a build root specification: `-B $CMAKE_NATIVE_TOOLS_BINARY_DIR`. Also pass  `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=$CATBOOST_SRC_ROOT/cmake/conan_provider.cmake` for a proper `conan` integration and `-DCATBOOST_COMPONENTS=none` to disable building components of {{ product }} itself - we need only tools here.
 
     See [CMake CLI documentation](https://cmake.org/cmake/help/latest/manual/cmake.1.html) for details. Other important options and definitions for this call are [described below](#cmake-options-and-definitions).
 
@@ -140,26 +141,45 @@ For most common scenarios it is easier to run [`build_native.py` descibed above]
 
 1. Choose some directory as a target platform build root. This directory is referred to as `$CMAKE_TARGET_PLATFORM_BINARY_DIR` later.
 
-1. Call `conan` to install host platform tools to `$CMAKE_TARGET_PLATFORM_BINARY_DIR`.
+1. Build needed conan packages.
 
-   ```
-   conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing $CATBOOST_SRC_ROOT/conanfile.txt
-   ```
+    - For conan 2.x (since commit X):
 
-   where `build-type` is either `Debug` or `Release`.
+      ```
+      conan install -s build_type=<build-type> --output-folder $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing -pr:b=<conan_build_profile> -pr:h=<conan_host_profile> $CATBOOST_SRC_ROOT/conanfile.py
+      ```
 
-1. Call `conan` to install target platform libraries to `$CMAKE_TARGET_PLATFORM_BINARY_DIR`.
+      where
+        - `build-type` is either `Debug` or `Release`
+        - `conan_build_profile` is a path to [a Conan build profile](https://docs.conan.io/2/reference/config_files/profiles.html) for the host platform.
+          If you do not need specific settings you can set it as `default` but there can be issues with prebuilt tools not compatible with old Linux distributions, in this case custom build profile is needed (see [https://github.com/conan-io/conan/issues/3972#issuecomment-1722591941](https://github.com/conan-io/conan/issues/3972#issuecomment-1722591941)).
+        - `conan_host_profile` is a path to [a Conan host profile](https://docs.conan.io/2/reference/config_files/profiles.html) for the target platform.
+          {{ product }} provides such profiles for supported target platforms in [$CATBOOST_SRC_ROOT/cmake/conan-profiles](https://github.com/catboost/catboost/tree/master/cmake/conan-profiles)
 
-   ```
-   conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing --no-imports -pr:h=<conan_host_profile> -pr:b=default $CATBOOST_SRC_ROOT/conanfile.txt
-   ```
+    - For conan 1.x (before commit X)
 
-   where
-     - `build-type` is either `Debug` or `Release`
-     - `conan_host_profile` is a path to [a Conan profile](https://docs.conan.io/1/reference/profiles.html) for the target platform.
-       {{ product }} provides such profiles for supported target platforms in [$CATBOOST_SRC_ROOT/cmake/conan-profiles](https://github.com/catboost/catboost/tree/master/cmake/conan-profiles)
+      - Call `conan` to install host platform tools to `$CMAKE_TARGET_PLATFORM_BINARY_DIR`.
+
+        ```
+        conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing $CATBOOST_SRC_ROOT/conanfile.txt
+        ```
+
+        where `build-type` is either `Debug` or `Release`.
+
+      - Call `conan` to install target platform libraries to `$CMAKE_TARGET_PLATFORM_BINARY_DIR`.
+
+        ```
+        conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing --no-imports -pr:h=<conan_host_profile> -pr:b=default $CATBOOST_SRC_ROOT/conanfile.txt
+        ```
+
+      where
+        - `build-type` is either `Debug` or `Release`
+        - `conan_host_profile` is a path to [a Conan profile](https://docs.conan.io/1/reference/profiles.html) for the target platform.
+          {{ product }} provides such profiles for supported target platforms in [$CATBOOST_SRC_ROOT/cmake/conan-profiles](https://github.com/catboost/catboost/tree/master/cmake/conan-profiles)
 
 1. Call `cmake` with `$CATBOOST_SRC_ROOT` as a source tree root and a build root specification: `-B $CMAKE_TARGET_PLATFORM_BINARY_DIR`.
+
+    Also pass `-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=$CATBOOST_SRC_ROOT/cmake/conan_provider.cmake` for a proper `conan` integration.
 
     Compared to a usual `cmake` call for a non cross-platform build you have to:
       - Specify a special toolchain for cross-platform building (not usual `$CATBOOST_SRC_ROOT/build/toolchains/clang.toolchain`). Examples of such toolchains are available in [$CATBOOST_SRC_ROOT/build/toolchains/](https://github.com/catboost/catboost/tree/master/build/toolchains) (with `cross-build` prefix).
@@ -217,3 +237,5 @@ So it is recommended to pass toolchain that will set `clang` and `clang++` as C 
 - [`-DPython3_INCLUDE_DIR=<path>`](https://cmake.org/cmake/help/latest/module/FindPython3.html#artifacts-specification) - The path to the directory of the Python headers. Use if specifying `Python3_ROOT_DIR` has not been sufficient (if CMake default search logic has been unable to find this library inside `Python3_ROOT_DIR`)
 
 - [`-DCMAKE_FIND_ROOT_PATH=<path>[;<path>]`](https://cmake.org/cmake/help/latest/variable/CMAKE_FIND_ROOT_PATH.html) - Semicolon-separated list of root paths to search on the filesystem. This variable is most useful when cross-compiling.
+
+- [`-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=$CATBOOST_SRC_ROOT/cmake/conan_provider.cmake`](https://github.com/conan-io/cmake-conan?tab=readme-ov-file#in-your-own-project) for a proper `conan` integration.

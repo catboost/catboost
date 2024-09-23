@@ -11,5 +11,3 @@ os.api_level=21
 [tool_requires]
 android-ndk/r25
 [options]
-[env]
-

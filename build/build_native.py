@@ -94,7 +94,8 @@ class Opts(object):
             'Custom CMake toolchain path for target platform instead of one of preselected\n'
             + ' (used even in default case when no explicit target_platform is specified)'
         ),
-        'conan_host_profile': Option('Custom Conan host profile instead of one of preselected (used only in cross-build)'),
+        'conan_build_profile': Option('Custom Conan build profile instead of default'),
+        'conan_host_profile': Option('Custom Conan host profile instead of one of preselected'),
         'msvs_installation_path':
             Option('Microsoft Visual Studio installation path (default is "{Program Files}\\Microsoft Visual Studio\\")'
         ),
@@ -320,6 +321,8 @@ def cross_build(opts: Opts, cmd_runner=None):
             rebuild=opts.rebuild,
             targets=Targets.tools,
             cmake_target_toolchain=opts.cmake_build_toolchain,
+            conan_build_profile=opts.conan_build_profile,
+            conan_host_profile=opts.conan_build_profile,
             msvs_version=opts.msvs_version,
             msvc_toolset=opts.msvc_toolset,
             macosx_version_min=opts.macosx_version_min
@@ -337,32 +340,21 @@ def cross_build(opts: Opts, cmd_runner=None):
     else:
         conan_host_profile = opts.conan_host_profile
 
-    conan_cmd_prefix = [
+    conan_install_cmd = [
         'conan',
         'install',
         '-s', f'build_type={opts.build_type}',
-        '-if', opts.build_root_dir,
+        '--output-folder', opts.build_root_dir,
         '--build=missing',
-    ]
-
-    conan_tools_cmd = conan_cmd_prefix + [
-        os.path.join(source_root_dir, 'conanfile.py')
-    ]
-    logging.info("Run conan to build tools")
-    cmd_runner.run(conan_tools_cmd)
-
-    conan_libs_cmd = conan_cmd_prefix + [
-        '--no-imports',
-        f'-pr:h={conan_host_profile}',
-        '-pr:b=default',
+        f'-pr:b={opts.conan_build_profile if opts.conan_build_profile else "default"}',
+        f'-pr:h={conan_host_profile}'
     ]
     if opts.target_platform.startswith('darwin-'):
-        conan_libs_cmd += ['-s:h', f'os.version={opts.macosx_version_min}']
+        conan_install_cmd += ['-s:h', f'os.version={opts.macosx_version_min}']
+    conan_install_cmd += [os.path.join(source_root_dir, 'conanfile.py')]
 
-    conan_libs_cmd += [os.path.join(source_root_dir, 'conanfile.py')]
-
-    logging.info(f"Run conan to build libs for target platform {opts.target_platform}")
-    cmd_runner.run(conan_libs_cmd)
+    logging.info(f"Run conan install for target platform {opts.target_platform}")
+    cmd_runner.run(conan_install_cmd)
 
     final_build_opts = copy.copy(opts)
     final_build_opts.cmake_target_toolchain = cmake_target_toolchain
@@ -539,7 +531,13 @@ def build(
         '-G', 'Ninja',
         f'-DCMAKE_BUILD_TYPE={opts.build_type}',
         f'-DCMAKE_TOOLCHAIN_FILE={cmake_target_toolchain}',
+        f'-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES={source_root_dir}/cmake/conan_provider.cmake'
     ]
+    if opts.conan_build_profile:
+        cmake_cmd += [f'-DCONAN_BUILD_PROFILE={opts.conan_build_profile}']
+    if opts.conan_host_profile:
+        cmake_cmd += [f'-DCONAN_HOST_PROFILE={opts.conan_host_profile}']
+
     if (platform.system().lower() == 'windows') and (not opts.have_cuda):
         msvs_dir = get_msvs_dir(opts.msvs_installation_path, opts.msvs_version)
 
