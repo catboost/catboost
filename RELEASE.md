@@ -195,7 +195,7 @@ This allowed us to prepare the Python package in the source distribution form (a
 * Static model applier library now works on Windows.
 * Add `binary-classification-threshold` parameter to the CLI model applier.
 * Support Multi-target regression with text features (but only Bag-of-Words features are generated for now). #2229
-* Support `RMSEWithUncertainty` loss function on GPU.
+* Support `RMSEWithUncertainty` loss function on GPU. #1573
 * Support `MultiLogloss` and `MultiCrossEntropy` loss functions with numerical features on GPU.
 * Support `MultiLogloss` loss function with text features on CPU and GPU. #1885
 * Enable univariate metrics for models with uncertainty
