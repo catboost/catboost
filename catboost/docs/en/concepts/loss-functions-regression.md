@@ -358,7 +358,7 @@ No.
 [{{ error-function--Quantile }}](#Quantile)                       |     +                   |     +                   |
 [{{ error-function--MultiQuantile }}](#MultiQuantile)             |     +                   |     -                   |
 [{{ error-function--RMSE }}](#RMSE)                               |     +                   |     +                   |
-[RMSEWithUncertainty](#RMSEWithUncertainty)                       |     +                   |     -                   |
+[RMSEWithUncertainty](#RMSEWithUncertainty)                       |     +                   |     +                   |
 [{{ error-function--LogLinQuantile }}](#LogLinQuantile)           |     +                   |     +                   |
 [{{ error-function__lq }}](#lq)                                   |     +                   |     +                   |
 [{{ error-function__Huber }}](#Huber)                             |     +                   |     +                   |
