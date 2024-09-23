@@ -143,7 +143,7 @@ Other important options and definitions for this call are [described below](#cma
 
 1. Build needed conan packages.
 
-    - For conan 2.x (since commit X):
+    - For conan 2.x (since commit [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e)):
 
       ```
       conan install -s build_type=<build-type> --output-folder $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing -pr:b=<conan_build_profile> -pr:h=<conan_host_profile> $CATBOOST_SRC_ROOT/conanfile.py
@@ -156,7 +156,7 @@ Other important options and definitions for this call are [described below](#cma
         - `conan_host_profile` is a path to [a Conan host profile](https://docs.conan.io/2/reference/config_files/profiles.html) for the target platform.
           {{ product }} provides such profiles for supported target platforms in [$CATBOOST_SRC_ROOT/cmake/conan-profiles](https://github.com/catboost/catboost/tree/master/cmake/conan-profiles)
 
-    - For conan 1.x (before commit X)
+    - For conan 1.x (before commit [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e))
 
       - Call `conan` to install host platform tools to `$CMAKE_TARGET_PLATFORM_BINARY_DIR`.
 

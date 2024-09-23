@@ -24,7 +24,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   Version 3.24+
 
-  Before commit X:
+  Before commit [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e):
 
   |Condition|Minimum version|
   |---------|---------|
@@ -97,7 +97,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   Version 2.4.1+.
 
-  For revisions before X versions 1.57.0 - 1.62.0 are supported and version 1.62.0 is required if you use python 3.12+.
+  For revisions before [21a3f85](https://github.com/catboost/catboost/commit/21a3f856c118b8c2514f0307ca7b013d6329015e) versions 1.57.0 - 1.62.0 are supported and version 1.62.0 is required if you use python 3.12+.
 
   Used for some dependencies.
 
