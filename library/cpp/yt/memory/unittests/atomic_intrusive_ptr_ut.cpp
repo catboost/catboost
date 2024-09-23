@@ -3,6 +3,7 @@
 #include <library/cpp/yt/memory/new.h>
 #include <library/cpp/yt/memory/ref_counted.h>
 #include <library/cpp/yt/memory/atomic_intrusive_ptr.h>
+#include <library/cpp/yt/memory/leaky_singleton.h>
 
 namespace NYT {
 namespace {
@@ -168,7 +169,7 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TEST(TAtomicPtrTest, Empty)
+TEST(TIntrusiveAtomicPtrTest, Empty)
 {
     TIntricateObjectPtr emptyPointer;
     EXPECT_EQ(nullptr, emptyPointer.Get());
@@ -177,7 +178,7 @@ TEST(TAtomicPtrTest, Empty)
 // Reserved ref count.
 constexpr int RRC = 65535;
 
-TEST(TAtomicPtrTest, Basic)
+TEST(TIntrusiveAtomicPtrTest, Basic)
 {
     TIntricateObject object;
 
@@ -216,7 +217,7 @@ TEST(TAtomicPtrTest, Basic)
     EXPECT_THAT(object, HasRefCounts(2 + RRC, 2 + RRC, 2));
 }
 
-TEST(TAtomicPtrTest, BasicConst)
+TEST(TIntrusiveAtomicPtrTest, BasicConst)
 {
     const TIntricateObject object;
 
@@ -255,7 +256,7 @@ TEST(TAtomicPtrTest, BasicConst)
     EXPECT_THAT(object, HasRefCounts(2 + RRC, 2 + RRC, 2));
 }
 
-TEST(TAtomicPtrTest, Acquire)
+TEST(TIntrusiveAtomicPtrTest, Acquire)
 {
     TIntricateObject object;
     {
@@ -281,7 +282,7 @@ TEST(TAtomicPtrTest, Acquire)
     EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC + RRC / 2, 1));
 }
 
-TEST(TAtomicPtrTest, AcquireConst)
+TEST(TIntrusiveAtomicPtrTest, AcquireConst)
 {
     const TIntricateObject object;
     {
@@ -307,7 +308,7 @@ TEST(TAtomicPtrTest, AcquireConst)
     EXPECT_THAT(object, HasRefCounts(RRC + RRC / 2, RRC + RRC / 2, 1));
 }
 
-TEST(TAtomicPtrTest, CAS)
+TEST(TIntrusiveAtomicPtrTest, CAS)
 {
     TIntricateObject o1;
     TIntricateObject o2;
@@ -337,7 +338,7 @@ TEST(TAtomicPtrTest, CAS)
     EXPECT_THAT(o2, HasRefCounts(RRC, RRC, 1));
 }
 
-TEST(TAtomicPtrTest, CASConst)
+TEST(TIntrusiveAtomicPtrTest, CASConst)
 {
     const TIntricateObject o1;
     const TIntricateObject o2;
@@ -365,6 +366,29 @@ TEST(TAtomicPtrTest, CASConst)
     }
 
     EXPECT_THAT(o2, HasRefCounts(RRC, RRC, 1));
+}
+
+TEST(TIntrusiveAtomicPtrTest, LSan)
+{
+    struct S final
+    { };
+
+    struct TSingleton
+    {
+        TSingleton()
+        {
+            for (auto& ptr : Ptrs) {
+                ptr.Store(New<S>());
+                // Clobber pointer bits to prevent LSan from tracing the pointer.
+                ptr.Acquire();
+            }
+        }
+
+        // LSan has some issues detecting leaks when just one allocation is made.
+        std::array<TAtomicIntrusivePtr<S>, 100> Ptrs;
+    };
+
+    LeakySingleton<TSingleton>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

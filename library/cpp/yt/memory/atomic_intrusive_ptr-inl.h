@@ -16,6 +16,99 @@ TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(std::nullptr_t)
 { }
 
 template <class T>
+TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(TIntrusivePtr<T> other)
+{
+    Store(std::move(other));
+    return *this;
+}
+
+template <class T>
+TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(std::nullptr_t)
+{
+    Reset();
+    return *this;
+}
+
+template <class T>
+TAtomicIntrusivePtr<T>::operator bool() const
+{
+    return Get();
+}
+
+#ifdef _lsan_enabled_
+
+template <class T>
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
+    : Ptr_(std::move(other))
+{ }
+
+template <class T>
+TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other)
+    : Ptr_(std::move(other))
+{ }
+
+template <class T>
+TAtomicIntrusivePtr<T>::~TAtomicIntrusivePtr() = default;
+
+template <class T>
+TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
+{
+    auto guard = Guard(Lock_);
+    return Ptr_;
+}
+
+template <class T>
+TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Exchange(TIntrusivePtr<T> other)
+{
+    auto guard = Guard(Lock_);
+    Ptr_.Swap(other);
+    return other;
+}
+
+template <class T>
+void TAtomicIntrusivePtr<T>::Store(TIntrusivePtr<T> other)
+{
+    Exchange(std::move(other));
+}
+
+template <class T>
+void TAtomicIntrusivePtr<T>::Reset()
+{
+    Exchange(nullptr);
+    ReleaseObject(Ptr_.exchange(0));
+}
+
+template <class T>
+bool TAtomicIntrusivePtr<T>::CompareAndSwap(TRawPtr& comparePtr, T* target)
+{
+    auto guard = Guard(Lock_);
+    if (Ptr_.Get() != comparePtr) {
+        comparePtr = Ptr_.Get();
+        return false;
+    }
+    auto targetPtr = TIntrusivePtr<T>(target, /*addReference*/ false);
+    Ptr_.Swap(targetPtr);
+    guard.Release();
+    // targetPtr will die here.
+    return true;
+}
+
+template <class T>
+bool TAtomicIntrusivePtr<T>::CompareAndSwap(TRawPtr& comparePtr, TIntrusivePtr<T> target)
+{
+    return CompareAndSwap(comparePtr, target.Release());
+}
+
+template <class T>
+typename TAtomicIntrusivePtr<T>::TRawPtr TAtomicIntrusivePtr<T>::Get() const
+{
+    auto guard = Guard(Lock_);
+    return Ptr_.Get();
+}
+
+#else
+
+template <class T>
 TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
     : Ptr_(AcquireObject(other.Release(), /*consumeRef*/ true))
 { }
@@ -31,20 +124,6 @@ template <class T>
 TAtomicIntrusivePtr<T>::~TAtomicIntrusivePtr()
 {
     ReleaseObject(Ptr_.load());
-}
-
-template <class T>
-TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(TIntrusivePtr<T> other)
-{
-    Store(std::move(other));
-    return *this;
-}
-
-template <class T>
-TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(std::nullptr_t)
-{
-    Reset();
-    return *this;
 }
 
 template <class T>
@@ -159,12 +238,6 @@ typename TAtomicIntrusivePtr<T>::TRawPtr TAtomicIntrusivePtr<T>::Get() const
 }
 
 template <class T>
-TAtomicIntrusivePtr<T>::operator bool() const
-{
-    return Get();
-}
-
-template <class T>
 TPackedPtr TAtomicIntrusivePtr<T>::AcquireObject(T* obj, bool consumeRef)
 {
     if (obj) {
@@ -188,6 +261,8 @@ void TAtomicIntrusivePtr<T>::DoRelease(T* obj, int refs)
         Unref(obj, ReservedRefCount - refs);
     }
 }
+
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 

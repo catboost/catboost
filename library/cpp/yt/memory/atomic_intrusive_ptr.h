@@ -2,6 +2,12 @@
 
 #include "intrusive_ptr.h"
 
+#include <util/system/compiler.h>
+
+#ifdef _lsan_enabled_
+#include <util/system/spinlock.h>
+#endif
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -54,6 +60,10 @@ private:
     template <class U>
     friend bool operator!=(const TIntrusivePtr<U>& lhs, const TAtomicIntrusivePtr<U>& rhs);
 
+#ifdef _lsan_enabled_
+    ::TSpinLock Lock_;
+    TIntrusivePtr<T> Ptr_;
+#else
     // Keeps packed pointer (localRefCount, objectPtr).
     // Atomic ptr holds N references, where N = ReservedRefCount - localRefCount.
     // LocalRefCount is incremented in Acquire method.
@@ -65,11 +75,10 @@ private:
     constexpr static int ReservedRefCount = (1 << CounterBits) - 1;
 
     // Consume ref if ownership is transferred.
-    // AcquireObject(ptr.Release(), true)
-    // AcquireObject(ptr.Get(), false)
     static TPackedPtr AcquireObject(T* obj, bool consumeRef = false);
     static void ReleaseObject(TPackedPtr packedPtr);
     static void DoRelease(T* obj, int refs);
+#endif
 };
 
 ////////////////////////////////////////////////////////////////////////////////
