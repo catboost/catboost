@@ -14,7 +14,7 @@ static constexpr double BlobCapacityMultiplier = 1.5;
 TBlob::TBlob(
     TRefCountedTypeCookie tagCookie,
     size_t size,
-    bool initiailizeStorage,
+    bool initializeStorage,
     bool pageAligned)
     : PageAligned_(pageAligned)
 {
@@ -24,7 +24,7 @@ TBlob::TBlob(
     } else {
         Allocate(std::max(size, InitialBlobCapacity));
         Size_ = size;
-        if (initiailizeStorage) {
+        if (initializeStorage) {
             ::memset(Begin_, 0, Size_);
         }
     }
