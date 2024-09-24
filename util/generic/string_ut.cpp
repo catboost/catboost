@@ -1243,4 +1243,16 @@ Y_UNIT_TEST_SUITE(Interop) {
     Y_UNIT_TEST(TestTemp) {
         UNIT_ASSERT_VALUES_EQUAL("x" + ConstRef(TString("y")), "xy");
     }
+
+    static void ComparePointers(const std::string& s, const void* expected, TStringBuf descr) {
+        UNIT_ASSERT_VALUES_EQUAL_C(static_cast<const void*>(s.c_str()), expected, descr);
+    }
+
+    Y_UNIT_TEST(TestConstShared) {
+        TString s(600, 'a');
+        const void* stringStart = s.c_str();
+        ComparePointers(s, stringStart, "unique");
+        TString shared{s};
+        ComparePointers(s, stringStart, "shared"); // converting a TString to a `const std::string&` should not cause data cloning
+    }
 } // Y_UNIT_TEST_SUITE(Interop)
