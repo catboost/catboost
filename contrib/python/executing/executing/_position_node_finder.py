@@ -72,7 +72,7 @@ def mangled_name(node: EnhancedAST) -> str:
 
 @lru_cache(128) # pragma: no mutate
 def get_instructions(code: CodeType) -> list[dis.Instruction]:
-    return list(dis.get_instructions(code, show_caches=True))
+    return list(dis.get_instructions(code))
 
 
 types_cmp_issue_fix = (
@@ -114,7 +114,7 @@ class PositionNodeFinder(object):
     """
 
     def __init__(self, frame: FrameType, stmts: Set[EnhancedAST], tree: ast.Module, lasti: int, source: Source):
-        self.bc_list = get_instructions(frame.f_code)
+        self.bc_dict={bc.offset:bc for bc in get_instructions(frame.f_code) }
 
         self.source = source
         self.decorator: Optional[EnhancedAST] = None
@@ -141,7 +141,7 @@ class PositionNodeFinder(object):
                 # we ignore here the start position and try to find the ast-node just by end position and expected node type
                 # This is save, because there can only be one attribute ending at a specific point in the source code.
                 typ = (ast.Attribute,)
-            elif self.opname(lasti) == "CALL":
+            elif self.opname(lasti) in ("CALL", "CALL_KW"):
                 # A CALL instruction can be a method call, in which case the lineno and col_offset gets changed by the compiler.
                 # Therefore we ignoring here this attributes and searchnig for a Call-node only by end_col_offset and end_lineno.
                 # This is save, because there can only be one method ending at a specific point in the source code.
@@ -156,13 +156,18 @@ class PositionNodeFinder(object):
                 typ=typ,
             )
 
-        self.known_issues(self.result, self.instruction(lasti))
+        instruction = self.instruction(lasti)
+        assert instruction is not None
+
+        self.result = self.fix_result(self.result, instruction)
+
+        self.known_issues(self.result, instruction)
 
         self.test_for_decorator(self.result, lasti)
 
         # verify
         if self.decorator is None:
-            self.verify(self.result, self.instruction(lasti))
+            self.verify(self.result, instruction)
         else: 
             assert_(self.decorator in self.result.decorator_list)
 
@@ -212,6 +217,32 @@ class PositionNodeFinder(object):
 
                 if sys.version_info < (3, 12):
                     index += 4
+
+    def fix_result(
+        self, node: EnhancedAST, instruction: dis.Instruction
+    ) -> EnhancedAST:
+        if (
+            sys.version_info >= (3, 12, 5)
+            and instruction.opname in ("GET_ITER", "FOR_ITER")
+            and isinstance(node.parent, ast.For)
+            and node is node.parent.iter
+        ):
+            # node positions have changed in 3.12.5
+            # https://github.com/python/cpython/issues/93691
+            # `for` calls __iter__ and __next__ during execution, the calling
+            # expression of these calls was the ast.For node since cpython 3.11 (see test_iter).
+            # cpython 3.12.5 changed this to the `iter` node of the loop, to make tracebacks easier to read.
+            # This keeps backward compatibility with older executing versions.
+
+            # there are also cases like:
+            #
+            # for a in iter(l): pass
+            #
+            # where `iter(l)` would be otherwise the resulting node for the `iter()` call and the __iter__ call of the for implementation.
+            # keeping the old behaviour makes it possible to distinguish both cases.
+
+            return node.parent
+        return node
 
     def known_issues(self, node: EnhancedAST, instruction: dis.Instruction) -> None:
         if instruction.opname in ("COMPARE_OP", "IS_OP", "CONTAINS_OP") and isinstance(
@@ -323,6 +354,35 @@ class PositionNodeFinder(object):
             and sys.version_info >= (3, 11, 2)
         ):
             raise KnownIssue("exception generation maps to condition")
+
+        if sys.version_info >= (3, 13):
+            if instruction.opname in (
+                "STORE_FAST_STORE_FAST",
+                "STORE_FAST_LOAD_FAST",
+                "LOAD_FAST_LOAD_FAST",
+            ):
+                raise KnownIssue(f"can not map {instruction.opname} to two ast nodes")
+
+            if instruction.opname == "LOAD_FAST" and instruction.argval == "__class__":
+                # example:
+                #   class T:
+                #       def a():
+                #           super()
+                #       some_node  # <- there is a LOAD_FAST for this node because we use super()
+
+                raise KnownIssue(
+                    f"loading of __class__ is accociated with a random node at the end of a class if you use super()"
+                )
+
+            if (
+                instruction.opname == "COMPARE_OP"
+                and isinstance(node, ast.UnaryOp)
+                and isinstance(node.operand,ast.Compare)
+                and isinstance(node.op, ast.Not)
+            ):
+                # work around for 
+                # https://github.com/python/cpython/issues/114671
+                self.result = node.operand
 
     @staticmethod
     def is_except_cleanup(inst: dis.Instruction, node: EnhancedAST) -> bool:
@@ -703,6 +763,52 @@ class PositionNodeFinder(object):
             if node_match(ast.FormattedValue) and inst_match("FORMAT_VALUE"):
                 return
 
+        if sys.version_info >= (3, 13):
+
+            if inst_match("NOP"):
+                return
+
+            if inst_match("TO_BOOL") and node_match(ast.BoolOp):
+                return
+
+            if inst_match("CALL_KW") and node_match((ast.Call, ast.ClassDef)):
+                return
+
+            if inst_match("LOAD_FAST", argval=".type_params"):
+                return
+
+            if inst_match("LOAD_FAST", argval="__classdict__"):
+                return
+
+            if inst_match("LOAD_FAST") and node_match(
+                (
+                    ast.FunctionDef,
+                    ast.ClassDef,
+                    ast.TypeAlias,
+                    ast.TypeVar,
+                    ast.Lambda,
+                    ast.AsyncFunctionDef,
+                )
+            ):
+                # These are loads for closure variables.
+                # It is difficult to check that this is actually closure variable, see:
+                # https://github.com/alexmojaki/executing/pull/80#discussion_r1716027317
+                return
+
+            if (
+                inst_match("LOAD_FAST")
+                and node_match(ast.TypeAlias)
+                and node.name.id == instruction.argval
+            ):
+                return
+
+            if inst_match("STORE_NAME",argval="__static_attributes__"):
+                # the node is the first node in the body
+                return
+
+            if inst_match("LOAD_FAST") and isinstance(node.parent,ast.TypeVar):
+                return
+
 
         # old verifier
 
@@ -771,11 +877,14 @@ class PositionNodeFinder(object):
 
         raise VerifierFailure(title, node, instruction)
 
-    def instruction(self, index: int) -> dis.Instruction:
-        return self.bc_list[index // 2]
+    def instruction(self, index: int) -> Optional[dis.Instruction]:
+        return self.bc_dict.get(index,None)
 
     def opname(self, index: int) -> str:
-        return self.instruction(index).opname
+        i=self.instruction(index)
+        if i is None:
+            return "CACHE"
+        return i.opname
 
     extra_node_types=()
     if sys.version_info >= (3,12):
@@ -798,7 +907,10 @@ class PositionNodeFinder(object):
             *extra_node_types,
         ),
     ) -> EnhancedAST:
-        position = self.instruction(index).positions
+        instruction = self.instruction(index)
+        assert instruction is not None
+
+        position = instruction.positions
         assert position is not None and position.lineno is not None
 
         return only(

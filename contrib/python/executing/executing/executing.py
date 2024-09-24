@@ -273,15 +273,14 @@ class Source(object):
                             node_finder = NodeFinder(frame, stmts, tree, lasti, source)
                             node = node_finder.result
                             decorator = node_finder.decorator
+
+                    if node:
+                        new_stmts = {statement_containing_node(node)}
+                        assert_(new_stmts <= stmts)
+                        stmts = new_stmts
                 except Exception:
                     if TESTING:
                         raise
-
-                assert stmts is not None
-                if node:
-                    new_stmts = {statement_containing_node(node)}
-                    assert_(new_stmts <= stmts)
-                    stmts = new_stmts
 
             executing_cache[key] = args = source, node, stmts, decorator
 

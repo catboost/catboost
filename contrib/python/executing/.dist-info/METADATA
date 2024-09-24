@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: executing
-Version: 2.0.1
+Version: 2.1.0
 Summary: Get the currently executing AST node of a frame, and other information
 Home-page: https://github.com/alexmojaki/executing
 Author: Alex Hall
@@ -9,25 +9,23 @@ License: MIT
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.5
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
-Requires-Python: >=3.5
+Classifier: Programming Language :: Python :: 3.13
+Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 License-File: LICENSE.txt
 Provides-Extra: tests
-Requires-Dist: asttokens >=2.1.0 ; extra == 'tests'
-Requires-Dist: ipython ; extra == 'tests'
-Requires-Dist: pytest ; extra == 'tests'
-Requires-Dist: coverage ; extra == 'tests'
-Requires-Dist: coverage-enable-subprocess ; extra == 'tests'
-Requires-Dist: littleutils ; extra == 'tests'
-Requires-Dist: rich ; (python_version >= "3.11") and extra == 'tests'
+Requires-Dist: asttokens>=2.1.0; extra == "tests"
+Requires-Dist: ipython; extra == "tests"
+Requires-Dist: pytest; extra == "tests"
+Requires-Dist: coverage; extra == "tests"
+Requires-Dist: coverage-enable-subprocess; extra == "tests"
+Requires-Dist: littleutils; extra == "tests"
+Requires-Dist: rich; python_version >= "3.11" and extra == "tests"
 
 # executing
 
