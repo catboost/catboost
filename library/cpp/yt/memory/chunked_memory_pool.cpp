@@ -15,6 +15,8 @@ TAllocationHolder::TAllocationHolder(TMutableRef ref, TRefCountedTypeCookie cook
         TRefCountedTrackerFacade::AllocateTagInstance(Cookie_);
         TRefCountedTrackerFacade::AllocateSpace(Cookie_, Ref_.Size());
     }
+#else
+    Y_UNUSED(cookie);
 #endif
 }
 

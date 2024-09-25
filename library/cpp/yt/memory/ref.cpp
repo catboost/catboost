@@ -59,6 +59,8 @@ public:
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
         TRefCountedTrackerFacade::AllocateTagInstance(Cookie_);
         TRefCountedTrackerFacade::AllocateSpace(Cookie_, String_.length());
+#else
+        Y_UNUSED(cookie);
 #endif
     }
     ~TStringHolder()
@@ -119,7 +121,11 @@ protected:
         TRefCountedTypeCookie cookie)
     {
         Size_ = size;
+#ifdef YT_ENABLE_REF_COUNTED_TRACKING
         Cookie_ = cookie;
+#else
+        Y_UNUSED(cookie);
+#endif
         if (options.InitializeStorage) {
             ::memset(static_cast<TDerived*>(this)->GetBegin(), 0, Size_);
         }

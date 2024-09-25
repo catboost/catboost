@@ -7,9 +7,11 @@
     #error YT requires 64-bit platform
 #endif
 
-// This define enables tracking of reference-counted objects to provide
-// various insightful information on memory usage and object creation patterns.
-#define YT_ENABLE_REF_COUNTED_TRACKING
+#ifndef YT_DISABLE_REF_COUNTED_TRACKING
+    // This define enables tracking of reference-counted objects to provide
+    // various insightful information on memory usage and object creation patterns.
+    #define YT_ENABLE_REF_COUNTED_TRACKING
+#endif
 
 // This define enables logging with TRACE level. You can still disable trace logging
 // for particular TU by discarding this macro identifier.
