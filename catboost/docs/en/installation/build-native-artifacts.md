@@ -161,7 +161,7 @@ Other important options and definitions for this call are [described below](#cma
       - Call `conan` to install host platform tools to `$CMAKE_TARGET_PLATFORM_BINARY_DIR`.
 
         ```
-        conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing $CATBOOST_SRC_ROOT/conanfile.txt
+        conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing $CATBOOST_SRC_ROOT/conanfile.py
         ```
 
         where `build-type` is either `Debug` or `Release`.
@@ -169,13 +169,14 @@ Other important options and definitions for this call are [described below](#cma
       - Call `conan` to install target platform libraries to `$CMAKE_TARGET_PLATFORM_BINARY_DIR`.
 
         ```
-        conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing --no-imports -pr:h=<conan_host_profile> -pr:b=default $CATBOOST_SRC_ROOT/conanfile.txt
+        conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing --no-imports -pr:h=<conan_host_profile> -pr:b=default $CATBOOST_SRC_ROOT/<conanfile>
         ```
 
       where
         - `build-type` is either `Debug` or `Release`
         - `conan_host_profile` is a path to [a Conan profile](https://docs.conan.io/1/reference/profiles.html) for the target platform.
           {{ product }} provides such profiles for supported target platforms in [$CATBOOST_SRC_ROOT/cmake/conan-profiles](https://github.com/catboost/catboost/tree/master/cmake/conan-profiles)
+        - `conanfile` is `conanfile.py` for revisions since [f41e993](https://github.com/catboost/catboost/commit/f41e993e17faacacda9f10921545eda2f6de8d9b) and `conanfile.txt` for revisions before that.
 
 1. Call `cmake` with `$CATBOOST_SRC_ROOT` as a source tree root and a build root specification: `-B $CMAKE_TARGET_PLATFORM_BINARY_DIR`.
 
