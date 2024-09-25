@@ -161,7 +161,7 @@ Other important options and definitions for this call are [described below](#cma
       - Call `conan` to install host platform tools to `$CMAKE_TARGET_PLATFORM_BINARY_DIR`.
 
         ```
-        conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing $CATBOOST_SRC_ROOT/conanfile.py
+        conan install -s build_type=<build-type> -if $CMAKE_TARGET_PLATFORM_BINARY_DIR --build=missing $CATBOOST_SRC_ROOT/<conanfile>
         ```
 
         where `build-type` is either `Debug` or `Release`.
