@@ -20,7 +20,7 @@ namespace NMaybe {
     };
 } // namespace NMaybe
 
-struct TNothing {
+struct [[nodiscard]] TNothing {
     explicit constexpr TNothing(int) noexcept {
     }
 };
