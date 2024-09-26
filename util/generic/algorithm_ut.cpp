@@ -752,6 +752,16 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         MinElementBy(empty, functor);
     }
 
+    Y_UNIT_TEST(MinMaxElementMovableKeys) {
+        const TString strings[] = {"one", "two", "three", "four"};
+        struct TMoveOnlyKey: TString, TMoveOnly {
+            using TString::TString;
+        };
+        auto keyFn = [](TString s) { return TMoveOnlyKey{std::move(s)}; };
+        UNIT_ASSERT_STRINGS_EQUAL(*MaxElementBy(strings, keyFn), "two");
+        UNIT_ASSERT_STRINGS_EQUAL(*MinElementBy(strings, keyFn), "four");
+    }
+
     Y_UNIT_TEST(TestApplyToMany) {
         int res = 0;
         ApplyToMany([&res](auto v) { res += v; }, 1, 2, 3, 4, 5);

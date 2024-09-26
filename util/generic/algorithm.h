@@ -21,11 +21,11 @@ namespace NPrivate {
         auto bestValue = func(*begin);
         auto bestPos = begin;
 
-        for (auto i = ++begin; i != end; ++i) {
-            auto curValue = func(*i);
+        for (++begin; begin != end; ++begin) {
+            auto curValue = func(*begin);
             if (pred(curValue, bestValue)) {
-                bestValue = curValue;
-                bestPos = i;
+                bestValue = std::move(curValue);
+                bestPos = begin;
             }
         }
 
