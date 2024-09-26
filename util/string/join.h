@@ -203,7 +203,7 @@ JoinSeq(TCharType delim, const TContainer& data) {
  */
 template <class TIterB, class TIterE>
 struct TRangeJoiner {
-    friend constexpr IOutputStream& operator<<(IOutputStream& stream, const TRangeJoiner<TIterB, TIterE>& rangeJoiner) {
+    friend constexpr IOutputStream& operator<<(IOutputStream& stream Y_LIFETIME_BOUND, const TRangeJoiner<TIterB, TIterE>& rangeJoiner) {
         if (rangeJoiner.b != rangeJoiner.e) {
             stream << *rangeJoiner.b;
 

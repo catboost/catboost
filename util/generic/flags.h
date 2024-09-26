@@ -190,7 +190,7 @@ public:
         return *this;
     }
 
-    friend IOutputStream& operator<<(IOutputStream& stream, const TFlags& flags) {
+    friend IOutputStream& operator<<(IOutputStream& stream Y_LIFETIME_BOUND, const TFlags& flags) {
         ::NPrivate::PrintFlags(stream, static_cast<ui64>(flags.Value_), sizeof(TInt));
         return stream;
     }

@@ -256,7 +256,7 @@ void In(IInputStream& in, T& value);
  * @see operator<<(IOutputStream&, T&)
  */
 template <typename T>
-inline IInputStream& operator>>(IInputStream& in, T& value) {
+inline IInputStream& operator>>(IInputStream& in Y_LIFETIME_BOUND, T& value) {
     In<T>(in, value);
     return in;
 }

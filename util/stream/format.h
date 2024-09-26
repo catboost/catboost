@@ -67,7 +67,7 @@ namespace NFormatPrivate {
     };
 
     template <typename T>
-    IOutputStream& operator<<(IOutputStream& o, const TLeftPad<T>& lp) {
+    IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const TLeftPad<T>& lp) {
         TTempBuf buf;
         TMemoryOutput ss(buf.Data(), buf.Size());
         ss << lp.Value;
@@ -94,7 +94,7 @@ namespace NFormatPrivate {
     };
 
     template <typename T>
-    IOutputStream& operator<<(IOutputStream& o, const TRightPad<T>& lp) {
+    IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const TRightPad<T>& lp) {
         TTempBuf buf;
         TMemoryOutput ss(buf.Data(), buf.Size());
         ss << lp.Value;
@@ -123,7 +123,7 @@ namespace NFormatPrivate {
     using TUnsignedBaseNumber = TBaseNumber<std::make_unsigned_t<std::remove_cv_t<T>>, Base>;
 
     template <typename TStream, typename T, size_t Base>
-    TStream& ToStreamImpl(TStream& stream, const TBaseNumber<T, Base>& value) {
+    TStream& ToStreamImpl(TStream& stream Y_LIFETIME_BOUND, const TBaseNumber<T, Base>& value) {
         char buf[8 * sizeof(T) + 1]; /* Add 1 for sign. */
         TStringBuf str(buf, IntToString<Base>(value.Value, buf, sizeof(buf)));
 
@@ -149,12 +149,12 @@ namespace NFormatPrivate {
     }
 
     template <typename T, size_t Base>
-    IOutputStream& operator<<(IOutputStream& stream, const TBaseNumber<T, Base>& value) {
+    IOutputStream& operator<<(IOutputStream& stream Y_LIFETIME_BOUND, const TBaseNumber<T, Base>& value) {
         return ToStreamImpl(stream, value);
     }
 
     template <typename T, size_t Base>
-    std::ostream& operator<<(std::ostream& stream, const TBaseNumber<T, Base>& value) {
+    std::ostream& operator<<(std::ostream& stream Y_LIFETIME_BOUND, const TBaseNumber<T, Base>& value) {
         return ToStreamImpl(stream, value);
     }
 
@@ -169,7 +169,7 @@ namespace NFormatPrivate {
     };
 
     template <typename Char, size_t Base>
-    IOutputStream& operator<<(IOutputStream& os, const TBaseText<Char, Base>& text) {
+    IOutputStream& operator<<(IOutputStream& os Y_LIFETIME_BOUND, const TBaseText<Char, Base>& text) {
         for (size_t i = 0; i < text.Text.size(); ++i) {
             if (i != 0) {
                 os << ' ';
@@ -190,7 +190,7 @@ namespace NFormatPrivate {
     };
 
     template <typename T>
-    IOutputStream& operator<<(IOutputStream& o, const TFloatPrecision<T>& prec) {
+    IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const TFloatPrecision<T>& prec) {
         char buf[512];
         size_t count = FloatToString(prec.Value, buf, sizeof(buf), prec.Mode, prec.NDigits);
         o << TStringBuf(buf, count);

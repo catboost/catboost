@@ -7,6 +7,7 @@
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/typetraits.h>
+#include <util/system/compiler.h>
 
 #include <type_traits>
 
@@ -207,54 +208,54 @@ void Out<const wchar16*>(IOutputStream& o, const wchar16* w);
 template <>
 void Out<const wchar32*>(IOutputStream& o, const wchar32* w);
 
-static inline IOutputStream& operator<<(IOutputStream& o, TStreamManipulator m) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, TStreamManipulator m) {
     m(o);
 
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, const char* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const char* t) {
     Out<const char*>(o, t);
 
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, char* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, char* t) {
     Out<const char*>(o, t);
 
     return o;
 }
 
 template <class T>
-static inline std::enable_if_t<std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o, T t) {
+static inline std::enable_if_t<std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o Y_LIFETIME_BOUND, T t) {
     Out<T>(o, t);
 
     return o;
 }
 
 template <class T>
-static inline std::enable_if_t<!std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o, const T& t) {
+static inline std::enable_if_t<!std::is_scalar<T>::value, IOutputStream&> operator<<(IOutputStream& o Y_LIFETIME_BOUND, const T& t) {
     Out<T>(o, t);
 
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, const wchar16* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const wchar16* t) {
     Out<const wchar16*>(o, t);
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, wchar16* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, wchar16* t) {
     Out<const wchar16*>(o, t);
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, const wchar32* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, const wchar32* t) {
     Out<const wchar32*>(o, t);
     return o;
 }
 
-static inline IOutputStream& operator<<(IOutputStream& o, wchar32* t) {
+static inline IOutputStream& operator<<(IOutputStream& o Y_LIFETIME_BOUND, wchar32* t) {
     Out<const wchar32*>(o, t);
     return o;
 }
