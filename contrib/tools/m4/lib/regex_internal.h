@@ -34,7 +34,7 @@
 #include <stdint.h>
 
 #ifdef _LIBC
-# include <bits/libc-lock.h>
+# error #include <bits/libc-lock.h>
 # define lock_define(name) __libc_lock_define (, name)
 # define lock_init(lock) (__libc_lock_init (lock), 0)
 # define lock_fini(lock) 0

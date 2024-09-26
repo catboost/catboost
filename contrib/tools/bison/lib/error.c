@@ -86,7 +86,7 @@ extern void __error_at_line (int status, int errnum, const char *file_name,
 # undef putc
 # define putc(c, fp) _IO_putc (c, fp)
 
-# include <bits/libc-lock.h>
+# error #include <bits/libc-lock.h>
 
 #else /* not _LIBC */
 

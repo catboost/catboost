@@ -35,7 +35,7 @@
 #endif /* _LIBC */
 
 #ifdef _LIBC
-# include <bits/libc-lock.h>
+# error #include <bits/libc-lock.h>
 #else /* !_LIBC */
 # include "glthread/lock.h"
 # include "glthread/tls.h"

@@ -37,7 +37,7 @@
 
 #if _LIBC
 /* This lock protects against simultaneous modifications of 'environ'.  */
-# include <bits/libc-lock.h>
+# error #include <bits/libc-lock.h>
 __libc_lock_define_initialized (static, envlock)
 # define LOCK   __libc_lock_lock (envlock)
 # define UNLOCK __libc_lock_unlock (envlock)
