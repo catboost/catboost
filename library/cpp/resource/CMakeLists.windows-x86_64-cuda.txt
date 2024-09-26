@@ -18,6 +18,7 @@ add_library(library-cpp-resource)
 target_link_libraries(library-cpp-resource PUBLIC
   contrib-libs-cxxsupp
   yutil
+  cpp-containers-absl_flat_hash
   cpp-blockcodecs-core
   blockcodecs-codecs-zstd
 )

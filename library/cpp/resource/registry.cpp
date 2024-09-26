@@ -1,5 +1,6 @@
 #include "registry.h"
 
+#include <library/cpp/containers/absl_flat_hash/flat_hash_map.h>
 #include <library/cpp/blockcodecs/core/codecs.h>
 
 #include <util/system/yassert.h>
@@ -20,10 +21,16 @@ namespace {
 
     typedef std::pair<TStringBuf, TStringBuf> TDescriptor;
 
-    struct TStore final: public IStore, public THashMap<TStringBuf, TDescriptor*> {
+    struct TStore final: public IStore, public absl::flat_hash_map<ui64, TDescriptor*> {
+        static inline ui64 ToK(TStringBuf k) {
+            return NHashPrivate::ComputeStringHash(k.data(), k.size());
+        }
+
         void Store(const TStringBuf key, const TStringBuf data) override {
-            if (contains(key)) {
-                const TStringBuf value = (*this)[key]->second;
+            auto kk = ToK(key);
+
+            if (contains(kk)) {
+                const TStringBuf value = (*this)[kk]->second;
                 if (value != data) {
                     size_t vsize = GetCodec()->DecompressedLength(value);
                     size_t dsize = GetCodec()->DecompressedLength(data);
@@ -43,22 +50,22 @@ namespace {
                 }
             } else {
                 D_.push_back(TDescriptor(key, data));
-                (*this)[key] = &D_.back();
+                (*this)[kk] = &D_.back();
             }
 
             Y_ABORT_UNLESS(size() == Count(), "size mismatch");
         }
 
         bool Has(const TStringBuf key) const override {
-            return contains(key);
+            return contains(ToK(key));
         }
 
         bool FindExact(const TStringBuf key, TString* out) const override {
-            if (TDescriptor* const* res = FindPtr(key)) {
+            if (auto res = find(ToK(key)); res != end()) {
                 // temporary
                 // https://st.yandex-team.ru/DEVTOOLS-3985
                 try {
-                    *out = Decompress((*res)->second);
+                    *out = Decompress(res->second->second);
                 } catch (const yexception& e) {
                     if (GetEnv("RESOURCE_DECOMPRESS_DIAG")) {
                         Cerr << "Can't decompress resource " << key << Endl << e.what() << Endl;
@@ -73,13 +80,13 @@ namespace {
         }
 
         void FindMatch(const TStringBuf subkey, IMatch& cb) const override {
-            for (const auto& it : *this) {
+            for (const auto& it : D_) {
                 if (it.first.StartsWith(subkey)) {
                     // temporary
                     // https://st.yandex-team.ru/DEVTOOLS-3985
                     try {
                         const TResource res = {
-                            it.first, Decompress(it.second->second)};
+                            it.first, Decompress(it.second)};
                         cb.OnMatch(res);
                     } catch (const yexception& e) {
                         if (GetEnv("RESOURCE_DECOMPRESS_DIAG")) {
