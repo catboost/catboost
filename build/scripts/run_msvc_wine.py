@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import os
 import re
@@ -41,7 +42,7 @@ def run_subprocess_with_timeout(timeout, args):
             stdout, stderr = p.communicate(timeout=timeout)
             return p, stdout, stderr
         except subprocess.TimeoutExpired as e:
-            print >> sys.stderr, 'timeout running {0}, error {1}, delay {2} seconds'.format(args, str(e), delay)
+            print('timeout running {0}, error {1}, delay {2} seconds'.format(args, str(e), delay), file=sys.stderr)
             if p is not None:
                 try:
                     p.kill()
@@ -93,7 +94,7 @@ def call_wine_cmd_once(wine, cmd, env, mode):
             error = e
 
     if error is not None:
-        print >> sys.stderr, 'Output {} already exists and we have failed to remove it: {}'.format(output, error)
+        print('Output {} already exists and we have failed to remove it: {}'.format(output, error), file=sys.stderr)
 
     # print >>sys.stderr, cmd, env, wine
 
@@ -164,7 +165,7 @@ def call_wine_cmd_once(wine, cmd, env, mode):
     stdout_and_stderr = '\n'.join(filter_lines()).strip()
 
     if stdout_and_stderr:
-        print >> sys.stderr, stdout_and_stderr
+        print(stdout_and_stderr, file=sys.stderr)
 
     return return_code
 
@@ -175,7 +176,7 @@ def prepare_vc(fr, to):
         to_p = os.path.join(to, p)
 
         if not os.path.exists(to_p):
-            print >> sys.stderr, 'install %s -> %s' % (fr_p, to_p)
+            print('install %s -> %s' % (fr_p, to_p), file=sys.stderr)
 
             os.link(fr_p, to_p)
 
@@ -196,7 +197,7 @@ def run_slave():
         try:
             return call_wine_cmd_once([wine], args['cmd'], args['env'], args['mode'])
         except Exception as e:
-            print >> sys.stderr, '%s, will retry in %s' % (str(e), tout)
+            print('%s, will retry in %s' % (str(e), tout), file=sys.stderr)
 
             time.sleep(tout)
             tout = min(2 * tout, 4)
@@ -508,7 +509,7 @@ def run_main():
             return
         if mode == 'cxx':
             log = colorize(log)
-        print >> sys.stderr, log
+        print(log, file=sys.stderr)
 
     tout = 200
 
@@ -517,26 +518,26 @@ def run_main():
 
         if rc in (-signal.SIGALRM, signal.SIGALRM):
             print_err_log(out)
-            print >> sys.stderr, '##append_tag##time out'
+            print('##append_tag##time out', file=sys.stderr)
         elif out and ' stack overflow ' in out:
-            print >> sys.stderr, '##append_tag##stack overflow'
+            print('##append_tag##stack overflow', file=sys.stderr)
         elif out and 'recvmsg: Connection reset by peer' in out:
-            print >> sys.stderr, '##append_tag##wine gone'
+            print('##append_tag##wine gone', file=sys.stderr)
         elif out and 'D8037' in out:
-            print >> sys.stderr, '##append_tag##repair wine'
+            print('##append_tag##repair wine', file=sys.stderr)
 
             try:
                 os.unlink(os.path.join(os.environ['WINEPREFIX'], '.update-timestamp'))
             except Exception as e:
-                print >> sys.stderr, e
+                print(e, file=sys.stderr)
 
         else:
             print_err_log(out)
 
             # non-zero return code - bad, return it immediately
             if rc:
-                print >> sys.stderr, '##win_cmd##' + ' '.join(cmd)
-                print >> sys.stderr, '##args##' + ' '.join(free_args)
+                print('##win_cmd##' + ' '.join(cmd), file=sys.stderr)
+                print('##args##' + ' '.join(free_args), file=sys.stderr)
                 return rc
 
             # check for output existence(if we expect it!) and real length
@@ -545,7 +546,7 @@ def run_main():
                     return 0
                 else:
                     # retry!
-                    print >> sys.stderr, '##append_tag##no output'
+                    print('##append_tag##no output', file=sys.stderr)
             else:
                 return 0
 
@@ -575,7 +576,7 @@ def main():
     except KeyboardInterrupt:
         sys.exit(4)
     except Exception as e:
-        print >> sys.stderr, str(e)
+        print(str(e), file=sys.stderr)
 
         sys.exit(3)
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import subprocess
 import os
@@ -60,7 +61,7 @@ def main():
 
     executable = command[0]
     if not os.path.exists(executable):
-        print >> sys.stderr, '{} not found'.format(executable)
+        print('{} not found'.format(executable), file=sys.stderr)
         sys.exit(1)
 
     if is_clang(command):

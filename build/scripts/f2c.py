@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import subprocess
 import argparse
@@ -49,11 +50,11 @@ if __name__ == '__main__':
     ret = p.wait()
 
     if ret:
-        print >> sys.stderr, 'f2c failed: %s, %s' % (stderr, ret)
+        print('f2c failed: %s, %s' % (stderr, ret), file=sys.stderr)
         sys.exit(ret)
 
     if 'Error' in stderr:
-        print >> sys.stderr, stderr
+        print(stderr, file=sys.stderr)
 
     with open(args.output, 'w') as f:
         f.write(header)

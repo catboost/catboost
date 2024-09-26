@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import os
 import subprocess
@@ -264,8 +265,8 @@ if __name__ == '__main__':
     thinlto_cache.postprocess(opts)
 
     if proc.returncode:
-        print >> sys.stderr, 'linker has failed with retcode:', proc.returncode
-        print >> sys.stderr, 'linker command:', shlex_join(cmd)
+        print('linker has failed with retcode:', proc.returncode, file=sys.stderr)
+        print('linker command:', shlex_join(cmd), file=sys.stderr)
         sys.exit(proc.returncode)
 
     if opts.fix_elf:
@@ -274,8 +275,8 @@ if __name__ == '__main__':
         proc.communicate()
 
         if proc.returncode:
-            print >> sys.stderr, 'fix_elf has failed with retcode:', proc.returncode
-            print >> sys.stderr, 'fix_elf command:', shlex_join(cmd)
+            print('fix_elf has failed with retcode:', proc.returncode, file=sys.stderr)
+            print('fix_elf command:', shlex_join(cmd), file=sys.stderr)
             sys.exit(proc.returncode)
 
     if opts.soname and opts.soname != opts.target:
