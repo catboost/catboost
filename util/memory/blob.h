@@ -96,6 +96,12 @@ public:
         return *this;
     }
 
+    inline TBlob& operator=(TBlob&& r) noexcept {
+        TBlob(std::move(r)).Swap(*this);
+
+        return *this;
+    }
+
     /// Swaps content of two data arrays.
     inline void Swap(TBlob& r) noexcept {
         S_.Swap(r.S_);
