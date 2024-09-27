@@ -39,7 +39,7 @@ jobs:
         shell: pwsh
         run: echo "GITHUB_SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: Maximize build space
         uses: jlumbroso/free-disk-space@main
         with:
@@ -51,7 +51,7 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: Env setup on Ubuntu
         run: |
           sudo apt-get update
@@ -207,14 +207,14 @@ jobs:
           Set-Location -Path catboost
           python ./ci/fixup_python_version.py
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: Build all in container
         run: |
           mkdir -p ${{ github.workspace }}/catboost_build_home
           rm -fr ${{ github.workspace }}/catboost_build_home/*
           docker run --rm --name=catboost_build --user $(id -u):$(id -g) -v /etc/passwd:/etc/passwd -v ${{ github.workspace }}/catboost_build_home:$HOME -v ${{ github.workspace }}/catboost:/src/catboost -v ${{ github.workspace }}/$CMAKE_BUILD_CACHE_DIR:/cmake_build_cache -e CATBOOST_PACKAGE_NAME -e CATBOOST_PACKAGE_VERSION ghcr.io/catboost/manylinux2014_x86_64_and_cross_arm64_for_catboost_ci:latest bash -c ". /work/setup_env/build_x86_64.sh && export CMAKE_BUILD_CACHE_DIR=/cmake_build_cache/ && ln -sf /opt/cmake_build_env_root $HOME/ && rsync -rptl /opt/.conan2 $HOME/ && python3 -m pip install conan==2.4.1 && cd /src/catboost && ./ci/build_all.py  --build-test-tools"
 
-      - if: inputs.runs-on_value != 'ubuntu-latest'
+      - if: inputs.runs-on_value != 'ubuntu-22.04'
         name: Build all without container
         shell: pwsh
         run: |
@@ -233,7 +233,7 @@ jobs:
       # https://github.com/actions/upload-artifact/issues/331, so we have to do this unfortunate copy-paste
       # for now
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: CLI for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -241,7 +241,7 @@ jobs:
           path: catboost/build_native_root/have_cuda/linux-x86_64/catboost/app/catboost
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: CLI for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
@@ -249,7 +249,7 @@ jobs:
           path: catboost/build_native_root/have_cuda/linux-aarch64/catboost/app/catboost
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifacts: python packages for Linux aarch64'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
@@ -258,7 +258,7 @@ jobs:
           platform_tag: manylinux2014_aarch64
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifacts: python packages for Linux x86_64'
         uses: ./catboost/.github/actions/upload_python_package_artifacts_for_all_py_versions
         with:
@@ -267,7 +267,7 @@ jobs:
           platform_tag: manylinux2014_x86_64
           artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: source python package'
         uses: actions/upload-artifact@v4
         with:
@@ -275,7 +275,7 @@ jobs:
           path: catboost/catboost/python-package/dist/*.tar.gz
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: python package visualization widget'
         uses: actions/upload-artifact@v4
         with:
@@ -283,7 +283,7 @@ jobs:
           path: catboost/catboost/python-package/build/widget
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: R package for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -291,7 +291,7 @@ jobs:
           path: catboost/catboost/R-package/catboost-R-linux-x86_64.tgz
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: R package for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
@@ -299,7 +299,7 @@ jobs:
           path: catboost/catboost/R-package/catboost-R-linux-aarch64.tgz
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: catboostmodel library for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -307,7 +307,7 @@ jobs:
           path: catboost/build_native_root/have_cuda/linux-x86_64/catboost/libs/model_interface/libcatboostmodel.*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: catboostmodel library for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:
@@ -331,7 +331,7 @@ jobs:
           retention-days: ${{ inputs.artifact_retention_days }}
           overwrite: true
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: catboost4j-spark_core_resources-linux'
         uses: actions/upload-artifact@v4
         with:
@@ -339,7 +339,7 @@ jobs:
           path: catboost/catboost/spark/catboost4j-spark/core/src/main/resources/linux*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: catboost4j-prediction_resources-linux'
         uses: actions/upload-artifact@v4
         with:
@@ -347,7 +347,7 @@ jobs:
           path: catboost/catboost/jvm-packages/catboost4j-prediction/src/main/resources/*
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: test tools for Linux x86_64'
         uses: actions/upload-artifact@v4
         with:
@@ -358,7 +358,7 @@ jobs:
             catboost/build_native_root/no_cuda/linux-x86_64/catboost/tools/model_comparator/model_comparator
           retention-days: ${{ inputs.artifact_retention_days }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: 'Upload artifact: test tools for Linux aarch64'
         uses: actions/upload-artifact@v4
         with:

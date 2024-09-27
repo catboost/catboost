@@ -75,7 +75,7 @@ jobs:
           New-Item -Path app -ItemType Directory
           New-Item -Path tools -ItemType Directory
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: Download CLI for Ubuntu
         uses: actions/download-artifact@v4
         with:
@@ -105,7 +105,7 @@ jobs:
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: Download python package for Ubuntu
         uses: actions/download-artifact@v4
         with:
@@ -135,7 +135,7 @@ jobs:
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: Download test tools for Ubuntu
         uses: actions/download-artifact@v4
         with:
@@ -165,7 +165,7 @@ jobs:
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: Download catboost4j-prediction_resources for Ubuntu
         uses: actions/download-artifact@v4
         with:
@@ -215,7 +215,7 @@ jobs:
           repository: ${{ inputs.artifacts_repository }}
           run-id: ${{ inputs.artifacts_run_id }}
 
-      - if: inputs.runs-on_value == 'ubuntu-latest'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: Download catboost4j-spark_core_resources for Ubuntu
         uses: actions/download-artifact@v4
         with:
