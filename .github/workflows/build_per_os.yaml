@@ -41,15 +41,21 @@ jobs:
 
       - if: inputs.runs-on_value == 'ubuntu-latest'
         name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: jlumbroso/free-disk-space@main
         with:
-          root-reserve-mb: 40000  # needed for docker image
-          swap-size-mb: 1024
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
-          remove-docker-images: 'true'
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - if: inputs.runs-on_value == 'ubuntu-latest'
+        name: Env setup on Ubuntu
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y powershell
 
       - if: inputs.runs-on_value == 'macos-13'
         name: Get python_versions_macos_arm64 from cache
