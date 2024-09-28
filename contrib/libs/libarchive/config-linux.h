@@ -334,16 +334,16 @@ typedef uint64_t uintmax_t;
 /* #undef ARCHIVE_XATTR_LINUX */
 
 /* Version number of bsdcpio */
-#define BSDCPIO_VERSION_STRING "3.7.4"
+#define BSDCPIO_VERSION_STRING "3.7.5"
 
 /* Version number of bsdtar */
-#define BSDTAR_VERSION_STRING "3.7.4"
+#define BSDTAR_VERSION_STRING "3.7.5"
 
 /* Version number of bsdcat */
-#define BSDCAT_VERSION_STRING "3.7.4"
+#define BSDCAT_VERSION_STRING "3.7.5"
 
 /* Version number of bsdunzip */
-#define BSDUNZIP_VERSION_STRING "3.7.4"
+#define BSDUNZIP_VERSION_STRING "3.7.5"
 
 /* Define to 1 if you have the `acl_create_entry' function. */
 /* #undef HAVE_ACL_CREATE_ENTRY */
@@ -1132,9 +1132,6 @@ typedef uint64_t uintmax_t;
 /* Define to 1 if you have the <sys/poll.h> header file. */
 #define HAVE_SYS_POLL_H 1
 
-/* Define to 1 if you have the <sys/queue.h> header file. */
-#define HAVE_SYS_QUEUE_H 1
-
 /* Define to 1 if you have the <sys/richacl.h> header file. */
 /* #undef HAVE_SYS_RICHACL_H */
 
@@ -1296,10 +1293,10 @@ typedef uint64_t uintmax_t;
 #define ICONV_CONST 
 
 /* Version number of libarchive as a single integer */
-#define LIBARCHIVE_VERSION_NUMBER "3007004"
+#define LIBARCHIVE_VERSION_NUMBER "3007005"
 
 /* Version number of libarchive */
-#define LIBARCHIVE_VERSION_STRING "3.7.4"
+#define LIBARCHIVE_VERSION_STRING "3.7.5"
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
    slash. */
@@ -1353,7 +1350,7 @@ typedef uint64_t uintmax_t;
 #endif /* SAFE_TO_DEFINE_EXTENSIONS */
 
 /* Version number of package */
-#define VERSION "3.7.4"
+#define VERSION "3.7.5"
 
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */

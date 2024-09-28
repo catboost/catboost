@@ -1305,7 +1305,6 @@ def _dtype_from_args(args):
     else:
         # Two args: ndarray[shape, type], NDArray[*]
         assert len(args) == 2
-        assert args[0] is Any
         dtype = _unpack_dtype(args[1])
 
     if dtype is Any:
