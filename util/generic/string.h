@@ -346,7 +346,7 @@ public:
 #endif
     }
 
-    TCharType* Detach() {
+    TCharType* Detach() Y_LIFETIME_BOUND {
 #ifdef TSTRING_IS_STD_STRING
         return Storage_.data();
 #else
@@ -857,12 +857,12 @@ public:
         return *this;
     }
 
-    operator const TStringType&() const noexcept {
+    operator const TStringType&() const noexcept Y_LIFETIME_BOUND {
         return this->ConstRef();
     }
 
     template <typename T, typename = std::enable_if_t<std::is_same_v<T, TStringType>>>
-    operator T&() & {
+        operator T&() & Y_LIFETIME_BOUND {
         return this->MutRef();
     }
 
