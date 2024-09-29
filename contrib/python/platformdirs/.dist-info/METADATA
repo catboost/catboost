@@ -1,11 +1,12 @@
 Metadata-Version: 2.3
 Name: platformdirs
-Version: 4.3.1
+Version: 4.3.3
 Summary: A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`.
+Project-URL: Changelog, https://github.com/tox-dev/platformdirs/releases
 Project-URL: Documentation, https://platformdirs.readthedocs.io
-Project-URL: Homepage, https://github.com/platformdirs/platformdirs
-Project-URL: Source, https://github.com/platformdirs/platformdirs
-Project-URL: Tracker, https://github.com/platformdirs/platformdirs/issues
+Project-URL: Homepage, https://github.com/tox-dev/platformdirs
+Project-URL: Source, https://github.com/tox-dev/platformdirs
+Project-URL: Tracker, https://github.com/tox-dev/platformdirs/issues
 Maintainer-email: Bernát Gábor <gaborjbernat@gmail.com>, Julian Berman <Julian@GrayVines.com>, Ofek Lev <oss@ofek.dev>, Ronny Pfannschmidt <opensource@ronnypfannschmidt.de>
 License-Expression: MIT
 License-File: LICENSE
@@ -27,18 +28,18 @@ Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Requires-Python: >=3.8
 Provides-Extra: docs
-Requires-Dist: furo>=2023.9.10; extra == 'docs'
-Requires-Dist: proselint>=0.13; extra == 'docs'
-Requires-Dist: sphinx-autodoc-typehints>=1.25.2; extra == 'docs'
-Requires-Dist: sphinx>=7.2.6; extra == 'docs'
+Requires-Dist: furo>=2024.8.6; extra == 'docs'
+Requires-Dist: proselint>=0.14; extra == 'docs'
+Requires-Dist: sphinx-autodoc-typehints>=2.4; extra == 'docs'
+Requires-Dist: sphinx>=8.0.2; extra == 'docs'
 Provides-Extra: test
 Requires-Dist: appdirs==1.4.4; extra == 'test'
 Requires-Dist: covdefaults>=2.3; extra == 'test'
-Requires-Dist: pytest-cov>=4.1; extra == 'test'
-Requires-Dist: pytest-mock>=3.12; extra == 'test'
-Requires-Dist: pytest>=7.4.3; extra == 'test'
+Requires-Dist: pytest-cov>=5; extra == 'test'
+Requires-Dist: pytest-mock>=3.14; extra == 'test'
+Requires-Dist: pytest>=8.3.2; extra == 'test'
 Provides-Extra: type
-Requires-Dist: mypy>=1.8; extra == 'type'
+Requires-Dist: mypy>=1.11.2; extra == 'type'
 Description-Content-Type: text/x-rst
 
 The problem
