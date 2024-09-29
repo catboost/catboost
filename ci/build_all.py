@@ -632,7 +632,10 @@ def build_all(src_root_dir: str, build_test_tools:bool = False, dry_run:bool = F
     else:
         cmake_target_toolchain=None
         conan_build_profile=None
-        conan_host_profile=None
+        if platform_name.startswith('windows'):
+            conan_host_profile=os.path.join(src_root_dir, 'ci', 'conan', 'profiles', 'windows.x86_64.profile')
+        else:
+            conan_host_profile=None
 
     build_all_for_one_platform(
         src_root_dir=src_root_dir,
