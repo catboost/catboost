@@ -3,9 +3,29 @@
 
 #include <tools/enum_parser/parse_enum/parse_enum.h>
 
+#include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
+
 typedef TEnumParser::TEnum TEnum;
 typedef TEnumParser::TEnums TEnums;
 typedef TEnumParser::TItems TItems;
+
+namespace {
+    using TNameValuePair = std::pair<TStringBuf, TMaybe<TStringBuf>>;
+
+    void CompareNameValueItems(TConstArrayRef<TNameValuePair> ref, const TEnum& e) {
+        const TItems& it = e.Items;
+        for (size_t i = 0; i < Min(ref.size(), it.size()); ++i) {
+            const auto& [refCppName, refValue] = ref[i];
+            UNIT_ASSERT_VALUES_EQUAL_C(it[i].CppName, refCppName, e.CppName);
+            UNIT_ASSERT_EQUAL_C(it[i].Value.Defined(), refValue.Defined(), e.CppName);
+            if (refValue.Defined() && it[i].Value.Defined()) {
+                UNIT_ASSERT_VALUES_EQUAL_C(*it[i].Value, *refValue, e.CppName);
+            }
+        }
+        UNIT_ASSERT_VALUES_EQUAL_C(it.size(), ref.size(), e.CppName);
+    }
+}
 
 Y_UNIT_TEST_SUITE(TEnumParserTest) {
 
@@ -310,6 +330,43 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
             UNIT_ASSERT(false);
         } catch(...) {
             UNIT_ASSERT(CurrentExceptionMessage().Contains("https://clubs.at.yandex-team.ru/stackoverflow/2603"));
+        }
+    }
+
+    Y_UNIT_TEST(DigitSeparatorTest) {
+        TString text = NResource::Find("/digit_separator");
+        TMemoryInput input(text.data(), text.size());
+        TEnumParser parser(input);
+        const TEnums& enums = parser.Enums;
+        UNIT_ASSERT_VALUES_EQUAL(enums.size(), 2u);
+        {
+            const TEnum& e = enums[0];
+            UNIT_ASSERT_VALUES_EQUAL(e.CppName, "ELiterals");
+            static constexpr TNameValuePair ref[]{
+                {"Char", "sizeof(u8'.')"},
+                {"Int", "123'456'789"},
+                {"Float1", "int(456'789.123'456)"},
+                {"Float2", "int(1'2e0'1)"},
+                {"Float3", "int(0x1'2p4)"},
+            };
+            CompareNameValueItems(ref, e);
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope.size(), 0u);
+        }
+        {
+            const TEnum& e = enums[1];
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope.size(), 0u);
+            UNIT_ASSERT_VALUES_EQUAL(e.CppName, "ETimePrecision");
+            static constexpr TNameValuePair ref[]{
+                {"MicroSeconds", "1"},
+                {"MilliSeconds", "1'000"},
+                {"Seconds", "1'000'000"},
+                {"Minutes", "60'000'000"},
+                {"Hours", "3'600'000'000"},
+                {"Days", "86'400'000'000"},
+                {"Weeks", "604'800'000'000"},
+            };
+            CompareNameValueItems(ref, e);
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope.size(), 0u);
         }
     }
 }
