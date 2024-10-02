@@ -43,13 +43,11 @@
 /* Maximum lookahead during bid phase */
 #define UUENCODE_BID_MAX_READ 128*1024 /* in bytes */
 
-#define UUENCODE_MAX_LINE_LENGTH 34*1024 /* in bytes */
-
 struct uudecode {
 	int64_t		 total;
 	unsigned char	*in_buff;
 #define IN_BUFF_SIZE	(1024)
-	ssize_t		 in_cnt;
+	int		 in_cnt;
 	size_t		 in_allocated;
 	unsigned char	*out_buff;
 #define OUT_BUFF_SIZE	(64 * 1024)
@@ -486,12 +484,6 @@ read_more:
 		goto finish;
 	}
 	if (uudecode->in_cnt) {
-		if (uudecode->in_cnt > UUENCODE_MAX_LINE_LENGTH) {
-			archive_set_error(&self->archive->archive,
-			    ARCHIVE_ERRNO_FILE_FORMAT,
-			    "Invalid format data");
-			return (ARCHIVE_FATAL);
-		}
 		/*
 		 * If there is remaining data which is saved by
 		 * previous calling, use it first.
@@ -506,7 +498,7 @@ read_more:
 		uudecode->in_cnt = 0;
 	}
 	for (;used < avail_in; d += llen, used += llen) {
-		ssize_t l, body;
+		int64_t l, body;
 
 		b = d;
 		len = get_line(b, avail_in - used, &nl);
@@ -541,7 +533,7 @@ read_more:
 				return (ARCHIVE_FATAL);
 			if (uudecode->in_buff != b)
 				memmove(uudecode->in_buff, b, len);
-			uudecode->in_cnt = len;
+			uudecode->in_cnt = (int)len;
 			if (total == 0) {
 				/* Do not return 0; it means end-of-file.
 				 * We should try to read bytes more. */
