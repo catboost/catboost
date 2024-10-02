@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: mypy-protobuf
-Version: 3.3.0
+Version: 3.5.0
 Summary: Generate mypy stub files from protobuf specs
 Home-page: https://github.com/nipunn1313/mypy-protobuf
 Download-URL: https://github.com/nipunn1313/mypy-protobuf/releases
@@ -8,8 +8,8 @@ Author: Nipunn Koorapati
 Author-email: nipunn1313@gmail.com
 License: Apache License 2.0
 Keywords: mypy proto dropbox
-Requires-Python: >=3.7
+Requires-Python: >=3.8
 License-File: LICENSE
-Requires-Dist: protobuf (>=3.19.4)
-Requires-Dist: types-protobuf (>=3.19.12)
+Requires-Dist: protobuf (>=4.23.4)
+Requires-Dist: types-protobuf (>=4.23.0.2)
 
