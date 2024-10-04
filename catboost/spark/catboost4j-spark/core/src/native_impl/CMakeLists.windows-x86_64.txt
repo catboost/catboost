@@ -66,13 +66,6 @@ target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   system_allocator
 )
 
-target_link_options(catboost4j-spark-impl-cpp PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost4j-spark-impl-cpp PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/calc_fstr.cpp
   ${PROJECT_SOURCE_DIR}/catboost/spark/catboost4j-spark/core/src/native_impl/ctrs.cpp

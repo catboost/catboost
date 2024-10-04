@@ -32,13 +32,6 @@ target_allocator(ndcg_cpu_vs_gpu
   system_allocator
 )
 
-target_link_options(ndcg_cpu_vs_gpu PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(ndcg_cpu_vs_gpu PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/targets/bin/ndcg_cpu_vs_gpu/main.cpp
 )

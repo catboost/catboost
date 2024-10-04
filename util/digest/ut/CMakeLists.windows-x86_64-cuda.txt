@@ -26,13 +26,6 @@ target_allocator(util-digest-ut
   system_allocator
 )
 
-target_link_options(util-digest-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(util-digest-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/digest/city_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/digest/fnv_ut.cpp

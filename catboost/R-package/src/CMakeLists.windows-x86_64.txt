@@ -43,10 +43,6 @@ target_allocator(catboostr
 
 target_link_options(catboostr PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/R-package/src/R.lib
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
 )
 
 target_sources(catboostr PRIVATE

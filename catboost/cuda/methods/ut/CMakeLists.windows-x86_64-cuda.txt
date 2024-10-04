@@ -32,13 +32,6 @@ target_allocator(catboost-cuda-methods-ut
   system_allocator
 )
 
-target_link_options(catboost-cuda-methods-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost-cuda-methods-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_tree_searcher.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/methods/ut/test_pairwise_tree_searcher.cpp

@@ -29,12 +29,5 @@ target_allocator(model_perftest
   system_allocator
 )
 
-target_link_options(model_perftest PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 
 vcs_info(model_perftest)

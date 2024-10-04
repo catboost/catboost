@@ -27,13 +27,6 @@ target_allocator(util-draft-ut
   system_allocator
 )
 
-target_link_options(util-draft-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(util-draft-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/draft/date_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/draft/datetime_ut.cpp

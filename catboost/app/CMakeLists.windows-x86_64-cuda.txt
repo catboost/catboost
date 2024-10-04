@@ -61,13 +61,6 @@ target_allocator(catboost
   system_allocator
 )
 
-target_link_options(catboost PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/app/main.cpp
   ${PROJECT_SOURCE_DIR}/catboost/app/mode_calc.cpp

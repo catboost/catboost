@@ -27,13 +27,6 @@ target_allocator(util-folder-ut
   system_allocator
 )
 
-target_link_options(util-folder-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(util-folder-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/folder/dirut_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/folder/filelist_ut.cpp

@@ -27,13 +27,6 @@ target_allocator(gmtime_r
   system_allocator
 )
 
-target_link_options(gmtime_r PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(gmtime_r PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/benchmark/gmtime_r/main.cpp
 )
