@@ -91,8 +91,8 @@ Y_UNIT_TEST_SUITE(NehHttp) {
     }
 
     TString Request(SOCKET s, const TString& request) {
-        const ssize_t nSend = send(s, request.Data(), request.Size(), 0);
-        UNIT_ASSERT_C(nSend == ssize_t(request.Size()), "can't write request to socket.");
+        const ssize_t nSend = send(s, request.data(), request.size(), 0);
+        UNIT_ASSERT_C(nSend == ssize_t(request.size()), "can't write request to socket.");
 
         TVector<char> responseChars(1024, '\0');
         const ssize_t nRecv = recv(s, &responseChars[0], responseChars.size(), 0);

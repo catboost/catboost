@@ -24,7 +24,7 @@ namespace NNeh {
 
             bool Next(TStringBuf& header) {
                 while (Headers_.ReadLine(header)) {
-                    if (!header.Empty()) {
+                    if (!header.empty()) {
                         return true;
                     }
                 }

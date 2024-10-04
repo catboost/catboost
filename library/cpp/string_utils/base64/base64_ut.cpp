@@ -537,7 +537,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     Y_UNIT_TEST(TestDecodeUnevenDst) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?aa";
         TString b64 = "SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9hYQ";
-        TVector<char> buf(Base64DecodeBufSize(b64.Size()), '\0');
+        TVector<char> buf(Base64DecodeBufSize(b64.size()), '\0');
         Base64DecodeUneven(buf.begin(), b64);
         TString res(buf.data());
         UNIT_ASSERT_VALUES_EQUAL(x, res);
@@ -546,7 +546,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     Y_UNIT_TEST(TestDecodeUnevenDst2) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?";
         TString b64 = "SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz8";
-        TVector<char> buf(Base64DecodeBufSize(b64.Size()), '\0');
+        TVector<char> buf(Base64DecodeBufSize(b64.size()), '\0');
         Base64DecodeUneven(buf.begin(), b64);
         TString res(buf.data());
         UNIT_ASSERT_VALUES_EQUAL(x, res);
