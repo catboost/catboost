@@ -325,14 +325,36 @@ public:
         return reverse_iterator(begin());
     }
 
-    using TBase::begin;   //!< const_iterator TStringBase::begin() const
-    using TBase::cbegin;  //!< const_iterator TStringBase::cbegin() const
-    using TBase::cend;    //!< const_iterator TStringBase::cend() const
-    using TBase::crbegin; //!< const_reverse_iterator TStringBase::crbegin() const
-    using TBase::crend;   //!< const_reverse_iterator TStringBase::crend() const
-    using TBase::end;     //!< const_iterator TStringBase::end() const
-    using TBase::rbegin;  //!< const_reverse_iterator TStringBase::rbegin() const
-    using TBase::rend;    //!< const_reverse_iterator TStringBase::rend() const
+    const_iterator begin() const noexcept Y_LIFETIME_BOUND {
+        return TBase::begin();
+    }
+    const_iterator cbegin() const noexcept Y_LIFETIME_BOUND {
+        return TBase::cbegin();
+    }
+
+    const_iterator cend() const noexcept Y_LIFETIME_BOUND {
+        return TBase::cend();
+    }
+
+    const_reverse_iterator crbegin() const noexcept Y_LIFETIME_BOUND {
+        return TBase::crbegin();
+    }
+
+    const_reverse_iterator crend() const noexcept Y_LIFETIME_BOUND {
+        return TBase::crend();
+    }
+
+    const_iterator end() const noexcept Y_LIFETIME_BOUND {
+        return TBase::end();
+    }
+
+    const_reverse_iterator rbegin() const noexcept Y_LIFETIME_BOUND {
+        return TBase::rbegin();
+    }
+
+    const_reverse_iterator rend() const noexcept Y_LIFETIME_BOUND {
+        return TBase::rend();
+    }
 
     inline size_t capacity() const noexcept {
 #ifdef TSTRING_IS_STD_STRING
