@@ -27,6 +27,13 @@ target_allocator(util-generic-ut
   system_allocator
 )
 
+target_link_options(util-generic-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/adaptor_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/algorithm_ut.cpp

@@ -34,6 +34,13 @@ target_allocator(catboost-cuda-train_lib-ut
   system_allocator
 )
 
+target_link_options(catboost-cuda-train_lib-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(catboost-cuda-train_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/ut/dummy_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/train_lib/ut/train_ut.cpp

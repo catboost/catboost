@@ -29,6 +29,13 @@ target_allocator(catboost4j-prediction
   system_allocator
 )
 
+target_link_options(catboost4j-prediction PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(catboost4j-prediction PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/jvm-packages/catboost4j-prediction/src/native_impl/ai_catboost_CatBoostJNIImpl.cpp
 )

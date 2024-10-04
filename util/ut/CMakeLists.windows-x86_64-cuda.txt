@@ -26,6 +26,13 @@ target_allocator(util-ut
   system_allocator
 )
 
+target_link_options(util-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/ysaveload_ut.cpp
 )

@@ -29,6 +29,13 @@ target_allocator(catboost-private-libs-feature_estimator-ut
   system_allocator
 )
 
+target_link_options(catboost-private-libs-feature_estimator-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(catboost-private-libs-feature_estimator-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/feature_estimator/ut/feature_estimator_ut.cpp
 )

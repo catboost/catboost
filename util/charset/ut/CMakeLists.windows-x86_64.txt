@@ -31,6 +31,13 @@ target_allocator(util-charset-ut
   system_allocator
 )
 
+target_link_options(util-charset-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(util-charset-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/charset/utf8_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/charset/wide_ut.cpp

@@ -31,6 +31,13 @@ target_link_libraries(catboostmodel PUBLIC
   libs-model-cuda
 )
 
+target_link_options(catboostmodel PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(catboostmodel PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model_interface/c_api.cpp
 )

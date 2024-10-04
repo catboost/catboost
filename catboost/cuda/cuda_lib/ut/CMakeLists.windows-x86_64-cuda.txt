@@ -29,6 +29,13 @@ target_allocator(catboost-cuda-cuda_lib-ut
   system_allocator
 )
 
+target_link_options(catboost-cuda-cuda_lib-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(catboost-cuda-cuda_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/performance_tests.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_lib/ut/test_all_reduce.cpp

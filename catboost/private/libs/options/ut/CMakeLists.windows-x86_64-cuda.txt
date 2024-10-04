@@ -27,6 +27,13 @@ target_allocator(json_options_ut
   system_allocator
 )
 
+target_link_options(json_options_ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(json_options_ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/json_helper_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/options/ut/options_ut.cpp

@@ -30,6 +30,8 @@ target_allocator(util-system-ut
 target_link_options(util-system-ut PRIVATE
   /MANIFEST:EMBED
   /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
 )
 
 target_sources(util-system-ut PRIVATE

@@ -38,6 +38,13 @@ target_allocator(catboost-private-libs-algo-ut
   system_allocator
 )
 
+target_link_options(catboost-private-libs-algo-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(catboost-private-libs-algo-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/apply_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/algo/ut/train_ut.cpp

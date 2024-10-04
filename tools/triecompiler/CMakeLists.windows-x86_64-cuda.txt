@@ -28,6 +28,13 @@ target_allocator(triecompiler
   system_allocator
 )
 
+target_link_options(triecompiler PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(triecompiler PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/triecompiler/main.cpp
 )
