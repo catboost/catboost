@@ -24,7 +24,7 @@ from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from google.protobuf.internal.well_known_types import WKTBASES
 from . import extensions_pb2
 
-__version__ = "3.5.0"
+__version__ = "3.6.0"
 
 # SourceCodeLocation is defined by `message Location` here
 # https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/descriptor.proto
@@ -169,9 +169,7 @@ class PkgWriter(object):
         """
         if path == "typing_extensions":
             stabilization = {
-                "Literal": (3, 8),
                 "TypeAlias": (3, 10),
-                "final": (3, 8),
             }
             assert name in stabilization
             if not self.typing_extensions_min or self.typing_extensions_min < stabilization[name]:
@@ -407,7 +405,7 @@ class PkgWriter(object):
 
             class_name = desc.name if desc.name not in PYTHON_RESERVED else "_r_" + desc.name
             message_class = self._import("google.protobuf.message", "Message")
-            wl("@{}", self._import("typing_extensions", "final"))
+            wl("@{}", self._import("typing", "final"))
             wl(f"class {class_name}({message_class}{addl_base}):")
             with self._indent():
                 scl = scl_prefix + [i]
@@ -438,12 +436,16 @@ class PkgWriter(object):
                     if field.name in PYTHON_RESERVED:
                         continue
                     field_type = self.python_type(field)
-
                     if is_scalar(field) and field.label != d.FieldDescriptorProto.LABEL_REPEATED:
                         # Scalar non repeated fields are r/w
                         wl(f"{field.name}: {field_type}")
                         self._write_comments(scl + [d.DescriptorProto.FIELD_FIELD_NUMBER, idx])
-                    else:
+
+                for idx, field in enumerate(desc.field):
+                    if field.name in PYTHON_RESERVED:
+                        continue
+                    field_type = self.python_type(field)
+                    if not (is_scalar(field) and field.label != d.FieldDescriptorProto.LABEL_REPEATED):
                         # r/o Getters for non-scalar fields and scalar-repeated fields
                         scl_field = scl + [d.DescriptorProto.FIELD_FIELD_NUMBER, idx]
                         wl("@property")
@@ -452,6 +454,7 @@ class PkgWriter(object):
                         if self._has_comments(scl_field):
                             with self._indent():
                                 self._write_comments(scl_field)
+                            wl("")
 
                 self.write_extensions(desc.extension, scl + [d.DescriptorProto.EXTENSION_FIELD_NUMBER])
 
@@ -506,14 +509,14 @@ class PkgWriter(object):
         if hf_fields:
             wl(
                 "def HasField(self, field_name: {}[{}]) -> {}: ...",
-                self._import("typing_extensions", "Literal"),
+                self._import("typing", "Literal"),
                 hf_fields_text,
                 self._builtin("bool"),
             )
         if cf_fields:
             wl(
                 "def ClearField(self, field_name: {}[{}]) -> None: ...",
-                self._import("typing_extensions", "Literal"),
+                self._import("typing", "Literal"),
                 cf_fields_text,
             )
 
@@ -522,10 +525,10 @@ class PkgWriter(object):
                 wl("@{}", self._import("typing", "overload"))
             wl(
                 "def WhichOneof(self, oneof_group: {}[{}]) -> {}[{}] | None: ...",
-                self._import("typing_extensions", "Literal"),
+                self._import("typing", "Literal"),
                 # Accepts both str and bytes
                 f'"{wo_field}", b"{wo_field}"',
-                self._import("typing_extensions", "Literal"),
+                self._import("typing", "Literal"),
                 # Returns `str`
                 ", ".join(f'"{m}"' for m in members),
             )
@@ -599,6 +602,7 @@ class PkgWriter(object):
                 with self._indent():
                     if not self._write_comments(scl_method):
                         wl("...")
+            wl("")
 
     def write_services(
         self,
@@ -620,7 +624,6 @@ class PkgWriter(object):
                 if self._write_comments(scl):
                     wl("")
                 self.write_methods(service, class_name, is_abstract=True, scl_prefix=scl)
-            wl("")
 
             # The stub client
             stub_class_name = service.name + "_Stub"
@@ -633,7 +636,6 @@ class PkgWriter(object):
                     self._import("google.protobuf.service", "RpcChannel"),
                 )
                 self.write_methods(service, stub_class_name, is_abstract=False, scl_prefix=scl)
-            wl("")
 
     def _import_casttype(self, casttype: str) -> str:
         split = casttype.split(".")
@@ -709,22 +711,20 @@ class PkgWriter(object):
         wl = self._write_line
         # _MaybeAsyncIterator[Req] is supertyped by Iterator[Req] and AsyncIterator[Req].
         # So both can be used in the contravariant function parameter position.
-        wl("_T = {}('_T')", self._import("typing", "TypeVar"))
+        wl('_T = {}("_T")', self._import("typing", "TypeVar"))
         wl("")
         wl(
-            "class _MaybeAsyncIterator({}[_T], {}[_T], metaclass={}):",
+            "class _MaybeAsyncIterator({}[_T], {}[_T], metaclass={}): ...",
             self._import("collections.abc", "AsyncIterator"),
             self._import("collections.abc", "Iterator"),
             self._import("abc", "ABCMeta"),
         )
-        with self._indent():
-            wl("...")
         wl("")
 
         # _ServicerContext is supertyped by grpc.ServicerContext and grpc.aio.ServicerContext
         # So both can be used in the contravariant function parameter position.
         wl(
-            "class _ServicerContext({}, {}):  # type: ignore",
+            "class _ServicerContext({}, {}):  # type: ignore[misc, type-arg]",
             self._import("grpc", "ServicerContext"),
             self._import("grpc.aio", "ServicerContext"),
         )
@@ -758,6 +758,7 @@ class PkgWriter(object):
                 with self._indent():
                     if not self._write_comments(scl):
                         wl("...")
+            wl("")
 
     def write_grpc_stub_methods(self, service: d.ServiceDescriptorProto, scl_prefix: SourceCodeLocation, is_async: bool = False) -> None:
         wl = self._write_line
@@ -774,6 +775,7 @@ class PkgWriter(object):
                 wl("{},", self._output_type(method))
             wl("]")
             self._write_comments(scl)
+            wl("")
 
     def write_grpc_services(
         self,
@@ -799,7 +801,6 @@ class PkgWriter(object):
                 channel = f"{self._import('typing', 'Union')}[{self._import('grpc', 'Channel')}, {self._import('grpc.aio', 'Channel')}]"
                 wl("def __init__(self, channel: {}) -> None: ...", channel)
                 self.write_grpc_stub_methods(service, scl)
-            wl("")
 
             # The (fake) async stub client
             wl(
@@ -811,7 +812,6 @@ class PkgWriter(object):
                     wl("")
                 # No __init__ since this isn't a real class (yet), and requires manual casting to work.
                 self.write_grpc_stub_methods(service, scl, is_async=True)
-            wl("")
 
             # The service definition interface
             wl(
@@ -823,7 +823,6 @@ class PkgWriter(object):
                 if self._write_comments(scl):
                     wl("")
                 self.write_grpc_methods(service, scl)
-            wl("")
             server = self._import("grpc", "Server")
             aserver = self._import("grpc.aio", "Server")
             wl(
@@ -925,8 +924,9 @@ class PkgWriter(object):
         if self.lines:
             assert self.lines[0].startswith('"""')
             self.lines[0] = f'"""{HEADER}{self.lines[0][3:]}'
+            self._write_line("")
         else:
-            self._write_line(f'"""{HEADER}"""')
+            self._write_line(f'"""{HEADER}"""\n')
 
         for reexport_idx in self.fd.public_dependency:
             reexport_file = self.fd.dependency[reexport_idx]
