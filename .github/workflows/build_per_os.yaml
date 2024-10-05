@@ -39,7 +39,7 @@ jobs:
         shell: pwsh
         run: echo "GITHUB_SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
-     - if: inputs.runs-on_value == 'ubuntu-22.04'
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
         name: Checkout actions from catboost
         uses: actions/checkout@v4
         with:
