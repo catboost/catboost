@@ -1,0 +1,26 @@
+
+name: 'Build on Linux in Docker: cleanup unneeded packages & tools cache in GitHub hosted image'
+description: 'Build on Linux in Docker: cleanup unneeded packages & tools cache in GitHub hosted image'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Remove apt packages
+      shell: bash
+      run: |
+        sudo apt-get remove -y '^llvm-.*'
+        sudo apt-get remove -y 'php.*'
+        sudo apt-get remove -y '^mongodb-.*' --fix-missing
+        sudo apt-get remove -y '^mysql-.*' --fix-missing
+        sudo apt-get remove -y azure-cli google-chrome-stable firefox mono-devel libgl1-mesa-dri --fix-missing
+        sudo apt-get remove -y google-cloud-sdk --fix-missing
+        sudo apt-get remove -y google-cloud-cli --fix-missing
+        sudo apt-get remove -y '^gfortran-.*' --fix-missing     # 125 Mb
+        sudo apt-get remove -y java-common --fix-missing        # 1223 Mb
+        sudo apt-get remove -y '^r-.*' --fix-missing            # 80 Mb
+        sudo apt-get remove -y '^lib.*-dev' --fix-missing       # 716 Mb
+        sudo apt-get autoremove -y                              # 216 Mb
+        sudo apt-get clean
+    - name: Remove tools cache
+      shell: bash
+      run: sudo rm -rf "$AGENT_TOOLSDIRECTORY"

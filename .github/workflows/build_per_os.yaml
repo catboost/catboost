@@ -39,23 +39,30 @@ jobs:
         shell: pwsh
         run: echo "GITHUB_SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
 
-      - if: inputs.runs-on_value == 'ubuntu-22.04'
-        name: Maximize build space
-        uses: jlumbroso/free-disk-space@main
+     - if: inputs.runs-on_value == 'ubuntu-22.04'
+        name: Checkout actions from catboost
+        uses: actions/checkout@v4
         with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
+          path: actions_from_catboost
+          sparse-checkout: .github
+          fetch-depth: 0
 
       - if: inputs.runs-on_value == 'ubuntu-22.04'
-        name: Env setup on Ubuntu
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y powershell
+        name: 'Maximize build space: stage 1'
+        # Remove packages & tools cache not covered by easimon/maximize-build-space action
+        uses: ./actions_from_catboost/.github/actions/build_linux_docker_cleanup_unneeded
+
+      - if: inputs.runs-on_value == 'ubuntu-22.04'
+        name: 'Maximize build space: stage 2'
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 40000  # needed for docker image
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
 
       - if: inputs.runs-on_value == 'macos-13'
         name: Get python_versions_macos_arm64 from cache
