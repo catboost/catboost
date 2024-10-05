@@ -5,10 +5,10 @@ The problem
    :target: https://badge.fury.io/py/platformdirs
 .. image:: https://img.shields.io/pypi/pyversions/platformdirs.svg
    :target: https://pypi.python.org/pypi/platformdirs/
-.. image:: https://github.com/platformdirs/platformdirs/actions/workflows/check.yml/badge.svg
+.. image:: https://github.com/tox-dev/platformdirs/actions/workflows/check.yaml/badge.svg
    :target: https://github.com/platformdirs/platformdirs/actions
 .. image:: https://static.pepy.tech/badge/platformdirs/month
-   :target: https://pepy.tech/project/tox-uv
+   :target: https://pepy.tech/project/platformdirs
 
 When writing desktop application, finding the right location to store user data
 and configuration varies per platform. Even for single-platform apps, there
