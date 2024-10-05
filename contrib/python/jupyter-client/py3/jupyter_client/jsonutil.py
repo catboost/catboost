@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from datetime import datetime
 from typing import Any, Optional, Union
 
-from dateutil.parser import parse as _dateutil_parse
+from dateutil.parser import isoparse as _dateutil_parse
 from dateutil.tz import tzlocal
 
 next_attr_name = "__next__"  # Not sure what downstream library uses this, but left it to be safe
@@ -28,7 +28,7 @@ ISO8601_PAT = re.compile(
 
 # holy crap, strptime is not threadsafe.
 # Calling it once at import seems to help.
-datetime.strptime("1", "%d")  # noqa
+datetime.strptime("2000-01-01", "%Y-%m-%d")  # noqa
 
 # -----------------------------------------------------------------------------
 # Classes and functions

@@ -1,6 +1,6 @@
 Metadata-Version: 2.3
 Name: jupyter_client
-Version: 8.6.2
+Version: 8.6.3
 Summary: Jupyter protocol implementation and client libraries
 Project-URL: Homepage, https://jupyter.org
 Project-URL: Documentation, https://jupyter-client.readthedocs.io/
