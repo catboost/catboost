@@ -1,5 +1,5 @@
 /* An fseeko() function that, together with fflush(), is POSIX compliant.
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -33,9 +33,9 @@ fseeko (FILE *fp, off_t offset, int whence)
 #endif
 #if _GL_WINDOWS_64_BIT_OFF_T
 # undef fseeko
-# if HAVE__FSEEKI64 /* msvc, mingw64 */
+# if HAVE__FSEEKI64 && HAVE_DECL__FSEEKI64 /* msvc, mingw since msvcrt8.0, mingw64 */
 #  define fseeko _fseeki64
-# else /* mingw */
+# else /* mingw before msvcrt8.0 */
 #  define fseeko fseeko64
 # endif
 #endif
@@ -47,11 +47,13 @@ fseeko (FILE *fp, off_t offset, int whence)
 #endif
 
   /* These tests are based on fpurge.c.  */
-#if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
+#if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1
+  /* GNU libc, BeOS, Haiku, Linux libc5 */
   if (fp->_IO_read_end == fp->_IO_read_ptr
       && fp->_IO_write_ptr == fp->_IO_write_base
       && fp->_IO_save_base == NULL)
-#elif defined __sferror || defined __DragonFly__ /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin */
+#elif defined __sferror || defined __DragonFly__ || defined __ANDROID__
+  /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin, Minix 3, Android */
 # if defined __SL64 && defined __SCLE /* Cygwin */
   if ((fp->_flags & __SL64) == 0)
     {
@@ -79,12 +81,9 @@ fseeko (FILE *fp, off_t offset, int whence)
 #elif defined __minix               /* Minix */
   if (fp_->_ptr == fp_->_buf
       && (fp_->_ptr == NULL || fp_->_count == 0))
-#elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, mingw, NonStop Kernel */
+#elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, UnixWare, mingw, MSVC, NonStop Kernel, OpenVMS */
   if (fp_->_ptr == fp_->_base
       && (fp_->_ptr == NULL || fp_->_cnt == 0))
-#elif WIN_SDK10
-  if (((TWinSdk10File*)fp)->_ptr == ((TWinSdk10File*)fp)->_base
-      && (((TWinSdk10File*)fp)->_ptr == NULL || ((TWinSdk10File*)fp)->_cnt == 0))
 #elif defined __UCLIBC__            /* uClibc */
   if (((fp->__modeflags & __FLAG_WRITING) == 0
        || fp->__bufpos == fp->__bufstart)
@@ -118,17 +117,20 @@ fseeko (FILE *fp, off_t offset, int whence)
       off_t pos = lseek (fileno (fp), offset, whence);
       if (pos == -1)
         {
-#if defined __sferror || defined __DragonFly__ /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin */
+#if defined __sferror || defined __DragonFly__ || defined __ANDROID__
+          /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin, Minix 3, Android */
           fp_->_flags &= ~__SOFF;
 #endif
           return -1;
         }
 
-#if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
+#if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1
+      /* GNU libc, BeOS, Haiku, Linux libc5 */
       fp->_flags &= ~_IO_EOF_SEEN;
       fp->_offset = pos;
-#elif defined __sferror || defined __DragonFly__ /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin */
-# if defined __CYGWIN__
+#elif defined __sferror || defined __DragonFly__ || defined __ANDROID__
+      /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin, Minix 3, Android */
+# if defined __CYGWIN__ || (defined __NetBSD__ && __NetBSD_Version__ >= 600000000) || defined __minix
       /* fp_->_offset is typed as an integer.  */
       fp_->_offset = pos;
 # else
@@ -150,8 +152,8 @@ fseeko (FILE *fp, off_t offset, int whence)
       fp_->_flags &= ~__SEOF;
 #elif defined __EMX__               /* emx+gcc */
       fp->_flags &= ~_IOEOF;
-#elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, mingw, NonStop Kernel */
-      fp->_flag &= ~_IOEOF;
+#elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, UnixWare, mingw, MSVC, NonStop Kernel, OpenVMS */
+      fp_->_flag &= ~_IOEOF;
 #elif defined __MINT__              /* Atari FreeMiNT */
       fp->__offset = pos;
       fp->__eof = 0;

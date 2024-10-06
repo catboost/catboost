@@ -1,5 +1,5 @@
 /* Retrieve information about a FILE stream.
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -22,7 +22,7 @@
 #include "stdio-impl.h"
 
 /* Don't use glibc's __freading function in glibc < 2.7, see
-   <http://sourceware.org/bugzilla/show_bug.cgi?id=4359>  */
+   <https://sourceware.org/bugzilla/show_bug.cgi?id=4359>  */
 #if !(HAVE___FREADING && (!defined __GLIBC__ || defined __UCLIBC__ || __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 7)))
 
 bool
@@ -31,24 +31,24 @@ freading (FILE *fp)
   /* Most systems provide FILE as a struct and the necessary bitmask in
      <stdio.h>, because they need it for implementing getc() and putc() as
      fast macros.  */
-# if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
+# if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1
+  /* GNU libc, BeOS, Haiku, Linux libc5 */
   return ((fp->_flags & _IO_NO_WRITES) != 0
           || ((fp->_flags & (_IO_NO_READS | _IO_CURRENTLY_PUTTING)) == 0
               && fp->_IO_read_base != NULL));
-# elif defined __sferror || defined __DragonFly__ /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin */
+# elif defined __sferror || defined __DragonFly__ || defined __ANDROID__
+  /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin < 1.7.34, Minix 3, Android */
   return (fp_->_flags & __SRD) != 0;
 # elif defined __EMX__               /* emx+gcc */
   return (fp->_flags & _IOREAD) != 0;
 # elif defined __minix               /* Minix */
   return (fp->_flags & _IOREADING) != 0;
-# elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, mingw, NonStop Kernel */
+# elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, UnixWare, mingw, MSVC, NonStop Kernel, OpenVMS */
 #  if defined __sun                  /* Solaris */
-  return (fp->_flag & _IOREAD) != 0 && (fp->_flag & _IOWRT) == 0;
+  return (fp_->_flag & _IOREAD) != 0 && (fp_->_flag & _IOWRT) == 0;
 #  else
-  return (fp->_flag & _IOREAD) != 0;
+  return (fp_->_flag & _IOREAD) != 0;
 #  endif
-# elif WIN_SDK10
-  return (((TWinSdk10File*)fp)->_flags & WIN_SDK10_IOREAD) != 0;
 # elif defined __UCLIBC__            /* uClibc */
   return (fp->__modeflags & (__FLAG_READONLY | __FLAG_READING)) != 0;
 # elif defined __QNX__               /* QNX */

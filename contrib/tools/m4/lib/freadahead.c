@@ -1,5 +1,5 @@
 /* Retrieve information about a FILE stream.
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
@@ -22,16 +22,26 @@
 #include <stdlib.h>
 #include "stdio-impl.h"
 
+#if defined __DragonFly__
+/* Defined in libc, but not declared in <stdio.h>.  */
+extern size_t __sreadahead (FILE *);
+#endif
+
+/* This file is not used on systems that have the __freadahead function,
+   namely musl libc.  */
+
 size_t
 freadahead (FILE *fp)
 {
-#if defined _IO_EOF_SEEN || defined _IO_EOF_SEEN || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
+#if defined _IO_EOF_SEEN || defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1
+  /* GNU libc, BeOS, Haiku, Linux libc5 */
   if (fp->_IO_write_ptr > fp->_IO_write_base)
     return 0;
   return (fp->_IO_read_end - fp->_IO_read_ptr)
          + (fp->_flags & _IO_IN_BACKUP ? fp->_IO_save_end - fp->_IO_save_base :
             0);
-#elif defined __sferror || defined __DragonFly__ /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin */
+#elif defined __sferror || defined __DragonFly__ || defined __ANDROID__
+  /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin, Minix 3, Android */
   if ((fp_->_flags & __SWR) != 0 || fp_->_r < 0)
     return 0;
 # if defined __DragonFly__
@@ -52,14 +62,10 @@ freadahead (FILE *fp)
   if ((fp_->_flags & _IOWRITING) != 0)
     return 0;
   return fp_->_count;
-#elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, mingw, NonStop Kernel */
+#elif defined _IOERR                /* AIX, HP-UX, IRIX, OSF/1, Solaris, OpenServer, UnixWare, mingw, MSVC, NonStop Kernel, OpenVMS */
   if ((fp_->_flag & _IOWRT) != 0)
     return 0;
   return fp_->_cnt;
-#elif WIN_SDK10
-  if ((((TWinSdk10File*)fp)->_flags & WIN_SDK10_IOWRITE) != 0)
-    return 0;
-  return ((TWinSdk10File*)fp)->_cnt;
 #elif defined __UCLIBC__            /* uClibc */
 # ifdef __STDIO_BUFFERS
   if (fp->__modeflags & __FLAG_WRITING)
