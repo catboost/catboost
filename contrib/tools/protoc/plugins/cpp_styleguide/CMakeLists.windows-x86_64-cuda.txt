@@ -30,6 +30,11 @@ target_allocator(cpp_styleguide
   system_allocator
 )
 
+target_link_options(cpp_styleguide PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(cpp_styleguide PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.cpp
 )

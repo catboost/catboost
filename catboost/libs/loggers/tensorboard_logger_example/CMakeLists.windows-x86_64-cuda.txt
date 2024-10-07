@@ -26,6 +26,11 @@ target_allocator(tensorboard_logger_example
   system_allocator
 )
 
+target_link_options(tensorboard_logger_example PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(tensorboard_logger_example PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/loggers/tensorboard_logger_example/example.cpp
 )

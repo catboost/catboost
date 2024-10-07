@@ -27,6 +27,11 @@ target_allocator(catboost-libs-dataset_statistics-ut
   system_allocator
 )
 
+target_link_options(catboost-libs-dataset_statistics-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(catboost-libs-dataset_statistics-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/dataset_statistics/ut/histograms_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/dataset_statistics/ut/statistics_serialization_ut.cpp

@@ -25,6 +25,11 @@ target_allocator(methods
   system_allocator
 )
 
+target_link_options(methods PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(methods PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/empty_main.cpp
 )

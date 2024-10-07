@@ -66,6 +66,11 @@ target_allocator(_catboost_no_cuda
   system_allocator
 )
 
+target_link_options(_catboost_no_cuda PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_cython_sources(_catboost_no_cuda PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
 )

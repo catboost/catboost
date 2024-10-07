@@ -30,6 +30,11 @@ target_allocator(catboost-cuda-ctrs-ut
   system_allocator
 )
 
+target_link_options(catboost-cuda-ctrs-ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(catboost-cuda-ctrs-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/ctrs/ut/test_ctrs.cpp
 )

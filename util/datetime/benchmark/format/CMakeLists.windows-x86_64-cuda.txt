@@ -26,6 +26,11 @@ target_allocator(format
   system_allocator
 )
 
+target_link_options(format PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(format PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/benchmark/format/main.cpp
 )

@@ -28,6 +28,11 @@ target_allocator(archiver
   system_allocator
 )
 
+target_link_options(archiver PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(archiver PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/archiver/main.cpp
 )

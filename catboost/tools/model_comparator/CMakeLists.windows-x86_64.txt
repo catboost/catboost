@@ -37,6 +37,11 @@ target_allocator(model_comparator
   system_allocator
 )
 
+target_link_options(model_comparator PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(model_comparator PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/decl.cpp
   ${PROJECT_SOURCE_DIR}/catboost/tools/model_comparator/main.cpp

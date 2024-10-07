@@ -27,6 +27,11 @@ target_allocator(limited_precision_json_diff
   system_allocator
 )
 
+target_link_options(limited_precision_json_diff PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(limited_precision_json_diff PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/tools/limited_precision_json_diff/limited_precision_json_diff.cpp
 )

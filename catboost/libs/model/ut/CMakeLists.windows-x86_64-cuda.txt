@@ -35,6 +35,11 @@ target_allocator(model_ut
   system_allocator
 )
 
+target_link_options(model_ut PRIVATE
+  /MANIFEST:EMBED
+  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
+)
+
 target_sources(model_ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/model_export_helpers_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/ut/formula_evaluator_ut.cpp
