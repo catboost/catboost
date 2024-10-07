@@ -179,7 +179,7 @@ public:
 
     ~TJVMStringAsStringBuf() {
         if (JEnv) {
-            JEnv->ReleaseByteArrayElements(Utf8Array, (signed char*)const_cast<char*>(Data.Data()), JNI_ABORT);
+            JEnv->ReleaseByteArrayElements(Utf8Array, (signed char*)const_cast<char*>(Data.data()), JNI_ABORT);
             JEnv->DeleteGlobalRef(Utf8Array);
         }
     }
