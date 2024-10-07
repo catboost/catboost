@@ -12,7 +12,7 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef _lsan_enabled_
+#if defined(_lsan_enabled_) || defined(_asan_enabled_)
 
 using ::testing::IsNull;
 using ::testing::NotNull;

@@ -4,7 +4,7 @@
 
 #include <util/system/compiler.h>
 
-#ifdef _lsan_enabled_
+#if defined(_lsan_enabled_) || defined(_asan_enabled_)
 #include <util/system/spinlock.h>
 #endif
 
@@ -60,7 +60,7 @@ private:
     template <class U>
     friend bool operator!=(const TIntrusivePtr<U>& lhs, const TAtomicIntrusivePtr<U>& rhs);
 
-#ifdef _lsan_enabled_
+#if defined(_lsan_enabled_) || defined(_asan_enabled_)
     ::TSpinLock Lock_;
     TIntrusivePtr<T> Ptr_;
 #else
