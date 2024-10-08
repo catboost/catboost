@@ -17,7 +17,9 @@
 #include "bitops.h"
 #include "explicit_type.h"
 #include "reserve.h"
-#include "singleton.h"
+#ifndef _LIBCPP_VERSION
+    #include "singleton.h"
+#endif
 #include "strbase.h"
 #include "strbuf.h"
 #include "string_hash.h"
