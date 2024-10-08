@@ -2,6 +2,7 @@
 
 #include "fwd.h"
 
+#include <util/generic/bitops.h>
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/generic/mapfindptr.h>
