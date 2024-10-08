@@ -26,11 +26,6 @@ target_allocator(rescompiler
   system_allocator
 )
 
-target_link_options(rescompiler PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(rescompiler PRIVATE
   ${PROJECT_SOURCE_DIR}/tools/rescompiler/main.cpp
 )

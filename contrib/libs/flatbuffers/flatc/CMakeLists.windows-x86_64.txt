@@ -34,11 +34,6 @@ target_allocator(flatc
   system_allocator
 )
 
-target_link_options(flatc PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(flatc PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/cpp_generator.cc
   ${PROJECT_SOURCE_DIR}/contrib/libs/flatbuffers/grpc/src/compiler/go_generator.cc

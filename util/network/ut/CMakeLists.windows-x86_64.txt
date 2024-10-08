@@ -27,11 +27,6 @@ target_allocator(util-network-ut
   system_allocator
 )
 
-target_link_options(util-network-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(util-network-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/network/address_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/network/endpoint_ut.cpp

@@ -28,11 +28,6 @@ target_allocator(catboost-libs-metrics-ut
   system_allocator
 )
 
-target_link_options(catboost-libs-metrics-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost-libs-metrics-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/auc_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/auc_mu_ut.cpp

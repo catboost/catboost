@@ -30,11 +30,6 @@ target_link_libraries(catboostmodel PUBLIC
   catboost-libs-model
 )
 
-target_link_options(catboostmodel PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboostmodel PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model_interface/c_api.cpp
 )

@@ -25,11 +25,6 @@ target_allocator(gpu_data
   system_allocator
 )
 
-target_link_options(gpu_data PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(gpu_data PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/mpi_ut/empty_main.cpp
 )

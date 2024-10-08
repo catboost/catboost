@@ -32,11 +32,6 @@ target_allocator(catboost-libs-train_lib-ut
   system_allocator
 )
 
-target_link_options(catboost-libs-train_lib-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost-libs-train_lib-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_lib/ut/train_model_ut.cpp
 )

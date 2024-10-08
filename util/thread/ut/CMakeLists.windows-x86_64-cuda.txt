@@ -27,11 +27,6 @@ target_allocator(util-thread-ut
   system_allocator
 )
 
-target_link_options(util-thread-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(util-thread-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/thread/factory_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/thread/lfqueue_ut.cpp

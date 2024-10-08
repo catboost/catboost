@@ -27,11 +27,6 @@ target_allocator(catboost-private-libs-data_util-ut
   system_allocator
 )
 
-target_link_options(catboost-private-libs-data_util-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost-private-libs-data_util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/data_util/ut/line_data_reader_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/data_util/ut/path_with_scheme_ut.cpp

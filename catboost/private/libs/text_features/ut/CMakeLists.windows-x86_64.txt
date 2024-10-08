@@ -31,11 +31,6 @@ target_allocator(catboost-private-libs-text_features-ut
   system_allocator
 )
 
-target_link_options(catboost-private-libs-text_features-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost-private-libs-text_features-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/calcer_canonization_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_features/ut/feature_calcer_ut.cpp

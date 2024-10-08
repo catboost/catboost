@@ -26,11 +26,6 @@ target_allocator(util-string-ut
   system_allocator
 )
 
-target_link_options(util-string-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(util-string-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/string/builder_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/string/cast_ut.cpp

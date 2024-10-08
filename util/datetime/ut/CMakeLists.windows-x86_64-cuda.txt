@@ -26,11 +26,6 @@ target_allocator(util-datetime-ut
   system_allocator
 )
 
-target_link_options(util-datetime-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(util-datetime-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/base_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/datetime/cputimer_ut.cpp

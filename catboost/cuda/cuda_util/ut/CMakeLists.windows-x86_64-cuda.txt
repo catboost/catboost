@@ -27,11 +27,6 @@ target_allocator(catboost-cuda-cuda_util-ut
   system_allocator
 )
 
-target_link_options(catboost-cuda-cuda_util-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost-cuda-cuda_util-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_calculate_threshold.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/cuda_util/ut/test_compression_cpu.cpp

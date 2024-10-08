@@ -26,11 +26,6 @@ target_allocator(util-memory-ut
   system_allocator
 )
 
-target_link_options(util-memory-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(util-memory-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/memory/addstorage_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/memory/blob_ut.cpp

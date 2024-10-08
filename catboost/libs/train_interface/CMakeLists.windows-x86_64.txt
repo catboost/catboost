@@ -50,11 +50,6 @@ target_allocator(catboost_train_interface
   system_allocator
 )
 
-target_link_options(catboost_train_interface PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost_train_interface PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/train_interface/catboost_api.cpp
 )

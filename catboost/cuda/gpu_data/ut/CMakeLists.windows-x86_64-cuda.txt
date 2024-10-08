@@ -32,11 +32,6 @@ target_allocator(catboost-cuda-gpu_data-ut
   system_allocator
 )
 
-target_link_options(catboost-cuda-gpu_data-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost-cuda-gpu_data-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_bin_builder.cpp
   ${PROJECT_SOURCE_DIR}/catboost/cuda/gpu_data/ut/test_binarization.cpp

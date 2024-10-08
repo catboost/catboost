@@ -37,11 +37,6 @@ target_link_libraries(_hnsw PUBLIC
   library-cpp-pair_vector_distance
 )
 
-target_link_options(_hnsw PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_cython_sources(_hnsw PRIVATE
   ${PROJECT_SOURCE_DIR}/library/python/hnsw/hnsw/_hnsw.pyx
 )

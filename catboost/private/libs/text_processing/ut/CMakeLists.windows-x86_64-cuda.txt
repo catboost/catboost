@@ -30,11 +30,6 @@ target_allocator(catboost-private-libs-text_processing-ut
   system_allocator
 )
 
-target_link_options(catboost-private-libs-text_processing-ut PRIVATE
-  /MANIFEST:EMBED
-  /MANIFESTINPUT:${PROJECT_SOURCE_DIR}/build/long-path.manifest
-)
-
 target_sources(catboost-private-libs-text_processing-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/ut/dictionary_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/private/libs/text_processing/ut/text_dataset_ut.cpp
