@@ -14,6 +14,10 @@ THistogramPointsAndBins::THistogramPointsAndBins(const TVector<double>& points, 
     }
 }
 
+bool THistogramPointsAndBins::operator==(const THistogramPointsAndBins& secondOperand) const {
+    return Points == secondOperand.GetPoints() && Bins == secondOperand.GetBins();
+}
+
 const TVector<double>& THistogramPointsAndBins::GetPoints() const {
     return Points;
 }
@@ -35,13 +39,11 @@ const std::pair<size_t, double> THistogramPointsAndBins::FindBinAndPartion(const
 
     for (size_t i = 0; i < Bins.size(); ++i) {
         currentSum += Bins[i];
-        if (currentSum == targetSum) {
-            return {i, 0.0};
-        } else if (currentSum > targetSum) {
+        if (currentSum >= targetSum) {
             return {i, 1.0 - (currentSum - targetSum) / Bins[i]};
         }
     }
-    return {Bins.size() - 1, 0.0};
+    return {Bins.size() - 1, 1.0};
 }
 
 bool THistogramPointsAndBins::IsBinsFilledWithZeros() const {

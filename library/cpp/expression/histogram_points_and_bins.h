@@ -15,6 +15,8 @@ class THistogramPointsAndBins {
         THistogramPointsAndBins();
         THistogramPointsAndBins(const TVector<double>& points, const TVector<double>& bins);
 
+        bool operator==(const THistogramPointsAndBins& secondOperand) const;
+
         const TVector<double>& GetPoints() const;
         const TVector<double>& GetBins() const;
         void SetPointsAndBins(const TVector<double>& points, const TVector<double>& bins);

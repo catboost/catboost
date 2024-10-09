@@ -6,6 +6,17 @@
 
 
 Y_UNIT_TEST_SUITE(THistogramBinAndPointsTest) {
+    Y_UNIT_TEST(TestEqualOperator) {
+        TVector<double> points = {1, 2, 3, 4};
+        TVector<double> bins = {10, 20, 30, 40, 50};
+        THistogramPointsAndBins firstEqualHistogramData = THistogramPointsAndBins(points, bins);
+        THistogramPointsAndBins secondEqualHistogramData = THistogramPointsAndBins(points, bins);
+        THistogramPointsAndBins emptyHistogramData = THistogramPointsAndBins();
+
+        UNIT_ASSERT_EQUAL(firstEqualHistogramData == secondEqualHistogramData, true);
+        UNIT_ASSERT_EQUAL(firstEqualHistogramData == firstEqualHistogramData, true);
+        UNIT_ASSERT_EQUAL(firstEqualHistogramData == emptyHistogramData, false);
+    }
     Y_UNIT_TEST(TestSettersAndGetters) {
         TVector<double> points = {1, 2, 3, 4};
         TVector<double> bins = {10, 20, 30, 40, 50};
@@ -33,11 +44,11 @@ Y_UNIT_TEST_SUITE(THistogramBinAndPointsTest) {
         THistogramPointsAndBins histogramData = THistogramPointsAndBins(points, bins);
 
         UNIT_ASSERT_EQUAL(histogramData.FindBinAndPartion(0), std::make_pair(0, 0.0));
-        UNIT_ASSERT_EQUAL(histogramData.FindBinAndPartion(20), std::make_pair(1, 0.0));
+        UNIT_ASSERT_EQUAL(histogramData.FindBinAndPartion(20), std::make_pair(1, 1.0));
         UNIT_ASSERT_EQUAL(histogramData.FindBinAndPartion(30), std::make_pair(2, 0.5));
         UNIT_ASSERT_EQUAL(histogramData.FindBinAndPartion(60), std::make_pair(3, 0.75));
         UNIT_ASSERT_EQUAL(histogramData.FindBinAndPartion(95), std::make_pair(4, 0.85));
-        UNIT_ASSERT_EQUAL(histogramData.FindBinAndPartion(100), std::make_pair(4, 0.0));
+        UNIT_ASSERT_EQUAL(histogramData.FindBinAndPartion(100), std::make_pair(4, 1.0));
     }
     Y_UNIT_TEST(TestValidationMethods) {
         THistogramPointsAndBins emptyHistogramData = THistogramPointsAndBins();

@@ -1,9 +1,11 @@
+#include <limits>
+
 #include "expression_variable.h"
 
 
 TExpressionVariable::TExpressionVariable()
-    : HasStrValue(true)
-    , HasDoubleValue(true)
+    : HasStrValue(false)
+    , HasDoubleValue(false)
     , HasHistogramPointsAndBinsValue(false)
 {
 }
@@ -18,7 +20,7 @@ TExpressionVariable::TExpressionVariable(const TString& source)
 
 TExpressionVariable::TExpressionVariable(double source)
     : HasStrValue(false)
-    , HasDoubleValue(false)
+    , HasDoubleValue(true)
     , HasHistogramPointsAndBinsValue(false)
     , DoubleValue(source)
 {
@@ -26,7 +28,7 @@ TExpressionVariable::TExpressionVariable(double source)
 
 TExpressionVariable::TExpressionVariable(const THistogramPointsAndBins& source)
     : HasStrValue(false)
-    , HasDoubleValue(true)
+    , HasDoubleValue(false)
     , HasHistogramPointsAndBinsValue(true)
     , HistogramPointsAndBinsValue(source)
 {
@@ -39,16 +41,18 @@ TExpressionVariable::TExpressionVariable(const TExpressionVariable& source)
 {
     if (HasStrValue) {
         StringValue = source.StringValue;
-    } else if (HasHistogramPointsAndBinsValue) {
+    }
+    if (HasHistogramPointsAndBinsValue) {
         HistogramPointsAndBinsValue = source.HistogramPointsAndBinsValue;
-    } else {
+    }
+    if (HasDoubleValue) {
         DoubleValue = source.DoubleValue;
     }
 }
 
 TExpressionVariable::TExpressionVariable(bool source)
     : HasStrValue(false)
-    , HasDoubleValue(false)
+    , HasDoubleValue(true)
     , HasHistogramPointsAndBinsValue(false)
     , DoubleValue(source ? 1.0 : 0.0)
 {
@@ -64,7 +68,7 @@ TExpressionVariable& TExpressionVariable::operator=(const TString& source) {
 
 TExpressionVariable& TExpressionVariable::operator=(double source) {
     HasStrValue = false;
-    HasDoubleValue = false;
+    HasDoubleValue = true;
     HasHistogramPointsAndBinsValue = false;
     DoubleValue = source;
     return *this;
@@ -84,16 +88,18 @@ TExpressionVariable& TExpressionVariable::operator=(const TExpressionVariable& s
     HasHistogramPointsAndBinsValue = source.HasHistogramPointsAndBinsValue;
     if (HasStrValue) {
         StringValue = source.StringValue;
-    } else if (HasHistogramPointsAndBinsValue) {
+    }
+    if (HasHistogramPointsAndBinsValue) {
         HistogramPointsAndBinsValue = source.HistogramPointsAndBinsValue;
-    } else {
+    }
+    if (HasDoubleValue) {
         DoubleValue = source.DoubleValue;
     }
     return *this;
 }
 
 double TExpressionVariable::Not() {
-    return IsEmpty() ? 1.0 : 0.0;
+    return IsZeroDoubleValue() ? 1.0 : 0.0;
 }
 double TExpressionVariable::Minus() {
     return -ToDouble();
@@ -113,28 +119,32 @@ double TExpressionVariable::HistogramPercentile(const TExpressionVariable& perce
     const auto& binIndex = result.first;
     const auto& partion = result.second;
 
-    // [last point; +inf)
+    // if percentile in [last point; +inf) return last point * 1.1
     if (static_cast<size_t>(binIndex) == ToHistogramPointsAndBins().GetBins().size() - 1) {
         return ToHistogramPointsAndBins().GetPoints().back() * 1.1;
     }
 
-    // (-inf; first point] or exactly in points
-    if (binIndex == 0 || partion == 0) {
-        return ToHistogramPointsAndBins().GetPoints()[binIndex];
+    auto leftBorderPoint = binIndex != 0 ? ToHistogramPointsAndBins().GetPoints()[binIndex - 1] : 0;
+    auto rightBorderPoint = ToHistogramPointsAndBins().GetPoints()[binIndex];
+
+    // if right border is max_int return left border * 1.1
+    if (rightBorderPoint == std::numeric_limits<int>::max()) {
+        return ToHistogramPointsAndBins().GetPoints()[ToHistogramPointsAndBins().GetPoints().size() - 2] * 1.1;
     }
-    return ToHistogramPointsAndBins().GetPoints()[binIndex - 1] + (ToHistogramPointsAndBins().GetPoints()[binIndex] - ToHistogramPointsAndBins().GetPoints()[binIndex - 1]) * partion;
+
+    return leftBorderPoint + (rightBorderPoint - leftBorderPoint) * partion;
 }
 double TExpressionVariable::Or(const TExpressionVariable& secondOperand) const {
-    return !(IsEmpty() && secondOperand.IsEmpty());
+    return !(IsZeroDoubleValue() && secondOperand.IsZeroDoubleValue());
 }
 double TExpressionVariable::And(const TExpressionVariable& secondOperand) const {
-    return !(IsEmpty() || secondOperand.IsEmpty());
+    return !(IsZeroDoubleValue() || secondOperand.IsZeroDoubleValue());
 }
 double TExpressionVariable::Cond(const TExpressionVariable& secondOperand, const TExpressionVariable& u) const {
-    return !IsEmpty() ? secondOperand.ToDouble() : u.ToDouble();
+    return !IsZeroDoubleValue() ? secondOperand.ToDouble() : u.ToDouble();
 }
 TString TExpressionVariable::StrCond(const TExpressionVariable& secondOperand, const TExpressionVariable& u) const {
-    return !IsEmpty() ? secondOperand.ToStr() : u.ToStr();
+    return !IsZeroDoubleValue() ? secondOperand.ToStr() : u.ToStr();
 }
 double TExpressionVariable::Le(const TExpressionVariable& secondOperand) const {
     return ToDouble() <= secondOperand.ToDouble() + EPS ? 1.0 : 0.0;
@@ -176,7 +186,7 @@ double TExpressionVariable::VerComp(const TExpressionVariable& secondOperand, co
     ui32 firstValue, secondValue;
 
     while (first != ss_first.end() && second != ss_second.end()) {
-        if (not TryFromString<ui32>(*first, firstValue) || not TryFromString<ui32>(*second, secondValue)){
+        if (!TryFromString<ui32>(*first, firstValue) || !TryFromString<ui32>(*second, secondValue)) {
             return 0.0;
         }
         if (firstValue > secondValue) {
@@ -189,7 +199,7 @@ double TExpressionVariable::VerComp(const TExpressionVariable& secondOperand, co
     }
 
     while (first != ss_first.end()) {
-        if (not TryFromString<ui32>(*first, firstValue)){
+        if (!TryFromString<ui32>(*first, firstValue)) {
             return 0.0;
         }
         if (firstValue > 0) {
@@ -199,7 +209,7 @@ double TExpressionVariable::VerComp(const TExpressionVariable& secondOperand, co
     }
 
     while (second != ss_second.end()) {
-        if (not TryFromString<ui32>(*second, secondValue)){
+        if (!TryFromString<ui32>(*second, secondValue)) {
             return 0.0;
         }
         if (secondValue > 0) {
@@ -224,9 +234,7 @@ double TExpressionVariable::VerE(const TExpressionVariable& secondOperand) const
     ui32 firstValue, secondValue;
 
     while (first != ss_first.end() && second != ss_second.end()) {
-        if (not TryFromString<ui32>(*first, firstValue) || \
-            not TryFromString<ui32>(*second, secondValue) || \
-            firstValue != secondValue){
+        if (!TryFromString<ui32>(*first, firstValue) || !TryFromString<ui32>(*second, secondValue) || firstValue != secondValue) {
             return 0.0;
         }
         ++first;
@@ -234,14 +242,14 @@ double TExpressionVariable::VerE(const TExpressionVariable& secondOperand) const
     }
 
     while (first != ss_first.end()) {
-        if (not TryFromString<ui32>(*first, firstValue) || firstValue != 0){
+        if (!TryFromString<ui32>(*first, firstValue) || firstValue != 0){
             return 0.0;
         }
         ++first;
     }
 
     while (second != ss_second.end()) {
-        if (not TryFromString<ui32>(*second, secondValue) || secondValue != 0){
+        if (!TryFromString<ui32>(*second, secondValue) || secondValue != 0){
             return 0.0;
         }
         ++second;
@@ -319,26 +327,14 @@ double TExpressionVariable::Sigmoid() const {
 }
 
 double TExpressionVariable::ToDouble() const {
-    if (HasHistogramPointsAndBinsValue) {
-        HasDoubleValue = true;
-        return double();
+    if (HasDoubleValue) {
+        return DoubleValue;
     }
-    if (HasStrValue) {
-        if (HasDoubleValue) {
-            return double();
-        }
-
-        // try to parse only once
-        if (TryFromString<double>(StringValue, DoubleValue)) {
-            HasStrValue = false;
-            HasDoubleValue = false;
-            return DoubleValue;
-        }
-
+    if (HasStrValue && TryFromString<double>(StringValue, DoubleValue)) {
         HasDoubleValue = true;
-        return double();
+        return DoubleValue;
     }
-    return DoubleValue;
+    return double();
 }
 
 TString TExpressionVariable::ToStr() const {
@@ -349,21 +345,18 @@ TString TExpressionVariable::ToStr() const {
         StringValue = ToString(HistogramPointsAndBinsValue);
         return StringValue;
     }
-    StringValue = ToString(DoubleValue);
-    return StringValue;
+    if (HasDoubleValue) {
+        StringValue = ToString(DoubleValue);
+        return StringValue;
+    }
+    return "";
 }
 
 THistogramPointsAndBins TExpressionVariable::ToHistogramPointsAndBins() const {
     if (HasHistogramPointsAndBinsValue) {
         return HistogramPointsAndBinsValue;
     }
-    if (!HasStrValue) {
-        return THistogramPointsAndBins();
-    }
-
-    if (TryParseFromStringToTHistogramPointsAndBins(HistogramPointsAndBinsValue)) {
-        HasStrValue = false;
-        HasDoubleValue = true;
+    if (HasStrValue && TryParseFromStringToTHistogramPointsAndBins(HistogramPointsAndBinsValue)) {
         HasHistogramPointsAndBinsValue = true;
         return HistogramPointsAndBinsValue;
     }
@@ -371,21 +364,18 @@ THistogramPointsAndBins TExpressionVariable::ToHistogramPointsAndBins() const {
 }
 
 
-bool TExpressionVariable::IsEmpty() const {
+bool TExpressionVariable::IsZeroDoubleValue() const {
     return ToDouble() == 0.0;
 }
 
-bool TExpressionVariable::TryParse() const {
-    if (!HasStrValue && !HasHistogramPointsAndBinsValue)
-        return true;
-
-    if (TryFromString<double>(StringValue, DoubleValue)) {
-        HasDoubleValue = false;
-        HasStrValue = false;
-        HasHistogramPointsAndBinsValue = false;
+bool TExpressionVariable::TryGetDoubleValue() const {
+    if (HasDoubleValue) {
         return true;
     }
-    HasDoubleValue = true;
+    if (HasStrValue && TryFromString<double>(StringValue, DoubleValue)) {
+        HasDoubleValue = true;
+        return true;
+    }
     return false;
 }
 
@@ -425,22 +415,14 @@ bool TExpressionVariable::TryParseFromStringToTHistogramPointsAndBins(THistogram
 }
 
 bool TExpressionVariable::IsEqual(const TExpressionVariable& secondOperand, const double eps) const {
-    bool compareNumeric = true;
-
-    if (!TryParse()) {
-        compareNumeric = false;
-    }
-    if (!secondOperand.TryParse()) {
-        compareNumeric = false;
-    }
-    if (compareNumeric) {
+    if (TryGetDoubleValue() && secondOperand.TryGetDoubleValue()) {
         return fabs(DoubleValue - secondOperand.DoubleValue) < eps;
     }
     if (HasStrValue && secondOperand.HasStrValue) {
         return StringValue == secondOperand.StringValue;
     }
     if (HasHistogramPointsAndBinsValue && secondOperand.HasHistogramPointsAndBinsValue) {
-        return ToString(HistogramPointsAndBinsValue) == ToString(secondOperand.HistogramPointsAndBinsValue);
+        return HistogramPointsAndBinsValue == secondOperand.HistogramPointsAndBinsValue;
     }
     return false;
 }

@@ -72,26 +72,43 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         TVector<double> equalPartsPoints = {1, 2, 3};
         TVector<double> equalPartsBins = {100, 100, 100, 100};
         auto equalPartsHistogramData = THistogramPointsAndBins(equalPartsPoints, equalPartsBins);
+        TVector<double> firstZeroPoints = {0, 2, 3};
+        TVector<double> firstZeroBins = {100, 100, 100, 100};
+        auto firstZeroHistogramData = THistogramPointsAndBins(firstZeroPoints, firstZeroBins);
         TVector<double> emptyPartsPoints = {1, 2, 3};
         TVector<double> emptyPartsBins = {0, 0, 0, 0};
         auto emptyPartsHistogramData = THistogramPointsAndBins(emptyPartsPoints, emptyPartsBins);
+        TVector<double> maxIntPoints = {1, 2, std::numeric_limits<int>::max()};
+        TVector<double> maxIntBins = {100, 100, 100, 0};
+        auto maxIntHistogramData = THistogramPointsAndBins(maxIntPoints, maxIntBins);
 
         histogramDataMap["random.feature"] = randomFilledHistogramData;
         histogramDataMap["equal.parts.feature%"] = equalPartsHistogramData;
         histogramDataMap["empty.parts.feature%"] = emptyPartsHistogramData;
+        histogramDataMap["first.zero.feature%"] = firstZeroHistogramData;
+        histogramDataMap["max.int.feature%"] = maxIntHistogramData;
 
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# random.feature, 95", histogramDataMap), 8 + (1.0 - (265 - 261.25) / 9));
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 5", histogramDataMap), 1);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 20", histogramDataMap), 1);
+
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# max.int.feature%, 99", histogramDataMap), 2 * 1.1);
+
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# first.zero.feature%, 5", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# first.zero.feature%, 20", histogramDataMap), 0);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# first.zero.feature%, 50", histogramDataMap), 2);
+
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 5", histogramDataMap), 0 + 1.0 - (100 - 400 * 0.05) / 100);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 20", histogramDataMap), 0 + 1.0 - (100 - 400 * 0.2) / 100);
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 25", histogramDataMap), 1);
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 50", histogramDataMap), 2);
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 75", histogramDataMap), 3);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 99", histogramDataMap), 3 * 1.1);
+
         UNIT_ASSERT_EQUAL(CalcExpression("5 + #HISTOGRAM_PERCENTILE# equal.parts.feature%, 50 - 3", histogramDataMap), 4);
         UNIT_ASSERT_EQUAL(CalcExpression("5 + #HISTOGRAM_PERCENTILE# equal.parts.feature%, 50 / 0.5", histogramDataMap), 9);
         UNIT_ASSERT_EQUAL(CalcExpression("(5 + #HISTOGRAM_PERCENTILE# equal.parts.feature%, 50) / 7", histogramDataMap), 1);
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 50 + 5", histogramDataMap), 7);
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 50 + #HISTOGRAM_PERCENTILE# equal.parts.feature%, 75", histogramDataMap), 5);
-        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, #HISTOGRAM_PERCENTILE# equal.parts.feature%, 95", histogramDataMap), 1);
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, #HISTOGRAM_PERCENTILE# equal.parts.feature%, 99", histogramDataMap), 0 + 1.0 - (100 - 4 * 3 * 1.1) / 100);
 
         // Invalid #HISTOGRAM_PERCENTILE#
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# #HISTOGRAM_PERCENTILE# equal.parts.feature%, 5, 5", histogramDataMap), 0);

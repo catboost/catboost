@@ -66,10 +66,10 @@ public:
     THistogramPointsAndBins ToHistogramPointsAndBins() const;
 
 private:
-    bool IsEmpty() const;
+    bool IsZeroDoubleValue() const;
     bool IsEqual(const TExpressionVariable& secondOperand, const double eps) const;
 
-    bool TryParse() const;
+    bool TryGetDoubleValue() const;
     bool TryParseDoubleVectorFromString(TVector<TString>& strVector, TVector<double>& doubleVector) const;
     bool TryParseFromStringToTHistogramPointsAndBins(THistogramPointsAndBins& pointsAndBins) const;
 
