@@ -81,7 +81,7 @@ static TString CompressPath(const TVector<TStringBuf>& replacements, TStringBuf 
         TStringBuf from, to;
         r.Split('=', from, to);
         if (in.StartsWith(from)) {
-            return Compress(TString(to) + in.SubStr(from.Size()));
+            return Compress(TString(to) + in.SubStr(from.size()));
         }
     }
 
@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
     }
 
     while (TStringBuf(argv[ind]).StartsWith("--replace=")) {
-        replacements.push_back(TStringBuf(argv[ind]).SubStr(TStringBuf("--replace=").Size()));
+        replacements.push_back(TStringBuf(argv[ind]).SubStr(TStringBuf("--replace=").size()));
         ind++;
     }
 
