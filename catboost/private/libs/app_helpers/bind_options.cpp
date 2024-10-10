@@ -92,7 +92,7 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
         .RequiredArgument("[SCHEME://]PATH[,[SCHEME://]PATH...]")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             for (const auto& path : StringSplitter(str).Split(',').SkipEmpty()) {
-                if (!path.Empty()) {
+                if (!path.empty()) {
                     loadParamsPtr->TestSetPaths.emplace_back(TString{path.Token()}, "dsv");
                 }
             }
