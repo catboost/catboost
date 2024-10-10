@@ -7,15 +7,18 @@
 
 Y_UNIT_TEST_SUITE(THistogramBinAndPointsTest) {
     Y_UNIT_TEST(TestEqualOperator) {
-        TVector<double> points = {1, 2, 3, 4};
-        TVector<double> bins = {10, 20, 30, 40, 50};
-        THistogramPointsAndBins firstEqualHistogramData = THistogramPointsAndBins(points, bins);
-        THistogramPointsAndBins secondEqualHistogramData = THistogramPointsAndBins(points, bins);
+        TVector<double> firstPoints = {1, 2, 3, 4.000002};
+        TVector<double> firstBins = {10, 20, 30, 40, 50};
+        THistogramPointsAndBins firstEqualHistogramData = THistogramPointsAndBins(firstPoints, firstBins);
+        TVector<double> secondPoints = {1, 2, 3, 4.000001};
+        TVector<double> secondBins = {10, 20, 30, 40, 50};
+        THistogramPointsAndBins secondEqualHistogramData = THistogramPointsAndBins(secondPoints, secondBins);
         THistogramPointsAndBins emptyHistogramData = THistogramPointsAndBins();
 
-        UNIT_ASSERT_EQUAL(firstEqualHistogramData == secondEqualHistogramData, true);
-        UNIT_ASSERT_EQUAL(firstEqualHistogramData == firstEqualHistogramData, true);
-        UNIT_ASSERT_EQUAL(firstEqualHistogramData == emptyHistogramData, false);
+        UNIT_ASSERT_EQUAL(firstEqualHistogramData.IsEqual(secondEqualHistogramData, 0.0), false);
+        UNIT_ASSERT_EQUAL(firstEqualHistogramData.IsEqual(secondEqualHistogramData, 1e-5), true);
+        UNIT_ASSERT_EQUAL(firstEqualHistogramData.IsEqual(firstEqualHistogramData, 1e-5), true);
+        UNIT_ASSERT_EQUAL(firstEqualHistogramData.IsEqual(emptyHistogramData, 1e-5), false);
     }
     Y_UNIT_TEST(TestSettersAndGetters) {
         TVector<double> points = {1, 2, 3, 4};
@@ -25,11 +28,15 @@ Y_UNIT_TEST_SUITE(THistogramBinAndPointsTest) {
         UNIT_ASSERT_EQUAL(filledHistogramData.GetPoints(), points);
         UNIT_ASSERT_EQUAL(filledHistogramData.GetBins(), bins);
 
+        TVector<double> badBins = {10, 20};
+        THistogramPointsAndBins badHistogramData = THistogramPointsAndBins(points, badBins);
+        UNIT_ASSERT_EQUAL(badHistogramData.GetPoints().size(), 0);
+        UNIT_ASSERT_EQUAL(badHistogramData.GetBins().size(), 0);
+
         THistogramPointsAndBins emptyHistogramData = THistogramPointsAndBins();
         UNIT_ASSERT_EQUAL(emptyHistogramData.GetPoints().size(), 0);
         UNIT_ASSERT_EQUAL(emptyHistogramData.GetBins().size(), 0);
 
-        TVector<double> badBins = {10, 20};
         emptyHistogramData.SetPointsAndBins(points, badBins);
         UNIT_ASSERT_EQUAL(emptyHistogramData.GetPoints().size(), 0);
         UNIT_ASSERT_EQUAL(emptyHistogramData.GetBins().size(), 0);
@@ -53,27 +60,43 @@ Y_UNIT_TEST_SUITE(THistogramBinAndPointsTest) {
     Y_UNIT_TEST(TestValidationMethods) {
         THistogramPointsAndBins emptyHistogramData = THistogramPointsAndBins();
 
-        UNIT_ASSERT_EQUAL(emptyHistogramData.IsBinsFilledWithZeros(), true); // 0 bins -> 0 not zero bins
-        UNIT_ASSERT_EQUAL(emptyHistogramData.IsEmptyData(), true);
-        UNIT_ASSERT_EQUAL(emptyHistogramData.IsInvalidData(95), true);
+        UNIT_ASSERT_EQUAL(emptyHistogramData.IsValidBins(), false);
+        UNIT_ASSERT_EQUAL(emptyHistogramData.IsValidPoints(), false);
+        UNIT_ASSERT_EQUAL(emptyHistogramData.IsValidData(95), false);
 
-        UNIT_ASSERT_EQUAL(emptyHistogramData.IsInvalidPercentile(-10), true);
-        UNIT_ASSERT_EQUAL(emptyHistogramData.IsInvalidPercentile(105), true);
-        UNIT_ASSERT_EQUAL(emptyHistogramData.IsInvalidPercentile(100), true);
-        UNIT_ASSERT_EQUAL(emptyHistogramData.IsInvalidPercentile(0), true);
+        UNIT_ASSERT_EQUAL(emptyHistogramData.IsValidPercentile(-10), false);
+        UNIT_ASSERT_EQUAL(emptyHistogramData.IsValidPercentile(105), false);
+        UNIT_ASSERT_EQUAL(emptyHistogramData.IsValidPercentile(100), false);
+        UNIT_ASSERT_EQUAL(emptyHistogramData.IsValidPercentile(0), false);
+
+        TVector<double> zeroPoints = {0, 0, 0, 0};
+        TVector<double> zeroBins = {0, 0, 0, 0, 0};
+        THistogramPointsAndBins zeroHistogramData = THistogramPointsAndBins(zeroPoints, zeroBins);
+
+        UNIT_ASSERT_EQUAL(zeroHistogramData.IsValidBins(), false);
+        UNIT_ASSERT_EQUAL(zeroHistogramData.IsValidPoints(), false);
+        UNIT_ASSERT_EQUAL(zeroHistogramData.IsValidData(95), false);
+
+        TVector<double> negativePoints = {-1, 0, 1, 2};
+        TVector<double> negativeBins = {0, -5.21, 0, 10.1, 0};
+        THistogramPointsAndBins negativeHistogramData = THistogramPointsAndBins(negativePoints, negativeBins);
+
+        UNIT_ASSERT_EQUAL(negativeHistogramData.IsValidBins(), false);
+        UNIT_ASSERT_EQUAL(negativeHistogramData.IsValidPoints(), false);
+        UNIT_ASSERT_EQUAL(negativeHistogramData.IsValidData(73), false);
 
         TVector<double> points = {1, 2, 3, 4};
         TVector<double> bins = {10, 20, 30, 40, 50};
         THistogramPointsAndBins filledHistogramData = THistogramPointsAndBins(points, bins);
 
-        UNIT_ASSERT_EQUAL(filledHistogramData.IsBinsFilledWithZeros(), false);
-        UNIT_ASSERT_EQUAL(filledHistogramData.IsEmptyData(), false);
-        UNIT_ASSERT_EQUAL(filledHistogramData.IsInvalidData(95), false);
+        UNIT_ASSERT_EQUAL(filledHistogramData.IsValidBins(), true);
+        UNIT_ASSERT_EQUAL(filledHistogramData.IsValidPoints(), true);
+        UNIT_ASSERT_EQUAL(filledHistogramData.IsValidData(95), true);
 
-        UNIT_ASSERT_EQUAL(filledHistogramData.IsInvalidData(-95), true);
+        UNIT_ASSERT_EQUAL(filledHistogramData.IsValidData(-95), false);
 
-        UNIT_ASSERT_EQUAL(filledHistogramData.IsInvalidPercentile(93), false);
-        UNIT_ASSERT_EQUAL(filledHistogramData.IsInvalidPercentile(10.3), false);
+        UNIT_ASSERT_EQUAL(filledHistogramData.IsValidPercentile(93), true);
+        UNIT_ASSERT_EQUAL(filledHistogramData.IsValidPercentile(10.3), true);
     }
     Y_UNIT_TEST(TestOutput) {
         TVector<double> points = {1, 2};

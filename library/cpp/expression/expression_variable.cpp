@@ -111,7 +111,7 @@ double TExpressionVariable::Max(const TExpressionVariable& secondOperand) const 
     return G(secondOperand) ? ToDouble() : secondOperand.ToDouble();
 }
 double TExpressionVariable::HistogramPercentile(const TExpressionVariable& percentile) const {
-    if (ToHistogramPointsAndBins().IsInvalidData(percentile.ToDouble())) {
+    if (!ToHistogramPointsAndBins().IsValidData(percentile.ToDouble())) {
         return 0;
     }
 
@@ -143,8 +143,11 @@ double TExpressionVariable::And(const TExpressionVariable& secondOperand) const 
 double TExpressionVariable::Cond(const TExpressionVariable& secondOperand, const TExpressionVariable& u) const {
     return !IsZeroDoubleValue() ? secondOperand.ToDouble() : u.ToDouble();
 }
-TString TExpressionVariable::StrCond(const TExpressionVariable& secondOperand, const TExpressionVariable& u) const {
-    return !IsZeroDoubleValue() ? secondOperand.ToStr() : u.ToStr();
+double TExpressionVariable::E(const TExpressionVariable& secondOperand) const {
+    return IsEqual(secondOperand, EPS) ? 1.0 : 0.0;
+}
+double TExpressionVariable::Ne(const TExpressionVariable& secondOperand) const {
+    return IsEqual(secondOperand, EPS) ? 0.0 : 1.0;
 }
 double TExpressionVariable::Le(const TExpressionVariable& secondOperand) const {
     return ToDouble() <= secondOperand.ToDouble() + EPS ? 1.0 : 0.0;
@@ -172,6 +175,9 @@ double TExpressionVariable::StrGe(const TExpressionVariable& secondOperand) cons
 }
 double TExpressionVariable::StrG(const TExpressionVariable& secondOperand) const {
     return StringValue > secondOperand.StringValue ? 1.0 : 0.0;
+}
+TString TExpressionVariable::StrCond(const TExpressionVariable& secondOperand, const TExpressionVariable& u) const {
+    return !IsZeroDoubleValue() ? secondOperand.ToStr() : u.ToStr();
 }
 double TExpressionVariable::VerComp(const TExpressionVariable& secondOperand, const double firstG, const double secondG) const {
     /* Сравнение версий по стандарту uatraits:
@@ -271,12 +277,6 @@ double TExpressionVariable::VerGe(const TExpressionVariable& secondOperand) cons
 }
 double TExpressionVariable::VerG(const TExpressionVariable& secondOperand) const {
     return VerComp(secondOperand, 1.0, 0.0);
-}
-double TExpressionVariable::E(const TExpressionVariable& secondOperand) const {
-    return IsEqual(secondOperand, EPS) ? 1.0 : 0.0;
-}
-double TExpressionVariable::Ne(const TExpressionVariable& secondOperand) const {
-    return IsEqual(secondOperand, EPS) ? 0.0 : 1.0;
 }
 double TExpressionVariable::BitsOr(const TExpressionVariable& secondOperand) const {
     return static_cast<size_t>(ToDouble()) | static_cast<size_t>(secondOperand.ToDouble());
@@ -422,7 +422,7 @@ bool TExpressionVariable::IsEqual(const TExpressionVariable& secondOperand, cons
         return StringValue == secondOperand.StringValue;
     }
     if (HasHistogramPointsAndBinsValue && secondOperand.HasHistogramPointsAndBinsValue) {
-        return HistogramPointsAndBinsValue == secondOperand.HistogramPointsAndBinsValue;
+        return HistogramPointsAndBinsValue.IsEqual(secondOperand.HistogramPointsAndBinsValue, eps);
     }
     return false;
 }
