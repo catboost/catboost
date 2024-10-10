@@ -18,35 +18,35 @@ namespace NYT {
 namespace NDetail {
 
 template <class T, class S>
-bool IsInIntegralRange(S value)
+constexpr bool IsInIntegralRange(S value)
     requires std::is_signed_v<T> && std::is_signed_v<S>
 {
     return value >= std::numeric_limits<T>::lowest() && value <= std::numeric_limits<T>::max();
 }
 
 template <class T, class S>
-bool IsInIntegralRange(S value)
+constexpr bool IsInIntegralRange(S value)
     requires std::is_signed_v<T> && std::is_unsigned_v<S>
 {
     return value <= static_cast<typename std::make_unsigned<T>::type>(std::numeric_limits<T>::max());
 }
 
 template <class T, class S>
-bool IsInIntegralRange(S value)
+constexpr bool IsInIntegralRange(S value)
     requires std::is_unsigned_v<T> && std::is_signed_v<S>
 {
     return value >= 0 && static_cast<typename std::make_unsigned<S>::type>(value) <= std::numeric_limits<T>::max();
 }
 
 template <class T, class S>
-bool IsInIntegralRange(S value)
+constexpr bool IsInIntegralRange(S value)
     requires std::is_unsigned_v<T> && std::is_unsigned_v<S>
 {
     return value <= std::numeric_limits<T>::max();
 }
 
 template <class T, class S>
-bool IsInIntegralRange(S value)
+constexpr bool IsInIntegralRange(S value)
     requires std::is_enum_v<S>
 {
     return IsInIntegralRange<T>(static_cast<std::underlying_type_t<S>>(value));
@@ -79,10 +79,24 @@ inline TString FormatInvalidCastValue(char8_t value)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+
 template <class T, class S>
-bool TryIntegralCast(S value, T* result)
+constexpr bool CanFitSubtype()
 {
-    if (!NYT::NDetail::IsInIntegralRange<T>(value)) {
+    return NDetail::IsInIntegralRange<T>(std::numeric_limits<S>::min()) &&
+        NDetail::IsInIntegralRange<T>(std::numeric_limits<S>::max());
+}
+
+template <class T, class S>
+constexpr bool IsInIntegralRange(S value)
+{
+    return NDetail::IsInIntegralRange<T>(value);
+}
+
+template <class T, class S>
+constexpr bool TryIntegralCast(S value, T* result)
+{
+    if (!NDetail::IsInIntegralRange<T>(value)) {
         return false;
     }
     *result = static_cast<T>(value);
@@ -105,7 +119,7 @@ T CheckedIntegralCast(S value)
 }
 
 template <class T, class S>
-bool TryEnumCast(S value, T* result)
+constexpr bool TryEnumCast(S value, T* result)
 {
     std::underlying_type_t<T> underlying;
     if (!TryIntegralCast<std::underlying_type_t<T>>(value, &underlying)) {

@@ -7,7 +7,13 @@ namespace NYT {
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, class S>
-bool TryIntegralCast(S value, T* result);
+constexpr bool CanFitSubtype();
+
+template <class T, class S>
+constexpr bool IsInIntegralRange(S value);
+
+template <class T, class S>
+constexpr bool TryIntegralCast(S value, T* result);
 
 template <class T, class S>
 T CheckedIntegralCast(S value);
@@ -15,7 +21,7 @@ T CheckedIntegralCast(S value);
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, class S>
-bool TryEnumCast(S value, T* result);
+constexpr bool TryEnumCast(S value, T* result);
 
 template <class T, class S>
 T CheckedEnumCast(S value);

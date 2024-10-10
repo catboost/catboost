@@ -26,6 +26,9 @@ namespace NYT {
 template <class T>
 void GetEnumTraitsImpl(T);
 
+template <class T, class S>
+constexpr bool CanFitSubtype();
+
 template <class T>
 using TEnumTraitsImpl = decltype(GetEnumTraitsImpl(T()));
 
