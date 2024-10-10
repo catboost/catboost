@@ -12,7 +12,12 @@ extern "C" Y_WEAK size_t nallocx(size_t size, int /*flags*/) noexcept
     return size;
 }
 
-#ifndef _win_
+#if defined(__ANDROID__)
+extern "C" Y_WEAK size_t malloc_usable_size(const void* /*ptr*/)
+{
+    return 0;
+}
+#elif !defined(_win_)
 extern "C" Y_WEAK size_t malloc_usable_size(void* /*ptr*/) noexcept
 {
     return 0;
