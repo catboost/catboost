@@ -8,7 +8,7 @@ namespace NNetliba {
         EnableROCEFlag = f;
     }
 
-#if defined(_linux_)
+#if defined(_linux_) && !defined(__ANDROID__)
     static TMutex IBPortMutex;
     static TIntrusivePtr<TIBPort> IBPort;
     static bool IBWasInitialized;
