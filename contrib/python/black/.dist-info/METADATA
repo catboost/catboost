@@ -1,6 +1,6 @@
 Metadata-Version: 2.3
 Name: black
-Version: 24.8.0
+Version: 24.10.0
 Summary: The uncompromising code formatter.
 Project-URL: Documentation, https://black.readthedocs.io/
 Project-URL: Changelog, https://github.com/psf/black/blob/main/CHANGES.md
@@ -18,14 +18,14 @@ Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Software Development :: Quality Assurance
-Requires-Python: >=3.8
+Requires-Python: >=3.9
 Requires-Dist: click>=8.0.0
 Requires-Dist: mypy-extensions>=0.4.3
 Requires-Dist: packaging>=22.0
@@ -36,8 +36,7 @@ Requires-Dist: typing-extensions>=4.0.1; python_version < '3.11'
 Provides-Extra: colorama
 Requires-Dist: colorama>=0.4.3; extra == 'colorama'
 Provides-Extra: d
-Requires-Dist: aiohttp!=3.9.0,>=3.7.4; (sys_platform == 'win32' and implementation_name == 'pypy') and extra == 'd'
-Requires-Dist: aiohttp>=3.7.4; (sys_platform != 'win32' or implementation_name != 'pypy') and extra == 'd'
+Requires-Dist: aiohttp>=3.10; extra == 'd'
 Provides-Extra: jupyter
 Requires-Dist: ipython>=7.8.0; extra == 'jupyter'
 Requires-Dist: tokenize-rt>=3.2.0; extra == 'jupyter'
@@ -276,6 +275,42 @@ Flying Circus is expected. We are not savages.
 
 And if you _really_ need to slap somebody, do it with a fish while dancing.
 # Change Log
+
+## 24.10.0
+
+### Highlights
+
+- Black is now officially tested with Python 3.13 and provides Python 3.13
+  mypyc-compiled wheels. (#4436) (#4449)
+- Black will issue an error when used with Python 3.12.5, due to an upstream memory
+  safety issue in Python 3.12.5 that can cause Black's AST safety checks to fail. Please
+  use Python 3.12.6 or Python 3.12.4 instead. (#4447)
+- Black no longer supports running with Python 3.8 (#4452)
+
+### Stable style
+
+- Fix crashes involving comments in parenthesised return types or `X | Y` style unions.
+  (#4453)
+- Fix skipping Jupyter cells with unknown `%%` magic (#4462)
+
+### Preview style
+
+- Fix type annotation spacing between * and more complex type variable tuple (i.e. `def
+  fn(*args: *tuple[*Ts, T]) -> None: pass`) (#4440)
+
+### Caching
+
+- Fix bug where the cache was shared between runs with and without `--unstable` (#4466)
+
+### Packaging
+
+- Upgrade version of mypyc used to 1.12 beta (#4450) (#4449)
+- `blackd` now requires a newer version of aiohttp. (#4451)
+
+### Output
+
+- Added Python target version information on parse error (#4378)
+- Add information about Black version to internal error messages (#4457)
 
 ## 24.8.0
 
