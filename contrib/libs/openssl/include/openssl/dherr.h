@@ -30,6 +30,7 @@ int ERR_load_DH_strings(void);
 #  define DH_F_COMPUTE_KEY                                 102
 #  define DH_F_DHPARAMS_PRINT_FP                           101
 #  define DH_F_DH_BUILTIN_GENPARAMS                        106
+#  define DH_F_DH_CHECK                                    126
 #  define DH_F_DH_CHECK_EX                                 121
 #  define DH_F_DH_CHECK_PARAMS_EX                          122
 #  define DH_F_DH_CHECK_PUB_KEY_EX                         123

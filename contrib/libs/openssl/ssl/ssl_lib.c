@@ -574,7 +574,56 @@ static void clear_ciphers(SSL *s)
     ssl_clear_hash_ctx(&s->write_hash);
 }
 
+#ifndef OPENSSL_NO_QUIC
 int SSL_clear(SSL *s)
+{
+    if (!SSL_clear_not_quic(s))
+        return 0;
+    return SSL_clear_quic(s);
+}
+
+int SSL_clear_quic(SSL *s)
+{
+    OPENSSL_free(s->ext.peer_quic_transport_params_draft);
+    s->ext.peer_quic_transport_params_draft = NULL;
+    s->ext.peer_quic_transport_params_draft_len = 0;
+    OPENSSL_free(s->ext.peer_quic_transport_params);
+    s->ext.peer_quic_transport_params = NULL;
+    s->ext.peer_quic_transport_params_len = 0;
+    s->quic_read_level = ssl_encryption_initial;
+    s->quic_write_level = ssl_encryption_initial;
+    s->quic_latest_level_received = ssl_encryption_initial;
+    while (s->quic_input_data_head != NULL) {
+        QUIC_DATA *qd;
+
+        qd = s->quic_input_data_head;
+        s->quic_input_data_head = qd->next;
+        OPENSSL_free(qd);
+    }
+    s->quic_input_data_tail = NULL;
+    BUF_MEM_free(s->quic_buf);
+    s->quic_buf = NULL;
+    s->quic_next_record_start = 0;
+    memset(s->client_hand_traffic_secret, 0, EVP_MAX_MD_SIZE);
+    memset(s->server_hand_traffic_secret, 0, EVP_MAX_MD_SIZE);
+    memset(s->client_early_traffic_secret, 0, EVP_MAX_MD_SIZE);
+    /*
+     * CONFIG - DON'T CLEAR
+     * s->ext.quic_transport_params
+     * s->ext.quic_transport_params_len
+     * s->quic_transport_version
+     * s->quic_method = NULL;
+     */
+    return 1;
+}
+#endif
+
+/* Keep this conditional very local */
+#ifndef OPENSSL_NO_QUIC
+int SSL_clear_not_quic(SSL *s)
+#else
+int SSL_clear(SSL *s)
+#endif
 {
     if (s->method == NULL) {
         SSLerr(SSL_F_SSL_CLEAR, SSL_R_NO_METHOD_SPECIFIED);
@@ -844,6 +893,10 @@ SSL *SSL_new(SSL_CTX *ctx)
     s->psk_use_session_cb = ctx->psk_use_session_cb;
 
     s->job = NULL;
+
+#ifndef OPENSSL_NO_QUIC
+    s->quic_method = ctx->quic_method;
+#endif
 
 #ifndef OPENSSL_NO_CT
     if (!SSL_set_ct_validation_callback(s, ctx->ct_validation_callback,
@@ -1211,6 +1264,20 @@ void SSL_free(SSL *s)
     OPENSSL_free(s->clienthello);
     OPENSSL_free(s->pha_context);
     EVP_MD_CTX_free(s->pha_dgst);
+
+#ifndef OPENSSL_NO_QUIC
+    OPENSSL_free(s->ext.quic_transport_params);
+    OPENSSL_free(s->ext.peer_quic_transport_params_draft);
+    OPENSSL_free(s->ext.peer_quic_transport_params);
+    BUF_MEM_free(s->quic_buf);
+    while (s->quic_input_data_head != NULL) {
+        QUIC_DATA *qd;
+
+        qd = s->quic_input_data_head;
+        s->quic_input_data_head = qd->next;
+        OPENSSL_free(qd);
+    }
+#endif
 
     sk_X509_NAME_pop_free(s->ca_names, X509_NAME_free);
     sk_X509_NAME_pop_free(s->client_ca_names, X509_NAME_free);
@@ -1747,6 +1814,12 @@ static int ssl_io_intern(void *vargs)
 
 int ssl_read_internal(SSL *s, void *buf, size_t num, size_t *readbytes)
 {
+#ifndef OPENSSL_NO_QUIC
+    if (SSL_IS_QUIC(s)) {
+        SSLerr(SSL_F_SSL_READ_INTERNAL, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
+        return -1;
+    }
+#endif
     if (s->handshake_func == NULL) {
         SSLerr(SSL_F_SSL_READ_INTERNAL, SSL_R_UNINITIALIZED);
         return -1;
@@ -1879,6 +1952,12 @@ int SSL_get_early_data_status(const SSL *s)
 
 static int ssl_peek_internal(SSL *s, void *buf, size_t num, size_t *readbytes)
 {
+#ifndef OPENSSL_NO_QUIC
+    if (SSL_IS_QUIC(s)) {
+        SSLerr(SSL_F_SSL_PEEK_INTERNAL, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
+        return -1;
+    }
+#endif
     if (s->handshake_func == NULL) {
         SSLerr(SSL_F_SSL_PEEK_INTERNAL, SSL_R_UNINITIALIZED);
         return -1;
@@ -1939,6 +2018,12 @@ int SSL_peek_ex(SSL *s, void *buf, size_t num, size_t *readbytes)
 
 int ssl_write_internal(SSL *s, const void *buf, size_t num, size_t *written)
 {
+#ifndef OPENSSL_NO_QUIC
+    if (SSL_IS_QUIC(s)) {
+        SSLerr(SSL_F_SSL_WRITE_INTERNAL, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
+        return -1;
+    }
+#endif
     if (s->handshake_func == NULL) {
         SSLerr(SSL_F_SSL_WRITE_INTERNAL, SSL_R_UNINITIALIZED);
         return -1;
@@ -2194,6 +2279,19 @@ int SSL_renegotiate_pending(const SSL *s)
      * handshake has finished
      */
     return (s->renegotiate != 0);
+}
+
+int SSL_new_session_ticket(SSL *s)
+{
+    /* If we are in init because we're sending tickets, okay to send more. */
+    if ((SSL_in_init(s) && s->ext.extra_tickets_expected == 0)
+            || SSL_IS_FIRST_HANDSHAKE(s) || !s->server
+            || !SSL_IS_TLS13(s))
+        return 0;
+    s->ext.extra_tickets_expected++;
+    if (s->rlayer.wbuf[0].left == 0 && !SSL_in_init(s))
+        ossl_statem_set_in_init(s, 1);
+    return 1;
 }
 
 long SSL_ctrl(SSL *s, int cmd, long larg, void *parg)
@@ -3635,6 +3733,11 @@ int SSL_get_error(const SSL *s, int i)
     }
 
     if (SSL_want_read(s)) {
+#ifndef OPENSSL_NO_QUIC
+        if (SSL_IS_QUIC(s)) {
+            return SSL_ERROR_WANT_READ;
+        }
+#endif
         bio = SSL_get_rbio(s);
         if (BIO_should_read(bio))
             return SSL_ERROR_WANT_READ;
@@ -3732,6 +3835,21 @@ int SSL_do_handshake(SSL *s)
             ret = s->handshake_func(s);
         }
     }
+#ifndef OPENSSL_NO_QUIC
+    if (SSL_IS_QUIC(s) && ret == 1) {
+        if (s->server) {
+            if (s->early_data_state == SSL_EARLY_DATA_ACCEPTING) {
+                s->early_data_state = SSL_EARLY_DATA_FINISHED_READING;
+                s->rwstate = SSL_READING;
+                ret = 0;
+            }
+        } else if (s->early_data_state == SSL_EARLY_DATA_CONNECTING) {
+            s->early_data_state = SSL_EARLY_DATA_WRITE_RETRY;
+            s->rwstate = SSL_READING;
+            ret = 0;
+        }
+    }
+#endif
     return ret;
 }
 
