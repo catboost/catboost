@@ -23,6 +23,7 @@ target_include_directories(contrib-libs-libc_compat PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/include/readpassphrase
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/memfd_create
 )
 
 target_link_libraries(contrib-libs-libc_compat PUBLIC
@@ -34,11 +35,11 @@ target_sources(contrib-libs-libc_compat PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/string.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/readpassphrase.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/explicit_bzero.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/memfd_create.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/strlcat.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/strlcpy.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/reallocarray/reallocarray.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random/getrandom.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/random/getentropy.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/libc_compat/memfd_create/memfd_create.c
 )
 
