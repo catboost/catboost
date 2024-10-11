@@ -1,5 +1,6 @@
 #pragma once
 
+#include <util/generic/bitops.h>
 #include <util/generic/yexception.h>
 #include <util/system/sys_alloc.h>
 
