@@ -46,7 +46,7 @@ class FreeTypePen(BasePen):
         glyphSet: a dictionary of drawable glyph objects keyed by name
             used to resolve component references in composite glyphs.
 
-    :Examples:
+    Examples:
         If `numpy` and `matplotlib` is available, the following code will
         show the glyph image of `fi` in a new window::
 
@@ -178,7 +178,7 @@ class FreeTypePen(BasePen):
             object of the resulted bitmap and ``size`` is a 2-tuple of its
             dimension.
 
-        :Notes:
+        Notes:
             The image size should always be given explicitly if you need to get
             a proper glyph image. When ``width`` and ``height`` are omitted, it
             forcifully fits to the bounding box and the side bearings get
@@ -188,15 +188,15 @@ class FreeTypePen(BasePen):
             maintained but RSB won’t. The difference between the two becomes
             more obvious when rotate or skew transformation is applied.
 
-        :Example:
-            .. code-block::
+        Example:
+            .. code-block:: pycon
 
+                >>>
                 >> pen = FreeTypePen(None)
                 >> glyph.draw(pen)
                 >> buf, size = pen.buffer(width=500, height=1000)
                 >> type(buf), len(buf), size
                 (<class 'bytes'>, 500000, (500, 1000))
-
         """
         transform = transform or Transform()
         if not hasattr(transform, "transformPoint"):
@@ -269,7 +269,7 @@ class FreeTypePen(BasePen):
             A ``numpy.ndarray`` object with a shape of ``(height, width)``.
             Each element takes a value in the range of ``[0.0, 1.0]``.
 
-        :Notes:
+        Notes:
             The image size should always be given explicitly if you need to get
             a proper glyph image. When ``width`` and ``height`` are omitted, it
             forcifully fits to the bounding box and the side bearings get
@@ -279,15 +279,17 @@ class FreeTypePen(BasePen):
             maintained but RSB won’t. The difference between the two becomes
             more obvious when rotate or skew transformation is applied.
 
-        :Example:
-            .. code-block::
+        Example:
+            .. code-block:: pycon
 
+                >>>
                 >> pen = FreeTypePen(None)
                 >> glyph.draw(pen)
                 >> arr = pen.array(width=500, height=1000)
                 >> type(a), a.shape
                 (<class 'numpy.ndarray'>, (1000, 500))
         """
+
         import numpy as np
 
         buf, size = self.buffer(
@@ -318,7 +320,7 @@ class FreeTypePen(BasePen):
                 rendering glyphs with negative sidebearings without clipping.
             evenOdd: Pass ``True`` for even-odd fill instead of non-zero.
 
-        :Notes:
+        Notes:
             The image size should always be given explicitly if you need to get
             a proper glyph image. When ``width`` and ``height`` are omitted, it
             forcifully fits to the bounding box and the side bearings get
@@ -328,9 +330,10 @@ class FreeTypePen(BasePen):
             maintained but RSB won’t. The difference between the two becomes
             more obvious when rotate or skew transformation is applied.
 
-        :Example:
-            .. code-block::
+        Example:
+            .. code-block:: pycon
 
+                >>>
                 >> pen = FreeTypePen(None)
                 >> glyph.draw(pen)
                 >> pen.show(width=500, height=1000)
@@ -370,7 +373,7 @@ class FreeTypePen(BasePen):
             A ``PIL.image`` object. The image is filled in black with alpha
             channel obtained from the rendered bitmap.
 
-        :Notes:
+        Notes:
             The image size should always be given explicitly if you need to get
             a proper glyph image. When ``width`` and ``height`` are omitted, it
             forcifully fits to the bounding box and the side bearings get
@@ -380,9 +383,10 @@ class FreeTypePen(BasePen):
             maintained but RSB won’t. The difference between the two becomes
             more obvious when rotate or skew transformation is applied.
 
-        :Example:
-            .. code-block::
+        Example:
+            .. code-block:: pycon
 
+                >>>
                 >> pen = FreeTypePen(None)
                 >> glyph.draw(pen)
                 >> img = pen.image(width=500, height=1000)

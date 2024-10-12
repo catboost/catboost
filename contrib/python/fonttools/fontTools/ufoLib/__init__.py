@@ -1,3 +1,37 @@
+"""
+A library for importing .ufo files and their descendants.
+Refer to http://unifiedfontobject.com for the UFO specification.
+
+The UFOReader and UFOWriter classes support versions 1, 2 and 3
+of the specification.
+
+Sets that list the font info attribute names for the fontinfo.plist
+formats are available for external use. These are:
+
+- fontInfoAttributesVersion1
+- fontInfoAttributesVersion2
+- fontInfoAttributesVersion3
+
+A set listing the fontinfo.plist attributes that were deprecated
+in version 2 is available for external use:
+
+- deprecatedFontInfoAttributesVersion2
+
+Functions that do basic validation on values for fontinfo.plist
+are available for external use. These are
+
+- validateFontInfoVersion2ValueForAttribute
+- validateFontInfoVersion3ValueForAttribute
+
+Value conversion functions are available for converting
+fontinfo.plist values between the possible format versions.
+
+- convertFontInfoValueForAttributeFromVersion1ToVersion2
+- convertFontInfoValueForAttributeFromVersion2ToVersion1
+- convertFontInfoValueForAttributeFromVersion2ToVersion3
+- convertFontInfoValueForAttributeFromVersion3ToVersion2
+"""
+
 import os
 from copy import deepcopy
 from os import fsdecode
@@ -20,36 +54,6 @@ from fontTools.ufoLib.filenames import userNameToFileName
 from fontTools.ufoLib.converters import convertUFO1OrUFO2KerningToUFO3Kerning
 from fontTools.ufoLib.errors import UFOLibError
 from fontTools.ufoLib.utils import numberTypes, _VersionTupleEnumMixin
-
-"""
-A library for importing .ufo files and their descendants.
-Refer to http://unifiedfontobject.com for the UFO specification.
-
-The UFOReader and UFOWriter classes support versions 1, 2 and 3
-of the specification.
-
-Sets that list the font info attribute names for the fontinfo.plist
-formats are available for external use. These are:
-	fontInfoAttributesVersion1
-	fontInfoAttributesVersion2
-	fontInfoAttributesVersion3
-
-A set listing the fontinfo.plist attributes that were deprecated
-in version 2 is available for external use:
-	deprecatedFontInfoAttributesVersion2
-
-Functions that do basic validation on values for fontinfo.plist
-are available for external use. These are
-	validateFontInfoVersion2ValueForAttribute
-	validateFontInfoVersion3ValueForAttribute
-
-Value conversion functions are available for converting
-fontinfo.plist values between the possible format versions.
-	convertFontInfoValueForAttributeFromVersion1ToVersion2
-	convertFontInfoValueForAttributeFromVersion2ToVersion1
-	convertFontInfoValueForAttributeFromVersion2ToVersion3
-	convertFontInfoValueForAttributeFromVersion3ToVersion2
-"""
 
 __all__ = [
     "makeUFOPath",

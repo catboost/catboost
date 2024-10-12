@@ -209,10 +209,14 @@ def supportScalar(location, support, ot=True, extrapolate=False, axisRanges=None
 class VariationModel(object):
     """Locations must have the base master at the origin (ie. 0).
 
+    If axis-ranges are not provided, values are assumed to be normalized to
+    the range [-1, 1].
+
     If the extrapolate argument is set to True, then values are extrapolated
     outside the axis range.
 
       >>> from pprint import pprint
+      >>> axisRanges = {'wght': (-180, +180), 'wdth': (-1, +1)}
       >>> locations = [ \
       {'wght':100}, \
       {'wght':-100}, \
@@ -224,7 +228,7 @@ class VariationModel(object):
       {'wght':+180,'wdth':.3}, \
       {'wght':+180}, \
       ]
-      >>> model = VariationModel(locations, axisOrder=['wght'])
+      >>> model = VariationModel(locations, axisOrder=['wght'], axisRanges=axisRanges)
       >>> pprint(model.locations)
       [{},
        {'wght': -100},
@@ -252,14 +256,22 @@ class VariationModel(object):
         7: 0.6666666666666667}]
     """
 
-    def __init__(self, locations, axisOrder=None, extrapolate=False):
+    def __init__(
+        self, locations, axisOrder=None, extrapolate=False, *, axisRanges=None
+    ):
         if len(set(tuple(sorted(l.items())) for l in locations)) != len(locations):
             raise VariationModelError("Locations must be unique.")
 
         self.origLocations = locations
         self.axisOrder = axisOrder if axisOrder is not None else []
         self.extrapolate = extrapolate
-        self.axisRanges = self.computeAxisRanges(locations) if extrapolate else None
+        if axisRanges is None:
+            if extrapolate:
+                axisRanges = self.computeAxisRanges(locations)
+            else:
+                allAxes = {axis for loc in locations for axis in loc.keys()}
+                axisRanges = {axis: (-1, 1) for axis in allAxes}
+        self.axisRanges = axisRanges
 
         locations = [{k: v for k, v in loc.items() if v != 0.0} for loc in locations]
         keyFunc = self.getMasterLocationsSortKeyFunc(
@@ -374,7 +386,7 @@ class VariationModel(object):
             locAxes = set(region.keys())
             # Walk over previous masters now
             for prev_region in regions[:i]:
-                # Master with extra axes do not participte
+                # Master with different axes do not participte
                 if set(prev_region.keys()) != locAxes:
                     continue
                 # If it's NOT in the current box, it does not participate
@@ -425,23 +437,16 @@ class VariationModel(object):
 
     def _locationsToRegions(self):
         locations = self.locations
-        # Compute min/max across each axis, use it as total range.
-        # TODO Take this as input from outside?
-        minV = {}
-        maxV = {}
-        for l in locations:
-            for k, v in l.items():
-                minV[k] = min(v, minV.get(k, v))
-                maxV[k] = max(v, maxV.get(k, v))
+        axisRanges = self.axisRanges
 
         regions = []
         for loc in locations:
             region = {}
             for axis, locV in loc.items():
                 if locV > 0:
-                    region[axis] = (0, locV, maxV[axis])
+                    region[axis] = (0, locV, axisRanges[axis][1])
                 else:
-                    region[axis] = (minV[axis], locV, 0)
+                    region[axis] = (axisRanges[axis][0], locV, 0)
             regions.append(region)
         return regions
 

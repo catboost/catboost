@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.53.1
+Version: 4.54.1
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -375,6 +375,28 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.54.1 (released 2024-09-24)
+----------------------------
+
+- [unicodedata] Update to Unicode 16
+- [subset] Escape ``\\`` in doc string
+
+4.54.0 (released 2024-09-23)
+----------------------------
+
+- [Docs] Small docs cleanups by @n8willis (#3611)
+- [Docs] cleanup code blocks by @n8willis (#3627)
+- [Docs] fix Sphinx builds by @n8willis (#3625)
+- [merge] Minor fixes to documentation for merge by @drj11 (#3588)
+- [subset] Small tweaks to pyftsubset documentation by @RoelN (#3633)
+- [Tests] Do not require fonttools command to be available by @behdad (#3612)
+- [Tests] subset_test: add failing test to reproduce issue #3616 by @anthrotype (#3622)
+- [ttLib] NameRecordVisitor: include whole sequence of character variants' UI labels, not just the first by @anthrotype (#3617)
+- [varLib.avar] Reconstruct mappings from binary by @behdad (#3598)
+- [varLib.instancer] Fix visual artefacts with partial L2 instancing by @Hoolean (#3635)
+- [varLib.interpolatable] Support discrete axes in .designspace by @behdad (#3599)
+- [varLib.models] By default, assume OpenType-like normalized space by @behdad (#3601)
 
 4.53.1 (released 2024-07-05)
 ----------------------------

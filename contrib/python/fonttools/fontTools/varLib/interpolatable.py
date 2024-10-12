@@ -135,6 +135,7 @@ def test_gen(
     kinkiness=DEFAULT_KINKINESS,
     upem=DEFAULT_UPEM,
     show_all=False,
+    discrete_axes=[],
 ):
     if tolerance >= 10:
         tolerance *= 0.01
@@ -150,7 +151,9 @@ def test_gen(
         # ... risks the sparse master being the first one, and only processing a subset of the glyphs
         glyphs = {g for glyphset in glyphsets for g in glyphset.keys()}
 
-    parents, order = find_parents_and_order(glyphsets, locations)
+    parents, order = find_parents_and_order(
+        glyphsets, locations, discrete_axes=discrete_axes
+    )
 
     def grand_parent(i, glyphname):
         if i is None:
@@ -701,6 +704,7 @@ def main(args=None):
     fonts = []
     names = []
     locations = []
+    discrete_axes = set()
     upem = DEFAULT_UPEM
 
     original_args_inputs = tuple(args.inputs)
@@ -713,8 +717,13 @@ def main(args=None):
             designspace = DesignSpaceDocument.fromfile(args.inputs[0])
             args.inputs = [master.path for master in designspace.sources]
             locations = [master.location for master in designspace.sources]
+            discrete_axes = {
+                a.name for a in designspace.axes if not hasattr(a, "minimum")
+            }
             axis_triples = {
-                a.name: (a.minimum, a.default, a.maximum) for a in designspace.axes
+                a.name: (a.minimum, a.default, a.maximum)
+                for a in designspace.axes
+                if a.name not in discrete_axes
             }
             axis_mappings = {a.name: a.map for a in designspace.axes}
             axis_triples = {
@@ -879,7 +888,13 @@ def main(args=None):
                 glyphset[gn] = None
 
     # Normalize locations
-    locations = [normalizeLocation(loc, axis_triples) for loc in locations]
+    locations = [
+        {
+            **normalizeLocation(loc, axis_triples),
+            **{k: v for k, v in loc.items() if k in discrete_axes},
+        }
+        for loc in locations
+    ]
     tolerance = args.tolerance or DEFAULT_TOLERANCE
     kinkiness = args.kinkiness if args.kinkiness is not None else DEFAULT_KINKINESS
 
@@ -896,6 +911,7 @@ def main(args=None):
             tolerance=tolerance,
             kinkiness=kinkiness,
             show_all=args.show_all,
+            discrete_axes=discrete_axes,
         )
         problems = defaultdict(list)
 
@@ -924,13 +940,13 @@ def main(args=None):
                         last_master_idxs = None
 
                     master_idxs = (
-                        (p["master_idx"])
+                        (p["master_idx"],)
                         if "master_idx" in p
                         else (p["master_1_idx"], p["master_2_idx"])
                     )
                     if master_idxs != last_master_idxs:
                         master_names = (
-                            (p["master"])
+                            (p["master"],)
                             if "master" in p
                             else (p["master_1"], p["master_2"])
                         )

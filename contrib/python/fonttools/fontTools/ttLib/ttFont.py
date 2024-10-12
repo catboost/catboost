@@ -26,37 +26,43 @@ class TTFont(object):
     accessing tables. Tables will be only decompiled when necessary, ie. when
     they're actually accessed. This means that simple operations can be extremely fast.
 
-    Example usage::
+    Example usage:
+    .. code-block:: pycon
 
-            >> from fontTools import ttLib
-            >> tt = ttLib.TTFont("afont.ttf") # Load an existing font file
-            >> tt['maxp'].numGlyphs
-            242
-            >> tt['OS/2'].achVendID
-            'B&H\000'
-            >> tt['head'].unitsPerEm
-            2048
+        >>>
+        >> from fontTools import ttLib
+        >> tt = ttLib.TTFont("afont.ttf") # Load an existing font file
+        >> tt['maxp'].numGlyphs
+        242
+        >> tt['OS/2'].achVendID
+        'B&H\000'
+        >> tt['head'].unitsPerEm
+        2048
 
     For details of the objects returned when accessing each table, see :ref:`tables`.
-    To add a table to the font, use the :py:func:`newTable` function::
+    To add a table to the font, use the :py:func:`newTable` function:
+    .. code-block:: pycon
 
-            >> os2 = newTable("OS/2")
-            >> os2.version = 4
-            >> # set other attributes
-            >> font["OS/2"] = os2
+        >>>
+        >> os2 = newTable("OS/2")
+        >> os2.version = 4
+        >> # set other attributes
+        >> font["OS/2"] = os2
 
     TrueType fonts can also be serialized to and from XML format (see also the
-    :ref:`ttx` binary)::
+    :ref:`ttx` binary):
+    .. code-block:: pycon
 
-            >> tt.saveXML("afont.ttx")
-            Dumping 'LTSH' table...
-            Dumping 'OS/2' table...
-            [...]
+        >>
+        >> tt.saveXML("afont.ttx")
+        Dumping 'LTSH' table...
+        Dumping 'OS/2' table...
+        [...]
 
-            >> tt2 = ttLib.TTFont() # Create a new font object
-            >> tt2.importXML("afont.ttx")
-            >> tt2['maxp'].numGlyphs
-            242
+        >> tt2 = ttLib.TTFont() # Create a new font object
+        >> tt2.importXML("afont.ttx")
+        >> tt2['maxp'].numGlyphs
+        242
 
     The TTFont object may be used as a context manager; this will cause the file
     reader to be closed after the context ``with`` block is exited::
@@ -981,14 +987,16 @@ def tagToIdentifier(tag):
     letters get an underscore after the letter. Trailing spaces are
     trimmed. Illegal characters are escaped as two hex bytes. If the
     result starts with a number (as the result of a hex escape), an
-    extra underscore is prepended. Examples::
+    extra underscore is prepended. Examples:
+    .. code-block:: pycon
 
-            >>> tagToIdentifier('glyf')
-            '_g_l_y_f'
-            >>> tagToIdentifier('cvt ')
-            '_c_v_t'
-            >>> tagToIdentifier('OS/2')
-            'O_S_2f_2'
+        >>>
+        >> tagToIdentifier('glyf')
+        '_g_l_y_f'
+        >> tagToIdentifier('cvt ')
+        '_c_v_t'
+        >> tagToIdentifier('OS/2')
+        'O_S_2f_2'
     """
     import re
 

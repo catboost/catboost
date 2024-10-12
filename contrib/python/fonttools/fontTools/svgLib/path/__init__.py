@@ -14,6 +14,8 @@ class SVGPath(object):
 
     For example, reading from an SVG file and drawing to a Defcon Glyph:
 
+    .. code-block::
+
         import defcon
         glyph = defcon.Glyph()
         pen = glyph.getPen()
@@ -22,6 +24,8 @@ class SVGPath(object):
 
     Or reading from a string containing SVG data, using the alternative
     'fromstring' (a class method):
+
+    .. code-block::
 
         data = '<?xml version="1.0" ...'
         svg = SVGPath.fromstring(data)

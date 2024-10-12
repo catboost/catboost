@@ -7,11 +7,15 @@ Usage
 To convert a VTP project file:
 
 
+.. code-block:: sh
+
     $ fonttools voltLib.voltToFea input.vtp output.fea
 
 It is also possible convert font files with `TSIV` table (as saved from Volt),
 in this case the glyph names used in the Volt project will be mapped to the
 actual glyph names in the font files when written to the feature file:
+
+.. code-block:: sh
 
     $ fonttools voltLib.voltToFea input.ttf output.fea
 

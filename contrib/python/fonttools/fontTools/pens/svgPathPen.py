@@ -9,20 +9,22 @@ def pointToString(pt, ntos=str):
 class SVGPathPen(BasePen):
     """Pen to draw SVG path d commands.
 
-    Example::
-        >>> pen = SVGPathPen(None)
-        >>> pen.moveTo((0, 0))
-        >>> pen.lineTo((1, 1))
-        >>> pen.curveTo((2, 2), (3, 3), (4, 4))
-        >>> pen.closePath()
-        >>> pen.getCommands()
-        'M0 0 1 1C2 2 3 3 4 4Z'
-
     Args:
         glyphSet: a dictionary of drawable glyph objects keyed by name
             used to resolve component references in composite glyphs.
         ntos: a callable that takes a number and returns a string, to
             customize how numbers are formatted (default: str).
+
+    :Example:
+        .. code-block::
+
+            >>> pen = SVGPathPen(None)
+            >>> pen.moveTo((0, 0))
+            >>> pen.lineTo((1, 1))
+            >>> pen.curveTo((2, 2), (3, 3), (4, 4))
+            >>> pen.closePath()
+            >>> pen.getCommands()
+            'M0 0 1 1C2 2 3 3 4 4Z'
 
     Note:
         Fonts have a coordinate system where Y grows up, whereas in SVG,
@@ -30,6 +32,7 @@ class SVGPathPen(BasePen):
         SVG typically results in upside-down glyphs.  You can fix this
         by wrapping the data from this pen in an SVG group element with
         transform, or wrap this pen in a transform pen.  For example:
+        .. code-block:: python
 
             spen = svgPathPen.SVGPathPen(glyphset)
             pen= TransformPen(spen , (1, 0, 0, -1, 0, 0))

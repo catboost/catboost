@@ -27,24 +27,24 @@ class Merger(object):
 
     This class merges multiple files into a single OpenType font, taking into
     account complexities such as OpenType layout (``GSUB``/``GPOS``) tables and
-    cross-font metrics (e.g. ``hhea.ascent`` is set to the maximum value across
-    all the fonts).
+    cross-font metrics (for example ``hhea.ascent`` is set to the maximum value
+    across all the fonts).
 
     If multiple glyphs map to the same Unicode value, and the glyphs are considered
     sufficiently different (that is, they differ in any of paths, widths, or
     height), then subsequent glyphs are renamed and a lookup in the ``locl``
     feature will be created to disambiguate them. For example, if the arguments
     are an Arabic font and a Latin font and both contain a set of parentheses,
-    the Latin glyphs will be renamed to ``parenleft#1`` and ``parenright#1``,
+    the Latin glyphs will be renamed to ``parenleft.1`` and ``parenright.1``,
     and a lookup will be inserted into the to ``locl`` feature (creating it if
     necessary) under the ``latn`` script to substitute ``parenleft`` with
-    ``parenleft#1`` etc.
+    ``parenleft.1`` etc.
 
     Restrictions:
 
     - All fonts must have the same units per em.
     - If duplicate glyph disambiguation takes place as described above then the
-            fonts must have a ``GSUB`` table.
+      fonts must have a ``GSUB`` table.
 
     Attributes:
             options: Currently unused.

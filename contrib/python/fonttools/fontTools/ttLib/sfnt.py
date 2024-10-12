@@ -1,8 +1,9 @@
 """ttLib/sfnt.py -- low-level module to deal with the sfnt file format.
 
 Defines two public classes:
-	SFNTReader
-	SFNTWriter
+
+- SFNTReader
+- SFNTWriter
 
 (Normally you don't have to use these classes explicitly; they are
 used automatically by ttLib.TTFont.)

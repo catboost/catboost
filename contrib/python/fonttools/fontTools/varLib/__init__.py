@@ -10,9 +10,13 @@ ttf-interpolatable files for the masters and build a variable-font from
 them.  Such ttf-interpolatable and designspace files can be generated from
 a Glyphs source, eg., using noto-source as an example:
 
+    .. code-block:: sh
+
 	$ fontmake -o ttf-interpolatable -g NotoSansArabic-MM.glyphs
 
 Then you can make a variable-font this way:
+
+    .. code-block:: sh
 
 	$ fonttools varLib master_ufo/NotoSansArabic.designspace
 
@@ -869,7 +873,7 @@ def _add_COLR(font, model, master_fonts, axisTags, colr_layer_reuse=True):
         colr.VarIndexMap = builder.buildDeltaSetIndexMap(varIdxes)
 
 
-def load_designspace(designspace, log_enabled=True):
+def load_designspace(designspace, log_enabled=True, *, require_sources=True):
     # TODO: remove this and always assume 'designspace' is a DesignSpaceDocument,
     # never a file path, as that's already handled by caller
     if hasattr(designspace, "sources"):  # Assume a DesignspaceDocument
@@ -878,7 +882,7 @@ def load_designspace(designspace, log_enabled=True):
         ds = DesignSpaceDocument.fromfile(designspace)
 
     masters = ds.sources
-    if not masters:
+    if require_sources and not masters:
         raise VarLibValidationError("Designspace must have at least one source.")
     instances = ds.instances
 
@@ -978,7 +982,7 @@ def load_designspace(designspace, log_enabled=True):
                     "More than one base master found in Designspace."
                 )
             base_idx = i
-    if base_idx is None:
+    if require_sources and base_idx is None:
         raise VarLibValidationError(
             "Base master not found; no master at default location?"
         )

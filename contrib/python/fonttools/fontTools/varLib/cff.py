@@ -96,7 +96,7 @@ def merge_PrivateDicts(top_dicts, vsindex_dict, var_model, fd_map):
 
     * step through each key in FontDict.Private.
     * For each key, step through each relevant source font Private dict, and
-            build a list of values to blend.
+      build a list of values to blend.
 
     The 'relevant' source fonts are selected by first getting the right
     submodel using ``vsindex_dict[vsindex]``. The indices of the

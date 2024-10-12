@@ -1,3 +1,9 @@
+"""
+    designSpaceDocument
+
+    - Read and write designspace files
+"""
+
 from __future__ import annotations
 
 import collections
@@ -15,11 +21,6 @@ from fontTools.misc import plistlib
 from fontTools.misc.loggingTools import LogMixin
 from fontTools.misc.textTools import tobytes, tostr
 
-"""
-    designSpaceDocument
-
-    - read and write designspace files
-"""
 
 __all__ = [
     "AxisDescriptor",

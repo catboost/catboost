@@ -33,6 +33,7 @@ class RecordingPen(AbstractPen):
     pen.replay(otherPen).
 
     :Example:
+        .. code-block::
 
             from fontTools.ttLib import TTFont
             from fontTools.pens.recordingPen import RecordingPen
@@ -91,47 +92,48 @@ class DecomposingRecordingPen(DecomposingPen, RecordingPen):
     by thir name; other arguments are forwarded to the DecomposingPen's
     constructor::
 
-    >>> class SimpleGlyph(object):
-    ...     def draw(self, pen):
-    ...         pen.moveTo((0, 0))
-    ...         pen.curveTo((1, 1), (2, 2), (3, 3))
-    ...         pen.closePath()
-    >>> class CompositeGlyph(object):
-    ...     def draw(self, pen):
-    ...         pen.addComponent('a', (1, 0, 0, 1, -1, 1))
-    >>> class MissingComponent(object):
-    ...     def draw(self, pen):
-    ...         pen.addComponent('foobar', (1, 0, 0, 1, 0, 0))
-    >>> class FlippedComponent(object):
-    ...     def draw(self, pen):
-    ...         pen.addComponent('a', (-1, 0, 0, 1, 0, 0))
-    >>> glyphSet = {
-    ...    'a': SimpleGlyph(),
-    ...    'b': CompositeGlyph(),
-    ...    'c': MissingComponent(),
-    ...    'd': FlippedComponent(),
-    ... }
-    >>> for name, glyph in sorted(glyphSet.items()):
-    ...     pen = DecomposingRecordingPen(glyphSet)
-    ...     try:
-    ...         glyph.draw(pen)
-    ...     except pen.MissingComponentError:
-    ...         pass
-    ...     print("{}: {}".format(name, pen.value))
-    a: [('moveTo', ((0, 0),)), ('curveTo', ((1, 1), (2, 2), (3, 3))), ('closePath', ())]
-    b: [('moveTo', ((-1, 1),)), ('curveTo', ((0, 2), (1, 3), (2, 4))), ('closePath', ())]
-    c: []
-    d: [('moveTo', ((0, 0),)), ('curveTo', ((-1, 1), (-2, 2), (-3, 3))), ('closePath', ())]
-    >>> for name, glyph in sorted(glyphSet.items()):
-    ...     pen = DecomposingRecordingPen(
-    ...         glyphSet, skipMissingComponents=True, reverseFlipped=True,
-    ...     )
-    ...     glyph.draw(pen)
-    ...     print("{}: {}".format(name, pen.value))
-    a: [('moveTo', ((0, 0),)), ('curveTo', ((1, 1), (2, 2), (3, 3))), ('closePath', ())]
-    b: [('moveTo', ((-1, 1),)), ('curveTo', ((0, 2), (1, 3), (2, 4))), ('closePath', ())]
-    c: []
-    d: [('moveTo', ((0, 0),)), ('lineTo', ((-3, 3),)), ('curveTo', ((-2, 2), (-1, 1), (0, 0))), ('closePath', ())]
+        >>> class SimpleGlyph(object):
+        ...     def draw(self, pen):
+        ...         pen.moveTo((0, 0))
+        ...         pen.curveTo((1, 1), (2, 2), (3, 3))
+        ...         pen.closePath()
+        >>> class CompositeGlyph(object):
+        ...     def draw(self, pen):
+        ...         pen.addComponent('a', (1, 0, 0, 1, -1, 1))
+        >>> class MissingComponent(object):
+        ...     def draw(self, pen):
+        ...         pen.addComponent('foobar', (1, 0, 0, 1, 0, 0))
+        >>> class FlippedComponent(object):
+        ...     def draw(self, pen):
+        ...         pen.addComponent('a', (-1, 0, 0, 1, 0, 0))
+        >>> glyphSet = {
+        ...    'a': SimpleGlyph(),
+        ...    'b': CompositeGlyph(),
+        ...    'c': MissingComponent(),
+        ...    'd': FlippedComponent(),
+        ... }
+        >>> for name, glyph in sorted(glyphSet.items()):
+        ...     pen = DecomposingRecordingPen(glyphSet)
+        ...     try:
+        ...         glyph.draw(pen)
+        ...     except pen.MissingComponentError:
+        ...         pass
+        ...     print("{}: {}".format(name, pen.value))
+        a: [('moveTo', ((0, 0),)), ('curveTo', ((1, 1), (2, 2), (3, 3))), ('closePath', ())]
+        b: [('moveTo', ((-1, 1),)), ('curveTo', ((0, 2), (1, 3), (2, 4))), ('closePath', ())]
+        c: []
+        d: [('moveTo', ((0, 0),)), ('curveTo', ((-1, 1), (-2, 2), (-3, 3))), ('closePath', ())]
+
+        >>> for name, glyph in sorted(glyphSet.items()):
+        ...     pen = DecomposingRecordingPen(
+        ...         glyphSet, skipMissingComponents=True, reverseFlipped=True,
+        ...     )
+        ...     glyph.draw(pen)
+        ...     print("{}: {}".format(name, pen.value))
+        a: [('moveTo', ((0, 0),)), ('curveTo', ((1, 1), (2, 2), (3, 3))), ('closePath', ())]
+        b: [('moveTo', ((-1, 1),)), ('curveTo', ((0, 2), (1, 3), (2, 4))), ('closePath', ())]
+        c: []
+        d: [('moveTo', ((0, 0),)), ('lineTo', ((-3, 3),)), ('curveTo', ((-2, 2), (-1, 1), (0, 0))), ('closePath', ())]
     """
 
     # raises MissingComponentError(KeyError) if base glyph is not found in glyphSet
@@ -145,6 +147,7 @@ class RecordingPointPen(AbstractPointPen):
     pointPen.replay(otherPointPen).
 
     :Example:
+        .. code-block::
 
             from defcon import Font
             from fontTools.pens.recordingPen import RecordingPointPen
@@ -211,81 +214,82 @@ class DecomposingRecordingPointPen(DecomposingPointPen, RecordingPointPen):
     keyed by thir name; other arguments are forwarded to the DecomposingPointPen's
     constructor::
 
-    >>> from pprint import pprint
-    >>> class SimpleGlyph(object):
-    ...     def drawPoints(self, pen):
-    ...         pen.beginPath()
-    ...         pen.addPoint((0, 0), "line")
-    ...         pen.addPoint((1, 1))
-    ...         pen.addPoint((2, 2))
-    ...         pen.addPoint((3, 3), "curve")
-    ...         pen.endPath()
-    >>> class CompositeGlyph(object):
-    ...     def drawPoints(self, pen):
-    ...         pen.addComponent('a', (1, 0, 0, 1, -1, 1))
-    >>> class MissingComponent(object):
-    ...     def drawPoints(self, pen):
-    ...         pen.addComponent('foobar', (1, 0, 0, 1, 0, 0))
-    >>> class FlippedComponent(object):
-    ...     def drawPoints(self, pen):
-    ...         pen.addComponent('a', (-1, 0, 0, 1, 0, 0))
-    >>> glyphSet = {
-    ...    'a': SimpleGlyph(),
-    ...    'b': CompositeGlyph(),
-    ...    'c': MissingComponent(),
-    ...    'd': FlippedComponent(),
-    ... }
-    >>> for name, glyph in sorted(glyphSet.items()):
-    ...     pen = DecomposingRecordingPointPen(glyphSet)
-    ...     try:
-    ...         glyph.drawPoints(pen)
-    ...     except pen.MissingComponentError:
-    ...         pass
-    ...     pprint({name: pen.value})
-    {'a': [('beginPath', (), {}),
-           ('addPoint', ((0, 0), 'line', False, None), {}),
-           ('addPoint', ((1, 1), None, False, None), {}),
-           ('addPoint', ((2, 2), None, False, None), {}),
-           ('addPoint', ((3, 3), 'curve', False, None), {}),
-           ('endPath', (), {})]}
-    {'b': [('beginPath', (), {}),
-           ('addPoint', ((-1, 1), 'line', False, None), {}),
-           ('addPoint', ((0, 2), None, False, None), {}),
-           ('addPoint', ((1, 3), None, False, None), {}),
-           ('addPoint', ((2, 4), 'curve', False, None), {}),
-           ('endPath', (), {})]}
-    {'c': []}
-    {'d': [('beginPath', (), {}),
-           ('addPoint', ((0, 0), 'line', False, None), {}),
-           ('addPoint', ((-1, 1), None, False, None), {}),
-           ('addPoint', ((-2, 2), None, False, None), {}),
-           ('addPoint', ((-3, 3), 'curve', False, None), {}),
-           ('endPath', (), {})]}
-    >>> for name, glyph in sorted(glyphSet.items()):
-    ...     pen = DecomposingRecordingPointPen(
-    ...         glyphSet, skipMissingComponents=True, reverseFlipped=True,
-    ...     )
-    ...     glyph.drawPoints(pen)
-    ...     pprint({name: pen.value})
-    {'a': [('beginPath', (), {}),
-           ('addPoint', ((0, 0), 'line', False, None), {}),
-           ('addPoint', ((1, 1), None, False, None), {}),
-           ('addPoint', ((2, 2), None, False, None), {}),
-           ('addPoint', ((3, 3), 'curve', False, None), {}),
-           ('endPath', (), {})]}
-    {'b': [('beginPath', (), {}),
-           ('addPoint', ((-1, 1), 'line', False, None), {}),
-           ('addPoint', ((0, 2), None, False, None), {}),
-           ('addPoint', ((1, 3), None, False, None), {}),
-           ('addPoint', ((2, 4), 'curve', False, None), {}),
-           ('endPath', (), {})]}
-    {'c': []}
-    {'d': [('beginPath', (), {}),
-           ('addPoint', ((0, 0), 'curve', False, None), {}),
-           ('addPoint', ((-3, 3), 'line', False, None), {}),
-           ('addPoint', ((-2, 2), None, False, None), {}),
-           ('addPoint', ((-1, 1), None, False, None), {}),
-           ('endPath', (), {})]}
+        >>> from pprint import pprint
+        >>> class SimpleGlyph(object):
+        ...     def drawPoints(self, pen):
+        ...         pen.beginPath()
+        ...         pen.addPoint((0, 0), "line")
+        ...         pen.addPoint((1, 1))
+        ...         pen.addPoint((2, 2))
+        ...         pen.addPoint((3, 3), "curve")
+        ...         pen.endPath()
+        >>> class CompositeGlyph(object):
+        ...     def drawPoints(self, pen):
+        ...         pen.addComponent('a', (1, 0, 0, 1, -1, 1))
+        >>> class MissingComponent(object):
+        ...     def drawPoints(self, pen):
+        ...         pen.addComponent('foobar', (1, 0, 0, 1, 0, 0))
+        >>> class FlippedComponent(object):
+        ...     def drawPoints(self, pen):
+        ...         pen.addComponent('a', (-1, 0, 0, 1, 0, 0))
+        >>> glyphSet = {
+        ...    'a': SimpleGlyph(),
+        ...    'b': CompositeGlyph(),
+        ...    'c': MissingComponent(),
+        ...    'd': FlippedComponent(),
+        ... }
+        >>> for name, glyph in sorted(glyphSet.items()):
+        ...     pen = DecomposingRecordingPointPen(glyphSet)
+        ...     try:
+        ...         glyph.drawPoints(pen)
+        ...     except pen.MissingComponentError:
+        ...         pass
+        ...     pprint({name: pen.value})
+        {'a': [('beginPath', (), {}),
+               ('addPoint', ((0, 0), 'line', False, None), {}),
+               ('addPoint', ((1, 1), None, False, None), {}),
+               ('addPoint', ((2, 2), None, False, None), {}),
+               ('addPoint', ((3, 3), 'curve', False, None), {}),
+               ('endPath', (), {})]}
+        {'b': [('beginPath', (), {}),
+               ('addPoint', ((-1, 1), 'line', False, None), {}),
+               ('addPoint', ((0, 2), None, False, None), {}),
+               ('addPoint', ((1, 3), None, False, None), {}),
+               ('addPoint', ((2, 4), 'curve', False, None), {}),
+               ('endPath', (), {})]}
+        {'c': []}
+        {'d': [('beginPath', (), {}),
+               ('addPoint', ((0, 0), 'line', False, None), {}),
+               ('addPoint', ((-1, 1), None, False, None), {}),
+               ('addPoint', ((-2, 2), None, False, None), {}),
+               ('addPoint', ((-3, 3), 'curve', False, None), {}),
+               ('endPath', (), {})]}
+
+        >>> for name, glyph in sorted(glyphSet.items()):
+        ...     pen = DecomposingRecordingPointPen(
+        ...         glyphSet, skipMissingComponents=True, reverseFlipped=True,
+        ...     )
+        ...     glyph.drawPoints(pen)
+        ...     pprint({name: pen.value})
+        {'a': [('beginPath', (), {}),
+               ('addPoint', ((0, 0), 'line', False, None), {}),
+               ('addPoint', ((1, 1), None, False, None), {}),
+               ('addPoint', ((2, 2), None, False, None), {}),
+               ('addPoint', ((3, 3), 'curve', False, None), {}),
+               ('endPath', (), {})]}
+        {'b': [('beginPath', (), {}),
+               ('addPoint', ((-1, 1), 'line', False, None), {}),
+               ('addPoint', ((0, 2), None, False, None), {}),
+               ('addPoint', ((1, 3), None, False, None), {}),
+               ('addPoint', ((2, 4), 'curve', False, None), {}),
+               ('endPath', (), {})]}
+        {'c': []}
+        {'d': [('beginPath', (), {}),
+               ('addPoint', ((0, 0), 'curve', False, None), {}),
+               ('addPoint', ((-3, 3), 'line', False, None), {}),
+               ('addPoint', ((-2, 2), None, False, None), {}),
+               ('addPoint', ((-1, 1), None, False, None), {}),
+               ('endPath', (), {})]}
     """
 
     # raises MissingComponentError(KeyError) if base glyph is not found in glyphSet

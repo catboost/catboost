@@ -77,7 +77,7 @@ def script_extension(char):
 
     >>> script_extension("a") == {'Latn'}
     True
-    >>> script_extension(chr(0x060C)) == {'Rohg', 'Syrc', 'Yezi', 'Arab', 'Thaa', 'Nkoo'}
+    >>> script_extension(chr(0x060C)) == {'Nkoo', 'Arab', 'Rohg', 'Thaa', 'Syrc', 'Gara', 'Yezi'}
     True
     >>> script_extension(chr(0x10FFFF)) == {'Zzzz'}
     True
