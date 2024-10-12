@@ -159,7 +159,6 @@ Asia/Barnaul
 Asia/Beirut
 Asia/Bishkek
 Asia/Chita
-Asia/Choibalsan
 Asia/Colombo
 Asia/Damascus
 Asia/Dhaka
@@ -239,11 +238,6 @@ Australia/Lord_Howe
 Australia/Melbourne
 Australia/Perth
 Australia/Sydney
-CET
-CST6CDT
-EET
-EST
-EST5EDT
 Etc/GMT
 Etc/GMT+1
 Etc/GMT+10
@@ -311,14 +305,9 @@ Europe/Volgograd
 Europe/Warsaw
 Europe/Zurich
 Factory
-HST
 Indian/Chagos
 Indian/Maldives
 Indian/Mauritius
-MET
-MST
-MST7MDT
-PST8PDT
 Pacific/Apia
 Pacific/Auckland
 Pacific/Bougainville
@@ -349,7 +338,6 @@ Pacific/Rarotonga
 Pacific/Tahiti
 Pacific/Tarawa
 Pacific/Tongatapu
-WET
 GMT
 Australia/ACT
 Australia/LHI
@@ -365,6 +353,8 @@ Brazil/Acre
 Brazil/DeNoronha
 Brazil/East
 Brazil/West
+CET
+CST6CDT
 Canada/Atlantic
 Canada/Central
 Canada/Eastern
@@ -376,6 +366,9 @@ Canada/Yukon
 Chile/Continental
 Chile/EasterIsland
 Cuba
+EET
+EST
+EST5EDT
 Egypt
 Eire
 Etc/GMT+0
@@ -399,6 +392,9 @@ Jamaica
 Japan
 Kwajalein
 Libya
+MET
+MST
+MST7MDT
 Mexico/BajaNorte
 Mexico/BajaSur
 Mexico/General
@@ -562,6 +558,7 @@ America/Shiprock
 America/Thunder_Bay
 America/Yellowknife
 Antarctica/South_Pole
+Asia/Choibalsan
 Asia/Chongqing
 Asia/Harbin
 Asia/Kashgar
@@ -576,6 +573,7 @@ Europe/Zaporozhye
 Pacific/Enderbury
 Pacific/Johnston
 Pacific/Yap
+WET
 Africa/Asmera
 America/Godthab
 Asia/Ashkhabad
@@ -593,5 +591,7 @@ Asia/Ulan_Bator
 Atlantic/Faeroe
 Europe/Kiev
 Europe/Nicosia
+HST
+PST8PDT
 Pacific/Ponape
 Pacific/Truk
