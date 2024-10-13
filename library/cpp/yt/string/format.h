@@ -1,6 +1,7 @@
 #pragma once
 
 #include "format_string.h"
+#include "string_builder.h"
 
 #include <util/generic/string.h>
 
@@ -58,65 +59,6 @@ namespace NYT {
 
 template <class... TArgs>
 TString Format(TFormatString<TArgs...> format, TArgs&&... args);
-
-////////////////////////////////////////////////////////////////////////////////
-
-// StringBuilder(Base) definition.
-
-//! A simple helper for constructing strings by a sequence of appends.
-class TStringBuilderBase
-{
-public:
-    virtual ~TStringBuilderBase() = default;
-
-    char* Preallocate(size_t size);
-
-    void Reserve(size_t size);
-
-    size_t GetLength() const;
-
-    TStringBuf GetBuffer() const;
-
-    void Advance(size_t size);
-
-    void AppendChar(char ch);
-    void AppendChar(char ch, int n);
-
-    void AppendString(TStringBuf str);
-    void AppendString(const char* str);
-
-    template <size_t Length, class... TArgs>
-    void AppendFormat(const char (&format)[Length], TArgs&&... args);
-    template <class... TArgs>
-    void AppendFormat(TStringBuf format, TArgs&&... args);
-
-    void Reset();
-
-protected:
-    char* Begin_ = nullptr;
-    char* Current_ = nullptr;
-    char* End_ = nullptr;
-
-    virtual void DoReset() = 0;
-    virtual void DoReserve(size_t newLength) = 0;
-
-    static constexpr size_t MinBufferLength = 128;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-class TStringBuilder
-    : public TStringBuilderBase
-{
-public:
-    TString Flush();
-
-protected:
-    TString Buffer_;
-
-    void DoReset() override;
-    void DoReserve(size_t size) override;
-};
 
 ////////////////////////////////////////////////////////////////////////////////
 

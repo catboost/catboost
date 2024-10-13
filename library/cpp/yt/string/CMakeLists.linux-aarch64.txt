@@ -35,5 +35,6 @@ target_sources(cpp-yt-string PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/string/string.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/string/format_string.cpp
   ${PROJECT_SOURCE_DIR}/library/cpp/yt/string/format.cpp
+  ${PROJECT_SOURCE_DIR}/library/cpp/yt/string/string_builder.cpp
 )
 
