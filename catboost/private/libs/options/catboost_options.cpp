@@ -590,10 +590,10 @@ static void EnsureNewtonIsAvailable(ETaskType taskType, const NCatboostOptions::
         ELossFunction::LogLinQuantile,
         ELossFunction::MAPE) &&
         !(taskType == ETaskType::CPU && IsPairwiseScoring(lossFunction)),
-        "Newton leaves estimation method is not supoprted for " << lossFunction << " loss function");
+        "Newton leaves estimation method is not supported for " << lossFunction << " loss function");
     CB_ENSURE(
         lossFunction != ELossFunction::Lq || NCatboostOptions::GetLqParam(lossDescription) >= 2,
-        "Newton leaves estimation method is not supoprted for Lq loss function with q < 2");
+        "Newton leaves estimation method is not supported for Lq loss function with q < 2");
 }
 
 void NCatboostOptions::TCatBoostOptions::Validate() const {
