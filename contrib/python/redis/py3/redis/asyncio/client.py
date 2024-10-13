@@ -16,9 +16,11 @@ from typing import (
     Mapping,
     MutableMapping,
     Optional,
+    Protocol,
     Set,
     Tuple,
     Type,
+    TypedDict,
     TypeVar,
     Union,
     cast,
@@ -50,7 +52,6 @@ from redis.commands import (
     AsyncSentinelCommands,
     list_or_args,
 )
-from redis.compat import Protocol, TypedDict
 from redis.credentials import CredentialProvider
 from redis.exceptions import (
     ConnectionError,
@@ -81,13 +82,11 @@ if TYPE_CHECKING:
 
 
 class ResponseCallbackProtocol(Protocol):
-    def __call__(self, response: Any, **kwargs):
-        ...
+    def __call__(self, response: Any, **kwargs): ...
 
 
 class AsyncResponseCallbackProtocol(Protocol):
-    async def __call__(self, response: Any, **kwargs):
-        ...
+    async def __call__(self, response: Any, **kwargs): ...
 
 
 ResponseCallbackT = Union[ResponseCallbackProtocol, AsyncResponseCallbackProtocol]
@@ -560,10 +559,12 @@ class Redis(
         """
         Closes Redis client connection
 
-        :param close_connection_pool: decides whether to close the connection pool used
-        by this Redis client, overriding Redis.auto_close_connection_pool. By default,
-        let Redis.auto_close_connection_pool decide whether to close the connection
-        pool.
+        Args:
+            close_connection_pool:
+                decides whether to close the connection pool used by this Redis client,
+                overriding Redis.auto_close_connection_pool.
+                By default, let Redis.auto_close_connection_pool decide
+                whether to close the connection pool.
         """
         conn = self.connection
         if conn:
@@ -641,6 +642,9 @@ class Redis(
 
         if EMPTY_RESPONSE in options:
             options.pop(EMPTY_RESPONSE)
+
+        # Remove keys entry, it needs only for cache.
+        options.pop("keys", None)
 
         if command_name in self.response_callbacks:
             # Mypy bug: https://github.com/python/mypy/issues/10977
@@ -870,7 +874,7 @@ class PubSub:
         else:
             await self.connection.connect()
         if self.push_handler_func is not None and not HIREDIS_AVAILABLE:
-            self.connection._parser.set_push_handler(self.push_handler_func)
+            self.connection._parser.set_pubsub_push_handler(self.push_handler_func)
 
     async def _disconnect_raise_connect(self, conn, error):
         """
@@ -1166,13 +1170,11 @@ class PubSub:
 
 
 class PubsubWorkerExceptionHandler(Protocol):
-    def __call__(self, e: BaseException, pubsub: PubSub):
-        ...
+    def __call__(self, e: BaseException, pubsub: PubSub): ...
 
 
 class AsyncPubsubWorkerExceptionHandler(Protocol):
-    async def __call__(self, e: BaseException, pubsub: PubSub):
-        ...
+    async def __call__(self, e: BaseException, pubsub: PubSub): ...
 
 
 PSWorkerThreadExcHandlerT = Union[
@@ -1421,6 +1423,10 @@ class Pipeline(Redis):  # lgtm [py/init-calls-subclass]
             if not isinstance(r, Exception):
                 args, options = cmd
                 command_name = args[0]
+
+                # Remove keys entry, it needs only for cache.
+                options.pop("keys", None)
+
                 if command_name in self.response_callbacks:
                     r = self.response_callbacks[command_name](r, **options)
                     if inspect.isawaitable(r):

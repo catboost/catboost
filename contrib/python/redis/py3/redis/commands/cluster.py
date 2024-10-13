@@ -7,13 +7,13 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Literal,
     Mapping,
     NoReturn,
     Optional,
     Union,
 )
 
-from redis.compat import Literal
 from redis.crc import key_slot
 from redis.exceptions import RedisClusterException, RedisError
 from redis.typing import (
@@ -23,6 +23,7 @@ from redis.typing import (
     KeysT,
     KeyT,
     PatternT,
+    ResponseT,
 )
 
 from .core import (
@@ -40,7 +41,6 @@ from .core import (
     ManagementCommands,
     ModuleCommands,
     PubSubCommands,
-    ResponseT,
     ScriptCommands,
 )
 from .helpers import list_or_args

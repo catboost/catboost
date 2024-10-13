@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from redis._parsers import CommandsParser, Encoder
 from redis._parsers.helpers import parse_scan
 from redis.backoff import default_backoff
+from redis.cache import CacheConfig, CacheFactory, CacheFactoryInterface, CacheInterface
 from redis.client import CaseInsensitiveDict, PubSub, Redis
 from redis.commands import READ_COMMANDS, RedisClusterCommands
 from redis.commands.helpers import list_or_args
@@ -167,6 +168,8 @@ REDIS_ALLOWED_KEYS = (
     "ssl_password",
     "unix_socket_path",
     "username",
+    "cache",
+    "cache_config",
 )
 KWARGS_DISABLED_KEYS = ("host", "port")
 
@@ -500,6 +503,8 @@ class RedisCluster(AbstractRedisCluster, RedisClusterCommands):
         dynamic_startup_nodes: bool = True,
         url: Optional[str] = None,
         address_remap: Optional[Callable[[Tuple[str, int]], Tuple[str, int]]] = None,
+        cache: Optional[CacheInterface] = None,
+        cache_config: Optional[CacheConfig] = None,
         **kwargs,
     ):
         """
@@ -623,6 +628,10 @@ class RedisCluster(AbstractRedisCluster, RedisClusterCommands):
             kwargs.get("encoding_errors", "strict"),
             kwargs.get("decode_responses", False),
         )
+        protocol = kwargs.get("protocol", None)
+        if (cache_config or cache) and protocol not in [3, "3"]:
+            raise RedisError("Client caching is only supported with RESP version 3")
+
         self.cluster_error_retry_attempts = cluster_error_retry_attempts
         self.command_flags = self.__class__.COMMAND_FLAGS.copy()
         self.node_flags = self.__class__.NODE_FLAGS.copy()
@@ -635,6 +644,8 @@ class RedisCluster(AbstractRedisCluster, RedisClusterCommands):
             require_full_coverage=require_full_coverage,
             dynamic_startup_nodes=dynamic_startup_nodes,
             address_remap=address_remap,
+            cache=cache,
+            cache_config=cache_config,
             **kwargs,
         )
 
@@ -642,6 +653,7 @@ class RedisCluster(AbstractRedisCluster, RedisClusterCommands):
             self.__class__.CLUSTER_COMMANDS_RESPONSE_CALLBACKS
         )
         self.result_callbacks = CaseInsensitiveDict(self.__class__.RESULT_CALLBACKS)
+
         self.commands_parser = CommandsParser(self)
         self._lock = threading.Lock()
 
@@ -1045,6 +1057,9 @@ class RedisCluster(AbstractRedisCluster, RedisClusterCommands):
         return nodes
 
     def execute_command(self, *args, **kwargs):
+        return self._internal_execute_command(*args, **kwargs)
+
+    def _internal_execute_command(self, *args, **kwargs):
         """
         Wrapper for ERRORS_ALLOW_RETRY error handling.
 
@@ -1146,9 +1161,12 @@ class RedisCluster(AbstractRedisCluster, RedisClusterCommands):
                     connection.send_command("ASKING")
                     redis_node.parse_response(connection, "ASKING", **kwargs)
                     asking = False
-
-                connection.send_command(*args)
+                connection.send_command(*args, **kwargs)
                 response = redis_node.parse_response(connection, command, **kwargs)
+
+                # Remove keys entry, it needs only for cache.
+                kwargs.pop("keys", None)
+
                 if command in self.cluster_response_callbacks:
                     response = self.cluster_response_callbacks[command](
                         response, **kwargs
@@ -1311,6 +1329,9 @@ class NodesManager:
         dynamic_startup_nodes=True,
         connection_pool_class=ConnectionPool,
         address_remap: Optional[Callable[[Tuple[str, int]], Tuple[str, int]]] = None,
+        cache: Optional[CacheInterface] = None,
+        cache_config: Optional[CacheConfig] = None,
+        cache_factory: Optional[CacheFactoryInterface] = None,
         **kwargs,
     ):
         self.nodes_cache = {}
@@ -1323,6 +1344,9 @@ class NodesManager:
         self._dynamic_startup_nodes = dynamic_startup_nodes
         self.connection_pool_class = connection_pool_class
         self.address_remap = address_remap
+        self._cache = cache
+        self._cache_config = cache_config
+        self._cache_factory = cache_factory
         self._moved_exception = None
         self.connection_kwargs = kwargs
         self.read_load_balancer = LoadBalancer()
@@ -1466,9 +1490,15 @@ class NodesManager:
             # Create a redis node with a costumed connection pool
             kwargs.update({"host": host})
             kwargs.update({"port": port})
+            kwargs.update({"cache": self._cache})
             r = Redis(connection_pool=self.connection_pool_class(**kwargs))
         else:
-            r = Redis(host=host, port=port, **kwargs)
+            r = Redis(
+                host=host,
+                port=port,
+                cache=self._cache,
+                **kwargs,
+            )
         return r
 
     def _get_or_create_cluster_node(self, host, port, role, tmp_nodes_cache):
@@ -1485,6 +1515,8 @@ class NodesManager:
                 target_node = ClusterNode(host, port, role)
             if target_node.server_type != role:
                 target_node.server_type = role
+            # add this node to the nodes cache
+            tmp_nodes_cache[target_node.name] = target_node
 
         return target_node
 
@@ -1515,6 +1547,7 @@ class NodesManager:
                 # Make sure cluster mode is enabled on this node
                 try:
                     cluster_slots = str_if_bytes(r.execute_command("CLUSTER SLOTS"))
+                    r.connection_pool.disconnect()
                 except ResponseError:
                     raise RedisClusterException(
                         "Cluster mode is not enabled on this node"
@@ -1548,31 +1581,26 @@ class NodesManager:
                 port = int(primary_node[1])
                 host, port = self.remap_host_port(host, port)
 
+                nodes_for_slot = []
+
                 target_node = self._get_or_create_cluster_node(
                     host, port, PRIMARY, tmp_nodes_cache
                 )
-                # add this node to the nodes cache
-                tmp_nodes_cache[target_node.name] = target_node
+                nodes_for_slot.append(target_node)
+
+                replica_nodes = slot[3:]
+                for replica_node in replica_nodes:
+                    host = str_if_bytes(replica_node[0])
+                    port = int(replica_node[1])
+                    host, port = self.remap_host_port(host, port)
+                    target_replica_node = self._get_or_create_cluster_node(
+                        host, port, REPLICA, tmp_nodes_cache
+                    )
+                    nodes_for_slot.append(target_replica_node)
 
                 for i in range(int(slot[0]), int(slot[1]) + 1):
                     if i not in tmp_slots:
-                        tmp_slots[i] = []
-                        tmp_slots[i].append(target_node)
-                        replica_nodes = [slot[j] for j in range(3, len(slot))]
-
-                        for replica_node in replica_nodes:
-                            host = str_if_bytes(replica_node[0])
-                            port = replica_node[1]
-                            host, port = self.remap_host_port(host, port)
-
-                            target_replica_node = self._get_or_create_cluster_node(
-                                host, port, REPLICA, tmp_nodes_cache
-                            )
-                            tmp_slots[i].append(target_replica_node)
-                            # add this node to the nodes cache
-                            tmp_nodes_cache[
-                                target_replica_node.name
-                            ] = target_replica_node
+                        tmp_slots[i] = nodes_for_slot
                     else:
                         # Validate that 2 nodes want to use the same slot cache
                         # setup
@@ -1599,6 +1627,12 @@ class NodesManager:
                 f"Redis Cluster cannot be connected. Please provide at least "
                 f"one reachable node: {str(exception)}"
             ) from exception
+
+        if self._cache is None and self._cache_config is not None:
+            if self._cache_factory is None:
+                self._cache = CacheFactory(self._cache_config).get_cache()
+            else:
+                self._cache = self._cache_factory.get_cache()
 
         # Create Redis connections to all nodes
         self.create_redis_connections(list(tmp_nodes_cache.values()))
@@ -1778,7 +1812,7 @@ class ClusterPubSub(PubSub):
             # were listening to when we were disconnected
             self.connection.register_connect_callback(self.on_connect)
             if self.push_handler_func is not None and not HIREDIS_AVAILABLE:
-                self.connection._parser.set_push_handler(self.push_handler_func)
+                self.connection._parser.set_pubsub_push_handler(self.push_handler_func)
         connection = self.connection
         self._execute(connection, connection.send_command, *args)
 
@@ -1802,8 +1836,7 @@ class ClusterPubSub(PubSub):
 
     def _pubsubs_generator(self):
         while True:
-            for pubsub in self.node_pubsub_mapping.values():
-                yield pubsub
+            yield from self.node_pubsub_mapping.values()
 
     def get_sharded_message(
         self, ignore_subscribe_messages=False, timeout=0.0, target_node=None
@@ -2236,6 +2269,8 @@ class ClusterPipeline(RedisCluster):
         response = []
         for c in sorted(stack, key=lambda x: x.position):
             if c.args[0] in self.cluster_response_callbacks:
+                # Remove keys entry, it needs only for cache.
+                c.options.pop("keys", None)
                 c.result = self.cluster_response_callbacks[c.args[0]](
                     c.result, **c.options
                 )

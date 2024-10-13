@@ -1,5 +1,4 @@
 import logging
-import sys
 from contextlib import contextmanager
 from functools import wraps
 from typing import Any, Dict, Mapping, Union
@@ -7,12 +6,12 @@ from typing import Any, Dict, Mapping, Union
 try:
     import hiredis  # noqa
 
-    # Only support Hiredis >= 1.0:
-    HIREDIS_AVAILABLE = not hiredis.__version__.startswith("0.")
-    HIREDIS_PACK_AVAILABLE = hasattr(hiredis, "pack_command")
+    # Only support Hiredis >= 3.0:
+    HIREDIS_AVAILABLE = int(hiredis.__version__.split(".")[0]) >= 3
+    if not HIREDIS_AVAILABLE:
+        raise ImportError("hiredis package should be >= 3.0.0")
 except ImportError:
     HIREDIS_AVAILABLE = False
-    HIREDIS_PACK_AVAILABLE = False
 
 try:
     import ssl  # noqa
@@ -28,10 +27,7 @@ try:
 except ImportError:
     CRYPTOGRAPHY_AVAILABLE = False
 
-if sys.version_info >= (3, 8):
-    from importlib import metadata
-else:
-    import importlib_metadata as metadata
+from importlib import metadata
 
 
 def from_url(url, **kwargs):
@@ -157,3 +153,42 @@ def format_error_message(host_error: str, exception: BaseException) -> str:
             f"Error {exception.args[0]} connecting to {host_error}. "
             f"{exception.args[1]}."
         )
+
+
+def compare_versions(version1: str, version2: str) -> int:
+    """
+    Compare two versions.
+
+    :return: -1 if version1 > version2
+             0 if both versions are equal
+             1 if version1 < version2
+    """
+
+    num_versions1 = list(map(int, version1.split(".")))
+    num_versions2 = list(map(int, version2.split(".")))
+
+    if len(num_versions1) > len(num_versions2):
+        diff = len(num_versions1) - len(num_versions2)
+        for _ in range(diff):
+            num_versions2.append(0)
+    elif len(num_versions1) < len(num_versions2):
+        diff = len(num_versions2) - len(num_versions1)
+        for _ in range(diff):
+            num_versions1.append(0)
+
+    for i, ver in enumerate(num_versions1):
+        if num_versions1[i] > num_versions2[i]:
+            return -1
+        elif num_versions1[i] < num_versions2[i]:
+            return 1
+
+    return 0
+
+
+def ensure_string(key):
+    if isinstance(key, bytes):
+        return key.decode("utf-8")
+    elif isinstance(key, str):
+        return key
+    else:
+        raise TypeError("Key must be either a string or bytes")

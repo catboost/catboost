@@ -12,6 +12,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -20,7 +21,6 @@ from typing import (
     Union,
 )
 
-from redis.compat import Literal
 from redis.exceptions import ConnectionError, DataError, NoScriptError, RedisError
 from redis.typing import (
     AbsExpiryT,
@@ -46,8 +46,8 @@ from redis.typing import (
 from .helpers import list_or_args
 
 if TYPE_CHECKING:
-    from redis.asyncio.client import Redis as AsyncRedis
-    from redis.client import Redis
+    import redis.asyncio.client
+    import redis.client
 
 
 class ACLCommands(CommandsProtocol):
@@ -79,7 +79,7 @@ class ACLCommands(CommandsProtocol):
 
     def acl_deluser(self, *username: str, **kwargs) -> ResponseT:
         """
-        Delete the ACL for the specified ``username``s
+        Delete the ACL for the specified ``username``\\s
 
         For more information see https://redis.io/commands/acl-deluser
         """
@@ -227,9 +227,10 @@ class ACLCommands(CommandsProtocol):
                       must be prefixed with either a '+' to add the command permission
                       or a '-' to remove the command permission.
             keys: A list of key patterns to grant the user access to. Key patterns allow
-                  '*' to support wildcard matching. For example, '*' grants access to
-                  all keys while 'cache:*' grants access to all keys that are prefixed
-                  with 'cache:'. `keys` should not be prefixed with a '~'.
+                  ``'*'`` to support wildcard matching. For example, ``'*'`` grants
+                  access to all keys while ``'cache:*'`` grants access to all keys that
+                  are prefixed with ``cache:``.
+                  `keys` should not be prefixed with a ``'~'``.
             reset: Indicates whether the user should be fully reset prior to applying
                    the new ACL. Setting this to `True` will remove all existing
                    passwords, flags, and privileges from the user and then apply the
@@ -730,16 +731,19 @@ class ManagementCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/client-pause
 
-        :param timeout: milliseconds to pause clients
-        :param all: If true (default) all client commands are blocked.
-        otherwise, clients are only blocked if they attempt to execute
-        a write command.
+        Args:
+            timeout: milliseconds to pause clients
+            all: If true (default) all client commands are blocked.
+                 otherwise, clients are only blocked if they attempt to execute
+                 a write command.
+
         For the WRITE mode, some commands have special behavior:
-        EVAL/EVALSHA: Will block client for all scripts.
-        PUBLISH: Will block client.
-        PFCOUNT: Will block client.
-        WAIT: Acknowledgments will be delayed, so this command will
-        appear blocked.
+
+        * EVAL/EVALSHA: Will block client for all scripts.
+        * PUBLISH: Will block client.
+        * PFCOUNT: Will block client.
+        * WAIT: Acknowledgments will be delayed, so this command will
+            appear blocked.
         """
         args = ["CLIENT PAUSE", str(timeout)]
         if not isinstance(timeout, int):
@@ -1380,9 +1384,6 @@ class ManagementCommands(CommandsProtocol):
         )
 
 
-AsyncManagementCommands = ManagementCommands
-
-
 class AsyncManagementCommands(ManagementCommands):
     async def command_info(self, **kwargs) -> None:
         return super().command_info(**kwargs)
@@ -1441,7 +1442,7 @@ class BitFieldOperation:
 
     def __init__(
         self,
-        client: Union["Redis", "AsyncRedis"],
+        client: Union["redis.client.Redis", "redis.asyncio.client.Redis"],
         key: str,
         default_overflow: Union[str, None] = None,
     ):
@@ -1582,10 +1583,10 @@ class BasicKeyCommands(CommandsProtocol):
             raise DataError("Both start and end must be specified")
         if mode is not None:
             params.append(mode)
-        return self.execute_command("BITCOUNT", *params)
+        return self.execute_command("BITCOUNT", *params, keys=[key])
 
     def bitfield(
-        self: Union["Redis", "AsyncRedis"],
+        self: Union["redis.client.Redis", "redis.asyncio.client.Redis"],
         key: KeyT,
         default_overflow: Union[str, None] = None,
     ) -> BitFieldOperation:
@@ -1598,7 +1599,7 @@ class BasicKeyCommands(CommandsProtocol):
         return BitFieldOperation(self, key, default_overflow=default_overflow)
 
     def bitfield_ro(
-        self: Union["Redis", "AsyncRedis"],
+        self: Union["redis.client.Redis", "redis.asyncio.client.Redis"],
         key: KeyT,
         encoding: str,
         offset: BitfieldOffsetT,
@@ -1618,7 +1619,7 @@ class BasicKeyCommands(CommandsProtocol):
         items = items or []
         for encoding, offset in items:
             params.extend(["GET", encoding, offset])
-        return self.execute_command("BITFIELD_RO", *params)
+        return self.execute_command("BITFIELD_RO", *params, keys=[key])
 
     def bitop(self, operation: str, dest: KeyT, *keys: KeyT) -> ResponseT:
         """
@@ -1658,7 +1659,7 @@ class BasicKeyCommands(CommandsProtocol):
 
         if mode is not None:
             params.append(mode)
-        return self.execute_command("BITPOS", *params)
+        return self.execute_command("BITPOS", *params, keys=[key])
 
     def copy(
         self,
@@ -1725,7 +1726,7 @@ class BasicKeyCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/exists
         """
-        return self.execute_command("EXISTS", *names)
+        return self.execute_command("EXISTS", *names, keys=names)
 
     __contains__ = exists
 
@@ -1818,7 +1819,7 @@ class BasicKeyCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/get
         """
-        return self.execute_command("GET", name)
+        return self.execute_command("GET", name, keys=[name])
 
     def getdel(self, name: KeyT) -> ResponseT:
         """
@@ -1912,7 +1913,7 @@ class BasicKeyCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/getbit
         """
-        return self.execute_command("GETBIT", name, offset)
+        return self.execute_command("GETBIT", name, offset, keys=[name])
 
     def getrange(self, key: KeyT, start: int, end: int) -> ResponseT:
         """
@@ -1921,7 +1922,7 @@ class BasicKeyCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/getrange
         """
-        return self.execute_command("GETRANGE", key, start, end)
+        return self.execute_command("GETRANGE", key, start, end, keys=[key])
 
     def getset(self, name: KeyT, value: EncodableT) -> ResponseT:
         """
@@ -2004,6 +2005,7 @@ class BasicKeyCommands(CommandsProtocol):
         options = {}
         if not args:
             options[EMPTY_RESPONSE] = []
+        options["keys"] = args
         return self.execute_command("MGET", *args, **options)
 
     def mset(self, mapping: Mapping[AnyKeyT, EncodableT]) -> ResponseT:
@@ -2450,14 +2452,14 @@ class BasicKeyCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/strlen
         """
-        return self.execute_command("STRLEN", name)
+        return self.execute_command("STRLEN", name, keys=[name])
 
     def substr(self, name: KeyT, start: int, end: int = -1) -> ResponseT:
         """
         Return a substring of the string at key ``name``. ``start`` and ``end``
         are 0-based integers specifying the portion of the string to return.
         """
-        return self.execute_command("SUBSTR", name, start, end)
+        return self.execute_command("SUBSTR", name, start, end, keys=[name])
 
     def touch(self, *args: KeyT) -> ResponseT:
         """
@@ -2482,7 +2484,7 @@ class BasicKeyCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/type
         """
-        return self.execute_command("TYPE", name)
+        return self.execute_command("TYPE", name, keys=[name])
 
     def watch(self, *names: KeyT) -> None:
         """
@@ -2535,7 +2537,7 @@ class BasicKeyCommands(CommandsProtocol):
             pieces.extend(["MINMATCHLEN", minmatchlen])
         if withmatchlen:
             pieces.append("WITHMATCHLEN")
-        return self.execute_command("LCS", *pieces)
+        return self.execute_command("LCS", *pieces, keys=[key1, key2])
 
 
 class AsyncBasicKeyCommands(BasicKeyCommands):
@@ -2674,7 +2676,7 @@ class ListCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/lindex
         """
-        return self.execute_command("LINDEX", name, index)
+        return self.execute_command("LINDEX", name, index, keys=[name])
 
     def linsert(
         self, name: str, where: str, refvalue: str, value: str
@@ -2696,7 +2698,7 @@ class ListCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/llen
         """
-        return self.execute_command("LLEN", name)
+        return self.execute_command("LLEN", name, keys=[name])
 
     def lpop(
         self,
@@ -2743,7 +2745,7 @@ class ListCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/lrange
         """
-        return self.execute_command("LRANGE", name, start, end)
+        return self.execute_command("LRANGE", name, start, end, keys=[name])
 
     def lrem(self, name: str, count: int, value: str) -> Union[Awaitable[int], int]:
         """
@@ -2866,7 +2868,7 @@ class ListCommands(CommandsProtocol):
         if maxlen is not None:
             pieces.extend(["MAXLEN", maxlen])
 
-        return self.execute_command("LPOS", *pieces)
+        return self.execute_command("LPOS", *pieces, keys=[name])
 
     def sort(
         self,
@@ -2938,6 +2940,7 @@ class ListCommands(CommandsProtocol):
                 )
 
         options = {"groups": len(get) if groups else None}
+        options["keys"] = [name]
         return self.execute_command("SORT", *pieces, **options)
 
     def sort_ro(
@@ -3331,7 +3334,7 @@ class SetCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/scard
         """
-        return self.execute_command("SCARD", name)
+        return self.execute_command("SCARD", name, keys=[name])
 
     def sdiff(self, keys: List, *args: List) -> Union[Awaitable[list], list]:
         """
@@ -3340,7 +3343,7 @@ class SetCommands(CommandsProtocol):
         For more information see https://redis.io/commands/sdiff
         """
         args = list_or_args(keys, args)
-        return self.execute_command("SDIFF", *args)
+        return self.execute_command("SDIFF", *args, keys=args)
 
     def sdiffstore(
         self, dest: str, keys: List, *args: List
@@ -3361,13 +3364,13 @@ class SetCommands(CommandsProtocol):
         For more information see https://redis.io/commands/sinter
         """
         args = list_or_args(keys, args)
-        return self.execute_command("SINTER", *args)
+        return self.execute_command("SINTER", *args, keys=args)
 
     def sintercard(
         self, numkeys: int, keys: List[str], limit: int = 0
     ) -> Union[Awaitable[int], int]:
         """
-        Return the cardinality of the intersect of multiple sets specified by ``keys`.
+        Return the cardinality of the intersect of multiple sets specified by ``keys``.
 
         When LIMIT provided (defaults to 0 and means unlimited), if the intersection
         cardinality reaches limit partway through the computation, the algorithm will
@@ -3376,7 +3379,7 @@ class SetCommands(CommandsProtocol):
         For more information see https://redis.io/commands/sintercard
         """
         args = [numkeys, *keys, "LIMIT", limit]
-        return self.execute_command("SINTERCARD", *args)
+        return self.execute_command("SINTERCARD", *args, keys=keys)
 
     def sinterstore(
         self, dest: str, keys: List, *args: List
@@ -3400,7 +3403,7 @@ class SetCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/sismember
         """
-        return self.execute_command("SISMEMBER", name, value)
+        return self.execute_command("SISMEMBER", name, value, keys=[name])
 
     def smembers(self, name: str) -> Union[Awaitable[Set], Set]:
         """
@@ -3408,11 +3411,9 @@ class SetCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/smembers
         """
-        return self.execute_command("SMEMBERS", name)
+        return self.execute_command("SMEMBERS", name, keys=[name])
 
-    def smismember(
-        self, name: str, values: List, *args: List
-    ) -> Union[
+    def smismember(self, name: str, values: List, *args: List) -> Union[
         Awaitable[List[Union[Literal[0], Literal[1]]]],
         List[Union[Literal[0], Literal[1]]],
     ]:
@@ -3425,7 +3426,7 @@ class SetCommands(CommandsProtocol):
         For more information see https://redis.io/commands/smismember
         """
         args = list_or_args(values, args)
-        return self.execute_command("SMISMEMBER", name, *args)
+        return self.execute_command("SMISMEMBER", name, *args, keys=[name])
 
     def smove(self, src: str, dst: str, value: str) -> Union[Awaitable[bool], bool]:
         """
@@ -3474,7 +3475,7 @@ class SetCommands(CommandsProtocol):
         For more information see https://redis.io/commands/sunion
         """
         args = list_or_args(keys, args)
-        return self.execute_command("SUNION", *args)
+        return self.execute_command("SUNION", *args, keys=args)
 
     def sunionstore(
         self, dest: str, keys: List, *args: List
@@ -3501,9 +3502,11 @@ class StreamCommands(CommandsProtocol):
     def xack(self, name: KeyT, groupname: GroupT, *ids: StreamIdT) -> ResponseT:
         """
         Acknowledges the successful processing of one or more messages.
-        name: name of the stream.
-        groupname: name of the consumer group.
-        *ids: message ids to acknowledge.
+
+        Args:
+            name: name of the stream.
+            groupname: name of the consumer group.
+            *ids: message ids to acknowledge.
 
         For more information see https://redis.io/commands/xack
         """
@@ -3699,8 +3702,10 @@ class StreamCommands(CommandsProtocol):
     def xdel(self, name: KeyT, *ids: StreamIdT) -> ResponseT:
         """
         Deletes one or more messages from a stream.
-        name: name of the stream.
-        *ids: message ids to delete.
+
+        Args:
+            name: name of the stream.
+            *ids: message ids to delete.
 
         For more information see https://redis.io/commands/xdel
         """
@@ -3832,7 +3837,7 @@ class StreamCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/xlen
         """
-        return self.execute_command("XLEN", name)
+        return self.execute_command("XLEN", name, keys=[name])
 
     def xpending(self, name: KeyT, groupname: GroupT) -> ResponseT:
         """
@@ -3842,7 +3847,7 @@ class StreamCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/xpending
         """
-        return self.execute_command("XPENDING", name, groupname)
+        return self.execute_command("XPENDING", name, groupname, keys=[name])
 
     def xpending_range(
         self,
@@ -3931,7 +3936,7 @@ class StreamCommands(CommandsProtocol):
             pieces.append(b"COUNT")
             pieces.append(str(count))
 
-        return self.execute_command("XRANGE", name, *pieces)
+        return self.execute_command("XRANGE", name, *pieces, keys=[name])
 
     def xread(
         self,
@@ -3969,7 +3974,7 @@ class StreamCommands(CommandsProtocol):
         keys, values = zip(*streams.items())
         pieces.extend(keys)
         pieces.extend(values)
-        return self.execute_command("XREAD", *pieces)
+        return self.execute_command("XREAD", *pieces, keys=keys)
 
     def xreadgroup(
         self,
@@ -4048,7 +4053,7 @@ class StreamCommands(CommandsProtocol):
             pieces.append(b"COUNT")
             pieces.append(str(count))
 
-        return self.execute_command("XREVRANGE", name, *pieces)
+        return self.execute_command("XREVRANGE", name, *pieces, keys=[name])
 
     def xtrim(
         self,
@@ -4187,7 +4192,7 @@ class SortedSetCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/zcard
         """
-        return self.execute_command("ZCARD", name)
+        return self.execute_command("ZCARD", name, keys=[name])
 
     def zcount(self, name: KeyT, min: ZScoreBoundT, max: ZScoreBoundT) -> ResponseT:
         """
@@ -4196,7 +4201,7 @@ class SortedSetCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/zcount
         """
-        return self.execute_command("ZCOUNT", name, min, max)
+        return self.execute_command("ZCOUNT", name, min, max, keys=[name])
 
     def zdiff(self, keys: KeysT, withscores: bool = False) -> ResponseT:
         """
@@ -4208,7 +4213,7 @@ class SortedSetCommands(CommandsProtocol):
         pieces = [len(keys), *keys]
         if withscores:
             pieces.append("WITHSCORES")
-        return self.execute_command("ZDIFF", *pieces)
+        return self.execute_command("ZDIFF", *pieces, keys=keys)
 
     def zdiffstore(self, dest: KeyT, keys: KeysT) -> ResponseT:
         """
@@ -4268,7 +4273,7 @@ class SortedSetCommands(CommandsProtocol):
     ) -> Union[Awaitable[int], int]:
         """
         Return the cardinality of the intersect of multiple sorted sets
-        specified by ``keys`.
+        specified by ``keys``.
         When LIMIT provided (defaults to 0 and means unlimited), if the intersection
         cardinality reaches limit partway through the computation, the algorithm will
         exit and yield limit as the cardinality
@@ -4276,7 +4281,7 @@ class SortedSetCommands(CommandsProtocol):
         For more information see https://redis.io/commands/zintercard
         """
         args = [numkeys, *keys, "LIMIT", limit]
-        return self.execute_command("ZINTERCARD", *args)
+        return self.execute_command("ZINTERCARD", *args, keys=keys)
 
     def zlexcount(self, name, min, max):
         """
@@ -4285,7 +4290,7 @@ class SortedSetCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/zlexcount
         """
-        return self.execute_command("ZLEXCOUNT", name, min, max)
+        return self.execute_command("ZLEXCOUNT", name, min, max, keys=[name])
 
     def zpopmax(self, name: KeyT, count: Union[int, None] = None) -> ResponseT:
         """
@@ -4468,6 +4473,7 @@ class SortedSetCommands(CommandsProtocol):
         if withscores:
             pieces.append("WITHSCORES")
         options = {"withscores": withscores, "score_cast_func": score_cast_func}
+        options["keys"] = [name]
         return self.execute_command(*pieces, **options)
 
     def zrange(
@@ -4556,6 +4562,7 @@ class SortedSetCommands(CommandsProtocol):
         if withscores:
             pieces.append(b"WITHSCORES")
         options = {"withscores": withscores, "score_cast_func": score_cast_func}
+        options["keys"] = name
         return self.execute_command(*pieces, **options)
 
     def zrangestore(
@@ -4630,7 +4637,7 @@ class SortedSetCommands(CommandsProtocol):
         pieces = ["ZRANGEBYLEX", name, min, max]
         if start is not None and num is not None:
             pieces.extend([b"LIMIT", start, num])
-        return self.execute_command(*pieces)
+        return self.execute_command(*pieces, keys=[name])
 
     def zrevrangebylex(
         self,
@@ -4654,7 +4661,7 @@ class SortedSetCommands(CommandsProtocol):
         pieces = ["ZREVRANGEBYLEX", name, max, min]
         if start is not None and num is not None:
             pieces.extend(["LIMIT", start, num])
-        return self.execute_command(*pieces)
+        return self.execute_command(*pieces, keys=[name])
 
     def zrangebyscore(
         self,
@@ -4688,6 +4695,7 @@ class SortedSetCommands(CommandsProtocol):
         if withscores:
             pieces.append("WITHSCORES")
         options = {"withscores": withscores, "score_cast_func": score_cast_func}
+        options["keys"] = [name]
         return self.execute_command(*pieces, **options)
 
     def zrevrangebyscore(
@@ -4722,6 +4730,7 @@ class SortedSetCommands(CommandsProtocol):
         if withscores:
             pieces.append("WITHSCORES")
         options = {"withscores": withscores, "score_cast_func": score_cast_func}
+        options["keys"] = [name]
         return self.execute_command(*pieces, **options)
 
     def zrank(
@@ -4739,8 +4748,8 @@ class SortedSetCommands(CommandsProtocol):
         For more information see https://redis.io/commands/zrank
         """
         if withscore:
-            return self.execute_command("ZRANK", name, value, "WITHSCORE")
-        return self.execute_command("ZRANK", name, value)
+            return self.execute_command("ZRANK", name, value, "WITHSCORE", keys=[name])
+        return self.execute_command("ZRANK", name, value, keys=[name])
 
     def zrem(self, name: KeyT, *values: FieldT) -> ResponseT:
         """
@@ -4798,8 +4807,10 @@ class SortedSetCommands(CommandsProtocol):
         For more information see https://redis.io/commands/zrevrank
         """
         if withscore:
-            return self.execute_command("ZREVRANK", name, value, "WITHSCORE")
-        return self.execute_command("ZREVRANK", name, value)
+            return self.execute_command(
+                "ZREVRANK", name, value, "WITHSCORE", keys=[name]
+            )
+        return self.execute_command("ZREVRANK", name, value, keys=[name])
 
     def zscore(self, name: KeyT, value: EncodableT) -> ResponseT:
         """
@@ -4807,7 +4818,7 @@ class SortedSetCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/zscore
         """
-        return self.execute_command("ZSCORE", name, value)
+        return self.execute_command("ZSCORE", name, value, keys=[name])
 
     def zunion(
         self,
@@ -4854,7 +4865,7 @@ class SortedSetCommands(CommandsProtocol):
         if not members:
             raise DataError("ZMSCORE members must be a non-empty list")
         pieces = [key] + members
-        return self.execute_command("ZMSCORE", *pieces)
+        return self.execute_command("ZMSCORE", *pieces, keys=[key])
 
     def _zaggregate(
         self,
@@ -4884,6 +4895,7 @@ class SortedSetCommands(CommandsProtocol):
                 raise DataError("aggregate can be sum, min or max.")
         if options.get("withscores", False):
             pieces.append(b"WITHSCORES")
+        options["keys"] = keys
         return self.execute_command(*pieces, **options)
 
 
@@ -4945,7 +4957,7 @@ class HashCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/hexists
         """
-        return self.execute_command("HEXISTS", name, key)
+        return self.execute_command("HEXISTS", name, key, keys=[name])
 
     def hget(
         self, name: str, key: str
@@ -4955,7 +4967,7 @@ class HashCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/hget
         """
-        return self.execute_command("HGET", name, key)
+        return self.execute_command("HGET", name, key, keys=[name])
 
     def hgetall(self, name: str) -> Union[Awaitable[dict], dict]:
         """
@@ -4963,7 +4975,7 @@ class HashCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/hgetall
         """
-        return self.execute_command("HGETALL", name)
+        return self.execute_command("HGETALL", name, keys=[name])
 
     def hincrby(
         self, name: str, key: str, amount: int = 1
@@ -4991,7 +5003,7 @@ class HashCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/hkeys
         """
-        return self.execute_command("HKEYS", name)
+        return self.execute_command("HKEYS", name, keys=[name])
 
     def hlen(self, name: str) -> Union[Awaitable[int], int]:
         """
@@ -4999,7 +5011,7 @@ class HashCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/hlen
         """
-        return self.execute_command("HLEN", name)
+        return self.execute_command("HLEN", name, keys=[name])
 
     def hset(
         self,
@@ -5068,7 +5080,7 @@ class HashCommands(CommandsProtocol):
         For more information see https://redis.io/commands/hmget
         """
         args = list_or_args(keys, args)
-        return self.execute_command("HMGET", name, *args)
+        return self.execute_command("HMGET", name, *args, keys=[name])
 
     def hvals(self, name: str) -> Union[Awaitable[List], List]:
         """
@@ -5076,7 +5088,7 @@ class HashCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/hvals
         """
-        return self.execute_command("HVALS", name)
+        return self.execute_command("HVALS", name, keys=[name])
 
     def hstrlen(self, name: str, key: str) -> Union[Awaitable[int], int]:
         """
@@ -5085,7 +5097,7 @@ class HashCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/hstrlen
         """
-        return self.execute_command("HSTRLEN", name, key)
+        return self.execute_command("HSTRLEN", name, key, keys=[name])
 
     def hexpire(
         self,
@@ -5376,7 +5388,9 @@ class HashCommands(CommandsProtocol):
                 - A positive integer representing the expiration Unix timestamp in
                   seconds, if the field has an associated expiration time.
         """
-        return self.execute_command("HEXPIRETIME", key, "FIELDS", len(fields), *fields)
+        return self.execute_command(
+            "HEXPIRETIME", key, "FIELDS", len(fields), *fields, keys=[key]
+        )
 
     def hpexpiretime(self, key: KeyT, *fields: str) -> ResponseT:
         """
@@ -5396,7 +5410,9 @@ class HashCommands(CommandsProtocol):
                 - A positive integer representing the expiration Unix timestamp in
                   milliseconds, if the field has an associated expiration time.
         """
-        return self.execute_command("HPEXPIRETIME", key, "FIELDS", len(fields), *fields)
+        return self.execute_command(
+            "HPEXPIRETIME", key, "FIELDS", len(fields), *fields, keys=[key]
+        )
 
     def httl(self, key: KeyT, *fields: str) -> ResponseT:
         """
@@ -5416,7 +5432,9 @@ class HashCommands(CommandsProtocol):
                 - A positive integer representing the TTL in seconds if the field has
                   an associated expiration time.
         """
-        return self.execute_command("HTTL", key, "FIELDS", len(fields), *fields)
+        return self.execute_command(
+            "HTTL", key, "FIELDS", len(fields), *fields, keys=[key]
+        )
 
     def hpttl(self, key: KeyT, *fields: str) -> ResponseT:
         """
@@ -5436,7 +5454,9 @@ class HashCommands(CommandsProtocol):
                 - A positive integer representing the TTL in milliseconds if the field
                   has an associated expiration time.
         """
-        return self.execute_command("HPTTL", key, "FIELDS", len(fields), *fields)
+        return self.execute_command(
+            "HPTTL", key, "FIELDS", len(fields), *fields, keys=[key]
+        )
 
 
 AsyncHashCommands = HashCommands
@@ -5447,7 +5467,7 @@ class Script:
     An executable Lua script object returned by ``register_script``
     """
 
-    def __init__(self, registered_client: "Redis", script: ScriptTextT):
+    def __init__(self, registered_client: "redis.client.Redis", script: ScriptTextT):
         self.registered_client = registered_client
         self.script = script
         # Precalculate and store the SHA1 hex digest of the script.
@@ -5455,11 +5475,7 @@ class Script:
         if isinstance(script, str):
             # We need the encoding from the client in order to generate an
             # accurate byte representation of the script
-            try:
-                encoder = registered_client.connection_pool.get_encoder()
-            except AttributeError:
-                # Cluster
-                encoder = registered_client.get_encoder()
+            encoder = self.get_encoder()
             script = encoder.encode(script)
         self.sha = hashlib.sha1(script).hexdigest()
 
@@ -5467,7 +5483,7 @@ class Script:
         self,
         keys: Union[Sequence[KeyT], None] = None,
         args: Union[Iterable[EncodableT], None] = None,
-        client: Union["Redis", None] = None,
+        client: Union["redis.client.Redis", None] = None,
     ):
         """Execute the script, passing any required ``args``"""
         keys = keys or []
@@ -5490,13 +5506,35 @@ class Script:
             self.sha = client.script_load(self.script)
             return client.evalsha(self.sha, len(keys), *args)
 
+    def get_encoder(self):
+        """Get the encoder to encode string scripts into bytes."""
+        try:
+            return self.registered_client.get_encoder()
+        except AttributeError:
+            # DEPRECATED
+            # In version <=4.1.2, this was the code we used to get the encoder.
+            # However, after 4.1.2 we added support for scripting in clustered
+            # redis. ClusteredRedis doesn't have a `.connection_pool` attribute
+            # so we changed the Script class to use
+            # `self.registered_client.get_encoder` (see above).
+            # However, that is technically a breaking change, as consumers who
+            # use Scripts directly might inject a `registered_client` that
+            # doesn't have a `.get_encoder` field. This try/except prevents us
+            # from breaking backward-compatibility. Ideally, it would be
+            # removed in the next major release.
+            return self.registered_client.connection_pool.get_encoder()
+
 
 class AsyncScript:
     """
     An executable Lua script object returned by ``register_script``
     """
 
-    def __init__(self, registered_client: "AsyncRedis", script: ScriptTextT):
+    def __init__(
+        self,
+        registered_client: "redis.asyncio.client.Redis",
+        script: ScriptTextT,
+    ):
         self.registered_client = registered_client
         self.script = script
         # Precalculate and store the SHA1 hex digest of the script.
@@ -5516,7 +5554,7 @@ class AsyncScript:
         self,
         keys: Union[Sequence[KeyT], None] = None,
         args: Union[Iterable[EncodableT], None] = None,
-        client: Union["AsyncRedis", None] = None,
+        client: Union["redis.asyncio.client.Redis", None] = None,
     ):
         """Execute the script, passing any required ``args``"""
         keys = keys or []
@@ -5690,7 +5728,7 @@ class ScriptCommands(CommandsProtocol):
         """
         Check if a script exists in the script cache by specifying the SHAs of
         each script as ``args``. Returns a list of boolean values indicating if
-        if each already script exists in the cache.
+        if each already script exists in the cache_data.
 
         For more information see  https://redis.io/commands/script-exists
         """
@@ -5704,7 +5742,7 @@ class ScriptCommands(CommandsProtocol):
     def script_flush(
         self, sync_type: Union[Literal["SYNC"], Literal["ASYNC"]] = None
     ) -> ResponseT:
-        """Flush all scripts from the script cache.
+        """Flush all scripts from the script cache_data.
 
         ``sync_type`` is by default SYNC (synchronous) but it can also be
                       ASYNC.
@@ -5735,13 +5773,13 @@ class ScriptCommands(CommandsProtocol):
 
     def script_load(self, script: ScriptTextT) -> ResponseT:
         """
-        Load a Lua ``script`` into the script cache. Returns the SHA.
+        Load a Lua ``script`` into the script cache_data. Returns the SHA.
 
         For more information see https://redis.io/commands/script-load
         """
         return self.execute_command("SCRIPT LOAD", script)
 
-    def register_script(self: "Redis", script: ScriptTextT) -> Script:
+    def register_script(self: "redis.client.Redis", script: ScriptTextT) -> Script:
         """
         Register a Lua ``script`` specifying the ``keys`` it will touch.
         Returns a Script object that is callable and hides the complexity of
@@ -5755,7 +5793,10 @@ class AsyncScriptCommands(ScriptCommands):
     async def script_debug(self, *args) -> None:
         return super().script_debug()
 
-    def register_script(self: "AsyncRedis", script: ScriptTextT) -> AsyncScript:
+    def register_script(
+        self: "redis.asyncio.client.Redis",
+        script: ScriptTextT,
+    ) -> AsyncScript:
         """
         Register a Lua ``script`` specifying the ``keys`` it will touch.
         Returns a Script object that is callable and hides the complexity of
@@ -5829,7 +5870,7 @@ class GeoCommands(CommandsProtocol):
             raise DataError("GEODIST invalid unit")
         elif unit:
             pieces.append(unit)
-        return self.execute_command("GEODIST", *pieces)
+        return self.execute_command("GEODIST", *pieces, keys=[name])
 
     def geohash(self, name: KeyT, *values: FieldT) -> ResponseT:
         """
@@ -5838,7 +5879,7 @@ class GeoCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/geohash
         """
-        return self.execute_command("GEOHASH", name, *values)
+        return self.execute_command("GEOHASH", name, *values, keys=[name])
 
     def geopos(self, name: KeyT, *values: FieldT) -> ResponseT:
         """
@@ -5848,7 +5889,7 @@ class GeoCommands(CommandsProtocol):
 
         For more information see https://redis.io/commands/geopos
         """
-        return self.execute_command("GEOPOS", name, *values)
+        return self.execute_command("GEOPOS", name, *values, keys=[name])
 
     def georadius(
         self,
@@ -6188,6 +6229,8 @@ class GeoCommands(CommandsProtocol):
             if kwargs[arg_name]:
                 pieces.append(byte_repr)
 
+        kwargs["keys"] = [args[0] if command == "GEOSEARCH" else args[1]]
+
         return self.execute_command(command, *pieces, **kwargs)
 
 
@@ -6262,62 +6305,6 @@ class ModuleCommands(CommandsProtocol):
 
     def command(self) -> ResponseT:
         return self.execute_command("COMMAND")
-
-
-class Script:
-    """
-    An executable Lua script object returned by ``register_script``
-    """
-
-    def __init__(self, registered_client, script):
-        self.registered_client = registered_client
-        self.script = script
-        # Precalculate and store the SHA1 hex digest of the script.
-
-        if isinstance(script, str):
-            # We need the encoding from the client in order to generate an
-            # accurate byte representation of the script
-            encoder = self.get_encoder()
-            script = encoder.encode(script)
-        self.sha = hashlib.sha1(script).hexdigest()
-
-    def __call__(self, keys=[], args=[], client=None):
-        "Execute the script, passing any required ``args``"
-        if client is None:
-            client = self.registered_client
-        args = tuple(keys) + tuple(args)
-        # make sure the Redis server knows about the script
-        from redis.client import Pipeline
-
-        if isinstance(client, Pipeline):
-            # Make sure the pipeline can register the script before executing.
-            client.scripts.add(self)
-        try:
-            return client.evalsha(self.sha, len(keys), *args)
-        except NoScriptError:
-            # Maybe the client is pointed to a different server than the client
-            # that created this instance?
-            # Overwrite the sha just in case there was a discrepancy.
-            self.sha = client.script_load(self.script)
-            return client.evalsha(self.sha, len(keys), *args)
-
-    def get_encoder(self):
-        """Get the encoder to encode string scripts into bytes."""
-        try:
-            return self.registered_client.get_encoder()
-        except AttributeError:
-            # DEPRECATED
-            # In version <=4.1.2, this was the code we used to get the encoder.
-            # However, after 4.1.2 we added support for scripting in clustered
-            # redis. ClusteredRedis doesn't have a `.connection_pool` attribute
-            # so we changed the Script class to use
-            # `self.registered_client.get_encoder` (see above).
-            # However, that is technically a breaking change, as consumers who
-            # use Scripts directly might inject a `registered_client` that
-            # doesn't have a `.get_encoder` field. This try/except prevents us
-            # from breaking backward-compatibility. Ideally, it would be
-            # removed in the next major release.
-            return self.registered_client.connection_pool.get_encoder()
 
 
 class AsyncModuleCommands(ModuleCommands):
@@ -6396,9 +6383,12 @@ class FunctionCommands:
     ) -> Union[Awaitable[List], List]:
         """
         Return information about the functions and libraries.
-        :param library: pecify a pattern for matching library names
-        :param withcode: cause the server to include the libraries source
-         implementation in the reply
+
+        Args:
+
+            library: specify a pattern for matching library names
+            withcode: cause the server to include the libraries source implementation
+                in the reply
         """
         args = ["LIBRARYNAME", library]
         if withcode:

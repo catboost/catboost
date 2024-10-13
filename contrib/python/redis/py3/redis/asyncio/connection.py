@@ -17,9 +17,11 @@ from typing import (
     List,
     Mapping,
     Optional,
+    Protocol,
     Set,
     Tuple,
     Type,
+    TypedDict,
     TypeVar,
     Union,
 )
@@ -36,7 +38,6 @@ else:
 
 from redis.asyncio.retry import Retry
 from redis.backoff import NoBackoff
-from redis.compat import Protocol, TypedDict
 from redis.connection import DEFAULT_RESP_VERSION
 from redis.credentials import CredentialProvider, UsernamePasswordCredentialProvider
 from redis.exceptions import (
@@ -81,13 +82,11 @@ else:
 
 
 class ConnectCallbackProtocol(Protocol):
-    def __call__(self, connection: "AbstractConnection"):
-        ...
+    def __call__(self, connection: "AbstractConnection"): ...
 
 
 class AsyncConnectCallbackProtocol(Protocol):
-    async def __call__(self, connection: "AbstractConnection"):
-        ...
+    async def __call__(self, connection: "AbstractConnection"): ...
 
 
 ConnectCallbackT = Union[ConnectCallbackProtocol, AsyncConnectCallbackProtocol]
@@ -291,9 +290,11 @@ class AbstractConnection:
                 await self.on_connect()
             else:
                 # Use the passed function redis_connect_func
-                await self.redis_connect_func(self) if asyncio.iscoroutinefunction(
-                    self.redis_connect_func
-                ) else self.redis_connect_func(self)
+                (
+                    await self.redis_connect_func(self)
+                    if asyncio.iscoroutinefunction(self.redis_connect_func)
+                    else self.redis_connect_func(self)
+                )
         except RedisError:
             # clean up after any error in on_connect
             await self.disconnect()
@@ -646,6 +647,14 @@ class AbstractConnection:
             output.append(SYM_EMPTY.join(pieces))
         return output
 
+    def _socket_is_empty(self):
+        """Check if the socket is empty"""
+        return len(self._reader._buffer) == 0
+
+    async def process_invalidation_messages(self):
+        while not self._socket_is_empty():
+            await self.read_response(push_request=True)
+
 
 class Connection(AbstractConnection):
     "Manages TCP communication to and from a Redis server"
@@ -903,7 +912,7 @@ def parse_url(url: str) -> ConnectKwargs:
                 try:
                     kwargs[name] = parser(value)
                 except (TypeError, ValueError):
-                    raise ValueError(f"Invalid value for `{name}` in connection URL.")
+                    raise ValueError(f"Invalid value for '{name}' in connection URL.")
             else:
                 kwargs[name] = value
 

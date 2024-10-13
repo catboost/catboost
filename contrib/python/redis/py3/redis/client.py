@@ -13,6 +13,7 @@ from redis._parsers.helpers import (
     _RedisCallbacksRESP3,
     bool_ok,
 )
+from redis.cache import CacheConfig, CacheInterface
 from redis.commands import (
     CoreCommands,
     RedisModuleCommands,
@@ -210,6 +211,8 @@ class Redis(RedisModuleCommands, CoreCommands, SentinelCommands):
         redis_connect_func=None,
         credential_provider: Optional[CredentialProvider] = None,
         protocol: Optional[int] = 2,
+        cache: Optional[CacheInterface] = None,
+        cache_config: Optional[CacheConfig] = None,
     ) -> None:
         """
         Initialize a new Redis client.
@@ -302,12 +305,26 @@ class Redis(RedisModuleCommands, CoreCommands, SentinelCommands):
                             "ssl_ciphers": ssl_ciphers,
                         }
                     )
+                if (cache_config or cache) and protocol in [3, "3"]:
+                    kwargs.update(
+                        {
+                            "cache": cache,
+                            "cache_config": cache_config,
+                        }
+                    )
             connection_pool = ConnectionPool(**kwargs)
             self.auto_close_connection_pool = True
         else:
             self.auto_close_connection_pool = False
 
         self.connection_pool = connection_pool
+
+        if (cache_config or cache) and self.connection_pool.get_protocol() not in [
+            3,
+            "3",
+        ]:
+            raise RedisError("Client caching is only supported with RESP version 3")
+
         self.connection = None
         if single_connection_client:
             self.connection = self.connection_pool.get_connection("_")
@@ -521,7 +538,7 @@ class Redis(RedisModuleCommands, CoreCommands, SentinelCommands):
         """
         Send a command and parse the response
         """
-        conn.send_command(*args)
+        conn.send_command(*args, **options)
         return self.parse_response(conn, command_name, **options)
 
     def _disconnect_raise(self, conn, error):
@@ -539,11 +556,13 @@ class Redis(RedisModuleCommands, CoreCommands, SentinelCommands):
 
     # COMMAND EXECUTION AND PROTOCOL PARSING
     def execute_command(self, *args, **options):
+        return self._execute_command(*args, **options)
+
+    def _execute_command(self, *args, **options):
         """Execute a command and return a parsed response"""
         pool = self.connection_pool
         command_name = args[0]
         conn = self.connection or pool.get_connection(command_name, **options)
-
         try:
             return conn.retry.call_with_retry(
                 lambda: self._send_command_parse_response(
@@ -571,9 +590,15 @@ class Redis(RedisModuleCommands, CoreCommands, SentinelCommands):
         if EMPTY_RESPONSE in options:
             options.pop(EMPTY_RESPONSE)
 
+        # Remove keys entry, it needs only for cache.
+        options.pop("keys", None)
+
         if command_name in self.response_callbacks:
             return self.response_callbacks[command_name](response, **options)
         return response
+
+    def get_cache(self) -> Optional[CacheInterface]:
+        return self.connection_pool.cache
 
 
 StrictRedis = Redis
@@ -765,7 +790,7 @@ class PubSub:
             # were listening to when we were disconnected
             self.connection.register_connect_callback(self.on_connect)
             if self.push_handler_func is not None and not HIREDIS_AVAILABLE:
-                self.connection._parser.set_push_handler(self.push_handler_func)
+                self.connection._parser.set_pubsub_push_handler(self.push_handler_func)
         connection = self.connection
         kwargs = {"check_health": not self.subscribed}
         if not self.subscribed:
@@ -786,7 +811,7 @@ class PubSub:
                 else:
                     raise PubSubError(
                         "A non health check response was cleaned by "
-                        "execute_command: {0}".format(response)
+                        "execute_command: {}".format(response)
                     )
             ttl -= 1
 
@@ -1395,6 +1420,8 @@ class Pipeline(Redis):
         for r, cmd in zip(response, commands):
             if not isinstance(r, Exception):
                 args, options = cmd
+                # Remove keys entry, it needs only for cache.
+                options.pop("keys", None)
                 command_name = args[0]
                 if command_name in self.response_callbacks:
                     r = self.response_callbacks[command_name](r, **options)
