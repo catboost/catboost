@@ -1,17 +1,15 @@
-/* ===-- os_version_check.c - OS version checking  -------------------------===
- *
- *                     The LLVM Compiler Infrastructure
- *
- * This file is dual licensed under the MIT and the University of Illinois Open
- * Source Licenses. See LICENSE.TXT for details.
- *
- * ===----------------------------------------------------------------------===
- *
- * This file implements the function __isOSVersionAtLeast, used by
- * Objective-C's @available
- *
- * ===----------------------------------------------------------------------===
- */
+//===-- os_version_check.c - OS version checking  -------------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+//
+// This file implements the function __isOSVersionAtLeast, used by
+// Objective-C's @available
+//
+//===----------------------------------------------------------------------===//
 
 #ifdef __APPLE__
 
@@ -23,9 +21,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* These three variables hold the host's OS version. */
+// These three variables hold the host's OS version.
 static int32_t GlobalMajor, GlobalMinor, GlobalSubminor;
 static dispatch_once_t DispatchOnceCounter;
+static dispatch_once_t CompatibilityDispatchOnceCounter;
 
 // _availability_version_check darwin API support.
 typedef uint32_t dyld_platform_t;
@@ -40,11 +39,11 @@ typedef bool (*AvailabilityVersionCheckFuncTy)(uint32_t count,
 
 static AvailabilityVersionCheckFuncTy AvailabilityVersionCheck;
 
-/* We can't include <CoreFoundation/CoreFoundation.h> directly from here, so
- * just forward declare everything that we need from it. */
+// We can't include <CoreFoundation/CoreFoundation.h> directly from here, so
+// just forward declare everything that we need from it.
 
 typedef const void *CFDataRef, *CFAllocatorRef, *CFPropertyListRef,
-                   *CFStringRef, *CFDictionaryRef, *CFTypeRef, *CFErrorRef;
+    *CFStringRef, *CFDictionaryRef, *CFTypeRef, *CFErrorRef;
 
 #if __LLP64__
 typedef unsigned long long CFTypeID;
@@ -61,9 +60,9 @@ typedef _Bool Boolean;
 typedef CFIndex CFPropertyListFormat;
 typedef uint32_t CFStringEncoding;
 
-/* kCFStringEncodingASCII analog. */
+// kCFStringEncodingASCII analog.
 #define CF_STRING_ENCODING_ASCII 0x0600
-/* kCFStringEncodingUTF8 analog. */
+// kCFStringEncodingUTF8 analog.
 #define CF_STRING_ENCODING_UTF8 0x08000100
 #define CF_PROPERTY_LIST_IMMUTABLE 0
 
@@ -87,17 +86,26 @@ typedef Boolean (*CFStringGetCStringFuncTy)(CFStringRef, char *, CFIndex,
                                             CFStringEncoding);
 typedef void (*CFReleaseFuncTy)(CFTypeRef);
 
-/* Find and parse the SystemVersion.plist file. */
-static void initializeAvailabilityCheck(void *Unused) {
-  (void)Unused;
+static void _initializeAvailabilityCheck(bool LoadPlist) {
+  if (AvailabilityVersionCheck && !LoadPlist) {
+    // New API is supported and we're not being asked to load the plist,
+    // exit early!
+    return;
+  }
 
-  // Use the new API if it's is available. Still load the PLIST to ensure that the
-  // existing calls to __isOSVersionAtLeast still work even with new
-  // compiler-rt and new OSes.
+  // Use the new API if it's is available.
   AvailabilityVersionCheck = (AvailabilityVersionCheckFuncTy)dlsym(
       RTLD_DEFAULT, "_availability_version_check");
 
-  /* Load CoreFoundation dynamically */
+  if (AvailabilityVersionCheck && !LoadPlist) {
+    // New API is supported and we're not being asked to load the plist,
+    // exit early!
+    return;
+  }
+  // Still load the PLIST to ensure that the existing calls to
+  // __isOSVersionAtLeast still work even with new compiler-rt and old OSes.
+
+  // Load CoreFoundation dynamically
   const void *NullAllocator = dlsym(RTLD_DEFAULT, "kCFAllocatorNull");
   if (!NullAllocator)
     return;
@@ -108,18 +116,18 @@ static void initializeAvailabilityCheck(void *Unused) {
   if (!CFDataCreateWithBytesNoCopyFunc)
     return;
   CFPropertyListCreateWithDataFuncTy CFPropertyListCreateWithDataFunc =
-      (CFPropertyListCreateWithDataFuncTy)dlsym(
-          RTLD_DEFAULT, "CFPropertyListCreateWithData");
-/* CFPropertyListCreateWithData was introduced only in macOS 10.6+, so it
- * will be NULL on earlier OS versions. */
+      (CFPropertyListCreateWithDataFuncTy)dlsym(RTLD_DEFAULT,
+                                                "CFPropertyListCreateWithData");
+// CFPropertyListCreateWithData was introduced only in macOS 10.6+, so it
+// will be NULL on earlier OS versions.
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   CFPropertyListCreateFromXMLDataFuncTy CFPropertyListCreateFromXMLDataFunc =
       (CFPropertyListCreateFromXMLDataFuncTy)dlsym(
           RTLD_DEFAULT, "CFPropertyListCreateFromXMLData");
 #pragma clang diagnostic pop
-  /* CFPropertyListCreateFromXMLDataFunc is deprecated in macOS 10.10, so it
-   * might be NULL in future OS versions. */
+  // CFPropertyListCreateFromXMLDataFunc is deprecated in macOS 10.10, so it
+  // might be NULL in future OS versions.
   if (!CFPropertyListCreateWithDataFunc && !CFPropertyListCreateFromXMLDataFunc)
     return;
   CFStringCreateWithCStringNoCopyFuncTy CFStringCreateWithCStringNoCopyFunc =
@@ -163,7 +171,7 @@ static void initializeAvailabilityCheck(void *Unused) {
   if (!PropertyList)
     return;
 
-  /* Dynamically allocated stuff. */
+  // Dynamically allocated stuff.
   CFDictionaryRef PListRef = NULL;
   CFDataRef FileContentsRef = NULL;
   UInt8 *PListBuf = NULL;
@@ -182,8 +190,8 @@ static void initializeAvailabilityCheck(void *Unused) {
   if (NumRead != (size_t)PListFileSize)
     goto Fail;
 
-  /* Get the file buffer into CF's format. We pass in a null allocator here *
-   * because we free PListBuf ourselves */
+  // Get the file buffer into CF's format. We pass in a null allocator here *
+  // because we free PListBuf ourselves
   FileContentsRef = (*CFDataCreateWithBytesNoCopyFunc)(
       NULL, PListBuf, (CFIndex)NumRead, AllocatorNull);
   if (!FileContentsRef)
@@ -223,12 +231,24 @@ Fail:
   fclose(PropertyList);
 }
 
-// This old API entry point is no longer used by Clang. We still need to keep it
-// around to ensure that object files that reference it are still usable when
-// linked with new compiler-rt.
+// Find and parse the SystemVersion.plist file.
+static void compatibilityInitializeAvailabilityCheck(void *Unused) {
+  (void)Unused;
+  _initializeAvailabilityCheck(/*LoadPlist=*/true);
+}
+
+static void initializeAvailabilityCheck(void *Unused) {
+  (void)Unused;
+  _initializeAvailabilityCheck(/*LoadPlist=*/false);
+}
+
+// This old API entry point is no longer used by Clang for Darwin. We still need
+// to keep it around to ensure that object files that reference it are still
+// usable when linked with new compiler-rt.
 int32_t __isOSVersionAtLeast(int32_t Major, int32_t Minor, int32_t Subminor) {
-  /* Populate the global version variables, if they haven't already. */
-  dispatch_once_f(&DispatchOnceCounter, NULL, initializeAvailabilityCheck);
+  // Populate the global version variables, if they haven't already.
+  dispatch_once_f(&CompatibilityDispatchOnceCounter, NULL,
+                  compatibilityInitializeAvailabilityCheck);
 
   if (Major < GlobalMajor)
     return 1;
@@ -258,9 +278,47 @@ int32_t __isPlatformVersionAtLeast(uint32_t Platform, uint32_t Major,
   return AvailabilityVersionCheck(1, Versions);
 }
 
+#elif __ANDROID__
+
+#include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/system_properties.h>
+
+static int SdkVersion;
+static int IsPreRelease;
+
+static void readSystemProperties(void) {
+  char buf[PROP_VALUE_MAX];
+
+  if (__system_property_get("ro.build.version.sdk", buf) == 0) {
+    // When the system property doesn't exist, defaults to future API level.
+    SdkVersion = __ANDROID_API_FUTURE__;
+  } else {
+    SdkVersion = atoi(buf);
+  }
+
+  if (__system_property_get("ro.build.version.codename", buf) == 0) {
+    IsPreRelease = 1;
+  } else {
+    IsPreRelease = strcmp(buf, "REL") != 0;
+  }
+  return;
+}
+
+int32_t __isOSVersionAtLeast(int32_t Major, int32_t Minor, int32_t Subminor) {
+  (void) Minor;
+  (void) Subminor;
+  static pthread_once_t once = PTHREAD_ONCE_INIT;
+  pthread_once(&once, readSystemProperties);
+
+  return SdkVersion >= Major ||
+         (IsPreRelease && Major == __ANDROID_API_FUTURE__);
+}
+
 #else
 
-/* Silence an empty translation unit warning. */
+// Silence an empty translation unit warning.
 typedef int unused;
 
 #endif

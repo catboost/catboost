@@ -24,51 +24,185 @@ target_link_libraries(libs-cxxsupp-builtins PUBLIC
 )
 
 target_sources(libs-cxxsupp-builtins PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvsi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvti2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/adddf3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addsf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addtf3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addvdi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addvsi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/addvti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/apple_versioning.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ashldi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ashlti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ashrdi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ashrti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_flag_clear.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_flag_clear_explicit.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_flag_test_and_set.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_flag_test_and_set_explicit.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_signal_fence.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_thread_fence.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/bswapdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/bswapsi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clear_cache.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clzdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clzsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clzti2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/cmpdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/cmpti2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/comparedf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/comparesf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/comparetf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/cpu_model.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ctzdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ctzsi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ctzti2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divdc3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divdf3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divdi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divmoddi4.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divmodsi4.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divmodti4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divsc3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divsf3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divsi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divtc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divtf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divxc3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/emutls.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/enable_execute_stack.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/eprintf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extenddftf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhfsf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhftf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendsfdf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendsftf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ffsdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ffssi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ffsti2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixdfdi.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixdfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixdfti.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixsfdi.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixsfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixsfti.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixtfdi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixtfsi.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixtfti.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsdfdi.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsdfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsdfti.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunssfdi.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunssfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunssfti.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunstfdi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunstfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunstfti.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfdi.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfti.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixxfdi.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixxfti.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdidf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatditf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdixf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsidf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsitf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattisf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattitf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattixf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundidf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunditf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundixf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsidf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsitf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntisf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntitf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntixf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fp_mode.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/gcc_personality_v0.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/int_util.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/lshrdi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/lshrti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/moddi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/modsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/modti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muldc3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muldf3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muldi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulodi4.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulosi4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/muloti4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulsc3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulsf3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/multc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/multf3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/multi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulvdi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulvsi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulvti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulxc3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negdf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negsf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negti2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negvdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negvsi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negvti2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/os_version_check.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/paritydi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/paritysi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/parityti2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/popcountdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/popcountsi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/popcountti2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powidf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powisf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powitf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powixf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subdf3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subsf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subtf3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subvdi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subvsi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subvti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trampoline_setup.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfbf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfhf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfsf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfbf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfhf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfdf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfhf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfsf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ucmpdi2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ucmpti2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/udivdi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/udivmoddi4.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/udivmodsi4.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/udivmodti4.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/udivsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/udivti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umoddi3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umodsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umodti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatdidf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatdisf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatdixf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/chkstk2.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/chkstk.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatundidf.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatundisf.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatundixf.S
 )
 
