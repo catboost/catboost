@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: hypothesis
-Version: 6.112.1
+Version: 6.112.2
 Summary: A library for property-based testing
 Home-page: https://hypothesis.works
 Author: David R. MacIver and Zac Hatfield-Dodds
@@ -41,10 +41,10 @@ Requires-Dist: exceptiongroup>=1.0.0; python_version < "3.11"
 Provides-Extra: all
 Requires-Dist: black>=19.10b0; extra == "all"
 Requires-Dist: click>=7.0; extra == "all"
-Requires-Dist: crosshair-tool>=0.0.70; extra == "all"
+Requires-Dist: crosshair-tool>=0.0.72; extra == "all"
 Requires-Dist: django>=3.2; extra == "all"
 Requires-Dist: dpcontracts>=0.4; extra == "all"
-Requires-Dist: hypothesis-crosshair>=0.0.13; extra == "all"
+Requires-Dist: hypothesis-crosshair>=0.0.14; extra == "all"
 Requires-Dist: lark>=0.10.1; extra == "all"
 Requires-Dist: libcst>=0.3.16; extra == "all"
 Requires-Dist: numpy>=1.17.3; extra == "all"
@@ -55,7 +55,7 @@ Requires-Dist: pytz>=2014.1; extra == "all"
 Requires-Dist: redis>=3.0.0; extra == "all"
 Requires-Dist: rich>=9.0.0; extra == "all"
 Requires-Dist: backports.zoneinfo>=0.2.1; python_version < "3.9" and extra == "all"
-Requires-Dist: tzdata>=2024.1; (sys_platform == "win32" or sys_platform == "emscripten") and extra == "all"
+Requires-Dist: tzdata>=2024.2; (sys_platform == "win32" or sys_platform == "emscripten") and extra == "all"
 Provides-Extra: cli
 Requires-Dist: click>=7.0; extra == "cli"
 Requires-Dist: black>=19.10b0; extra == "cli"
@@ -63,8 +63,8 @@ Requires-Dist: rich>=9.0.0; extra == "cli"
 Provides-Extra: codemods
 Requires-Dist: libcst>=0.3.16; extra == "codemods"
 Provides-Extra: crosshair
-Requires-Dist: hypothesis-crosshair>=0.0.13; extra == "crosshair"
-Requires-Dist: crosshair-tool>=0.0.70; extra == "crosshair"
+Requires-Dist: hypothesis-crosshair>=0.0.14; extra == "crosshair"
+Requires-Dist: crosshair-tool>=0.0.72; extra == "crosshair"
 Provides-Extra: dateutil
 Requires-Dist: python-dateutil>=1.4; extra == "dateutil"
 Provides-Extra: django
@@ -87,7 +87,7 @@ Provides-Extra: redis
 Requires-Dist: redis>=3.0.0; extra == "redis"
 Provides-Extra: zoneinfo
 Requires-Dist: backports.zoneinfo>=0.2.1; python_version < "3.9" and extra == "zoneinfo"
-Requires-Dist: tzdata>=2024.1; (sys_platform == "win32" or sys_platform == "emscripten") and extra == "zoneinfo"
+Requires-Dist: tzdata>=2024.2; (sys_platform == "win32" or sys_platform == "emscripten") and extra == "zoneinfo"
 
 ==========
 Hypothesis
