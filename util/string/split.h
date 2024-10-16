@@ -660,6 +660,15 @@ namespace NStringSplitPrivate {
         using TIterator = TIteratorOf<String>;
         friend class TStringSplitter<String>;
 
+        template <typename S = String, std::enable_if_t<THasData<S>::value, int> = 0>
+        TIterState(const String& string) noexcept
+            : TStringBufType()
+            , DelimiterEnd_(string.data())
+            , OriginEnd_(string.data() + string.size())
+        {
+        }
+
+        template <typename S = String, std::enable_if_t<!THasData<S>::value, int> = 0>
         TIterState(const String& string) noexcept
             : TStringBufType()
             , DelimiterEnd_(std::begin(string))
@@ -698,6 +707,11 @@ namespace NStringSplitPrivate {
 
         bool DelimiterIsEmpty() const noexcept {
             return TokenDelim() == DelimiterEnd_;
+        }
+
+        void MarkExhausted() noexcept {
+            UpdateParentBuf(OriginEnd_, OriginEnd_);
+            DelimiterEnd_ = OriginEnd_;
         }
 
     private:
@@ -844,6 +858,24 @@ namespace NStringSplitPrivate {
                 , Delimiter_(std::forward<Args>(args)...)
             {
             }
+
+            TSplitRangeBase(const TSplitRangeBase& other)
+                : String_(other.String_)
+                , State_(String_)
+                , Delimiter_(other.Delimiter_)
+            {
+            }
+
+            TSplitRangeBase(TSplitRangeBase&& other)
+                : String_(std::move(other.String_))
+                , State_(String_)
+                , Delimiter_(std::move(other.Delimiter_))
+            {
+                other.State_.MarkExhausted();
+            }
+
+            TSplitRangeBase& operator=(const TSplitRangeBase& other) = delete;
+            TSplitRangeBase& operator=(TSplitRangeBase&& other) = delete;
 
             inline TIteratorState* Next() {
                 if (State_.DelimiterIsEmpty()) {

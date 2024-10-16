@@ -443,6 +443,13 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
             sum += FromString<int>(it.Token());
         }
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
+
+        TString ssum;
+        for (const auto& it : StringSplitter("  1 2 3   " + std::string(100, ' ')).Split(' ').SkipEmpty()) {
+            ssum += FromString<TString>(it.Token());
+            ssum += ';';
+        }
+        UNIT_ASSERT_VALUES_EQUAL(ssum, "1;2;3;");
     }
 
     Y_UNIT_TEST(TestTake) {
@@ -744,6 +751,25 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(expected0, actual1);
         UNIT_ASSERT_VALUES_EQUAL(expected1, actual2);
         UNIT_ASSERT_VALUES_EQUAL(expected1, actual3);
+    }
+
+    Y_UNIT_TEST(TesIterationAfterMove) {
+        const TString src = TString::Join(
+            "aaa",
+            TString(250, 'c'),
+            "bbb",
+            "aaa",
+            TString(250, 'c'),
+            "bbb");
+        auto s1 = StringSplitter(std::string(src)).SplitByString("c").SkipEmpty();
+        {
+            auto s2 = std::move(s1);
+            const TVector<TString> expected2 = {"aaa", "bbbaaa", "bbb"};
+            const auto result2 = s2.ToList<TString>();
+            UNIT_ASSERT_VALUES_EQUAL(result2, expected2);
+        }
+        const auto result1 = s1.ToList<TString>();
+        Y_UNUSED(result1); // valid but unspecified value
     }
 
     Y_UNIT_TEST(TestConstCString) {
