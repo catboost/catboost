@@ -24,27 +24,6 @@ public:
     }
 
 private:
-    // Non-constexpr function call will terminate compilation.
-    // Purposefully undefined and non-constexpr/consteval
-    template <class T>
-    static void CrashCompilerNotFormattable(std::string_view /*msg*/)
-    { /*Suppress "internal linkage but undefined" warning*/ }
-    static void CrashCompilerNotEnoughArguments(std::string_view /*msg*/)
-    { }
-
-    static void CrashCompilerTooManyArguments(std::string_view /*msg*/)
-    { }
-
-    static void CrashCompilerWrongTermination(std::string_view /*msg*/)
-    { }
-
-    static void CrashCompilerMissingTermination(std::string_view /*msg*/)
-    { }
-
-    static void CrashCompilerWrongFlagSpecifier(std::string_view /*msg*/)
-    { }
-
-
     static consteval bool Contains(std::string_view sv, char symbol)
     {
         return sv.find(symbol) != std::string_view::npos;
@@ -59,10 +38,6 @@ private:
     template <class TArg>
     static consteval auto GetSpecifiers()
     {
-        if constexpr (!CFormattable<TArg>) {
-            CrashCompilerNotFormattable<TArg>("Your specialization of TFormatArg is broken");
-        }
-
         return TSpecifiers{
             .Conversion = std::string_view{
                 std::data(TFormatArg<TArg>::ConversionSpecifiers),
@@ -103,8 +78,7 @@ private:
             if (symbol == IntroductorySymbol) {
                 if (currentMarkerStart + 1 != index) {
                     // '%a% detected'
-                    CrashCompilerWrongTermination("You may not terminate flag sequence other than %% with \'%\' symbol");
-                    return;
+                    throw "You may not terminate flag sequence other than %% with \'%\' symbol";
                 }
                 // '%%' detected --- skip
                 currentMarkerStart = -1;
@@ -113,9 +87,8 @@ private:
 
             // We are inside of marker.
             if (markerCount == std::ssize(markers)) {
-                // To many markers
-                CrashCompilerNotEnoughArguments("Number of arguments supplied to format is smaller than the number of flag sequences");
-                return;
+                // Too many markers
+                throw "Number of arguments supplied to format is smaller than the number of flag sequences";
             }
 
             if (Contains(specifiers[markerCount].Conversion, symbol)) {
@@ -130,20 +103,19 @@ private:
             }
 
             if (!Contains(specifiers[markerCount].Flags, symbol)) {
-                CrashCompilerWrongFlagSpecifier("Symbol is not a valid flag specifier; See FlagSpecifiers");
+                throw "Symbol is not a valid flag specifier; See FlagSpecifiers";
             }
         }
 
         if (currentMarkerStart != -1) {
             // Runaway marker.
-            CrashCompilerMissingTermination("Unterminated flag sequence detected; Use \'%%\' to type plain %");
+            throw "Unterminated flag sequence detected; Use \'%%\' to type plain %";
             return;
         }
 
         if (markerCount < std::ssize(markers)) {
             // Missing markers.
-            CrashCompilerTooManyArguments("Number of arguments supplied to format is greater than the number of flag sequences");
-            return;
+            throw "Number of arguments supplied to format is greater than the number of flag sequences";
         }
 
         // TODO(arkady-e1ppa): Consider per-type verification
