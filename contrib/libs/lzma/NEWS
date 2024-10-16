@@ -2,6 +2,131 @@
 XZ Utils Release Notes
 ======================
 
+5.6.3 (2024-10-01)
+
+    IMPORTANT: This includes a Windows-specific security fix to
+    the command line tools. liblzma isn't affected by this issue.
+
+    * liblzma:
+
+        - Fix x86-64 inline assembly compatibility with GNU Binutils
+          older than 2.27.
+
+        - Fix the build with GCC 4.2 on OpenBSD/sparc64.
+
+    * xzdec: Display an error instead of failing silently if the
+      unsupported option -M is specified.
+
+    * lzmainfo: Fix integer overflows when rounding the dictionary and
+      uncompressed sizes to the nearest mebibyte.
+
+    * Windows (except Cygwin and MSYS2): Add an application manifest to
+      xz, xzdec, lzmadec, and lzmainfo executables:
+
+        - Declare them compatible with Vista/7/8/8.1/10/11. This way
+          the programs won't needlessly use Operating System Context
+          of Vista when running on later Windows versions. This setting
+          doesn't mean that the executables cannot run on even older
+          versions if otherwise built that way.
+
+        - Declare them as UAC-compliant. MSVC added this by default
+          already but it wasn't done with MinGW-w64, at least not
+          with all toolchain variants.
+
+        - Declare them long path aware. This makes long path names
+          work on Windows 10 and 11 if the feature has been enabled
+          in the Windows registry.
+
+        - Use the UTF-8 code page on Windows 10 version 1903 and later.
+
+            * Now command line tools can access files whose names
+              contain characters that don't exist in the current
+              legacy code page.
+
+            * The options --files and --files0 now expect file lists
+              to be in UTF-8 instead of the legacy code page.
+
+            * This fixes a security issue: If a command line contains
+              Unicode characters (for example, filenames) that don't
+              exist in the current legacy code page, the characters are
+              converted to similar-looking characters with best-fit
+              mapping. Some best-fit mappings result in ASCII
+              characters that change the meaning of the command line,
+              which can be exploited with malicious filenames to do
+              argument injection or directory traversal attacks.
+              UTF-8 avoids best-fit mappings and thus fixes the issue.
+
+              Forcing the process code page to UTF-8 is possible only
+              on Windows 10 version 1903 and later. The command line
+              tools remain vulnerable if used on an old older
+              version of Windows.
+
+              This issue was discovered by Orange Tsai and splitline
+              from DEVCORE Research Team.
+
+              A related smaller issue remains: Windows filenames may
+              contain unpaired surrogates (invalid UTF-16). These are
+              converted to the replacement character U+FFFD in the
+              UTF-8 code page. Thus, filenames with different unpaired
+              surrogates appear identical and aren't distinguishable
+              from filenames that contain the actual replacement
+              character U+FFFD.
+
+            * When building with MinGW-w64, it is recommended to use
+              UCRT version instead of the old MSVCRT. For example,
+              non-ASCII characters from filenames won't print
+              correctly in messages to console with MSVCRT with
+              the UTF-8 code page (a cosmetic issue). liblzma-only
+              builds are still fine with MSVCRT.
+
+        - Cygwin and MSYS2 process command line options differently and
+          the above issues don't exist. There is no need to replace the
+          default application manifest on Cygwin and MSYS2.
+
+    * Autotools-based build:
+
+        - Fix feature checks with link-time optimization (-flto).
+
+        - Solaris: Fix a compatibility issue in version.sh. It matters
+          if one wants to regenerate configure by running autoconf.
+
+    * CMake:
+
+        - Use paths relative to ${prefix} in liblzma.pc when possible.
+          This is done only with CMake >= 3.20.
+
+        - MSVC: Install liblzma.pc as it can be useful with MSVC too.
+
+        - Windows: Fix liblzma filename prefix, for example:
+
+            * Cygwin: The DLL was incorrectly named liblzma-5.dll.
+              Now it is cyglzma-5.dll.
+
+            * MSVC: Rename import library from liblzma.lib to lzma.lib
+              while keeping liblzma.dll name as is. This helps with
+              "pkgconf --msvc-syntax --libs liblzma" because it mungles
+              "-llzma" in liblzma.pc to "lzma.lib".
+
+            * MinGW-w64: No changes.
+
+        - Windows: Use the correct resource file for lzmadec.exe.
+          Previously the resource file for xzdec.exe was used for both.
+          Autotools-based build isn't affected.
+
+        - Prefer a C11 compiler over a C99 compiler but accept both.
+
+        - Link Threads::Threads against liblzma using PRIVATE so that
+          -pthread and such flags won't unnecessarily get included in
+          the usage requirements of shared liblzma. That is,
+          target_link_libraries(foo PRIVATE liblzma::liblzma) no
+          longer adds -pthread if using POSIX threads and linking
+          against shared liblzma. The threading flags are still added
+          if linking against static liblzma.
+
+    * Updated translations: Catalan, Chinese (simplified), and
+      Brazilian Portuguese.
+
+
 5.6.2 (2024-05-29)
 
     * Remove the backdoor (CVE-2024-3094).

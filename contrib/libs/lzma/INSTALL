@@ -789,7 +789,7 @@ XZ Utils Installation
 
     The configure script determines if assembler code can be used by
     looking at the configure triplet; there is currently no check if
-    the assembler code can actually actually be built. The x86 assembler
+    the assembler code can actually be built. The x86 assembler
     code should work on x86 GNU/Linux, *BSDs, Solaris, Darwin, MinGW,
     Cygwin, and DJGPP. On other x86 systems, there may be problems and
     the assembler code may need to be disabled with the configure option.
