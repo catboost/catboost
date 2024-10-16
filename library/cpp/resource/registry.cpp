@@ -21,6 +21,33 @@ namespace {
 
     typedef std::pair<TStringBuf, TStringBuf> TDescriptor;
 
+    [[noreturn]]
+    void ReportRedefinitionError(const TStringBuf key, const TStringBuf data, const ui64 kk, const TDescriptor& prev) noexcept {
+        const auto& [prevKey, value] = prev;
+        Y_ABORT_UNLESS(key == prevKey, "Internal hash collision:"
+                 " old key: %s,"
+                 " new key: %s,"
+                 " hash: %" PRIx64 ".",
+                 TString{prevKey}.Quote().c_str(),
+                 TString{key}.Quote().c_str(),
+                 kk);
+        size_t vsize = GetCodec()->DecompressedLength(value);
+        size_t dsize = GetCodec()->DecompressedLength(data);
+        if (vsize + dsize < 1000) {
+            Y_ABORT_UNLESS(false, "Redefinition of key %s:\n"
+                     "  old value: %s,\n"
+                     "  new value: %s.",
+                     TString{key}.Quote().c_str(),
+                     Decompress(value).Quote().c_str(),
+                     Decompress(data).Quote().c_str());
+        } else {
+            Y_ABORT_UNLESS(false, "Redefinition of key %s,"
+                     " old size: %zu,"
+                     " new size: %zu.",
+                     TString{key}.Quote().c_str(), vsize, dsize);
+        }
+    }
+
     struct TStore final: public IStore, public absl::flat_hash_map<ui64, TDescriptor*> {
         static inline ui64 ToK(TStringBuf k) {
             return NHashPrivate::ComputeStringHash(k.data(), k.size());
@@ -29,28 +56,16 @@ namespace {
         void Store(const TStringBuf key, const TStringBuf data) override {
             auto kk = ToK(key);
 
-            if (contains(kk)) {
-                const TStringBuf value = (*this)[kk]->second;
+            const auto [it, unique] = try_emplace(kk, nullptr);
+            if (!unique) {
+                const auto& [_, value] = *it->second;
                 if (value != data) {
-                    size_t vsize = GetCodec()->DecompressedLength(value);
-                    size_t dsize = GetCodec()->DecompressedLength(data);
-                    if (vsize + dsize < 1000) {
-                        Y_ABORT_UNLESS(false, "Redefinition of key %s:\n"
-                                 "  old value: %s,\n"
-                                 "  new value: %s.",
-                                 TString{key}.Quote().c_str(),
-                                 Decompress(value).Quote().c_str(),
-                                 Decompress(data).Quote().c_str());
-                    } else {
-                        Y_ABORT_UNLESS(false, "Redefinition of key %s,"
-                                 " old size: %zu,"
-                                 " new size: %zu.",
-                                 TString{key}.Quote().c_str(), vsize, dsize);
-                    }
+                    ReportRedefinitionError(key, data, kk, *it->second);
+                    Y_UNREACHABLE();
                 }
             } else {
                 D_.push_back(TDescriptor(key, data));
-                (*this)[kk] = &D_.back();
+                it->second = &D_.back();
             }
 
             Y_ABORT_UNLESS(size() == Count(), "size mismatch");
