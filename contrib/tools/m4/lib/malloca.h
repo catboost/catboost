@@ -18,7 +18,7 @@
 #ifndef _MALLOCA_H
 #define _MALLOCA_H
 
-#include "palloca.h"
+#include <alloca.h>
 #include <stddef.h>
 #include <stdlib.h>
 
