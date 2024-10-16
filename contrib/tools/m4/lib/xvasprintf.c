@@ -53,10 +53,7 @@ xstrcat (size_t argcount, va_list args)
      vasprintf().  */
   if (totalsize == SIZE_MAX || totalsize > INT_MAX)
     {
-#if (defined _MSC_VER) && (_MSC_VER < 1800)
-#else
       errno = EOVERFLOW;
-#endif
       return NULL;
     }
 
@@ -74,10 +71,6 @@ xstrcat (size_t argcount, va_list args)
 
   return result;
 }
-
-#if defined(_MSC_VER)
-int vasprintf(char **resultp, const char *format, va_list args);
-#endif
 
 char *
 xvasprintf (const char *format, va_list args)

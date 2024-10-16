@@ -52,10 +52,6 @@ typedef struct sigaltstack stack_t;
 #endif
 #ifndef SIGSTKSZ
 # define SIGSTKSZ 16384
-#elif defined __USE_DYNAMIC_STACK_SIZE
-/* Redefining SIGSTKSZ here as dynamic stack size is not supported in this version of bison */
-# undef SIGSTKSZ
-# define SIGSTKSZ 16384
 #elif HAVE_LIBSIGSEGV && SIGSTKSZ < 16384
 /* libsigsegv 2.6 through 2.8 have a bug where some architectures use
    more than the Linux default of an 8k alternate stack when deciding
@@ -76,7 +72,7 @@ typedef struct sigaltstack stack_t;
 #include <unistd.h>
 
 #if HAVE_LIBSIGSEGV
-# include <sigsegv.h>
+# error #include <sigsegv.h>
 #endif
 
 #include "c-stack.h"
@@ -327,10 +323,7 @@ c_stack_action (void (*action) (int))
 int
 c_stack_action (void (*action) (int)  __attribute__ ((unused)))
 {
-#if (defined _MSC_VER) && (_MSC_VER < 1800)
-#else
   errno = ENOTSUP;
-#endif
   return -1;
 }
 

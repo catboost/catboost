@@ -54,7 +54,7 @@
 # include <config.h>
 #endif
 #ifndef IN_LIBINTL
-# include "palloca.h"
+# include <alloca.h>
 #endif
 
 /* Specification.  */
@@ -5575,10 +5575,7 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
     if (buf_malloced != NULL)
       free (buf_malloced);
     CLEANUP ();
-#if (defined _MSC_VER) && (_MSC_VER < 1800)
-#else
     errno = EOVERFLOW;
-#endif
     return NULL;
 #endif
 

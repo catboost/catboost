@@ -40,10 +40,7 @@ vasprintf (char **resultp, const char *format, va_list args)
   if (length > INT_MAX)
     {
       free (result);
-#if (defined _MSC_VER) && (_MSC_VER < 1800)
-#else
       errno = EOVERFLOW;
-#endif
       return -1;
     }
 
