@@ -1,7 +1,7 @@
 #pragma once
 
 namespace NDetail {
-    struct TReserveTag {
+    struct [[nodiscard]] TReserveTag {
         size_t Capacity;
     };
 } // namespace NDetail
