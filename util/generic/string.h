@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstring>
 #include <stlfwd>
-#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -14,7 +13,6 @@
 
 #include "ptr.h"
 #include "utility.h"
-#include "bitops.h"
 #include "explicit_type.h"
 #include "reserve.h"
 #ifndef _LIBCPP_VERSION
@@ -23,6 +21,7 @@
 #include "strbase.h"
 #include "strbuf.h"
 #include "string_hash.h"
+#include "ylimits.h"
 
 #if defined(address_sanitizer_enabled) || defined(thread_sanitizer_enabled)
     #include "hide_ptr.h"

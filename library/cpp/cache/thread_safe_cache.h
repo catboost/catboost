@@ -3,6 +3,7 @@
 #include "cache.h"
 
 #include <util/generic/singleton.h>
+#include <util/generic/ylimits.h>
 #include <util/system/rwlock.h>
 
 namespace NPrivate {
