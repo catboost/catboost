@@ -61,6 +61,7 @@ target_sources(catboost-libs-metrics-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/precision_recall_at_k_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/quantile_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/smape_ut.cpp
+  ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/rmspe_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/stochastic_filter_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/zero_one_loss_ut.cpp
   ${PROJECT_SOURCE_DIR}/catboost/libs/metrics/ut/total_f1_ut.cpp
