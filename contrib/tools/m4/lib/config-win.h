@@ -1282,7 +1282,7 @@ char *strsignal (int signum);
 
 /* Define to 1 if stat needs help when passed a directory name with a trailing
    slash */
-#define REPLACE_FUNC_STAT_DIR 1
+/* #undef REPLACE_FUNC_STAT_DIR */
 
 /* Define to 1 if stat needs help when passed a file name with a trailing
    slash */

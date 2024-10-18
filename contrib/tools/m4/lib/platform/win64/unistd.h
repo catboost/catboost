@@ -1325,7 +1325,7 @@ _GL_WARN_ON_USE (linkat, "linkat is unportable - "
    Return the new offset if successful, otherwise -1 and errno set.
    See the POSIX:2008 specification
    <http://pubs.opengroup.org/onlinepubs/9699919799/functions/lseek.html>.  */
-# if 1
+# if 0
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define lseek rpl_lseek
 #  endif
@@ -1537,7 +1537,7 @@ _GL_WARN_ON_USE (readlinkat, "readlinkat is not portable - "
 
 #if 1
 /* Remove the directory DIR.  */
-# if 1
+# if 0
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define rmdir rpl_rmdir
 #  endif
