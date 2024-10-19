@@ -70,11 +70,11 @@ bool THistogramPointsAndBins::IsValidBins() const {
 
 bool THistogramPointsAndBins::IsValidPoints() const {
     for (size_t i = 1; i < Points.size(); i ++) {
-        if (Points[i] < 0 || Points[i - 1] >= Points[i]) {
+        if (Points[i - 1] >= Points[i]) {
             return false;
         }
     }
-    return Points.size() != 0 && Points[0] >= 0;
+    return Points.size() != 0;
 }
 
 bool THistogramPointsAndBins::IsValidPercentile(const double& percentile) const {

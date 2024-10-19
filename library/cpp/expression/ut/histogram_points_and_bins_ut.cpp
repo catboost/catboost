@@ -82,7 +82,7 @@ Y_UNIT_TEST_SUITE(THistogramBinAndPointsTest) {
         THistogramPointsAndBins negativeHistogramData = THistogramPointsAndBins(negativePoints, negativeBins);
 
         UNIT_ASSERT_EQUAL(negativeHistogramData.IsValidBins(), false);
-        UNIT_ASSERT_EQUAL(negativeHistogramData.IsValidPoints(), false);
+        UNIT_ASSERT_EQUAL(negativeHistogramData.IsValidPoints(), true);
         UNIT_ASSERT_EQUAL(negativeHistogramData.IsValidData(73), false);
 
         TVector<double> points = {1, 2, 3, 4};
