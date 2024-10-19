@@ -20,10 +20,6 @@
 #include <unistd.h>
 #include "unistd-safer.h"
 
-#if defined(_WIN32)
-#   include <process.h>
-#endif
-
 #undef dup
 #define dup dup_safer
 

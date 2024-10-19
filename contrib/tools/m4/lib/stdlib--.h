@@ -20,12 +20,6 @@
 #include <stdlib.h>
 #include "stdlib-safer.h"
 
-#if defined(_WIN32)
-char *mkdtemp(char *template);
-int mkstemp(char*);
-char *secure_getenv(const char *name);
-#endif
-
 #undef mkstemp
 #define mkstemp mkstemp_safer
 

@@ -1,0 +1,722 @@
+GNU M4 NEWS - User visible changes.
+
+* Noteworthy changes in release 1.4.17 (2013-09-22) [stable]
+
+** Fix compilation with newer glibc headers.
+
+** Fix a failure with diverting large amounts of text on mingw (does
+   not affect platforms that can rename an open file).
+
+** A number of portability improvements inherited from gnulib.
+
+
+* Noteworthy changes in release 1.4.16 (2011-03-01) [stable]
+
+** Fix regressions in the `index' builtin.  On glibc platforms, this
+   avoids false positives from a strstr bug in glibc 2.9 through 2.12;
+   on many other platforms, it fixes two separate regressions, a false
+   positive introduced in 1.4.11 and a false negative in 1.4.15.
+
+** A number of portability improvements inherited from gnulib.
+
+
+* Noteworthy changes in release 1.4.15 (2010-08-31) [stable]
+
+** Fix regression introduced in 1.4.9b where the `format' builtin could
+   crash on an invalid format string.
+
+** Fix compilation against newer glibc, and on AIX 7.1BETA.
+
+** A number of portability improvements inherited from gnulib.
+
+
+* Noteworthy changes in Version 1.4.14 (2010-02-24) [stable]
+  Released by Eric Blake, based on git version 1.4.13.*
+
+** Fix regression introduced in 1.4.12 where executing with stdout closed
+   could crash m4 on exit on some platforms.
+
+** Fix regressions introduced in 1.4.13 in the `esyscmd' builtin, where
+   closed file descriptors could interfere with child execution, and where
+   a child status of 127 made m4 print a spurious message to stderr.
+
+** Fix a security hole in 'make dist', present since at least M4 1.4, that
+   could affect anybody attempting to redistribute modified sources (see
+   Automake CVE-2009-4029).
+
+** A number of portability improvements inherited from gnulib.
+
+* Noteworthy changes in Version 1.4.13 (2009-04-01) [stable]
+  Released by Eric Blake, based on git version 1.4.12.*
+
+** The manual is now distributed under the terms of FDL 1.3.
+
+** The `divert' and `undivert' builtins have been made more efficient
+   when using temporary files for large diversions.
+
+** The `translit' builtin has been made more efficient when the second
+   argument is short.
+
+** The input engine has been optimized for faster processing.
+
+** The command line option `--debugfile', introduced in 1.4.7, now
+   treats its argument as optional, in order to allow setting the debug
+   output back to stderr when used without an argument; and order is now
+   significant with respect to command line files.  You must therefore use
+   `m4 --debugfile=trace file', not `m4 file --debugfile trace'.  This
+   change does not affect the deprecated `-o'/`--error-output' option.
+
+** The `syscmd' and `esyscmd' builtins can be configured to use an
+   alternate shell, via the new `configure' option `--with-syscmd-shell'.
+
+** A number of portability improvements inherited from gnulib.
+
+* Noteworthy changes in Version 1.4.12 (2008-10-10) [stable]
+  Released by Eric Blake, based on git version 1.4.11.*
+
+** Fix regression introduced in 1.4.4b where using `traceon' could delete
+   a macro.  This was most noticeable with `traceon(`traceon')', but
+   would also happen in cases such as `foo(traceon(`foo'))'.
+
+** Fix regression introduced in 1.4.7 where `m4 -N9' died with an assertion
+   failure.
+
+** Fix regression introduced in 1.4.11 where `defn' died with an assertion
+   failure on a traced but undefined macro.
+
+** New `-g'/`--gnu' command-line option overrides `-G'/`--traditional'.
+   For now, the environment variable POSIXLY_CORRECT has no effect on M4
+   behavior; but a future release of M4 will behave as though --traditional
+   is implied if POSIXLY_CORRECT is set (this future change is necessary,
+   because in the current release, there is no way to disable GNU
+   extensions that conflict with POSIX without the use of a non-POSIX
+   command-line argument).  Clients of M4 that want to use GNU extensions,
+   even when POSIXLY_CORRECT is set, should start using the -g command-line
+   argument, even though it is currently a no-op if -G did not appear
+   earlier in the command line, so that the client will not break in the
+   face of an upgraded m4 and a POSIXLY_CORRECT execution environment.
+
+** The `-L'/`--nesting-limit' command-line option now defaults to 0 for
+   unlimited on platforms that can detect and deal with stack overflow.  On
+   systems that lack alternate stack support, such as Cygwin, and on
+   systems that do not obey the POSIX semantics for distinguishing stack
+   overflow from other exceptions, such as Linux, you can optionally
+   install the libsigsegv library (version 2.6 or newer recommended) to
+   enhance m4's ability to accurately report stack overflow:
+   http://www.gnu.org/software/libsigsegv/
+
+** A number of portability improvements inherited from gnulib.
+
+* Noteworthy changes in Version 1.4.11 (2008-04-02) [stable]
+  Released by Eric Blake, based on git version 1.4.10a
+
+** Security fixes for the -F option, for bugs present since -F was
+   introduced in 1.3: Avoid core dump with 'm4 -F file -t undefined', and
+   avoid arbitrary code execution with certain file names.
+
+** Fix regression introduced in 1.4.9b in the `divert' builtin when more
+   than 512 kibibytes are saved in diversions on platforms like NetBSD
+   or darwin where fopen(name,"a+") seeks to the end of the file.
+
+** The output of the `maketemp' and `mkstemp' builtins is now quoted if a
+   file was created.  This is a minor security fix, because it was possible
+   (although rather unlikely) that an unquoted string could match an
+   existing macro name, such that use of the `mkstemp' output would trigger
+   inadvertent macro expansion and operate on the wrong file name.
+
+** Enhance the `defn' builtin to support concatenation of multiple text
+   arguments, as required by POSIX.  However, at this time, it is not
+   possible to concatenate a builtin macro with anything else; a warning is
+   now issued if this is attempted, although a future version of M4 may
+   lift this restriction to match other implementations.
+
+** Enhance the `format' builtin to parse all C99 floating point numbers,
+   even on platforms where strtod(3) is buggy, although the replacement
+   function does have the known issue of rounding errors when parsing
+   some decimal floating point values.  This fixes testsuite failures
+   introduced in 1.4.9b.
+
+** Enhance the `index' builtin to guarantee linear behavior, in spite of
+   the surprisingly large number of systems with a brain-dead quadratic
+   strstr(3).
+
+** A number of portability improvements inherited from gnulib.
+
+* Noteworthy changes in Version 1.4.10 (2007-07-09) [stable]
+  Released by Eric Blake, based on CVS version 1.4.9c
+
+** Upgrade from GPL version 2 to GPL version 3 or later.
+
+** A number of portability improvements inherited from gnulib.
+
+** Avoid undefined behavior introduced in 1.4.9b in the `format' builtin
+   when handling %c.  However, this area of code has never been documented,
+   and currently does not match the POSIX behavior of printf(1), so it may
+   have further changes in the next version.
+
+* Noteworthy changes in Version 1.4.9b (2007-05-29) [beta]
+  Released by Eric Blake, based on CVS version 1.4.9a
+
+** Fix regression introduced in 1.4.9 in the `eval' builtin when performing
+   division.
+
+** Fix regression introduced in 1.4.8 in the `-F' option that made it
+   impossible to freeze more than 512 kibibytes of diverted text.
+
+** The synclines option `-s' no longer generates sync lines in the middle of
+   multiline comments or quoted strings.
+
+** Work around a number of corner-case POSIX compliance bugs in various
+   broken stdio libraries.  In particular, the `syscmd' builtin behaves
+   more predictably when stdin is seekable.
+
+** The `format' builtin now understands formats such as %a, %A, and %'hhd,
+   and works around a number of platform printf bugs.  Furthermore, the
+   sequence format(%*.*d,-1,-1,1) no longer outputs random data.  However,
+   some non-compliant platforms such as mingw still have known bugs in
+   strtod that may cause testsuite failures.
+
+** The testsuite is improved to also run gnulib portability tests for the
+   features that M4 imports from gnulib.
+
+* Noteworthy changes in Version 1.4.9 (2007-03-23) [stable]
+  Released by Eric Blake, based on CVS version 1.4.8c
+
+** Minor documentation and portability cleanups.
+
+* Noteworthy changes in Version 1.4.8b (2007-02-24) [beta]
+  Released by Eric Blake, based on CVS version 1.4.8a
+
+** Fix a regression introduced in 1.4.8 that made m4 unable to process
+   files larger than 2GiB on some platforms.
+
+** Fix a regression introduced in 1.4.8 that made m4 dump core when
+   invoked as 'm4 -- file'.
+
+** The `eval' builtin now follows C precedence rules.  Additionally, the
+   short-circuit operators correctly short-circuit division by zero.  The
+   previously undocumented alias of '=' meaning '==' in eval now triggers a
+   deprecation warning, so that a future version of M4 can implement a form
+   of variable assignment as an extension.
+
+** The `include' builtin now affects exit status on failure, as required by
+   POSIX.  Use `sinclude' if you need a successful exit status.
+
+** The `-E'/`--fatal-warnings' command-line option now has two levels.  When
+   specified only once, warnings affect exit status, but execution
+   continues, so that you can see all warnings instead of fixing them one
+   at a time.  To achieve 1.4.8 behavior, where the first warning
+   immediately exits, specify -E twice on the command line.
+
+** A new `--warn-macro-sequence' command-line option allows detection of
+   sequences in `define' and `pushdef' definitions that match an optional
+   regular expression.  The default regular expression is
+   `\$\({[^}]*}\|[0-9][0-9]+\)', corresponding to the sequences that might
+   not behave correctly when upgrading to the eventual M4 2.0.  By default,
+   M4 2.0 will follow the POSIX requirement that a macro definition
+   containing `$11' must expand to the first argument concatenated with 1,
+   rather than the eleventh argument; and will take advantage of the POSIX
+   wording that allows implementations to treat `${11}' as the eleventh
+   argument instead of literal text.  Be aware that Autoconf 2.61 will not
+   work with this option enabled with the default regular expression; but
+   Autoconf 2.62 will be compatible with this option.
+
+** Improved portability to platforms such as BSD/OS and AIX.
+
+* Noteworthy changes in Version 1.4.8 (2006-11-20) [stable]
+  Released by Eric Blake, based on CVS version 1.4.7a
+
+** The `divert' macro and `-H'/`--hashsize' command line option no longer
+   cause a core dump when handed extra large values.  Also, `divert' now
+   uses memory proportional to the number of diversions in use, rather than
+   to the maximum diversion number encountered, so that large diversion
+   numbers are less likely to exhaust system memory; and is no longer
+   limited by the maximum number of file descriptors.
+
+** The `--help' and `--version' command line options now consistently
+   override all earlier options.  For example, `m4 --debugfile=trace
+   --help' now no longer accidentally creates an empty file `trace'.
+
+** The `-L'/`--nesting-limit' command line option can now be set to 0
+   to remove the default limit of 1024.  However, it is still possible that
+   heavily nested input can cause abrupt program termination due to stack
+   overflow.
+
+** Problems encountered when writing to standard error, such as with the
+   `errprint' macro, now always cause a non-zero exit status.
+
+** Warnings and errors issued during macro expansion are now consistently
+   reported at the line where the macro name was detected, rather than
+   where the close parenthesis resides.  Text wrapped by `m4wrap' now
+   remembers the location that was in effect when m4wrap was invoked,
+   rather than changing to line 0 and the empty string for a file.  The
+   macros `__line__' and `__file__' now work correctly even as the last
+   token in an included file.
+
+** The `builtin' and `indir' macros now transparently handle builtin
+   tokens generated by `defn'.
+
+** When diversions created by the `divert' macro collect enough text that
+   M4 must use temporary files, the environment variable $TMPDIR is now
+   consulted, and a better effort is made to clean up those files in the
+   event of a fatal signal.
+
+** The `mkstemp' builtin is added with the same GNU semantics as `maketemp',
+   based on the recommendation of POSIX to deprecate the POSIX semantics of
+   `maketemp' as inherently insecure.  In GNU mode (no -G supplied on the
+   command line), `maketemp' silently retains the secure GNU semantics, but
+   a future release of M4 will change this to emit a warning.  In
+   traditional mode (m4 -G), `maketemp' now uses the POSIX-mandated
+   insecure semantics, and issues a warning that you should convert your
+   script to use `mkstemp' instead.  Additionally, `mkstemp' and `maketemp'
+   are now well-defined even if the template argument does not end in six
+   `X' characters.
+
+** The manual has been improved, including a new section on a composite
+   macro `foreach'.
+
+** The `changecom' and `changequote' macros now treat an empty second
+   argument the same as if it were missing, rather than using the empty
+   string and making it impossible to end a comment or quote.
+
+** The `translit' macro now operates in linear instead of quadratic time,
+   and is now eight-bit clean.
+
+** The `-D', `-U', `-s', and `-t' command line options now take effect
+   after any files encountered earlier on the command line, rather than up
+   front, as is done in traditional implementations and required by POSIX.
+
+* Noteworthy changes in Version 1.4.7 (2006-09-25) [stable]
+  Released by Eric Blake, based on CVS version 1.4.6a
+
+** Fix regression from 1.4.5 in handling a file that ends in a macro
+   expansion without arguments instead of a newline.
+
+** The define and pushdef macros now warn when the first argument is not
+   a string, rather than silently doing nothing.
+
+** Standard input can now be read more than once, as in 'm4 - file -', and
+   is not closed until all wrapped text is handled.  This makes a
+   difference when stdin is not a regular file, and also fixes bugs when
+   using the syscmd or esyscmd macros from wrapped text.
+
+** When standard input is a seekable file, the m4exit, syscmd, and esyscmd
+   macros now restore the current position to the next unread byte rather
+   than discarding an arbitrary amount of buffered data.
+
+** SysV command-line compatibility is no longer a goal of GNU M4; the
+   focus will be instead on POSIX compatibility.  This release continues to
+   support previous usage, but adds warnings in areas which will allow a
+   future version of GNU M4 to use its own extensions without being tied to
+   the SysV command line interface.
+
+** The no-op compatibility command line options -B, -N, -S, -T, and
+   --diversions may be withdrawn or assigned new meanings in future
+   releases, so they now issue a warning if used.
+
+** A new command line option -i replaces the compatibility -e as the
+   short spelling of --interactive, for consistency with other GNU tools; a
+   warning is issued if the old spelling is used, and it may be assigned
+   new meaning in future releases.
+
+** A new command line option --debugfile replaces the options -o and
+   --error-output as the preferred spelling.  The old options were
+   misleading in their names and inconsistent with other GNU tools; they
+   are still silently accepted, but no longer documented in --help, and may
+   be assigned new meanings in future releases.
+
+* Noteworthy changes in Version 1.4.6 (2006-08-25) [stable]
+  Released by Eric Blake, based on CVS version 1.4.5a
+
+** Fix buffer overruns in regexp and patsubst macros when handed a trailing
+   backslash in the replacement text, or when handling \n substitutions
+   beyond the number of \(\) groups.
+
+** Fix memory leak in regexp, patsubst, and changeword macros.
+
+** The format macro now understands %F, %g, and %G.
+
+** When loading frozen files, m4 now exits with status 63 if version
+   mismatch is detected.
+
+** Fix bugs that occurred when invoked with stdout or stderr closed,
+   and detect write failures to stdout or to the target of the debugfile
+   macro.  In particular, the syscmd and esyscmd macros can no longer
+   interfere with the debug stream or diversions.
+
+** The m4exit macro now converts values outside the range 0-255 to 1.
+
+** It is now an error if a command-line input file ends in the middle of a
+   comment, matching the behavior of mid-string and mid-argument
+   collection.
+
+** The dnl macro now warns if end of file is encountered instead of a
+   newline.
+
+** The error message when end of file is encountered now uses the file and
+   line where the dangling construct started, rather than `NONE:0:'.
+
+** The debugmode and __file__ macros, and the -s/--synclines option, now
+   show what directory a file was found in when the -I/--include option or
+   M4PATH variable had an effect.
+
+** The changequote and changecom macros now work with 8-bit characters, and
+   quotes and comments that begin with `(' are properly recognized
+   following a word.
+
+** The new macro __program__ is added, which allows the input file to issue
+   an error message that resembles messages from m4.  Warning and error
+   messages have been reformatted to comply with GNU Coding Standards.
+
+** The errprint, m4wrap, and shift macros are now recognized only with
+   arguments.
+
+** The index, substr, translit, regexp, and patsubst macros now produce
+   output when given only one argument, but still warn about a missing
+   second argument.
+
+** The patsubst macro now reliably finds zero-length matches at the end
+   of a string.
+
+* Noteworthy changes in Version 1.4.5 (2006-07-15) [stable]
+  Released by Eric Blake, based on CVS version 1.4.4c
+
+** Fix sysval on BeOS, OS/2, and other systems that store exit status
+   in the low-order byte.  Additionally, on Unix platforms, if syscmd was
+   terminated by a signal, sysval now displays the signal number shifted
+   left by eight bits, to match traditional m4 implementations.
+
+** The maketemp macro is no longer subject to platform limitations (such as
+   26 or 32 max files from a given template).
+
+** Frozen files now require that the first directive be V (version), to
+   better diagnose version mismatch.  Additionally, if the F directive
+   (builtin function) names an unknown builtin that existed in the m4 that
+   froze the file but not in the current m4 (for example, changeword), the
+   warning is deferred until an attempt is made to actually use the
+   builtin.  This allows downgrading from beta m4-1.4o to stable m4-1.4.5
+   without breaking autoconf.
+
+** The format and indir macros are now recognized only with arguments.
+
+** The eval macro no longer crashes on x86 architectures when dividing the
+   minimum integer by -1.
+
+** On systems with ecvt and fcvt, format no longer truncates trailing
+   zeroes on integers printed with %.0f.  On systems without these
+   functions, format is no longer subject to a buffer overflow that
+   permitted arbitrary code execution.
+
+** On native Windows builds, the macro __windows__ is provided instead of
+   __unix__.  Likewise, on OS/2 builds, the macro __os2__ is provided.
+   This allows input files to determine when syscmd might behave
+   differently.
+
+** Fix bug in 1.4.3 patch to use \n line-endings that did not work for
+   cygwin.
+
+** When given the empty string or 0, undivert is now documented as a no-op
+   rather than closing stdout, warning about a non-existent file, or trying
+   to read a directory as a file.
+
+** Many documentation improvements.  Also, the manual is now distributed
+   under FDL 1.2, rather than a stricter verbatim-only license.
+
+** Raise the -L (--nesting-limit) command line option limit from 250 to
+   1024.
+
+** The decr, incr, divert, m4exit, and substr macros treat an empty number
+   as 0, issue a warning, and expand as normal; rather than issuing an
+   error and expanding to the empty string.
+
+** The eval macro now treats an empty radix argument as 10, handles radix 1,
+   and treats the width argument as number of digits excluding the sign,
+   for compatibility with other m4 implementations.
+
+** The ifdef, divert, m4exit, substr, and translit macros now correctly
+   ignore extra arguments.
+
+** The popdef and undefine macros now correctly accept multiple arguments.
+
+** Although changeword is on its last leg, if enabled, it now reverts to the
+   default (faster) regexp when passed the empty string.
+
+** The regexp and substr macros now warn and ignore a trailing backslash in
+   the replacement, and warn on \n for n larger than the number of
+   sub-expressions in the regexp.
+
+* Noteworthy changes in Version 1.4.4b (2006-06-17) [beta]
+  Released by Eric Blake, based on CVS version 1.4.4a
+
+** Fix a recursive push_string crashing bug, which affected changequote of
+   three or more characters on some compilers.
+
+** Use automake to fix build portability issues.
+
+** Fix a recursive m4wrap crashing bug.
+
+** Fix a 1 in 2**32 hash crashing bug.
+
+** Tracing a macro by name is now persistent, even if the macro is
+   subsequently undefined or redefined.  The traceon and traceoff macros no
+   longer warn about undefined symbols.  This solves a crash when using
+   indir on an undefined macro traced with the -t option, as well as an
+   incorrect result of ifdef.  Furthermore, tracing is no longer
+   transferred with builtins, solving the bug of "m4 -tm4_eval" failing to
+   give trace output on the input
+   "define(`m4_eval',defn(`eval'))m4_eval(1)".
+
+** Fix a crash when a macro is undefined while collecting its arguments, by
+   always using the definition that was in effect before argument
+   collection.  This behavior matches the C pre-processor, and means that
+   the sequence "define(`f',`1')f(define(`f',`2'))f" is now documented to
+   result in "12", rather than the previously undocumented "22".
+
+** Update the regex engine to fix several bugs.
+
+** Fix a potential crash on machines where char is signed.
+
+* Noteworthy changes in Version 1.4.4 (Oct 2005) [stable]
+  Released by Gary V. Vaughan
+
+** ./configure --infodir=/usr/share/info now works correctly.
+
+** When any file named on the command line is missing exit with status 1.
+
+* Noteworthy changes in Version 1.4.3 (Mar 2005) [stable]
+  Released by Gary V. Vaughan
+
+** DESTDIR installs now work correctly.
+
+** Don't segfault with uncompilable regexps to changeword().
+
+** Always use \n line-endings for frozen files (fixes a Windows bug).
+
+** Portability fix for systems lacking mkstemp(3).
+
+** Approximately 20% speed up in the common case of usage with autoconf.
+
+** Supported on QNX 6.3.
+
+* Noteworthy changes in Version 1.4.2 (Aug 2004) [stable]
+  Released by Paul Eggert
+
+** No user visible changes; portability bug fixes only.
+
+* Noteworthy changes in Version 1.4.1 (Jun 2004) [stable]
+  Released by Paul Eggert
+
+** maketemp now creates an empty file with the given name, instead of merely
+   returning the name of a nonexistent file.  This closes a security hole.
+
+* Noteworthy changes in Version 1.4 (Oct 1994) [stable]
+  Released by Franc,ois Pinard
+
+** (No user visible changes)
+
+
+Version 1.3 - September 1994, by Franc,ois Pinard
+
+* Diversions are created as needed.  Option `-N' is still accepted, but
+otherwise ignored.  Users should use only negative diversion numbers,
+instead of high positive numbers, for diverting to nowhere.
+
+* Diversions should also work faster.  No temporary files will be needed
+at all if all diversions taken altogether do not use more than 512K.
+
+* Frozen state files may be produced with the `--freeze-state' (-F)
+option and later brought back through the `--reload-state' (-R) option.
+
+Version 1.2 - July 1994, by Franc,ois Pinard
+
+* In patsubst(STRING, REGEXP, REPLACEMENT), \& in REPLACEMENT has been
+changed to represent this part of STRING matched by the whole REGEXP,
+instead of the whole STRING as before.  \0 does the same, but emits a
+diagnostic saying it will disappear in some subsequent release.
+
+* eval(EXPR) emits a diagnostic if EXPR has suffixed crumb.  The same for
+other numeric conversions in incr(), decr(), divert(), etc.
+
+* `--fatal-warnings' (-E) stops execution at first warning.
+
+* `--nesting-limit=LEVEL' (-L LEVEL) sets a limit to macro nesting.
+It is initially fixed at 250.
+
+* `--word-regexp=REGEXP' (-W REGEXP) modifies macro name syntax, like
+does the new `changeword(REGEXP)' macro.  This feature is experimental,
+tell me your opinions about it.  You do need --enable-changeword at
+configure time to get these things.  Do *not* depend on them yet.
+
+* Trace output format is scannable by GNU Emacs' next-error function.
+
+* Stack overflow is detected and diagnosed on some capable systems.
+
+* Various bugs have been corrected, m4 should be more portable.  See the
+ChangeLog for details.
+
+Version 1.1 - November 1993, by Franc,ois Pinard
+
+Changes which might affect existing GNU m4 scripts:
+
+* Option `-V' has been removed, use `--version' instead.  `--version'
+writes on standard output instead of standard error, and inhibits any
+script execution.
+
+* `--no-gnu-extensions' has been renamed `--traditional'.
+
+* In `eval', `^' used to indicate exponentiation, use `**' instead.
+
+* The automatic undiversion which takes place at end of all input is
+forced into the main output stream.
+
+Changes which are unlikely to affect existing scripts:
+
+* `--help' prints an usage summary on standard output.  Script execution
+is then inhibited.
+
+* `--prefix-builtins' (-P) prefixes all builtin macros by `m4_'.
+
+* Most builtin macros for which arguments are mandatory, called without
+any arguments, are no more recognized as builtin macros: they are
+consequently copied verbatim to the output stream.
+
+* `define' and `pushdef' are usable with only one argument, they give
+this argument an empty definition.
+
+* `eval' new operators for binary representation handling: `^' for
+exclusive-or, `~' for the bitwise negation, `<<' and `>>' for shifts.
+
+* `eval' recognizes the notation 0bDIGITS for binary numbers and the
+notation 0rRADIX:DIGITS for numbers in any radix from 1 to 36.
+
+Version 1.0.3 - December 1992, by Franc,ois Pinard
+
+Changes for the user:
+
+* `dnl' outputs a diagnostic if immediately followed by `('.  Usually,
+`dnl' is followed by newline or whitespace.
+
+* `ifelse' accepts without complaining the common idiom of having only
+one argument.  This is useful for introducing long comments.
+
+* `eval' always expresses values as signed, whatever the radix.
+
+* M4OPTS environment variable is no longer obeyed.
+
+* `--no-warnings' option is renamed `--silent'.
+
+* Debug lines use a new format more compatible with GNU standards.
+
+* Various bugs have been corrected.  See the ChangeLog for details.
+
+Changes for the installer:
+
+* GNU m4 now uses an Autoconf-generated configure script, and should be
+more easily portable in many ways.  (Cray is not supported yet).
+
+* `make check' has been made more portable, expect no errors.
+
+Changes for the programmer:
+
+* Sources have been fully reindented to comply with GNU standards, and
+cleaned up in many ways.
+
+* Sources have been protoized.  Non-ANSI compilers are automatically
+detected, then sources are unprotoized on the fly before compilation.
+
+* GNU m4 uses newer versions of obstack, regex, getopt, etc.
+
+Version 1.0 - October 1991, by Rene' Seindal
+
+* Uses GNU configure, taken from the gdb distribution.
+
+* Uses GNU getopt(), with long option names.
+
+* The -Q/+quiet option is added, which suppresses warnings about missing
+or superflous arguments to built-in macros.
+
+* Added default options via the M4OPTS environment variable.
+
+* Several minor bugs have been fixed.
+
+Version 0.99 - July 1991, by Rene' Seindal
+
+* The builtins `incr' and `decr' are now implemented without use of
+`eval'.
+
+* The builtin `indir' is added, to allow for indirect macro calls
+(allows use of "illegal" macro names).
+
+* The debugging and tracing facilities has been enhanced considerably.
+See the manual for details.
+
+* The -tMACRO option is added, marks MACRO for tracing as soon as it
+is defined.
+
+* Builtins are traced after renaming iff they were before.
+
+* Named files can now be undiverted.
+
+* The -Nnum option can be used to increase the number of divertions
+available.
+
+* Calling changecom without arguments now disables all comment handling.
+
+* A bug in `dnl' is fixed.
+
+* A bug in the multi-character quoting code is fixed.
+
+* Several typos in the manual has been corrected.  More probably persist.
+
+Version 0.75 - November 1990, by Rene' Seindal
+
+* Implemented search path for include files (-I option and M4PATH
+environment variable).
+
+* Implemented builtin `format' for printf-like formatting.
+
+* Implemented builtin `regexp' for searching for regular expressions.
+
+* Implemented builtin `patsubst' for substitution with regular
+expressions.
+
+* Implemented builtin `esyscmd', which expands to a shell commands output.
+
+* Implemented `__file__' and `__line__' for use in error messages.
+
+* Implemented character ranges in `translit'.
+
+* Implemented control over debugging output.
+
+* Implemented multi-character quotes.
+
+* Implemented multi-character comment delimiters.
+
+* Changed predefined macro `gnu' to `__gnu__'.
+
+* Changed predefined macro `unix' to `__unix__', when the -G option is
+not used.  With -G, `unix' is still defined.
+
+* Added program name to error messages.
+
+* Fixed two missing null bytes bugs.
+
+Version 0.50 - January 1990, by Rene' Seindal
+
+* Initial beta release.
+
+========================================================================
+
+Local Variables:
+mode: outline
+fill-column: 75
+End:
+
+Copyright (C) 1992-1994, 2004-2013 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the ``GNU Free
+Documentation License'' file as part of this distribution.

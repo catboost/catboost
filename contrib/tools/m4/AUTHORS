@@ -1,0 +1,42 @@
+Authors of GNU M4.
+
+The following contributors have warranted legal paper exchanges with
+the Free Software Foundation for their contributions to GNU M4.  Also
+see the files ChangeLog and THANKS.  This list results from searching
+for /\bM4\b/ in the file /gd/gnuorg/copyright.list on the
+fencepost.gnu.org machine.
+
+Rene' Seindal               seindal@diku.dk               1990-03-28
+James L. Avera              jima@netcom.com               1993-10-04
+Pete Chown                  pete.chown@dale.dircon.co.uk  1994-06-28
+John Gerard Makecki         johnm@vlibs.com               1995-04-24
+Francois Pinard             pinard@iro.umontreal.ca       1996-02-01
+Thomas Tanner               tanner@ffii.org               1999-06-23
+Gary V. Vaughan             gary@gnu.org                  2000-10-02
+Yuji Minejima               ?                             2001-05-09
+Akim Demaille               akim@freefriends.org          2001-11-01
+Andrew James Bettison       andrewb@zip.com.au            2001-11-19
+Noah Jeffrey Misch          noah@cs.caltech.edu           2004-07-05
+Michael Elizabeth Chastain  mec@shout.net                 2001-12-27
+William C. Cox              bill@qswtools.com             2004-12-04
+Alexandre Duret-Lutz        adl@gnu.org                   2004-12-04
+John Gatewood Ham           zappaman@buraphalinux.org     2005-11-01
+Eric Benjamin Blake         ebb9@byu.net                  2006-01-18
+John Brzustowski            jbrzusto@fastmail.fm          2006-03-06
+Ralf Wildenhues             Ralf.Wildenhues@gmx.de        2006-03-20
+Markus Duft                 markus.duft@salomon.at        2006-08-03
+Joel E. Denny               jdenny@clemson.edu            2009-08-18
+David Warme                 David.Warme@Group-W-Inc.com   2010-03-10
+Raphael Poss                m4-patches@raphael.poss.name  2010-10-04
+Tim Rice                    tim@multitalents.net          2011-01-24
+
+========================================================================
+
+Copyright (C) 2000, 2006-2007, 2009-2013 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the ``GNU Free
+Documentation License'' file as part of this distribution.

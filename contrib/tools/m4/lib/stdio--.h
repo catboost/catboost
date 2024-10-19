@@ -18,14 +18,7 @@
 /* Written by Paul Eggert.  */
 
 #include <stdio.h>
-#include <unistd.h>
 #include "stdio-safer.h"
-
-#if defined(_WIN32)
-int fpurge(FILE *stream);
-int fseeko(FILE *stream, off_t offset, int whence);
-off_t ftello(FILE *stream);
-#endif
 
 #if GNULIB_FOPEN_SAFER
 # undef fopen

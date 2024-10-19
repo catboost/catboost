@@ -44,11 +44,7 @@
 # define __libc_key_t gl_tls_key_t
 # define __libc_getspecific(NAME) gl_tls_get ((NAME))
 # define __libc_setspecific(NAME, POINTER) gl_tls_set ((NAME), (POINTER))
-#if defined(_MSC_VER)
-# define __snprintf _snprintf
-#else
 # define __snprintf snprintf
-#endif
 #endif /* _LIBC */
 
 #ifdef _LIBC

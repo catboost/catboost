@@ -1,0 +1,76 @@
+GNU `m4' is an implementation of the traditional Unix macro
+processor.  It is mostly SVR4 compatible, although it has some
+extensions (for example, handling more than 9 positional parameters
+to macros).  `m4' also has built-in functions for including files,
+running shell commands, doing arithmetic, etc.  Autoconf needs GNU
+`m4' for generating `configure' scripts, but not for running them.
+
+GNU `m4' was originally written by Rene' Seindal, from Denmark.
+This release is considered stable.
+
+If GNU `m4' is meant to serve GNU `autoconf', beware that `m4'
+should be fully installed *prior to* configuring `autoconf' itself.
+Likewise, if you intend on hacking GNU `m4' from git, the bootstrap
+process requires that you first install a released copy of GNU `m4'.
+
+If you are just trying to build `m4' from a released tarball, you
+should not normally need to run `./bootstrap' or `autoreconf'; just go
+ahead and start with `./configure'.  If you are trying to build `m4'
+from git, more information can be found in the version-control-only
+file HACKING.
+
+M4 has an optional dependency on the libsigsegv library:
+  http://www.gnu.org/software/libsigsegv/
+If the library has not been installed in the standard location, you
+can use `./configure --with-libsigsegv-prefix=/path/to/dir', to make
+the build of `m4' use /path/to/dir/include/sigsegv.h as appropriate.
+The use of this library is optional; the only difference in having it
+available is that it increases the number of platforms where `m4' can
+correctly distinguish stack overflow from an internal bug.  It is
+recommended that you use version 2.9 or newer.
+
+In the subdirectory `examples' you will find various m4 files, ranging
+from trivial test files to rather advanced macros.  If you intend to
+use m4 seriously, you might find useful material down there.
+
+See file `BACKLOG' for a summary of pending mail and articles.
+See file `COPYING' for copying conditions.  Note that M4 is distributed
+under the GNU Public License version 3 or later.  Some files in the
+distribution are copied from the gnulib project, and hence bear the
+designation version 2 or later because they are unmodified from gnulib;
+however, if you modify these files using M4 rather than gnulib as the
+source, you must update the license to be GPLv3 or later.
+See file `INSTALL' for compilation and installation instructions.
+See file `NEWS' for a list of major changes in the current release.
+See file `THANKS' for a list of contributors.
+
+By default, the `syscmd' and `esyscmd' macros try to use the first
+instance of `sh' found by `command -p getconf PATH' at configure time,
+with a default of `/bin/sh'.  If that default is inappropriate, you
+can use `./configure --with-syscmd-shell=location' to specify the
+shell to use.
+
+By using `./configure --enable-changeword', you get an experimental
+feature which allows for changing the syntax of what is a "word" in
+`m4'.  This feature will not be present in m4 2.0, but will be
+replaced by other new features which provide similar capability, so
+do not count on it.
+
+Send bug reports to `bug-m4@gnu.org'.  A bug report is an adequate
+description of the problem: your input, what you expected, what you got,
+and why this is wrong.  Diffs are welcome, but they only describe a
+solution, from which the problem might be uneasy to infer.
+
+For any copyright year range specified as YYYY-ZZZZ in this package
+note that the range specifies every single year in that closed interval.
+
+========================================================================
+
+Copyright (C) 2000, 2005-2013 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the ``GNU Free
+Documentation License'' file as part of this distribution.

@@ -482,7 +482,7 @@ static unsigned int re_string_context_at (const re_string_t *input, Idx idx,
 #define re_string_set_index(pstr,idx) ((pstr)->cur_idx = (idx))
 
 #if defined _LIBC || HAVE_ALLOCA
-# include "palloca.h"
+# include <alloca.h>
 #endif
 
 #ifndef _LIBC

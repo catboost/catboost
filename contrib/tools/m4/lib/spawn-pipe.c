@@ -27,7 +27,6 @@
 #include <signal.h>
 #include <unistd.h>
 
-#include "penviron.h"
 #include "error.h"
 #include "fatal-signal.h"
 #include "unistd-safer.h"
@@ -47,6 +46,10 @@
 /* Unix API.  */
 # include <spawn.h>
 
+#endif
+
+#if defined(__FreeBSD__) || defined(__MACH__)
+    extern char** environ;
 #endif
 
 /* The results of open() in this file are not used with fchdir,

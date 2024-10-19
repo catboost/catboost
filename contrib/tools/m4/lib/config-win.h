@@ -860,9 +860,6 @@
 /* Define to 1 if you have the <search.h> header file. */
 #define HAVE_SEARCH_H 1
 
-/* Define to 1 if you have the `secure_getenv' function. */
-/* #undef HAVE_SECURE_GETENV */
-
 /* Define to 1 if you have the `setegid' function. */
 /* #undef HAVE_SETEGID */
 
@@ -1204,9 +1201,6 @@ char *strsignal (int signum);
    large precisions without arbitrary bounds. */
 #define NEED_PRINTF_UNBOUNDED_PRECISION 1
 
-/* Define to 1 if open() fails to recognize a trailing slash. */
-/* #undef OPEN_TRAILING_SLASH_BUG */
-
 /* Name of package */
 #define PACKAGE "m4"
 
@@ -1226,7 +1220,7 @@ char *strsignal (int signum);
 /* #undef PACKAGE_PACKAGER_VERSION */
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU M4 3.0.0"
+#define PACKAGE_STRING "GNU M4 1.4.17"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "m4"
@@ -1235,7 +1229,7 @@ char *strsignal (int signum);
 #define PACKAGE_URL "http://www.gnu.org/software/m4/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.0.0"
+#define PACKAGE_VERSION "1.4.17"
 
 /* the number of pending output bytes on stream 'fp' */
 #if WIN_SDK10
@@ -1405,7 +1399,7 @@ char *strsignal (int signum);
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "3.0.0"
+#define VERSION "1.4.17"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 /* #undef VOID_UNSETENV */
@@ -1708,5 +1702,12 @@ char *strsignal (int signum);
 /* Define as a macro for copying va_list variables. */
 #define va_copy gl_va_copy
 
+#undef HAVE_SECURE_GETENV
+#define secure_getenv getenv
+
+#define HAVE_DECL___ARGV 1
 #define HAVE_ISNANL_IN_LIBC 1
 #define HAVE_ISNAND_IN_LIBC 1
+
+#define _GL_ARG_NONNULL(...)
+#define _GL_ATTRIBUTE_FORMAT_PRINTF(...)

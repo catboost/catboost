@@ -23,6 +23,7 @@
    and "sinclude".  */
 
 #include "m4.h"
+#include "sys/stat.h"
 
 struct includes
 {

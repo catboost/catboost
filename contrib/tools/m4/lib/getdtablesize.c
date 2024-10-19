@@ -73,16 +73,12 @@ getdtablesize (void)
          FILE objects.  The sanity check in _setmaxstdio reveals the maximum
          number of file descriptors.  This too allocates memory, but it is
          freed when we call _setmaxstdio with the original value.  */
-#if !defined(_WIN32) && !defined(_WIN64)
       int orig_max_stdio = _getmaxstdio ();
       unsigned int bound;
       for (bound = 0x10000; _setmaxstdio (bound) < 0; bound = bound / 2)
         ;
       _setmaxstdio (orig_max_stdio);
       dtablesize = bound;
-#else
-	  dtablesize = _getmaxstdio();
-#endif
     }
   return dtablesize;
 }
