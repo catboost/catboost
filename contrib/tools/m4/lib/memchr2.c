@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2004, 2006, 2008-2013
+/* Copyright (C) 1991, 1993, 1996-1997, 1999-2000, 2003-2004, 2006, 2008-2016
    Free Software Foundation, Inc.
 
    Based on strlen implementation by Torbjorn Granlund (tege@sics.se),

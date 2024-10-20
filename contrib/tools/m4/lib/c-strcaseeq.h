@@ -1,5 +1,5 @@
 /* Optimized case-insensitive string comparison in C locale.
-   Copyright (C) 2001-2002, 2007, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001-2002, 2007, 2009-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published
@@ -33,9 +33,6 @@
 # if C_CTYPE_ASCII
 #  define CASEEQ(other,upper) \
      (c_isupper (upper) ? ((other) & ~0x20) == (upper) : (other) == (upper))
-# elif C_CTYPE_CONSECUTIVE_UPPERCASE && C_CTYPE_CONSECUTIVE_LOWERCASE
-#  define CASEEQ(other,upper) \
-     (c_isupper (upper) ? (other) == (upper) || (other) == (upper) - 'A' + 'a' : (other) == (upper))
 # else
 #  define CASEEQ(other,upper) \
      (c_toupper (other) == (upper))

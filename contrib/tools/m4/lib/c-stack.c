@@ -1,6 +1,6 @@
 /* Stack overflow handling.
 
-   Copyright (C) 2002, 2004, 2006, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004, 2006, 2008-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -78,6 +78,7 @@ typedef struct sigaltstack stack_t;
 #include "c-stack.h"
 #include "exitfail.h"
 #include "ignore-value.h"
+#include "getprogname.h"
 
 #if defined SA_ONSTACK && defined SA_SIGINFO
 # define SIGINFO_WORKS 1
@@ -87,8 +88,6 @@ typedef struct sigaltstack stack_t;
 #  define SA_ONSTACK 0
 # endif
 #endif
-
-extern char *program_name;
 
 /* The user-specified action to take when a SEGV-related program error
    or stack overflow occurs.  */
@@ -116,7 +115,7 @@ die (int signo)
 #endif /* !SIGINFO_WORKS && !HAVE_LIBSIGSEGV */
   segv_action (signo);
   message = signo ? program_error_message : stack_overflow_message;
-  ignore_value (write (STDERR_FILENO, program_name, strlen (program_name)));
+  ignore_value (write (STDERR_FILENO, getprogname (), strlen (getprogname ())));
   ignore_value (write (STDERR_FILENO, ": ", 2));
   ignore_value (write (STDERR_FILENO, message, strlen (message)));
   ignore_value (write (STDERR_FILENO, "\n", 1));

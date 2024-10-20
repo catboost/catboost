@@ -1,7 +1,7 @@
 /* DO NOT EDIT! GENERATED AUTOMATICALLY! */
 /* Like <fcntl.h>, but with non-working flags defined to 0.
 
-   Copyright (C) 2006-2013 Free Software Foundation, Inc.
+   Copyright (C) 2006-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
    extern "C" { ... } block, which leads to errors in C++ mode with the
    overridden <sys/stat.h> from gnulib.  These errors are known to be gone
    with g++ version >= 4.3.  */
-#if !(defined __GLIBC__ || defined __UCLIBC__) || (defined __cplusplus && defined GNULIB_NAMESPACE && !(__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)))
+#if !(defined __GLIBC__ || defined __UCLIBC__) || (defined __cplusplus && defined GNULIB_NAMESPACE && (defined __ICC || !(__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))))
 # include <sys/stat.h>
 #endif
 #include_next <fcntl.h>
@@ -54,7 +54,7 @@
    extern "C" { ... } block, which leads to errors in C++ mode with the
    overridden <sys/stat.h> from gnulib.  These errors are known to be gone
    with g++ version >= 4.3.  */
-#if !(defined __GLIBC__ || defined __UCLIBC__) || (defined __cplusplus && defined GNULIB_NAMESPACE && !(__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)))
+#if !(defined __GLIBC__ || defined __UCLIBC__) || (defined __cplusplus && defined GNULIB_NAMESPACE && (defined __ICC || !(__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))))
 # include <sys/stat.h>
 #endif
 /* The include_next requires a split double-inclusion guard.  */
@@ -77,6 +77,15 @@
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 #ifndef _GL_CXXDEFS_H
 #define _GL_CXXDEFS_H
+
+/* Begin/end the GNULIB_NAMESPACE namespace.  */
+#if defined __cplusplus && defined GNULIB_NAMESPACE
+# define _GL_BEGIN_NAMESPACE namespace GNULIB_NAMESPACE {
+# define _GL_END_NAMESPACE }
+#else
+# define _GL_BEGIN_NAMESPACE
+# define _GL_END_NAMESPACE
+#endif
 
 /* The three most frequent use cases of these macros are:
 
@@ -172,14 +181,25 @@
    that redirects to rpl_func, if GNULIB_NAMESPACE is defined.
    Example:
      _GL_CXXALIAS_RPL (open, int, (const char *filename, int flags, ...));
- */
+
+   Wrapping rpl_func in an object with an inline conversion operator
+   avoids a reference to rpl_func unless GNULIB_NAMESPACE::func is
+   actually used in the program.  */
 #define _GL_CXXALIAS_RPL(func,rettype,parameters) \
   _GL_CXXALIAS_RPL_1 (func, rpl_##func, rettype, parameters)
 #if defined __cplusplus && defined GNULIB_NAMESPACE
 # define _GL_CXXALIAS_RPL_1(func,rpl_func,rettype,parameters) \
     namespace GNULIB_NAMESPACE                                \
     {                                                         \
-      rettype (*const func) parameters = ::rpl_func;          \
+      static const struct _gl_ ## func ## _wrapper            \
+      {                                                       \
+        typedef rettype (*type) parameters;                   \
+                                                              \
+        inline operator type () const                         \
+        {                                                     \
+          return ::rpl_func;                                  \
+        }                                                     \
+      } func = {};                                            \
     }                                                         \
     _GL_EXTERN_C int _gl_cxxalias_dummy
 #else
@@ -196,8 +216,15 @@
 # define _GL_CXXALIAS_RPL_CAST_1(func,rpl_func,rettype,parameters) \
     namespace GNULIB_NAMESPACE                                     \
     {                                                              \
-      rettype (*const func) parameters =                           \
-        reinterpret_cast<rettype(*)parameters>(::rpl_func);        \
+      static const struct _gl_ ## func ## _wrapper                 \
+      {                                                            \
+        typedef rettype (*type) parameters;                        \
+                                                                   \
+        inline operator type () const                              \
+        {                                                          \
+          return reinterpret_cast<type>(::rpl_func);               \
+        }                                                          \
+      } func = {};                                                 \
     }                                                              \
     _GL_EXTERN_C int _gl_cxxalias_dummy
 #else
@@ -211,19 +238,24 @@
    is defined.
    Example:
      _GL_CXXALIAS_SYS (open, int, (const char *filename, int flags, ...));
- */
+
+   Wrapping func in an object with an inline conversion operator
+   avoids a reference to func unless GNULIB_NAMESPACE::func is
+   actually used in the program.  */
 #if defined __cplusplus && defined GNULIB_NAMESPACE
-  /* If we were to write
-       rettype (*const func) parameters = ::func;
-     like above in _GL_CXXALIAS_RPL_1, the compiler could optimize calls
-     better (remove an indirection through a 'static' pointer variable),
-     but then the _GL_CXXALIASWARN macro below would cause a warning not only
-     for uses of ::func but also for uses of GNULIB_NAMESPACE::func.  */
-# define _GL_CXXALIAS_SYS(func,rettype,parameters) \
-    namespace GNULIB_NAMESPACE                     \
-    {                                              \
-      static rettype (*func) parameters = ::func;  \
-    }                                              \
+# define _GL_CXXALIAS_SYS(func,rettype,parameters)            \
+    namespace GNULIB_NAMESPACE                                \
+    {                                                         \
+      static const struct _gl_ ## func ## _wrapper            \
+      {                                                       \
+        typedef rettype (*type) parameters;                   \
+                                                              \
+        inline operator type () const                         \
+        {                                                     \
+          return ::func;                                      \
+        }                                                     \
+      } func = {};                                            \
+    }                                                         \
     _GL_EXTERN_C int _gl_cxxalias_dummy
 #else
 # define _GL_CXXALIAS_SYS(func,rettype,parameters) \
@@ -239,8 +271,15 @@
 # define _GL_CXXALIAS_SYS_CAST(func,rettype,parameters) \
     namespace GNULIB_NAMESPACE                          \
     {                                                   \
-      static rettype (*func) parameters =               \
-        reinterpret_cast<rettype(*)parameters>(::func); \
+      static const struct _gl_ ## func ## _wrapper      \
+      {                                                 \
+        typedef rettype (*type) parameters;             \
+                                                        \
+        inline operator type () const                   \
+        {                                               \
+          return reinterpret_cast<type>(::func);        \
+        }                                               \
+      } func = {};                                      \
     }                                                   \
     _GL_EXTERN_C int _gl_cxxalias_dummy
 #else
@@ -263,9 +302,15 @@
 # define _GL_CXXALIAS_SYS_CAST2(func,rettype,parameters,rettype2,parameters2) \
     namespace GNULIB_NAMESPACE                                                \
     {                                                                         \
-      static rettype (*func) parameters =                                     \
-        reinterpret_cast<rettype(*)parameters>(                               \
-          (rettype2(*)parameters2)(::func));                                  \
+      static const struct _gl_ ## func ## _wrapper                            \
+      {                                                                       \
+        typedef rettype (*type) parameters;                                   \
+                                                                              \
+        inline operator type () const                                         \
+        {                                                                     \
+          return reinterpret_cast<type>((rettype2 (*) parameters2)(::func));  \
+        }                                                                     \
+      } func = {};                                                            \
     }                                                                         \
     _GL_EXTERN_C int _gl_cxxalias_dummy
 #else
@@ -497,6 +542,22 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 #endif
 
 /* Fix up the O_* macros.  */
+
+/* AIX 7.1 with XL C 12.1 defines O_CLOEXEC, O_NOFOLLOW, and O_TTY_INIT
+   to values outside 'int' range, so omit these misdefinitions.
+   But avoid namespace pollution on non-AIX systems.  */
+#ifdef _AIX
+# include <limits.h>
+# if defined O_CLOEXEC && ! (INT_MIN <= O_CLOEXEC && O_CLOEXEC <= INT_MAX)
+#  undef O_CLOEXEC
+# endif
+# if defined O_NOFOLLOW && ! (INT_MIN <= O_NOFOLLOW && O_NOFOLLOW <= INT_MAX)
+#  undef O_NOFOLLOW
+# endif
+# if defined O_TTY_INIT && ! (INT_MIN <= O_TTY_INIT && O_TTY_INIT <= INT_MAX)
+#  undef O_TTY_INIT
+# endif
+#endif
 
 #if !defined O_DIRECT && defined O_DIRECTIO
 /* Tru64 spells it 'O_DIRECTIO'.  */

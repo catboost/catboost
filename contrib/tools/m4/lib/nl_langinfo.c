@@ -1,6 +1,6 @@
 /* nl_langinfo() replacement: query locale dependent information.
 
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+   Copyright (C) 2007-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,12 +20,70 @@
 /* Specification.  */
 #include <langinfo.h>
 
+#include <locale.h>
+#include <string.h>
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+# define WIN32_LEAN_AND_MEAN  /* avoid including junk */
+# include <windows.h>
+# include <stdio.h>
+#endif
+
+/* Return the codeset of the current locale, if this is easily deducible.
+   Otherwise, return "".  */
+static char *
+ctype_codeset (void)
+{
+  static char buf[2 + 10 + 1];
+  char const *locale = setlocale (LC_CTYPE, NULL);
+  char *codeset = buf;
+  size_t codesetlen;
+  codeset[0] = '\0';
+
+  if (locale && locale[0])
+    {
+      /* If the locale name contains an encoding after the dot, return it.  */
+      char *dot = strchr (locale, '.');
+
+      if (dot)
+        {
+          /* Look for the possible @... trailer and remove it, if any.  */
+          char *codeset_start = dot + 1;
+          char const *modifier = strchr (codeset_start, '@');
+
+          if (! modifier)
+            codeset = codeset_start;
+          else
+            {
+              codesetlen = modifier - codeset_start;
+              if (codesetlen < sizeof buf)
+                {
+                  codeset = memcpy (buf, codeset_start, codesetlen);
+                  codeset[codesetlen] = '\0';
+                }
+            }
+        }
+    }
+
+#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+  /* If setlocale is successful, it returns the number of the
+     codepage, as a string.  Otherwise, fall back on Windows API
+     GetACP, which returns the locale's codepage as a number (although
+     this doesn't change according to what the 'setlocale' call specified).
+     Either way, prepend "CP" to make it a valid codeset name.  */
+  codesetlen = strlen (codeset);
+  if (0 < codesetlen && codesetlen < sizeof buf - 2)
+    memmove (buf + 2, codeset, codesetlen + 1);
+  else
+    sprintf (buf + 2, "%u", GetACP ());
+  codeset = memcpy (buf, "CP", 2);
+#endif
+  return codeset;
+}
+
+
 #if REPLACE_NL_LANGINFO
 
 /* Override nl_langinfo with support for added nl_item values.  */
-
-# include <locale.h>
-# include <string.h>
 
 # undef nl_langinfo
 
@@ -36,47 +94,18 @@ rpl_nl_langinfo (nl_item item)
     {
 # if GNULIB_defined_CODESET
     case CODESET:
-      {
-        const char *locale;
-        static char buf[2 + 10 + 1];
-
-        locale = setlocale (LC_CTYPE, NULL);
-        if (locale != NULL && locale[0] != '\0')
-          {
-            /* If the locale name contains an encoding after the dot, return
-               it.  */
-            const char *dot = strchr (locale, '.');
-
-            if (dot != NULL)
-              {
-                const char *modifier;
-
-                dot++;
-                /* Look for the possible @... trailer and remove it, if any.  */
-                modifier = strchr (dot, '@');
-                if (modifier == NULL)
-                  return dot;
-                if (modifier - dot < sizeof (buf))
-                  {
-                    memcpy (buf, dot, modifier - dot);
-                    buf [modifier - dot] = '\0';
-                    return buf;
-                  }
-              }
-          }
-        return "";
-      }
+      return ctype_codeset ();
 # endif
 # if GNULIB_defined_T_FMT_AMPM
     case T_FMT_AMPM:
-      return "%I:%M:%S %p";
+      return (char *) "%I:%M:%S %p";
 # endif
 # if GNULIB_defined_ERA
     case ERA:
       /* The format is not standardized.  In glibc it is a sequence of strings
          of the form "direction:offset:start_date:end_date:era_name:era_format"
          with an empty string at the end.  */
-      return "";
+      return (char *) "";
     case ERA_D_FMT:
       /* The %Ex conversion in strftime behaves like %x if the locale does not
          have an alternative time format.  */
@@ -95,13 +124,13 @@ rpl_nl_langinfo (nl_item item)
     case ALT_DIGITS:
       /* The format is not standardized.  In glibc it is a sequence of 10
          strings, appended in memory.  */
-      return "\0\0\0\0\0\0\0\0\0\0";
+      return (char *) "\0\0\0\0\0\0\0\0\0\0";
 # endif
 # if GNULIB_defined_YESEXPR || !FUNC_NL_LANGINFO_YESEXPR_WORKS
     case YESEXPR:
-      return "^[yY]";
+      return (char *) "^[yY]";
     case NOEXPR:
-      return "^[nN]";
+      return (char *) "^[nN]";
 # endif
     default:
       break;
@@ -111,45 +140,31 @@ rpl_nl_langinfo (nl_item item)
 
 #else
 
-/* Provide nl_langinfo from scratch.  */
+/* Provide nl_langinfo from scratch, either for native MS-Windows, or
+   for old Unix platforms without locales, such as Linux libc5 or
+   BeOS.  */
 
-# if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
-
-/* Native Windows platforms.  */
-
-#  define WIN32_LEAN_AND_MEAN  /* avoid including junk */
-#  include <windows.h>
-
-#  include <stdio.h>
-
-# else
-
-/* An old Unix platform without locales, such as Linux libc5 or BeOS.  */
-
-# endif
-
-# include <locale.h>
+# include <time.h>
 
 char *
 nl_langinfo (nl_item item)
 {
+  static char nlbuf[100];
+  struct tm tmm = { 0 };
+
   switch (item)
     {
     /* nl_langinfo items of the LC_CTYPE category */
     case CODESET:
-# if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
       {
-        static char buf[2 + 10 + 1];
-
-        /* The Windows API has a function returning the locale's codepage as
-           a number.  */
-        sprintf (buf, "CP%u", GetACP ());
-        return buf;
+        char *codeset = ctype_codeset ();
+        if (*codeset)
+          return codeset;
       }
-# elif defined __BEOS__
-      return "UTF-8";
+# ifdef __BEOS__
+      return (char *) "UTF-8";
 # else
-      return "ISO-8859-1";
+      return (char *) "ISO-8859-1";
 # endif
     /* nl_langinfo items of the LC_NUMERIC category */
     case RADIXCHAR:
@@ -160,111 +175,146 @@ nl_langinfo (nl_item item)
        TODO: Really use the locale.  */
     case D_T_FMT:
     case ERA_D_T_FMT:
-      return "%a %b %e %H:%M:%S %Y";
+      return (char *) "%a %b %e %H:%M:%S %Y";
     case D_FMT:
     case ERA_D_FMT:
-      return "%m/%d/%y";
+      return (char *) "%m/%d/%y";
     case T_FMT:
     case ERA_T_FMT:
-      return "%H:%M:%S";
+      return (char *) "%H:%M:%S";
     case T_FMT_AMPM:
-      return "%I:%M:%S %p";
+      return (char *) "%I:%M:%S %p";
     case AM_STR:
-      return "AM";
+      if (!strftime (nlbuf, sizeof nlbuf, "%p", &tmm))
+        return (char *) "AM";
+      return nlbuf;
     case PM_STR:
-      return "PM";
+      tmm.tm_hour = 12;
+      if (!strftime (nlbuf, sizeof nlbuf, "%p", &tmm))
+        return (char *) "PM";
+      return nlbuf;
     case DAY_1:
-      return "Sunday";
     case DAY_2:
-      return "Monday";
     case DAY_3:
-      return "Tuesday";
     case DAY_4:
-      return "Wednesday";
     case DAY_5:
-      return "Thursday";
     case DAY_6:
-      return "Friday";
     case DAY_7:
-      return "Saturday";
+      {
+        static char const days[][sizeof "Wednesday"] = {
+          "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
+          "Friday", "Saturday"
+        };
+        tmm.tm_wday = item - DAY_1;
+        if (!strftime (nlbuf, sizeof nlbuf, "%A", &tmm))
+          return (char *) days[item - DAY_1];
+        return nlbuf;
+      }
     case ABDAY_1:
-      return "Sun";
     case ABDAY_2:
-      return "Mon";
     case ABDAY_3:
-      return "Tue";
     case ABDAY_4:
-      return "Wed";
     case ABDAY_5:
-      return "Thu";
     case ABDAY_6:
-      return "Fri";
     case ABDAY_7:
-      return "Sat";
+      {
+        static char const abdays[][sizeof "Sun"] = {
+          "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+        };
+        tmm.tm_wday = item - ABDAY_1;
+        if (!strftime (nlbuf, sizeof nlbuf, "%a", &tmm))
+          return (char *) abdays[item - ABDAY_1];
+        return nlbuf;
+      }
     case MON_1:
-      return "January";
     case MON_2:
-      return "February";
     case MON_3:
-      return "March";
     case MON_4:
-      return "April";
     case MON_5:
-      return "May";
     case MON_6:
-      return "June";
     case MON_7:
-      return "July";
     case MON_8:
-      return "August";
     case MON_9:
-      return "September";
     case MON_10:
-      return "October";
     case MON_11:
-      return "November";
     case MON_12:
-      return "December";
+      {
+        static char const months[][sizeof "September"] = {
+          "January", "February", "March", "April", "May", "June", "July",
+          "September", "October", "November", "December"
+        };
+        tmm.tm_mon = item - MON_1;
+        if (!strftime (nlbuf, sizeof nlbuf, "%B", &tmm))
+          return (char *) months[item - MON_1];
+        return nlbuf;
+      }
     case ABMON_1:
-      return "Jan";
     case ABMON_2:
-      return "Feb";
     case ABMON_3:
-      return "Mar";
     case ABMON_4:
-      return "Apr";
     case ABMON_5:
-      return "May";
     case ABMON_6:
-      return "Jun";
     case ABMON_7:
-      return "Jul";
     case ABMON_8:
-      return "Aug";
     case ABMON_9:
-      return "Sep";
     case ABMON_10:
-      return "Oct";
     case ABMON_11:
-      return "Nov";
     case ABMON_12:
-      return "Dec";
+      {
+        static char const abmonths[][sizeof "Jan"] = {
+          "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+          "Sep", "Oct", "Nov", "Dec"
+        };
+        tmm.tm_mon = item - ABMON_1;
+        if (!strftime (nlbuf, sizeof nlbuf, "%b", &tmm))
+          return (char *) abmonths[item - ABMON_1];
+        return nlbuf;
+      }
     case ERA:
-      return "";
+      return (char *) "";
     case ALT_DIGITS:
-      return "\0\0\0\0\0\0\0\0\0\0";
-    /* nl_langinfo items of the LC_MONETARY category
-       TODO: Really use the locale. */
+      return (char *) "\0\0\0\0\0\0\0\0\0\0";
+    /* nl_langinfo items of the LC_MONETARY category.  */
     case CRNCYSTR:
-      return "-";
+      return localeconv () ->currency_symbol;
+#if 0
+    case INT_CURR_SYMBOL:
+      return localeconv () ->int_curr_symbol;
+    case MON_DECIMAL_POINT:
+      return localeconv () ->mon_decimal_point;
+    case MON_THOUSANDS_SEP:
+      return localeconv () ->mon_thousands_sep;
+    case MON_GROUPING:
+      return localeconv () ->mon_grouping;
+    case POSITIVE_SIGN:
+      return localeconv () ->positive_sign;
+    case NEGATIVE_SIGN:
+      return localeconv () ->negative_sign;
+    case FRAC_DIGITS:
+      return & localeconv () ->frac_digits;
+    case INT_FRAC_DIGITS:
+      return & localeconv () ->int_frac_digits;
+    case P_CS_PRECEDES:
+      return & localeconv () ->p_cs_precedes;
+    case N_CS_PRECEDES:
+      return & localeconv () ->n_cs_precedes;
+    case P_SEP_BY_SPACE:
+      return & localeconv () ->p_sep_by_space;
+    case N_SEP_BY_SPACE:
+      return & localeconv () ->n_sep_by_space;
+    case P_SIGN_POSN:
+      return & localeconv () ->p_sign_posn;
+    case N_SIGN_POSN:
+      return & localeconv () ->n_sign_posn;
+#endif
     /* nl_langinfo items of the LC_MESSAGES category
        TODO: Really use the locale. */
     case YESEXPR:
-      return "^[yY]";
+      return (char *) "^[yY]";
     case NOEXPR:
-      return "^[nN]";
+      return (char *) "^[nN]";
     default:
-      return "";
+      return (char *) "";
     }
 }
 

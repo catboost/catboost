@@ -1,5 +1,5 @@
 /* Print --version and bug-reporting information in a consistent format.
-   Copyright (C) 1999-2013 Free Software Foundation, Inc.
+   Copyright (C) 1999-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@
 # define PACKAGE PACKAGE_TARNAME
 #endif
 
-enum { COPYRIGHT_YEAR = 2013 };
+enum { COPYRIGHT_YEAR = 2016 };
 
 /* The three functions below display the --version information the
    standard way.

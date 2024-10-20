@@ -1,6 +1,7 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2004-2013 Free Software Foundation, Inc.
+   Copyright (C) 1989-1994, 2004-2014, 2016 Free Software Foundation,
+   Inc.
 
    This file is part of GNU M4.
 
@@ -307,7 +308,9 @@ static const struct option long_options[] =
   {"trace", required_argument, NULL, 't'},
   {"traditional", no_argument, NULL, 'G'},
   {"undefine", required_argument, NULL, 'U'},
+#ifdef ENABLE_CHANGEWORD
   {"word-regexp", required_argument, NULL, 'W'},
+#endif
 
   {"debugfile", optional_argument, NULL, DEBUGFILE_OPTION},
   {"diversions", required_argument, NULL, DIVERSIONS_OPTION},

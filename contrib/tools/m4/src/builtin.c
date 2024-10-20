@@ -1,6 +1,6 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2000, 2004, 2006-2013 Free Software
+   Copyright (C) 1989-1994, 2000, 2004, 2006-2014, 2016 Free Software
    Foundation, Inc.
 
    This file is part of GNU M4.
@@ -1019,7 +1019,13 @@ m4_esyscmd (struct obstack *obs, int argc, token_data **argv)
       sysval = 127;
       return;
     }
+#if OS2
+  /* On OS/2 kLIBC, fdopen() creates a stream in a mode of a file descriptor.
+     So include "t" to open a stream in a text mode explicitly on OS/2. */
+  pin = fdopen (fd, "rt");
+#else
   pin = fdopen (fd, "r");
+#endif
   if (pin == NULL)
     {
       M4ERROR ((warning_status, errno, "cannot run command `%s'", cmd));
@@ -1420,7 +1426,7 @@ mkstemp_helper (struct obstack *obs, const char *me, const char *pattern,
     {
       close (fd);
       /* Remove NUL, then finish quote.  */
-      obstack_blank (obs, -1);
+      obstack_blank_fast (obs, -1);
       obstack_grow (obs, rquote.string, rquote.length);
     }
 }

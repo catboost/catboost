@@ -1,6 +1,6 @@
 /* GNU m4 -- A simple macro processor
 
-   Copyright (C) 1989-1994, 2006-2007, 2009-2013 Free Software
+   Copyright (C) 1989-1994, 2006-2007, 2009-2014, 2016 Free Software
    Foundation, Inc.
 
    This file is part of GNU M4.
@@ -46,8 +46,8 @@ static struct obstack argc_stack;
 
 /* The shared stack of pointers to collected arguments for macro
    calls.  This object is never finished; we exploit the fact that
-   obstack_blank is documented to take a negative size to reduce the
-   size again.  */
+   obstack_blank_fast is documented to take a negative size to reduce
+   the size again.  */
 static struct obstack argv_stack;
 
 /*----------------------------------------------------------------------.
@@ -387,5 +387,5 @@ expand_macro (symbol *sym)
     obstack_free (&argc_stack, argv[0]);
   else
     obstack_free (&arguments, NULL);
-  obstack_blank (&argv_stack, -argc * sizeof (token_data *));
+  obstack_blank_fast (&argv_stack, -argc * sizeof (token_data *));
 }

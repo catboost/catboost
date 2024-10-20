@@ -1,5 +1,5 @@
-/* Manipulating the FPU control word.
-   Copyright (C) 2007-2013 Free Software Foundation, Inc.
+/* Manipulating the FPU control word.  -*- coding: utf-8 -*-
+   Copyright (C) 2007-2016 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2007.
 
    This program is free software: you can redistribute it and/or modify

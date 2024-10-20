@@ -1,5 +1,5 @@
-/* Abstract sequential list data type.
-   Copyright (C) 2006-2013 Free Software Foundation, Inc.
+/* Abstract sequential list data type.  -*- coding: utf-8 -*-
+   Copyright (C) 2006-2016 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2006.
 
    This program is free software: you can redistribute it and/or modify

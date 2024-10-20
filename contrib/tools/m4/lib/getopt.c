@@ -2,7 +2,7 @@
    NOTE: getopt is part of the C library, so if you don't know what
    "Keep this file name-space clean" means, talk to drepper@gnu.org
    before changing it!
-   Copyright (C) 1987-1996, 1998-2004, 2006, 2008-2013 Free Software
+   Copyright (C) 1987-1996, 1998-2004, 2006, 2008-2016 Free Software
    Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -487,7 +487,20 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
         const struct option *p;
         struct option_list *next;
       } *ambig_list = NULL;
+#ifdef _LIBC
+/* malloc() not used for _LIBC to simplify failure messages.  */
+# define free_option_list(l)
+#else
+# define free_option_list(l)			\
+      while (l != NULL)				\
+        {					\
+          struct option_list *pn = l->next;	\
+          free (l);				\
+          l = pn;				\
+        }
+#endif
       int exact = 0;
+      int ambig = 0;
       int indfound = -1;
       int option_index;
 
@@ -514,22 +527,37 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
                 pfound = p;
                 indfound = option_index;
               }
+            else if (ambig)
+              ; /* Taking simpler path to handling ambiguities.  */
             else if (long_only
                      || pfound->has_arg != p->has_arg
                      || pfound->flag != p->flag
                      || pfound->val != p->val)
               {
                 /* Second or later nonexact match found.  */
+#ifdef _LIBC
+                struct option_list *newp = alloca (sizeof (*newp));
+#else
                 struct option_list *newp = malloc (sizeof (*newp));
-                newp->p = p;
-                newp->next = ambig_list;
-                ambig_list = newp;
+                if (newp == NULL)
+                  {
+                    free_option_list (ambig_list);
+                    ambig_list = NULL;
+                    ambig = 1; /* Use simpler fallback message.  */
+                  }
+                else
+#endif
+                  {
+                    newp->p = p;
+                    newp->next = ambig_list;
+                    ambig_list = newp;
+                  }
               }
           }
 
-      if (ambig_list != NULL && !exact)
+      if ((ambig || ambig_list) && !exact)
         {
-          if (print_errors)
+          if (print_errors && ambig_list)
             {
               struct option_list first;
               first.p = pfound;
@@ -585,18 +613,20 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
               fputc ('\n', stderr);
 #endif
             }
+          else if (print_errors && ambig)
+            {
+              fprintf (stderr,
+                       _("%s: option '%s' is ambiguous\n"),
+                       argv[0], argv[d->optind]);
+            }
           d->__nextchar += strlen (d->__nextchar);
           d->optind++;
           d->optopt = 0;
+          free_option_list (ambig_list);
           return '?';
         }
 
-      while (ambig_list != NULL)
-        {
-          struct option_list *pn = ambig_list->next;
-          free (ambig_list);
-          ambig_list = pn;
-        }
+      free_option_list (ambig_list);
 
       if (pfound != NULL)
         {

@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002-2016 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -311,13 +311,12 @@ build_wcs_upper_buffer (re_string_t *pstr)
 			       + byte_idx), remain_len, &pstr->cur_state);
 	  if (BE (mbclen < (size_t) -2, 1))
 	    {
-	      wchar_t wcu = wc;
-	      if (iswlower (wc))
+	      wchar_t wcu = __towupper (wc);
+	      if (wcu != wc)
 		{
 		  size_t mbcdlen;
 
-		  wcu = towupper (wc);
-		  mbcdlen = wcrtomb (buf, wcu, &prev_st);
+		  mbcdlen = __wcrtomb (buf, wcu, &prev_st);
 		  if (BE (mbclen == mbcdlen, 1))
 		    memcpy (pstr->mbs + byte_idx, buf, mbclen);
 		  else
@@ -381,12 +380,11 @@ build_wcs_upper_buffer (re_string_t *pstr)
 	mbclen = __mbrtowc (&wc, p, remain_len, &pstr->cur_state);
 	if (BE (mbclen < (size_t) -2, 1))
 	  {
-	    wchar_t wcu = wc;
-	    if (iswlower (wc))
+	    wchar_t wcu = __towupper (wc);
+	    if (wcu != wc)
 	      {
 		size_t mbcdlen;
 
-		wcu = towupper (wc);
 		mbcdlen = wcrtomb ((char *) buf, wcu, &prev_st);
 		if (BE (mbclen == mbcdlen, 1))
 		  memcpy (pstr->mbs + byte_idx, buf, mbclen);
@@ -538,10 +536,7 @@ build_upper_buffer (re_string_t *pstr)
       int ch = pstr->raw_mbs[pstr->raw_mbs_idx + char_idx];
       if (BE (pstr->trans != NULL, 0))
 	ch = pstr->trans[ch];
-      if (islower (ch))
-	pstr->mbs[char_idx] = toupper (ch);
-      else
-	pstr->mbs[char_idx] = ch;
+      pstr->mbs[char_idx] = toupper (ch);
     }
   pstr->valid_len = char_idx;
   pstr->valid_raw_len = char_idx;
@@ -682,7 +677,7 @@ re_string_reconstruct (re_string_t *pstr, Idx idx, int eflags)
 			 pstr->valid_len - offset);
 	      pstr->valid_len -= offset;
 	      pstr->valid_raw_len -= offset;
-#if DEBUG
+#if defined DEBUG && DEBUG
 	      assert (pstr->valid_len > 0);
 #endif
 	    }
@@ -927,7 +922,7 @@ internal_function
 re_string_context_at (const re_string_t *input, Idx idx, int eflags)
 {
   int c;
-  if (BE (! REG_VALID_INDEX (idx), 0))
+  if (BE (idx < 0, 0))
     /* In this case, we use the value stored in input->tip_context,
        since we can't know the character in input->mbs[-1] here.  */
     return input->tip_context;
@@ -941,12 +936,12 @@ re_string_context_at (const re_string_t *input, Idx idx, int eflags)
       Idx wc_idx = idx;
       while(input->wcs[wc_idx] == WEOF)
 	{
-#ifdef DEBUG
+#if defined DEBUG && DEBUG
 	  /* It must not happen.  */
-	  assert (REG_VALID_INDEX (wc_idx));
+	  assert (wc_idx >= 0);
 #endif
 	  --wc_idx;
-	  if (! REG_VALID_INDEX (wc_idx))
+	  if (wc_idx < 0)
 	    return input->tip_context;
 	}
       wc = input->wcs[wc_idx];
@@ -1082,25 +1077,25 @@ re_node_set_add_intersect (re_node_set *dest, const re_node_set *src1,
       if (src1->elems[i1] == src2->elems[i2])
 	{
 	  /* Try to find the item in DEST.  Maybe we could binary search?  */
-	  while (REG_VALID_INDEX (id) && dest->elems[id] > src1->elems[i1])
+	  while (id >= 0 && dest->elems[id] > src1->elems[i1])
 	    --id;
 
-          if (! REG_VALID_INDEX (id) || dest->elems[id] != src1->elems[i1])
+	  if (id < 0 || dest->elems[id] != src1->elems[i1])
             dest->elems[--sbase] = src1->elems[i1];
 
-	  if (! REG_VALID_INDEX (--i1) || ! REG_VALID_INDEX (--i2))
+	  if (--i1 < 0 || --i2 < 0)
 	    break;
 	}
 
       /* Lower the highest of the two items.  */
       else if (src1->elems[i1] < src2->elems[i2])
 	{
-	  if (! REG_VALID_INDEX (--i2))
+	  if (--i2 < 0)
 	    break;
 	}
       else
 	{
-	  if (! REG_VALID_INDEX (--i1))
+	  if (--i1 < 0)
 	    break;
 	}
     }
@@ -1113,7 +1108,7 @@ re_node_set_add_intersect (re_node_set *dest, const re_node_set *src1,
      DEST elements are already in place; this is more or
      less the same loop that is in re_node_set_merge.  */
   dest->nelem += delta;
-  if (delta > 0 && REG_VALID_INDEX (id))
+  if (delta > 0 && id >= 0)
     for (;;)
       {
 	if (dest->elems[is] > dest->elems[id])
@@ -1127,7 +1122,7 @@ re_node_set_add_intersect (re_node_set *dest, const re_node_set *src1,
 	  {
 	    /* Slide from the bottom.  */
 	    dest->elems[id + delta] = dest->elems[id];
-	    if (! REG_VALID_INDEX (--id))
+	    if (--id < 0)
 	      break;
 	  }
       }
@@ -1221,8 +1216,7 @@ re_node_set_merge (re_node_set *dest, const re_node_set *src)
   /* Copy into the top of DEST the items of SRC that are not
      found in DEST.  Maybe we could binary search in DEST?  */
   for (sbase = dest->nelem + 2 * src->nelem,
-       is = src->nelem - 1, id = dest->nelem - 1;
-       REG_VALID_INDEX (is) && REG_VALID_INDEX (id); )
+       is = src->nelem - 1, id = dest->nelem - 1; is >= 0 && id >= 0; )
     {
       if (dest->elems[id] == src->elems[is])
 	is--, id--;
@@ -1232,7 +1226,7 @@ re_node_set_merge (re_node_set *dest, const re_node_set *src)
 	--id;
     }
 
-  if (REG_VALID_INDEX (is))
+  if (is >= 0)
     {
       /* If DEST is exhausted, the remaining items of SRC must be unique.  */
       sbase -= is + 1;
@@ -1261,7 +1255,7 @@ re_node_set_merge (re_node_set *dest, const re_node_set *src)
 	{
 	  /* Slide from the bottom.  */
 	  dest->elems[id + delta] = dest->elems[id];
-	  if (! REG_VALID_INDEX (--id))
+	  if (--id < 0)
 	    {
 	      /* Copy remaining SRC elements.  */
 	      memcpy (dest->elems, dest->elems + sbase,
@@ -1360,7 +1354,7 @@ re_node_set_compare (const re_node_set *set1, const re_node_set *set2)
   Idx i;
   if (set1 == NULL || set2 == NULL || set1->nelem != set2->nelem)
     return false;
-  for (i = set1->nelem ; REG_VALID_INDEX (--i) ; )
+  for (i = set1->nelem ; --i >= 0 ; )
     if (set1->elems[i] != set2->elems[i])
       return false;
   return true;
@@ -1373,7 +1367,7 @@ internal_function __attribute__ ((pure))
 re_node_set_contains (const re_node_set *set, Idx elem)
 {
   __re_size_t idx, right, mid;
-  if (! REG_VALID_NONZERO_INDEX (set->nelem))
+  if (set->nelem <= 0)
     return 0;
 
   /* Binary search the element.  */
@@ -1403,7 +1397,7 @@ re_node_set_remove_at (re_node_set *set, Idx idx)
 
 
 /* Add the token TOKEN to dfa->nodes, and return the index of the token.
-   Or return REG_MISSING if an error occurred.  */
+   Or return -1 if an error occurred.  */
 
 static Idx
 internal_function
@@ -1421,11 +1415,11 @@ re_dfa_add_node (re_dfa_t *dfa, re_token_t token)
 					  MAX (sizeof (re_node_set),
 					       sizeof (Idx)));
       if (BE (MIN (IDX_MAX, SIZE_MAX / max_object_size) < new_nodes_alloc, 0))
-	return REG_MISSING;
+	return -1;
 
       new_nodes = re_realloc (dfa->nodes, re_token_t, new_nodes_alloc);
       if (BE (new_nodes == NULL, 0))
-	return REG_MISSING;
+	return -1;
       dfa->nodes = new_nodes;
       new_nexts = re_realloc (dfa->nexts, Idx, new_nodes_alloc);
       new_indices = re_realloc (dfa->org_indices, Idx, new_nodes_alloc);
@@ -1433,7 +1427,13 @@ re_dfa_add_node (re_dfa_t *dfa, re_token_t token)
       new_eclosures = re_realloc (dfa->eclosures, re_node_set, new_nodes_alloc);
       if (BE (new_nexts == NULL || new_indices == NULL
 	      || new_edests == NULL || new_eclosures == NULL, 0))
-	return REG_MISSING;
+	{
+	   re_free (new_nexts);
+	   re_free (new_indices);
+	   re_free (new_edests);
+	   re_free (new_eclosures);
+	   return -1;
+	}
       dfa->nexts = new_nexts;
       dfa->org_indices = new_indices;
       dfa->edests = new_edests;
@@ -1447,7 +1447,7 @@ re_dfa_add_node (re_dfa_t *dfa, re_token_t token)
     ((token.type == OP_PERIOD && dfa->mb_cur_max > 1)
      || token.type == COMPLEX_BRACKET);
 #endif
-  dfa->nexts[dfa->nodes_len] = REG_MISSING;
+  dfa->nexts[dfa->nodes_len] = -1;
   re_node_set_init_empty (dfa->edests + dfa->nodes_len);
   re_node_set_init_empty (dfa->eclosures + dfa->nodes_len);
   return dfa->nodes_len++;
@@ -1482,7 +1482,7 @@ re_acquire_state (reg_errcode_t *err, const re_dfa_t *dfa,
   re_dfastate_t *new_state;
   struct re_state_table_entry *spot;
   Idx i;
-#ifdef lint
+#if defined GCC_LINT || defined lint
   /* Suppress bogus uninitialized-variable warnings.  */
   *err = REG_NOERROR;
 #endif
@@ -1530,7 +1530,7 @@ re_acquire_state_context (reg_errcode_t *err, const re_dfa_t *dfa,
   re_dfastate_t *new_state;
   struct re_state_table_entry *spot;
   Idx i;
-#ifdef lint
+#if defined GCC_LINT || defined lint
   /* Suppress bogus uninitialized-variable warnings.  */
   *err = REG_NOERROR;
 #endif

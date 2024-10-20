@@ -1,5 +1,5 @@
 /* getdtablesize() function for platforms that don't have it.
-   Copyright (C) 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2008-2016 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2008.
 
    This program is free software: you can redistribute it and/or modify
@@ -22,11 +22,11 @@
 
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 
-#include <stdio.h>
+# include <stdio.h>
 
-#include "msvc-inval.h"
+# include "msvc-inval.h"
 
-#if HAVE_MSVC_INVALID_PARAMETER_HANDLER
+# if HAVE_MSVC_INVALID_PARAMETER_HANDLER
 static int
 _setmaxstdio_nothrow (int newmax)
 {
@@ -44,10 +44,11 @@ _setmaxstdio_nothrow (int newmax)
 
   return result;
 }
-# define _setmaxstdio _setmaxstdio_nothrow
-#endif
+#  define _setmaxstdio _setmaxstdio_nothrow
+# endif
 
-/* Cache for the previous getdtablesize () result.  */
+/* Cache for the previous getdtablesize () result.  Safe to cache because
+   Windows also lacks setrlimit.  */
 static int dtablesize;
 
 int
@@ -81,6 +82,40 @@ getdtablesize (void)
       dtablesize = bound;
     }
   return dtablesize;
+}
+
+#else
+
+# include <limits.h>
+# include <sys/resource.h>
+
+# ifndef RLIM_SAVED_CUR
+#  define RLIM_SAVED_CUR RLIM_INFINITY
+# endif
+# ifndef RLIM_SAVED_MAX
+#  define RLIM_SAVED_MAX RLIM_INFINITY
+# endif
+
+# ifdef __CYGWIN__
+  /* Cygwin 1.7.25 auto-increases the RLIMIT_NOFILE soft limit until it
+     hits the compile-time constant hard limit of 3200.  We might as
+     well just report the hard limit.  */
+#  define rlim_cur rlim_max
+# endif
+
+int
+getdtablesize (void)
+{
+  struct rlimit lim;
+
+  if (getrlimit (RLIMIT_NOFILE, &lim) == 0
+      && 0 <= lim.rlim_cur && lim.rlim_cur <= INT_MAX
+      && lim.rlim_cur != RLIM_INFINITY
+      && lim.rlim_cur != RLIM_SAVED_CUR
+      && lim.rlim_cur != RLIM_SAVED_MAX)
+    return lim.rlim_cur;
+
+  return INT_MAX;
 }
 
 #endif

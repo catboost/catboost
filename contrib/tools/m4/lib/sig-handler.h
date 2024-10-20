@@ -1,6 +1,6 @@
 /* Convenience declarations when working with <signal.h>.
 
-   Copyright (C) 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2008-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ typedef void (*sa_handler_t) (int);
 /* Return the handler of a signal, as a sa_handler_t value regardless
    of its true type.  The resulting function can be compared to
    special values like SIG_IGN but it is not portable to call it.  */
-SIG_HANDLER_INLINE sa_handler_t
+SIG_HANDLER_INLINE sa_handler_t _GL_ATTRIBUTE_PURE
 get_handler (struct sigaction const *a)
 {
 #ifdef SA_SIGINFO

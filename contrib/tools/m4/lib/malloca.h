@@ -1,5 +1,5 @@
 /* Safe automatic memory allocation.
-   Copyright (C) 2003-2007, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2003-2007, 2009-2016 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2003.
 
    This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,9 @@
 #include <alloca.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+#include "xalloc-oversized.h"
 
 
 #ifdef __cplusplus
@@ -73,15 +76,7 @@ extern void freea (void *p);
    It allocates an array of N objects, each with S bytes of memory,
    on the stack.  S must be positive and N must be nonnegative.
    The array must be freed using freea() before the function returns.  */
-#if 1
-/* Cf. the definition of xalloc_oversized.  */
-# define nmalloca(n, s) \
-    ((n) > (size_t) (sizeof (ptrdiff_t) <= sizeof (size_t) ? -1 : -2) / (s) \
-     ? NULL \
-     : malloca ((n) * (s)))
-#else
-extern void * nmalloca (size_t n, size_t s);
-#endif
+#define nmalloca(n, s) (xalloc_oversized (n, s) ? NULL : malloca ((n) * (s)))
 
 
 #ifdef __cplusplus

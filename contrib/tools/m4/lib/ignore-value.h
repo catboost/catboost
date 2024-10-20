@@ -1,6 +1,6 @@
-/* ignore a function return without a compiler warning
+/* ignore a function return without a compiler warning.  -*- coding: utf-8 -*-
 
-   Copyright (C) 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2008-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,9 +35,11 @@
 #ifndef _GL_IGNORE_VALUE_H
 #define _GL_IGNORE_VALUE_H
 
-/* The __attribute__((__warn_unused_result__)) feature
-   is available in gcc versions 3.4 and newer,
-   while the typeof feature has been available since 2.7 at least.  */
+/* Normally casting an expression to void discards its value, but GCC
+   versions 3.4 and newer have __attribute__ ((__warn_unused_result__))
+   which may cause unwanted diagnostics in that case.  Use __typeof__
+   and __extension__ to work around the problem, if the workaround is
+   known to be needed.  */
 #if 3 < __GNUC__ + (4 <= __GNUC_MINOR__)
 # define ignore_value(x) \
     (__extension__ ({ __typeof__ (x) __x = (x); (void) __x; }))

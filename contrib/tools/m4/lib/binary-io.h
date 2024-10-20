@@ -1,5 +1,5 @@
 /* Binary mode I/O.
-   Copyright (C) 2001, 2003, 2005, 2008-2013 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2003, 2005, 2008-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ set_binary_mode (int fd, int mode)
 
 /* SET_BINARY (fd);
    changes the file descriptor fd to perform binary I/O.  */
-#ifdef __DJGPP__
+#if defined __DJGPP__ || defined __EMX__
 # include <unistd.h> /* declares isatty() */
   /* Avoid putting stdin/stdout in binary mode if it is connected to
      the console, because that would make it impossible for the user

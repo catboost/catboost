@@ -1,6 +1,6 @@
 /* Declare __fpending.
 
-   Copyright (C) 2000, 2003, 2005-2006, 2009-2013 Free Software Foundation,
+   Copyright (C) 2000, 2003, 2005-2006, 2009-2016 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,6 @@
 # include <stdio_ext.h>
 #endif
 
-#ifndef __fpending
-size_t __fpending (FILE *);
+#if !HAVE_DECL___FPENDING
+size_t __fpending (FILE *) _GL_ATTRIBUTE_PURE;
 #endif

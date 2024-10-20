@@ -1,5 +1,5 @@
 /* Sequential list data type implemented by a linked list.
-   Copyright (C) 2006-2013 Free Software Foundation, Inc.
+   Copyright (C) 2006-2016 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2006.
 
    This program is free software: you can redistribute it and/or modify
@@ -163,13 +163,13 @@ gl_linked_nx_create (gl_list_implementation_t implementation,
   return NULL;
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_linked_size (gl_list_t list)
 {
   return list->count;
 }
 
-static const void *
+static const void * _GL_ATTRIBUTE_PURE
 gl_linked_node_value (gl_list_t list, gl_list_node_t node)
 {
   return node->value;
@@ -215,19 +215,19 @@ gl_linked_node_nx_set_value (gl_list_t list, gl_list_node_t node,
   return 0;
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_next_node (gl_list_t list, gl_list_node_t node)
 {
   return (node->next != &list->root ? node->next : NULL);
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_previous_node (gl_list_t list, gl_list_node_t node)
 {
   return (node->prev != &list->root ? node->prev : NULL);
 }
 
-static const void *
+static const void * _GL_ATTRIBUTE_PURE
 gl_linked_get_at (gl_list_t list, size_t position)
 {
   size_t count = list->count;
@@ -312,7 +312,7 @@ gl_linked_nx_set_at (gl_list_t list, size_t position, const void *elt)
   return node;
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_search_from_to (gl_list_t list, size_t start_index, size_t end_index,
                           const void *elt)
 {
@@ -465,7 +465,7 @@ gl_linked_search_from_to (gl_list_t list, size_t start_index, size_t end_index,
   }
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_linked_indexof_from_to (gl_list_t list, size_t start_index, size_t end_index,
                            const void *elt)
 {
@@ -923,7 +923,7 @@ gl_linked_iterator (gl_list_t list)
   result.list = list;
   result.p = list->root.next;
   result.q = &list->root;
-#ifdef lint
+#if defined GCC_LINT || defined lint
   result.i = 0;
   result.j = 0;
   result.count = 0;
@@ -994,7 +994,7 @@ gl_linked_iterator_from_to (gl_list_t list,
       result.q = node;
     }
 
-#ifdef lint
+#if defined GCC_LINT || defined lint
   result.i = 0;
   result.j = 0;
   result.count = 0;
@@ -1027,7 +1027,7 @@ gl_linked_iterator_free (gl_list_iterator_t *iterator)
 
 /* ---------------------- Sorted gl_list_t Data Type ---------------------- */
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_sortedlist_search (gl_list_t list, gl_listelement_compar_fn compar,
                              const void *elt)
 {
@@ -1045,7 +1045,7 @@ gl_linked_sortedlist_search (gl_list_t list, gl_listelement_compar_fn compar,
   return NULL;
 }
 
-static gl_list_node_t
+static gl_list_node_t _GL_ATTRIBUTE_PURE
 gl_linked_sortedlist_search_from_to (gl_list_t list,
                                      gl_listelement_compar_fn compar,
                                      size_t low, size_t high,
@@ -1093,7 +1093,7 @@ gl_linked_sortedlist_search_from_to (gl_list_t list,
   return NULL;
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_linked_sortedlist_indexof (gl_list_t list, gl_listelement_compar_fn compar,
                               const void *elt)
 {
@@ -1114,7 +1114,7 @@ gl_linked_sortedlist_indexof (gl_list_t list, gl_listelement_compar_fn compar,
   return (size_t)(-1);
 }
 
-static size_t
+static size_t _GL_ATTRIBUTE_PURE
 gl_linked_sortedlist_indexof_from_to (gl_list_t list,
                                       gl_listelement_compar_fn compar,
                                       size_t low, size_t high,

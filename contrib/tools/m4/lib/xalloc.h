@@ -1,6 +1,6 @@
 /* xalloc.h -- malloc with out-of-memory checking
 
-   Copyright (C) 1990-2000, 2003-2004, 2006-2013 Free Software Foundation, Inc.
+   Copyright (C) 1990-2000, 2003-2004, 2006-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #define XALLOC_H_
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "xalloc-oversized.h"
 
@@ -41,7 +42,8 @@ extern "C" {
 # define _GL_ATTRIBUTE_MALLOC
 #endif
 
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
+#if ! defined __clang__ && \
+    (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
 # define _GL_ATTRIBUTE_ALLOC_SIZE(args) __attribute__ ((__alloc_size__ args))
 #else
 # define _GL_ATTRIBUTE_ALLOC_SIZE(args)
@@ -64,7 +66,7 @@ void *xrealloc (void *p, size_t s)
       _GL_ATTRIBUTE_ALLOC_SIZE ((2));
 void *x2realloc (void *p, size_t *pn);
 void *xmemdup (void const *p, size_t s)
-      _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_ALLOC_SIZE ((2));
+      _GL_ATTRIBUTE_ALLOC_SIZE ((2));
 char *xstrdup (char const *str)
       _GL_ATTRIBUTE_MALLOC;
 
@@ -122,10 +124,9 @@ xnrealloc (void *p, size_t n, size_t s)
 
 /* If P is null, allocate a block of at least *PN such objects;
    otherwise, reallocate P so that it contains more than *PN objects
-   each of S bytes.  *PN must be nonzero unless P is null, and S must
-   be nonzero.  Set *PN to the new number of objects, and return the
-   pointer to the new block.  *PN is never set to zero, and the
-   returned pointer is never null.
+   each of S bytes.  S must be nonzero.  Set *PN to the new number of
+   objects, and return the pointer to the new block.  *PN is never set
+   to zero, and the returned pointer is never null.
 
    Repeated reallocations are guaranteed to make progress, either by
    allocating an initial block with a nonzero size, or by allocating a
@@ -196,13 +197,14 @@ x2nrealloc (void *p, size_t *pn, size_t s)
     }
   else
     {
-      /* Set N = ceil (1.5 * N) so that progress is made if N == 1.
-         Check for overflow, so that N * S stays in size_t range.
-         The check is slightly conservative, but an exact check isn't
-         worth the trouble.  */
-      if ((size_t) -1 / 3 * 2 / s <= n)
+      /* Set N = floor (1.5 * N) + 1 so that progress is made even if N == 0.
+         Check for overflow, so that N * S stays in both ptrdiff_t and
+         size_t range.  The check may be slightly conservative, but an
+         exact check isn't worth the trouble.  */
+      if ((PTRDIFF_MAX < SIZE_MAX ? PTRDIFF_MAX : SIZE_MAX) / 3 * 2 / s
+          <= n)
         xalloc_die ();
-      n += (n + 1) / 2;
+      n += n / 2 + 1;
     }
 
   *pn = n;
@@ -259,5 +261,6 @@ xmemdup (T const *p, size_t s)
 
 #endif
 
+_GL_INLINE_HEADER_END
 
 #endif /* !XALLOC_H_ */

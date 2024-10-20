@@ -31,6 +31,9 @@
 /* Define to 1 if using `alloca.c'. */
 /* #undef C_ALLOCA */
 
+/* Define to 1 if the C locale may have encoding errors. */
+#define C_LOCALE_MAYBE_EILSEQ 1
+
 /* Define as the bit index in the word where to find bit 0 of the exponent of
    'double'. */
 #define DBL_EXPBIT0_BIT 20
@@ -44,6 +47,16 @@
 /* Define as the word index where to find the sign of 'double'. */
 /* #undef DBL_SIGNBIT_WORD */
 
+/* the name of the file descriptor member of DIR */
+/* #undef DIR_FD_MEMBER_NAME */
+
+#ifdef DIR_FD_MEMBER_NAME
+# define DIR_TO_FD(Dir_p) ((Dir_p)->DIR_FD_MEMBER_NAME)
+#else
+# define DIR_TO_FD(Dir_p) -1
+#endif
+
+
 /* Define to 1 if // is a file system root distinct from /. */
 /* #undef DOUBLE_SLASH_IS_DISTINCT_ROOT */
 
@@ -55,6 +68,15 @@
 
 /* Define this to 1 if F_DUPFD behavior does not match POSIX */
 /* #undef FCNTL_DUPFD_BUGGY */
+
+/* Define to nothing if C supports flexible array members, and to 1 if it does
+   not. That way, with a declaration like 'struct s { int n; double
+   d[FLEXIBLE_ARRAY_MEMBER]; };', the struct hack can be used with pre-C99
+   compilers. When computing the size of such an object, don't use 'sizeof
+   (struct s)' as it overestimates the size. Use 'offsetof (struct s, d)'
+   instead. Don't use 'offsetof (struct s, d[0])', as this doesn't work with
+   MSVC and with C++ compilers. */
+#define FLEXIBLE_ARRAY_MEMBER /**/
 
 /* Define as the bit index in the word where to find bit 0 of the exponent of
    'float'. */
@@ -101,7 +123,7 @@
 
 /* Define this to 'void' or 'struct timezone' to match the system's
    declaration of the second argument to gettimeofday. */
-#define GETTIMEOFDAY_TIMEZONE struct timezone
+#define GETTIMEOFDAY_TIMEZONE void
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module canonicalize-lgpl shall be considered present. */
@@ -140,12 +162,12 @@
 #define GNULIB_LOCK 1
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
-   whether the gnulib module malloc-gnu shall be considered present. */
-#define GNULIB_MALLOC_GNU 1
-
-/* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module pipe2-safer shall be considered present. */
 #define GNULIB_PIPE2_SAFER 1
+
+/* Define to 1 if printf and friends should be labeled with attribute
+   "__gnu_printf__" instead of "__printf__" */
+/* #undef GNULIB_PRINTF_ATTRIBUTE_FLAVOR_GNU */
 
 /* Define to a C preprocessor expression that evaluates to 1 or 0, depending
    whether the gnulib module scanf shall be considered present. */
@@ -181,6 +203,9 @@
 
 /* Define to 1 when the gnulib module closedir should be tested. */
 #define GNULIB_TEST_CLOSEDIR 1
+
+/* Define to 1 when the gnulib module dirfd should be tested. */
+#define GNULIB_TEST_DIRFD 1
 
 /* Define to 1 when the gnulib module dup should be tested. */
 #define GNULIB_TEST_DUP 1
@@ -235,9 +260,6 @@
 
 /* Define to 1 when the gnulib module getdtablesize should be tested. */
 #define GNULIB_TEST_GETDTABLESIZE 1
-
-/* Define to 1 when the gnulib module getopt-gnu should be tested. */
-#define GNULIB_TEST_GETOPT_GNU 1
 
 /* Define to 1 when the gnulib module getpagesize should be tested. */
 #define GNULIB_TEST_GETPAGESIZE 1
@@ -491,6 +513,10 @@
    don't. */
 /* #undef HAVE_DECL_COPYSIGNL */
 
+/* Define to 1 if you have the declaration of `dirfd', and to 0 if you don't.
+   */
+#define HAVE_DECL_DIRFD 1
+
 /* Define to 1 if you have the declaration of `feof_unlocked', and to 0 if you
    don't. */
 #define HAVE_DECL_FEOF_UNLOCKED 1
@@ -542,6 +568,10 @@
 /* Define to 1 if you have the declaration of `getc_unlocked', and to 0 if you
    don't. */
 #define HAVE_DECL_GETC_UNLOCKED 1
+
+/* Define to 1 if you have the declaration of `getdtablesize', and to 0 if you
+   don't. */
+#define HAVE_DECL_GETDTABLESIZE 1
 
 /* Define to 1 if you have the declaration of `getenv', and to 0 if you don't.
    */
@@ -613,7 +643,7 @@
 
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
-#define HAVE_DECL_SYS_SIGLIST 1
+#define HAVE_DECL_SYS_SIGLIST 0
 
 /* Define to 1 if you have the declaration of `towlower', and to 0 if you
    don't. */
@@ -643,8 +673,19 @@
    don't. */
 /* #undef HAVE_DECL__SYS_SIGLIST */
 
+/* Define to 1 if you have the declaration of `__argv', and to 0 if you don't.
+   */
+#define HAVE_DECL___ARGV 0
+
+/* Define to 1 if you have the declaration of `__fpending', and to 0 if you
+   don't. */
+#define HAVE_DECL___FPENDING 1
+
 /* Define to 1 if you have the <dirent.h> header file. */
 #define HAVE_DIRENT_H 1
+
+/* Define to 1 if you have the `dirfd' function. */
+#define HAVE_DIRFD 1
 
 /* Define to 1 if you have the 'dup2' function. */
 #define HAVE_DUP2 1
@@ -676,6 +717,21 @@
 /* Define to 1 if you have the `getdtablesize' function. */
 #define HAVE_GETDTABLESIZE 1
 
+/* Define to 1 if you have the `getegid' function. */
+#define HAVE_GETEGID 1
+
+/* Define to 1 if you have the `geteuid' function. */
+#define HAVE_GETEUID 1
+
+/* Define to 1 if you have the `getexecname' function. */
+/* #undef HAVE_GETEXECNAME */
+
+/* Define to 1 if you have the `getgid' function. */
+#define HAVE_GETGID 1
+
+/* Define to 1 if you have the `getlocalename_l' function. */
+/* #undef HAVE_GETLOCALENAME_L */
+
 /* Define to 1 if you have the <getopt.h> header file. */
 #define HAVE_GETOPT_H 1
 
@@ -685,8 +741,14 @@
 /* Define to 1 if you have the `getpagesize' function. */
 #define HAVE_GETPAGESIZE 1
 
+/* Define to 1 if you have the `getprogname' function. */
+/* #undef HAVE_GETPROGNAME */
+
 /* Define to 1 if you have the `gettimeofday' function. */
 #define HAVE_GETTIMEOFDAY 1
+
+/* Define to 1 if you have the `getuid' function. */
+#define HAVE_GETUID 1
 
 /* Define if you have the 'intmax_t' type in <stdint.h> or <inttypes.h>. */
 #define HAVE_INTMAX_T 1
@@ -708,7 +770,7 @@
 #define HAVE_ISNANF_IN_LIBC 1
 
 /* Define if the isnan(long double) function is available in libc. */
-/* #undef HAVE_ISNANL_IN_LIBC */
+#define HAVE_ISNANL_IN_LIBC 1
 
 /* Define to 1 if you have the `issetugid' function. */
 /* #undef HAVE_ISSETUGID */
@@ -740,6 +802,9 @@
 /* Define if you have the libsigsegv library. */
 /* #undef HAVE_LIBSIGSEGV */
 
+/* Define to 1 if you have the <limits.h> header file. */
+#define HAVE_LIMITS_H 1
+
 /* Define to 1 if you have the `link' function. */
 #define HAVE_LINK 1
 
@@ -749,9 +814,8 @@
 /* Define to 1 if you have the `lstat' function. */
 #define HAVE_LSTAT 1
 
-/* Define to 1 if your system has a GNU libc compatible 'malloc' function, and
-   to 0 otherwise. */
-#define HAVE_MALLOC_GNU 1
+/* Define to 1 if you have the <malloc.h> header file. */
+#define HAVE_MALLOC_H 1
 
 /* Define if the 'malloc' function is POSIX compliant. */
 #define HAVE_MALLOC_POSIX 1
@@ -778,6 +842,12 @@
 /* Define to 1 if you have the `mempcpy' function. */
 #define HAVE_MEMPCPY 1
 
+/* Define to 1 if <limits.h> defines the MIN and MAX macros. */
+/* #undef HAVE_MINMAX_IN_LIMITS_H */
+
+/* Define to 1 if <sys/param.h> defines the MIN and MAX macros. */
+#define HAVE_MINMAX_IN_SYS_PARAM_H 1
+
 /* Define to 1 if you have the `mkdtemp' function. */
 #define HAVE_MKDTEMP 1
 
@@ -797,8 +867,8 @@
 /* Define to 1 if you have the `nl_langinfo' function. */
 #define HAVE_NL_LANGINFO 1
 
-/* Define to 1 if libc includes obstacks. */
-#define HAVE_OBSTACK 1
+/* Define to 1 if the system has obstacks that work with any size object. */
+/* #undef HAVE_OBSTACK */
 
 /* Define to 1 if you have the `opendir' function. */
 #define HAVE_OPENDIR 1
@@ -849,7 +919,7 @@
 /* #undef HAVE_SAME_LONG_DOUBLE_AS_DOUBLE */
 
 /* Define to 1 if you have the <sched.h> header file. */
-#define HAVE_SCHED_H 1
+/* #undef HAVE_SCHED_H */
 
 /* Define to 1 if you have the `sched_setparam' function. */
 /* #undef HAVE_SCHED_SETPARAM */
@@ -862,6 +932,9 @@
 
 /* Define to 1 if you have the `secure_getenv' function. */
 #define HAVE_SECURE_GETENV 1
+
+/* Define to 1 if you have the `setdtablesize' function. */
+/* #undef HAVE_SETDTABLESIZE */
 
 /* Define to 1 if you have the `setegid' function. */
 /* #undef HAVE_SETEGID */
@@ -975,6 +1048,9 @@
 /* Define to 1 if you have the <sys/bitypes.h> header file. */
 /* #undef HAVE_SYS_BITYPES_H */
 
+/* Define to 1 if you have the <sys/cdefs.h> header file. */
+#define HAVE_SYS_CDEFS_H 1
+
 /* Define to 1 if you have the <sys/inttypes.h> header file. */
 /* #undef HAVE_SYS_INTTYPES_H */
 
@@ -1023,6 +1099,9 @@
 /* Define to 1 if you have the `uselocale' function. */
 #define HAVE_USELOCALE 1
 
+/* Define if you have a global __progname variable */
+/* #undef HAVE_VAR___PROGNAME */
+
 /* Define to 1 if you have the `vasnprintf' function. */
 /* #undef HAVE_VASNPRINTF */
 
@@ -1043,9 +1122,6 @@
 
 /* Define to 1 if you have the `wcrtomb' function. */
 #define HAVE_WCRTOMB 1
-
-/* Define to 1 if you have the `wcscoll' function. */
-#define HAVE_WCSCOLL 1
 
 /* Define to 1 if you have the `wcslen' function. */
 #define HAVE_WCSLEN 1
@@ -1076,7 +1152,7 @@
 #define HAVE_WORKING_POSIX_SPAWN 1
 
 /* Define to 1 if you have the <xlocale.h> header file. */
-#define HAVE_XLOCALE_H 1
+/* #undef HAVE_XLOCALE_H */
 
 /* Define to 1 if extending the stack slightly past the limit causes a
    SIGSEGV, and an alternate stack can be established with sigaltstack, and
@@ -1100,6 +1176,16 @@
 
 /* Define to 1 if you have the `_set_invalid_parameter_handler' function. */
 /* #undef HAVE__SET_INVALID_PARAMETER_HANDLER */
+
+/* Define to 1 if the compiler supports __builtin_expect,
+   and to 2 if <builtins.h> does.  */
+#define HAVE___BUILTIN_EXPECT 1
+#ifndef HAVE___BUILTIN_EXPECT
+# define __builtin_expect(e, c) (e)
+#elif HAVE___BUILTIN_EXPECT == 2
+# include <builtins.h>
+#endif
+    
 
 /* Define to 1 if you have the `__fpurge' function. */
 #define HAVE___FPURGE 1
@@ -1140,6 +1226,10 @@
 /* Define to a substitute value for mmap()'s MAP_ANONYMOUS flag. */
 /* #undef MAP_ANONYMOUS */
 
+/* Define if the mbrtowc function does not return (size_t) -2 for empty input.
+   */
+/* #undef MBRTOWC_EMPTY_INPUT_BUG */
+
 /* Define if the mbrtowc function has the NULL pwc argument bug. */
 /* #undef MBRTOWC_NULL_ARG1_BUG */
 
@@ -1151,6 +1241,12 @@
 
 /* Define if the mbrtowc function returns a wrong return value. */
 /* #undef MBRTOWC_RETVAL_BUG */
+
+/* Use GNU style printf and scanf.  */
+#ifndef __USE_MINGW_ANSI_STDIO
+# define __USE_MINGW_ANSI_STDIO 1
+#endif
+
 
 /* Define to 1 if assertions should be disabled. */
 /* #undef NDEBUG */
@@ -1193,7 +1289,7 @@
 
 /* Define if the vasnprintf implementation needs special code for infinite
    'long double' arguments. */
-#define NEED_PRINTF_INFINITE_LONG_DOUBLE 1
+/* #undef NEED_PRINTF_INFINITE_LONG_DOUBLE */
 
 /* Define if the vasnprintf implementation needs special code for 'long
    double' arguments. */
@@ -1225,7 +1321,7 @@
 /* #undef PACKAGE_PACKAGER_VERSION */
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU M4 1.4.17"
+#define PACKAGE_STRING "GNU M4 1.4.18"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "m4"
@@ -1234,10 +1330,7 @@
 #define PACKAGE_URL "http://www.gnu.org/software/m4/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.4.17"
-
-/* the number of pending output bytes on stream 'fp' */
-/* #undef PENDING_OUTPUT_N_BYTES */
+#define PACKAGE_VERSION "1.4.18"
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 /* #undef PRI_MACROS_BROKEN */
@@ -1274,6 +1367,9 @@
 /* Define if rename does not correctly handle slashes on the source argument,
    such as on Solaris 9 or cygwin 1.5. */
 /* #undef RENAME_TRAILING_SLASH_SOURCE_BUG */
+
+/* Define to 1 if gnulib's dirfd() replacement is used. */
+/* #undef REPLACE_DIRFD */
 
 /* Define to 1 if stat needs help when passed a directory name with a trailing
    slash */
@@ -1332,7 +1428,7 @@
 #define STRERROR_R_CHAR_P 1
 
 /* Shell used by syscmd and esyscmd, must accept -c argument. */
-#define SYSCMD_SHELL "/var/empty/bash-4.3-p46/bin/bash"
+#define SYSCMD_SHELL "/var/empty/bash-4.4-p23/bin/bash"
 
 /* Define to the prefix of C symbols at the assembler and linker level, either
    an underscore or empty. */
@@ -1363,7 +1459,7 @@
 #ifndef _ALL_SOURCE
 # define _ALL_SOURCE 1
 #endif
-/* Enable general extensions on OS X.  */
+/* Enable general extensions on macOS.  */
 #ifndef _DARWIN_C_SOURCE
 # define _DARWIN_C_SOURCE 1
 #endif
@@ -1374,6 +1470,34 @@
 /* Enable threading extensions on Solaris.  */
 #ifndef _POSIX_PTHREAD_SEMANTICS
 # define _POSIX_PTHREAD_SEMANTICS 1
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-5:2014.  */
+#ifndef __STDC_WANT_IEC_60559_ATTRIBS_EXT__
+# define __STDC_WANT_IEC_60559_ATTRIBS_EXT__ 1
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-1:2014.  */
+#ifndef __STDC_WANT_IEC_60559_BFP_EXT__
+# define __STDC_WANT_IEC_60559_BFP_EXT__ 1
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-2:2015.  */
+#ifndef __STDC_WANT_IEC_60559_DFP_EXT__
+# define __STDC_WANT_IEC_60559_DFP_EXT__ 1
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-4:2015.  */
+#ifndef __STDC_WANT_IEC_60559_FUNCS_EXT__
+# define __STDC_WANT_IEC_60559_FUNCS_EXT__ 1
+#endif
+/* Enable extensions specified by ISO/IEC TS 18661-3:2015.  */
+#ifndef __STDC_WANT_IEC_60559_TYPES_EXT__
+# define __STDC_WANT_IEC_60559_TYPES_EXT__ 1
+#endif
+/* Enable extensions specified by ISO/IEC TR 24731-2:2010.  */
+#ifndef __STDC_WANT_LIB_EXT2__
+# define __STDC_WANT_LIB_EXT2__ 1
+#endif
+/* Enable extensions specified by ISO/IEC 24747:2009.  */
+#ifndef __STDC_WANT_MATH_SPEC_FUNCS__
+# define __STDC_WANT_MATH_SPEC_FUNCS__ 1
 #endif
 /* Enable extensions on HP NonStop.  */
 #ifndef _TANDEM_SOURCE
@@ -1400,7 +1524,7 @@
 /* #undef USE_WINDOWS_THREADS */
 
 /* Version number of package */
-#define VERSION "1.4.17"
+#define VERSION "1.4.18"
 
 /* Define to 1 if unsetenv returns void instead of int. */
 /* #undef VOID_UNSETENV */
@@ -1485,6 +1609,12 @@
    used. */
 /* #undef __GETOPT_PREFIX */
 
+/* Define to 1 if the system <stdint.h> predates C++11. */
+/* #undef __STDC_CONSTANT_MACROS */
+
+/* Define to 1 if the system <stdint.h> predates C++11. */
+/* #undef __STDC_LIMIT_MACROS */
+
 /* Please see the Gnulib manual for how to use these macros.
 
    Suppress extern inline with HP-UX cc, as it appears to be broken; see
@@ -1496,29 +1626,50 @@
    'reference to static identifier "f" in extern inline function'.
    This bug was observed with Sun C 5.12 SunOS_i386 2011/11/16.
 
-   Suppress the use of extern inline on problematic Apple configurations, as
-   Libc at least through Libc-825.26 (2013-04-09) mishandles it; see, e.g.,
-   <http://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00023.html>.
-   Perhaps Apple will fix this some day.  */
-#if (defined __APPLE__ \
-     && ((! defined _DONT_USE_CTYPE_INLINE_ \
-          && (defined __GNUC__ || defined __cplusplus)) \
-         || (defined _FORTIFY_SOURCE && 0 < _FORTIFY_SOURCE \
-             && defined __GNUC__ && ! defined __cplusplus)))
-# define _GL_EXTERN_INLINE_APPLE_BUG
+   Suppress extern inline (with or without __attribute__ ((__gnu_inline__)))
+   on configurations that mistakenly use 'static inline' to implement
+   functions or macros in standard C headers like <ctype.h>.  For example,
+   if isdigit is mistakenly implemented via a static inline function,
+   a program containing an extern inline function that calls isdigit
+   may not work since the C standard prohibits extern inline functions
+   from calling static functions.  This bug is known to occur on:
+
+     OS X 10.8 and earlier; see:
+     http://lists.gnu.org/archive/html/bug-gnulib/2012-12/msg00023.html
+
+     DragonFly; see
+     http://muscles.dragonflybsd.org/bulk/bleeding-edge-potential/latest-per-pkg/ah-tty-0.3.12.log
+
+     FreeBSD; see:
+     http://lists.gnu.org/archive/html/bug-gnulib/2014-07/msg00104.html
+
+   OS X 10.9 has a macro __header_inline indicating the bug is fixed for C and
+   for clang but remains for g++; see <http://trac.macports.org/ticket/41033>.
+   Assume DragonFly and FreeBSD will be similar.  */
+#if (((defined __APPLE__ && defined __MACH__) \
+      || defined __DragonFly__ || defined __FreeBSD__) \
+     && (defined __header_inline \
+         ? (defined __cplusplus && defined __GNUC_STDC_INLINE__ \
+            && ! defined __clang__) \
+         : ((! defined _DONT_USE_CTYPE_INLINE_ \
+             && (defined __GNUC__ || defined __cplusplus)) \
+            || (defined _FORTIFY_SOURCE && 0 < _FORTIFY_SOURCE \
+                && defined __GNUC__ && ! defined __cplusplus))))
+# define _GL_EXTERN_INLINE_STDHEADER_BUG
 #endif
 #if ((__GNUC__ \
       ? defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__ \
       : (199901L <= __STDC_VERSION__ \
          && !defined __HP_cc \
+         && !defined __PGI \
          && !(defined __SUNPRO_C && __STDC__))) \
-     && !defined _GL_EXTERN_INLINE_APPLE_BUG)
+     && !defined _GL_EXTERN_INLINE_STDHEADER_BUG)
 # define _GL_INLINE inline
 # define _GL_EXTERN_INLINE extern inline
 # define _GL_EXTERN_INLINE_IN_USE
 #elif (2 < __GNUC__ + (7 <= __GNUC_MINOR__) && !defined __STRICT_ANSI__ \
-       && !defined _GL_EXTERN_INLINE_APPLE_BUG)
-# if __GNUC_GNU_INLINE__
+       && !defined _GL_EXTERN_INLINE_STDHEADER_BUG)
+# if defined __GNUC_GNU_INLINE__ && __GNUC_GNU_INLINE__
    /* __gnu_inline__ suppresses a GCC 4.2 diagnostic.  */
 #  define _GL_INLINE extern inline __attribute__ ((__gnu_inline__))
 # else
@@ -1531,17 +1682,19 @@
 # define _GL_EXTERN_INLINE static _GL_UNUSED
 #endif
 
-#if 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
+/* In GCC 4.6 (inclusive) to 5.1 (exclusive),
+   suppress bogus "no previous prototype for 'FOO'"
+   and "no previous declaration for 'FOO'" diagnostics,
+   when FOO is an inline function in the header; see
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113> and
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63877>.  */
+#if __GNUC__ == 4 && 6 <= __GNUC_MINOR__
 # if defined __GNUC_STDC_INLINE__ && __GNUC_STDC_INLINE__
 #  define _GL_INLINE_HEADER_CONST_PRAGMA
 # else
 #  define _GL_INLINE_HEADER_CONST_PRAGMA \
      _Pragma ("GCC diagnostic ignored \"-Wsuggest-attribute=const\"")
 # endif
-  /* Suppress GCC's bogus "no previous prototype for 'FOO'"
-     and "no previous declaration for 'FOO'"  diagnostics,
-     when FOO is an inline function in the header; see
-     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54113>.  */
 # define _GL_INLINE_HEADER_BEGIN \
     _Pragma ("GCC diagnostic push") \
     _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \
@@ -1559,9 +1712,6 @@
 
 /* A replacement for va_copy, if needed.  */
 #define gl_va_copy(a,b) ((a) = (b))
-
-/* Define to rpl_gmtime if the replacement function should be used. */
-/* #undef gmtime */
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
@@ -1581,9 +1731,6 @@
 #if defined __APPLE__ && defined __MACH__ && __APPLE_CC__ >= 5465 && !defined __cplusplus && __STDC_VERSION__ >= 199901L && !defined __GNUC_STDC_INLINE__
 # define __GNUC_STDC_INLINE__ 1
 #endif
-
-/* Define to rpl_localtime if the replacement function should be used. */
-/* #undef localtime */
 
 /* Define to a type if <wchar.h> does not define. */
 /* #undef mbstate_t */
@@ -1684,6 +1831,16 @@
 /* The name _UNUSED_PARAMETER_ is an earlier spelling, although the name
    is a misnomer outside of parameter lists.  */
 #define _UNUSED_PARAMETER_ _GL_UNUSED
+
+/* gcc supports the "unused" attribute on possibly unused labels, and
+   g++ has since version 4.5.  Note to support C++ as well as C,
+   _GL_UNUSED_LABEL should be used with a trailing ;  */
+#if !defined __cplusplus || __GNUC__ > 4 \
+    || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+# define _GL_UNUSED_LABEL _GL_UNUSED
+#else
+# define _GL_UNUSED_LABEL
+#endif
 
 /* The __pure__ attribute was added in gcc 2.96.  */
 #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96)

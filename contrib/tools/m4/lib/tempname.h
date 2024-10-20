@@ -1,6 +1,6 @@
 /* Create a temporary file or directory.
 
-   Copyright (C) 2006, 2009-2013 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2016 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,10 @@
 #  define GT_NOCREATE 2
 # endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Generate a temporary file name based on TMPL.  TMPL must match the
    rules for mk[s]temp (i.e. end in "XXXXXX", possibly with a suffix).
    The name constructed does not exist at the time of the call to
@@ -46,5 +50,16 @@
 
    We use a clever algorithm to get hard-to-predict names. */
 extern int gen_tempname (char *tmpl, int suffixlen, int flags, int kind);
+
+/* Similar to gen_tempname, but TRYFUNC is called for each temporary
+   name to try.  If TRYFUNC returns a non-negative number, TRY_GEN_TEMPNAME
+   returns with this value.  Otherwise, if errno is set to EEXIST, another
+   name is tried, or else TRY_GEN_TEMPNAME returns -1. */
+extern int try_tempname (char *tmpl, int suffixlen, void *args,
+                         int (*tryfunc) (char *, void *));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* GL_TEMPNAME_H */
