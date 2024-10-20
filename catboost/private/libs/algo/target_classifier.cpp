@@ -77,6 +77,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::Poisson:
         case ELossFunction::MAE:
         case ELossFunction::MAPE:
+        case ELossFunction::RMSPE:
         case ELossFunction::PairLogit:
         case ELossFunction::PairLogitPairwise:
         case ELossFunction::QueryRMSE:
