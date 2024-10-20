@@ -88,7 +88,9 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   CUDA version 11.8 is supported by default (because it contains the biggest set of supported target CUDA compute architectures).
 
-  Other CUDA versions (11.4+) can also be used but require changing target compute architecture options in affected CMake targets.
+  Other CUDA versions (11.4 - 12.2) can also be used but require changing target compute architecture options in affected CMake targets.
+
+  CUDA 12.3+ support is in progress: [GitHub issue #2755](https://github.com/catboost/catboost/issues/2755).
 
   For revisions before [45cc2e1](https://github.com/catboost/catboost/commit/45cc2e12189e8fef6b0ccfd30ac192efab22ae98) the minimal supported CUDA version has been 11.0 .
 
