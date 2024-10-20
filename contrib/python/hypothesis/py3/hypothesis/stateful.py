@@ -196,6 +196,10 @@ def run_state_machine_as_test(state_machine_factory, *, settings=None, _min_step
                     for k, v in list(data.items()):
                         if isinstance(v, VarReference):
                             data[k] = machine.names_to_values[v.name]
+                        elif isinstance(v, list) and all(
+                            isinstance(item, VarReference) for item in v
+                        ):
+                            data[k] = [machine.names_to_values[item.name] for item in v]
 
                     label = f"execute:rule:{rule.function.__name__}"
                     start = perf_counter()
@@ -300,6 +304,10 @@ class RuleBasedStateMachine(metaclass=StateMachineMeta):
     def _pretty_print(self, value):
         if isinstance(value, VarReference):
             return value.name
+        elif isinstance(value, list) and all(
+            isinstance(item, VarReference) for item in value
+        ):
+            return "[" + ", ".join([item.name for item in value]) + "]"
         self.__stream.seek(0)
         self.__stream.truncate(0)
         self.__printer.output_width = 0
@@ -457,11 +465,8 @@ class Rule:
         self.arguments_strategies = {}
         bundles = []
         for k, v in sorted(self.arguments.items()):
-            assert not isinstance(v, BundleReferenceStrategy)
             if isinstance(v, Bundle):
                 bundles.append(v)
-                consume = isinstance(v, BundleConsumer)
-                v = BundleReferenceStrategy(v.name, consume=consume)
             self.arguments_strategies[k] = v
         self.bundles = tuple(bundles)
 
@@ -472,26 +477,6 @@ class Rule:
 
 
 self_strategy = st.runner()
-
-
-class BundleReferenceStrategy(SearchStrategy):
-    def __init__(self, name: str, *, consume: bool = False):
-        self.name = name
-        self.consume = consume
-
-    def do_draw(self, data):
-        machine = data.draw(self_strategy)
-        bundle = machine.bundle(self.name)
-        if not bundle:
-            data.mark_invalid(f"Cannot draw from empty bundle {self.name!r}")
-        # Shrink towards the right rather than the left. This makes it easier
-        # to delete data generated earlier, as when the error is towards the
-        # end there can be a lot of hard to remove padding.
-        position = data.draw_integer(0, len(bundle) - 1, shrink_towards=len(bundle))
-        if self.consume:
-            return bundle.pop(position)  # pragma: no cover  # coverage is flaky here
-        else:
-            return bundle[position]
 
 
 class Bundle(SearchStrategy[Ex]):
@@ -518,15 +503,29 @@ class Bundle(SearchStrategy[Ex]):
 
     def __init__(self, name: str, *, consume: bool = False) -> None:
         self.name = name
-        self.__reference_strategy = BundleReferenceStrategy(name, consume=consume)
+        self.consume = consume
 
     def do_draw(self, data):
         machine = data.draw(self_strategy)
-        reference = data.draw(self.__reference_strategy)
-        return machine.names_to_values[reference.name]
+
+        bundle = machine.bundle(self.name)
+        if not bundle:
+            data.mark_invalid(f"Cannot draw from empty bundle {self.name!r}")
+        # Shrink towards the right rather than the left. This makes it easier
+        # to delete data generated earlier, as when the error is towards the
+        # end there can be a lot of hard to remove padding.
+        position = data.draw_integer(0, len(bundle) - 1, shrink_towards=len(bundle))
+        if self.consume:
+            reference = bundle.pop(
+                position
+            )  # pragma: no cover  # coverage is flaky here
+        else:
+            reference = bundle[position]
+
+        return reference
 
     def __repr__(self):
-        consume = self.__reference_strategy.consume
+        consume = self.consume
         if consume is False:
             return f"Bundle(name={self.name!r})"
         return f"Bundle(name={self.name!r}, {consume=})"
@@ -541,11 +540,6 @@ class Bundle(SearchStrategy[Ex]):
         # modifying the underlying buffer.
         machine = data.draw(self_strategy)
         return bool(machine.bundle(self.name))
-
-
-class BundleConsumer(Bundle[Ex]):
-    def __init__(self, bundle: Bundle[Ex]) -> None:
-        super().__init__(bundle.name, consume=True)
 
 
 def consumes(bundle: Bundle[Ex]) -> SearchStrategy[Ex]:
@@ -563,7 +557,10 @@ def consumes(bundle: Bundle[Ex]) -> SearchStrategy[Ex]:
     """
     if not isinstance(bundle, Bundle):
         raise TypeError("Argument to be consumed must be a bundle.")
-    return BundleConsumer(bundle)
+    return type(bundle)(
+        name=bundle.name,
+        consume=True,
+    )
 
 
 @attr.s()
@@ -610,7 +607,7 @@ def _convert_targets(targets, target):
                 )
             raise InvalidArgument(msg % (t, type(t)))
         while isinstance(t, Bundle):
-            if isinstance(t, BundleConsumer):
+            if t.consume:
                 note_deprecation(
                     f"Using consumes({t.name}) doesn't makes sense in this context.  "
                     "This will be an error in a future version of Hypothesis.",
