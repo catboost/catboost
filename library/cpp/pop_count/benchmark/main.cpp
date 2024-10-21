@@ -5,6 +5,8 @@
 #include <library/cpp/pop_count/popcount.h>
 #include <library/cpp/testing/benchmark/bench.h>
 
+#include <bit>
+
 template <class F, class I>
 inline void DoRun(F&& f, I&& i) {
     const ui64 n = i.Iterations();
@@ -21,9 +23,23 @@ Y_CPU_BENCHMARK(PopCount_8, iface) {
           iface);
 }
 
+Y_CPU_BENCHMARK(std_popcount_8, iface) {
+    DoRun([](ui8 x) {
+        return std::popcount<ui8>(x);
+    },
+          iface);
+}
+
 Y_CPU_BENCHMARK(PopCount_16, iface) {
     DoRun([](ui16 x) {
         return PopCount<ui16>(x);
+    },
+          iface);
+}
+
+Y_CPU_BENCHMARK(std_popcount_16, iface) {
+    DoRun([](ui16 x) {
+        return std::popcount<ui16>(x);
     },
           iface);
 }
@@ -35,9 +51,23 @@ Y_CPU_BENCHMARK(PopCount_32, iface) {
           iface);
 }
 
+Y_CPU_BENCHMARK(std_popcount_32, iface) {
+    DoRun([](ui32 x) {
+        return std::popcount<ui32>(x);
+    },
+          iface);
+}
+
 Y_CPU_BENCHMARK(PopCount_64, iface) {
     DoRun([](ui64 x) {
         return PopCount<ui64>(x);
+    },
+          iface);
+}
+
+Y_CPU_BENCHMARK(std_popcount_64, iface) {
+    DoRun([](ui64 x) {
+        return std::popcount<ui64>(x);
     },
           iface);
 }
