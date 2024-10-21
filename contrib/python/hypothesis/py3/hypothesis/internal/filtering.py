@@ -331,9 +331,9 @@ def get_float_predicate_bounds(predicate: Predicate) -> ConstructivePredicate:
     return ConstructivePredicate(kwargs, predicate)
 
 
-def max_len(size: int, element: Collection) -> bool:
+def max_len(size: int, element: Collection[object]) -> bool:
     return len(element) <= size
 
 
-def min_len(size: int, element: Collection) -> bool:
+def min_len(size: int, element: Collection[object]) -> bool:
     return size <= len(element)

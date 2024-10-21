@@ -304,24 +304,24 @@ def is_a_new_type(thing):
     return isinstance(thing, typing.NewType)
 
 
-def is_a_union(thing):
+def is_a_union(thing: object) -> bool:
     """Return True if thing is a typing.Union or types.UnionType (in py310)."""
     return isinstance(thing, UnionType) or get_origin(thing) is typing.Union
 
 
-def is_a_type(thing):
+def is_a_type(thing: object) -> bool:
     """Return True if thing is a type or a generic type like thing."""
     return isinstance(thing, type) or is_generic_type(thing) or is_a_new_type(thing)
 
 
-def is_typing_literal(thing):
+def is_typing_literal(thing: object) -> bool:
     return get_origin(thing) in (
         typing.Literal,
         getattr(typing_extensions, "Literal", object()),
     )
 
 
-def is_annotated_type(thing):
+def is_annotated_type(thing: object) -> bool:
     return (
         isinstance(thing, _AnnotatedAlias)
         and getattr(thing, "__args__", None) is not None

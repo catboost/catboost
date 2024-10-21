@@ -11,7 +11,7 @@
 from types import MethodType
 
 
-def is_hypothesis_test(test):
+def is_hypothesis_test(test: object) -> bool:
     if isinstance(test, MethodType):
         return is_hypothesis_test(test.__func__)
     return getattr(test, "is_hypothesis_test", False)

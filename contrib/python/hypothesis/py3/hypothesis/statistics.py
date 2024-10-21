@@ -10,20 +10,24 @@
 
 import math
 from collections import Counter
+from typing import TYPE_CHECKING, Dict, Iterable, List, cast
 
 from hypothesis._settings import Phase
 from hypothesis.utils.dynamicvariables import DynamicVariable
 
+if TYPE_CHECKING:
+    from hypothesis.internal.conjecture.engine import PhaseStatistics, StatisticsDict
+
 collector = DynamicVariable(None)
 
 
-def note_statistics(stats_dict):
+def note_statistics(stats_dict: "StatisticsDict") -> None:
     callback = collector.value
     if callback is not None:
         callback(stats_dict)
 
 
-def describe_targets(best_targets):
+def describe_targets(best_targets: Dict[str, float]) -> List[str]:
     """Return a list of lines describing the results of `target`, if any."""
     # These lines are included in the general statistics description below,
     # but also printed immediately below failing examples to alleviate the
@@ -41,7 +45,7 @@ def describe_targets(best_targets):
         return lines
 
 
-def format_ms(times):
+def format_ms(times: Iterable[float]) -> str:
     """Format `times` into a string representing approximate milliseconds.
 
     `times` is a collection of durations in seconds.
@@ -60,7 +64,7 @@ def format_ms(times):
         return f"~ {lower}-{upper} ms"
 
 
-def describe_statistics(stats_dict):
+def describe_statistics(stats_dict: "StatisticsDict") -> str:
     """Return a multi-line string describing the passed run statistics.
 
     `stats_dict` must be a dictionary of data in the format collected by
@@ -76,7 +80,7 @@ def describe_statistics(stats_dict):
     lines = [stats_dict["nodeid"] + ":\n"] if "nodeid" in stats_dict else []
     prev_failures = 0
     for phase in (p.name for p in list(Phase)[1:]):
-        d = stats_dict.get(phase + "-phase", {})
+        d = cast("PhaseStatistics", stats_dict.get(phase + "-phase", {}))
         # Basic information we report for every phase
         cases = d.get("test-cases", [])
         if not cases:

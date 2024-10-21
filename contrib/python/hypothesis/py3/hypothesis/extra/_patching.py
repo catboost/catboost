@@ -18,11 +18,13 @@ discovered during testing, and by HypoFuzz for _covering_ examples discovered
 during fuzzing.
 """
 
+import ast
 import difflib
 import hashlib
 import inspect
 import re
 import sys
+import types
 from ast import literal_eval
 from contextlib import suppress
 from datetime import date, datetime, timedelta, timezone
@@ -31,6 +33,7 @@ from pathlib import Path
 import libcst as cst
 from libcst import matchers as m
 from libcst.codemod import CodemodContext, VisitorBasedCodemodCommand
+from libcst.metadata import ExpressionContext, ExpressionContextProvider
 
 from hypothesis.configuration import storage_directory
 from hypothesis.version import __version__
@@ -148,18 +151,64 @@ def get_patch_for(func, failing_examples, *, strip_via=()):
     except Exception:
         return None
 
+    modules_in_test_scope = sorted(
+        (
+            (k, v)
+            for (k, v) in module.__dict__.items()
+            if isinstance(v, types.ModuleType)
+        ),
+        key=lambda kv: len(kv[1].__name__),
+    )
+
     # The printed examples might include object reprs which are invalid syntax,
     # so we parse here and skip over those.  If _none_ are valid, there's no patch.
     call_nodes = []
     for ex, via in set(failing_examples):
         with suppress(Exception):
-            node = cst.parse_expression(ex)
-            assert isinstance(node, cst.Call), node
+            node = cst.parse_module(ex)
+            the_call = node.body[0].body[0].value
+            assert isinstance(the_call, cst.Call), the_call
             # Check for st.data(), which doesn't support explicit examples
             data = m.Arg(m.Call(m.Name("data"), args=[m.Arg(m.Ellipsis())]))
-            if m.matches(node, m.Call(args=[m.ZeroOrMore(), data, m.ZeroOrMore()])):
+            if m.matches(the_call, m.Call(args=[m.ZeroOrMore(), data, m.ZeroOrMore()])):
                 return None
+
+            # Many reprs use the unqualified name of the type, e.g. np.array()
+            # -> array([...]), so here we find undefined names and look them up
+            # on each module which was in the test's global scope.
+            names = {}
+            for anode in ast.walk(ast.parse(ex, "eval")):
+                if (
+                    isinstance(anode, ast.Name)
+                    and isinstance(anode.ctx, ast.Load)
+                    and anode.id not in names
+                    and anode.id not in module.__dict__
+                ):
+                    for k, v in modules_in_test_scope:
+                        if anode.id in v.__dict__:
+                            names[anode.id] = cst.parse_expression(f"{k}.{anode.id}")
+                            break
+
+            # LibCST doesn't track Load()/Store() state of names by default, so we have
+            # to do a bit of a dance here, *and* explicitly handle keyword arguments
+            # which are treated as Load() context - but even if that's fixed later
+            # we'll still want to support older versions.
+            with suppress(Exception):
+                wrapper = cst.metadata.MetadataWrapper(node)
+                kwarg_names = {
+                    a.keyword for a in m.findall(wrapper, m.Arg(keyword=m.Name()))
+                }
+                node = m.replace(
+                    wrapper,
+                    m.Name(value=m.MatchIfTrue(names.__contains__))
+                    & m.MatchMetadata(ExpressionContextProvider, ExpressionContext.LOAD)
+                    & m.MatchIfTrue(lambda n, k=kwarg_names: n not in k),
+                    replacement=lambda node, _, ns=names: ns[node.value],
+                )
+            node = node.body[0].body[0].value
+            assert isinstance(node, cst.Call), node
             call_nodes.append((node, via))
+
     if not call_nodes:
         return None
 
@@ -205,8 +254,8 @@ def make_patch(triples, *, msg="Hypothesis: add explicit examples", when=None):
         ud = difflib.unified_diff(
             source_before.splitlines(keepends=True),
             source_after.splitlines(keepends=True),
-            fromfile=str(fname),
-            tofile=str(fname),
+            fromfile=f"./{fname}",  # git strips the first part of the path by default
+            tofile=f"./{fname}",
         )
         diffs.append("".join(ud))
     return "".join(diffs)

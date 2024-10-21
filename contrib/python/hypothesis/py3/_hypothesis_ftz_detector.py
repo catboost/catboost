@@ -18,6 +18,14 @@ import of Hypothesis itself from each subprocess which must import the worker fu
 
 import importlib
 import sys
+from typing import TYPE_CHECKING, Callable, Optional, Set, Tuple
+
+if TYPE_CHECKING:
+    from multiprocessing import Queue
+    from typing import TypeAlias
+
+FTZCulprits: "TypeAlias" = Tuple[Optional[bool], Set[str]]
+
 
 KNOWN_EVER_CULPRITS = (
     # https://moyix.blogspot.com/2022/09/someones-been-messing-with-my-subnormals.html
@@ -35,16 +43,16 @@ KNOWN_EVER_CULPRITS = (
 )
 
 
-def flush_to_zero():
+def flush_to_zero() -> bool:
     # If this subnormal number compares equal to zero we have a problem
     return 2.0**-1073 == 0
 
 
-def run_in_process(fn, *args):
+def run_in_process(fn: Callable[..., FTZCulprits], *args: object) -> FTZCulprits:
     import multiprocessing as mp
 
     mp.set_start_method("spawn", force=True)
-    q = mp.Queue()
+    q: "Queue[FTZCulprits]" = mp.Queue()
     p = mp.Process(target=target, args=(q, fn, *args))
     p.start()
     retval = q.get()
@@ -52,15 +60,17 @@ def run_in_process(fn, *args):
     return retval
 
 
-def target(q, fn, *args):
+def target(
+    q: "Queue[FTZCulprits]", fn: Callable[..., FTZCulprits], *args: object
+) -> None:
     q.put(fn(*args))
 
 
-def always_imported_modules():
+def always_imported_modules() -> FTZCulprits:
     return flush_to_zero(), set(sys.modules)
 
 
-def modules_imported_by(mod):
+def modules_imported_by(mod: str) -> FTZCulprits:
     """Return the set of modules imported transitively by mod."""
     before = set(sys.modules)
     try:
@@ -77,7 +87,7 @@ KNOWN_FTZ = None
 CHECKED_CACHE = set()
 
 
-def identify_ftz_culprits():
+def identify_ftz_culprits() -> str:
     """Find the modules in sys.modules which cause "mod" to be imported."""
     # If we've run this function before, return the same result.
     global KNOWN_FTZ
@@ -94,7 +104,7 @@ def identify_ftz_culprits():
     # that importing them in a new process sets the FTZ state.  As a heuristic, we'll
     # start with packages known to have ever enabled FTZ, then top-level packages as
     # a way to eliminate large fractions of the search space relatively quickly.
-    def key(name):
+    def key(name: str) -> Tuple[bool, int, str]:
         """Prefer known-FTZ modules, then top-level packages, then alphabetical."""
         return (name not in KNOWN_EVER_CULPRITS, name.count("."), name)
 

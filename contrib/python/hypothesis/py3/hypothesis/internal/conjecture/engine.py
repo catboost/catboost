@@ -197,6 +197,7 @@ StatisticsDict = TypedDict(
         "shrink-phase": NotRequired[PhaseStatistics],
         "stopped-because": NotRequired[str],
         "targets": NotRequired[Dict[str, float]],
+        "nodeid": NotRequired[str],
     },
 )
 

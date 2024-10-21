@@ -20,6 +20,7 @@ definitions it links to.  If not, report the bug!
 
 import string
 from importlib import resources
+from typing import Optional
 
 from hypothesis import strategies as st
 from hypothesis.errors import InvalidArgument
@@ -48,7 +49,9 @@ TOP_LEVEL_DOMAINS = ["COM", *sorted((d for d in _tlds if d != "ARPA"), key=len)]
 
 class DomainNameStrategy(st.SearchStrategy):
     @staticmethod
-    def clean_inputs(minimum, maximum, value, variable_name):
+    def clean_inputs(
+        minimum: int, maximum: int, value: Optional[int], variable_name: str
+    ) -> int:
         if value is None:
             value = maximum
         elif not isinstance(value, int):
@@ -61,7 +64,9 @@ class DomainNameStrategy(st.SearchStrategy):
             )
         return value
 
-    def __init__(self, max_length=None, max_element_length=None):
+    def __init__(
+        self, max_length: Optional[int] = None, max_element_length: Optional[int] = None
+    ) -> None:
         """
         A strategy for :rfc:`1035` fully qualified domain names.
 
@@ -165,7 +170,7 @@ _url_fragments_strategy = (
 def urls() -> st.SearchStrategy[str]:
     """A strategy for :rfc:`3986`, generating http/https URLs."""
 
-    def url_encode(s):
+    def url_encode(s: str) -> str:
         return "".join(c if c in URL_SAFE_CHARACTERS else "%%%02X" % ord(c) for c in s)
 
     schemes = st.sampled_from(["http", "https"])

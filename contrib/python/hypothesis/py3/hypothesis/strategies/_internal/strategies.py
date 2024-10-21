@@ -29,7 +29,7 @@ from typing import (
 )
 
 from hypothesis._settings import HealthCheck, Phase, Verbosity, settings
-from hypothesis.control import _current_build_context
+from hypothesis.control import _current_build_context, current_build_context
 from hypothesis.errors import (
     HypothesisException,
     HypothesisWarning,
@@ -843,7 +843,7 @@ class MappedStrategy(SearchStrategy[Ex]):
                     x = data.draw(self.mapped_strategy)
                     result = self.pack(x)  # type: ignore
                     data.stop_example()
-                    _current_build_context.value.record_call(result, self.pack, [x], {})
+                    current_build_context().record_call(result, self.pack, [x], {})
                     return result
                 except UnsatisfiedAssumption:
                     data.stop_example(discard=True)

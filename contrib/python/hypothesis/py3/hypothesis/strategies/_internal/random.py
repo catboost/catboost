@@ -364,30 +364,31 @@ def convert_kwargs(name, kwargs):
     kwargs = dict(kwargs)
 
     signature = sig_of(name)
+    params = signature.parameters
 
     bound = signature.bind(DUMMY_RANDOM, **kwargs)
     bound.apply_defaults()
 
     for k in list(kwargs):
         if (
-            kwargs[k] is signature.parameters[k].default
-            or signature.parameters[k].kind != inspect.Parameter.KEYWORD_ONLY
+            kwargs[k] is params[k].default
+            or params[k].kind != inspect.Parameter.KEYWORD_ONLY
         ):
             kwargs.pop(k)
 
-    arg_names = list(signature.parameters)[1:]
+    arg_names = list(params)[1:]
 
     args = []
 
     for a in arg_names:
-        if signature.parameters[a].kind == inspect.Parameter.KEYWORD_ONLY:
+        if params[a].kind == inspect.Parameter.KEYWORD_ONLY:
             break
         args.append(bound.arguments[a])
         kwargs.pop(a, None)
 
     while args:
         name = arg_names[len(args) - 1]
-        if args[-1] is signature.parameters[name].default:
+        if args[-1] is params[name].default:
             args.pop()
         else:
             break
@@ -402,9 +403,13 @@ class TrueRandom(HypothesisRandom):
         self.__random = Random(seed)
 
     def _hypothesis_do_random(self, method, kwargs):
+        fn = getattr(self.__random, method)
+        try:
+            return fn(**kwargs)
+        except TypeError:
+            pass
         args, kwargs = convert_kwargs(method, kwargs)
-
-        return getattr(self.__random, method)(*args, **kwargs)
+        return fn(*args, **kwargs)
 
     def __copy__(self):
         result = TrueRandom(

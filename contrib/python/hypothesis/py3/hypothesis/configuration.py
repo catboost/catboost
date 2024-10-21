@@ -12,22 +12,22 @@ import os
 import sys
 import warnings
 from pathlib import Path
+from typing import Union
 
 import _hypothesis_globals
 
 from hypothesis.errors import HypothesisSideeffectWarning
 
 __hypothesis_home_directory_default = Path.cwd() / ".hypothesis"
-
 __hypothesis_home_directory = None
 
 
-def set_hypothesis_home_dir(directory):
+def set_hypothesis_home_dir(directory: Union[str, Path, None]) -> None:
     global __hypothesis_home_directory
     __hypothesis_home_directory = None if directory is None else Path(directory)
 
 
-def storage_directory(*names, intent_to_write=True):
+def storage_directory(*names: str, intent_to_write: bool = True) -> Path:
     if intent_to_write:
         check_sideeffect_during_initialization(
             "accessing storage for {}", "/".join(names)

@@ -39,8 +39,8 @@ UNICODE_CATEGORIES = set(categories())
 SPACE_CHARS = set(" \t\n\r\f\v")
 UNICODE_SPACE_CHARS = SPACE_CHARS | set("\x1c\x1d\x1e\x1f\x85")
 UNICODE_DIGIT_CATEGORIES = {"Nd"}
-UNICODE_SPACE_CATEGORIES = set(as_general_categories("Z"))
-UNICODE_LETTER_CATEGORIES = set(as_general_categories("L"))
+UNICODE_SPACE_CATEGORIES = set(as_general_categories(["Z"]))
+UNICODE_LETTER_CATEGORIES = set(as_general_categories(["L"]))
 UNICODE_WORD_CATEGORIES = set(as_general_categories(["L", "N"]))
 
 # This is verbose, but correct on all versions of Python

@@ -110,7 +110,7 @@ def int_to_byte(i: int) -> bytes:
     return bytes([i])
 
 
-def is_typed_named_tuple(cls):
+def is_typed_named_tuple(cls: type) -> bool:
     """Return True if cls is probably a subtype of `typing.NamedTuple`.
 
     Unfortunately types created with `class T(NamedTuple):` actually

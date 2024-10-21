@@ -307,7 +307,7 @@ class LRUCache:
     # Anecdotally, OrderedDict seems quite competitive with lru_cache, but perhaps
     # that is localized to our access patterns.
 
-    def __init__(self, max_size):
+    def __init__(self, max_size: int) -> None:
         assert max_size > 0
         self.max_size = max_size
         self._threadlocal = threading.local()

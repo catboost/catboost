@@ -214,7 +214,7 @@ class StopTest(BaseException):
     the Hypothesis engine, which should then continue normally.
     """
 
-    def __init__(self, testcounter):
+    def __init__(self, testcounter: int) -> None:
         super().__init__(repr(testcounter))
         self.testcounter = testcounter
 
@@ -230,7 +230,7 @@ class Found(HypothesisException):
 class RewindRecursive(Exception):
     """Signal that the type inference should be rewound due to recursive types. Internal use only."""
 
-    def __init__(self, target):
+    def __init__(self, target: object) -> None:
         self.target = target
 
 

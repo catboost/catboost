@@ -1004,6 +1004,10 @@ class RuleStrategy(SearchStrategy):
         return (rule, arguments)
 
     def is_valid(self, rule):
+        for b in rule.bundles:
+            if not self.machine.bundle(b.name):
+                return False
+
         predicates = self.machine._observability_predicates
         desc = f"{self.machine.__class__.__qualname__}, rule {rule.function.__name__},"
         for pred in rule.preconditions:
@@ -1013,8 +1017,4 @@ class RuleStrategy(SearchStrategy):
             if not meets_precond:
                 return False
 
-        for b in rule.bundles:
-            bundle = self.machine.bundle(b.name)
-            if not bundle:
-                return False
         return True
