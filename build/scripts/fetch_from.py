@@ -22,9 +22,6 @@ except (ImportError, ModuleNotFoundError):
     # Python 3
     import urllib.request as urllib_request
     from urllib.error import HTTPError, URLError
-    # Explicitly enable local imports
-    # Don't forget to add imported scripts to inputs of the calling command!
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import retry
 

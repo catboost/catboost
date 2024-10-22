@@ -11,10 +11,6 @@ import time
 import urllib2
 import uuid
 
-# Explicitly enable local imports
-# Don't forget to add imported scripts to inputs of the calling command!
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 import fetch_from
 
 
