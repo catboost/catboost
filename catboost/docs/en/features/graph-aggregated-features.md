@@ -2,6 +2,8 @@
 
 If graph information is provided, the dataset will be augmented with additional features.
 
+This is an implementation of the approach described in the [TabGraphs: A Benchmark and Strong Baselines for Learning on Graphs with Tabular Node Features](https://arxiv.org/abs/2409.14500) paper.
+
 For each float feature $i$, the sample $F(v)$ will be augmented with the following aggregated features:
 - $mean \; { F_i(u) | (v, u) \in Graph}$,  
 - $max \; { F_i(u) | (v, u) \in Graph}$,
