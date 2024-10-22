@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: argcomplete
-Version: 3.5.0
+Version: 3.5.1
 Summary: Bash tab completion for argparse
 Home-page: https://github.com/kislyuk/argcomplete
 Author: Andrey Kislyuk
@@ -9,7 +9,7 @@ License: Apache Software License
 Project-URL: Documentation, https://kislyuk.github.io/argcomplete
 Project-URL: Source Code, https://github.com/kislyuk/argcomplete
 Project-URL: Issue Tracker, https://github.com/kislyuk/argcomplete/issues
-Project-URL: Change Log, https://github.com/kislyuk/argcomplete/blob/master/Changes.rst
+Project-URL: Change Log, https://github.com/kislyuk/argcomplete/blob/develop/Changes.rst
 Platform: MacOS X
 Platform: Posix
 Classifier: Environment :: Console
