@@ -501,9 +501,12 @@ class Bundle(SearchStrategy[Ex]):
     drawn from this bundle will be consumed (as above) when requested.
     """
 
-    def __init__(self, name: str, *, consume: bool = False) -> None:
+    def __init__(
+        self, name: str, *, consume: bool = False, draw_references: bool = True
+    ) -> None:
         self.name = name
         self.consume = consume
+        self.draw_references = draw_references
 
     def do_draw(self, data):
         machine = data.draw(self_strategy)
@@ -522,7 +525,9 @@ class Bundle(SearchStrategy[Ex]):
         else:
             reference = bundle[position]
 
-        return reference
+        if self.draw_references:
+            return reference
+        return machine.names_to_values[reference.name]
 
     def __repr__(self):
         consume = self.consume
@@ -540,6 +545,13 @@ class Bundle(SearchStrategy[Ex]):
         # modifying the underlying buffer.
         machine = data.draw(self_strategy)
         return bool(machine.bundle(self.name))
+
+    def flatmap(self, expand):
+        if self.draw_references:
+            return type(self)(
+                self.name, consume=self.consume, draw_references=False
+            ).flatmap(expand)
+        return super().flatmap(expand)
 
 
 def consumes(bundle: Bundle[Ex]) -> SearchStrategy[Ex]:
