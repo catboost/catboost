@@ -107,10 +107,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfti.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixxfdi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixxfti.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdidf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatditf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsitf.c
@@ -118,10 +115,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattitf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattixf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundidf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunditf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsitf.c
@@ -196,11 +190,11 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umoddi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umodsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umodti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/chkstk.S
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/chkstk2.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatdidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatdisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatdixf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/chkstk2.S
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/chkstk.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatundidf.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatundisf.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatundixf.S
