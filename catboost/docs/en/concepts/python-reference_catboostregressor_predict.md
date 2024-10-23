@@ -11,7 +11,8 @@ predict(data,
         ntree_start={{ fit--ntree_start }},
         ntree_end=0,
         thread_count=-1,
-        verbose=None)
+        verbose=None,
+        task_type="CPU")
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -135,6 +136,24 @@ Output the measured evaluation metric to stderr.
 
 None
 
+### task_type
+
+#### Description
+
+The evaluator type.
+
+Possible values:
+    - 'CPU'
+    - 'GPU' (models with only numerical features are supported for now)
+
+**Possible types**
+
+string
+
+**Default value**
+
+CPU
+
 
 ## {{ dl__return-value }} {#output-format}
 
@@ -144,5 +163,3 @@ Predictions for the given dataset.
 
 
 {% include [sections-with-methods-desc-regressor__type-of-returned-value__div](../_includes/work_src/reusage/regressor__type-of-returned-value__div.md) %}
-
-

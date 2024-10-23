@@ -11,7 +11,8 @@ predict(data,
         ntree_start={{ fit--ntree_start }},
         ntree_end=0,
         thread_count=-1,
-        verbose=None)
+        verbose=None,
+        task_type="CPU")
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -133,8 +134,24 @@ Output the measured evaluation metric to stderr.
 
 None
 
+### task_type
+
+#### Description
+
+The evaluator type.
+
+Possible values:
+    - 'CPU'
+    - 'GPU' (models with only numerical features are supported for now)
+
+**Possible types**
+
+string
+
+**Default value**
+
+CPU
+
 ## {{ dl__return-value }} {#output-format}
 
 {% include [sections-with-methods-desc-python__predict-returned-value](../_includes/work_src/reusage/python__predict-returned-value.md) %}
-
-

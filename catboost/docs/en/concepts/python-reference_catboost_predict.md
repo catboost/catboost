@@ -11,7 +11,8 @@ predict(data,
     ntree_start={{ fit--ntree_start }},
     ntree_end=0,
     thread_count={{ fit__thread_count__wrappers }},
-    verbose=None)
+    verbose=None,
+    task_type="CPU")
 ```
 
 ## {{ dl--parameters }} {#parameters}
@@ -133,6 +134,24 @@ bool
 **Default value**
 
 None
+
+### task_type
+
+#### Description
+
+The evaluator type.
+
+Possible values:
+    - 'CPU'
+    - 'GPU' (models with only numerical features are supported for now)
+
+**Possible types**
+
+string
+
+**Default value**
+
+CPU
 
 
 ## {{ dl__return-value }} {#output-format}
