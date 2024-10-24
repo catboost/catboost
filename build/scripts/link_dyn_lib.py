@@ -7,6 +7,9 @@ import collections
 import optparse
 import pipes
 
+# Explicitly enable local imports
+# Don't forget to add imported scripts to inputs of the calling command!
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import thinlto_cache
 import link_exe
 
