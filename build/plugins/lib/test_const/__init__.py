@@ -436,6 +436,25 @@ class ServiceTags(Enum):
     AnyTag = "ya:anytag"
 
 
+class PythonLinterName(Enum):
+    Flake8 = "flake8"
+    Py2Flake8 = "py2_flake8"
+    Black = "black"
+    DummyLinter = "dummy_linter"
+
+
+class CppLinterName(Enum):
+    ClangFormat = "clang_format"
+    # kept for compatibility
+    # TODO delete along with the record in default_configs.json
+    DoNotUse = "clang-format"
+
+
+class DefaultLinterConfig(Enum):
+    Python = "build/config/tests/py_style/default_configs.json"
+    Cpp = "build/config/tests/cpp_style/default_configs.json"
+
+
 class Status(object):
     GOOD, XFAIL, FAIL, XPASS, MISSING, CRASHED, TIMEOUT = range(1, 8)
     SKIPPED = -100
