@@ -191,7 +191,7 @@ public:
         size_t Size;
     };
 
-    static size_t max_size() noexcept {
+    size_t max_size() noexcept {
         static size_t res = TStringType().max_size();
 
         return res;
