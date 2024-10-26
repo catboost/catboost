@@ -50,6 +50,13 @@ DEFINE_ENUM_WITH_UNDERLYING_TYPE(ECardinal, char,
     ((South) (3))
 );
 
+DEFINE_ENUM(EWithUnknown,
+    (First)
+    (Second)
+    (Unknown)
+);
+DEFINE_ENUM_UNKNOWN_VALUE(EWithUnknown, Unknown);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, size_t N>
@@ -278,6 +285,12 @@ TEST(TEnumTest, Cast)
         int widerTypeInvalueValue = (1 << 8) + 100;
         EXPECT_FALSE(TryEnumCast(widerTypeInvalueValue, &cardinal));
     }
+}
+
+TEST(TEnumTest, UnknownValue)
+{
+    EXPECT_EQ(TEnumTraits<EColor>::TryGetUnknownValue(), std::nullopt);
+    EXPECT_EQ(TEnumTraits<EWithUnknown>::TryGetUnknownValue(), EWithUnknown::Unknown);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

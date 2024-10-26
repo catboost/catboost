@@ -5,6 +5,8 @@
 #endif
 
 #include "format.h"
+#include "string.h"
+#include "string_builder.h"
 
 #include <library/cpp/yt/exception/exception.h>
 
@@ -23,110 +25,106 @@ void ThrowMalformedEnumValueException(
     TStringBuf value);
 
 void FormatUnknownEnumValue(
-    TStringBuilderBase* builder,
+    auto* builder,
     TStringBuf name,
-    i64 value);
+    auto value)
+{
+    builder->AppendFormat("%v::unknown-%v", name, ToUnderlying(value));
+}
 
 } // namespace NDetail
 
 template <class T>
-std::optional<T> TryParseEnum(TStringBuf value)
+std::optional<T> TryParseEnum(TStringBuf str, bool enableUnknown)
 {
-    auto tryFromString = [] (TStringBuf value) -> std::optional<T> {
-        if (auto decodedValue = TryDecodeEnumValue(value)) {
-            auto enumValue = TEnumTraits<T>::FindValueByLiteral(*decodedValue);
-            return enumValue ? enumValue : TEnumTraits<T>::FindValueByLiteral(value);
+    auto tryParseToken = [&] (TStringBuf token) -> std::optional<T> {
+        if (auto optionalValue = TEnumTraits<T>::FindValueByLiteral(token)) {
+            return *optionalValue;
+
         }
 
-        auto reportError = [value] () {
-            throw TSimpleException(Format("Enum value %Qv is neither in a proper underscore case nor in a format \"%v(123)\"",
-                value,
-                TEnumTraits<T>::GetTypeName()));
-        };
-
-        TStringBuf typeName;
-        auto isTypeNameCorrect = value.NextTok('(', typeName) && typeName == TEnumTraits<T>::GetTypeName();
-        if (!isTypeNameCorrect) {
-            reportError();
+        if (auto optionalDecodedValue = TryDecodeEnumValue(token)) {
+            if (auto optionalValue = TEnumTraits<T>::FindValueByLiteral(*optionalDecodedValue)) {
+                return *optionalValue;
+            }
         }
 
-        TStringBuf enumValue;
-        std::underlying_type_t<T> underlyingValue = 0;
-        auto isEnumValueCorrect = value.NextTok(')', enumValue) && TryFromString(enumValue, underlyingValue);
-        if (!isEnumValueCorrect) {
-            reportError();
+        if (enableUnknown) {
+            if constexpr (constexpr auto optionalUnknownValue = TEnumTraits<T>::TryGetUnknownValue()) {
+                return *optionalUnknownValue;
+            }
         }
 
-        auto isParsingComplete = value.empty();
-        if (!isParsingComplete) {
-            reportError();
-        }
-
-        return static_cast<T>(underlyingValue);
+        return std::nullopt;
     };
 
     if constexpr (TEnumTraits<T>::IsBitEnum) {
         T result{};
         TStringBuf token;
-        while (value.NextTok('|', token)) {
-            if (auto scalar = tryFromString(StripString(token))) {
-                result |= *scalar;
+        while (str.NextTok('|', token)) {
+            if (auto optionalValue = tryParseToken(StripString(token))) {
+                result |= *optionalValue;
             } else {
                 return {};
             }
         }
         return result;
     } else {
-        return tryFromString(value);
+        return tryParseToken(str);
     }
 }
 
 template <class T>
-T ParseEnum(TStringBuf value)
+T ParseEnum(TStringBuf str)
 {
-    if (auto optionalResult = TryParseEnum<T>(value)) {
+    if (auto optionalResult = TryParseEnum<T>(str, /*enableUnkown*/ true)) {
         return *optionalResult;
     }
-    NYT::NDetail::ThrowMalformedEnumValueException(TEnumTraits<T>::GetTypeName(), value);
+    NYT::NDetail::ThrowMalformedEnumValueException(TEnumTraits<T>::GetTypeName(), str);
 }
 
 template <class T>
 void FormatEnum(TStringBuilderBase* builder, T value, bool lowerCase)
 {
-    auto formatScalarValue = [builder, lowerCase] (T value) {
-        auto optionalLiteral = TEnumTraits<T>::FindLiteralByValue(value);
-        if (!optionalLiteral) {
-            NYT::NDetail::FormatUnknownEnumValue(
-                builder,
-                TEnumTraits<T>::GetTypeName(),
-                ToUnderlying(value));
-            return;
-        }
-
+    auto formatLiteral = [&] (auto* builder, TStringBuf literal) {
         if (lowerCase) {
-            CamelCaseToUnderscoreCase(builder, *optionalLiteral);
+            CamelCaseToUnderscoreCase(builder, literal);
         } else {
-            builder->AppendString(*optionalLiteral);
+            builder->AppendString(literal);
         }
     };
 
     if constexpr (TEnumTraits<T>::IsBitEnum) {
-        if (TEnumTraits<T>::FindLiteralByValue(value)) {
-            formatScalarValue(value);
+        if (None(value)) {
+            // Avoid empty string if possible.
+            if (auto optionalLiteral = TEnumTraits<T>::FindLiteralByValue(value)) {
+                formatLiteral(builder, *optionalLiteral);
+            }
             return;
         }
-        auto first = true;
-        for (auto scalarValue : TEnumTraits<T>::GetDomainValues()) {
-            if (Any(value & scalarValue)) {
-                if (!first) {
-                    builder->AppendString(TStringBuf(" | "));
-                }
-                first = false;
-                formatScalarValue(scalarValue);
+
+        TDelimitedStringBuilderWrapper delimitedBuilder(builder, " | ");
+
+        T printedValue{};
+        for (auto currentValue : TEnumTraits<T>::GetDomainValues()) {
+            // Check if currentValue is viable and non-redunant.
+            if ((value & currentValue) == currentValue && (printedValue | currentValue) != printedValue) {
+                formatLiteral(&delimitedBuilder, *TEnumTraits<T>::FindLiteralByValue(currentValue));
+                printedValue |= currentValue;
             }
         }
+
+        // Handle the remainder.
+        if (printedValue != value) {
+            NYT::NDetail::FormatUnknownEnumValue(&delimitedBuilder, TEnumTraits<T>::GetTypeName(), value & ~printedValue);
+        }
     } else {
-        formatScalarValue(value);
+        if (auto optionalLiteral = TEnumTraits<T>::FindLiteralByValue(value)) {
+            formatLiteral(builder, *optionalLiteral);
+            return;
+        }
+
+        NYT::NDetail::FormatUnknownEnumValue(builder, TEnumTraits<T>::GetTypeName(), value);
     }
 }
 

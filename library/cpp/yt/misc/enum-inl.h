@@ -38,6 +38,14 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class T>
+constexpr std::optional<T> TryGetEnumUnknownValueImpl(T)
+{
+    return std::nullopt;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 namespace NDetail {
 
 template <typename TValues>
@@ -259,6 +267,13 @@ template <class T>
 TStringBuf TEnumTraits<T, true>::GetTypeName()
 {
     return TEnumTraitsImpl<T>::GetTypeName();
+}
+
+template <class T>
+constexpr std::optional<T> TEnumTraits<T, true>::TryGetUnknownValue()
+{
+    using NYT::TryGetEnumUnknownValueImpl;
+    return TryGetEnumUnknownValueImpl(T());
 }
 
 template <class T>

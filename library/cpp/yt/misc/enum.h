@@ -33,18 +33,11 @@ template <class T>
 using TEnumTraitsImpl = decltype(GetEnumTraitsImpl(T()));
 
 template <class T>
-constexpr bool IsEnumDomainSizeKnown()
-{
-    if constexpr(requires{ TEnumTraitsImpl<T>::DomainSize; }) {
-        return true;
-    } else {
-        return false;
-    }
-}
+constexpr std::optional<T> TryGetEnumUnknownValueImpl(T);
 
 template <
     class T,
-    bool = IsEnumDomainSizeKnown<T>()
+    bool DomainSizeKnown = requires{ TEnumTraitsImpl<T>::DomainSize; }
 >
 struct TEnumTraitsWithKnownDomain
 { };
@@ -62,7 +55,7 @@ struct TEnumTraits
 };
 
 template <class T>
-struct TEnumTraitsWithKnownDomain<T, true>
+struct TEnumTraitsWithKnownDomain<T, /*DomainSizeKnown*/ true>
 {
     static constexpr int GetDomainSize();
 
@@ -91,6 +84,7 @@ struct TEnumTraits<T, true>
 
     static TStringBuf GetTypeName();
 
+    static constexpr std::optional<T> TryGetUnknownValue();
     static std::optional<TStringBuf> FindLiteralByValue(T value);
     static std::optional<T> FindValueByLiteral(TStringBuf literal);
 
@@ -102,7 +96,7 @@ struct TEnumTraits<T, true>
 
 //! Defines a smart enumeration with a specific underlying type.
 /*!
- * \param enumType Enumeration enumType.
+ * \param enumType Enumeration type.
  * \param seq Enumeration domain encoded as a <em>sequence</em>.
  * \param underlyingType Underlying type.
  */
@@ -127,7 +121,7 @@ struct TEnumTraits<T, true>
 
 //! Defines a smart enumeration with a specific underlying type.
 /*!
- * \param enumType Enumeration enumType.
+ * \param enumType Enumeration type.
  * \param seq Enumeration domain encoded as a <em>sequence</em>.
  * \param underlyingType Underlying type.
  */
@@ -142,7 +136,7 @@ struct TEnumTraits<T, true>
 //! Defines a smart enumeration with a specific underlying type.
 //! Duplicate enumeration values are allowed.
 /*!
- * \param enumType Enumeration enumType.
+ * \param enumType Enumeration type.
  * \param seq Enumeration domain encoded as a <em>sequence</em>.
  * \param underlyingType Underlying type.
  */
@@ -155,7 +149,7 @@ struct TEnumTraits<T, true>
 
 //! Defines a smart enumeration with the default |unsigned int| underlying type.
 /*!
- * \param enumType Enumeration enumType.
+ * \param enumType Enumeration type.
  * \param seq Enumeration domain encoded as a <em>sequence</em>.
  */
 #define DEFINE_BIT_ENUM(enumType, seq) \
@@ -163,7 +157,7 @@ struct TEnumTraits<T, true>
 
 //! Defines a smart enumeration with a specific underlying type and IsStringSerializable attribute.
 /*!
- * \param enumType Enumeration enumType.
+ * \param enumType Enumeration type.
  * \param seq Enumeration domain encoded as a <em>sequence</em>.
  * \param underlyingType Underlying type.
  */
@@ -185,6 +179,18 @@ struct TEnumTraits<T, true>
 //! Defines a smart enumeration with the default |int| underlying type and IsStringSerializable attribute.
 #define DEFINE_STRING_SERIALIZABLE_ENUM(enumType, seq) \
     DEFINE_STRING_SERIALIZABLE_ENUM_WITH_UNDERLYING_TYPE(enumType, int, seq)
+
+//! When enum from another representation (e.g. string or protobuf integer),
+//! instructs the parser to treat undeclared values as |unknownValue|.
+/*!
+ * \param enumType Enumeration type.
+ * \param unknownValue A sentinel value of #enumType.
+ */
+#define DEFINE_ENUM_UNKNOWN_VALUE(enumType, unknownValue) \
+    [[maybe_unused]] constexpr std::optional<enumType> TryGetEnumUnknownValueImpl(enumType) \
+    { \
+        return enumType::unknownValue; \
+    }
 
 ////////////////////////////////////////////////////////////////////////////////
 
