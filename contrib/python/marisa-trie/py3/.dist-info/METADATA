@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: marisa-trie
-Version: 1.2.0
+Version: 1.2.1
 Summary: Static memory-efficient and fast Trie-like structures for Python.
 Home-page: https://github.com/pytries/marisa-trie
 Author: Mikhail Korobov
@@ -30,9 +30,9 @@ License-File: LICENSE
 License-File: AUTHORS.rst
 Requires-Dist: setuptools
 Provides-Extra: test
-Requires-Dist: hypothesis ; extra == 'test'
-Requires-Dist: pytest ; extra == 'test'
-Requires-Dist: readme-renderer ; extra == 'test'
+Requires-Dist: hypothesis; extra == "test"
+Requires-Dist: pytest; extra == "test"
+Requires-Dist: readme-renderer; extra == "test"
 
 MARISA Trie
 ===========
@@ -93,6 +93,12 @@ LGPL and BSD 2-clause license.
 
 CHANGES
 =======
+
+1.2.1 (2024-10-12)
+------------------
+
+* Publish Python 3.13 wheels (only CPython ones, PyPy ones are skipped until https://github.com/pypa/distutils/issues/283 is fixed).
+* Rebuild Cython wrapper with Cython 3.0.11.
 
 1.2.0 (2024-06-05)
 ------------------
