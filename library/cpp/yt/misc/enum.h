@@ -69,6 +69,8 @@ struct TEnumTraitsWithKnownDomain<T, /*DomainSizeKnown*/ true>
         requires (!TEnumTraitsImpl<T>::IsBitEnum);
 
     // For bit enums only.
+    static constexpr T GetAllSetValue()
+        requires (TEnumTraitsImpl<T>::IsBitEnum);
     static std::vector<T> Decompose(T value)
         requires (TEnumTraitsImpl<T>::IsBitEnum);
 };
@@ -87,6 +89,8 @@ struct TEnumTraits<T, true>
     static constexpr std::optional<T> TryGetUnknownValue();
     static std::optional<TStringBuf> FindLiteralByValue(T value);
     static std::optional<T> FindValueByLiteral(TStringBuf literal);
+    static constexpr bool IsKnownValue(T value)
+        requires (!TEnumTraitsImpl<T>::IsBitEnum);
 
     static TString ToString(T value);
     static T FromString(TStringBuf literal);
@@ -127,10 +131,11 @@ struct TEnumTraits<T, true>
  */
 #define DEFINE_BIT_ENUM_WITH_UNDERLYING_TYPE(enumType, underlyingType, seq) \
     ENUM__CLASS(enumType, underlyingType, seq) \
+    ENUM__BITWISE_OPS(enumType) \
     ENUM__BEGIN_TRAITS(enumType, underlyingType, true, false, seq) \
     ENUM__VALIDATE_UNIQUE(enumType) \
+    ENUM__ALL_SET_VALUE(enumType, seq) \
     ENUM__END_TRAITS(enumType) \
-    ENUM__BITWISE_OPS(enumType) \
     static_assert(true)
 
 //! Defines a smart enumeration with a specific underlying type.
@@ -142,9 +147,10 @@ struct TEnumTraits<T, true>
  */
 #define DEFINE_AMBIGUOUS_BIT_ENUM_WITH_UNDERLYING_TYPE(enumType, underlyingType, seq) \
     ENUM__CLASS(enumType, underlyingType, seq) \
-    ENUM__BEGIN_TRAITS(enumType, underlyingType, true, false, seq) \
-    ENUM__END_TRAITS(enumType) \
     ENUM__BITWISE_OPS(enumType) \
+    ENUM__BEGIN_TRAITS(enumType, underlyingType, true, false, seq) \
+    ENUM__ALL_SET_VALUE(enumType, seq) \
+    ENUM__END_TRAITS(enumType) \
     static_assert(true)
 
 //! Defines a smart enumeration with the default |unsigned int| underlying type.

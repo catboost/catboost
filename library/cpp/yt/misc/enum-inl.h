@@ -11,6 +11,7 @@
 #include <util/generic/cast.h>
 
 #include <algorithm>
+#include <numeric>
 #include <stdexcept>
 
 namespace NYT {
@@ -140,6 +141,13 @@ constexpr bool CheckDomainNames(const TNames& names)
             return std::nullopt; \
         } \
         \
+        static constexpr bool IsKnownValue(T value) \
+        { \
+            return false  \
+                PP_FOR_EACH(ENUM__IS_KNOWN_VALUE_ITEM, seq) \
+            ; \
+        } \
+        \
         static constexpr const std::array<TStringBuf, DomainSize>& GetDomainNames() \
         { \
             return Names; \
@@ -191,6 +199,19 @@ constexpr bool CheckDomainNames(const TNames& names)
 
 #define ENUM__GET_DOMAIN_NAMES_ITEM_ATOMIC(item) \
     TStringBuf(PP_STRINGIZE(item)),
+
+#define ENUM__IS_KNOWN_VALUE_ITEM(item) \
+    PP_IF( \
+        PP_IS_SEQUENCE(item), \
+        ENUM__IS_KNOWN_VALUE_ITEM_SEQ, \
+        ENUM__IS_KNOWN_VALUE_ITEM_ATOMIC \
+    )(item)
+
+#define ENUM__IS_KNOWN_VALUE_ITEM_SEQ(seq) \
+    ENUM__IS_KNOWN_VALUE_ITEM_ATOMIC(PP_ELEMENT(seq, 0))
+
+#define ENUM__IS_KNOWN_VALUE_ITEM_ATOMIC(item) \
+    || value == T::item
 
 #define ENUM__VALIDATE_UNIQUE(enumType) \
     static_assert(IsMonotonic || ::NYT::NDetail::CheckValuesUnique(Values), \
@@ -249,6 +270,13 @@ constexpr T TEnumTraitsWithKnownDomain<T, true>::GetMaxValue()
 }
 
 template <class T>
+constexpr T TEnumTraitsWithKnownDomain<T, true>::GetAllSetValue()
+    requires (TEnumTraitsImpl<T>::IsBitEnum)
+{
+    return TEnumTraitsImpl<T>::GetAllSetValue();
+}
+
+template <class T>
 std::vector<T> TEnumTraitsWithKnownDomain<T, true>::Decompose(T value)
     requires (TEnumTraitsImpl<T>::IsBitEnum)
 {
@@ -289,6 +317,13 @@ std::optional<TStringBuf> TEnumTraits<T, true>::FindLiteralByValue(T value)
 }
 
 template <class T>
+constexpr bool TEnumTraits<T, true>::IsKnownValue(T value)
+    requires (!TEnumTraitsImpl<T>::IsBitEnum)
+{
+    return TEnumTraitsImpl<T>::IsKnownValue(value);
+}
+
+template <class T>
 TString TEnumTraits<T, true>::ToString(T value)
 {
     using ::ToString;
@@ -323,7 +358,7 @@ T TEnumTraits<T, true>::FromString(TStringBuf literal)
         return T(ToUnderlying(lhs) op ToUnderlying(rhs)); \
     } \
     \
-    [[maybe_unused]] inline T& operator assignOp (T& lhs, T rhs) \
+    [[maybe_unused]] inline constexpr T& operator assignOp (T& lhs, T rhs) \
     { \
         lhs = T(ToUnderlying(lhs) op ToUnderlying(rhs)); \
         return lhs; \
@@ -341,19 +376,29 @@ T TEnumTraits<T, true>::FromString(TStringBuf literal)
         return T(ToUnderlying(lhs) op rhs); \
     } \
     \
-    [[maybe_unused]] inline T& operator assignOp (T& lhs, size_t rhs) \
+    [[maybe_unused]] inline constexpr T& operator assignOp (T& lhs, size_t rhs) \
     { \
         lhs = T(ToUnderlying(lhs) op rhs); \
         return lhs; \
     }
 
-#define ENUM__BITWISE_OPS(enumType) \
+#define ENUM__BITWISE_OPS(enumType)                 \
     ENUM__BINARY_BITWISE_OPERATOR(enumType, &=, &)  \
     ENUM__BINARY_BITWISE_OPERATOR(enumType, |=, | ) \
     ENUM__BINARY_BITWISE_OPERATOR(enumType, ^=, ^)  \
     ENUM__UNARY_BITWISE_OPERATOR(enumType, ~)       \
     ENUM__BIT_SHIFT_OPERATOR(enumType, <<=, << )    \
     ENUM__BIT_SHIFT_OPERATOR(enumType, >>=, >> )
+
+#define ENUM__ALL_SET_VALUE(enumType, seq)             \
+    static constexpr enumType GetAllSetValue()         \
+    {                                                  \
+        return std::accumulate(                        \
+            Values.begin(),                            \
+            Values.end(),                              \
+            enumType(),                                \
+            [] (auto a, auto b) { return a | b; });    \
+    }
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -210,6 +210,22 @@ TEST(TEnumTest, DomainValues)
     EXPECT_EQ(colorValues, ToVector(TEnumTraits<EColor>::GetDomainValues()));
 }
 
+TEST(TEnumTest, IsKnownValue)
+{
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsKnownValue(ESimple::X));
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsKnownValue(ESimple::Y));
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsKnownValue(ESimple::Z));
+
+    EXPECT_FALSE(TEnumTraits<ESimple>::IsKnownValue(static_cast<ESimple>(100)));
+
+    EXPECT_TRUE(TEnumTraits<EColor>::IsKnownValue(EColor::Red));
+}
+
+TEST(TEnumTest, AllSetValue)
+{
+    EXPECT_EQ(TEnumTraits<EFlag>::GetAllSetValue(), EFlag::_1 | EFlag::_2 | EFlag::_3 | EFlag::_4);
+}
+
 TEST(TEnumTest, Decompose1)
 {
     auto f = EFlag(0);
