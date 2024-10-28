@@ -917,12 +917,6 @@ static_assert(Y_ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #define Y_ABSL_INTERNAL_HAVE_SSSE3 1
 #endif
 
-#ifdef __NVCC__
-#undef Y_ABSL_INTERNAL_HAVE_SSE
-#undef Y_ABSL_INTERNAL_HAVE_SSE2
-#undef Y_ABSL_INTERNAL_HAVE_SSSE3
-#endif
-
 // Y_ABSL_INTERNAL_HAVE_ARM_NEON is used for compile-time detection of NEON (ARM
 // SIMD).
 //
@@ -934,6 +928,13 @@ static_assert(Y_ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #error Y_ABSL_INTERNAL_HAVE_ARM_NEON cannot be directly set
 #elif defined(__ARM_NEON) && !defined(__CUDA_ARCH__)
 #define Y_ABSL_INTERNAL_HAVE_ARM_NEON 1
+#endif
+
+#ifdef __NVCC__
+#undef Y_ABSL_INTERNAL_HAVE_SSE
+#undef Y_ABSL_INTERNAL_HAVE_SSE2
+#undef Y_ABSL_INTERNAL_HAVE_SSSE3
+#undef Y_ABSL_INTERNAL_HAVE_ARM_NEON
 #endif
 
 // Y_ABSL_HAVE_CONSTANT_EVALUATED is used for compile-time detection of
