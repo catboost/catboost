@@ -78,6 +78,8 @@ target_sources(util-generic-ut PRIVATE
   ${PROJECT_SOURCE_DIR}/util/generic/yexception_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/ylimits_ut.cpp
   ${PROJECT_SOURCE_DIR}/util/generic/ymath_ut.cpp
+  ${PROJECT_SOURCE_DIR}/util/generic/string_ut.h
+  ${PROJECT_SOURCE_DIR}/util/generic/yexception_ut.h
 )
 
 
