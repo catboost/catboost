@@ -44,6 +44,8 @@ TYsonString ConvertToYsonString<ui64>(const ui64& value);
 template <>
 TYsonString ConvertToYsonString<TString>(const TString& value);
 template <>
+TYsonString ConvertToYsonString<std::string>(const std::string& value);
+template <>
 TYsonString ConvertToYsonString<TStringBuf>(const TStringBuf& value);
 TYsonString ConvertToYsonString(const char* value);
 

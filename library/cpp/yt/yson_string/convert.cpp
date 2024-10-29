@@ -67,6 +67,12 @@ TYsonString ConvertToYsonString<TString>(const TString& value)
     return ConvertToYsonString(static_cast<TStringBuf>(value));
 }
 
+template <>
+TYsonString ConvertToYsonString<std::string>(const std::string& value)
+{
+    return ConvertToYsonString(static_cast<TStringBuf>(value));
+}
+
 struct TConvertStringToYsonStringTag
 { };
 
