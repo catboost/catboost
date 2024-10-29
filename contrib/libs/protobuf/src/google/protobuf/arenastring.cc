@@ -96,7 +96,8 @@ class ScopedCheckPtrInvariants {
 #endif  // NDEBUG || !GOOGLE_PROTOBUF_INTERNAL_DONATE_STEAL
 
 // Creates a heap allocated TProtoStringType value.
-inline TaggedStringPtr CreateString(const TProtoStringType& value) {
+template <typename TArg>
+inline TaggedStringPtr CreateString(const TArg& value) {
   TaggedStringPtr res;
   res.SetAllocated(new TProtoStringType(value));
   return res;
@@ -115,7 +116,7 @@ TaggedStringPtr CreateArenaString(Arena& arena, y_absl::string_view s) {
 
 }  // namespace
 
-void ArenaStringPtr::Set(const TProtoStringType& value, Arena* arena) {
+void ArenaStringPtr::Set(y_absl::string_view value, Arena* arena) {
   ScopedCheckPtrInvariants check(&tagged_ptr_);
   if (IsDefault()) {
     // If we're not on an arena, skip straight to a true string to avoid

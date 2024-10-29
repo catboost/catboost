@@ -259,18 +259,27 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
   // instance known to not carry any heap allocated value.
   inline void InitAllocated(TProtoStringType* str, Arena* arena);
 
-  void Set(const TProtoStringType& value, Arena* arena);
+  void Set(y_absl::string_view value, Arena* arena);
   void Set(TProtoStringType&& value, Arena* arena);
   template <typename... OverloadDisambiguator>
   void Set(const TProtoStringType& value, Arena* arena);
   void Set(const char* s, Arena* arena);
   void Set(const char* s, size_t n, Arena* arena);
 
+  void Set(std::string&& value, Arena* arena) {
+    return Set(TProtoStringType(std::move(value)), arena);
+  }
+
+  void SetBytes(y_absl::string_view value, Arena* arena);
   void SetBytes(TProtoStringType&& value, Arena* arena);
   template <typename... OverloadDisambiguator>
   void SetBytes(const TProtoStringType& value, Arena* arena);
   void SetBytes(const char* s, Arena* arena);
   void SetBytes(const void* p, size_t n, Arena* arena);
+
+  void SetBytes(std::string&& value, Arena* arena) {
+    return SetBytes(TProtoStringType(std::move(value)), arena);
+  }
 
   template <typename RefWrappedType>
   void Set(std::reference_wrapper<RefWrappedType> const_string_ref,
@@ -413,7 +422,11 @@ inline void ArenaStringPtr::Set(const char* s, Arena* arena) {
 }
 
 inline void ArenaStringPtr::Set(const char* s, size_t n, Arena* arena) {
-  Set(TProtoStringType(s, s + n), arena);
+  Set(y_absl::string_view{s, n}, arena);
+}
+
+inline void ArenaStringPtr::SetBytes(y_absl::string_view value, Arena* arena) {
+  Set(value, arena);
 }
 
 template <>
@@ -434,7 +447,7 @@ inline void ArenaStringPtr::SetBytes(const char* s, Arena* arena) {
 }
 
 inline void ArenaStringPtr::SetBytes(const void* p, size_t n, Arena* arena) {
-  Set(TProtoStringType(static_cast<const char*>(p), static_cast<const char*>(p) + n), arena);
+  Set(y_absl::string_view{static_cast<const char*>(p), n}, arena);
 }
 
 // Make sure rhs_arena allocated rhs, and lhs_arena allocated lhs.

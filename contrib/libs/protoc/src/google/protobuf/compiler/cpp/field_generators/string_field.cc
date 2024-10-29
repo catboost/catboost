@@ -781,11 +781,19 @@ void RepeatedString::GenerateAccessorDeclarations(io::Printer* p) const {
     $DEPRECATED$ void $set_name$(int index, TProtoStringType&& value);
     $DEPRECATED$ void $set_name$(int index, const char* value);
     $DEPRECATED$ void $set_name$(int index, const $byte$* value, std::size_t size);
+    $DEPRECATED$ void $set_name$(int index, y_absl::string_view value);
+    $DEPRECATED$ void $set_name$(int index, std::string&& value) {
+      return $set_name$(index, TProtoStringType(std::move(value)));
+    }
     $DEPRECATED$ TProtoStringType* $add_name$();
     $DEPRECATED$ void $add_name$(const TProtoStringType& value);
     $DEPRECATED$ void $add_name$(TProtoStringType&& value);
     $DEPRECATED$ void $add_name$(const char* value);
     $DEPRECATED$ void $add_name$(const $byte$* value, std::size_t size);
+    $DEPRECATED$ void $add_name$(y_absl::string_view value);
+    $DEPRECATED$ void $add_name$(std::string&& value) {
+      return $add_name$(TProtoStringType(std::move(value)));
+    }
     $DEPRECATED$ const $pb$::RepeatedPtrField<TProtoStringType>& $name$() const;
     $DEPRECATED$ $pb$::RepeatedPtrField<TProtoStringType>* $mutable_name$();
 
@@ -850,6 +858,11 @@ void RepeatedString::GenerateInlineAccessorDefinitions(io::Printer* p) const {
               $annotate_set$;
               // @@protoc_insertion_point(field_set_pointer:$pkg.Msg.field$)
             }
+            inline void $Msg$::set_$name$(int index, y_absl::string_view value) {
+              $field_$.Mutable(index)->assign(value.data(), value.size());
+              $annotate_set$;
+              // @@protoc_insertion_point(field_set_string_piece:$pkg.Msg.field$)
+            }
             inline TProtoStringType* $Msg$::_internal_add_$name$() { return $field_$.Add(); }
             inline void $Msg$::add_$name$(const TProtoStringType& value) {
               $field_$.Add()->assign(value);
@@ -871,6 +884,11 @@ void RepeatedString::GenerateInlineAccessorDefinitions(io::Printer* p) const {
               $field_$.Add()->assign(reinterpret_cast<const char*>(value), size);
               $annotate_add$;
               // @@protoc_insertion_point(field_add_pointer:$pkg.Msg.field$)
+            }
+            inline void $Msg$::add_$name$(y_absl::string_view value) {
+              $field_$.Add()->assign(value.data(), value.size());
+              $annotate_add$;
+              // @@protoc_insertion_point(field_add_string_piece:$pkg.Msg.field$)
             }
             inline const ::$proto_ns$::RepeatedPtrField<TProtoStringType>&
             $Msg$::$name$() const {
