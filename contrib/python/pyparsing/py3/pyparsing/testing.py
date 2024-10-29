@@ -257,10 +257,14 @@ class pyparsing_test:
         eol_mark: str = "|",
         mark_spaces: typing.Optional[str] = None,
         mark_control: typing.Optional[str] = None,
+        *,
+        indent: typing.Union[str, int] = "",
+        base_1: bool = True,
     ) -> str:
         """
         Helpful method for debugging a parser - prints a string with line and column numbers.
-        (Line and column numbers are 1-based.)
+        (Line and column numbers are 1-based by default - if debugging a parse action,
+        pass base_1=False, to correspond to the loc value passed to the parse action.)
 
         :param s: tuple(bool, str - string to be printed with line and column numbers
         :param start_line: int - (optional) starting line number in s to print (default=1)
@@ -273,11 +277,18 @@ class pyparsing_test:
                                  - "unicode" - replaces control chars with Unicode symbols, such as "␍" and "␊"
                                  - any single character string - replace control characters with given string
                                  - None (default) - string is displayed as-is
+        :param indent: str | int - (optional) string to indent with line and column numbers; if an int
+                                   is passed, converted to " " * indent
+        :param base_1: bool - (optional) whether to label string using base 1; if False, string will be
+                              labeled based at 0 (default=True)
 
         :return: str - input string with leading line numbers and column number headers
         """
         if expand_tabs:
             s = s.expandtabs()
+        if isinstance(indent, int):
+            indent = " " * indent
+        indent = indent.expandtabs()
         if mark_control is not None:
             mark_control = typing.cast(str, mark_control)
             if mark_control == "unicode":
@@ -300,46 +311,52 @@ class pyparsing_test:
             else:
                 s = s.replace(" ", mark_spaces)
         if start_line is None:
-            start_line = 1
+            start_line = 0
         if end_line is None:
             end_line = len(s)
         end_line = min(end_line, len(s))
-        start_line = min(max(1, start_line), end_line)
+        start_line = min(max(0, start_line), end_line)
 
         if mark_control != "unicode":
-            s_lines = s.splitlines()[start_line - 1 : end_line]
+            s_lines = s.splitlines()[start_line - base_1 : end_line]
         else:
-            s_lines = [line + "␊" for line in s.split("␊")[start_line - 1 : end_line]]
+            s_lines = [
+                line + "␊" for line in s.split("␊")[start_line - base_1 : end_line]
+            ]
         if not s_lines:
             return ""
 
         lineno_width = len(str(end_line))
         max_line_len = max(len(line) for line in s_lines)
-        lead = " " * (lineno_width + 1)
+        lead = indent + " " * (lineno_width + 1)
         if max_line_len >= 99:
             header0 = (
                 lead
+                + ("" if base_1 else " ")
                 + "".join(
                     f"{' ' * 99}{(i + 1) % 100}"
-                    for i in range(max(max_line_len // 100, 1))
+                    for i in range(1 if base_1 else 0, max(max_line_len // 100, 1))
                 )
                 + "\n"
             )
         else:
             header0 = ""
         header1 = (
-            header0
+            ("" if base_1 else " ")
             + lead
             + "".join(f"         {(i + 1) % 10}" for i in range(-(-max_line_len // 10)))
             + "\n"
         )
-        header2 = lead + "1234567890" * (-(-max_line_len // 10)) + "\n"
+        digits = "1234567890"
+        header2 = (
+            lead + ("" if base_1 else "0") + digits * (-(-max_line_len // 10)) + "\n"
+        )
         return (
             header1
             + header2
             + "\n".join(
-                f"{i:{lineno_width}d}:{line}{eol_mark}"
-                for i, line in enumerate(s_lines, start=start_line)
+                f"{indent}{i:{lineno_width}d}:{line}{eol_mark}"
+                for i, line in enumerate(s_lines, start=start_line + base_1)
             )
             + "\n"
         )

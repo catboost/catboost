@@ -1,11 +1,11 @@
 # util.py
-import inspect
-import warnings
-import types
-import collections
-import itertools
+import contextlib
 from functools import lru_cache, wraps
-from typing import Callable, List, Union, Iterable, TypeVar, cast
+import inspect
+import itertools
+import types
+from typing import Callable, Union, Iterable, TypeVar, cast
+import warnings
 
 _bslash = chr(92)
 C = TypeVar("C", bound=Callable)
@@ -14,8 +14,8 @@ C = TypeVar("C", bound=Callable)
 class __config_flags:
     """Internal class for defining compatibility and debugging flags"""
 
-    _all_names: List[str] = []
-    _fixed_names: List[str] = []
+    _all_names: list[str] = []
+    _fixed_names: list[str] = []
     _type_desc = "configuration"
 
     @classmethod
@@ -100,27 +100,24 @@ class _UnboundedCache:
 
 class _FifoCache:
     def __init__(self, size):
-        self.not_in_cache = not_in_cache = object()
         cache = {}
-        keyring = [object()] * size
+        self.size = size
+        self.not_in_cache = not_in_cache = object()
         cache_get = cache.get
         cache_pop = cache.pop
-        keyiter = itertools.cycle(range(size))
 
         def get(_, key):
             return cache_get(key, not_in_cache)
 
         def set_(_, key, value):
             cache[key] = value
-            i = next(keyiter)
-            cache_pop(keyring[i], None)
-            keyring[i] = key
+            while len(cache) > size:
+                # pop oldest element in cache by getting the first key
+                cache_pop(next(iter(cache)))
 
         def clear(_):
             cache.clear()
-            keyring[:] = [object()] * size
 
-        self.size = size
         self.get = types.MethodType(get, self)
         self.set = types.MethodType(set_, self)
         self.clear = types.MethodType(clear, self)
@@ -137,13 +134,13 @@ class LRUMemo:
     def __init__(self, capacity):
         self._capacity = capacity
         self._active = {}
-        self._memory = collections.OrderedDict()
+        self._memory = {}
 
     def __getitem__(self, key):
         try:
             return self._active[key]
         except KeyError:
-            self._memory.move_to_end(key)
+            self._memory[key] = self._memory.pop(key)
             return self._memory[key]
 
     def __setitem__(self, key, value):
@@ -156,8 +153,9 @@ class LRUMemo:
         except KeyError:
             pass
         else:
-            while len(self._memory) >= self._capacity:
-                self._memory.popitem(last=False)
+            oldest_keys = list(self._memory)[: -(self._capacity + 1)]
+            for key_to_delete in oldest_keys:
+                self._memory.pop(key_to_delete)
             self._memory[key] = value
 
     def clear(self):
@@ -183,58 +181,180 @@ def _escape_regex_range_chars(s: str) -> str:
     return str(s)
 
 
+class _GroupConsecutive:
+    """
+    Used as a callable `key` for itertools.groupby to group
+    characters that are consecutive:
+        itertools.groupby("abcdejkmpqrs", key=IsConsecutive())
+        yields:
+            (0, iter(['a', 'b', 'c', 'd', 'e']))
+            (1, iter(['j', 'k']))
+            (2, iter(['m']))
+            (3, iter(['p', 'q', 'r', 's']))
+    """
+    def __init__(self):
+        self.prev = 0
+        self.counter = itertools.count()
+        self.value = -1
+
+    def __call__(self, char: str) -> int:
+        c_int = ord(char)
+        self.prev, prev = c_int, self.prev
+        if c_int - prev > 1:
+            self.value = next(self.counter)
+        return self.value
+
+
 def _collapse_string_to_ranges(
     s: Union[str, Iterable[str]], re_escape: bool = True
 ) -> str:
-    def is_consecutive(c):
-        c_int = ord(c)
-        is_consecutive.prev, prev = c_int, is_consecutive.prev
-        if c_int - prev > 1:
-            is_consecutive.value = next(is_consecutive.counter)
-        return is_consecutive.value
+    r"""
+    Take a string or list of single-character strings, and return
+    a string of the consecutive characters in that string collapsed
+    into groups, as might be used in a regular expression '[a-z]'
+    character set:
+        'a' -> 'a' -> '[a]'
+        'bc' -> 'bc' -> '[bc]'
+        'defgh' -> 'd-h' -> '[d-h]'
+        'fdgeh' -> 'd-h' -> '[d-h]'
+        'jklnpqrtu' -> 'j-lnp-rtu' -> '[j-lnp-rtu]'
+    Duplicates get collapsed out:
+        'aaa' -> 'a' -> '[a]'
+        'bcbccb' -> 'bc' -> '[bc]'
+        'defghhgf' -> 'd-h' -> '[d-h]'
+        'jklnpqrjjjtu' -> 'j-lnp-rtu' -> '[j-lnp-rtu]'
+    Spaces are preserved:
+        'ab c' -> ' a-c' -> '[ a-c]'
+    Characters that are significant when defining regex ranges
+    get escaped:
+        'acde[]-' -> r'\-\[\]ac-e' -> r'[\-\[\]ac-e]'
+    """
 
-    is_consecutive.prev = 0  # type: ignore [attr-defined]
-    is_consecutive.counter = itertools.count()  # type: ignore [attr-defined]
-    is_consecutive.value = -1  # type: ignore [attr-defined]
+    # Developer notes:
+    # - Do not optimize this code assuming that the given input string
+    #   or internal lists will be short (such as in loading generators into
+    #   lists to make it easier to find the last element); this method is also
+    #   used to generate regex ranges for character sets in the pyparsing.unicode
+    #   classes, and these can be _very_ long lists of strings
 
-    def escape_re_range_char(c):
+    def escape_re_range_char(c: str) -> str:
         return "\\" + c if c in r"\^-][" else c
 
-    def no_escape_re_range_char(c):
+    def no_escape_re_range_char(c: str) -> str:
         return c
 
     if not re_escape:
         escape_re_range_char = no_escape_re_range_char
 
     ret = []
-    s = "".join(sorted(set(s)))
-    if len(s) > 3:
-        for _, chars in itertools.groupby(s, key=is_consecutive):
+
+    # reduce input string to remove duplicates, and put in sorted order
+    s_chars: list[str] = sorted(set(s))
+
+    if len(s_chars) > 2:
+        # find groups of characters that are consecutive (can be collapsed
+        # down to "<first>-<last>")
+        for _, chars in itertools.groupby(s_chars, key=_GroupConsecutive()):
+            # _ is unimportant, is just used to identify groups
+            # chars is an iterator of one or more consecutive characters
+            # that comprise the current group
             first = last = next(chars)
-            last = collections.deque(
-                itertools.chain(iter([last]), chars), maxlen=1
-            ).pop()
+            with contextlib.suppress(ValueError):
+                *_, last = chars
+
             if first == last:
+                # there was only a single char in this group
                 ret.append(escape_re_range_char(first))
+
+            elif last == chr(ord(first) + 1):
+                # there were only 2 characters in this group
+                #   'a','b' -> 'ab'
+                ret.append(f"{escape_re_range_char(first)}{escape_re_range_char(last)}")
+
             else:
-                sep = "" if ord(last) == ord(first) + 1 else "-"
+                # there were > 2 characters in this group, make into a range
+                #   'c','d','e' -> 'c-e'
                 ret.append(
-                    f"{escape_re_range_char(first)}{sep}{escape_re_range_char(last)}"
+                    f"{escape_re_range_char(first)}-{escape_re_range_char(last)}"
                 )
     else:
-        ret = [escape_re_range_char(c) for c in s]
+        # only 1 or 2 chars were given to form into groups
+        #   'a' -> ['a']
+        #   'bc' -> ['b', 'c']
+        #   'dg' -> ['d', 'g']
+        # no need to list them with "-", just return as a list
+        # (after escaping)
+        ret = [escape_re_range_char(c) for c in s_chars]
 
     return "".join(ret)
 
 
-def _flatten(ll: list) -> list:
+def _flatten(ll: Iterable) -> list:
     ret = []
-    for i in ll:
-        if isinstance(i, list):
-            ret.extend(_flatten(i))
+    to_visit = [*ll]
+    while to_visit:
+        i = to_visit.pop(0)
+        if isinstance(i, Iterable) and not isinstance(i, str):
+            to_visit[:0] = i
         else:
             ret.append(i)
     return ret
+
+
+def make_compressed_re(
+    word_list: Iterable[str], max_level: int = 2, _level: int = 1
+) -> str:
+    """
+    Create a regular expression string from a list of words, collapsing by common
+    prefixes and optional suffixes.
+
+    Calls itself recursively to build nested sublists for each group of suffixes
+    that have a shared prefix.
+    """
+
+    def get_suffixes_from_common_prefixes(namelist: list[str]):
+        if len(namelist) > 1:
+            for prefix, suffixes in itertools.groupby(namelist, key=lambda s: s[:1]):
+                yield prefix, sorted([s[1:] for s in suffixes], key=len, reverse=True)
+        else:
+            yield namelist[0][0], [namelist[0][1:]]
+
+    if max_level == 0:
+        return "|".join(sorted(word_list, key=len, reverse=True))
+
+    ret = []
+    sep = ""
+    for initial, suffixes in get_suffixes_from_common_prefixes(sorted(word_list)):
+        ret.append(sep)
+        sep = "|"
+
+        trailing = ""
+        if "" in suffixes:
+            trailing = "?"
+            suffixes.remove("")
+
+        if len(suffixes) > 1:
+            if all(len(s) == 1 for s in suffixes):
+                ret.append(f"{initial}[{''.join(suffixes)}]{trailing}")
+            else:
+                if _level < max_level:
+                    suffix_re = make_compressed_re(
+                        sorted(suffixes), max_level, _level + 1
+                    )
+                    ret.append(f"{initial}({suffix_re}){trailing}")
+                else:
+                    suffixes.sort(key=len, reverse=True)
+                    ret.append(f"{initial}({'|'.join(suffixes)}){trailing}")
+        else:
+            if suffixes:
+                suffix = suffixes[0]
+                if len(suffix) > 1 and trailing:
+                    ret.append(f"{initial}({suffix}){trailing}")
+                else:
+                    ret.append(f"{initial}{suffix}{trailing}")
+            else:
+                ret.append(initial)
+    return "".join(ret)
 
 
 def replaced_by_pep8(compat_name: str, fn: C) -> C:
@@ -268,10 +388,10 @@ def replaced_by_pep8(compat_name: str, fn: C) -> C:
     _inner.__name__ = compat_name
     _inner.__annotations__ = fn.__annotations__
     if isinstance(fn, types.FunctionType):
-        _inner.__kwdefaults__ = fn.__kwdefaults__
+        _inner.__kwdefaults__ = fn.__kwdefaults__  # type: ignore [attr-defined]
     elif isinstance(fn, type) and hasattr(fn, "__init__"):
-        _inner.__kwdefaults__ = fn.__init__.__kwdefaults__
+        _inner.__kwdefaults__ = fn.__init__.__kwdefaults__  # type: ignore [misc,attr-defined]
     else:
-        _inner.__kwdefaults__ = None
+        _inner.__kwdefaults__ = None  # type: ignore [attr-defined]
     _inner.__qualname__ = fn.__qualname__
     return cast(C, _inner)

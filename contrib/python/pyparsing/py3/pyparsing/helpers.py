@@ -1,5 +1,6 @@
 # helpers.py
 import html.entities
+import operator
 import re
 import sys
 import typing
@@ -10,6 +11,7 @@ from .util import (
     _bslash,
     _flatten,
     _escape_regex_range_chars,
+    make_compressed_re,
     replaced_by_pep8,
 )
 
@@ -203,15 +205,15 @@ def one_of(
         )
 
     if caseless:
-        isequal = lambda a, b: a.upper() == b.upper()
+        is_equal = lambda a, b: a.upper() == b.upper()
         masks = lambda a, b: b.upper().startswith(a.upper())
-        parseElementClass = CaselessKeyword if asKeyword else CaselessLiteral
+        parse_element_class = CaselessKeyword if asKeyword else CaselessLiteral
     else:
-        isequal = lambda a, b: a == b
+        is_equal = operator.eq
         masks = lambda a, b: b.startswith(a)
-        parseElementClass = Keyword if asKeyword else Literal
+        parse_element_class = Keyword if asKeyword else Literal
 
-    symbols: List[str] = []
+    symbols: list[str]
     if isinstance(strs, str_type):
         strs = typing.cast(str, strs)
         symbols = strs.split()
@@ -224,20 +226,19 @@ def one_of(
 
     # reorder given symbols to take care to avoid masking longer choices with shorter ones
     # (but only if the given symbols are not just single characters)
-    if any(len(sym) > 1 for sym in symbols):
-        i = 0
-        while i < len(symbols) - 1:
-            cur = symbols[i]
-            for j, other in enumerate(symbols[i + 1 :]):
-                if isequal(other, cur):
-                    del symbols[i + j + 1]
-                    break
-                if masks(cur, other):
-                    del symbols[i + j + 1]
-                    symbols.insert(i, other)
-                    break
-            else:
-                i += 1
+    i = 0
+    while i < len(symbols) - 1:
+        cur = symbols[i]
+        for j, other in enumerate(symbols[i + 1 :]):
+            if is_equal(other, cur):
+                del symbols[i + j + 1]
+                break
+            if len(other) > len(cur) and masks(cur, other):
+                del symbols[i + j + 1]
+                symbols.insert(i, other)
+                break
+        else:
+            i += 1
 
     if useRegex:
         re_flags: int = re.IGNORECASE if caseless else 0
@@ -269,7 +270,7 @@ def one_of(
             )
 
     # last resort, just use MatchFirst
-    return MatchFirst(parseElementClass(sym) for sym in symbols).set_name(
+    return MatchFirst(parse_element_class(sym) for sym in symbols).set_name(
         " | ".join(symbols)
     )
 
@@ -602,7 +603,7 @@ def _makeTags(tagStr, xml, suppress_LT=Suppress("<"), suppress_GT=Suppress(">"))
 
 def make_html_tags(
     tag_str: Union[str, ParserElement]
-) -> Tuple[ParserElement, ParserElement]:
+) -> tuple[ParserElement, ParserElement]:
     """Helper to construct opening and closing tag expressions for HTML,
     given a tag name. Matches tags in either upper or lower case,
     attributes with namespaces and with quoted or unquoted values.
@@ -629,7 +630,7 @@ def make_html_tags(
 
 def make_xml_tags(
     tag_str: Union[str, ParserElement]
-) -> Tuple[ParserElement, ParserElement]:
+) -> tuple[ParserElement, ParserElement]:
     """Helper to construct opening and closing tag expressions for XML,
     given a tag name. Matches tags only in the given upper/lower case.
 
@@ -645,9 +646,12 @@ any_open_tag, any_close_tag = make_html_tags(
 )
 
 _htmlEntityMap = {k.rstrip(";"): v for k, v in html.entities.html5.items()}
-common_html_entity = Regex("&(?P<entity>" + "|".join(_htmlEntityMap) + ");").set_name(
-    "common HTML entity"
+_most_common_entities = "nbsp lt gt amp quot apos cent pound euro copy".replace(
+    " ", "|"
 )
+common_html_entity = Regex(
+    lambda: f"&(?P<entity>{_most_common_entities}|{make_compressed_re(_htmlEntityMap)});"
+).set_name("common HTML entity")
 
 
 def replace_html_entity(s, l, t):
@@ -664,16 +668,16 @@ class OpAssoc(Enum):
 
 
 InfixNotationOperatorArgType = Union[
-    ParserElement, str, Tuple[Union[ParserElement, str], Union[ParserElement, str]]
+    ParserElement, str, tuple[Union[ParserElement, str], Union[ParserElement, str]]
 ]
 InfixNotationOperatorSpec = Union[
-    Tuple[
+    tuple[
         InfixNotationOperatorArgType,
         int,
         OpAssoc,
         typing.Optional[ParseAction],
     ],
-    Tuple[
+    tuple[
         InfixNotationOperatorArgType,
         int,
         OpAssoc,
@@ -683,7 +687,7 @@ InfixNotationOperatorSpec = Union[
 
 def infix_notation(
     base_expr: ParserElement,
-    op_list: List[InfixNotationOperatorSpec],
+    op_list: list[InfixNotationOperatorSpec],
     lpar: Union[str, ParserElement] = Suppress("("),
     rpar: Union[str, ParserElement] = Suppress(")"),
 ) -> ParserElement:
@@ -1032,7 +1036,7 @@ python_style_comment = Regex(r"#.*").set_name("Python style comment")
 
 # build list of built-in expressions, for future reference if a global default value
 # gets updated
-_builtin_exprs: List[ParserElement] = [
+_builtin_exprs: list[ParserElement] = [
     v for v in vars().values() if isinstance(v, ParserElement)
 ]
 

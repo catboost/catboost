@@ -1,17 +1,20 @@
 # exceptions.py
+from __future__ import annotations
 
+import copy
 import re
 import sys
 import typing
+from functools import cached_property
 
+from .unicode import pyparsing_unicode as ppu
 from .util import (
+    _collapse_string_to_ranges,
     col,
     line,
     lineno,
-    _collapse_string_to_ranges,
     replaced_by_pep8,
 )
-from .unicode import pyparsing_unicode as ppu
 
 
 class _ExceptionWordUnicodeSet(
@@ -31,7 +34,7 @@ class ParseBaseException(Exception):
     msg: str
     pstr: str
     parser_element: typing.Any  # "ParserElement"
-    args: typing.Tuple[str, int, typing.Optional[str]]
+    args: tuple[str, int, typing.Optional[str]]
 
     __slots__ = (
         "loc",
@@ -50,18 +53,17 @@ class ParseBaseException(Exception):
         msg: typing.Optional[str] = None,
         elem=None,
     ):
-        self.loc = loc
         if msg is None:
-            self.msg = pstr
-            self.pstr = ""
-        else:
-            self.msg = msg
-            self.pstr = pstr
+            msg, pstr = pstr, ""
+
+        self.loc = loc
+        self.msg = msg
+        self.pstr = pstr
         self.parser_element = elem
         self.args = (pstr, loc, msg)
 
     @staticmethod
-    def explain_exception(exc, depth=16):
+    def explain_exception(exc: Exception, depth: int = 16) -> str:
         """
         Method to take an exception and translate the Python internal traceback into a list
         of the pyparsing expressions that caused the exception to be raised.
@@ -82,17 +84,17 @@ class ParseBaseException(Exception):
 
         if depth is None:
             depth = sys.getrecursionlimit()
-        ret = []
+        ret: list[str] = []
         if isinstance(exc, ParseBaseException):
             ret.append(exc.line)
             ret.append(f"{' ' * (exc.column - 1)}^")
         ret.append(f"{type(exc).__name__}: {exc}")
 
-        if depth <= 0:
+        if depth <= 0 or exc.__traceback__ is None:
             return "\n".join(ret)
 
         callers = inspect.getinnerframes(exc.__traceback__, context=depth)
-        seen = set()
+        seen: set[int] = set()
         for ff in callers[-depth:]:
             frm = ff[0]
 
@@ -125,40 +127,57 @@ class ParseBaseException(Exception):
         return "\n".join(ret)
 
     @classmethod
-    def _from_exception(cls, pe):
+    def _from_exception(cls, pe) -> ParseBaseException:
         """
         internal factory method to simplify creating one type of ParseException
         from another - avoids having __init__ signature conflicts among subclasses
         """
         return cls(pe.pstr, pe.loc, pe.msg, pe.parser_element)
 
-    @property
+    @cached_property
     def line(self) -> str:
         """
         Return the line of text where the exception occurred.
         """
         return line(self.loc, self.pstr)
 
-    @property
+    @cached_property
     def lineno(self) -> int:
         """
         Return the 1-based line number of text where the exception occurred.
         """
         return lineno(self.loc, self.pstr)
 
-    @property
+    @cached_property
     def col(self) -> int:
         """
         Return the 1-based column on the line of text where the exception occurred.
         """
         return col(self.loc, self.pstr)
 
-    @property
+    @cached_property
     def column(self) -> int:
         """
         Return the 1-based column on the line of text where the exception occurred.
         """
         return col(self.loc, self.pstr)
+
+    @cached_property
+    def found(self) -> str:
+        if not self.pstr:
+            return ""
+
+        if self.loc >= len(self.pstr):
+            return "end of text"
+
+        # pull out next word at error location
+        found_match = _exception_word_extractor.match(self.pstr, self.loc)
+        if found_match is not None:
+            found_text = found_match.group(0)
+        else:
+            found_text = self.pstr[self.loc : self.loc + 1]
+
+        return repr(found_text).replace(r"\\", "\\")
 
     # pre-PEP8 compatibility
     @property
@@ -169,21 +188,15 @@ class ParseBaseException(Exception):
     def parserElement(self, elem):
         self.parser_element = elem
 
+    def copy(self):
+        return copy.copy(self)
+
+    def formatted_message(self) -> str:
+        found_phrase = f", found {self.found}" if self.found else ""
+        return f"{self.msg}{found_phrase}  (at char {self.loc}), (line:{self.lineno}, col:{self.column})"
+
     def __str__(self) -> str:
-        if self.pstr:
-            if self.loc >= len(self.pstr):
-                foundstr = ", found end of text"
-            else:
-                # pull out next word at error location
-                found_match = _exception_word_extractor.match(self.pstr, self.loc)
-                if found_match is not None:
-                    found = found_match.group(0)
-                else:
-                    found = self.pstr[self.loc : self.loc + 1]
-                foundstr = (", found %r" % found).replace(r"\\", "\\")
-        else:
-            foundstr = ""
-        return f"{self.msg}{foundstr}  (at char {self.loc}), (line:{self.lineno}, col:{self.column})"
+        return self.formatted_message()
 
     def __repr__(self):
         return str(self)
@@ -199,12 +212,10 @@ class ParseBaseException(Exception):
         line_str = self.line
         line_column = self.column - 1
         if markerString:
-            line_str = "".join(
-                (line_str[:line_column], markerString, line_str[line_column:])
-            )
+            line_str = f"{line_str[:line_column]}{markerString}{line_str[line_column:]}"
         return line_str.strip()
 
-    def explain(self, depth=16) -> str:
+    def explain(self, depth: int = 16) -> str:
         """
         Method to translate the Python internal traceback into a list
         of the pyparsing expressions that caused the exception to be raised.
@@ -292,6 +303,8 @@ class RecursiveGrammarException(Exception):
     Exception thrown by :class:`ParserElement.validate` if the
     grammar could be left-recursive; parser may need to enable
     left recursion using :class:`ParserElement.enable_left_recursion<ParserElement.enable_left_recursion>`
+
+    Deprecated: only used by deprecated method ParserElement.validate.
     """
 
     def __init__(self, parseElementList):
