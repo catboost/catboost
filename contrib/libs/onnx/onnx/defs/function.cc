@@ -85,16 +85,16 @@ void FunctionExpandHelper(
     new_node->clear_attribute();
     for (auto& input : function_node.input()) {
       if (io_names_map.count(input)) {
-        new_node->add_input(TProtoStringType{io_names_map[input]});
+        new_node->add_input(io_names_map[input]);
       } else {
-        new_node->add_input(TProtoStringType{InteralTensorNameGenerator(node_name, input)});
+        new_node->add_input(InteralTensorNameGenerator(node_name, input));
       }
     }
     for (auto& output : function_node.output()) {
       if (io_names_map.count(output)) {
-        new_node->add_output(TProtoStringType{io_names_map[output]});
+        new_node->add_output(io_names_map[output]);
       } else {
-        new_node->add_output(TProtoStringType{InteralTensorNameGenerator(node_name, output)});
+        new_node->add_output(InteralTensorNameGenerator(node_name, output));
       }
     }
     for (auto& attr : function_node.attribute()) {
@@ -102,7 +102,7 @@ void FunctionExpandHelper(
         if (attr_map.count(attr.ref_attr_name())) {
           AttributeProto* new_attr = new_node->add_attribute();
           new_attr->CopyFrom(attr_map[attr.ref_attr_name()]);
-          new_attr->set_name(TProtoStringType{attr.name()});
+          new_attr->set_name(attr.name());
         }
       } else {
         AttributeProto* new_attr = new_node->add_attribute();
@@ -119,13 +119,13 @@ std::vector<NodeProto> FunctionBodyHelper::BuildNodes(const std::vector<NodeDef>
     const NodeDef& node = node_defs[i];
     NodeProto& n = nodes[i];
 
-    n.set_op_type(TProtoStringType{node.op_type});
-    n.set_domain(TProtoStringType{node.domain});
+    n.set_op_type(node.op_type);
+    n.set_domain(node.domain);
     for (const auto& i : node.inputs) {
-      n.add_input(TProtoStringType{i});
+      n.add_input(i);
     }
     for (const auto& o : node.outputs) {
-      n.add_output(TProtoStringType{o});
+      n.add_output(o);
     }
     for (const auto& attr : node.attributes) {
       *(n.add_attribute()) = attr.proto;
@@ -140,13 +140,13 @@ void FunctionBodyHelper::BuildNodes(FunctionProto& functionProto, const std::vec
     const NodeDef& node = node_defs[i];
     auto* np = functionProto.add_node();
 
-    np->set_op_type(TProtoStringType{node.op_type});
-    np->set_domain(TProtoStringType{node.domain});
+    np->set_op_type(node.op_type);
+    np->set_domain(node.domain);
     for (const auto& inp : node.inputs) {
-      np->add_input(TProtoStringType{inp});
+      np->add_input(inp);
     }
     for (const auto& o : node.outputs) {
-      np->add_output(TProtoStringType{o});
+      np->add_output(o);
     }
     for (const auto& attr : node.attributes) {
       *(np->add_attribute()) = attr.proto;

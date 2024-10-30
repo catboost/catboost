@@ -20,15 +20,15 @@ Common::Status BuildNode(
   if (node == NULL) {
     return Common::Status(Common::CHECKER, Common::INVALID_ARGUMENT, "node_proto should not be nullptr.");
   }
-  node->set_name(TProtoStringType{name});
-  node->set_domain(TProtoStringType{domain});
-  node->set_doc_string(TProtoStringType{doc_string});
-  node->set_op_type(TProtoStringType{op_type});
+  node->set_name(name);
+  node->set_domain(domain);
+  node->set_doc_string(doc_string);
+  node->set_op_type(op_type);
   for (auto& input : inputs) {
-    node->add_input(TProtoStringType{input});
+    node->add_input(input);
   }
   for (auto& output : outputs) {
-    node->add_output(TProtoStringType{output});
+    node->add_output(output);
   }
 
   return Common::Status::OK();

@@ -355,7 +355,7 @@ ONNX_OPERATOR_SET_SCHEMA(
                   unresolvedZeros[i] = false;
                 } else if (dataInputTensorType.shape().dim(i).has_dim_param()) {
                   const auto& dim_param = dataInputTensorType.shape().dim(i).dim_param();
-                  new_dim->set_dim_param(TProtoStringType{dim_param});
+                  new_dim->set_dim_param(dim_param);
                 }
               }
             } else if (targetShape[i] > 0) {
@@ -474,7 +474,7 @@ ONNX_OPERATOR_SET_SCHEMA(
                   unresolvedZeros[i] = false;
                 } else if (dataInputTensorType.shape().dim(i).has_dim_param()) {
                   const auto& dim_param = dataInputTensorType.shape().dim(i).dim_param();
-                  new_dim->set_dim_param(TProtoStringType{dim_param});
+                  new_dim->set_dim_param(dim_param);
                 }
               }
             } else if (targetShape[i] > 0) {
@@ -1027,7 +1027,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             if (input_dim.has_dim_value()) {
               output_dim->set_dim_value(input_dim.dim_value());
             } else if (input_dim.has_dim_param()) {
-              output_dim->set_dim_param(TProtoStringType{input_dim.dim_param()});
+              output_dim->set_dim_param(input_dim.dim_param());
             }
           }
 
@@ -3751,7 +3751,7 @@ ONNX_OPERATOR_SET_SCHEMA(
             if (input_dim.has_dim_value()) {
               output_dim->set_dim_value(input_dim.dim_value());
             } else if (input_dim.has_dim_param()) {
-              output_dim->set_dim_param(TProtoStringType{input_dim.dim_param()});
+              output_dim->set_dim_param(input_dim.dim_param());
             }
           }
 
@@ -4237,13 +4237,13 @@ ONNX_OPERATOR_SET_SCHEMA(
                 if (indices_shape.dim(i).has_dim_value()) {
                   dim->set_dim_value(indices_shape.dim(i).dim_value());
                 } else if (indices_shape.dim(i).has_dim_param()) {
-                  dim->set_dim_param(TProtoStringType{indices_shape.dim(i).dim_param()});
+                  dim->set_dim_param(indices_shape.dim(i).dim_param());
                 }
               } else if (i > axis) {
                 if (indices_shape.dim(i - 1).has_dim_value()) {
                   dim->set_dim_value(indices_shape.dim(i - 1).dim_value());
                 } else if (indices_shape.dim(i - 1).has_dim_param()) {
-                  dim->set_dim_param(TProtoStringType{indices_shape.dim(i - 1).dim_param()});
+                  dim->set_dim_param(indices_shape.dim(i - 1).dim_param());
                 }
               }
             }
@@ -4988,7 +4988,7 @@ ONNX_OPERATOR_SET_SCHEMA(
               // symbolic dim can be -1 or 0 at runtime. In that case simply propgating this
               // symbol can be erroneous. This should be a very rare scenario and in such a
               // case an option is to turn off data propagation during shape inference.
-              new_dim->set_dim_param(TProtoStringType{targetShapeProto.dim(i).dim_param()});
+              new_dim->set_dim_param(targetShapeProto.dim(i).dim_param());
               outputProductValid = false;
             } else {
               if (!targetShapeProto.dim(i).has_dim_value()) {
@@ -5025,7 +5025,7 @@ ONNX_OPERATOR_SET_SCHEMA(
                       outputProduct *= input_dim_value;
                       unresolvedZeros[i] = false;
                     } else if (dataInputTensorType.shape().dim(i).has_dim_param()) {
-                      new_dim->set_dim_param(TProtoStringType{dataInputTensorType.shape().dim(i).dim_param()});
+                      new_dim->set_dim_param(dataInputTensorType.shape().dim(i).dim_param());
                     }
                   }
                 } else {

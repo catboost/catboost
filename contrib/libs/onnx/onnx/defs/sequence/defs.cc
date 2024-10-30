@@ -631,7 +631,7 @@ bool BuildSequenceMapBodyFunc(
   // Loop body subgraph
   std::string loopbody_graph_name("SequenceMap_loop_body");
   GraphProto loopbody_graph;
-  loopbody_graph.set_name(TProtoStringType{loopbody_graph_name});
+  loopbody_graph.set_name(loopbody_graph_name);
   {
     TypeProto int64_type;
     int64_type.mutable_tensor_type()->set_elem_type(TensorProto_DataType_INT64);
@@ -643,27 +643,27 @@ bool BuildSequenceMapBodyFunc(
 
     ValueInfoProto iter_count;
     std::string iter_count_name = MakeString(loopbody_graph_name, "_itercount");
-    iter_count.set_name(TProtoStringType{iter_count_name});
+    iter_count.set_name(iter_count_name);
     *iter_count.mutable_type() = int64_type;
     *loopbody_graph.add_input() = iter_count;
 
     ValueInfoProto cond_in;
     std::string cond_in_name = MakeString(loopbody_graph_name, "_cond_in");
-    cond_in.set_name(TProtoStringType{cond_in_name});
+    cond_in.set_name(cond_in_name);
     *cond_in.mutable_type() = bool_type;
     *loopbody_graph.add_input() = cond_in;
 
     ValueInfoProto cond_out;
     std::string cond_out_name = MakeString(loopbody_graph_name, "_cond_out");
-    cond_out.set_name(TProtoStringType{cond_out_name});
+    cond_out.set_name(cond_out_name);
     *cond_out.mutable_type() = bool_type;
     *loopbody_graph.add_output() = cond_out;
 
     NodeProto cond_identity;
-    cond_identity.set_domain(TProtoStringType{ONNX_DOMAIN});
-    cond_identity.set_op_type(TProtoStringType{"Identity"});
-    cond_identity.add_input(TProtoStringType{cond_in_name});
-    cond_identity.add_output(TProtoStringType{cond_out_name});
+    cond_identity.set_domain(ONNX_DOMAIN);
+    cond_identity.set_op_type("Identity");
+    cond_identity.add_input(cond_in_name);
+    cond_identity.add_output(cond_out_name);
     *loopbody_graph.add_node() = cond_identity;
 
     for (int inputIndex = 0; inputIndex < ninputs; inputIndex++) {
@@ -671,19 +671,19 @@ bool BuildSequenceMapBodyFunc(
       if (input_type && input_type->has_sequence_type()) {
         // If it's a sequence input, extract ``iter_count`` element
         NodeProto seq_at_node;
-        seq_at_node.set_domain(TProtoStringType{ONNX_DOMAIN});
-        seq_at_node.set_op_type(TProtoStringType{"SequenceAt"});
-        seq_at_node.add_input(TProtoStringType{functionProto.input(inputIndex)});
-        seq_at_node.add_input(TProtoStringType{iter_count_name});
-        seq_at_node.add_output(TProtoStringType{g_inputs.Get(inputIndex).name()});
+        seq_at_node.set_domain(ONNX_DOMAIN);
+        seq_at_node.set_op_type("SequenceAt");
+        seq_at_node.add_input(functionProto.input(inputIndex));
+        seq_at_node.add_input(iter_count_name);
+        seq_at_node.add_output(g_inputs.Get(inputIndex).name());
         *loopbody_graph.add_node() = seq_at_node;
       } else {
         // If not a sequence, simply connect
         NodeProto identity;
-        identity.set_domain(TProtoStringType{ONNX_DOMAIN});
-        identity.set_op_type(TProtoStringType{"Identity"});
-        identity.add_input(TProtoStringType{functionProto.input(inputIndex)});
-        identity.add_output(TProtoStringType{g_inputs.Get(inputIndex).name()});
+        identity.set_domain(ONNX_DOMAIN);
+        identity.set_op_type("Identity");
+        identity.add_input(functionProto.input(inputIndex));
+        identity.add_output(g_inputs.Get(inputIndex).name());
         *loopbody_graph.add_node() = identity;
       }
     }
@@ -706,19 +706,19 @@ bool BuildSequenceMapBodyFunc(
       ValueInfoProto tmp;
       *tmp.mutable_type()->mutable_sequence_type()->mutable_elem_type()->mutable_tensor_type() =
           body_out_i.type().tensor_type();
-      tmp.set_name(TProtoStringType{loopbody_in_name});
+      tmp.set_name(loopbody_in_name);
       *loopbody_graph.add_input() = tmp;
 
       std::string loopbody_out_name = MakeString(prefix, "_out");
-      tmp.set_name(TProtoStringType{loopbody_out_name});
+      tmp.set_name(loopbody_out_name);
       *loopbody_graph.add_output() = tmp;
 
       NodeProto seq_insert_node;
-      seq_insert_node.set_domain(TProtoStringType{ONNX_DOMAIN});
-      seq_insert_node.set_op_type(TProtoStringType{"SequenceInsert"});
-      seq_insert_node.add_input(TProtoStringType{loopbody_in_name});
-      seq_insert_node.add_input(TProtoStringType{body_out_i.name()});
-      seq_insert_node.add_output(TProtoStringType{loopbody_out_name});
+      seq_insert_node.set_domain(ONNX_DOMAIN);
+      seq_insert_node.set_op_type("SequenceInsert");
+      seq_insert_node.add_input(loopbody_in_name);
+      seq_insert_node.add_input(body_out_i.name());
+      seq_insert_node.add_output(loopbody_out_name);
       *loopbody_graph.add_node() = seq_insert_node;
     }
   }

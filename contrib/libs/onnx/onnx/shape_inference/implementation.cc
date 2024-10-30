@@ -211,7 +211,7 @@ void GenerateSymbolicShape(TensorTypeProto* inferred_type, SymbolTable& symbol_t
     // set a symbol if it doesn't have dim_value and dim_param
     auto* dim = inferred_type->mutable_shape()->mutable_dim(i);
     if (!dim->has_dim_value() && !dim->has_dim_param()) {
-      dim->set_dim_param(TProtoStringType{symbol_table.createNew("unk__")});
+      dim->set_dim_param(symbol_table.createNew("unk__"));
     }
   }
 }
@@ -260,7 +260,7 @@ class ShapeInferenceImplBase {
     } else {
       // Create a new value_info if defined type does not exist
       auto vi = g.add_value_info(); // TODO: clean this up
-      vi->set_name(TProtoStringType{name});
+      vi->set_name(name);
       existing_type = vi->mutable_type();
       // For undefined output type, update both value_info and output for now
       // Update existing output with undefined type: assign inferred type to it
@@ -571,7 +571,7 @@ class ShapeInferenceImplBase {
           // Copy value of attribute, but retain original name:
           std::string name = attr.name();
           attr = *(entry->second);
-          attr.set_name(TProtoStringType{name});
+          attr.set_name(name);
         } else {
           attr_iter = attributes.erase(attr_iter);
           continue;
