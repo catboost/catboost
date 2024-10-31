@@ -25,7 +25,6 @@ add_library(catboost-libs-data)
 target_link_libraries(catboost-libs-data PUBLIC
   contrib-libs-cxxsupp
   yutil
-  library-cpp-pop_count
   library-cpp-dbg_output
   library-cpp-json
   library-cpp-object_factory
@@ -124,7 +123,6 @@ add_global_library_for(catboost-libs-data.global
 target_link_libraries(catboost-libs-data.global PUBLIC
   contrib-libs-cxxsupp
   yutil
-  library-cpp-pop_count
   library-cpp-dbg_output
   library-cpp-json
   library-cpp-object_factory

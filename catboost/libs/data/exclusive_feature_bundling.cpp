@@ -8,7 +8,6 @@
 #include <catboost/libs/helpers/double_array_iterator.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 
-#include <library/cpp/pop_count/popcount.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
@@ -21,6 +20,7 @@
 #include <util/random/fast.h>
 
 #include <utility>
+#include <bit>
 
 
 namespace NCB {
@@ -84,7 +84,7 @@ namespace NCB {
     ) {
         ui32 intersectionCount = 0;
         for (auto [blockIdx, mask] : featureNonDefaultMasks) {
-            intersectionCount += (ui32)PopCount(mask & usedObjectsInBundle[blockIdx]);
+            intersectionCount += (ui32)std::popcount(mask & usedObjectsInBundle[blockIdx]);
             if (intersectionCount > maxIntersectionCount) {
                 return intersectionCount;
             }

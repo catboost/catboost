@@ -5,7 +5,6 @@
 #include "exception.h"
 #include "serialization.h"
 
-#include <library/cpp/pop_count/popcount.h>
 
 #include <util/generic/bitops.h>
 #include <util/generic/cast.h>
@@ -16,6 +15,7 @@
 #include <util/system/yassert.h>
 
 #include <algorithm>
+#include <bit>
 
 
 namespace NCB {
@@ -210,7 +210,7 @@ namespace NCB {
     TSize TSparseSubsetHybridIndex<TSize>::GetSize() const {
         TSize result = 0;
         for (auto blockBitmap : BlockBitmaps) {
-            result += PopCount(blockBitmap);
+            result += std::popcount(blockBitmap);
         }
         return result;
     }
@@ -278,7 +278,7 @@ namespace NCB {
             return TConstArrayRef<TSize>();
         }
 
-        size_t inBlockSize = (size_t)PopCount((*Data.BlockBitmapsCurrent) >> Data.InBlockIdx);
+        size_t inBlockSize = (size_t)std::popcount((*Data.BlockBitmapsCurrent) >> Data.InBlockIdx);
         if (inBlockSize == 0) {
             ++Data.BlockIndicesCurrent;
             if (Data.BlockIndicesCurrent == Data.BlockIndicesEnd) {
@@ -286,7 +286,7 @@ namespace NCB {
             }
             ++Data.BlockBitmapsCurrent;
             Data.InBlockIdx = 0;
-            inBlockSize = (size_t)PopCount(*Data.BlockBitmapsCurrent);
+            inBlockSize = (size_t)std::popcount(*Data.BlockBitmapsCurrent);
         }
 
         const auto dstBlockSize = Min(maxBlockSize, inBlockSize);
@@ -332,9 +332,9 @@ namespace NCB {
             const auto upperBoundInBlock = Min(srcBlockEnd, upperBound) - srcBlockStart;
             ui32 dstBlockSize = 0;
             if (upperBoundInBlock == TSparseSubsetHybridIndex<TSize>::BLOCK_SIZE) {
-                dstBlockSize = PopCount((*Data.BlockBitmapsCurrent) >> Data.InBlockIdx);
+                dstBlockSize = std::popcount((*Data.BlockBitmapsCurrent) >> Data.InBlockIdx);
             } else {
-                dstBlockSize = PopCount(
+                dstBlockSize = std::popcount(
                     (*Data.BlockBitmapsCurrent & ((1ULL << upperBoundInBlock) - 1)) >> Data.InBlockIdx
                 );
             }
@@ -583,7 +583,7 @@ namespace NCB {
             inBlockIdx = begin % TSparseSubsetHybridIndex<TSize>::BLOCK_SIZE;
             if (*blockBitmapsCurrent >> inBlockIdx) {
                 nonDefaultInBlockBeforeBegin
-                    = (TSize)PopCount((*blockBitmapsCurrent) & ((1ULL << inBlockIdx) - 1));
+                    = (TSize)std::popcount((*blockBitmapsCurrent) & ((1ULL << inBlockIdx) - 1));
             } else {
                 ++blockIndicesCurrent;
                 ++blockBitmapsCurrent;
@@ -600,7 +600,7 @@ namespace NCB {
                 blockBitmaps.begin(),
                 blockBitmapsCurrent,
                 nonDefaultInBlockBeforeBegin,
-                [] (TSize sum, ui64 element) { return sum + (TSize)PopCount(element); });
+                [] (TSize sum, ui64 element) { return sum + (TSize)std::popcount(element); });
 
         iteratorData->BlockIndicesCurrent = blockIndicesCurrent;
         iteratorData->BlockIndicesEnd = blockIndices.end();

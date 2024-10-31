@@ -37,7 +37,6 @@ target_link_libraries(catboost-libs-helpers PUBLIC
   libs-helpers-flatbuffers
   contrib-libs-flatbuffers
   library-cpp-binsaver
-  library-cpp-pop_count
   library-cpp-dbg_output
   cpp-digest-crc32c
   cpp-digest-md5
