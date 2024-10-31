@@ -37,7 +37,6 @@ target_link_libraries(library-cpp-build_info PUBLIC
 target_sources(library-cpp-build_info PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/build_info/build_info_static.cpp
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/buildinfo_data.h
-  ${PROJECT_BINARY_DIR}/library/cpp/build_info/buildinfo_data.h
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/sandbox.cpp
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/build_info.cpp
   ${PROJECT_BINARY_DIR}/library/cpp/build_info/buildinfo_data.h
