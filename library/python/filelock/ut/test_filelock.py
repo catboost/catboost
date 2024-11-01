@@ -58,12 +58,12 @@ def test_filelock_init_acquired():
 
 
 def test_concurrent_lock():
-    filename = 'con.lock'
+    filename = 'thread.lock'
 
     def lock():
         lock = library.python.filelock.FileLock(filename)
         time.sleep(1)
-        lock.acquire()
+        assert lock.acquire()
         lock.release()
         try:
             os.unlink(filename)
@@ -73,7 +73,6 @@ def test_concurrent_lock():
     threads = []
     for i in range(100):
         t = threading.Thread(target=lock)
-        t.daemon = True
         threads.append(t)
 
     for t in threads:
@@ -81,3 +80,59 @@ def test_concurrent_lock():
 
     for t in threads:
         t.join()
+
+
+def test_pidfilelock():
+    lock_file = 'pidfile.lock'
+    # there should be no info
+    lock = library.python.filelock.PidFileLock(lock_file)
+    assert lock.info.pid == 0
+    assert lock.info.time == 0
+
+    with library.python.filelock.PidFileLock(lock_file) as lock:
+        assert lock.info.pid == os.getpid()
+        assert lock.info.time <= time.time()
+        assert lock.info.time > time.time() - 2
+
+        newlock = library.python.filelock.PidFileLock(lock_file)
+        # info shouldn't require locking
+        assert newlock.info.pid == os.getpid()
+        assert not newlock.acquire(blocking=False)
+
+    newlock = library.python.filelock.PidFileLock(lock_file)
+    # info is still accessible
+    assert newlock.info.pid == os.getpid()
+    t = newlock.info.time
+    # info is updated
+    time.sleep(1)
+    with newlock as lock:
+        assert lock.info.time > t
+
+
+def _try_acquire_pidlock(lock_file, out_file, lock_pid=None):
+    lock = library.python.filelock.PidFileLock(lock_file)
+    with open(out_file, "w") as afile:
+        afile.write("1" if lock.acquire(blocking=False) else "0")
+
+    if lock_pid is not None:
+        assert lock.info.pid == lock_pid
+
+
+def test_pidfilelock_multiprocessing():
+    lock_file = 'mp_pidfile.lock'
+    out_file = lock_file + ".out"
+
+    # subprocess can aquire lock
+    proc = multiprocessing.Process(target=_try_acquire_pidlock, args=(lock_file, out_file))
+    proc.start()
+    proc.join()
+    with open(out_file) as afile:
+        assert "1" == afile.read()
+
+    # subprocess can't aquire lock
+    with library.python.filelock.PidFileLock(lock_file) as lock:
+        proc = multiprocessing.Process(target=_try_acquire_pidlock, args=(lock_file, out_file, lock.info.pid))
+        proc.start()
+        proc.join()
+        with open(out_file) as afile:
+            assert "0" == afile.read()
