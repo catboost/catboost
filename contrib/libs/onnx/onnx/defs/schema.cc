@@ -490,8 +490,8 @@ OpSchema& OpSchema::Attr(const char* name, const char* description, AttributePro
       fail_schema("Attribute specification type mismatch.");                                                           \
     }                                                                                                                  \
     AttributeProto a;                                                                                                  \
-    a.set_name(TProtoStringType{name});                                                                                         \
-    a.set_##field(TProtoStringType{default_value});                                                                             \
+    a.set_name(name);                                                                                                  \
+    a.set_##field(default_value);                                                                                      \
     a.set_type(attr_type);                                                                                             \
     Attr(Attribute(std::move(name), std::move(description), std::move(a)));                                            \
     return *this;                                                                                                      \
