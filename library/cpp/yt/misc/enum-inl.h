@@ -324,6 +324,16 @@ constexpr bool TEnumTraits<T, true>::IsKnownValue(T value)
 }
 
 template <class T>
+constexpr bool TEnumTraits<T, true>::IsValidValue(T value)
+{
+    if constexpr (IsBitEnum) {
+        return (value & TEnumTraits<T>::GetAllSetValue()) == value;
+    } else {
+        return IsKnownValue(value);
+    }
+}
+
+template <class T>
 TString TEnumTraits<T, true>::ToString(T value)
 {
     using ::ToString;

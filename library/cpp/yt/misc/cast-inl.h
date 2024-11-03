@@ -94,20 +94,19 @@ constexpr bool IsInIntegralRange(S value)
 }
 
 template <class T, class S>
-constexpr bool TryIntegralCast(S value, T* result)
+constexpr std::optional<T> TryCheckedIntegralCast(S value)
 {
-    if (!NDetail::IsInIntegralRange<T>(value)) {
-        return false;
+    [[unlikely]] if (!NDetail::IsInIntegralRange<T>(value)) {
+        return std::nullopt;
     }
-    *result = static_cast<T>(value);
-    return true;
+    return static_cast<T>(value);
 }
 
 template <class T, class S>
 T CheckedIntegralCast(S value)
 {
-    T result;
-    if (!TryIntegralCast<T>(value, &result)) {
+    auto result = TryCheckedIntegralCast<T>(value);
+    if (!result) {
         throw TSimpleException(Sprintf("Error casting %s value \"%s\" to %s: value is out of expected range [%s; %s]",
             TypeName<S>().c_str(),
             NYT::NDetail::FormatInvalidCastValue(value).c_str(),
@@ -115,35 +114,43 @@ T CheckedIntegralCast(S value)
             ::ToString(std::numeric_limits<T>::lowest()).c_str(),
             ::ToString(std::numeric_limits<T>::max()).c_str()));
     }
-    return result;
+    return *result;
 }
 
 template <class T, class S>
-constexpr bool TryEnumCast(S value, T* result)
+    requires TEnumTraits<T>::IsEnum
+constexpr std::optional<T> TryCheckedEnumCast(S value)
 {
-    std::underlying_type_t<T> underlying;
-    if (!TryIntegralCast<std::underlying_type_t<T>>(value, &underlying)) {
-        return false;
+    auto underlying = TryCheckedIntegralCast<std::underlying_type_t<T>>(value);
+    [[unlikely]] if (!underlying) {
+        return std::nullopt;
     }
-    auto candidate = static_cast<T>(underlying);
-    if (!TEnumTraits<T>::FindLiteralByValue(candidate)) {
-        return false;
+    auto candidate = static_cast<T>(*underlying);
+    [[unlikely]] if (!TEnumTraits<T>::IsValidValue(candidate)) {
+        return std::nullopt;
     }
-    *result = candidate;
-    return true;
+    return candidate;
 }
 
 template <class T, class S>
+    requires TEnumTraits<T>::IsEnum
 T CheckedEnumCast(S value)
 {
-    T result;
-    if (!TryEnumCast<T>(value, &result)) {
-        throw TSimpleException(Sprintf("Error casting %s value \"%d\" to enum %s",
-            TypeName<S>().c_str(),
-            static_cast<int>(value),
-            TEnumTraits<T>::GetTypeName().data()));
+    auto result = TryCheckedEnumCast<T>(value);
+    [[unlikely]] if (!result) {
+        if constexpr (std::is_signed_v<S>) {
+            throw TSimpleException(Sprintf("Error casting %s value \"%" PRIi64 "\" to enum %s",
+                TypeName<S>().c_str(),
+                static_cast<i64>(value),
+                TEnumTraits<T>::GetTypeName().data()));
+        } else {
+            throw TSimpleException(Sprintf("Error casting %s value \"%" PRIu64 "\" to enum %s",
+                TypeName<S>().c_str(),
+                static_cast<ui64>(value),
+                TEnumTraits<T>::GetTypeName().data()));
+        }
     }
-    return result;
+    return *result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

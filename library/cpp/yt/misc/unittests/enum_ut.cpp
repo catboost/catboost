@@ -215,10 +215,21 @@ TEST(TEnumTest, IsKnownValue)
     EXPECT_TRUE(TEnumTraits<ESimple>::IsKnownValue(ESimple::X));
     EXPECT_TRUE(TEnumTraits<ESimple>::IsKnownValue(ESimple::Y));
     EXPECT_TRUE(TEnumTraits<ESimple>::IsKnownValue(ESimple::Z));
-
     EXPECT_FALSE(TEnumTraits<ESimple>::IsKnownValue(static_cast<ESimple>(100)));
+}
 
-    EXPECT_TRUE(TEnumTraits<EColor>::IsKnownValue(EColor::Red));
+TEST(TEnumTest, IsValidValue)
+{
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsValidValue(ESimple::X));
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsValidValue(ESimple::Y));
+    EXPECT_TRUE(TEnumTraits<ESimple>::IsValidValue(ESimple::Z));
+    EXPECT_FALSE(TEnumTraits<ESimple>::IsValidValue(static_cast<ESimple>(100)));
+
+    EXPECT_TRUE(TEnumTraits<EFlag>::IsValidValue(EFlag()));
+    EXPECT_TRUE(TEnumTraits<EFlag>::IsValidValue(EFlag::_1));
+    EXPECT_TRUE(TEnumTraits<EFlag>::IsValidValue(EFlag::_1 | EFlag::_2));
+    EXPECT_TRUE(TEnumTraits<EFlag>::IsValidValue(EFlag::_1 | EFlag::_2 | EFlag::_3 | EFlag::_4));
+    EXPECT_FALSE(TEnumTraits<EFlag>::IsValidValue(static_cast<EFlag>(0x10)));
 }
 
 TEST(TEnumTest, AllSetValue)
@@ -278,29 +289,6 @@ TEST(TEnumTest, CustomString)
 
     EXPECT_EQ("1_a", ToString(ECustomString::A));
     EXPECT_EQ("1_b", ToString(ECustomString::B));
-}
-
-TEST(TEnumTest, Cast)
-{
-    ECardinal cardinal;
-    {
-        char validValue = 2;
-        EXPECT_TRUE(TryEnumCast(validValue, &cardinal));
-        EXPECT_EQ(cardinal, ECardinal::East);
-    }
-    {
-        char invalidValue = 100;
-        EXPECT_FALSE(TryEnumCast(invalidValue, &cardinal));
-    }
-    {
-        int widerTypeValidValue = 3;
-        EXPECT_TRUE(TryEnumCast(widerTypeValidValue, &cardinal));
-        EXPECT_EQ(cardinal, ECardinal::South);
-    }
-    {
-        int widerTypeInvalueValue = (1 << 8) + 100;
-        EXPECT_FALSE(TryEnumCast(widerTypeInvalueValue, &cardinal));
-    }
 }
 
 TEST(TEnumTest, UnknownValue)

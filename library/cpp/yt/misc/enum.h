@@ -89,8 +89,10 @@ struct TEnumTraits<T, true>
     static constexpr std::optional<T> TryGetUnknownValue();
     static std::optional<TStringBuf> FindLiteralByValue(T value);
     static std::optional<T> FindValueByLiteral(TStringBuf literal);
+
     static constexpr bool IsKnownValue(T value)
         requires (!TEnumTraitsImpl<T>::IsBitEnum);
+    static constexpr bool IsValidValue(T value);
 
     static TString ToString(T value);
     static T FromString(TStringBuf literal);

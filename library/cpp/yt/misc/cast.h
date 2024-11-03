@@ -1,6 +1,10 @@
 #pragma once
 
+#include "enum.h"
+
 #include <library/cpp/yt/exception/exception.h>
+
+#include <optional>
 
 namespace NYT {
 
@@ -13,7 +17,7 @@ template <class T, class S>
 constexpr bool IsInIntegralRange(S value);
 
 template <class T, class S>
-constexpr bool TryIntegralCast(S value, T* result);
+constexpr std::optional<T> TryCheckedIntegralCast(S value);
 
 template <class T, class S>
 T CheckedIntegralCast(S value);
@@ -21,9 +25,11 @@ T CheckedIntegralCast(S value);
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, class S>
-constexpr bool TryEnumCast(S value, T* result);
+    requires TEnumTraits<T>::IsEnum
+constexpr std::optional<T> TryCheckedEnumCast(S value);
 
 template <class T, class S>
+    requires TEnumTraits<T>::IsEnum
 T CheckedEnumCast(S value);
 
 ////////////////////////////////////////////////////////////////////////////////
