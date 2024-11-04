@@ -20,6 +20,9 @@ template <class T>
 class TAtomicIntrusivePtr
 {
 public:
+    using TUnderlying = T;
+    using element_type = T;
+
     TAtomicIntrusivePtr() = default;
     TAtomicIntrusivePtr(std::nullptr_t);
 
@@ -44,6 +47,9 @@ public:
 
     //! Result is only suitable for comparison, not dereference.
     TRawPtr Get() const;
+
+    //! Result is only suitable for comparison, not dereference.
+    TRawPtr get() const;
 
     explicit operator bool() const;
 

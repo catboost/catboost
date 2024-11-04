@@ -105,6 +105,11 @@ class TPointerCommon {
 public:
     using TValueType = T;
 
+    /*
+     * for compatibility with std:: smart pointers.
+     */
+    using element_type = T;
+
     inline T* operator->() const noexcept {
         T* ptr = AsT();
         Y_ASSERT(ptr);
@@ -214,6 +219,13 @@ public:
         return T_;
     }
 
+    /*
+     * for compatibility with std:: smart pointers.
+     */
+    inline T* get() const noexcept {
+        return T_;
+    }
+
 #ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
@@ -306,6 +318,13 @@ public:
     }
 
     inline T* Get() const noexcept {
+        return T_;
+    }
+
+    /*
+     * for compatibility with std:: smart pointers.
+     */
+    inline T* get() const noexcept {
         return T_;
     }
 
@@ -560,6 +579,13 @@ public:
         return T_;
     }
 
+    /*
+     * for compatibility with std:: smart pointers.
+     */
+    inline T* get() const noexcept {
+        return T_;
+    }
+
     inline void Swap(TIntrusivePtr& r) noexcept {
         DoSwap(T_, r.T_);
     }
@@ -677,6 +703,13 @@ public:
     }
 
     inline const T* Get() const noexcept {
+        return T_;
+    }
+
+    /*
+     * for compatibility with std:: smart pointers.
+     */
+    inline const T* get() const noexcept {
         return T_;
     }
 
@@ -880,6 +913,13 @@ public:
     }
 
     inline T* Get() const noexcept {
+        return T_;
+    }
+
+    /*
+     * for compatibility with std:: smart pointers.
+     */
+    inline T* get() const noexcept {
         return T_;
     }
 
@@ -1102,6 +1142,13 @@ public:
     }
 
     inline const T* Get() const noexcept {
+        return Const();
+    }
+
+    /*
+     * for compatibility with std:: smart pointers.
+     */
+    inline const T* get() const noexcept {
         return Const();
     }
 

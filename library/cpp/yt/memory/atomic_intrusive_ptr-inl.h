@@ -237,6 +237,12 @@ typename TAtomicIntrusivePtr<T>::TRawPtr TAtomicIntrusivePtr<T>::Get() const
 }
 
 template <class T>
+typename TAtomicIntrusivePtr<T>::TRawPtr TAtomicIntrusivePtr<T>::get() const
+{
+    return Get();
+}
+
+template <class T>
 TPackedPtr TAtomicIntrusivePtr<T>::AcquireObject(T* obj, bool consumeRef)
 {
     if (obj) {

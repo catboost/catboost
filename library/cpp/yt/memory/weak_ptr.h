@@ -13,6 +13,7 @@ class TWeakPtr
 {
 public:
     using TUnderlying = T;
+    using element_type = T;
 
     //! Empty constructor.
     TWeakPtr() = default;

@@ -35,6 +35,7 @@ class TPointerTest: public TTestBase {
     UNIT_TEST(TestSimpleIntrusivePtrCtorTsan);
     UNIT_TEST(TestRefCountedPtrsInHashSet);
     UNIT_TEST(TestSharedPtrDowncast);
+    UNIT_TEST(TestStdCompatibility);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -89,6 +90,7 @@ private:
     void TestRefCountedPtrsInHashSetImpl();
     void TestRefCountedPtrsInHashSet();
     void TestSharedPtrDowncast();
+    void TestStdCompatibility();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TPointerTest);
@@ -932,5 +934,31 @@ void TPointerTest::TestSharedPtrDowncast() {
         }
 
         UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 1);
+    }
+}
+
+void TPointerTest::TestStdCompatibility() {
+    {
+        TSimpleSharedPtr<int> ptr = MakeSimpleShared<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr)::element_type, int);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.get(), ptr.Get());
+    }
+
+    {
+        TAtomicSharedPtr<int> ptr = MakeAtomicShared<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr)::element_type, int);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.get(), ptr.Get());
+    }
+
+    {
+        TAutoPtr<int> ptr = MakeHolder<int>(5);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr)::element_type, int);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.get(), ptr.Get());
+    }
+
+    {
+        TIntrusivePtr<TOp> ptr;
+        UNIT_ASSERT_TYPES_EQUAL(decltype(ptr)::element_type, TOp);
+        UNIT_ASSERT_VALUES_EQUAL(ptr.get(), ptr.Get());
     }
 }

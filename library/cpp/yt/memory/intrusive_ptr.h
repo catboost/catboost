@@ -18,6 +18,9 @@ class TIntrusivePtr
 public:
     using TUnderlying = T;
 
+    //! For compatibility with std:: smart pointers.
+    using element_type = T;
+
     constexpr TIntrusivePtr() noexcept
     { }
 
@@ -144,6 +147,12 @@ public:
 
     //! Returns the pointer.
     T* Get() const noexcept
+    {
+        return T_;
+    }
+
+    //! Returns the pointer, for compatibility with std:: smart pointers.
+    T* get() const noexcept
     {
         return T_;
     }
