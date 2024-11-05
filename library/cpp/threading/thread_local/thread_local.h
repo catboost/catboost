@@ -220,8 +220,8 @@ public:
         , Pool_{0}
     {}
 
-    template <typename ...ConsturctArgs>
-    T* Get(TThread::TId tid, ConsturctArgs&& ...args) {
+    template <typename ...ConstructArgs>
+    T* Get(TThread::TId tid, ConstructArgs&& ...args) {
         TNode* head = Head_.load(std::memory_order_acquire);
         for (TNode* node = head; node; node = node->Next) {
             if (node->Key == tid) {
@@ -229,7 +229,7 @@ public:
             }
         }
 
-        TNode* newNode = AllocateNode(tid, head, std::forward<ConsturctArgs>(args)...);
+        TNode* newNode = AllocateNode(tid, head, std::forward<ConstructArgs>(args)...);
         while (!Head_.compare_exchange_weak(head, newNode, std::memory_order_release, std::memory_order_relaxed)) {
             newNode->Next = head;
         }
