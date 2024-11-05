@@ -20,10 +20,9 @@ add_library(cpp-cuda-wrappers)
 target_link_libraries(cpp-cuda-wrappers PUBLIC
   contrib-libs-cxxsupp
   yutil
-  libs-nvidia-cub
+  CUDA::toolkit
   cpp-cuda-exception
   cpp-threading-future
-  CUDA::toolkit
 )
 
 target_sources(cpp-cuda-wrappers PRIVATE

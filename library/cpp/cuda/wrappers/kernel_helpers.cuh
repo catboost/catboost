@@ -1,8 +1,8 @@
 #pragma once
 
 #include "kernel.cuh"
-#include <contrib/libs/nvidia/cub/cub/thread/thread_load.cuh>
-#include <contrib/libs/nvidia/cub/cub/thread/thread_store.cuh>
+#include <cub/thread/thread_load.cuh>
+#include <cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
 
 template<int Alignment, typename T>
