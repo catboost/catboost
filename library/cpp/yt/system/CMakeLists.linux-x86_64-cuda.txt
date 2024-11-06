@@ -23,6 +23,7 @@ target_link_libraries(cpp-yt-system PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  cpp-yt-misc
 )
 
 target_sources(cpp-yt-system PRIVATE

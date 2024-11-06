@@ -31,9 +31,10 @@ TDerived* TAllocationHolder::Allocate(size_t size, TRefCountedTypeCookie cookie)
 {
     auto requestedSize = sizeof(TDerived) + size;
     auto* ptr = ::malloc(requestedSize);
-
-    if (!ptr) {
-        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
+    if (Y_UNLIKELY(!ptr)) {
+        AbortProcessDramatically(
+            EProcessExitCode::OutOfMemory,
+            "Out-of-memory during chunked memory pool allocation");
     }
 
 #ifndef _win_

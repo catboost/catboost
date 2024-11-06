@@ -10,8 +10,6 @@
 
 #include <library/cpp/yt/malloc//malloc.h>
 
-#include <library/cpp/yt/system/exit.h>
-
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -178,6 +176,8 @@ Y_FORCE_INLINE TIntrusivePtr<T> SafeConstruct(void* ptr, As&&... args)
     }
 }
 
+void AbortOnOom();
+
 template <size_t Size, size_t Alignment>
 Y_FORCE_INLINE void* AllocateConstSizeAlignedOrCrash()
 {
@@ -192,7 +192,7 @@ Y_FORCE_INLINE void* AllocateConstSizeAlignedOrCrash()
     }
 #endif
     if (Y_UNLIKELY(!ptr)) {
-        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
+        AbortOnOom();
     }
     return ptr;
 }
@@ -211,7 +211,7 @@ Y_FORCE_INLINE void* AllocateOrCrash(size_t size)
     }
 #endif
     if (Y_UNLIKELY(!ptr)) {
-        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
+        AbortOnOom();
     }
     return ptr;
 }
@@ -249,7 +249,7 @@ Y_FORCE_INLINE TIntrusivePtr<T> New(
 {
     auto obj = TryNew<T>(allocator, std::forward<As>(args)...);
     if (Y_UNLIKELY(!obj)) {
-        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
+        NYT::NDetail::AbortOnOom();
     }
     return obj;
 }
@@ -288,7 +288,7 @@ Y_FORCE_INLINE TIntrusivePtr<T> NewWithExtraSpace(
 {
     auto obj = TryNewWithExtraSpace<T>(allocator, extraSpaceSize, std::forward<As>(args)...);
     if (Y_UNLIKELY(!obj)) {
-        AbortProcess(ToUnderlying(EProcessExitCode::OutOfMemory));
+        NYT::NDetail::AbortOnOom();
     }
     return obj;
 }
