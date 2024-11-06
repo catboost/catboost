@@ -1197,6 +1197,10 @@ public:
     bool to_upper(size_t pos = 0, size_t n = TBase::npos);
     bool to_title(size_t pos = 0, size_t n = TBase::npos);
 
+    constexpr const TCharType* Data() const noexcept = delete;
+    constexpr size_t Size() noexcept = delete;
+    Y_PURE_FUNCTION constexpr bool Empty() const noexcept = delete;
+
 public:
     /**
      * Modifies the substring of length `n` starting from `pos`, applying `f` to each position and symbol.
