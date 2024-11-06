@@ -4,6 +4,8 @@
 #include "hash.h"
 #endif
 
+#include <cmath>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,6 +29,19 @@ template <class T>
 void HashCombine(size_t& h, const T& k)
 {
     HashCombine(h, THash<T>()(k));
+}
+
+template <class T>
+Y_FORCE_INLINE size_t NaNSafeHash(const T& value)
+{
+    return ::THash<T>()(value);
+}
+
+template <class T>
+    requires std::is_floating_point_v<T>
+Y_FORCE_INLINE size_t NaNSafeHash(const T& value)
+{
+    return std::isnan(value) ? 0 : ::THash<T>()(value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
