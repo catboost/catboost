@@ -259,7 +259,7 @@ def normalize_filename(filename):
     :param some_string: string to be converted to a valid file name
     :return: valid file name
     """
-    not_allowed_pattern = r"[\[\]\/:*?\"\'<>|+\0\\\s\x0b\x0c]"
+    not_allowed_pattern = r"[\(\)\[\]\/:*?\"\'<>|+\0\\\s\x0b\x0c]"
     filename = re.sub(not_allowed_pattern, ".", filename)
     return re.sub(r"\.{2,}", ".", filename)
 
