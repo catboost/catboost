@@ -445,9 +445,6 @@ class PythonLinterName(Enum):
 
 class CppLinterName(Enum):
     ClangFormat = "clang_format"
-    # kept for compatibility
-    # TODO delete along with the record in default_configs.json
-    DoNotUse = "clang-format"
 
 
 class DefaultLinterConfig(Enum):
