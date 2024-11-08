@@ -26,12 +26,13 @@ namespace NBlockCodecs {
         {
         }
 
-        template <>
-        inline TData(const TString& t)
-            : TStringBuf((const char*)t.data(), t.size())
-        {
-        }
     };
+
+    template <>
+    inline TData::TData(const TString& t)
+        : TStringBuf((const char*)t.data(), t.size())
+    {
+    }
 
     struct TCodecError: public yexception {
     };
