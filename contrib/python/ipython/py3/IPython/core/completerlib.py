@@ -214,7 +214,7 @@ def is_possible_submodule(module, attr):
     try:
         obj = getattr(module, attr)
     except AttributeError:
-        # Is possilby an unimported submodule
+        # Is possibly an unimported submodule
         return True
     except TypeError:
         # https://github.com/ipython/ipython/issues/9678
