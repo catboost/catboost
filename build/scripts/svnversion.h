@@ -28,6 +28,7 @@ void PrintSvnVersionAndExit(int argc, char* argv[]) Y_HIDDEN;
 void PrintSvnVersionAndExitEx(int argc, char* argv[], const char* opts) Y_HIDDEN;
 void PrintSvnVersionAndExit0() Y_HIDDEN;
 const char* GetCustomVersion() Y_HIDDEN; // Currently returns <str> specified with --custom-version <str> in ya package
+const char* GetReleaseVersion() Y_HIDDEN; // Currently returns <str> specified with --release-version <str> in ya package
 const char* GetProgramScmData() Y_HIDDEN; // verbose multiline message
 const char* GetProgramShortVersionData() Y_HIDDEN;
 const char* GetProgramBuildUser() Y_HIDDEN;

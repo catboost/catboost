@@ -150,6 +150,14 @@ const char* GetCustomVersion() {
 #endif
 }
 
+const char* GetReleaseVersion() {
+#if defined(RELEASE_VERSION)
+    return RELEASE_VERSION;
+#else
+    return "";
+#endif
+}
+
 int GetProgramBuildTimestamp() {
 #if defined(BUILD_TIMESTAMP)
     return BUILD_TIMESTAMP;
