@@ -58,6 +58,7 @@ template class TObjectRef<TLocalRefPolicy, jobject>;
 
 template class TObjectRef<TLocalRefPolicy, jclass>;
 template class TObjectRef<TGlobalRefPolicy, jclass>;
+template class TObjectRef<TIntentionallyLeakedRefPolicy, jclass>;
 template class TObjectRef<TLocalRefPolicy, jstring>;
 template class TObjectRef<TLocalRefPolicy, jbyteArray>;
 
