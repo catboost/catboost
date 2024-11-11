@@ -153,7 +153,7 @@ impl Model {
             .map(|object_texts_ptrs: &mut Vec<*const i8>| object_texts_ptrs.as_mut_ptr())
             .collect::<Vec<_>>();
 
-        let mut embedding_dimensions = if features.embedding_features.as_ref().len() > 0 {
+        let mut embedding_dimensions = if !features.embedding_features.as_ref().is_empty() {
             features.embedding_features.as_ref()[0].as_ref().iter()
                 .map(|x| x.as_ref().len())
                 .collect::<Vec<_>>()
@@ -216,8 +216,8 @@ impl Model {
     ) -> CatBoostResult<Vec<f64>> {
         self.predict(
             ObjectsOrderFeatures{
-                float_features: float_features,
-                cat_features: cat_features,
+                float_features,
+                cat_features,
                 text_features: EmptyTextFeatures{},
                 embedding_features: EmptyEmbeddingFeatures{}
             }

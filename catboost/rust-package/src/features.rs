@@ -1,9 +1,7 @@
-
 use std::ffi::CString;
 
 #[derive(Default)]
-pub struct EmptyFloatFeatures {
-}
+pub struct EmptyFloatFeatures {}
 
 impl AsRef<[Vec<f32>]> for EmptyFloatFeatures {
     fn as_ref(&self) -> &[Vec<f32>] {
@@ -12,8 +10,7 @@ impl AsRef<[Vec<f32>]> for EmptyFloatFeatures {
 }
 
 #[derive(Default)]
-pub struct EmptyCatFeatures {
-}
+pub struct EmptyCatFeatures {}
 
 impl AsRef<[Vec<String>]> for EmptyCatFeatures {
     fn as_ref(&self) -> &[Vec<String>] {
@@ -22,8 +19,7 @@ impl AsRef<[Vec<String>]> for EmptyCatFeatures {
 }
 
 #[derive(Default)]
-pub struct EmptyTextFeatures {
-}
+pub struct EmptyTextFeatures {}
 
 impl AsRef<[Vec<CString>]> for EmptyTextFeatures {
     fn as_ref(&self) -> &[Vec<CString>] {
@@ -32,8 +28,7 @@ impl AsRef<[Vec<CString>]> for EmptyTextFeatures {
 }
 
 #[derive(Default)]
-pub struct EmptyEmbeddingFeatures {
-}
+pub struct EmptyEmbeddingFeatures {}
 
 impl AsRef<[Vec<Vec<f32>>]> for EmptyEmbeddingFeatures {
     fn as_ref(&self) -> &[Vec<Vec<f32>>] {
@@ -41,36 +36,39 @@ impl AsRef<[Vec<Vec<f32>>]> for EmptyEmbeddingFeatures {
     }
 }
 
- pub struct ObjectsOrderFeatures<
-    /// must provide 2-level dereferencing to f32. Outer is by-object, inner is by float feature
+pub struct ObjectsOrderFeatures<
+    // must provide 2-level dereferencing to f32. Outer is by-object, inner is by float feature
     TFloatFeatures = EmptyFloatFeatures,
-
-    /// must provide 2-level dereferencing to str. Outer is by-object, inner is by cat feature
+    // must provide 2-level dereferencing to str. Outer is by-object, inner is by cat feature
     TCatFeatures = EmptyCatFeatures,
-
-    /// must provide 2-level dereferencing to CStr. Outer is by-object, inner is by cat feature
-    /// Note: CStr is used because that's what CatBoost's C API functions accept this format for now.
+    // must provide 2-level dereferencing to CStr. Outer is by-object, inner is by cat feature
+    // Note: CStr is used because that's what CatBoost's C API functions accept this format for now.
     TTextFeatures = EmptyTextFeatures,
-
-    /// must provide 3-level dereferencing to f32. Levels are: by-object, by-embedding, index in embedding
+    // must provide 3-level dereferencing to f32. Levels are: by-object, by-embedding, index in embedding
     TEmbeddingFeatures = EmptyEmbeddingFeatures,
 > {
-  pub float_features: TFloatFeatures,
-  pub cat_features: TCatFeatures,
-  pub text_features: TTextFeatures,
-  pub embedding_features: TEmbeddingFeatures
+    pub float_features: TFloatFeatures,
+    pub cat_features: TCatFeatures,
+    pub text_features: TTextFeatures,
+    pub embedding_features: TEmbeddingFeatures,
 }
 
 
 impl ObjectsOrderFeatures<EmptyFloatFeatures, EmptyCatFeatures, EmptyTextFeatures, EmptyEmbeddingFeatures>
 {
     pub fn new() -> Self {
-        ObjectsOrderFeatures{
-            float_features: EmptyFloatFeatures{},
-            cat_features: EmptyCatFeatures{},
-            text_features: EmptyTextFeatures{},
-            embedding_features: EmptyEmbeddingFeatures{}
+        ObjectsOrderFeatures {
+            float_features: EmptyFloatFeatures {},
+            cat_features: EmptyCatFeatures {},
+            text_features: EmptyTextFeatures {},
+            embedding_features: EmptyEmbeddingFeatures {},
         }
+    }
+}
+
+impl Default for ObjectsOrderFeatures<EmptyFloatFeatures, EmptyCatFeatures, EmptyTextFeatures, EmptyEmbeddingFeatures> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
