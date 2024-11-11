@@ -4,7 +4,6 @@ use crate::features::{
     EmptyTextFeatures,
     EmptyEmbeddingFeatures
 };
-use catboost_sys;
 use std::ffi::{CStr,CString};
 use std::os::unix::ffi::OsStrExt;
 use std::path::Path;

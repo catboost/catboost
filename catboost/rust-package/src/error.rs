@@ -1,4 +1,3 @@
-use catboost_sys;
 use std::ffi::CStr;
 use std::fmt;
 
