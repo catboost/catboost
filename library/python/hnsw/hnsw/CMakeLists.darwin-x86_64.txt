@@ -42,6 +42,7 @@ target_link_options(_hnsw PRIVATE
   -fPIC
   -undefined
   dynamic_lookup
+  -flat_namespace
   -fPIC
 )
 

@@ -233,7 +233,9 @@ typedef int pid_t;
 #define Py_IS_NAN _isnan
 #define Py_IS_INFINITY(X) (!_finite(X) && !_isnan(X))
 #define Py_IS_FINITE(X) _finite(X)
+#ifndef __clang__
 #define copysign _copysign
+#endif
 
 /* VS 2010 and above already defines hypot as _hypot */
 #if _MSC_VER < 1600

@@ -5280,7 +5280,7 @@ static void f2py_setup_timing(char *nopx,char *nbx,char *nrorth,char *nitref,cha
   f2py_timing_def[i_f2py++].data = titref;
   f2py_timing_def[i_f2py++].data = trvec;
 }
-extern void F_FUNC(f2pyinittiming,F2PYINITTIMING)(void(*)(char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*));
+extern void F_FUNC(f2pyinittiming_uniq,F2PYINITTIMING)(void(*)(char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*,char*));
 static void f2py_init_timing(void) {
   F_FUNC(f2pyinittiming,F2PYINITTIMING)(f2py_setup_timing);
 }

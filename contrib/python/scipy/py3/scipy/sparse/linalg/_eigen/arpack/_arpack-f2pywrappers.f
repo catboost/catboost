@@ -36,7 +36,7 @@ C     It contains Fortran 77 wrappers to fortran functions.
      &,mneupd,mcaupd,mcaup2,mcaitr,mceigh,mcapps,mcgets,mceupd)
       end
 
-      subroutine f2pyinittiming(setupfunc)
+      subroutine f2pyinittiming_uniq(setupfunc)
       external setupfunc
       integer nopx
       integer nbx
