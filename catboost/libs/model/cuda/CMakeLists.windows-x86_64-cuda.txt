@@ -31,6 +31,9 @@ target_cuda_sources(libs-model-cuda PRIVATE
 
 
 target_cuda_flags(libs-model-cuda
+  --ptxas-options=-v
+  -lineinfo
+  --use_fast_math
   -gencode
   arch=compute_35,code=sm_35
   -gencode
@@ -47,9 +50,6 @@ target_cuda_flags(libs-model-cuda
   arch=compute_70,code=sm_70
   -gencode
   arch=compute_70,code=compute_70
-  --ptxas-options=-v
-  -lineinfo
-  --use_fast_math
   -gencode=arch=compute_80,code=sm_80
   -gencode=arch=compute_86,code=sm_86
   -gencode=arch=compute_89,code=sm_89
