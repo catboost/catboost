@@ -151,7 +151,7 @@ TJniEnv* TJniEnv::Get() {
     return &env;
 }
 
-jint TJniEnv::Init(JavaVM* jvm) {
+jint TJniEnv::Init(JavaVM* jvm, EClassLoader classLoader) {
     Y_ENSURE(jvm);
 
     Resources->Jvm = jvm;
@@ -159,7 +159,7 @@ jint TJniEnv::Init(JavaVM* jvm) {
     if (Resources->Jvm->GetEnv((void**)(&env), JNI_VERSION) != JNI_OK)
         return JNI_ERR;
 
-    TryToSetClassLoader();
+    TryToSetClassLoader(classLoader);
 
     return JNI_VERSION;
 }
@@ -168,14 +168,31 @@ void TJniEnv::Cleanup(JavaVM*) {
     Resources.reset();
 }
 
-void TJniEnv::TryToSetClassLoader() {
+void TJniEnv::TryToSetClassLoader(EClassLoader classLoader) {
     try {
-        auto threadClassRef = FindClass("java/lang/Thread");
-        auto currentThreadMethod = GetMethodID(threadClassRef.Get(), "currentThread", "()Ljava/lang/Thread;", /*isStatic=*/true);
-        auto currentThreadRef = CallStaticObjectMethod(threadClassRef.Get(), currentThreadMethod);
-        auto getContextClassLoaderMethod = GetMethodID(threadClassRef.Get(), "getContextClassLoader", "()Ljava/lang/ClassLoader;", /*isStatic=*/false);
-        auto classLoaderRef = CallObjectMethod(currentThreadRef.Get(), getContextClassLoaderMethod);
         auto classLoaderClass = FindClass("java/lang/ClassLoader");
+
+        NJni::TLocalRef classLoaderRef;
+        switch (classLoader) {
+            case EClassLoader::CONTEXT: {
+                auto threadClassRef = FindClass("java/lang/Thread");
+                auto currentThreadMethod = GetMethodID(threadClassRef.Get(), "currentThread", "()Ljava/lang/Thread;", /*isStatic=*/true);
+                auto currentThreadRef = CallStaticObjectMethod(threadClassRef.Get(), currentThreadMethod);
+                auto getContextClassLoaderMethod = GetMethodID(threadClassRef.Get(), "getContextClassLoader", "()Ljava/lang/ClassLoader;", /*isStatic=*/false);
+                classLoaderRef = CallObjectMethod(currentThreadRef.Get(), getContextClassLoaderMethod);
+                break;
+            }
+            case EClassLoader::NORMAL: {
+                auto classClass = FindClass("java/lang/Class");
+                auto getClassLoaderMethod = GetMethodID(classClass.Get(), "getClassLoader", "()Ljava/lang/ClassLoader;", /*isStatic=*/false);
+                classLoaderRef = CallObjectMethod(classLoaderClass.Get(), getClassLoaderMethod);
+                break;
+            }
+            default: {
+                Cerr << "Unknown class loader type: " << ToString(classLoader);
+                return;
+            }
+        }
 
         Resources->LoadMethod = GetMethodID(classLoaderClass.Get(), "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;", /*isStatic=*/false);
         Resources->ClassLoader = TSingletonClassRef((jclass)classLoaderRef.Get());

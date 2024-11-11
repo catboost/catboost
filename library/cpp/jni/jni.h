@@ -89,9 +89,17 @@ public:
     static TJniEnv* Get();
 
 public:
+    // For better understanding of possible difference see link below
+    // https://stackoverflow.com/questions/1771679/difference-between-threads-context-class-loader-and-normal-classloader
+    // Context class loader is made default for compatibility with existing code
+    enum class EClassLoader {
+        CONTEXT = 0,
+        NORMAL
+    };
+
     // Should be used only in pair with JNI_OnLoad/Unload.
     //
-    jint Init(JavaVM* jvm);
+    jint Init(JavaVM* jvm, EClassLoader classLoader = EClassLoader::CONTEXT);
     void Cleanup(JavaVM* jvm);
 
     // Thread safe JniEnv.
@@ -116,7 +124,7 @@ public:
 
     bool acquireLocalRef(const NJni::TWeakGlobalRef& weakRef, NJni::TLocalRef& output) const;
 private:
-    void TryToSetClassLoader();
+    void TryToSetClassLoader(EClassLoader classLoader);
 
 private:
     struct TResources;

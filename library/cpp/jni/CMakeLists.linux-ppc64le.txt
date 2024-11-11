@@ -12,6 +12,13 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+get_built_tool_path(
+  TOOL_enum_parser_bin
+  TOOL_enum_parser_dependency
+  tools/enum_parser/enum_parser
+  enum_parser
+)
+
 add_library(library-cpp-jni)
 
 
@@ -19,6 +26,7 @@ target_link_libraries(library-cpp-jni PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
+  tools-enum_parser-enum_serialization_runtime
   contrib-libs-jdk
 )
 
@@ -26,3 +34,9 @@ target_sources(library-cpp-jni PRIVATE
   ${PROJECT_SOURCE_DIR}/library/cpp/jni/jni.cpp
 )
 
+
+generate_enum_serilization(library-cpp-jni
+  ${PROJECT_SOURCE_DIR}/library/cpp/jni/jni.h
+  INCLUDE_HEADERS
+  library/cpp/jni/jni.h
+)
