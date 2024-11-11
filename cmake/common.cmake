@@ -193,7 +193,7 @@ endfunction()
 function(resources Tgt Output)
   set(opts "")
   set(oneval_args "")
-  set(multival_args INPUTS KEYS)
+  set(multival_args INPUTS KEYS OPTS)
   cmake_parse_arguments(RESOURCE_ARGS
     "${opts}"
     "${oneval_args}"
@@ -212,12 +212,20 @@ function(resources Tgt Output)
     list(APPEND ResourcesList ${Input})
     list(APPEND ResourcesList ${Key})
   endforeach()
+  list(LENGTH RESOURCE_ARGS_OPTS OptsCount)
+  if (${OptsCount} GREATER 0)
+    math(EXPR ListsMaxIdx "${OptsCount} - 1")
+    foreach(Idx RANGE ${ListsMaxIdx})
+      list(GET RESOURCE_ARGS_OPTS ${Idx} Opt)
+      list(APPEND OptsList ${Opt})
+    endforeach()
+  endif()
 
   get_built_tool_path(rescompiler_bin rescompiler_dependency tools/rescompiler/bin rescompiler)
 
   add_custom_command(
     OUTPUT ${Output}
-    COMMAND ${rescompiler_bin} ${Output} ${ResourcesList}
+    COMMAND ${rescompiler_bin} ${Output} ${ResourcesList} ${OptsList}
     DEPENDS ${RESOURCE_ARGS_INPUTS} ${rescompiler_dependency}
   )
 endfunction()

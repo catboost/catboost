@@ -98,4 +98,5 @@ resources(libs-model-model_export.global
   catboost_model_export_cpp_model_applicator_without_cat
   catboost_model_export_cpp_ctr_structs
   catboost_model_export_cpp_ctr_calcer
+  OPTS
 )
