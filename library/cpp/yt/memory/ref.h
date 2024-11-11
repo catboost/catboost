@@ -134,21 +134,33 @@ public:
     operator TRef() const;
 
 
-    //! Creates a TSharedRef from a string.
-    //! Since strings are ref-counted, no data is copied.
+    //! Creates a TSharedRef from TString.
+    //! Since strings are ref-counted, no data is being copied.
     //! The memory is marked with a given tag.
     template <class TTag>
     static TSharedRef FromString(TString str);
 
-    //! Creates a TSharedRef from a string.
-    //! Since strings are ref-counted, no data is copied.
-    //! The memory is marked with TDefaultSharedBlobTag.
+    //! Same as above but the memory is marked with TDefaultSharedBlobTag.
     static TSharedRef FromString(TString str);
 
-    //! Creates a TSharedRef reference from a string.
-    //! Since strings are ref-counted, no data is copied.
-    //! The memory is marked with a given tag.
+    //! Same as above but the memory tag is specified in #tagCookie.
     static TSharedRef FromString(TString str, TRefCountedTypeCookie tagCookie);
+
+    //! Creates a TSharedRef from std::string.
+    //! No data is being copied in #FromString itself but since #str is passed by value
+    //! a copy may occur at caller's side.
+    //! The memory is marked with a given tag.
+    template <class TTag>
+    static TSharedRef FromString(std::string str);
+
+    //! Same as above but the memory is marked with TDefaultSharedBlobTag.
+    static TSharedRef FromString(std::string str);
+
+    //! Same as above but the memory tag is specified in #tagCookie.
+    static TSharedRef FromString(std::string str, TRefCountedTypeCookie tagCookie);
+
+    //! Creates a TSharedRef from a zero-terminated C string.
+    static TSharedRef FromString(const char* str);
 
     //! Creates a TSharedRef for a given blob taking ownership of its content.
     static TSharedRef FromBlob(TBlob&& blob);
@@ -176,6 +188,9 @@ public:
 
 private:
     friend class TSharedRefArrayImpl;
+
+    template <class TString>
+    static TSharedRef FromStringImpl(TString str, TRefCountedTypeCookie tagCookie);
 };
 
 ////////////////////////////////////////////////////////////////////////////////

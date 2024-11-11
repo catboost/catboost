@@ -142,6 +142,17 @@ Y_FORCE_INLINE TSharedRef TSharedRef::FromString(TString str)
     return FromString<TDefaultSharedBlobTag>(std::move(str));
 }
 
+template <class TTag>
+Y_FORCE_INLINE TSharedRef TSharedRef::FromString(std::string str)
+{
+    return FromString(std::move(str), GetRefCountedTypeCookie<TTag>());
+}
+
+Y_FORCE_INLINE TSharedRef TSharedRef::FromString(std::string str)
+{
+    return FromString<TDefaultSharedBlobTag>(std::move(str));
+}
+
 Y_FORCE_INLINE TStringBuf TSharedRef::ToStringBuf() const
 {
     return TStringBuf(Begin(), Size());
