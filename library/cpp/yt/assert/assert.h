@@ -55,6 +55,20 @@ void AssertTrapImpl(
         } \
     } while (false)
 
+//! Behaves as |YT_ASSERT| in debug mode and as |Y_ASSUME| in release.
+#ifdef NDEBUG
+    #define YT_ASSUME(expr) Y_ASSUME(expr)
+#else
+    #define YT_ASSUME(expr) YT_ASSERT(expr)
+#endif
+
+//! Behaves as |YT_ASSERT(false)| in debug mode and as |Y_UNREACHABLE| in release.
+#ifdef NDEBUG
+    #define YT_UNREACHABLE() Y_UNREACHABLE()
+#else
+    #define YT_UNREACHABLE() YT_ASSERT(false)
+#endif
+
 //! Fatal error code marker. Abnormally terminates the current process.
 #ifdef YT_COMPILING_UDF
     #define YT_ABORT() __YT_BUILTIN_ABORT()
