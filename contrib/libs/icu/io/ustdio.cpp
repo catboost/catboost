@@ -162,11 +162,11 @@ static const char16_t * u_file_translit(UFILE *f, const char16_t *src, int32_t *
     {
         if(f->fTranslit->buffer == nullptr)
         {
-            f->fTranslit->buffer = (char16_t*)uprv_malloc(newlen * sizeof(char16_t));
+            f->fTranslit->buffer = static_cast<char16_t*>(uprv_malloc(newlen * sizeof(char16_t)));
         }
         else
         {
-            f->fTranslit->buffer = (char16_t*)uprv_realloc(f->fTranslit->buffer, newlen * sizeof(char16_t));
+            f->fTranslit->buffer = static_cast<char16_t*>(uprv_realloc(f->fTranslit->buffer, newlen * sizeof(char16_t)));
         }
         /* Check for malloc/realloc failure. */
         if (f->fTranslit->buffer == nullptr) {
@@ -422,7 +422,7 @@ ufile_fill_uchar_buffer(UFILE *f)
     }
 
     str = &f->str;
-    dataSize = (int32_t)(str->fLimit - str->fPos);
+    dataSize = static_cast<int32_t>(str->fLimit - str->fPos);
     if (f->fFileno == 0 && dataSize > 0) {
         /* Don't read from stdin too many times. There is still some data. */
         return;
@@ -445,14 +445,14 @@ ufile_fill_uchar_buffer(UFILE *f)
     if (f->fFileno == 0) {
         /* Special case. Read from stdin one line at a time. */
         char *retStr = fgets(charBuffer, ufmt_min(maxCPBytes, UFILE_CHARBUFFER_SIZE), f->fFile);
-        bytesRead = (int32_t)(retStr ? uprv_strlen(charBuffer) : 0);
+        bytesRead = static_cast<int32_t>(retStr ? uprv_strlen(charBuffer) : 0);
     }
     else {
         /* A normal file */
-        bytesRead = (int32_t)fread(charBuffer,
+        bytesRead = static_cast<int32_t>(fread(charBuffer,
             sizeof(char),
             ufmt_min(maxCPBytes, UFILE_CHARBUFFER_SIZE),
-            f->fFile);
+            f->fFile));
     }
 
     /* Set up conversion parameters */
@@ -470,7 +470,7 @@ ufile_fill_uchar_buffer(UFILE *f)
             &mySource,
             mySourceEnd,
             nullptr,
-            (UBool)(feof(f->fFile) != 0),
+            static_cast<UBool>(feof(f->fFile) != 0),
             &status);
 
     } else { /*weiv: do the invariant conversion */

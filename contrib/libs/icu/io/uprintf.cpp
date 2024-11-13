@@ -71,7 +71,7 @@ u_printf_write(void          *context,
                const char16_t   *str,
                int32_t       count)
 {
-    return u_file_write(str, count, (UFILE *)context);
+    return u_file_write(str, count, static_cast<UFILE*>(context));
 }
 
 static int32_t
@@ -80,7 +80,7 @@ u_printf_pad_and_justify(void                        *context,
                          const char16_t              *result,
                          int32_t                     resultLen)
 {
-    UFILE   *output = (UFILE *)context;
+    UFILE* output = static_cast<UFILE*>(context);
     int32_t written, i;
 
     /* pad and justify, if needed */

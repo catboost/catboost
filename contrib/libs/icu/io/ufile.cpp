@@ -71,7 +71,7 @@ finit_owner(FILE         *f,
     if(f == nullptr) {
         return nullptr;
     }
-    result = (UFILE*) uprv_malloc(sizeof(UFILE));
+    result = static_cast<UFILE*>(uprv_malloc(sizeof(UFILE)));
     if(result == nullptr) {
         return nullptr;
     }
@@ -255,7 +255,7 @@ u_feof(UFILE  *f)
     if (f == nullptr) {
         return true;
     }
-    endOfBuffer = (UBool)(f->str.fPos >= f->str.fLimit);
+    endOfBuffer = f->str.fPos >= f->str.fLimit;
     if (f->fFile != nullptr) {
         return endOfBuffer && feof(f->fFile);
     }

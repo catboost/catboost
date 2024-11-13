@@ -73,7 +73,7 @@ u_vsscanf(const char16_t   *buffer,
     int32_t size = (int32_t)uprv_strlen(patternSpecification) + 1;
 
     /* convert from the default codepage to Unicode */
-    if (size >= (int32_t)MAX_UCHAR_BUFFER_SIZE(patBuffer)) {
+    if (size >= MAX_UCHAR_BUFFER_SIZE(patBuffer)) {
         pattern = (char16_t *)uprv_malloc(size * sizeof(char16_t));
         if (pattern == nullptr) {
             return 0;

@@ -105,7 +105,7 @@ operator>>(STD_ISTREAM& stream, UnicodeString& str)
                 }
                 continueReading = false;
             }
-            sLimit = &ch + (int)continueReading;
+            sLimit = &ch + static_cast<int>(continueReading);
             us = uBuffer;
             s = &ch;
             errorCode = U_ZERO_ERROR;
