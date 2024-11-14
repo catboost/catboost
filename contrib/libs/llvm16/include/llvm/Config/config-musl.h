@@ -1,0 +1,5 @@
+#pragma once
+#undef HAVE_BACKTRACE
+#undef HAVE_MALLINFO
+#undef HAVE_PTHREAD_GETNAME_NP
+#undef HAVE_PTHREAD_SETNAME_NP
