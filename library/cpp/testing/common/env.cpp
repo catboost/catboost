@@ -41,6 +41,10 @@ TString BinaryPath(TStringBuf path) {
 }
 
 TString GetArcadiaTestsData() {
+    if (GetEnv("USE_ATD_FROM_SNAPSHOT")) {
+        return ArcadiaSourceRoot() + "/atd_ro_snapshot";
+    }
+
     TString atdRoot = NPrivate::GetTestEnv().ArcadiaTestsDataDir;
     if (atdRoot) {
         return atdRoot;
