@@ -14,10 +14,11 @@ yatest_logger = logging.getLogger("ya.test")
 
 def _copy(src, dst, universal_lines=False):
     if universal_lines:
-        with open(dst, "wb") as f:
+        with open(dst, "wb") as f_dst:
             mode = "rbU" if six.PY2 else "rb"
-            for line in open(src, mode):
-                f.write(line)
+            with open(src, mode) as f_src:
+                for line in f_src:
+                    f_dst.write(line)
         return
     shutil.copy(src, dst)
 
