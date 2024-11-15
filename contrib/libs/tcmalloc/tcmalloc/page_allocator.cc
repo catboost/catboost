@@ -151,6 +151,10 @@ void PageAllocator::ShrinkToUsageLimit() {
   warned = true;
   Log(kLogWithStack, __FILE__, __LINE__, "Couldn't respect usage limit of ",
       limit_, "and OOM is likely to follow.");
+
+  if (auto* handler = MallocExtension::GetSoftMemoryLimitHandler()) {
+    (*handler)();
+  }
 }
 
 bool PageAllocator::ShrinkHardBy(Length pages) {

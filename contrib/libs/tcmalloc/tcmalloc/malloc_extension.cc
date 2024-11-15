@@ -468,6 +468,20 @@ void MallocExtension::EnableForkSupport() {
 #endif
 }
 
+static std::atomic<MallocExtension::SoftMemoryLimitCallback*> SoftMemoryLimitHandler_;
+
+void MallocExtension::SetSoftMemoryLimitHandler(SoftMemoryLimitCallback* handler) {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  SoftMemoryLimitHandler_.store(handler);
+#endif
+}
+
+MallocExtension::SoftMemoryLimitCallback* MallocExtension::GetSoftMemoryLimitHandler() {
+#if ABSL_INTERNAL_HAVE_WEAK_MALLOCEXTENSION_STUBS
+  return SoftMemoryLimitHandler_.load();
+#endif
+}
+
 void MallocExtension::SetSampleUserDataCallbacks(
     CreateSampleUserDataCallback create,
     CopySampleUserDataCallback copy,

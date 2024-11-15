@@ -475,6 +475,10 @@ class MallocExtension final {
   // Allocator will continue to function correctly in the child, after calling fork().
   static void EnableForkSupport();
 
+  using SoftMemoryLimitCallback = void();
+  static void SetSoftMemoryLimitHandler(SoftMemoryLimitCallback* handler);
+  static SoftMemoryLimitCallback* GetSoftMemoryLimitHandler();
+
   using CreateSampleUserDataCallback = void*();
   using CopySampleUserDataCallback = void*(void*);
   using DestroySampleUserDataCallback = void(void*);
