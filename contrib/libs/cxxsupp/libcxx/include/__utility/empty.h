@@ -1,4 +1,3 @@
-// -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
@@ -7,23 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP_SETJMP_H
-#define _LIBCPP_SETJMP_H
-
-/*
-    setjmp.h synopsis
-
-Macros:
-
-    setjmp
-
-Types:
-
-    jmp_buf
-
-void longjmp(jmp_buf env, int val);
-
-*/
+#ifndef _LIBCPP___UTILITY_EMPTY_H
+#define _LIBCPP___UTILITY_EMPTY_H
 
 #include <__config>
 
@@ -31,16 +15,10 @@ void longjmp(jmp_buf env, int val);
 #  pragma GCC system_header
 #endif
 
-#if __has_include_next(<setjmp.h>)
-#  include_next <setjmp.h>
-#endif
+_LIBCPP_BEGIN_NAMESPACE_STD
 
-#ifdef __cplusplus
+struct __empty {};
 
-#ifndef setjmp
-#define setjmp(env) setjmp(env)
-#endif
+_LIBCPP_END_NAMESPACE_STD
 
-#endif // __cplusplus
-
-#endif // _LIBCPP_SETJMP_H
+#endif // _LIBCPP___UTILITY_EMPTY_H
