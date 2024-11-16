@@ -21,6 +21,26 @@ DEFINE_BIT_ENUM_WITH_UNDERLYING_TYPE(EFeatures, ui8,
     ((Second)(0x0002))
 );
 
+DEFINE_BIT_ENUM(ELangsWithUnknown,
+    ((None)       (0x00))
+    ((Cpp)        (0x01))
+    ((Go)         (0x02))
+    ((Rust)       (0x04))
+    ((Python)     (0x08))
+    ((JavaScript) (0x10))
+    ((CppGo)      (0x03))
+    ((All)        (0x1f))
+    ((Unknown)    (0x20))
+);
+DEFINE_ENUM_UNKNOWN_VALUE(ELangsWithUnknown, Unknown);
+
+DEFINE_ENUM(EColorWithUnknown,
+    ((Red)     (0))
+    ((Green)   (1))
+    ((Unknown) (2))
+);
+DEFINE_ENUM_UNKNOWN_VALUE(EColorWithUnknown, Unknown);
+
 TEST(TCastTest, TryCheckedEnumCast)
 {
     EXPECT_EQ((TryCheckedEnumCast<ECardinal, char>(2)), ECardinal::East);
@@ -36,6 +56,35 @@ TEST(TCastTest, TryCheckedEnumCast)
     EXPECT_EQ((TryCheckedEnumCast<EFeatures, ui8>(ToUnderlying(EFeatures::First | EFeatures::Second))), EFeatures::First | EFeatures::Second);
 
     EXPECT_FALSE((TryCheckedEnumCast<EFeatures, ui8>(0x10)));
+
+    EXPECT_FALSE(TryCheckedEnumCast<EColorWithUnknown>(3));
+    EXPECT_EQ(TryCheckedEnumCast<EColorWithUnknown>(3, /*enableUnknown*/ true), EColorWithUnknown::Unknown);
+
+    EXPECT_FALSE(TryCheckedEnumCast<ELangsWithUnknown>(0x40));
+    EXPECT_EQ(TryCheckedEnumCast<ELangsWithUnknown>(0x40, /*enableUnknown*/ true), ELangsWithUnknown::Unknown);
+    EXPECT_EQ(TryCheckedEnumCast<ELangsWithUnknown>(0x41, /*enableUnknown*/ true), ELangsWithUnknown::Unknown | ELangsWithUnknown::Cpp);
+}
+
+TEST(TCastTest, CheckedEnumCast)
+{
+    EXPECT_EQ((CheckedEnumCast<ECardinal, char>(2)), ECardinal::East);
+    EXPECT_EQ((CheckedEnumCast<ECardinal, int>(3)), ECardinal::South);
+
+    EXPECT_THROW((CheckedEnumCast<ECardinal, char>(100)), TSimpleException);
+    EXPECT_THROW((CheckedEnumCast<ECardinal, int>(300)), TSimpleException);
+
+    EXPECT_EQ((CheckedEnumCast<EFeatures, ui8>(0)), EFeatures::None);
+    EXPECT_EQ((CheckedEnumCast<EFeatures, ui8>(ToUnderlying(EFeatures::First))), EFeatures::First);
+    EXPECT_EQ((CheckedEnumCast<EFeatures, ui8>(ToUnderlying(EFeatures::Second))), EFeatures::Second);
+    EXPECT_EQ((CheckedEnumCast<EFeatures, int>(ToUnderlying(EFeatures::First))), EFeatures::First);
+    EXPECT_EQ((CheckedEnumCast<EFeatures, ui8>(ToUnderlying(EFeatures::First | EFeatures::Second))), EFeatures::First | EFeatures::Second);
+
+    EXPECT_THROW((CheckedEnumCast<EFeatures, ui8>(0x10)), TSimpleException);
+
+    EXPECT_EQ(CheckedEnumCast<EColorWithUnknown>(3), EColorWithUnknown::Unknown);
+
+    EXPECT_EQ(CheckedEnumCast<ELangsWithUnknown>(0x40), ELangsWithUnknown::Unknown);
+    EXPECT_EQ(CheckedEnumCast<ELangsWithUnknown>(0x41), ELangsWithUnknown::Unknown | ELangsWithUnknown::Cpp);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

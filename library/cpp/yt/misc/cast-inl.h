@@ -119,7 +119,7 @@ T CheckedIntegralCast(S value)
 
 template <class T, class S>
     requires TEnumTraits<T>::IsEnum
-constexpr std::optional<T> TryCheckedEnumCast(S value)
+constexpr std::optional<T> TryCheckedEnumCast(S value, bool enableUnknown)
 {
     auto underlying = TryCheckedIntegralCast<std::underlying_type_t<T>>(value);
     [[unlikely]] if (!underlying) {
@@ -127,6 +127,15 @@ constexpr std::optional<T> TryCheckedEnumCast(S value)
     }
     auto candidate = static_cast<T>(*underlying);
     [[unlikely]] if (!TEnumTraits<T>::IsValidValue(candidate)) {
+        if (enableUnknown) {
+            if constexpr (constexpr auto optionalUnknownValue = TEnumTraits<T>::TryGetUnknownValue()) {
+                if constexpr (TEnumTraits<T>::IsBitEnum) {
+                    return static_cast<T>(*underlying & ToUnderlying(TEnumTraits<T>::GetAllSetValue())) | *optionalUnknownValue;
+                } else {
+                    return *optionalUnknownValue;
+                }
+            }
+        }
         return std::nullopt;
     }
     return candidate;
@@ -136,7 +145,7 @@ template <class T, class S>
     requires TEnumTraits<T>::IsEnum
 T CheckedEnumCast(S value)
 {
-    auto result = TryCheckedEnumCast<T>(value);
+    auto result = TryCheckedEnumCast<T>(value, /*enableUnknown*/ true);
     [[unlikely]] if (!result) {
         if constexpr (std::is_signed_v<S>) {
             throw TSimpleException(Sprintf("Error casting %s value \"%" PRIi64 "\" to enum %s",

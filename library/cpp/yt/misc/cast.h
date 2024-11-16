@@ -26,7 +26,7 @@ T CheckedIntegralCast(S value);
 
 template <class T, class S>
     requires TEnumTraits<T>::IsEnum
-constexpr std::optional<T> TryCheckedEnumCast(S value);
+constexpr std::optional<T> TryCheckedEnumCast(S value, bool enableUnknown = false);
 
 template <class T, class S>
     requires TEnumTraits<T>::IsEnum
