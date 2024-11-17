@@ -25,6 +25,7 @@ execute_catboost_fit = lib.execute_catboost_fit
 format_crossvalidation = lib.format_crossvalidation
 get_limited_precision_dsv_diff_tool = lib.get_limited_precision_dsv_diff_tool
 local_canonical_file = lib.local_canonical_file
+generate_concatenated_random_labeled_dataset = lib.generate_concatenated_random_labeled_dataset
 
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -55,14 +56,6 @@ CLASSIFICATION_TEXT_FEATURE_ESTIMATORS = [
 REGRESSION_TEXT_FEATURE_ESTIMATORS = [
     'BoW'
 ]
-
-
-def generate_concatenated_random_labeled_dataset(nrows, nvals, labels, seed=20181219, prng=None):
-    if prng is None:
-        prng = np.random.RandomState(seed=seed)
-    label = prng.choice(labels, [nrows, 1])
-    feature = prng.random_sample([nrows, nvals])
-    return np.concatenate([label, feature], axis=1)
 
 
 def diff_tool(threshold=2e-7):
