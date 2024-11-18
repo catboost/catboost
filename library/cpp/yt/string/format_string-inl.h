@@ -4,6 +4,8 @@
 #include "format_string.h"
 #endif
 
+#include <algorithm>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -15,8 +17,13 @@ consteval TBasicFormatString<TArgs...>::TBasicFormatString(const T& fmt)
     : Format_(fmt)
 {
     CheckFormattability();
-#if !defined(NDEBUG) && !defined(YT_DISABLE_FORMAT_STATIC_ANALYSIS)
-    NDetail::TFormatAnalyser::ValidateFormat<std::remove_cvref_t<TArgs>...>(Format_);
+#if !defined(YT_DISABLE_FORMAT_STATIC_ANALYSIS)
+    std::tie(Markers, Escapes) = NDetail::TFormatAnalyser::AnalyzeFormat<std::remove_cvref_t<TArgs>...>(Format_);
+#else
+    std::ranges::fill_n(std::ranges::begin(Escapes), 1, -1);
+    if constexpr (sizeof...(TArgs) != 0) {
+        std::ranges::fill_n(std::ranges::begin(Markers), 1, std::tuple{0, 0});
+    }
 #endif
 }
 
@@ -46,6 +53,11 @@ template <class... TArgs>
 TBasicFormatString<TArgs...>::TBasicFormatString(TRuntimeFormat fmt)
     : Format_(fmt.Get())
 {
+    std::ranges::fill_n(std::ranges::begin(Escapes), 1, -1);
+    if constexpr (sizeof...(TArgs) != 0) {
+        std::ranges::fill_n(std::ranges::begin(Markers), 1, std::tuple{0, 0});
+    }
+
     // NB(arkady-e1ppa): StaticFormat performs the
     // formattability check of the args in a way
     // that provides more useful information

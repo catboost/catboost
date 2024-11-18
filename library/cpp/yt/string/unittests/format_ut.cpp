@@ -326,6 +326,11 @@ TEST(TFormatTest, CustomFlagsCollectionTwoLevels)
     EXPECT_EQ(Format("%NRv", arr), toCollectionD2("RNP"));
 }
 
+TEST(TFormatTest, ManyEscapes)
+{
+    EXPECT_EQ("a%b%c%d%e%f%g", Format("%v%%%v%%%v%%%v%%%v%%%v%%%g", "a", "b", "c", "d", "e", "f", "g"));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace

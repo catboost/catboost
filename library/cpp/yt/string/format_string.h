@@ -43,6 +43,10 @@ public:
 
     static consteval void CheckFormattability();
 
+    // Data used for compile-time slicing of the format string.
+    NDetail::TFormatAnalyser::TMarkerLocations<TArgs...> Markers = {};
+    NDetail::TFormatAnalyser::TEscapeLocations Escapes = {};
+
 private:
     std::string_view Format_;
 
