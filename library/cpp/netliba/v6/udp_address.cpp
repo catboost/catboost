@@ -196,7 +196,7 @@ namespace NNetliba {
                 continue;
             }
             if (ptr->Mtu < 1280) {
-                fprintf(stderr, "WARNING: MTU %d is less then ipv6 minimum", ptr->Mtu);
+                fprintf(stderr, "WARNING: MTU %lu is less then ipv6 minimum", ptr->Mtu);
             }
             for (IP_ADAPTER_UNICAST_ADDRESS* addr = ptr->FirstUnicastAddress; addr; addr = addr->Next) {
                 sockaddr* x = (sockaddr*)addr->Address.lpSockaddr;
