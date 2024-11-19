@@ -28,6 +28,7 @@
 // compromising on hash quality.
 
 #include "city.h"
+#include "city_streaming.h"
 
 using uint8 = ui8;
 using uint32 = ui32;
@@ -306,4 +307,65 @@ uint128 CityHash128(const char* s, size_t len) noexcept {
     } else {
         return CityHash128WithSeed(s, len, uint128(k0, k1));
     }
+}
+
+TStreamingCityHash64::TStreamingCityHash64(size_t len, const char *head64, const char *tail64) {
+    Y_ASSERT(len > 64);
+    x = UNALIGNED_LOAD64(head64);
+    y = UNALIGNED_LOAD64(tail64 + 48) ^ k1;
+    z = UNALIGNED_LOAD64(tail64 + 8) ^ k0;
+    v = WeakHashLen32WithSeeds(tail64, len, y);
+    w = WeakHashLen32WithSeeds(tail64 + 32, len * k1, k0);
+    z += ShiftMix(v.second) * k1;
+    x = Rotate(z + x, 39) * k1;
+    y = Rotate(y, 33) * k1;
+    Rest64_ = (len - 1) / 64;
+    UnalignBufSz_ = 0;
+}
+
+void TStreamingCityHash64::Process(const char *s, size_t avail) {
+    if (Y_UNLIKELY(!Rest64_)) return;
+    if (UnalignBufSz_) {
+        if (UnalignBufSz_ + avail < 64) {
+            memcpy(&UnalignBuf_[UnalignBufSz_], s, avail);
+            UnalignBufSz_ += avail;
+            return;
+        } else {
+            memcpy(&UnalignBuf_[UnalignBufSz_], s, 64 - UnalignBufSz_);
+            x = Rotate(x + y + v.first + UNALIGNED_LOAD64(UnalignBuf_ + 16), 37) * k1;
+            y = Rotate(y + v.second + UNALIGNED_LOAD64(UnalignBuf_ + 48), 42) * k1;
+            x ^= w.second;
+            y ^= v.first;
+            z = Rotate(z ^ w.first, 33);
+            v = WeakHashLen32WithSeeds(UnalignBuf_, v.second * k1, x + w.first);
+            w = WeakHashLen32WithSeeds(UnalignBuf_ + 32, z + w.second, y);
+            DoSwap(z, x);
+            s += 64 - UnalignBufSz_;
+            avail -= 64 - UnalignBufSz_;
+            Rest64_--;
+            UnalignBufSz_ = 0;
+        }
+    }
+    while(Rest64_ && avail >= 64) {
+        x = Rotate(x + y + v.first + UNALIGNED_LOAD64(s + 16), 37) * k1;
+        y = Rotate(y + v.second + UNALIGNED_LOAD64(s + 48), 42) * k1;
+        x ^= w.second;
+        y ^= v.first;
+        z = Rotate(z ^ w.first, 33);
+        v = WeakHashLen32WithSeeds(s, v.second * k1, x + w.first);
+        w = WeakHashLen32WithSeeds(s + 32, z + w.second, y);
+        DoSwap(z, x);
+        s += 64;
+        avail -= 64;
+        Rest64_--;
+    }
+    if (Rest64_ && avail) {
+        memcpy(UnalignBuf_, s, avail);
+        UnalignBufSz_ = avail;
+    }
+}
+
+uint64 TStreamingCityHash64::operator() () {
+    return HashLen16(HashLen16(v.first, w.first) + ShiftMix(y) * k1 + z,
+                    HashLen16(v.second, w.second) + x);
 }

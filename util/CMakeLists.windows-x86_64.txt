@@ -62,6 +62,7 @@ target_sources(yutil PRIVATE
   ${PROJECT_SOURCE_DIR}/util/datetime/systime.h
   ${PROJECT_SOURCE_DIR}/util/datetime/uptime.h
   ${PROJECT_SOURCE_DIR}/util/digest/city.h
+  ${PROJECT_SOURCE_DIR}/util/digest/city_streaming.h
   ${PROJECT_SOURCE_DIR}/util/digest/fnv.h
   ${PROJECT_SOURCE_DIR}/util/digest/multi.h
   ${PROJECT_SOURCE_DIR}/util/digest/murmur.h
