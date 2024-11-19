@@ -12,7 +12,7 @@ Y_UNIT_TEST_SUITE(TZtStringBufTest) {
     Y_UNIT_TEST(Constness) {
         constexpr TZtStringBuf s0{"bar"};
         static_assert(s0[0] == 'b');
-        static_assert(s0[3] == '\0');
+        static_assert(s0.data()[s0.size()] == '\0');
         static_assert(s0.data()[2] == 'r');
         UNIT_ASSERT_VALUES_EQUAL(s0, TString{"bar"});
     }
