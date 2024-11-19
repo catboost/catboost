@@ -217,6 +217,7 @@ inline ::NPrivate::TFromString<typename T::TChar> FromString(const T& s) {
 }
 
 // Conversion exception free versions
+// But can throw other exceptions, e.g. std::bad_alloc when allocating memory for the new 'result' value.
 template <typename T, typename TChar>
 bool TryFromStringImpl(const TChar* data, size_t len, T& result);
 
