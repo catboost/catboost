@@ -68,8 +68,9 @@ SplitString(const typename ::NPrivate::TStringDeducer<C>::type& str, const C* de
 
 template <class TIter>
 inline TString JoinStrings(TIter begin, TIter end, const TStringBuf delim) {
-    if (begin == end)
+    if (begin == end) {
         return TString();
+    }
 
     TString result = ToString(*begin);
 
@@ -83,8 +84,9 @@ inline TString JoinStrings(TIter begin, TIter end, const TStringBuf delim) {
 
 template <class TIter>
 inline TUtf16String JoinStrings(TIter begin, TIter end, const TWtringBuf delim) {
-    if (begin == end)
+    if (begin == end) {
         return TUtf16String();
+    }
 
     TUtf16String result = ToWtring(*begin);
 

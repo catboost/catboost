@@ -401,8 +401,9 @@ inline bool IsPrint(wchar32 ch) {
 }
 
 inline bool IsRomanDigit(wchar32 ch) {
-    if (NUnicode::CharHasType(ch, SHIFT(Nl_LETTER)) && 0x2160 <= ch && ch <= 0x2188)
+    if (NUnicode::CharHasType(ch, SHIFT(Nl_LETTER)) && 0x2160 <= ch && ch <= 0x2188) {
         return true;
+    }
     if (ch < 127) {
         switch (static_cast<char>(::ToLower(ch))) {
             case 'i':

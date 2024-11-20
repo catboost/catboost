@@ -24,13 +24,15 @@ int LastSystemError() {
 #if defined(_win_)
     int ret = GetLastError();
 
-    if (ret)
+    if (ret) {
         return ret;
+    }
 
     ret = WSAGetLastError();
 
-    if (ret)
+    if (ret) {
         return ret;
+    }
     // when descriptors number are over maximum, errno set in this variable
     ret = *(_errno());
     return ret;
@@ -68,8 +70,9 @@ static char* Strip(char* s) {
     size_t len = strlen(s);
     const char* ptr = s;
     Strip(ptr, len);
-    if (ptr != s)
+    if (ptr != s) {
         memmove(s, ptr, len);
+    }
     s[len] = 0;
     return s;
 }

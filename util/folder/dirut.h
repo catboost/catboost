@@ -105,12 +105,14 @@ public:
     }
 
     const char* Check(const char* fname) const {
-        if (!fname || !*fname)
+        if (!fname || !*fname) {
             return nullptr;
+        }
         if (Strict) {
             NFs::EnsureExists(fname);
-        } else if (!NFs::Exists(fname))
+        } else if (!NFs::Exists(fname)) {
             fname = nullptr;
+        }
         return fname;
     }
 

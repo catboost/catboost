@@ -89,16 +89,18 @@ namespace {
     constexpr static size_t MAX_COMMAND_LINE = 32 * 1024;
 
     std::wstring GetWString(const char* astring) {
-        if (!astring)
+        if (!astring) {
             return std::wstring();
+        }
 
         std::string str(astring);
         return std::wstring(str.begin(), str.end());
     }
 
     std::string GetAString(const wchar_t* wstring) {
-        if (!wstring)
+        if (!wstring) {
             return std::string();
+        }
 
         std::wstring str(wstring);
         return std::string(str.begin(), str.end());
@@ -130,8 +132,9 @@ public:
 
     bool Close() noexcept {
         bool ok = true;
-        if (Fd_ != INVALID_REALPIPEHANDLE)
+        if (Fd_ != INVALID_REALPIPEHANDLE) {
             ok = CloseHandle(Fd_);
+        }
         Fd_ = INVALID_REALPIPEHANDLE;
         return ok;
     }
@@ -156,22 +159,25 @@ public:
 
     ssize_t Read(void* buffer, size_t byteCount) const noexcept {
         DWORD doneBytes;
-        if (!ReadFile(Fd_, buffer, byteCount, &doneBytes, nullptr))
+        if (!ReadFile(Fd_, buffer, byteCount, &doneBytes, nullptr)) {
             return -1;
+        }
         return doneBytes;
     }
     ssize_t Write(const void* buffer, size_t byteCount) const noexcept {
         DWORD doneBytes;
-        if (!WriteFile(Fd_, buffer, byteCount, &doneBytes, nullptr))
+        if (!WriteFile(Fd_, buffer, byteCount, &doneBytes, nullptr)) {
             return -1;
+        }
         return doneBytes;
     }
 
     static void Pipe(TRealPipeHandle& reader, TRealPipeHandle& writer, EOpenMode mode) {
         (void)mode;
         REALPIPEHANDLE fds[2];
-        if (!CreatePipe(&fds[0], &fds[1], nullptr /* handles are not inherited */, 0))
+        if (!CreatePipe(&fds[0], &fds[1], nullptr /* handles are not inherited */, 0)) {
             ythrow TFileError() << "failed to create a pipe";
+        }
         TRealPipeHandle(fds[0]).Swap(reader);
         TRealPipeHandle(fds[1]).Swap(writer);
     }
@@ -497,8 +503,9 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
         }
     }
     if (InputMode != TShellCommandOptions::HANDLE_INHERIT) {
-        if (!SetHandleInformation(pipes.InputPipeFd[0], HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT))
+        if (!SetHandleInformation(pipes.InputPipeFd[0], HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT)) {
             ythrow TSystemError() << "cannot set handle info";
+        }
     }
 
     // A sockets do not work as std streams for some reason
@@ -881,8 +888,9 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
             streamThreads.emplace_back(new TThread(&TImpl::WriteStream, &pumps[2]));
         }
 
-        for (auto& threadHolder : streamThreads)
+        for (auto& threadHolder : streamThreads) {
             threadHolder->Start();
+        }
 #else
         TBuffer buffer(DATA_BUFFER_SIZE);
         TBuffer inputBuffer(DATA_BUFFER_SIZE);
@@ -1042,8 +1050,9 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
             if (!GetExitCodeProcess(pi->Parent->Pid, &exitCode)) {
                 ythrow yexception() << "GetExitCodeProcess: " << LastSystemErrorText();
             }
-            if (exitCode == 0)
+            if (exitCode == 0) {
                 cleanExit = true;
+            }
             processExitCode = static_cast<int>(exitCode);
             DBG(Cerr << "exit code: " << exitCode << Endl);
         }
@@ -1056,11 +1065,13 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
         }
 
 #if defined(_win_)
-        for (auto& threadHolder : streamThreads)
+        for (auto& threadHolder : streamThreads) {
             threadHolder->Join();
+        }
         for (const auto pump : pumps) {
-            if (!pump.InternalError.empty())
+            if (!pump.InternalError.empty()) {
                 throw yexception() << pump.InternalError;
+            }
         }
 #else
         // Now let's read remaining stdout/stderr

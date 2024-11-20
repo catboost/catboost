@@ -119,8 +119,9 @@ public:
      */
     inline TShellCommandOptions& SetAsync(bool async) {
         AsyncMode = async;
-        if (AsyncMode)
+        if (AsyncMode) {
             PollDelayMs = 0;
+        }
         return *this;
     }
 
@@ -215,8 +216,9 @@ public:
      */
     inline TShellCommandOptions& SetUseShell(bool useShell) {
         UseShell = useShell;
-        if (!useShell)
+        if (!useShell) {
             QuoteArguments = false;
+        }
         return *this;
     }
 

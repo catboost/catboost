@@ -25,10 +25,11 @@ TString GetUsername() {
         DWORD len = (DWORD)Min(nameBuf.Size(), size_t(32767));
         if (!GetUserNameA(nameBuf.Data(), &len)) {
             DWORD err = GetLastError();
-            if ((err == ERROR_INSUFFICIENT_BUFFER) && (nameBuf.Size() <= 32767))
+            if ((err == ERROR_INSUFFICIENT_BUFFER) && (nameBuf.Size() <= 32767)) {
                 nameBuf = TTempBuf((size_t)len);
-            else
+            } else {
                 ythrow TSystemError(err) << " GetUserName failed";
+            }
         } else {
             return TString(nameBuf.Data(), (size_t)(len - 1));
         }

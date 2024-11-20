@@ -33,10 +33,11 @@ private:
 #ifdef CHECK_YPTR2
     static Y_POD_THREAD(bool) DisableThreadCheck;
     void CheckThreadId() {
-        if (dwThreadId == 0)
+        if (dwThreadId == 0) {
             dwThreadId = GetCurrentThreadId();
-        else
+        } else {
             Y_ASSERT(dwThreadId == GetCurrentThreadId() || DisableThreadCheck);
+        }
     }
     void AddRef() {
         CheckThreadId();
@@ -69,14 +70,16 @@ private:
     void ReleaseRef() {
         CheckThreadId();
         --RefData;
-        if (RefData == 0)
+        if (RefData == 0) {
             ReleaseRefComplete();
+        }
     }
     void ReleaseObj(int nRef, int nMask) {
         CheckThreadId();
         ObjData -= nRef;
-        if ((ObjData & nMask) == 0)
+        if ((ObjData & nMask) == 0) {
             ReleaseObjComplete(nMask);
+        }
     }
 
 protected:
@@ -262,18 +265,21 @@ private:
 
     void AddRef(TUserObj* _ptr) {
         TRef p;
-        if (_ptr)
+        if (_ptr) {
             p.AddRef(CastToObjectBase(_ptr));
+        }
     }
     void DecRef(TUserObj* _ptr) {
         TRef p;
-        if (_ptr)
+        if (_ptr) {
             p.DecRef(CastToObjectBase(_ptr));
+        }
     }
     void Release(TUserObj* _ptr) {
         TRef p;
-        if (_ptr)
+        if (_ptr) {
             p.Release(CastToObjectBase(_ptr));
+        }
     }
 
 protected:

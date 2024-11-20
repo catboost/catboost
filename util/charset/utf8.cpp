@@ -35,8 +35,9 @@ namespace {
             }
             cNew = ConvertChar(conversion, c);
 
-            if (cNew != c)
+            if (cNew != c) {
                 break;
+            }
             p += cLen;
         }
         if (p == end) {

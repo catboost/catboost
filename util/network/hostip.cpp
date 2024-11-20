@@ -53,15 +53,18 @@ int NResolver::GetHostIP(const char* hostname, ui32* ip, size_t* slots) {
 #else
     hostent* hostent = gethostbyname(hostname);
 
-    if (!hostent)
+    if (!hostent) {
         return GetDnsError();
+    }
 
-    if (hostent->h_addrtype != AF_INET || (unsigned)hostent->h_length < sizeof(ui32))
+    if (hostent->h_addrtype != AF_INET || (unsigned)hostent->h_length < sizeof(ui32)) {
         return HOST_NOT_FOUND;
+    }
 
     char** cur = hostent->h_addr_list;
-    for (i = 0; i < *slots && *cur; i++, cur++, ipsFound++)
+    for (i = 0; i < *slots && *cur; i++, cur++, ipsFound++) {
         ip[i] = *(ui32*)*cur;
+    }
 #endif
     for (i = 0; i < ipsFound; i++) {
         ip[i] = InetToHost(ip[i]);

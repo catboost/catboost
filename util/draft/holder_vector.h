@@ -20,8 +20,9 @@ public:
 
     void Clear() {
         for (typename TBase::iterator it = TBase::begin(); it != TBase::end(); ++it) {
-            if (*it)
+            if (*it) {
                 D::Destroy(*it);
+            }
         }
         TBase::clear();
     }
@@ -35,8 +36,9 @@ public:
         try {
             TBase::push_back(t);
         } catch (...) {
-            if (t)
+            if (t) {
                 D::Destroy(t);
+            }
             throw;
         }
     }

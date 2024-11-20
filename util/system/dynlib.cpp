@@ -34,10 +34,12 @@ inline TString DLLERR() {
     char* msg = 0;
     DWORD cnt = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                               nullptr, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (char*)&msg, 0, nullptr);
-    if (!msg)
+    if (!msg) {
         return "DLLERR() unknown error";
-    while (cnt && isspace(msg[cnt - 1]))
+    }
+    while (cnt && isspace(msg[cnt - 1])) {
         --cnt;
+    }
     TString err(msg, 0, cnt);
     LocalFree(msg);
     return err;

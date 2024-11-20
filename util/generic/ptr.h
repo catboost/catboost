@@ -1035,8 +1035,9 @@ class TCopyClone {
 public:
     template <class T>
     static inline T* Copy(T* t) {
-        if (t)
+        if (t) {
             return t->Clone();
+        }
         return nullptr;
     }
 };
@@ -1045,8 +1046,9 @@ class TCopyNew {
 public:
     template <class T>
     static inline T* Copy(T* t) {
-        if (t)
+        if (t) {
             return new T(*t);
+        }
         return nullptr;
     }
 };
@@ -1115,8 +1117,9 @@ public:
 #endif
 private:
     inline void DoDestroy() noexcept {
-        if (T_)
+        if (T_) {
             D::Destroy(T_);
+        }
     }
 
 private:

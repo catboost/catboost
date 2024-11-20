@@ -9,7 +9,8 @@ int main() {
     // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/get-osfhandle
     // _get_osfhandle returns INVALID_HANDLE_VALUE - 1 without any sign of error if specified fd was closed.
     // Working with such handle will lead to future various errors.
-    if (handle + 1 == (unsigned long long)INVALID_HANDLE_VALUE)
+    if (handle + 1 == (unsigned long long)INVALID_HANDLE_VALUE) {
         return 1;
+    }
     return 0;
 }

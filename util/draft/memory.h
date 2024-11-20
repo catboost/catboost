@@ -15,8 +15,9 @@ template <size_t Size>
 inline bool IsZero(const char* p) {
     size_t sizeInUI64 = Size / 8;
     const char* pEndUi64 = p + sizeInUI64 * 8;
-    if (sizeInUI64 && !IsZero<ui64>((const ui64*)p, (const ui64*)pEndUi64))
+    if (sizeInUI64 && !IsZero<ui64>((const ui64*)p, (const ui64*)pEndUi64)) {
         return false;
+    }
     return IsZero(pEndUi64, p + Size);
 }
 

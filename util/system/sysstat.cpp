@@ -11,8 +11,9 @@ int Chmod(const char* fname, int mode) {
         return -1;
     }
     ui32 fAttr = ::GetFileAttributesA(fname);
-    if (fAttr == 0xffffffff)
+    if (fAttr == 0xffffffff) {
         return -1;
+    }
     if (mode & _S_IWRITE) {
         fAttr &= ~FILE_ATTRIBUTE_READONLY;
     } else {

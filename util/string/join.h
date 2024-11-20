@@ -207,8 +207,9 @@ struct TRangeJoiner {
         if (rangeJoiner.b != rangeJoiner.e) {
             stream << *rangeJoiner.b;
 
-            for (auto it = std::next(rangeJoiner.b); it != rangeJoiner.e; ++it)
+            for (auto it = std::next(rangeJoiner.b); it != rangeJoiner.e; ++it) {
                 stream << rangeJoiner.delim << *it;
+            }
         }
         return stream;
     }

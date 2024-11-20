@@ -270,8 +270,9 @@ void TPollTest::TestPollInOut() {
 
         if (i % 5 == 0 || i % 5 == 2) {
             char buffer = 'c';
-            if (send(*clientSocket, &buffer, 1, 0) == -1)
+            if (send(*clientSocket, &buffer, 1, 0) == -1) {
                 ythrow yexception() << "Can not send (" << LastSystemErrorText() << ")";
+            }
         }
 
         TSimpleSharedPtr<TSocketHolder> connectedSocket(new TSocketHolder(AcceptConnection(serverSocket)));
@@ -287,8 +288,9 @@ void TPollTest::TestPollInOut() {
     for (size_t i = 0; i < connectedSockets.size(); ++i) {
         pollfd fd = {(i % 5 == 4) ? INVALID_SOCKET : static_cast<SOCKET>(*connectedSockets[i]), POLLIN | POLLOUT, 0};
         fds.push_back(fd);
-        if (i % 5 != 4)
+        if (i % 5 != 4) {
             ++expectedCount;
+        }
     }
 
     int polledCount = poll(&fds[0], fds.size(), INFTIM);

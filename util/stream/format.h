@@ -45,8 +45,9 @@ namespace NFormatPrivate {
 
     template <typename T>
     static inline void WriteChars(T& os, char c, size_t count) {
-        if (count == 0)
+        if (count == 0) {
             return;
+        }
         TTempBuf buf(count);
         memset(buf.Data(), c, count);
         StreamWrite(os, buf.Data(), count);

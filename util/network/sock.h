@@ -106,13 +106,15 @@ struct TSockAddrLocal: public ISockAddr {
             int ret = 0;
             // 1. open file
             TFileHandle f(Path, OpenExisting | RdOnly);
-            if (!f.IsOpen())
+            if (!f.IsOpen()) {
                 return -errno;
+            }
 
             // 2. read the port from file
             ret = f.Read(&in.sin_port, sizeof(in.sin_port));
-            if (ret != sizeof(in.sin_port))
+            if (ret != sizeof(in.sin_port)) {
                 return -(errno ? errno : EFAULT);
+            }
         }
 
         return 0;
@@ -123,24 +125,28 @@ struct TSockAddrLocal: public ISockAddr {
         int ret = 0;
         // 1. open file
         TFileHandle f(Path, CreateAlways | WrOnly);
-        if (!f.IsOpen())
+        if (!f.IsOpen()) {
             return -errno;
+        }
 
         // 2. find port and bind to it
         in.sin_port = 0;
         ret = bind(s, SockAddr(), Len());
-        if (ret != 0)
+        if (ret != 0) {
             return -WSAGetLastError();
+        }
 
         int size = Size();
         ret = getsockname(s, (struct sockaddr*)(&in), &size);
-        if (ret != 0)
+        if (ret != 0) {
             return -WSAGetLastError();
+        }
 
         // 3. write port to file
         ret = f.Write(&(in.sin_port), sizeof(in.sin_port));
-        if (ret != sizeof(in.sin_port))
+        if (ret != sizeof(in.sin_port)) {
             return -errno;
+        }
 
         return 0;
     }
@@ -208,12 +214,14 @@ struct TSockAddrLocal: public sockaddr_un, public ISockAddr {
         (void)unlink(sun_path);
 
         int ret = bind(s, SockAddr(), Len());
-        if (ret < 0)
+        if (ret < 0) {
             return -errno;
+        }
 
         ret = Chmod(sun_path, mode);
-        if (ret < 0)
+        if (ret < 0) {
             return -errno;
+        }
         return 0;
     }
 };
@@ -266,12 +274,14 @@ struct TSockAddrInet: public sockaddr_in, public ISockAddr {
     int Bind(SOCKET s, ui16 mode) const override {
         Y_UNUSED(mode);
         int ret = bind(s, SockAddr(), Len());
-        if (ret < 0)
+        if (ret < 0) {
             return -errno;
+        }
 
         socklen_t len = Len();
-        if (getsockname(s, (struct sockaddr*)(SockAddr()), &len) < 0)
+        if (getsockname(s, (struct sockaddr*)(SockAddr()), &len) < 0) {
             return -WSAGetLastError();
+        }
 
         return 0;
     }
@@ -377,13 +387,15 @@ public:
     }
 
     void CheckSock() {
-        if ((SOCKET) * this == INVALID_SOCKET)
+        if ((SOCKET) * this == INVALID_SOCKET) {
             ythrow TSystemError() << "no socket";
+        }
     }
 
     static ssize_t Check(ssize_t ret, const char* op = "") {
-        if (ret < 0)
+        if (ret < 0) {
             ythrow TSystemError(-(int)ret) << "socket operation " << op;
+        }
         return ret;
     }
 };
@@ -436,36 +448,41 @@ public:
 
     ssize_t Send(const void* msg, size_t len, int flags = 0) {
         const ssize_t ret = send((SOCKET) * this, (const char*)msg, (int)len, flags);
-        if (ret < 0)
+        if (ret < 0) {
             return -errno;
+        }
 
         return ret;
     }
 
     ssize_t Recv(void* buf, size_t len, int flags = 0) {
         const ssize_t ret = recv((SOCKET) * this, (char*)buf, (int)len, flags);
-        if (ret < 0)
+        if (ret < 0) {
             return -errno;
+        }
 
         return ret;
     }
 
     int Connect(const ISockAddr* addr) {
         int ret = addr->ResolveAddr();
-        if (ret < 0)
+        if (ret < 0) {
             return -errno;
+        }
 
         ret = connect((SOCKET) * this, addr->SockAddr(), addr->Len());
-        if (ret < 0)
+        if (ret < 0) {
             return -errno;
+        }
 
         return ret;
     }
 
     int Listen(int backlog) {
         int ret = listen((SOCKET) * this, backlog);
-        if (ret < 0)
+        if (ret < 0) {
             return -errno;
+        }
 
         return ret;
     }
@@ -479,8 +496,9 @@ public:
             s = accept((SOCKET) * this, nullptr, nullptr);
         }
 
-        if (s == INVALID_SOCKET)
+        if (s == INVALID_SOCKET) {
             return -errno;
+        }
 
         TSocketHolder sock(s);
         acceptedSock->Swap(sock);

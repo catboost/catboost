@@ -44,8 +44,9 @@ static ui32 GetWinFileType(DWORD fileAttributes, ULONG reparseTag) {
 
 static ui32 GetFileMode(DWORD fileAttributes, ULONG reparseTag) {
     ui32 mode = 0;
-    if (fileAttributes == 0xFFFFFFFF)
+    if (fileAttributes == 0xFFFFFFFF) {
         return mode;
+    }
 
     mode |= GetWinFileType(fileAttributes, reparseTag);
 
@@ -229,8 +230,9 @@ bool TFileStat::IsSymlink() const noexcept {
 i64 GetFileLength(FHANDLE fd) {
 #if defined(_win_)
     LARGE_INTEGER pos;
-    if (!::GetFileSizeEx(fd, &pos))
+    if (!::GetFileSizeEx(fd, &pos)) {
         return -1L;
+    }
     return pos.QuadPart;
 #elif defined(_unix_)
     struct stat statbuf;
@@ -252,8 +254,9 @@ i64 GetFileLength(const char* name) {
 #if defined(_win_)
     WIN32_FIND_DATA fData;
     HANDLE h = FindFirstFileA(name, &fData);
-    if (h == INVALID_HANDLE_VALUE)
+    if (h == INVALID_HANDLE_VALUE) {
         return -1;
+    }
     FindClose(h);
     return (((i64)fData.nFileSizeHigh) * (i64(MAXDWORD) + 1)) + (i64)fData.nFileSizeLow;
 #elif defined(_unix_)

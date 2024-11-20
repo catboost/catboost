@@ -37,18 +37,19 @@ inline size_t UTF8RuneLen(const unsigned char lead_byte) {
 }
 
 inline size_t UTF8RuneLenByUCS(wchar32 rune) {
-    if (rune < 0x80)
+    if (rune < 0x80) {
         return 1U;
-    else if (rune < 0x800)
+    } else if (rune < 0x800) {
         return 2U;
-    else if (rune < 0x10000)
+    } else if (rune < 0x10000) {
         return 3U;
-    else if (rune < 0x200000)
+    } else if (rune < 0x200000) {
         return 4U;
-    else if (rune < 0x4000000)
+    } else if (rune < 0x4000000) {
         return 5U;
-    else
+    } else {
         return 6U;
+    }
 }
 
 inline void PutUTF8LeadBits(wchar32& rune, unsigned char c, size_t len) {
@@ -193,37 +194,45 @@ inline RECODE_RESULT SafeReadUTF8Char(wchar32& rune, size_t& rune_len, const uns
     wchar32 _rune;
 
     size_t _len = UTF8RuneLen(*s);
-    if (s + _len > end)
+    if (s + _len > end) {
         return RECODE_EOINPUT; // [EOINPUT]
-    if (_len == 0)
+    }
+    if (_len == 0) {
         return RECODE_BROKENSYMBOL; // [BROKENSYMBOL] in first byte
-    _rune = *s++;                   // [00000000 0XXXXXXX]
+    }
+    _rune = *s++; // [00000000 0XXXXXXX]
 
     if (_len > 1) {
         _rune &= UTF8LeadByteMask(_len);
         unsigned char ch = *s++;
-        if (!IsUTF8ContinuationByte(ch))
+        if (!IsUTF8ContinuationByte(ch)) {
             return RECODE_BROKENSYMBOL; // [BROKENSYMBOL] in second byte
-        PutUTF8SixBits(_rune, ch);      // [00000XXX XXYYYYYY]
+        }
+        PutUTF8SixBits(_rune, ch); // [00000XXX XXYYYYYY]
         if (_len > 2) {
             ch = *s++;
-            if (!IsUTF8ContinuationByte(ch))
+            if (!IsUTF8ContinuationByte(ch)) {
                 return RECODE_BROKENSYMBOL; // [BROKENSYMBOL] in third byte
-            PutUTF8SixBits(_rune, ch);      // [XXXXYYYY YYZZZZZZ]
+            }
+            PutUTF8SixBits(_rune, ch); // [XXXXYYYY YYZZZZZZ]
             if (_len > 3) {
                 ch = *s;
-                if (!IsUTF8ContinuationByte(ch))
+                if (!IsUTF8ContinuationByte(ch)) {
                     return RECODE_BROKENSYMBOL; // [BROKENSYMBOL] in fourth byte
-                PutUTF8SixBits(_rune, ch);      // [XXXYY YYYYZZZZ ZZQQQQQQ]
-                if (!IsValidUTF8Rune<4, strictMode>(_rune))
+                }
+                PutUTF8SixBits(_rune, ch); // [XXXYY YYYYZZZZ ZZQQQQQQ]
+                if (!IsValidUTF8Rune<4, strictMode>(_rune)) {
                     return RECODE_BROKENSYMBOL;
+                }
             } else {
-                if (!IsValidUTF8Rune<3, strictMode>(_rune))
+                if (!IsValidUTF8Rune<3, strictMode>(_rune)) {
                     return RECODE_BROKENSYMBOL;
+                }
             }
         } else {
-            if (!IsValidUTF8Rune<2, strictMode>(_rune))
+            if (!IsValidUTF8Rune<2, strictMode>(_rune)) {
                 return RECODE_BROKENSYMBOL;
+            }
         }
     }
     rune_len = _len;
@@ -315,23 +324,26 @@ Y_FORCE_INLINE RECODE_RESULT ReadUTF8CharAndAdvance(wchar32& rune, const unsigne
 inline RECODE_RESULT SafeWriteUTF8Char(wchar32 rune, size_t& rune_len, unsigned char* s, size_t tail) {
     rune_len = 0;
     if (rune < 0x80) {
-        if (tail <= 0)
+        if (tail <= 0) {
             return RECODE_EOOUTPUT;
+        }
         *s = static_cast<unsigned char>(rune);
         rune_len = 1;
         return RECODE_OK;
     }
     if (rune < 0x800) {
-        if (tail <= 1)
+        if (tail <= 1) {
             return RECODE_EOOUTPUT;
+        }
         *s++ = static_cast<unsigned char>(0xC0 | (rune >> 6));
         *s = static_cast<unsigned char>(0x80 | (rune & 0x3F));
         rune_len = 2;
         return RECODE_OK;
     }
     if (rune < 0x10000) {
-        if (tail <= 2)
+        if (tail <= 2) {
             return RECODE_EOOUTPUT;
+        }
         *s++ = static_cast<unsigned char>(0xE0 | (rune >> 12));
         *s++ = static_cast<unsigned char>(0x80 | ((rune >> 6) & 0x3F));
         *s = static_cast<unsigned char>(0x80 | (rune & 0x3F));
@@ -339,8 +351,9 @@ inline RECODE_RESULT SafeWriteUTF8Char(wchar32 rune, size_t& rune_len, unsigned 
         return RECODE_OK;
     }
     /*if (rune < 0x200000)*/ {
-        if (tail <= 3)
+        if (tail <= 3) {
             return RECODE_EOOUTPUT;
+        }
         *s++ = static_cast<unsigned char>(0xF0 | ((rune >> 18) & 0x07));
         *s++ = static_cast<unsigned char>(0x80 | ((rune >> 12) & 0x3F));
         *s++ = static_cast<unsigned char>(0x80 | ((rune >> 6) & 0x3F));

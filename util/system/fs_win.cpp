@@ -12,8 +12,9 @@ namespace NFsPrivate {
     static LPCWSTR UTF8ToWCHAR(const TStringBuf str, TUtf16String& wstr) {
         wstr.resize(str.size());
         size_t written = 0;
-        if (!UTF8ToWide(str.data(), str.size(), wstr.begin(), written))
+        if (!UTF8ToWide(str.data(), str.size(), wstr.begin(), written)) {
             return nullptr;
+        }
         wstr.erase(written);
         static_assert(sizeof(WCHAR) == sizeof(wchar16), "expect sizeof(WCHAR) == sizeof(wchar16)");
         return (const WCHAR*)wstr.data();
@@ -64,8 +65,9 @@ namespace NFsPrivate {
                 fad.dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
                 ::SetFileAttributesW(wname, fad.dwFileAttributes);
             }
-            if (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            if (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
                 return ::RemoveDirectoryW(wname) != 0;
+            }
             return ::DeleteFileW(wname) != 0;
         }
 
@@ -76,8 +78,9 @@ namespace NFsPrivate {
         TString tName(targetName);
         {
             size_t pos;
-            while ((pos = tName.find('/')) != TString::npos)
+            while ((pos = tName.find('/')) != TString::npos) {
                 tName.replace(pos, 1, LOCSLASH_S);
+            }
         }
         TUtf16String tstr;
         LPCWSTR wname = UTF8ToWCHAR(tName, tstr);
@@ -127,8 +130,9 @@ namespace NFsPrivate {
         TTempBuf result;
         LPWSTR buf = reinterpret_cast<LPWSTR>(result.Data());
         int r = GetCurrentDirectoryW(result.Size() / sizeof(WCHAR), buf);
-        if (r == 0)
+        if (r == 0) {
             throw TIoSystemError() << "failed to GetCurrentDirectory";
+        }
         return WCHARToUTF8(buf, r);
     }
 

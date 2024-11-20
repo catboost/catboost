@@ -88,7 +88,8 @@ void ProtectMemory(void* addr, const size_t length, const EProtectMemory mode) {
             break;
     }
     DWORD oldMode = 0;
-    if (!VirtualProtect(addr, length, mpMode, &oldMode))
+    if (!VirtualProtect(addr, length, mpMode, &oldMode)) {
         ythrow TSystemError() << "Memory protection failed for mode " << ModeToString(mode) << ". ";
+    }
 #endif
 }

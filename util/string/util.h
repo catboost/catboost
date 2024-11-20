@@ -18,8 +18,9 @@ int a2i(const TString& s);
 template <class T>
 inline void RemoveIfLast(T& s, int c) {
     const size_t length = s.length();
-    if (length && s[length - 1] == c)
+    if (length && s[length - 1] == c) {
         s.remove(length - 1);
+    }
 }
 
 /// Adds lastCh symbol to the the of the string if it is not already there.
@@ -72,28 +73,32 @@ public:
     /// That is, skip all characters not in table
     /// [DIFFERENCE FOR NOT_FOUND CASE: Returns end of string, not NULL]
     const char* brk(const char* s) const {
-        while (c_chars_table[(ui8)*s])
+        while (c_chars_table[(ui8)*s]) {
             ++s;
+        }
         return s;
     }
 
     const char* brk(const char* s, const char* e) const {
-        while (s < e && c_chars_table[(ui8)*s])
+        while (s < e && c_chars_table[(ui8)*s]) {
             ++s;
+        }
         return s;
     }
 
     /// Return first character not in table, like strpbrk() for inverted table.
     /// That is, skip all characters in table
     const char* cbrk(const char* s) const {
-        while (chars_table[(ui8)*s])
+        while (chars_table[(ui8)*s]) {
             ++s;
+        }
         return s;
     }
 
     const char* cbrk(const char* s, const char* e) const {
-        while (s < e && chars_table[(ui8)*s])
+        while (s < e && chars_table[(ui8)*s]) {
             ++s;
+        }
         return s;
     }
 
@@ -131,8 +136,9 @@ public:
 
     /// strsep + remember character that was destroyed
     char* sep(char*& s, char& sep_char) const {
-        if (!s)
+        if (!s) {
             return nullptr;
+        }
         char* ret = s;
         char* next = brk(ret);
         if (*next) {
@@ -161,17 +167,20 @@ public:
     }
 
     void Do(char* s) const {
-        for (; *s; s++)
+        for (; *s; s++) {
             *s = ConvertChar(*s);
+        }
     }
     void Do(const char* src, char* dst) const {
-        for (; *src; src++)
+        for (; *src; src++) {
             *dst++ = ConvertChar(*src);
+        }
         *dst = 0;
     }
     void Do(char* s, size_t l) const {
-        for (size_t i = 0; i < l && s[i]; i++)
+        for (size_t i = 0; i < l && s[i]; i++) {
             s[i] = ConvertChar(s[i]);
+        }
     }
     void Do(TString& str) const;
 
@@ -185,8 +194,9 @@ private:
 template <typename TStringType>
 void RemoveAll(TStringType& str, typename TStringType::char_type ch) {
     size_t pos = str.find(ch); // 'find' to avoid cloning of string in 'TString.begin()'
-    if (pos == TStringType::npos)
+    if (pos == TStringType::npos) {
         return;
+    }
 
     typename TStringType::iterator begin = str.begin();
     typename TStringType::iterator end = begin + str.length();

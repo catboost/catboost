@@ -47,13 +47,15 @@ protected:
 protected:
     void check_capacity(size_t len) {
         if (Y_UNLIKELY(!last_free || len > last_free)) {
-            if (curseg != segs.end() && curseg->freepos > 0)
+            if (curseg != segs.end() && curseg->freepos > 0) {
                 ++curseg;
+            }
             last_free = (len > segment_size ? len : segment_size);
             if (curseg == segs.end() || curseg->_size < last_free) {
                 segs.push_back(seg_inf(seg_allocator.allocate(last_free), last_free));
-                if (Y_UNLIKELY(Name))
+                if (Y_UNLIKELY(Name)) {
                     printf("Pool \"%s\" was increased by %" PRISZT " bytes to %" PRISZT " Mb.\n", Name, last_free * sizeof(T), capacity() / 0x100000);
+                }
                 curseg = segs.end() - 1;
             }
             Y_ASSERT(curseg->freepos == 0);
@@ -78,8 +80,9 @@ public:
         check_capacity(len);
         ui8* rv = (ui8*)curseg->data + curseg->freepos;
         last_ins_size = sizeof(T) * len;
-        if (src)
+        if (src) {
             memcpy(rv, src, last_ins_size);
+        }
         curseg->freepos += last_ins_size, last_free -= len;
         return (T*)rv;
     }
@@ -99,32 +102,38 @@ public:
         return segment_size;
     }
     bool contains(const T* ptr) const {
-        for (seg_const_iterator i = segs.begin(), ie = segs.end(); i != ie; ++i)
-            if ((char*)ptr >= (char*)i->data && (char*)ptr < (char*)i->data + i->freepos)
+        for (seg_const_iterator i = segs.begin(), ie = segs.end(); i != ie; ++i) {
+            if ((char*)ptr >= (char*)i->data && (char*)ptr < (char*)i->data + i->freepos) {
                 return true;
+            }
+        }
         return false;
     }
     size_t size() const {
         size_t r = 0;
-        for (seg_const_iterator i = segs.begin(); i != segs.end(); ++i)
+        for (seg_const_iterator i = segs.begin(); i != segs.end(); ++i) {
             r += i->freepos;
+        }
         return r;
     }
     size_t capacity() const {
         return segs.size() * segment_size * sizeof(T);
     }
     void restart() {
-        if (curseg != segs.end())
+        if (curseg != segs.end()) {
             ++curseg;
-        for (seg_iterator i = segs.begin(); i != curseg; ++i)
+        }
+        for (seg_iterator i = segs.begin(); i != curseg; ++i) {
             i->freepos = 0;
+        }
         curseg = segs.begin();
         last_free = 0;
         last_ins_size = 0;
     }
     void clear() {
-        for (seg_iterator i = segs.begin(); i != segs.end(); ++i)
+        for (seg_iterator i = segs.begin(); i != segs.end(); ++i) {
             seg_allocator.deallocate(i->data, i->_size);
+        }
         segs.clear();
         curseg = segs.begin();
         last_free = 0;
@@ -166,8 +175,9 @@ public:
     }
     char* append(const char* src, size_t len) {
         char* rv = _Base::append(nullptr, len + 1);
-        if (src)
+        if (src) {
             memcpy(rv, src, len);
+        }
         rv[len] = 0;
         return rv;
     }

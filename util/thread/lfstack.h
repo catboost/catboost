@@ -30,12 +30,14 @@ class TLockFreeStack: TNonCopyable {
 
     void TryToFreeMemory() {
         TNode* current = FreePtr.load(std::memory_order_acquire);
-        if (!current)
+        if (!current) {
             return;
+        }
         if (DequeueCount.load() == 1) {
             // node current is in free list, we are the last thread so try to cleanup
-            if (FreePtr.compare_exchange_strong(current, nullptr))
+            if (FreePtr.compare_exchange_strong(current, nullptr)) {
                 EraseList(current);
+            }
         }
     }
     void EraseList(TNode* p) {
@@ -54,8 +56,9 @@ class TLockFreeStack: TNonCopyable {
             // act as if *this != expected even if they are equal.
             // When a compare-and-exchange is in a loop, the weak version will yield better
             // performance on some platforms.
-            if (Head.compare_exchange_weak(headValue, head))
+            if (Head.compare_exchange_weak(headValue, head)) {
                 break;
+            }
         }
     }
     template <class U>
@@ -115,8 +118,9 @@ public:
                     // Dequeue()s in progress, put node to free list
                     for (TNode* freePtr = FreePtr.load(std::memory_order_acquire);;) {
                         current->Next.store(freePtr, std::memory_order_release);
-                        if (FreePtr.compare_exchange_weak(freePtr, current))
+                        if (FreePtr.compare_exchange_weak(freePtr, current)) {
                             break;
+                        }
                     }
                 }
                 return true;
@@ -151,8 +155,9 @@ public:
                     }
                     for (TNode* freePtr = FreePtr.load(std::memory_order_acquire);;) {
                         currentLast->Next.store(freePtr, std::memory_order_release);
-                        if (FreePtr.compare_exchange_weak(freePtr, current))
+                        if (FreePtr.compare_exchange_weak(freePtr, current)) {
                             break;
+                        }
                     }
                 }
                 return;

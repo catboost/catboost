@@ -96,8 +96,9 @@ public:
     }
 
     void Fill(T value) {
-        for (T *p = Arr, *end = Arr + M * N; p < end; ++p)
+        for (T *p = Arr, *end = Arr + M * N; p < end; ++p) {
             *p = value;
+        }
     }
 
 private:

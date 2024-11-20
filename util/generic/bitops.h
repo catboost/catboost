@@ -276,13 +276,16 @@ Y_FORCE_INLINE ui64 MostSignificantBit(ui64 v) {
     ui64 res = v ? (63 - __builtin_clzll(v)) : 0;
 #elif defined(_MSC_VER) && defined(_64_)
     unsigned long res = 0;
-    if (v)
+    if (v) {
         _BitScanReverse64(&res, v);
+    }
 #else
     ui64 res = 0;
-    if (v)
-        while (v >>= 1)
+    if (v) {
+        while (v >>= 1) {
             ++res;
+        }
+    }
 #endif
     return res;
 }
@@ -295,8 +298,9 @@ Y_FORCE_INLINE ui64 LeastSignificantBit(ui64 v) {
     ui64 res = v ? __builtin_ffsll(v) - 1 : 0;
 #elif defined(_MSC_VER) && defined(_64_)
     unsigned long res = 0;
-    if (v)
+    if (v) {
         _BitScanForward64(&res, v);
+    }
 #else
     ui64 res = 0;
     if (v) {

@@ -20,8 +20,9 @@ Y_UNIT_TEST_SUITE(TestFunctionRef) {
     }
 
     int F1(bool x) {
-        if (x)
+        if (x) {
             throw 19;
+        }
         return 42;
     }
 

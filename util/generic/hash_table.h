@@ -634,9 +634,11 @@ public:
     }
 
     iterator begin() {
-        for (size_type n = 0; n < buckets.size(); ++n) /*y*/
-            if (buckets[n])
+        for (size_type n = 0; n < buckets.size(); ++n) { /*y*/
+            if (buckets[n]) {
                 return iterator(buckets[n]); /*y*/
+            }
+        }
         return end();
     }
 
@@ -645,9 +647,11 @@ public:
     } /*y*/
 
     const_iterator begin() const {
-        for (size_type n = 0; n < buckets.size(); ++n) /*y*/
-            if (buckets[n])
+        for (size_type n = 0; n < buckets.size(); ++n) { /*y*/
+            if (buckets[n]) {
                 return const_iterator(buckets[n]); /*y*/
+            }
+        }
         return end();
     }
 
@@ -662,9 +666,11 @@ public:
 
     size_type bucket_size(size_type bucket) const {
         size_type result = 0;
-        if (const node* cur = buckets[bucket])
-            for (; !((uintptr_t)cur & 1); cur = cur->next)
+        if (const node* cur = buckets[bucket]) {
+            for (; !((uintptr_t)cur & 1); cur = cur->next) {
                 result += 1;
+            }
+        }
         return result;
     }
 
@@ -731,14 +737,16 @@ public:
 
     template <class InputIterator>
     void insert_unique(InputIterator f, InputIterator l, std::input_iterator_tag) {
-        for (; f != l; ++f)
+        for (; f != l; ++f) {
             insert_unique(*f);
+        }
     }
 
     template <class InputIterator>
     void insert_equal(InputIterator f, InputIterator l, std::input_iterator_tag) {
-        for (; f != l; ++f)
+        for (; f != l; ++f) {
             insert_equal(*f);
+        }
     }
 
     template <class ForwardIterator>
@@ -746,8 +754,9 @@ public:
         difference_type n = std::distance(f, l);
 
         reserve(num_elements + n);
-        for (; n > 0; --n, ++f)
+        for (; n > 0; --n, ++f) {
             insert_unique_noresize(*f);
+        }
     }
 
     template <class ForwardIterator>
@@ -755,8 +764,9 @@ public:
         difference_type n = std::distance(f, l);
 
         reserve(num_elements + n);
-        for (; n > 0; --n, ++f)
+        for (; n > 0; --n, ++f) {
             emplace_equal_noresize(*f);
+        }
     }
 
     template <class OtherValue>
@@ -794,10 +804,13 @@ public:
         const size_type n = bkt_num_key(key);
         size_type result = 0;
 
-        if (const node* cur = buckets[n])
-            for (; !((uintptr_t)cur & 1); cur = cur->next)
-                if (equals(get_key(cur->val), key))
+        if (const node* cur = buckets[n]) {
+            for (; !((uintptr_t)cur & 1); cur = cur->next) {
+                if (equals(get_key(cur->val), key)) {
                     ++result;
+                }
+            }
+        }
         return result;
     }
 
@@ -834,8 +847,9 @@ public:
      * the nodes at once.
      */
     void release_nodes() {
-        if (empty())
+        if (empty()) {
             return; /* Need this check because empty buckets may reside in read-only memory. */
+        }
 
         clear_buckets(buckets);
         num_elements = 0;
@@ -877,8 +891,9 @@ public:
      * downsizing.
      */
     Y_REINITIALIZES_OBJECT void clear() {
-        if (num_elements)
+        if (num_elements) {
             clear((num_elements * 2 + buckets.size()) / 3);
+        }
     }
 
 private:
@@ -964,8 +979,9 @@ __yhashtable_iterator<V>& __yhashtable_iterator<V>::operator++() {
     cur = cur->next;
     if ((uintptr_t)cur & 1) {
         node** bucket = (node**)((uintptr_t)cur & ~1);
-        while (*bucket == nullptr)
+        while (*bucket == nullptr) {
             ++bucket;
+        }
         Y_ASSERT(*bucket != nullptr);
         cur = (node*)((uintptr_t)*bucket & ~1);
     }
@@ -985,8 +1001,9 @@ __yhashtable_const_iterator<V>& __yhashtable_const_iterator<V>::operator++() {
     cur = cur->next;
     if ((uintptr_t)cur & 1) {
         node** bucket = (node**)((uintptr_t)cur & ~1);
-        while (*bucket == nullptr)
+        while (*bucket == nullptr) {
             ++bucket;
+        }
         Y_ASSERT(*bucket != nullptr);
         cur = (node*)((uintptr_t)*bucket & ~1);
     }
@@ -1010,10 +1027,13 @@ std::pair<typename THashTable<V, K, HF, Ex, Eq, A>::iterator, bool> THashTable<V
     const size_type n = bkt_num(tmp->val);
     node* first = buckets[n];
 
-    if (first)                                                          /*y*/
-        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) /*y*/
-            if (equals(get_key(cur->val), get_key(tmp->val)))
+    if (first) {                                                          /*y*/
+        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) { /*y*/
+            if (equals(get_key(cur->val), get_key(tmp->val))) {
                 return std::pair<iterator, bool>(iterator(cur), false); /*y*/
+            }
+        }
+    }
 
     guard.release();
     tmp->next = first ? first : (node*)((uintptr_t)&buckets[n + 1] | 1); /*y*/
@@ -1028,10 +1048,13 @@ std::pair<typename THashTable<V, K, HF, Ex, Eq, A>::iterator, bool> THashTable<V
     const size_type n = bkt_num(obj);
     node* first = buckets[n];
 
-    if (first)                                                          /*y*/
-        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) /*y*/
-            if (equals(get_key(cur->val), get_key(obj)))
+    if (first) {                                                          /*y*/
+        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) { /*y*/
+            if (equals(get_key(cur->val), get_key(obj))) {
                 return std::pair<iterator, bool>(iterator(cur), false); /*y*/
+            }
+        }
+    }
 
     node* tmp = new_node(obj);
     tmp->next = first ? first : (node*)((uintptr_t)&buckets[n + 1] | 1); /*y*/
@@ -1049,8 +1072,8 @@ __yhashtable_iterator<V> THashTable<V, K, HF, Ex, Eq, A>::emplace_equal_noresize
     const size_type n = bkt_num(tmp->val);
     node* first = buckets[n];
 
-    if (first)                                                          /*y*/
-        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) /*y*/
+    if (first) {                                                          /*y*/
+        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) { /*y*/
             if (equals(get_key(cur->val), get_key(tmp->val))) {
                 guard.release();
                 tmp->next = cur->next;
@@ -1058,6 +1081,8 @@ __yhashtable_iterator<V> THashTable<V, K, HF, Ex, Eq, A>::emplace_equal_noresize
                 ++num_elements;
                 return iterator(tmp); /*y*/
             }
+        }
+    }
 
     guard.release();
     tmp->next = first ? first : (node*)((uintptr_t)&buckets[n + 1] | 1); /*y*/
@@ -1074,10 +1099,13 @@ typename THashTable<V, K, HF, Ex, Eq, A>::reference THashTable<V, K, HF, Ex, Eq,
     size_type n = bkt_num_key(get_key(v));
     node* first = buckets[n];
 
-    if (first)                                                          /*y*/
-        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) /*y*/
-            if (equals(get_key(cur->val), get_key(v)))
+    if (first) {                                                          /*y*/
+        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) { /*y*/
+            if (equals(get_key(cur->val), get_key(v))) {
                 return cur->val;
+            }
+        }
+    }
 
     node* tmp = new_node(v);
     tmp->next = first ? first : (node*)((uintptr_t)&buckets[n + 1] | 1); /*y*/
@@ -1093,10 +1121,13 @@ __yhashtable_iterator<V> THashTable<V, K, HF, Ex, Eq, A>::find_i(const OtherKey&
     ins = &buckets[n];
     node* first = buckets[n];
 
-    if (first)                                                          /*y*/
-        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) /*y*/
-            if (equals(get_key(cur->val), key))
+    if (first) {                                                          /*y*/
+        for (node* cur = first; !((uintptr_t)cur & 1); cur = cur->next) { /*y*/
+            if (equals(get_key(cur->val), key)) {
                 return iterator(cur); /*y*/
+            }
+        }
+    }
     return end();
 }
 
@@ -1115,19 +1146,24 @@ std::pair<__yhashtable_iterator<V>, __yhashtable_iterator<V>> THashTable<V, K, H
     ins = &buckets[n];
     node* first = buckets[n];
 
-    if (first)                                                 /*y*/
+    if (first) {                                               /*y*/
         for (; !((uintptr_t)first & 1); first = first->next) { /*y*/
             if (equals(get_key(first->val), key)) {
-                for (node* cur = first->next; !((uintptr_t)cur & 1); cur = cur->next)
-                    if (!equals(get_key(cur->val), key))
+                for (node* cur = first->next; !((uintptr_t)cur & 1); cur = cur->next) {
+                    if (!equals(get_key(cur->val), key)) {
                         return pii(iterator(first), iterator(cur)); /*y*/
-                for (size_type m = n + 1; m < buckets.size(); ++m)  /*y*/
-                    if (buckets[m])
+                    }
+                }
+                for (size_type m = n + 1; m < buckets.size(); ++m) { /*y*/
+                    if (buckets[m]) {
                         return pii(iterator(first),       /*y*/
                                    iterator(buckets[m])); /*y*/
-                return pii(iterator(first), end());       /*y*/
+                    }
+                }
+                return pii(iterator(first), end()); /*y*/
             }
         }
+    }
     return pii(end(), end());
 }
 
@@ -1138,20 +1174,25 @@ std::pair<__yhashtable_const_iterator<V>, __yhashtable_const_iterator<V>> THashT
     const size_type n = bkt_num_key(key);
     const node* first = buckets[n];
 
-    if (first)                                                 /*y*/
+    if (first) {                                               /*y*/
         for (; !((uintptr_t)first & 1); first = first->next) { /*y*/
             if (equals(get_key(first->val), key)) {
-                for (const node* cur = first->next; !((uintptr_t)cur & 1); cur = cur->next)
-                    if (!equals(get_key(cur->val), key))
-                        return pii(const_iterator(first),          /*y*/
-                                   const_iterator(cur));           /*y*/
-                for (size_type m = n + 1; m < buckets.size(); ++m) /*y*/
-                    if (buckets[m])
+                for (const node* cur = first->next; !((uintptr_t)cur & 1); cur = cur->next) {
+                    if (!equals(get_key(cur->val), key)) {
+                        return pii(const_iterator(first), /*y*/
+                                   const_iterator(cur));  /*y*/
+                    }
+                }
+                for (size_type m = n + 1; m < buckets.size(); ++m) { /*y*/
+                    if (buckets[m]) {
                         return pii(const_iterator(first /*y*/),
                                    const_iterator(buckets[m] /*y*/));
+                    }
+                }
                 return pii(const_iterator(first /*y*/), end());
             }
         }
+    }
     return pii(end(), end());
 }
 
@@ -1249,16 +1290,18 @@ void THashTable<V, K, HF, Ex, Eq, A>::erase(iterator first, iterator last) {
     size_type f_bucket = first.cur ? bkt_num(first.cur->val) : buckets.size(); /*y*/
     size_type l_bucket = last.cur ? bkt_num(last.cur->val) : buckets.size();   /*y*/
 
-    if (first.cur == last.cur)
+    if (first.cur == last.cur) {
         return;
-    else if (f_bucket == l_bucket)
+    } else if (f_bucket == l_bucket) {
         erase_bucket(f_bucket, first.cur, last.cur);
-    else {
+    } else {
         erase_bucket(f_bucket, first.cur, nullptr);
-        for (size_type n = f_bucket + 1; n < l_bucket; ++n)
+        for (size_type n = f_bucket + 1; n < l_bucket; ++n) {
             erase_bucket(n, nullptr);
-        if (l_bucket != buckets.size()) /*y*/
+        }
+        if (l_bucket != buckets.size()) { /*y*/
             erase_bucket(l_bucket, last.cur);
+        }
     }
 }
 
@@ -1277,8 +1320,9 @@ template <class V, class K, class HF, class Ex, class Eq, class A>
 bool THashTable<V, K, HF, Ex, Eq, A>::reserve(size_type num_elements_hint) {
     const size_type old_n = buckets.size(); /*y*/
     if (num_elements_hint + 1 > old_n) {
-        if (old_n != 1 && num_elements_hint <= old_n) // TODO: this if is for backwards compatibility down to order-in-buckets level. Can be safely removed.
+        if (old_n != 1 && num_elements_hint <= old_n) { // TODO: this if is for backwards compatibility down to order-in-buckets level. Can be safely removed.
             return false;
+        }
 
         const TBucketDivisor n = HashBucketCountExt(num_elements_hint + 1, buckets.BucketDivisorHint() + 1);
         if (n() > old_n) {
@@ -1325,9 +1369,9 @@ bool THashTable<V, K, HF, Ex, Eq, A>::reserve(size_type num_elements_hint) {
 template <class V, class K, class HF, class Ex, class Eq, class A>
 void THashTable<V, K, HF, Ex, Eq, A>::erase_bucket(const size_type n, node* first, node* last) {
     node* cur = buckets[n];
-    if (cur == first)
+    if (cur == first) {
         erase_bucket(n, last);
-    else {
+    } else {
         node* next;
         for (next = cur->next; next != first; cur = next, next = cur->next)
             ;

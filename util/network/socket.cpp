@@ -110,15 +110,18 @@ static int convert_events(int events, const evpair* evpairs, size_t nevpairs, bo
         if (events & event) {
             events ^= event;
             long winEvent = evpairs[i].winevent;
-            if (winEvent == -1)
+            if (winEvent == -1) {
                 return -1;
-            if (winEvent == 0)
+            }
+            if (winEvent == 0) {
                 continue;
+            }
             result |= winEvent;
         }
     }
-    if (events != 0 && !ignoreUnknown)
+    if (events != 0 && !ignoreUnknown) {
         return -1;
+    }
     return result;
 }
 
@@ -199,12 +202,13 @@ int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept {
 
     HANDLE events[] = {event.Get()};
     DWORD wait_result = WSAWaitForMultipleEvents(1, events, TRUE, timeout, FALSE);
-    if (wait_result == WSA_WAIT_TIMEOUT)
+    if (wait_result == WSA_WAIT_TIMEOUT) {
         return 0;
-    else if (wait_result == WSA_WAIT_EVENT_0) {
+    } else if (wait_result == WSA_WAIT_EVENT_0) {
         for (pollfd* fd = fds; fd < fds + nfds; ++fd) {
-            if (fd->revents == POLLNVAL)
+            if (fd->revents == POLLNVAL) {
                 continue;
+            }
             WSANETWORKEVENTS network_events;
             if (WSAEnumNetworkEvents(fd->fd, event.Get(), &network_events)) {
                 errno = EIO;
@@ -217,8 +221,9 @@ int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept {
                     break;
                 }
             }
-            if (fd->revents == POLLERR)
+            if (fd->revents == POLLERR) {
                 continue;
+            }
             if (network_events.lNetworkEvents) {
                 fd->revents = static_cast<short>(convert_events(network_events.lNetworkEvents, evpairs_to_unix, nevpairs_to_unix, true));
                 if (fd->revents & POLLHUP) {
@@ -227,9 +232,11 @@ int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept {
             }
         }
         int chanded_sockets = 0;
-        for (pollfd* fd = fds; fd < fds + nfds; ++fd)
-            if (fd->revents != 0)
+        for (pollfd* fd = fds; fd < fds + nfds; ++fd) {
+            if (fd->revents != 0) {
                 ++chanded_sockets;
+            }
+        }
         return chanded_sockets;
     } else {
         errno = EIO;

@@ -205,8 +205,9 @@ struct TFindFirstOf {
     inline Char* FindFirstOf(Char* b, Char* e) const noexcept {
         Char* ret = b;
         for (; ret != e; ++ret) {
-            if (NStringSplitPrivate::Find(Set, *ret))
+            if (NStringSplitPrivate::Find(Set, *ret)) {
                 break;
+            }
         }
         return ret;
     }
@@ -398,8 +399,9 @@ struct TSimplePusher {
 template <class T>
 static inline void Split(char* buf, char ch, T* res) {
     res->resize(0);
-    if (*buf == 0)
+    if (*buf == 0) {
         return;
+    }
 
     TCharDelimiter<char> delim(ch);
     TSimplePusher<T> pusher = {res};
