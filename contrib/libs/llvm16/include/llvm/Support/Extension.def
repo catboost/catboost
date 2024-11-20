@@ -1,3 +1,0 @@
-//extension handlers
-HANDLE_EXTENSION(Polly)
-#undef HANDLE_EXTENSION
