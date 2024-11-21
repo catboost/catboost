@@ -1,0 +1,47 @@
+commit 3bb34c7656f9f425d9f9dbe140340f1d5b57586f
+merge: 78a88b4da152acc232b549f8a7415d3f8a67bd31 b694ac6e026f3dd205118ad0f939efc45e985a69
+author: pg
+date: 2024-10-11T10:22:30+03:00
+revision: 15073732
+
+    DEVTOOLSSUPPORT-52386
+    
+    REVIEW: 6974995
+
+--- contrib/tools/cython/Cython/Utility/ImportExport.c	(78a88b4da152acc232b549f8a7415d3f8a67bd31)
++++ contrib/tools/cython/Cython/Utility/ImportExport.c	(3bb34c7656f9f425d9f9dbe140340f1d5b57586f)
+@@ -331,7 +331,7 @@ static PyTypeObject *__Pyx_ImportType_$cyversion(PyObject *module, const char *m
+     size_t size, size_t alignment, enum __Pyx_ImportType_CheckSize_$cyversion check_size)
+ {
+     PyObject *result = 0;
+-    char warning[200];
++    //char warning[200];
+     Py_ssize_t basicsize;
+     Py_ssize_t itemsize;
+ #ifdef Py_LIMITED_API
+@@ -382,25 +382,10 @@ static PyTypeObject *__Pyx_ImportType_$cyversion(PyObject *module, const char *m
+             itemsize = (Py_ssize_t)alignment;
+     }
+     if ((size_t)(basicsize + itemsize) < size) {
+-        PyErr_Format(PyExc_ValueError,
+-            "%.200s.%.200s size changed, may indicate binary incompatibility. "
+-            "Expected %zd from C header, got %zd from PyObject",
+-            module_name, class_name, size, basicsize);
+-        goto bad;
+     }
+     if (check_size == __Pyx_ImportType_CheckSize_Error_$cyversion && (size_t)basicsize != size) {
+-        PyErr_Format(PyExc_ValueError,
+-            "%.200s.%.200s size changed, may indicate binary incompatibility. "
+-            "Expected %zd from C header, got %zd from PyObject",
+-            module_name, class_name, size, basicsize);
+-        goto bad;
+     }
+     else if (check_size == __Pyx_ImportType_CheckSize_Warn_$cyversion && (size_t)basicsize > size) {
+-        PyOS_snprintf(warning, sizeof(warning),
+-            "%s.%s size changed, may indicate binary incompatibility. "
+-            "Expected %zd from C header, got %zd from PyObject",
+-            module_name, class_name, size, basicsize);
+-        if (PyErr_WarnEx(NULL, warning, 0) < 0) goto bad;
+     }
+     /* check_size == __Pyx_ImportType_CheckSize_Ignore does not warn nor error */
+     return (PyTypeObject *)result;
