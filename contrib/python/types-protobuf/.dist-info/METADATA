@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: types-protobuf
-Version: 5.27.0.20240920
+Version: 5.28.0.20240924
 Summary: Typing stubs for protobuf
 Home-page: https://github.com/python/typeshed
 License: Apache-2.0
@@ -26,12 +26,12 @@ PyCharm, etc. to check code that uses
 `protobuf`.
 
 This version of `types-protobuf` aims to provide accurate annotations
-for `protobuf==5.27.*`.
+for `protobuf==5.28.*`.
 The source for this package can be found at
 https://github.com/python/typeshed/tree/main/stubs/protobuf. All fixes for
 types and metadata should be contributed there.
 
-Partially generated using [mypy-protobuf==3.6.0](https://github.com/nipunn1313/mypy-protobuf/tree/v3.6.0) and libprotoc 26.1 on [protobuf v27.1](https://github.com/protocolbuffers/protobuf/releases/tag/v27.1) (python `protobuf==5.27.1`).
+Partially generated using [mypy-protobuf==3.6.0](https://github.com/nipunn1313/mypy-protobuf/tree/v3.6.0) and libprotoc 26.1 on [protobuf v28.2](https://github.com/protocolbuffers/protobuf/releases/tag/v28.2) (python `protobuf==5.28.2`).
 
 This stub package is marked as [partial](https://peps.python.org/pep-0561/#partial-stub-packages).
 If you find that annotations are missing, feel free to contribute and help complete them.
@@ -39,6 +39,6 @@ If you find that annotations are missing, feel free to contribute and help compl
 
 See https://github.com/python/typeshed/blob/main/README.md for more details.
 This package was generated from typeshed commit
-[`c025e37bbb67f99f9d83c2eecb79e7405f77359b`](https://github.com/python/typeshed/commit/c025e37bbb67f99f9d83c2eecb79e7405f77359b) and was tested
+[`9f033bf439e064917e4b235b8a09b7530f182516`](https://github.com/python/typeshed/commit/9f033bf439e064917e4b235b8a09b7530f182516) and was tested
 with mypy 1.11.1, pyright 1.1.381, and
 pytype 2024.9.13.
