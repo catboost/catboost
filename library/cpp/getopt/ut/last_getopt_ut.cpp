@@ -449,6 +449,19 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         tester.AcceptEndOfFreeArgs();
     }
 
+    Y_UNIT_TEST(TestEqParseOnlyRequiredArgument) {
+        TOptsNoDefault opts;
+
+        opts.AddLongOption("eq-only").RequiredArgument().DisableSpaceParse();
+
+        TOptsParseResultTestWrapper res(&opts, V({"cmd", "--eq-only=value"}));
+        UNIT_ASSERT_EQUAL(res.Get("eq-only"), "value"sv);
+
+        UNIT_ASSERT_EXCEPTION(
+            TOptsParseResultTestWrapper(&opts, V({"cmd", "--eq-only", "value"})),
+            TUsageException);
+    }
+
     Y_UNIT_TEST(TestStoreResult) {
         TOptsNoDefault opts;
         TString data;

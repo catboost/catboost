@@ -192,7 +192,7 @@ namespace NLastGetopt {
         bool Has(const TOpt* opt, bool includeDefault = false) const;
 
         /**
-         * @return nil terminated string on the last fetched argument of givne option
+         * @return nil terminated string on the last fetched argument of given option
          *
          * @param opt                ptr on required object
          * @param includeDefault     search in results obtained from default values
@@ -200,7 +200,7 @@ namespace NLastGetopt {
         const char* Get(const TOpt* opt, bool includeDefault = true) const;
 
         /**
-         * @return nil terminated string on the last fetched argument of givne option
+         * @return nil terminated string on the last fetched argument of given option
          *    if option haven't been fetched, given defaultValue will be returned
          *
          * @param opt                ptr on required object
@@ -218,7 +218,7 @@ namespace NLastGetopt {
         bool Has(const TString& name, bool includeDefault = false) const;
 
         /**
-         * @return nil terminated string on the last fetched argument of givne option
+         * @return nil terminated string on the last fetched argument of given option
          *
          * @param name               long name of required object
          * @param includeDefault     search in results obtained from default values
@@ -226,7 +226,7 @@ namespace NLastGetopt {
         const char* Get(const TString& name, bool includeDefault = true) const;
 
         /**
-         * @return nil terminated string on the last fetched argument of givne option
+         * @return nil terminated string on the last fetched argument of given option
          *    if option haven't been fetched, given defaultValue will be returned
          *
          * @param name               long name of required object
@@ -244,7 +244,7 @@ namespace NLastGetopt {
         bool Has(char name, bool includeDefault = false) const;
 
         /**
-         * @return nil terminated string on the last fetched argument of givne option
+         * @return nil terminated string on the last fetched argument of given option
          *
          * @param c                  short name of required object
          * @param includeDefault     search in results obtained from default values
@@ -252,7 +252,7 @@ namespace NLastGetopt {
         const char* Get(char name, bool includeDefault = true) const;
 
         /**
-         * @return nil terminated string on the last fetched argument of givne option
+         * @return nil terminated string on the last fetched argument of given option
          *    if option haven't been fetched, given defaultValue will be returned
          *
          * @param c                  short name of required object
@@ -261,7 +261,7 @@ namespace NLastGetopt {
         const char* GetOrElse(char name, const char* defaultValue) const;
 
         /**
-         * for givne option return parsed value of the last fetched argument
+         * for given option return parsed value of the last fetched argument
          * if option haven't been fetched, HandleError action is called
          *
          * @param opt       required option (one of: ptr, short name, long name).
@@ -280,7 +280,7 @@ namespace NLastGetopt {
         }
 
         /**
-         * for givne option return parsed value of the last fetched argument
+         * for given option return parsed value of the last fetched argument
          * if option haven't been fetched, given defaultValue will be returned
          *
          * @param opt       required option (one of: ptr, short name, long name).

@@ -170,8 +170,13 @@ namespace NLastGetopt {
 
     bool TOptsParser::ParseOptParam(const TOpt* opt, size_t pos) {
         Y_ASSERT(opt);
-        if (opt->GetHasArg() == NO_ARGUMENT || opt->IsEqParseOnly()) {
+        if (opt->GetHasArg() == NO_ARGUMENT ||
+            opt->GetHasArg() == OPTIONAL_ARGUMENT && opt->IsEqParseOnly()) {
             return Commit(opt, nullptr, pos, 0);
+        }
+        if (opt->IsEqParseOnly()) {
+            Y_ASSERT(opt->GetHasArg() == REQUIRED_ARGUMENT);
+            throw TUsageException() << "option " << opt->ToShortString() << " requires an argument but only accepts it over =";
         }
         if (pos == Argc_) {
             if (opt->GetHasArg() == REQUIRED_ARGUMENT)
