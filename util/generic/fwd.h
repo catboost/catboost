@@ -45,12 +45,6 @@ class TIntrusiveListWithAutoDelete;
 template <class T, class Tag = TIntrusiveListDefaultTag>
 class TIntrusiveSList;
 
-template <class T, class C>
-class TAvlTree;
-
-template <class TValue, class TCmp>
-class TRbTree;
-
 // containers
 template <class T, class A = std::allocator<T>>
 class TVector;
