@@ -261,7 +261,7 @@ namespace types
             std::random_access_iterator_tag>::value)
       _data->reserve(std::distance(start, stop));
     else
-      _data->reserve(DEFAULT_LIST_CAPACITY);
+      _data->reserve(DEFAULT_CAPACITY);
     std::copy(start, stop, std::back_inserter(*_data));
   }
   template <class T>

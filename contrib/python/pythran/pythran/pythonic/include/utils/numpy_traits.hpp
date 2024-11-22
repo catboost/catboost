@@ -36,6 +36,12 @@ namespace types
 
   struct empty_list;
 
+  template <class T>
+  class array;
+
+  template <class T, class S>
+  class sliced_array;
+
   template <class T, size_t N, class V>
   struct array_base;
 
@@ -130,14 +136,21 @@ namespace types
   };
 
   template <class T, class S>
-  struct is_numexpr_arg<sliced_list<T, S>> {
-    static constexpr bool value =
-        is_numexpr_arg<T>::value || is_dtype<T>::value;
+  struct is_numexpr_arg<sliced_list<T, S>> : is_numexpr_arg<list<T>> {
   };
 
   template <>
   struct is_numexpr_arg<empty_list> {
     static constexpr bool value = true;
+  };
+
+  template <class T>
+  struct is_numexpr_arg<array<T>> : is_numexpr_arg<list<T>> {
+  };
+
+  template <class T, class S>
+  struct is_numexpr_arg<sliced_array<T, S>>
+      : is_numexpr_arg<sliced_list<T, S>> {
   };
 
   template <class T>
@@ -172,7 +185,7 @@ namespace types
     static T get(...);
     using type = decltype(get<E>(nullptr));
   };
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

@@ -135,12 +135,15 @@ class ArgumentEffects(ModuleAnalysis):
         self.generic_visit(node)
 
     def visit_Assign(self, node):
-        for t in node.targets:
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        for t in targets:
             if isinstance(t, ast.Subscript):
                 n = self.argument_index(t)
                 if n >= 0:
                     self.current_function.update_effects[n] = True
         self.generic_visit(node)
+
+    visit_AnnAssign = visit_Assign
 
     def visit_Call(self, node):
         for i, arg in enumerate(node.args):

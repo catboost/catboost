@@ -20,13 +20,15 @@ namespace builtins
     types::dict<K, V> dict(types::dict<K, V> const &);
 
     template <class Iterable>
-    auto dict(Iterable &&iterable) -> types::dict<
-        typename std::decay<decltype(std::get<0>(*iterable.begin()))>::type,
-        typename std::decay<decltype(std::get<1>(*iterable.begin()))>::type>;
-  }
+    auto dict(Iterable &&iterable)
+        -> types::dict<
+            typename std::decay<decltype(std::get<0>(*iterable.begin()))>::type,
+            typename std::decay<
+                decltype(std::get<1>(*iterable.begin()))>::type>;
+  } // namespace anonymous
 
   DEFINE_FUNCTOR(pythonic::builtins::anonymous, dict);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

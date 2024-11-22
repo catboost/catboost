@@ -4,14 +4,12 @@
 #include <complex>
 
 #if defined(_OPENMP)
-#pragma omp declare reduction(+ : std::complex < float > : omp_out += omp_in)
-#pragma omp declare reduction(* : std::complex < float > : omp_out *= omp_in)
-#pragma omp declare reduction(+ : std::complex < double > : omp_out += omp_in)
-#pragma omp declare reduction(* : std::complex < double > : omp_out *= omp_in)
-#pragma omp declare reduction(+ : std::complex < long double > : omp_out +=    \
-                              omp_in)
-#pragma omp declare reduction(* : std::complex < long double > : omp_out *=    \
-                              omp_in)
+#pragma omp declare reduction(+ : std::complex<float> : omp_out += omp_in)
+#pragma omp declare reduction(* : std::complex<float> : omp_out *= omp_in)
+#pragma omp declare reduction(+ : std::complex<double> : omp_out += omp_in)
+#pragma omp declare reduction(* : std::complex<double> : omp_out *= omp_in)
+#pragma omp declare reduction(+ : std::complex<long double> : omp_out += omp_in)
+#pragma omp declare reduction(* : std::complex<long double> : omp_out *= omp_in)
 #endif
 
 PYTHONIC_NS_BEGIN
@@ -22,8 +20,8 @@ namespace numpy
     struct complex64;
     struct complex128;
     struct complex256;
-  }
-}
+  } // namespace functor
+} // namespace numpy
 
 PYTHONIC_NS_END
 
@@ -84,7 +82,7 @@ namespace std
   struct hash<std::complex<T>> {
     size_t operator()(std::complex<T> const &x) const;
   };
-}
+} // namespace std
 
 PYTHONIC_NS_BEGIN
 namespace builtins
@@ -99,7 +97,7 @@ namespace builtins
                                      std::complex<double> const &self);
   numpy::functor::complex256 getattr(types::attr::DTYPE,
                                      std::complex<long double> const &self);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 
 /* for type inference { */
@@ -127,19 +125,15 @@ struct __combined<std::complex<T0>, std::complex<T1>> {
       ->std::complex<typename std::common_type<T, U>::type>                    \
   {                                                                            \
     using ctype = std::complex<typename std::common_type<T, U>::type>;         \
-    return ctype                                                               \
-    {                                                                          \
-      lhs                                                                      \
-    }                                                                          \
-    op ctype{rhs};                                                             \
+    return ctype{lhs} op ctype{rhs};                                           \
   }
 
 STD_COMPLEX_IMPLICT_OPERATOR_CAST(+)
 STD_COMPLEX_IMPLICT_OPERATOR_CAST(-)
 STD_COMPLEX_IMPLICT_OPERATOR_CAST(*)
-STD_COMPLEX_IMPLICT_OPERATOR_CAST(/ )
-STD_COMPLEX_IMPLICT_OPERATOR_CAST(== )
-STD_COMPLEX_IMPLICT_OPERATOR_CAST(!= )
+STD_COMPLEX_IMPLICT_OPERATOR_CAST(/)
+STD_COMPLEX_IMPLICT_OPERATOR_CAST(==)
+STD_COMPLEX_IMPLICT_OPERATOR_CAST(!=)
 
 #ifdef ENABLE_PYTHON_MODULE
 

@@ -13,7 +13,7 @@ namespace types
 PYTHONIC_NS_END
 
 /* type inference stuff
-*/
+ */
 
 template <class... Types>
 struct __combined;
@@ -33,12 +33,12 @@ struct __combined<T0, T1> {
   // callable -> functor
   template <class F0, class F1>
   static pythonic::types::variant_functor<F0, F1>
-  get(std::integral_constant<bool, true>);
+      get(std::integral_constant<bool, true>);
 
   // operator+ exists -> deduce type
   template <class F0, class F1>
-  static decltype(std::declval<F0>() + std::declval<F1>())
-  get(std::integral_constant<bool, false>);
+  static decltype(std::declval<F0>() +
+                  std::declval<F1>()) get(std::integral_constant<bool, false>);
 
   // operator+ does not exists -> pick first one, better than error
   // note that this is needed because broadcasting is too complex to be modeled
@@ -53,9 +53,10 @@ struct __combined<T0, T1> {
 
   using type = typename std::conditional<
       std::is_same<T0, T1>::value, T0,
-      decltype(get<T0, T1>(std::integral_constant<
-          bool, pythonic::types::is_callable<T0>::value &&
-                    pythonic::types::is_callable<T1>::value>()))>::type;
+      decltype(get<T0, T1>(std::integral_constant < bool,
+                           pythonic::types::is_callable<T0>::value
+                                   &&pythonic::types::is_callable<T1>::value >
+                               ()))>::type;
 };
 
 template <class T0, class T1>

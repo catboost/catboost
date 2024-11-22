@@ -1,10 +1,10 @@
 #ifndef PYTHONIC_INCLUDE_NUMPY_LINALG_NORM_HPP
 #define PYTHONIC_INCLUDE_NUMPY_LINALG_NORM_HPP
 
-#include "pythonic/include/numpy/sqrt.hpp"
 #include "pythonic/include/builtins/pythran/abssqr.hpp"
-#include "pythonic/include/numpy/sum.hpp"
 #include "pythonic/include/numpy/asfarray.hpp"
+#include "pythonic/include/numpy/sqrt.hpp"
+#include "pythonic/include/numpy/sum.hpp"
 
 PYTHONIC_NS_BEGIN
 namespace numpy
@@ -14,8 +14,8 @@ namespace numpy
     template <class Array>
     auto norm(Array &&array, types::none_type ord = {},
               types::none_type axis = {})
-        -> decltype(
-            pythonic::numpy::functor::sqrt{}(pythonic::numpy::functor::sum{}(
+        -> decltype(pythonic::numpy::functor::sqrt{}(
+            pythonic::numpy::functor::sum{}(
                 pythonic::builtins::pythran::functor::abssqr{}(
                     std::forward<Array>(array)))));
 
@@ -28,9 +28,9 @@ namespace numpy
     template <class Array>
     using norm_t = typename std::conditional<
         std::decay<Array>::type::value == 1, norm_dtype_t<Array>,
-        types::ndarray<
-            norm_dtype_t<Array>,
-            types::array<long, std::decay<Array>::type::value - 1>>>::type;
+        types::ndarray<norm_dtype_t<Array>,
+                       types::array_tuple<long, std::decay<Array>::type::value -
+                                                    1>>>::type;
 
     template <class Array>
     norm_t<Array> norm(Array &&array, double ord, types::none_type axis = {});
@@ -42,13 +42,15 @@ namespace numpy
     norm_t<Array> norm(Array &&array, double ord, long axis);
 
     template <class Array>
-    norm_t<Array> norm(Array &&array, double ord, types::array<long, 1> axis);
+    norm_t<Array> norm(Array &&array, double ord,
+                       types::array_tuple<long, 1> axis);
 
     template <class Array>
-    norm_t<Array> norm(Array &&array, double ord, types::array<long, 2> axis);
+    norm_t<Array> norm(Array &&array, double ord,
+                       types::array_tuple<long, 2> axis);
     DEFINE_FUNCTOR(pythonic::numpy::linalg, norm);
-  }
-}
+  } // namespace linalg
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

@@ -87,7 +87,7 @@ namespace types
     using iterator = const_iterator;
 
     T ref;
-    using shape_t = types::array<long, value>;
+    using shape_t = types::array_tuple<long, value>;
 
     template <size_t I>
     long shape() const
@@ -259,8 +259,10 @@ namespace types
   template <class T, class B>
   struct broadcast_dtype {
     using type =
-        typename std::conditional<(std::is_integral<T>::value && std::is_integral<B>::value)
-                                  ||(std::is_floating_point<T>::value && std::is_floating_point<B>::value),
+        typename std::conditional<(std::is_integral<T>::value &&
+                                   std::is_integral<B>::value) ||
+                                      (std::is_floating_point<T>::value &&
+                                       std::is_floating_point<B>::value),
                                   T, typename __combined<T, B>::type>::type;
   };
 #ifndef USE_XSIMD
@@ -299,7 +301,7 @@ namespace types
 
     dtype operator[](long) const;
     template <size_t N>
-    dtype operator[](array<long, N>) const;
+    dtype operator[](array_tuple<long, N>) const;
 
     template <class S>
     typename std::enable_if<is_slice<S>::value, broadcast const &>::type

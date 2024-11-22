@@ -61,7 +61,7 @@ namespace utils
     static constexpr size_t value = V0;
     static constexpr size_t index = 0;
   };
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

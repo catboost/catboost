@@ -3,10 +3,10 @@
 
 #include "pythonic/include/builtins/pythran/abssqr.hpp"
 
+#include "pythonic/types/numpy_op_helper.hpp"
 #include "pythonic/utils/functor.hpp"
 #include "pythonic/utils/meta.hpp"
 #include "pythonic/utils/numpy_traits.hpp"
-#include "pythonic/types/numpy_op_helper.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -29,13 +29,13 @@ namespace builtins
       {
         return v.real() * v.real() + v.imag() * v.imag();
       }
-    }
+    } // namespace details
 
 #define NUMPY_NARY_FUNC_NAME abssqr
 #define NUMPY_NARY_FUNC_SYM details::abssqr
 #include "pythonic/types/numpy_nary_expr.hpp"
-  }
-}
+  } // namespace pythran
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

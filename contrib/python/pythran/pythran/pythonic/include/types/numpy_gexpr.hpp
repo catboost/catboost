@@ -150,12 +150,12 @@ namespace types
     typename std::enable_if<
         !is_slice<F>::value,
         numpy_gexpr<ndarray<typename std::decay<E>::type::dtype,
-                            array<long, std::decay<E>::type::value>>,
+                            array_tuple<long, std::decay<E>::type::value>>,
                     cstride_normalized_slice<1>, normalize_t<S>...>>::type
     operator()(E &&expr, F const &s0, S const &...s)
     {
       return numpy_vexpr<ndarray<typename std::decay<E>::type::dtype,
-                                 array<long, std::decay<E>::type::value>>,
+                                 array_tuple<long, std::decay<E>::type::value>>,
                          F>{std::forward<E>(expr), s0}(
           fast_contiguous_slice(none_type{}, none_type{}), s...);
     }
@@ -234,9 +234,10 @@ namespace types
     }
 
     template <class T, class Ts>
-    auto
-    tuple_push_head(T const &val, Ts const &vals) -> decltype(tuple_push_head(
-        val, vals, utils::make_index_sequence<std::tuple_size<Ts>::value>()))
+    auto tuple_push_head(T const &val, Ts const &vals)
+        -> decltype(tuple_push_head(
+            val, vals,
+            utils::make_index_sequence<std::tuple_size<Ts>::value>()))
     {
       return tuple_push_head(
           val, vals, utils::make_index_sequence<std::tuple_size<Ts>::value>());
@@ -515,13 +516,13 @@ namespace types
   };
 
   template <class... Tys>
-  struct gexpr_shape<pshape<Tys...>, array<long, 0>> {
+  struct gexpr_shape<pshape<Tys...>, array_tuple<long, 0>> {
     using type = pshape<Tys...>;
   };
 
   template <class... Tys, size_t N>
-  struct gexpr_shape<pshape<Tys...>, array<long, N>>
-      : gexpr_shape<pshape<Tys..., long>, array<long, N - 1>> {
+  struct gexpr_shape<pshape<Tys...>, array_tuple<long, N>>
+      : gexpr_shape<pshape<Tys..., long>, array_tuple<long, N - 1>> {
   };
 
   template <class... Tys, class... oTys, class... S, long stride>
@@ -548,12 +549,12 @@ namespace types
       : gexpr_shape<pshape<Tys..., long>, pshape<oTys...>, S...> {
   };
   template <class... Tys, size_t N, class... S>
-  struct gexpr_shape<pshape<Tys...>, array<long, N>, long, S...>
-      : gexpr_shape<pshape<Tys...>, array<long, N - 1>, S...> {
+  struct gexpr_shape<pshape<Tys...>, array_tuple<long, N>, long, S...>
+      : gexpr_shape<pshape<Tys...>, array_tuple<long, N - 1>, S...> {
   };
   template <class... Tys, size_t N, class cS, class... S>
-  struct gexpr_shape<pshape<Tys...>, array<long, N>, cS, S...>
-      : gexpr_shape<pshape<Tys..., long>, array<long, N - 1>, S...> {
+  struct gexpr_shape<pshape<Tys...>, array_tuple<long, N>, cS, S...>
+      : gexpr_shape<pshape<Tys..., long>, array_tuple<long, N - 1>, S...> {
   };
 
   template <class pS, class... S>
@@ -640,13 +641,13 @@ namespace types
     template <long stride>
     static constexpr types::pshape<std::integral_constant<long, stride>>
         last_stride(cstride_normalized_slice<stride>);
-    static constexpr types::array<long, 1> last_stride(...);
+    static constexpr types::array_tuple<long, 1> last_stride(...);
 
-    sutils::concat_t<types::array<long, value - 1>,
+    sutils::concat_t<types::array_tuple<long, value - 1>,
                      typename std::conditional<
                          sizeof...(S) == std::decay<Arg>::type::value,
                          decltype(last_stride(std::declval<last_slice_t>())),
-                         types::array<long, 1>>::type>
+                         types::array_tuple<long, 1>>::type>
         _strides; // strides
 
     template <size_t I>
@@ -743,6 +744,9 @@ namespace types
     _copy(E const &expr);
 
     template <class E>
+    numpy_gexpr &_copy_restrict(E const &expr);
+
+    template <class E>
     numpy_gexpr &operator=(E const &expr);
 
     numpy_gexpr &operator=(numpy_gexpr const &expr);
@@ -814,22 +818,23 @@ namespace types
     void store(E elt, Indices... indices)
     {
       static_assert(is_dtype<E>::value, "valid store");
-      *(buffer + noffset<value>{}(*this, array<long, value>{{indices...}})) =
+      *(buffer +
+        noffset<value>{}(*this, array_tuple<long, value>{{indices...}})) =
           static_cast<E>(elt);
     }
     template <class... Indices>
     dtype load(Indices... indices) const
     {
       return *(buffer +
-               noffset<value>{}(*this, array<long, value>{{indices...}}));
+               noffset<value>{}(*this, array_tuple<long, value>{{indices...}}));
     }
     template <class Op, class E, class... Indices>
     void update(E elt, Indices... indices) const
     {
       static_assert(is_dtype<E>::value, "valid store");
-      Op{}(
-          *(buffer + noffset<value>{}(*this, array<long, value>{{indices...}})),
-          static_cast<E>(elt));
+      Op{}(*(buffer +
+             noffset<value>{}(*this, array_tuple<long, value>{{indices...}})),
+           static_cast<E>(elt));
     }
 
 #ifdef USE_XSIMD
@@ -845,24 +850,26 @@ namespace types
     auto operator()(Sp const &...s) const -> decltype(make_gexpr(*this, s...));
 
     template <class Sp>
-    auto operator[](Sp const &s) const -> typename std::enable_if<
-        is_slice<Sp>::value, decltype(make_gexpr(*this, (s.lower, s)))>::type;
+    auto operator[](Sp const &s) const ->
+        typename std::enable_if<is_slice<Sp>::value,
+                                decltype(make_gexpr(*this,
+                                                    (s.lower, s)))>::type;
 
     template <size_t M>
-    auto fast(array<long, M> const &indices)
+    auto fast(array_tuple<long, M> const &indices)
         const & -> decltype(nget<M - 1>().fast(*this, indices));
 
     template <size_t M>
-    auto fast(array<long, M> const &indices) && -> decltype(nget<M - 1>().fast(
-        std::move(*this), indices));
+    auto fast(array_tuple<long, M> const &indices)
+        && -> decltype(nget<M - 1>().fast(std::move(*this), indices));
 
     template <size_t M>
-    auto operator[](array<long, M> const &indices)
+    auto operator[](array_tuple<long, M> const &indices)
         const & -> decltype(nget<M - 1>()(*this, indices));
 
     template <size_t M>
-    auto operator[](array<long, M> const &indices) && -> decltype(nget<M - 1>()(
-        std::move(*this), indices));
+    auto operator[](array_tuple<long, M> const &indices)
+        && -> decltype(nget<M - 1>()(std::move(*this), indices));
 
     template <class F> // indexing through an array of indices -- a view
     typename std::enable_if<is_numexpr_arg<F>::value &&
@@ -927,9 +934,10 @@ namespace types
     }
 
     template <class Tp, size_t... Is>
-    auto recast(utils::index_sequence<Is...>) -> decltype(make_gexpr(
-        arg.template recast<Tp>(),
-        recast_slice<sizeof(dtype), sizeof(Tp)>(std::get<Is>(slices))...))
+    auto recast(utils::index_sequence<Is...>)
+        -> decltype(make_gexpr(
+            arg.template recast<Tp>(),
+            recast_slice<sizeof(dtype), sizeof(Tp)>(std::get<Is>(slices))...))
     {
       return make_gexpr(
           arg.template recast<Tp>(),
@@ -937,8 +945,8 @@ namespace types
     }
 
     template <class Tp>
-    auto recast()
-        -> decltype(recast<Tp>(utils::make_index_sequence<sizeof...(S)>()))
+    auto
+    recast() -> decltype(recast<Tp>(utils::make_index_sequence<sizeof...(S)>()))
     {
       return recast<Tp>(utils::make_index_sequence<sizeof...(S)>());
     }
@@ -988,8 +996,8 @@ struct __combined<pythonic::types::numpy_gexpr<Arg, S...>,
   using type =
       pythonic::types::ndarray <
       typename __combined<typename t0::dtype, typename t1::dtype>::type,
-        pythonic::types::array<long,
-                               t0::value<t1::value ? t1::value : t0::value>>;
+        pythonic::types::array_tuple<
+            long, t0::value<t1::value ? t1::value : t0::value>>;
 };
 
 template <class Arg, class... S, class O>

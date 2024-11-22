@@ -1,8 +1,8 @@
 #ifndef PYTHONIC_INCLUDE_NUMPY_CONJ_HPP
 #define PYTHONIC_INCLUDE_NUMPY_CONJ_HPP
 
-#include "pythonic/include/utils/functor.hpp"
 #include "pythonic/include/numpy/conjugate.hpp"
+#include "pythonic/include/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
 

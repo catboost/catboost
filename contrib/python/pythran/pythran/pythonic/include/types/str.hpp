@@ -328,8 +328,9 @@ namespace operator_
 {
 
   template <size_t N, class Arg>
-  auto mod(const char (&fmt)[N], Arg &&arg)
-      -> decltype(pythonic::types::str(fmt) % std::forward<Arg>(arg));
+  auto mod(const char (&fmt)[N],
+           Arg &&arg) -> decltype(pythonic::types::str(fmt) %
+                                  std::forward<Arg>(arg));
 
   pythonic::types::str add(char const *self, char const *other);
 
@@ -355,7 +356,9 @@ struct assignable<char[N]> {
   using type = types::str;
 };
 template <size_t N>
-struct assignable<char const [N]> { using type = types::str; };
+struct assignable<char const[N]> {
+  using type = types::str;
+};
 PYTHONIC_NS_END
 
 namespace std

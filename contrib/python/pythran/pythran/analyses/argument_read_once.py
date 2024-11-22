@@ -147,9 +147,12 @@ class ArgumentReadOnce(ModuleAnalysis):
 
     def visit_Assign(self, node):
         dep = self.generic_visit(node)
-        local = [self.local_effect(t, 2) for t in node.targets
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        local = [self.local_effect(t, 2) for t in targets
                  if isinstance(t, ast.Subscript)]
         return lambda ctx: dep(ctx) + sum(l(ctx) for l in local)
+
+    visit_AnnAssign = visit_Assign
 
     def visit_AugAssign(self, node):
         dep = self.generic_visit(node)

@@ -579,13 +579,18 @@ class RangeValuesSimple(RangeValuesBase):
         >>> res['b']
         Interval(low=2, high=2)
         """
+        if not node.value:
+            return
         assigned_range = self.visit(node.value)
-        for target in node.targets:
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        for target in targets:
             if isinstance(target, ast.Name):
                 # Make sure all Interval doesn't alias for multiple variables.
                 self.add(target.id, assigned_range)
             else:
                 self.visit(target)
+
+    visit_AnnAssign = visit_Assign
 
     def visit_AugAssign(self, node):
         """ Update range value for augassigned variables.

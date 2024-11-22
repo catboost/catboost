@@ -85,21 +85,22 @@ namespace numpy
   template <class T, class pS>
   typename std::enable_if<
       std::tuple_size<pS>::value != 1,
-      types::ndarray<decltype(std::declval<T>() + 1.),
-                     types::array<long, std::tuple_size<pS>::value - 1>>>::type
+      types::ndarray<
+          decltype(std::declval<T>() + 1.),
+          types::array_tuple<long, std::tuple_size<pS>::value - 1>>>::type
   median(types::ndarray<T, pS> const &arr, long axis)
   {
     constexpr auto N = std::tuple_size<pS>::value;
     if (axis < 0)
       axis += N;
 
-    types::array<long, std::tuple_size<pS>::value - 1> shp;
+    types::array_tuple<long, std::tuple_size<pS>::value - 1> shp;
     auto stmp = sutils::getshape(arr);
     auto next = std::copy(stmp.begin(), stmp.begin() + axis, shp.begin());
     std::copy(stmp.begin() + axis + 1, stmp.end(), next);
 
     types::ndarray<decltype(std::declval<T>() + 1.),
-                   types::array<long, std::tuple_size<pS>::value - 1>>
+                   types::array_tuple<long, std::tuple_size<pS>::value - 1>>
         out(shp, types::none_type{});
     _median(out.buffer, arr, axis);
     return out;

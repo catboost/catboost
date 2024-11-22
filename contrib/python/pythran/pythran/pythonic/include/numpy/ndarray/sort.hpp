@@ -19,8 +19,8 @@ namespace numpy
     types::none_type sort(E &&expr, long axis, types::str const &kind);
 
     DEFINE_FUNCTOR(pythonic::numpy::ndarray, sort);
-  }
-}
+  } // namespace ndarray
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

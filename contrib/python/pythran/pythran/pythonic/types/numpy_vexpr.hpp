@@ -61,9 +61,9 @@ namespace types
   template <class T, class F>
   template <class... S>
   auto numpy_vexpr<T, F>::operator()(S const &...slices) const
-      -> decltype(ndarray<dtype, array<long, value>>{*this}(slices...))
+      -> decltype(ndarray<dtype, array_tuple<long, value>>{*this}(slices...))
   {
-    return ndarray<dtype, array<long, value>>{*this}(slices...);
+    return ndarray<dtype, array_tuple<long, value>>{*this}(slices...);
   }
 #ifdef USE_XSIMD
   template <class T, class F>

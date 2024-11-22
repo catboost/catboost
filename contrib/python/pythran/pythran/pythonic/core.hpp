@@ -32,7 +32,8 @@
 // Define python's visibility macros
 #include "pyconfig.h"
 
-// Some version of python define that macro on Windows, and it breaks compilation of some C++ headers.
+// Some version of python define that macro on Windows, and it breaks
+// compilation of some C++ headers.
 #ifdef copysign
 #undef copysign
 #endif
@@ -41,8 +42,8 @@
 #include "pythonic/types/assignable.hpp"
 #include "pythonic/types/combined.hpp"
 
-#include "pythonic/types/int.hpp"
 #include "pythonic/types/float.hpp"
+#include "pythonic/types/int.hpp"
 #include "pythonic/types/slice.hpp"
 
 #endif

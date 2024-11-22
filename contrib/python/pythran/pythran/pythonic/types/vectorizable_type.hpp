@@ -4,16 +4,16 @@
 #include "pythonic/include/types/vectorizable_type.hpp"
 
 #include "pythonic/include/numpy/bool_.hpp"
-#include "pythonic/include/numpy/uint8.hpp"
-#include "pythonic/include/numpy/int8.hpp"
-#include "pythonic/include/numpy/uint16.hpp"
-#include "pythonic/include/numpy/int16.hpp"
-#include "pythonic/include/numpy/uint32.hpp"
-#include "pythonic/include/numpy/int32.hpp"
-#include "pythonic/include/numpy/uint64.hpp"
-#include "pythonic/include/numpy/int64.hpp"
 #include "pythonic/include/numpy/float32.hpp"
 #include "pythonic/include/numpy/float64.hpp"
+#include "pythonic/include/numpy/int16.hpp"
+#include "pythonic/include/numpy/int32.hpp"
+#include "pythonic/include/numpy/int64.hpp"
+#include "pythonic/include/numpy/int8.hpp"
+#include "pythonic/include/numpy/uint16.hpp"
+#include "pythonic/include/numpy/uint32.hpp"
+#include "pythonic/include/numpy/uint64.hpp"
+#include "pythonic/include/numpy/uint8.hpp"
 
 PYTHONIC_NS_BEGIN
 namespace operator_
@@ -22,8 +22,8 @@ namespace operator_
   {
     struct mod;
     struct div;
-  }
-}
+  } // namespace functor
+} // namespace operator_
 
 namespace builtins
 {
@@ -33,8 +33,8 @@ namespace builtins
     {
       struct abssqr;
     }
-  }
-}
+  } // namespace pythran
+} // namespace builtins
 
 namespace numpy
 {
@@ -69,8 +69,8 @@ namespace numpy
     struct spacing;
     struct true_divide;
     struct where;
-  }
-}
+  } // namespace functor
+} // namespace numpy
 namespace scipy
 {
   namespace special
@@ -95,9 +95,9 @@ namespace scipy
       struct ndtri;
       struct spherical_jn;
       struct spherical_yn;
-    }
-  }
-}
+    } // namespace functor
+  } // namespace special
+} // namespace scipy
 namespace types
 {
   template <class O, class... Args>
@@ -185,7 +185,7 @@ namespace types
         //
         true;
   };
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

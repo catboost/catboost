@@ -9,7 +9,7 @@ namespace utils
 #ifdef PYTHRAN_TRACE_ALLOCATION
   size_t pythran_allocation_site;
 #endif
-}
+} // namespace utils
 
 PYTHONIC_NS_END
 

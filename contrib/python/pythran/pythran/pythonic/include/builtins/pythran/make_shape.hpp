@@ -11,8 +11,8 @@ namespace builtins
     pythonic::types::pshape<Args...> make_shape(Args... args);
 
     DEFINE_FUNCTOR(pythonic::builtins::pythran, make_shape);
-  } // pythran
-} // builtins
+  } // namespace pythran
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

@@ -33,7 +33,7 @@ namespace types
   private:
     bool external;
   };
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

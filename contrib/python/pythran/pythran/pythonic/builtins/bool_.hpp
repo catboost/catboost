@@ -26,7 +26,7 @@ namespace builtins
     }
 
     template <class T, size_t N>
-    bool bool_::operator()(types::array<T, N> const &val) const
+    bool bool_::operator()(types::array_tuple<T, N> const &val) const
     {
       return N;
     }

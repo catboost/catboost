@@ -97,7 +97,7 @@ namespace types
   template <class T, class B>
   template <size_t N>
   typename broadcast<T, B>::dtype
-  broadcast<T, B>::operator[](array<long, N>) const
+  broadcast<T, B>::operator[](array_tuple<long, N>) const
   {
     return _base._value;
   }

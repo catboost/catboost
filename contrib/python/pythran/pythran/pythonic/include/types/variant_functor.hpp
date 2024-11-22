@@ -1,8 +1,8 @@
 #ifndef PYTHONIC_INCLUDE_TYPES_VARIANT_FUNCTOR_HPP
 #define PYTHONIC_INCLUDE_TYPES_VARIANT_FUNCTOR_HPP
 
-#include "pythonic/include/utils/meta.hpp"
 #include "pythonic/include/types/combined.hpp"
+#include "pythonic/include/utils/meta.hpp"
 
 #include <utility>
 
@@ -80,11 +80,11 @@ namespace types
       void assign(char mem[], variant_functor<OtherType> const &);
 
       template <class... Args>
-      auto operator()(Args &&... args)
+      auto operator()(Args &&...args)
           -> decltype(std::declval<Type>()(std::forward<Args>(args)...));
 
       template <class... Args>
-      auto operator()(Args &&... args) const
+      auto operator()(Args &&...args) const
           -> decltype(std::declval<Type>()(std::forward<Args>(args)...));
     };
 
@@ -98,7 +98,7 @@ namespace types
       variant_functor_impl(variant_functor_impl const &) = delete;
 
       template <class... OtherTypes>
-      variant_functor_impl(char mem[], OtherTypes const &... t);
+      variant_functor_impl(char mem[], OtherTypes const &...t);
 
       template <class... OtherTypes>
       variant_functor_impl(char mem[],
@@ -112,16 +112,20 @@ namespace types
       void assign(char mem[], OtherType const &);
 
       template <class... Args>
-      auto operator()(Args &&... args) -> typename __combined<
-          decltype(std::declval<Type>()(std::forward<Args>(args)...)),
-          decltype(std::declval<Types>()(std::forward<Args>(args)...))...>::type;
+      auto operator()(Args &&...args) ->
+          typename __combined<
+              decltype(std::declval<Type>()(std::forward<Args>(args)...)),
+              decltype(std::declval<Types>()(
+                  std::forward<Args>(args)...))...>::type;
 
       template <class... Args>
-      auto operator()(Args &&... args) const -> typename __combined<
-          decltype(std::declval<Type>()(std::forward<Args>(args)...)),
-          decltype(std::declval<Types>()(std::forward<Args>(args)...))...>::type;
+      auto operator()(Args &&...args) const ->
+          typename __combined<
+              decltype(std::declval<Type>()(std::forward<Args>(args)...)),
+              decltype(std::declval<Types>()(
+                  std::forward<Args>(args)...))...>::type;
     };
-  }
+  } // namespace details
 
   template <class... Types>
   struct variant_functor : details::variant_functor_impl<Types...> {
@@ -144,11 +148,11 @@ namespace types
     variant_functor &operator=(variant_functor<OtherTypes...> const &);
 
     template <class... OtherTypes>
-    variant_functor(OtherTypes const &... t);
+    variant_functor(OtherTypes const &...t);
 
     template <class... OtherTypes>
     variant_functor(variant_functor<OtherTypes...> const &t);
   };
-}
+} // namespace types
 PYTHONIC_NS_END
 #endif

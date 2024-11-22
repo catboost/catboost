@@ -18,8 +18,8 @@ namespace numpy
 
   template <class T, class pS, size_t N>
   types::ndarray<T, pS> roll(types::ndarray<T, pS> const &expr,
-                             types::array<long, N> shift,
-                             types::array<long, N> axis);
+                             types::array_tuple<long, N> shift,
+                             types::array_tuple<long, N> axis);
 
   NUMPY_EXPR_TO_NDARRAY0_DECL(roll);
   DEFINE_FUNCTOR(pythonic::numpy, roll);

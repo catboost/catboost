@@ -13,7 +13,7 @@ namespace numpy
 #define NUMPY_NARY_FUNC_NAME conjugate
 #define NUMPY_NARY_FUNC_SYM wrapper::conjugate
 #include "pythonic/types/numpy_nary_expr.hpp"
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

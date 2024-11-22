@@ -2,9 +2,9 @@
 #define PYTHONIC_INCLUDE_NUMPY_POWER_HPP
 
 #include "pythonic/include/types/numpy_op_helper.hpp"
+#include "pythonic/include/utils/functor.hpp"
 #include "pythonic/include/utils/meta.hpp"
 #include "pythonic/include/utils/numpy_traits.hpp"
-#include "pythonic/include/utils/functor.hpp"
 
 #include <xsimd/xsimd.hpp>
 
@@ -17,7 +17,7 @@ namespace numpy
 // no need to adapt_type here, as it may turn a**2 into a**2.f
 #define NUMPY_NARY_RESHAPE_MODE reshape_type
 #include "pythonic/include/types/numpy_nary_expr.hpp"
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

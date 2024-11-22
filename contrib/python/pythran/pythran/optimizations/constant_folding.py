@@ -93,14 +93,19 @@ class ConstEval(ast.NodeVisitor):
             self.locals.pop(node.id)
 
     def visit_Assign(self, node):
+        if not node.value:
+            return
         value = self.visit(node.value)
-        for target in node.targets:
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        for target in targets:
             if isinstance(target, ast.Name):
                 self.locals[target.id] = value
             elif isinstance(target, ast.Subscript):
                 self.visit(target.value)[self.visit(target.slice)] = value
             else:
                 raise NotImplementedError("assign")
+
+    visit_AnnAssign = visit_Assign
 
     def visit_AugAssign(self, node):
         value = self.visit(node.value)

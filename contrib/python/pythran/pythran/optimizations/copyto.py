@@ -68,9 +68,12 @@ class CopyTo(Transformation):
         return node
 
     def visit_Assign(self, node):
-        if len(node.targets) != 1:
+        if not node.value:
             return node
-        target, = node.targets
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        if len(targets) != 1:
+            return node
+        target, = targets
         if not self.is_fully_sliced(target):
             return node
         if self.is_fully_sliced(node.value):
@@ -87,5 +90,6 @@ class CopyTo(Transformation):
                     [target.value, value],
                     [])
                 )
+    visit_AnnAssign = visit_Assign
 
 

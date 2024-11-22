@@ -12,7 +12,7 @@ namespace builtins
   template <class T>
   typename std::enable_if<std::is_integral<T>::value, T>::value
   getattr(types::attr::IMAG, T self);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 #ifdef ENABLE_PYTHON_MODULE
 

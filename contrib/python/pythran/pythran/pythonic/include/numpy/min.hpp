@@ -11,11 +11,11 @@ namespace numpy
 {
 
   template <class... Args>
-  auto min(Args &&... args) -> decltype(
-      reduce<operator_::functor::imin>(std::forward<Args>(args)...));
+  auto min(Args &&...args) -> decltype(reduce<operator_::functor::imin>(
+                               std::forward<Args>(args)...));
 
   DEFINE_FUNCTOR(pythonic::numpy, min);
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

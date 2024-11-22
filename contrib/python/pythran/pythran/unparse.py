@@ -142,6 +142,15 @@ class Unparser:
             self.write(" = ")
         self.dispatch(t.value)
 
+    def _AnnAssign(self, t):
+        self.fill()
+        self.dispatch(t.target)
+        self.write(": ")
+        self.dispatch(t.annotation)
+        if t.value:
+            self.write(" = ")
+            self.dispatch(t.value)
+
     def _AugAssign(self, t):
         self.fill()
         self.dispatch(t.target)

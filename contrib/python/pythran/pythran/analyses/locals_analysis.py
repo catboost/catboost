@@ -82,11 +82,17 @@ class Locals(ModuleAnalysis):
         self.expr_parent = node
         self.result[node] = self.locals.copy()
         md.visit(self, node)
-        self.visit(node.value)
-        self.locals.update(t.id for t in node.targets
+        if node.value:
+            self.visit(node.value)
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        self.locals.update(t.id for t in targets
                            if isinstance(t, ast.Name))
-        for target in node.targets:
+        for target in targets:
             self.visit(target)
+
+    def visit_AnnAssign(self, node):
+        self.visit_Assign(node)
+        self.visit(node.annotation)
 
     def visit_For(self, node):
         self.expr_parent = node

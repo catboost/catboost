@@ -113,10 +113,11 @@ namespace types
 
   template <class E>
   template <class S>
-  auto numpy_texpr_2<E>::operator[](S const &s0) const -> numpy_texpr<
-      decltype(this->arg(fast_contiguous_slice(pythonic::builtins::None,
-                                               pythonic::builtins::None),
-                         (s0.step, s0)))>
+  auto numpy_texpr_2<E>::operator[](S const &s0) const
+      -> numpy_texpr<
+          decltype(this->arg(fast_contiguous_slice(pythonic::builtins::None,
+                                                   pythonic::builtins::None),
+                             (s0.step, s0)))>
   {
     return {arg(fast_contiguous_slice(pythonic::builtins::None,
                                       pythonic::builtins::None),
@@ -125,10 +126,11 @@ namespace types
 
   template <class E>
   template <class S>
-  auto
-  numpy_texpr_2<E>::operator[](S const &s0) -> numpy_texpr<decltype(this->arg(
-      fast_contiguous_slice(pythonic::builtins::None, pythonic::builtins::None),
-      (s0.step, s0)))>
+  auto numpy_texpr_2<E>::operator[](S const &s0)
+      -> numpy_texpr<
+          decltype(this->arg(fast_contiguous_slice(pythonic::builtins::None,
+                                                   pythonic::builtins::None),
+                             (s0.step, s0)))>
   {
     return {arg(fast_contiguous_slice(pythonic::builtins::None,
                                       pythonic::builtins::None),
@@ -360,9 +362,9 @@ namespace types
   }
 
   template <class T>
-  numpy_texpr<ndarray<T, array<long, 2>>>::numpy_texpr(
-      ndarray<T, array<long, 2>> const &arg)
-      : numpy_texpr_2<ndarray<T, array<long, 2>>>{arg}
+  numpy_texpr<ndarray<T, array_tuple<long, 2>>>::numpy_texpr(
+      ndarray<T, array_tuple<long, 2>> const &arg)
+      : numpy_texpr_2<ndarray<T, array_tuple<long, 2>>>{arg}
   {
   }
 

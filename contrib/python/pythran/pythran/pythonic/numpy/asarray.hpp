@@ -3,9 +3,9 @@
 
 #include "pythonic/include/numpy/asarray.hpp"
 
-#include "pythonic/utils/functor.hpp"
-#include "pythonic/types/ndarray.hpp"
 #include "pythonic/numpy/array.hpp"
+#include "pythonic/types/ndarray.hpp"
+#include "pythonic/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -14,7 +14,7 @@ namespace numpy
 
   template <class E, class dtype>
   template <class... Types>
-  auto _asarray<E, dtype>::operator()(Types &&... args)
+  auto _asarray<E, dtype>::operator()(Types &&...args)
       -> decltype(array(std::forward<Types>(args)...))
   {
     return array(std::forward<Types>(args)...);
@@ -28,9 +28,10 @@ namespace numpy
   }
 
   template <class E>
-  auto asarray(E &&e, types::none_type d) -> decltype(
-      _asarray<typename std::decay<E>::type,
-               typename types::dtype_of<typename std::decay<E>::type>::type>{}(
+  auto asarray(E &&e, types::none_type d)
+      -> decltype(_asarray<typename std::decay<E>::type,
+                           typename types::dtype_of<
+                               typename std::decay<E>::type>::type>{}(
           std::forward<E>(e)))
   {
     return _asarray<
@@ -47,7 +48,7 @@ namespace numpy
     return _asarray<typename std::decay<E>::type, typename dtype::type>{}(
         std::forward<E>(e), d);
   }
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

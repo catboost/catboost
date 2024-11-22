@@ -19,7 +19,7 @@ namespace operator_
   {
     return !a.real() && !a.imag();
   }
-}
+} // namespace operator_
 PYTHONIC_NS_END
 
 #endif

@@ -3,8 +3,8 @@
 
 #include "pythonic/include/numpy/ones.hpp"
 
-#include "pythonic/utils/functor.hpp"
 #include "pythonic/types/ndarray.hpp"
+#include "pythonic/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -12,8 +12,7 @@ namespace numpy
 {
 
   template <class dtype>
-  typename dtype::type
-  ones(std::tuple<> const &shape, dtype d)
+  typename dtype::type ones(std::tuple<> const &shape, dtype d)
   {
     return static_cast<typename dtype::type>(1);
   }
@@ -39,7 +38,7 @@ namespace numpy
   {
     return ones(types::pshape<std::integral_constant<long, N>>({}), d);
   }
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

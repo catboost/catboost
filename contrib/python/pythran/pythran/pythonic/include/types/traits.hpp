@@ -47,8 +47,9 @@ namespace types
     static std::integral_constant<bool, true> _test(decltype(&C::member));     \
     template <class C>                                                         \
     static std::integral_constant<bool, false> _test(...);                     \
-    static const bool value = decltype(                                        \
-        _test<typename std::remove_reference<T>::type>(nullptr))::value;       \
+    static const bool value =                                                  \
+        decltype(_test<typename std::remove_reference<T>::type>(               \
+            nullptr))::value;                                                  \
   };
 
   /* trait to check if a type is iterable*/
@@ -87,7 +88,7 @@ namespace types
   struct len_of {
     static long constexpr value = -1;
   };
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

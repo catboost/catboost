@@ -3,8 +3,8 @@
 
 #include "pythonic/include/operator_/add.hpp"
 
-#include "pythonic/utils/functor.hpp"
 #include "pythonic/operator_/overloads.hpp"
+#include "pythonic/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -17,9 +17,10 @@ namespace operator_
   }
 
   DEFINE_ALL_OPERATOR_OVERLOADS_IMPL(
-      add, +, (((b >= 0) ? (a <= std::numeric_limits<decltype(b)>::max() - b)
-                         : (std::numeric_limits<decltype(b)>::min() - b <= a))))
-}
+      add, +,
+      (((b >= 0) ? (a <= std::numeric_limits<decltype(b)>::max() - b)
+                 : (std::numeric_limits<decltype(b)>::min() - b <= a))))
+} // namespace operator_
 PYTHONIC_NS_END
 
 #endif

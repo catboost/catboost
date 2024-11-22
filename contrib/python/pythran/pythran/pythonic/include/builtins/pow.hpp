@@ -16,11 +16,11 @@ namespace builtins
   long pow(long, std::integral_constant<long, N>);
 
   template <class... Types>
-  auto pow(Types &&... args)
+  auto pow(Types &&...args)
       -> decltype(numpy::functor::power{}(std::forward<Types>(args)...));
 
   DEFINE_FUNCTOR(pythonic::builtins, pow);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

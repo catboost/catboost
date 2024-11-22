@@ -196,13 +196,15 @@ class Interval(object):
         >>> Interval(1, 5) ** Interval(-5, -4)
         Interval(low=1.0, high=1.0)
         >>> Interval(-1, 5) ** Interval(-5, 3)
-        Interval(low=-1.0, high=125.0)
+        Interval(low=-1.0, high=125)
         >>> Interval(1, 5) ** Interval(3, 8)
-        Interval(low=1.0, high=390625.0)
+        Interval(low=1, high=390625)
         """
         res = [v1 ** v2 for v1, v2 in
                itertools.product(range1.bounds(), range2.bounds())]
-        return Interval(numpy.ceil(min(res)), numpy.floor(max(res)))
+        minres, maxres = min(res), max(res)
+        return Interval(type(minres)(numpy.ceil(minres)),
+                        type(maxres)(numpy.floor(maxres)))
 
     def __lshift__(range1, range2):
         """

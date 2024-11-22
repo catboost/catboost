@@ -4,12 +4,12 @@
 #include "pythonic/include/types/dynamic_tuple.hpp"
 
 #include "pythonic/types/assignable.hpp"
-#include "pythonic/types/traits.hpp"
 #include "pythonic/types/nditerator.hpp"
+#include "pythonic/types/traits.hpp"
 #include "pythonic/utils/int_.hpp"
+#include "pythonic/utils/nested_container.hpp"
 #include "pythonic/utils/seq.hpp"
 #include "pythonic/utils/shared_ref.hpp"
-#include "pythonic/utils/nested_container.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -86,22 +86,22 @@ namespace types
   }
 
   template <typename T>
-  dynamic_tuple<T> dynamic_tuple<T>::
-  operator+(dynamic_tuple<T> const &other) const
+  dynamic_tuple<T>
+  dynamic_tuple<T>::operator+(dynamic_tuple<T> const &other) const
   {
     dynamic_tuple<T> result(begin(), end());
     result.data->resize(size() + other.size());
     std::copy(other.begin(), other.end(), result.data->begin() + size());
     return result;
   }
-}
+} // namespace types
 PYTHONIC_NS_END
 
 namespace std
 {
   template <class T>
-  size_t hash<pythonic::types::dynamic_tuple<T>>::
-  operator()(pythonic::types::dynamic_tuple<T> const &l) const
+  size_t hash<pythonic::types::dynamic_tuple<T>>::operator()(
+      pythonic::types::dynamic_tuple<T> const &l) const
   {
     std::hash<T> hasher;
     size_t seed = 0x9e3779b9;
@@ -109,12 +109,12 @@ namespace std
       seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     return seed;
   }
-}
+} // namespace std
 
 #ifdef ENABLE_PYTHON_MODULE
 
-#include "pythonic/include/utils/seq.hpp"
 #include "pythonic/include/utils/fwd.hpp"
+#include "pythonic/include/utils/seq.hpp"
 #include "pythonic/python/core.hpp"
 
 PYTHONIC_NS_BEGIN

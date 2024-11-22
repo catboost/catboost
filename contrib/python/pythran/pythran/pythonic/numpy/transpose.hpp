@@ -3,11 +3,11 @@
 
 #include "pythonic/include/numpy/transpose.hpp"
 
-#include "pythonic/utils/functor.hpp"
-#include "pythonic/utils/numpy_conversion.hpp"
-#include "pythonic/utils/nested_container.hpp"
-#include "pythonic/types/ndarray.hpp"
 #include "pythonic/builtins/ValueError.hpp"
+#include "pythonic/types/ndarray.hpp"
+#include "pythonic/utils/functor.hpp"
+#include "pythonic/utils/nested_container.hpp"
+#include "pythonic/utils/numpy_conversion.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -44,35 +44,36 @@ namespace numpy
       return iter;
     }
     template <class T, class pS>
-    types::ndarray<T, types::array<long, std::tuple_size<pS>::value>>
+    types::ndarray<T, types::array_tuple<long, std::tuple_size<pS>::value>>
     _transposer(types::ndarray<T, pS> const &a,
                 long const l[std::tuple_size<pS>::value])
     {
       auto shape = sutils::getshape(a);
-      types::array<long, std::tuple_size<pS>::value> shp;
+      types::array_tuple<long, std::tuple_size<pS>::value> shp;
       for (unsigned long i = 0; i < std::tuple_size<pS>::value; ++i)
         shp[i] = shape[l[i]];
 
-      types::array<long, std::tuple_size<pS>::value> perm;
+      types::array_tuple<long, std::tuple_size<pS>::value> perm;
       for (std::size_t i = 0; i < std::tuple_size<pS>::value; ++i)
         perm[l[i]] = i;
 
-      types::ndarray<T, types::array<long, std::tuple_size<pS>::value>>
+      types::ndarray<T, types::array_tuple<long, std::tuple_size<pS>::value>>
           new_array(shp, builtins::None);
 
       auto const *iter = a.buffer;
-      types::array<long, std::tuple_size<pS>::value> indices;
+      types::array_tuple<long, std::tuple_size<pS>::value> indices;
       _transposer(new_array, iter, indices, shape, perm, utils::int_<0>{});
 
       return new_array;
     }
-  }
+  } // namespace
 
   template <class T, class pS>
   typename std::enable_if<
       (std::tuple_size<pS>::value > 2),
-      types::ndarray<T, types::array<long, std::tuple_size<pS>::value>>>::type
-  transpose(types::ndarray<T, pS> const &a)
+      types::ndarray<T, types::array_tuple<long, std::tuple_size<pS>::value>>>::
+      type
+      transpose(types::ndarray<T, pS> const &a)
   {
     long t[std::tuple_size<pS>::value];
     for (unsigned long i = 0; i < std::tuple_size<pS>::value; ++i)
@@ -81,8 +82,9 @@ namespace numpy
   }
 
   template <class T, class pS, size_t M>
-  types::ndarray<T, types::array<long, std::tuple_size<pS>::value>>
-  transpose(types::ndarray<T, pS> const &a, types::array<long, M> const &t)
+  types::ndarray<T, types::array_tuple<long, std::tuple_size<pS>::value>>
+  transpose(types::ndarray<T, pS> const &a,
+            types::array_tuple<long, M> const &t)
   {
     static_assert(std::tuple_size<pS>::value == M, "axes don't match array");
 
@@ -91,7 +93,7 @@ namespace numpy
       throw types::ValueError("invalid axis for this array");
     return _transposer(a, &t[0]);
   }
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

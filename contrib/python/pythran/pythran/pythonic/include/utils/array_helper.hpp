@@ -13,20 +13,20 @@ PYTHONIC_NS_BEGIN
 template <size_t L>
 struct nget {
   template <class A, size_t M>
-  auto operator()(A &&self, types::array<long, M> const &indices)
+  auto operator()(A &&self, types::array_tuple<long, M> const &indices)
       -> decltype(nget<L - 1>()(std::forward<A>(self)[0], indices));
   template <class A, size_t M>
-  auto fast(A &&self, types::array<long, M> const &indices)
+  auto fast(A &&self, types::array_tuple<long, M> const &indices)
       -> decltype(nget<L - 1>().fast(std::forward<A>(self).fast(0), indices));
 };
 
 template <>
 struct nget<0> {
   template <class A, size_t M>
-  auto operator()(A &&self, types::array<long, M> const &indices)
+  auto operator()(A &&self, types::array_tuple<long, M> const &indices)
       -> decltype(std::forward<A>(self)[indices[M - 1]]);
   template <class A, size_t M>
-  auto fast(A &&self, types::array<long, M> const &indices)
+  auto fast(A &&self, types::array_tuple<long, M> const &indices)
       -> decltype(std::forward<A>(self).fast(indices[M - 1]));
 };
 PYTHONIC_NS_END

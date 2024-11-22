@@ -1,18 +1,18 @@
 #ifndef PYTHONIC_NUMPY_LINALG_NORM_HPP
 #define PYTHONIC_NUMPY_LINALG_NORM_HPP
+#include "pythonic/builtins/NotImplementedError.hpp"
+#include "pythonic/builtins/pythran/abssqr.hpp"
 #include "pythonic/include/numpy/linalg/norm.hpp"
 #include "pythonic/numpy/abs.hpp"
-#include "pythonic/numpy/conj.hpp"
 #include "pythonic/numpy/asfarray.hpp"
+#include "pythonic/numpy/conj.hpp"
 #include "pythonic/numpy/inf.hpp"
 #include "pythonic/numpy/max.hpp"
 #include "pythonic/numpy/min.hpp"
 #include "pythonic/numpy/power.hpp"
 #include "pythonic/numpy/real.hpp"
 #include "pythonic/numpy/sqrt.hpp"
-#include "pythonic/builtins/pythran/abssqr.hpp"
 #include "pythonic/numpy/sum.hpp"
-#include "pythonic/builtins/NotImplementedError.hpp"
 PYTHONIC_NS_BEGIN
 namespace numpy
 {
@@ -20,8 +20,8 @@ namespace numpy
   {
     template <class Array>
     auto norm(Array &&array, types::none_type ord, types::none_type axis)
-        -> decltype(
-            pythonic::numpy::functor::sqrt{}(pythonic::numpy::functor::sum{}(
+        -> decltype(pythonic::numpy::functor::sqrt{}(
+            pythonic::numpy::functor::sum{}(
                 pythonic::builtins::pythran::functor::abssqr{}(
                     std::forward<Array>(array)))))
     {
@@ -38,7 +38,7 @@ namespace numpy
         return norm(std::forward<Array>(x), ord, 0L);
       case 2:
         return norm(std::forward<Array>(x), ord,
-                    types::array<long, 2>{{0L, 1L}});
+                    types::array_tuple<long, 2>{{0L, 1L}});
       default:
         throw pythonic::builtins::NotImplementedError(
             "Invalid norm order for matrices.");
@@ -80,17 +80,18 @@ namespace numpy
       return norm(std::forward<Array>(x), 2., axis);
     }
     template <class Array>
-    norm_t<Array> norm(Array &&x, double ord, types::array<long, 1> axis)
+    norm_t<Array> norm(Array &&x, double ord, types::array_tuple<long, 1> axis)
     {
       return norm(std::forward<Array>(x), ord, axis[0]);
     }
     template <class Array>
-    norm_t<Array> norm(Array &&array, double ord, types::array<long, 2> axis)
+    norm_t<Array> norm(Array &&array, double ord,
+                       types::array_tuple<long, 2> axis)
     {
       throw pythonic::builtins::NotImplementedError("We need more dev!");
     }
-  }
-}
+  } // namespace linalg
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

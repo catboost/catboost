@@ -3,16 +3,15 @@
 
 #include "pythonic/include/numpy/empty.hpp"
 
-#include "pythonic/utils/functor.hpp"
 #include "pythonic/types/ndarray.hpp"
+#include "pythonic/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
 
 namespace numpy
 {
   template <class dtype>
-  typename dtype::type
-  empty(types::pshape<> const &shape, dtype)
+  typename dtype::type empty(types::pshape<> const &shape, dtype)
   {
     return {};
   }
@@ -38,7 +37,7 @@ namespace numpy
   {
     return empty(types::pshape<std::integral_constant<long, N>>({}), d);
   }
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

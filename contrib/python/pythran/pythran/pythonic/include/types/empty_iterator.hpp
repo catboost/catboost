@@ -20,7 +20,7 @@ namespace types
     double operator*() const;
     void operator->() const;
   };
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

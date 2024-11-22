@@ -32,7 +32,6 @@ class ExpandBuiltins(Transformation):
         if s in ('None', 'True', 'False'):
             self.update = True
             return ast.Constant(getattr(builtins, s), None)
-
         if(isinstance(node.ctx, ast.Load) and
            s not in self.locals[node] and
            s not in self.globals and

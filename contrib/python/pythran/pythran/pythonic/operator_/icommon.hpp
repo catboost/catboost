@@ -21,8 +21,9 @@ namespace operator_
 {
 
   template <class A, class B>
-  auto OPERATOR_NAME(bool, A &&a, B &&b, ...)
-      -> decltype(std::forward<A>(a) OPERATOR_SYMBOL std::forward<B>(b))
+  auto OPERATOR_NAME(bool, A &&a, B &&b,
+                     ...) -> decltype(std::forward<A>(a)
+                                          OPERATOR_SYMBOL std::forward<B>(b))
   {
     return std::forward<A>(a) OPERATOR_SYMBOL std::forward<B>(b);
   }
@@ -32,7 +33,7 @@ namespace operator_
   {
     return std::forward<A>(a) OPERATOR_ISYMBOL std::forward<B>(b);
   }
-}
+} // namespace operator_
 PYTHONIC_NS_END
 #undef OPERATOR_NAME
 #undef OPERATOR_SYMBOL

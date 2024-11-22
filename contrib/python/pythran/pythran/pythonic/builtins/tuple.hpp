@@ -38,7 +38,7 @@ namespace builtins
   typename std::enable_if<
       types::len_of<typename std::remove_cv<typename std::remove_reference<
           StaticIterable>::type>::type>::value >= 0,
-      types::array<
+      types::array_tuple<
           typename std::iterator_traits<
               typename std::remove_cv<typename std::remove_reference<
                   StaticIterable>::type>::type::iterator>::value_type,
@@ -46,16 +46,17 @@ namespace builtins
               StaticIterable>::type>::type>::value>>::type
   tuple(StaticIterable &&i)
   {
-    types::array<
+    types::array_tuple<
         typename std::iterator_traits<
             typename std::remove_cv<typename std::remove_reference<
                 StaticIterable>::type>::type::iterator>::value_type,
-        types::len_of<typename std::remove_cv<typename std::remove_reference<
-            StaticIterable>::type>::type>::value> res;
+        types::len_of<typename std::remove_cv<
+            typename std::remove_reference<StaticIterable>::type>::type>::value>
+        res;
     std::copy(i.begin(), i.end(), res.begin());
     return res;
   }
-}
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

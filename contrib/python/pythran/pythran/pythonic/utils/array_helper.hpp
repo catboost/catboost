@@ -13,7 +13,7 @@ PYTHONIC_NS_BEGIN
  */
 template <size_t L>
 template <class A, size_t M>
-auto nget<L>::operator()(A &&self, types::array<long, M> const &indices)
+auto nget<L>::operator()(A &&self, types::array_tuple<long, M> const &indices)
     -> decltype(nget<L - 1>()(std::forward<A>(self)[0], indices))
 {
   return nget<L - 1>()(std::forward<A>(self)[indices[M - L - 1]], indices);
@@ -21,7 +21,7 @@ auto nget<L>::operator()(A &&self, types::array<long, M> const &indices)
 
 template <size_t L>
 template <class A, size_t M>
-auto nget<L>::fast(A &&self, types::array<long, M> const &indices)
+auto nget<L>::fast(A &&self, types::array_tuple<long, M> const &indices)
     -> decltype(nget<L - 1>().fast(std::forward<A>(self).fast(0), indices))
 {
   return nget<L - 1>().fast(std::forward<A>(self).fast(indices[M - L - 1]),
@@ -29,14 +29,14 @@ auto nget<L>::fast(A &&self, types::array<long, M> const &indices)
 }
 
 template <class A, size_t M>
-auto nget<0>::operator()(A &&self, types::array<long, M> const &indices)
+auto nget<0>::operator()(A &&self, types::array_tuple<long, M> const &indices)
     -> decltype(std::forward<A>(self)[indices[M - 1]])
 {
   return std::forward<A>(self)[indices[M - 1]];
 }
 
 template <class A, size_t M>
-auto nget<0>::fast(A &&self, types::array<long, M> const &indices)
+auto nget<0>::fast(A &&self, types::array_tuple<long, M> const &indices)
     -> decltype(std::forward<A>(self).fast(indices[M - 1]))
 {
   return std::forward<A>(self).fast(indices[M - 1]);

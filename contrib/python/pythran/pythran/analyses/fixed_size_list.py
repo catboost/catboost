@@ -57,10 +57,13 @@ class FixedSizeList(FunctionAnalysis):
 
     def visit_Assign(self, node):
         self.generic_visit(node)
+        if not node.value:
+            return
         if not self.is_fixed_size_list_def(node.value):
             return
 
-        for target in node.targets:
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        for target in targets:
             def_ = self.def_use_chains.chains[target]
             if any(not self.is_safe_use(u) for u in def_.users()):
                 break
@@ -71,6 +74,8 @@ class FixedSizeList(FunctionAnalysis):
                 break
         else:
             self.result.add(node.value)
+
+    visit_AnnAssign = visit_Assign
 
     def visit_Call(self, node):
         self.generic_visit(node)

@@ -9,9 +9,9 @@
 
 #include "pythonic/operator_/icommon.hpp"
 
+#include "pythonic/types/dict.hpp"
 #include "pythonic/types/list.hpp"
 #include "pythonic/types/set.hpp"
-#include "pythonic/types/dict.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -35,7 +35,7 @@ namespace operator_
   {
     return b;
   }
-}
+} // namespace operator_
 PYTHONIC_NS_END
 
 #endif

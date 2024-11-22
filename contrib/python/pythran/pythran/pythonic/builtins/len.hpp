@@ -6,8 +6,8 @@
 #include "pythonic/types/traits.hpp"
 #include "pythonic/utils/functor.hpp"
 
-#include <tuple>
 #include <iterator>
+#include <tuple>
 
 PYTHONIC_NS_BEGIN
 
@@ -24,6 +24,6 @@ namespace builtins
   {
     return t.size();
   }
-}
+} // namespace builtins
 PYTHONIC_NS_END
 #endif

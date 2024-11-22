@@ -1,10 +1,10 @@
 #ifndef PYTHONIC_INCLUDE_NUMPY_REAL_HPP
 #define PYTHONIC_INCLUDE_NUMPY_REAL_HPP
 
-#include "pythonic/include/utils/functor.hpp"
 #include "pythonic/include/numpy/asarray.hpp"
-#include "pythonic/include/types/ndarray.hpp"
 #include "pythonic/include/types/list.hpp"
+#include "pythonic/include/types/ndarray.hpp"
+#include "pythonic/include/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -18,7 +18,7 @@ namespace numpy
       -> decltype(real(numpy::functor::asarray{}(expr)));
 
   DEFINE_FUNCTOR(pythonic::numpy, real);
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

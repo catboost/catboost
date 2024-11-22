@@ -61,7 +61,7 @@ class CFG(FunctionAnalysis):
         return (node,), ()
 
     # All these nodes have the same behavior as pass
-    visit_Assign = visit_AugAssign = visit_Import = visit_Pass
+    visit_Assign = visit_AnnAssign = visit_AugAssign = visit_Import = visit_Pass
     visit_Expr = visit_Print = visit_ImportFrom = visit_Pass
     visit_Yield = visit_Delete = visit_Pass
 

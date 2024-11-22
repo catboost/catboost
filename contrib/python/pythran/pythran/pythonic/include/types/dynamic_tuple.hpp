@@ -173,8 +173,8 @@ namespace types
 
     using shape_t = typename shape_builder<dynamic_tuple, value>::type;
     template <size_t I>
-    auto shape() const
-        -> decltype(details::extract_shape(*this, utils::int_<I>{}))
+    auto shape() const -> decltype(details::extract_shape(*this,
+                                                          utils::int_<I>{}))
     {
       return details::extract_shape(*this, utils::int_<I>{});
     }

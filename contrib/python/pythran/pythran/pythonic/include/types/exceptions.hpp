@@ -1,10 +1,10 @@
 #ifndef PYTHONIC_INCLUDE_TYPES_EXCEPTIONS_HPP
 #define PYTHONIC_INCLUDE_TYPES_EXCEPTIONS_HPP
 
-#include "pythonic/include/types/str.hpp"
-#include "pythonic/include/types/dynamic_tuple.hpp"
-#include "pythonic/include/types/attr.hpp"
 #include "pythonic/include/builtins/str.hpp"
+#include "pythonic/include/types/attr.hpp"
+#include "pythonic/include/types/dynamic_tuple.hpp"
+#include "pythonic/include/types/str.hpp"
 
 #include <stdexcept>
 
@@ -18,7 +18,7 @@ namespace types
   public:
     BaseException(const BaseException &e) = default;
     template <typename... Types>
-    BaseException(Types const &... types);
+    BaseException(Types const &...types);
     virtual ~BaseException() noexcept = default;
     dynamic_tuple<str> args;
   };
@@ -31,8 +31,7 @@ namespace types
     name() = default;                                                          \
     name(const name &e) = default;                                             \
     template <class... Types>                                                  \
-    name(Types const &... types)                                               \
-        : parent(types...)                                                     \
+    name(Types const &...types) : parent(types...)                             \
     {                                                                          \
     }                                                                          \
     virtual ~name() noexcept = default;                                        \
@@ -85,13 +84,13 @@ namespace types
   CLASS_EXCEPTION_DECL(IndentationError, SyntaxError);
   CLASS_EXCEPTION_DECL(TabError, IndentationError);
   CLASS_EXCEPTION_DECL(UnicodeError, ValueError);
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #include "pythonic/include/utils/functor.hpp"
 #define PYTHONIC_EXCEPTION_DECL(name)                                          \
   template <typename... Types>                                                 \
-  types::name name(Types const &... args);                                     \
+  types::name name(Types const &...args);                                      \
                                                                                \
   DEFINE_FUNCTOR(pythonic::builtins, name);
 
@@ -185,7 +184,7 @@ namespace types
    *
    */
   std::ostream &operator<<(std::ostream &o, EnvironmentError const &e);
-}
+} // namespace types
 PYTHONIC_NS_END
 
 /* } */

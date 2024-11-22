@@ -15,7 +15,7 @@ namespace numpy
                   "expected a floating point type");
     return asarray(std::forward<E>(e), d);
   }
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

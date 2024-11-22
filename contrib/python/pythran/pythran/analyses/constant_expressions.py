@@ -99,3 +99,9 @@ class ConstantExpressions(NodeAnalysis):
 
     def visit_Index(self, node):
         return self.visit(node.value) and self.add(node)
+
+    def visit_AnnAssign(self, node):
+        self.visit(node.target)
+        # skip annotation
+        if node.value:
+            self.visit(node.value)

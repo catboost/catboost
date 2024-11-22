@@ -12,8 +12,8 @@ namespace builtins
     {
       return {args...};
     }
-  } // pythran
-} // builtins
+  } // namespace pythran
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

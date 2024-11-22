@@ -26,8 +26,8 @@ namespace builtins
         return os << "int";
       }
     };
-  }
-}
+  } // namespace functor
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

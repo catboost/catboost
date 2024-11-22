@@ -1,8 +1,8 @@
 #ifndef PYTHONIC_INCLUDE_BUILTIN_TUPLE_HPP
 #define PYTHONIC_INCLUDE_BUILTIN_TUPLE_HPP
 
-#include "pythonic/include/types/tuple.hpp"
 #include "pythonic/include/types/dynamic_tuple.hpp"
+#include "pythonic/include/types/tuple.hpp"
 #include "pythonic/include/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
@@ -30,7 +30,7 @@ namespace builtins
   typename std::enable_if<
       types::len_of<typename std::remove_cv<typename std::remove_reference<
           StaticIterable>::type>::type>::value >= 0,
-      types::array<
+      types::array_tuple<
           typename std::iterator_traits<
               typename std::remove_cv<typename std::remove_reference<
                   StaticIterable>::type>::type::iterator>::value_type,
@@ -39,7 +39,7 @@ namespace builtins
   tuple(StaticIterable &&i);
 
   DEFINE_FUNCTOR(pythonic::builtins, tuple);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

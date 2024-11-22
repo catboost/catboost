@@ -15,7 +15,7 @@ namespace operator_
   {
     return a;
   }
-}
+} // namespace operator_
 PYTHONIC_NS_END
 
 #endif

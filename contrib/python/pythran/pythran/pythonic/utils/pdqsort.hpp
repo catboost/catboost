@@ -32,8 +32,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
-#include <utility>
 #include <iterator>
+#include <utility>
 
 #if __cplusplus >= 201103L
 #include <cstdint>
@@ -641,7 +641,7 @@ namespace pdqsort_detail
       leftmost = false;
     }
   }
-}
+} // namespace pdqsort_detail
 
 template <class Iter, class Compare>
 inline void pdqsort(Iter begin, Iter end, Compare comp)
@@ -651,10 +651,11 @@ inline void pdqsort(Iter begin, Iter end, Compare comp)
 
 #if __cplusplus >= 201103L
   pdqsort_detail::pdqsort_loop<
-      Iter, Compare, pdqsort_detail::is_default_compare<
-                         typename std::decay<Compare>::type>::value &&
-                         std::is_arithmetic<typename std::iterator_traits<
-                             Iter>::value_type>::value>(
+      Iter, Compare,
+      pdqsort_detail::is_default_compare<
+          typename std::decay<Compare>::type>::value &&
+          std::is_arithmetic<
+              typename std::iterator_traits<Iter>::value_type>::value>(
       begin, end, comp, pdqsort_detail::log2(end - begin));
 #else
   pdqsort_detail::pdqsort_loop<Iter, Compare, false>(

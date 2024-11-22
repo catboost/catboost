@@ -4,8 +4,8 @@
 #include "pythonic/include/utils/functor.hpp"
 #include "pythonic/include/utils/yield.hpp"
 
-#include <tuple>
 #include <iterator>
+#include <tuple>
 
 PYTHONIC_NS_BEGIN
 
@@ -20,6 +20,6 @@ namespace builtins
   len(T const &t);
 
   DEFINE_FUNCTOR(pythonic::builtins, len);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 #endif

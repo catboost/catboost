@@ -3,16 +3,16 @@
 
 #include "pythonic/include/numpy/empty_like.hpp"
 
-#include "pythonic/utils/functor.hpp"
 #include "pythonic/numpy/empty.hpp"
+#include "pythonic/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
 
 namespace numpy
 {
   template <class E, class dtype>
-  auto empty_like(E const &expr, dtype d)
-      -> decltype(empty(sutils::getshape(expr), d))
+  auto empty_like(E const &expr,
+                  dtype d) -> decltype(empty(sutils::getshape(expr), d))
   {
     return empty(sutils::getshape(expr), d);
   }
@@ -24,7 +24,7 @@ namespace numpy
   {
     return empty(sutils::getshape(expr), types::dtype_t<typename E::dtype>());
   }
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

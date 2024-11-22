@@ -252,7 +252,8 @@ namespace utils
 #ifdef USE_XSIMD
       constexpr bool vectorize = vector_form;
 #else
-      constexpr bool vectorize = false;;
+      constexpr bool vectorize = false;
+      ;
 #endif
       broadcast_copy_dispatcher<E, F, N, (size_t)D, vectorize>{}(self, other);
     }
@@ -264,11 +265,10 @@ namespace utils
                            std::integral_constant<bool, true>,
                            std::integral_constant<bool, true>)
   {
-    if(D==0) {
+    if (D == 0) {
       std::copy(other.data(), other.data() + other.flat_size(), self.data());
       return self;
-    }
-    else {
+    } else {
       return broadcast_copy_helper<E, F, N, D, vector_form>(
           self, other, std::integral_constant<bool, true>(),
           std::integral_constant<bool, false>{});
@@ -285,11 +285,11 @@ namespace utils
         self, reshaped, std::true_type(), is_plain);
   }
 
-  template<class T, bool = types::is_dtype<T>::value>
+  template <class T, bool = types::is_dtype<T>::value>
   struct is_flat {
     static const bool value = T::is_flat;
   };
-  template<class T>
+  template <class T>
   struct is_flat<T, true> {
     static const bool value = false;
   };
@@ -299,7 +299,9 @@ namespace utils
   {
     return broadcast_copy_helper<E, F, N, D, vector_form>(
         self, other, std::integral_constant<bool, (D >= 0)>(),
-        std::integral_constant<bool, std::decay<E>::type::is_flat && is_flat<typename std::decay<F>::type>::value>{});
+        std::integral_constant < bool,
+        std::decay<E>::type::is_flat
+                &&is_flat<typename std::decay<F>::type>::value > {});
   }
 
   /* update

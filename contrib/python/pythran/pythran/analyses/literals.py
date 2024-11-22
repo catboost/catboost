@@ -20,6 +20,8 @@ class Literals(FunctionAnalysis):
         # a constructor which may be costly and they can be updated using
         # function call
         if isinstance(node.value, (ast.Constant, ast.Lambda)):
-            targets = [target for target in node.targets
+            targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+            targets = [target for target in targets
                        if isinstance(target, ast.Name)]
             self.result.update(targets)
+    visit_AnnAssign = visit_Assign

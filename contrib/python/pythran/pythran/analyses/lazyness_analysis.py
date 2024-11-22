@@ -159,9 +159,13 @@ class LazynessAnalysis(FunctionAnalysis):
 
     def visit_Assign(self, node):
         md.visit(self, node)
-        self.visit(node.value)
-        ids = self.gather(Identifiers, node.value)
-        for target in node.targets:
+        if node.value:
+            self.visit(node.value)
+            ids = self.gather(Identifiers, node.value)
+        else:
+            ids = set()
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        for target in targets:
             if isinstance(target, ast.Name):
                 self.assign_to(target, ids)
                 if node.value not in self.pure_expressions:
@@ -176,6 +180,8 @@ class LazynessAnalysis(FunctionAnalysis):
                     self.result[var_name.id] = LazynessAnalysis.INF
             else:
                 raise PythranSyntaxError("Assign to unknown node", node)
+
+    visit_AnnAssign = visit_Assign
 
     def visit_AugAssign(self, node):
         md.visit(self, node)

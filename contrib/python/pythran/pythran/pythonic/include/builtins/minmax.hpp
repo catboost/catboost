@@ -1,8 +1,8 @@
 #ifndef PYTHONIC_INCLUDE_BUILTIN_MINMAX_HPP
 #define PYTHONIC_INCLUDE_BUILTIN_MINMAX_HPP
 
-#include <utility>
 #include "pythonic/include/builtins/pythran/kwonly.hpp"
+#include <utility>
 
 PYTHONIC_NS_BEGIN
 
@@ -21,8 +21,8 @@ namespace builtins
     typename std::enable_if<!std::is_same<T1, types::kwonly>::value,
                             typename __combined<T0, T1, Types...>::type>::type
     minmax(Op const &, T0 const &, T1 const &, Types const &...);
-  }
-}
+  } // namespace details
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

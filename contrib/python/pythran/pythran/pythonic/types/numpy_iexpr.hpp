@@ -283,7 +283,7 @@ namespace types
 
   template <class Arg>
   typename numpy_iexpr<Arg>::dtype const &
-  numpy_iexpr<Arg>::fast(array<long, value> const &indices) const
+  numpy_iexpr<Arg>::fast(array_tuple<long, value> const &indices) const
   {
     return buffer[compute_fast_offset(
         indices[value - 1], arg.template shape<value>(), indices, arg,
@@ -292,7 +292,7 @@ namespace types
 
   template <class Arg>
   typename numpy_iexpr<Arg>::dtype &
-  numpy_iexpr<Arg>::fast(array<long, value> const &indices)
+  numpy_iexpr<Arg>::fast(array_tuple<long, value> const &indices)
   {
     return const_cast<dtype &>(
         const_cast<numpy_iexpr const &>(*this).fast(indices));
@@ -413,7 +413,7 @@ namespace types
 
   template <class Arg>
   typename numpy_iexpr<Arg>::dtype const &
-  numpy_iexpr<Arg>::operator[](array<long, value> const &indices) const
+  numpy_iexpr<Arg>::operator[](array_tuple<long, value> const &indices) const
   {
     return buffer[compute_offset(indices[value - 1] < 0
                                      ? indices[value - 1] +
@@ -425,7 +425,7 @@ namespace types
 
   template <class Arg>
   typename numpy_iexpr<Arg>::dtype &
-  numpy_iexpr<Arg>::operator[](array<long, value> const &indices)
+  numpy_iexpr<Arg>::operator[](array_tuple<long, value> const &indices)
   {
     return const_cast<dtype &>(const_cast<numpy_iexpr const &>(*this)[indices]);
   }

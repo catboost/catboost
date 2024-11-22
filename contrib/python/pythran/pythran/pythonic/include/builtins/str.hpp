@@ -18,10 +18,10 @@ namespace builtins
     inline types::str str(bool b);
     inline types::str str(long value);
     inline types::str str(double l);
-  }
+  } // namespace anonymous
 
   DEFINE_FUNCTOR(pythonic::builtins::anonymous, str);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

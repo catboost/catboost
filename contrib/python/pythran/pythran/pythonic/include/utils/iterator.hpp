@@ -24,7 +24,7 @@ namespace utils
     // FIXME : It works only because template arguments are ! references
     // so it trigger a copy.
     iterator_reminder() = default;
-    iterator_reminder(T const &v, Others const &... o);
+    iterator_reminder(T const &v, Others const &...o);
   };
 
   template <class T>
@@ -60,7 +60,7 @@ namespace utils
                      std::forward_iterator_tag>::value,
         std::forward_iterator_tag, typename iterator_min<Iters...>::type>::type;
   };
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

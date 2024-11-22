@@ -1,8 +1,8 @@
 #ifndef PYTHONIC_INCLUDE_TYPES_GENERATOR_HPP
 #define PYTHONIC_INCLUDE_TYPES_GENERATOR_HPP
 
-#include <iterator>
 #include <cstddef>
+#include <iterator>
 
 PYTHONIC_NS_BEGIN
 
@@ -23,7 +23,7 @@ namespace types
     bool operator==(generator_iterator<T> const &other) const;
     bool operator<(generator_iterator<T> const &other) const;
   };
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

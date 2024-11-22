@@ -689,8 +689,8 @@ namespace operator_
 {
 
   template <size_t N, class Arg>
-  auto mod(const char (&fmt)[N], Arg &&arg)
-      -> decltype(types::str(fmt) % std::forward<Arg>(arg))
+  auto mod(const char (&fmt)[N],
+           Arg &&arg) -> decltype(types::str(fmt) % std::forward<Arg>(arg))
   {
     return types::str(fmt) % std::forward<Arg>(arg);
   }

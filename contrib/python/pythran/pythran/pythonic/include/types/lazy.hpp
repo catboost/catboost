@@ -15,7 +15,7 @@ namespace types
       std::is_same<lazy_res_t<T0>, lazy_res_t<T1>>::value, lazy_res_t<T0>,
       typename __combined<lazy_res_decay_t<T0>,
                           lazy_res_decay_t<T1>>::type>::type;
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

@@ -9,7 +9,7 @@ into
 import analyses.Foo
 """
 
-from .aliases import Aliases, StrictAliases
+from .aliases import Aliases, StrictAliases, InterproceduralAliases
 from .ancestors import Ancestors, AncestorsWithBody
 from .argument_effects import ArgumentEffects
 from .argument_read_once import ArgumentReadOnce

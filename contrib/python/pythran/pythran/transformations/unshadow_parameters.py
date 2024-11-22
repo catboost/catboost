@@ -52,13 +52,15 @@ class UnshadowParameters(Transformation):
                 self.renaming[node.id] = new_name
 
     def visit_Assign(self, node):
-        for target in node.targets:
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        for target in targets:
             self.update_name(target)
         try:
             self.generic_visit(node)
         except AttributeError:
             pass
         return node
+    visit_AnnAssign = visit_Assign
 
     def visit_AugAssign(self, node):
         self.update_name(node.target)

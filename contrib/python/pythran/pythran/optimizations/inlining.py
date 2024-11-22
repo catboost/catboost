@@ -50,6 +50,7 @@ __pythran_inlinefooa0)) * (__pythran_inlinefoob1 + \
 
     visit_Return = visit_Stmt
     visit_Assign = visit_Stmt
+    visit_AnnAssign = visit_Stmt
     visit_AugAssign = visit_Stmt
     visit_Print = visit_Stmt
     visit_For = visit_Stmt

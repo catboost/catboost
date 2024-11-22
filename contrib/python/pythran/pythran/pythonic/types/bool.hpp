@@ -18,13 +18,17 @@ inline PyObject *to_python<bool>::convert(bool b)
 
 inline bool from_python<bool>::is_convertible(PyObject *obj)
 {
-  return obj == Py_True || obj == Py_False || PyObject_TypeCheck(obj, &PyBoolArrType_Type);
+  return obj == Py_True || obj == Py_False ||
+         PyObject_TypeCheck(obj, &PyBoolArrType_Type);
 }
 inline bool from_python<bool>::convert(PyObject *obj)
 {
-  if(obj == Py_True) return true;
-  else if(obj == Py_False) return false;
-  else return PyInt_AsLong(obj);
+  if (obj == Py_True)
+    return true;
+  else if (obj == Py_False)
+    return false;
+  else
+    return PyInt_AsLong(obj);
 }
 
 PYTHONIC_NS_END

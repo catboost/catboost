@@ -12,7 +12,7 @@ namespace utils
   void reserve(Container &, From &&) // do nothing unless specialized
   {
   }
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

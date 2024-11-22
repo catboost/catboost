@@ -38,8 +38,8 @@ namespace builtins
               Iterable>::type::iterator>::value_type>::type>(t.begin(),
                                                              t.end());
     }
-  }
-}
+  } // namespace anonymous
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

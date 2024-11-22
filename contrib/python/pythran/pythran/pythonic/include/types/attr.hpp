@@ -61,8 +61,8 @@ namespace types
     struct STEP {
     };
     /* */
-  }
-}
+  } // namespace attr
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

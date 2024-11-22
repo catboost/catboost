@@ -3,10 +3,10 @@
 
 #include "pythonic/include/operator_/iadd.hpp"
 #include "pythonic/include/operator_/iand.hpp"
-#include "pythonic/include/operator_/ior.hpp"
-#include "pythonic/include/operator_/imul.hpp"
 #include "pythonic/include/operator_/imax.hpp"
 #include "pythonic/include/operator_/imin.hpp"
+#include "pythonic/include/operator_/imul.hpp"
+#include "pythonic/include/operator_/ior.hpp"
 #include "pythonic/include/operator_/ixor.hpp"
 
 PYTHONIC_NS_BEGIN
@@ -69,7 +69,7 @@ namespace utils
 
   template <class T>
   T const neutral<operator_::functor::ixor, T>::value = 0;
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

@@ -16,7 +16,7 @@ namespace builtins
   long id(bool const &t);
 
   DEFINE_FUNCTOR(pythonic::builtins, id);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

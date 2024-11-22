@@ -3,9 +3,9 @@
 
 #include "pythonic/include/utils/nested_container.hpp"
 
-#include <limits>
 #include "pythonic/types/traits.hpp"
 #include "pythonic/utils/numpy_traits.hpp"
+#include <limits>
 
 PYTHONIC_NS_BEGIN
 namespace utils
@@ -16,10 +16,11 @@ namespace utils
   {
     auto n = t.size();
     return n ? n * nested_container_size<typename std::conditional<
-               // If we have a scalar or a complex, we want to stop
-               // recursion, and then dispatch to bool specialization
-               types::is_dtype<typename Type::value_type>::value, bool,
-               typename Type::value_type>::type>::flat_size(*t.begin()) : 0;
+                       // If we have a scalar or a complex, we want to stop
+                       // recursion, and then dispatch to bool specialization
+                       types::is_dtype<typename Type::value_type>::value, bool,
+                       typename Type::value_type>::type>::flat_size(*t.begin())
+             : 0;
   }
 
   /* Recursion stops on bool */
@@ -28,7 +29,7 @@ namespace utils
   {
     return 1;
   }
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

@@ -3,9 +3,9 @@
 
 #include "pythonic/include/numpy/ndarray/fill.hpp"
 
-#include "pythonic/utils/functor.hpp"
-#include "pythonic/types/ndarray.hpp"
 #include "pythonic/builtins/None.hpp"
+#include "pythonic/types/ndarray.hpp"
+#include "pythonic/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -27,8 +27,8 @@ namespace numpy
       std::fill(e.fbegin(), e.fend(), f);
       return builtins::None;
     }
-  }
-}
+  } // namespace ndarray
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

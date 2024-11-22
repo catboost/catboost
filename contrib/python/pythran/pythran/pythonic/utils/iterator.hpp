@@ -9,14 +9,12 @@ namespace utils
 {
 
   template <class T>
-  comparable_iterator<T>::comparable_iterator()
-      : T()
+  comparable_iterator<T>::comparable_iterator() : T()
   {
   }
 
   template <class T>
-  comparable_iterator<T>::comparable_iterator(T const &t)
-      : T(t)
+  comparable_iterator<T>::comparable_iterator(T const &t) : T(t)
   {
   }
 
@@ -27,24 +25,22 @@ namespace utils
   }
 
   template <class T>
-  iterator_reminder<false, T>::iterator_reminder(T const &v)
-      : values(v)
+  iterator_reminder<false, T>::iterator_reminder(T const &v) : values(v)
   {
   }
 
   template <class T>
-  iterator_reminder<true, T>::iterator_reminder(T const &v)
-      : values(v)
+  iterator_reminder<true, T>::iterator_reminder(T const &v) : values(v)
   {
   }
 
   template <class T, class... Others>
   iterator_reminder<true, T, Others...>::iterator_reminder(
-      T const &v, Others const &... others)
+      T const &v, Others const &...others)
       : values(v, others...)
   {
   }
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

@@ -50,9 +50,13 @@ class ImportedIds(NodeAnalysis):
         # order matter as an assignation
         # is evaluated before being assigned
         md.visit(self, node)
-        self.visit(node.value)
-        for target in node.targets:
+        if node.value:
+            self.visit(node.value)
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        for target in targets:
             self.visit(target)
+
+    visit_AnnAssign = visit_Assign
 
     def visit_AugAssign(self, node):
         self.in_augassign = True

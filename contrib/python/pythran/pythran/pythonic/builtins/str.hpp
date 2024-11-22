@@ -74,8 +74,8 @@ namespace builtins
       snprintf(buffer, sizeof(buffer), "%g", l);
       return buffer;
     }
-  }
-}
+  } // namespace anonymous
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

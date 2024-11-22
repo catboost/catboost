@@ -3,27 +3,27 @@
 
 #include "pythonic/include/types/numpy_operators.hpp"
 
-#include "pythonic/types/numpy_broadcast.hpp"
+#include "pythonic/numpy/bitwise_not.hpp"
+#include "pythonic/numpy/mod.hpp"
 #include "pythonic/operator_/add.hpp"
 #include "pythonic/operator_/and_.hpp"
-#include "pythonic/operator_/or_.hpp"
-#include "pythonic/operator_/xor_.hpp"
 #include "pythonic/operator_/div.hpp"
 #include "pythonic/operator_/eq.hpp"
-#include "pythonic/operator_/gt.hpp"
 #include "pythonic/operator_/ge.hpp"
+#include "pythonic/operator_/gt.hpp"
+#include "pythonic/operator_/le.hpp"
 #include "pythonic/operator_/lshift.hpp"
 #include "pythonic/operator_/lt.hpp"
-#include "pythonic/operator_/le.hpp"
 #include "pythonic/operator_/mul.hpp"
+#include "pythonic/operator_/ne.hpp"
 #include "pythonic/operator_/neg.hpp"
 #include "pythonic/operator_/not_.hpp"
-#include "pythonic/operator_/ne.hpp"
+#include "pythonic/operator_/or_.hpp"
 #include "pythonic/operator_/pos.hpp"
 #include "pythonic/operator_/rshift.hpp"
 #include "pythonic/operator_/sub.hpp"
-#include "pythonic/numpy/mod.hpp"
-#include "pythonic/numpy/bitwise_not.hpp"
+#include "pythonic/operator_/xor_.hpp"
+#include "pythonic/types/numpy_broadcast.hpp"
 #include "pythonic/types/numpy_op_helper.hpp"
 
 PYTHONIC_NS_BEGIN
@@ -109,7 +109,7 @@ namespace types
 #define NUMPY_BINARY_FUNC_NAME operator-
 #define NUMPY_BINARY_FUNC_SYM operator_::functor::sub
 #include "pythonic/types/numpy_binary_op.hpp"
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

@@ -13,8 +13,7 @@ namespace types
   /* Iterator over whatever provides a fast(long) method to access its element
    */
   template <class E>
-  nditerator<E>::nditerator(E &data, long index)
-      : data(data), index(index)
+  nditerator<E>::nditerator(E &data, long index) : data(data), index(index)
   {
   }
 
@@ -190,8 +189,8 @@ namespace types
   }
 
   template <class E>
-  const_nditerator<E> &const_nditerator<E>::
-  operator=(const_nditerator const &other)
+  const_nditerator<E> &
+  const_nditerator<E>::operator=(const_nditerator const &other)
   {
     index = other.index;
     return *this;
@@ -245,36 +244,36 @@ namespace types
   }
 
   template <class E>
-  long const_simd_nditerator<E>::
-  operator-(const_simd_nditerator<E> const &other) const
+  long const_simd_nditerator<E>::operator-(
+      const_simd_nditerator<E> const &other) const
   {
     return (data - other.data) / vector_size;
   }
 
   template <class E>
-  bool const_simd_nditerator<E>::
-  operator!=(const_simd_nditerator<E> const &other) const
+  bool const_simd_nditerator<E>::operator!=(
+      const_simd_nditerator<E> const &other) const
   {
     return data != other.data;
   }
 
   template <class E>
-  bool const_simd_nditerator<E>::
-  operator==(const_simd_nditerator<E> const &other) const
+  bool const_simd_nditerator<E>::operator==(
+      const_simd_nditerator<E> const &other) const
   {
     return data == other.data;
   }
 
   template <class E>
-  bool const_simd_nditerator<E>::
-  operator<(const_simd_nditerator<E> const &other) const
+  bool const_simd_nditerator<E>::operator<(
+      const_simd_nditerator<E> const &other) const
   {
     return data < other.data;
   }
 
   template <class E>
-  const_simd_nditerator<E> &const_simd_nditerator<E>::
-  operator=(const_simd_nditerator const &other)
+  const_simd_nditerator<E> &
+  const_simd_nditerator<E>::operator=(const_simd_nditerator const &other)
   {
     data = other.data;
     return *this;
@@ -305,12 +304,12 @@ namespace types
   }
 
   template <class T>
-  typename T::dtype const *make_const_nditerator<false>::
-  operator()(T const &self, long i) const
+  typename T::dtype const *
+  make_const_nditerator<false>::operator()(T const &self, long i) const
   {
     return self.buffer + i;
   }
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

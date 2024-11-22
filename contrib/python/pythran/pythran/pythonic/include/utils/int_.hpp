@@ -8,7 +8,7 @@ namespace utils
   template <size_t>
   struct int_ {
   }; // compile-time counter
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

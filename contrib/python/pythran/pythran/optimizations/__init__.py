@@ -13,6 +13,7 @@ import optimisations.xxxxx
 from .constant_folding import ConstantFolding, PartialConstantFolding
 from .copyto import CopyTo
 from .dead_code_elimination import DeadCodeElimination
+from .fast_gexpr import FastGExpr
 from .forward_substitution import ForwardSubstitution, PreInliningForwardSubstitution
 from .iter_transformation import IterTransformation
 from .comprehension_patterns import ComprehensionPatterns

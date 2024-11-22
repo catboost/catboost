@@ -48,7 +48,7 @@ namespace types
 
     numpy_vexpr &operator=(numpy_vexpr const &);
 
-    using shape_t = array<long, value>;
+    using shape_t = array_tuple<long, value>;
     template <size_t I>
     long shape() const
     {
@@ -97,8 +97,8 @@ namespace types
       return data_.fast(view_.fast(i));
     }
     template <class... S>
-    auto operator()(S const &... slices) const
-        -> decltype(ndarray<dtype, array<long, value>>{*this}(slices...));
+    auto operator()(S const &...slices) const
+        -> decltype(ndarray<dtype, array_tuple<long, value>>{*this}(slices...));
 
     auto operator[](long i) const -> decltype(data_[i])
     {
@@ -171,7 +171,7 @@ namespace types
     template <class E>
     numpy_vexpr &operator^=(E const &expr);
   };
-}
+} // namespace types
 
 template <class T, class F>
 struct assignable<types::numpy_vexpr<T, F>> {

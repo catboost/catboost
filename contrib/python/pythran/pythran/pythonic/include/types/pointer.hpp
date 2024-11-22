@@ -19,7 +19,7 @@ namespace types
     reference fast(long);
     value_type fast(long) const;
   };
-}
+} // namespace types
 PYTHONIC_NS_END
 
 namespace std
@@ -40,7 +40,7 @@ namespace std
   struct tuple_element<I, pythonic::types::pointer<T>> {
     typedef typename pythonic::types::pointer<T>::value_type type;
   };
-}
+} // namespace std
 
 #ifdef ENABLE_PYTHON_MODULE
 

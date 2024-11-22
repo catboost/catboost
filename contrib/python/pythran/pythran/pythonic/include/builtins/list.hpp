@@ -23,10 +23,10 @@ namespace builtins
         typename std::remove_reference<Iterable>::type::iterator>::value_type>::
                     type>
     list(Iterable &&t);
-  }
+  } // namespace anonymous
 
   DEFINE_FUNCTOR(pythonic::builtins::anonymous, list);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

@@ -73,15 +73,15 @@ namespace types
         -> decltype(this->arg(fast_contiguous_slice(pythonic::builtins::None,
                                                     pythonic::builtins::None),
                               i));
-    auto fast(array<long, value> const &indices)
-        -> decltype(arg.fast(array<long, 2>{{indices[1], indices[0]}}))
+    auto fast(array_tuple<long, value> const &indices)
+        -> decltype(arg.fast(array_tuple<long, 2>{{indices[1], indices[0]}}))
     {
-      return arg.fast(array<long, 2>{{indices[1], indices[0]}});
+      return arg.fast(array_tuple<long, 2>{{indices[1], indices[0]}});
     }
-    auto fast(array<long, value> const &indices) const
-        -> decltype(arg.fast(array<long, 2>{{indices[1], indices[0]}}))
+    auto fast(array_tuple<long, value> const &indices) const
+        -> decltype(arg.fast(array_tuple<long, 2>{{indices[1], indices[0]}}))
     {
-      return arg.fast(array<long, 2>{{indices[1], indices[0]}});
+      return arg.fast(array_tuple<long, 2>{{indices[1], indices[0]}});
     }
 
     auto load(long i, long j) const -> decltype(arg.load(j, i))
@@ -157,16 +157,16 @@ namespace types
     auto operator[](long i) const -> decltype(this->fast(i));
     auto operator[](long i) -> decltype(this->fast(i));
     template <class T>
-    auto operator[](array<T, value> const &indices)
-        -> decltype(arg[array<T, 2>{{indices[1], indices[0]}}])
+    auto operator[](array_tuple<T, value> const &indices)
+        -> decltype(arg[array_tuple<T, 2>{{indices[1], indices[0]}}])
     {
-      return arg[array<T, 2>{{indices[1], indices[0]}}];
+      return arg[array_tuple<T, 2>{{indices[1], indices[0]}}];
     }
     template <class T>
-    auto operator[](array<T, value> const &indices) const
-        -> decltype(arg[array<T, 2>{{indices[1], indices[0]}}])
+    auto operator[](array_tuple<T, value> const &indices) const
+        -> decltype(arg[array_tuple<T, 2>{{indices[1], indices[0]}}])
     {
-      return arg[array<T, 2>{{indices[1], indices[0]}}];
+      return arg[array_tuple<T, 2>{{indices[1], indices[0]}}];
     }
     template <class T0, class T1>
     auto operator[](std::tuple<T0, T1> const &indices)
@@ -188,20 +188,22 @@ namespace types
     }
 
     template <class S>
-    auto operator[](S const &s0) const -> numpy_texpr<
-        decltype(this->arg(fast_contiguous_slice(pythonic::builtins::None,
-                                                 pythonic::builtins::None),
-                           (s0.step, s0)))>;
+    auto operator[](S const &s0) const
+        -> numpy_texpr<
+            decltype(this->arg(fast_contiguous_slice(pythonic::builtins::None,
+                                                     pythonic::builtins::None),
+                               (s0.step, s0)))>;
     template <class S>
-    auto operator[](S const &s0) -> numpy_texpr<
-        decltype(this->arg(fast_contiguous_slice(pythonic::builtins::None,
-                                                 pythonic::builtins::None),
-                           (s0.step, s0)))>;
+    auto
+    operator[](S const &s0) -> numpy_texpr<decltype(this->arg(
+                                fast_contiguous_slice(pythonic::builtins::None,
+                                                      pythonic::builtins::None),
+                                (s0.step, s0)))>;
 
     template <class S, size_t... I>
     auto _reverse_index(S const &indices, utils::index_sequence<I...>) const
-        -> decltype(
-            numpy::functor::transpose{}(this->arg(std::get<I>(indices)...)))
+        -> decltype(numpy::functor::transpose{}(
+            this->arg(std::get<I>(indices)...)))
     {
       return numpy::functor::transpose{}(arg(std::get<I>(indices)...));
     }
@@ -211,19 +213,20 @@ namespace types
     }
 
     template <class Tp, size_t... Is>
-    auto recast()
-        -> decltype(numpy::functor::transpose{}(arg.template recast<Tp>()))
+    auto
+    recast() -> decltype(numpy::functor::transpose{}(arg.template recast<Tp>()))
     {
       return numpy::functor::transpose{}(arg.template recast<Tp>());
     }
 
     template <class S0, class... S>
-    auto
-    operator()(S0 const &s0, S const &...s) const -> typename std::enable_if<
-        !is_numexpr_arg<S0>::value,
-        decltype(this->_reverse_index(
-            std::tuple<S0 const &, S const &...>{s0, s...},
-            utils::make_reversed_index_sequence<1 + sizeof...(S)>()))>::type;
+    auto operator()(S0 const &s0, S const &...s) const ->
+        typename std::enable_if<
+            !is_numexpr_arg<S0>::value,
+            decltype(this->_reverse_index(
+                std::tuple<S0 const &, S const &...>{s0, s...},
+                utils::make_reversed_index_sequence<1 + sizeof...(S)>()))>::
+            type;
 
     template <class S0, class... S>
     auto operator()(S0 const &s0, S const &...s) const ->
@@ -280,16 +283,16 @@ namespace types
     using numpy_texpr_2<ndarray<T, pshape<S0, S1>>>::operator=;
   };
   template <class T>
-  struct numpy_texpr<ndarray<T, array<long, 2>>>
-      : numpy_texpr_2<ndarray<T, array<long, 2>>> {
+  struct numpy_texpr<ndarray<T, array_tuple<long, 2>>>
+      : numpy_texpr_2<ndarray<T, array_tuple<long, 2>>> {
     numpy_texpr() = default;
     numpy_texpr(numpy_texpr const &) = default;
     numpy_texpr(numpy_texpr &&) = default;
-    numpy_texpr(ndarray<T, array<long, 2>> const &arg);
+    numpy_texpr(ndarray<T, array_tuple<long, 2>> const &arg);
 
     numpy_texpr &operator=(numpy_texpr const &) = default;
 
-    using numpy_texpr_2<ndarray<T, array<long, 2>>>::operator=;
+    using numpy_texpr_2<ndarray<T, array_tuple<long, 2>>>::operator=;
   };
 
   template <class E, class... S>
@@ -314,7 +317,7 @@ namespace types
     static constexpr auto value = broadcasted<E>::value;
     using value_type = broadcast<typename E::dtype, typename E::dtype>;
     using dtype = typename broadcasted<E>::dtype;
-    using shape_t = types::array<long, value>;
+    using shape_t = types::array_tuple<long, value>;
     using iterator = nditerator<numpy_texpr<broadcasted<E>>>;
     using const_iterator = const_nditerator<numpy_texpr<broadcasted<E>>>;
     // FIXME: I've got the feeling that this could be improved

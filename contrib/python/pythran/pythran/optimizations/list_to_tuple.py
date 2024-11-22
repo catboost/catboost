@@ -102,6 +102,8 @@ class ListToTuple(Transformation):
         node.value = self.convert(node.value)
         return node
 
+    visit_AnnAssign = visit_Assign
+
     def convert(self, node):
         self.update = True
 

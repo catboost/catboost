@@ -15,7 +15,7 @@ namespace numpy
 // no need to adapt_type here, as it may turn a**2 into a**2.f
 #define NUMPY_NARY_RESHAPE_MODE reshape_type
 #include "pythonic/types/numpy_nary_expr.hpp"
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

@@ -2,8 +2,8 @@
 #define PYTHONIC_INCLUDE_NUMPY_CONJUGATE_HPP
 
 #include "pythonic/include/types/numpy_op_helper.hpp"
-#include "pythonic/include/utils/numpy_traits.hpp"
 #include "pythonic/include/utils/functor.hpp"
+#include "pythonic/include/utils/numpy_traits.hpp"
 
 #include <xsimd/xsimd.hpp>
 
@@ -44,11 +44,11 @@ namespace numpy
     {
       return v;
     }
-  }
+  } // namespace wrapper
 #define NUMPY_NARY_FUNC_NAME conjugate
 #define NUMPY_NARY_FUNC_SYM wrapper::conjugate
 #include "pythonic/include/types/numpy_nary_expr.hpp"
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

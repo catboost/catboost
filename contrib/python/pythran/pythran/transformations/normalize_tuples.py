@@ -125,6 +125,37 @@ class NormalizeTuples(Transformation):
                 node.body = ConvertToTuple(nname, renamings).visit(node.body)
         return node
 
+    def visit_assign_target(self, t, value, extra_assign, no_tmp):
+        if isinstance(t, ast.Tuple) or isinstance(t, ast.List):
+            renamings = OrderedDict()
+            self.traverse_tuples(t, (), renamings)
+            if renamings:
+                if no_tmp:
+                    gstore = deepcopy(value)
+                else:
+                    gstore = ast.Name(self.get_new_id(),
+                                      ast.Store(), None, None)
+                gload = deepcopy(gstore)
+                gload.ctx = ast.Load()
+                for rename, state in renamings.items():
+                    nnode = reduce(
+                        lambda x, y: ast.Subscript(
+                            x,
+                            ast.Constant(y, None),
+                            ast.Load()),
+                        state,
+                        gload)
+                    if isinstance(rename, str):
+                        extra_assign.append(
+                            ast.Assign(
+                                [ast.Name(rename, ast.Store(),
+                                          None, None)],
+                                nnode, None))
+                    else:
+                        extra_assign.append(ast.Assign([rename],
+                                                       nnode, None))
+                return gstore
+
     def visit_Assign(self, node):
         self.generic_visit(node)
         # if the rhs is an identifier, we don't need to duplicate it
@@ -132,36 +163,26 @@ class NormalizeTuples(Transformation):
         no_tmp = isinstance(node.value, (ast.Name, ast.Attribute))
         extra_assign = [] if no_tmp else [node]
         for i, t in enumerate(node.targets):
-            if isinstance(t, ast.Tuple) or isinstance(t, ast.List):
-                renamings = OrderedDict()
-                self.traverse_tuples(t, (), renamings)
-                if renamings:
-                    if no_tmp:
-                        gstore = deepcopy(node.value)
-                    else:
-                        gstore = ast.Name(self.get_new_id(),
-                                          ast.Store(), None, None)
-                    gload = deepcopy(gstore)
-                    gload.ctx = ast.Load()
-                    node.targets[i] = gstore
-                    for rename, state in renamings.items():
-                        nnode = reduce(
-                            lambda x, y: ast.Subscript(
-                                x,
-                                ast.Constant(y, None),
-                                ast.Load()),
-                            state,
-                            gload)
-                        if isinstance(rename, str):
-                            extra_assign.append(
-                                ast.Assign(
-                                    [ast.Name(rename, ast.Store(),
-                                              None, None)],
-                                    nnode, None))
-                        else:
-                            extra_assign.append(ast.Assign([rename],
-                                                           nnode, None))
+            updated = self.visit_assign_target(t, node.value, extra_assign,
+                                               no_tmp)
+            if updated is not None:
+                node.targets[i] = updated
         return extra_assign or node
+
+    def visit_AnnAssign(self, node):
+        self.generic_visit(node)
+        # if the rhs is an identifier, we don't need to duplicate it
+        # otherwise, better duplicate it...
+        if not node.value:
+            return node
+        no_tmp = isinstance(node.value, (ast.Name, ast.Attribute))
+        extra_assign = [] if no_tmp else [node]
+        updated = self.visit_assign_target(node.target, node.value,
+                                           extra_assign, no_tmp)
+        if updated is not None:
+            node.target = updated
+        return extra_assign or node
+
 
     def visit_For(self, node):
         target = node.target

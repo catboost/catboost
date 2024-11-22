@@ -35,6 +35,15 @@ class Remover(ast.NodeTransformer):
                 return ast.Pass()
         return node
 
+    def visit_AnnAssign(self, node):
+        if node in self.nodes:
+            to_prune = self.nodes[node]
+            if node.target in to_prune:
+                return ast.Pass()
+            else:
+                return node
+        return node
+
 
 class ForwardSubstitution(Transformation):
 
@@ -135,22 +144,31 @@ class ForwardSubstitution(Transformation):
                     return value
             elif len(parent.targets) == 1:
                 ids = self.gather(Identifiers, value)
-                node_stmt = next(reversed([s for s in self.ancestors[node]
-                                 if isinstance(s, ast.stmt)]))
-                all_paths = graph.all_simple_paths(self.cfg, parent, node_stmt)
-                for path in all_paths:
-                    for stmt in path[1:-1]:
-                        assigned_ids = {n.id
-                                        for n in self.gather(IsAssigned, stmt)}
-                        if not ids.isdisjoint(assigned_ids):
-                            break
-                    else:
+                node_stmt = next(s for s in self.ancestors[node][::-1]
+                                 if isinstance(s, ast.stmt))
+                # Check if there is a path from `parent' to `node_stmt' that
+                # modifies any of the identifier from `value'. If so, cancel the
+                # forward substitution.
+                worklist = [node_stmt]
+                visited = {parent}
+                while worklist:
+                    workitem = worklist.pop()
+                    if workitem in visited:
                         continue
-                    break
-                else:
-                    self.update = True
-                    self.to_remove[parent].append(dnode)
-                    return value
+                    visited.add(workitem)
+                    for pred in self.cfg.predecessors(workitem):
+                        if not graph.has_path(self.cfg, parent, pred):
+                            continue
+
+                        assigned_ids = {n.id
+                                        for n in self.gather(IsAssigned,
+                                                             pred)}
+                        if not ids.isdisjoint(assigned_ids):
+                            return node  # cancel
+                        worklist.append(pred)
+                self.update = True
+                self.to_remove[parent].append(dnode)
+                return value
 
         return node
 

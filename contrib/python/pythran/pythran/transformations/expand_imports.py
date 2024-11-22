@@ -116,20 +116,23 @@ class ExpandImports(Transformation):
 
         In this case, foo can't be used after assign.
         """
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
         if isinstance(node.value, ast.Name) and node.value.id in self.symbols:
             symbol = path_to_node(self.symbols[node.value.id])
             if not getattr(symbol, 'isliteral', lambda: False)():
-                for target in node.targets:
+                for target in targets:
                     if not isinstance(target, ast.Name):
                         err = "Unsupported module aliasing"
                         raise PythranSyntaxError(err, target)
                     self.symbols[target.id] = self.symbols[node.value.id]
                 return None  # this assignment is no longer needed
         new_node = self.generic_visit(node)
+        ntargets = new_node.targets if isinstance(node, ast.Assign) else (new_node.target,)
         # no problem if targets contains a subscript, it is not a new assign.
         [self.symbols.pop(t.id, None)
-         for t in new_node.targets if isinstance(t, ast.Name)]
+         for t in ntargets if isinstance(t, ast.Name)]
         return new_node
+    visit_AnnAssign = visit_Assign
 
     def visit_Name(self, node):
         """

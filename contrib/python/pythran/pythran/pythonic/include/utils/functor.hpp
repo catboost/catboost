@@ -11,7 +11,7 @@
     struct name {                                                              \
       using callable = void;                                                   \
       template <typename... Types>                                             \
-      auto operator()(Types && ... types) const                                \
+      auto operator()(Types &&...types) const                                  \
           -> decltype(f(std::forward<Types>(types)...))                        \
       {                                                                        \
         return f(std::forward<Types>(types)...);                               \

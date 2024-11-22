@@ -30,7 +30,7 @@ namespace details
   {
     return t.contains(v);
   }
-}
+} // namespace details
 
 template <class T, class V>
 bool in(T &&t, V const &v)

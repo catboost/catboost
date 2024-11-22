@@ -14,14 +14,14 @@ namespace types
   };
   struct vectorizer {
     template <class E>
-    static auto vbegin(E &&expr)
-        -> decltype(std::forward<E>(expr).vbegin(vectorize{}))
+    static auto
+    vbegin(E &&expr) -> decltype(std::forward<E>(expr).vbegin(vectorize{}))
     {
       return std::forward<E>(expr).vbegin(vectorize{});
     }
     template <class E>
-    static auto vend(E &&expr)
-        -> decltype(std::forward<E>(expr).vend(vectorize{}))
+    static auto
+    vend(E &&expr) -> decltype(std::forward<E>(expr).vend(vectorize{}))
     {
       return std::forward<E>(expr).vend(vectorize{});
     }
@@ -52,7 +52,7 @@ namespace types
   };
 
   /* trait to check if is T is an array-like type that supports vectorization
-  */
+   */
   template <class T, bool scalar = has_vectorizable<T>::value>
   struct is_vectorizable_array;
 
@@ -77,7 +77,7 @@ namespace types
 
   template <class Op, class... Args>
   struct numpy_expr;
-}
+} // namespace types
 
 namespace utils
 {
@@ -111,6 +111,6 @@ namespace utils
   {
     return true;
   }
-}
+} // namespace utils
 PYTHONIC_NS_END
 #endif

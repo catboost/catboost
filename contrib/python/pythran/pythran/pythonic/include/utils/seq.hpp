@@ -27,7 +27,7 @@ namespace utils
     struct make_integer_sequence<T, 0, S...> {
       using type = integer_sequence<T, S...>;
     };
-  }
+  } // namespace details
 
   template <class T, std::size_t N>
   using make_integer_sequence =
@@ -50,7 +50,7 @@ namespace utils
     struct make_reversed_integer_sequence<T, 0, S...> {
       using type = integer_sequence<T, S...>;
     };
-  }
+  } // namespace details
 
   template <class T, std::size_t N>
   using make_reversed_integer_sequence =
@@ -74,14 +74,14 @@ namespace utils
     struct repeated_type<T, 0, Tys...> {
       using type = type_sequence<Tys...>;
     };
-  }
+  } // namespace details
   template <class T, std::size_t N>
   struct repeated_type : details::repeated_type<T, N> {
   };
 
   template <class T, std::size_t N>
   using make_repeated_type = typename repeated_type<T, N>::type;
-}
+} // namespace utils
 PYTHONIC_NS_END
 
 #endif

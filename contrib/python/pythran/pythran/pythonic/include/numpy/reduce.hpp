@@ -1,8 +1,8 @@
 #ifndef PYTHONIC_INCLUDE_NUMPY_REDUCE_HPP
 #define PYTHONIC_INCLUDE_NUMPY_REDUCE_HPP
 
-#include "pythonic/include/types/ndarray.hpp"
 #include "pythonic/include/builtins/None.hpp"
+#include "pythonic/include/types/ndarray.hpp"
 
 #include <algorithm>
 
@@ -13,8 +13,8 @@ namespace operator_
   {
     struct imax;
     struct imin;
-  }
-}
+  } // namespace functor
+} // namespace operator_
 
 namespace numpy
 {
@@ -43,7 +43,7 @@ namespace numpy
     template <class Op, class E, class T = types::none_type>
     using reduce_result_type =
         typename reduce_result_type_helper<Op, E, T>::type;
-  }
+  } // namespace
 
   template <class Op, class E>
   typename std::enable_if<
@@ -79,7 +79,7 @@ namespace numpy
   {
     template <class E, class Op, class dtype = types::none_type>
     using reduced_type = types::ndarray<reduce_result_type<Op, E, dtype>,
-                                        types::array<long, E::value - 1>>;
+                                        types::array_tuple<long, E::value - 1>>;
   }
 
   template <class Op, class E, class dtype = types::none_type>
@@ -98,7 +98,7 @@ namespace numpy
   template <class Op, class E, class Out>
   typename std::enable_if<E::value != 1, reduced_type<E, Op>>::type
   reduce(E const &array, long axis, types::none_type dtype, Out &&out);
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

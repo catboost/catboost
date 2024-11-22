@@ -14,9 +14,9 @@ namespace types
   template <size_t L>
   struct noffset {
     template <class S, class Ty, size_t M>
-    long operator()(S const &strides, array<Ty, M> const &indices) const;
+    long operator()(S const &strides, array_tuple<Ty, M> const &indices) const;
     template <class S, class Ty, size_t M, class pS>
-    long operator()(S const &strides, array<Ty, M> const &indices,
+    long operator()(S const &strides, array_tuple<Ty, M> const &indices,
                     pS const &shape) const;
   };
 
@@ -175,11 +175,11 @@ namespace types
       return numpy_iexpr_helper<value>::get(std::move(*this), i);
     }
 
-    dtype const &fast(array<long, value> const &indices) const;
-    dtype &fast(array<long, value> const &indices);
+    dtype const &fast(array_tuple<long, value> const &indices) const;
+    dtype &fast(array_tuple<long, value> const &indices);
 
     template <size_t M>
-    auto fast(array<long, M> const &indices) const
+    auto fast(array_tuple<long, M> const &indices) const
         -> decltype(nget<M - 1>()(*this, indices))
     {
       return nget<M - 1>()(*this, indices);
@@ -197,7 +197,8 @@ namespace types
     {
       static_assert(is_dtype<E>::value, "valid store");
       assert(buffer);
-      *(buffer + noffset<value>{}(*this, array<long, value>{{indices...}})) =
+      *(buffer +
+        noffset<value>{}(*this, array_tuple<long, value>{{indices...}})) =
           static_cast<E>(elt);
     }
     template <class... Indices>
@@ -205,16 +206,16 @@ namespace types
     {
       assert(buffer);
       return *(buffer +
-               noffset<value>{}(*this, array<long, value>{{indices...}}));
+               noffset<value>{}(*this, array_tuple<long, value>{{indices...}}));
     }
     template <class Op, class E, class... Indices>
     void update(E elt, Indices... indices) const
     {
       static_assert(is_dtype<E>::value, "valid store");
       assert(buffer);
-      Op{}(
-          *(buffer + noffset<value>{}(*this, array<long, value>{{indices...}})),
-          static_cast<E>(elt));
+      Op{}(*(buffer +
+             noffset<value>{}(*this, array_tuple<long, value>{{indices...}})),
+           static_cast<E>(elt));
     }
 
 #ifdef USE_XSIMD
@@ -258,10 +259,10 @@ namespace types
                             numpy_gexpr<numpy_iexpr, normalize_t<Sp>>>::type
     operator[](Sp const &s0) const;
 
-    dtype const &operator[](array<long, value> const &indices) const;
-    dtype &operator[](array<long, value> const &indices);
+    dtype const &operator[](array_tuple<long, value> const &indices) const;
+    dtype &operator[](array_tuple<long, value> const &indices);
     template <size_t M>
-    auto operator[](array<long, M> const &indices)
+    auto operator[](array_tuple<long, M> const &indices)
         const & -> decltype(nget<M - 1>()(*this, indices))
     {
       return nget<M - 1>()(*this, indices);

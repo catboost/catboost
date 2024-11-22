@@ -30,7 +30,7 @@ namespace builtins
       bool operator<(range_iterator const &other) const;
       long operator-(range_iterator const &other) const;
     };
-  }
+  } // namespace
 
   struct range {
     using value_type = long;
@@ -58,7 +58,7 @@ namespace builtins
   };
 
   DEFINE_FUNCTOR(pythonic::builtins, range);
-}
+} // namespace builtins
 PYTHONIC_NS_END
 
 namespace std
@@ -70,7 +70,7 @@ namespace std
   struct tuple_element<I, pythonic::builtins::range> {
     typedef long type;
   };
-}
+} // namespace std
 
 /* type inference stuff  {*/
 #include "pythonic/include/types/combined.hpp"

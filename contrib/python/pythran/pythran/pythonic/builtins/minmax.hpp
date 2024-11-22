@@ -3,8 +3,8 @@
 
 #include "pythonic/include/builtins/minmax.hpp"
 
-#include <utility>
 #include <algorithm>
+#include <utility>
 
 PYTHONIC_NS_BEGIN
 
@@ -25,16 +25,16 @@ namespace builtins
     {
       using value_type = decltype(*t.begin());
       return *std::max_element(
-                 t.begin(), t.end(),
-                 [op, key](value_type const &self, value_type const &other) {
-                   return op(key(self), key(other));
-                 });
+          t.begin(), t.end(),
+          [op, key](value_type const &self, value_type const &other) {
+            return op(key(self), key(other));
+          });
     }
 
     template <class Op, class T0, class T1, class... Types>
     typename std::enable_if<!std::is_same<T1, types::kwonly>::value,
                             typename __combined<T0, T1, Types...>::type>::type
-    minmax(Op const &op, T0 const &t0, T1 const &t1, Types const &... ts)
+    minmax(Op const &op, T0 const &t0, T1 const &t1, Types const &...ts)
     {
       using value_type = typename __combined<T0, T1, Types...>::type;
       std::initializer_list<value_type> values = {
@@ -42,8 +42,8 @@ namespace builtins
           static_cast<value_type>(ts)...};
       return minmax(op, values);
     }
-  }
-}
+  } // namespace details
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

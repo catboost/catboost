@@ -13,7 +13,7 @@ namespace operator_
   bool gt(char const *, char const *);
 
   DEFINE_FUNCTOR(pythonic::operator_, gt);
-}
+} // namespace operator_
 PYTHONIC_NS_END
 
 #endif

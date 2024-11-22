@@ -48,8 +48,8 @@ namespace types
   template <class E>
   struct nditerator
       : public std::iterator<std::random_access_iterator_tag,
-                             typename std::remove_reference<decltype(
-                                 std::declval<E &>().fast(0))>::type> {
+                             typename std::remove_reference<
+                                 decltype(std::declval<E &>().fast(0))>::type> {
     E &data;
     long index;
     nditerator(E &data, long index);
@@ -75,8 +75,8 @@ namespace types
   template <class E>
   struct const_nditerator
       : public std::iterator<std::random_access_iterator_tag,
-                             typename std::remove_reference<decltype(
-                                 std::declval<E &>().fast(0))>::type> {
+                             typename std::remove_reference<
+                                 decltype(std::declval<E &>().fast(0))>::type> {
     E const &data;
     long index;
     const_nditerator(E const &data, long index);
@@ -153,8 +153,8 @@ namespace types
   template <bool is_strided>
   struct make_const_nditerator {
     template <class T>
-    auto operator()(T const &self, long i)
-        -> decltype(const_nditerator<T>(self, i)) const;
+    auto operator()(T const &self,
+                    long i) -> decltype(const_nditerator<T>(self, i)) const;
   };
 
   template <>
@@ -162,7 +162,7 @@ namespace types
     template <class T>
     typename T::dtype const *operator()(T const &self, long i) const;
   };
-}
+} // namespace types
 PYTHONIC_NS_END
 
 #endif

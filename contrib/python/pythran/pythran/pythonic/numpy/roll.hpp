@@ -32,7 +32,7 @@ namespace numpy
   {
     template <class To, class From, size_t N>
     To _roll(To to, From from, long shift, long axis,
-             types::array<long, N> const &shape, utils::int_<N - 1>)
+             types::array_tuple<long, N> const &shape, utils::int_<N - 1>)
     {
       long dim = shape[N - 1];
       if (axis == N - 1) {
@@ -47,7 +47,7 @@ namespace numpy
     template <class To, class From, size_t N, size_t M>
     typename std::enable_if<M != N - 1, To>::type
     _roll(To to, From from, long shift, long axis,
-          types::array<long, N> const &shape, utils::int_<M>)
+          types::array_tuple<long, N> const &shape, utils::int_<M>)
     {
       long dim = shape[M];
       long offset = std::accumulate(shape.begin() + M + 1, shape.end(), 1L,
@@ -90,7 +90,7 @@ namespace numpy
   {
     template <class To, class From, size_t N>
     To _rolls(To to, From from, long shifts[N],
-              types::array<long, N> const &shape, utils::int_<N - 1>)
+              types::array_tuple<long, N> const &shape, utils::int_<N - 1>)
     {
       long dim = shape[N - 1];
       if (long shift = shifts[N - 1]) {
@@ -104,8 +104,8 @@ namespace numpy
 
     template <class To, class From, size_t N, size_t M>
     typename std::enable_if<M != N - 1, To>::type
-    _rolls(To to, From from, long shifts[N], types::array<long, N> const &shape,
-           utils::int_<M>)
+    _rolls(To to, From from, long shifts[N],
+           types::array_tuple<long, N> const &shape, utils::int_<M>)
     {
       long dim = shape[M];
       long offset = std::accumulate(shape.begin() + M + 1, shape.end(), 1L,
@@ -128,8 +128,8 @@ namespace numpy
 
   template <class T, class pS, size_t N>
   types::ndarray<T, pS> roll(types::ndarray<T, pS> const &expr,
-                             types::array<long, N> shifts,
-                             types::array<long, N> axes)
+                             types::array_tuple<long, N> shifts,
+                             types::array_tuple<long, N> axes)
   {
     constexpr long ndim = types::ndarray<T, pS>::value;
     auto expr_shape = sutils::array(expr._shape);

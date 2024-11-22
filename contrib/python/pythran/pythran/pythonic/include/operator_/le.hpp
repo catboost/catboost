@@ -12,7 +12,7 @@ namespace operator_
   bool le(char const *self, char const *other);
 
   DEFINE_FUNCTOR(pythonic::operator_, le);
-}
+} // namespace operator_
 PYTHONIC_NS_END
 
 #endif

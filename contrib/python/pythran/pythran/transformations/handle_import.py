@@ -136,8 +136,10 @@ class HandleImport(Transformation):
         return node
 
     def visit_assign(self, node):
-        self.visit(node.value)
-        for target in node.targets:
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        if node.value:
+            self.visit(node.value)
+        for target in targets:
             self.visit(target)
         return node
 
@@ -152,10 +154,12 @@ class HandleImport(Transformation):
         if not is_mangled_module(renaming):
             return self.visit_assign(node)
 
-        if any(not isinstance(target, ast.Name) for target in node.targets):
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        if any(not isinstance(target, ast.Name) for target in targets):
             raise PythranSyntaxError("Invalid module assignment", node)
 
         return node
+    visit_AnnAssign = visit_Assign
 
     def visit_Call(self, node):
         if isinstance(node.func, ast.Name):

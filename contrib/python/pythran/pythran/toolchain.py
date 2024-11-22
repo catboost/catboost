@@ -8,7 +8,6 @@ from pythran.config import cfg
 from pythran.cxxgen import PythonModule, Include, Line, Statement
 from pythran.cxxgen import FunctionBody, FunctionDeclaration, Value, Block
 from pythran.cxxgen import ReturnStatement
-from pythran.dist import PythranExtension, PythranBuildExt
 from pythran.errors import PythranCompileError
 from pythran.middlend import refine, mark_unexported_functions
 from pythran.passmanager import PassManager
@@ -23,12 +22,6 @@ from pythran.utils import cxxid
 import pythran.frontend as frontend
 
 import sysconfig
-
-try:
-    # `numpy.distutils is deprecated, may not be present, or broken
-    from numpy.distutils.core import setup
-except Exception:
-    from setuptools import setup
 
 from tempfile import mkdtemp, NamedTemporaryFile
 import gast as ast
@@ -335,6 +328,14 @@ def compile_cxxfile(module_name, cxxfile, output_binary=None, **kwargs):
     Raises PythranCompileError on failure
 
     '''
+    # local import so that we don't depend on setuptools for the code generation
+    # part
+    from pythran.dist import PythranExtension, PythranBuildExt
+    try:
+        # `numpy.distutils is deprecated, may not be present, or broken
+        from numpy.distutils.core import setup
+    except Exception:
+        from setuptools import setup
 
     builddir = mkdtemp()
     buildtmp = mkdtemp()

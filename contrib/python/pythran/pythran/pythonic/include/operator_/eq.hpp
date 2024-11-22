@@ -13,7 +13,7 @@ namespace operator_
   bool eq(char const *a, char const *b);
 
   DEFINE_FUNCTOR(pythonic::operator_, eq);
-}
+} // namespace operator_
 PYTHONIC_NS_END
 
 #endif

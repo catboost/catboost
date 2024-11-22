@@ -14,7 +14,7 @@ namespace operator_
   bool not_(std::complex<T> const &a);
 
   DEFINE_FUNCTOR(pythonic::operator_, not_);
-}
+} // namespace operator_
 PYTHONIC_NS_END
 
 #endif

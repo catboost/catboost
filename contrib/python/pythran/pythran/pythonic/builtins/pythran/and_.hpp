@@ -3,8 +3,8 @@
 
 #include "pythonic/include/builtins/pythran/and_.hpp"
 
-#include "pythonic/utils/functor.hpp"
 #include "pythonic/types/combined.hpp"
+#include "pythonic/utils/functor.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -23,8 +23,8 @@ namespace builtins
       else
         return (types::lazy_combined_t<T0, T1>)val0;
     }
-  }
-}
+  } // namespace pythran
+} // namespace builtins
 PYTHONIC_NS_END
 
 #endif

@@ -3,9 +3,9 @@
 
 #include "pythonic/include/numpy/array.hpp"
 
+#include "pythonic/types/ndarray.hpp"
 #include "pythonic/utils/functor.hpp"
 #include "pythonic/utils/nested_container.hpp"
-#include "pythonic/types/ndarray.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -15,8 +15,9 @@ namespace numpy
   typename std::enable_if<
       types::has_size<typename std::decay<T>::type>::value,
       types::ndarray<typename dtype::type,
-                     types::array<long, std::decay<T>::type::value>>>::type
-  array(T &&iterable, dtype d)
+                     types::array_tuple<long, std::decay<T>::type::value>>>::
+      type
+      array(T &&iterable, dtype d)
   {
     return {std::forward<T>(iterable)};
   }
@@ -25,8 +26,9 @@ namespace numpy
       !types::has_size<typename std::decay<T>::type>::value &&
           !types::is_dtype<typename std::decay<T>::type>::value,
       types::ndarray<typename dtype::type,
-                     types::array<long, std::decay<T>::type::value>>>::type
-  array(T &&iterable, dtype d)
+                     types::array_tuple<long, std::decay<T>::type::value>>>::
+      type
+      array(T &&iterable, dtype d)
   {
     types::list<typename std::decay<T>::type::value_type> tmp{iterable.begin(),
                                                               iterable.end()};
@@ -46,7 +48,7 @@ namespace numpy
   template <class dtype>
   types::ndarray<typename dtype::type,
                  types::pshape<std::integral_constant<long, 0>>>
-      array(std::tuple<>, dtype)
+  array(std::tuple<>, dtype)
   {
     return {types::pshape<std::integral_constant<long, 0>>{},
             types::none_type{}};
@@ -73,7 +75,7 @@ namespace numpy
   {
     return {std::move(a)};
   }
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif

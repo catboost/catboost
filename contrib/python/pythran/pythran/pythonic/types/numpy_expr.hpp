@@ -205,17 +205,17 @@ namespace types
   template <class... Indices>
   auto numpy_expr<Op, Args...>::map_fast(Indices... indices) const
       -> decltype(this->_map_fast(
-          array<long, sizeof...(Indices)>{{indices...}},
+          array_tuple<long, sizeof...(Indices)>{{indices...}},
           utils::make_index_sequence<sizeof...(Args)>{}))
   {
     static_assert(sizeof...(Indices) == sizeof...(Args), "compatible call");
-    return _map_fast(array<long, sizeof...(Indices)>{{indices...}},
+    return _map_fast(array_tuple<long, sizeof...(Indices)>{{indices...}},
                      utils::make_index_sequence<sizeof...(Args)>{});
   }
 
   template <class Op, class... Args>
-  auto numpy_expr<Op, Args...>::operator[](long i) const
-      -> decltype(this->fast(i))
+  auto
+  numpy_expr<Op, Args...>::operator[](long i) const -> decltype(this->fast(i))
   {
     if (i < 0)
       i += size();
@@ -367,7 +367,7 @@ namespace types
     if (sutils::any_of(*this, [](long n) { return n != 1; }))
       throw ValueError("The truth value of an array with more than one element "
                        "is ambiguous. Use a.any() or a.all()");
-    array<long, value> first = {0};
+    array_tuple<long, value> first = {0};
     return operator[](first);
   }
 

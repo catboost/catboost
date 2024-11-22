@@ -1,8 +1,8 @@
 #ifndef PYTHONIC_INCLUDE_TYPES_NUMPY_EXPR_HPP
 #define PYTHONIC_INCLUDE_TYPES_NUMPY_EXPR_HPP
 
-#include "pythonic/include/utils/meta.hpp"
 #include "pythonic/include/types/nditerator.hpp"
+#include "pythonic/include/utils/meta.hpp"
 
 PYTHONIC_NS_BEGIN
 
@@ -85,9 +85,10 @@ namespace types
 
   template <class Op, class Steps, class... Iters>
   struct numpy_expr_iterator
-      : std::iterator<std::random_access_iterator_tag,
-                      typename std::remove_reference<decltype(std::declval<
-                          Op>()(*std::declval<Iters>()...))>::type> {
+      : std::iterator<
+            std::random_access_iterator_tag,
+            typename std::remove_reference<decltype(std::declval<Op>()(
+                *std::declval<Iters>()...))>::type> {
     Steps steps_;
     std::tuple<Iters...> iters_;
 
@@ -114,8 +115,8 @@ namespace types
       return Dereferencer<Op>{}(iters_, s);
     }
 
-    auto operator*() const -> decltype(
-        this->_dereference(utils::make_index_sequence<sizeof...(Iters)>{}))
+    auto operator*() const -> decltype(this->_dereference(
+                               utils::make_index_sequence<sizeof...(Iters)>{}))
     {
       return _dereference(utils::make_index_sequence<sizeof...(Iters)>{});
     }
@@ -141,9 +142,10 @@ namespace types
     template <size_t... I>
     void _incr(utils::index_sequence<I...>)
     {
-      (void)std::initializer_list<bool>{_incr_opt<I>(std::integral_constant<
-          bool, std::is_same<long, typename std::tuple_element<
-                                       I, Steps>::type>::value>{})...};
+      (void)std::initializer_list<bool>{_incr_opt<I>(
+          std::integral_constant<
+              bool, std::is_same<long, typename std::tuple_element<
+                                           I, Steps>::type>::value>{})...};
     }
     numpy_expr_iterator &operator++()
     {
@@ -242,14 +244,15 @@ namespace types
 #ifdef USE_XSIMD
   template <class E, class Op, class Steps, class SIters, class... Iters>
   struct numpy_expr_simd_iterator
-      : std::iterator<std::random_access_iterator_tag,
-                      typename std::remove_reference<decltype(std::declval<
-                          Op>()(*std::declval<Iters>()...))>::type> {
+      : std::iterator<
+            std::random_access_iterator_tag,
+            typename std::remove_reference<decltype(std::declval<Op>()(
+                *std::declval<Iters>()...))>::type> {
     Steps steps_;
     std::tuple<Iters...> iters_;
     SIters siters_;
 
-    numpy_expr_simd_iterator(array<long, sizeof...(Iters)> steps,
+    numpy_expr_simd_iterator(array_tuple<long, sizeof...(Iters)> steps,
                              SIters const &siters, Iters... iters)
         : steps_(steps), iters_(iters...), siters_(siters)
     {
@@ -275,8 +278,8 @@ namespace types
                                          : (std::get<I>(siters_)))...);
     }
 
-    auto operator*() const -> decltype(
-        this->_dereference(utils::make_index_sequence<sizeof...(Iters)>{}))
+    auto operator*() const -> decltype(this->_dereference(
+                               utils::make_index_sequence<sizeof...(Iters)>{}))
     {
       return _dereference(utils::make_index_sequence<sizeof...(Iters)>{});
     }
@@ -302,9 +305,10 @@ namespace types
     template <size_t... I>
     void _incr(utils::index_sequence<I...>)
     {
-      (void)std::initializer_list<bool>{_incr_opt<I>(std::integral_constant<
-          bool, std::is_same<long, typename std::tuple_element<
-                                       I, Steps>::type>::value>{})...};
+      (void)std::initializer_list<bool>{_incr_opt<I>(
+          std::integral_constant<
+              bool, std::is_same<long, typename std::tuple_element<
+                                           I, Steps>::type>::value>{})...};
     }
     numpy_expr_simd_iterator &operator++()
     {
@@ -404,9 +408,10 @@ namespace types
 
   template <class E, class Op, class... Iters>
   struct numpy_expr_simd_iterator_nobroadcast
-      : std::iterator<std::random_access_iterator_tag,
-                      typename std::remove_reference<decltype(std::declval<
-                          Op>()(*std::declval<Iters>()...))>::type> {
+      : std::iterator<
+            std::random_access_iterator_tag,
+            typename std::remove_reference<decltype(std::declval<Op>()(
+                *std::declval<Iters>()...))>::type> {
     std::tuple<Iters...> iters_;
 
     numpy_expr_simd_iterator_nobroadcast(Iters... iters) : iters_(iters...)
@@ -433,8 +438,8 @@ namespace types
       return Op{}((*std::get<I>(iters_))...);
     }
 
-    auto operator*() const -> decltype(
-        this->_dereference(utils::make_index_sequence<sizeof...(Iters)>{}))
+    auto operator*() const -> decltype(this->_dereference(
+                               utils::make_index_sequence<sizeof...(Iters)>{}))
     {
       return _dereference(utils::make_index_sequence<sizeof...(Iters)>{});
     }
@@ -563,8 +568,9 @@ namespace types
   template <class S, class Sp, class... Ss>
   constexpr size_t count_none(size_t I)
   {
-    return I == 0 ? 0 : (std::is_same<S, none_type>::value +
-                         count_none<Sp, Ss...>(I - 1));
+    return I == 0 ? 0
+                  : (std::is_same<S, none_type>::value +
+                     count_none<Sp, Ss...>(I - 1));
   }
 
   template <class BT, class T>
@@ -577,9 +583,9 @@ namespace types
   }
 
   template <size_t... J, class Arg, class Shp, class... S>
-  auto make_subslice(utils::index_sequence<J...>, Arg const &arg,
-                     Shp const &shp, std::tuple<S...> const &ss)
-      -> decltype(arg(std::get<J>(ss)...))
+  auto
+  make_subslice(utils::index_sequence<J...>, Arg const &arg, Shp const &shp,
+                std::tuple<S...> const &ss) -> decltype(arg(std::get<J>(ss)...))
   {
     // we need to adapt_slice to take broadcasting into account
     return arg(adapt_slice(
@@ -610,8 +616,9 @@ namespace types
 
     static constexpr size_t value =
         utils::max_element<std::remove_reference<Args>::type::value...>::value;
-    using value_type = decltype(Op()(std::declval<
-        typename std::remove_reference<Args>::type::value_type>()...));
+    using value_type = decltype(Op()(
+        std::declval<
+            typename std::remove_reference<Args>::type::value_type>()...));
     using dtype = decltype(Op()(
         std::declval<typename std::remove_reference<Args>::type::dtype>()...));
 
@@ -639,13 +646,12 @@ namespace types
 
 #ifdef CYTHON_ABI
     template <class... Argp>
-    numpy_expr(numpy_expr<Op, Argp...> const &other)
-        : args(other.args)
+    numpy_expr(numpy_expr<Op, Argp...> const &other) : args(other.args)
     {
     }
 #endif
 
-    numpy_expr(Args const &... args);
+    numpy_expr(Args const &...args);
 
     template <size_t... I>
     const_iterator _begin(utils::index_sequence<I...>) const;
@@ -694,7 +700,7 @@ namespace types
     }
 
     template <size_t... I>
-    auto _map_fast(array<long, sizeof...(I)> const &indices,
+    auto _map_fast(array_tuple<long, sizeof...(I)> const &indices,
                    utils::index_sequence<I...>) const
         -> decltype(Op()(std::get<I>(args).fast(std::get<I>(indices))...))
     {
@@ -702,14 +708,15 @@ namespace types
     }
 
     template <class... Indices>
-    auto map_fast(Indices... indices) const -> decltype(
-        this->_map_fast(array<long, sizeof...(Indices)>{{indices...}},
-                        utils::make_index_sequence<sizeof...(Args)>{}));
+    auto map_fast(Indices... indices) const
+        -> decltype(this->_map_fast(
+            array_tuple<long, sizeof...(Indices)>{{indices...}},
+            utils::make_index_sequence<sizeof...(Args)>{}));
 
   public:
     template <size_t I>
     auto shape() const -> decltype(details::init_shape_element<I>(
-        args, valid_indices<value, std::tuple<Args...>>{}))
+                           args, valid_indices<value, std::tuple<Args...>>{}))
     {
       return details::init_shape_element<I>(
           args, valid_indices<value, std::tuple<Args...>>{});
@@ -733,8 +740,9 @@ namespace types
             typename std::remove_reference<Args>::type::value_type>...>,
         typename std::remove_reference<Args>::type::simd_iterator...>;
     using simd_iterator_nobroadcast = numpy_expr_simd_iterator_nobroadcast<
-        numpy_expr, Op, typename std::remove_reference<
-                            Args>::type::simd_iterator_nobroadcast...>;
+        numpy_expr, Op,
+        typename std::remove_reference<
+            Args>::type::simd_iterator_nobroadcast...>;
     template <size_t... I>
     simd_iterator _vbegin(types::vectorize, utils::index_sequence<I...>) const;
     simd_iterator vbegin(types::vectorize) const;
@@ -754,9 +762,10 @@ namespace types
 #endif
 
     template <size_t... I, class... S>
-    auto _get(utils::index_sequence<I...> is, S const &... s) const -> decltype(
-        Op{}(make_subslice(utils::make_index_sequence<sizeof...(S)>{},
-                           std::get<I>(args), *this, std::make_tuple(s...))...))
+    auto _get(utils::index_sequence<I...> is, S const &...s) const
+        -> decltype(Op{}(
+            make_subslice(utils::make_index_sequence<sizeof...(S)>{},
+                          std::get<I>(args), *this, std::make_tuple(s...))...))
     {
       return Op{}(make_subslice(utils::make_index_sequence<sizeof...(S)>{},
                                 std::get<I>(args), *this,
@@ -764,7 +773,7 @@ namespace types
     }
 
     template <class... S>
-    auto operator()(S const &... s) const
+    auto operator()(S const &...s) const
         -> decltype(this->_get(utils::make_index_sequence<sizeof...(Args)>{},
                                s...));
 
@@ -811,14 +820,13 @@ namespace types
     }
     template <class S>
     auto operator[](S s) const
-        -> decltype((*this)
-                        ._index((s.lower, s),
-                                utils::make_index_sequence<sizeof...(Args)>{}))
+        -> decltype((*this)._index(
+            (s.lower, s), utils::make_index_sequence<sizeof...(Args)>{}))
     {
       return _index(s, utils::make_index_sequence<sizeof...(Args)>{});
     }
 
-    dtype operator[](array<long, value> const &indices) const
+    dtype operator[](array_tuple<long, value> const &indices) const
     {
       return _index(indices, utils::make_index_sequence<sizeof...(Args)>{});
     }
@@ -829,7 +837,7 @@ namespace types
 
     long size() const;
   };
-}
+} // namespace types
 
 template <class Op, class... Args>
 struct assignable<types::numpy_expr<Op, Args...>> {
@@ -882,8 +890,8 @@ struct __combined<pythonic::types::numpy_expr<Op, Args...>,
                   pythonic::types::numpy_expr<Op2, Args2...>> {
   using type = pythonic::types::ndarray<
       typename pythonic::types::numpy_expr<Op, Args...>::dtype,
-      pythonic::types::array<long,
-                             pythonic::types::numpy_expr<Op, Args...>::value>>;
+      pythonic::types::array_tuple<
+          long, pythonic::types::numpy_expr<Op, Args...>::value>>;
 };
 template <class E, class Op, class... Args>
 struct __combined<pythonic::types::numpy_iexpr<E>,
@@ -907,8 +915,8 @@ struct __combined<pythonic::types::numpy_expr<Op, Args...>,
                   pythonic::types::numpy_texpr<T>> {
   using type = pythonic::types::ndarray<
       typename pythonic::types::numpy_expr<Op, Args...>::dtype,
-      pythonic::types::array<long,
-                             pythonic::types::numpy_expr<Op, Args...>::value>>;
+      pythonic::types::array_tuple<
+          long, pythonic::types::numpy_expr<Op, Args...>::value>>;
 };
 
 template <class T, class Op, class... Args>
@@ -916,8 +924,8 @@ struct __combined<pythonic::types::numpy_texpr<T>,
                   pythonic::types::numpy_expr<Op, Args...>> {
   using type = pythonic::types::ndarray<
       typename pythonic::types::numpy_expr<Op, Args...>::dtype,
-      pythonic::types::array<long,
-                             pythonic::types::numpy_expr<Op, Args...>::value>>;
+      pythonic::types::array_tuple<
+          long, pythonic::types::numpy_expr<Op, Args...>::value>>;
 };
 
 /*}*/

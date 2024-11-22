@@ -4,8 +4,8 @@
 #include "pythonic/include/types/variant_functor.hpp"
 #include "pythonic/utils/meta.hpp"
 
-#include <utility>
 #include <cassert>
+#include <utility>
 
 PYTHONIC_NS_BEGIN
 
@@ -17,7 +17,7 @@ namespace types
 
     template <class Type>
     variant_functor_impl<Type>::variant_functor_impl(char mem[], Type const &t)
-        : fun(new (mem) Type(t))
+        : fun(new(mem) Type(t))
     {
     }
 
@@ -32,7 +32,7 @@ namespace types
     template <class Type>
     variant_functor_impl<Type>::variant_functor_impl(
         char mem[], variant_functor_impl<Type> const &t)
-        : fun(t.fun ? new (mem) Type(*t.fun) : nullptr)
+        : fun(t.fun ? new(mem) Type(*t.fun) : nullptr)
     {
     }
 
@@ -126,7 +126,7 @@ namespace types
 
     template <class Type>
     template <class... Args>
-    auto variant_functor_impl<Type>::operator()(Args &&... args)
+    auto variant_functor_impl<Type>::operator()(Args &&...args)
         -> decltype(std::declval<Type>()(std::forward<Args>(args)...))
     {
       assert(fun && "handler defined");
@@ -135,7 +135,7 @@ namespace types
 
     template <class Type>
     template <class... Args>
-    auto variant_functor_impl<Type>::operator()(Args &&... args) const
+    auto variant_functor_impl<Type>::operator()(Args &&...args) const
         -> decltype(std::declval<Type>()(std::forward<Args>(args)...))
     {
       assert(fun && "handler defined");
@@ -145,7 +145,7 @@ namespace types
     template <class Type, class... Types>
     template <class... OtherTypes>
     variant_functor_impl<Type, Types...>::variant_functor_impl(
-        char mem[], OtherTypes const &... t)
+        char mem[], OtherTypes const &...t)
         : head(mem, t...), tail(mem, t...)
     {
     }
@@ -177,9 +177,11 @@ namespace types
 
     template <class Type, class... Types>
     template <class... Args>
-    auto variant_functor_impl<Type, Types...>::operator()(Args &&... args) ->
-        typename __combined<decltype(std::declval<Type>()(std::forward<Args>(args)...)),
-                            decltype(std::declval<Types>()(std::forward<Args>(args)...))...>::type
+    auto variant_functor_impl<Type, Types...>::operator()(Args &&...args) ->
+        typename __combined<
+            decltype(std::declval<Type>()(std::forward<Args>(args)...)),
+            decltype(std::declval<Types>()(
+                std::forward<Args>(args)...))...>::type
     {
       if (head.fun)
         return head(std::forward<Args>(args)...);
@@ -189,17 +191,19 @@ namespace types
 
     template <class Type, class... Types>
     template <class... Args>
-    auto variant_functor_impl<Type, Types...>::operator()(Args &&... args) const
-        ->
-        typename __combined<decltype(std::declval<Type>()(std::forward<Args>(args)...)),
-                            decltype(std::declval<Types>()(std::forward<Args>(args)...))...>::type
+    auto
+    variant_functor_impl<Type, Types...>::operator()(Args &&...args) const ->
+        typename __combined<
+            decltype(std::declval<Type>()(std::forward<Args>(args)...)),
+            decltype(std::declval<Types>()(
+                std::forward<Args>(args)...))...>::type
     {
       if (head.fun)
         return head(std::forward<Args>(args)...);
       else
         return tail(std::forward<Args>(args)...);
     }
-  }
+  } // namespace details
 
   template <class... Types>
   variant_functor<Types...>::variant_functor(variant_functor const &other)
@@ -210,8 +214,8 @@ namespace types
   }
 
   template <class... Types>
-  variant_functor<Types...> &variant_functor<Types...>::
-  operator=(variant_functor<Types...> const &other)
+  variant_functor<Types...> &
+  variant_functor<Types...>::operator=(variant_functor<Types...> const &other)
   {
     details::variant_functor_impl<Types...>::assign(mem, other);
     return *this;
@@ -219,8 +223,8 @@ namespace types
 
   template <class... Types>
   template <class... OtherTypes>
-  variant_functor<Types...> &variant_functor<Types...>::
-  operator=(variant_functor<OtherTypes...> const &other)
+  variant_functor<Types...> &variant_functor<Types...>::operator=(
+      variant_functor<OtherTypes...> const &other)
   {
     details::variant_functor_impl<Types...>::assign(mem, other);
     return *this;
@@ -228,8 +232,8 @@ namespace types
 
   template <class... Types>
   template <class OtherType>
-  variant_functor<Types...> &variant_functor<Types...>::
-  operator=(OtherType const &other)
+  variant_functor<Types...> &
+  variant_functor<Types...>::operator=(OtherType const &other)
   {
     static_assert(
         utils::any_of<std::is_same<OtherType, Types>::value...>::value,
@@ -240,7 +244,7 @@ namespace types
 
   template <class... Types>
   template <class... OtherTypes>
-  variant_functor<Types...>::variant_functor(OtherTypes const &... t)
+  variant_functor<Types...>::variant_functor(OtherTypes const &...t)
       : details::variant_functor_impl<Types...>(mem, t...)
   {
   }
@@ -255,6 +259,6 @@ namespace types
                 t))
   {
   }
-}
+} // namespace types
 PYTHONIC_NS_END
 #endif

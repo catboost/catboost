@@ -264,7 +264,7 @@ class Types(ModuleAnalysis):
         self.result[node] = self.combined(curr_ty, ty)
 
     def visit_FunctionDef(self, node):
-        self.delayed_types = set()
+        self.delayed_nodes = set()
         self.curr_locals_declaration = self.gather(
             LocalNodeDeclarations,
             node)
@@ -278,7 +278,7 @@ class Types(ModuleAnalysis):
 
         self.generic_visit(node)
 
-        for delayed_node in self.delayed_types:
+        for delayed_node in self.delayed_nodes:
             delayed_type = self.result[delayed_node]
             all_types = ordered_set(self.result[ty] for ty in
                                     self.name_to_nodes[delayed_node.id])
@@ -290,7 +290,7 @@ class Types(ModuleAnalysis):
             all_types = ordered_set(self.result[ty] for ty in nodes)
             final_type = self.combined(*all_types)
             for n in nodes:
-                if n not in self.delayed_types:
+                if n not in self.delayed_nodes:
                     self.result[n] = final_type
         self.current_global_declarations[node.name] = node
 
@@ -335,6 +335,23 @@ class Types(ModuleAnalysis):
                     for alias in self.strict_aliases[t.value]:
                         fake = ast.Subscript(alias, t.slice, ast.Store())
                         self.combine(fake, None, node.value)
+
+    def visit_AnnAssign(self, node):
+        if not node.value:
+            # FIXME: replace this by actually setting the node type from the
+            # annotation
+            self.curr_locals_declaration.remove(node.target)
+            return
+        self.visit(node.value)
+        t = node.target
+        self.combine(t, None, node.value)
+        if t in self.curr_locals_declaration:
+            self.result[t] = self.get_qualifier(t)(self.result[t])
+        if isinstance(t, ast.Subscript):
+            if self.visit_AssignedSubscript(t):
+                for alias in self.strict_aliases[t.value]:
+                    fake = ast.Subscript(alias, t.slice, ast.Store())
+                    self.combine(fake, None, node.value)
 
     def visit_AugAssign(self, node):
         self.visit(node.value)
@@ -461,8 +478,11 @@ class Types(ModuleAnalysis):
         else:
             sty = pytype_to_ctype(ty)
         if node in self.immediates:
-            sty = "std::integral_constant<%s, %s>" % (sty,
-                                                      str(node.value).lower())
+            if sty == 'pythonic::types::chr':
+                sty = "std::integral_constant<char, '%s'>" % (node.value)
+            else:
+                sty = "std::integral_constant<%s, %s>" % (sty,
+                                                          str(node.value).lower())
         self.result[node] = self.builder.NamedType(sty)
 
     def visit_Attribute(self, node):
@@ -554,7 +574,7 @@ class Types(ModuleAnalysis):
     def delayed(self, node):
         fallback_type = self.combined(*[self.result[n] for n in
                                         self.name_to_nodes[node.id]])
-        self.delayed_types.add(node)
+        self.delayed_nodes.add(node)
         return self.builder.LType(fallback_type, node)
 
     def visit_Name(self, node):

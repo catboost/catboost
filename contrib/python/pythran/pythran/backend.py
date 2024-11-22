@@ -408,26 +408,29 @@ class CxxFunction(ast.NodeVisitor):
 
         Finally, process OpenMP clause like #pragma omp atomic
         """
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
         if not all(isinstance(n, (ast.Name, ast.Subscript))
-                   for n in node.targets):
+                   for n in targets):
             raise PythranSyntaxError(
                 "Must assign to an identifier or a subscript",
                 node)
+        if not node.value:
+            return self.visit_Pass(node)
         value = self.visit(node.value)
-        targets = [self.visit(t) for t in node.targets]
-        alltargets = "= ".join(targets)
-        islocal = (len(targets) == 1 and
-                   isinstance(node.targets[0], ast.Name) and
-                   node.targets[0].id in self.scope[node] and
-                   node.targets[0].id not in self.openmp_deps)
+        stargets = [self.visit(t) for t in targets]
+        alltargets = "= ".join(stargets)
+        islocal = (len(stargets) == 1 and
+                   isinstance(targets[0], ast.Name) and
+                   targets[0].id in self.scope[node] and
+                   targets[0].id not in self.openmp_deps)
         if islocal:
             # remove this decls from local decls
-            self.ldecls.difference_update(t.id for t in node.targets)
+            self.ldecls.difference_update(t.id for t in targets)
             # add a local declaration
-            if self.types[node.targets[0]].iscombined():
-                alltargets = '{} {}'.format(self.typeof(node.targets[0]),
+            if self.types[targets[0]].iscombined():
+                alltargets = '{} {}'.format(self.typeof(targets[0]),
                                             alltargets)
-            elif isinstance(self.types[node.targets[0]],
+            elif isinstance(self.types[targets[0]],
                             self.types.builder.Assignable):
                 alltargets = '{} {}'.format(
                     self.types.builder.AssignableNoEscape(
@@ -435,7 +438,7 @@ class CxxFunction(ast.NodeVisitor):
                             'decltype({})'.format(value))).sgenerate(),
                     alltargets)
             else:
-                assert isinstance(self.types[node.targets[0]],
+                assert isinstance(self.types[targets[0]],
                                   self.types.builder.Lazy)
                 alltargets = '{} {}'.format(
                     self.types.builder.Lazy(
@@ -444,6 +447,8 @@ class CxxFunction(ast.NodeVisitor):
                     alltargets)
         stmt = Assign(alltargets, value)
         return self.process_omp_attachements(node, stmt)
+
+    visit_AnnAssign = visit_Assign
 
     def visit_AugAssign(self, node):
         value = self.visit(node.value)
@@ -907,7 +912,7 @@ class CxxFunction(ast.NodeVisitor):
         body = self.visit(node.body)
         orelse = self.visit(node.orelse)
         return (
-            "(((bool){0}) "
+            "(pythonic::builtins::functor::bool_{{}}({0}) "
             "? typename __combined<decltype({1}), decltype({2})>::type({1}) "
             ": typename __combined<decltype({1}), decltype({2})>::type({2}))"
         ).format(test, body, orelse)
@@ -1026,9 +1031,13 @@ class CxxFunction(ast.NodeVisitor):
         else:
             ret = repr(node.value) + TYPE_TO_SUFFIX.get(type(node.value), "")
         if node in self.immediates:
-            assert isinstance(node.value, int)
-            return "std::integral_constant<%s, %s>{}" % (
-                PYTYPE_TO_CTYPE_TABLE[type(node.value)], str(node.value).lower())
+            if isinstance(node.value, int):
+                return "std::integral_constant<%s, %s>{}" % (
+                    PYTYPE_TO_CTYPE_TABLE[type(node.value)], str(node.value).lower())
+            if isinstance(node.value, str):
+                assert len(node.value) == 1
+                return "std::integral_constant<char, '%s'>{}" % node.value
+            raise PythranSyntaxError("Unsupported immediate type", node)
         return ret
 
     def visit_Attribute(self, node):
@@ -1321,11 +1330,16 @@ class CxxGenerator(CxxFunction):
             ]).generate())
 
     def visit_Assign(self, node):
+        if not node.value:
+            return self.visit_Pass(node)
         value = self.visit(node.value)
-        targets = [self.visit(t) for t in node.targets]
+        targets = node.targets if isinstance(node, ast.Assign) else (node.target,)
+        targets = [self.visit(t) for t in targets]
         alltargets = "= ".join(targets)
         stmt = Assign(alltargets, value)
         return self.process_omp_attachements(node, stmt)
+
+    visit_AnnAssign = visit_Assign
 
     def can_use_autofor(self, node):
         """

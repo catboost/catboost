@@ -3,9 +3,9 @@
 
 #include "pythonic/include/numpy/reduce.hpp"
 
-#include "pythonic/types/ndarray.hpp"
 #include "pythonic/builtins/None.hpp"
 #include "pythonic/builtins/ValueError.hpp"
+#include "pythonic/types/ndarray.hpp"
 #include "pythonic/utils/neutral.hpp"
 
 #ifdef USE_XSIMD
@@ -277,7 +277,7 @@ namespace numpy
       axis += E::value;
     if (axis < 0 || size_t(axis) >= E::value)
       throw types::ValueError("axis out of bounds");
-    types::array<long, E::value - 1> shp;
+    types::array_tuple<long, E::value - 1> shp;
     auto tmp = sutils::getshape(array);
     auto next = std::copy(tmp.begin(), tmp.begin() + axis, shp.begin());
     std::copy(tmp.begin() + axis + 1, tmp.end(), next);
@@ -315,7 +315,7 @@ namespace numpy
       }
     }
   }
-}
+} // namespace numpy
 PYTHONIC_NS_END
 
 #endif
