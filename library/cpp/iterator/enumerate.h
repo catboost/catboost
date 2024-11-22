@@ -8,11 +8,11 @@
 
 namespace NPrivate {
 
-    template <typename TContainer>
+    template <typename TContainer, typename TSize>
     struct TEnumerator {
     private:
         using TStorage = TAutoEmbedOrPtrPolicy<TContainer>;
-        using TValue = std::tuple<const std::size_t, decltype(*std::begin(std::declval<TContainer&>()))>;
+        using TValue = std::tuple<const TSize, decltype(*std::begin(std::declval<TContainer&>()))>;
         using TIteratorState = decltype(std::begin(std::declval<TContainer&>()));
         using TSentinelState = decltype(std::end(std::declval<TContainer&>()));
 
@@ -55,7 +55,7 @@ namespace NPrivate {
                 return Iterator_ == other.Iterator_;
             }
 
-            std::size_t Index_;
+            TSize Index_;
             TIteratorState Iterator_;
         };
 
@@ -72,7 +72,7 @@ namespace NPrivate {
 
         TSentinel end() const {
             if constexpr (TrivialSentinel) {
-                return TIterator{std::numeric_limits<std::size_t>::max(), std::end(*Storage_.Ptr())};
+                return TIterator{std::numeric_limits<TSize>::max(), std::end(*Storage_.Ptr())};
             } else {
                 return TSentinel{std::end(*Storage_.Ptr())};
             }
@@ -86,5 +86,12 @@ namespace NPrivate {
 //! Usage: for (auto [i, x] : Enumerate(container)) {...}
 template <typename TContainerOrRef>
 auto Enumerate(TContainerOrRef&& container) {
-    return NPrivate::TEnumerator<TContainerOrRef>{std::forward<TContainerOrRef>(container)};
+    return NPrivate::TEnumerator<TContainerOrRef, std::size_t>{std::forward<TContainerOrRef>(container)};
+}
+
+//! Usage: for (auto [i, x] : SEnumerate(container)) {...}
+// The index is signed for codebases that prefer signed numerics (such as YTsaurus).
+template <typename TContainerOrRef>
+auto SEnumerate(TContainerOrRef&& container) {
+    return NPrivate::TEnumerator<TContainerOrRef, std::ptrdiff_t>{std::forward<TContainerOrRef>(container)};
 }
