@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: types-protobuf
-Version: 5.28.0.20240924
+Version: 5.28.3.20241030
 Summary: Typing stubs for protobuf
 Home-page: https://github.com/python/typeshed
 License: Apache-2.0
@@ -22,23 +22,27 @@ It can be used by type-checking tools like
 [mypy](https://github.com/python/mypy/),
 [pyright](https://github.com/microsoft/pyright),
 [pytype](https://github.com/google/pytype/),
-PyCharm, etc. to check code that uses
-`protobuf`.
+[Pyre](https://pyre-check.org/),
+PyCharm, etc. to check code that uses `protobuf`. This version of
+`types-protobuf` aims to provide accurate annotations for
+`protobuf~=5.28.3`.
 
-This version of `types-protobuf` aims to provide accurate annotations
-for `protobuf==5.28.*`.
-The source for this package can be found at
-https://github.com/python/typeshed/tree/main/stubs/protobuf. All fixes for
-types and metadata should be contributed there.
-
-Partially generated using [mypy-protobuf==3.6.0](https://github.com/nipunn1313/mypy-protobuf/tree/v3.6.0) and libprotoc 26.1 on [protobuf v28.2](https://github.com/protocolbuffers/protobuf/releases/tag/v28.2) (python `protobuf==5.28.2`).
+Partially generated using [mypy-protobuf==3.6.0](https://github.com/nipunn1313/mypy-protobuf/tree/v3.6.0) and libprotoc 27.2 on [protobuf v28.3](https://github.com/protocolbuffers/protobuf/releases/tag/v28.3) (python `protobuf==5.28.3`).
 
 This stub package is marked as [partial](https://peps.python.org/pep-0561/#partial-stub-packages).
 If you find that annotations are missing, feel free to contribute and help complete them.
 
 
-See https://github.com/python/typeshed/blob/main/README.md for more details.
-This package was generated from typeshed commit
-[`9f033bf439e064917e4b235b8a09b7530f182516`](https://github.com/python/typeshed/commit/9f033bf439e064917e4b235b8a09b7530f182516) and was tested
-with mypy 1.11.1, pyright 1.1.381, and
-pytype 2024.9.13.
+This package is part of the [typeshed project](https://github.com/python/typeshed).
+All fixes for types and metadata should be contributed there.
+See [the README](https://github.com/python/typeshed/blob/main/README.md)
+for more details. The source for this package can be found in the
+[`stubs/protobuf`](https://github.com/python/typeshed/tree/main/stubs/protobuf)
+directory.
+
+This package was tested with
+mypy 1.13.0,
+pyright 1.1.386,
+and pytype 2024.10.11.
+It was generated from typeshed commit
+[`6029bf18192fba492a9d82d88238a4e1929e1c43`](https://github.com/python/typeshed/commit/6029bf18192fba492a9d82d88238a4e1929e1c43).
