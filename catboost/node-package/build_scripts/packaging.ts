@@ -29,16 +29,10 @@ export function prepareHeaders() {
 
     const cApiPath = 'catboost/libs/model_interface/c_api.h';
     copyFile(join(rootPath, cApiPath), join(incDir, cApiPath));
-
-    const stlfwdPath = 'contrib/libs/cxxsupp/system_stl/include/stlfwd';
-    copyFile(join(rootPath, stlfwdPath), join(incDir, stlfwdPath));
-
-    const utilPath = 'util';
-    copyHeadersRecursively(join(rootPath, utilPath), join(incDir, utilPath));
 }
 
 export async function generateConfigForVersion(version: string) {
-    
+
     console.log(`Preparing config for verion ${version}`);
     const [config, error] = await createConfigForVersion(version);
     writeConfig(config);
