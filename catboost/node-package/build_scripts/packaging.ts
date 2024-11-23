@@ -1,22 +1,7 @@
-import {mkdirSync, existsSync, readdirSync, lstatSync, readFileSync, writeFileSync} from 'fs';
+import {mkdirSync, existsSync, readFileSync, writeFileSync} from 'fs';
 import {copyFile} from './download';
-import {extname, join} from 'path';
+import {join} from 'path';
 import {createConfigForVersion, writeConfig} from './config';
-
-function copyHeadersRecursively(srcPath: string, targetPath: string) {
-    for (const part of readdirSync(srcPath)) {
-        const path = join(srcPath, part);
-        const target = join(targetPath, part);
-        if (lstatSync(path).isDirectory()) {
-            copyHeadersRecursively(path, target);
-            continue;
-        }
-
-        if (extname(path) === '.h') {
-            copyFile(path, target);
-        }
-    }
-}
 
 export function prepareHeaders() {
     const incDir = './inc';
