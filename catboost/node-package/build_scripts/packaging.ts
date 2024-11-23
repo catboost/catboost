@@ -18,7 +18,7 @@ export function prepareHeaders() {
 
 export async function generateConfigForVersion(version: string) {
 
-    console.log(`Preparing config for verion ${version}`);
+    console.log(`Preparing config for version ${version}`);
     const [config, error] = await createConfigForVersion(version);
     writeConfig(config);
     if (error !== undefined) {
