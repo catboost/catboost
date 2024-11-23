@@ -94,7 +94,8 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
 
       val workerListeningPort = if (workerListeningPortParam != 0) { workerListeningPortParam } else { TrainingDriver.getWorkerPort() }
 
-      val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
+      val service = Executors.newFixedThreadPool(2)
+      val ecs = new ExecutorCompletionService[Unit](service)
 
       val partitionId = this.partitionId
       val sendWorkerInfoFuture = ecs.submit(
@@ -125,6 +126,8 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
         },
         ()
       )
+
+      service.shutdown()
 
       try {
         impl.Helpers.waitForTwoFutures(
