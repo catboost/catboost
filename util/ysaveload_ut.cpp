@@ -143,6 +143,16 @@ private:
         }
 
         {
+            std::map<ui16, ui32> map;
+
+            map[(ui16)1] = 2;
+            map[(ui16)2] = 3;
+            map[(ui16)3] = 4;
+
+            Save(&S_, map);
+        }
+
+        {
             TMultiMap<ui16, ui32> multimap;
 
             multimap.emplace((ui16)1, 2);
@@ -152,6 +162,88 @@ private:
             multimap.emplace((ui16)3, 6);
 
             Save(&S_, multimap);
+        }
+
+        {
+            std::multimap<ui16, ui32> multimap;
+
+            multimap.emplace((ui16)1, 2);
+            multimap.emplace((ui16)2, 3);
+            multimap.emplace((ui16)2, 4);
+            multimap.emplace((ui16)2, 5);
+            multimap.emplace((ui16)3, 6);
+
+            Save(&S_, multimap);
+        }
+
+        {
+            THashMap<ui16, ui32> hmap;
+
+            hmap[(ui16)1] = 2;
+            hmap[(ui16)2] = 3;
+            hmap[(ui16)3] = 4;
+
+            Save(&S_, hmap);
+        }
+
+        {
+            std::unordered_map<ui16, ui32> umap;
+
+            umap[(ui16)1] = 2;
+            umap[(ui16)2] = 3;
+            umap[(ui16)3] = 4;
+
+            Save(&S_, umap);
+        }
+
+        {
+            THashMultiMap<TString, int> mm;
+
+            mm.insert({"one", 1});
+            mm.insert({"two", 2});
+            mm.insert({"two", 22});
+
+            Save(&S_, mm);
+        }
+
+        {
+            TSet<int> s;
+
+            s.insert(2);
+            s.insert(3);
+            s.insert(4);
+
+            Save(&S_, s);
+        }
+
+        {
+            std::set<int> s;
+
+            s.insert(2);
+            s.insert(3);
+            s.insert(4);
+
+            Save(&S_, s);
+        }
+
+        {
+            THashSet<int> hs;
+
+            hs.insert(2);
+            hs.insert(3);
+            hs.insert(4);
+
+            Save(&S_, hs);
+        }
+
+        {
+            std::unordered_set<int> us;
+
+            us.insert(2);
+            us.insert(3);
+            us.insert(4);
+
+            Save(&S_, us);
         }
 
         {
@@ -214,16 +306,6 @@ private:
             Save(&S_, h);
         }
 
-        {
-            THashMultiMap<TString, int> mm;
-
-            mm.insert({"one", 1});
-            mm.insert({"two", 2});
-            mm.insert({"two", 22});
-
-            Save(&S_, mm);
-        }
-
         // load part
         {
             ui8 val;
@@ -274,6 +356,16 @@ private:
         }
 
         {
+            std::map<ui16, ui32> map;
+
+            Load(&S_, map);
+            UNIT_ASSERT_EQUAL(map.size(), 3);
+            UNIT_ASSERT_EQUAL(map[(ui16)1], 2);
+            UNIT_ASSERT_EQUAL(map[(ui16)2], 3);
+            UNIT_ASSERT_EQUAL(map[(ui16)3], 4);
+        }
+
+        {
             TMultiMap<ui16, ui32> multimap;
 
             Load(&S_, multimap);
@@ -291,6 +383,101 @@ private:
             UNIT_ASSERT_EQUAL(values.contains(3), true);
             UNIT_ASSERT_EQUAL(values.contains(4), true);
             UNIT_ASSERT_EQUAL(values.contains(5), true);
+        }
+
+        {
+            std::multimap<ui16, ui32> multimap;
+
+            Load(&S_, multimap);
+            UNIT_ASSERT_EQUAL(multimap.size(), 5);
+            UNIT_ASSERT_EQUAL(multimap.find((ui16)1)->second, 2);
+            UNIT_ASSERT_EQUAL(multimap.find((ui16)3)->second, 6);
+
+            std::set<ui32> values;
+            auto range = multimap.equal_range((ui16)2);
+            for (auto i = range.first; i != range.second; ++i) {
+                values.insert(i->second);
+            }
+
+            UNIT_ASSERT_EQUAL(values.size(), 3);
+            UNIT_ASSERT_EQUAL(values.contains(3), true);
+            UNIT_ASSERT_EQUAL(values.contains(4), true);
+            UNIT_ASSERT_EQUAL(values.contains(5), true);
+        }
+
+        {
+            THashMap<ui16, ui32> hmap;
+
+            Load(&S_, hmap);
+            UNIT_ASSERT_EQUAL(hmap.size(), 3);
+            UNIT_ASSERT_EQUAL(hmap[(ui16)1], 2);
+            UNIT_ASSERT_EQUAL(hmap[(ui16)2], 3);
+            UNIT_ASSERT_EQUAL(hmap[(ui16)3], 4);
+        }
+
+        {
+            std::unordered_map<ui16, ui32> umap;
+
+            Load(&S_, umap);
+            UNIT_ASSERT_EQUAL(umap.size(), 3);
+            UNIT_ASSERT_EQUAL(umap[(ui16)1], 2);
+            UNIT_ASSERT_EQUAL(umap[(ui16)2], 3);
+            UNIT_ASSERT_EQUAL(umap[(ui16)3], 4);
+        }
+
+        {
+            THashMultiMap<TString, int> mm;
+
+            Load(&S_, mm);
+
+            UNIT_ASSERT_EQUAL(mm.size(), 3);
+            UNIT_ASSERT_EQUAL(mm.count("one"), 1);
+            auto oneIter = mm.equal_range("one").first;
+            UNIT_ASSERT_EQUAL(oneIter->second, 1);
+            UNIT_ASSERT_EQUAL(mm.count("two"), 2);
+            auto twoIter = mm.equal_range("two").first;
+            UNIT_ASSERT_EQUAL(twoIter->second, 2);
+            UNIT_ASSERT_EQUAL((++twoIter)->second, 22);
+        }
+
+        {
+            TSet<int> s;
+
+            Load(&S_, s);
+            UNIT_ASSERT_EQUAL(s.size(), 3);
+            UNIT_ASSERT_EQUAL(s.contains(2), true);
+            UNIT_ASSERT_EQUAL(s.contains(3), true);
+            UNIT_ASSERT_EQUAL(s.contains(4), true);
+        }
+
+        {
+            std::set<int> s;
+
+            Load(&S_, s);
+            UNIT_ASSERT_EQUAL(s.size(), 3);
+            UNIT_ASSERT_EQUAL(s.contains(2), true);
+            UNIT_ASSERT_EQUAL(s.contains(3), true);
+            UNIT_ASSERT_EQUAL(s.contains(4), true);
+        }
+
+        {
+            THashSet<int> hs;
+
+            Load(&S_, hs);
+            UNIT_ASSERT_EQUAL(hs.size(), 3);
+            UNIT_ASSERT_EQUAL(hs.contains(2), true);
+            UNIT_ASSERT_EQUAL(hs.contains(3), true);
+            UNIT_ASSERT_EQUAL(hs.contains(4), true);
+        }
+
+        {
+            std::unordered_set<int> us;
+
+            Load(&S_, us);
+            UNIT_ASSERT_EQUAL(us.size(), 3);
+            UNIT_ASSERT_EQUAL(us.contains(2), true);
+            UNIT_ASSERT_EQUAL(us.contains(3), true);
+            UNIT_ASSERT_EQUAL(us.contains(4), true);
         }
 
         {
@@ -362,21 +549,6 @@ private:
             UNIT_ASSERT(!!h);
             Load(&S_, h);
             UNIT_ASSERT(!h);
-        }
-
-        {
-            THashMultiMap<TString, int> mm;
-
-            Load(&S_, mm);
-
-            UNIT_ASSERT_EQUAL(mm.size(), 3);
-            UNIT_ASSERT_EQUAL(mm.count("one"), 1);
-            auto oneIter = mm.equal_range("one").first;
-            UNIT_ASSERT_EQUAL(oneIter->second, 1);
-            UNIT_ASSERT_EQUAL(mm.count("two"), 2);
-            auto twoIter = mm.equal_range("two").first;
-            UNIT_ASSERT_EQUAL(twoIter->second, 2);
-            UNIT_ASSERT_EQUAL((++twoIter)->second, 22);
         }
     }
 

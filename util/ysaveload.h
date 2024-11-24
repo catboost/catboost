@@ -10,6 +10,9 @@
 #include <util/stream/input.h>
 #include <util/system/compiler.h>
 
+#include <unordered_map>
+#include <unordered_set>
+
 #ifndef __NVCC__
     // cuda is compiled in C++14 mode at the time
     #include <optional>
@@ -603,6 +606,10 @@ template <class T1, class T2, class T3, class T4, class T5>
 class TSerializer<THashMap<T1, T2, T3, T4, T5>>: public TMapSerializer<THashMap<T1, T2, T3, T4, T5>, false> {
 };
 
+template <class K, class T, class C, class A>
+class TSerializer<std::unordered_map<K, T, C, A>>: public TMapSerializer<std::unordered_map<K, T, C, A>, false> {
+};
+
 template <class T1, class T2, class T3, class T4, class T5>
 class TSerializer<THashMultiMap<T1, T2, T3, T4, T5>>: public TMapSerializer<THashMultiMap<T1, T2, T3, T4, T5>, false> {
 };
@@ -617,6 +624,10 @@ class TSerializer<std::set<K, C, A>>: public TSetSerializer<std::set<K, C, A>, t
 
 template <class T1, class T2, class T3, class T4>
 class TSerializer<THashSet<T1, T2, T3, T4>>: public TSetSerializer<THashSet<T1, T2, T3, T4>, false> {
+};
+
+template <class K, class C, class A>
+class TSerializer<std::unordered_set<K, C, A>>: public TSetSerializer<std::unordered_set<K, C, A>, false> {
 };
 
 template <class T1, class T2>
