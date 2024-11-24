@@ -1,4 +1,4 @@
-//===-- cpu_model.c - Support for __cpu_model builtin  ------------*- C -*-===//
+//===-- cpu_model/x86.c - Support for __cpu_model builtin  --------*- C -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -8,41 +8,20 @@
 //
 //  This file is based on LLVM's lib/Support/Host.cpp.
 //  It implements the operating system Host concept and builtin
-//  __cpu_model for the compiler_rt library for x86 and
-//  __aarch64_have_lse_atomics, __aarch64_cpu_features for AArch64.
+//  __cpu_model for the compiler_rt library for x86.
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __has_attribute
-#define __has_attribute(attr) 0
+#include "cpu_model.h"
+
+#if !(defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) ||          \
+      defined(_M_X64))
+#error This file is intended only for x86-based targets
 #endif
 
-#if __has_attribute(constructor)
-#if __GNUC__ >= 9
-// Ordinarily init priorities below 101 are disallowed as they are reserved for the
-// implementation. However, we are the implementation, so silence the diagnostic,
-// since it doesn't apply to us.
-#pragma GCC diagnostic ignored "-Wprio-ctor-dtor"
-#endif
-// We're choosing init priority 90 to force our constructors to run before any
-// constructors in the end user application (starting at priority 101). This value
-// matches the libgcc choice for the same functions.
-#define CONSTRUCTOR_ATTRIBUTE __attribute__((constructor(90)))
-#else
-// FIXME: For MSVC, we should make a function pointer global in .CRT$X?? so that
-// this runs during initialization.
-#define CONSTRUCTOR_ATTRIBUTE
-#endif
-
-#if (defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) ||           \
-     defined(_M_X64)) &&                                                       \
-    (defined(__GNUC__) || defined(__clang__) || defined(_MSC_VER))
+#if defined(__GNUC__) || defined(__clang__) || defined(_MSC_VER)
 
 #include <assert.h>
-
-#define bool int
-#define true 1
-#define false 0
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -79,6 +58,7 @@ enum ProcessorTypes {
   ZHAOXIN_FAM7H,
   INTEL_SIERRAFOREST,
   INTEL_GRANDRIDGE,
+  INTEL_CLEARWATERFOREST,
   CPU_TYPE_MAX
 };
 
@@ -113,6 +93,10 @@ enum ProcessorSubtypes {
   ZHAOXIN_FAM7H_LUJIAZUI,
   AMDFAM19H_ZNVER4,
   INTEL_COREI7_GRANITERAPIDS,
+  INTEL_COREI7_GRANITERAPIDS_D,
+  INTEL_COREI7_ARROWLAKE,
+  INTEL_COREI7_ARROWLAKE_S,
+  INTEL_COREI7_PANTHERLAKE,
   CPU_SUBTYPE_MAX
 };
 
@@ -155,6 +139,20 @@ enum ProcessorFeatures {
   FEATURE_AVX512BITALG,
   FEATURE_AVX512BF16,
   FEATURE_AVX512VP2INTERSECT,
+
+  FEATURE_CMPXCHG16B = 46,
+  FEATURE_F16C = 49,
+  FEATURE_LAHF_LM = 54,
+  FEATURE_LM,
+  FEATURE_WP,
+  FEATURE_LZCNT,
+  FEATURE_MOVBE,
+
+  FEATURE_AVX512FP16 = 94,
+  FEATURE_X86_64_BASELINE,
+  FEATURE_X86_64_V2,
+  FEATURE_X86_64_V3,
+  FEATURE_X86_64_V4,
   CPU_FEATURE_MAX
 };
 
@@ -301,12 +299,12 @@ static void detectX86FamilyModel(unsigned EAX, unsigned *Family,
   }
 }
 
-static const char *
-getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
-                                const unsigned *Features,
-                                unsigned *Type, unsigned *Subtype) {
-#define testFeature(F)                                                         \
-  (Features[F / 32] & (1 << (F % 32))) != 0
+static const char *getIntelProcessorTypeAndSubtype(unsigned Family,
+                                                   unsigned Model,
+                                                   const unsigned *Features,
+                                                   unsigned *Type,
+                                                   unsigned *Subtype) {
+#define testFeature(F) (Features[F / 32] & (1 << (F % 32))) != 0
 
   // We select CPU strings to match the code in Host.cpp, but we don't use them
   // in compiler-rt.
@@ -339,7 +337,7 @@ getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
     case 0x1e: // Intel(R) Core(TM) i7 CPU         870  @ 2.93GHz.
                // As found in a Summer 2010 model iMac.
     case 0x1f:
-    case 0x2e:              // Nehalem EX
+    case 0x2e: // Nehalem EX
       CPU = "nehalem";
       *Type = INTEL_COREI7;
       *Subtype = INTEL_COREI7_NEHALEM;
@@ -360,7 +358,7 @@ getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
       *Subtype = INTEL_COREI7_SANDYBRIDGE;
       break;
     case 0x3a:
-    case 0x3e:              // Ivy Bridge EP
+    case 0x3e: // Ivy Bridge EP
       CPU = "ivybridge";
       *Type = INTEL_COREI7;
       *Subtype = INTEL_COREI7_IVYBRIDGE;
@@ -387,12 +385,12 @@ getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
       break;
 
     // Skylake:
-    case 0x4e:              // Skylake mobile
-    case 0x5e:              // Skylake desktop
-    case 0x8e:              // Kaby Lake mobile
-    case 0x9e:              // Kaby Lake desktop
-    case 0xa5:              // Comet Lake-H/S
-    case 0xa6:              // Comet Lake-U
+    case 0x4e: // Skylake mobile
+    case 0x5e: // Skylake desktop
+    case 0x8e: // Kaby Lake mobile
+    case 0x9e: // Kaby Lake desktop
+    case 0xa5: // Comet Lake-H/S
+    case 0xa6: // Comet Lake-U
       CPU = "skylake";
       *Type = INTEL_COREI7;
       *Subtype = INTEL_COREI7_SKYLAKE;
@@ -448,12 +446,39 @@ getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
     case 0x9a:
     // Raptorlake:
     case 0xb7:
+    case 0xba:
+    case 0xbf:
     // Meteorlake:
     case 0xaa:
     case 0xac:
+    // Gracemont:
+    case 0xbe:
       CPU = "alderlake";
       *Type = INTEL_COREI7;
       *Subtype = INTEL_COREI7_ALDERLAKE;
+      break;
+
+    // Arrowlake:
+    case 0xc5:
+      CPU = "arrowlake";
+      *Type = INTEL_COREI7;
+      *Subtype = INTEL_COREI7_ARROWLAKE;
+      break;
+
+    // Arrowlake S:
+    case 0xc6:
+    // Lunarlake:
+    case 0xbd:
+      CPU = "arrowlake-s";
+      *Type = INTEL_COREI7;
+      *Subtype = INTEL_COREI7_ARROWLAKE_S;
+      break;
+
+    // Pantherlake:
+    case 0xcc:
+      CPU = "pantherlake";
+      *Type = INTEL_COREI7;
+      *Subtype = INTEL_COREI7_PANTHERLAKE;
       break;
 
     // Icelake Xeon:
@@ -474,11 +499,17 @@ getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
       break;
 
     // Granite Rapids:
-    case 0xae:
     case 0xad:
       CPU = "graniterapids";
       *Type = INTEL_COREI7;
       *Subtype = INTEL_COREI7_GRANITERAPIDS;
+      break;
+
+    // Granite Rapids D:
+    case 0xae:
+      CPU = "graniterapids-d";
+      *Type = INTEL_COREI7;
+      *Subtype = INTEL_COREI7_GRANITERAPIDS_D;
       break;
 
     case 0x1c: // Most 45 nm Intel Atom processors
@@ -511,6 +542,9 @@ getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
       *Type = INTEL_GOLDMONT_PLUS;
       break;
     case 0x86:
+    case 0x8a: // Lakefield
+    case 0x96: // Elkhart Lake
+    case 0x9c: // Jasper Lake
       CPU = "tremont";
       *Type = INTEL_TREMONT;
       break;
@@ -525,6 +559,13 @@ getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
     case 0xb6:
       CPU = "grandridge";
       *Type = INTEL_GRANDRIDGE;
+      break;
+
+    // Clearwaterforest:
+    case 0xdd:
+      CPU = "clearwaterforest";
+      *Type = INTEL_COREI7;
+      *Subtype = INTEL_CLEARWATERFOREST;
       break;
 
     case 0x57:
@@ -548,10 +589,11 @@ getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
   return CPU;
 }
 
-static const char *
-getAMDProcessorTypeAndSubtype(unsigned Family, unsigned Model,
-                              const unsigned *Features,
-                              unsigned *Type, unsigned *Subtype) {
+static const char *getAMDProcessorTypeAndSubtype(unsigned Family,
+                                                 unsigned Model,
+                                                 const unsigned *Features,
+                                                 unsigned *Type,
+                                                 unsigned *Subtype) {
   // We select CPU strings to match the code in Host.cpp, but we don't use them
   // in compiler-rt.
   const char *CPU = 0;
@@ -606,37 +648,59 @@ getAMDProcessorTypeAndSubtype(unsigned Family, unsigned Model,
   case 23:
     CPU = "znver1";
     *Type = AMDFAM17H;
-    if ((Model >= 0x30 && Model <= 0x3f) || Model == 0x71) {
+    if ((Model >= 0x30 && Model <= 0x3f) || (Model == 0x47) ||
+        (Model >= 0x60 && Model <= 0x67) || (Model >= 0x68 && Model <= 0x6f) ||
+        (Model >= 0x70 && Model <= 0x7f) || (Model >= 0x84 && Model <= 0x87) ||
+        (Model >= 0x90 && Model <= 0x97) || (Model >= 0x98 && Model <= 0x9f) ||
+        (Model >= 0xa0 && Model <= 0xaf)) {
+      // Family 17h Models 30h-3Fh (Starship) Zen 2
+      // Family 17h Models 47h (Cardinal) Zen 2
+      // Family 17h Models 60h-67h (Renoir) Zen 2
+      // Family 17h Models 68h-6Fh (Lucienne) Zen 2
+      // Family 17h Models 70h-7Fh (Matisse) Zen 2
+      // Family 17h Models 84h-87h (ProjectX) Zen 2
+      // Family 17h Models 90h-97h (VanGogh) Zen 2
+      // Family 17h Models 98h-9Fh (Mero) Zen 2
+      // Family 17h Models A0h-AFh (Mendocino) Zen 2
       CPU = "znver2";
       *Subtype = AMDFAM17H_ZNVER2;
-      break; // 30h-3fh, 71h: Zen2
+      break;
     }
-    if (Model <= 0x0f) {
+    if ((Model >= 0x10 && Model <= 0x1f) || (Model >= 0x20 && Model <= 0x2f)) {
+      // Family 17h Models 10h-1Fh (Raven1) Zen
+      // Family 17h Models 10h-1Fh (Picasso) Zen+
+      // Family 17h Models 20h-2Fh (Raven2 x86) Zen
       *Subtype = AMDFAM17H_ZNVER1;
-      break; // 00h-0Fh: Zen1
+      break;
     }
     break;
   case 25:
     CPU = "znver3";
     *Type = AMDFAM19H;
-    if (Model <= 0x0f || (Model >= 0x20 && Model <= 0x5f)) {
-      // Family 19h Models 00h-0Fh - Zen3
-      // Family 19h Models 20h-2Fh - Zen3
-      // Family 19h Models 30h-3Fh - Zen3
-      // Family 19h Models 40h-4Fh - Zen3+
-      // Family 19h Models 50h-5Fh - Zen3+
+    if ((Model <= 0x0f) || (Model >= 0x20 && Model <= 0x2f) ||
+        (Model >= 0x30 && Model <= 0x3f) || (Model >= 0x40 && Model <= 0x4f) ||
+        (Model >= 0x50 && Model <= 0x5f)) {
+      // Family 19h Models 00h-0Fh (Genesis, Chagall) Zen 3
+      // Family 19h Models 20h-2Fh (Vermeer) Zen 3
+      // Family 19h Models 30h-3Fh (Badami) Zen 3
+      // Family 19h Models 40h-4Fh (Rembrandt) Zen 3+
+      // Family 19h Models 50h-5Fh (Cezanne) Zen 3
       *Subtype = AMDFAM19H_ZNVER3;
       break;
     }
-    if ((Model >= 0x10 && Model <= 0x1f) ||
-        (Model >= 0x60 && Model <= 0x74) ||
-        (Model >= 0x78 && Model <= 0x7b) ||
-        (Model >= 0xA0 && Model <= 0xAf)) {
+    if ((Model >= 0x10 && Model <= 0x1f) || (Model >= 0x60 && Model <= 0x6f) ||
+        (Model >= 0x70 && Model <= 0x77) || (Model >= 0x78 && Model <= 0x7f) ||
+        (Model >= 0xa0 && Model <= 0xaf)) {
+      // Family 19h Models 10h-1Fh (Stones; Storm Peak) Zen 4
+      // Family 19h Models 60h-6Fh (Raphael) Zen 4
+      // Family 19h Models 70h-77h (Phoenix, Hawkpoint1) Zen 4
+      // Family 19h Models 78h-7Fh (Phoenix 2, Hawkpoint2) Zen 4
+      // Family 19h Models A0h-AFh (Stones-Dense) Zen 4
       CPU = "znver4";
       *Subtype = AMDFAM19H_ZNVER4;
       break; //  "znver4"
     }
-    break;
+    break; // family 19h
   default:
     break; // Unknown AMD CPU.
   }
@@ -646,10 +710,10 @@ getAMDProcessorTypeAndSubtype(unsigned Family, unsigned Model,
 
 static void getAvailableFeatures(unsigned ECX, unsigned EDX, unsigned MaxLeaf,
                                  unsigned *Features) {
-  unsigned EAX, EBX;
+  unsigned EAX = 0, EBX = 0;
 
-#define setFeature(F)                                                          \
-  Features[F / 32] |= 1U << (F % 32)
+#define hasFeature(F) ((Features[F / 32] >> (F % 32)) & 1)
+#define setFeature(F) Features[F / 32] |= 1U << (F % 32)
 
   if ((EDX >> 15) & 1)
     setFeature(FEATURE_CMOV);
@@ -668,14 +732,20 @@ static void getAvailableFeatures(unsigned ECX, unsigned EDX, unsigned MaxLeaf,
     setFeature(FEATURE_SSSE3);
   if ((ECX >> 12) & 1)
     setFeature(FEATURE_FMA);
+  if ((ECX >> 13) & 1)
+    setFeature(FEATURE_CMPXCHG16B);
   if ((ECX >> 19) & 1)
     setFeature(FEATURE_SSE4_1);
   if ((ECX >> 20) & 1)
     setFeature(FEATURE_SSE4_2);
+  if ((ECX >> 22) & 1)
+    setFeature(FEATURE_MOVBE);
   if ((ECX >> 23) & 1)
     setFeature(FEATURE_POPCNT);
   if ((ECX >> 25) & 1)
     setFeature(FEATURE_AES);
+  if ((ECX >> 29) & 1)
+    setFeature(FEATURE_F16C);
 
   // If CPUID indicates support for XSAVE, XRESTORE and AVX, and XGETBV
   // indicates that the AVX registers will be saved and restored on context
@@ -743,9 +813,14 @@ static void getAvailableFeatures(unsigned ECX, unsigned EDX, unsigned MaxLeaf,
     setFeature(FEATURE_AVX5124FMAPS);
   if (HasLeaf7 && ((EDX >> 8) & 1) && HasAVX512Save)
     setFeature(FEATURE_AVX512VP2INTERSECT);
+  if (HasLeaf7 && ((EDX >> 23) & 1) && HasAVX512Save)
+    setFeature(FEATURE_AVX512FP16);
 
+  // EAX from subleaf 0 is the maximum subleaf supported. Some CPUs don't
+  // return all 0s for invalid subleaves so check the limit.
   bool HasLeaf7Subleaf1 =
-      MaxLeaf >= 0x7 && !getX86CpuIDAndInfoEx(0x7, 0x1, &EAX, &EBX, &ECX, &EDX);
+      HasLeaf7 && EAX >= 1 &&
+      !getX86CpuIDAndInfoEx(0x7, 0x1, &EAX, &EBX, &ECX, &EDX);
   if (HasLeaf7Subleaf1 && ((EAX >> 5) & 1) && HasAVX512Save)
     setFeature(FEATURE_AVX512BF16);
 
@@ -754,12 +829,39 @@ static void getAvailableFeatures(unsigned ECX, unsigned EDX, unsigned MaxLeaf,
 
   bool HasExtLeaf1 = MaxExtLevel >= 0x80000001 &&
                      !getX86CpuIDAndInfo(0x80000001, &EAX, &EBX, &ECX, &EDX);
-  if (HasExtLeaf1 && ((ECX >> 6) & 1))
-    setFeature(FEATURE_SSE4_A);
-  if (HasExtLeaf1 && ((ECX >> 11) & 1))
-    setFeature(FEATURE_XOP);
-  if (HasExtLeaf1 && ((ECX >> 16) & 1))
-    setFeature(FEATURE_FMA4);
+  if (HasExtLeaf1) {
+    if (ECX & 1)
+      setFeature(FEATURE_LAHF_LM);
+    if ((ECX >> 5) & 1)
+      setFeature(FEATURE_LZCNT);
+    if (((ECX >> 6) & 1))
+      setFeature(FEATURE_SSE4_A);
+    if (((ECX >> 11) & 1))
+      setFeature(FEATURE_XOP);
+    if (((ECX >> 16) & 1))
+      setFeature(FEATURE_FMA4);
+    if (((EDX >> 29) & 1))
+      setFeature(FEATURE_LM);
+  }
+
+  if (hasFeature(FEATURE_LM) && hasFeature(FEATURE_SSE2)) {
+    setFeature(FEATURE_X86_64_BASELINE);
+    if (hasFeature(FEATURE_CMPXCHG16B) && hasFeature(FEATURE_POPCNT) &&
+        hasFeature(FEATURE_LAHF_LM) && hasFeature(FEATURE_SSE4_2)) {
+      setFeature(FEATURE_X86_64_V2);
+      if (hasFeature(FEATURE_AVX2) && hasFeature(FEATURE_BMI) &&
+          hasFeature(FEATURE_BMI2) && hasFeature(FEATURE_F16C) &&
+          hasFeature(FEATURE_FMA) && hasFeature(FEATURE_LZCNT) &&
+          hasFeature(FEATURE_MOVBE)) {
+        setFeature(FEATURE_X86_64_V3);
+        if (hasFeature(FEATURE_AVX512BW) && hasFeature(FEATURE_AVX512CD) &&
+            hasFeature(FEATURE_AVX512DQ) && hasFeature(FEATURE_AVX512VL))
+          setFeature(FEATURE_X86_64_V4);
+      }
+    }
+  }
+
+#undef hasFeature
 #undef setFeature
 }
 
@@ -781,7 +883,7 @@ struct __processor_model {
 #ifndef _WIN32
 __attribute__((visibility("hidden")))
 #endif
-unsigned int __cpu_features2 = 0;
+unsigned __cpu_features2[(CPU_FEATURE_MAX - 1) / 32];
 
 // A constructor function that is sets __cpu_model and __cpu_features2 with
 // the right values.  This needs to run only once.  This constructor is
@@ -795,6 +897,8 @@ int CONSTRUCTOR_ATTRIBUTE __cpu_indicator_init(void) {
   unsigned Vendor;
   unsigned Model, Family;
   unsigned Features[(CPU_FEATURE_MAX + 31) / 32] = {0};
+  static_assert(sizeof(Features) / sizeof(Features[0]) == 4, "");
+  static_assert(sizeof(__cpu_features2) / sizeof(__cpu_features2[0]) == 3, "");
 
   // This function needs to run just once.
   if (__cpu_model.__cpu_vendor)
@@ -812,9 +916,10 @@ int CONSTRUCTOR_ATTRIBUTE __cpu_indicator_init(void) {
   // Find available features.
   getAvailableFeatures(ECX, EDX, MaxLeaf, &Features[0]);
 
-  assert((sizeof(Features)/sizeof(Features[0])) == 2);
   __cpu_model.__cpu_features[0] = Features[0];
-  __cpu_features2 = Features[1];
+  __cpu_features2[0] = Features[1];
+  __cpu_features2[1] = Features[2];
+  __cpu_features2[2] = Features[3];
 
   if (Vendor == SIG_INTEL) {
     // Get CPU type.
@@ -837,521 +942,4 @@ int CONSTRUCTOR_ATTRIBUTE __cpu_indicator_init(void) {
 
   return 0;
 }
-#elif defined(__aarch64__)
-
-#ifndef AT_HWCAP
-#define AT_HWCAP 16
-#endif
-#ifndef HWCAP_CPUID
-#define HWCAP_CPUID (1 << 11)
-#endif
-#ifndef HWCAP_FP
-#define HWCAP_FP (1 << 0)
-#endif
-#ifndef HWCAP_ASIMD
-#define HWCAP_ASIMD (1 << 1)
-#endif
-#ifndef HWCAP_AES
-#define HWCAP_AES (1 << 3)
-#endif
-#ifndef HWCAP_PMULL
-#define HWCAP_PMULL (1 << 4)
-#endif
-#ifndef HWCAP_SHA1
-#define HWCAP_SHA1 (1 << 5)
-#endif
-#ifndef HWCAP_SHA2
-#define HWCAP_SHA2 (1 << 6)
-#endif
-#ifndef HWCAP_ATOMICS
-#define HWCAP_ATOMICS (1 << 8)
-#endif
-#ifndef HWCAP_FPHP
-#define HWCAP_FPHP (1 << 9)
-#endif
-#ifndef HWCAP_ASIMDHP
-#define HWCAP_ASIMDHP (1 << 10)
-#endif
-#ifndef HWCAP_ASIMDRDM
-#define HWCAP_ASIMDRDM (1 << 12)
-#endif
-#ifndef HWCAP_JSCVT
-#define HWCAP_JSCVT (1 << 13)
-#endif
-#ifndef HWCAP_FCMA
-#define HWCAP_FCMA (1 << 14)
-#endif
-#ifndef HWCAP_LRCPC
-#define HWCAP_LRCPC (1 << 15)
-#endif
-#ifndef HWCAP_DCPOP
-#define HWCAP_DCPOP (1 << 16)
-#endif
-#ifndef HWCAP_SHA3
-#define HWCAP_SHA3 (1 << 17)
-#endif
-#ifndef HWCAP_SM3
-#define HWCAP_SM3 (1 << 18)
-#endif
-#ifndef HWCAP_SM4
-#define HWCAP_SM4 (1 << 19)
-#endif
-#ifndef HWCAP_ASIMDDP
-#define HWCAP_ASIMDDP (1 << 20)
-#endif
-#ifndef HWCAP_SHA512
-#define HWCAP_SHA512 (1 << 21)
-#endif
-#ifndef HWCAP_SVE
-#define HWCAP_SVE (1 << 22)
-#endif
-#ifndef HWCAP_ASIMDFHM
-#define HWCAP_ASIMDFHM (1 << 23)
-#endif
-#ifndef HWCAP_DIT
-#define HWCAP_DIT (1 << 24)
-#endif
-#ifndef HWCAP_ILRCPC
-#define HWCAP_ILRCPC (1 << 26)
-#endif
-#ifndef HWCAP_FLAGM
-#define HWCAP_FLAGM (1 << 27)
-#endif
-#ifndef HWCAP_SSBS
-#define HWCAP_SSBS (1 << 28)
-#endif
-#ifndef HWCAP_SB
-#define HWCAP_SB (1 << 29)
-#endif
-
-#ifndef AT_HWCAP2
-#define AT_HWCAP2 26
-#endif
-#ifndef HWCAP2_DCPODP
-#define HWCAP2_DCPODP (1 << 0)
-#endif
-#ifndef HWCAP2_SVE2
-#define HWCAP2_SVE2 (1 << 1)
-#endif
-#ifndef HWCAP2_SVEAES
-#define HWCAP2_SVEAES (1 << 2)
-#endif
-#ifndef HWCAP2_SVEPMULL
-#define HWCAP2_SVEPMULL (1 << 3)
-#endif
-#ifndef HWCAP2_SVEBITPERM
-#define HWCAP2_SVEBITPERM (1 << 4)
-#endif
-#ifndef HWCAP2_SVESHA3
-#define HWCAP2_SVESHA3 (1 << 5)
-#endif
-#ifndef HWCAP2_SVESM4
-#define HWCAP2_SVESM4 (1 << 6)
-#endif
-#ifndef HWCAP2_FLAGM2
-#define HWCAP2_FLAGM2 (1 << 7)
-#endif
-#ifndef HWCAP2_FRINT
-#define HWCAP2_FRINT (1 << 8)
-#endif
-#ifndef HWCAP2_SVEI8MM
-#define HWCAP2_SVEI8MM (1 << 9)
-#endif
-#ifndef HWCAP2_SVEF32MM
-#define HWCAP2_SVEF32MM (1 << 10)
-#endif
-#ifndef HWCAP2_SVEF64MM
-#define HWCAP2_SVEF64MM (1 << 11)
-#endif
-#ifndef HWCAP2_SVEBF16
-#define HWCAP2_SVEBF16 (1 << 12)
-#endif
-#ifndef HWCAP2_I8MM
-#define HWCAP2_I8MM (1 << 13)
-#endif
-#ifndef HWCAP2_BF16
-#define HWCAP2_BF16 (1 << 14)
-#endif
-#ifndef HWCAP2_DGH
-#define HWCAP2_DGH (1 << 15)
-#endif
-#ifndef HWCAP2_RNG
-#define HWCAP2_RNG (1 << 16)
-#endif
-#ifndef HWCAP2_BTI
-#define HWCAP2_BTI (1 << 17)
-#endif
-#ifndef HWCAP2_MTE
-#define HWCAP2_MTE (1 << 18)
-#endif
-#ifndef HWCAP2_RPRES
-#define HWCAP2_RPRES (1 << 21)
-#endif
-#ifndef HWCAP2_MTE3
-#define HWCAP2_MTE3 (1 << 22)
-#endif
-#ifndef HWCAP2_SME
-#define HWCAP2_SME (1 << 23)
-#endif
-#ifndef HWCAP2_SME_I16I64
-#define HWCAP2_SME_I16I64 (1 << 24)
-#endif
-#ifndef HWCAP2_SME_F64F64
-#define HWCAP2_SME_F64F64 (1 << 25)
-#endif
-#ifndef HWCAP2_WFXT
-#define HWCAP2_WFXT (1UL << 31)
-#endif
-#ifndef HWCAP2_EBF16
-#define HWCAP2_EBF16 (1UL << 32)
-#endif
-#ifndef HWCAP2_SVE_EBF16
-#define HWCAP2_SVE_EBF16 (1UL << 33)
-#endif
-
-// LSE support detection for out-of-line atomics
-// using HWCAP and Auxiliary vector
-_Bool __aarch64_have_lse_atomics
-    __attribute__((visibility("hidden"), nocommon));
-
-#if defined(__has_include)
-#if __has_include(<sys/auxv.h>)
-#include <sys/auxv.h>
-#if __has_include(<asm/hwcap.h>)
-#include <asm/hwcap.h>
-
-#if defined(__ANDROID__)
-#include <string.h>
-#include <sys/system_properties.h>
-#elif defined(__Fuchsia__)
-
-#include <zircon/syscalls.h>
-#endif
-
-// Detect Exynos 9810 CPU
-#define IF_EXYNOS9810                                                          \
-  char arch[PROP_VALUE_MAX];                                                   \
-  if (__system_property_get("ro.arch", arch) > 0 &&                            \
-      strncmp(arch, "exynos9810", sizeof("exynos9810") - 1) == 0)
-
-static void CONSTRUCTOR_ATTRIBUTE init_have_lse_atomics(void) {
-#if defined(__FreeBSD__)
-  unsigned long hwcap;
-  int result = elf_aux_info(AT_HWCAP, &hwcap, sizeof hwcap);
-  __aarch64_have_lse_atomics = result == 0 && (hwcap & HWCAP_ATOMICS) != 0;
-#elif defined(__Fuchsia__)
-  // This ensures the vDSO is a direct link-time dependency of anything that
-  // needs this initializer code.
-#pragma comment(lib, "zircon")
-  uint32_t features;
-  zx_status_t status = _zx_system_get_features(ZX_FEATURE_KIND_CPU, &features);
-  __aarch64_have_lse_atomics =
-      status == ZX_OK && (features & ZX_ARM64_FEATURE_ISA_ATOMICS) != 0;
-#else
-  unsigned long hwcap = getauxval(AT_HWCAP);
-  _Bool result = (hwcap & HWCAP_ATOMICS) != 0;
-#if defined(__ANDROID__)
-  if (result) {
-    // Some cores in the Exynos 9810 CPU are ARMv8.2 and others are ARMv8.0;
-    // only the former support LSE atomics.  However, the kernel in the
-    // initial Android 8.0 release of Galaxy S9/S9+ devices incorrectly
-    // reported the feature as being supported.
-    //
-    // The kernel appears to have been corrected to mark it unsupported as of
-    // the Android 9.0 release on those devices, and this issue has not been
-    // observed anywhere else. Thus, this workaround may be removed if
-    // compiler-rt ever drops support for Android 8.0.
-    IF_EXYNOS9810 result = false;
-  }
-#endif // defined(__ANDROID__)
-  __aarch64_have_lse_atomics = result;
-#endif // defined(__FreeBSD__)
-}
-
-#if !defined(DISABLE_AARCH64_FMV)
-// CPUFeatures must correspond to the same AArch64 features in
-// AArch64TargetParser.h
-enum CPUFeatures {
-  FEAT_RNG,
-  FEAT_FLAGM,
-  FEAT_FLAGM2,
-  FEAT_FP16FML,
-  FEAT_DOTPROD,
-  FEAT_SM4,
-  FEAT_RDM,
-  FEAT_LSE,
-  FEAT_FP,
-  FEAT_SIMD,
-  FEAT_CRC,
-  FEAT_SHA1,
-  FEAT_SHA2,
-  FEAT_SHA3,
-  FEAT_AES,
-  FEAT_PMULL,
-  FEAT_FP16,
-  FEAT_DIT,
-  FEAT_DPB,
-  FEAT_DPB2,
-  FEAT_JSCVT,
-  FEAT_FCMA,
-  FEAT_RCPC,
-  FEAT_RCPC2,
-  FEAT_FRINTTS,
-  FEAT_DGH,
-  FEAT_I8MM,
-  FEAT_BF16,
-  FEAT_EBF16,
-  FEAT_RPRES,
-  FEAT_SVE,
-  FEAT_SVE_BF16,
-  FEAT_SVE_EBF16,
-  FEAT_SVE_I8MM,
-  FEAT_SVE_F32MM,
-  FEAT_SVE_F64MM,
-  FEAT_SVE2,
-  FEAT_SVE_AES,
-  FEAT_SVE_PMULL128,
-  FEAT_SVE_BITPERM,
-  FEAT_SVE_SHA3,
-  FEAT_SVE_SM4,
-  FEAT_SME,
-  FEAT_MEMTAG,
-  FEAT_MEMTAG2,
-  FEAT_MEMTAG3,
-  FEAT_SB,
-  FEAT_PREDRES,
-  FEAT_SSBS,
-  FEAT_SSBS2,
-  FEAT_BTI,
-  FEAT_LS64,
-  FEAT_LS64_V,
-  FEAT_LS64_ACCDATA,
-  FEAT_WFXT,
-  FEAT_SME_F64,
-  FEAT_SME_I64,
-  FEAT_SME2,
-  FEAT_MAX
-};
-
-// Architecture features used
-// in Function Multi Versioning
-struct {
-  unsigned long long features;
-  // As features grows new fields could be added
-} __aarch64_cpu_features __attribute__((visibility("hidden"), nocommon));
-
-void init_cpu_features_resolver(unsigned long hwcap, unsigned long hwcap2) {
-#define setCPUFeature(F) __aarch64_cpu_features.features |= 1ULL << F
-#define getCPUFeature(id, ftr) __asm__("mrs %0, " #id : "=r"(ftr))
-#define extractBits(val, start, number)                                        \
-  (val & ((1ULL << number) - 1ULL) << start) >> start
-  if (hwcap & HWCAP_CRC32)
-    setCPUFeature(FEAT_CRC);
-  if (hwcap & HWCAP_PMULL)
-    setCPUFeature(FEAT_PMULL);
-  if (hwcap & HWCAP_FLAGM)
-    setCPUFeature(FEAT_FLAGM);
-  if (hwcap2 & HWCAP2_FLAGM2) {
-    setCPUFeature(FEAT_FLAGM);
-    setCPUFeature(FEAT_FLAGM2);
-  }
-  if (hwcap & HWCAP_SM3 && hwcap & HWCAP_SM4)
-    setCPUFeature(FEAT_SM4);
-  if (hwcap & HWCAP_ASIMDDP)
-    setCPUFeature(FEAT_DOTPROD);
-  if (hwcap & HWCAP_ASIMDFHM)
-    setCPUFeature(FEAT_FP16FML);
-  if (hwcap & HWCAP_FPHP) {
-    setCPUFeature(FEAT_FP16);
-    setCPUFeature(FEAT_FP);
-  }
-  if (hwcap & HWCAP_DIT)
-    setCPUFeature(FEAT_DIT);
-  if (hwcap & HWCAP_ASIMDRDM)
-    setCPUFeature(FEAT_RDM);
-  if (hwcap & HWCAP_ILRCPC)
-    setCPUFeature(FEAT_RCPC2);
-  if (hwcap & HWCAP_AES)
-    setCPUFeature(FEAT_AES);
-  if (hwcap & HWCAP_SHA1)
-    setCPUFeature(FEAT_SHA1);
-  if (hwcap & HWCAP_SHA2)
-    setCPUFeature(FEAT_SHA2);
-  if (hwcap & HWCAP_JSCVT)
-    setCPUFeature(FEAT_JSCVT);
-  if (hwcap & HWCAP_FCMA)
-    setCPUFeature(FEAT_FCMA);
-  if (hwcap & HWCAP_SB)
-    setCPUFeature(FEAT_SB);
-  if (hwcap & HWCAP_SSBS)
-    setCPUFeature(FEAT_SSBS2);
-  if (hwcap2 & HWCAP2_MTE) {
-    setCPUFeature(FEAT_MEMTAG);
-    setCPUFeature(FEAT_MEMTAG2);
-  }
-  if (hwcap2 & HWCAP2_MTE3) {
-    setCPUFeature(FEAT_MEMTAG);
-    setCPUFeature(FEAT_MEMTAG2);
-    setCPUFeature(FEAT_MEMTAG3);
-  }
-  if (hwcap2 & HWCAP2_SVEAES)
-    setCPUFeature(FEAT_SVE_AES);
-  if (hwcap2 & HWCAP2_SVEPMULL) {
-    setCPUFeature(FEAT_SVE_AES);
-    setCPUFeature(FEAT_SVE_PMULL128);
-  }
-  if (hwcap2 & HWCAP2_SVEBITPERM)
-    setCPUFeature(FEAT_SVE_BITPERM);
-  if (hwcap2 & HWCAP2_SVESHA3)
-    setCPUFeature(FEAT_SVE_SHA3);
-  if (hwcap2 & HWCAP2_SVESM4)
-    setCPUFeature(FEAT_SVE_SM4);
-  if (hwcap2 & HWCAP2_DCPODP)
-    setCPUFeature(FEAT_DPB2);
-  if (hwcap & HWCAP_ATOMICS)
-    setCPUFeature(FEAT_LSE);
-  if (hwcap2 & HWCAP2_RNG)
-    setCPUFeature(FEAT_RNG);
-  if (hwcap2 & HWCAP2_I8MM)
-    setCPUFeature(FEAT_I8MM);
-  if (hwcap2 & HWCAP2_EBF16)
-    setCPUFeature(FEAT_EBF16);
-  if (hwcap2 & HWCAP2_SVE_EBF16)
-    setCPUFeature(FEAT_SVE_EBF16);
-  if (hwcap2 & HWCAP2_DGH)
-    setCPUFeature(FEAT_DGH);
-  if (hwcap2 & HWCAP2_FRINT)
-    setCPUFeature(FEAT_FRINTTS);
-  if (hwcap2 & HWCAP2_SVEI8MM)
-    setCPUFeature(FEAT_SVE_I8MM);
-  if (hwcap2 & HWCAP2_SVEF32MM)
-    setCPUFeature(FEAT_SVE_F32MM);
-  if (hwcap2 & HWCAP2_SVEF64MM)
-    setCPUFeature(FEAT_SVE_F64MM);
-  if (hwcap2 & HWCAP2_BTI)
-    setCPUFeature(FEAT_BTI);
-  if (hwcap2 & HWCAP2_RPRES)
-    setCPUFeature(FEAT_RPRES);
-  if (hwcap2 & HWCAP2_WFXT)
-    setCPUFeature(FEAT_WFXT);
-  if (hwcap2 & HWCAP2_SME)
-    setCPUFeature(FEAT_SME);
-  if (hwcap2 & HWCAP2_SME_I16I64)
-    setCPUFeature(FEAT_SME_I64);
-  if (hwcap2 & HWCAP2_SME_F64F64)
-    setCPUFeature(FEAT_SME_F64);
-  if (hwcap & HWCAP_CPUID) {
-    unsigned long ftr;
-    getCPUFeature(ID_AA64PFR1_EL1, ftr);
-    // ID_AA64PFR1_EL1.MTE >= 0b0001
-    if (extractBits(ftr, 8, 4) >= 0x1)
-      setCPUFeature(FEAT_MEMTAG);
-    // ID_AA64PFR1_EL1.SSBS == 0b0001
-    if (extractBits(ftr, 4, 4) == 0x1)
-      setCPUFeature(FEAT_SSBS);
-    // ID_AA64PFR1_EL1.SME == 0b0010
-    if (extractBits(ftr, 24, 4) == 0x2)
-      setCPUFeature(FEAT_SME2);
-    getCPUFeature(ID_AA64PFR0_EL1, ftr);
-    // ID_AA64PFR0_EL1.FP != 0b1111
-    if (extractBits(ftr, 16, 4) != 0xF) {
-      setCPUFeature(FEAT_FP);
-      // ID_AA64PFR0_EL1.AdvSIMD has the same value as ID_AA64PFR0_EL1.FP
-      setCPUFeature(FEAT_SIMD);
-    }
-    // ID_AA64PFR0_EL1.SVE != 0b0000
-    if (extractBits(ftr, 32, 4) != 0x0) {
-      // get ID_AA64ZFR0_EL1, that name supported
-      // if sve enabled only
-      getCPUFeature(S3_0_C0_C4_4, ftr);
-      // ID_AA64ZFR0_EL1.SVEver == 0b0000
-      if (extractBits(ftr, 0, 4) == 0x0)
-        setCPUFeature(FEAT_SVE);
-      // ID_AA64ZFR0_EL1.SVEver == 0b0001
-      if (extractBits(ftr, 0, 4) == 0x1)
-        setCPUFeature(FEAT_SVE2);
-      // ID_AA64ZFR0_EL1.BF16 != 0b0000
-      if (extractBits(ftr, 20, 4) != 0x0)
-        setCPUFeature(FEAT_SVE_BF16);
-    }
-    getCPUFeature(ID_AA64ISAR0_EL1, ftr);
-    // ID_AA64ISAR0_EL1.SHA3 != 0b0000
-    if (extractBits(ftr, 32, 4) != 0x0)
-      setCPUFeature(FEAT_SHA3);
-    getCPUFeature(ID_AA64ISAR1_EL1, ftr);
-    // ID_AA64ISAR1_EL1.DPB >= 0b0001
-    if (extractBits(ftr, 0, 4) >= 0x1)
-      setCPUFeature(FEAT_DPB);
-    // ID_AA64ISAR1_EL1.LRCPC != 0b0000
-    if (extractBits(ftr, 20, 4) != 0x0)
-      setCPUFeature(FEAT_RCPC);
-    // ID_AA64ISAR1_EL1.SPECRES == 0b0001
-    if (extractBits(ftr, 40, 4) == 0x2)
-      setCPUFeature(FEAT_PREDRES);
-    // ID_AA64ISAR1_EL1.BF16 != 0b0000
-    if (extractBits(ftr, 44, 4) != 0x0)
-      setCPUFeature(FEAT_BF16);
-    // ID_AA64ISAR1_EL1.LS64 >= 0b0001
-    if (extractBits(ftr, 60, 4) >= 0x1)
-      setCPUFeature(FEAT_LS64);
-    // ID_AA64ISAR1_EL1.LS64 >= 0b0010
-    if (extractBits(ftr, 60, 4) >= 0x2)
-      setCPUFeature(FEAT_LS64_V);
-    // ID_AA64ISAR1_EL1.LS64 >= 0b0011
-    if (extractBits(ftr, 60, 4) >= 0x3)
-      setCPUFeature(FEAT_LS64_ACCDATA);
-  } else {
-    // Set some features in case of no CPUID support
-    if (hwcap & (HWCAP_FP | HWCAP_FPHP)) {
-      setCPUFeature(FEAT_FP);
-      // FP and AdvSIMD fields have the same value
-      setCPUFeature(FEAT_SIMD);
-    }
-    if (hwcap & HWCAP_DCPOP || hwcap2 & HWCAP2_DCPODP)
-      setCPUFeature(FEAT_DPB);
-    if (hwcap & HWCAP_LRCPC || hwcap & HWCAP_ILRCPC)
-      setCPUFeature(FEAT_RCPC);
-    if (hwcap2 & HWCAP2_BF16 || hwcap2 & HWCAP2_EBF16)
-      setCPUFeature(FEAT_BF16);
-    if (hwcap2 & HWCAP2_SVEBF16)
-      setCPUFeature(FEAT_SVE_BF16);
-    if (hwcap2 & HWCAP2_SVE2 && hwcap & HWCAP_SVE)
-      setCPUFeature(FEAT_SVE2);
-    if (hwcap & HWCAP_SHA3)
-      setCPUFeature(FEAT_SHA3);
-  }
-}
-
-void CONSTRUCTOR_ATTRIBUTE init_cpu_features(void) {
-  unsigned long hwcap;
-  unsigned long hwcap2;
-  // CPU features already initialized.
-  if (__aarch64_cpu_features.features)
-    return;
-  setCPUFeature(FEAT_MAX);
-#if defined(__FreeBSD__)
-  int res = 0;
-  res = elf_aux_info(AT_HWCAP, &hwcap, sizeof hwcap);
-  res |= elf_aux_info(AT_HWCAP2, &hwcap2, sizeof hwcap2);
-  if (res)
-    return;
-#else
-#if defined(__ANDROID__)
-  // Don't set any CPU features,
-  // detection could be wrong on Exynos 9810.
-  IF_EXYNOS9810 return;
-#endif // defined(__ANDROID__)
-  hwcap = getauxval(AT_HWCAP);
-  hwcap2 = getauxval(AT_HWCAP2);
-#endif // defined(__FreeBSD__)
-  init_cpu_features_resolver(hwcap, hwcap2);
-#undef extractBits
-#undef getCPUFeature
-#undef setCPUFeature
-#undef IF_EXYNOS9810
-}
-#endif // !defined(DISABLE_AARCH64_FMV)
-#endif // defined(__has_include)
-#endif // __has_include(<sys/auxv.h>)
-#endif // __has_include(<asm/hwcap.h>)
-#endif // defined(__aarch64__)
+#endif // defined(__GNUC__) || defined(__clang__) || defined(_MSC_VER)

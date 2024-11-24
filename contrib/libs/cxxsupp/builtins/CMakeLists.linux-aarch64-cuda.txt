@@ -26,6 +26,8 @@ target_link_libraries(libs-cxxsupp-builtins PUBLIC
 target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/chkstk.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/fp_mode.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/sme-abi-init.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/sme-abi.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvti2.c
@@ -58,7 +60,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/comparedf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/comparesf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/comparetf2.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/cpu_model.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/cpu_model/aarch64.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ctzdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ctzsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ctzti2.c
@@ -74,7 +76,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divtc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divtf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divti3.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divxc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/emutls.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/enable_execute_stack.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/eprintf.c
@@ -104,33 +105,24 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunstfdi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunstfsi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunstfti.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfdi.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfsi.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfti.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixxfdi.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixxfti.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatditf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatsitf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattitf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunditf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatunsitf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntidf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntisf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntitf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/gcc_personality_v0.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/int_util.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/lshrdi3.c
@@ -152,7 +144,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulvdi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulvsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulvti3.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulxc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negdf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/negsf2.c
@@ -170,7 +161,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powidf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powisf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powitf2.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powixf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subdf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subsf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subtf3.c
@@ -197,5 +187,8 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umoddi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umodsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umodti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/aarch64/sme-libc-routines.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/crtbegin.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/crtend.c
 )
 
