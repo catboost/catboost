@@ -94,42 +94,38 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
 
       val workerListeningPort = if (workerListeningPortParam != 0) { workerListeningPortParam } else { TrainingDriver.getWorkerPort() }
 
-      val service = Executors.newFixedThreadPool(2)
-      val ecs = new ExecutorCompletionService[Unit](service)
-
-      val partitionId = this.partitionId
-      val sendWorkerInfoFuture = ecs.submit(
-        new Runnable() {
-          def run() = {
-            TrainingDriver.waitForListeningPortAndSendWorkerInfo(
-              trainingDriverListeningAddress,
-              partitionId,
-              partitionSize,
-              workerListeningPort,
-              connectTimeout,
-              workerInitializationTimeout
-            )
-          }
-        },
-        ()
-      )
-
-      val workerFuture = ecs.submit(
-        new Runnable() {
-          def run() = {
-            if (partitionSize != 0) {
-              log.info("processPartition: start RunWorker")
-              native_impl.RunWorker(threadCount, workerListeningPort)
-              log.info("processPartition: end RunWorker")
-            }
-          }
-        },
-        ()
-      )
-
-      service.shutdown()
-
+      val ecsPool = Executors.newFixedThreadPool(2)
+      val ecs = new ExecutorCompletionService[Unit](ecsPool)
       try {
+        val partitionId = this.partitionId
+        val sendWorkerInfoFuture = ecs.submit(
+          new Runnable() {
+            def run() = {
+              TrainingDriver.waitForListeningPortAndSendWorkerInfo(
+                trainingDriverListeningAddress,
+                partitionId,
+                partitionSize,
+                workerListeningPort,
+                connectTimeout,
+                workerInitializationTimeout
+              )
+            }
+          },
+          ()
+        )
+
+        val workerFuture = ecs.submit(
+          new Runnable() {
+            def run() = {
+              if (partitionSize != 0) {
+                log.info("processPartition: start RunWorker")
+                native_impl.RunWorker(threadCount, workerListeningPort)
+                log.info("processPartition: end RunWorker")
+              }
+            }
+          },
+          ()
+        )
         impl.Helpers.waitForTwoFutures(
           ecs,
           workerFuture,
@@ -154,6 +150,8 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
             case _ => throw e
           }
         }
+      } finally {
+        ecsPool.shutdown()
       }
 
       log.info("processPartition: end")
