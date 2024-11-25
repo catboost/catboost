@@ -1100,7 +1100,7 @@ extern void __kmp_init_target_mem();
 #define KMP_DEFAULT_BLOCKTIME (__kmp_is_hybrid_cpu() ? (0) : (200))
 
 #if KMP_USE_MONITOR
-#define KMP_DEFAULT_MONITOR_STKSIZE ((size_t)(64 * 1024))
+#define KMP_DEFAULT_MONITOR_STKSIZE ((size_t)(1024 * 1024))
 #define KMP_MIN_MONITOR_WAKEUPS (1) // min times monitor wakes up per second
 #define KMP_MAX_MONITOR_WAKEUPS (1000) // max times monitor can wake up per sec
 
