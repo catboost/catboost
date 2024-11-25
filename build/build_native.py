@@ -304,13 +304,11 @@ def cross_build(opts: Opts, cmd_runner=None):
     host_platform = get_host_platform()
     logging.info(f"Cross-building from host platform {host_platform} to target platform {opts.target_platform}")
 
-    tmp_native_built_tools_root_dir = None
-
     if opts.native_built_tools_root_dir:
         native_built_tools_root_dir = opts.native_built_tools_root_dir
     else:
-        tmp_native_built_tools_root_dir = tempfile.TemporaryDirectory(prefix='native_built_tools_root_dir')
-        native_built_tools_root_dir = tmp_native_built_tools_root_dir.name
+        native_built_tools_root_dir = os.path.join(opts.build_root_dir, 'native_tools')
+        mkdir_if_not_exists(native_built_tools_root_dir, opts.verbose, opts.dry_run)
 
         logging.info("Build tools")
         build(
