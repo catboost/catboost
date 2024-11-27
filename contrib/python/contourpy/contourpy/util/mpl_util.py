@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from itertools import pairwise
 from typing import TYPE_CHECKING, cast
 
 import matplotlib.path as mpath
@@ -67,7 +68,7 @@ def lines_to_mpl_paths(lines: LineReturn, line_type: LineType) -> list[mpath.Pat
                 continue
             nan_offsets = np.nonzero(np.isnan(points[:, 0]))[0]
             nan_offsets = np.concatenate([[-1], nan_offsets, [len(points)]])
-            for s, e in zip(nan_offsets[:-1], nan_offsets[1:]):
+            for s, e in pairwise(nan_offsets):
                 line = points[s+1:e]
                 closed = line[0, 0] == line[-1, 0] and line[0, 1] == line[-1, 1]
                 paths.append(mpath.Path(line, closed=closed))

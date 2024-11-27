@@ -1,8 +1,7 @@
-from typing import ClassVar, NoReturn
+from typing import ClassVar, NoReturn, TypeAlias
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import TypeAlias
 
 import contourpy._contourpy as cpy
 

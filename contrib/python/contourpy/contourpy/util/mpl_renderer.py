@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+from itertools import pairwise
 from typing import TYPE_CHECKING, Any, cast
 
 import matplotlib.collections as mcollections
@@ -404,7 +405,7 @@ class MplDebugRenderer(MplRenderer):
             for points, offsets in zip(*filled):
                 if points is None:
                     continue
-                for start, end in zip(offsets[:-1], offsets[1:]):
+                for start, end in pairwise(offsets):
                     xys = points[start:end]
                     ax.plot(xys[:, 0], xys[:, 1], c=line_color, alpha=line_alpha)
 

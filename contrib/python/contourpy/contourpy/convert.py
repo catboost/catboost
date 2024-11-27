@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from itertools import pairwise
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
@@ -212,7 +213,7 @@ def _convert_filled_from_ChunkCombinedOffsetOffset(
                     assert outer_offsets is not None
                 if len(outer_offsets) > 2:
                     separate_offsets += [offsets[s:e+1] - offsets[s] for s, e in
-                                         zip(outer_offsets[:-1], outer_offsets[1:])]
+                                         pairwise(outer_offsets)]
                 else:
                     separate_offsets.append(offsets)
                 separate_points += arr.split_points_by_offsets(points, offsets[outer_offsets])

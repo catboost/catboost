@@ -162,8 +162,9 @@ class BokehRenderer(Renderer):
                 list(np.stack((y[:-1, 1:].ravel(), ymid, y[1:, :-1].ravel()), axis=1)),
                 **kwargs)
         if point_color is not None:
-            fig.circle(
-                x=x.ravel(), y=y.ravel(), fill_color=color, line_color=None, alpha=alpha, size=8)
+            fig.scatter(
+                x=x.ravel(), y=y.ravel(), fill_color=color, line_color=None, alpha=alpha,
+                marker="circle", size=8)
 
     def lines(
         self,
@@ -221,7 +222,7 @@ class BokehRenderer(Renderer):
         fig = self._get_figure(ax)
         color = self._convert_color(color)
         x, y = self._grid_as_2d(x, y)
-        fig.circle(x[mask], y[mask], fill_color=color, size=10)
+        fig.scatter(x[mask], y[mask], fill_color=color, marker="circle", size=10)
 
     def save(
         self,
