@@ -130,6 +130,8 @@ public:
     }
 
     constexpr inline reference front() const noexcept {
+        Y_ASSERT(S_ > 0);
+
         return *T_;
     }
 
