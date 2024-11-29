@@ -713,7 +713,9 @@ class Glyph(object):
         else:
             self.decompileCoordinates(data)
 
-    def compile(self, glyfTable, recalcBBoxes=True, *, boundsDone=None):
+    def compile(
+        self, glyfTable, recalcBBoxes=True, *, boundsDone=None, optimizeSize=None
+    ):
         if hasattr(self, "data"):
             if recalcBBoxes:
                 # must unpack glyph in order to recalculate bounding box
@@ -730,7 +732,9 @@ class Glyph(object):
         if self.isComposite():
             data = data + self.compileComponents(glyfTable)
         else:
-            data = data + self.compileCoordinates()
+            if optimizeSize is None:
+                optimizeSize = getattr(glyfTable, "optimizeSize", True)
+            data = data + self.compileCoordinates(optimizeSize=optimizeSize)
         return data
 
     def toXML(self, writer, ttFont):
@@ -976,7 +980,7 @@ class Glyph(object):
             data = data + struct.pack(">h", len(instructions)) + instructions
         return data
 
-    def compileCoordinates(self):
+    def compileCoordinates(self, *, optimizeSize=True):
         assert len(self.coordinates) == len(self.flags)
         data = []
         endPtsOfContours = array.array("H", self.endPtsOfContours)
@@ -991,9 +995,12 @@ class Glyph(object):
         deltas.toInt()
         deltas.absoluteToRelative()
 
-        # TODO(behdad): Add a configuration option for this?
-        deltas = self.compileDeltasGreedy(self.flags, deltas)
-        # deltas = self.compileDeltasOptimal(self.flags, deltas)
+        if optimizeSize:
+            # TODO(behdad): Add a configuration option for this?
+            deltas = self.compileDeltasGreedy(self.flags, deltas)
+            # deltas = self.compileDeltasOptimal(self.flags, deltas)
+        else:
+            deltas = self.compileDeltasForSpeed(self.flags, deltas)
 
         data.extend(deltas)
         return b"".join(data)
@@ -1108,6 +1115,63 @@ class Glyph(object):
         except StopIteration:
             pass
 
+        return (compressedFlags, compressedXs, compressedYs)
+
+    def compileDeltasForSpeed(self, flags, deltas):
+        # uses widest representation needed, for all deltas.
+        compressedFlags = bytearray()
+        compressedXs = bytearray()
+        compressedYs = bytearray()
+
+        # Compute the necessary width for each axis
+        xs = [d[0] for d in deltas]
+        ys = [d[1] for d in deltas]
+        minX, minY, maxX, maxY = min(xs), min(ys), max(xs), max(ys)
+        xZero = minX == 0 and maxX == 0
+        yZero = minY == 0 and maxY == 0
+        xShort = -255 <= minX <= maxX <= 255
+        yShort = -255 <= minY <= maxY <= 255
+
+        lastflag = None
+        repeat = 0
+        for flag, (x, y) in zip(flags, deltas):
+            # Oh, the horrors of TrueType
+            # do x
+            if xZero:
+                flag = flag | flagXsame
+            elif xShort:
+                flag = flag | flagXShort
+                if x > 0:
+                    flag = flag | flagXsame
+                else:
+                    x = -x
+                compressedXs.append(x)
+            else:
+                compressedXs.extend(struct.pack(">h", x))
+            # do y
+            if yZero:
+                flag = flag | flagYsame
+            elif yShort:
+                flag = flag | flagYShort
+                if y > 0:
+                    flag = flag | flagYsame
+                else:
+                    y = -y
+                compressedYs.append(y)
+            else:
+                compressedYs.extend(struct.pack(">h", y))
+            # handle repeating flags
+            if flag == lastflag and repeat != 255:
+                repeat = repeat + 1
+                if repeat == 1:
+                    compressedFlags.append(flag)
+                else:
+                    compressedFlags[-2] = flag | flagRepeat
+                    compressedFlags[-1] = repeat
+            else:
+                repeat = 0
+                compressedFlags.append(flag)
+            lastflag = flag
         return (compressedFlags, compressedXs, compressedYs)
 
     def recalcBounds(self, glyfTable, *, boundsDone=None):
@@ -1404,6 +1468,7 @@ class Glyph(object):
                 pen.addComponent(glyphName, transform)
             return
 
+        self.expand(glyfTable)
         coordinates, endPts, flags = self.getCoordinates(glyfTable)
         if offset:
             coordinates = coordinates.copy()

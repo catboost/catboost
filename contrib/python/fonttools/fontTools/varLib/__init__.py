@@ -85,6 +85,15 @@ def _add_fvar(font, axes, instances: List[InstanceDescriptor]):
     fvar = newTable("fvar")
     nameTable = font["name"]
 
+    # if there are not currently any mac names don't add them here, that's inconsistent
+    # https://github.com/fonttools/fonttools/issues/683
+    macNames = any(nr.platformID == 1 for nr in getattr(nameTable, "names", ()))
+
+    # we have all the best ways to express mac names
+    platforms = ((3, 1, 0x409),)
+    if macNames:
+        platforms = ((1, 0, 0),) + platforms
+
     for a in axes.values():
         axis = Axis()
         axis.axisTag = Tag(a.tag)
@@ -95,7 +104,7 @@ def _add_fvar(font, axes, instances: List[InstanceDescriptor]):
             a.maximum,
         )
         axis.axisNameID = nameTable.addMultilingualName(
-            a.labelNames, font, minNameID=256
+            a.labelNames, font, minNameID=256, mac=macNames
         )
         axis.flags = int(a.hidden)
         fvar.axes.append(axis)
@@ -121,10 +130,12 @@ def _add_fvar(font, axes, instances: List[InstanceDescriptor]):
         psname = instance.postScriptFontName
 
         inst = NamedInstance()
-        inst.subfamilyNameID = nameTable.addMultilingualName(localisedStyleName)
+        inst.subfamilyNameID = nameTable.addMultilingualName(
+            localisedStyleName, mac=macNames
+        )
         if psname is not None:
             psname = tostr(psname)
-            inst.postscriptNameID = nameTable.addName(psname)
+            inst.postscriptNameID = nameTable.addName(psname, platforms=platforms)
         inst.coordinates = {
             axes[k].tag: axes[k].map_backward(v) for k, v in coordinates.items()
         }

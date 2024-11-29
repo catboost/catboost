@@ -55,10 +55,10 @@ def test_contour_order(glyph0, glyph1):
             m1GreenReversed = [(-m[0],) + m[1:] for m in m1Green]
             (
                 matching_control_reversed,
-                matching_cost_control_reversed,
-                identity_cost_control_reversed,
-            ) = matching_for_vectors(m0Control, m1ControlReversed)
-            done = matching_cost_control_reversed == identity_cost_control_reversed
+                matching_cost_green_reversed,
+                identity_cost_green_reversed,
+            ) = matching_for_vectors(m0Green, m1GreenReversed)
+            done = matching_cost_green_reversed == identity_cost_green_reversed
 
         if not done:
             # Otherwise, use the worst of the two matchings.

@@ -85,6 +85,7 @@ class table__g_v_a_r(DefaultTable.DefaultTable):
     def compileGlyphs_(self, ttFont, axisTags, sharedCoordIndices):
         result = []
         glyf = ttFont["glyf"]
+        optimizeSize = getattr(self, "optimizeSize", True)
         for glyphName in ttFont.getGlyphOrder():
             variations = self.variations.get(glyphName, [])
             if not variations:
@@ -93,7 +94,11 @@ class table__g_v_a_r(DefaultTable.DefaultTable):
             pointCountUnused = 0  # pointCount is actually unused by compileGlyph
             result.append(
                 compileGlyph_(
-                    variations, pointCountUnused, axisTags, sharedCoordIndices
+                    variations,
+                    pointCountUnused,
+                    axisTags,
+                    sharedCoordIndices,
+                    optimizeSize=optimizeSize,
                 )
             )
         return result
@@ -248,9 +253,11 @@ class table__g_v_a_r(DefaultTable.DefaultTable):
             return len(getattr(glyph, "coordinates", [])) + NUM_PHANTOM_POINTS
 
 
-def compileGlyph_(variations, pointCount, axisTags, sharedCoordIndices):
+def compileGlyph_(
+    variations, pointCount, axisTags, sharedCoordIndices, *, optimizeSize=True
+):
     tupleVariationCount, tuples, data = tv.compileTupleVariationStore(
-        variations, pointCount, axisTags, sharedCoordIndices
+        variations, pointCount, axisTags, sharedCoordIndices, optimizeSize=optimizeSize
     )
     if tupleVariationCount == 0:
         return b""

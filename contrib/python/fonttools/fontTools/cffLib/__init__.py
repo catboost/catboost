@@ -1,7 +1,7 @@
 """cffLib: read/write Adobe CFF fonts
 
-OpenType fonts with PostScript outlines contain a completely independent
-font file, Adobe's *Compact Font Format*. So dealing with OpenType fonts
+OpenType fonts with PostScript outlines embed a completely independent
+font file in Adobe's *Compact Font Format*. So dealing with OpenType fonts
 requires also dealing with CFF. This module allows you to read and write
 fonts written in the CFF format.
 
@@ -867,7 +867,11 @@ class VarStoreData(object):
         if self.file:
             # read data in from file. Assume position is correct.
             length = readCard16(self.file)
-            self.data = self.file.read(length)
+            # https://github.com/fonttools/fonttools/issues/3673
+            if length == 65535:
+                self.data = self.file.read()
+            else:
+                self.data = self.file.read(length)
             globalState = {}
             reader = OTTableReader(self.data, globalState)
             self.otVarStore = ot.VarStore()
@@ -1956,7 +1960,8 @@ class VarStoreCompiler(object):
         self.parent = parent
         if not varStoreData.data:
             varStoreData.compile()
-        data = [packCard16(len(varStoreData.data)), varStoreData.data]
+        varStoreDataLen = min(0xFFFF, len(varStoreData.data))
+        data = [packCard16(varStoreDataLen), varStoreData.data]
         self.data = bytesjoin(data)
 
     def setPos(self, pos, endPos):
@@ -2281,7 +2286,7 @@ class DictCompiler(object):
                 # For PrivateDict BlueValues, the default font
                 # values are absolute, not relative.
                 # Must convert these back to relative coordinates
-                # befor writing to CFF2.
+                # before writing to CFF2.
                 defaultValue = value[i][0]
                 firstList[i] = defaultValue - prevVal
                 prevVal = defaultValue

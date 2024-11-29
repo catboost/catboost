@@ -39,11 +39,18 @@ def buildVFStatTable(ttFont: TTFont, doc: DesignSpaceDocument, vfName: str) -> N
 
     region = getVFUserRegion(doc, vf)
 
+    # if there are not currently any mac names don't add them here, that's inconsistent
+    # https://github.com/fonttools/fonttools/issues/683
+    macNames = any(
+        nr.platformID == 1 for nr in getattr(ttFont.get("name"), "names", ())
+    )
+
     return fontTools.otlLib.builder.buildStatTable(
         ttFont,
         getStatAxes(doc, region),
         getStatLocations(doc, region),
         doc.elidedFallbackName if doc.elidedFallbackName is not None else 2,
+        macNames=macNames,
     )
 
 

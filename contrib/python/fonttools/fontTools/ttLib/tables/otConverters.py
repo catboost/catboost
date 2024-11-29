@@ -2016,6 +2016,7 @@ converterMapping = {
     # type		class
     "int8": Int8,
     "int16": Short,
+    "int32": Long,
     "uint8": UInt8,
     "uint16": UShort,
     "uint24": UInt24,
