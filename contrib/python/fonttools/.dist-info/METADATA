@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.54.1
+Version: 4.55.0
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -23,6 +23,7 @@ Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
 Classifier: Programming Language :: Python :: 3
 Classifier: Topic :: Text Processing :: Fonts
 Classifier: Topic :: Multimedia :: Graphics
@@ -375,6 +376,24 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.55.0 (released 2024-11-14)
+----------------------------
+
+
+- [cffLib.specializer] Adjust stack use calculation (#3689)
+- [varLib] Lets not add mac names if the rest of name doesn't have them (#3688)
+- [ttLib.reorderGlyphs] Update CFF table charstrings and charset (#3682)
+- [cffLib.specializer] Add cmdline to specialize a CFF2 font (#3675, #3679)
+- [CFF2] Lift uint16 VariationStore.length limitation (#3674)
+- [subset] consider variation selectors subsetting cmap14 (#3672)
+- [varLib.interpolatable] Support CFF2 fonts (#3670)
+- Set isfinal to true in XML parser for proper resource cleanup (#3669)
+- [removeOverlaps] Fix CFF CharString width (#3659)
+- [glyf] Add optimizeSize option (#3657)
+- Python 3.13 support (#3656)
+- [TupleVariation] Optimize for loading speed, not size (#3650, #3653)
+
 
 4.54.1 (released 2024-09-24)
 ----------------------------

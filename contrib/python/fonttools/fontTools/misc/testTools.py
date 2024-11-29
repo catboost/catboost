@@ -38,7 +38,7 @@ def parseXML(xmlSnippet):
             % type(xmlSnippet).__name__
         )
     xml += b"</root>"
-    reader.parser.Parse(xml, 0)
+    reader.parser.Parse(xml, 1)
     return reader.root[2]
 
 

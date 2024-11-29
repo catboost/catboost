@@ -80,8 +80,9 @@ def programToCommands(program, getNumRegions=None):
             numBlendArgs = numBlends * numSourceFonts + 1
             # replace first blend op by a list of the blend ops.
             stack[-numBlendArgs:] = [stack[-numBlendArgs:]]
-            lenBlendStack += numBlends + len(stack) - 1
-            lastBlendIndex = len(stack)
+            lenStack = len(stack)
+            lenBlendStack += numBlends + lenStack - 1
+            lastBlendIndex = lenStack
             # if a blend op exists, this is or will be a CFF2 charstring.
             continue
 
@@ -153,9 +154,10 @@ def commandsToProgram(commands):
 
 def _everyN(el, n):
     """Group the list el into groups of size n"""
-    if len(el) % n != 0:
+    l = len(el)
+    if l % n != 0:
         raise ValueError(el)
-    for i in range(0, len(el), n):
+    for i in range(0, l, n):
         yield el[i : i + n]
 
 
@@ -218,9 +220,10 @@ class _GeneralizerDecombinerCommandsMap(object):
 
     @staticmethod
     def hhcurveto(args):
-        if len(args) < 4 or len(args) % 4 > 1:
+        l = len(args)
+        if l < 4 or l % 4 > 1:
             raise ValueError(args)
-        if len(args) % 2 == 1:
+        if l % 2 == 1:
             yield ("rrcurveto", [args[1], args[0], args[2], args[3], args[4], 0])
             args = args[5:]
         for args in _everyN(args, 4):
@@ -228,9 +231,10 @@ class _GeneralizerDecombinerCommandsMap(object):
 
     @staticmethod
     def vvcurveto(args):
-        if len(args) < 4 or len(args) % 4 > 1:
+        l = len(args)
+        if l < 4 or l % 4 > 1:
             raise ValueError(args)
-        if len(args) % 2 == 1:
+        if l % 2 == 1:
             yield ("rrcurveto", [args[0], args[1], args[2], args[3], 0, args[4]])
             args = args[5:]
         for args in _everyN(args, 4):
@@ -238,11 +242,12 @@ class _GeneralizerDecombinerCommandsMap(object):
 
     @staticmethod
     def hvcurveto(args):
-        if len(args) < 4 or len(args) % 8 not in {0, 1, 4, 5}:
+        l = len(args)
+        if l < 4 or l % 8 not in {0, 1, 4, 5}:
             raise ValueError(args)
         last_args = None
-        if len(args) % 2 == 1:
-            lastStraight = len(args) % 8 == 5
+        if l % 2 == 1:
+            lastStraight = l % 8 == 5
             args, last_args = args[:-5], args[-5:]
         it = _everyN(args, 4)
         try:
@@ -262,11 +267,12 @@ class _GeneralizerDecombinerCommandsMap(object):
 
     @staticmethod
     def vhcurveto(args):
-        if len(args) < 4 or len(args) % 8 not in {0, 1, 4, 5}:
+        l = len(args)
+        if l < 4 or l % 8 not in {0, 1, 4, 5}:
             raise ValueError(args)
         last_args = None
-        if len(args) % 2 == 1:
-            lastStraight = len(args) % 8 == 5
+        if l % 2 == 1:
+            lastStraight = l % 8 == 5
             args, last_args = args[:-5], args[-5:]
         it = _everyN(args, 4)
         try:
@@ -286,7 +292,8 @@ class _GeneralizerDecombinerCommandsMap(object):
 
     @staticmethod
     def rcurveline(args):
-        if len(args) < 8 or len(args) % 6 != 2:
+        l = len(args)
+        if l < 8 or l % 6 != 2:
             raise ValueError(args)
         args, last_args = args[:-2], args[-2:]
         for args in _everyN(args, 6):
@@ -295,7 +302,8 @@ class _GeneralizerDecombinerCommandsMap(object):
 
     @staticmethod
     def rlinecurve(args):
-        if len(args) < 8 or len(args) % 2 != 0:
+        l = len(args)
+        if l < 8 or l % 2 != 0:
             raise ValueError(args)
         args, last_args = args[:-6], args[-6:]
         for args in _everyN(args, 2):
@@ -330,8 +338,9 @@ def _convertBlendOpToArgs(blendList):
     # comprehension. See calling context
     args = args[:-1]
 
-    numRegions = len(args) // numBlends - 1
-    if not (numBlends * (numRegions + 1) == len(args)):
+    l = len(args)
+    numRegions = l // numBlends - 1
+    if not (numBlends * (numRegions + 1) == l):
         raise ValueError(blendList)
 
     defaultArgs = [[arg] for arg in args[:numBlends]]
@@ -368,7 +377,7 @@ def generalizeCommands(commands, ignoreErrors=False):
                     raise
 
         func = getattr(mapping, op, None)
-        if not func:
+        if func is None:
             result.append((op, args))
             continue
         try:
@@ -446,9 +455,9 @@ def _convertToBlendCmds(args):
     i = 0
     while i < num_args:
         arg = args[i]
+        i += 1
         if not isinstance(arg, list):
             new_args.append(arg)
-            i += 1
             stack_use += 1
         else:
             prev_stack_use = stack_use
@@ -458,21 +467,26 @@ def _convertToBlendCmds(args):
             # up to the max stack limit.
             num_sources = len(arg) - 1
             blendlist = [arg]
-            i += 1
             stack_use += 1 + num_sources  # 1 for the num_blends arg
-            while (i < num_args) and isinstance(args[i], list):
+
+            # if we are here, max stack is the CFF2 max stack.
+            # I use the CFF2 max stack limit here rather than
+            # the 'maxstack' chosen by the client, as the default
+            # maxstack may have been used unintentionally. For all
+            # the other operators, this just produces a little less
+            # optimization, but here it puts a hard (and low) limit
+            # on the number of source fonts that can be used.
+            #
+            # Make sure the stack depth does not exceed (maxstack - 1), so
+            # that subroutinizer can insert subroutine calls at any point.
+            while (
+                (i < num_args)
+                and isinstance(args[i], list)
+                and stack_use + num_sources < maxStackLimit
+            ):
                 blendlist.append(args[i])
                 i += 1
                 stack_use += num_sources
-                if stack_use + num_sources > maxStackLimit:
-                    # if we are here, max stack is the CFF2 max stack.
-                    # I use the CFF2 max stack limit here rather than
-                    # the 'maxstack' chosen by the client, as the default
-                    #  maxstack may have been used unintentionally. For all
-                    # the other operators, this just produces a little less
-                    # optimization, but here it puts a hard (and low) limit
-                    # on the number of source fonts that can be used.
-                    break
             # blendList now contains as many single blend tuples as can be
             # combined without exceeding the CFF2 stack limit.
             num_blends = len(blendlist)
@@ -502,6 +516,19 @@ def _addArgs(a, b):
         assert a[-1] == 1
         return [_addArgs(a[0], b)] + a[1:]
     return a + b
+
+
+def _argsStackUse(args):
+    stackLen = 0
+    maxLen = 0
+    for arg in args:
+        if type(arg) is list:
+            # Blended arg
+            maxLen = max(maxLen, stackLen + _argsStackUse(arg))
+            stackLen += arg[-1]
+        else:
+            stackLen += 1
+    return max(stackLen, maxLen)
 
 
 def specializeCommands(
@@ -697,6 +724,7 @@ def specializeCommands(
             continue
 
     # 5. Combine adjacent operators when possible, minding not to go over max stack size.
+    stackUse = _argsStackUse(commands[-1][1]) if commands else 0
     for i in range(len(commands) - 1, 0, -1):
         op1, args1 = commands[i - 1]
         op2, args2 = commands[i]
@@ -707,9 +735,10 @@ def specializeCommands(
             if op1 == op2:
                 new_op = op1
             else:
-                if op2 == "rrcurveto" and len(args2) == 6:
+                l = len(args2)
+                if op2 == "rrcurveto" and l == 6:
                     new_op = "rlinecurve"
-                elif len(args2) == 2:
+                elif l == 2:
                     new_op = "rcurveline"
 
         elif (op1, op2) in {("rlineto", "rlinecurve"), ("rrcurveto", "rcurveline")}:
@@ -746,9 +775,14 @@ def specializeCommands(
 
         # Make sure the stack depth does not exceed (maxstack - 1), so
         # that subroutinizer can insert subroutine calls at any point.
-        if new_op and len(args1) + len(args2) < maxstack:
+        args1StackUse = _argsStackUse(args1)
+        combinedStackUse = max(args1StackUse, len(args1) + stackUse)
+        if new_op and combinedStackUse < maxstack:
             commands[i - 1] = (new_op, args1 + args2)
             del commands[i]
+            stackUse = combinedStackUse
+        else:
+            stackUse = args1StackUse
 
     # 6. Resolve any remaining made-up operators into real operators.
     for i in range(len(commands)):
@@ -759,9 +793,11 @@ def specializeCommands(
             continue
 
         if op[2:] == "curveto" and op[:2] not in {"rr", "hh", "vv", "vh", "hv"}:
+            l = len(args)
+
             op0, op1 = op[:2]
             if (op0 == "r") ^ (op1 == "r"):
-                assert len(args) % 2 == 1
+                assert l % 2 == 1
             if op0 == "0":
                 op0 = "h"
             if op1 == "0":
@@ -772,9 +808,9 @@ def specializeCommands(
                 op1 = _negateCategory(op0)
             assert {op0, op1} <= {"h", "v"}, (op0, op1)
 
-            if len(args) % 2:
+            if l % 2:
                 if op0 != op1:  # vhcurveto / hvcurveto
-                    if (op0 == "h") ^ (len(args) % 8 == 1):
+                    if (op0 == "h") ^ (l % 8 == 1):
                         # Swap last two args order
                         args = args[:-2] + args[-1:] + args[-2:-1]
                 else:  # hhcurveto / vvcurveto
@@ -822,26 +858,67 @@ if __name__ == "__main__":
         default=None,
         help="Number of variable-font regions for blend opertaions.",
     )
+    parser.add_argument(
+        "--font",
+        metavar="FONTFILE",
+        default=None,
+        help="CFF2 font to specialize.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output-file",
+        type=str,
+        help="Output font file name.",
+    )
 
     options = parser.parse_args(sys.argv[1:])
 
-    getNumRegions = (
-        None
-        if options.num_regions is None
-        else lambda vsIndex: int(options.num_regions[0 if vsIndex is None else vsIndex])
-    )
+    if options.program:
+        getNumRegions = (
+            None
+            if options.num_regions is None
+            else lambda vsIndex: int(
+                options.num_regions[0 if vsIndex is None else vsIndex]
+            )
+        )
 
-    program = stringToProgram(options.program)
-    print("Program:")
-    print(programToString(program))
-    commands = programToCommands(program, getNumRegions)
-    print("Commands:")
-    print(commands)
-    program2 = commandsToProgram(commands)
-    print("Program from commands:")
-    print(programToString(program2))
-    assert program == program2
-    print("Generalized program:")
-    print(programToString(generalizeProgram(program, getNumRegions)))
-    print("Specialized program:")
-    print(programToString(specializeProgram(program, getNumRegions)))
+        program = stringToProgram(options.program)
+        print("Program:")
+        print(programToString(program))
+        commands = programToCommands(program, getNumRegions)
+        print("Commands:")
+        print(commands)
+        program2 = commandsToProgram(commands)
+        print("Program from commands:")
+        print(programToString(program2))
+        assert program == program2
+        print("Generalized program:")
+        print(programToString(generalizeProgram(program, getNumRegions)))
+        print("Specialized program:")
+        print(programToString(specializeProgram(program, getNumRegions)))
+
+    if options.font:
+        from fontTools.ttLib import TTFont
+
+        font = TTFont(options.font)
+        cff2 = font["CFF2"].cff.topDictIndex[0]
+        charstrings = cff2.CharStrings
+        for glyphName in charstrings.keys():
+            charstring = charstrings[glyphName]
+            charstring.decompile()
+            getNumRegions = charstring.private.getNumRegions
+            charstring.program = specializeProgram(
+                charstring.program, getNumRegions, maxstack=maxStackLimit
+            )
+
+        if options.output_file is None:
+            from fontTools.misc.cliTools import makeOutputFileName
+
+            outfile = makeOutputFileName(
+                options.font, overWrite=True, suffix=".specialized"
+            )
+        else:
+            outfile = options.output_file
+        if outfile:
+            print("Saving", outfile)
+            font.save(outfile)

@@ -81,7 +81,7 @@ def _convertCFFToCFF2(cff, otFont):
 
         thisLocalSubrs = (
             localSubrs[fdIndex]
-            if fdIndex
+            if fdIndex is not None
             else (
                 getattr(topDict.Private, "Subrs", [])
                 if hasattr(topDict, "Private")
@@ -104,9 +104,10 @@ def _convertCFFToCFF2(cff, otFont):
             # just pop the first number since it may be a subroutine call.
             # Instead, when seeing that, we embed the subroutine and recurse.
             # If this ever happened, we later prune unused subroutines.
-            while program[1] in ["callsubr", "callgsubr"]:
+            while len(program) >= 2 and program[1] in ["callsubr", "callgsubr"]:
                 removeUnusedSubrs = True
                 subrNumber = program.pop(0)
+                assert isinstance(subrNumber, int), subrNumber
                 op = program.pop(0)
                 bias = extractor.localBias if op == "callsubr" else extractor.globalBias
                 subrNumber += bias
@@ -114,6 +115,7 @@ def _convertCFFToCFF2(cff, otFont):
                 subrProgram = subrSet[subrNumber].program
                 program[:0] = subrProgram
             # Now pop the actual width
+            assert len(program) >= 1, program
             program.pop(0)
 
         if program and program[-1] == "endchar":

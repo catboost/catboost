@@ -2873,7 +2873,9 @@ def closure_glyphs(self, s):
     # Close glyphs
     for table in tables:
         if table.format == 14:
-            for cmap in table.uvsDict.values():
+            for varSelector, cmap in table.uvsDict.items():
+                if varSelector not in s.unicodes_requested:
+                    continue
                 glyphs = {g for u, g in cmap if u in s.unicodes_requested}
                 if None in glyphs:
                     glyphs.remove(None)
@@ -2928,6 +2930,7 @@ def subset_glyphs(self, s):
                     if g in s.glyphs_requested or u in s.unicodes_requested
                 ]
                 for v, l in t.uvsDict.items()
+                if v in s.unicodes_requested
             }
             t.uvsDict = {v: l for v, l in t.uvsDict.items() if l}
         elif t.isUnicode():
@@ -3797,6 +3800,8 @@ def main(args=None):
             for t in font["cmap"].tables:
                 if t.isUnicode():
                     unicodes.extend(t.cmap.keys())
+                    if t.format == 14:
+                        unicodes.extend(t.uvsDict.keys())
         assert "" not in glyphs
 
     log.info("Text: '%s'" % text)

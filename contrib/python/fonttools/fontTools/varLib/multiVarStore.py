@@ -50,7 +50,7 @@ class OnlineMultiVarStoreBuilder(object):
         self._cache = None
         self._data = None
 
-    def finish(self, optimize=True):
+    def finish(self):
         self._regionList.RegionCount = len(self._regionList.Region)
         self._store.MultiVarDataCount = len(self._store.MultiVarData)
         return self._store

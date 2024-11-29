@@ -693,7 +693,7 @@ def main(args=None):
 
     from fontTools import configLogger
 
-    configLogger(level=("INFO" if args.verbose else "ERROR"))
+    configLogger(level=("INFO" if args.verbose else "WARNING"))
     if args.debug:
         configLogger(level="DEBUG")
 
@@ -750,41 +750,43 @@ def main(args=None):
                 for k, vv in axis_triples.items()
             }
 
-        elif args.inputs[0].endswith(".ttf"):
+        elif args.inputs[0].endswith(".ttf") or args.inputs[0].endswith(".otf"):
             from fontTools.ttLib import TTFont
+
+            # Is variable font?
 
             font = TTFont(args.inputs[0])
             upem = font["head"].unitsPerEm
+
+            fvar = font["fvar"]
+            axisMapping = {}
+            for axis in fvar.axes:
+                axisMapping[axis.axisTag] = {
+                    -1: axis.minValue,
+                    0: axis.defaultValue,
+                    1: axis.maxValue,
+                }
+            normalized = False
+            if "avar" in font:
+                avar = font["avar"]
+                if getattr(avar.table, "VarStore", None):
+                    axisMapping = {tag: {-1: -1, 0: 0, 1: 1} for tag in axisMapping}
+                    normalized = True
+                else:
+                    for axisTag, segments in avar.segments.items():
+                        fvarMapping = axisMapping[axisTag].copy()
+                        for location, value in segments.items():
+                            axisMapping[axisTag][value] = piecewiseLinearMap(
+                                location, fvarMapping
+                            )
+
+            # Gather all glyphs at their "master" locations
+            ttGlyphSets = {}
+            glyphsets = defaultdict(dict)
+
             if "gvar" in font:
-                # Is variable font
-
-                fvar = font["fvar"]
-                axisMapping = {}
-                for axis in fvar.axes:
-                    axisMapping[axis.axisTag] = {
-                        -1: axis.minValue,
-                        0: axis.defaultValue,
-                        1: axis.maxValue,
-                    }
-                normalized = False
-                if "avar" in font:
-                    avar = font["avar"]
-                    if getattr(avar.table, "VarStore", None):
-                        axisMapping = {tag: {-1: -1, 0: 0, 1: 1} for tag in axisMapping}
-                        normalized = True
-                    else:
-                        for axisTag, segments in avar.segments.items():
-                            fvarMapping = axisMapping[axisTag].copy()
-                            for location, value in segments.items():
-                                axisMapping[axisTag][value] = piecewiseLinearMap(
-                                    location, fvarMapping
-                                )
-
                 gvar = font["gvar"]
                 glyf = font["glyf"]
-                # Gather all glyphs at their "master" locations
-                ttGlyphSets = {}
-                glyphsets = defaultdict(dict)
 
                 if glyphs is None:
                     glyphs = sorted(gvar.variations.keys())
@@ -806,32 +808,87 @@ def main(args=None):
                             glyphname, glyphsets[locTuple], ttGlyphSets[locTuple], glyf
                         )
 
-                names = ["''"]
-                fonts = [font.getGlyphSet()]
-                locations = [{}]
-                axis_triples = {a: (-1, 0, +1) for a in sorted(axisMapping.keys())}
-                for locTuple in sorted(glyphsets.keys(), key=lambda v: (len(v), v)):
-                    name = (
-                        "'"
-                        + " ".join(
-                            "%s=%s"
-                            % (
-                                k,
-                                floatToFixedToStr(
-                                    piecewiseLinearMap(v, axisMapping[k]), 14
-                                ),
-                            )
-                            for k, v in locTuple
+            elif "CFF2" in font:
+                fvarAxes = font["fvar"].axes
+                cff2 = font["CFF2"].cff.topDictIndex[0]
+                charstrings = cff2.CharStrings
+
+                if glyphs is None:
+                    glyphs = sorted(charstrings.keys())
+                for glyphname in glyphs:
+                    cs = charstrings[glyphname]
+                    private = cs.private
+
+                    # Extract vsindex for the glyph
+                    vsindices = {getattr(private, "vsindex", 0)}
+                    vsindex = getattr(private, "vsindex", 0)
+                    last_op = 0
+                    # The spec says vsindex can only appear once and must be the first
+                    # operator in the charstring, but we support multiple.
+                    # https://github.com/harfbuzz/boring-expansion-spec/issues/158
+                    for op in enumerate(cs.program):
+                        if op == "blend":
+                            vsindices.add(vsindex)
+                        elif op == "vsindex":
+                            assert isinstance(last_op, int)
+                            vsindex = last_op
+                        last_op = op
+
+                    if not hasattr(private, "vstore"):
+                        continue
+
+                    varStore = private.vstore.otVarStore
+                    for vsindex in vsindices:
+                        varData = varStore.VarData[vsindex]
+                        for regionIndex in varData.VarRegionIndex:
+                            region = varStore.VarRegionList.Region[regionIndex]
+
+                            locDict = {}
+                            loc = []
+                            for axisIndex, axis in enumerate(region.VarRegionAxis):
+                                tag = fvarAxes[axisIndex].axisTag
+                                val = axis.PeakCoord
+                                locDict[tag] = val
+                                loc.append((tag, val))
+
+                            locTuple = tuple(loc)
+                            if locTuple not in ttGlyphSets:
+                                ttGlyphSets[locTuple] = font.getGlyphSet(
+                                    location=locDict,
+                                    normalized=True,
+                                    recalcBounds=False,
+                                )
+
+                            glyphset = glyphsets[locTuple]
+                            glyphset[glyphname] = ttGlyphSets[locTuple][glyphname]
+
+            names = ["''"]
+            fonts = [font.getGlyphSet()]
+            locations = [{}]
+            axis_triples = {a: (-1, 0, +1) for a in sorted(axisMapping.keys())}
+            for locTuple in sorted(glyphsets.keys(), key=lambda v: (len(v), v)):
+                name = (
+                    "'"
+                    + " ".join(
+                        "%s=%s"
+                        % (
+                            k,
+                            floatToFixedToStr(
+                                piecewiseLinearMap(v, axisMapping[k]), 14
+                            ),
                         )
-                        + "'"
+                        for k, v in locTuple
                     )
-                    if normalized:
-                        name += " (normalized)"
-                    names.append(name)
-                    fonts.append(glyphsets[locTuple])
-                    locations.append(dict(locTuple))
-                args.ignore_missing = True
-                args.inputs = []
+                    + "'"
+                )
+                if normalized:
+                    name += " (normalized)"
+                names.append(name)
+                fonts.append(glyphsets[locTuple])
+                locations.append(dict(locTuple))
+
+            args.ignore_missing = True
+            args.inputs = []
 
     if not locations:
         locations = [{} for _ in fonts]
@@ -853,6 +910,10 @@ def main(args=None):
             fonts.append(font)
 
         names.append(basename(filename).rsplit(".", 1)[0])
+
+    if len(fonts) < 2:
+        log.warning("Font file does not seem to be variable. Nothing to check.")
+        return
 
     glyphsets = []
     for font in fonts:

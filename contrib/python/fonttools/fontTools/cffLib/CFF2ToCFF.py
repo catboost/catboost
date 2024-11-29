@@ -32,9 +32,10 @@ def _convertCFF2ToCFF(cff, otFont):
 
     cff.major = 1
 
-    topDictData = TopDictIndex(None, isCFF2=True)
+    topDictData = TopDictIndex(None)
     for item in cff.topDictIndex:
         # Iterate over, such that all are decompiled
+        item.cff2GetGlyphOrder = None
         topDictData.append(item)
     cff.topDictIndex = topDictData
     topDict = topDictData[0]
@@ -98,6 +99,21 @@ def _convertCFF2ToCFF(cff, otFont):
         width = metrics[glyphName][0]
         if width != private.defaultWidthX:
             cs.program.insert(0, width - private.nominalWidthX)
+
+    mapping = {
+        name: ("cid" + str(n) if n else ".notdef")
+        for n, name in enumerate(topDict.charset)
+    }
+    topDict.charset = [
+        "cid" + str(n) if n else ".notdef" for n in range(len(topDict.charset))
+    ]
+    charStrings.charStrings = {
+        mapping[name]: v for name, v in charStrings.charStrings.items()
+    }
+
+    # I'm not sure why the following is *not* necessary. And it breaks
+    # the output if I add it.
+    # topDict.ROS = ("Adobe", "Identity", 0)
 
 
 def convertCFF2ToCFF(font, *, updatePostTable=True):
