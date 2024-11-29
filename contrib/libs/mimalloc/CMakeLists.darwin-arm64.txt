@@ -16,20 +16,37 @@ add_library(contrib-libs-mimalloc)
 
 
 target_compile_options(contrib-libs-mimalloc PRIVATE
-  -w
-  -DMI_MALLOC_OVERRIDE=1
-  -DMI_PADDING=0
+  -DMI_MALLOC_OVERRIDE
+  -DMI_SHARED_LIB
+  -DMI_SHARED_LIB_EXPORT
+  -DMI_STATIC_LIB
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
-target_include_directories(contrib-libs-mimalloc PRIVATE
+target_include_directories(contrib-libs-mimalloc PUBLIC
   ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/include
 )
 
 target_link_libraries(contrib-libs-mimalloc PUBLIC
-  contrib-libs-cxxsupp
+  cpp-sanitizer-include
 )
 
 target_sources(contrib-libs-mimalloc PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/static.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/alloc-aligned.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/alloc-posix.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/alloc.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/arena.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/bitmap.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/heap.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/init.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/libc.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/options.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/os.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/page.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/prim/prim.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/random.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/segment-map.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/segment.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/mimalloc/src/stats.c
 )
 
