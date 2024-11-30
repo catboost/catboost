@@ -438,10 +438,11 @@ class ServiceTags(Enum):
 
 
 class PythonLinterName(Enum):
-    Flake8 = "flake8"
-    Py2Flake8 = "py2_flake8"
     Black = "black"
     DummyLinter = "dummy_linter"
+    Flake8 = "flake8"
+    Py2Flake8 = "py2_flake8"
+    Ruff = "ruff"
 
 
 class CppLinterName(Enum):
@@ -449,8 +450,20 @@ class CppLinterName(Enum):
 
 
 class DefaultLinterConfig(Enum):
-    Python = "build/config/tests/py_style/default_configs.json"
     Cpp = "build/config/tests/cpp_style/default_configs.json"
+    Python = "build/config/tests/py_style/default_configs.json"
+
+
+LINTER_CONFIG_TYPES = {
+    CppLinterName.ClangFormat: (".clang-format",),
+    PythonLinterName.Black: ("pyproject.toml",),
+    PythonLinterName.Ruff: ("pyproject.toml", "ruff.toml"),
+}
+
+AUTOINCLUDE_PATHS = (
+    'build/conf/autoincludes.json',
+    'build/internal/conf/autoincludes.json',
+)
 
 
 class Status(object):
