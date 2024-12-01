@@ -8,7 +8,7 @@ async function ci() {
         throw new Error('ci script --- Usage: npm run ci <catboost-release version> <catboost-node-package version>');
     }
     const catboostVersion = process.argv[5];
-    if (!/v[0-9\.]*/.exec(catboostVersion)) {
+    if (!/[0-9\.]*/.exec(catboostVersion)) {
         throw new Error(`Version '${catboostVersion}' is not a valid catboost version.`);
     }
 

@@ -7,7 +7,7 @@ async function install(): Promise<void> {
         return;
     }
 
-    await buildLocal(process.platform);
+    await buildLocal(process.platform, process.arch);
 }
 
 install().catch(err => {
