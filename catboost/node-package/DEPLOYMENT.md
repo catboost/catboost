@@ -18,7 +18,7 @@ npm run compile_build_scripts
   ```
   - If called outside of the repository, then the package is considered to be installed from npm and it will be built and linked against the binaries specified in `config.json` file. This file is created during package preparation for publishing, see below.
 - `npm run build` - build package locally in the `catboost` repository, link against library built from source.
-- `npm run ci` - a single script for CI which runs the procedure described in "Release procedure" section.
+- `npm run ci` - \[requires Linux with docker installed\] a single script for CI which runs the procedure described in "Release procedure" section.
 - `npm run compile` - compile Typescript source files only.
 - `npm run test` - run local unit tests.
 - `npm run compile_build_scripts` - compile build scripts from Typescript sources.
@@ -48,7 +48,7 @@ npm run compile_build_scripts
     ```
 2. Check generated `config.json` file, verify that the links and file checksums are correct.
 3. Update package version in `package.json`.
-4. Run integration deployment test (local docker required):
+4. Run integration deployment test \[requires Linux with docker installed\]:
     ```
     npm run e2e
     ```
@@ -59,9 +59,12 @@ npm run compile_build_scripts
 
 ## CI
 
+Requires Linux with Internet access and docker (with permissions to tag images and run containers) installed.
+
 For setting up continuous integration the following had to be done:
 
-1. Checkout the source code (at the release tag commit) on the host with Internet access and docker daemon running (with permissions to tag images and run containers).
+1. Checkout the source code (at the release tag commit).
+
 2. From `catboost/catboost/node-package` subdirectory, execute ci script and check that it is executed correctly:
    ```
    npm run ci
