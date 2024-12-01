@@ -2,6 +2,7 @@ import {execProcess} from './common';
 import {linkSync, readFileSync, writeFileSync} from 'fs'
 import {downloadBinaryFile} from './download';
 import {readConfig} from './config';
+import {join,resolve} from 'path';
 
 async function compileTypeScript() {
     const result = await execProcess('npm run tsc');
@@ -17,7 +18,7 @@ function copyBindings() {
     writeFileSync('./lib/catboost.js', readFileSync('./bindings/catboost.js'));
 }
 
-async function compileNativeAddon(srcPath = '../..') {
+async function compileNativeAddon(srcPath = join('..','..')) {
     process.env['CATBOOST_SRC_PATH'] = srcPath;
     const result = await execProcess('node-gyp build');
     if (result.code !== 0) {
@@ -38,8 +39,8 @@ export async function compileBindings() {
 }
 
 async function buildModelInterfaceLibrary() {
-    const srcPath = process.env['CATBOOST_SRC_PATH'] || '../..';
-    const result = await execProcess(`${srcPath}/build/build_native.py --targets catboostmodel --build-root-dir ./build`);
+    const srcPath = process.env['CATBOOST_SRC_PATH'] || join('..','..');
+    const result = await execProcess(`python3 ${join(srcPath, 'build', 'build_native.py')} --targets catboostmodel --build-root-dir ./build`);
     if (result.code !== 0) {
         console.error(`Building catboostmodel library failed:
             ${result.code} ${result.signal} ${result.err?.message}`);
@@ -47,7 +48,7 @@ async function buildModelInterfaceLibrary() {
     }
 }
 
-async function configureGyp(srcPath = '../..') {
+async function configureGyp(srcPath = join('..','..')) {
     process.env['CATBOOST_SRC_PATH'] = srcPath;
     const result = await execProcess('node-gyp configure');
     if (result.code !== 0) {
