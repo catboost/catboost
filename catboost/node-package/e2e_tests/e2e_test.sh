@@ -1,7 +1,7 @@
 #!/bin/sh
 verdaccio &
 sleep 2
-npm-cli-adduser -u test_user -p test_password -e test@example.com@example.com -r http://localhost:4873 && \
+npm-cli-login -u test_user -p test_password -e test@example.com@example.com -r http://localhost:4873 && \
     cd /var/src && \
     npm publish --registry http://localhost:4873 && \
     cd /var/node-catboost-e2e-test-package && \
