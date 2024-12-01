@@ -16,7 +16,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "dependencies": {
-    "node-addon-api": "^1.1.0"
+    "node-addon-api": "^8.2.2"
   },
   "scripts": {
     "install": "node ./build_scripts/bootstrap.js install",
