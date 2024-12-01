@@ -69,37 +69,28 @@ export async function buildNative() {
     await compileBindings();
 }
 
-async function preparePlatformBinary(platform: string) {
+async function preparePlatformBinary(platform: string, arch: string) {
     const config = readConfig();
-    switch (platform) {
-        case 'linux':
-            for (const binary of config.binaries['linux']) {
-                await downloadBinaryFile('./build/catboost/libs/model_interface',
-                    binary);
-            }
-            linkSync('./build/catboost/libs/model_interface/libcatboostmodel.so',
-                './build/catboost/libs/model_interface/libcatboostmodel.so.1');
-            return;
-        case 'darwin':
-            for (const binary of config.binaries['mac']) {
-                await downloadBinaryFile('./build/catboost/libs/model_interface',
-                    binary);
-            }
-            return;
-        case 'win32':
-            for (const binary of config.binaries['win']) {
-                await downloadBinaryFile('./build/catboost/libs/model_interface',
-                    binary);
-            }
-            return;
-        default:
-            throw new Error(`Platform ${platform} is not supported`);
+
+    if (platform == 'darwin') {
+        arch = 'universal2';
     }
 
+    const platform_arch = platform + '-' + arch
+
+    for (const binary of config.binaries[platform_arch]) {
+        await downloadBinaryFile('./build/catboost/libs/model_interface',
+            binary);
+    }
+
+    if (platform == 'linux') {
+        linkSync('./build/catboost/libs/model_interface/libcatboostmodel.so',
+            './build/catboost/libs/model_interface/libcatboostmodel.so.1');
+    }
 }
 
-export async function buildLocal(platform: string) {
-    await preparePlatformBinary(platform);
+export async function buildLocal(platform: string, arch: string) {
+    await preparePlatformBinary(platform, arch);
     await configureGyp('./inc');
     await compileNativeAddon('./inc');
 }
