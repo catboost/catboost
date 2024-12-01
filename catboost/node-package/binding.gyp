@@ -9,7 +9,7 @@
                  ],
       'include_dirs': [
                          "<!@(node -p \"require('node-addon-api').include\")",
-                         "<!@(node -p \"process.env['CATBOOST_SRC_PATH'] || '../..'\")",
+                         "<!@(node -p \"JSON.stringify(path.resolve(process.env['CATBOOST_SRC_PATH'] || path.join('..','..')))\")",
                       ],
       'dependencies': [ "<!(node -p \"require('node-addon-api').gyp\")" ],
       'conditions': [
