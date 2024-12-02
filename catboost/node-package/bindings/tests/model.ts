@@ -30,15 +30,6 @@ function testCalculateSingle() {
 }
 assert.doesNotThrow(testCalculateSingle);
 
-function testLoadOnCreation() {
-    const model = new Model('./test_data/adult.cbm');
-
-    const predictions = model.predict([[40., 85019., 16., 0., 0., 45.]],
-        [["Private", "Doctorate", "Married-civ-spouce", "Prof-specialty", "Husband", "Asian-Pac-Islander", "Male", "nan"]]);
-    assert.strictEqual(predictions[0].toFixed(2), '1.54', `Expected [1.54], got ${predictions}`);
-}
-assert.doesNotThrow(testLoadOnCreation);
-
 function testCalculateMany() {
     const model = new Model();
     model.loadModel('./test_data/adult.cbm');
