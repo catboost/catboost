@@ -20,7 +20,14 @@ Install the package. You have two options:
         Navigate to `$PATH_TO_CATBOOST_REPO/catboost/node-package` directory inside the repo and run:
 
         ```sh
-        npm install
+        npm run install [-- <build_native arguments>]
+        ```
+        See [build_native documentation](https://catboost.ai/docs/en/installation/build-native-artifacts#build-build-native) about possible arguments. Don't specify already defined `--target` or `--build-root-dir` arguments.
+
+        For example, build with CUDA support:
+
+        ```sh
+        npm run install -- --have-cuda
         ```
 
         Now you can link this package in your project via:

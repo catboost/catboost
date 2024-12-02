@@ -1,3 +1,3 @@
 import {buildNative} from './build';
 
-buildNative();
+buildNative(process.argv.slice(5));

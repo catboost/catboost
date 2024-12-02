@@ -4,8 +4,8 @@ import {test} from './test';
 import {E2EDeploymentTest} from './docker';
 
 async function ci() {
-    if (process.argv.length !== 7) {
-        throw new Error('ci script --- Usage: npm run ci <catboost-release version> <catboost-node-package version>');
+    if (process.argv.length < 7) {
+        throw new Error('ci script --- Usage: npm run ci -- <catboost-release version> <catboost-node-package version> [build_native arguments]');
     }
     const catboostVersion = process.argv[5];
     if (!/[0-9\.]*/.exec(catboostVersion)) {
@@ -20,7 +20,7 @@ async function ci() {
     console.log(`Patching "package.json" with version "${packageVersion}"...`);
     patchPackageJSONWithVersion(packageVersion);
     console.log('Building catboost package against repository sources...');
-    await buildNative();
+    await buildNative(process.argv.slice(7));
     console.log('Running local unit tests...');
     await test();
     console.log('Preparing package...');

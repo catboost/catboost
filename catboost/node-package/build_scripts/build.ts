@@ -38,9 +38,19 @@ export async function compileBindings() {
     await compileNativeAddon();
 }
 
-async function buildModelInterfaceLibrary() {
+async function buildModelInterfaceLibrary(buildNativeExtraArgs: string[]) {
+    for (const buildNativeArg of buildNativeExtraArgs) {
+        if (buildNativeArg.match(/^\-\-(targets|build\-root\-dir)/)) {
+            console.error(`build_native extra arguments cannot contain --targets or --build-root-dir, they are predefined`);
+            process.exit(1);
+        }
+    }
+
     const srcPath = process.env['CATBOOST_SRC_PATH'] || join('..','..');
-    const result = await execProcess(`python3 ${join(srcPath, 'build', 'build_native.py')} --targets catboostmodel --build-root-dir ./build`);
+    const result = await execProcess(
+        `python3 ${join(srcPath, 'build', 'build_native.py')} --targets catboostmodel --build-root-dir ./build `
+        + buildNativeExtraArgs.map(arg => '"' + arg + '"').join(' ')
+    );
     if (result.code !== 0) {
         console.error(`Building catboostmodel library failed:
             ${result.code} ${result.signal} ${result.err?.message}`);
@@ -58,15 +68,15 @@ async function configureGyp(srcPath = join('..','..')) {
     }
 }
 
-export async function buildModel() {
+export async function buildModel(buildNativeExtraArgs: string[]) {
     await configureGyp();
-    await buildModelInterfaceLibrary();
+    await buildModelInterfaceLibrary(buildNativeExtraArgs);
 }
 
 /** Build binary from repository. */
-export async function buildNative() {
+export async function buildNative(buildNativeExtraArgs: string[]) {
     await configureGyp();
-    await buildModelInterfaceLibrary();
+    await buildModelInterfaceLibrary(buildNativeExtraArgs);
     await compileBindings();
 }
 

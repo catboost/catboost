@@ -67,8 +67,10 @@ For setting up continuous integration the following had to be done:
 
 2. From `catboost/catboost/node-package` subdirectory, execute ci script and check that it is executed correctly:
    ```
-   npm run ci
+   npm run ci -- <catboost-release version> <catboost-node-package version> [build_native arguments]
    ```
+  See [build_native documentation](https://catboost.ai/docs/en/installation/build-native-artifacts#build-build-native) about possible arguments. Don't specify already defined `--target` or `--build-root-dir` arguments.
+
 3. Assuming that npm registry credentials are set up on the host, publish the package via
    ```
    npm publish
