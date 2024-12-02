@@ -811,7 +811,7 @@ static void report_failure(_Unwind_Reason_Code err, __cxa_exception *thrown_exce
 		case _URC_END_OF_STACK:
 			__cxa_begin_catch (&(thrown_exception->unwindHeader));
  			std::terminate();
-			fprintf(stderr, "uncaught exception:\n    address -> %p\n", 
+			fprintf(stderr, "Terminating due to uncaught exception %p", 
 					static_cast<void*>(thrown_exception));
 			thrown_exception = realExceptionFromException(thrown_exception);
 			static const __class_type_info *e_ti =
@@ -825,7 +825,7 @@ static void report_failure(_Unwind_Reason_Code err, __cxa_exception *thrown_exce
 							throw_ti));
 				if (e)
 				{
-					fprintf(stderr, " what() -> \"%s\"\n", e->what());
+					fprintf(stderr, " '%s'", e->what());
 				}
 			}
 
@@ -834,7 +834,7 @@ static void report_failure(_Unwind_Reason_Code err, __cxa_exception *thrown_exce
 			const char *mangled = thrown_exception->exceptionType->name();
 			int status;
 			demangled = __cxa_demangle(mangled, demangled, &bufferSize, &status);
-			fprintf(stderr, "    type -> %s\n", 
+			fprintf(stderr, " of type %s\n", 
 				status == 0 ? demangled : mangled);
 			if (status == 0) { free(demangled); }
 			// Print a back trace if no handler is found.
