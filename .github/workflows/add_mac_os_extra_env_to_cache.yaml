@@ -10,8 +10,6 @@ jobs:
     steps:
       - name: Install pyenv and python versions and pack to zip file
         run: |
-          # do this because of an error similar to https://github.com/apache/arrow/issues/44797
-          brew uninstall pkg-config@0.29.2
           brew install pyenv
 
           pyenv install 3.8.18
