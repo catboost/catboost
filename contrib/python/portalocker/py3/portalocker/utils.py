@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import atexit
 import contextlib
@@ -10,7 +12,8 @@ import time
 import typing
 import warnings
 
-from . import constants, exceptions, portalocker
+from . import constants, exceptions, portalocker, types
+from .types import Filename, Mode
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +27,9 @@ __all__ = [
     'open_atomic',
 ]
 
-Filename = typing.Union[str, pathlib.Path]
-
 
 def coalesce(*args: typing.Any, test_value: typing.Any = None) -> typing.Any:
-    '''Simple coalescing function that returns the first value that is not
+    """Simple coalescing function that returns the first value that is not
     equal to the `test_value`. Or `None` if no value is valid. Usually this
     means that the last given value is the default value.
 
@@ -48,7 +49,7 @@ def coalesce(*args: typing.Any, test_value: typing.Any = None) -> typing.Any:
     # This won't work because of the `is not test_value` type testing:
     >>> coalesce([], dict(spam='eggs'), test_value=[])
     []
-    '''
+    """
     return next((arg for arg in args if arg is not test_value), None)
 
 
@@ -56,8 +57,8 @@ def coalesce(*args: typing.Any, test_value: typing.Any = None) -> typing.Any:
 def open_atomic(
     filename: Filename,
     binary: bool = True,
-) -> typing.Iterator[typing.IO]:
-    '''Open a file for atomic writing. Instead of locking this method allows
+) -> typing.Iterator[types.IO]:
+    """Open a file for atomic writing. Instead of locking this method allows
     you to write the entire file and move it to the actual location. Note that
     this makes the assumption that a rename is atomic on your platform which
     is generally the case but not a guarantee.
@@ -80,24 +81,28 @@ def open_atomic(
     ...     written = fh.write(b'test')
     >>> assert path_filename.exists()
     >>> path_filename.unlink()
-    '''
+    """
     # `pathlib.Path` cast in case `path` is a `str`
-    path: pathlib.Path = pathlib.Path(filename)
+    path: pathlib.Path
+    if isinstance(filename, pathlib.Path):
+        path = filename
+    else:
+        path = pathlib.Path(filename)
 
     assert not path.exists(), f'{path!r} exists'
 
     # Create the parent directory if it doesn't exist
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    temp_fh = tempfile.NamedTemporaryFile(
+    with tempfile.NamedTemporaryFile(
         mode=binary and 'wb' or 'w',
         dir=str(path.parent),
         delete=False,
-    )
-    yield temp_fh
-    temp_fh.flush()
-    os.fsync(temp_fh.fileno())
-    temp_fh.close()
+    ) as temp_fh:
+        yield temp_fh
+        temp_fh.flush()
+        os.fsync(temp_fh.fileno())
+
     try:
         os.rename(temp_fh.name, path)
     finally:
@@ -115,9 +120,9 @@ class LockBase(abc.ABC):  # pragma: no cover
 
     def __init__(
         self,
-        timeout: typing.Optional[float] = None,
-        check_interval: typing.Optional[float] = None,
-        fail_when_locked: typing.Optional[bool] = None,
+        timeout: float | None = None,
+        check_interval: float | None = None,
+        fail_when_locked: bool | None = None,
     ):
         self.timeout = coalesce(timeout, DEFAULT_TIMEOUT)
         self.check_interval = coalesce(check_interval, DEFAULT_CHECK_INTERVAL)
@@ -129,15 +134,15 @@ class LockBase(abc.ABC):  # pragma: no cover
     @abc.abstractmethod
     def acquire(
         self,
-        timeout: typing.Optional[float] = None,
-        check_interval: typing.Optional[float] = None,
-        fail_when_locked: typing.Optional[bool] = None,
+        timeout: float | None = None,
+        check_interval: float | None = None,
+        fail_when_locked: bool | None = None,
     ) -> typing.IO[typing.AnyStr]: ...
 
     def _timeout_generator(
         self,
-        timeout: typing.Optional[float],
-        check_interval: typing.Optional[float],
+        timeout: float | None,
+        check_interval: float | None,
     ) -> typing.Iterator[int]:
         f_timeout = coalesce(timeout, self.timeout, 0.0)
         f_check_interval = coalesce(check_interval, self.check_interval, 0.0)
@@ -162,19 +167,19 @@ class LockBase(abc.ABC):  # pragma: no cover
 
     def __exit__(
         self,
-        exc_type: typing.Optional[typing.Type[BaseException]],
-        exc_value: typing.Optional[BaseException],
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
         traceback: typing.Any,  # Should be typing.TracebackType
-    ) -> typing.Optional[bool]:
+    ) -> bool | None:
         self.release()
         return None
 
-    def __delete__(self, instance):
+    def __delete__(self, instance: LockBase):
         instance.release()
 
 
 class Lock(LockBase):
-    '''Lock manager with built-in timeout
+    """Lock manager with built-in timeout
 
     Args:
         filename: filename
@@ -192,21 +197,31 @@ class Lock(LockBase):
 
     Note that the file is opened first and locked later. So using 'w' as
     mode will result in truncate _BEFORE_ the lock is checked.
-    '''
+    """
+
+    fh: types.IO | None
+    filename: str
+    mode: str
+    truncate: bool
+    timeout: float
+    check_interval: float
+    fail_when_locked: bool
+    flags: constants.LockFlags
+    file_open_kwargs: dict[str, typing.Any]
 
     def __init__(
         self,
         filename: Filename,
-        mode: str = 'a',
-        timeout: typing.Optional[float] = None,
+        mode: Mode = 'a',
+        timeout: float | None = None,
         check_interval: float = DEFAULT_CHECK_INTERVAL,
         fail_when_locked: bool = DEFAULT_FAIL_WHEN_LOCKED,
         flags: constants.LockFlags = LOCK_METHOD,
-        **file_open_kwargs,
+        **file_open_kwargs: typing.Any,
     ):
         if 'w' in mode:
             truncate = True
-            mode = mode.replace('w', 'a')
+            mode = typing.cast(Mode, mode.replace('w', 'a'))
         else:
             truncate = False
 
@@ -218,21 +233,19 @@ class Lock(LockBase):
                 stacklevel=1,
             )
 
-        self.fh: typing.Optional[typing.IO] = None
-        self.filename: str = str(filename)
-        self.mode: str = mode
-        self.truncate: bool = truncate
-        self.timeout: float = timeout
-        self.check_interval: float = check_interval
-        self.fail_when_locked: bool = fail_when_locked
-        self.flags: constants.LockFlags = flags
+        self.fh = None
+        self.filename = str(filename)
+        self.mode = mode
+        self.truncate = truncate
+        self.flags = flags
         self.file_open_kwargs = file_open_kwargs
+        super().__init__(timeout, check_interval, fail_when_locked)
 
     def acquire(
         self,
-        timeout: typing.Optional[float] = None,
-        check_interval: typing.Optional[float] = None,
-        fail_when_locked: typing.Optional[bool] = None,
+        timeout: float | None = None,
+        check_interval: float | None = None,
+        fail_when_locked: bool | None = None,
     ) -> typing.IO[typing.AnyStr]:
         '''Acquire the locked filehandle'''
 
@@ -248,9 +261,10 @@ class Lock(LockBase):
             )
 
         # If we already have a filehandle, return it
-        fh: typing.Optional[typing.IO] = self.fh
+        fh = self.fh
         if fh:
-            return fh
+            # Due to type invariance we need to cast the type
+            return typing.cast(typing.IO[typing.AnyStr], fh)
 
         # Get a new filehandler
         fh = self._get_fh()
@@ -296,7 +310,7 @@ class Lock(LockBase):
         fh = self._prepare_fh(fh)
 
         self.fh = fh
-        return fh
+        return typing.cast(typing.IO[typing.AnyStr], fh)
 
     def __enter__(self) -> typing.IO[typing.AnyStr]:
         return self.acquire()
@@ -308,15 +322,18 @@ class Lock(LockBase):
             self.fh.close()
             self.fh = None
 
-    def _get_fh(self) -> typing.IO:
+    def _get_fh(self) -> types.IO:
         '''Get a new filehandle'''
-        return open(  # noqa: SIM115
-            self.filename,
-            self.mode,
-            **self.file_open_kwargs,
+        return typing.cast(
+            types.IO,
+            open(  # noqa: SIM115
+                self.filename,
+                self.mode,
+                **self.file_open_kwargs,
+            ),
         )
 
-    def _get_lock(self, fh: typing.IO) -> typing.IO:
+    def _get_lock(self, fh: types.IO) -> types.IO:
         '''
         Try to lock the given filehandle
 
@@ -324,7 +341,7 @@ class Lock(LockBase):
         portalocker.lock(fh, self.flags)
         return fh
 
-    def _prepare_fh(self, fh: typing.IO) -> typing.IO:
+    def _prepare_fh(self, fh: types.IO) -> types.IO:
         '''
         Prepare the filehandle for usage
 
@@ -347,12 +364,12 @@ class RLock(Lock):
 
     def __init__(
         self,
-        filename,
-        mode='a',
-        timeout=DEFAULT_TIMEOUT,
-        check_interval=DEFAULT_CHECK_INTERVAL,
-        fail_when_locked=False,
-        flags=LOCK_METHOD,
+        filename: Filename,
+        mode: Mode = 'a',
+        timeout: float = DEFAULT_TIMEOUT,
+        check_interval: float = DEFAULT_CHECK_INTERVAL,
+        fail_when_locked: bool = False,
+        flags: constants.LockFlags = LOCK_METHOD,
     ):
         super().__init__(
             filename,
@@ -366,12 +383,13 @@ class RLock(Lock):
 
     def acquire(
         self,
-        timeout: typing.Optional[float] = None,
-        check_interval: typing.Optional[float] = None,
-        fail_when_locked: typing.Optional[bool] = None,
-    ) -> typing.IO:
+        timeout: float | None = None,
+        check_interval: float | None = None,
+        fail_when_locked: bool | None = None,
+    ) -> typing.IO[typing.AnyStr]:
+        fh: typing.IO[typing.AnyStr]
         if self._acquire_count >= 1:
-            fh = self.fh
+            fh = typing.cast(typing.IO[typing.AnyStr], self.fh)
         else:
             fh = super().acquire(timeout, check_interval, fail_when_locked)
         self._acquire_count += 1
@@ -392,11 +410,11 @@ class RLock(Lock):
 class TemporaryFileLock(Lock):
     def __init__(
         self,
-        filename='.lock',
-        timeout=DEFAULT_TIMEOUT,
-        check_interval=DEFAULT_CHECK_INTERVAL,
-        fail_when_locked=True,
-        flags=LOCK_METHOD,
+        filename: str = '.lock',
+        timeout: float = DEFAULT_TIMEOUT,
+        check_interval: float = DEFAULT_CHECK_INTERVAL,
+        fail_when_locked: bool = True,
+        flags: constants.LockFlags = LOCK_METHOD,
     ):
         Lock.__init__(
             self,
@@ -416,7 +434,7 @@ class TemporaryFileLock(Lock):
 
 
 class BoundedSemaphore(LockBase):
-    '''
+    """
     Bounded semaphore to prevent too many parallel processes from running
 
     This method is deprecated because multiple processes that are completely
@@ -429,9 +447,9 @@ class BoundedSemaphore(LockBase):
     'bounded_semaphore.00.lock'
     >>> str(sorted(semaphore.get_random_filenames())[1])
     'bounded_semaphore.01.lock'
-    '''
+    """
 
-    lock: typing.Optional[Lock]
+    lock: Lock | None
 
     def __init__(
         self,
@@ -439,15 +457,15 @@ class BoundedSemaphore(LockBase):
         name: str = 'bounded_semaphore',
         filename_pattern: str = '{name}.{number:02d}.lock',
         directory: str = tempfile.gettempdir(),
-        timeout: typing.Optional[float] = DEFAULT_TIMEOUT,
-        check_interval: typing.Optional[float] = DEFAULT_CHECK_INTERVAL,
-        fail_when_locked: typing.Optional[bool] = True,
+        timeout: float | None = DEFAULT_TIMEOUT,
+        check_interval: float | None = DEFAULT_CHECK_INTERVAL,
+        fail_when_locked: bool | None = True,
     ):
         self.maximum = maximum
         self.name = name
         self.filename_pattern = filename_pattern
         self.directory = directory
-        self.lock: typing.Optional[Lock] = None
+        self.lock: Lock | None = None
         super().__init__(
             timeout=timeout,
             check_interval=check_interval,
@@ -470,7 +488,7 @@ class BoundedSemaphore(LockBase):
         random.shuffle(filenames)
         return filenames
 
-    def get_filename(self, number) -> pathlib.Path:
+    def get_filename(self, number: int) -> pathlib.Path:
         return pathlib.Path(self.directory) / self.filename_pattern.format(
             name=self.name,
             number=number,
@@ -478,10 +496,10 @@ class BoundedSemaphore(LockBase):
 
     def acquire(  # type: ignore[override]
         self,
-        timeout: typing.Optional[float] = None,
-        check_interval: typing.Optional[float] = None,
-        fail_when_locked: typing.Optional[bool] = None,
-    ) -> typing.Optional[Lock]:
+        timeout: float | None = None,
+        check_interval: float | None = None,
+        fail_when_locked: bool | None = None,
+    ) -> Lock | None:
         assert not self.lock, 'Already locked'
 
         filenames = self.get_filenames()
@@ -522,7 +540,7 @@ class BoundedSemaphore(LockBase):
 
 
 class NamedBoundedSemaphore(BoundedSemaphore):
-    '''
+    """
     Bounded semaphore to prevent too many parallel processes from running
 
     It's also possible to specify a timeout when acquiring the lock to wait
@@ -544,17 +562,17 @@ class NamedBoundedSemaphore(BoundedSemaphore):
     >>> 'bounded_semaphore' in str(semaphore.get_filenames()[0])
     True
 
-    '''
+    """
 
     def __init__(
         self,
         maximum: int,
-        name: typing.Optional[str] = None,
+        name: str | None = None,
         filename_pattern: str = '{name}.{number:02d}.lock',
         directory: str = tempfile.gettempdir(),
-        timeout: typing.Optional[float] = DEFAULT_TIMEOUT,
-        check_interval: typing.Optional[float] = DEFAULT_CHECK_INTERVAL,
-        fail_when_locked: typing.Optional[bool] = True,
+        timeout: float | None = DEFAULT_TIMEOUT,
+        check_interval: float | None = DEFAULT_CHECK_INTERVAL,
+        fail_when_locked: bool | None = True,
     ):
         if name is None:
             name = 'bounded_semaphore.%d' % random.randint(0, 1000000)

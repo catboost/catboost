@@ -1,5 +1,7 @@
 import typing
 
+from portalocker import types
+
 
 class BaseLockException(Exception):  # noqa: N818
     # Error codes:
@@ -8,7 +10,7 @@ class BaseLockException(Exception):  # noqa: N818
     def __init__(
         self,
         *args: typing.Any,
-        fh: typing.Union[typing.IO, None, int] = None,
+        fh: typing.Union[types.IO, None, int] = None,
         **kwargs: typing.Any,
     ) -> None:
         self.fh = fh

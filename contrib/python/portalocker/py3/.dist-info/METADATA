@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: portalocker
-Version: 2.10.1
+Version: 3.0.0
 Summary: Wraps the portalocker recipe for easy usage
 Author-email: Rick van Hattem <wolph@wol.ph>
 License: BSD-3-Clause
@@ -27,11 +27,11 @@ Classifier: Operating System :: POSIX
 Classifier: Operating System :: Unix
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
-Classifier: Programming Language :: Python :: 3.8
-Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.13
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: IronPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy

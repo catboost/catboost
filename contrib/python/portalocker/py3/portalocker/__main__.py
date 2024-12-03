@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import logging
 import os
@@ -25,7 +27,7 @@ _TEXT_TEMPLATE = """'''
 logger = logging.getLogger(__name__)
 
 
-def main(argv=None):
+def main(argv: typing.Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser()
 
     subparsers = parser.add_subparsers(required=True)
@@ -46,15 +48,21 @@ def main(argv=None):
     args.func(args)
 
 
-def _read_file(path: pathlib.Path, seen_files: typing.Set[pathlib.Path]):
+def _read_file(
+    path: pathlib.Path,
+    seen_files: set[pathlib.Path],
+) -> typing.Iterator[str]:
     if path in seen_files:
         return
 
-    names = set()
+    names: set[str] = set()
     seen_files.add(path)
     paren = False
     from_ = None
     for line in path.open():
+        if '__future__' in line:
+            continue
+
         if paren:
             if ')' in line:
                 line = line.split(')', 1)[1]
@@ -82,19 +90,22 @@ def _read_file(path: pathlib.Path, seen_files: typing.Set[pathlib.Path]):
             yield _clean_line(line, names)
 
 
-def _clean_line(line, names):
+def _clean_line(line: str, names: set[str]):
     # Replace `some_import.spam` with `spam`
     if names:
         joined_names = '|'.join(names)
-        line = re.sub(fr'\b({joined_names})\.', '', line)
+        line = re.sub(rf'\b({joined_names})\.', '', line)
 
     # Replace useless assignments (e.g. `spam = spam`)
     return _USELESS_ASSIGNMENT_RE.sub('', line)
 
 
-def combine(args):
+def combine(args: argparse.Namespace):
     output_file = args.output_file
     pathlib.Path(output_file.name).parent.mkdir(parents=True, exist_ok=True)
+
+    # We're handling this separately because it has to be the first import.
+    output_file.write('from __future__ import annotations\n')
 
     output_file.write(
         _TEXT_TEMPLATE.format((base_path / 'README.rst').read_text()),
@@ -103,7 +114,7 @@ def combine(args):
         _TEXT_TEMPLATE.format((base_path / 'LICENSE').read_text()),
     )
 
-    seen_files: typing.Set[pathlib.Path] = set()
+    seen_files: set[pathlib.Path] = set()
     for line in _read_file(src_path / '__init__.py', seen_files):
         output_file.write(line)
 
