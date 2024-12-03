@@ -29,7 +29,7 @@ export class Model {
 	 * All defined feature arguments must have the same length.
 	 */
 	predict(floatFeatures: CatBoostFloatFeatures,
-		catFeatures: CatBoostCategoryFeatures,
+		catFeatures?: CatBoostCategoryFeatures,
 		textFeatures?: CatBoostTextFeatures,
 		embeddingFeatures?: CatBoostEmbeddingFeatures): number[];
 	/** Enable evaluation on GPU device. */
