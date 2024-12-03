@@ -58,6 +58,7 @@ namespace NNetliba_v12 {
     struct IUdpHost: public TThrRefBase {
         virtual TUdpRequest* GetRequest() = 0;
         virtual TIntrusivePtr<IConnection> Connect(const TUdpAddress& address, const TConnectionSettings& connectionSettings) = 0;
+        virtual TIntrusivePtr<IConnection> Connect(const TUdpAddress& address, const TUdpAddress& myAddress, const TConnectionSettings& connectionSettings) = 0;
         virtual TTransfer Send(const TIntrusivePtr<IConnection>& connection, TAutoPtr<TRopeDataPacket> data, EPacketPriority pp, const TTos& tos, ui8 netlibaColor) = 0;
         virtual bool GetSendResult(TSendResult* res) = 0;
         virtual void Cancel(const TTransfer& transfer) = 0;
