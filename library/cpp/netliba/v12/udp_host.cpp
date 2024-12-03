@@ -1,3 +1,4 @@
+#include "library/cpp/netliba/v12/udp_address.h"
 #include "stdafx.h"
 #include <util/digest/numeric.h>
 #include <util/generic/cast.h>
@@ -429,6 +430,7 @@ namespace NNetliba_v12 {
 
         TUdpRequest* GetRequest() override;
         TIntrusivePtr<IConnection> Connect(const TUdpAddress& address, const TConnectionSettings& connectionSettings) override;
+        TIntrusivePtr<IConnection> Connect(const TUdpAddress& address, const TUdpAddress& myAddress, const TConnectionSettings& connectionSettings) override;
         TTransfer Send(const TIntrusivePtr<IConnection>& connectionPtr, TAutoPtr<TRopeDataPacket> data, EPacketPriority pp, const TTos& tos, ui8 netlibaColor) override;
         bool GetSendResult(TSendResult* res) override;
         void Cancel(const TTransfer& transfer) override;
@@ -564,10 +566,14 @@ namespace NNetliba_v12 {
     }
 
     TIntrusivePtr<IConnection> TUdpHost::Connect(const TUdpAddress& address, const TConnectionSettings& connectionSettings) {
+        return Connect(address, TUdpAddress(), connectionSettings);
+    }
+
+    TIntrusivePtr<IConnection> TUdpHost::Connect(const TUdpAddress& address, const TUdpAddress &myAddress, const TConnectionSettings& connectionSettings) {
         TGUID guid;
         CreateGuid(&guid);
 
-        TConnection* connection = new TConnection(address, TUdpAddress(), connectionSettings, guid, UdpTransferTimeout);
+        TConnection* connection = new TConnection(address, myAddress, connectionSettings, guid, UdpTransferTimeout);
         TIntrusivePtr<IConnection> result = connection;
         TXUserQueue.EnqueueConnect(connection);
         CancelWaitLow();

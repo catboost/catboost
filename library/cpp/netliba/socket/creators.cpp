@@ -61,7 +61,7 @@ namespace NNetlibaSocket {
         *(ui8*)CMSG_DATA(cmsgTos) = tos;
 #endif
 
-        if (*(ui64*)myAddr.sin6_addr.s6_addr != 0u) {
+        if (((ui64*)myAddr.sin6_addr.s6_addr)[0] != 0u || ((ui64*)myAddr.sin6_addr.s6_addr)[1] != 0u) {
             in6_pktinfo* pktInfo;
 #ifdef _cygwin_
             cmsghdr* cmsgAddr = CMSG_FIRSTHDR(header);
