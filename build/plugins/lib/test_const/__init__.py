@@ -437,6 +437,7 @@ class ServiceTags(Enum):
     AnyTag = "ya:anytag"
 
 
+# Linter names must match `NAME` set in `_ADD_*_LINTER_CHECK`
 class PythonLinterName(Enum):
     Black = "black"
     DummyLinter = "dummy_linter"
