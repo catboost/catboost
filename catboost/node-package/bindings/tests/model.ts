@@ -20,6 +20,45 @@ function testLoadFromNonExistentFile() {
 }
 assert.throws(testLoadFromNonExistentFile);
 
+function testPredictModelWithNumFeaturesSingle() {
+    const model = new Model();
+    model.loadModel('../pytest/data/models/features_num__dataset_querywise.cbm');
+
+    const numFeatures = "0.257727	0.0215909	0.171299	1	1	1	1	1	0	0	0	0	0	0	0.431373	0.935065	0.0208333	0.070824	1	0	0.313726	1	1	0	0.937724	0	1	0	0	0	0	0.0566038	0	0	1	0.73929	1	0.000505391	0.885819	0.000172727	0	0	0	0	0	0	0.153262	0.578118	0.222098	1".split('\t').map(x => parseFloat(x))
+
+    const predictions = model.predict([numFeatures])
+    assert.strictEqual(predictions[0].toFixed(4), '0.0882', `Expected [0.0882], got ${predictions}`);
+}
+assert.doesNotThrow(testPredictModelWithNumFeaturesSingle);
+
+function testPredictModelWithNumFeaturesMany() {
+    const model = new Model();
+    model.loadModel('../pytest/data/models/features_num__dataset_querywise.cbm');
+
+    const numFeatures = [
+        "0.257727	0.0215909	0.171299	1	1	1	1	1	0	0	0	0	0	0	0.431373	0.935065	0.0208333	0.070824	1	0	0.313726	1	1	0	0.937724	0	1	0	0	0	0	0.0566038	0	0	1	0.73929	1	0.000505391	0.885819	0.000172727	0	0	0	0	0	0	0.153262	0.578118	0.222098	1",
+        "0.424438	0.164384	0.572649	1	1	0	1	0	0	1	0	0	0	0	0.360784	0.512195	0.0447049	0.0717587	1	1	0.321569	1	1	0	0.941214	0	1	0	0	0	0	0.275362	1	0.209302	1	0.391239	1	0.0143194	0.885819	0.00140996	0	0	0	0	0	0	0.357143	0.883721	0.820312	1",
+        "0.345548	0.248034	0.0853067	1	1	0	1	0	0	1	0	0	0	0	0.6	0.5	0.114292	0.071371	1	0	0.396078	1	1	0	0.939218	0	1	0	0	0	0	0.0384615	0	0	1	0	0	0	0.885819	0.00224069	0	0	0	0	0	0	0.588235	0.444444	0.608696	1",
+        "0.946305	0.139752	0.429885	1	1	1	1	1	0	1	0	0	0	0	0.811765	0.75	0.119755	0.071636	0	1	0.541176	1	1	0	0.993828	0	1	0	0	0	0	0.509804	1	0.000398	1	1.5	1	0.417659	0.885819	0.00117792	0	0	0	0	0	0	0.52962	0.958103	0.885843	1"
+    ].map(arr => arr.split('\t').map(x => parseFloat(x)))
+
+    const predictions = model.predict(numFeatures)
+
+    const expectedPredictions = [
+        0.08819508860736715,
+        0.043193651033534904,
+        -0.0019333444540111586,
+        0.0836685835428004
+    ]
+
+    assert.deepStrictEqual(
+        predictions.map(x => x.toFixed(4)),
+        expectedPredictions.map(x => x.toFixed(4)),
+        `Expected ${expectedPredictions}, got ${predictions}`
+    );
+}
+assert.doesNotThrow(testPredictModelWithNumFeaturesMany);
+
 function testCalculateSingle() {
     const model = new Model();
     model.loadModel('./test_data/adult.cbm');

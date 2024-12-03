@@ -113,7 +113,7 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
         return env.Undefined();
     }
 
-    if (!NHelper::Check(env, info.Length() >= 2, "Wrong number of arguments - expected at least 2")) {
+    if (!NHelper::Check(env, info.Length() >= 1, "Wrong number of arguments - expected at least 1")) {
         return env.Undefined();
     }
 
@@ -138,25 +138,34 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
 
 
     // Categorical features
+    Napi::Value catFeatures = info[1];
+    bool catFeaturesAreHashes = false;
 
-    if (!NHelper::CheckIsMatrix(
-        env,
-        info[1],
-        NHelper::NAT_NUMBER_OR_STRING, "Expected the second argument to be a matrix of strings or numbers - "))
-    {
-        return env.Undefined();
-    }
-    const Napi::Array catFeatures = info[1].As<Napi::Array>();
-
-    if (!NHelper::Check(
+    if (!catFeatures.IsUndefined()) {
+        if (!NHelper::CheckIsMatrix(
             env,
-            catFeatures.Length() == sampleCount,
-            "Expected the number of samples to be the same for both float and categorial features"
-        ))
-    {
-        return env.Undefined();
+            catFeatures,
+            NHelper::NAT_NUMBER_OR_STRING, "Expected the second argument to be a matrix of strings or numbers - "))
+        {
+            return env.Undefined();
+        }
+        const Napi::Array catFeaturesArray = catFeatures.As<Napi::Array>();
+
+        if (!NHelper::Check(
+                env,
+                catFeaturesArray.Length() == sampleCount,
+                "Expected the number of samples to be the same for both float and categorial features"
+            ))
+        {
+            return env.Undefined();
+        }
+        if (sampleCount) {
+            const Napi::Array catRow = catFeaturesArray[0u].As<Napi::Array>();
+            if (catRow.Length()) {
+                catFeaturesAreHashes = catRow[0u].IsNumber();
+            }
+        }
     }
-    const Napi::Array catRow = catFeatures[0u].As<Napi::Array>();
 
 
     // Text features
@@ -206,7 +215,7 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     }
 
 
-    if (catRow.Length() == 0 || catRow[0u].IsNumber()) {
+    if (catFeaturesAreHashes) {
         return CalcPredictionWithCatFeaturesAsHashes(
             env,
             sampleCount,
@@ -424,7 +433,7 @@ Napi::Array TModel::CalcPredictionWithCatFeaturesAsHashes(
     Napi::Env env,
     const uint32_t sampleCount,
     const Napi::Array& floatFeatures,
-    const Napi::Array& catFeatures,
+    const Napi::Value& catFeatures,
     const Napi::Value& textFeatures,
     const Napi::Value& embeddingFeatures
 ) {
@@ -435,18 +444,25 @@ Napi::Array TModel::CalcPredictionWithCatFeaturesAsHashes(
     GetNumericFeaturesData(sampleCount, floatFeatures, &floatFeaturesSize, &floatFeaturesStorage, &floatPtrs);
 
 
-    const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
+    uint32_t catFeaturesSize = 0;
     std::vector<int> catHashValues;
-    catHashValues.reserve(catFeaturesSize * sampleCount);
+    std::vector<const int*> catPtrs;
 
-    for (uint32_t i = 0; i < sampleCount; ++i) {
-        const Napi::Array row = catFeatures[i].As<Napi::Array>();
-        for (uint32_t j = 0; j < catFeaturesSize; ++j) {
-            catHashValues.push_back(row[j].As<Napi::Number>().Int32Value());
+    if (!catFeatures.IsUndefined()) {
+        const Napi::Array catFeaturesArray = catFeatures.As<Napi::Array>();
+        catFeaturesSize = catFeaturesArray[0u].As<Napi::Array>().Length();
+
+        catHashValues.reserve(catFeaturesSize * sampleCount);
+
+        for (uint32_t i = 0; i < sampleCount; ++i) {
+            const Napi::Array row = catFeaturesArray[i].As<Napi::Array>();
+            for (uint32_t j = 0; j < catFeaturesSize; ++j) {
+                catHashValues.push_back(row[j].As<Napi::Number>().Int32Value());
+            }
         }
-    }
 
-    std::vector<const int*> catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
+        catPtrs = CollectMatrixRowPointers<int>(catHashValues, catFeaturesSize);
+    }
 
 
     uint32_t textFeaturesSize = 0;
@@ -513,7 +529,7 @@ Napi::Array TModel::CalcPredictionWithCatFeaturesAsStrings(
     Napi::Env env,
     const uint32_t sampleCount,
     const Napi::Array& floatFeatures,
-    const Napi::Array& catFeatures,
+    const Napi::Value& catFeatures,
     const Napi::Value& textFeatures,
     const Napi::Value& embeddingFeatures
 ) {
@@ -523,26 +539,30 @@ Napi::Array TModel::CalcPredictionWithCatFeaturesAsStrings(
 
     GetNumericFeaturesData(sampleCount, floatFeatures, &floatFeaturesSize, &floatFeaturesStorage, &floatPtrs);
 
-
-    const uint32_t catFeaturesSize = catFeatures[0u].As<Napi::Array>().Length();
-
+    uint32_t catFeaturesSize = 0;
     std::vector<std::string> catStrings;
     std::vector<const char*> catStringValues;
-    catStrings.reserve(catFeaturesSize * sampleCount);
-    catStringValues.reserve(catFeaturesSize * sampleCount);
+    std::vector<const char**> catPtrs;
 
-    for (uint32_t i = 0; i < sampleCount; ++i) {
-        const Napi::Array row = catFeatures[i].As<Napi::Array>();
-        for (uint32_t j = 0; j < catFeaturesSize; ++j) {
-            catStrings.push_back(row[j].As<Napi::String>().Utf8Value());
-            catStringValues.push_back(catStrings.back().c_str());
+    if (!catFeatures.IsUndefined()) {
+        const Napi::Array catFeaturesArray = catFeatures.As<Napi::Array>();
+        catFeaturesSize = catFeaturesArray[0u].As<Napi::Array>().Length();
+
+        catStrings.reserve(catFeaturesSize * sampleCount);
+        catStringValues.reserve(catFeaturesSize * sampleCount);
+
+        for (uint32_t i = 0; i < sampleCount; ++i) {
+            const Napi::Array row = catFeaturesArray[i].As<Napi::Array>();
+            for (uint32_t j = 0; j < catFeaturesSize; ++j) {
+                catStrings.push_back(row[j].As<Napi::String>().Utf8Value());
+                catStringValues.push_back(catStrings.back().c_str());
+            }
         }
+        catPtrs = CollectMatrixRowPointers<const char*, const char**>(
+            catStringValues,
+            catFeaturesSize
+        );
     }
-    std::vector<const char**> catPtrs = CollectMatrixRowPointers<const char*, const char**>(
-        catStringValues,
-        catFeaturesSize
-    );
-
 
     uint32_t textFeaturesSize = 0;
     std::vector<std::string> textFeaturesStorage;
