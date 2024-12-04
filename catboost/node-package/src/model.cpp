@@ -200,7 +200,7 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
                 env,
                 embeddingFeatures,
                 NHelper::NAT_ARRAY_OR_NUMBERS,
-                "Expected the third argument to be a matrix of arrays of numbers - "
+                "Expected the fourth argument to be a matrix of arrays of numbers - "
             ))
         {
             return env.Undefined();
