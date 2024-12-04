@@ -149,6 +149,10 @@ struct TRefCountedTraits
 template <class T>
 struct TRefCountedTraits<T, true>
 {
+    static_assert(
+        sizeof(T) < (1ULL << PackedPtrTagBits),
+        "Ref counted object derived from TRefCountedBase exceedes max size");
+
     Y_FORCE_INLINE static const TRefCounter* GetRefCounter(const T* obj)
     {
         return obj;
