@@ -426,7 +426,7 @@ static bool GetEmbeddingFeaturesData(
 
         *sampleDataPtrs = CollectMatrixRowPointers<const float*, const float**>(
             *dataPtrsStorage,
-            perSampleValuesSize
+            embeddingFeatureCountLocal
         );
     }
 
