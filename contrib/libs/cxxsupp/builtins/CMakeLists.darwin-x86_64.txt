@@ -191,9 +191,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfti.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixxfdi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixxfti.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatdixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floattixf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatundixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/floatuntixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulxc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powixf2.c
