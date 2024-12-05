@@ -19,7 +19,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 #ifndef _LIBCPP_HAS_NO_BUILTIN_IS_CONSTANT_EVALUATED
 #if _LIBCPP_STD_VER >= 20
-_LIBCPP_INLINE_VISIBILITY inline constexpr bool is_constant_evaluated() noexcept {
+_LIBCPP_HIDE_FROM_ABI inline constexpr bool is_constant_evaluated() noexcept {
   return __builtin_is_constant_evaluated();
 }
 #endif
