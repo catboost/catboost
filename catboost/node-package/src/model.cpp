@@ -138,10 +138,11 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
 
 
     // Categorical features
-    Napi::Value catFeatures = info[1];
+    Napi::Value catFeatures;
     bool catFeaturesAreHashes = false;
 
-    if (!catFeatures.IsUndefined()) {
+    if (info.Length() >= 2) {
+        catFeatures = info[1];
         if (!NHelper::CheckIsMatrix(
                 env,
                 catFeatures,
@@ -171,8 +172,9 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
 
 
     // Text features
-    Napi::Value textFeatures = info[2];
-    if (!textFeatures.IsUndefined()) {
+    Napi::Value textFeatures;
+    if (info.Length() >= 3) {
+        textFeatures = info[2];
         if (!NHelper::CheckIsMatrix(
                 env,
                 textFeatures,
@@ -194,8 +196,9 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     }
 
     // Embedding features
-    Napi::Value embeddingFeatures = info[3];
-    if (!embeddingFeatures.IsUndefined()) {
+    Napi::Value embeddingFeatures;
+    if (info.Length() == 4) {
+        embeddingFeatures = info[3];
         if (!NHelper::CheckIsMatrix(
                 env,
                 embeddingFeatures,
@@ -324,7 +327,7 @@ static void GetNumericFeaturesData(
 
 static void GetTextFeaturesData(
     const uint32_t sampleCount,
-    const Napi::Value& textFeatures, // array or undefined
+    const Napi::Value& textFeatures, // array or empty
     uint32_t* textFeatureCount,
     std::vector<std::string>* storage,
     std::vector<const char*>* dataPtrsStorage,
@@ -333,7 +336,7 @@ static void GetTextFeaturesData(
     storage->clear();
     dataPtrsStorage->clear();
     sampleDataPtrs->clear();
-    if (textFeatures.IsUndefined()) {
+    if (textFeatures.IsEmpty()) {
         *textFeatureCount = 0;
     } else {
         const Napi::Array textFeaturesArray = textFeatures.As<Napi::Array>();
@@ -361,7 +364,7 @@ static void GetTextFeaturesData(
 static bool GetEmbeddingFeaturesData(
     Napi::Env env,
     const uint32_t sampleCount,
-    const Napi::Value& embeddingFeatures, // array or undefined
+    const Napi::Value& embeddingFeatures, // array or empty
     uint32_t* embeddingFeatureCount,
     std::vector<size_t>* embeddingDimensions,
     std::vector<float>* storage,
@@ -372,7 +375,7 @@ static bool GetEmbeddingFeaturesData(
     storage->clear();
     dataPtrsStorage->clear();
     sampleDataPtrs->clear();
-    if (embeddingFeatures.IsUndefined()) {
+    if (embeddingFeatures.IsEmpty()) {
         *embeddingFeatureCount = 0;
     } else {
         const Napi::Array embeddingsFeaturesArray = embeddingFeatures.As<Napi::Array>();
@@ -450,7 +453,7 @@ Napi::Array TModel::CalcPredictionWithCatFeaturesAsHashes(
     std::vector<int> catHashValues;
     std::vector<const int*> catPtrs;
 
-    if (!catFeatures.IsUndefined()) {
+    if (!catFeatures.IsEmpty()) {
         const Napi::Array catFeaturesArray = catFeatures.As<Napi::Array>();
         catFeaturesSize = catFeaturesArray[0u].As<Napi::Array>().Length();
 
@@ -546,7 +549,7 @@ Napi::Array TModel::CalcPredictionWithCatFeaturesAsStrings(
     std::vector<const char*> catStringValues;
     std::vector<const char**> catPtrs;
 
-    if (!catFeatures.IsUndefined()) {
+    if (!catFeatures.IsEmpty()) {
         const Napi::Array catFeaturesArray = catFeatures.As<Napi::Array>();
         catFeaturesSize = catFeaturesArray[0u].As<Napi::Array>().Length();
 
