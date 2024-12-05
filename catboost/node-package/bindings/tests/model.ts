@@ -6,19 +6,16 @@ function testInitEmptyModel() {
     const modelA = new Model();
     const modelB = new Model();
 }
-assert.doesNotThrow(testInitEmptyModel);
 
 function testLoadFromFile() {
     const model = new Model();
     model.loadModel('./test_data/adult.cbm');
 }
-assert.doesNotThrow(testLoadFromFile);
 
 function testLoadFromNonExistentFile() {
     const model = new Model();
     model.loadModel('./test_data/non-existent.cbm');
 }
-assert.throws(testLoadFromNonExistentFile);
 
 function testPredictModelWithNumFeaturesSingle() {
     const model = new Model();
@@ -29,7 +26,6 @@ function testPredictModelWithNumFeaturesSingle() {
     const predictions = model.predict([numFeatures])
     assert.strictEqual(predictions[0].toFixed(4), '0.0882', `Expected [0.0882], got ${predictions}`);
 }
-assert.doesNotThrow(testPredictModelWithNumFeaturesSingle);
 
 function testPredictModelWithNumFeaturesMany() {
     const model = new Model();
@@ -57,7 +53,6 @@ function testPredictModelWithNumFeaturesMany() {
         `Expected ${expectedPredictions}, got ${predictions}`
     );
 }
-assert.doesNotThrow(testPredictModelWithNumFeaturesMany);
 
 function testCalculateSingle() {
     const model = new Model();
@@ -67,7 +62,6 @@ function testCalculateSingle() {
         [["Private", "Doctorate", "Married-civ-spouce", "Prof-specialty", "Husband", "Asian-Pac-Islander", "Male", "nan"]]);
     assert.strictEqual(predictions[0].toFixed(2), '1.54', `Expected [1.54], got ${predictions}`);
 }
-assert.doesNotThrow(testCalculateSingle);
 
 function testCalculateMany() {
     const model = new Model();
@@ -85,7 +79,6 @@ function testCalculateMany() {
     assert.strictEqual(predictions[0].toFixed(2), '1.54', `Expected [1.54], got ${predictions}`);
     assert.strictEqual(predictions[1].toFixed(2), '-1.17', `Expected [-1.17], got ${predictions}`);
 }
-assert.doesNotThrow(testCalculateMany);
 
 function testFloatFeaturesCount() {
     const model = new Model();
@@ -94,7 +87,6 @@ function testFloatFeaturesCount() {
     const count = model.getFloatFeaturesCount();
     assert.strictEqual(count, 6, `Expected [6], got ${count}`);
 }
-assert.doesNotThrow(testFloatFeaturesCount);
 
 function testCatFeaturesCount() {
     const model = new Model();
@@ -103,7 +95,6 @@ function testCatFeaturesCount() {
     const count = model.getCatFeaturesCount();
     assert.strictEqual(count, 8, `Expected [8], got ${count}`);
 }
-assert.doesNotThrow(testCatFeaturesCount);
 
 function testTreeCount() {
     const model = new Model();
@@ -112,7 +103,6 @@ function testTreeCount() {
     const count = model.getTreeCount();
     assert.strictEqual(count, 100, `Expected [100], got ${count}`);
 }
-assert.doesNotThrow(testTreeCount);
 
 function testDimensionsCount() {
     const model = new Model();
@@ -126,7 +116,6 @@ function testDimensionsCount() {
     );
     assert.strictEqual(count, 1, `Expected [1], got ${count}`);
 }
-assert.doesNotThrow(testDimensionsCount);
 
 function testLoadOnConstruction() {
     const model = new Model('./test_data/adult.cbm');
@@ -135,18 +124,15 @@ function testLoadOnConstruction() {
         [["Private", "Doctorate", "Married-civ-spouce", "Prof-specialty", "Husband", "Asian-Pac-Islander", "Male", "nan"]]);
     assert.strictEqual(predictions[0].toFixed(2), '1.54', `Expected [1.54], got ${predictions}`);
 }
-assert.doesNotThrow(testLoadOnConstruction);
 
 function testLoadNonExistentOnConstruction() {
     new Model('./test_data/non-existent.cbm');
 }
-assert.throws(testLoadNonExistentOnConstruction);
 
 function testPredictOnEmptyModel() {
     const model = new Model();
     model.predict([[10.0]], [["a"]]);
 }
-assert.throws(testPredictOnEmptyModel);
 
 
 function testMulticlassCloudnessSmall() {
@@ -185,6 +171,25 @@ function testMulticlassCloudnessSmall() {
         `Expected ${predictionDimensionsCount * floatFeatures.length}, got ${predictions.length}`
     );
 }
-assert.doesNotThrow(testMulticlassCloudnessSmall);
 
+
+function runAll() {
+    assert.doesNotThrow(testInitEmptyModel);
+    assert.doesNotThrow(testLoadFromFile);
+    assert.throws(testLoadFromNonExistentFile);
+    assert.doesNotThrow(testPredictModelWithNumFeaturesSingle);
+    assert.doesNotThrow(testPredictModelWithNumFeaturesMany);
+    assert.doesNotThrow(testCalculateSingle);
+    assert.doesNotThrow(testCalculateMany);
+    assert.doesNotThrow(testFloatFeaturesCount);
+    assert.doesNotThrow(testCatFeaturesCount);
+    assert.doesNotThrow(testTreeCount);
+    assert.doesNotThrow(testDimensionsCount);
+    assert.doesNotThrow(testLoadOnConstruction);
+    assert.throws(testLoadNonExistentOnConstruction);
+    assert.throws(testPredictOnEmptyModel);
+    assert.doesNotThrow(testMulticlassCloudnessSmall);
+}
+
+runAll()
 console.log("Model tests passed")
