@@ -35,7 +35,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 #if _LIBCPP_STD_VER >= 20
 template <class _Tp>
-_LIBCPP_INLINE_VISIBILITY constexpr
+_LIBCPP_HIDE_FROM_ABI constexpr
 enable_if_t<is_integral_v<_Tp> && !is_same_v<bool, _Tp> && !is_null_pointer_v<_Tp>, _Tp>
 midpoint(_Tp __a, _Tp __b) noexcept
 _LIBCPP_DISABLE_UBSAN_UNSIGNED_INTEGER_CHECK
@@ -55,7 +55,7 @@ _LIBCPP_DISABLE_UBSAN_UNSIGNED_INTEGER_CHECK
 template <class _Tp, enable_if_t<is_object_v<_Tp> && !is_void_v<_Tp> && (sizeof(_Tp) > 0), int> = 0>
 _LIBCPP_HIDE_FROM_ABI constexpr _Tp* midpoint(_Tp* __a, _Tp* __b) noexcept
 {
-    return __a + _VSTD::midpoint(ptrdiff_t(0), __b - __a);
+    return __a + std::midpoint(ptrdiff_t(0), __b - __a);
 }
 
 
@@ -68,7 +68,7 @@ template <typename _Fp>
 _LIBCPP_HIDE_FROM_ABI constexpr _Fp __fp_abs(_Fp __f) { return __f >= 0 ? __f : -__f; }
 
 template <class _Fp>
-_LIBCPP_INLINE_VISIBILITY constexpr
+_LIBCPP_HIDE_FROM_ABI constexpr
 enable_if_t<is_floating_point_v<_Fp>, _Fp>
 midpoint(_Fp __a, _Fp __b) noexcept
 {

@@ -48,6 +48,8 @@
 
 #define _LIBCPP_NO_ASAN_CONTIGUOUS_CONTAINER_FEATURES
 
+#define _LIBCPP_HARDENING_MODE_DEFAULT 2
+
 #ifdef _musl_
 #   define _LIBCPP_HAS_MUSL_LIBC
 #endif

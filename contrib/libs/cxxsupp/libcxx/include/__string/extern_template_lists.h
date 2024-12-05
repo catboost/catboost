@@ -15,6 +15,8 @@
 #  pragma GCC system_header
 #endif
 
+// clang-format off
+
 // We maintain 2 ABI lists:
 // - _LIBCPP_STRING_V1_EXTERN_TEMPLATE_LIST
 // - _LIBCPP_STRING_UNSTABLE_EXTERN_TEMPLATE_LIST
@@ -133,5 +135,7 @@
 #define _LIBCPP_STRING_EXTERN_TEMPLATE_VARIABLE_LIST(_Func, _CharType) \
   _Func(_LIBCPP_EXPORTED_FROM_ABI const basic_string<_CharType>::size_type basic_string<_CharType>::npos)
 #endif
+
+// clang-format on
 
 #endif // _LIBCPP___STRING_EXTERN_TEMPLATE_LISTS_H
