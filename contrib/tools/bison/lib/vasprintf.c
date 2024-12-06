@@ -18,7 +18,7 @@
 
 /* Specification.  */
 #ifdef IN_LIBASPRINTF
-# include "vasprintf.h"
+# error #include "vasprintf.h"
 #else
 # include <stdio.h>
 #endif
