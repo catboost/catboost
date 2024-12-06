@@ -1428,7 +1428,7 @@
 #define STRERROR_R_CHAR_P 1
 
 /* Shell used by syscmd and esyscmd, must accept -c argument. */
-#define SYSCMD_SHELL "/var/empty/bash-4.4-p23/bin/bash"
+#define SYSCMD_SHELL "/bin/sh"
 
 /* Define to the prefix of C symbols at the assembler and linker level, either
    an underscore or empty. */
