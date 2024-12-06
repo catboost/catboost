@@ -1,6 +1,6 @@
 #pragma once
 
-#include "concepts.h"
+#include <library/cpp/yt/misc/concepts.h>
 
 namespace NYT {
 
@@ -52,20 +52,19 @@ template <CConst T>
 class TNonNullPtr<T>
     : public TNonNullPtrBase<T>
 {
-    using TMutPtr = TNonNullPtr<std::remove_const_t<T>>;
+    using TMutablePtr = TNonNullPtr<std::remove_const_t<T>>;
 
     using TNonNullPtrBase<T>::TNonNullPtrBase;
 
     friend TNonNullPtr<T> GetPtr<T>(T& ref) noexcept;
 
 public:
-    TNonNullPtr(TMutPtr mutPtr) noexcept
+    TNonNullPtr(TMutablePtr mutPtr) noexcept
         : TNonNullPtrBase<T>()
     {
         TNonNullPtrBase<T>::Ptr_ = mutPtr.Ptr_;
     }
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////
 

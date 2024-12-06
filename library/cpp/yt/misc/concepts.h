@@ -77,7 +77,7 @@ template <class T>
 concept CConstRawPtr = CRawPtr<T> && CConst<decltype(*std::declval<T>())>;
 
 template <class T>
-concept CMutRawPtr = CRawPtr<T> && !CConstRawPtr<T>;
+concept CMutableRawPtr = CRawPtr<T> && !CConstRawPtr<T>;
 
 ////////////////////////////////////////////////////////////////////////////////
 

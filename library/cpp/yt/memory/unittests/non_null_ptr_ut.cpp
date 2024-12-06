@@ -1,6 +1,6 @@
 #include <library/cpp/testing/gtest/gtest.h>
 
-#include <library/cpp/yt/misc/non_null_ptr.h>
+#include <library/cpp/yt/memory/non_null_ptr.h>
 
 namespace NYT {
 namespace {
