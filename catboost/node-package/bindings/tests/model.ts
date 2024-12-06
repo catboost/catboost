@@ -17,9 +17,13 @@ function testLoadFromNonExistentFile() {
     model.loadModel('./test_data/non-existent.cbm');
 }
 
-function testPredictModelWithNumFeaturesSingle() {
+function testPredictModelWithNumFeaturesSingle(useGpu: boolean) {
     const model = new Model();
     model.loadModel('../pytest/data/models/features_num__dataset_querywise.cbm');
+
+    if (useGpu) {
+        model.enableGPUEvaluation(0);
+    }
 
     const numFeatures = "0.257727	0.0215909	0.171299	1	1	1	1	1	0	0	0	0	0	0	0.431373	0.935065	0.0208333	0.070824	1	0	0.313726	1	1	0	0.937724	0	1	0	0	0	0	0.0566038	0	0	1	0.73929	1	0.000505391	0.885819	0.000172727	0	0	0	0	0	0	0.153262	0.578118	0.222098	1".split('\t').map(x => parseFloat(x))
 
@@ -27,9 +31,13 @@ function testPredictModelWithNumFeaturesSingle() {
     assert.strictEqual(predictions[0].toFixed(4), '0.0882', `Expected [0.0882], got ${predictions}`);
 }
 
-function testPredictModelWithNumFeaturesMany() {
+function testPredictModelWithNumFeaturesMany(useGpu: boolean) {
     const model = new Model();
     model.loadModel('../pytest/data/models/features_num__dataset_querywise.cbm');
+
+    if (useGpu) {
+        model.enableGPUEvaluation(0);
+    }
 
     const numFeatures = [
         "0.257727	0.0215909	0.171299	1	1	1	1	1	0	0	0	0	0	0	0.431373	0.935065	0.0208333	0.070824	1	0	0.313726	1	1	0	0.937724	0	1	0	0	0	0	0.0566038	0	0	1	0.73929	1	0.000505391	0.885819	0.000172727	0	0	0	0	0	0	0.153262	0.578118	0.222098	1",
@@ -54,18 +62,26 @@ function testPredictModelWithNumFeaturesMany() {
     );
 }
 
-function testPredictModelWithNumCatFeaturesSingle() {
+function testPredictModelWithNumCatFeaturesSingle(useGpu: boolean) {
     const model = new Model();
     model.loadModel('./test_data/adult.cbm');
+
+    if (useGpu) {
+        model.enableGPUEvaluation(0);
+    }
 
     const predictions = model.predict([[40., 85019., 16., 0., 0., 45.]],
         [["Private", "Doctorate", "Married-civ-spouce", "Prof-specialty", "Husband", "Asian-Pac-Islander", "Male", "nan"]]);
     assert.strictEqual(predictions[0].toFixed(2), '1.54', `Expected [1.54], got ${predictions}`);
 }
 
-function testPredictModelWithNumCatFeaturesMany() {
+function testPredictModelWithNumCatFeaturesMany(useGpu: boolean) {
     const model = new Model();
     model.loadModel('./test_data/adult.cbm');
+
+    if (useGpu) {
+        model.enableGPUEvaluation(0);
+    }
 
     const predictions = model.predict([
             [40., 85019., 16., 0., 0., 45.],
@@ -80,9 +96,13 @@ function testPredictModelWithNumCatFeaturesMany() {
     assert.strictEqual(predictions[1].toFixed(2), '-1.17', `Expected [-1.17], got ${predictions}`);
 }
 
-function testPredictModelWithNumCatTextFeaturesSingle() {
+function testPredictModelWithNumCatTextFeaturesSingle(useGpu: boolean) {
     const model = new Model();
     model.loadModel('../pytest/data/models/features_num_cat_text__dataset_rotten_tomatoes__binclass.cbm');
+
+    if (useGpu) {
+        model.enableGPUEvaluation(0);
+    }
 
     const numFeatures = [20100514.0, 20100914.0, 20100514.0]
     const catFeatures = [
@@ -104,9 +124,13 @@ function testPredictModelWithNumCatTextFeaturesSingle() {
     assert.strictEqual(predictions[0].toFixed(4), '3.2251', `Expected [3.2251], got ${predictions}`);
 }
 
-function testPredictModelWithNumCatTextFeaturesMany() {
+function testPredictModelWithNumCatTextFeaturesMany(useGpu: boolean) {
     const model = new Model();
     model.loadModel('../pytest/data/models/features_num_cat_text__dataset_rotten_tomatoes__binclass.cbm');
+
+    if (useGpu) {
+        model.enableGPUEvaluation(0);
+    }
 
     const numFeatures = [
         [20100514.0, 20100914.0, 20100514.0],
@@ -175,9 +199,13 @@ function testPredictModelWithNumCatTextFeaturesMany() {
     );
 }
 
-function testPredictModelWithNumCatTextEmbeddingFeaturesSingle() {
+function testPredictModelWithNumCatTextEmbeddingFeaturesSingle(useGpu: boolean) {
     const model = new Model();
     model.loadModel('../pytest/data/models/features_num_cat_text_emb__dataset_rotten_tomatoes__binclass.cbm');
+
+    if (useGpu) {
+        model.enableGPUEvaluation(0);
+    }
 
     const numFeatures = [20100514.0, 20100914.0, 20100514.0]
     const catFeatures = [
@@ -204,9 +232,13 @@ function testPredictModelWithNumCatTextEmbeddingFeaturesSingle() {
     assert.strictEqual(predictions[0].toFixed(4), '1.3269', `Expected [1.3269], got ${predictions}`);
 }
 
-function testPredictModelWithNumCatTextEmbeddingFeaturesMany() {
+function testPredictModelWithNumCatTextEmbeddingFeaturesMany(useGpu: boolean) {
     const model = new Model();
     model.loadModel('../pytest/data/models/features_num_cat_text_emb__dataset_rotten_tomatoes__binclass.cbm');
+
+    if (useGpu) {
+        model.enableGPUEvaluation(0);
+    }
 
     const numFeatures = [
         [20100514.0, 20100914.0, 20100514.0],
@@ -400,19 +432,32 @@ function testMulticlassCloudnessSmall() {
     );
 }
 
+function assertWorksOnCpuAndGpu(haveCuda: boolean, testFunction : (useGpu: boolean) => void) {
+    assert.doesNotThrow(() => testFunction(false));
+    if (haveCuda) {
+        assert.doesNotThrow(() => testFunction(true));
+    }
+}
 
-function runAll() {
+function assertWorksOnCpuAndThrowsOnGpu(haveCuda: boolean, testFunction : (useGpu: boolean) => void) {
+    assert.doesNotThrow(() => testFunction(false));
+    if (haveCuda) {
+        assert.throws(() => testFunction(true));
+    }
+}
+
+function runAll(haveCuda: boolean) {
     assert.doesNotThrow(testInitEmptyModel);
     assert.doesNotThrow(testLoadFromFile);
     assert.throws(testLoadFromNonExistentFile);
-    assert.doesNotThrow(testPredictModelWithNumFeaturesSingle);
-    assert.doesNotThrow(testPredictModelWithNumFeaturesMany);
-    assert.doesNotThrow(testPredictModelWithNumCatFeaturesSingle);
-    assert.doesNotThrow(testPredictModelWithNumCatFeaturesMany);
-    assert.doesNotThrow(testPredictModelWithNumCatTextFeaturesSingle);
-    assert.doesNotThrow(testPredictModelWithNumCatTextFeaturesMany);
-    assert.doesNotThrow(testPredictModelWithNumCatTextEmbeddingFeaturesSingle);
-    assert.doesNotThrow(testPredictModelWithNumCatTextEmbeddingFeaturesMany);
+    assertWorksOnCpuAndGpu(haveCuda, testPredictModelWithNumFeaturesSingle);
+    assertWorksOnCpuAndGpu(haveCuda, testPredictModelWithNumFeaturesMany);
+    assertWorksOnCpuAndThrowsOnGpu(haveCuda, testPredictModelWithNumCatFeaturesSingle);
+    assertWorksOnCpuAndThrowsOnGpu(haveCuda, testPredictModelWithNumCatFeaturesMany);
+    assertWorksOnCpuAndThrowsOnGpu(haveCuda, testPredictModelWithNumCatTextFeaturesSingle);
+    assertWorksOnCpuAndThrowsOnGpu(haveCuda, testPredictModelWithNumCatTextFeaturesMany);
+    assertWorksOnCpuAndThrowsOnGpu(haveCuda, testPredictModelWithNumCatTextEmbeddingFeaturesSingle);
+    assertWorksOnCpuAndThrowsOnGpu(haveCuda, testPredictModelWithNumCatTextEmbeddingFeaturesMany);
     assert.doesNotThrow(testFloatFeaturesCount);
     assert.doesNotThrow(testCatFeaturesCount);
     assert.doesNotThrow(testTextFeaturesCount);
@@ -425,5 +470,14 @@ function runAll() {
     assert.doesNotThrow(testMulticlassCloudnessSmall);
 }
 
-runAll()
+
+const haveCuda = process.argv.indexOf('--have-cuda') > -1
+
+if (haveCuda) {
+    console.log('Tests with CUDA included')
+} else {
+    console.log('Tests with CUDA excluded')
+}
+
+runAll(haveCuda)
 console.log("Model tests passed")
