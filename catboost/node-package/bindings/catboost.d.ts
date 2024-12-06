@@ -1,27 +1,27 @@
 /** CatBoost numeric features for multiple samples. */
 export type CatBoostFloatFeatures = Array<number[]>;
 /**
- * CatBoost categorial features for multiple samples - either integer hashes
+ * CatBoost categorical features for multiple samples - either integer hashes
  * or string values.
  */
 export type CatBoostCategoryFeatures = Array<number[]>|Array<string[]>;
-/** CatBoost text features for multiple documents. */
+/** CatBoost text features for multiple samples. */
 export type CatBoostTextFeatures = Array<string[]>;
-/** CatBoost embedding features for multiple documents. */
+/** CatBoost embedding features for multiple samples. */
 export type CatBoostEmbeddingFeatures = Array<Array<number[]>>;
 
 /** CatBoost model instance. */
 export class Model {
 	constructor(path?: string);
 
-	/** Loads a model from the file. */
+	/** Load a model from the file. */
 	loadModel(path: string): void;
-	/** Sets model prediction postprocessing type. Possible value are:
+	/** Set model prediction postprocessing type. Possible values are:
 	 * RawFormulaVal - raw sum of leaf values for each dimension,
      * Exponent - exp(sum(leaf values)),
 	 * RMSEWithUncertainty - pair (prediction, uncertainty),
 	 * Probability - (probablity for class_0, ..., probablity for class_i,...)
-	 * Class - id of class with maximal predicted probability
+	 * Class - id of a class with the maximum predicted probability
 	 * */
 	setPredictionType(predictionType: string): void;
 	/**
@@ -36,7 +36,7 @@ export class Model {
 	enableGPUEvaluation(deviceId: number): void;
 	/** The number of numeric features. */
 	getFloatFeaturesCount(): number;
-	/** The number of categorial features. */
+	/** The number of categorical features. */
 	getCatFeaturesCount(): number;
 	/** The number of text features. */
 	getTextFeaturesCount(): number;
