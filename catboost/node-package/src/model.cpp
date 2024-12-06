@@ -157,7 +157,7 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
         if (!NHelper::Check(
                 env,
                 catFeaturesArray.Length() == sampleCount,
-                "Expected the number of samples to be the same for both float and categorial features"
+                "Expected the number of samples to be the same for both float and categorical features"
             ))
         {
             return env.Undefined();
