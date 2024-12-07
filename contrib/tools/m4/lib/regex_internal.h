@@ -88,8 +88,8 @@
 #ifdef _LIBC
 # ifndef _RE_DEFINE_LOCALE_FUNCTIONS
 #  define _RE_DEFINE_LOCALE_FUNCTIONS 1
-#   include <locale/localeinfo.h>
-#   include <locale/coll-lookup.h>
+#   error #include <locale/localeinfo.h>
+#   error #include <locale/coll-lookup.h>
 # endif
 #endif
 
@@ -852,7 +852,7 @@ re_string_wchar_at (const re_string_t *pstr, Idx idx)
 }
 
 # ifdef _LIBC
-#  include <locale/weight.h>
+#  error #include <locale/weight.h>
 # endif
 
 static int

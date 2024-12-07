@@ -18,7 +18,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #ifdef _LIBC
-# include <locale/weight.h>
+# error #include <locale/weight.h>
 #endif
 
 static reg_errcode_t re_compile_internal (regex_t *preg, const char * pattern,
