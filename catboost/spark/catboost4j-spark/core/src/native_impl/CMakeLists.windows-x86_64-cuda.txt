@@ -34,6 +34,10 @@ set_property(TARGET catboost4j-spark-impl-cpp PROPERTY OUTPUT_NAME
   catboost4j-spark-impl
 )
 
+target_compile_options(catboost4j-spark-impl-cpp PRIVATE
+  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
+)
+
 target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
   contrib-libs-cxxsupp
   yutil
