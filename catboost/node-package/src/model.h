@@ -44,7 +44,7 @@ private:
         Napi::Env env,
         const uint32_t sampleCount,
         const Napi::Array& floatFeatures,
-        const Napi::Value& catFeatures,
+        const Napi::Value& catFeatures,         // array or undefined
         const Napi::Value& textFeatures,        // array or undefined
         const Napi::Value& embeddingFeatures    // array or undefined
     );
@@ -52,7 +52,7 @@ private:
         Napi::Env env,
         const uint32_t sampleCount,
         const Napi::Array& floatFeatures,
-        const Napi::Value& catFeatures,
+        const Napi::Value& catFeatures,         // array or undefined
         const Napi::Value& textFeatures,        // array or undefined
         const Napi::Value& embeddingFeatures    // array or undefined
     );
