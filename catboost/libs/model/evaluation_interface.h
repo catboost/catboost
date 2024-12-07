@@ -84,18 +84,17 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
             virtual void SetProperty(const TStringBuf propName, const TStringBuf propValue) = 0;
 
             i32 GetPredictionDimensions() const {
-                switch (GetPredictionType())
-                {
-                case EPredictionType::RawFormulaVal:
-                case EPredictionType::Exponent:
-                case EPredictionType::RMSEWithUncertainty:
-                case EPredictionType::MultiProbability:
-                case EPredictionType::Probability:
-                    return GetApproxDimension();
-                case EPredictionType::Class:
-                    return 1;
-                default:
-                    CB_ENSURE(false, "Unexpected prediction type");
+                switch (GetPredictionType()) {
+                    case EPredictionType::RawFormulaVal:
+                    case EPredictionType::Exponent:
+                    case EPredictionType::RMSEWithUncertainty:
+                    case EPredictionType::MultiProbability:
+                    case EPredictionType::Probability:
+                        return GetApproxDimension();
+                    case EPredictionType::Class:
+                        return 1;
+                    default:
+                        CB_ENSURE(false, "Unexpected prediction type");
                 }
             }
 
