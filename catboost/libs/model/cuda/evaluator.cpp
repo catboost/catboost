@@ -355,7 +355,7 @@ namespace NCB::NModelEvaluation {
             const size_t docCount = features.size();
             const size_t stride = CeilDiv<size_t>(expectedFlatVecSize, 32) * 32;
 
-        TGPUDataInput dataInput;
+            TGPUDataInput dataInput;
             dataInput.FloatFeatureLayout = TGPUDataInput::EFeatureLayout::RowFirst;
             dataInput.ObjectCount = docCount;
             dataInput.FloatFeatureCount = expectedFlatVecSize;
@@ -364,8 +364,12 @@ namespace NCB::NModelEvaluation {
             dataInput.FlatFloatsVector = Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef();
             auto copyBufRef = Ctx.EvalDataCache.CopyDataBufHost.AsArrayRef();
             for (size_t docId = 0; docId < docCount; ++docId) {
-            memcpy(&copyBufRef[docId * stride], features[docId].data(), sizeof(float) * expectedFlatVecSize);
-        }
+                memcpy(
+                    &copyBufRef[docId * stride],
+                    features[docId].data(),
+                    sizeof(float) * expectedFlatVecSize
+                );
+            }
             MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
             TCudaQuantizedData* cudaQuantizedData = reinterpret_cast<TCudaQuantizedData*>(quantizedData);
             Ctx.QuantizeData(dataInput, cudaQuantizedData);
