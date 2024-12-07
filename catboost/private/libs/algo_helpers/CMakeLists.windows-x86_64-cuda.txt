@@ -17,10 +17,6 @@ add_subdirectory(ut)
 add_library(private-libs-algo_helpers)
 
 
-target_compile_options(private-libs-algo_helpers PRIVATE
-  $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
-)
-
 target_link_libraries(private-libs-algo_helpers PUBLIC
   contrib-libs-cxxsupp
   yutil
