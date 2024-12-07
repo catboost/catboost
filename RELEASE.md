@@ -1,3 +1,15 @@
+# Node package Release 1.26.0
+(uses `catboostmodel` native libraries from the main CatBoost release v1.2.7)
+* Fix MultiClassification models support. #1903
+* Fix predict on GPU. #1901, #1923.
+* Make specifying categorical features parameter optional.
+* Support text and embedding features. #2523
+* Add support for 'MultiProbability' prediction type
+* Support Linux aarch64
+* Support macOS arm64
+* Support Windows x86_64
+
+
 # Release 1.2.7
 
 ## Bugfixes

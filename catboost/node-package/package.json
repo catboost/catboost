@@ -1,6 +1,6 @@
 {
   "name": "catboost",
-  "version": "1.25.1",
+  "version": "1.26.0",
   "description": "Node bindings for CatBoost library to apply models. CatBoost is a machine learning method based on gradient boosting over decision trees.",
   "keywords": [
     "catboost",
