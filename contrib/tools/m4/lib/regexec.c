@@ -3758,7 +3758,7 @@ group_nodes_into_DFAstates (const re_dfa_t *dfa, const re_dfastate_t *state,
    can only accept one byte.  */
 
 # ifdef _LIBC
-#  include <locale/weight.h>
+#  error #include <locale/weight.h>
 # endif
 
 static int

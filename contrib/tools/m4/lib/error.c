@@ -68,7 +68,7 @@ unsigned int error_message_count;
 # define program_name program_invocation_name
 # include <errno.h>
 # include <limits.h>
-# include <libio/libioP.h>
+# error #include <libio/libioP.h>
 
 /* In GNU libc we want do not want to use the common name 'error' directly.
    Instead make it a weak alias.  */
@@ -81,7 +81,7 @@ extern void __error_at_line (int status, int errnum, const char *file_name,
 # define error __error
 # define error_at_line __error_at_line
 
-# include <libio/iolibio.h>
+# error #include <libio/iolibio.h>
 # define fflush(s) _IO_fflush (s)
 # undef putc
 # define putc(c, fp) _IO_putc (c, fp)

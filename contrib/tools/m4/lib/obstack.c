@@ -319,7 +319,7 @@ int obstack_exit_failure = EXIT_FAILURE;
 #  endif
 
 #  ifdef _LIBC
-#   include <libio/iolibio.h>
+#   error #include <libio/iolibio.h>
 #  endif
 
 static _Noreturn void
