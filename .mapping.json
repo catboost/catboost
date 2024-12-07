@@ -12,6 +12,7 @@
   ".github/workflows/release.yaml":"catboost/github_toplevel/.github/workflows/release.yaml",
   ".github/workflows/release_build_and_check.yaml":"catboost/github_toplevel/.github/workflows/release_build_and_check.yaml",
   ".github/workflows/release_publish.yaml":"catboost/github_toplevel/.github/workflows/release_publish.yaml",
+  ".github/workflows/release_publish_node_package.yaml":"catboost/github_toplevel/.github/workflows/release_publish_node_package.yaml",
   ".github/workflows/test.yaml":"catboost/github_toplevel/.github/workflows/test.yaml",
   ".github/workflows/test_per_os.yaml":"catboost/github_toplevel/.github/workflows/test_per_os.yaml",
   ".gitignore":"catboost/github_toplevel/.gitignore",
