@@ -176,7 +176,7 @@ namespace NCB::NModelEvaluation {
                 TArrayRef<double> results,
                 const TFeatureLayout* featureLayout
             ) const override {
-                CB_ENSURE(featureLayout == nullptr, "feature layout currenlty not supported");
+                CB_ENSURE(featureLayout == nullptr, "feature layout currently not supported");
                 if (!featureLayout) {
                     featureLayout = ExtFeatureLayout.Get();
                 }
