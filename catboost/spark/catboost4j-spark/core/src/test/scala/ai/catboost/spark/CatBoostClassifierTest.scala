@@ -24,6 +24,9 @@ class CatBoostClassifierTest {
   @Rule
   def temporaryFolder = _temporaryFolder
 
+  @Rule
+  def processingVerifier = ProcessingFinishedVerifier
+
 
   @Test
   @throws(classOf[Exception])
