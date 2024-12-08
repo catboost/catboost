@@ -30,6 +30,9 @@ class CatBoostRegressorTest {
   @Rule
   def temporaryFolder = _temporaryFolder
 
+  @Rule
+  def processingVerfier = ProcessingFinishedVerifier
+
 
   @Test
   @throws(classOf[Exception])
