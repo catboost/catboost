@@ -17,6 +17,7 @@ add_library(cpp-yt-misc)
 
 target_compile_options(cpp-yt-misc PRIVATE
   -Wdeprecated-this-capture
+  -Wimplicit-fallthrough
 )
 
 target_link_libraries(cpp-yt-misc PUBLIC
