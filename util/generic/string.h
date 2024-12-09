@@ -463,8 +463,7 @@ public:
         : TBasicString(pc, TBase::StrLen(pc))
     {
     }
-    // TODO thegeorg@: uncomment and fix clients
-    // TBasicString(std::nullptr_t) = delete;
+    TBasicString(std::nullptr_t) = delete;
 
     TBasicString(const TCharType* pc, size_t n)
 #ifdef TSTRING_IS_STD_STRING

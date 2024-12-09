@@ -525,17 +525,13 @@ public:
     }
 
     void TestConstructors() {
-        TStringType s0(nullptr);
+        TStringType s0;
         UNIT_ASSERT(s0.size() == 0);
-        UNIT_ASSERT_EQUAL(s0, TStringType());
 
         TStringType s;
         TStringType s1(*Data._0());
         TStringType s2(Data._0());
         UNIT_ASSERT(s1 == s2);
-
-        TStringType fromZero(0);
-        UNIT_ASSERT_VALUES_EQUAL(fromZero.size(), 0u);
 
         TStringType fromChar(char_type('a'));
         UNIT_ASSERT_VALUES_EQUAL(fromChar.size(), 1u);

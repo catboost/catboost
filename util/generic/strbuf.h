@@ -98,6 +98,8 @@ public:
      *  to generate compilation error instead.
      */
     constexpr inline TBasicStringBuf(std::nullptr_t begin, size_t size) = delete;
+    // TODO: Uncomment.
+    // constexpr TBasicStringBuf(std::nullptr_t) = delete;
 
     constexpr inline TBasicStringBuf(const TCharType* data Y_LIFETIME_BOUND, size_t size) noexcept
         : TStringView(data, size)
