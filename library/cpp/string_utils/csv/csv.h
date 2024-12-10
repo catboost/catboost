@@ -5,6 +5,8 @@
 #include <util/generic/vector.h>
 #include <util/stream/input.h>
 
+#include <vector>
+
 /*
     Split string by rfc4180
 */
@@ -24,7 +26,7 @@ namespace NCsvFormat {
 
     class CsvSplitter {
     public:
-        CsvSplitter(TString& data, const char delimeter = ',', const char quote = '"')
+        CsvSplitter(const TString& data, const char delimeter = ',', const char quote = '"')
         // quote = '\0' ignores quoting in values and words like simple split
             : Delimeter(delimeter)
             , Quote(quote)
@@ -56,9 +58,9 @@ namespace NCsvFormat {
     private:
         const char Delimeter;
         const char Quote;
-        TString::iterator Begin;
+        TString::const_iterator Begin;
         const TString::const_iterator End;
-        TString CustomString;
-        TVector<TStringBuf> CustomStringBufs;
+        std::vector<std::unique_ptr<TString>> TempResults; // CsvSplitter lifetime
+        std::vector<TStringBuf> TempResultParts; // Single Consume() method call lifetime
     };
 }
