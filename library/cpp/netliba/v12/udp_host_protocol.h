@@ -600,7 +600,7 @@ namespace NNetliba_v12 {
 
     inline void SendXsPing(TUdpSocket& s, const TConnection* connection, const int selfNetworkOrderPort, ui8 tos) {
         char buf[UDP_XSMALL_PACKET_SIZE], *pktData = buf + UDP_LOW_LEVEL_HEADER_SIZE;
-        Cerr << GetAddressAsString(connection->GetAddress()) << " Sending xs ping" << Endl;
+        // Cerr << GetAddressAsString(connection->GetAddress()) << " Sending xs ping" << Endl;
 
         TOptionsVector opt;
         WriteInConnectionPacketHeader(&pktData, XS_PING, connection, &opt);
