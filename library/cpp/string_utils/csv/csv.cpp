@@ -4,8 +4,8 @@ TStringBuf NCsvFormat::CsvSplitter::Consume() {
     if (Begin == End) {
         return nullptr;
     }
-    TString::iterator TokenStart = Begin;
-    TString::iterator TokenEnd = Begin;
+    TString::const_iterator TokenStart = Begin;
+    TString::const_iterator TokenEnd = Begin;
     if (Quote == '\0') {
         while (1) {
             if (TokenEnd == End || *TokenEnd == Delimeter) {
@@ -33,21 +33,29 @@ TStringBuf NCsvFormat::CsvSplitter::Consume() {
                 } else if (*(TokenEnd + 1) == Delimeter) {
                     Begin = TokenEnd + 1;
                 } else if (*(TokenEnd + 1) == Quote) {
-                    CustomStringBufs.push_back(TStringBuf(TokenStart, (TokenEnd + 1)));
+                    TempResultParts.push_back(TStringBuf(TokenStart, (TokenEnd + 1)));
                     TokenEnd += 2;
                     TokenStart = TokenEnd;
                     continue;
                 } else {
                     Y_ENSURE(false, TStringBuf("RFC4180 violation: in escaped string quotation mark must be followed by a delimiter, EOL or another quotation mark"));
                 }
-                if (CustomStringBufs.size()) {
-                    CustomString.clear();
-                    for (auto CustomStringBuf : CustomStringBufs) {
-                        CustomString += TString{ CustomStringBuf };
+                if (TempResultParts.size()) {
+                    auto newEscapedStringPtr = std::make_unique<TString>();
+                    size_t newStringSize = 0;
+                    for (auto tempResultPart : TempResultParts) {
+                        newStringSize += tempResultPart.size();
                     }
-                    CustomString += TString{ TStringBuf(TokenStart, TokenEnd) };
-                    CustomStringBufs.clear();
-                    return TStringBuf(CustomString);
+                    newStringSize += TokenEnd - TokenStart;
+                    newEscapedStringPtr->reserve(newStringSize);
+                    for (auto tempResultPart : TempResultParts) {
+                        *newEscapedStringPtr += TString{ tempResultPart };
+                    }
+                    *newEscapedStringPtr += TString{ TStringBuf(TokenStart, TokenEnd) };
+                    TempResultParts.clear();
+                    // Storing built string so that returned TStringBuf won't change until this splitter is destroyed
+                    TempResults.push_back(std::move(newEscapedStringPtr));
+                    return TStringBuf(*TempResults.back());
                 } else {
                     return TStringBuf(TokenStart, TokenEnd);
                 }
