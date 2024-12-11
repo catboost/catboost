@@ -85,20 +85,32 @@ class DoctestModule(LoadedModule):
             reraise(etype, type(exc)('{}\n{}'.format(exc, msg)), tb)
 
 
+def _is_skipped_module_level(module):
+    # since we import module by ourselves when CONFTEST_LOAD_POLICY is set to LOCAL we have to handle
+    # pytest.skip.Exception https://docs.pytest.org/en/stable/reference/reference.html#pytest-skip
+    try:
+        module.obj
+    except pytest.skip.Exception:
+        return True
+    except Exception:
+        # letting other exceptions such as ImportError slip through
+        pass
+    return False
+
+
 # NOTE: Since we are overriding collect method of pytest session, pytest hooks are not invoked during collection.
 def pytest_ignore_collect(module, session, filenames_from_full_filters, accept_filename_predicate):
     if session.config.option.mode == 'list':
-        return not accept_filename_predicate(module.name)
+        return not accept_filename_predicate(module.name) or _is_skipped_module_level(module)
 
     if filenames_from_full_filters is not None and module.name not in filenames_from_full_filters:
         return True
 
     test_file_filter = getattr(session.config.option, 'test_file_filter', None)
-    if test_file_filter is None:
-        return False
-    if module.name != test_file_filter.replace('/', '.'):
+    if test_file_filter and module.name != test_file_filter.replace('/', '.'):
         return True
-    return False
+
+    return _is_skipped_module_level(module)
 
 
 class CollectionPlugin(object):
