@@ -65,9 +65,12 @@ RUN source /root/.bashrc && \
     nvm use default && \
     npm install --global yarn@1.22.10 rimraf
 
-# Install R
+# Install R and 'devtools' package
 RUN apt-get update && \
-    apt-get -y install r-base r-base-dev
+    # these packages are needed for 'devtools' package with dependencies
+    apt-get -y install libcurl4-gnutls-dev libxml2-dev libssl-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev && \
+    apt-get -y install r-base r-base-dev && \
+    Rscript -e "install.packages('devtools')"
 
 # Install JDK8, make it the default version
 RUN wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg > /dev/null
