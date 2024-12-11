@@ -12,6 +12,8 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
 {% include [cmake-platforms](../_includes/work_src/reusage-installation/cmake-platforms.md) %}
 
+{% include [docker-build-env](../_includes/work_src/reusage-installation/docker-build-env.md) %}
+
 ## Native artifacts build requirements
 
 ### [Python interpreter](https://www.python.org/)
