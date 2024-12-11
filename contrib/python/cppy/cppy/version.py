@@ -12,7 +12,7 @@ from collections import namedtuple
 #: A namedtuple of the version info for the current release.
 _version_info = namedtuple("_version_info", "major minor micro status")
 
-parts = "1.2.1".split(".", 3)
+parts = "1.3.0".split(".", 3)
 __version_info__ = _version_info(
     int(parts[0]),
     int(parts[1]),
@@ -23,4 +23,4 @@ __version_info__ = _version_info(
 # Remove everything but the 'version_info' from this module.
 del namedtuple, _version_info, parts
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
