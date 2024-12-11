@@ -180,6 +180,38 @@ Omitted
 
 {{ cpu-gpu }}
 
+## --learn-graph
+
+#### Description
+
+The path to the input file that contains the [graph information](../../concepts/input-data_graph-description.md) for the training dataset.
+
+{% include [reusage-graph__where_is_used](../../_includes/work_src/reusage/graph__where_is_used.md) %}
+
+**{{ cli__params-table__title__default }}**
+
+Omitted.
+
+**{{ cli__params-table__title__processing-units-type }}**
+
+{{ cpu-gpu }}
+
+## --test-graph
+
+#### Description
+
+The path to the input file that contains the [graph information](../../concepts/input-data_graph-description.md) for the validation dataset.
+
+{% include [reusage-graph__where_is_used](../../_includes/work_src/reusage/graph__where_is_used.md) %}
+
+**{{ cli__params-table__title__default }}**
+
+Omitted.
+
+**{{ cli__params-table__title__processing-units-type }}**
+
+{{ cpu-gpu }}
+
 ## --delimiter {#--delimiter}
 
 #### Description
@@ -266,5 +298,3 @@ The method for processing missing values can be set individually for each featur
 **{{ cli__params-table__title__processing-units-type }}**
 
 {{ cpu-gpu }}
-
-
