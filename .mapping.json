@@ -1424,8 +1424,6 @@
   "catboost/tools/model_perftest/lib/CMakeLists.windows-x86_64.txt":"",
   "catboost_command_style_guide_extension.md":"catboost/github_toplevel/catboost_command_style_guide_extension.md",
   "ci/build_all.py":"catboost/github_toplevel/ci/build_all.py",
-  "ci/build_py3.12.py":"catboost/github_toplevel/ci/build_py3.12.py",
-  "ci/build_wo_py.py":"catboost/github_toplevel/ci/build_wo_py.py",
   "ci/cmake/cuda.cmake":"catboost/github_toplevel/ci/cmake/cuda.cmake",
   "ci/conan/init.sh":"catboost/github_toplevel/ci/conan/init.sh",
   "ci/conan/profiles/build.manylinux2014.x86_64.profile":"catboost/github_toplevel/ci/conan/profiles/build.manylinux2014.x86_64.profile",
