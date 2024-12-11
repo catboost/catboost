@@ -181,7 +181,7 @@ public:
     }
 
     Y_PURE_FUNCTION
-    const TStringBuf& Get(const TStringBuf name, size_t numOfValue = 0) const noexcept;
+    TStringBuf Get(const TStringBuf name, size_t numOfValue = 0) const noexcept Y_LIFETIME_BOUND;
 
 private:
     TString UnescapeBuf;

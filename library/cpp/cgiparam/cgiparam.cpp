@@ -265,7 +265,7 @@ TQuickCgiParam::TQuickCgiParam(const TStringBuf cgiParamStr) {
     }
 }
 
-const TStringBuf& TQuickCgiParam::Get(const TStringBuf name, size_t pos) const noexcept {
+TStringBuf TQuickCgiParam::Get(const TStringBuf name, size_t pos) const noexcept Y_LIFETIME_BOUND {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it, --pos) {
@@ -274,7 +274,7 @@ const TStringBuf& TQuickCgiParam::Get(const TStringBuf name, size_t pos) const n
         }
     }
 
-    return Default<TStringBuf>();
+    return TStringBuf{};
 }
 
 bool TQuickCgiParam::Has(const TStringBuf name, const TStringBuf value) const noexcept {
