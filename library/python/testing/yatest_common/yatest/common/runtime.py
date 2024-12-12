@@ -190,9 +190,9 @@ def data_path(path=None):
     :param path: path relative to the arcadia_tests_data directory, e.g. yatest.common.data_path("pers/rerank_service")
     :return: absolute path inside arcadia_tests_data
     """
-    if "USE_ATD_FROM_SNAPSHOT" in os.environ:
-        return os.path.join(source_path(), "atd_ro_snapshot", path)
-    return _join_path(_get_ya_plugin_instance().data_root, path)
+    if "USE_ATD_FROM_ATD" in os.environ:
+        return _join_path(_get_ya_plugin_instance().data_root, path)
+    return _join_path(source_path("atd_ro_snapshot"), path)
 
 
 @default_arg0
