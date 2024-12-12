@@ -23,8 +23,8 @@ def from_bytes(s):
 
 cdef extern from "library/cpp/blockcodecs/codecs.h" namespace "NBlockCodecs":
     cdef cppclass ICodec:
-        void Encode(TStringBuf data, TString& res) nogil
-        void Decode(TStringBuf data, TString& res) nogil
+        void Encode(TStringBuf data, TString& res) nogil except +
+        void Decode(TStringBuf data, TString& res) nogil except +
 
     cdef const ICodec* Codec(const TStringBuf& name) except +
     cdef TString ListAllCodecsAsString() except +
