@@ -108,7 +108,8 @@ RUN gcc --version && \
     cargo --version
 
 # Cleanup
-RUN apt-get clean
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists
 
 # Set the default shell to Bash
 CMD ["/bin/bash"]
@@ -137,7 +138,8 @@ ENV LD_LIBRARY_PATH="${CUDA_ROOT}/lib64:${LD_LIBRARY_PATH}"
 RUN nvcc --version
 
 # Cleanup
-RUN apt-get clean
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists
 
 # Set the default shell to Bash
 CMD ["/bin/bash"]
