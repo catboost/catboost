@@ -61,7 +61,7 @@ public:
     }
 
     Y_PURE_FUNCTION
-    const_iterator Find(const TStringBuf name, size_t numOfValue = 0) const noexcept;
+    const_iterator Find(const TStringBuf name, size_t numOfValue = 0) const noexcept Y_LIFETIME_BOUND;
 
     Y_PURE_FUNCTION
     bool Has(const TStringBuf name, const TStringBuf value) const noexcept;
@@ -76,7 +76,7 @@ public:
      * @note The returned value is CGI-unescaped.
      */
     Y_PURE_FUNCTION
-    const TString& Get(const TStringBuf name, size_t numOfValue = 0) const noexcept;
+    const TString& Get(const TStringBuf name, size_t numOfValue = 0) const noexcept Y_LIFETIME_BOUND;
 
     void InsertEscaped(const TStringBuf name, const TStringBuf value);
 
@@ -116,24 +116,24 @@ public:
     bool Erase(const TStringBuf name, const TStringBuf val);
     bool ErasePattern(const TStringBuf name, const TStringBuf pat);
 
-    inline const char* FormField(const TStringBuf name, size_t numOfValue = 0) const {
+    inline const char* FormField(const TStringBuf name, size_t numOfValue = 0) const Y_LIFETIME_BOUND {
         const_iterator it = Find(name, numOfValue);
 
         if (it == end()) {
             return nullptr;
         }
 
-        return it->second.data();
+        return it->second.c_str();
     }
 
-    inline TStringBuf FormFieldBuf(const TStringBuf name, size_t numOfValue = 0) const {
+    inline TStringBuf FormFieldBuf(const TStringBuf name, size_t numOfValue = 0) const Y_LIFETIME_BOUND {
         const_iterator it = Find(name, numOfValue);
 
         if (it == end()) {
-            return nullptr;
+            return TStringBuf{};
         }
 
-        return it->second.data();
+        return it->second;
     }
 };
 
