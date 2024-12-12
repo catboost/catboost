@@ -45,24 +45,6 @@ TEST(Runtime, BinaryPath) {
     EXPECT_TRUE(TFsPath(BinaryPath("library/cpp/testing/common/ut")).Exists());
 }
 
-TEST(Runtime, GetArcadiaTestsData) {
-    NTesting::TScopedEnvironment contextGuard("YA_TEST_CONTEXT_FILE", ""); // remove context filename
-    {
-        auto tmpDir = ::GetSystemTempDir();
-        NTesting::TScopedEnvironment guard("ARCADIA_TESTS_DATA_DIR", tmpDir);
-        Singleton<NPrivate::TTestEnv>()->ReInitialize();
-        EXPECT_EQ(tmpDir, GetArcadiaTestsData());
-    }
-    {
-        NTesting::TScopedEnvironment guard("ARCADIA_TESTS_DATA_DIR", "");
-        Singleton<NPrivate::TTestEnv>()->ReInitialize();
-        auto path = GetArcadiaTestsData();
-        // it is not error if path is empty
-        const bool ok = (path.empty() || GetBaseName(path) == "arcadia_tests_data");
-        EXPECT_TRUE(ok);
-    }
-}
-
 TEST(Runtime, GetWorkPath) {
     NTesting::TScopedEnvironment contextGuard("YA_TEST_CONTEXT_FILE", ""); // remove context filename
     {

@@ -41,31 +41,7 @@ TString BinaryPath(TStringBuf path) {
 }
 
 TString GetArcadiaTestsData() {
-    if (GetEnv("USE_ATD_FROM_SNAPSHOT")) {
-        return ArcadiaSourceRoot() + "/atd_ro_snapshot";
-    }
-
-    TString atdRoot = NPrivate::GetTestEnv().ArcadiaTestsDataDir;
-    if (atdRoot) {
-        return atdRoot;
-    }
-
-    TString path = NPrivate::GetCwd();
-    const char pathsep = GetDirectorySeparator();
-    while (!path.empty()) {
-        TString dataDir = path + "/arcadia_tests_data";
-        if (IsDir(dataDir)) {
-            return dataDir;
-        }
-
-        size_t pos = path.find_last_of(pathsep);
-        if (pos == TString::npos) {
-            pos = 0;
-        }
-        path.erase(pos);
-    }
-
-    return {};
+    return ArcadiaSourceRoot() + "/atd_ro_snapshot";
 }
 
 TString GetWorkPath() {
