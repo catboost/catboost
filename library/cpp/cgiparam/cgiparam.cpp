@@ -11,7 +11,7 @@ TCgiParameters::TCgiParameters(std::initializer_list<std::pair<TString, TString>
     }
 }
 
-const TString& TCgiParameters::Get(const TStringBuf name, size_t numOfValue) const noexcept {
+const TString& TCgiParameters::Get(const TStringBuf name, size_t numOfValue) const noexcept Y_LIFETIME_BOUND {
     const auto it = Find(name, numOfValue);
 
     return end() == it ? Default<TString>() : it->second;
@@ -221,7 +221,7 @@ TString TCgiParameters::QuotedPrint(const char* safe) const {
     return res;
 }
 
-TCgiParameters::const_iterator TCgiParameters::Find(const TStringBuf name, size_t pos) const noexcept {
+TCgiParameters::const_iterator TCgiParameters::Find(const TStringBuf name, size_t pos) const noexcept Y_LIFETIME_BOUND {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it, --pos) {
