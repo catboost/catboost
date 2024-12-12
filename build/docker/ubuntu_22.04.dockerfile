@@ -135,7 +135,8 @@ ENV PATH="${CUDA_ROOT}/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${CUDA_ROOT}/lib64:${LD_LIBRARY_PATH}"
 
 # Verify installation
-RUN nvcc --version
+RUN clang-14 --version && \
+    nvcc --version
 
 # Cleanup
 RUN apt-get clean && \
