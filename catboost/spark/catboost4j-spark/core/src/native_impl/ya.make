@@ -1,6 +1,6 @@
 DLL_JAVA(catboost4j-spark-impl)
 
-NO_WERROR()
+NO_COMPILER_WARNINGS()
 
 SUBSCRIBER(
     akhropov
