@@ -12,8 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-find_package(CUDAToolkit REQUIRED)
-
 add_subdirectory(ut)
 
 add_library(catboost-cuda-cuda_lib)
@@ -30,7 +28,6 @@ target_link_libraries(catboost-cuda-cuda_lib PUBLIC
   cpp-threading-local_executor
   cpp-threading-name_guard
   cpp-deprecated-atomic
-  CUDA::toolkit
 )
 
 target_sources(catboost-cuda-cuda_lib PRIVATE
@@ -110,7 +107,6 @@ target_link_libraries(catboost-cuda-cuda_lib.global PUBLIC
   cpp-threading-local_executor
   cpp-threading-name_guard
   cpp-deprecated-atomic
-  CUDA::toolkit
 )
 
 target_sources(catboost-cuda-cuda_lib.global PRIVATE
