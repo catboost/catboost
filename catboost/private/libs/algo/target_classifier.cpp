@@ -61,13 +61,6 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::RMSE:
         case ELossFunction::MultiRMSE:
         case ELossFunction::SurvivalAft:
-            return TTargetClassifier(
-                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
-                targetId);
-        case ELossFunction::MultiRMSEWithMissingValues:
-            return TTargetClassifier(
-                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel, true),
-                targetId);
         case ELossFunction::RMSEWithUncertainty:
         case ELossFunction::Quantile:
         case ELossFunction::MultiQuantile:
@@ -99,6 +92,11 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::LogCosh:
             return TTargetClassifier(
                 SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
+                targetId);
+
+        case ELossFunction::MultiRMSEWithMissingValues:
+            return TTargetClassifier(
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel, true),
                 targetId);
 
         case ELossFunction::MultiClass:
