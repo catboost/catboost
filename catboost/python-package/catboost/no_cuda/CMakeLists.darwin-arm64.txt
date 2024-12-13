@@ -12,10 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-find_package(Python3 REQUIRED COMPONENTS
-  Development
-)
-
 add_shared_library(_catboost_no_cuda)
 
 
@@ -30,7 +26,6 @@ target_compile_options(_catboost_no_cuda PRIVATE
 target_link_libraries(_catboost_no_cuda PUBLIC
   contrib-libs-cxxsupp
   yutil
-  Python3::Module
   libs-gpu_config-force_no_cuda
   catboost-libs-carry_model
   catboost-libs-cat_feature

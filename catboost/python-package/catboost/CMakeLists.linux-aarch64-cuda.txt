@@ -12,10 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-find_package(Python3 REQUIRED COMPONENTS
-  Development
-)
-
 add_subdirectory(no_cuda)
 
 add_shared_library(_catboost)
@@ -29,7 +25,6 @@ target_link_libraries(_catboost PUBLIC
   contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
-  Python3::Module
   catboost-libs-carry_model
   catboost-libs-cat_feature
   catboost-libs-data
