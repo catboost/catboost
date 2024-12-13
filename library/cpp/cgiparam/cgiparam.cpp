@@ -17,6 +17,16 @@ const TString& TCgiParameters::Get(const TStringBuf name, size_t numOfValue) con
     return end() == it ? Default<TString>() : it->second;
 }
 
+const TString& TCgiParameters::GetLast(const TStringBuf name) const noexcept {
+    if (auto it = this->upper_bound(name); it != this->begin()) {
+        --it;
+        if (it->first == name) {
+            return it->second;
+        }
+    }
+    return Default<TString>();
+}
+
 bool TCgiParameters::Erase(const TStringBuf name, size_t pos) {
     const auto pair = equal_range(name);
 

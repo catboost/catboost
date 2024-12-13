@@ -78,6 +78,13 @@ public:
     Y_PURE_FUNCTION
     const TString& Get(const TStringBuf name, size_t numOfValue = 0) const noexcept Y_LIFETIME_BOUND;
 
+    /// Returns the last value by name
+    /**
+     * @note The returned value is CGI-unescaped.
+     */
+    Y_PURE_FUNCTION
+    const TString& GetLast(const TStringBuf name) const noexcept Y_LIFETIME_BOUND;
+
     void InsertEscaped(const TStringBuf name, const TStringBuf value);
 
 #if !defined(__GLIBCXX__)
