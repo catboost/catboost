@@ -12,6 +12,8 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+find_package(CUDAToolkit REQUIRED)
+
 add_library(models)
 
 
@@ -21,6 +23,7 @@ target_link_libraries(models PUBLIC
   catboost-cuda-cuda_lib
   catboost-cuda-cuda_util
   catboost-cuda-gpu_data
+  CUDA::toolkit
 )
 
 target_cuda_sources(models PRIVATE
@@ -69,6 +72,7 @@ target_link_libraries(models.global PUBLIC
   catboost-cuda-cuda_lib
   catboost-cuda-cuda_util
   catboost-cuda-gpu_data
+  CUDA::toolkit
 )
 
 target_sources(models.global PRIVATE
