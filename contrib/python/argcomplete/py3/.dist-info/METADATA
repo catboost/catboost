@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: argcomplete
-Version: 3.5.1
+Version: 3.5.2
 Summary: Bash tab completion for argparse
 Home-page: https://github.com/kislyuk/argcomplete
 Author: Andrey Kislyuk
@@ -37,11 +37,11 @@ Description-Content-Type: text/x-rst
 License-File: LICENSE.rst
 License-File: NOTICE
 Provides-Extra: test
-Requires-Dist: coverage ; extra == 'test'
-Requires-Dist: pexpect ; extra == 'test'
-Requires-Dist: wheel ; extra == 'test'
-Requires-Dist: ruff ; extra == 'test'
-Requires-Dist: mypy ; extra == 'test'
+Requires-Dist: coverage; extra == "test"
+Requires-Dist: pexpect; extra == "test"
+Requires-Dist: wheel; extra == "test"
+Requires-Dist: ruff; extra == "test"
+Requires-Dist: mypy; extra == "test"
 
 argcomplete - Bash/zsh tab completion for argparse
 ==================================================
