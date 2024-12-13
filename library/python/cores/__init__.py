@@ -130,6 +130,8 @@ def get_gdb_full_backtrace(binary, core, gdb_path):
     cmd = [
         gdb_path, binary, core,
         "--eval-command", "set print thread-events off",
+        "--eval-command", "set print elements 20",
+        "--eval-command", "set print max-depth 3",
         "--eval-command", "thread apply all backtrace full",
         "--batch",
         "--quiet",
