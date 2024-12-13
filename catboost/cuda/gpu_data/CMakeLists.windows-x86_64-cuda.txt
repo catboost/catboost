@@ -12,6 +12,8 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+find_package(CUDAToolkit REQUIRED)
+
 get_built_tool_path(
   TOOL_enum_parser_bin
   TOOL_enum_parser_dependency
@@ -39,6 +41,7 @@ target_link_libraries(catboost-cuda-gpu_data PUBLIC
   private-libs-quantization
   private-libs-quantized_pool
   tools-enum_parser-enum_serialization_runtime
+  CUDA::toolkit
 )
 
 target_sources(catboost-cuda-gpu_data PRIVATE
@@ -118,6 +121,7 @@ target_link_libraries(catboost-cuda-gpu_data.global PUBLIC
   private-libs-quantization
   private-libs-quantized_pool
   tools-enum_parser-enum_serialization_runtime
+  CUDA::toolkit
 )
 
 target_sources(catboost-cuda-gpu_data.global PRIVATE

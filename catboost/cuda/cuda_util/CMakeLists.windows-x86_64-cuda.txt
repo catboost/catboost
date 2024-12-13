@@ -12,6 +12,8 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
+find_package(CUDAToolkit REQUIRED)
+
 add_subdirectory(ut)
 
 add_library(catboost-cuda-cuda_util)
@@ -23,6 +25,7 @@ target_link_libraries(catboost-cuda-cuda_util PUBLIC
   catboost-libs-helpers
   catboost-cuda-cuda_lib
   libs-nvidia-cub
+  CUDA::toolkit
 )
 
 target_cuda_sources(catboost-cuda-cuda_util PRIVATE
@@ -88,6 +91,7 @@ target_link_libraries(catboost-cuda-cuda_util.global PUBLIC
   catboost-libs-helpers
   catboost-cuda-cuda_lib
   libs-nvidia-cub
+  CUDA::toolkit
 )
 
 target_sources(catboost-cuda-cuda_util.global PRIVATE
