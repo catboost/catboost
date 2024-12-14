@@ -101,7 +101,7 @@ U_CDECL_END
  *   CPPFLAGS+=-I$(top_srcdir)/tools/toolutil
  *   LIBS+=$(LIBICUTOOLUTIL)
  */
-#include "udbgutil.h"
+#error #include "udbgutil.h"
 #include <stdio.h>
 
 /**

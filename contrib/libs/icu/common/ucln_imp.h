@@ -71,7 +71,7 @@
  *           static void ucln_registerAutomaticCleanup()
  *           static void ucln_unRegisterAutomaticCleanup()
  */
-#include "ucln_local_hook.c"
+#error #include "ucln_local_hook.c"
 
 #elif defined(UCLN_AUTO_ATEXIT)
 /*

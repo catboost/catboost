@@ -100,10 +100,10 @@
 #   include "wintz.h"
 #elif U_PLATFORM == U_PF_OS400
 #   include <float.h>
-#   include <qusec.h>       /* error code structure */
-#   include <qusrjobi.h>
-#   include <qliept.h>      /* EPT_CALL macro  - this include must be after all other "QSYSINCs" */
-#   include <mih/testptr.h> /* For uprv_maximumPtr */
+#   error #include <qusec.h>       /* error code structure */
+#   error #include <qusrjobi.h>
+#   error #include <qliept.h>      /* EPT_CALL macro  - this include must be after all other "QSYSINCs" */
+#   error #include <mih/testptr.h> /* For uprv_maximumPtr */
 #elif U_PLATFORM == U_PF_OS390
 #   include "unicode/ucnv.h"   /* Needed for UCNV_SWAP_LFNL_OPTION_STRING */
 #elif U_PLATFORM_IS_DARWIN_BASED || U_PLATFORM_IS_LINUX_BASED || U_PLATFORM == U_PF_BSD || U_PLATFORM == U_PF_SOLARIS
@@ -118,7 +118,7 @@
 #       include <dlfcn.h>
 #   endif
 #elif U_PLATFORM == U_PF_QNX
-#   include <sys/neutrino.h>
+#   error #include <sys/neutrino.h>
 #endif
 
 

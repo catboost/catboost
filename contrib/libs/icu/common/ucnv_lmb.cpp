@@ -40,7 +40,7 @@
 #include "ucnv_cnv.h"
 
 #ifdef EBCDIC_RTL
-    #include "ascii_a.h"
+    #error #include "ascii_a.h"
 #endif
 
 /*
