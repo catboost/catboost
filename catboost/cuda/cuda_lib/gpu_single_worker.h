@@ -333,7 +333,7 @@ namespace NCudaLib {
             if (callback) {
                 RegisterErrorCallback(callback);
             }
-            WorkingThread.reset(new std::thread([=]() -> void {
+            WorkingThread.reset(new std::thread([this]() -> void {
                 Y_THREAD_NAME_GUARD(TStringBuilder() << "GpuWorker" << LocalDeviceId);
                 this->Run();
             }));

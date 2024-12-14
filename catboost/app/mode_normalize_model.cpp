@@ -46,11 +46,11 @@ namespace {
             BindModelFileParams(&parser, &ModelFileName, &ModelType);
             DatasetReadingBaseParams.BindParserOpts(&parser);
             parser.AddLongOption("set-scale").RequiredArgument("SCALE")
-                .Handler1T<double>([=](auto scale){ Scale = scale; })
+                .Handler1T<double>([this](auto scale){ Scale = scale; })
                 .Help("Scale")
                 ;
             parser.AddLongOption("set-bias").RequiredArgument("BIAS")
-                .Handler1T<TStringBuf>([=](auto bias) {
+                .Handler1T<TStringBuf>([this](auto bias) {
                     Bias = TVector<double>(0);
                     for (const auto& biasValue : StringSplitter(bias).Split(':')) {
                         Bias->push_back(FromString<double>(biasValue.Token()));
@@ -63,7 +63,7 @@ namespace {
                 .Help("Print input and resulting scale and bias")
                 ;
             parser.AddLongOption("logging-level").RequiredArgument("LEVEL")
-                .Handler1T<TStringBuf>([=](auto level){ LoggingLevel = FromString<ELoggingLevel>(level); })
+                .Handler1T<TStringBuf>([this](auto level){ LoggingLevel = FromString<ELoggingLevel>(level); })
                 .Help("Logging level, one of " + GetEnumAllNames<ELoggingLevel>())
                 .DefaultValue(ELoggingLevel::Info)
                 ;
@@ -73,7 +73,7 @@ namespace {
                 .DefaultValue(NSystemInfo::CachedNumberOfCpus())
                 ;
             parser.AddLongOption('i', "input-path").RequiredArgument("PATH...")
-                .Handler1T<TStringBuf>([=](auto path){ PoolPaths.push_back(TPathWithScheme{path, "dsv"}); })
+                .Handler1T<TStringBuf>([this](auto path){ PoolPaths.push_back(TPathWithScheme{path, "dsv"}); })
                 .Help("Pool path (repeat the option for multiple pools)")
                 ;
             parser.AddLongOption("output-model").RequiredArgument("PATH")
@@ -81,7 +81,7 @@ namespace {
                 .Help("Output model path")
                 ;
             parser.AddLongOption("output-model-format").RequiredArgument("FORMAT")
-                .Handler1T<TStringBuf>([=](auto format){ OutputModelType = FromString<EModelType>(format); })
+                .Handler1T<TStringBuf>([this](auto format){ OutputModelType = FromString<EModelType>(format); })
                 .Help("Output model format, one of " + GetEnumAllNames<EModelType>())
                 ;
             NLastGetopt::TOptsParseResult parseResult{&parser, argc, argv};
