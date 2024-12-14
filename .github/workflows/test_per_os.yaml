@@ -262,7 +262,6 @@ jobs:
           $Env:HAVE_CUDA = 0
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/pytest
           python -m pytest -n auto
-          python -m pytest -n auto test.py
 
       - name: Run python package tests
         shell: pwsh
@@ -276,7 +275,6 @@ jobs:
           $Env:PORT_SYNC_PATH = Join-Path ${{ github.workspace }} port_sync
           Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/python-package/ut/medium
           python -m pytest -n auto
-          python -m pytest -n auto test.py
 
       - name: Run jvm-packages/common tests
         shell: pwsh
