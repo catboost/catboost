@@ -29,7 +29,7 @@
 #include <stdio.h>
 #ifdef __MVS__  /* defined by z/OS compiler */
 #define _POSIX_SOURCE
-#include <cics.h> /* 12 Nov 2011 JAM iscics() function */
+#error #include <cics.h> /* 12 Nov 2011 JAM iscics() function */
 #endif
 #include "charstr.h"
 
