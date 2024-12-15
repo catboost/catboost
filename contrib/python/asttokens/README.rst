@@ -32,7 +32,6 @@ The API Reference is here: http://asttokens.readthedocs.io/en/latest/api-index.h
 
 Usage
 -----
-ASTTokens works with both Python2 and Python3.
 
 ASTTokens can annotate both trees built by `ast <https://docs.python.org/2/library/ast.html>`_,
 AND those built by `astroid <https://github.com/PyCQA/astroid>`_.
@@ -79,4 +78,5 @@ To contribute:
 
 3. Run tests in your current interpreter with the command ``pytest`` or ``python -m pytest``.
 4. Run tests across all supported interpreters with the ``tox`` command. You will need to have the interpreters installed separately. We recommend ``pyenv`` for that. Use ``tox -p auto`` to run the tests in parallel.
-5. By default certain tests which take a very long time to run are skipped, but they are run on travis CI. To run them locally, set the environment variable ``ASTTOKENS_SLOW_TESTS``. For example run ``ASTTOKENS_SLOW_TESTS=1 tox`` to run the full suite of tests.
+5. By default certain tests which take a very long time to run are skipped, but they are run in CI.
+   These are marked using the ``pytest`` marker ``slow`` and can be run on their own with ``pytest -m slow`` or as part of the full suite with ``pytest -m ''``.
