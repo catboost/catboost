@@ -120,6 +120,7 @@ target_sources(catboost-cuda-methods PRIVATE
 
 
 target_cuda_flags(catboost-cuda-methods
+  -Wno-deprecated-gpu-targets
   -gencode=arch=compute_35,code=sm_35
   -gencode
   arch=compute_50,code=compute_50
