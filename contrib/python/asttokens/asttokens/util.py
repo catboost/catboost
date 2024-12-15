@@ -20,10 +20,21 @@ import token
 import tokenize
 from abc import ABCMeta
 from ast import Module, expr, AST
-from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union, cast, Any, TYPE_CHECKING
-
-from six import iteritems
-
+from functools import lru_cache
+from typing import (
+    Callable,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+    Any,
+    TYPE_CHECKING,
+    Type,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
   from .astroid_compat import NodeNG
@@ -38,10 +49,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
   AstNode = Union[EnhancedAST, NodeNG]
 
-  if sys.version_info[0] == 2:
-    TokenInfo = Tuple[int, str, Tuple[int, int], Tuple[int, int], str]
-  else:
-    TokenInfo = tokenize.TokenInfo
+  TokenInfo = tokenize.TokenInfo
 
 
 def token_repr(tok_type, string):
@@ -70,13 +78,6 @@ class Token(collections.namedtuple('Token', 'type string start end line index st
     return token_repr(self.type, self.string)
 
 
-if sys.version_info >= (3, 6):
-  AstConstant = ast.Constant
-else:
-  class AstConstant:
-    value = object()
-
-
 def match_token(token, tok_type, tok_str=None):
   # type: (Token, int, Optional[str]) -> bool
   """Returns true if token is of the given type and, if a string is given, has that string."""
@@ -94,22 +95,13 @@ def expect_token(token, tok_type, tok_str=None):
       token_repr(tok_type, tok_str), str(token),
       token.start[0], token.start[1] + 1))
 
-# These were previously defined in tokenize.py and distinguishable by being greater than
-# token.N_TOKEN. As of python3.7, they are in token.py, and we check for them explicitly.
-if sys.version_info >= (3, 7):
-  def is_non_coding_token(token_type):
-    # type: (int) -> bool
-    """
-    These are considered non-coding tokens, as they don't affect the syntax tree.
-    """
-    return token_type in (token.NL, token.COMMENT, token.ENCODING)
-else:
-  def is_non_coding_token(token_type):
-    # type: (int) -> bool
-    """
-    These are considered non-coding tokens, as they don't affect the syntax tree.
-    """
-    return token_type >= token.N_TOKENS
+
+def is_non_coding_token(token_type):
+  # type: (int) -> bool
+  """
+  These are considered non-coding tokens, as they don't affect the syntax tree.
+  """
+  return token_type in (token.NL, token.COMMENT, token.ENCODING)
 
 
 def generate_tokens(text):
@@ -141,7 +133,7 @@ def iter_children_astroid(node, include_joined_str=False):
   return node.get_children()
 
 
-SINGLETONS = {c for n, c in iteritems(ast.__dict__) if isinstance(c, type) and
+SINGLETONS = {c for n, c in ast.__dict__.items() if isinstance(c, type) and
               issubclass(c, (ast.expr_context, ast.boolop, ast.operator, ast.unaryop, ast.cmpop))}
 
 
@@ -167,9 +159,9 @@ def iter_children_ast(node, include_joined_str=False):
       yield child
 
 
-stmt_class_names = {n for n, c in iteritems(ast.__dict__)
+stmt_class_names = {n for n, c in ast.__dict__.items()
                     if isinstance(c, type) and issubclass(c, ast.stmt)}
-expr_class_names = ({n for n, c in iteritems(ast.__dict__)
+expr_class_names = ({n for n, c in ast.__dict__.items()
                     if isinstance(c, type) and issubclass(c, ast.expr)} |
                     {'AssignName', 'DelName', 'Const', 'AssignAttr', 'DelAttr'})
 
@@ -196,6 +188,33 @@ def is_joined_str(node):
   # At the moment, nodes below JoinedStr have wrong line/col info, and trying to process them only
   # leads to errors.
   return node.__class__.__name__ == 'JoinedStr'
+
+
+def is_expr_stmt(node):
+  # type: (AstNode) -> bool
+  """Returns whether node is an `Expr` node, which is a statement that is an expression."""
+  return node.__class__.__name__ == 'Expr'
+
+
+
+CONSTANT_CLASSES: Tuple[Type, ...] = (ast.Constant,)
+try:
+  from astroid import Const
+  CONSTANT_CLASSES += (Const,)
+except ImportError:  # pragma: no cover
+  # astroid is not available
+  pass
+
+def is_constant(node):
+  # type: (AstNode) -> bool
+  """Returns whether node is a Constant node."""
+  return isinstance(node, CONSTANT_CLASSES)
+
+
+def is_ellipsis(node):
+  # type: (AstNode) -> bool
+  """Returns whether node is an Ellipsis node."""
+  return is_constant(node) and node.value is Ellipsis  # type: ignore
 
 
 def is_starred(node):
@@ -322,7 +341,7 @@ def replace(text, replacements):
   return ''.join(parts)
 
 
-class NodeMethods(object):
+class NodeMethods:
   """
   Helper to get `visit_{node_type}` methods given a node's class and cache the results.
   """
@@ -344,14 +363,7 @@ class NodeMethods(object):
     return method
 
 
-if sys.version_info[0] == 2:
-  # Python 2 doesn't support non-ASCII identifiers, and making the real patched_generate_tokens support Python 2
-  # means working with raw tuples instead of tokenize.TokenInfo namedtuples.
-  def patched_generate_tokens(original_tokens):
-    # type: (Iterable[TokenInfo]) -> Iterator[TokenInfo]
-    return iter(original_tokens)
-else:
-  def patched_generate_tokens(original_tokens):
+def patched_generate_tokens(original_tokens):
     # type: (Iterable[TokenInfo]) -> Iterator[TokenInfo]
     """
     Fixes tokens yielded by `tokenize.generate_tokens` to handle more non-ASCII characters in identifiers.
@@ -376,7 +388,7 @@ else:
     for combined_token in combine_tokens(group):
       yield combined_token
 
-  def combine_tokens(group):
+def combine_tokens(group):
     # type: (List[tokenize.TokenInfo]) -> List[tokenize.TokenInfo]
     if not any(tok.type == tokenize.ERRORTOKEN for tok in group) or len({tok.line for tok in group}) != 1:
       return group
@@ -413,72 +425,61 @@ def last_stmt(node):
   return node
 
 
-if sys.version_info[:2] >= (3, 8):
-  from functools import lru_cache
 
-  @lru_cache(maxsize=None)
-  def fstring_positions_work():
-    # type: () -> bool
-    """
-    The positions attached to nodes inside f-string FormattedValues have some bugs
-    that were fixed in Python 3.9.7 in https://github.com/python/cpython/pull/27729.
-    This checks for those bugs more concretely without relying on the Python version.
-    Specifically this checks:
-     - Values with a format spec or conversion
-     - Repeated (i.e. identical-looking) expressions
-     - f-strings implicitly concatenated over multiple lines.
-     - Multiline, triple-quoted f-strings.
-    """
-    source = """(
-      f"a {b}{b} c {d!r} e {f:g} h {i:{j}} k {l:{m:n}}"
-      f"a {b}{b} c {d!r} e {f:g} h {i:{j}} k {l:{m:n}}"
-      f"{x + y + z} {x} {y} {z} {z} {z!a} {z:z}"
-      f'''
-      {s} {t}
-      {u} {v}
-      '''
-    )"""
-    tree = ast.parse(source)
-    name_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.Name)]
-    name_positions = [(node.lineno, node.col_offset) for node in name_nodes]
-    positions_are_unique = len(set(name_positions)) == len(name_positions)
-    correct_source_segments = all(
-      ast.get_source_segment(source, node) == node.id
-      for node in name_nodes
-    )
-    return positions_are_unique and correct_source_segments
+@lru_cache(maxsize=None)
+def fstring_positions_work():
+  # type: () -> bool
+  """
+  The positions attached to nodes inside f-string FormattedValues have some bugs
+  that were fixed in Python 3.9.7 in https://github.com/python/cpython/pull/27729.
+  This checks for those bugs more concretely without relying on the Python version.
+  Specifically this checks:
+   - Values with a format spec or conversion
+   - Repeated (i.e. identical-looking) expressions
+   - f-strings implicitly concatenated over multiple lines.
+   - Multiline, triple-quoted f-strings.
+  """
+  source = """(
+    f"a {b}{b} c {d!r} e {f:g} h {i:{j}} k {l:{m:n}}"
+    f"a {b}{b} c {d!r} e {f:g} h {i:{j}} k {l:{m:n}}"
+    f"{x + y + z} {x} {y} {z} {z} {z!a} {z:z}"
+    f'''
+    {s} {t}
+    {u} {v}
+    '''
+  )"""
+  tree = ast.parse(source)
+  name_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.Name)]
+  name_positions = [(node.lineno, node.col_offset) for node in name_nodes]
+  positions_are_unique = len(set(name_positions)) == len(name_positions)
+  correct_source_segments = all(
+    ast.get_source_segment(source, node) == node.id
+    for node in name_nodes
+  )
+  return positions_are_unique and correct_source_segments
 
-  def annotate_fstring_nodes(tree):
-    # type: (ast.AST) -> None
-    """
-    Add a special attribute `_broken_positions` to nodes inside f-strings
-    if the lineno/col_offset cannot be trusted.
-    """
-    if sys.version_info >= (3, 12):
-      # f-strings were weirdly implemented until https://peps.python.org/pep-0701/
-      # In Python 3.12, inner nodes have sensible positions.
-      return
-    for joinedstr in walk(tree, include_joined_str=True):
-      if not isinstance(joinedstr, ast.JoinedStr):
-        continue
-      for part in joinedstr.values:
-        # The ast positions of the FormattedValues/Constant nodes span the full f-string, which is weird.
-        setattr(part, '_broken_positions', True)  # use setattr for mypy
+def annotate_fstring_nodes(tree):
+  # type: (ast.AST) -> None
+  """
+  Add a special attribute `_broken_positions` to nodes inside f-strings
+  if the lineno/col_offset cannot be trusted.
+  """
+  if sys.version_info >= (3, 12):
+    # f-strings were weirdly implemented until https://peps.python.org/pep-0701/
+    # In Python 3.12, inner nodes have sensible positions.
+    return
+  for joinedstr in walk(tree, include_joined_str=True):
+    if not isinstance(joinedstr, ast.JoinedStr):
+      continue
+    for part in joinedstr.values:
+      # The ast positions of the FormattedValues/Constant nodes span the full f-string, which is weird.
+      setattr(part, '_broken_positions', True)  # use setattr for mypy
 
-        if isinstance(part, ast.FormattedValue):
-          if not fstring_positions_work():
-            for child in walk(part.value):
-              setattr(child, '_broken_positions', True)
+      if isinstance(part, ast.FormattedValue):
+        if not fstring_positions_work():
+          for child in walk(part.value):
+            setattr(child, '_broken_positions', True)
 
-          if part.format_spec:  # this is another JoinedStr
-            # Again, the standard positions span the full f-string.
-            setattr(part.format_spec, '_broken_positions', True)
-
-else:
-  def fstring_positions_work():
-    # type: () -> bool
-    return False
-
-  def annotate_fstring_nodes(_tree):
-    # type: (ast.AST) -> None
-    pass
+        if part.format_spec:  # this is another JoinedStr
+          # Again, the standard positions span the full f-string.
+          setattr(part.format_spec, '_broken_positions', True)

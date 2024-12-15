@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: asttokens
-Version: 2.4.1
+Version: 3.0.0
 Summary: Annotate AST trees with source code positions
 Home-page: https://github.com/gristlabs/asttokens
 Author: Dmitry Sagalovskiy, Grist Labs
@@ -16,29 +16,23 @@ Classifier: Topic :: Software Development :: Interpreters
 Classifier: Topic :: Software Development :: Pre-processors
 Classifier: Environment :: Console
 Classifier: Operating System :: OS Independent
-Classifier: Programming Language :: Python :: 2
-Classifier: Programming Language :: Python :: 2.7
-Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.5
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
+Requires-Python: >=3.8
 License-File: LICENSE
-Requires-Dist: six >=1.12.0
-Requires-Dist: typing ; python_version < "3.5"
 Provides-Extra: astroid
-Requires-Dist: astroid <2,>=1 ; (python_version < "3") and extra == 'astroid'
-Requires-Dist: astroid <4,>=2 ; (python_version >= "3") and extra == 'astroid'
+Requires-Dist: astroid<4,>=2; extra == "astroid"
 Provides-Extra: test
-Requires-Dist: pytest ; extra == 'test'
-Requires-Dist: astroid <2,>=1 ; (python_version < "3") and extra == 'test'
-Requires-Dist: astroid <4,>=2 ; (python_version >= "3") and extra == 'test'
+Requires-Dist: astroid<4,>=2; extra == "test"
+Requires-Dist: pytest; extra == "test"
+Requires-Dist: pytest-cov; extra == "test"
+Requires-Dist: pytest-xdist; extra == "test"
 
 ASTTokens
 =========
@@ -74,7 +68,6 @@ The API Reference is here: http://asttokens.readthedocs.io/en/latest/api-index.h
 
 Usage
 -----
-ASTTokens works with both Python2 and Python3.
 
 ASTTokens can annotate both trees built by `ast <https://docs.python.org/2/library/ast.html>`_,
 AND those built by `astroid <https://github.com/PyCQA/astroid>`_.
@@ -121,4 +114,5 @@ To contribute:
 
 3. Run tests in your current interpreter with the command ``pytest`` or ``python -m pytest``.
 4. Run tests across all supported interpreters with the ``tox`` command. You will need to have the interpreters installed separately. We recommend ``pyenv`` for that. Use ``tox -p auto`` to run the tests in parallel.
-5. By default certain tests which take a very long time to run are skipped, but they are run on travis CI. To run them locally, set the environment variable ``ASTTOKENS_SLOW_TESTS``. For example run ``ASTTOKENS_SLOW_TESTS=1 tox`` to run the full suite of tests.
+5. By default certain tests which take a very long time to run are skipped, but they are run in CI.
+   These are marked using the ``pytest`` marker ``slow`` and can be run on their own with ``pytest -m slow`` or as part of the full suite with ``pytest -m ''``.

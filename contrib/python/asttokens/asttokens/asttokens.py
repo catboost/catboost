@@ -20,9 +20,6 @@ import token
 from ast import Module
 from typing import Iterable, Iterator, List, Optional, Tuple, Any, cast, TYPE_CHECKING
 
-import six
-from six.moves import xrange  # pylint: disable=redefined-builtin
-
 from .line_numbers import LineNumbers
 from .util import (
   Token, match_token, is_non_coding_token, patched_generate_tokens, last_stmt,
@@ -33,18 +30,14 @@ if TYPE_CHECKING:  # pragma: no cover
   from .util import AstNode, TokenInfo
 
 
-class ASTTextBase(six.with_metaclass(abc.ABCMeta, object)):
-  def __init__(self, source_text, filename):
-    # type: (Any, str) -> None
-    # FIXME: Strictly, the type of source_text is one of the six string types, but hard to specify with mypy given
-    # https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
-
+class ASTTextBase(metaclass=abc.ABCMeta):
+  def __init__(self, source_text: str, filename: str) -> None:
     self._filename = filename
 
     # Decode source after parsing to let Python 2 handle coding declarations.
     # (If the encoding was not utf-8 compatible, then even if it parses correctly,
     # we'll fail with a unicode error here.)
-    source_text = six.ensure_text(source_text)
+    source_text = str(source_text)
 
     self._text = source_text
     self._line_numbers = LineNumbers(source_text)
@@ -89,7 +82,7 @@ class ASTTextBase(six.with_metaclass(abc.ABCMeta, object)):
     return self._text[start: end]
 
 
-class ASTTokens(ASTTextBase, object):
+class ASTTokens(ASTTextBase):
   """
   ASTTokens maintains the text of Python code in several forms: as a string, as line numbers, and
   as tokens, and is used to mark and access token and position information.
@@ -111,9 +104,6 @@ class ASTTokens(ASTTextBase, object):
 
   def __init__(self, source_text, parse=False, tree=None, filename='<unknown>', tokens=None):
     # type: (Any, bool, Optional[Module], str, Iterable[TokenInfo]) -> None
-    # FIXME: Strictly, the type of source_text is one of the six string types, but hard to specify with mypy given
-    # https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
-
     super(ASTTokens, self).__init__(source_text, filename)
 
     self._tree = ast.parse(source_text, filename) if parse else tree
@@ -134,7 +124,7 @@ class ASTTokens(ASTTextBase, object):
     """
     Given the root of the AST or Astroid tree produced from source_text, visits all nodes marking
     them with token and position information by adding ``.first_token`` and
-    ``.last_token``attributes. This is done automatically in the constructor when ``parse`` or
+    ``.last_token`` attributes. This is done automatically in the constructor when ``parse`` or
     ``tree`` arguments are set, but may be used manually with a separate AST or Astroid tree.
     """
     # The hard work of this class is done by MarkTokens
@@ -249,7 +239,7 @@ class ASTTokens(ASTTextBase, object):
     Yields all tokens in order from first_token through and including last_token. If
     include_extra is True, includes non-coding tokens such as tokenize.NL and .COMMENT.
     """
-    for i in xrange(first_token.index, last_token.index + 1):
+    for i in range(first_token.index, last_token.index + 1):
       if include_extra or not is_non_coding_token(self._tokens[i].type):
         yield self._tokens[i]
 
@@ -284,7 +274,7 @@ class ASTTokens(ASTTextBase, object):
     return start, end
 
 
-class ASTText(ASTTextBase, object):
+class ASTText(ASTTextBase):
   """
   Supports the same ``get_text*`` methods as ``ASTTokens``,
   but uses the AST to determine the text positions instead of tokens.
@@ -299,9 +289,6 @@ class ASTText(ASTTextBase, object):
   """
   def __init__(self, source_text, tree=None, filename='<unknown>'):
     # type: (Any, Optional[Module], str) -> None
-    # FIXME: Strictly, the type of source_text is one of the six string types, but hard to specify with mypy given
-    # https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
-
     super(ASTText, self).__init__(source_text, filename)
 
     self._tree = tree
@@ -334,10 +321,6 @@ class ASTText(ASTTextBase, object):
     """
     Version of ``get_text_positions()`` that doesn't use tokens.
     """
-    if sys.version_info[:2] < (3, 8):  # pragma: no cover
-      # This is just for mpypy
-      raise AssertionError("This method should only be called internally after checking supports_tokenless()")
-
     if is_module(node):
       # Modules don't have position info, so just return the range of the whole text.
       # The token-using method does something different, but its behavior seems weird and inconsistent.
@@ -420,16 +403,14 @@ class ASTText(ASTTextBase, object):
     return self.asttokens.get_text_positions(node, padded)
 
 
-# Node types that _get_text_positions_tokenless doesn't support. Only relevant for Python 3.8+.
-_unsupported_tokenless_types = ()  # type: Tuple[str, ...]
-if sys.version_info[:2] >= (3, 8):
-  # no lineno
-  _unsupported_tokenless_types += ("arguments", "Arguments", "withitem")
-  if sys.version_info[:2] == (3, 8):
-    # _get_text_positions_tokenless works incorrectly for these types due to bugs in Python 3.8.
-    _unsupported_tokenless_types += ("arg", "Starred")
-    # no lineno in 3.8
-    _unsupported_tokenless_types += ("Slice", "ExtSlice", "Index", "keyword")
+# Node types that _get_text_positions_tokenless doesn't support.
+# These initial values are missing lineno.
+_unsupported_tokenless_types = ("arguments", "Arguments", "withitem")  # type: Tuple[str, ...]
+if sys.version_info[:2] == (3, 8):
+  # _get_text_positions_tokenless works incorrectly for these types due to bugs in Python 3.8.
+  _unsupported_tokenless_types += ("arg", "Starred")
+  # no lineno in 3.8
+  _unsupported_tokenless_types += ("Slice", "ExtSlice", "Index", "keyword")
 
 
 def supports_tokenless(node=None):
@@ -441,7 +422,6 @@ def supports_tokenless(node=None):
 
   The following cases are not supported:
 
-    - Python 3.7 and earlier
     - PyPy
     - ``ast.arguments`` / ``astroid.Arguments``
     - ``ast.withitem``
@@ -466,6 +446,5 @@ def supports_tokenless(node=None):
           )
         )
       )
-      and sys.version_info[:2] >= (3, 8)
       and 'pypy' not in sys.version.lower()
   )

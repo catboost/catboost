@@ -19,11 +19,8 @@ import token
 from ast import Module
 from typing import Callable, List, Union, cast, Optional, Tuple, TYPE_CHECKING
 
-import six
-
 from . import util
 from .asttokens import ASTTokens
-from .util import AstConstant
 from .astroid_compat import astroid_node_classes as nc, BaseContainer as AstroidBaseContainer
 
 if TYPE_CHECKING:
@@ -44,7 +41,7 @@ _matching_pairs_right = {
 }
 
 
-class MarkTokens(object):
+class MarkTokens:
   """
   Helper that visits all nodes in the AST tree and assigns .first_token and .last_token attributes
   to each of them. This is the heart of the token-marking logic.
@@ -179,23 +176,6 @@ class MarkTokens(object):
     util.expect_token(before, token.OP, open_brace)
     return (before, last_token)
 
-  # Python 3.8 fixed the starting position of list comprehensions:
-  # https://bugs.python.org/issue31241
-  if sys.version_info < (3, 8):
-    def visit_listcomp(self, node, first_token, last_token):
-      # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
-      return self.handle_comp('[', node, first_token, last_token)
-
-  if six.PY2:
-    # We shouldn't do this on PY3 because its SetComp/DictComp already have a correct start.
-    def visit_setcomp(self, node, first_token, last_token):
-      # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
-      return self.handle_comp('{', node, first_token, last_token)
-
-    def visit_dictcomp(self, node, first_token, last_token):
-      # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
-      return self.handle_comp('{', node, first_token, last_token)
-
   def visit_comprehension(self,
                           node,  # type: AstNode
                           first_token,  # type: util.Token
@@ -308,26 +288,19 @@ class MarkTokens(object):
       last_token = maybe_comma
     return (first_token, last_token)
 
-  if sys.version_info >= (3, 8):
-    # In Python3.8 parsed tuples include parentheses when present.
-    def handle_tuple_nonempty(self, node, first_token, last_token):
-      # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
-      assert isinstance(node, ast.Tuple) or isinstance(node, AstroidBaseContainer)
-      # It's a bare tuple if the first token belongs to the first child. The first child may
-      # include extraneous parentheses (which don't create new nodes), so account for those too.
-      child = node.elts[0]
-      if TYPE_CHECKING:
-        child = cast(AstNode, child)
-      child_first, child_last = self._gobble_parens(child.first_token, child.last_token, True)
-      if first_token == child_first:
-        return self.handle_bare_tuple(node, first_token, last_token)
-      return (first_token, last_token)
-  else:
-    # Before python 3.8, parsed tuples do not include parens.
-    def handle_tuple_nonempty(self, node, first_token, last_token):
-      # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
-      (first_token, last_token) = self.handle_bare_tuple(node, first_token, last_token)
-      return self._gobble_parens(first_token, last_token, False)
+  # In Python3.8 parsed tuples include parentheses when present.
+  def handle_tuple_nonempty(self, node, first_token, last_token):
+    # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
+    assert isinstance(node, ast.Tuple) or isinstance(node, AstroidBaseContainer)
+    # It's a bare tuple if the first token belongs to the first child. The first child may
+    # include extraneous parentheses (which don't create new nodes), so account for those too.
+    child = node.elts[0]
+    if TYPE_CHECKING:
+      child = cast(AstNode, child)
+    child_first, child_last = self._gobble_parens(child.first_token, child.last_token, True)
+    if first_token == child_first:
+      return self.handle_bare_tuple(node, first_token, last_token)
+    return (first_token, last_token)
 
   def visit_tuple(self, node, first_token, last_token):
     # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
@@ -429,19 +402,15 @@ class MarkTokens(object):
     # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
     return self.handle_num(node, cast(ast.Num, node).n, first_token, last_token)
 
-  # In Astroid, the Num and Str nodes are replaced by Const.
   def visit_const(self, node, first_token, last_token):
     # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
-    assert isinstance(node, AstConstant) or isinstance(node, nc.Const)
+    assert isinstance(node, ast.Constant) or isinstance(node, nc.Const)
     if isinstance(node.value, numbers.Number):
       return self.handle_num(node, node.value, first_token, last_token)
-    elif isinstance(node.value, (six.text_type, six.binary_type)):
+    elif isinstance(node.value, (str, bytes)):
       return self.visit_str(node, first_token, last_token)
     return (first_token, last_token)
 
-  # In Python >= 3.6, there is a similar class 'Constant' for literals
-  # In 3.8 it became the type produced by ast.parse
-  # https://bugs.python.org/issue32892
   visit_constant = visit_const
 
   def visit_keyword(self, node, first_token, last_token):
@@ -472,13 +441,6 @@ class MarkTokens(object):
       colon = self._code.find_token(last_token, token.OP, ':')
       first_token = last_token = self._code.prev_token(colon)
     return (first_token, last_token)
-
-  if six.PY2:
-    # No need for this on Python3, which already handles 'with' nodes correctly.
-    def visit_with(self, node, first_token, last_token):
-      # type: (AstNode, util.Token, util.Token) -> Tuple[util.Token, util.Token]
-      first = self._code.find_token(first_token, token.NAME, 'with', reverse=True)
-      return (first, last_token)
 
   # Async nodes should typically start with the word 'async'
   # but Python < 3.7 doesn't put the col_offset there

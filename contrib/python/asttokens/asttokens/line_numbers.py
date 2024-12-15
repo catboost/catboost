@@ -18,7 +18,7 @@ from typing import Dict, List, Tuple
 
 _line_start_re = re.compile(r'^', re.M)
 
-class LineNumbers(object):
+class LineNumbers:
   """
   Class to convert between character offsets in a text string, and pairs (line, column) of 1-based
   line and 0-based column numbers, as used by tokens and AST nodes.
