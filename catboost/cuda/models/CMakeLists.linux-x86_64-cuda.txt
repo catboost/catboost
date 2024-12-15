@@ -42,6 +42,7 @@ target_sources(models PRIVATE
 
 
 target_cuda_flags(models
+  -Wno-deprecated-gpu-targets
   -gencode=arch=compute_35,code=sm_35
   -gencode
   arch=compute_50,code=compute_50
