@@ -227,7 +227,7 @@ constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...) {
  * }
  *
  * // we know that xs and ys are non-negative from domain knowledge,
- * // but we can't change the types of xs and ys because of API constrains
+ * // but we can't change the types of xs and ys because of API constraints
  * int Foo(const TVector<int>& xs, const TVector<int>& ys) {
  *     TVector<int> avgs;
  *     avgs.resize(xs.size());
