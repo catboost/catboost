@@ -275,6 +275,20 @@ def fix_cmd_for_dynamic_cuda(cmd):
     return flags
 
 
+def remove_libs(cmd, libs):
+    excluded_flags = ['-l{}'.format(lib) for lib in libs]
+
+    flags = []
+
+    for flag in cmd:
+        if flag in excluded_flags:
+            continue
+
+        flags.append(flag)
+
+    return flags
+
+
 def gen_default_suppressions(inputs, output, source_root):
     import collections
     import os
@@ -325,6 +339,7 @@ def parse_args():
     parser.add_option('--linker-output')
     parser.add_option('--whole-archive-peers', action='append')
     parser.add_option('--whole-archive-libs', action='append')
+    parser.add_option('--exclude-libs', action='append')
     thinlto_cache.add_options(parser)
     return parser.parse_args()
 
@@ -347,6 +362,10 @@ if __name__ == '__main__':
         cuda_manager = CUDAManager(opts.cuda_architectures, opts.nvprune_exe)
         cmd = process_cuda_libraries_by_nvprune(cmd, cuda_manager, opts.build_root)
         cmd = process_cuda_libraries_by_objcopy(cmd, opts.build_root, opts.objcopy_exe)
+
+    if opts.exclude_libs:
+        cmd = remove_libs(cmd, opts.exclude_libs)
+
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
 
     if opts.custom_step:
