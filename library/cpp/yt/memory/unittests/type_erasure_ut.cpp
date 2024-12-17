@@ -292,7 +292,10 @@ TEST(TAnyObjectTest, CvRefCorrectness)
         EXPECT_EQ(TestCpo(movedOut).Val, 11);
     }
 
-    EXPECT_EQ(cust.DtorCount, 5);
+    // NB(arkady-e1ppa): Moved out any should be
+    // actually empty thus moving out both moves object out
+    // and destroys the moved out object.
+    EXPECT_EQ(cust.DtorCount, 6);
     EXPECT_THROW(any.AnyCast<TCustomized2>(), NDetail::TBadAnyCast);
 }
 
@@ -316,7 +319,8 @@ TEST(TAnyObjectTest, StaticVTableForAnyRef)
         EXPECT_EQ(TestCpo(movedOut).Val, 11);
     }
     EXPECT_EQ(cst.Value, 1111);
-    EXPECT_EQ(cst.DtorCount, 2);
+    // NB(arkady-e1ppa): See comment in previous test.
+    EXPECT_EQ(cst.DtorCount, 3);
     EXPECT_FALSE(any.IsValid());
 }
 

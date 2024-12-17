@@ -218,7 +218,7 @@ public:
             auto* mover = GetVTable().template GetFunctor<Mover<TStorage>>();
             mover(std::move(other).GetStorage(), GetStorage());
 
-            other.Holder_.Reset();
+            other.Reset();
         }
     }
 
@@ -236,7 +236,7 @@ public:
             auto* mover = GetVTable().template GetFunctor<Mover<TStorage>>();
             mover(std::move(other).GetStorage(), GetStorage());
 
-            other.Holder_.Reset();
+            other.Reset();
         }
 
         return *this;
