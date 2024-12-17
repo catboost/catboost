@@ -369,11 +369,19 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 template <class T, class TStorage>
+struct TIsVTable
+    : public std::false_type
+{ };
+
+template <CStorage TStorage, class... TCpos>
+struct TIsVTable<TVTable<TStorage, TCpos...>, TStorage>
+    : public std::true_type
+{ };
+
+template <class T, class TStorage>
 concept CVTableFor =
     CStorage<TStorage> &&
-    requires (const T& t) {
-        [] <class... TCpos> (TVTable<TStorage, TCpos...>) { } (t);
-    };
+    TIsVTable<std::remove_cvref_t<T>, TStorage>::value;
 
 ////////////////////////////////////////////////////////////////////////////////
 
