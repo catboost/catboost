@@ -110,6 +110,16 @@ template<unsigned> struct static_assert_test {};
             (unsigned)sizeof(::boost::intrusive::detail::STATIC_ASSERTION_FAILURE<bool(B)>)>\
                BOOST_JOIN(boost_intrusive_static_assert_typedef_, __LINE__) BOOST_ATTRIBUTE_UNUSED
 
+#endif   //BOOST_NO_CXX11_STATIC_ASSERT
+
+
+//GCC has some false positives with some functions returning references.
+//This silences this warning in selected functions
+#if defined(BOOST_GCC) && (BOOST_GCC >= 140000)
+#  define BOOST_INTRUSIVE_NO_DANGLING __attribute__((no_dangling))
+#else
+#  define BOOST_INTRUSIVE_NO_DANGLING
 #endif
+
 
 #endif   //#ifndef BOOST_INTRUSIVE_DETAIL_WORKAROUND_HPP
