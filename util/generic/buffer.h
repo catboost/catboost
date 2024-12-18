@@ -1,5 +1,6 @@
 #pragma once
 
+#include "iterator.h"
 #include "utility.h"
 
 #include <util/generic/fwd.h>
@@ -57,7 +58,7 @@ public:
     }
 
     inline void Assign(const char* b, const char* e) {
-        Assign(b, e - b);
+        Assign(b, NonNegativeDistance(b, e));
     }
 
     inline char* Data() noexcept {
@@ -96,7 +97,7 @@ public:
     void Append(const char* buf, size_t len);
 
     inline void Append(const char* b, const char* e) {
-        Append(b, e - b);
+        Append(b, NonNegativeDistance(b, e));
     }
 
     inline void Append(char ch) {
