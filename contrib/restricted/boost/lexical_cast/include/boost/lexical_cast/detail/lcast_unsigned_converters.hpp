@@ -30,7 +30,7 @@
 #include <cstdio>
 #include <boost/limits.hpp>
 #include <boost/type_traits/conditional.hpp>
-#include <boost/detail/workaround.hpp>
+#include <boost/config/workaround.hpp>
 
 
 #ifndef BOOST_NO_STD_LOCALE

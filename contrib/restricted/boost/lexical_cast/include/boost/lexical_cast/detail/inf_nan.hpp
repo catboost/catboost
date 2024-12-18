@@ -28,7 +28,7 @@
 #endif
 
 #include <boost/limits.hpp>
-#include <boost/detail/workaround.hpp>
+#include <boost/config/workaround.hpp>
 #include <boost/core/cmath.hpp>
 #include <cstddef>
 #include <cstring>
