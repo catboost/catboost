@@ -11,16 +11,18 @@
 #endif
 
 #include <boost/math/tools/config.hpp>
+#include <boost/math/tools/numeric_limits.hpp>
+#include <boost/math/tools/type_traits.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/sign.hpp>
 #include <boost/math/special_functions/hypot.hpp>
 #include <boost/math/special_functions/sin_pi.hpp>
 #include <boost/math/special_functions/cos_pi.hpp>
+#include <boost/math/special_functions/round.hpp>
 #include <boost/math/special_functions/detail/bessel_jy_asym.hpp>
 #include <boost/math/special_functions/detail/bessel_jy_series.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/math/policies/error_handling.hpp>
-#include <complex>
 
 // Bessel functions of the first and second kind of fractional order
 
@@ -38,7 +40,7 @@ namespace boost { namespace math {
       // try it and see...
       //
       template <class T, class Policy>
-      bool hankel_PQ(T v, T x, T* p, T* q, const Policy& )
+      BOOST_MATH_GPU_ENABLED bool hankel_PQ(T v, T x, T* p, T* q, const Policy& )
       {
          BOOST_MATH_STD_USING
             T tolerance = 2 * policies::get_epsilon<T, Policy>();
@@ -70,7 +72,7 @@ namespace boost { namespace math {
       // Calculate Y(v, x) and Y(v+1, x) by Temme's method, see
       // Temme, Journal of Computational Physics, vol 21, 343 (1976)
       template <typename T, typename Policy>
-      int temme_jy(T v, T x, T* Y, T* Y1, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED int temme_jy(T v, T x, T* Y, T* Y1, const Policy& pol)
       {
          T g, h, p, q, f, coef, sum, sum1, tolerance;
          T a, d, e, sigma;
@@ -139,7 +141,7 @@ namespace boost { namespace math {
       // Evaluate continued fraction fv = J_(v+1) / J_v, see
       // Abramowitz and Stegun, Handbook of Mathematical Functions, 1972, 9.1.73
       template <typename T, typename Policy>
-      int CF1_jy(T v, T x, T* fv, int* sign, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED int CF1_jy(T v, T x, T* fv, int* sign, const Policy& pol)
       {
          T C, D, f, a, b, delta, tiny, tolerance;
          unsigned long k;
@@ -185,7 +187,7 @@ namespace boost { namespace math {
       // real values only.
       //
       template <typename T, typename Policy>
-      int CF2_jy(T v, T x, T* p, T* q, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED int CF2_jy(T v, T x, T* p, T* q, const Policy& pol)
       {
          BOOST_MATH_STD_USING
 
@@ -254,13 +256,13 @@ namespace boost { namespace math {
          return 0;
       }
 
-      static const int need_j = 1;
-      static const int need_y = 2;
+      BOOST_MATH_STATIC const int need_j = 1;
+      BOOST_MATH_STATIC const int need_y = 2;
 
       // Compute J(v, x) and Y(v, x) simultaneously by Steed's method, see
       // Barnett et al, Computer Physics Communications, vol 8, 377 (1974)
       template <typename T, typename Policy>
-      int bessel_jy(T v, T x, T* J, T* Y, int kind, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED int bessel_jy(T v, T x, T* J, T* Y, int kind, const Policy& pol)
       {
          BOOST_MATH_ASSERT(x >= 0);
 
@@ -273,7 +275,7 @@ namespace boost { namespace math {
          T cp = 0;
          T sp = 0;
 
-         static const char* function = "boost::math::bessel_jy<%1%>(%1%,%1%)";
+         constexpr auto function = "boost::math::bessel_jy<%1%>(%1%,%1%)";
 
          BOOST_MATH_STD_USING
             using namespace boost::math::tools;
@@ -284,7 +286,7 @@ namespace boost { namespace math {
             reflect = true;
             v = -v;                             // v is non-negative from here
          }
-         if (v > static_cast<T>((std::numeric_limits<int>::max)()))
+         if (v > static_cast<T>((boost::math::numeric_limits<int>::max)()))
          {
             *J = *Y = policies::raise_evaluation_error<T>(function, "Order of Bessel function is too large to evaluate: got %1%", v, pol);
             return 1;  // LCOV_EXCL_LINE previous line will throw.
@@ -310,10 +312,10 @@ namespace boost { namespace math {
             else if(kind & need_j)
                *J = policies::raise_domain_error<T>(function, "Value of Bessel J_v(x) is complex-infinity at %1%", x, pol); // complex infinity
             else
-               *J = std::numeric_limits<T>::quiet_NaN();  // LCOV_EXCL_LINE, we should never get here, any value will do, not using J.
+               *J = boost::math::numeric_limits<T>::quiet_NaN();  // LCOV_EXCL_LINE, we should never get here, any value will do, not using J.
 
             if((kind & need_y) == 0)
-               *Y = std::numeric_limits<T>::quiet_NaN();  // any value will do, not using Y.
+               *Y = boost::math::numeric_limits<T>::quiet_NaN();  // any value will do, not using Y.
             else
             {
                // We shoud never get here:
@@ -333,7 +335,7 @@ namespace boost { namespace math {
             // and divergent which leads to large errors :-(
             //
             Jv = bessel_j_small_z_series(v, x, pol);
-            Yv = std::numeric_limits<T>::quiet_NaN();
+            Yv = boost::math::numeric_limits<T>::quiet_NaN();
          }
          else if((x < 1) && (u != 0) && (log(policies::get_epsilon<T, Policy>() / 2) > v * log((x/2) * (x/2) / v)))
          {
@@ -344,7 +346,7 @@ namespace boost { namespace math {
             if(kind&need_j)
                Jv = bessel_j_small_z_series(v, x, pol);
             else
-               Jv = std::numeric_limits<T>::quiet_NaN();
+               Jv = boost::math::numeric_limits<T>::quiet_NaN();
             if((org_kind&need_y && (!reflect || (cp != 0)))
                || (org_kind & need_j && (reflect && (sp != 0))))
             {
@@ -352,7 +354,7 @@ namespace boost { namespace math {
                Yv = bessel_y_small_z_series(v, x, &Yv_scale, pol);
             }
             else
-               Yv = std::numeric_limits<T>::quiet_NaN();
+               Yv = boost::math::numeric_limits<T>::quiet_NaN();
          }
          else if((u == 0) && (x < policies::get_epsilon<T, Policy>()))
          {
@@ -363,7 +365,7 @@ namespace boost { namespace math {
             if(kind&need_j)
                Jv = bessel_j_small_z_series(v, x, pol);
             else
-               Jv = std::numeric_limits<T>::quiet_NaN();
+               Jv = boost::math::numeric_limits<T>::quiet_NaN();
             if((org_kind&need_y && (!reflect || (cp != 0)))
                || (org_kind & need_j && (reflect && (sp != 0))))
             {
@@ -371,7 +373,7 @@ namespace boost { namespace math {
                Yv = bessel_yn_small_z(n, x, &Yv_scale, pol);
             }
             else
-               Yv = std::numeric_limits<T>::quiet_NaN();
+               Yv = boost::math::numeric_limits<T>::quiet_NaN();
             // LCOV_EXCL_STOP
          }
          else if(asymptotic_bessel_large_x_limit(v, x))
@@ -381,13 +383,13 @@ namespace boost { namespace math {
                Yv = asymptotic_bessel_y_large_x_2(v, x, pol);
             }
             else
-               Yv = std::numeric_limits<T>::quiet_NaN(); // any value will do, we're not using it.
+               Yv = boost::math::numeric_limits<T>::quiet_NaN(); // any value will do, we're not using it.
             if(kind&need_j)
             {
                Jv = asymptotic_bessel_j_large_x_2(v, x, pol);
             }
             else
-               Jv = std::numeric_limits<T>::quiet_NaN(); // any value will do, we're not using it.
+               Jv = boost::math::numeric_limits<T>::quiet_NaN(); // any value will do, we're not using it.
          }
          else if((x > 8) && hankel_PQ(v, x, &p, &q, pol))
          {
@@ -449,7 +451,7 @@ namespace boost { namespace math {
                Jv = scale * W / (Yv * fv - Yv1);           // Wronskian relation
             }
             else
-               Jv = std::numeric_limits<T>::quiet_NaN(); // any value will do, we're not using it.
+               Jv = boost::math::numeric_limits<T>::quiet_NaN(); // any value will do, we're not using it.
             Yv_scale = scale;
          }
          else                                    // x in (2, \infty)
@@ -564,7 +566,7 @@ namespace boost { namespace math {
                Yv = prev;
             }
             else
-               Yv = std::numeric_limits<T>::quiet_NaN(); // any value will do, we're not using it.
+               Yv = boost::math::numeric_limits<T>::quiet_NaN(); // any value will do, we're not using it.
          }
 
          if (reflect)

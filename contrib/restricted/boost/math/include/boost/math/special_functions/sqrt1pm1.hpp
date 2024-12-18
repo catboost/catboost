@@ -10,6 +10,7 @@
 #pragma once
 #endif
 
+#include <boost/math/tools/config.hpp>
 #include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/math/special_functions/log1p.hpp>
 #include <boost/math/special_functions/expm1.hpp>
@@ -21,7 +22,7 @@
 namespace boost{ namespace math{
 
 template <class T, class Policy>
-inline typename tools::promote_args<T>::type sqrt1pm1(const T& val, const Policy& pol)
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T>::type sqrt1pm1(const T& val, const Policy& pol)
 {
    typedef typename tools::promote_args<T>::type result_type;
    BOOST_MATH_STD_USING
@@ -32,7 +33,7 @@ inline typename tools::promote_args<T>::type sqrt1pm1(const T& val, const Policy
 }
 
 template <class T>
-inline typename tools::promote_args<T>::type sqrt1pm1(const T& val)
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T>::type sqrt1pm1(const T& val)
 {
    return sqrt1pm1(val, policies::policy<>());
 }

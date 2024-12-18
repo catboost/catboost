@@ -13,6 +13,8 @@
 #ifndef BOOST_MATH_AIRY_AI_BI_ZERO_2013_01_20_HPP_
   #define BOOST_MATH_AIRY_AI_BI_ZERO_2013_01_20_HPP_
 
+  #include <boost/math/tools/config.hpp>
+  #include <boost/math/tools/tuple.hpp>
   #include <boost/math/constants/constants.hpp>
   #include <boost/math/special_functions/cbrt.hpp>
 
@@ -21,18 +23,18 @@
   {
     // Forward declarations of the needed Airy function implementations.
     template <class T, class Policy>
-    T airy_ai_imp(T x, const Policy& pol);
+    BOOST_MATH_GPU_ENABLED T airy_ai_imp(T x, const Policy& pol);
     template <class T, class Policy>
-    T airy_bi_imp(T x, const Policy& pol);
+    BOOST_MATH_GPU_ENABLED T airy_bi_imp(T x, const Policy& pol);
     template <class T, class Policy>
-    T airy_ai_prime_imp(T x, const Policy& pol);
+    BOOST_MATH_GPU_ENABLED T airy_ai_prime_imp(T x, const Policy& pol);
     template <class T, class Policy>
-    T airy_bi_prime_imp(T x, const Policy& pol);
+    BOOST_MATH_GPU_ENABLED T airy_bi_prime_imp(T x, const Policy& pol);
 
     namespace airy_zero
     {
       template<class T, class Policy>
-      T equation_as_10_4_105(const T& z, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED T equation_as_10_4_105(const T& z, const Policy& pol)
       {
         const T one_over_z        (T(1) / z);
         const T one_over_z_squared(one_over_z * one_over_z);
@@ -54,7 +56,7 @@
       namespace airy_ai_zero_detail
       {
         template<class T, class Policy>
-        T initial_guess(const int m, const Policy& pol)
+        BOOST_MATH_GPU_ENABLED T initial_guess(const int m, const Policy& pol)
         {
           T guess;
 
@@ -106,11 +108,19 @@
         class function_object_ai_and_ai_prime
         {
         public:
-          explicit function_object_ai_and_ai_prime(const Policy& pol) : my_pol(pol) { }
+          BOOST_MATH_GPU_ENABLED explicit function_object_ai_and_ai_prime(const Policy& pol) : my_pol(pol) { }
 
-          function_object_ai_and_ai_prime(const function_object_ai_and_ai_prime&) = default;
+          #ifdef BOOST_MATH_ENABLE_CUDA
+          #  pragma nv_diag_suppress 20012
+          #endif
 
-          boost::math::tuple<T, T> operator()(const T& x) const
+          BOOST_MATH_GPU_ENABLED function_object_ai_and_ai_prime(const function_object_ai_and_ai_prime&) = default;
+
+          #ifdef BOOST_MATH_ENABLE_CUDA
+          #  pragma nv_diag_default 20012
+          #endif
+
+          BOOST_MATH_GPU_ENABLED boost::math::tuple<T, T> operator()(const T& x) const
           {
             // Return a tuple containing both Ai(x) and Ai'(x).
             return boost::math::make_tuple(
@@ -127,7 +137,7 @@
       namespace airy_bi_zero_detail
       {
         template<class T, class Policy>
-        T initial_guess(const int m, const Policy& pol)
+        BOOST_MATH_GPU_ENABLED T initial_guess(const int m, const Policy& pol)
         {
           T guess;
 
@@ -179,11 +189,19 @@
         class function_object_bi_and_bi_prime
         {
         public:
-          explicit function_object_bi_and_bi_prime(const Policy& pol) : my_pol(pol) { }
+          BOOST_MATH_GPU_ENABLED explicit function_object_bi_and_bi_prime(const Policy& pol) : my_pol(pol) { }
 
-          function_object_bi_and_bi_prime(const function_object_bi_and_bi_prime&) = default;
+          #ifdef BOOST_MATH_ENABLE_CUDA
+          #  pragma nv_diag_suppress 20012
+          #endif
+          
+          BOOST_MATH_GPU_ENABLED function_object_bi_and_bi_prime(const function_object_bi_and_bi_prime&) = default;
+          
+          #ifdef BOOST_MATH_ENABLE_CUDA
+          #  pragma nv_diag_default 20012
+          #endif
 
-          boost::math::tuple<T, T> operator()(const T& x) const
+          BOOST_MATH_GPU_ENABLED boost::math::tuple<T, T> operator()(const T& x) const
           {
             // Return a tuple containing both Bi(x) and Bi'(x).
             return boost::math::make_tuple(

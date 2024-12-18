@@ -10,6 +10,10 @@
 #pragma once
 #endif
 
+#include <boost/math/tools/config.hpp>
+#include <boost/math/tools/assert.hpp>
+#include <boost/math/policies/error_handling.hpp>
+#include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/detail/bessel_j0.hpp>
 #include <boost/math/special_functions/detail/bessel_j1.hpp>
 #include <boost/math/special_functions/detail/bessel_jy.hpp>
@@ -24,7 +28,7 @@
 namespace boost { namespace math { namespace detail{
 
 template <typename T, typename Policy>
-T bessel_jn(int n, T x, const Policy& pol)
+BOOST_MATH_GPU_ENABLED T bessel_jn(int n, T x, const Policy& pol)
 {
     T value(0), factor, current, prev, next;
 

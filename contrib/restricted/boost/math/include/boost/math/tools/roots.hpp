@@ -1,4 +1,5 @@
 //  (C) Copyright John Maddock 2006.
+//  (C) Copyright Matt Borland 2024.
 //  Use, modification and distribution are subject to the
 //  Boost Software License, Version 1.0. (See accompanying file
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -9,20 +10,21 @@
 #ifdef _MSC_VER
 #pragma once
 #endif
-#include <boost/math/tools/complex.hpp> // test for multiprecision types in complex Newton
-
-#include <utility>
-#include <cmath>
-#include <tuple>
-#include <cstdint>
 
 #include <boost/math/tools/config.hpp>
-#include <boost/math/tools/cxx03_warn.hpp>
-
+#include <boost/math/tools/complex.hpp> // test for multiprecision types in complex Newton
+#include <boost/math/tools/type_traits.hpp>
+#include <boost/math/tools/cstdint.hpp>
+#include <boost/math/tools/numeric_limits.hpp>
+#include <boost/math/tools/tuple.hpp>
 #include <boost/math/special_functions/sign.hpp>
+#include <boost/math/policies/policy.hpp>
+#include <boost/math/policies/error_handling.hpp>
+
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
 #include <boost/math/special_functions/next.hpp>
 #include <boost/math/tools/toms748_solve.hpp>
-#include <boost/math/policies/error_handling.hpp>
+#endif
 
 namespace boost {
 namespace math {
@@ -33,11 +35,11 @@ namespace detail {
 namespace dummy {
 
    template<int n, class T>
-   typename T::value_type get(const T&) BOOST_MATH_NOEXCEPT(T);
+   BOOST_MATH_GPU_ENABLED typename T::value_type get(const T&) BOOST_MATH_NOEXCEPT(T);
 }
 
 template <class Tuple, class T>
-void unpack_tuple(const Tuple& t, T& a, T& b) BOOST_MATH_NOEXCEPT(T)
+BOOST_MATH_GPU_ENABLED void unpack_tuple(const Tuple& t, T& a, T& b) BOOST_MATH_NOEXCEPT(T)
 {
    using dummy::get;
    // Use ADL to find the right overload for get:
@@ -45,7 +47,7 @@ void unpack_tuple(const Tuple& t, T& a, T& b) BOOST_MATH_NOEXCEPT(T)
    b = get<1>(t);
 }
 template <class Tuple, class T>
-void unpack_tuple(const Tuple& t, T& a, T& b, T& c) BOOST_MATH_NOEXCEPT(T)
+BOOST_MATH_GPU_ENABLED void unpack_tuple(const Tuple& t, T& a, T& b, T& c) BOOST_MATH_NOEXCEPT(T)
 {
    using dummy::get;
    // Use ADL to find the right overload for get:
@@ -55,7 +57,7 @@ void unpack_tuple(const Tuple& t, T& a, T& b, T& c) BOOST_MATH_NOEXCEPT(T)
 }
 
 template <class Tuple, class T>
-inline void unpack_0(const Tuple& t, T& val) BOOST_MATH_NOEXCEPT(T)
+BOOST_MATH_GPU_ENABLED inline void unpack_0(const Tuple& t, T& val) BOOST_MATH_NOEXCEPT(T)
 {
    using dummy::get;
    // Rely on ADL to find the correct overload of get:
@@ -63,26 +65,30 @@ inline void unpack_0(const Tuple& t, T& val) BOOST_MATH_NOEXCEPT(T)
 }
 
 template <class T, class U, class V>
-inline void unpack_tuple(const std::pair<T, U>& p, V& a, V& b) BOOST_MATH_NOEXCEPT(T)
+BOOST_MATH_GPU_ENABLED inline void unpack_tuple(const boost::math::pair<T, U>& p, V& a, V& b) BOOST_MATH_NOEXCEPT(T)
 {
    a = p.first;
    b = p.second;
 }
 template <class T, class U, class V>
-inline void unpack_0(const std::pair<T, U>& p, V& a) BOOST_MATH_NOEXCEPT(T)
+BOOST_MATH_GPU_ENABLED inline void unpack_0(const boost::math::pair<T, U>& p, V& a) BOOST_MATH_NOEXCEPT(T)
 {
    a = p.first;
 }
 
 template <class F, class T>
-void handle_zero_derivative(F f,
+BOOST_MATH_GPU_ENABLED void handle_zero_derivative(F f,
    T& last_f0,
    const T& f0,
    T& delta,
    T& result,
    T& guess,
    const T& min,
-   const T& max) noexcept(BOOST_MATH_IS_FLOAT(T) && noexcept(std::declval<F>()(std::declval<T>())))
+   const T& max) noexcept(BOOST_MATH_IS_FLOAT(T) 
+   #ifndef BOOST_MATH_HAS_GPU_SUPPORT
+   && noexcept(std::declval<F>()(std::declval<T>()))
+   #endif
+   )
 {
    if (last_f0 == 0)
    {
@@ -128,25 +134,29 @@ void handle_zero_derivative(F f,
 } // namespace
 
 template <class F, class T, class Tol, class Policy>
-std::pair<T, T> bisect(F f, T min, T max, Tol tol, std::uintmax_t& max_iter, const Policy& pol) noexcept(policies::is_noexcept_error_policy<Policy>::value&& BOOST_MATH_IS_FLOAT(T) && noexcept(std::declval<F>()(std::declval<T>())))
+BOOST_MATH_GPU_ENABLED boost::math::pair<T, T> bisect(F f, T min, T max, Tol tol, boost::math::uintmax_t& max_iter, const Policy& pol) noexcept(policies::is_noexcept_error_policy<Policy>::value && BOOST_MATH_IS_FLOAT(T) 
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<F>()(std::declval<T>()))
+#endif
+)
 {
    T fmin = f(min);
    T fmax = f(max);
    if (fmin == 0)
    {
       max_iter = 2;
-      return std::make_pair(min, min);
+      return boost::math::make_pair(min, min);
    }
    if (fmax == 0)
    {
       max_iter = 2;
-      return std::make_pair(max, max);
+      return boost::math::make_pair(max, max);
    }
 
    //
    // Error checking:
    //
-   static const char* function = "boost::math::tools::bisect<%1%>";
+   constexpr auto function = "boost::math::tools::bisect<%1%>";
    if (min >= max)
    {
       return boost::math::detail::pair_from_single(policies::raise_evaluation_error(function,
@@ -196,29 +206,41 @@ std::pair<T, T> bisect(F f, T min, T max, Tol tol, std::uintmax_t& max_iter, con
    std::cout << "Bisection required " << max_iter << " iterations.\n";
 #endif
 
-   return std::make_pair(min, max);
+   return boost::math::make_pair(min, max);
 }
 
 template <class F, class T, class Tol>
-inline std::pair<T, T> bisect(F f, T min, T max, Tol tol, std::uintmax_t& max_iter)  noexcept(policies::is_noexcept_error_policy<policies::policy<> >::value&& BOOST_MATH_IS_FLOAT(T) && noexcept(std::declval<F>()(std::declval<T>())))
+BOOST_MATH_GPU_ENABLED inline boost::math::pair<T, T> bisect(F f, T min, T max, Tol tol, boost::math::uintmax_t& max_iter)  noexcept(policies::is_noexcept_error_policy<policies::policy<> >::value && BOOST_MATH_IS_FLOAT(T)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<F>()(std::declval<T>()))
+#endif
+)
 {
    return bisect(f, min, max, tol, max_iter, policies::policy<>());
 }
 
 template <class F, class T, class Tol>
-inline std::pair<T, T> bisect(F f, T min, T max, Tol tol) noexcept(policies::is_noexcept_error_policy<policies::policy<> >::value&& BOOST_MATH_IS_FLOAT(T) && noexcept(std::declval<F>()(std::declval<T>())))
+BOOST_MATH_GPU_ENABLED inline boost::math::pair<T, T> bisect(F f, T min, T max, Tol tol) noexcept(policies::is_noexcept_error_policy<policies::policy<> >::value && BOOST_MATH_IS_FLOAT(T) 
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<F>()(std::declval<T>()))
+#endif
+)
 {
-   std::uintmax_t m = (std::numeric_limits<std::uintmax_t>::max)();
+   boost::math::uintmax_t m = (boost::math::numeric_limits<boost::math::uintmax_t>::max)();
    return bisect(f, min, max, tol, m, policies::policy<>());
 }
 
 
 template <class F, class T>
-T newton_raphson_iterate(F f, T guess, T min, T max, int digits, std::uintmax_t& max_iter) noexcept(policies::is_noexcept_error_policy<policies::policy<> >::value&& BOOST_MATH_IS_FLOAT(T) && noexcept(std::declval<F>()(std::declval<T>())))
+BOOST_MATH_GPU_ENABLED T newton_raphson_iterate(F f, T guess, T min, T max, int digits, boost::math::uintmax_t& max_iter) noexcept(policies::is_noexcept_error_policy<policies::policy<> >::value && BOOST_MATH_IS_FLOAT(T)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<F>()(std::declval<T>()))
+#endif
+)
 {
    BOOST_MATH_STD_USING
 
-   static const char* function = "boost::math::tools::newton_raphson_iterate<%1%>";
+   constexpr auto function = "boost::math::tools::newton_raphson_iterate<%1%>";
    if (min > max)
    {
       return policies::raise_evaluation_error(function, "Range arguments in wrong order in boost::math::tools::newton_raphson_iterate(first arg=%1%)", min, boost::math::policies::policy<>());
@@ -245,7 +267,7 @@ T newton_raphson_iterate(F f, T guess, T min, T max, int digits, std::uintmax_t&
    T max_range_f = 0;
    T min_range_f = 0;
 
-   std::uintmax_t count(max_iter);
+   boost::math::uintmax_t count(max_iter);
 
 #ifdef BOOST_MATH_INSTRUMENT
    std::cout << "Newton_raphson_iterate, guess = " << guess << ", min = " << min << ", max = " << max
@@ -332,11 +354,21 @@ T newton_raphson_iterate(F f, T guess, T min, T max, int digits, std::uintmax_t&
 }
 
 template <class F, class T>
-inline T newton_raphson_iterate(F f, T guess, T min, T max, int digits) noexcept(policies::is_noexcept_error_policy<policies::policy<> >::value&& BOOST_MATH_IS_FLOAT(T) && noexcept(std::declval<F>()(std::declval<T>())))
+BOOST_MATH_GPU_ENABLED inline T newton_raphson_iterate(F f, T guess, T min, T max, int digits) noexcept(policies::is_noexcept_error_policy<policies::policy<> >::value && BOOST_MATH_IS_FLOAT(T)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<F>()(std::declval<T>()))
+#endif
+)
 {
-   std::uintmax_t m = (std::numeric_limits<std::uintmax_t>::max)();
+   boost::math::uintmax_t m = (boost::math::numeric_limits<boost::math::uintmax_t>::max)();
    return newton_raphson_iterate(f, guess, min, max, digits, m);
 }
+
+// TODO(mborland): Disabled for now
+// Recursion needs to be removed, but there is no demand at this time
+#ifdef BOOST_MATH_HAS_NVRTC
+}}} // Namespaces
+#else
 
 namespace detail {
 
@@ -1024,5 +1056,7 @@ inline std::pair<typename tools::promote_args<T1, T2, T3>::type, typename tools:
 } // namespace tools
 } // namespace math
 } // namespace boost
+
+#endif // BOOST_MATH_HAS_NVRTC
 
 #endif // BOOST_MATH_TOOLS_NEWTON_SOLVER_HPP

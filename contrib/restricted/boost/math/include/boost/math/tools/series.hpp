@@ -10,10 +10,11 @@
 #pragma once
 #endif
 
-#include <cmath>
-#include <cstdint>
-#include <limits>
+
 #include <boost/math/tools/config.hpp>
+#include <boost/math/tools/numeric_limits.hpp>
+#include <boost/math/tools/cstdint.hpp>
+#include <boost/math/tools/type_traits.hpp>
 
 namespace boost{ namespace math{ namespace tools{
 
@@ -21,13 +22,17 @@ namespace boost{ namespace math{ namespace tools{
 // Simple series summation come first:
 //
 template <class Functor, class U, class V>
-inline typename Functor::result_type sum_series(Functor& func, const U& factor, std::uintmax_t& max_terms, const V& init_value) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) && noexcept(std::declval<Functor>()()))
+BOOST_MATH_GPU_ENABLED inline typename Functor::result_type sum_series(Functor& func, const U& factor, boost::math::uintmax_t& max_terms, const V& init_value) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<Functor>()())
+#endif
+)
 {
    BOOST_MATH_STD_USING
 
    typedef typename Functor::result_type result_type;
 
-   std::uintmax_t counter = max_terms;
+   boost::math::uintmax_t counter = max_terms;
 
    result_type result = init_value;
    result_type next_term;
@@ -44,14 +49,22 @@ inline typename Functor::result_type sum_series(Functor& func, const U& factor, 
 }
 
 template <class Functor, class U>
-inline typename Functor::result_type sum_series(Functor& func, const U& factor, std::uintmax_t& max_terms) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) && noexcept(std::declval<Functor>()()))
+BOOST_MATH_GPU_ENABLED inline typename Functor::result_type sum_series(Functor& func, const U& factor, boost::math::uintmax_t& max_terms) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<Functor>()())
+#endif
+)
 {
    typename Functor::result_type init_value = 0;
    return sum_series(func, factor, max_terms, init_value);
 }
 
 template <class Functor, class U>
-inline typename Functor::result_type sum_series(Functor& func, int bits, std::uintmax_t& max_terms, const U& init_value) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) && noexcept(std::declval<Functor>()()))
+BOOST_MATH_GPU_ENABLED inline typename Functor::result_type sum_series(Functor& func, int bits, boost::math::uintmax_t& max_terms, const U& init_value) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<Functor>()())
+#endif
+)
 {
    BOOST_MATH_STD_USING
    typedef typename Functor::result_type result_type;
@@ -60,17 +73,25 @@ inline typename Functor::result_type sum_series(Functor& func, int bits, std::ui
 }
 
 template <class Functor>
-inline typename Functor::result_type sum_series(Functor& func, int bits) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) && noexcept(std::declval<Functor>()()))
+BOOST_MATH_GPU_ENABLED inline typename Functor::result_type sum_series(Functor& func, int bits) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) 
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<Functor>()())
+#endif
+)
 {
    BOOST_MATH_STD_USING
    typedef typename Functor::result_type result_type;
-   std::uintmax_t iters = (std::numeric_limits<std::uintmax_t>::max)();
+   boost::math::uintmax_t iters = (boost::math::numeric_limits<boost::math::uintmax_t>::max)();
    result_type init_val = 0;
    return sum_series(func, bits, iters, init_val);
 }
 
 template <class Functor>
-inline typename Functor::result_type sum_series(Functor& func, int bits, std::uintmax_t& max_terms) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) && noexcept(std::declval<Functor>()()))
+BOOST_MATH_GPU_ENABLED inline typename Functor::result_type sum_series(Functor& func, int bits, boost::math::uintmax_t& max_terms) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<Functor>()())
+#endif
+)
 {
    BOOST_MATH_STD_USING
    typedef typename Functor::result_type result_type;
@@ -79,23 +100,31 @@ inline typename Functor::result_type sum_series(Functor& func, int bits, std::ui
 }
 
 template <class Functor, class U>
-inline typename Functor::result_type sum_series(Functor& func, int bits, const U& init_value) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) && noexcept(std::declval<Functor>()()))
+BOOST_MATH_GPU_ENABLED inline typename Functor::result_type sum_series(Functor& func, int bits, const U& init_value) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<Functor>()())
+#endif
+)
 {
    BOOST_MATH_STD_USING
-   std::uintmax_t iters = (std::numeric_limits<std::uintmax_t>::max)();
+   boost::math::uintmax_t iters = (boost::math::numeric_limits<boost::math::uintmax_t>::max)();
    return sum_series(func, bits, iters, init_value);
 }
 //
 // Checked summation:
 //
 template <class Functor, class U, class V>
-inline typename Functor::result_type checked_sum_series(Functor& func, const U& factor, std::uintmax_t& max_terms, const V& init_value, V& norm) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) && noexcept(std::declval<Functor>()()))
+BOOST_MATH_GPU_ENABLED inline typename Functor::result_type checked_sum_series(Functor& func, const U& factor, boost::math::uintmax_t& max_terms, const V& init_value, V& norm) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<Functor>()())
+#endif
+)
 {
    BOOST_MATH_STD_USING
 
    typedef typename Functor::result_type result_type;
 
-   std::uintmax_t counter = max_terms;
+   boost::math::uintmax_t counter = max_terms;
 
    result_type result = init_value;
    result_type next_term;
@@ -125,7 +154,11 @@ inline typename Functor::result_type checked_sum_series(Functor& func, const U& 
 // in any case the result is still much better than a naive summation.
 //
 template <class Functor>
-inline typename Functor::result_type kahan_sum_series(Functor& func, int bits) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) && noexcept(std::declval<Functor>()()))
+BOOST_MATH_GPU_ENABLED inline typename Functor::result_type kahan_sum_series(Functor& func, int bits) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<Functor>()())
+#endif
+)
 {
    BOOST_MATH_STD_USING
 
@@ -148,13 +181,17 @@ inline typename Functor::result_type kahan_sum_series(Functor& func, int bits) n
 }
 
 template <class Functor>
-inline typename Functor::result_type kahan_sum_series(Functor& func, int bits, std::uintmax_t& max_terms) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type) && noexcept(std::declval<Functor>()()))
+BOOST_MATH_GPU_ENABLED inline typename Functor::result_type kahan_sum_series(Functor& func, int bits, boost::math::uintmax_t& max_terms) noexcept(BOOST_MATH_IS_FLOAT(typename Functor::result_type)
+#ifndef BOOST_MATH_HAS_GPU_SUPPORT
+&& noexcept(std::declval<Functor>()())
+#endif
+)
 {
    BOOST_MATH_STD_USING
 
    typedef typename Functor::result_type result_type;
 
-   std::uintmax_t counter = max_terms;
+   boost::math::uintmax_t counter = max_terms;
 
    result_type factor = ldexp(result_type(1), bits);
    result_type result = func();

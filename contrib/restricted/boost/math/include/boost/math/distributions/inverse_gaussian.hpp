@@ -1,6 +1,6 @@
 //  Copyright John Maddock 2010.
 //  Copyright Paul A. Bristow 2010.
-
+//  Copyright Matt Borland 2024.
 //  Use, modification and distribution are subject to the
 //  Boost Software License, Version 1.0. (See accompanying file
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -49,17 +49,17 @@
 
 // http://www.statsci.org/s/inverse_gaussian.s  and http://www.statsci.org/s/inverse_gaussian.html
 
-//#include <boost/math/distributions/fwd.hpp>
+#include <boost/math/tools/config.hpp>
+#include <boost/math/tools/cstdint.hpp>
 #include <boost/math/special_functions/erf.hpp> // for erf/erfc.
 #include <boost/math/distributions/complement.hpp>
 #include <boost/math/distributions/detail/common_error_handling.hpp>
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/gamma.hpp> // for gamma function
-
 #include <boost/math/tools/tuple.hpp>
 #include <boost/math/tools/roots.hpp>
-
-#include <utility>
+#include <boost/math/policies/policy.hpp>
+#include <boost/math/policies/error_handling.hpp>
 
 namespace boost{ namespace math{
 
@@ -70,10 +70,10 @@ public:
    using value_type = RealType;
    using policy_type = Policy;
 
-   explicit inverse_gaussian_distribution(RealType l_mean = 1, RealType l_scale = 1)
+   BOOST_MATH_GPU_ENABLED explicit inverse_gaussian_distribution(RealType l_mean = 1, RealType l_scale = 1)
       : m_mean(l_mean), m_scale(l_scale)
    { // Default is a 1,1 inverse_gaussian distribution.
-     static const char* function = "boost::math::inverse_gaussian_distribution<%1%>::inverse_gaussian_distribution";
+     constexpr auto function = "boost::math::inverse_gaussian_distribution<%1%>::inverse_gaussian_distribution";
 
      RealType result;
      detail::check_scale(function, l_scale, &result, Policy());
@@ -81,22 +81,22 @@ public:
      detail::check_x_gt0(function, l_mean, &result, Policy());
    }
 
-   RealType mean()const
+   BOOST_MATH_GPU_ENABLED RealType mean()const
    { // alias for location.
       return m_mean; // aka mu
    }
 
    // Synonyms, provided to allow generic use of find_location and find_scale.
-   RealType location()const
+   BOOST_MATH_GPU_ENABLED RealType location()const
    { // location, aka mu.
       return m_mean;
    }
-   RealType scale()const
+   BOOST_MATH_GPU_ENABLED RealType scale()const
    { // scale, aka lambda.
       return m_scale;
    }
 
-   RealType shape()const
+   BOOST_MATH_GPU_ENABLED RealType shape()const
    { // shape, aka phi = lambda/mu.
       return m_scale / m_mean;
    }
@@ -119,29 +119,29 @@ inverse_gaussian_distribution(RealType,RealType)->inverse_gaussian_distribution<
 #endif
 
 template <class RealType, class Policy>
-inline std::pair<RealType, RealType> range(const inverse_gaussian_distribution<RealType, Policy>& /*dist*/)
+BOOST_MATH_GPU_ENABLED inline boost::math::pair<RealType, RealType> range(const inverse_gaussian_distribution<RealType, Policy>& /*dist*/)
 { // Range of permissible values for random variable x, zero to max.
    using boost::math::tools::max_value;
-   return std::pair<RealType, RealType>(static_cast<RealType>(0.), max_value<RealType>()); // - to + max value.
+   return boost::math::pair<RealType, RealType>(static_cast<RealType>(0.), max_value<RealType>()); // - to + max value.
 }
 
 template <class RealType, class Policy>
-inline std::pair<RealType, RealType> support(const inverse_gaussian_distribution<RealType, Policy>& /*dist*/)
+BOOST_MATH_GPU_ENABLED inline boost::math::pair<RealType, RealType> support(const inverse_gaussian_distribution<RealType, Policy>& /*dist*/)
 { // Range of supported values for random variable x, zero to max.
   // This is range where cdf rises from 0 to 1, and outside it, the pdf is zero.
    using boost::math::tools::max_value;
-   return std::pair<RealType, RealType>(static_cast<RealType>(0.),  max_value<RealType>()); // - to + max value.
+   return boost::math::pair<RealType, RealType>(static_cast<RealType>(0.),  max_value<RealType>()); // - to + max value.
 }
 
 template <class RealType, class Policy>
-inline RealType pdf(const inverse_gaussian_distribution<RealType, Policy>& dist, const RealType& x)
+BOOST_MATH_GPU_ENABLED inline RealType pdf(const inverse_gaussian_distribution<RealType, Policy>& dist, const RealType& x)
 { // Probability Density Function
    BOOST_MATH_STD_USING  // for ADL of std functions
 
    RealType scale = dist.scale();
    RealType mean = dist.mean();
    RealType result = 0;
-   static const char* function = "boost::math::pdf(const inverse_gaussian_distribution<%1%>&, %1%)";
+   constexpr auto function = "boost::math::pdf(const inverse_gaussian_distribution<%1%>&, %1%)";
    if(false == detail::check_scale(function, scale, &result, Policy()))
    {
       return result;
@@ -171,14 +171,14 @@ inline RealType pdf(const inverse_gaussian_distribution<RealType, Policy>& dist,
 } // pdf
 
 template <class RealType, class Policy>
-inline RealType logpdf(const inverse_gaussian_distribution<RealType, Policy>& dist, const RealType& x)
+BOOST_MATH_GPU_ENABLED inline RealType logpdf(const inverse_gaussian_distribution<RealType, Policy>& dist, const RealType& x)
 { // Probability Density Function
    BOOST_MATH_STD_USING  // for ADL of std functions
 
    RealType scale = dist.scale();
    RealType mean = dist.mean();
-   RealType result = -std::numeric_limits<RealType>::infinity();
-   static const char* function = "boost::math::logpdf(const inverse_gaussian_distribution<%1%>&, %1%)";
+   RealType result = -boost::math::numeric_limits<RealType>::infinity();
+   constexpr auto function = "boost::math::logpdf(const inverse_gaussian_distribution<%1%>&, %1%)";
    if(false == detail::check_scale(function, scale, &result, Policy()))
    {
       return result;
@@ -198,7 +198,7 @@ inline RealType logpdf(const inverse_gaussian_distribution<RealType, Policy>& di
 
    if (x == 0)
    {
-     return std::numeric_limits<RealType>::quiet_NaN(); // Convenient, even if not defined mathematically. log(0)
+     return boost::math::numeric_limits<RealType>::quiet_NaN(); // Convenient, even if not defined mathematically. log(0)
    }
 
    const RealType two_pi = boost::math::constants::two_pi<RealType>();
@@ -208,13 +208,13 @@ inline RealType logpdf(const inverse_gaussian_distribution<RealType, Policy>& di
 } // pdf
 
 template <class RealType, class Policy>
-inline RealType cdf(const inverse_gaussian_distribution<RealType, Policy>& dist, const RealType& x)
+BOOST_MATH_GPU_ENABLED inline RealType cdf(const inverse_gaussian_distribution<RealType, Policy>& dist, const RealType& x)
 { // Cumulative Density Function.
    BOOST_MATH_STD_USING  // for ADL of std functions.
 
    RealType scale = dist.scale();
    RealType mean = dist.mean();
-   static const char* function = "boost::math::cdf(const inverse_gaussian_distribution<%1%>&, %1%)";
+   constexpr auto function = "boost::math::cdf(const inverse_gaussian_distribution<%1%>&, %1%)";
    RealType result = 0;
    if(false == detail::check_scale(function, scale, &result, Policy()))
    {
@@ -257,11 +257,11 @@ template <class RealType, class Policy>
 struct inverse_gaussian_quantile_functor
 { 
 
-  inverse_gaussian_quantile_functor(const boost::math::inverse_gaussian_distribution<RealType, Policy> dist, RealType const& p)
+  BOOST_MATH_GPU_ENABLED inverse_gaussian_quantile_functor(const boost::math::inverse_gaussian_distribution<RealType, Policy> dist, RealType const& p)
     : distribution(dist), prob(p)
   {
   }
-  boost::math::tuple<RealType, RealType> operator()(RealType const& x)
+  BOOST_MATH_GPU_ENABLED boost::math::tuple<RealType, RealType> operator()(RealType const& x)
   {
     RealType c = cdf(distribution, x);
     RealType fx = c - prob;  // Difference cdf - value - to minimize.
@@ -277,11 +277,11 @@ struct inverse_gaussian_quantile_functor
 template <class RealType, class Policy>
 struct inverse_gaussian_quantile_complement_functor
 { 
-    inverse_gaussian_quantile_complement_functor(const boost::math::inverse_gaussian_distribution<RealType, Policy> dist, RealType const& p)
+  BOOST_MATH_GPU_ENABLED inverse_gaussian_quantile_complement_functor(const boost::math::inverse_gaussian_distribution<RealType, Policy> dist, RealType const& p)
     : distribution(dist), prob(p)
   {
   }
-  boost::math::tuple<RealType, RealType> operator()(RealType const& x)
+  BOOST_MATH_GPU_ENABLED boost::math::tuple<RealType, RealType> operator()(RealType const& x)
   {
     RealType c = cdf(complement(distribution, x));
     RealType fx = c - prob;  // Difference cdf - value - to minimize.
@@ -298,7 +298,7 @@ struct inverse_gaussian_quantile_complement_functor
 namespace detail
 {
   template <class RealType>
-  inline RealType guess_ig(RealType p, RealType mu = 1, RealType lambda = 1)
+  BOOST_MATH_GPU_ENABLED inline RealType guess_ig(RealType p, RealType mu = 1, RealType lambda = 1)
   { // guess at random variate value x for inverse gaussian quantile.
     BOOST_MATH_STD_USING
     using boost::math::policies::policy;
@@ -350,14 +350,14 @@ namespace detail
 } // namespace detail
 
 template <class RealType, class Policy>
-inline RealType quantile(const inverse_gaussian_distribution<RealType, Policy>& dist, const RealType& p)
+BOOST_MATH_GPU_ENABLED inline RealType quantile(const inverse_gaussian_distribution<RealType, Policy>& dist, const RealType& p)
 {
    BOOST_MATH_STD_USING  // for ADL of std functions.
    // No closed form exists so guess and use Newton Raphson iteration.
 
    RealType mean = dist.mean();
    RealType scale = dist.scale();
-   static const char* function = "boost::math::quantile(const inverse_gaussian_distribution<%1%>&, %1%)";
+   constexpr auto function = "boost::math::quantile(const inverse_gaussian_distribution<%1%>&, %1%)";
 
    RealType result = 0;
    if(false == detail::check_scale(function, scale, &result, Policy()))
@@ -388,7 +388,7 @@ inline RealType quantile(const inverse_gaussian_distribution<RealType, Policy>& 
   // digits used to control how accurate to try to make the result.
   // To allow user to control accuracy versus speed,
   int get_digits = policies::digits<RealType, Policy>();// get digits from policy, 
-  std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>(); // and max iterations.
+  boost::math::uintmax_t max_iter = policies::get_max_root_iterations<Policy>(); // and max iterations.
   using boost::math::tools::newton_raphson_iterate;
   result =
     newton_raphson_iterate(inverse_gaussian_quantile_functor<RealType, Policy>(dist, p), guess, min, max, get_digits, max_iter);
@@ -401,14 +401,14 @@ inline RealType quantile(const inverse_gaussian_distribution<RealType, Policy>& 
 } // quantile
 
 template <class RealType, class Policy>
-inline RealType cdf(const complemented2_type<inverse_gaussian_distribution<RealType, Policy>, RealType>& c)
+BOOST_MATH_GPU_ENABLED inline RealType cdf(const complemented2_type<inverse_gaussian_distribution<RealType, Policy>, RealType>& c)
 {
    BOOST_MATH_STD_USING  // for ADL of std functions.
 
    RealType scale = c.dist.scale();
    RealType mean = c.dist.mean();
    RealType x = c.param;
-   static const char* function = "boost::math::cdf(const complement(inverse_gaussian_distribution<%1%>&), %1%)";
+   constexpr auto function = "boost::math::cdf(const complement(inverse_gaussian_distribution<%1%>&), %1%)";
 
    RealType result = 0;
    if(false == detail::check_scale(function, scale, &result, Policy()))
@@ -437,13 +437,13 @@ inline RealType cdf(const complemented2_type<inverse_gaussian_distribution<RealT
 } // cdf complement
 
 template <class RealType, class Policy>
-inline RealType quantile(const complemented2_type<inverse_gaussian_distribution<RealType, Policy>, RealType>& c)
+BOOST_MATH_GPU_ENABLED inline RealType quantile(const complemented2_type<inverse_gaussian_distribution<RealType, Policy>, RealType>& c)
 {
    BOOST_MATH_STD_USING  // for ADL of std functions
 
    RealType scale = c.dist.scale();
    RealType mean = c.dist.mean();
-   static const char* function = "boost::math::quantile(const complement(inverse_gaussian_distribution<%1%>&), %1%)";
+   constexpr auto function = "boost::math::quantile(const complement(inverse_gaussian_distribution<%1%>&), %1%)";
    RealType result = 0;
    if(false == detail::check_scale(function, scale, &result, Policy()))
       return result;
@@ -464,7 +464,7 @@ inline RealType quantile(const complemented2_type<inverse_gaussian_distribution<
   // int digits = std::numeric_limits<RealType>::digits; // Maximum possible binary digits accuracy for type T.
   // digits used to control how accurate to try to make the result.
   int get_digits = policies::digits<RealType, Policy>();
-  std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
+  boost::math::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
   using boost::math::tools::newton_raphson_iterate;
   result = newton_raphson_iterate(inverse_gaussian_quantile_complement_functor<RealType, Policy>(c.dist, q), guess, min, max, get_digits, max_iter);
   if (max_iter >= policies::get_max_root_iterations<Policy>())
@@ -476,25 +476,25 @@ inline RealType quantile(const complemented2_type<inverse_gaussian_distribution<
 } // quantile
 
 template <class RealType, class Policy>
-inline RealType mean(const inverse_gaussian_distribution<RealType, Policy>& dist)
+BOOST_MATH_GPU_ENABLED inline RealType mean(const inverse_gaussian_distribution<RealType, Policy>& dist)
 { // aka mu
    return dist.mean();
 }
 
 template <class RealType, class Policy>
-inline RealType scale(const inverse_gaussian_distribution<RealType, Policy>& dist)
+BOOST_MATH_GPU_ENABLED inline RealType scale(const inverse_gaussian_distribution<RealType, Policy>& dist)
 { // aka lambda
    return dist.scale();
 }
 
 template <class RealType, class Policy>
-inline RealType shape(const inverse_gaussian_distribution<RealType, Policy>& dist)
+BOOST_MATH_GPU_ENABLED inline RealType shape(const inverse_gaussian_distribution<RealType, Policy>& dist)
 { // aka phi
    return dist.shape();
 }
 
 template <class RealType, class Policy>
-inline RealType standard_deviation(const inverse_gaussian_distribution<RealType, Policy>& dist)
+BOOST_MATH_GPU_ENABLED inline RealType standard_deviation(const inverse_gaussian_distribution<RealType, Policy>& dist)
 {
   BOOST_MATH_STD_USING
   RealType scale = dist.scale();
@@ -504,7 +504,7 @@ inline RealType standard_deviation(const inverse_gaussian_distribution<RealType,
 }
 
 template <class RealType, class Policy>
-inline RealType mode(const inverse_gaussian_distribution<RealType, Policy>& dist)
+BOOST_MATH_GPU_ENABLED inline RealType mode(const inverse_gaussian_distribution<RealType, Policy>& dist)
 {
   BOOST_MATH_STD_USING
   RealType scale = dist.scale();
@@ -515,7 +515,7 @@ inline RealType mode(const inverse_gaussian_distribution<RealType, Policy>& dist
 }
 
 template <class RealType, class Policy>
-inline RealType skewness(const inverse_gaussian_distribution<RealType, Policy>& dist)
+BOOST_MATH_GPU_ENABLED inline RealType skewness(const inverse_gaussian_distribution<RealType, Policy>& dist)
 {
   BOOST_MATH_STD_USING
   RealType scale = dist.scale();
@@ -525,7 +525,7 @@ inline RealType skewness(const inverse_gaussian_distribution<RealType, Policy>& 
 }
 
 template <class RealType, class Policy>
-inline RealType kurtosis(const inverse_gaussian_distribution<RealType, Policy>& dist)
+BOOST_MATH_GPU_ENABLED inline RealType kurtosis(const inverse_gaussian_distribution<RealType, Policy>& dist)
 {
   RealType scale = dist.scale();
   RealType  mean = dist.mean();
@@ -534,7 +534,7 @@ inline RealType kurtosis(const inverse_gaussian_distribution<RealType, Policy>& 
 }
 
 template <class RealType, class Policy>
-inline RealType kurtosis_excess(const inverse_gaussian_distribution<RealType, Policy>& dist)
+BOOST_MATH_GPU_ENABLED inline RealType kurtosis_excess(const inverse_gaussian_distribution<RealType, Policy>& dist)
 {
   RealType scale = dist.scale();
   RealType  mean = dist.mean();

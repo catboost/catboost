@@ -8,7 +8,7 @@
 #ifndef BOOST_MATH_TOOLS_IS_DETECTED_HPP
 #define BOOST_MATH_TOOLS_IS_DETECTED_HPP
 
-#include <type_traits>
+#include <boost/math/tools/type_traits.hpp>
 
 namespace boost { namespace math { namespace tools {
 
@@ -20,14 +20,14 @@ namespace detail {
 template <typename Default, typename AlwaysVoid, template<typename...> class Op, typename... Args>
 struct detector
 {
-    using value_t = std::false_type;
+    using value_t = boost::math::false_type;
     using type = Default;
 };
 
 template <typename Default, template<typename...> class Op, typename... Args>
 struct detector<Default, void_t<Op<Args...>>, Op, Args...>
 {
-    using value_t = std::true_type;
+    using value_t = boost::math::true_type;
     using type = Op<Args...>;
 };
 

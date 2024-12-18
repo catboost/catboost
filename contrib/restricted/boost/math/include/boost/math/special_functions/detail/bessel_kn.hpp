@@ -10,8 +10,12 @@
 #pragma once
 #endif
 
+#include <boost/math/tools/config.hpp>
+#include <boost/math/tools/precision.hpp>
+#include <boost/math/policies/error_handling.hpp>
 #include <boost/math/special_functions/detail/bessel_k0.hpp>
 #include <boost/math/special_functions/detail/bessel_k1.hpp>
+#include <boost/math/special_functions/sign.hpp>
 #include <boost/math/policies/error_handling.hpp>
 
 // Modified Bessel function of the second kind of integer order
@@ -20,14 +24,14 @@
 namespace boost { namespace math { namespace detail{
 
 template <typename T, typename Policy>
-T bessel_kn(int n, T x, const Policy& pol)
+BOOST_MATH_GPU_ENABLED T bessel_kn(int n, T x, const Policy& pol)
 {
     BOOST_MATH_STD_USING
     T value, current, prev;
 
     using namespace boost::math::tools;
 
-    static const char* function = "boost::math::bessel_kn<%1%>(%1%,%1%)";
+    constexpr auto function = "boost::math::bessel_kn<%1%>(%1%,%1%)";
 
     if (x < 0)
     {

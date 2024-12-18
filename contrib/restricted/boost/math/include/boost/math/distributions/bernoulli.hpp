@@ -2,6 +2,7 @@
 
 // Copyright John Maddock 2006.
 // Copyright Paul A. Bristow 2007.
+// Copyright Matt Borland 2024.
 
 // Use, modification and distribution are subject to the
 // Boost Software License, Version 1.0.
@@ -27,13 +28,19 @@
 #ifndef BOOST_MATH_SPECIAL_BERNOULLI_HPP
 #define BOOST_MATH_SPECIAL_BERNOULLI_HPP
 
-#include <boost/math/distributions/fwd.hpp>
 #include <boost/math/tools/config.hpp>
+#include <boost/math/tools/tuple.hpp>
+#include <boost/math/tools/type_traits.hpp>
 #include <boost/math/distributions/complement.hpp> // complements
 #include <boost/math/distributions/detail/common_error_handling.hpp> // error checks
 #include <boost/math/special_functions/fpclassify.hpp> // isnan.
+#include <boost/math/policies/policy.hpp>
+#include <boost/math/policies/error_handling.hpp>
 
+#ifndef BOOST_MATH_HAS_NVRTC
 #include <utility>
+#include <boost/math/distributions/fwd.hpp>
+#endif
 
 namespace boost
 {
@@ -43,7 +50,7 @@ namespace boost
     {
       // Common error checking routines for bernoulli distribution functions:
       template <class RealType, class Policy>
-      inline bool check_success_fraction(const char* function, const RealType& p, RealType* result, const Policy& /* pol */)
+      BOOST_MATH_GPU_ENABLED inline bool check_success_fraction(const char* function, const RealType& p, RealType* result, const Policy& /* pol */)
       {
         if(!(boost::math::isfinite)(p) || (p < 0) || (p > 1))
         {
@@ -55,23 +62,23 @@ namespace boost
         return true;
       }
       template <class RealType, class Policy>
-      inline bool check_dist(const char* function, const RealType& p, RealType* result, const Policy& /* pol */, const std::true_type&)
+      BOOST_MATH_GPU_ENABLED inline bool check_dist(const char* function, const RealType& p, RealType* result, const Policy& /* pol */, const boost::math::true_type&)
       {
         return check_success_fraction(function, p, result, Policy());
       }
       template <class RealType, class Policy>
-      inline bool check_dist(const char* , const RealType& , RealType* , const Policy& /* pol */, const std::false_type&)
+      BOOST_MATH_GPU_ENABLED inline bool check_dist(const char* , const RealType& , RealType* , const Policy& /* pol */, const boost::math::false_type&)
       {
          return true;
       }
       template <class RealType, class Policy>
-      inline bool check_dist(const char* function, const RealType& p, RealType* result, const Policy& /* pol */)
+      BOOST_MATH_GPU_ENABLED inline bool check_dist(const char* function, const RealType& p, RealType* result, const Policy& /* pol */)
       {
          return check_dist(function, p, result, Policy(), typename policies::constructor_error_check<Policy>::type());
       }
 
       template <class RealType, class Policy>
-      inline bool check_dist_and_k(const char* function, const RealType& p, RealType k, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_dist_and_k(const char* function, const RealType& p, RealType k, RealType* result, const Policy& pol)
       {
         if(check_dist(function, p, result, Policy(), typename policies::method_error_check<Policy>::type()) == false)
         {
@@ -87,7 +94,7 @@ namespace boost
        return true;
       }
       template <class RealType, class Policy>
-      inline bool check_dist_and_prob(const char* function, RealType p, RealType prob, RealType* result, const Policy& /* pol */)
+      BOOST_MATH_GPU_ENABLED inline bool check_dist_and_prob(const char* function, RealType p, RealType prob, RealType* result, const Policy& /* pol */)
       {
         if((check_dist(function, p, result, Policy(), typename policies::method_error_check<Policy>::type()) && detail::check_probability(function, prob, result, Policy())) == false)
         {
@@ -105,7 +112,7 @@ namespace boost
       typedef RealType value_type;
       typedef Policy policy_type;
 
-      bernoulli_distribution(RealType p = 0.5) : m_p(p)
+      BOOST_MATH_GPU_ENABLED bernoulli_distribution(RealType p = 0.5) : m_p(p)
       { // Default probability = half suits 'fair' coin tossing
         // where probability of heads == probability of tails.
         RealType result; // of checks.
@@ -115,7 +122,7 @@ namespace boost
           &result, Policy());
       } // bernoulli_distribution constructor.
 
-      RealType success_fraction() const
+      BOOST_MATH_GPU_ENABLED RealType success_fraction() const
       { // Probability.
         return m_p;
       }
@@ -132,21 +139,21 @@ namespace boost
     #endif
 
     template <class RealType, class Policy>
-    inline const std::pair<RealType, RealType> range(const bernoulli_distribution<RealType, Policy>& /* dist */)
+    BOOST_MATH_GPU_ENABLED inline const boost::math::pair<RealType, RealType> range(const bernoulli_distribution<RealType, Policy>& /* dist */)
     { // Range of permissible values for random variable k = {0, 1}.
       using boost::math::tools::max_value;
-      return std::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
+      return boost::math::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
     }
 
     template <class RealType, class Policy>
-    inline const std::pair<RealType, RealType> support(const bernoulli_distribution<RealType, Policy>& /* dist */)
+    BOOST_MATH_GPU_ENABLED inline const boost::math::pair<RealType, RealType> support(const bernoulli_distribution<RealType, Policy>& /* dist */)
     { // Range of supported values for random variable k = {0, 1}.
       // This is range where cdf rises from 0 to 1, and outside it, the pdf is zero.
-      return std::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
+      return boost::math::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
     }
 
     template <class RealType, class Policy>
-    inline RealType mean(const bernoulli_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType mean(const bernoulli_distribution<RealType, Policy>& dist)
     { // Mean of bernoulli distribution = p (n = 1).
       return dist.success_fraction();
     } // mean
@@ -159,13 +166,13 @@ namespace boost
     //} // median
 
     template <class RealType, class Policy>
-    inline RealType variance(const bernoulli_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType variance(const bernoulli_distribution<RealType, Policy>& dist)
     { // Variance of bernoulli distribution =p * q.
       return  dist.success_fraction() * (1 - dist.success_fraction());
     } // variance
 
     template <class RealType, class Policy>
-    RealType pdf(const bernoulli_distribution<RealType, Policy>& dist, const RealType& k)
+    BOOST_MATH_GPU_ENABLED RealType pdf(const bernoulli_distribution<RealType, Policy>& dist, const RealType& k)
     { // Probability Density/Mass Function.
       BOOST_FPU_EXCEPTION_GUARD
       // Error check:
@@ -190,7 +197,7 @@ namespace boost
     } // pdf
 
     template <class RealType, class Policy>
-    inline RealType cdf(const bernoulli_distribution<RealType, Policy>& dist, const RealType& k)
+    BOOST_MATH_GPU_ENABLED inline RealType cdf(const bernoulli_distribution<RealType, Policy>& dist, const RealType& k)
     { // Cumulative Distribution Function Bernoulli.
       RealType p = dist.success_fraction();
       // Error check:
@@ -214,7 +221,7 @@ namespace boost
     } // bernoulli cdf
 
     template <class RealType, class Policy>
-    inline RealType cdf(const complemented2_type<bernoulli_distribution<RealType, Policy>, RealType>& c)
+    BOOST_MATH_GPU_ENABLED inline RealType cdf(const complemented2_type<bernoulli_distribution<RealType, Policy>, RealType>& c)
     { // Complemented Cumulative Distribution Function bernoulli.
       RealType const& k = c.param;
       bernoulli_distribution<RealType, Policy> const& dist = c.dist;
@@ -240,7 +247,7 @@ namespace boost
     } // bernoulli cdf complement
 
     template <class RealType, class Policy>
-    inline RealType quantile(const bernoulli_distribution<RealType, Policy>& dist, const RealType& p)
+    BOOST_MATH_GPU_ENABLED inline RealType quantile(const bernoulli_distribution<RealType, Policy>& dist, const RealType& p)
     { // Quantile or Percent Point Bernoulli function.
       // Return the number of expected successes k either 0 or 1.
       // for a given probability p.
@@ -265,7 +272,7 @@ namespace boost
     } // quantile
 
     template <class RealType, class Policy>
-    inline RealType quantile(const complemented2_type<bernoulli_distribution<RealType, Policy>, RealType>& c)
+    BOOST_MATH_GPU_ENABLED inline RealType quantile(const complemented2_type<bernoulli_distribution<RealType, Policy>, RealType>& c)
     { // Quantile or Percent Point bernoulli function.
       // Return the number of expected successes k for a given
       // complement of the probability q.
@@ -294,13 +301,13 @@ namespace boost
     } // quantile complemented.
 
     template <class RealType, class Policy>
-    inline RealType mode(const bernoulli_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType mode(const bernoulli_distribution<RealType, Policy>& dist)
     {
       return static_cast<RealType>((dist.success_fraction() <= 0.5) ? 0 : 1); // p = 0.5 can be 0 or 1
     }
 
     template <class RealType, class Policy>
-    inline RealType skewness(const bernoulli_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType skewness(const bernoulli_distribution<RealType, Policy>& dist)
     {
       BOOST_MATH_STD_USING; // Aid ADL for sqrt.
       RealType p = dist.success_fraction();
@@ -308,7 +315,7 @@ namespace boost
     }
 
     template <class RealType, class Policy>
-    inline RealType kurtosis_excess(const bernoulli_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType kurtosis_excess(const bernoulli_distribution<RealType, Policy>& dist)
     {
       RealType p = dist.success_fraction();
       // Note Wolfram says this is kurtosis in text, but gamma2 is the kurtosis excess,
@@ -319,7 +326,7 @@ namespace boost
     }
 
     template <class RealType, class Policy>
-    inline RealType kurtosis(const bernoulli_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType kurtosis(const bernoulli_distribution<RealType, Policy>& dist)
     {
       RealType p = dist.success_fraction();
       return 1 / (1 - p) + 1/p -6 + 3;

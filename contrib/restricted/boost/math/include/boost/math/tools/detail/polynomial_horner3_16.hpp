@@ -12,37 +12,37 @@
 namespace boost{ namespace math{ namespace tools{ namespace detail{
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T*, const V&, const std::integral_constant<int, 0>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T*, const V&, const boost::math::integral_constant<int, 0>*) BOOST_MATH_NOEXCEPT(V)
 {
    return static_cast<V>(0);
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V&, const std::integral_constant<int, 1>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V&, const boost::math::integral_constant<int, 1>*) BOOST_MATH_NOEXCEPT(V)
 {
    return static_cast<V>(a[0]);
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 2>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 2>*) BOOST_MATH_NOEXCEPT(V)
 {
    return static_cast<V>(a[1] * x + a[0]);
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 3>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 3>*) BOOST_MATH_NOEXCEPT(V)
 {
    return static_cast<V>((a[2] * x + a[1]) * x + a[0]);
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 4>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 4>*) BOOST_MATH_NOEXCEPT(V)
 {
    return static_cast<V>(((a[3] * x + a[2]) * x + a[1]) * x + a[0]);
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 5>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 5>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -55,7 +55,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 6>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 6>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -70,7 +70,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 7>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 7>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -87,7 +87,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 8>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 8>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -106,7 +106,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 9>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 9>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -127,7 +127,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 10>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 10>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -150,7 +150,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 11>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 11>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -175,7 +175,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 12>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 12>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -202,7 +202,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 13>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 13>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -231,7 +231,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 14>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 14>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -262,7 +262,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 15>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 15>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
@@ -295,7 +295,7 @@ inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_c
 }
 
 template <class T, class V>
-inline V evaluate_polynomial_c_imp(const T* a, const V& x, const std::integral_constant<int, 16>*) BOOST_MATH_NOEXCEPT(V)
+BOOST_MATH_GPU_ENABLED inline V evaluate_polynomial_c_imp(const T* a, const V& x, const boost::math::integral_constant<int, 16>*) BOOST_MATH_NOEXCEPT(V)
 {
    V x2 = x * x;
    V t[2];
