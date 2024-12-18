@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.55.0
+Version: 4.55.1
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -30,48 +30,48 @@ Classifier: Topic :: Multimedia :: Graphics
 Classifier: Topic :: Multimedia :: Graphics :: Graphics Conversion
 Requires-Python: >=3.8
 License-File: LICENSE
-Provides-Extra: all
-Requires-Dist: fs <3,>=2.2.0 ; extra == 'all'
-Requires-Dist: lxml >=4.0 ; extra == 'all'
-Requires-Dist: zopfli >=0.1.4 ; extra == 'all'
-Requires-Dist: lz4 >=1.7.4.2 ; extra == 'all'
-Requires-Dist: pycairo ; extra == 'all'
-Requires-Dist: matplotlib ; extra == 'all'
-Requires-Dist: sympy ; extra == 'all'
-Requires-Dist: skia-pathops >=0.5.0 ; extra == 'all'
-Requires-Dist: uharfbuzz >=0.23.0 ; extra == 'all'
-Requires-Dist: brotlicffi >=0.8.0 ; (platform_python_implementation != "CPython") and extra == 'all'
-Requires-Dist: scipy ; (platform_python_implementation != "PyPy") and extra == 'all'
-Requires-Dist: brotli >=1.0.1 ; (platform_python_implementation == "CPython") and extra == 'all'
-Requires-Dist: munkres ; (platform_python_implementation == "PyPy") and extra == 'all'
-Requires-Dist: unicodedata2 >=15.1.0 ; (python_version <= "3.12") and extra == 'all'
-Requires-Dist: xattr ; (sys_platform == "darwin") and extra == 'all'
-Provides-Extra: graphite
-Requires-Dist: lz4 >=1.7.4.2 ; extra == 'graphite'
-Provides-Extra: interpolatable
-Requires-Dist: pycairo ; extra == 'interpolatable'
-Requires-Dist: scipy ; (platform_python_implementation != "PyPy") and extra == 'interpolatable'
-Requires-Dist: munkres ; (platform_python_implementation == "PyPy") and extra == 'interpolatable'
-Provides-Extra: lxml
-Requires-Dist: lxml >=4.0 ; extra == 'lxml'
-Provides-Extra: pathops
-Requires-Dist: skia-pathops >=0.5.0 ; extra == 'pathops'
-Provides-Extra: plot
-Requires-Dist: matplotlib ; extra == 'plot'
-Provides-Extra: repacker
-Requires-Dist: uharfbuzz >=0.23.0 ; extra == 'repacker'
-Provides-Extra: symfont
-Requires-Dist: sympy ; extra == 'symfont'
-Provides-Extra: type1
-Requires-Dist: xattr ; (sys_platform == "darwin") and extra == 'type1'
 Provides-Extra: ufo
-Requires-Dist: fs <3,>=2.2.0 ; extra == 'ufo'
-Provides-Extra: unicode
-Requires-Dist: unicodedata2 >=15.1.0 ; (python_version <= "3.12") and extra == 'unicode'
+Requires-Dist: fs<3,>=2.2.0; extra == "ufo"
+Provides-Extra: lxml
+Requires-Dist: lxml>=4.0; extra == "lxml"
 Provides-Extra: woff
-Requires-Dist: zopfli >=0.1.4 ; extra == 'woff'
-Requires-Dist: brotlicffi >=0.8.0 ; (platform_python_implementation != "CPython") and extra == 'woff'
-Requires-Dist: brotli >=1.0.1 ; (platform_python_implementation == "CPython") and extra == 'woff'
+Requires-Dist: brotli>=1.0.1; platform_python_implementation == "CPython" and extra == "woff"
+Requires-Dist: brotlicffi>=0.8.0; platform_python_implementation != "CPython" and extra == "woff"
+Requires-Dist: zopfli>=0.1.4; extra == "woff"
+Provides-Extra: unicode
+Requires-Dist: unicodedata2>=15.1.0; python_version <= "3.12" and extra == "unicode"
+Provides-Extra: graphite
+Requires-Dist: lz4>=1.7.4.2; extra == "graphite"
+Provides-Extra: interpolatable
+Requires-Dist: scipy; platform_python_implementation != "PyPy" and extra == "interpolatable"
+Requires-Dist: munkres; platform_python_implementation == "PyPy" and extra == "interpolatable"
+Requires-Dist: pycairo; extra == "interpolatable"
+Provides-Extra: plot
+Requires-Dist: matplotlib; extra == "plot"
+Provides-Extra: symfont
+Requires-Dist: sympy; extra == "symfont"
+Provides-Extra: type1
+Requires-Dist: xattr; sys_platform == "darwin" and extra == "type1"
+Provides-Extra: pathops
+Requires-Dist: skia-pathops>=0.5.0; extra == "pathops"
+Provides-Extra: repacker
+Requires-Dist: uharfbuzz>=0.23.0; extra == "repacker"
+Provides-Extra: all
+Requires-Dist: fs<3,>=2.2.0; extra == "all"
+Requires-Dist: lxml>=4.0; extra == "all"
+Requires-Dist: brotli>=1.0.1; platform_python_implementation == "CPython" and extra == "all"
+Requires-Dist: brotlicffi>=0.8.0; platform_python_implementation != "CPython" and extra == "all"
+Requires-Dist: zopfli>=0.1.4; extra == "all"
+Requires-Dist: unicodedata2>=15.1.0; python_version <= "3.12" and extra == "all"
+Requires-Dist: lz4>=1.7.4.2; extra == "all"
+Requires-Dist: scipy; platform_python_implementation != "PyPy" and extra == "all"
+Requires-Dist: munkres; platform_python_implementation == "PyPy" and extra == "all"
+Requires-Dist: pycairo; extra == "all"
+Requires-Dist: matplotlib; extra == "all"
+Requires-Dist: sympy; extra == "all"
+Requires-Dist: xattr; sys_platform == "darwin" and extra == "all"
+Requires-Dist: skia-pathops>=0.5.0; extra == "all"
+Requires-Dist: uharfbuzz>=0.23.0; extra == "all"
 
 |CI Build Status| |Coverage Status| |PyPI| |Gitter Chat|
 
@@ -376,6 +376,15 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.55.1 (released 2024-12-02)
+----------------------------
+
+- [ttGlyphSet] Support VARC CFF2 fonts (#3683)
+- [DecomposedTransform] Document and implement always skewY == 0 (#3697)
+- [varLib] "Fix" cython iup issue? (#3704)
+- Cython minor refactor (#3705)
+
 
 4.55.0 (released 2024-11-14)
 ----------------------------

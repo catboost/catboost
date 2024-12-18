@@ -457,7 +457,12 @@ def remove_unused_subroutines(cff):
             if subrs == font.GlobalSubrs:
                 if not hasattr(font, "FDArray") and hasattr(font.Private, "Subrs"):
                     local_subrs = font.Private.Subrs
-                elif hasattr(font, "FDArray") and len(font.FDArray) == 1:
+                elif (
+                    hasattr(font, "FDArray")
+                    and len(font.FDArray) == 1
+                    and hasattr(font.FDArray[0].Private, "Subrs")
+                ):
+                    # Technically we shouldn't do this. But I've run into fonts that do it.
                     local_subrs = font.FDArray[0].Private.Subrs
                 else:
                     local_subrs = None
