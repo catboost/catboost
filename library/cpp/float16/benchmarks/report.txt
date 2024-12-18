@@ -1,0 +1,7 @@
+----------------------------------------------------------
+Benchmark                Time             CPU   Iterations
+----------------------------------------------------------
+ConvertFromZero      0.342 ns        0.342 ns   2093876199
+FillSimple             362 ns          362 ns      1887213
+FillConverted          351 ns          351 ns      1904834
+FillMemset             349 ns          349 ns      1969551
