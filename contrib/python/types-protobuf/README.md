@@ -1,20 +1,3 @@
-Metadata-Version: 2.1
-Name: types-protobuf
-Version: 5.28.3.20241203
-Summary: Typing stubs for protobuf
-Home-page: https://github.com/python/typeshed
-License: Apache-2.0
-Project-URL: GitHub, https://github.com/python/typeshed
-Project-URL: Changes, https://github.com/typeshed-internal/stub_uploader/blob/main/data/changelogs/protobuf.md
-Project-URL: Issue tracker, https://github.com/python/typeshed/issues
-Project-URL: Chat, https://gitter.im/python/typing
-Classifier: License :: OSI Approved :: Apache Software License
-Classifier: Programming Language :: Python :: 3
-Classifier: Typing :: Stubs Only
-Requires-Python: >=3.8
-Description-Content-Type: text/markdown
-License-File: LICENSE
-
 ## Typing stubs for protobuf
 
 This is a [PEP 561](https://peps.python.org/pep-0561/)
