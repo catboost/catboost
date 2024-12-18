@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fwd.h"
+#include "iterator.h"
 #include "strbase.h"
 #include "utility.h"
 #include "typetraits.h"
@@ -116,7 +117,11 @@ public:
     }
 
     constexpr inline TBasicStringBuf(const TCharType* beg Y_LIFETIME_BOUND, const TCharType* end Y_LIFETIME_BOUND) noexcept
-        : TStringView(beg, end - beg)
+#if __cplusplus >= 202002L && __cpp_lib_string_view >= 201803L && !defined(_LIBCPP_HAS_NO_CONCEPTS)
+        : TStringView(beg, end)
+#else
+        : TStringView(beg, NonNegativeDistance(beg, end))
+#endif
     {
     }
 

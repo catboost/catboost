@@ -11,6 +11,7 @@
 #include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
+#include "iterator.h"
 #include "ptr.h"
 #include "utility.h"
 #include "explicit_type.h"
@@ -519,7 +520,7 @@ public:
     }
 
     TBasicString(const TCharType* b, const TCharType* e)
-        : TBasicString(b, e - b)
+        : TBasicString(b, NonNegativeDistance(b, e))
     {
     }
 
@@ -656,7 +657,7 @@ public:
     }
 
     TBasicString& assign(const TCharType* first, const TCharType* last) Y_LIFETIME_BOUND {
-        return assign(first, last - first);
+        return assign(first, NonNegativeDistance(first, last));
     }
 
     TBasicString& assign(const TCharType* pc, size_t pos, size_t n) Y_LIFETIME_BOUND {
