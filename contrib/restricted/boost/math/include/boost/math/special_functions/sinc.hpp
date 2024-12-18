@@ -17,13 +17,13 @@
 
 #include <boost/math/tools/config.hpp>
 #include <boost/math/tools/precision.hpp>
+#include <boost/math/tools/promotion.hpp>
 #include <boost/math/policies/policy.hpp>
-#include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
-#include <limits>
-#include <string>
-#include <stdexcept>
-#include <cmath>
+
+#ifndef BOOST_MATH_HAS_NVRTC
+#include <boost/math/special_functions/math_fwd.hpp>
+#endif
 
 // These are the the "Sinus Cardinal" functions.
 
@@ -36,7 +36,7 @@ namespace boost
         // This is the "Sinus Cardinal" of index Pi.
 
         template<typename T>
-        inline T    sinc_pi_imp(const T x)
+        BOOST_MATH_GPU_ENABLED inline T    sinc_pi_imp(const T x)
         {
             BOOST_MATH_STD_USING
 
@@ -44,7 +44,7 @@ namespace boost
             {
                return 0;
             }
-            else if (abs(x) >= 3.3 * tools::forth_root_epsilon<T>())
+            else if (abs(x) >= T(3.3) * tools::forth_root_epsilon<T>())
             {
                 return(sin(x)/x);
             }
@@ -58,24 +58,23 @@ namespace boost
        } // namespace detail
 
        template <class T>
-       inline typename tools::promote_args<T>::type sinc_pi(T x)
+       BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T>::type sinc_pi(T x)
        {
           typedef typename tools::promote_args<T>::type result_type;
           return detail::sinc_pi_imp(static_cast<result_type>(x));
        }
 
        template <class T, class Policy>
-       inline typename tools::promote_args<T>::type sinc_pi(T x, const Policy&)
+       BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T>::type sinc_pi(T x, const Policy&)
        {
           typedef typename tools::promote_args<T>::type result_type;
           return detail::sinc_pi_imp(static_cast<result_type>(x));
        }
 
         template<typename T, template<typename> class U>
-        inline U<T>    sinc_pi(const U<T> x)
+        BOOST_MATH_GPU_ENABLED inline U<T>    sinc_pi(const U<T> x)
         {
             BOOST_MATH_STD_USING
-            using    ::std::numeric_limits;
 
             T const    taylor_0_bound = tools::epsilon<T>();
             T const    taylor_2_bound = tools::root_epsilon<T>();
@@ -88,11 +87,11 @@ namespace boost
             else
             {
                 // approximation by taylor series in x at 0 up to order 0
-#ifdef __MWERKS__
+                #ifdef __MWERKS__
                 U<T>    result = static_cast<U<T> >(1);
-#else
+                #else
                 U<T>    result = U<T>(1);
-#endif
+                #endif
 
                 if    (abs(x) >= taylor_0_bound)
                 {
@@ -113,7 +112,7 @@ namespace boost
         }
 
         template<typename T, template<typename> class U, class Policy>
-        inline U<T>    sinc_pi(const U<T> x, const Policy&)
+        BOOST_MATH_GPU_ENABLED inline U<T>    sinc_pi(const U<T> x, const Policy&)
         {
            return sinc_pi(x);
         }

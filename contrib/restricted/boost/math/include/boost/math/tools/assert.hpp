@@ -10,6 +10,19 @@
 #ifndef BOOST_MATH_TOOLS_ASSERT_HPP
 #define BOOST_MATH_TOOLS_ASSERT_HPP
 
+#include <boost/math/tools/config.hpp>
+
+#ifdef BOOST_MATH_HAS_GPU_SUPPORT
+
+// Run time asserts are generally unsupported
+
+#define BOOST_MATH_ASSERT(expr)
+#define BOOST_MATH_ASSERT_MSG(expr, msg)
+#define BOOST_MATH_STATIC_ASSERT(expr) static_assert(expr, #expr " failed")
+#define BOOST_MATH_STATIC_ASSERT_MSG(expr, msg) static_assert(expr, msg)
+
+#else
+
 #include <boost/math/tools/is_standalone.hpp>
 
 #ifndef BOOST_MATH_STANDALONE
@@ -29,6 +42,8 @@
 #define BOOST_MATH_STATIC_ASSERT(expr) static_assert(expr, #expr " failed")
 #define BOOST_MATH_STATIC_ASSERT_MSG(expr, msg) static_assert(expr, msg)
 
-#endif
+#endif // Is standalone
+
+#endif // BOOST_MATH_HAS_GPU_SUPPORT
 
 #endif // BOOST_MATH_TOOLS_ASSERT_HPP

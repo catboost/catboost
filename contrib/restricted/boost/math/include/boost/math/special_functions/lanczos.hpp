@@ -11,12 +11,16 @@
 #endif
 
 #include <boost/math/tools/config.hpp>
-#include <boost/math/tools/big_constant.hpp>
 #include <boost/math/tools/rational.hpp>
+#include <boost/math/tools/type_traits.hpp>
+#include <boost/math/tools/numeric_limits.hpp>
+#include <boost/math/tools/cstdint.hpp>
 #include <boost/math/policies/policy.hpp>
-#include <limits>
-#include <type_traits>
+
+#ifndef BOOST_MATH_HAS_NVRTC
+#include <boost/math/tools/big_constant.hpp>
 #include <cstdint>
+#endif
 
 #if defined(__GNUC__) && defined(BOOST_MATH_USE_FLOAT128)
 //
@@ -48,7 +52,7 @@ namespace boost{ namespace math{ namespace lanczos{
 // Default version assumes all g() values are the same.
 //
 template <class L>
-inline double lanczos_g_near_1_and_2(const L&)
+BOOST_MATH_GPU_ENABLED inline double lanczos_g_near_1_and_2(const L&)
 {
    return L::g();
 }
@@ -59,17 +63,17 @@ inline double lanczos_g_near_1_and_2(const L&)
 // Max experimental error (with arbitrary precision arithmetic) 9.516e-12
 // Generated with compiler: Microsoft Visual C++ version 8.0 on Win32 at Mar 23 2006
 //
-struct lanczos6 : public std::integral_constant<int, 35>
+struct lanczos6 : public boost::math::integral_constant<int, 35>
 {
    //
    // Produces slightly better than float precision when evaluated at
    // double precision:
    //
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[6] = {
+      BOOST_MATH_STATIC const T num[6] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 8706.349592549009182288174442774377925882)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 8523.650341121874633477483696775067709735)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 3338.029219476423550899999750161289306564)),
@@ -77,23 +81,23 @@ struct lanczos6 : public std::integral_constant<int, 35>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 63.99951844938187085666201263218840287667)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 2.506628274631006311133031631822390264407))
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint16_t) denom[6] = {
-         static_cast<std::uint16_t>(0u),
-         static_cast<std::uint16_t>(24u),
-         static_cast<std::uint16_t>(50u),
-         static_cast<std::uint16_t>(35u),
-         static_cast<std::uint16_t>(10u),
-         static_cast<std::uint16_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint16_t) denom[6] = {
+         static_cast<boost::math::uint16_t>(0u),
+         static_cast<boost::math::uint16_t>(24u),
+         static_cast<boost::math::uint16_t>(50u),
+         static_cast<boost::math::uint16_t>(35u),
+         static_cast<boost::math::uint16_t>(10u),
+         static_cast<boost::math::uint16_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[6] = {
+      BOOST_MATH_STATIC const T num[6] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 32.81244541029783471623665933780748627823)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 32.12388941444332003446077108933558534361)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 12.58034729455216106950851080138931470954)),
@@ -101,13 +105,13 @@ struct lanczos6 : public std::integral_constant<int, 35>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 0.2412010548258800231126240760264822486599)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 0.009446967704539249494420221613134244048319))
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint16_t) denom[6] = {
-         static_cast<std::uint16_t>(0u),
-         static_cast<std::uint16_t>(24u),
-         static_cast<std::uint16_t>(50u),
-         static_cast<std::uint16_t>(35u),
-         static_cast<std::uint16_t>(10u),
-         static_cast<std::uint16_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint16_t) denom[6] = {
+         static_cast<boost::math::uint16_t>(0u),
+         static_cast<boost::math::uint16_t>(24u),
+         static_cast<boost::math::uint16_t>(50u),
+         static_cast<boost::math::uint16_t>(35u),
+         static_cast<boost::math::uint16_t>(10u),
+         static_cast<boost::math::uint16_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
@@ -115,10 +119,10 @@ struct lanczos6 : public std::integral_constant<int, 35>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[5] = {
+      BOOST_MATH_STATIC const T d[5] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 2.044879010930422922760429926121241330235)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, -2.751366405578505366591317846728753993668)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 1.02282965224225004296750609604264824677)),
@@ -135,10 +139,10 @@ struct lanczos6 : public std::integral_constant<int, 35>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[5] = {
+      BOOST_MATH_STATIC const T d[5] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 5.748142489536043490764289256167080091892)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, -7.734074268282457156081021756682138251825)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 35, 2.875167944990511006997713242805893543947)),
@@ -155,7 +159,7 @@ struct lanczos6 : public std::integral_constant<int, 35>
       return result;
    }
 
-   static double g(){ return 5.581000000000000405009359383257105946541; }
+   BOOST_MATH_GPU_ENABLED static double g(){ return 5.581000000000000405009359383257105946541; }
 };
 
 //
@@ -163,17 +167,17 @@ struct lanczos6 : public std::integral_constant<int, 35>
 // Max experimental error (with arbitrary precision arithmetic) 2.16676e-19
 // Generated with compiler: Microsoft Visual C++ version 8.0 on Win32 at Mar 23 2006
 //
-struct lanczos11 : public std::integral_constant<int, 60>
+struct lanczos11 : public boost::math::integral_constant<int, 60>
 {
    //
    // Produces slightly better than double precision when evaluated at
    // extended-double precision:
    //
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[11] = {
+      BOOST_MATH_STATIC const T num[11] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 38474670393.31776828316099004518914832218)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 36857665043.51950660081971227404959150474)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 15889202453.72942008945006665994637853242)),
@@ -186,28 +190,28 @@ struct lanczos11 : public std::integral_constant<int, 60>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 261.6140441641668190791708576058805625502)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 2.506628274631000502415573855452633787834))
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint32_t) denom[11] = {
-         static_cast<std::uint32_t>(0u),
-         static_cast<std::uint32_t>(362880u),
-         static_cast<std::uint32_t>(1026576u),
-         static_cast<std::uint32_t>(1172700u),
-         static_cast<std::uint32_t>(723680u),
-         static_cast<std::uint32_t>(269325u),
-         static_cast<std::uint32_t>(63273u),
-         static_cast<std::uint32_t>(9450u),
-         static_cast<std::uint32_t>(870u),
-         static_cast<std::uint32_t>(45u),
-         static_cast<std::uint32_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint32_t) denom[11] = {
+         static_cast<boost::math::uint32_t>(0u),
+         static_cast<boost::math::uint32_t>(362880u),
+         static_cast<boost::math::uint32_t>(1026576u),
+         static_cast<boost::math::uint32_t>(1172700u),
+         static_cast<boost::math::uint32_t>(723680u),
+         static_cast<boost::math::uint32_t>(269325u),
+         static_cast<boost::math::uint32_t>(63273u),
+         static_cast<boost::math::uint32_t>(9450u),
+         static_cast<boost::math::uint32_t>(870u),
+         static_cast<boost::math::uint32_t>(45u),
+         static_cast<boost::math::uint32_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[11] = {
+      BOOST_MATH_STATIC const T num[11] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 709811.662581657956893540610814842699825)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 679979.847415722640161734319823103390728)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 293136.785721159725251629480984140341656)),
@@ -220,18 +224,18 @@ struct lanczos11 : public std::integral_constant<int, 60>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 0.004826466289237661857584712046231435101741)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 0.4624429436045378766270459638520555557321e-4))
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint32_t) denom[11] = {
-         static_cast<std::uint32_t>(0u),
-         static_cast<std::uint32_t>(362880u),
-         static_cast<std::uint32_t>(1026576u),
-         static_cast<std::uint32_t>(1172700u),
-         static_cast<std::uint32_t>(723680u),
-         static_cast<std::uint32_t>(269325u),
-         static_cast<std::uint32_t>(63273u),
-         static_cast<std::uint32_t>(9450u),
-         static_cast<std::uint32_t>(870u),
-         static_cast<std::uint32_t>(45u),
-         static_cast<std::uint32_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint32_t) denom[11] = {
+         static_cast<boost::math::uint32_t>(0u),
+         static_cast<boost::math::uint32_t>(362880u),
+         static_cast<boost::math::uint32_t>(1026576u),
+         static_cast<boost::math::uint32_t>(1172700u),
+         static_cast<boost::math::uint32_t>(723680u),
+         static_cast<boost::math::uint32_t>(269325u),
+         static_cast<boost::math::uint32_t>(63273u),
+         static_cast<boost::math::uint32_t>(9450u),
+         static_cast<boost::math::uint32_t>(870u),
+         static_cast<boost::math::uint32_t>(45u),
+         static_cast<boost::math::uint32_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
@@ -239,10 +243,10 @@ struct lanczos11 : public std::integral_constant<int, 60>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[10] = {
+      BOOST_MATH_STATIC const T d[10] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 4.005853070677940377969080796551266387954)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, -13.17044315127646469834125159673527183164)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 17.19146865350790353683895137079288129318)),
@@ -264,10 +268,10 @@ struct lanczos11 : public std::integral_constant<int, 60>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[10] = {
+      BOOST_MATH_STATIC const T d[10] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 19.05889633808148715159575716844556056056)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, -62.66183664701721716960978577959655644762)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 60, 81.7929198065004751699057192860287512027)),
@@ -289,7 +293,7 @@ struct lanczos11 : public std::integral_constant<int, 60>
       return result;
    }
 
-   static double g(){ return 10.90051099999999983936049829935654997826; }
+   BOOST_MATH_GPU_ENABLED static double g(){ return 10.90051099999999983936049829935654997826; }
 };
 
 //
@@ -297,17 +301,17 @@ struct lanczos11 : public std::integral_constant<int, 60>
 // Max experimental error (with arbitrary precision arithmetic) 9.2213e-23
 // Generated with compiler: Microsoft Visual C++ version 8.0 on Win32 at Mar 23 2006
 //
-struct lanczos13 : public std::integral_constant<int, 72>
+struct lanczos13 : public boost::math::integral_constant<int, 72>
 {
    //
    // Produces slightly better than extended-double precision when evaluated at
    // higher precision:
    //
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[13] = {
+      BOOST_MATH_STATIC const T num[13] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 44012138428004.60895436261759919070125699)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 41590453358593.20051581730723108131357995)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 18013842787117.99677796276038389462742949)),
@@ -322,30 +326,30 @@ struct lanczos13 : public std::integral_constant<int, 72>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 381.8801248632926870394389468349331394196)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 2.506628274631000502415763426076722427007))
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint32_t) denom[13] = {
-         static_cast<std::uint32_t>(0u),
-         static_cast<std::uint32_t>(39916800u),
-         static_cast<std::uint32_t>(120543840u),
-         static_cast<std::uint32_t>(150917976u),
-         static_cast<std::uint32_t>(105258076u),
-         static_cast<std::uint32_t>(45995730u),
-         static_cast<std::uint32_t>(13339535u),
-         static_cast<std::uint32_t>(2637558u),
-         static_cast<std::uint32_t>(357423u),
-         static_cast<std::uint32_t>(32670u),
-         static_cast<std::uint32_t>(1925u),
-         static_cast<std::uint32_t>(66u),
-         static_cast<std::uint32_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint32_t) denom[13] = {
+         static_cast<boost::math::uint32_t>(0u),
+         static_cast<boost::math::uint32_t>(39916800u),
+         static_cast<boost::math::uint32_t>(120543840u),
+         static_cast<boost::math::uint32_t>(150917976u),
+         static_cast<boost::math::uint32_t>(105258076u),
+         static_cast<boost::math::uint32_t>(45995730u),
+         static_cast<boost::math::uint32_t>(13339535u),
+         static_cast<boost::math::uint32_t>(2637558u),
+         static_cast<boost::math::uint32_t>(357423u),
+         static_cast<boost::math::uint32_t>(32670u),
+         static_cast<boost::math::uint32_t>(1925u),
+         static_cast<boost::math::uint32_t>(66u),
+         static_cast<boost::math::uint32_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[13] = {
+      BOOST_MATH_STATIC const T num[13] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 86091529.53418537217994842267760536134841)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 81354505.17858011242874285785316135398567)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 35236626.38815461910817650960734605416521)),
@@ -360,20 +364,20 @@ struct lanczos13 : public std::integral_constant<int, 72>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 0.0007469903808915448316510079585999893674101)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 0.4903180573459871862552197089738373164184e-5))
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint32_t) denom[13] = {
-         static_cast<std::uint32_t>(0u),
-         static_cast<std::uint32_t>(39916800u),
-         static_cast<std::uint32_t>(120543840u),
-         static_cast<std::uint32_t>(150917976u),
-         static_cast<std::uint32_t>(105258076u),
-         static_cast<std::uint32_t>(45995730u),
-         static_cast<std::uint32_t>(13339535u),
-         static_cast<std::uint32_t>(2637558u),
-         static_cast<std::uint32_t>(357423u),
-         static_cast<std::uint32_t>(32670u),
-         static_cast<std::uint32_t>(1925u),
-         static_cast<std::uint32_t>(66u),
-         static_cast<std::uint32_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint32_t) denom[13] = {
+         static_cast<boost::math::uint32_t>(0u),
+         static_cast<boost::math::uint32_t>(39916800u),
+         static_cast<boost::math::uint32_t>(120543840u),
+         static_cast<boost::math::uint32_t>(150917976u),
+         static_cast<boost::math::uint32_t>(105258076u),
+         static_cast<boost::math::uint32_t>(45995730u),
+         static_cast<boost::math::uint32_t>(13339535u),
+         static_cast<boost::math::uint32_t>(2637558u),
+         static_cast<boost::math::uint32_t>(357423u),
+         static_cast<boost::math::uint32_t>(32670u),
+         static_cast<boost::math::uint32_t>(1925u),
+         static_cast<boost::math::uint32_t>(66u),
+         static_cast<boost::math::uint32_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
@@ -381,10 +385,10 @@ struct lanczos13 : public std::integral_constant<int, 72>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[12] = {
+      BOOST_MATH_STATIC const T d[12] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 4.832115561461656947793029596285626840312)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, -19.86441536140337740383120735104359034688)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 33.9927422807443239927197864963170585331)),
@@ -408,10 +412,10 @@ struct lanczos13 : public std::integral_constant<int, 72>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[12] = {
+      BOOST_MATH_STATIC const T d[12] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 26.96979819614830698367887026728396466395)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, -110.8705424709385114023884328797900204863)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 72, 189.7258846119231466417015694690434770085)),
@@ -435,7 +439,7 @@ struct lanczos13 : public std::integral_constant<int, 72>
       return result;
    }
 
-   static double g(){ return 13.1445650000000000545696821063756942749; }
+   BOOST_MATH_GPU_ENABLED static double g(){ return 13.1445650000000000545696821063756942749; }
 };
 
 //
@@ -443,16 +447,16 @@ struct lanczos13 : public std::integral_constant<int, 72>
 // Max experimental error (with arbitrary precision arithmetic) 8.111667e-8
 // Generated with compiler: Microsoft Visual C++ version 8.0 on Win32 at Mar 23 2006
 //
-struct lanczos6m24 : public std::integral_constant<int, 24>
+struct lanczos6m24 : public boost::math::integral_constant<int, 24>
 {
    //
    // Use for float precision, when evaluated as a float:
    //
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[6] = {
+      BOOST_MATH_STATIC const T num[6] = {
          static_cast<T>(58.52061591769095910314047740215847630266L),
          static_cast<T>(182.5248962595894264831189414768236280862L),
          static_cast<T>(211.0971093028510041839168287718170827259L),
@@ -460,23 +464,23 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
          static_cast<T>(27.5192015197455403062503721613097825345L),
          static_cast<T>(2.50662858515256974113978724717473206342L)
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint16_t) denom[6] = {
-         static_cast<std::uint16_t>(0u),
-         static_cast<std::uint16_t>(24u),
-         static_cast<std::uint16_t>(50u),
-         static_cast<std::uint16_t>(35u),
-         static_cast<std::uint16_t>(10u),
-         static_cast<std::uint16_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint16_t) denom[6] = {
+         static_cast<boost::math::uint16_t>(0u),
+         static_cast<boost::math::uint16_t>(24u),
+         static_cast<boost::math::uint16_t>(50u),
+         static_cast<boost::math::uint16_t>(35u),
+         static_cast<boost::math::uint16_t>(10u),
+         static_cast<boost::math::uint16_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[6] = {
+      BOOST_MATH_STATIC const T num[6] = {
          static_cast<T>(14.0261432874996476619570577285003839357L),
          static_cast<T>(43.74732405540314316089531289293124360129L),
          static_cast<T>(50.59547402616588964511581430025589038612L),
@@ -484,13 +488,13 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
          static_cast<T>(6.595765571169314946316366571954421695196L),
          static_cast<T>(0.6007854010515290065101128585795542383721L)
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint16_t) denom[6] = {
-         static_cast<std::uint16_t>(0u),
-         static_cast<std::uint16_t>(24u),
-         static_cast<std::uint16_t>(50u),
-         static_cast<std::uint16_t>(35u),
-         static_cast<std::uint16_t>(10u),
-         static_cast<std::uint16_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint16_t) denom[6] = {
+         static_cast<boost::math::uint16_t>(0u),
+         static_cast<boost::math::uint16_t>(24u),
+         static_cast<boost::math::uint16_t>(50u),
+         static_cast<boost::math::uint16_t>(35u),
+         static_cast<boost::math::uint16_t>(10u),
+         static_cast<boost::math::uint16_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
@@ -498,10 +502,10 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[5] = {
+      BOOST_MATH_STATIC const T d[5] = {
          static_cast<T>(0.4922488055204602807654354732674868442106L),
          static_cast<T>(0.004954497451132152436631238060933905650346L),
          static_cast<T>(-0.003374784572167105840686977985330859371848L),
@@ -518,10 +522,10 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[5] = {
+      BOOST_MATH_STATIC const T d[5] = {
          static_cast<T>(0.6534966888520080645505805298901130485464L),
          static_cast<T>(0.006577461728560758362509168026049182707101L),
          static_cast<T>(-0.004480276069269967207178373559014835978161L),
@@ -538,7 +542,7 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
       return result;
    }
 
-   static double g(){ return 1.428456135094165802001953125; }
+   BOOST_MATH_GPU_ENABLED static double g(){ return 1.428456135094165802001953125; }
 };
 
 //
@@ -546,16 +550,16 @@ struct lanczos6m24 : public std::integral_constant<int, 24>
 // Max experimental error (with arbitrary precision arithmetic) 1.196214e-17
 // Generated with compiler: Microsoft Visual C++ version 8.0 on Win32 at Mar 23 2006
 //
-struct lanczos13m53 : public std::integral_constant<int, 53>
+struct lanczos13m53 : public boost::math::integral_constant<int, 53>
 {
    //
    // Use for double precision, when evaluated as a double:
    //
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[13] = {
+      BOOST_MATH_STATIC const T num[13] = {
          static_cast<T>(23531376880.41075968857200767445163675473L),
          static_cast<T>(42919803642.64909876895789904700198885093L),
          static_cast<T>(35711959237.35566804944018545154716670596L),
@@ -570,30 +574,30 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
          static_cast<T>(210.8242777515793458725097339207133627117L),
          static_cast<T>(2.506628274631000270164908177133837338626L)
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint32_t) denom[13] = {
-         static_cast<std::uint32_t>(0u),
-         static_cast<std::uint32_t>(39916800u),
-         static_cast<std::uint32_t>(120543840u),
-         static_cast<std::uint32_t>(150917976u),
-         static_cast<std::uint32_t>(105258076u),
-         static_cast<std::uint32_t>(45995730u),
-         static_cast<std::uint32_t>(13339535u),
-         static_cast<std::uint32_t>(2637558u),
-         static_cast<std::uint32_t>(357423u),
-         static_cast<std::uint32_t>(32670u),
-         static_cast<std::uint32_t>(1925u),
-         static_cast<std::uint32_t>(66u),
-         static_cast<std::uint32_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint32_t) denom[13] = {
+         static_cast<boost::math::uint32_t>(0u),
+         static_cast<boost::math::uint32_t>(39916800u),
+         static_cast<boost::math::uint32_t>(120543840u),
+         static_cast<boost::math::uint32_t>(150917976u),
+         static_cast<boost::math::uint32_t>(105258076u),
+         static_cast<boost::math::uint32_t>(45995730u),
+         static_cast<boost::math::uint32_t>(13339535u),
+         static_cast<boost::math::uint32_t>(2637558u),
+         static_cast<boost::math::uint32_t>(357423u),
+         static_cast<boost::math::uint32_t>(32670u),
+         static_cast<boost::math::uint32_t>(1925u),
+         static_cast<boost::math::uint32_t>(66u),
+         static_cast<boost::math::uint32_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[13] = {
+      BOOST_MATH_STATIC const T num[13] = {
          static_cast<T>(56906521.91347156388090791033559122686859L),
          static_cast<T>(103794043.1163445451906271053616070238554L),
          static_cast<T>(86363131.28813859145546927288977868422342L),
@@ -608,20 +612,20 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
          static_cast<T>(0.5098416655656676188125178644804694509993L),
          static_cast<T>(0.006061842346248906525783753964555936883222L)
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint32_t) denom[13] = {
-         static_cast<std::uint32_t>(0u),
-         static_cast<std::uint32_t>(39916800u),
-         static_cast<std::uint32_t>(120543840u),
-         static_cast<std::uint32_t>(150917976u),
-         static_cast<std::uint32_t>(105258076u),
-         static_cast<std::uint32_t>(45995730u),
-         static_cast<std::uint32_t>(13339535u),
-         static_cast<std::uint32_t>(2637558u),
-         static_cast<std::uint32_t>(357423u),
-         static_cast<std::uint32_t>(32670u),
-         static_cast<std::uint32_t>(1925u),
-         static_cast<std::uint32_t>(66u),
-         static_cast<std::uint32_t>(1u)
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint32_t) denom[13] = {
+         static_cast<boost::math::uint32_t>(0u),
+         static_cast<boost::math::uint32_t>(39916800u),
+         static_cast<boost::math::uint32_t>(120543840u),
+         static_cast<boost::math::uint32_t>(150917976u),
+         static_cast<boost::math::uint32_t>(105258076u),
+         static_cast<boost::math::uint32_t>(45995730u),
+         static_cast<boost::math::uint32_t>(13339535u),
+         static_cast<boost::math::uint32_t>(2637558u),
+         static_cast<boost::math::uint32_t>(357423u),
+         static_cast<boost::math::uint32_t>(32670u),
+         static_cast<boost::math::uint32_t>(1925u),
+         static_cast<boost::math::uint32_t>(66u),
+         static_cast<boost::math::uint32_t>(1u)
       };
       // LCOV_EXCL_STOP
       return boost::math::tools::evaluate_rational(num, denom, z);
@@ -629,10 +633,10 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[12] = {
+      BOOST_MATH_STATIC const T d[12] = {
          static_cast<T>(2.208709979316623790862569924861841433016L),
          static_cast<T>(-3.327150580651624233553677113928873034916L),
          static_cast<T>(1.483082862367253753040442933770164111678L),
@@ -656,10 +660,10 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[12] = {
+      BOOST_MATH_STATIC const T d[12] = {
          static_cast<T>(6.565936202082889535528455955485877361223L),
          static_cast<T>(-9.8907772644920670589288081640128194231L),
          static_cast<T>(4.408830289125943377923077727900630927902L),
@@ -683,7 +687,7 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
       return result;
    }
 
-   static double g(){ return 6.024680040776729583740234375; }
+   BOOST_MATH_GPU_ENABLED static double g(){ return 6.024680040776729583740234375; }
 };
 
 //
@@ -691,16 +695,16 @@ struct lanczos13m53 : public std::integral_constant<int, 53>
 // Max experimental error (with arbitrary precision arithmetic) 2.7699e-26
 // Generated with compiler: Microsoft Visual C++ version 8.0 on Win32 at Mar 23 2006
 //
-struct lanczos17m64 : public std::integral_constant<int, 64>
+struct lanczos17m64 : public boost::math::integral_constant<int, 64>
 {
    //
    // Use for extended-double precision, when evaluated as an extended-double:
    //
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[17] = {
+      BOOST_MATH_STATIC const T num[17] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 553681095419291969.2230556393350368550504)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 731918863887667017.2511276782146694632234)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 453393234285807339.4627124634539085143364)),
@@ -719,7 +723,7 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 488.0063567520005730476791712814838113252)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 2.50662827463100050241576877135758834683))
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint64_t) denom[17] = {
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint64_t) denom[17] = {
          BOOST_MATH_INT_VALUE_SUFFIX(0, uLL),
          BOOST_MATH_INT_VALUE_SUFFIX(1307674368000, uLL),
          BOOST_MATH_INT_VALUE_SUFFIX(4339163001600, uLL),
@@ -743,10 +747,10 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[17] = {
+      BOOST_MATH_STATIC const T num[17] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 2715894658327.717377557655133124376674911)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 3590179526097.912105038525528721129550434)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 2223966599737.814969312127353235818710172)),
@@ -765,7 +769,7 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 0.002393749522058449186690627996063983095463)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 0.1229541408909435212800785616808830746135e-4))
       };
-      static const BOOST_MATH_INT_TABLE_TYPE(T, std::uint64_t) denom[17] = {
+      BOOST_MATH_STATIC const BOOST_MATH_INT_TABLE_TYPE(T, boost::math::uint64_t) denom[17] = {
          BOOST_MATH_INT_VALUE_SUFFIX(0, uLL),
          BOOST_MATH_INT_VALUE_SUFFIX(1307674368000, uLL),
          BOOST_MATH_INT_VALUE_SUFFIX(4339163001600, uLL),
@@ -790,10 +794,10 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[16] = {
+      BOOST_MATH_STATIC const T d[16] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 4.493645054286536365763334986866616581265)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, -16.95716370392468543800733966378143997694)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 26.19196892983737527836811770970479846644)),
@@ -821,10 +825,10 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[16] = {
+      BOOST_MATH_STATIC const T d[16] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 23.56409085052261327114594781581930373708)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, -88.92116338946308797946237246006238652361)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 64, 137.3472822086847596961177383569603988797)),
@@ -852,7 +856,7 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
       return result;
    }
 
-   static double g(){ return 12.2252227365970611572265625; }
+   BOOST_MATH_GPU_ENABLED static double g(){ return 12.2252227365970611572265625; }
 };
 
 //
@@ -860,16 +864,16 @@ struct lanczos17m64 : public std::integral_constant<int, 64>
 // Max experimental error (with arbitrary precision arithmetic) 1.0541e-38
 // Generated with compiler: Microsoft Visual C++ version 8.0 on Win32 at Mar 23 2006
 //
-struct lanczos24m113 : public std::integral_constant<int, 113>
+struct lanczos24m113 : public boost::math::integral_constant<int, 113>
 {
    //
    // Use for long-double precision, when evaluated as an long-double:
    //
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[24] = {
+      BOOST_MATH_STATIC const T num[24] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 2029889364934367661624137213253.22102954656825019111612712252027267955023987678816620961507)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 2338599599286656537526273232565.2727349714338768161421882478417543004440597874814359063158)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 1288527989493833400335117708406.3953711906175960449186720680201425446299360322830739180195)),
@@ -895,7 +899,7 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 1151.61895453463992438325318456328526085882924197763140514450975619271382783957699017875304)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 2.50662827463100050241576528481104515966515623051532908941425544355490413900497467936202516))
       };
-      static const T denom[24] = {
+      BOOST_MATH_STATIC const T denom[24] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.0)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.112400072777760768e22)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.414847677933545472e22)),
@@ -926,10 +930,10 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[24] = {
+      BOOST_MATH_STATIC const T num[24] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 3035162425359883494754.02878223286972654682199012688209026810841953293372712802258398358538)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 3496756894406430103600.16057175075063458536101374170860226963245118484234495645518505519827)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 1926652656689320888654.01954015145958293168365236755537645929361841917596501251362171653478)),
@@ -955,7 +959,7 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.172194142179211139195966608011235161516824700287310869949928393345257114743230967204370963e-5)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.374799931707148855771381263542708435935402853962736029347951399323367765509988401336565436e-8))
       };
-      static const T denom[24] = {
+      BOOST_MATH_STATIC const T denom[24] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.0)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.112400072777760768e22)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 0.414847677933545472e22)),
@@ -987,10 +991,10 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[23] = {
+      BOOST_MATH_STATIC const T d[23] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 7.4734083002469026177867421609938203388868806387315406134072298925733950040583068760685908)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, -50.4225805042247530267317342133388132970816607563062253708655085754357843064134941138154171)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 152.288200621747008570784082624444625293884063492396162110698238568311211546361189979357019)),
@@ -1025,10 +1029,10 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[23] = {
+      BOOST_MATH_STATIC const T d[23] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 61.4165001061101455341808888883960361969557848005400286332291451422461117307237198559485365)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, -414.372973678657049667308134761613915623353625332248315105320470271523320700386200587519147)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 113, 1251.50505818554680171298972755376376836161706773644771875668053742215217922228357204561873)),
@@ -1063,7 +1067,7 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
       return result;
    }
 
-   static double g(){ return 20.3209821879863739013671875; }
+   BOOST_MATH_GPU_ENABLED static double g(){ return 20.3209821879863739013671875; }
 };
 
 //
@@ -1072,13 +1076,13 @@ struct lanczos24m113 : public std::integral_constant<int, 113>
 // Generated with compiler: Microsoft Visual C++ version 14.2 on Win32 at May 23 2021
 // Type precision was 134 bits or 42 max_digits10
 //
-struct lanczos27MP : public std::integral_constant<int, 134>
+struct lanczos27MP : public boost::math::integral_constant<int, 134>
 {
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[27] = {
+      BOOST_MATH_STATIC const T num[27] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 2.532923291341302819860952064783714673718970e+36)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 2.715272050979243637524956158081893927075092e+36)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 1.399396313336459710065708403038293278484916e+36)),
@@ -1107,7 +1111,7 @@ struct lanczos27MP : public std::integral_constant<int, 134>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 1.580741273679785112052701460119954412080073e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 2.506628274631000502415765284811045253005320e+00))
       };
-      static const T denom[27] = {
+      BOOST_MATH_STATIC const T denom[27] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 0.000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 1.551121004333098598400000000000000000000000e+25)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 5.919012881170120359936000000000000000000000e+25)),
@@ -1141,10 +1145,10 @@ struct lanczos27MP : public std::integral_constant<int, 134>
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[27] = {
+      BOOST_MATH_STATIC const T num[27] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 4.630539114451826442425094380936505531231478e+25)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 4.963898228350662244301785145431331232866294e+25)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 2.558292778812387748738731408569861630189290e+25)),
@@ -1173,7 +1177,7 @@ struct lanczos27MP : public std::integral_constant<int, 134>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 2.889816806780013044430000551700375309307825e-08)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 4.582468135039046226997146555551548992616343e-11))
       };
-      static const T denom[27] = {
+      BOOST_MATH_STATIC const T denom[27] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 0.000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 1.551121004333098598400000000000000000000000e+25)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 5.919012881170120359936000000000000000000000e+25)),
@@ -1208,10 +1212,10 @@ struct lanczos27MP : public std::integral_constant<int, 134>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[34] = {
+      BOOST_MATH_STATIC const T d[34] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 6.264579889722939745225908247624593169040293e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, -3.470545597111704235784909052092266897169254e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 8.398164226943527197542310295220360303173237e+01)),
@@ -1257,10 +1261,10 @@ struct lanczos27MP : public std::integral_constant<int, 134>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[34] = {
+      BOOST_MATH_STATIC const T d[34] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 4.391991857844535020743473289228849738381662e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, -2.433141291692735004291785549611375831426138e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 134, 5.887812040849956173864447000497922705559488e+02)),
@@ -1306,10 +1310,10 @@ struct lanczos27MP : public std::integral_constant<int, 134>
       return result;
    }
 
-   static double g() { return 2.472513680905104038743047567550092935562134e+01; }
+   BOOST_MATH_GPU_ENABLED static double g() { return 2.472513680905104038743047567550092935562134e+01; }
 };
 
-inline double lanczos_g_near_1_and_2(const lanczos27MP&)
+BOOST_MATH_GPU_ENABLED inline double lanczos_g_near_1_and_2(const lanczos27MP&)
 {
    return 17.03623256087303;
 }
@@ -1320,13 +1324,13 @@ inline double lanczos_g_near_1_and_2(const lanczos27MP&)
 // Generated with compiler: Microsoft Visual C++ version 14.2 on Win32 at Oct 14 2019
 // Type precision was 168 bits or 53 max_digits10
 //
-struct lanczos35MP : public std::integral_constant<int, 168>
+struct lanczos35MP : public boost::math::integral_constant<int, 168>
 {
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[35] = {
+      BOOST_MATH_STATIC const T num[35] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 2.17215050716253100021302249837728942659410271586236104e+50)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 2.51055117651708470336913962553466820524801246971658127e+50)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 1.40813458996718289733677017073036013655624930344397267e+50)),
@@ -1363,7 +1367,7 @@ struct lanczos35MP : public std::integral_constant<int, 168>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 2.50897418653428667959996348205296461689142907811767371e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 2.50662827463100050241576528481104525300698674060984055e+00))
       };
-      static const T denom[35] = {
+      BOOST_MATH_STATIC const T denom[35] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 0.00000000000000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 8.68331761881188649551819440128000000000000000000000000e+36)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 3.55043336733310191803732770947072000000000000000000000e+37)),
@@ -1405,10 +1409,10 @@ struct lanczos35MP : public std::integral_constant<int, 168>
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[35] = {
+      BOOST_MATH_STATIC const T num[35] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 2.84421398435712762388902267099927585742388886580864424e+37)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 3.28731583799033736725852757551292030085556435695468295e+37)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 1.84381150359300352571680869181416248982215282642834936e+37)),
@@ -1445,7 +1449,7 @@ struct lanczos35MP : public std::integral_constant<int, 168>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 3.28525092722679899458094768960179796663588010298597603e-10)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 3.28217919006153582429216342066702743329957749672852350e-13))
       };
-      static const T denom[35] = {
+      BOOST_MATH_STATIC const T denom[35] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 0.00000000000000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 8.68331761881188649551819440128000000000000000000000000e+36)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 3.55043336733310191803732770947072000000000000000000000e+37)),
@@ -1488,10 +1492,10 @@ struct lanczos35MP : public std::integral_constant<int, 168>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[42] = {
+      BOOST_MATH_STATIC const T d[42] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 8.2258008829795701933757823508857131818190413131511363e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, -6.1680809698202901664719598422224259984110345848176138e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 2.0937956909159916126016144892534179459545368045658870e+02)),
@@ -1545,10 +1549,10 @@ struct lanczos35MP : public std::integral_constant<int, 168>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[42] = {
+      BOOST_MATH_STATIC const T d[42] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 7.3782193657165970743894979068466124765194827248379940e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, -5.5325256602067816772285455933211570612342576586214891e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 168, 1.8780522570799869937961476290263461833002660531646012e+03)),
@@ -1602,10 +1606,10 @@ struct lanczos35MP : public std::integral_constant<int, 168>
       return result;
    }
 
-   static double g() { return 2.96640371531248092651367187500000000000000000000000000e+01; }
+   BOOST_MATH_GPU_ENABLED static double g() { return 2.96640371531248092651367187500000000000000000000000000e+01; }
 };
 
-inline double lanczos_g_near_1_and_2(const lanczos35MP&)
+BOOST_MATH_GPU_ENABLED inline double lanczos_g_near_1_and_2(const lanczos35MP&)
 {
    return 22.36563469469547;
 }
@@ -1615,13 +1619,13 @@ inline double lanczos_g_near_1_and_2(const lanczos35MP&)
 // Generated with compiler: Microsoft Visual C++ version 14.2 on Win32 at Oct 14 2019
 // Type precision was 201 bits or 63 max_digits10
 //
-struct lanczos48MP : public std::integral_constant<int, 201>
+struct lanczos48MP : public boost::math::integral_constant<int, 201>
 {
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[48] = {
+      BOOST_MATH_STATIC const T num[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 5.761757987425932419978923296640371540367427757167447418730589877e+70)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 8.723233313564421930629677035555276136256253817229396631458438691e+70)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 6.460052620548943146316510839385235752729444155384745952604400014e+70)),
@@ -1671,7 +1675,7 @@ struct lanczos48MP : public std::integral_constant<int, 201>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 3.749690888961891063146468955091435916957208840312184463551812828e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 2.506628274631000502415765284811045253006986740609938316629929233e+00))
       };
-      static const T denom[48] = {
+      BOOST_MATH_STATIC const T denom[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 0.000000000000000000000000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 5.502622159812088949850305428800254892961651752960000000000000000e+57)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 2.430336111272256671478593169569751383305061494947840000000000000e+58)),
@@ -1726,10 +1730,10 @@ struct lanczos48MP : public std::integral_constant<int, 201>
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[48] = {
+      BOOST_MATH_STATIC const T num[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.775732062655417998910881298714821053061055705608286949609421120e+58)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 2.688437299644448784121592662352787426980194425446481703306505899e+58)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.990941408817264621124181941423397180231807676408175000011574647e+58)),
@@ -1779,7 +1783,7 @@ struct lanczos48MP : public std::integral_constant<int, 201>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.155627562127299657410444702080985966726894475302009989071093439e-09)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 7.725246714864934496649491688787278190129598018071339049048385845e-13))
       };
-      static const T denom[48] = {
+      BOOST_MATH_STATIC const T denom[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 0.000000000000000000000000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 5.502622159812088949850305428800254892961651752960000000000000000e+57)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 2.430336111272256671478593169569751383305061494947840000000000000e+58)),
@@ -1835,10 +1839,10 @@ struct lanczos48MP : public std::integral_constant<int, 201>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[47] = {
+      BOOST_MATH_STATIC const T d[47] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.059629332377126683204423480567078764834299559082175332563440691e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, -1.045539783916612448318159279915745234781500064405838259582295756e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 4.784116147862702971548198855631720823614071322755242269800139953e+02)),
@@ -1897,10 +1901,10 @@ struct lanczos48MP : public std::integral_constant<int, 201>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[47] = {
+      BOOST_MATH_STATIC const T d[47] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 1.201442621036266842137537764128372139686555918574926377003612763e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, -1.185467427150643969519910927764836582205108528009141221591420898e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 201, 5.424388386017623557963301151646679462091516489317860889362683594e+03)),
@@ -1959,7 +1963,7 @@ struct lanczos48MP : public std::integral_constant<int, 201>
       return result;
    }
 
-   static double g() { return 2.880805098265409469604492187500000000000000000000000000000000000e+01; }
+   BOOST_MATH_GPU_ENABLED static double g() { return 2.880805098265409469604492187500000000000000000000000000000000000e+01; }
 };
 //
 // Lanczos Coefficients for N=49 G=3.531905273437499914734871708787977695465087890625000000000000000000000000e+01
@@ -1967,13 +1971,13 @@ struct lanczos48MP : public std::integral_constant<int, 201>
 // Generated with compiler: Microsoft Visual C++ version 14.2 on Win32 at May 23 2021
 // Type precision was 234 bits or 72 max_digits10
 //
-struct lanczos49MP : public std::integral_constant<int, 234>
+struct lanczos49MP : public boost::math::integral_constant<int, 234>
 {
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[49] = {
+      BOOST_MATH_STATIC const T num[49] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 2.019754080776483553135944314398390557182640085494778723336498544843678485e+75)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 2.676059842235360762770131859925648183945167646928679564649946220888559950e+75)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.735650057396761011129552305882284776566019938011364428733911563803428382e+75)),
@@ -2024,7 +2028,7 @@ struct lanczos49MP : public std::integral_constant<int, 234>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 4.390800780998954208500039666019609185743083611214630479125238184115750385e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 2.506628274631000502415765284811045253006986740609938316629923576327386304e+00))
       };
-      static const T denom[49] = {
+      BOOST_MATH_STATIC const T denom[49] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 0.000000000000000000000000000000000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 2.586232415111681806429643551536119799691976323891200000000000000000000000e+59)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.147760594457772724544789095126583405046340554378444800000000000000000000e+60)),
@@ -2080,10 +2084,10 @@ struct lanczos49MP : public std::integral_constant<int, 234>
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[49] = {
+      BOOST_MATH_STATIC const T num[49] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 9.256115936295239128792053510340342045264892843178101822334871337037830072e+59)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.226382973449509462464247401218271019985727521806127065773488938845990367e+60)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 7.954125855720840120393676022050001333138789037332565663424594891457273557e+59)),
@@ -2134,7 +2138,7 @@ struct lanczos49MP : public std::integral_constant<int, 234>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 2.012213341659767638341287600182102653785253052492980766472349845276996656e-12)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.148735984247176123115370642724455566337349193609892794757225210307646070e-15))
       };
-      static const T denom[49] = {
+      BOOST_MATH_STATIC const T denom[49] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 0.000000000000000000000000000000000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 2.586232415111681806429643551536119799691976323891200000000000000000000000e+59)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.147760594457772724544789095126583405046340554378444800000000000000000000e+60)),
@@ -2191,10 +2195,10 @@ struct lanczos49MP : public std::integral_constant<int, 234>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[48] = {
+      BOOST_MATH_STATIC const T d[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.233965513689195496302526816415068018137532804347903252026160914018410959e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, -1.432567696701419045483804034990696504881298696037704685583731202573594084e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 7.800990151010204780591569831451389602736047219596430673280355834870101274e+02)),
@@ -2254,10 +2258,10 @@ struct lanczos49MP : public std::integral_constant<int, 234>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[48] = {
+      BOOST_MATH_STATIC const T d[48] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.614127734928823683399031924928203896697519780457812139739363243361356121e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, -1.873915620620241270111954934939697069495813017577862172724257417200307532e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 234, 1.020433263568799913803105156119729477192007677199414299858195073560627451e+04)),
@@ -2317,10 +2321,10 @@ struct lanczos49MP : public std::integral_constant<int, 234>
       return result;
    }
 
-   static double g() { return 3.531905273437499914734871708787977695465087890625000000000000000000000000e+01; }
+   BOOST_MATH_GPU_ENABLED static double g() { return 3.531905273437499914734871708787977695465087890625000000000000000000000000e+01; }
 };
 
-inline double lanczos_g_near_1_and_2(const lanczos49MP&)
+BOOST_MATH_GPU_ENABLED inline double lanczos_g_near_1_and_2(const lanczos49MP&)
 {
    return 33.54638671875000;
 }
@@ -2331,13 +2335,13 @@ inline double lanczos_g_near_1_and_2(const lanczos49MP&)
 // Generated with compiler: Microsoft Visual C++ version 14.2 on Win32 at May 22 2021
 // Type precision was 267 bits or 82 max_digits10
 //
-struct lanczos52MP : public std::integral_constant<int, 267>
+struct lanczos52MP : public boost::math::integral_constant<int, 267>
 {
    template <class T>
-   static T lanczos_sum(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[52] = {
+      BOOST_MATH_STATIC const T num[52] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 6.2155666558597192337239536765115831322604714024167432764126799013946738944179064162e+86)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 6.4127424062560995063147129656553600039438028633959646865531341376543275935920940510e+86)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 3.2432219642804430367752303997394644425738553439619047355470691880100895245432999409e+86)),
@@ -2391,7 +2395,7 @@ struct lanczos52MP : public std::integral_constant<int, 267>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 6.3192906485096381210566149918556620595525679738152760526187454875638091923687554946e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 2.5066282746310005024157652848110452530069867406099383166299235763422936546004304390e+00))
       };
-      static const T denom[52] = {
+      BOOST_MATH_STATIC const T denom[52] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 3.0414093201713378043612608166064768844377641568960512000000000000000000000000000000e+64)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.3683925049359750564345782687270252191318781054337155072000000000000000000000000000e+65)),
@@ -2450,10 +2454,10 @@ struct lanczos52MP : public std::integral_constant<int, 267>
    }
 
    template <class T>
-   static T lanczos_sum_expG_scaled(const T& z)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_expG_scaled(const T& z)
    {
       // LCOV_EXCL_START
-      static const T num[52] = {
+      BOOST_MATH_STATIC const T num[52] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.2968364952374867351881152115042817894191583875220489481700563388077315440993668645e+65)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.3379758994539627857606593702434364057385206718035611620158459666404856221820703129e+65)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 6.7667661507089657936560642518188013126674666141084536651063996312630940638352438169e+64)),
@@ -2507,7 +2511,7 @@ struct lanczos52MP : public std::integral_constant<int, 267>
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.3184778139696006596104645792244972612333458493576785210966728195969324996631733257e-18)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 5.2299125832253333486600023635817464870204660970908989075481425992405717273229096642e-22))
       };
-      static const T denom[52] = {
+      BOOST_MATH_STATIC const T denom[52] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000e+00)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 3.0414093201713378043612608166064768844377641568960512000000000000000000000000000000e+64)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.3683925049359750564345782687270252191318781054337155072000000000000000000000000000e+65)),
@@ -2567,10 +2571,10 @@ struct lanczos52MP : public std::integral_constant<int, 267>
 
 
    template<class T>
-   static T lanczos_sum_near_1(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_1(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[56] = {
+      BOOST_MATH_STATIC const T d[56] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.4249481633301349696310814410227012806541100102720500928500445853537331413655453290e+01)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, -1.9263209672927829270913652941762375058727326960303110137656951784697992824730035351e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.2326134462101140657073655882621393643823409472993225649429843685598155061860815843e+03)),
@@ -2638,10 +2642,10 @@ struct lanczos52MP : public std::integral_constant<int, 267>
    }
 
    template<class T>
-   static T lanczos_sum_near_2(const T& dz)
+   BOOST_MATH_GPU_ENABLED static T lanczos_sum_near_2(const T& dz)
    {
       // LCOV_EXCL_START
-      static const T d[56] = {
+      BOOST_MATH_STATIC const T d[56] = {
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 2.1359871474796665853092357455924330354587340093067807143261699873815704783987359772e+02)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, -2.8875414095359657817766255009397774415784763914903057809977502598124862632510767554e+03)),
          static_cast<T>(BOOST_MATH_BIG_CONSTANT(T, 267, 1.8476787764422274017528261804071971508619123082396685980448133660376964287516316704e+04)),
@@ -2709,10 +2713,10 @@ struct lanczos52MP : public std::integral_constant<int, 267>
       return result;
    }
 
-   static double g() { return 4.9921416015624998863131622783839702606201171875000000000000000000000000000000000000e+01; }
+   BOOST_MATH_GPU_ENABLED static double g() { return 4.9921416015624998863131622783839702606201171875000000000000000000000000000000000000e+01; }
 };
 
-inline double lanczos_g_near_1_and_2(const lanczos52MP&)
+BOOST_MATH_GPU_ENABLED inline double lanczos_g_near_1_and_2(const lanczos52MP&)
 {
    return 38.73733398437500;
 }
@@ -2721,24 +2725,24 @@ inline double lanczos_g_near_1_and_2(const lanczos52MP&)
 //
 // placeholder for no lanczos info available:
 //
-struct undefined_lanczos : public std::integral_constant<int, (std::numeric_limits<int>::max)() - 1> { };
+struct undefined_lanczos : public boost::math::integral_constant<int, (boost::math::numeric_limits<int>::max)() - 1> { };
 
 template <class Real, class Policy>
 struct lanczos
 {
-   static constexpr auto target_precision = policies::precision<Real, Policy>::type::value <= 0 ? (std::numeric_limits<int>::max)()-2 : 
+   BOOST_MATH_STATIC constexpr auto target_precision = policies::precision<Real, Policy>::type::value <= 0 ? (boost::math::numeric_limits<int>::max)()-2 : 
                                                                                                    policies::precision<Real, Policy>::type::value;
 
-   using type = typename std::conditional<(target_precision <= lanczos6m24::value), lanczos6m24, 
-                typename std::conditional<(target_precision <= lanczos13m53::value), lanczos13m53,
-                typename std::conditional<(target_precision <= lanczos11::value), lanczos11,
-                typename std::conditional<(target_precision <= lanczos17m64::value), lanczos17m64,
-                typename std::conditional<(target_precision <= lanczos24m113::value), lanczos24m113,
-                typename std::conditional<(target_precision <= lanczos27MP::value), lanczos27MP,
-                typename std::conditional<(target_precision <= lanczos35MP::value), lanczos35MP,
-                typename std::conditional<(target_precision <= lanczos48MP::value), lanczos48MP,
-                typename std::conditional<(target_precision <= lanczos49MP::value), lanczos49MP,
-                typename std::conditional<(target_precision <= lanczos52MP::value), lanczos52MP, undefined_lanczos>::type
+   using type = typename boost::math::conditional<(target_precision <= lanczos6m24::value), lanczos6m24, 
+                typename boost::math::conditional<(target_precision <= lanczos13m53::value), lanczos13m53,
+                typename boost::math::conditional<(target_precision <= lanczos11::value), lanczos11,
+                typename boost::math::conditional<(target_precision <= lanczos17m64::value), lanczos17m64,
+                typename boost::math::conditional<(target_precision <= lanczos24m113::value), lanczos24m113,
+                typename boost::math::conditional<(target_precision <= lanczos27MP::value), lanczos27MP,
+                typename boost::math::conditional<(target_precision <= lanczos35MP::value), lanczos35MP,
+                typename boost::math::conditional<(target_precision <= lanczos48MP::value), lanczos48MP,
+                typename boost::math::conditional<(target_precision <= lanczos49MP::value), lanczos49MP,
+                typename boost::math::conditional<(target_precision <= lanczos52MP::value), lanczos52MP, undefined_lanczos>::type
                 >::type>::type>::type>::type>::type>::type>::type>::type
                 >::type;
 };
@@ -2748,7 +2752,7 @@ struct lanczos
 } // namespace boost
 
 #if !defined(_CRAYC) && !defined(__CUDACC__) && (!defined(__GNUC__) || (__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ > 3)))
-#if ((defined(_M_IX86_FP) && (_M_IX86_FP >= 2)) || defined(__SSE2__) || defined(_M_AMD64) || defined(_M_X64)) && !defined(_MANAGED)
+#if ((defined(_M_IX86_FP) && (_M_IX86_FP >= 2)) || defined(__SSE2__) || defined(_M_AMD64) || defined(_M_X64)) && !defined(_MANAGED) && !defined(BOOST_MATH_HAS_GPU_SUPPORT)
 #include <boost/math/special_functions/detail/lanczos_sse2.hpp>
 #endif
 #endif

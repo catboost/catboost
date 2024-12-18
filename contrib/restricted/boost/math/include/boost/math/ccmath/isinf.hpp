@@ -22,7 +22,14 @@ constexpr bool isinf BOOST_MATH_PREVENT_MACRO_SUBSTITUTION(T x) noexcept
     {
         if constexpr (std::numeric_limits<T>::is_signed)
         {
+#if defined(__clang_major__) && __clang_major__ >= 6
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-constant-compare"
+#endif
             return x == std::numeric_limits<T>::infinity() || -x == std::numeric_limits<T>::infinity();
+#if defined(__clang_major__) && __clang_major__ >= 6
+#pragma clang diagnostic pop
+#endif
         }
         else
         {
@@ -32,7 +39,7 @@ constexpr bool isinf BOOST_MATH_PREVENT_MACRO_SUBSTITUTION(T x) noexcept
     else
     {
         using boost::math::isinf;
-        
+
         if constexpr (!std::is_integral_v<T>)
         {
             return (isinf)(x);

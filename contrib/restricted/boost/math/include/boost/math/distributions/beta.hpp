@@ -25,20 +25,21 @@
 #ifndef BOOST_MATH_DIST_BETA_HPP
 #define BOOST_MATH_DIST_BETA_HPP
 
+#include <boost/math/tools/config.hpp>
+#include <boost/math/tools/tuple.hpp>
 #include <boost/math/distributions/fwd.hpp>
 #include <boost/math/special_functions/beta.hpp> // for beta.
 #include <boost/math/distributions/complement.hpp> // complements.
 #include <boost/math/distributions/detail/common_error_handling.hpp> // error checks
 #include <boost/math/special_functions/fpclassify.hpp> // isnan.
 #include <boost/math/tools/roots.hpp> // for root finding.
+#include <boost/math/policies/error_handling.hpp>
 
 #if defined (BOOST_MSVC)
 #  pragma warning(push)
 #  pragma warning(disable: 4702) // unreachable code
 // in domain_error_imp in error_handling
 #endif
-
-#include <utility>
 
 namespace boost
 {
@@ -48,7 +49,7 @@ namespace boost
     {
       // Common error checking routines for beta distribution functions:
       template <class RealType, class Policy>
-      inline bool check_alpha(const char* function, const RealType& alpha, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_alpha(const char* function, const RealType& alpha, RealType* result, const Policy& pol)
       {
         if(!(boost::math::isfinite)(alpha) || (alpha <= 0))
         {
@@ -61,7 +62,7 @@ namespace boost
       } // bool check_alpha
 
       template <class RealType, class Policy>
-      inline bool check_beta(const char* function, const RealType& beta, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_beta(const char* function, const RealType& beta, RealType* result, const Policy& pol)
       {
         if(!(boost::math::isfinite)(beta) || (beta <= 0))
         {
@@ -74,7 +75,7 @@ namespace boost
       } // bool check_beta
 
       template <class RealType, class Policy>
-      inline bool check_prob(const char* function, const RealType& p, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_prob(const char* function, const RealType& p, RealType* result, const Policy& pol)
       {
         if((p < 0) || (p > 1) || !(boost::math::isfinite)(p))
         {
@@ -87,7 +88,7 @@ namespace boost
       } // bool check_prob
 
       template <class RealType, class Policy>
-      inline bool check_x(const char* function, const RealType& x, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_x(const char* function, const RealType& x, RealType* result, const Policy& pol)
       {
         if(!(boost::math::isfinite)(x) || (x < 0) || (x > 1))
         {
@@ -100,28 +101,28 @@ namespace boost
       } // bool check_x
 
       template <class RealType, class Policy>
-      inline bool check_dist(const char* function, const RealType& alpha, const RealType& beta, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_dist(const char* function, const RealType& alpha, const RealType& beta, RealType* result, const Policy& pol)
       { // Check both alpha and beta.
         return check_alpha(function, alpha, result, pol)
           && check_beta(function, beta, result, pol);
       } // bool check_dist
 
       template <class RealType, class Policy>
-      inline bool check_dist_and_x(const char* function, const RealType& alpha, const RealType& beta, RealType x, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_dist_and_x(const char* function, const RealType& alpha, const RealType& beta, RealType x, RealType* result, const Policy& pol)
       {
         return check_dist(function, alpha, beta, result, pol)
           && beta_detail::check_x(function, x, result, pol);
       } // bool check_dist_and_x
 
       template <class RealType, class Policy>
-      inline bool check_dist_and_prob(const char* function, const RealType& alpha, const RealType& beta, RealType p, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_dist_and_prob(const char* function, const RealType& alpha, const RealType& beta, RealType p, RealType* result, const Policy& pol)
       {
         return check_dist(function, alpha, beta, result, pol)
           && check_prob(function, p, result, pol);
       } // bool check_dist_and_prob
 
       template <class RealType, class Policy>
-      inline bool check_mean(const char* function, const RealType& mean, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_mean(const char* function, const RealType& mean, RealType* result, const Policy& pol)
       {
         if(!(boost::math::isfinite)(mean) || (mean <= 0))
         {
@@ -133,7 +134,7 @@ namespace boost
         return true;
       } // bool check_mean
       template <class RealType, class Policy>
-      inline bool check_variance(const char* function, const RealType& variance, RealType* result, const Policy& pol)
+      BOOST_MATH_GPU_ENABLED inline bool check_variance(const char* function, const RealType& variance, RealType* result, const Policy& pol)
       {
         if(!(boost::math::isfinite)(variance) || (variance <= 0))
         {
@@ -157,7 +158,7 @@ namespace boost
       typedef RealType value_type;
       typedef Policy policy_type;
 
-      beta_distribution(RealType l_alpha = 1, RealType l_beta = 1) : m_alpha(l_alpha), m_beta(l_beta)
+      BOOST_MATH_GPU_ENABLED beta_distribution(RealType l_alpha = 1, RealType l_beta = 1) : m_alpha(l_alpha), m_beta(l_beta)
       {
         RealType result;
         beta_detail::check_dist(
@@ -167,11 +168,11 @@ namespace boost
           &result, Policy());
       } // beta_distribution constructor.
       // Accessor functions:
-      RealType alpha() const
+      BOOST_MATH_GPU_ENABLED RealType alpha() const
       {
         return m_alpha;
       }
-      RealType beta() const
+      BOOST_MATH_GPU_ENABLED RealType beta() const
       { // .
         return m_beta;
       }
@@ -183,11 +184,11 @@ namespace boost
       // http://www.itl.nist.gov/div898/handbook/eda/section3/eda366h.htm
       // http://www.epi.ucdavis.edu/diagnostictests/betabuster.html
 
-      static RealType find_alpha(
+      BOOST_MATH_GPU_ENABLED static RealType find_alpha(
         RealType mean, // Expected value of mean.
         RealType variance) // Expected value of variance.
       {
-        static const char* function = "boost::math::beta_distribution<%1%>::find_alpha";
+        constexpr auto function = "boost::math::beta_distribution<%1%>::find_alpha";
         RealType result = 0; // of error checks.
         if(false ==
             (
@@ -201,11 +202,11 @@ namespace boost
         return mean * (( (mean * (1 - mean)) / variance)- 1);
       } // RealType find_alpha
 
-      static RealType find_beta(
+      BOOST_MATH_GPU_ENABLED static RealType find_beta(
         RealType mean, // Expected value of mean.
         RealType variance) // Expected value of variance.
       {
-        static const char* function = "boost::math::beta_distribution<%1%>::find_beta";
+        constexpr auto function = "boost::math::beta_distribution<%1%>::find_beta";
         RealType result = 0; // of error checks.
         if(false ==
             (
@@ -223,12 +224,12 @@ namespace boost
       // Estimate alpha & beta from either alpha or beta, and x and probability.
       // Uses for these parameter estimators are unclear.
 
-      static RealType find_alpha(
+      BOOST_MATH_GPU_ENABLED static RealType find_alpha(
         RealType beta, // from beta.
         RealType x, //  x.
         RealType probability) // cdf
       {
-        static const char* function = "boost::math::beta_distribution<%1%>::find_alpha";
+        constexpr auto function = "boost::math::beta_distribution<%1%>::find_alpha";
         RealType result = 0; // of error checks.
         if(false ==
             (
@@ -245,13 +246,13 @@ namespace boost
         return static_cast<RealType>(ibeta_inva(beta, x, probability, Policy()));
       } // RealType find_alpha(beta, a, probability)
 
-      static RealType find_beta(
+      BOOST_MATH_GPU_ENABLED static RealType find_beta(
         // ibeta_invb(T b, T x, T p); (alpha, x, cdf,)
         RealType alpha, // alpha.
         RealType x, // probability x.
         RealType probability) // probability cdf.
       {
-        static const char* function = "boost::math::beta_distribution<%1%>::find_beta";
+        constexpr auto function = "boost::math::beta_distribution<%1%>::find_beta";
         RealType result = 0; // of error checks.
         if(false ==
             (
@@ -281,27 +282,27 @@ namespace boost
     #endif
 
     template <class RealType, class Policy>
-    inline const std::pair<RealType, RealType> range(const beta_distribution<RealType, Policy>& /* dist */)
+    BOOST_MATH_GPU_ENABLED inline const boost::math::pair<RealType, RealType> range(const beta_distribution<RealType, Policy>& /* dist */)
     { // Range of permissible values for random variable x.
       using boost::math::tools::max_value;
-      return std::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
+      return boost::math::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
     }
 
     template <class RealType, class Policy>
-    inline const std::pair<RealType, RealType> support(const beta_distribution<RealType, Policy>&  /* dist */)
+    BOOST_MATH_GPU_ENABLED inline const boost::math::pair<RealType, RealType> support(const beta_distribution<RealType, Policy>&  /* dist */)
     { // Range of supported values for random variable x.
       // This is range where cdf rises from 0 to 1, and outside it, the pdf is zero.
-      return std::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
+      return boost::math::pair<RealType, RealType>(static_cast<RealType>(0), static_cast<RealType>(1));
     }
 
     template <class RealType, class Policy>
-    inline RealType mean(const beta_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType mean(const beta_distribution<RealType, Policy>& dist)
     { // Mean of beta distribution = np.
       return  dist.alpha() / (dist.alpha() + dist.beta());
     } // mean
 
     template <class RealType, class Policy>
-    inline RealType variance(const beta_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType variance(const beta_distribution<RealType, Policy>& dist)
     { // Variance of beta distribution = np(1-p).
       RealType a = dist.alpha();
       RealType b = dist.beta();
@@ -309,9 +310,9 @@ namespace boost
     } // variance
 
     template <class RealType, class Policy>
-    inline RealType mode(const beta_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType mode(const beta_distribution<RealType, Policy>& dist)
     {
-      static const char* function = "boost::math::mode(beta_distribution<%1%> const&)";
+      constexpr auto function = "boost::math::mode(beta_distribution<%1%> const&)";
 
       RealType result;
       if ((dist.alpha() <= 1))
@@ -343,7 +344,7 @@ namespace boost
     //But WILL be provided by the derived accessor as quantile(0.5).
 
     template <class RealType, class Policy>
-    inline RealType skewness(const beta_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType skewness(const beta_distribution<RealType, Policy>& dist)
     {
       BOOST_MATH_STD_USING // ADL of std functions.
       RealType a = dist.alpha();
@@ -352,7 +353,7 @@ namespace boost
     } // skewness
 
     template <class RealType, class Policy>
-    inline RealType kurtosis_excess(const beta_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType kurtosis_excess(const beta_distribution<RealType, Policy>& dist)
     {
       RealType a = dist.alpha();
       RealType b = dist.beta();
@@ -363,17 +364,17 @@ namespace boost
     } // kurtosis_excess
 
     template <class RealType, class Policy>
-    inline RealType kurtosis(const beta_distribution<RealType, Policy>& dist)
+    BOOST_MATH_GPU_ENABLED inline RealType kurtosis(const beta_distribution<RealType, Policy>& dist)
     {
       return 3 + kurtosis_excess(dist);
     } // kurtosis
 
     template <class RealType, class Policy>
-    inline RealType pdf(const beta_distribution<RealType, Policy>& dist, const RealType& x)
+    BOOST_MATH_GPU_ENABLED inline RealType pdf(const beta_distribution<RealType, Policy>& dist, const RealType& x)
     { // Probability Density/Mass Function.
       BOOST_FPU_EXCEPTION_GUARD
 
-      static const char* function = "boost::math::pdf(beta_distribution<%1%> const&, %1%)";
+      constexpr auto function = "boost::math::pdf(beta_distribution<%1%> const&, %1%)";
 
       BOOST_MATH_STD_USING // for ADL of std functions
 
@@ -428,11 +429,11 @@ namespace boost
     } // pdf
 
     template <class RealType, class Policy>
-    inline RealType cdf(const beta_distribution<RealType, Policy>& dist, const RealType& x)
+    BOOST_MATH_GPU_ENABLED inline RealType cdf(const beta_distribution<RealType, Policy>& dist, const RealType& x)
     { // Cumulative Distribution Function beta.
       BOOST_MATH_STD_USING // for ADL of std functions
 
-      static const char* function = "boost::math::cdf(beta_distribution<%1%> const&, %1%)";
+      constexpr auto function = "boost::math::cdf(beta_distribution<%1%> const&, %1%)";
 
       RealType a = dist.alpha();
       RealType b = dist.beta();
@@ -459,12 +460,12 @@ namespace boost
     } // beta cdf
 
     template <class RealType, class Policy>
-    inline RealType cdf(const complemented2_type<beta_distribution<RealType, Policy>, RealType>& c)
+    BOOST_MATH_GPU_ENABLED inline RealType cdf(const complemented2_type<beta_distribution<RealType, Policy>, RealType>& c)
     { // Complemented Cumulative Distribution Function beta.
 
       BOOST_MATH_STD_USING // for ADL of std functions
 
-      static const char* function = "boost::math::cdf(beta_distribution<%1%> const&, %1%)";
+      constexpr auto function = "boost::math::cdf(beta_distribution<%1%> const&, %1%)";
 
       RealType const& x = c.param;
       beta_distribution<RealType, Policy> const& dist = c.dist;
@@ -495,7 +496,7 @@ namespace boost
     } // beta cdf
 
     template <class RealType, class Policy>
-    inline RealType quantile(const beta_distribution<RealType, Policy>& dist, const RealType& p)
+    BOOST_MATH_GPU_ENABLED inline RealType quantile(const beta_distribution<RealType, Policy>& dist, const RealType& p)
     { // Quantile or Percent Point beta function or
       // Inverse Cumulative probability distribution function CDF.
       // Return x (0 <= x <= 1),
@@ -505,7 +506,7 @@ namespace boost
       // will be less than or equal to that value
       // is whatever probability you supplied as an argument.
 
-      static const char* function = "boost::math::quantile(beta_distribution<%1%> const&, %1%)";
+      constexpr auto function = "boost::math::quantile(beta_distribution<%1%> const&, %1%)";
 
       RealType result = 0; // of argument checks:
       RealType a = dist.alpha();
@@ -530,12 +531,12 @@ namespace boost
     } // quantile
 
     template <class RealType, class Policy>
-    inline RealType quantile(const complemented2_type<beta_distribution<RealType, Policy>, RealType>& c)
+    BOOST_MATH_GPU_ENABLED inline RealType quantile(const complemented2_type<beta_distribution<RealType, Policy>, RealType>& c)
     { // Complement Quantile or Percent Point beta function .
       // Return the number of expected x for a given
       // complement of the probability q.
 
-      static const char* function = "boost::math::quantile(beta_distribution<%1%> const&, %1%)";
+      constexpr auto function = "boost::math::quantile(beta_distribution<%1%> const&, %1%)";
 
       //
       // Error checks:

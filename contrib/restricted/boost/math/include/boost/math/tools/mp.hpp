@@ -11,9 +11,9 @@
 #ifndef BOOST_MATH_TOOLS_MP
 #define BOOST_MATH_TOOLS_MP
 
-#include <type_traits>
-#include <cstddef>
-#include <utility>
+#include <boost/math/tools/config.hpp>
+#include <boost/math/tools/type_traits.hpp>
+#include <boost/math/tools/cstdint.hpp>
 
 namespace boost { namespace math { namespace tools { namespace meta_programming {
 
@@ -23,12 +23,12 @@ template<typename... T>
 struct mp_list {};
 
 // Size_t
-template<std::size_t N> 
-using mp_size_t = std::integral_constant<std::size_t, N>;
+template<boost::math::size_t N> 
+using mp_size_t = boost::math::integral_constant<boost::math::size_t, N>;
 
 // Boolean
 template<bool B>
-using mp_bool = std::integral_constant<bool, B>;
+using mp_bool = boost::math::integral_constant<bool, B>;
 
 // Identity
 template<typename T>
@@ -53,7 +53,7 @@ struct mp_size_impl {};
 template<template<typename...> class L, typename... T> // Template template parameter must use class
 struct mp_size_impl<L<T...>>
 {
-    using type = std::integral_constant<std::size_t, sizeof...(T)>;
+    using type = boost::math::integral_constant<boost::math::size_t, sizeof...(T)>;
 };
 }
 
@@ -79,7 +79,7 @@ namespace detail {
 // At
 // TODO - Use tree based lookup for larger typelists
 // http://odinthenerd.blogspot.com/2017/04/tree-based-lookup-why-kvasirmpl-is.html
-template<typename L, std::size_t>
+template<typename L, boost::math::size_t>
 struct mp_at_c {};
 
 template<template<typename...> class L, typename T0, typename... T>
@@ -168,7 +168,7 @@ struct mp_at_c<L<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T...>, 1
 };
 }
 
-template<typename L, std::size_t Index>
+template<typename L, boost::math::size_t Index>
 using mp_at_c = typename detail::mp_at_c<L, Index>::type;
 
 template<typename L, typename Index>
@@ -336,25 +336,11 @@ using mp_remove_if = typename detail::mp_remove_if_impl<L, P>::type;
 template<typename L, typename Q> 
 using mp_remove_if_q = mp_remove_if<L, Q::template fn>;
 
-// Index sequence
-// Use C++14 index sequence if available
-#if defined(__cpp_lib_integer_sequence) && (__cpp_lib_integer_sequence >= 201304)
-template<std::size_t... Index>
-using index_sequence = std::index_sequence<Index...>;
-
-template<std::size_t N>
-using make_index_sequence = std::make_index_sequence<N>;
-
-template<typename... T>
-using index_sequence_for = std::index_sequence_for<T...>;
-
-#else
-
 template<typename T, T... Index>
 struct integer_sequence {};
 
-template<std::size_t... Index>
-using index_sequence = integer_sequence<std::size_t, Index...>;
+template<boost::math::size_t... Index>
+using index_sequence = integer_sequence<boost::math::size_t, Index...>;
 
 namespace detail {
 
@@ -426,13 +412,11 @@ struct make_integer_sequence_impl
 template<typename T, T N>
 using make_integer_sequence = typename detail::make_integer_sequence_impl<T, N>::type;
 
-template<std::size_t N>
-using make_index_sequence = make_integer_sequence<std::size_t, N>;
+template<boost::math::size_t N>
+using make_index_sequence = make_integer_sequence<boost::math::size_t, N>;
 
 template<typename... T>
-using index_sequence_for = make_integer_sequence<std::size_t, sizeof...(T)>;
-
-#endif 
+using index_sequence_for = make_integer_sequence<boost::math::size_t, sizeof...(T)>;
 
 }}}} // namespaces
 

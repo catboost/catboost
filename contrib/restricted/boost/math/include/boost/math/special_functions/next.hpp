@@ -10,6 +10,11 @@
 #pragma once
 #endif
 
+#include <boost/math/tools/config.hpp>
+
+// TODO(mborland): Need to remove recurrsion from these algos
+#ifndef BOOST_MATH_HAS_NVRTC
+
 #include <boost/math/special_functions/math_fwd.hpp>
 #include <boost/math/policies/error_handling.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -919,5 +924,7 @@ inline typename tools::promote_args<T>::type float_advance(const T& val, int dis
 }
 
 }} // boost math namespaces
+
+#endif
 
 #endif // BOOST_MATH_SPECIAL_NEXT_HPP

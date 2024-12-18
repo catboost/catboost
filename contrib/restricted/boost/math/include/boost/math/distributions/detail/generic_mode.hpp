@@ -8,19 +8,22 @@
 #ifndef BOOST_MATH_DISTRIBUTIONS_DETAIL_MODE_HPP
 #define BOOST_MATH_DISTRIBUTIONS_DETAIL_MODE_HPP
 
+#include <boost/math/tools/config.hpp>
+#include <boost/math/tools/cstdint.hpp>
 #include <boost/math/tools/minima.hpp> // function minimization for mode
 #include <boost/math/policies/error_handling.hpp>
 #include <boost/math/distributions/fwd.hpp>
+#include <boost/math/policies/policy.hpp>
 
 namespace boost{ namespace math{ namespace detail{
 
 template <class Dist>
 struct pdf_minimizer
 {
-   pdf_minimizer(const Dist& d)
+   BOOST_MATH_GPU_ENABLED pdf_minimizer(const Dist& d)
       : dist(d) {}
 
-   typename Dist::value_type operator()(const typename Dist::value_type& x)
+   BOOST_MATH_GPU_ENABLED typename Dist::value_type operator()(const typename Dist::value_type& x)
    {
       return -pdf(dist, x);
    }
@@ -29,7 +32,7 @@ private:
 };
 
 template <class Dist>
-typename Dist::value_type generic_find_mode(const Dist& dist, typename Dist::value_type guess, const char* function, typename Dist::value_type step = 0)
+BOOST_MATH_GPU_ENABLED typename Dist::value_type generic_find_mode(const Dist& dist, typename Dist::value_type guess, const char* function, typename Dist::value_type step = 0)
 {
    BOOST_MATH_STD_USING
    typedef typename Dist::value_type value_type;
@@ -70,7 +73,7 @@ typename Dist::value_type generic_find_mode(const Dist& dist, typename Dist::val
       v = pdf(dist, lower_bound);
    }while(maxval < v);
 
-   std::uintmax_t max_iter = policies::get_max_root_iterations<policy_type>();
+   boost::math::uintmax_t max_iter = policies::get_max_root_iterations<policy_type>();
 
    value_type result = tools::brent_find_minima(
       pdf_minimizer<Dist>(dist), 
@@ -90,7 +93,7 @@ typename Dist::value_type generic_find_mode(const Dist& dist, typename Dist::val
 // As above,but confined to the interval [0,1]:
 //
 template <class Dist>
-typename Dist::value_type generic_find_mode_01(const Dist& dist, typename Dist::value_type guess, const char* function)
+BOOST_MATH_GPU_ENABLED typename Dist::value_type generic_find_mode_01(const Dist& dist, typename Dist::value_type guess, const char* function)
 {
    BOOST_MATH_STD_USING
    typedef typename Dist::value_type value_type;
@@ -121,7 +124,7 @@ typename Dist::value_type generic_find_mode_01(const Dist& dist, typename Dist::
       v = pdf(dist, lower_bound);
    }while(maxval < v);
 
-   std::uintmax_t max_iter = policies::get_max_root_iterations<policy_type>();
+   boost::math::uintmax_t max_iter = policies::get_max_root_iterations<policy_type>();
 
    value_type result = tools::brent_find_minima(
       pdf_minimizer<Dist>(dist), 

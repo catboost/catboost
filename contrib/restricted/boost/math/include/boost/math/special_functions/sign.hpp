@@ -1,6 +1,7 @@
 //  (C) Copyright John Maddock 2006.
 //  (C) Copyright Johan Rade 2006.
 //  (C) Copyright Paul A. Bristow 2011 (added changesign).
+//  (C) Copyright Matt Borland 2024
 
 //  Use, modification and distribution are subject to the
 //  Boost Software License, Version 1.0. (See accompanying file
@@ -12,6 +13,8 @@
 #ifdef _MSC_VER
 #pragma once
 #endif
+
+#ifndef __CUDACC_RTC__
 
 #include <boost/math/tools/config.hpp>
 #include <boost/math/special_functions/math_fwd.hpp>
@@ -25,9 +28,10 @@ namespace detail {
 
 #ifdef BOOST_MATH_USE_STD_FPCLASSIFY
     template<class T> 
-    inline int signbit_impl(T x, native_tag const&)
+    BOOST_MATH_GPU_ENABLED inline int signbit_impl(T x, native_tag const&)
     {
-        return (std::signbit)(x) ? 1 : 0;
+        using std::signbit;
+        return (signbit)(x) ? 1 : 0;
     }
 #endif
 
@@ -35,13 +39,13 @@ namespace detail {
     // signed zero or NaN.
 
     template<class T>
-    inline int signbit_impl(T x, generic_tag<true> const&)
+    BOOST_MATH_GPU_ENABLED inline int signbit_impl(T x, generic_tag<true> const&)
     {
         return x < 0;
     }
 
     template<class T> 
-    inline int signbit_impl(T x, generic_tag<false> const&)
+    BOOST_MATH_GPU_ENABLED inline int signbit_impl(T x, generic_tag<false> const&)
     {
         return x < 0;
     }
@@ -65,7 +69,7 @@ namespace detail {
 #endif
 
     template<class T>
-    inline int signbit_impl(T x, ieee_copy_all_bits_tag const&)
+    BOOST_MATH_GPU_ENABLED inline int signbit_impl(T x, ieee_copy_all_bits_tag const&)
     {
         typedef typename fp_traits<T>::type traits;
 
@@ -75,7 +79,7 @@ namespace detail {
     }
 
     template<class T> 
-    inline int signbit_impl(T x, ieee_copy_leading_bits_tag const&)
+    BOOST_MATH_GPU_ENABLED inline int signbit_impl(T x, ieee_copy_leading_bits_tag const&)
     {
         typedef typename fp_traits<T>::type traits;
 
@@ -91,13 +95,13 @@ namespace detail {
     // signed zero or NaN.
 
     template<class T>
-    inline T (changesign_impl)(T x, generic_tag<true> const&)
+    BOOST_MATH_GPU_ENABLED inline T (changesign_impl)(T x, generic_tag<true> const&)
     {
         return -x;
     }
 
     template<class T>
-    inline T (changesign_impl)(T x, generic_tag<false> const&)
+    BOOST_MATH_GPU_ENABLED inline T (changesign_impl)(T x, generic_tag<false> const&)
     {
         return -x;
     }
@@ -124,7 +128,7 @@ namespace detail {
 #endif
 
     template<class T>
-    inline T changesign_impl(T x, ieee_copy_all_bits_tag const&)
+    BOOST_MATH_GPU_ENABLED inline T changesign_impl(T x, ieee_copy_all_bits_tag const&)
     {
         typedef typename fp_traits<T>::sign_change_type traits;
 
@@ -136,7 +140,7 @@ namespace detail {
     }
 
     template<class T>
-    inline T (changesign_impl)(T x, ieee_copy_leading_bits_tag const&)
+    BOOST_MATH_GPU_ENABLED inline T (changesign_impl)(T x, ieee_copy_leading_bits_tag const&)
     {
         typedef typename fp_traits<T>::sign_change_type traits;
 
@@ -150,7 +154,8 @@ namespace detail {
 
 }   // namespace detail
 
-template<class T> int (signbit)(T x)
+template<class T> 
+BOOST_MATH_GPU_ENABLED int (signbit)(T x)
 { 
    typedef typename detail::fp_traits<T>::type traits;
    typedef typename traits::method method;
@@ -160,12 +165,13 @@ template<class T> int (signbit)(T x)
 }
 
 template <class T>
-inline int sign BOOST_NO_MACRO_EXPAND(const T& z)
+BOOST_MATH_GPU_ENABLED inline int sign BOOST_NO_MACRO_EXPAND(const T& z)
 {
    return (z == 0) ? 0 : (boost::math::signbit)(z) ? -1 : 1;
 }
 
-template <class T> typename tools::promote_args_permissive<T>::type (changesign)(const T& x)
+template <class T> 
+BOOST_MATH_GPU_ENABLED typename tools::promote_args_permissive<T>::type (changesign)(const T& x)
 { //!< \brief return unchanged binary pattern of x, except for change of sign bit. 
    typedef typename detail::fp_traits<T>::sign_change_type traits;
    typedef typename traits::method method;
@@ -176,7 +182,7 @@ template <class T> typename tools::promote_args_permissive<T>::type (changesign)
 }
 
 template <class T, class U>
-inline typename tools::promote_args_permissive<T, U>::type 
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args_permissive<T, U>::type 
    copysign BOOST_NO_MACRO_EXPAND(const T& x, const U& y)
 {
    BOOST_MATH_STD_USING
@@ -188,6 +194,47 @@ inline typename tools::promote_args_permissive<T, U>::type
 } // namespace math
 } // namespace boost
 
+#else // NVRTC alias versions
+
+#include <boost/math/tools/config.hpp>
+
+namespace boost {
+namespace math {
+
+template <typename T>
+BOOST_MATH_GPU_ENABLED int signbit(T x)
+{
+    return ::signbit(x);
+}
+
+template <typename T>
+BOOST_MATH_GPU_ENABLED T changesign(T x)
+{
+    return -x;
+}
+
+template <typename T>
+BOOST_MATH_GPU_ENABLED T copysign(T x, T y)
+{
+    return ::copysign(x, y);
+}
+
+template <>
+BOOST_MATH_GPU_ENABLED float copysign(float x, float y)
+{
+    return ::copysignf(x, y);
+}
+
+template <typename T>
+BOOST_MATH_GPU_ENABLED T sign(T z)
+{
+    return (z == 0) ? 0 : ::signbit(z) ? -1 : 1;
+}
+
+} // namespace math
+} // namespace boost
+
+#endif // __CUDACC_RTC__
 
 #endif // BOOST_MATH_TOOLS_SIGN_HPP
 

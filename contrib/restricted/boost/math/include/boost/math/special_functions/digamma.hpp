@@ -1,4 +1,5 @@
 //  (C) Copyright John Maddock 2006.
+//  (C) Copyright Matt Borland 2024.
 //  Use, modification and distribution are subject to the
 //  Boost Software License, Version 1.0. (See accompanying file
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -12,13 +13,21 @@
 #pragma warning(disable:4702) // Unreachable code (release mode only warning)
 #endif
 
-#include <boost/math/special_functions/math_fwd.hpp>
+#include <boost/math/tools/config.hpp>
+#include <boost/math/tools/type_traits.hpp>
 #include <boost/math/tools/rational.hpp>
-#include <boost/math/tools/series.hpp>
 #include <boost/math/tools/promotion.hpp>
+#include <boost/math/policies/policy.hpp>
+#include <boost/math/policies/error_handling.hpp>
+#include <boost/math/constants/constants.hpp>
+
+#ifndef BOOST_MATH_HAS_NVRTC
+#include <boost/math/special_functions/math_fwd.hpp>
+#include <boost/math/tools/series.hpp>
 #include <boost/math/policies/error_handling.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/math/tools/big_constant.hpp>
+#endif
 
 #if defined(__GNUC__) && defined(BOOST_MATH_USE_FLOAT128)
 //
@@ -37,11 +46,11 @@ namespace detail{
 // Begin by defining the smallest value for which it is safe to
 // use the asymptotic expansion for digamma:
 //
-inline unsigned digamma_large_lim(const std::integral_constant<int, 0>*)
+BOOST_MATH_GPU_ENABLED inline unsigned digamma_large_lim(const boost::math::integral_constant<int, 0>*)
 {  return 20;  }
-inline unsigned digamma_large_lim(const std::integral_constant<int, 113>*)
+BOOST_MATH_GPU_ENABLED inline unsigned digamma_large_lim(const boost::math::integral_constant<int, 113>*)
 {  return 20;  }
-inline unsigned digamma_large_lim(const void*)
+BOOST_MATH_GPU_ENABLED inline unsigned digamma_large_lim(const void*)
 {  return 10;  }
 //
 // Implementations of the asymptotic expansion come next,
@@ -53,8 +62,10 @@ inline unsigned digamma_large_lim(const void*)
 //
 // This first one gives 34-digit precision for x >= 20:
 //
+
+#ifndef BOOST_MATH_HAS_NVRTC
 template <class T>
-inline T digamma_imp_large(T x, const std::integral_constant<int, 113>*)
+inline T digamma_imp_large(T x, const boost::math::integral_constant<int, 113>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
    static const T P[] = {
@@ -87,7 +98,7 @@ inline T digamma_imp_large(T x, const std::integral_constant<int, 113>*)
 // 19-digit precision for x >= 10:
 //
 template <class T>
-inline T digamma_imp_large(T x, const std::integral_constant<int, 64>*)
+inline T digamma_imp_large(T x, const boost::math::integral_constant<int, 64>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
    static const T P[] = {
@@ -110,14 +121,15 @@ inline T digamma_imp_large(T x, const std::integral_constant<int, 64>*)
    result -= z * tools::evaluate_polynomial(P, z);
    return result;
 }
+#endif
 //
 // 17-digit precision for x >= 10:
 //
 template <class T>
-inline T digamma_imp_large(T x, const std::integral_constant<int, 53>*)
+BOOST_MATH_GPU_ENABLED inline T digamma_imp_large(T x, const boost::math::integral_constant<int, 53>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
-   static const T P[] = {
+   BOOST_MATH_STATIC const T P[] = {
       0.083333333333333333333333333333333333333333333333333,
       -0.0083333333333333333333333333333333333333333333333333,
       0.003968253968253968253968253968253968253968253968254,
@@ -138,10 +150,10 @@ inline T digamma_imp_large(T x, const std::integral_constant<int, 53>*)
 // 9-digit precision for x >= 10:
 //
 template <class T>
-inline T digamma_imp_large(T x, const std::integral_constant<int, 24>*)
+BOOST_MATH_GPU_ENABLED inline T digamma_imp_large(T x, const boost::math::integral_constant<int, 24>*)
 {
    BOOST_MATH_STD_USING // ADL of std functions.
-   static const T P[] = {
+   BOOST_MATH_STATIC const T P[] = {
       0.083333333333333333333333333333333333333333333333333f,
       -0.0083333333333333333333333333333333333333333333333333f,
       0.003968253968253968253968253968253968253968253968254f
@@ -153,6 +165,8 @@ inline T digamma_imp_large(T x, const std::integral_constant<int, 24>*)
    result -= z * tools::evaluate_polynomial(P, z);
    return result;
 }
+
+#ifndef BOOST_MATH_HAS_NVRTC
 //
 // Fully generic asymptotic expansion in terms of Bernoulli numbers, see:
 // http://functions.wolfram.com/06.14.06.0012.01
@@ -177,7 +191,7 @@ public:
 };
 
 template <class T, class Policy>
-inline T digamma_imp_large(T x, const Policy& pol, const std::integral_constant<int, 0>*)
+inline T digamma_imp_large(T x, const Policy& pol, const boost::math::integral_constant<int, 0>*)
 {
    BOOST_MATH_STD_USING
    digamma_series_func<T> s(x);
@@ -194,7 +208,7 @@ inline T digamma_imp_large(T x, const Policy& pol, const std::integral_constant<
 // 35-digit precision:
 //
 template <class T>
-T digamma_imp_1_2(T x, const std::integral_constant<int, 113>*)
+T digamma_imp_1_2(T x, const boost::math::integral_constant<int, 113>*)
 {
    //
    // Now the approximation, we use the form:
@@ -258,7 +272,7 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 113>*)
 // 19-digit precision:
 //
 template <class T>
-T digamma_imp_1_2(T x, const std::integral_constant<int, 64>*)
+T digamma_imp_1_2(T x, const boost::math::integral_constant<int, 64>*)
 {
    //
    // Now the approximation, we use the form:
@@ -306,11 +320,13 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 64>*)
 
    return result;
 }
+
+#endif
 //
 // 18-digit precision:
 //
 template <class T>
-T digamma_imp_1_2(T x, const std::integral_constant<int, 53>*)
+BOOST_MATH_GPU_ENABLED T digamma_imp_1_2(T x, const boost::math::integral_constant<int, 53>*)
 {
    //
    // Now the approximation, we use the form:
@@ -325,13 +341,13 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 53>*)
    // At double precision, max error found:  2.452e-17
    //
    // LCOV_EXCL_START
-   static const float Y = 0.99558162689208984F;
+   BOOST_MATH_STATIC const float Y = 0.99558162689208984F;
 
-   static const T root1 = T(1569415565) / 1073741824uL;
-   static const T root2 = (T(381566830) / 1073741824uL) / 1073741824uL;
-   static const T root3 = BOOST_MATH_BIG_CONSTANT(T, 53, 0.9016312093258695918615325266959189453125e-19);
+   BOOST_MATH_STATIC const T root1 = T(1569415565) / 1073741824uL;
+   BOOST_MATH_STATIC const T root2 = (T(381566830) / 1073741824uL) / 1073741824uL;
+   BOOST_MATH_STATIC const T root3 = BOOST_MATH_BIG_CONSTANT(T, 53, 0.9016312093258695918615325266959189453125e-19);
 
-   static const T P[] = {
+   BOOST_MATH_STATIC const T P[] = {
       BOOST_MATH_BIG_CONSTANT(T, 53, 0.25479851061131551),
       BOOST_MATH_BIG_CONSTANT(T, 53, -0.32555031186804491),
       BOOST_MATH_BIG_CONSTANT(T, 53, -0.65031853770896507),
@@ -339,7 +355,7 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 53>*)
       BOOST_MATH_BIG_CONSTANT(T, 53, -0.045251321448739056),
       BOOST_MATH_BIG_CONSTANT(T, 53, -0.0020713321167745952)
    };
-   static const T Q[] = {
+   BOOST_MATH_STATIC const T Q[] = {
       BOOST_MATH_BIG_CONSTANT(T, 53, 1.0),
       BOOST_MATH_BIG_CONSTANT(T, 53, 2.0767117023730469),
       BOOST_MATH_BIG_CONSTANT(T, 53, 1.4606242909763515),
@@ -361,7 +377,7 @@ T digamma_imp_1_2(T x, const std::integral_constant<int, 53>*)
 // 9-digit precision:
 //
 template <class T>
-inline T digamma_imp_1_2(T x, const std::integral_constant<int, 24>*)
+BOOST_MATH_GPU_ENABLED inline T digamma_imp_1_2(T x, const boost::math::integral_constant<int, 24>*)
 {
    //
    // Now the approximation, we use the form:
@@ -376,16 +392,16 @@ inline T digamma_imp_1_2(T x, const std::integral_constant<int, 24>*)
    // At float precision, max error found:  2.008725e-008
    //
    // LCOV_EXCL_START
-   static const float Y = 0.99558162689208984f;
-   static const T root = 1532632.0f / 1048576;
-   static const T root_minor = static_cast<T>(0.3700660185912626595423257213284682051735604e-6L);
-   static const T P[] = {
+   BOOST_MATH_STATIC const float Y = 0.99558162689208984f;
+   BOOST_MATH_STATIC const T root = 1532632.0f / 1048576;
+   BOOST_MATH_STATIC const T root_minor = static_cast<T>(0.3700660185912626595423257213284682051735604e-6L);
+   BOOST_MATH_STATIC const T P[] = {
       0.25479851023250261e0f,
       -0.44981331915268368e0f,
       -0.43916936919946835e0f,
       -0.61041765350579073e-1f
    };
-   static const T Q[] = {
+   BOOST_MATH_STATIC const T Q[] = {
       0.1e1f,
       0.15890202430554952e1f,
       0.65341249856146947e0f,
@@ -401,7 +417,7 @@ inline T digamma_imp_1_2(T x, const std::integral_constant<int, 24>*)
 }
 
 template <class T, class Tag, class Policy>
-T digamma_imp(T x, const Tag* t, const Policy& pol)
+BOOST_MATH_GPU_ENABLED T digamma_imp(T x, const Tag* t, const Policy& pol)
 {
    //
    // This handles reflection of negative arguments, and all our
@@ -439,11 +455,13 @@ T digamma_imp(T x, const Tag* t, const Policy& pol)
    // If we're above the lower-limit for the
    // asymptotic expansion then use it:
    //
+   #ifndef BOOST_MATH_HAS_NVRTC
    if(x >= digamma_large_lim(t))
    {
       result += digamma_imp_large(x, t);
    }
    else
+   #endif
    {
       //
       // If x > 2 reduce to the interval [1,2]:
@@ -466,8 +484,10 @@ T digamma_imp(T x, const Tag* t, const Policy& pol)
    return result;
 }
 
+#ifndef BOOST_MATH_HAS_NVRTC
+
 template <class T, class Policy>
-T digamma_imp(T x, const std::integral_constant<int, 0>* t, const Policy& pol)
+T digamma_imp(T x, const boost::math::integral_constant<int, 0>* t, const Policy& pol)
 {
    //
    // This handles reflection of negative arguments, and all our
@@ -564,16 +584,18 @@ T digamma_imp(T x, const std::integral_constant<int, 0>* t, const Policy& pol)
    // LCOV_EXCL_STOP
 }
 
+#endif
+
 } // namespace detail
 
 template <class T, class Policy>
-inline typename tools::promote_args<T>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T>::type
    digamma(T x, const Policy&)
 {
    typedef typename tools::promote_args<T>::type result_type;
    typedef typename policies::evaluation<result_type, Policy>::type value_type;
    typedef typename policies::precision<T, Policy>::type precision_type;
-   typedef std::integral_constant<int,
+   typedef boost::math::integral_constant<int,
       (precision_type::value <= 0) || (precision_type::value > 113) ? 0 :
       precision_type::value <= 24 ? 24 :
       precision_type::value <= 53 ? 53 :
@@ -592,7 +614,7 @@ inline typename tools::promote_args<T>::type
 }
 
 template <class T>
-inline typename tools::promote_args<T>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T>::type
    digamma(T x)
 {
    return digamma(x, policies::policy<>());

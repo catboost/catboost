@@ -11,12 +11,14 @@
 #pragma once
 #endif
 
+#include <boost/math/tools/config.hpp>
+#include <boost/math/tools/precision.hpp>
+#include <boost/math/tools/roots.hpp>
+#include <boost/math/tools/tuple.hpp>
 #include <boost/math/special_functions/beta.hpp>
 #include <boost/math/special_functions/erf.hpp>
-#include <boost/math/tools/roots.hpp>
 #include <boost/math/special_functions/detail/t_distribution_inv.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
-#include <boost/math/tools/precision.hpp>
 
 namespace boost{ namespace math{ namespace detail{
 
@@ -27,12 +29,12 @@ namespace boost{ namespace math{ namespace detail{
 template <class T>
 struct temme_root_finder
 {
-   temme_root_finder(const T t_, const T a_) : t(t_), a(a_) {
+   BOOST_MATH_GPU_ENABLED temme_root_finder(const T t_, const T a_) : t(t_), a(a_) {
       BOOST_MATH_ASSERT(
          math::tools::epsilon<T>() <= a && !(boost::math::isinf)(a));
    }
 
-   boost::math::tuple<T, T> operator()(T x)
+   BOOST_MATH_GPU_ENABLED boost::math::tuple<T, T> operator()(T x)
    {
       BOOST_MATH_STD_USING // ADL of std names
 
@@ -52,7 +54,7 @@ private:
 // Section 2.
 //
 template <class T, class Policy>
-T temme_method_1_ibeta_inverse(T a, T b, T z, const Policy& pol)
+BOOST_MATH_GPU_ENABLED T temme_method_1_ibeta_inverse(T a, T b, T z, const Policy& pol)
 {
    BOOST_MATH_STD_USING // ADL of std names
 
@@ -138,7 +140,7 @@ T temme_method_1_ibeta_inverse(T a, T b, T z, const Policy& pol)
 // Section 3.
 //
 template <class T, class Policy>
-T temme_method_2_ibeta_inverse(T /*a*/, T /*b*/, T z, T r, T theta, const Policy& pol)
+BOOST_MATH_GPU_ENABLED T temme_method_2_ibeta_inverse(T /*a*/, T /*b*/, T z, T r, T theta, const Policy& pol)
 {
    BOOST_MATH_STD_USING // ADL of std names
 
@@ -302,9 +304,23 @@ T temme_method_2_ibeta_inverse(T /*a*/, T /*b*/, T z, T r, T theta, const Policy
    //
    // And iterate:
    //
-   x = tools::newton_raphson_iterate(
-      temme_root_finder<T>(-lu, alpha), x, lower, upper, policies::digits<T, Policy>() / 2);
-
+#ifndef BOOST_MATH_NO_EXCEPTIONS
+   try {
+#endif
+      x = tools::newton_raphson_iterate(
+         temme_root_finder<T>(-lu, alpha), x, lower, upper, policies::digits<T, Policy>() / 2);
+#ifndef BOOST_MATH_NO_EXCEPTIONS
+   }
+   catch (const boost::math::evaluation_error&)
+   {
+      // Due to numerical instability we may have cases where no root is found when
+      // in fact we should just touch the origin.  We simply ignore the error here
+      // and return our best guess for x so far...
+      // Maybe we should special case the symmetrical parameter case, but it's not clear 
+      // whether that is the only situation when problems can occur.
+      // See https://github.com/boostorg/math/issues/1169
+   }
+#endif
    return x;
 }
 //
@@ -315,9 +331,10 @@ T temme_method_2_ibeta_inverse(T /*a*/, T /*b*/, T z, T r, T theta, const Policy
 // Section 4.
 //
 template <class T, class Policy>
-T temme_method_3_ibeta_inverse(T a, T b, T p, T q, const Policy& pol)
+BOOST_MATH_GPU_ENABLED T temme_method_3_ibeta_inverse(T a, T b, T p, T q, const Policy& pol)
 {
    BOOST_MATH_STD_USING // ADL of std names
+
 
    //
    // Begin by getting an initial approximation for the quantity
@@ -420,10 +437,10 @@ T temme_method_3_ibeta_inverse(T a, T b, T p, T q, const Policy& pol)
 template <class T, class Policy>
 struct ibeta_roots
 {
-   ibeta_roots(T _a, T _b, T t, bool inv = false)
+   BOOST_MATH_GPU_ENABLED ibeta_roots(T _a, T _b, T t, bool inv = false)
       : a(_a), b(_b), target(t), invert(inv) {}
 
-   boost::math::tuple<T, T, T> operator()(T x)
+   BOOST_MATH_GPU_ENABLED boost::math::tuple<T, T, T> operator()(T x)
    {
       BOOST_MATH_STD_USING // ADL of std names
 
@@ -457,7 +474,7 @@ private:
 };
 
 template <class T, class Policy>
-T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
+BOOST_MATH_GPU_ENABLED T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
 {
    BOOST_MATH_STD_USING  // For ADL of math functions.
 
@@ -487,8 +504,8 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
          return p;
       }
       // Change things around so we can handle as b == 1 special case below:
-      std::swap(a, b);
-      std::swap(p, q);
+      BOOST_MATH_GPU_SAFE_SWAP(a, b);
+      BOOST_MATH_GPU_SAFE_SWAP(p, q);
       invert = true;
    }
    //
@@ -524,8 +541,8 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
       }
       else if(b > 0.5f)
       {
-         std::swap(a, b);
-         std::swap(p, q);
+         BOOST_MATH_GPU_SAFE_SWAP(a, b);
+         BOOST_MATH_GPU_SAFE_SWAP(p, q);
          invert = !invert;
       }
    }
@@ -559,7 +576,7 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
          y = -boost::math::expm1(boost::math::log1p(-q, pol) / a, pol);
       }
       if(invert)
-         std::swap(x, y);
+         BOOST_MATH_GPU_SAFE_SWAP(x, y);
       if(py)
          *py = y;
       return x;
@@ -574,12 +591,12 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
       //
       if(p > 0.5)
       {
-         std::swap(a, b);
-         std::swap(p, q);
+         BOOST_MATH_GPU_SAFE_SWAP(a, b);
+         BOOST_MATH_GPU_SAFE_SWAP(p, q);
          invert = !invert;
       }
-      T minv = (std::min)(a, b);
-      T maxv = (std::max)(a, b);
+      T minv = BOOST_MATH_GPU_SAFE_MIN(a, b);
+      T maxv = BOOST_MATH_GPU_SAFE_MAX(a, b);
       if((sqrt(minv) > (maxv - minv)) && (minv > 5))
       {
          //
@@ -630,8 +647,8 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
             //
             if(a < b)
             {
-               std::swap(a, b);
-               std::swap(p, q);
+               BOOST_MATH_GPU_SAFE_SWAP(a, b);
+               BOOST_MATH_GPU_SAFE_SWAP(p, q);
                invert = !invert;
             }
             //
@@ -694,8 +711,8 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
       }
       if(fs < 0)
       {
-         std::swap(a, b);
-         std::swap(p, q);
+         BOOST_MATH_GPU_SAFE_SWAP(a, b);
+         BOOST_MATH_GPU_SAFE_SWAP(p, q);
          invert = !invert;
          xs = 1 - xs;
       }
@@ -758,9 +775,9 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
 
       if(ps < 0)
       {
-         std::swap(a, b);
-         std::swap(p, q);
-         std::swap(xs, xs2);
+         BOOST_MATH_GPU_SAFE_SWAP(a, b);
+         BOOST_MATH_GPU_SAFE_SWAP(p, q);
+         BOOST_MATH_GPU_SAFE_SWAP(xs, xs2);
          invert = !invert;
       }
       //
@@ -823,8 +840,8 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
       //
       if(b < a)
       {
-         std::swap(a, b);
-         std::swap(p, q);
+         BOOST_MATH_GPU_SAFE_SWAP(a, b);
+         BOOST_MATH_GPU_SAFE_SWAP(p, q);
          invert = !invert;
       }
       if (a < tools::min_value<T>())
@@ -890,9 +907,9 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
    //
    if(x > 0.5)
    {
-      std::swap(a, b);
-      std::swap(p, q);
-      std::swap(x, y);
+      BOOST_MATH_GPU_SAFE_SWAP(a, b);
+      BOOST_MATH_GPU_SAFE_SWAP(p, q);
+      BOOST_MATH_GPU_SAFE_SWAP(x, y);
       invert = !invert;
       T l = 1 - upper;
       T u = 1 - lower;
@@ -922,8 +939,8 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
       if(x < lower)
          x = lower;
    }
-   std::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
-   std::uintmax_t max_iter_used = 0;
+   boost::math::uintmax_t max_iter = policies::get_max_root_iterations<Policy>();
+   boost::math::uintmax_t max_iter_used = 0;
    //
    // Figure out how many digits to iterate towards:
    //
@@ -946,7 +963,13 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
    // Now iterate, we can use either p or q as the target here
    // depending on which is smaller:
    //
+   // Since we can't use halley_iterate on device we use newton raphson
+   //
+   #ifndef BOOST_MATH_HAS_GPU_SUPPORT
    x = boost::math::tools::halley_iterate(
+   #else
+   x = boost::math::tools::newton_raphson_iterate(
+   #endif
       boost::math::detail::ibeta_roots<T, Policy>(a, b, (p < q ? p : q), (p < q ? false : true)), x, lower, upper, digits, max_iter);
    policies::check_root_iterations<T>("boost::math::ibeta<%1%>(%1%, %1%, %1%)", max_iter + max_iter_used, pol);
    //
@@ -968,10 +991,10 @@ T ibeta_inv_imp(T a, T b, T p, T q, const Policy& pol, T* py)
 } // namespace detail
 
 template <class T1, class T2, class T3, class T4, class Policy>
-inline typename tools::promote_args<T1, T2, T3, T4>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T1, T2, T3, T4>::type
    ibeta_inv(T1 a, T2 b, T3 p, T4* py, const Policy& pol)
 {
-   static const char* function = "boost::math::ibeta_inv<%1%>(%1%,%1%,%1%)";
+   constexpr auto function = "boost::math::ibeta_inv<%1%>(%1%,%1%,%1%)";
    BOOST_FPU_EXCEPTION_GUARD
    typedef typename tools::promote_args<T1, T2, T3, T4>::type result_type;
    typedef typename policies::evaluation<result_type, Policy>::type value_type;
@@ -1003,14 +1026,14 @@ inline typename tools::promote_args<T1, T2, T3, T4>::type
 }
 
 template <class T1, class T2, class T3, class T4>
-inline typename tools::promote_args<T1, T2, T3, T4>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T1, T2, T3, T4>::type
    ibeta_inv(T1 a, T2 b, T3 p, T4* py)
 {
    return ibeta_inv(a, b, p, py, policies::policy<>());
 }
 
 template <class T1, class T2, class T3>
-inline typename tools::promote_args<T1, T2, T3>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T1, T2, T3>::type
    ibeta_inv(T1 a, T2 b, T3 p)
 {
    typedef typename tools::promote_args<T1, T2, T3>::type result_type;
@@ -1018,7 +1041,7 @@ inline typename tools::promote_args<T1, T2, T3>::type
 }
 
 template <class T1, class T2, class T3, class Policy>
-inline typename tools::promote_args<T1, T2, T3>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T1, T2, T3>::type
    ibeta_inv(T1 a, T2 b, T3 p, const Policy& pol)
 {
    typedef typename tools::promote_args<T1, T2, T3>::type result_type;
@@ -1026,10 +1049,10 @@ inline typename tools::promote_args<T1, T2, T3>::type
 }
 
 template <class T1, class T2, class T3, class T4, class Policy>
-inline typename tools::promote_args<T1, T2, T3, T4>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T1, T2, T3, T4>::type
    ibetac_inv(T1 a, T2 b, T3 q, T4* py, const Policy& pol)
 {
-   static const char* function = "boost::math::ibetac_inv<%1%>(%1%,%1%,%1%)";
+   constexpr auto function = "boost::math::ibetac_inv<%1%>(%1%,%1%,%1%)";
    BOOST_FPU_EXCEPTION_GUARD
    typedef typename tools::promote_args<T1, T2, T3, T4>::type result_type;
    typedef typename policies::evaluation<result_type, Policy>::type value_type;
@@ -1061,14 +1084,14 @@ inline typename tools::promote_args<T1, T2, T3, T4>::type
 }
 
 template <class T1, class T2, class T3, class T4>
-inline typename tools::promote_args<T1, T2, T3, T4>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<T1, T2, T3, T4>::type
    ibetac_inv(T1 a, T2 b, T3 q, T4* py)
 {
    return ibetac_inv(a, b, q, py, policies::policy<>());
 }
 
 template <class RT1, class RT2, class RT3>
-inline typename tools::promote_args<RT1, RT2, RT3>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<RT1, RT2, RT3>::type
    ibetac_inv(RT1 a, RT2 b, RT3 q)
 {
    typedef typename tools::promote_args<RT1, RT2, RT3>::type result_type;
@@ -1076,7 +1099,7 @@ inline typename tools::promote_args<RT1, RT2, RT3>::type
 }
 
 template <class RT1, class RT2, class RT3, class Policy>
-inline typename tools::promote_args<RT1, RT2, RT3>::type
+BOOST_MATH_GPU_ENABLED inline typename tools::promote_args<RT1, RT2, RT3>::type
    ibetac_inv(RT1 a, RT2 b, RT3 q, const Policy& pol)
 {
    typedef typename tools::promote_args<RT1, RT2, RT3>::type result_type;

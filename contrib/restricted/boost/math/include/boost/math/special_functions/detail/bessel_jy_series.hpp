@@ -10,10 +10,9 @@
 #pragma once
 #endif
 
-#include <cmath>
-#include <cstdint>
 #include <boost/math/tools/config.hpp>
 #include <boost/math/tools/assert.hpp>
+#include <boost/math/tools/cstdint.hpp>
 
 namespace boost { namespace math { namespace detail{
 
@@ -22,7 +21,7 @@ struct bessel_j_small_z_series_term
 {
    typedef T result_type;
 
-   bessel_j_small_z_series_term(T v_, T x)
+   BOOST_MATH_GPU_ENABLED bessel_j_small_z_series_term(T v_, T x)
       : N(0), v(v_)
    {
       BOOST_MATH_STD_USING
@@ -30,7 +29,7 @@ struct bessel_j_small_z_series_term
       mult *= -mult;
       term = 1;
    }
-   T operator()()
+   BOOST_MATH_GPU_ENABLED T operator()()
    {
       T r = term;
       ++N;
@@ -49,7 +48,7 @@ private:
 // Converges rapidly for all z << v.
 //
 template <class T, class Policy>
-inline T bessel_j_small_z_series(T v, T x, const Policy& pol)
+BOOST_MATH_GPU_ENABLED inline T bessel_j_small_z_series(T v, T x, const Policy& pol)
 {
    BOOST_MATH_STD_USING
    T prefix;
@@ -66,7 +65,7 @@ inline T bessel_j_small_z_series(T v, T x, const Policy& pol)
       return prefix;
 
    bessel_j_small_z_series_term<T, Policy> s(v, x);
-   std::uintmax_t max_iter = policies::get_max_series_iterations<Policy>();
+   boost::math::uintmax_t max_iter = policies::get_max_series_iterations<Policy>();
 
    T result = boost::math::tools::sum_series(s, boost::math::policies::get_epsilon<T, Policy>(), max_iter);
 
@@ -79,7 +78,7 @@ struct bessel_y_small_z_series_term_a
 {
    typedef T result_type;
 
-   bessel_y_small_z_series_term_a(T v_, T x)
+   BOOST_MATH_GPU_ENABLED bessel_y_small_z_series_term_a(T v_, T x)
       : N(0), v(v_)
    {
       BOOST_MATH_STD_USING
@@ -87,7 +86,7 @@ struct bessel_y_small_z_series_term_a
       mult *= -mult;
       term = 1;
    }
-   T operator()()
+   BOOST_MATH_GPU_ENABLED T operator()()
    {
       BOOST_MATH_STD_USING
       T r = term;
@@ -107,7 +106,7 @@ struct bessel_y_small_z_series_term_b
 {
    typedef T result_type;
 
-   bessel_y_small_z_series_term_b(T v_, T x)
+   BOOST_MATH_GPU_ENABLED bessel_y_small_z_series_term_b(T v_, T x)
       : N(0), v(v_)
    {
       BOOST_MATH_STD_USING
@@ -115,7 +114,7 @@ struct bessel_y_small_z_series_term_b
       mult *= -mult;
       term = 1;
    }
-   T operator()()
+   BOOST_MATH_GPU_ENABLED T operator()()
    {
       T r = term;
       ++N;
@@ -138,10 +137,10 @@ private:
 // eps/2 * v^v(x/2)^-v > (x/2)^v or log(eps/2) > v log((x/2)^2/v)
 //
 template <class T, class Policy>
-inline T bessel_y_small_z_series(T v, T x, T* pscale, const Policy& pol)
+BOOST_MATH_GPU_ENABLED inline T bessel_y_small_z_series(T v, T x, T* pscale, const Policy& pol)
 {
    BOOST_MATH_STD_USING
-   static const char* function = "bessel_y_small_z_series<%1%>(%1%,%1%)";
+   constexpr auto function = "bessel_y_small_z_series<%1%>(%1%,%1%)";
    T prefix;
    T gam;
    T p = log(x / 2);
@@ -183,7 +182,7 @@ inline T bessel_y_small_z_series(T v, T x, T* pscale, const Policy& pol)
       prefix = -exp(prefix);
    }
    bessel_y_small_z_series_term_a<T, Policy> s(v, x);
-   std::uintmax_t max_iter = policies::get_max_series_iterations<Policy>();
+   boost::math::uintmax_t max_iter = policies::get_max_series_iterations<Policy>();
    *pscale = scale;
 
    T result = boost::math::tools::sum_series(s, boost::math::policies::get_epsilon<T, Policy>(), max_iter);
@@ -211,7 +210,7 @@ inline T bessel_y_small_z_series(T v, T x, T* pscale, const Policy& pol)
 }
 
 template <class T, class Policy>
-T bessel_yn_small_z(int n, T z, T* scale, const Policy& pol)
+BOOST_MATH_GPU_ENABLED T bessel_yn_small_z(int n, T z, T* scale, const Policy& pol)
 {
    //
    // See http://functions.wolfram.com/Bessel-TypeFunctions/BesselY/06/01/04/01/02/
