@@ -18,13 +18,10 @@
 
 try:
     import cython
-
-    COMPILED = cython.compiled
 except (AttributeError, ImportError):
     # if cython not installed, use mock module with no-op decorators and types
     from fontTools.misc import cython
-
-    COMPILED = False
+COMPILED = cython.compiled
 
 from fontTools.misc.bezierTools import splitCubicAtTC
 from collections import namedtuple

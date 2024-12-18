@@ -119,19 +119,35 @@ class _TTGlyphSetCFF(_TTGlyphSet):
         tableTag = "CFF2" if "CFF2" in font else "CFF "
         self.charStrings = list(font[tableTag].cff.values())[0].CharStrings
         super().__init__(font, location, self.charStrings)
+        self.setLocation(location)
+
+    def __getitem__(self, glyphName):
+        return _TTGlyphCFF(self, glyphName)
+
+    def setLocation(self, location):
         self.blender = None
         if location:
+            # TODO Optimize by using instancer.setLocation()
+
             from fontTools.varLib.varStore import VarStoreInstancer
 
             varStore = getattr(self.charStrings, "varStore", None)
             if varStore is not None:
                 instancer = VarStoreInstancer(
-                    varStore.otVarStore, font["fvar"].axes, location
+                    varStore.otVarStore, self.font["fvar"].axes, location
                 )
                 self.blender = instancer.interpolateFromDeltas
+        else:
+            self.blender = None
 
-    def __getitem__(self, glyphName):
-        return _TTGlyphCFF(self, glyphName)
+    @contextmanager
+    def pushLocation(self, location, reset: bool):
+        self.setLocation(location)
+        with _TTGlyphSet.pushLocation(self, location, reset) as value:
+            try:
+                yield value
+            finally:
+                self.setLocation(self.location)
 
 
 class _TTGlyphSetVARC(_TTGlyphSet):
@@ -335,7 +351,6 @@ class _TTGlyphVARC(_TTGlyph):
         )
 
         for comp in glyph.components:
-
             if comp.flags & VarComponentFlags.HAVE_CONDITION:
                 condition = varc.ConditionList.ConditionTable[comp.conditionIndex]
                 if not _evaluateCondition(

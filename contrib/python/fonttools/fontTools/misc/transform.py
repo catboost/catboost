@@ -437,8 +437,20 @@ class DecomposedTransform:
 
     @classmethod
     def fromTransform(self, transform):
+        """Return a DecomposedTransform() equivalent of this transformation.
+        The returned solution always has skewY = 0, and angle in the (-180, 180].
+
+        :Example:
+                >>> DecomposedTransform.fromTransform(Transform(3, 0, 0, 2, 0, 0))
+                DecomposedTransform(translateX=0, translateY=0, rotation=0.0, scaleX=3.0, scaleY=2.0, skewX=0.0, skewY=0.0, tCenterX=0, tCenterY=0)
+                >>> DecomposedTransform.fromTransform(Transform(0, 0, 0, 1, 0, 0))
+                DecomposedTransform(translateX=0, translateY=0, rotation=0.0, scaleX=0.0, scaleY=1.0, skewX=0.0, skewY=0.0, tCenterX=0, tCenterY=0)
+                >>> DecomposedTransform.fromTransform(Transform(0, 0, 1, 1, 0, 0))
+                DecomposedTransform(translateX=0, translateY=0, rotation=-45.0, scaleX=0.0, scaleY=1.4142135623730951, skewX=0.0, skewY=0.0, tCenterX=0, tCenterY=0)
+        """
         # Adapted from an answer on
         # https://math.stackexchange.com/questions/13150/extracting-rotation-scale-values-from-2d-transformation-matrix
+
         a, b, c, d, x, y = transform
 
         sx = math.copysign(1, a)
@@ -450,21 +462,20 @@ class DecomposedTransform:
 
         rotation = 0
         scaleX = scaleY = 0
-        skewX = skewY = 0
+        skewX = 0
 
         # Apply the QR-like decomposition.
         if a != 0 or b != 0:
             r = math.sqrt(a * a + b * b)
             rotation = math.acos(a / r) if b >= 0 else -math.acos(a / r)
             scaleX, scaleY = (r, delta / r)
-            skewX, skewY = (math.atan((a * c + b * d) / (r * r)), 0)
+            skewX = math.atan((a * c + b * d) / (r * r))
         elif c != 0 or d != 0:
             s = math.sqrt(c * c + d * d)
             rotation = math.pi / 2 - (
                 math.acos(-c / s) if d >= 0 else -math.acos(c / s)
             )
             scaleX, scaleY = (delta / s, s)
-            skewX, skewY = (0, math.atan((a * c + b * d) / (s * s)))
         else:
             # a = b = c = d = 0
             pass
@@ -476,7 +487,7 @@ class DecomposedTransform:
             scaleX * sx,
             scaleY,
             math.degrees(skewX) * sx,
-            math.degrees(skewY),
+            0.0,
             0,
             0,
         )

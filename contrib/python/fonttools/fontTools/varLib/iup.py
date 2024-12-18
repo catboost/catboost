@@ -1,12 +1,9 @@
 try:
     import cython
-
-    COMPILED = cython.compiled
 except (AttributeError, ImportError):
     # if cython not installed, use mock module with no-op decorators and types
     from fontTools.misc import cython
-
-    COMPILED = False
+COMPILED = cython.compiled
 
 from typing import (
     Sequence,
@@ -77,7 +74,14 @@ def iup_segment(
                 d = d2
             else:
                 # Interpolate
-                d = d1 + (x - x1) * scale
+                #
+                # NOTE: we assign an explicit intermediate variable here in
+                # order to disable a fused mul-add optimization. See:
+                #
+                # - https://godbolt.org/z/YsP4T3TqK,
+                # - https://github.com/fonttools/fonttools/issues/3703
+                nudge = (x - x1) * scale
+                d = d1 + nudge
 
             out.append(d)
 
