@@ -111,7 +111,7 @@ namespace NCatboostCuda {
             return true;
         }
 
-        TStringBuf ScoreMetricName() {
+        TString ScoreMetricName() const {
             return TStringBuilder() << "QueryCrossEntropy:alpha=" << Alpha;
         }
 
