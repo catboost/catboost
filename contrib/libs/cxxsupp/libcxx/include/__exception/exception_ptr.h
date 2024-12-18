@@ -21,7 +21,6 @@
 
 namespace std { // purposefully not using versioning namespace
 
-
 class _LIBCPP_EXPORTED_FROM_ABI exception_ptr {
   void* __ptr_;
 
@@ -43,11 +42,10 @@ public:
     return !(__x == __y);
   }
 
-  friend _LIBCPP_HIDE_FROM_ABI void swap(exception_ptr& __x, exception_ptr& __y) _NOEXCEPT
-  {
-      void* __tmp = __x.__ptr_;
-      __x.__ptr_ = __y.__ptr_;
-      __y.__ptr_ = __tmp;
+  friend _LIBCPP_HIDE_FROM_ABI void swap(exception_ptr& __x, exception_ptr& __y) _NOEXCEPT {
+    void* __tmp = __x.__ptr_;
+    __x.__ptr_  = __y.__ptr_;
+    __y.__ptr_  = __tmp;
   }
 
   friend _LIBCPP_EXPORTED_FROM_ABI exception_ptr current_exception() _NOEXCEPT;
@@ -72,7 +70,7 @@ _LIBCPP_HIDE_FROM_ABI exception_ptr make_exception_ptr(_Ep __e) _NOEXCEPT {
 
 #else // _LIBCPP_ABI_MICROSOFT
 
-_LIBCPP_HIDE_FROM_ABI exception_ptr __copy_exception_ptr(void *__exception, const void* __ptr);
+_LIBCPP_HIDE_FROM_ABI exception_ptr __copy_exception_ptr(void* __exception, const void* __ptr);
 
 // This is a built-in template function which automagically extracts the required
 // information.

@@ -22,7 +22,7 @@
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_THREADS) && !defined(_LIBCPP_CXX03_LANG)
-#include <atomic>
+#  include <atomic>
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -133,11 +133,11 @@ _LIBCPP_EXPORTED_FROM_ABI void __call_once(volatile once_flag::_State_type&, voi
 
 template <class _Callable, class... _Args>
 inline _LIBCPP_HIDE_FROM_ABI void call_once(once_flag& __flag, _Callable&& __func, _Args&&... __args) {
-#if defined(_LIBCPP_ABI_MICROSOFT)
+#  if defined(_LIBCPP_ABI_MICROSOFT)
   if (__flag.__state_.load(memory_order_acquire) != ~once_flag::_State_type(0)) {
-#else
+#  else
   if (__libcpp_acquire_load(&__flag.__state_) != once_flag::_Complete) {
-#endif
+#  endif
     typedef tuple<_Callable&&, _Args&&...> _Gp;
     _Gp __f(std::forward<_Callable>(__func), std::forward<_Args>(__args)...);
     __call_once_param<_Gp> __p(__f);
@@ -149,11 +149,11 @@ inline _LIBCPP_HIDE_FROM_ABI void call_once(once_flag& __flag, _Callable&& __fun
 
 template <class _Callable>
 inline _LIBCPP_HIDE_FROM_ABI void call_once(once_flag& __flag, _Callable& __func) {
-#if defined(_LIBCPP_ABI_MICROSOFT)
-    if (__flag.__state_.load(memory_order_acquire) != ~once_flag::_State_type(0)) {
-#else
+#  if defined(_LIBCPP_ABI_MICROSOFT)
+  if (__flag.__state_.load(memory_order_acquire) != ~once_flag::_State_type(0)) {
+#  else
   if (__libcpp_acquire_load(&__flag.__state_) != once_flag::_Complete) {
-#endif
+#  endif
     __call_once_param<_Callable> __p(__func);
     std::__call_once(__flag.__state_, &__p, &__call_once_proxy<_Callable>);
   }
@@ -161,11 +161,11 @@ inline _LIBCPP_HIDE_FROM_ABI void call_once(once_flag& __flag, _Callable& __func
 
 template <class _Callable>
 inline _LIBCPP_HIDE_FROM_ABI void call_once(once_flag& __flag, const _Callable& __func) {
-#if defined(_LIBCPP_ABI_MICROSOFT)
-    if (__flag.__state_.load(memory_order_relaxed) != ~once_flag::_State_type(0)) {
-#else
+#  if defined(_LIBCPP_ABI_MICROSOFT)
+  if (__flag.__state_.load(memory_order_relaxed) != ~once_flag::_State_type(0)) {
+#  else
   if (__libcpp_acquire_load(&__flag.__state_) != once_flag::_Complete) {
-#endif
+#  endif
     __call_once_param<const _Callable> __p(__func);
     std::__call_once(__flag.__state_, &__p, &__call_once_proxy<const _Callable>);
   }
