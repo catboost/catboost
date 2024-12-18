@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #ifndef _LIBCPP_MATH_H
-#define _LIBCPP_MATH_H
+#  define _LIBCPP_MATH_H
 
 /*
     math.h synopsis
@@ -290,21 +290,21 @@ float          truncf(float x);
 long double    truncl(long double x);
 
 */
-#ifdef __CUDACC__
-#include <math_cuda.h>
-#else
+#  ifdef __CUDACC__
+#    include <math_cuda.h>
+#  else
 
-#include <__config>
+#  include <__config>
 
-#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
-#endif
+#  if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#    pragma GCC system_header
+#  endif
 
 #  if __has_include_next(<math.h>)
 #    include_next <math.h>
 #  endif
 
-#ifdef __cplusplus
+#  ifdef __cplusplus
 
 // We support including .h headers inside 'extern "C"' contexts, so switch
 // back to C++ linkage before including these C++ headers.
@@ -358,30 +358,29 @@ extern "C++" {
 #      undef isunordered
 #    endif
 
-#include <__math/abs.h>
-#include <__math/copysign.h>
-#include <__math/error_functions.h>
-#include <__math/exponential_functions.h>
-#include <__math/fdim.h>
-#include <__math/fma.h>
-#include <__math/gamma.h>
-#include <__math/hyperbolic_functions.h>
-#include <__math/hypot.h>
-#include <__math/inverse_hyperbolic_functions.h>
-#include <__math/inverse_trigonometric_functions.h>
-#include <__math/logarithms.h>
-#include <__math/min_max.h>
-#include <__math/modulo.h>
-#include <__math/remainder.h>
-#include <__math/roots.h>
-#include <__math/rounding_functions.h>
-#include <__math/traits.h>
-#include <__math/trigonometric_functions.h>
-#include <__type_traits/enable_if.h>
-#include <__type_traits/is_floating_point.h>
-#include <__type_traits/is_integral.h>
-#include <stdlib.h>
-
+#    include <__math/abs.h>
+#    include <__math/copysign.h>
+#    include <__math/error_functions.h>
+#    include <__math/exponential_functions.h>
+#    include <__math/fdim.h>
+#    include <__math/fma.h>
+#    include <__math/gamma.h>
+#    include <__math/hyperbolic_functions.h>
+#    include <__math/hypot.h>
+#    include <__math/inverse_hyperbolic_functions.h>
+#    include <__math/inverse_trigonometric_functions.h>
+#    include <__math/logarithms.h>
+#    include <__math/min_max.h>
+#    include <__math/modulo.h>
+#    include <__math/remainder.h>
+#    include <__math/roots.h>
+#    include <__math/rounding_functions.h>
+#    include <__math/traits.h>
+#    include <__math/trigonometric_functions.h>
+#    include <__type_traits/enable_if.h>
+#    include <__type_traits/is_floating_point.h>
+#    include <__type_traits/is_integral.h>
+#    include <stdlib.h>
 
 // fpclassify relies on implementation-defined constants, so we can't move it to a detail header
 _LIBCPP_BEGIN_NAMESPACE_STD
@@ -419,7 +418,7 @@ using std::__math::fpclassify;
 using std::__math::signbit;
 
 // The MSVC runtime already provides these functions as templates
-#ifndef _LIBCPP_MSVCRT
+#    ifndef _LIBCPP_MSVCRT
 using std::__math::isfinite;
 using std::__math::isgreater;
 using std::__math::isgreaterequal;
@@ -430,7 +429,7 @@ using std::__math::islessgreater;
 using std::__math::isnan;
 using std::__math::isnormal;
 using std::__math::isunordered;
-#endif // _LIBCPP_MSVCRT
+#    endif // _LIBCPP_MSVCRT
 
 // abs
 //
@@ -445,13 +444,13 @@ using std::__math::isunordered;
 // templates. Functions are preferred over function templates during overload resolution, which means that our overload
 // will only be selected when the C library doesn't provide one.
 
-using std::__math::acosh;
 using std::__math::acos;
-using std::__math::asinh;
+using std::__math::acosh;
 using std::__math::asin;
-using std::__math::atanh;
+using std::__math::asinh;
 using std::__math::atan;
 using std::__math::atan2;
+using std::__math::atanh;
 using std::__math::cbrt;
 using std::__math::ceil;
 using std::__math::copysign;
@@ -476,13 +475,13 @@ using std::__math::ldexp;
 using std::__math::lgamma;
 using std::__math::llrint;
 using std::__math::llround;
-using std::__math::lrint;
-using std::__math::lround;
 using std::__math::log;
 using std::__math::log10;
 using std::__math::log1p;
 using std::__math::log2;
 using std::__math::logb;
+using std::__math::lrint;
+using std::__math::lround;
 using std::__math::modf;
 using std::__math::nearbyint;
 using std::__math::nextafter;
@@ -505,9 +504,9 @@ using std::__math::trunc;
 
 } // extern "C++"
 
-#endif // __cplusplus
+#  endif // __cplusplus
 
-#endif // __CUDACC__
+#  endif // __CUDACC__
 
 #else // _LIBCPP_MATH_H
 
@@ -519,8 +518,8 @@ using std::__math::trunc;
 //
 // and receive the definitions of mathematical constants, even if <math.h>
 // has previously been included.
-#if defined(_LIBCPP_MSVCRT) && defined(_USE_MATH_DEFINES)
-#include_next <math.h>
-#endif
+#  if defined(_LIBCPP_MSVCRT) && defined(_USE_MATH_DEFINES)
+#    include_next <math.h>
+#  endif
 
 #endif // _LIBCPP_MATH_H

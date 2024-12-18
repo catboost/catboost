@@ -149,12 +149,12 @@
 // Previously libc++ used "unsigned int" exclusively.
 #    define _LIBCPP_ABI_VARIANT_INDEX_TYPE_OPTIMIZATION
 // Unstable attempt to provide a more optimized std::function
-#ifdef __EMSCRIPTEN__
+#    ifdef __EMSCRIPTEN__
 // XXX EMSCRIPTEN https://github.com/emscripten-core/emscripten/issues/11022
-//#    define _LIBCPP_ABI_OPTIMIZED_FUNCTION
-#else
-#    define _LIBCPP_ABI_OPTIMIZED_FUNCTION
-#endif
+// #    define _LIBCPP_ABI_OPTIMIZED_FUNCTION
+#    else
+#      define _LIBCPP_ABI_OPTIMIZED_FUNCTION
+#    endif
 // All the regex constants must be distinct and nonzero.
 #    define _LIBCPP_ABI_REGEX_CONSTANTS_NONZERO
 // Re-worked external template instantiations for std::string with a focus on
@@ -1037,8 +1037,8 @@ typedef __char32_t char32_t;
 #  endif
 
 #  ifndef _LIBCPP_HAS_NO_ASAN
-    extern "C" _LIBCPP_EXPORTED_FROM_ABI void
-    __sanitizer_annotate_contiguous_container(const void*, const void*, const void*, const void*);
+extern "C" _LIBCPP_EXPORTED_FROM_ABI void
+__sanitizer_annotate_contiguous_container(const void*, const void*, const void*, const void*);
 #    if !defined(_LIBCPP_NO_ASAN_CONTIGUOUS_CONTAINER_FEATURES)
 extern "C" _LIBCPP_EXPORTED_FROM_ABI void __sanitizer_annotate_double_ended_contiguous_container(
     const void*, const void*, const void*, const void*, const void*, const void*);
@@ -1206,10 +1206,10 @@ __sanitizer_verify_double_ended_contiguous_container(const void*, const void*, c
 #    define _LIBCPP_CONSTINIT
 #  endif
 
-#if defined(__CUDACC__) && defined(__noinline__)
-#  pragma push_macro("__noinline__")
-#  define __noinline__ __noinline__
-#endif
+#  if defined(__CUDACC__) && defined(__noinline__)
+#    pragma push_macro("__noinline__")
+#    define __noinline__ __noinline__
+#  endif
 
 #  if __has_attribute(__noinline__)
 #    define _LIBCPP_NOINLINE __attribute__((__noinline__))
@@ -1217,9 +1217,9 @@ __sanitizer_verify_double_ended_contiguous_container(const void*, const void*, c
 #    define _LIBCPP_NOINLINE
 #  endif
 
-#if defined(__CUDACC__) && defined(__noinline__)
-#  pragma pop_macro("__noinline__")
-#endif
+#  if defined(__CUDACC__) && defined(__noinline__)
+#    pragma pop_macro("__noinline__")
+#  endif
 
 // We often repeat things just for handling wide characters in the library.
 // When wide characters are disabled, it can be useful to have a quick way of
@@ -1454,7 +1454,8 @@ __sanitizer_verify_double_ended_contiguous_container(const void*, const void*, c
 #    define _LIBCPP_NO_DESTROY
 #  endif
 
-#  if !__has_builtin(__builtin_is_constant_evaluated) || (defined(_LIBCPP_COMPILER_GCC) && _GNUC_VER < 900) || __CUDACC_VER_MAJOR__ == 10
+#  if !__has_builtin(__builtin_is_constant_evaluated) || (defined(_LIBCPP_COMPILER_GCC) && _GNUC_VER < 900) ||         \
+      __CUDACC_VER_MAJOR__ == 10
 #    define _LIBCPP_HAS_NO_BUILTIN_IS_CONSTANT_EVALUATED
 #  endif
 
@@ -1548,4 +1549,3 @@ __sanitizer_verify_double_ended_contiguous_container(const void*, const void*, c
 #include <__config_epilogue.h>
 
 #endif // _LIBCPP___CONFIG
-

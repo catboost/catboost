@@ -44,12 +44,12 @@ _LIBCPP_WEAK void* operator new(std::size_t size) _THROW_BAD_ALLOC {
 #  else
 #    ifdef __EMSCRIPTEN__
   if (p == nullptr)
-      // Abort here so that when exceptions are disabled, we do not just
-      // return 0 when malloc returns 0.
-      // We could also do this with set_new_handler, but that adds a
-      // global constructor and a table entry, overhead that we can avoid
-      // by doing it this way.
-      abort();
+    // Abort here so that when exceptions are disabled, we do not just
+    // return 0 when malloc returns 0.
+    // We could also do this with set_new_handler, but that adds a
+    // global constructor and a table entry, overhead that we can avoid
+    // by doing it this way.
+    abort();
 #    endif
 #  endif
   return p;

@@ -21,15 +21,15 @@
 #include "time_utils.h"
 
 #if defined(_LIBCPP_WIN32API)
-# define WIN32_LEAN_AND_MEAN
-# define NOMINMAX
-# include <windows.h>
+#  define WIN32_LEAN_AND_MEAN
+#  define NOMINMAX
+#  include <windows.h>
 #else
-# include <dirent.h>   // for DIR & friends
-# include <fcntl.h>    // values for fchmodat
-# include <sys/stat.h>
-# include <sys/statvfs.h>
-# include <unistd.h>
+#  include <dirent.h> // for DIR & friends
+#  include <fcntl.h>  // values for fchmodat
+#  include <sys/stat.h>
+#  include <sys/statvfs.h>
+#  include <unistd.h>
 #endif // defined(_LIBCPP_WIN32API)
 
 _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM
@@ -38,7 +38,7 @@ namespace detail {
 
 #if !defined(_LIBCPP_WIN32API)
 
-#if defined(DT_BLK)
+#  if defined(DT_BLK)
 template <class DirEntT, class = decltype(DirEntT::d_type)>
 file_type get_file_type(DirEntT* ent, int) {
   switch (ent->d_type) {
@@ -64,17 +64,16 @@ file_type get_file_type(DirEntT* ent, int) {
   }
   return file_type::none;
 }
-#endif // defined(DT_BLK)
+#  endif // defined(DT_BLK)
 
 template <class DirEntT>
 file_type get_file_type(DirEntT*, long) {
   return file_type::none;
 }
 
-inline pair<string_view, file_type> posix_readdir(DIR* dir_stream,
-                                                  error_code& ec) {
+inline pair<string_view, file_type> posix_readdir(DIR* dir_stream, error_code& ec) {
   struct dirent* dir_entry_ptr = nullptr;
-  errno = 0; // zero errno in order to detect errors
+  errno                        = 0; // zero errno in order to detect errors
   ec.clear();
   if ((dir_entry_ptr = ::readdir(dir_stream)) == nullptr) {
     if (errno)
@@ -88,8 +87,7 @@ inline pair<string_view, file_type> posix_readdir(DIR* dir_stream,
 #else // _LIBCPP_WIN32API
 
 inline file_type get_file_type(const WIN32_FIND_DATAW& data) {
-  if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT &&
-      data.dwReserved0 == IO_REPARSE_TAG_SYMLINK)
+  if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT && data.dwReserved0 == IO_REPARSE_TAG_SYMLINK)
     return file_type::symlink;
   if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     return file_type::directory;
@@ -101,7 +99,7 @@ inline uintmax_t get_file_size(const WIN32_FIND_DATAW& data) {
 inline file_time_type get_write_time(const WIN32_FIND_DATAW& data) {
   using detail::fs_time;
   const FILETIME& time = data.ftLastWriteTime;
-  auto ts = filetime_to_timespec(time);
+  auto ts              = filetime_to_timespec(time);
   if (!fs_time::is_representable(ts))
     return file_time_type::min();
   return fs_time::convert_from_timespec(ts);
@@ -117,7 +115,7 @@ inline perms get_file_perm(const WIN32_FIND_DATAW& data) {
 
 //                       POSIX HELPERS
 
-using value_type = path::value_type;
+using value_type  = path::value_type;
 using string_type = path::string_type;
 
 struct FileDescriptor {
@@ -156,8 +154,7 @@ struct FileDescriptor {
   }
 
   template <class... Args>
-  static FileDescriptor create_with_status(const path* p, error_code& ec,
-                                           Args... args) {
+  static FileDescriptor create_with_status(const path* p, error_code& ec, Args... args) {
     FileDescriptor fd = create(p, ec, args...);
     if (!ec)
       fd.refresh_status(ec);
@@ -185,27 +182,23 @@ struct FileDescriptor {
   }
 
   FileDescriptor(FileDescriptor&& other)
-      : name(other.name), fd(other.fd), m_stat(other.m_stat),
-        m_status(other.m_status) {
-    other.fd = -1;
+      : name(other.name), fd(other.fd), m_stat(other.m_stat), m_status(other.m_status) {
+    other.fd       = -1;
     other.m_status = file_status{};
   }
 
   ~FileDescriptor() { close(); }
 
-  FileDescriptor(FileDescriptor const&) = delete;
+  FileDescriptor(FileDescriptor const&)            = delete;
   FileDescriptor& operator=(FileDescriptor const&) = delete;
 
 private:
   explicit FileDescriptor(const path* p, int descriptor = -1) : name(*p), fd(descriptor) {}
 };
 
-inline perms posix_get_perms(const StatT& st) noexcept {
-  return static_cast<perms>(st.st_mode) & perms::mask;
-}
+inline perms posix_get_perms(const StatT& st) noexcept { return static_cast<perms>(st.st_mode) & perms::mask; }
 
-inline file_status create_file_status(error_code& m_ec, path const& p,
-                                      const StatT& path_stat, error_code* ec) {
+inline file_status create_file_status(error_code& m_ec, path const& p, const StatT& path_stat, error_code* ec) {
   if (ec)
     *ec = m_ec;
   if (m_ec && (m_ec.value() == ENOENT || m_ec.value() == ENOTDIR)) {
@@ -290,7 +283,7 @@ inline bool stat_equivalent(const StatT& st1, const StatT& st2) {
 inline file_status FileDescriptor::refresh_status(error_code& ec) {
   // FD must be open and good.
   m_status = file_status{};
-  m_stat = {};
+  m_stat   = {};
   error_code m_ec;
   if (detail::fstat(fd, &m_stat) == -1)
     m_ec = capture_errno();

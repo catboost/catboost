@@ -18,7 +18,8 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if __has_builtin(__is_lvalue_reference) && __has_builtin(__is_rvalue_reference) && __has_builtin(__is_reference) && !defined(__CUDACC__)
+#if __has_builtin(__is_lvalue_reference) && __has_builtin(__is_rvalue_reference) && __has_builtin(__is_reference) &&   \
+    !defined(__CUDACC__)
 
 template <class _Tp>
 struct _LIBCPP_TEMPLATE_VIS is_lvalue_reference : _BoolConstant<__is_lvalue_reference(_Tp)> {};

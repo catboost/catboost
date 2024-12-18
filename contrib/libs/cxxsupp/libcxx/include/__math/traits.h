@@ -67,7 +67,7 @@ _LIBCPP_NODISCARD_EXT _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI bool i
   return false;
 }
 
-#ifdef _LIBCPP_PREFERRED_OVERLOAD  && !defined(__CUDACC__)
+#ifdef _LIBCPP_PREFERRED_OVERLOAD && !defined(__CUDACC__)
 _LIBCPP_NODISCARD_EXT inline _LIBCPP_CONSTEXPR_SINCE_CXX23 _LIBCPP_HIDE_FROM_ABI bool isinf(float __x) _NOEXCEPT {
   return __builtin_isinf(__x);
 }
