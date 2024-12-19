@@ -14,6 +14,16 @@ namespace NYT::NDetail {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// NB(arkady-e1ppa): clang16 has bug which causes it
+// ignore noexcept specifier of reference to static member methods.
+#if (!__clang__ || __clang_major__ < 18)
+    #define YT_TYPE_ERASURE_NOEXCEPT(NoExcept)
+#else
+    #define YT_TYPE_ERASURE_NOEXCEPT(NoExcept) noexcept(NoExcept)
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+
 // NB(arkady-e1ppa): Next section of code is about most general type erasure storage.
 // There are two kinds: One which simply holds a pointer to data stored elsewhere
 // and the one which holds the data on its own. The latter can store it inline
@@ -261,8 +271,7 @@ class TVTableEntry<TStorage, TOverloadedCpo<Cpo, TRet(TCvThis, TArgs...) noexcep
 {
 private:
     using TReplaced = TFromThis<TStorage, TCvThis>;
-    using TSignature = TRet(TReplaced, TArgs...) noexcept(NoExcept);
-    using TFunction = TRet(*)(TReplaced, TArgs...) noexcept(NoExcept);
+    using TFunction = TRet(*)(TReplaced, TArgs...) YT_TYPE_ERASURE_NOEXCEPT(NoExcept);
 
 public:
     TVTableEntry() = default;
@@ -304,7 +313,7 @@ private:
     TFunction Function_ = nullptr;
 
     template <class TConcrete>
-    static TRet StaticInvoke(TReplaced storage, TArgs... args) noexcept(NoExcept)
+    static TRet StaticInvoke(TReplaced storage, TArgs... args) YT_TYPE_ERASURE_NOEXCEPT(NoExcept)
     {
         return Cpo(std::forward<TReplaced>(storage).template As<TConcrete>(), std::forward<TArgs>(args)...);
     }
@@ -634,7 +643,7 @@ struct TUnwrappingTagInvokeBase<TDerived, TOverloadedCpo<Cpo, TRet(TCvThis, TArg
 {
     using TReplaced = TFromThis<TDerived, TCvThis>;
 
-    friend Y_FORCE_INLINE TRet TagInvoke(TTagInvokeTag<Cpo>, TReplaced wrapper, TArgs... args) noexcept(NoExcept)
+    friend Y_FORCE_INLINE TRet TagInvoke(TTagInvokeTag<Cpo>, TReplaced wrapper, TArgs... args) YT_TYPE_ERASURE_NOEXCEPT(NoExcept)
     {
         return Cpo(std::forward<TReplaced>(wrapper).Unwrap(), std::forward<TArgs>(args)...);
     }
@@ -699,7 +708,7 @@ struct TAnyFragment<TDerived, TOverloadedCpo<Cpo, TRet(TCvThis, TArgs...) noexce
     using TReplaced = TFromThis<TDerived, TCvThis>;
     using TVTableTag = TOverloadedCpo<Cpo, TRet(TCvThis, TArgs...) noexcept(NoExcept)>;
 
-    friend Y_FORCE_INLINE TRet TagInvoke(TTagInvokeTag<Cpo>, TReplaced any, TArgs... args) noexcept(NoExcept)
+    friend Y_FORCE_INLINE TRet TagInvoke(TTagInvokeTag<Cpo>, TReplaced any, TArgs... args) YT_TYPE_ERASURE_NOEXCEPT(NoExcept)
     {
         static_assert(CSomeAnyObject<TDerived>);
 
@@ -712,6 +721,8 @@ struct TAnyFragment<TDerived, TOverloadedCpo<Cpo, TRet(TCvThis, TArgs...) noexce
         return functor(std::forward<TReplaced>(any).GetStorage(), std::forward<TArgs>(args)...);
     }
 };
+
+#undef YT_TYPE_ERASURE_NOEXCEPT
 
 ////////////////////////////////////////////////////////////////////////////////
 
