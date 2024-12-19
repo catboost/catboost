@@ -41,8 +41,8 @@
 #define LC_NUMERIC_MASK _M_NUMERIC
 #define LC_TIME_MASK _M_TIME
 #define LC_MESSAGES_MASK _M_MESSAGES
-#define LC_MESSAGES _X_MESSAGES
-#define LC_ALL_MASK _M_ALL
+#define LC_ALL_MASK                                                                                                    \
+  (LC_COLLATE_MASK | LC_CTYPE_MASK | LC_MESSAGES_MASK | LC_MONETARY_MASK | LC_NUMERIC_MASK | LC_TIME_MASK)
 
 class __lconv_storage {
 public:
@@ -191,7 +191,7 @@ decltype(MB_CUR_MAX) MB_CUR_MAX_L(locale_t __l);
 #define strtod_l _strtod_l
 #if defined(_LIBCPP_MSVCRT)
 #  define strtof_l _strtof_l
-#  define strtold_l _strtod_l
+#  define strtold_l _strtold_l
 #else
 _LIBCPP_EXPORTED_FROM_ABI float strtof_l(const char*, char**, locale_t);
 _LIBCPP_EXPORTED_FROM_ABI long double strtold_l(const char*, char**, locale_t);
