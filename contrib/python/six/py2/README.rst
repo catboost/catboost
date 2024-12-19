@@ -2,10 +2,6 @@
    :target: https://pypi.org/project/six/
    :alt: six on PyPI
 
-.. image:: https://travis-ci.org/benjaminp/six.svg?branch=master
-   :target: https://travis-ci.org/benjaminp/six
-   :alt: six on TravisCI
-
 .. image:: https://readthedocs.org/projects/six/badge/?version=latest
    :target: https://six.readthedocs.io/
    :alt: six's documentation on Read the Docs
