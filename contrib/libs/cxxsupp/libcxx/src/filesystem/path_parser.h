@@ -323,17 +323,15 @@ private:
       return consumeNSeparators(consumeName(P, End), End, 2);
   }
 
-#if defined(_LIBCPP_WIN32API)
   PosPtr consumeRootName(PosPtr P, PosPtr End) const noexcept {
+#if defined(_LIBCPP_WIN32API)
     if (PosPtr Ret = consumeDriveLetter(P, End))
       return Ret;
     if (PosPtr Ret = consumeNetworkRoot(P, End))
       return Ret;
+#endif
     return nullptr;
   }
-#else
-  PosPtr consumeRootName(PosPtr /*P*/, PosPtr /*End*/) const noexcept { return nullptr; }
-#endif
 };
 
 inline string_view_pair separate_filename(string_view_t const& s) {
