@@ -1596,7 +1596,7 @@ class BaseDocWriter(object):
                 mapElement.attrib["input"] = self.intOrFloat(inputValue)
                 mapElement.attrib["output"] = self.intOrFloat(outputValue)
                 axisElement.append(mapElement)
-        if axisObject.axisOrdering or axisObject.axisLabels:
+        if axisObject.axisOrdering is not None or axisObject.axisLabels:
             labelsElement = ET.Element("labels")
             if axisObject.axisOrdering is not None:
                 labelsElement.attrib["ordering"] = str(axisObject.axisOrdering)
