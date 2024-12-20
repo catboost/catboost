@@ -88,6 +88,7 @@ def main():
             [
                 opts.java_bin,
                 '-Didea.max.content.load.filesize=30720',
+                '-Djava.correct.class.type.by.place.resolve.scope=true',
                 '-jar',
                 opts.kotlin_compiler,
                 '-classpath',
