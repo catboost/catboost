@@ -4,7 +4,7 @@
 #include "feature_estimator.h"
 
 #include <catboost/private/libs/embeddings/embedding_dataset.h>
-
+#include <catboost/private/libs/embedding_features/knn.h>
 
 namespace NCB {
 
