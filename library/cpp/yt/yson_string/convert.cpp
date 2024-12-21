@@ -11,9 +11,40 @@
 
 #include <array>
 
+#include <util/string/escape.h>
+
 #include <util/stream/mem.h>
 
 namespace NYT::NYson {
+
+////////////////////////////////////////////////////////////////////////////////
+
+namespace NDetail {
+
+size_t FloatToStringWithNanInf(double value, char* buf, size_t size)
+{
+    if (std::isfinite(value)) {
+        return FloatToString(value, buf, size);
+    }
+
+    static const TStringBuf nanLiteral = "%nan";
+    static const TStringBuf infLiteral = "%inf";
+    static const TStringBuf negativeInfLiteral = "%-inf";
+
+    TStringBuf str;
+    if (std::isnan(value)) {
+        str = nanLiteral;
+    } else if (std::isinf(value) && value > 0) {
+        str = infLiteral;
+    } else {
+        str = negativeInfLiteral;
+    }
+    YT_VERIFY(str.size() + 1 <= size);
+    ::memcpy(buf, str.data(), str.size() + 1);
+    return str.size();
+}
+
+} // namespace NDetail
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -378,6 +409,391 @@ TGuid ConvertFromYsonString<TGuid>(const TYsonStringBuf& str)
 {
     try {
         return TGuid::FromString(ParseStringFromYsonString(str));
+    } catch (const std::exception& ex) {
+        throw TYsonLiteralParseException(ex, "Error parsing \"guid\" value from YSON");
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <>
+TYsonString ConvertToTextYsonString<i8>(const i8& value)
+{
+    return ConvertToTextYsonString(static_cast<i64>(value));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<i32>(const i32& value)
+{
+    return ConvertToTextYsonString(static_cast<i64>(value));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<i64>(const i64& value)
+{
+    return TYsonString{::ToString(value)};
+}
+
+template <>
+TYsonString ConvertToTextYsonString<ui8>(const ui8& value)
+{
+    return ConvertToTextYsonString(static_cast<ui64>(value));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<ui32>(const ui32& value)
+{
+    return ConvertToTextYsonString(static_cast<ui64>(value));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<ui64>(const ui64& value)
+{
+    return TYsonString{::ToString(value) + 'u'};
+}
+
+template <>
+TYsonString ConvertToTextYsonString<TString>(const TString& value)
+{
+    return ConvertToTextYsonString(TStringBuf(value));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<std::string>(const std::string& value)
+{
+    return ConvertToTextYsonString(TStringBuf(value));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<TStringBuf>(const TStringBuf& value)
+{
+    return TYsonString(NYT::Format("\"%v\"", ::EscapeC(value)));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<std::string_view>(const std::string_view& value)
+{
+    return ConvertToTextYsonString(TStringBuf(value));
+}
+
+TYsonString ConvertToTextYsonString(const char* value)
+{
+    return ConvertToTextYsonString(TStringBuf(value));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<float>(const float& value)
+{
+    return ConvertToTextYsonString(static_cast<double>(value));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<double>(const double& value)
+{
+    char buf[256];
+    auto str = TStringBuf(buf, NDetail::FloatToStringWithNanInf(value, buf, sizeof(buf)));
+    auto ret = NYT::Format(
+        "%v%v",
+        str,
+        MakeFormatterWrapper([&] (TStringBuilderBase* builder) {
+            if (str.find('.') == TString::npos && str.find('e') == TString::npos && std::isfinite(value)) {
+                builder->AppendChar('.');
+            }
+        }));
+    return TYsonString(std::move(ret));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<bool>(const bool& value)
+{
+    return value
+        ? TYsonString(TStringBuf("%true"))
+        : TYsonString(TStringBuf("%false"));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<TInstant>(const TInstant& value)
+{
+    return ConvertToTextYsonString(value.ToString());
+}
+
+template <>
+TYsonString ConvertToTextYsonString<TDuration>(const TDuration& value)
+{
+    // ConvertTo does unchecked cast to i64 :(.
+    return ConvertToTextYsonString(static_cast<i64>(value.MilliSeconds()));
+}
+
+template <>
+TYsonString ConvertToTextYsonString<TGuid>(const TGuid& value)
+{
+    return ConvertToTextYsonString(NYT::ToString(value));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+
+template <class TSomeInt>
+TSomeInt ReadTextUint(TStringBuf strBuf)
+{
+    // Drop 'u'
+    return ::FromString<TSomeInt>(TStringBuf{strBuf.data(), strBuf.length() - 1});
+}
+
+template <class TSomeInt>
+TSomeInt ReadTextInt(TStringBuf strBuf)
+{
+    return ::FromString<TSomeInt>(TStringBuf{strBuf.data(), strBuf.length()});
+}
+
+bool IsNumeric(TStringBuf strBuf)
+{
+    bool isNumeric = true;
+    bool isNegative = false;
+    for (int i = 0; i < std::ssize(strBuf); ++i) {
+        char c = strBuf[i];
+
+        if (!('0' <= c && c <= '9')) {
+            if (i == 0 && c == '-') {
+                isNegative = true;
+                continue;
+            }
+            if (i == std::ssize(strBuf) - 1 && c == 'u' && !isNegative) {
+                continue;
+            }
+            isNumeric = false;
+            break;
+        }
+    }
+
+    return isNumeric;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TSomeInt>
+TSomeInt ParseSomeIntFromTextYsonString(const TYsonStringBuf& str)
+{
+    YT_ASSERT(str.GetType() == EYsonType::Node);
+    auto strBuf = str.AsStringBuf();
+
+    if (std::ssize(strBuf) == 0 || !IsNumeric(strBuf)) {
+        throw TYsonLiteralParseException(NYT::Format(
+            "Unexpected %v\n"
+            "Value is not numeric",
+            strBuf));
+    }
+
+    if (strBuf.back() == 'u') {
+        // Drop 'u'
+        return ReadTextUint<TSomeInt>(strBuf);
+    } else {
+        return ReadTextInt<TSomeInt>(strBuf);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+TString DoParseStringFromTextYson(TStringBuf strBuf)
+{
+    // Remove quotation marks.
+    return ::UnescapeC(TStringBuf{strBuf.data() + 1, strBuf.length() - 2});
+}
+
+TString ParseStringFromTextYsonString(const TYsonStringBuf& str)
+{
+    YT_ASSERT(str.GetType() == EYsonType::Node);
+    auto strBuf = str.AsStringBuf();
+    if (std::ssize(strBuf) < 2 || strBuf.front() != '\"' || strBuf.back() != '\"') {
+        throw TYsonLiteralParseException(Format(
+            "Unexpected %v\n"
+            "Text yson string must begin and end with \\\"",
+            strBuf));
+    }
+    return DoParseStringFromTextYson(strBuf);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+double ParseDoubleFromTextYsonString(const TYsonStringBuf& str)
+{
+    YT_ASSERT(str.GetType() == EYsonType::Node);
+    auto strBuf = str.AsStringBuf();
+
+    if (std::ssize(strBuf) < 2) {
+        throw TYsonLiteralParseException(Format(
+            "Incorrect remaining string length: expected at least 2, got %v",
+            std::ssize(strBuf)));
+    }
+
+    // Check special values first.
+    // %nan
+    // %inf, %+inf, %-inf
+    if (strBuf[0] == '%') {
+        switch (strBuf[1]) {
+            case '+':
+            case 'i':
+                return std::numeric_limits<double>::infinity();
+
+            case '-':
+                return -std::numeric_limits<double>::infinity();
+
+            case 'n':
+                return std::numeric_limits<double>::quiet_NaN();
+
+            default:
+                throw TYsonLiteralParseException(Format(
+                    "Incorrect %%-literal %v",
+                    strBuf));
+        }
+    }
+
+    return ::FromString<double>(strBuf);
+}
+
+} // namespace
+
+////////////////////////////////////////////////////////////////////////////////
+
+#define PARSE_INT(type, underlyingType) \
+    template <> \
+    type ConvertFromTextYsonString<type>(const TYsonStringBuf& str) \
+    { \
+        try { \
+            return CheckedIntegralCast<type>(ParseSomeIntFromTextYsonString<underlyingType>(str)); \
+        } catch (const std::exception& ex) { \
+            throw TYsonLiteralParseException(ex, "Error parsing \"" #type "\" value from YSON"); \
+        } \
+    }
+
+PARSE_INT(i8,    i64)
+PARSE_INT(i16,   i64)
+PARSE_INT(i32,   i64)
+PARSE_INT(i64,   i64)
+PARSE_INT(ui8,  ui64)
+PARSE_INT(ui16, ui64)
+PARSE_INT(ui32, ui64)
+PARSE_INT(ui64, ui64)
+
+#undef PARSE
+
+template <>
+TString ConvertFromTextYsonString<TString>(const TYsonStringBuf& str)
+{
+    try {
+        return ParseStringFromTextYsonString(str);
+    } catch (const std::exception& ex) {
+        throw TYsonLiteralParseException(ex, "Error parsing \"string\" value from YSON");
+    }
+}
+
+template <>
+std::string ConvertFromTextYsonString<std::string>(const TYsonStringBuf& str)
+{
+    return std::string{ConvertFromTextYsonString<TString>(str)};
+}
+
+template <>
+float ConvertFromTextYsonString<float>(const TYsonStringBuf& str)
+{
+    try {
+        return static_cast<float>(ParseDoubleFromTextYsonString(str));
+    } catch (const std::exception& ex) {
+        throw TYsonLiteralParseException(ex, "Error parsing \"float\" value from YSON");
+    }
+}
+
+template <>
+double ConvertFromTextYsonString<double>(const TYsonStringBuf& str)
+{
+    try {
+        return ParseDoubleFromTextYsonString(str);
+    } catch (const std::exception& ex) {
+        throw TYsonLiteralParseException(ex, "Error parsing \"double\" value from YSON");
+    }
+}
+
+template <>
+bool ConvertFromTextYsonString<bool>(const TYsonStringBuf& str)
+{
+    try {
+        YT_ASSERT(str.GetType() == EYsonType::Node);
+        auto strBuf = str.AsStringBuf();
+
+        if (std::ssize(strBuf) == 0) {
+            throw TYsonLiteralParseException("Empty string");
+        }
+
+        char ch = strBuf.front();
+
+        if (ch == '%') {
+            if (strBuf != "%true" && strBuf != "%false") {
+                throw TYsonLiteralParseException(Format(
+                    "Expected %%true or %%false but found %v",
+                    strBuf));
+            }
+            return strBuf == "%true";
+        }
+
+        if (ch == '\"') {
+            return ParseBool(DoParseStringFromTextYson(strBuf));
+        }
+
+        // NB(arkady-e1ppa): This check is linear in size(strBuf)
+        // And thus is tried as the last resort.
+        if (IsNumeric(strBuf)) {
+            auto checkValue = [&] (const auto& functor) {
+                auto value = functor(strBuf);
+                if (value != 0 && value != 1) {
+                    throw TYsonLiteralParseException(Format(
+                        "Expected 0 or 1 but found %v",
+                        value));
+                }
+                return static_cast<bool>(value);
+            };
+
+            if (strBuf.back() == 'u') {
+                return checkValue(&ReadTextUint<ui64>);
+            } else {
+                return checkValue(&ReadTextInt<i64>);
+            }
+        }
+
+        throw TYsonLiteralParseException(Format(
+            "Unexpected %v\n"
+            "No known conversion to \"boolean\" value",
+            strBuf));
+    } catch (const std::exception& ex) {
+        throw TYsonLiteralParseException(ex, "Error parsing \"boolean\" value from YSON");
+    }
+}
+
+template <>
+TInstant ConvertFromTextYsonString<TInstant>(const TYsonStringBuf& str)
+{
+    try {
+        return TInstant::ParseIso8601(ParseStringFromTextYsonString(str));
+    } catch (const std::exception& ex) {
+        throw TYsonLiteralParseException(ex, "Error parsing \"instant\" value from YSON");
+    }
+}
+
+template <>
+TDuration ConvertFromTextYsonString<TDuration>(const TYsonStringBuf& str)
+{
+    try {
+        return TDuration::MilliSeconds(ParseSomeIntFromTextYsonString<i64>(str));
+    } catch (const std::exception& ex) {
+        throw TYsonLiteralParseException(ex, "Error parsing \"duration\" value from YSON");
+    }
+}
+
+template <>
+TGuid ConvertFromTextYsonString<TGuid>(const TYsonStringBuf& str)
+{
+    try {
+        return TGuid::FromString(ParseStringFromTextYsonString(str));
     } catch (const std::exception& ex) {
         throw TYsonLiteralParseException(ex, "Error parsing \"guid\" value from YSON");
     }
