@@ -197,6 +197,82 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             UNIT_ASSERT(!p2.Parse(msg, sizeof(msg) - 2));
             UNIT_ASSERT(p2.Parse(msg + sizeof(msg) - 2, 1));
         }
+        {
+            //lot of chunks
+            THttpParser p;
+
+            TStringStream msgStream;
+            msgStream << "HTTP/1.1 333 OK\r\n"
+                   "Connection: Keep-Alive\r\n"
+                   "Transfer-Encoding: chunked\r\n\r\n";
+
+            const size_t chunkCount = 100;
+
+            TVector<size_t> partSizes(chunkCount + 1);
+            TString content;
+
+            partSizes[0] = msgStream.Str().size();
+            for (size_t i = 0; i < chunkCount; ++i) {
+                const TString chunk = NUnitTest::RandomString(i + 1);
+                content += chunk;
+
+                const size_t prevPos = msgStream.Str().size();
+                msgStream << Hex(chunk.size(), 0) << "\r\n" << chunk << "\r\n";
+                partSizes[i + 1] = (msgStream.Str().size() - prevPos);
+            }
+
+            msgStream << "0\r\n\r\n";
+
+            const TStringBuf msg(msgStream.Str());
+
+            const auto check = [content](const THttpParser& p) {
+                UNIT_ASSERT_VALUES_EQUAL(p.RetCode(), 333u);
+                UNIT_ASSERT_VALUES_EQUAL(p.IsKeepAlive(), true);
+                ui64 cl = 0;
+                UNIT_ASSERT_VALUES_EQUAL(p.GetContentLength(cl), false);
+                UNIT_ASSERT_VALUES_EQUAL(p.Content(), content);
+
+                THttpHeaders::TConstIterator it = p.Headers().Begin();
+                UNIT_ASSERT_VALUES_EQUAL(it->ToString(), TString("Connection: Keep-Alive"));
+                UNIT_ASSERT_VALUES_EQUAL((++it)->ToString(), TString("Transfer-Encoding: chunked"));
+            };
+
+            {//1 byte
+                THttpParser p;
+
+                for (size_t i = 0; i < (msg.size() - 1); ++i) {
+                    UNIT_ASSERT(!p.Parse(msg.data() + i, 1));
+                }
+
+                UNIT_ASSERT(p.Parse(msg.data() + msg.size() - 1, 1));
+
+                check(p);
+            }
+
+            {//by chunk
+                size_t pos = 0;
+                THttpParser p;
+
+                for (size_t i = 0; i < partSizes.size(); ++i) {
+                    UNIT_ASSERT(!p.Parse(msg.data() + pos, partSizes[i]));
+                    pos += partSizes[i];
+                }
+
+                UNIT_ASSERT(p.Parse(msg.data() + pos, msg.size() - pos));
+
+                check(p);
+            }
+
+            {//two parts
+                for (size_t i = 1; i < msg.size(); ++i) {
+                    THttpParser p;
+                    UNIT_ASSERT(!p.Parse(msg.data(), i));
+                    UNIT_ASSERT(p.Parse(msg.data() + i, msg.size() - i));
+
+                    check(p);
+                }
+            }
+        }
     }
 
     Y_UNIT_TEST(TParsingEncodedContent) {
