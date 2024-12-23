@@ -36,7 +36,8 @@ cdef extern from "<util/generic/ptr.h>" nogil:
         TAtomicSharedPtr(T*)
         T& operator*()
         T* Get()
-        void Reset(T*)
+        void Reset(T*)  # this is a fake signature as a workaround for Cython's inability to support implicit conversion T* -> TAtomicSharedPtr[T]
+        void Reset(TAtomicSharedPtr) noexcept
 
 
     cdef TAtomicSharedPtr[T] MakeAtomicShared[T](...)
