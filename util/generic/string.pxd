@@ -29,8 +29,6 @@ cdef extern from "<util/generic/string.h>" nogil:
         TString(size_t, char) except +
         TString(char*, char*) except +
         TString(TStringBuf&) except +
-        TString(TStringBuf&, TStringBuf&) except +
-        TString(TStringBuf&, TStringBuf&, TStringBuf&) except +
 
         const char* c_str()
         size_t max_size()
