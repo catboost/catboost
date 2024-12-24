@@ -26,7 +26,7 @@
 #include <boost/cregex.hpp>
 
 #ifndef BOOST_REGEX_STANDALONE
-#include <boost/core/snprintf.hpp>
+#error #include <boost/core/snprintf.hpp>
 #else
 namespace boost { namespace core { using std::swprintf; } }
 #endif

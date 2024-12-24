@@ -25,7 +25,7 @@
 #endif
 
 #ifdef BOOST_REGEX_CXX03
-#include <boost/regex/v4/cregex.hpp>
+#error #include <boost/regex/v4/cregex.hpp>
 #else
 #include <boost/regex/v5/cregex.hpp>
 #endif
