@@ -36,7 +36,7 @@
 #include <windows.h>
 #include <stdexcept>
 #include <boost/regex/pattern_except.hpp>
-#include <boost/regex/v4/protected_call.hpp>
+#error #include <boost/regex/v4/protected_call.hpp>
 
 namespace boost {
 namespace BOOST_REGEX_DETAIL_NS {
