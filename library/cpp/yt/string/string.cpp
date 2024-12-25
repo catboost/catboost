@@ -362,7 +362,8 @@ TStringBuf FormatBool(bool value)
 void TruncateStringInplace(TString* string, int lengthLimit, TStringBuf truncatedSuffix)
 {
     if (std::ssize(*string) > lengthLimit) {
-        *string = Format("%v%v", string->substr(0, lengthLimit), truncatedSuffix);
+        string->resize(lengthLimit);
+        string->append(truncatedSuffix);
     }
 }
 
