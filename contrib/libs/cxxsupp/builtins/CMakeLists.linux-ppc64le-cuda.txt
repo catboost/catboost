@@ -47,7 +47,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_thread_fence.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/bswapdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/bswapsi2.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clear_cache.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clzdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clzsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clzti2.c
@@ -71,9 +70,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divtc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divtf3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divti3.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/emutls.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/enable_execute_stack.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/eprintf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendbfsf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extenddftf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhfsf2.c
@@ -165,10 +161,8 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subvsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subvti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trampoline_setup.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfbf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfhf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfsf2.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfbf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfhf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfdf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfhf2.c
@@ -184,6 +178,12 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umoddi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umodsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/umodti3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clear_cache.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/emutls.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/enable_execute_stack.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/eprintf.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfbf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfbf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/crtbegin.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/crtend.c
 )

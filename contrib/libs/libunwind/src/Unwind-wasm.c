@@ -14,9 +14,10 @@
 
 #include "config.h"
 
-#ifdef __USING_WASM_EXCEPTIONS__
 
 #include "unwind.h"
+
+#ifdef __USING_WASM_EXCEPTIONS__
 #include <threads.h>
 
 _Unwind_Reason_Code __gxx_personality_wasm0(int version, _Unwind_Action actions,
@@ -120,4 +121,12 @@ _Unwind_GetRegionStart(struct _Unwind_Context *context __attribute__((unused))) 
   return 0;
 }
 
+#elif defined(__EMSCRIPTEN__)
+/// Called by __cxa_throw.
+/// Define it here to prevent linker errors if we're buildingig Wasm modules
+/// without exception support.
+_LIBUNWIND_EXPORT _Unwind_Reason_Code
+_Unwind_RaiseException(_Unwind_Exception *exception_object __attribute__((unused))) {
+  abort();
+}
 #endif // defined(__USING_WASM_EXCEPTIONS__)
