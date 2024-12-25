@@ -22,7 +22,7 @@ from .otBase import BaseTTXConverter
 
 
 class table__a_v_a_r(BaseTTXConverter):
-    """Axis Variations Table
+    """Axis Variations table
 
     This class represents the ``avar`` table of a variable font. The object has one
     substantive attribute, ``segments``, which maps axis tags to a segments dictionary::
@@ -43,6 +43,8 @@ class table__a_v_a_r(BaseTTXConverter):
     ``avar`` segment mapping must contain the entries ``-1.0: -1.0, 0.0: 0.0, 1.0: 1.0``.
     fontTools does not enforce this, so it is your responsibility to ensure that
     mappings are valid.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/avar
     """
 
     dependencies = ["fvar"]

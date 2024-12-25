@@ -15,8 +15,9 @@ Gloc_header = """
 
 
 class table_G__l_o_c(DefaultTable.DefaultTable):
-    """
-    Support Graphite Gloc tables
+    """Graphite Index to Glyph Atttributes table
+
+    See also https://graphite.sil.org/graphite_techAbout#graphite-font-tables
     """
 
     dependencies = ["Glat"]

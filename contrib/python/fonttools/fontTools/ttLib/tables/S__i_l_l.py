@@ -12,6 +12,11 @@ Sill_hdr = """
 
 
 class table_S__i_l_l(DefaultTable.DefaultTable):
+    """Graphite Languages table
+
+    See also https://graphite.sil.org/graphite_techAbout#graphite-font-tables
+    """
+
     def __init__(self, tag=None):
         DefaultTable.DefaultTable.__init__(self, tag)
         self.langs = {}

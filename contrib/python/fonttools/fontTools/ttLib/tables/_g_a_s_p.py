@@ -10,6 +10,14 @@ GASP_GRIDFIT = 0x0001
 
 
 class table__g_a_s_p(DefaultTable.DefaultTable):
+    """Grid-fitting and Scan-conversion Procedure table
+
+    The ``gasp`` table defines the preferred rasterization settings for
+    the font when rendered on monochrome and greyscale output devices.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/gasp
+    """
+
     def decompile(self, data, ttFont):
         self.version, numRanges = struct.unpack(">HH", data[:4])
         assert 0 <= self.version <= 1, "unknown 'gasp' format: %s" % self.version

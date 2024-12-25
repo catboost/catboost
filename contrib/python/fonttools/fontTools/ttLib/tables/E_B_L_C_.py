@@ -66,6 +66,14 @@ codeOffsetPairSize = struct.calcsize(codeOffsetPairFormat)
 
 
 class table_E_B_L_C_(DefaultTable.DefaultTable):
+    """Embedded Bitmap Location table
+
+    The ``EBLC`` table contains the locations of monochrome or grayscale
+    bitmaps for glyphs. It must be used in concert with the ``EBDT`` table.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/eblc
+    """
+
     dependencies = ["EBDT"]
 
     # This method can be overridden in subclasses to support new formats

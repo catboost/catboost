@@ -1,3 +1,9 @@
+""" TSI{B,C,D,J,P,S,V} are private tables used by Microsoft Visual TrueType (VTT)
+tool to store its table source data.
+
+See also https://learn.microsoft.com/en-us/typography/tools/vtt/tsi-tables
+"""
+
 from fontTools.misc.textTools import strjoin, tobytes, tostr
 from . import asciiTable
 

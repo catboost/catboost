@@ -24,6 +24,14 @@ DATA_MAP_FORMAT = """
 
 
 class table__m_e_t_a(DefaultTable.DefaultTable):
+    """Metadata table
+
+    The ``meta`` table contains various metadata values for the font. Each
+    category of metadata in the table is identified by a four-character tag.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/meta
+    """
+
     def __init__(self, tag=None):
         DefaultTable.DefaultTable.__init__(self, tag)
         self.data = {}

@@ -31,6 +31,18 @@ hheaFormat = """
 
 
 class table__h_h_e_a(DefaultTable.DefaultTable):
+    """Horizontal Header table
+
+    The ``hhea`` table contains information needed during horizontal
+    text layout.
+
+    .. note::
+       This converter class is kept in sync with the :class:`._v_h_e_a.table__v_h_e_a`
+       table constructor.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/hhea
+    """
+
     # Note: Keep in sync with table__v_h_e_a
 
     dependencies = ["hmtx", "glyf", "CFF ", "CFF2"]

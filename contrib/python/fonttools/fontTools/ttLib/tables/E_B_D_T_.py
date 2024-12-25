@@ -38,6 +38,14 @@ ebdtComponentFormat = """
 
 
 class table_E_B_D_T_(DefaultTable.DefaultTable):
+    """Embedded Bitmap Data table
+
+    The ``EBDT`` table contains monochrome or grayscale bitmap data for
+    glyphs. It must be used in concert with the ``EBLC`` table.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/ebdt
+    """
+
     # Keep a reference to the name of the data locator table.
     locatorName = "EBLC"
 

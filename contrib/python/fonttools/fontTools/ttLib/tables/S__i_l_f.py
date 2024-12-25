@@ -343,7 +343,10 @@ class _Object:
 
 
 class table_S__i_l_f(DefaultTable.DefaultTable):
-    """Silf table support"""
+    """Graphite Rules table
+
+    See also https://graphite.sil.org/graphite_techAbout#graphite-font-tables
+    """
 
     def __init__(self, tag=None):
         DefaultTable.DefaultTable.__init__(self, tag)

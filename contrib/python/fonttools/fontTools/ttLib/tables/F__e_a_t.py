@@ -12,12 +12,17 @@ Feat_hdr_format = """
 
 
 class table_F__e_a_t(DefaultTable.DefaultTable):
-    """The ``Feat`` table is used exclusively by the Graphite shaping engine
+    """Feature table
+
+    The ``Feat`` table is used exclusively by the Graphite shaping engine
     to store features and possible settings specified in GDL. Graphite features
     determine what rules are applied to transform a glyph stream.
 
     Not to be confused with ``feat``, or the OpenType Layout tables
-    ``GSUB``/``GPOS``."""
+    ``GSUB``/``GPOS``.
+
+    See also https://graphite.sil.org/graphite_techAbout#graphite-font-tables
+    """
 
     def __init__(self, tag=None):
         DefaultTable.DefaultTable.__init__(self, tag)

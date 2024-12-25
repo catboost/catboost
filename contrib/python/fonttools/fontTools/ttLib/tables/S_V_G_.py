@@ -51,6 +51,14 @@ doc_index_entry_format_0Size = sstruct.calcsize(doc_index_entry_format_0)
 
 
 class table_S_V_G_(DefaultTable.DefaultTable):
+    """Scalable Vector Graphics table
+
+    The ``SVG`` table contains representations for glyphs in the SVG
+    image format.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/stat
+    """
+
     def decompile(self, data, ttFont):
         self.docList = []
         # Version 0 is the standardized version of the table; and current.

@@ -68,6 +68,13 @@ def getLabelString(labelID):
 
 
 class table_M_E_T_A_(DefaultTable.DefaultTable):
+    """Glyphlets META table
+
+    The ``META`` table is used by Adobe's SING Glyphlets.
+
+    See also https://web.archive.org/web/20080627183635/http://www.adobe.com/devnet/opentype/gdk/topic.html
+    """
+
     dependencies = []
 
     def decompile(self, data, ttFont):

@@ -8,6 +8,14 @@ log = logging.getLogger(__name__)
 
 
 class table__l_o_c_a(DefaultTable.DefaultTable):
+    """Index to Location table
+
+    The ``loca`` table stores the offsets in the ``glyf`` table that correspond
+    to the descriptions of each glyph. The glyphs are references by Glyph ID.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/loca
+    """
+
     dependencies = ["glyf"]
 
     def decompile(self, data, ttFont):

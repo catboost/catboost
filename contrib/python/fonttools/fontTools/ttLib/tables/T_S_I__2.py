@@ -4,6 +4,8 @@ tool to store its hinting source data.
 TSI2 is the index table containing the lengths and offsets for the glyph
 programs that are contained in the TSI3 table. It uses the same format as
 the TSI0 table.
+
+See also https://learn.microsoft.com/en-us/typography/tools/vtt/tsi-tables
 """
 
 from fontTools import ttLib

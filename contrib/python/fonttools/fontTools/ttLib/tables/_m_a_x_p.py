@@ -27,6 +27,14 @@ maxpFormat_1_0_add = """
 
 
 class table__m_a_x_p(DefaultTable.DefaultTable):
+    """Maximum Profile table
+
+    The ``maxp`` table contains the memory requirements for the data in
+    the font.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/maxp
+    """
+
     dependencies = ["glyf"]
 
     def decompile(self, data, ttFont):

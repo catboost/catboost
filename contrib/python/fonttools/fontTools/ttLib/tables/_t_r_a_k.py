@@ -58,6 +58,13 @@ PER_SIZE_VALUE_FORMAT_SIZE = struct.calcsize(PER_SIZE_VALUE_FORMAT)
 
 
 class table__t_r_a_k(DefaultTable.DefaultTable):
+    """The AAT ``trak`` table can store per-size adjustments to each glyph's
+    sidebearings to make when tracking is enabled, which applications can
+    use to provide more visually balanced line spacing.
+
+    See also https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6trak.html
+    """
+
     dependencies = ["name"]
 
     def compile(self, ttFont):

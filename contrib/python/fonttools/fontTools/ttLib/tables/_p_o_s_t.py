@@ -27,6 +27,15 @@ postFormatSize = sstruct.calcsize(postFormat)
 
 
 class table__p_o_s_t(DefaultTable.DefaultTable):
+    """PostScript table
+
+    The ``post`` table contains information needed to use the font on
+    PostScript printers, including the PostScript names of glyphs and
+    data that was stored in the ``FontInfo`` dictionary for Type 1 fonts.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/post
+    """
+
     def decompile(self, data, ttFont):
         sstruct.unpack(postFormat, data[:postFormatSize], self)
         data = data[postFormatSize:]

@@ -5,6 +5,14 @@ import array
 
 
 class table__c_v_t(DefaultTable.DefaultTable):
+    """Control Value Table
+
+    The Control Value Table holds a list of values that can be referenced
+    by TrueType font instructions.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/cvt
+    """
+
     def decompile(self, data, ttFont):
         values = array.array("h")
         values.frombytes(data)

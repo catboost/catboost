@@ -54,6 +54,8 @@ class table__c_m_a_p(DefaultTable.DefaultTable):
             cmap = newTable("cmap")
             cmap.tableVersion = 0
             cmap.tables = [cmap4_0_3]
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/cmap
     """
 
     def getcmap(self, platformID, platEncID):

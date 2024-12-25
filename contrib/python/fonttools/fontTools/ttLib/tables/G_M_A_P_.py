@@ -81,6 +81,13 @@ class GMAPRecord(object):
 
 
 class table_G_M_A_P_(DefaultTable.DefaultTable):
+    """Glyphlets GMAP table
+
+    The ``GMAP`` table is used by Adobe's SING Glyphlets.
+
+    See also https://web.archive.org/web/20080627183635/http://www.adobe.com/devnet/opentype/gdk/topic.html
+    """
+
     dependencies = []
 
     def decompile(self, data, ttFont):
