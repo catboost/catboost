@@ -37,6 +37,14 @@ VDMX_vTableFmt = """
 
 
 class table_V_D_M_X_(DefaultTable.DefaultTable):
+    """Vertical Device Metrics table
+
+    The ``VDMX`` table records changes to the vertical glyph minima
+    and maxima that result from Truetype instructions.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/vdmx
+    """
+
     def decompile(self, data, ttFont):
         pos = 0  # track current position from to start of VDMX table
         dummy, data = sstruct.unpack2(VDMX_HeaderFmt, data, self)

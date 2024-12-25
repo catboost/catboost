@@ -1328,9 +1328,10 @@ class Builder(object):
         self, location, prefix, glyphs, suffix, replacement, forceChain
     ):
         if prefix or suffix or forceChain:
-            chain = self.get_lookup_(location, ChainContextSubstBuilder)
-            lookup = self.get_chained_lookup_(location, LigatureSubstBuilder)
-            chain.rules.append(ChainContextualRule(prefix, glyphs, suffix, [lookup]))
+            self.add_ligature_subst_chained_(
+                location, prefix, glyphs, suffix, replacement
+            )
+            return
         else:
             lookup = self.get_lookup_(location, LigatureSubstBuilder)
 
@@ -1386,6 +1387,24 @@ class Builder(object):
             sub = self.get_chained_lookup_(location, MultipleSubstBuilder)
         sub.mapping[glyph] = replacements
         chain.rules.append(ChainContextualRule(prefix, [{glyph}], suffix, [sub]))
+
+    def add_ligature_subst_chained_(
+        self, location, prefix, glyphs, suffix, replacement
+    ):
+        # https://github.com/fonttools/fonttools/issues/3701
+        if not all(prefix) or not all(suffix):
+            raise FeatureLibError(
+                "Empty glyph class in contextual substitution", location
+            )
+        chain = self.get_lookup_(location, ChainContextSubstBuilder)
+        sub = chain.find_chainable_ligature_subst(glyphs, replacement)
+        if sub is None:
+            sub = self.get_chained_lookup_(location, LigatureSubstBuilder)
+
+        for g in itertools.product(*glyphs):
+            sub.ligatures[g] = replacement
+
+        chain.rules.append(ChainContextualRule(prefix, glyphs, suffix, [sub]))
 
     # GSUB 8
     def add_reverse_chain_single_subst(self, location, old_prefix, old_suffix, mapping):

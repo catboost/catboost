@@ -3,6 +3,8 @@ tool to store its hinting source data.
 
 TSI1 contains the text of the glyph programs in the form of low-level assembly
 code, as well as the 'extra' programs 'fpgm', 'ppgm' (i.e. 'prep'), and 'cvt'.
+
+See also https://learn.microsoft.com/en-us/typography/tools/vtt/tsi-tables
 """
 
 from . import DefaultTable

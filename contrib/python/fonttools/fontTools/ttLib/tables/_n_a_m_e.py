@@ -36,6 +36,16 @@ nameRecordSize = sstruct.calcsize(nameRecordFormat)
 
 
 class table__n_a_m_e(DefaultTable.DefaultTable):
+    """Naming table
+
+    The ``name`` table is used to store a variety of strings that can be
+    associated with user-facing font information. Records in the ``name``
+    table can be tagged with language tags to support multilingual naming
+    and can support platform-specific character-encoding variants.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/name
+    """
+
     dependencies = ["ltag"]
 
     def decompile(self, data, ttFont):

@@ -39,6 +39,13 @@ DSIG_SignatureBlockFormat = """
 
 
 class table_D_S_I_G_(DefaultTable.DefaultTable):
+    """Digital Signature table
+
+    The ``DSIG`` table contains cryptographic signatures for the font.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/dsig
+    """
+
     def decompile(self, data, ttFont):
         dummy, newData = sstruct.unpack2(DSIG_HeaderFormat, data, self)
         assert self.ulVersion == 1, "DSIG ulVersion must be 1"

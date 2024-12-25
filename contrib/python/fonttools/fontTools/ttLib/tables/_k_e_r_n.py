@@ -12,6 +12,17 @@ log = logging.getLogger(__name__)
 
 
 class table__k_e_r_n(DefaultTable.DefaultTable):
+    """Kerning table
+
+    The ``kern`` table contains values that contextually adjust the inter-glyph
+    spacing for the glyphs in a ``glyf`` table.
+
+    Note that similar contextual spacing adjustments can also be stored
+    in the "kern" feature of a ``GPOS`` table.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/kern
+    """
+
     def getkern(self, format):
         for subtable in self.kernTables:
             if subtable.format == format:

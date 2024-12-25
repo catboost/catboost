@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: fonttools
-Version: 4.55.2
+Version: 4.55.3
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -376,6 +376,13 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.55.3 (released 2024-12-10)
+----------------------------
+
+
+- [Docs] fill out ttLib table section [#3716]
+- [feaLib] More efficient inline format 4 lookups [#3726]
 
 4.55.2 (released 2024-12-05)
 ----------------------------

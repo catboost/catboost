@@ -37,6 +37,13 @@ headFormat = """
 
 
 class table__h_e_a_d(DefaultTable.DefaultTable):
+    """Font Header table
+
+    The ``head`` table contains a variety of font-wide information.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/head
+    """
+
     dependencies = ["maxp", "loca", "CFF ", "CFF2"]
 
     def decompile(self, data, ttFont):

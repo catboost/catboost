@@ -6,6 +6,14 @@ import struct
 
 
 class table__l_t_a_g(DefaultTable.DefaultTable):
+    """Language Tag table
+
+    The AAT ``ltag`` table contains mappings between the numeric codes used
+    in the language field of the ``name`` table and IETF language tags.
+
+    See also https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6ltag.html
+    """
+
     def __init__(self, tag=None):
         DefaultTable.DefaultTable.__init__(self, tag)
         self.version, self.flags = 1, 0

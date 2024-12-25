@@ -12,6 +12,15 @@ log = logging.getLogger(__name__)
 
 
 class table__h_m_t_x(DefaultTable.DefaultTable):
+    """Horizontal Metrics table
+
+    The ``hmtx`` table contains per-glyph metrics for the glyphs in a
+    ``glyf``, ``CFF ``, or ``CFF2`` table, as needed for horizontal text
+    layout.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/hmtx
+    """
+
     headerTag = "hhea"
     advanceName = "width"
     sideBearingName = "lsb"

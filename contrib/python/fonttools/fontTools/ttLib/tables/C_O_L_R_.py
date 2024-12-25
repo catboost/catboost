@@ -7,11 +7,19 @@ from . import DefaultTable
 
 
 class table_C_O_L_R_(DefaultTable.DefaultTable):
-    """This table is structured so that you can treat it like a dictionary keyed by glyph name.
+    """Color table
+
+    The ``COLR`` table defines color presentation of outline glyphs. It must
+    be used in concert with the ``CPAL`` table, which contains the color
+    descriptors used.
+
+    This table is structured so that you can treat it like a dictionary keyed by glyph name.
 
     ``ttFont['COLR'][<glyphName>]`` will return the color layers for any glyph.
 
     ``ttFont['COLR'][<glyphName>] = <value>`` will set the color layers for any glyph.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/colr
     """
 
     @staticmethod

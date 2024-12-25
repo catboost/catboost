@@ -21,6 +21,16 @@ import struct
 
 
 class table_C_B_D_T_(E_B_D_T_.table_E_B_D_T_):
+    """Color Bitmap Data table
+
+    The ``CBDT`` table contains color bitmap data for glyphs. It must
+    be used in concert with the ``CBLC`` table.
+
+    It is backwards-compatible with the monochrome/grayscale ``EBDT`` table.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/cbdt
+    """
+
     # Change the data locator table being referenced.
     locatorName = "CBLC"
 

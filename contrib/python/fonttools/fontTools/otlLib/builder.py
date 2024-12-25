@@ -1,4 +1,5 @@
 from collections import namedtuple, OrderedDict
+import itertools
 import os
 from fontTools.misc.fixedTools import fixedToFloat
 from fontTools.misc.roundTools import otRound
@@ -794,6 +795,22 @@ class ChainContextSubstBuilder(ChainContextualBuilder):
             for sub in rule.lookups:
                 if isinstance(sub, builder_class) and not any(
                     g in mapping and mapping[g] != sub.mapping[g] for g in sub.mapping
+                ):
+                    res = sub
+        return res
+
+    def find_chainable_ligature_subst(self, glyphs, replacement):
+        """Helper for add_ligature_subst_chained_()"""
+        res = None
+        for rule in self.rules[::-1]:
+            if rule.is_subtable_break:
+                return res
+            for sub in rule.lookups:
+                if not isinstance(sub, LigatureSubstBuilder):
+                    continue
+                if all(
+                    sub.ligatures.get(seq, replacement) == replacement
+                    for seq in itertools.product(*glyphs)
                 ):
                     res = sub
         return res

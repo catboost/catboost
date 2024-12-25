@@ -54,7 +54,7 @@ SCALE_COMPONENT_OFFSET_DEFAULT = 0  # 0 == MS, 1 == Apple
 
 
 class table__g_l_y_f(DefaultTable.DefaultTable):
-    """Glyph Data Table
+    """Glyph Data table
 
     This class represents the `glyf <https://docs.microsoft.com/en-us/typography/opentype/spec/glyf>`_
     table, which contains outlines for glyphs in TrueType format. In many cases,

@@ -16,6 +16,13 @@ GPKGFormat = """
 
 
 class table_G_P_K_G_(DefaultTable.DefaultTable):
+    """Glyphlets GPKG table
+
+    The ``GPKG`` table is used by Adobe's SING Glyphlets.
+
+    See also https://web.archive.org/web/20080627183635/http://www.adobe.com/devnet/opentype/gdk/topic.html
+    """
+
     def decompile(self, data, ttFont):
         dummy, newData = sstruct.unpack2(GPKGFormat, data, self)
 

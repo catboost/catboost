@@ -20,6 +20,13 @@ SINGFormat = """
 
 
 class table_S_I_N_G_(DefaultTable.DefaultTable):
+    """Glyphlets SING table
+
+    The ``SING`` table is used by Adobe's SING Glyphlets.
+
+    See also https://web.archive.org/web/20080627183635/http://www.adobe.com/devnet/opentype/gdk/topic.html
+    """
+
     dependencies = []
 
     def decompile(self, data, ttFont):

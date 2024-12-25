@@ -4,6 +4,8 @@ tool to store its hinting source data.
 TSI0 is the index table containing the lengths and offsets for the glyph
 programs and 'extra' programs ('fpgm', 'prep', and 'cvt') that are contained
 in the TSI1 table.
+
+See also https://learn.microsoft.com/en-us/typography/tools/vtt/tsi-tables
 """
 
 from . import DefaultTable

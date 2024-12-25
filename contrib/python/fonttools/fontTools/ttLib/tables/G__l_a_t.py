@@ -62,8 +62,9 @@ class _Dict(dict):
 
 
 class table_G__l_a_t(DefaultTable.DefaultTable):
-    """
-    Support Graphite Glat tables
+    """Graphite Glyph Attributes table
+
+    See also https://graphite.sil.org/graphite_techAbout#graphite-font-tables
     """
 
     def __init__(self, tag=None):

@@ -31,6 +31,14 @@ class _GlyphnamedList(Mapping):
 
 
 class table__h_d_m_x(DefaultTable.DefaultTable):
+    """Horizontal Device Metrics table
+
+    The ``hdmx`` table is an optional table that stores advance widths for
+    glyph outlines at specified pixel sizes.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/hdmx
+    """
+
     def decompile(self, data, ttFont):
         numGlyphs = ttFont["maxp"].numGlyphs
         glyphOrder = ttFont.getGlyphOrder()

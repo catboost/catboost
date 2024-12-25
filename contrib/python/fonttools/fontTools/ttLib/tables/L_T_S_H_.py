@@ -9,6 +9,16 @@ import array
 
 
 class table_L_T_S_H_(DefaultTable.DefaultTable):
+    """Linear Threshold table
+
+    The ``LTSH`` table contains per-glyph settings indicating the ppem sizes
+    at which the advance width metric should be scaled linearly, despite the
+    effects of any TrueType instructions that might otherwise alter the
+    advance width.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/ltsh
+    """
+
     def decompile(self, data, ttFont):
         version, numGlyphs = struct.unpack(">HH", data[:4])
         data = data[4:]

@@ -4,11 +4,18 @@ import struct
 
 
 class table_V_O_R_G_(DefaultTable.DefaultTable):
-    """This table is structured so that you can treat it like a dictionary keyed by glyph name.
+    """Vertical Origin table
+
+    The ``VORG`` table contains the vertical origin of each glyph
+    in a `CFF` or `CFF2` font.
+
+    This table is structured so that you can treat it like a dictionary keyed by glyph name.
 
     ``ttFont['VORG'][<glyphName>]`` will return the vertical origin for any glyph.
 
     ``ttFont['VORG'][<glyphName>] = <value>`` will set the vertical origin for any glyph.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/vorg
     """
 
     def decompile(self, data, ttFont):

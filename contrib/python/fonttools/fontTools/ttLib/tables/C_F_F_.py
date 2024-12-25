@@ -4,6 +4,21 @@ from . import DefaultTable
 
 
 class table_C_F_F_(DefaultTable.DefaultTable):
+    """Compact Font Format table (version 1)
+
+    The ``CFF`` table embeds a CFF-formatted font. The CFF font format
+    predates OpenType and could be used as a standalone font file, but the
+    ``CFF`` table is also used to package CFF fonts into an OpenType
+    container.
+
+    .. note::
+       ``CFF`` has been succeeded by ``CFF2``, which eliminates much of
+       the redundancy incurred by embedding CFF version 1 in an OpenType
+       font.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/cff
+    """
+
     def __init__(self, tag=None):
         DefaultTable.DefaultTable.__init__(self, tag)
         self.cff = cffLib.CFFFontSet()

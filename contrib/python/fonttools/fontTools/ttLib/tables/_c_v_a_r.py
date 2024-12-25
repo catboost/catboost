@@ -24,6 +24,14 @@ CVAR_HEADER_SIZE = sstruct.calcsize(CVAR_HEADER_FORMAT)
 
 
 class table__c_v_a_r(DefaultTable.DefaultTable):
+    """Control Value Table (CVT) variations table
+
+    The ``cvar`` table contains variations for the values in a ``cvt``
+    table.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/cvar
+    """
+
     dependencies = ["cvt ", "fvar"]
 
     def __init__(self, tag=None):

@@ -113,7 +113,14 @@ OS2_format_5_addition = bigendian + OS2_format_5_addition
 
 
 class table_O_S_2f_2(DefaultTable.DefaultTable):
-    """the OS/2 table"""
+    """OS/2 and Windows Metrics table
+
+    The ``OS/2`` table contains a variety of font-wide metrics and
+    parameters that may be useful to an operating system or other
+    software for system-integration purposes.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/os2
+    """
 
     dependencies = ["head"]
 

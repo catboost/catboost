@@ -11,6 +11,15 @@ import sys
 
 
 class table_C_P_A_L_(DefaultTable.DefaultTable):
+    """Color Palette table
+
+    The ``CPAL`` table contains a set of one or more color palettes. The color
+    records in each palette can be referenced by the ``COLR`` table to specify
+    the colors used in a color glyph.
+
+    See also https://learn.microsoft.com/en-us/typography/opentype/spec/cpal
+    """
+
     NO_NAME_ID = 0xFFFF
     DEFAULT_PALETTE_TYPE = 0
 
