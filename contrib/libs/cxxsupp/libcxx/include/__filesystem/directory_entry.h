@@ -200,11 +200,11 @@ private:
     _Empty,
     _IterSymlink,
     _IterNonSymlink,
-    _IterCachedSymlink,
-    _IterCachedNonSymlink,
     _RefreshSymlink,
     _RefreshSymlinkUnresolved,
-    _RefreshNonSymlink
+    _RefreshNonSymlink,
+    _IterCachedSymlink,
+    _IterCachedNonSymlink
   };
 
   struct __cached_data {
@@ -313,15 +313,16 @@ private:
       if (__ec)
         __ec->clear();
       return file_type::symlink;
-    case _IterNonSymlink:
     case _IterCachedNonSymlink:
-    case _RefreshNonSymlink:
+    case _IterNonSymlink:
+    case _RefreshNonSymlink: {
       file_status __st(__data_.__type_);
       if (__ec && !filesystem::exists(__st))
         *__ec = make_error_code(errc::no_such_file_or_directory);
       else if (__ec)
         __ec->clear();
       return __data_.__type_;
+    }
     }
     __libcpp_unreachable();
   }
@@ -333,8 +334,8 @@ private:
     case _IterCachedSymlink:
     case _RefreshSymlinkUnresolved:
       return __status(__p_, __ec).type();
-    case _IterNonSymlink:
     case _IterCachedNonSymlink:
+    case _IterNonSymlink:
     case _RefreshNonSymlink:
     case _RefreshSymlink: {
       file_status __st(__data_.__type_);
@@ -430,10 +431,10 @@ private:
     case _Empty:
     case _IterNonSymlink:
     case _IterSymlink:
+    case _IterCachedSymlink:
     case _RefreshSymlinkUnresolved:
       return filesystem::__last_write_time(__p_, __ec);
     case _IterCachedNonSymlink:
-    case _IterCachedSymlink:
     case _RefreshSymlink:
     case _RefreshNonSymlink: {
       error_code __m_ec;
