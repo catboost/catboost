@@ -396,6 +396,8 @@ def process(fetched_file, file_name, args, remove=True):
             logging.info('Renaming %s to %s', src, dst)
             if os.path.exists(dst):
                 raise ResourceUnpackingError("Target file already exists ({} -> {})".format(src, dst))
+            if not os.path.exists(src):
+                raise ResourceUnpackingError("Source file does not exist ({} in {})".format(src, os.getcwd()))
             if remove:
                 rename_or_copy_and_remove(src, dst)
             else:
