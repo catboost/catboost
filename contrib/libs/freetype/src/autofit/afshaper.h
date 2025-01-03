@@ -25,8 +25,8 @@
 
 #ifdef FT_CONFIG_OPTION_USE_HARFBUZZ
 
-#include <hb.h>
-#include <hb-ot.h>
+#error #include <hb.h>
+#error #include <hb-ot.h>
 #error #include "ft-hb.h"
 
 #endif
