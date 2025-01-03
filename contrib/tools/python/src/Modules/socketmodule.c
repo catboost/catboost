@@ -231,12 +231,12 @@ http://cvsweb.netbsd.org/bsdweb.cgi/src/lib/libc/net/getaddrinfo.c.diff?r1=1.82&
 # include <types.h>
 # include <io.h>
 # include <sys/ioctl.h>
-# include <utils.h>
+# error #include <utils.h>
 # include <ctype.h>
 #endif
 
 #if defined(__VMS)
-#  include <ioctl.h>
+#  error #include <ioctl.h>
 #endif
 
 #if defined(PYOS_OS2)

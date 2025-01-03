@@ -5,7 +5,7 @@
 /* EXPMAX = 10^EXPMAXDIGS - 1 = largest allowed exponent absolute value */
 
 #ifdef V10 /* Research Tenth-Edition Unix */
-#include "local.h"
+#error #include "local.h"
 #endif
 
 /* MAXFRACDIGS and MAXINTDIGS are for wrt_F -- bounds (not necessarily
