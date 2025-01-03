@@ -423,7 +423,7 @@ private:
             try {
                 std::rethrow_exception(std::current_exception());
             } catch (...) {
-#if defined(LIBCXX_BUILDING_LIBGCC)
+#ifdef __GLIBCXX__
                 UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "int");
 #else
                 UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "unknown type");
@@ -437,7 +437,7 @@ private:
             try {
                 throw;
             } catch (...) {
-#if defined(LIBCXX_BUILDING_LIBCXXRT) || defined(LIBCXX_BUILDING_LIBGCC)
+#if defined(_linux_) || defined(_darwin_)
                 UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "int");
 #else
                 UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "unknown type");
