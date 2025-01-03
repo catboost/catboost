@@ -387,7 +387,8 @@ private:
         try {
             throw int(1);
         } catch (...) {
-#if defined(LIBCXX_BUILDING_LIBCXXRT) || defined(LIBCXX_BUILDING_LIBGCC)
+#if defined(_linux_) || defined(_darwin_)
+            // On Linux and macOS we use libcxxrt which handles throw integers properly
             UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "int");
 #else
             UNIT_ASSERT_VALUES_EQUAL(CurrentExceptionTypeName(), "unknown type");
