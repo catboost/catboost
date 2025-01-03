@@ -15,11 +15,6 @@
 add_library(libs-cxxsupp-libcxx)
 
 
-target_compile_options(libs-cxxsupp-libcxx PUBLIC
-  -D_LIBCPP_VASPRINTF_DEFINED
-  -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_
-)
-
 target_compile_options(libs-cxxsupp-libcxx PRIVATE
   -D_LIBCPP_BUILDING_LIBRARY
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
