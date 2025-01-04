@@ -34,10 +34,7 @@ target_include_directories(libs-cxxsupp-libcxx PRIVATE
 )
 
 target_link_options(libs-cxxsupp-libcxx INTERFACE
-  -Wl,--start-group
   -lc++abi
-  -landroid_support
-  -Wl,--end-group
 )
 
 target_sources(libs-cxxsupp-libcxx PRIVATE
