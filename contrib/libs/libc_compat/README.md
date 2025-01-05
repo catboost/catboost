@@ -9,6 +9,8 @@ During development one can make use of the following mapping of `OS_SDK` into gl
 
 | Ubuntu | glibc |
 | ------ | ----- |
+| 24.04 | 2.39 |
+| 22.04 | 2.35 |
 | 20.04 | 2.30 |
 | 18.04 | 2.27 | 
 | 16.04 | 2.23 | 
