@@ -1,24 +1,3 @@
-Metadata-Version: 2.3
-Name: click
-Version: 8.1.8
-Summary: Composable command line interface toolkit
-Maintainer-email: Pallets <contact@palletsprojects.com>
-Requires-Python: >=3.7
-Description-Content-Type: text/markdown
-Classifier: Development Status :: 5 - Production/Stable
-Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: BSD License
-Classifier: Operating System :: OS Independent
-Classifier: Programming Language :: Python
-Classifier: Typing :: Typed
-Requires-Dist: colorama; platform_system == 'Windows'
-Requires-Dist: importlib-metadata; python_version < '3.8'
-Project-URL: Changes, https://click.palletsprojects.com/changes/
-Project-URL: Chat, https://discord.gg/pallets
-Project-URL: Documentation, https://click.palletsprojects.com/
-Project-URL: Donate, https://palletsprojects.com/donate
-Project-URL: Source, https://github.com/pallets/click/
-
 # $ click_
 
 Click is a Python package for creating beautiful command line interfaces
@@ -71,4 +50,3 @@ allow the maintainers to devote more time to the projects, [please
 donate today][].
 
 [please donate today]: https://palletsprojects.com/donate
-
