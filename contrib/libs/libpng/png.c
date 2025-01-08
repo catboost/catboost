@@ -815,15 +815,13 @@ png_get_copyright(png_const_structrp png_ptr)
    return PNG_STRING_COPYRIGHT
 #else
    return PNG_STRING_NEWLINE \
-      "libpng version 1.6.40+apng" PNG_STRING_NEWLINE \
+      "libpng version 1.6.40" PNG_STRING_NEWLINE \
       "Copyright (c) 2018-2023 Cosmin Truta" PNG_STRING_NEWLINE \
       "Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson" \
       PNG_STRING_NEWLINE \
       "Copyright (c) 1996-1997 Andreas Dilger" PNG_STRING_NEWLINE \
       "Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc." \
-      PNG_STRING_NEWLINE \
-      "Portions Copyright (c) 2006-2007 Andrew Smith" PNG_STRING_NEWLINE \
-      "Portions Copyright (c) 2008-2023 Max Stepin" PNG_STRING_NEWLINE ;
+      PNG_STRING_NEWLINE;
 #endif
 }
 
