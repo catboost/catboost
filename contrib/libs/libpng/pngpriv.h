@@ -78,7 +78,7 @@
 #endif
 
 #ifdef PNG_USER_CONFIG
-#  include "pngusr.h"
+#  error #include "pngusr.h"
    /* These should have been defined in pngusr.h */
 #  ifndef PNG_USER_PRIVATEBUILD
 #    define PNG_USER_PRIVATEBUILD "Custom libpng build"
@@ -541,7 +541,7 @@
 
 /* This provides the non-ANSI (far) memory allocation routines. */
 #if defined(__TURBOC__) && defined(__MSDOS__)
-#  include <mem.h>
+#  error #include <mem.h>
 #  include <alloc.h>
 #endif
 
