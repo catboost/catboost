@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LIBCXX_BUILDING_LIBCXXRT
+#ifndef LIBCXXRT
 #  error this header may only be used when targeting libcxxrt
 #endif
 
