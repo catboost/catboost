@@ -15,6 +15,7 @@ from .utils import safecall
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
+
     from .core import Context
     from .core import Parameter
     from .shell_completion import CompletionItem
@@ -658,12 +659,15 @@ class File(ParamType):
     will not be held open until first IO. lazy is mainly useful when opening
     for writing to avoid creating the file until it is needed.
 
-    Starting with Click 2.0, files can also be opened atomically in which
-    case all writes go into a separate file in the same folder and upon
-    completion the file will be moved over to the original location.  This
-    is useful if a file regularly read by other users is modified.
+    Files can also be opened atomically in which case all writes go into a
+    separate file in the same folder and upon completion the file will
+    be moved over to the original location.  This is useful if a file
+    regularly read by other users is modified.
 
     See :ref:`file-args` for more information.
+
+    .. versionchanged:: 2.0
+        Added the ``atomic`` parameter.
     """
 
     name = "filename"
@@ -737,7 +741,7 @@ class File(ParamType):
                     ctx.call_on_close(safecall(f.flush))
 
             return f
-        except OSError as e:  # noqa: B014
+        except OSError as e:
             self.fail(f"'{format_filename(value)}': {e.strerror}", param, ctx)
 
     def shell_complete(
@@ -891,7 +895,7 @@ class Path(ParamType):
                 )
             if not self.dir_okay and stat.S_ISDIR(st.st_mode):
                 self.fail(
-                    _("{name} '{filename}' is a directory.").format(
+                    _("{name} {filename!r} is a directory.").format(
                         name=self.name.title(), filename=format_filename(value)
                     ),
                     param,
