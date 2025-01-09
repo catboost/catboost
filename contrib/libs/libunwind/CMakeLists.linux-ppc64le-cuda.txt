@@ -16,6 +16,10 @@ add_library(contrib-libs-libunwind)
 
 
 target_compile_options(contrib-libs-libunwind PRIVATE
+  -D_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER
+  -D_LIBUNWIND_IS_NATIVE_ONLY
+  -D_LIBUNWIND_LINK_DL_LIB
+  -D_LIBUNWIND_LINK_PTHREAD_LIB
   -fno-exceptions
   -fno-rtti
   -funwind-tables
