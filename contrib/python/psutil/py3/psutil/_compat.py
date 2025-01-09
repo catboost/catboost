@@ -180,7 +180,7 @@ else:
 
     @_instance_checking_exception(EnvironmentError)
     def PermissionError(inst):
-        return getattr(inst, 'errno', _SENTINEL) in (errno.EACCES, errno.EPERM)
+        return getattr(inst, 'errno', _SENTINEL) in {errno.EACCES, errno.EPERM}
 
     @_instance_checking_exception(EnvironmentError)
     def InterruptedError(inst):
@@ -225,7 +225,7 @@ except ImportError:
         "CacheInfo", ["hits", "misses", "maxsize", "currsize"]
     )
 
-    class _HashedSeq(list):
+    class _HashedSeq(list):  # noqa: FURB189
         __slots__ = ('hashvalue',)
 
         def __init__(self, tup, hash=hash):
