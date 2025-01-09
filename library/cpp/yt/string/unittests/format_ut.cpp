@@ -239,6 +239,13 @@ TEST(TFormatTest, Pointers)
     }
 }
 
+TEST(TFormatTest, Tuples)
+{
+    EXPECT_EQ("{}", Format("%v", std::tuple()));
+    EXPECT_EQ("{1, 2, 3}", Format("%v", std::tuple(1, 2, 3)));
+    EXPECT_EQ("{1, 2}", Format("%v", std::pair(1, 2)));
+}
+
 TEST(TFormatTest, LazyMultiValueFormatter)
 {
     int i = 1;

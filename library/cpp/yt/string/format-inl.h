@@ -722,7 +722,7 @@ void FormatValue(TStringBuilderBase* builder, const std::tuple<Ts...>& value, TS
     [&] <size_t... Idx> (std::index_sequence<Idx...>) {
         ([&] {
             FormatValue(builder, std::get<Idx>(value), spec);
-            if constexpr (Idx != sizeof...(Ts)) {
+            if constexpr (Idx != sizeof...(Ts) - 1) {
                 builder->AppendString(TStringBuf(", "));
             }
         } (), ...);
