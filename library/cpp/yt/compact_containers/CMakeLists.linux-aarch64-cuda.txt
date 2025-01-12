@@ -12,15 +12,16 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_library(cpp-yt-small_containers INTERFACE)
+add_library(cpp-yt-compact_containers INTERFACE)
 
 
-target_compile_options(cpp-yt-small_containers INTERFACE
+target_compile_options(cpp-yt-compact_containers INTERFACE
   -Wdeprecated-this-capture
   -Wimplicit-fallthrough
 )
 
-target_link_libraries(cpp-yt-small_containers INTERFACE
+target_link_libraries(cpp-yt-compact_containers INTERFACE
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-yt-assert

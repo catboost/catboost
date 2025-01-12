@@ -26,7 +26,7 @@ target_link_libraries(cpp-yt-string PUBLIC
   cpp-yt-assert
   cpp-yt-exception
   cpp-yt-misc
-  cpp-yt-small_containers
+  cpp-yt-compact_containers
 )
 
 target_sources(cpp-yt-string PRIVATE

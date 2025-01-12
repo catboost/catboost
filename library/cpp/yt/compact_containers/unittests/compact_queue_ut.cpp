@@ -1,4 +1,4 @@
-#include <library/cpp/yt/small_containers/compact_queue.h>
+#include <library/cpp/yt/compact_containers/compact_queue.h>
 
 #include <library/cpp/testing/gtest/gtest.h>
 
