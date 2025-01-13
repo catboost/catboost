@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <memory>
+#include <type_traits>
 
 namespace NYT {
 
