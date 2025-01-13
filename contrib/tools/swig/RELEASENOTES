@@ -7,6 +7,25 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.3.0 summary:
+- Add experimental support for C as a target language.
+- MzScheme/Racket is deprecated and planned for removal in SWIG-4.4.
+- The distributed Windows binary is now a 64-bit executable.
+- Add some missing use of move semantics for performance improvements.
+- Enhanced handling of namespaces when using the nspace feature.
+- STL wrapper enhancements for std::unique_ptr, std::string_view,
+  std::filesystem.
+- Various enum and enum class wrapping improvements.
+- Other C++ handling improvements around templates, friends, C++11
+  trailing return types and C++17 fold expressions.
+- Many parser improvements for both C and C++, especially expressions.
+- Improvements to handling of string and character literals.
+- Minor preprocessor fixes.
+- Python: Stricter stable ABI conformance, add support for python-3.13.
+- C#: Add support for converting Doxygen comments into XML C# comments.
+- Various other target language specific enhancements and updates for
+  Java, Javascript, Lua, MzScheme, Ocaml, Octave, Perl, Python, R, Ruby.
+
 SWIG-4.2.1 summary:
 - Tcl 9.0 support.
 - Octave 9.0 support.

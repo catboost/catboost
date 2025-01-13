@@ -182,6 +182,32 @@ String *Swig_name_mangle_type(const SwigType *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_name_type()
+ *
+ * Returns the name of a type.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_type(const_String_or_char_ptr tname) {
+  String *r, *s;
+  String* f = naming_hash ? Getattr(naming_hash, "type") : NULL;
+
+  /* Don't bother doing anything else if there is no special naming format. */
+  if (f) {
+    s = Copy(f);
+    Replace(s, "%c", tname, DOH_REPLACE_ANY);
+  } else {
+    s = (String*)tname;
+  }
+
+  r = Swig_name_mangle_string(s);
+
+  if (s != tname)
+    Delete(s);
+
+  return r;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_name_mangle_string()
  * 
  * Take a string and mangle it by stripping all non-valid C identifier

@@ -30,7 +30,7 @@
 /* Unused since 4.2.0: #define WARN_DEPRECATED_NODEFAULT     123 */
 /* Unused since 4.1.0: #define WARN_DEPRECATED_TYPEMAP_LANG  124 */
 /* Unused since 4.2.0: #define WARN_DEPRECATED_INPUT_FILE    125 */
-%define SWIGWARN_DEPRECATED_NESTED_WORKAROUND 126 %enddef
+/* Unused since 4.3.0: #define WARN_DEPRECATED_NESTED_WORKAROUND 126 */
 
 /* -- Preprocessor -- */
 
@@ -72,6 +72,8 @@
 %define SWIGWARN_PARSE_EXTERN_TEMPLATE    327 %enddef
 %define SWIGWARN_PARSE_ASSIGNED_VALUE     328 %enddef
 %define SWIGWARN_PARSE_USING_CONSTRUCTOR  329 %enddef
+%define SWIGWARN_PARSE_TEMPLATE_FORWARD   330 %enddef
+%define SWIGWARN_PARSE_TEMPLATE_NESTED    331 %enddef
 
 %define SWIGWARN_CPP11_LAMBDA             340 %enddef
 /* Unused since 3.0.11: #define WARN_CPP11_ALIAS_DECLARATION  341 */
@@ -139,6 +141,7 @@
 %define SWIGWARN_TYPE_ABSTRACT            403 %enddef
 %define SWIGWARN_TYPE_REDEFINED           404 %enddef
 %define SWIGWARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED 405 %enddef
+%define SWIGWARN_TYPE_NSPACE_SETTING      406 %enddef
 
 /* Unused since 4.1.0: #define WARN_TYPEMAP_SOURCETARGET     450 */
 %define SWIGWARN_TYPEMAP_CHARLEAK         451 %enddef
@@ -197,6 +200,7 @@
 %define SWIGWARN_LANG_EXPERIMENTAL        524 %enddef
 %define SWIGWARN_LANG_DIRECTOR_FINAL      525 %enddef
 %define SWIGWARN_LANG_USING_NAME_DIFFERENT 526 %enddef
+%define SWIGWARN_LANG_DEPRECATED          527 %enddef
 
 /* -- Doxygen comments -- */
 
@@ -242,6 +246,11 @@
 %define SWIGWARN_R_TYPEMAP_RTYPECHECK_UNDEF       751 %enddef
 
 /* please leave 750-759 free for R */
+
+%define SWIGWARN_C_TYPEMAP_CTYPE_UNDEF            760 %enddef
+%define SWIGWARN_C_UNSUPPORTTED                   761 %enddef
+
+/* please leave 760-779 free for C */
 
 %define SWIGWARN_RUBY_WRONG_NAME                  801 %enddef
 %define SWIGWARN_RUBY_MULTIPLE_INHERITANCE        802 %enddef

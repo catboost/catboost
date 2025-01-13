@@ -26,6 +26,7 @@
    can be dynamically loaded in future versions. */
 
 extern "C" {
+  Language *swig_c(void);
   Language *swig_csharp(void);
   Language *swig_d(void);
   Language *swig_go(void);
@@ -52,7 +53,7 @@ extern "C" {
 
 static TargetLanguageModule modules[] = {
   {"-allegrocl", NULL, "ALLEGROCL", Disabled},
-  {"-cffi", NULL, "CFFI", Disabled},
+  {"-c", swig_c, "C", Experimental},
   {"-chicken", NULL, "CHICKEN", Disabled},
   {"-clisp", NULL, "CLISP", Disabled},
   {"-csharp", swig_csharp, "C#", Supported},
@@ -63,7 +64,7 @@ static TargetLanguageModule modules[] = {
   {"-javascript", swig_javascript, "Javascript", Supported},
   {"-lua", swig_lua, "Lua", Supported},
   {"-modula3", NULL, "Modula 3", Disabled},
-  {"-mzscheme", swig_mzscheme, "MzScheme/Racket", Experimental},
+  {"-mzscheme", swig_mzscheme, "MzScheme/Racket", Deprecated},
   {"-ocaml", swig_ocaml, "OCaml", Experimental},
   {"-octave", swig_octave, "Octave", Supported},
   {"-perl", swig_perl5, NULL, Supported},
@@ -90,7 +91,7 @@ static TargetLanguageModule modules[] = {
 // Main program.    Initializes the files and starts the parser.
 //-----------------------------------------------------------------
 
-void SWIG_merge_envopt(const char *env, int oargc, char *oargv[], int *nargc, char ***nargv) {
+static void SWIG_merge_envopt(const char *env, int oargc, char *oargv[], int *nargc, char ***nargv) {
   if (!env) {
     *nargc = oargc;
     *nargv = (char **)Malloc(sizeof(char *) * (oargc + 1));
@@ -227,9 +228,13 @@ int main(int margc, char **margv) {
       bool is_target_language_module = false;
       for (int j = 0; modules[j].name; j++) {
 	if (strcmp(modules[j].name, argv[i]) == 0) {
-	  language_module = &modules[j];
-	  is_target_language_module = true;
-	  break;
+	  if (!language_module) {
+	    language_module = &modules[j];
+	    is_target_language_module = true;
+	  } else {
+	    Printf(stderr, "Only one target language can be supported at a time (both %s and %s were specified).\n", language_module->name, argv[i]);
+	    Exit(EXIT_FAILURE);
+	  }
 	}
       }
       if (is_target_language_module) {
@@ -253,6 +258,12 @@ int main(int margc, char **margv) {
 	Printf(stdout, "\nExperimental Target Language Options\n");
 	for (int j = 0; modules[j].name; j++) {
 	  if (modules[j].help && modules[j].status == Experimental) {
+	    Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
+	  }
+	}
+	Printf(stdout, "\nDeprecated Target Language Options\n");
+	for (int j = 0; modules[j].name; j++) {
+	  if (modules[j].help && modules[j].status == Deprecated) {
 	    Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
 	  }
 	}

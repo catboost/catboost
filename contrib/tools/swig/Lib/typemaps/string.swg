@@ -7,11 +7,9 @@
 SWIGINTERN swig_type_info*
 SWIG_pchar_descriptor(void)
 {
-  static int init = 0;
   static swig_type_info* info = 0;
-  if (!init) {
+  if (!info) {
     info = SWIG_TypeQuery("_p_char");
-    init = 1;
   }
   return info;
 }

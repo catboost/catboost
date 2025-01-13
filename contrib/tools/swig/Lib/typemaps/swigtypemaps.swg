@@ -121,6 +121,12 @@
 #endif
 #endif
 
+/*==== clear errors ====*/
+
+#ifndef %error_clear
+#define %error_clear
+#endif
+
 /*==== director output exception ====*/
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
@@ -137,14 +143,14 @@
 #define %error_block(Block...)                 %block(Block)
 #define %default_code(code)                    SWIG_ArgError(code)  
 #define %argument_fail(code, type, name, argn) SWIG_exception_fail(%default_code(code), %argfail_fmt(type, name, argn))
-#define %argument_nullref(type, name, argn)    SWIG_exception_fail(SWIG_ValueError, %argnullref_fmt(type, name, argn))
+#define %argument_nullref(type, name, argn)    SWIG_exception_fail(SWIG_NullReferenceError, %argnullref_fmt(type, name, argn))
 #define %variable_fail(code, type, name)       SWIG_exception_fail(%default_code(code), %varfail_fmt(type, name))
-#define %variable_nullref(type, name)          SWIG_exception_fail(SWIG_ValueError, %varnullref_fmt(type, name))
+#define %variable_nullref(type, name)          SWIG_exception_fail(SWIG_NullReferenceError, %varnullref_fmt(type, name))
 #define %releasenotowned_fail(code, type, name, argn) SWIG_exception_fail(%default_code(code), %releasenotownedfail_fmt(type, name, argn))
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 #define %dirout_fail(code, type)          SWIG_DirOutFail(%default_code(code), %outfail_fmt(type))
-#define %dirout_nullref(type)             SWIG_DirOutFail(SWIG_ValueError, %outnullref_fmt(type))
+#define %dirout_nullref(type)             SWIG_DirOutFail(SWIG_NullReferenceError, %outnullref_fmt(type))
 #endif
 
 /* -----------------------------------------------------------------------------

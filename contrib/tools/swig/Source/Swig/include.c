@@ -224,8 +224,10 @@ String *Swig_read_file(FILE *f) {
   String *str = NewStringEmpty();
 
   assert(str);
-  while (fgets(buffer, 4095, f)) {
-    Append(str, buffer);
+  while (1) {
+    size_t c = fread(buffer, 1, sizeof(buffer), f);
+    if (c > 0) Write(str, buffer, (int)c);
+    if (c < sizeof(buffer)) break;
   }
   len = Len(str);
   /* Add a newline if not present on last line -- the preprocessor seems to 

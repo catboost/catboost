@@ -77,23 +77,11 @@ or you can use the %apply directive :
 #endif
 
 %define %_value_input_typemap(code, asval_meth, asval_frag, Type)
-  %typemap(in,noblock=1,fragment=asval_frag) Type *INPUT ($*ltype temp, int res = 0) {
-    if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
-      Type val; 
-      int ecode = asval_meth($input, &val);
-      if (!SWIG_IsOK(ecode)) { 
-	%argument_fail(ecode, "$*ltype",$symname, $argnum);
-      }
-      temp = %static_cast(val, $*ltype);
-      $1 = &temp;
-      res = SWIG_AddTmpMask(ecode);
-    }
-  }
-  %typemap(in,noblock=1,fragment=asval_frag) Type &INPUT($*ltype temp, int res = 0) {
+  %typemap(in,noblock=1,fragment=asval_frag) Type *INPUT ($*ltype temp, int res = 0), Type &INPUT($*ltype temp, int res = 0) {
     if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
       Type val;
       int ecode = asval_meth($input, &val);
-      if (!SWIG_IsOK(ecode)) { 
+      if (!SWIG_IsOK(ecode)) {
 	%argument_fail(ecode, "$*ltype",$symname, $argnum);
       }
       temp = %static_cast(val, $*ltype);
@@ -115,19 +103,19 @@ or you can use the %apply directive :
 %enddef
 
 %define %_ptr_input_typemap(code,asptr_meth,asptr_frag,Type)
-  %typemap(in,noblock=1,fragment=asptr_frag) Type *INPUT(int res = 0) {  
+  %typemap(in,noblock=1,fragment=asptr_frag) Type *INPUT(int res = 0) {
     res = asptr_meth($input, &$1);
     if (!SWIG_IsOK(res)) {
       %argument_fail(res,"$type",$symname, $argnum);
     }
     res = SWIG_AddTmpMask(res);
   }
-  %typemap(in,noblock=1,fragment=asptr_frag) Type &INPUT(int res = 0) {  
+  %typemap(in,noblock=1,fragment=asptr_frag) Type &INPUT(int res = 0) {
     res = asptr_meth($input, &$1);
-    if (!SWIG_IsOK(res)) { 
+    if (!SWIG_IsOK(res)) {
       %argument_fail(res,"$type",$symname, $argnum);
-    }     
-    if (!$1) { 
+    }
+    if (!$1) {
       %argument_nullref("$type",$symname, $argnum);
     }
     res = SWIG_AddTmpMask(res);
@@ -145,13 +133,12 @@ or you can use the %apply directive :
 // are output only.   The output value is appended to the result as
 // a list element.
 
-/* 
+/*
 The following methods can be applied to turn a pointer into an "output"
 value.  When calling a function, no input value would be given for
 a parameter, but an output value would be returned.  In the case of
 multiple output values, they are returned in the form of a list.
 
-         
 For example, suppose you were trying to wrap the modf() function in the
 C math library which splits x into integral and fractional parts (and
 returns the integer part in one of its parameters):

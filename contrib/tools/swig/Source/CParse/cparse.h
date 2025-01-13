@@ -43,7 +43,7 @@ extern "C" {
   extern void scanner_set_main_input_file(String *file);
   extern String *scanner_get_main_input_file(void);
   extern void Swig_cparse_follow_locators(int);
-  extern void start_inline(char *, int);
+  extern void scanner_start_inline(String *, int);
   extern String *scanner_ccode;
   extern int yylex(void);
 
@@ -80,6 +80,4 @@ extern "C" {
   if (wrnfilter) Swig_warnfilter(wrnfilter,0); \
  }
 
-#define COMPOUND_EXPR_VAL(dtype) \
-  ((dtype).type == T_CHAR || (dtype).type == T_WCHAR ? (dtype).rawval : (dtype).val)
 #endif

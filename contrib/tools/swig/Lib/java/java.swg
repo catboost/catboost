@@ -1398,6 +1398,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 %pragma(java) jniclassclassmodifiers="public class"
 %pragma(java) moduleclassmodifiers="public class"
+%pragma(java) constantsmodifiers="public interface"
 
 /* 64-bit architecture specific typemaps */
 #if defined(SWIGWORDSIZE64)
@@ -1423,8 +1424,8 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 /* String & length */
 %typemap(jni)     (const char *STRING, size_t LENGTH) "jbyteArray"
 %typemap(jtype)   (const char *STRING, size_t LENGTH) "byte[]"
-%typemap(jstype)  (const char *STRING, size_t LENGTH) "byte[]"
-%typemap(javain)  (const char *STRING, size_t LENGTH) "$javainput"
+%typemap(jstype)  (const char *STRING, size_t LENGTH) "String"
+%typemap(javain)  (const char *STRING, size_t LENGTH) %{($javainput == null) ? null : $javainput.getBytes()%}
 %typemap(freearg) (const char *STRING, size_t LENGTH) ""
 %typemap(in)      (const char *STRING, size_t LENGTH) {
   if ($input) {
@@ -1438,7 +1439,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %typemap(argout)  (const char *STRING, size_t LENGTH) {
   if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, JNI_ABORT);
 }
-%typemap(directorin, descriptor="[B", noblock=1) (const char *STRING, size_t LENGTH) {
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) (const char *STRING, size_t LENGTH) {
   $input = 0;
   if ($1) {
     $input = JCALL1(NewByteArray, jenv, (jsize)$2);
@@ -1447,7 +1448,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
-%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "$jniinput"
+%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "($jniinput == null) ? null : new String($jniinput)"
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
 /* Enable write-back for non-const version */
 %typemap(argout)  (char *STRING, size_t LENGTH) {

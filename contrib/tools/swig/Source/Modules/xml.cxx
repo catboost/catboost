@@ -15,7 +15,6 @@
 
 static const char *usage = "\
 XML Options (available with -xml)\n\
-     -xmllang <lang> - Typedef language\n\
      -xmllite        - More lightweight version of XML\n";
 
 static File *out = 0;
@@ -31,19 +30,11 @@ public:
   XML() :indent_level(0) , id(0) {
   }
   
-  virtual ~ XML() {
+  ~XML() {
   }
 
   virtual void main(int argc, char *argv[]) {
-    SWIG_typemap_lang("xml");
     for (int iX = 0; iX < argc; iX++) {
-      if (strcmp(argv[iX], "-xmllang") == 0) {
-	Swig_mark_arg(iX);
-	iX++;
-	SWIG_typemap_lang(argv[iX]);
-	Swig_mark_arg(iX);
-	continue;
-      }
       if (strcmp(argv[iX], "-help") == 0) {
 	fputs(usage, stdout);
       }
@@ -270,6 +261,9 @@ public:
     Printf(out, "</%s>\n", markup);
   }
 
+  NestedClassSupport nestedClassesSupport() const {
+    return NCS_Full;
+  }
 };
 
 /* -----------------------------------------------------------------------------

@@ -207,7 +207,8 @@ int DohCmp(const DOH *obj1, const DOH *obj2) {
   b2info = b2->type;
   if ((b1info == b2info) && (b1info->doh_cmp))
     return (b1info->doh_cmp) (b1, b2);
-  return 1;
+  /* finally compare pointers */
+  return b1 < b2 ? -1 : b1 == b2 ? 0 : 1;
 }
 
 /* -----------------------------------------------------------------------------

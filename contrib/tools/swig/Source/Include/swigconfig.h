@@ -2,7 +2,7 @@
 /* Source/Include/swigconfig.h.in.  Generated from configure.ac by autoheader.  */
 
 /* define if the Boost library is available */
-#define HAVE_BOOST /**/
+/* #undef HAVE_BOOST */
 
 /* define if the compiler supports basic C++11 syntax */
 /* #undef HAVE_CXX11 */
@@ -19,10 +19,10 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 /* #undef HAVE_INTTYPES_H */
 
-/* Define to 1 if you have the `dl' library (-ldl). */
+/* Define to 1 if you have the 'dl' library (-ldl). */
 #define HAVE_LIBDL 1
 
-/* Define to 1 if you have the `dld' library (-ldld). */
+/* Define to 1 if you have the 'dld' library (-ldld). */
 /* #undef HAVE_LIBDLD */
 
 /* Define if you have PCRE2 library */
@@ -62,7 +62,7 @@
 #define PACKAGE_NAME "swig"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "swig 4.2.1"
+#define PACKAGE_STRING "swig 4.3.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "swig"
@@ -71,9 +71,9 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "4.2.1"
+#define PACKAGE_VERSION "4.3.0"
 
-/* Define to 1 if all of the C90 standard headers exist (not just the ones
+/* Define to 1 if all of the C89 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 /* #undef STDC_HEADERS */
@@ -82,7 +82,7 @@
 #define SWIG_CXX "g++"
 
 /* Directory for SWIG system-independent libraries */
-#define SWIG_LIB "/var/empty/swig-4.2.1/share/swig/4.2.1"
+#define SWIG_LIB "/var/empty/swig-4.3.0/share/swig/4.3.0"
 
 /* Directory for SWIG system-independent libraries (Unix install on native
    Windows) */
@@ -92,7 +92,7 @@
 #define SWIG_PLATFORM "x86_64-pc-linux-gnu"
 
 /* Version number of package */
-#define VERSION "4.2.1"
+#define VERSION "4.3.0"
 
 
 /* Deal with attempt by Microsoft to deprecate C standard runtime functions */

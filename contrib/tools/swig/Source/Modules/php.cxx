@@ -542,7 +542,6 @@ public:
 
     Preprocessor_define("SWIGPHP 1", 0);
     Preprocessor_define("SWIGPHP7 1", 0);
-    SWIG_typemap_lang("php");
     SWIG_config_file("php.swg");
     allow_overloading();
   }
@@ -1117,7 +1116,7 @@ public:
     Printf(f->code, "PHP_METHOD(%s%s,__set) {\n", prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
-    Printf(f->code, "  zval args[2];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
+    Printf(f->code, "  zval args[2];\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
     Printf(f->code, "  if (!arg) {\n");
@@ -1155,7 +1154,7 @@ public:
     Printf(f->code, "PHP_METHOD(%s%s,__get) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
-    Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
+    Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
     Printf(f->code, "  if (!arg) {\n");
@@ -1265,7 +1264,7 @@ public:
     }
     String *name = GetChar(n, "name");
     String *iname = GetChar(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *nodeType = Getattr(n, "nodeType");
     int newobject = GetFlag(n, "feature:new");
@@ -1583,9 +1582,9 @@ public:
       Replaceall(tm, "$owner", newobject ? "1" : "0");
       Printf(f->code, "%s\n", tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), name);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     List *return_types = phptypes->process_phptype(n, 0, "tmap:out:phptype");
 
@@ -1653,6 +1652,10 @@ public:
     }
 
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+
     Replaceall(f->code, "$symname", iname);
 
     Wrapper_print(f, s_wrappers);
@@ -1692,8 +1695,7 @@ public:
     String *name = GetChar(n, "name");
     String *iname = GetChar(n, "sym:name");
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     String *tm;
 
     if (!addSymbol(iname, n))
@@ -2057,14 +2059,18 @@ public:
     String *v_name = GetChar(n, "name");
 
     Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
-    Printf(magic_set, "ZVAL_STRING(&tempZval, \"%s_set\");\n", v_name);
-    Printf(magic_set, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,1,&args[1]);\n");
-    Printf(magic_set, "zval_ptr_dtor(&tempZval);\n}\n");
+    Printf(magic_set, "zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_set\", 0);\n", v_name);
+    Append(magic_set, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
+    Append(magic_set, "zend_string_release(swig_funcname);\n");
+    Printf(magic_set, "zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 1, &args[1]);\n");
+    Printf(magic_set, "}\n");
 
     Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
-    Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n", v_name);
-    Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n");
-    Printf(magic_get, "zval_ptr_dtor(&tempZval);\n}\n");
+    Printf(magic_get, "zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_get\", 0);\n", v_name);
+    Append(magic_get, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
+    Append(magic_get, "zend_string_release(swig_funcname);\n");
+    Printf(magic_get, "zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 0, NULL);\n");
+    Printf(magic_get, "}\n");
 
     Printf(magic_isset, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_isset, "RETVAL_TRUE;\n}\n");
@@ -2232,7 +2238,7 @@ public:
     int is_void = 0;
     int is_pointer = 0;
     String *decl = Getattr(n, "decl");
-    String *returntype = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     String *name = Getattr(n, "name");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
@@ -2510,6 +2516,7 @@ public:
 
     /* emit the director method */
     if (status == SWIG_OK) {
+      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
       if (!Getattr(n, "defaultargs")) {
 	Replaceall(w->code, "$symname", symname);
 	Wrapper_print(w, f_directors);

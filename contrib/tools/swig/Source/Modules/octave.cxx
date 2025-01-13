@@ -132,7 +132,6 @@ public:
     SWIG_library_directory("octave");
     Preprocessor_define("SWIGOCTAVE 1", 0);
     SWIG_config_file("octave.swg");
-    SWIG_typemap_lang("octave");
     allow_overloading();
 
     // Octave API is C++, so output must be C++ compatible even when wrapping C code
@@ -488,7 +487,7 @@ public:
       Append(decl_str, tex_name);
 
       if (value) {
-        String *new_value = convertValue(value, Getattr(p, "type"));
+        String *new_value = convertValue(value, Getattr(p, "numval"), Getattr(p, "stringval"), Getattr(p, "type"));
         if (new_value) {
           value = new_value;
         } else {
@@ -517,23 +516,23 @@ public:
    *    Check if string v can be an Octave value literal,
    *    (eg. number or string), or translate it to an Octave literal.
    * ------------------------------------------------------------ */
-  String *convertValue(String *v, SwigType *t) {
-    if (v && Len(v) > 0) {
-      char fc = (Char(v))[0];
-      if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
-        /* number or string (or maybe NULL pointer) */
-        if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
-          return NewString("None");
-        else
-          return v;
-      }
-      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-        return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-        return NewString("true");
-      if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-        return NewString("false");
+  String *convertValue(String *v, String *numval, String *stringval, SwigType *t) {
+    if (stringval) {
+      return stringval;
     }
+    if (numval) {
+      if (SwigType_type(t) == T_BOOL) {
+	return NewString(*Char(numval) == '0' ? "false" : "true");
+      }
+      return numval;
+    }
+    if (Equal(v, "0") || Equal(v, "NULL") || Equal(v, "nullptr"))
+      return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+    // FIXME: TRUE and FALSE are not standard and could be defined in other ways
+    if (Equal(v, "TRUE"))
+      return NewString("true");
+    if (Equal(v, "FALSE"))
+      return NewString("false");
     return 0;
   }
 
@@ -552,7 +551,7 @@ public:
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     String *overname = Copy(wname);
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
 
     if (!overloaded && !addSymbol(iname, n))
@@ -728,9 +727,9 @@ public:
       Printf(f->code, "if (_outv.is_defined()) _outp = " "SWIG_Octave_AppendOutput(_outp, _outv);\n");
       Delete(tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), iname);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     Printv(f->code, outarg, NIL);
     Printv(f->code, cleanup, NIL);
@@ -766,6 +765,9 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     Replaceall(f->code, "$symname", iname);
     Wrapper_print(f, f_wrappers);
@@ -890,8 +892,7 @@ public:
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     String *cppvalue = Getattr(n, "cppvalue");
     String *tm;
 
@@ -1274,7 +1275,7 @@ public:
     int is_void = 0;
     int is_pointer = 0;
     String *decl = Getattr(n, "decl");
-    String *returntype = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     String *name = Getattr(n, "name");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
@@ -1536,6 +1537,7 @@ public:
     }
     // emit the director method
     if (status == SWIG_OK) {
+      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
       if (!Getattr(n, "defaultargs")) {
         Replaceall(w->code, "$symname", symname);
         Wrapper_print(w, f_directors);

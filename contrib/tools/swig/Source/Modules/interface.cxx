@@ -64,8 +64,7 @@ static List *collect_interface_methods(Node *n) {
 
 static void collect_interface_bases(List *bases, Node *n) {
   if (GetFlag(n, "feature:interface")) {
-    String *name = Getattr(n, "interface:name");
-    if (!Getattr(bases, name))
+    if (!Swig_item_in_list(bases, n))
       Append(bases, n);
   }
 
@@ -82,10 +81,11 @@ static void collect_interface_bases(List *bases, Node *n) {
 /* -----------------------------------------------------------------------------
  * collect_interface_base_classes()
  *
- * Create a hash containing all the classes up the inheritance hierarchy
+ * Create a list containing all the classes up the inheritance hierarchy
  * marked with feature:interface (including this class n).
  * Stops going up the inheritance chain as soon as a class is found without
  * feature:interface.
+ * Remove duplicate bases (in the event of multiple inheritance).
  * The idea is to find all the base interfaces that a class must implement.
  * ----------------------------------------------------------------------------- */
 

@@ -19,6 +19,7 @@
 #include "parser.h"
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 /* Scanner object */
 static Scanner *scan = 0;
@@ -43,6 +44,11 @@ int cparse_cplusplusout = 0;
 /* To allow better error reporting */
 String *cparse_unknown_directive = 0;
 
+// Default-initialised instances of token types to avoid uninitialised fields.
+// The compiler will initialise all fields to zero or NULL for us.
+
+static const struct Define default_dtype;
+
 /* Private vars */
 static int scan_init = 0;
 static int num_brace = 0;
@@ -52,7 +58,7 @@ static int rename_active = 0;
 /* Doxygen comments scanning */
 int scan_doxygen_comments = 0;
 
-int isStructuralDoxygen(String *s) {
+static int isStructuralDoxygen(String *s) {
   static const char* const structuralTags[] = {
     "addtogroup",
     "callgraph",
@@ -122,7 +128,7 @@ void Swig_cparse_cplusplusout(int v) {
  * Initialize buffers
  * ------------------------------------------------------------------------- */
 
-void scanner_init(void) {
+static void scanner_init(void) {
   scan = NewScanner();
   Scanner_idstart(scan,"%");
   scan_init = 1;
@@ -141,14 +147,14 @@ void scanner_file(DOHFile * f) {
 }
 
 /* ----------------------------------------------------------------------------
- * start_inline(char *text, int line)
+ * scanner_start_inline(String *text, int line)
  *
  * Take a chunk of text and recursively feed it back into the scanner.  Used
  * by the %inline directive.
  * ------------------------------------------------------------------------- */
 
-void start_inline(char *text, int line) {
-  String *stext = NewString(text);
+void scanner_start_inline(String *text, int line) {
+  String *stext = Copy(text);
 
   Seek(stext,0,SEEK_SET);
   Setfile(stext,cparse_file);
@@ -377,11 +383,11 @@ static int yylook(void) {
       return TYPE_RAW;
       
     case SWIG_TOKEN_STRING:
-      yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
+      yylval.str = NewString(Scanner_text(scan));
       return STRING;
 
     case SWIG_TOKEN_WSTRING:
-      yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
+      yylval.str = NewString(Scanner_text(scan));
       return WSTRING;
       
     case SWIG_TOKEN_CHAR:
@@ -536,8 +542,8 @@ static int yylook(void) {
     case SWIG_TOKEN_BACKSLASH:
       break;
     default:
-      Swig_error(cparse_file, cparse_line, "Illegal token '%s'.\n", Scanner_text(scan));
-      return (ILLEGAL);
+      Swig_error(cparse_file, cparse_line, "Unexpected token '%s'.\n", Scanner_text(scan));
+      Exit(EXIT_FAILURE);
     }
   }
 }
@@ -614,39 +620,80 @@ int yylex(void) {
   switch (l) {
 
   case NUM_INT:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_INT;
     goto num_common;
   case NUM_DOUBLE:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_DOUBLE;
     goto num_common;
   case NUM_FLOAT:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_FLOAT;
     goto num_common;
   case NUM_LONGDOUBLE:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_LONGDOUBLE;
     goto num_common;
   case NUM_ULONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_ULONG;
     goto num_common;
   case NUM_LONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_LONG;
     goto num_common;
   case NUM_UNSIGNED:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_UINT;
     goto num_common;
   case NUM_LONGLONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_LONGLONG;
     goto num_common;
   case NUM_ULONGLONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_ULONGLONG;
     goto num_common;
-  case NUM_BOOL:
-    yylval.dtype.type = T_BOOL;
-num_common:
-    yylval.dtype.unary_arg_type = 0;
+num_common: {
     yylval.dtype.val = NewString(Scanner_text(scan));
-    yylval.dtype.bitfield = 0;
-    yylval.dtype.throws = 0;
+    const char *c = Char(yylval.dtype.val);
+    if (c[0] == '0') {
+      // Convert to base 10 using strtoull().
+      unsigned long long value;
+      char *e;
+      errno = 0;
+      if (c[1] == 'b' || c[1] == 'B') {
+	/* strtoull() doesn't handle binary literal prefixes so skip the prefix
+	 * and specify base 2 explicitly. */
+	value = strtoull(c + 2, &e, 2);
+      } else {
+	value = strtoull(c, &e, 0);
+      }
+      if (errno != ERANGE) {
+	while (*e && strchr("ULul", *e)) ++e;
+      }
+      if (errno != ERANGE && *e == '\0') {
+	yylval.dtype.numval = NewStringf("%llu", value);
+      } else {
+	// Our unsigned long long isn't wide enough or this isn't an integer.
+      }
+    } else {
+      const char *e = c;
+      while (isdigit((unsigned char)*e)) ++e;
+      int len = e - c;
+      while (*e && strchr("ULul", *e)) ++e;
+      if (*e == '\0') {
+        yylval.dtype.numval = NewStringWithSize(c, len);
+      }
+    }
+    return (l);
+  }
+  case NUM_BOOL:
+    yylval.dtype = default_dtype;
+    yylval.dtype.type = T_BOOL;
+    yylval.dtype.val = NewString(Scanner_text(scan));
+    yylval.dtype.numval = NewString(Equal(yylval.dtype.val, "false") ? "0" : "1");
     return (l);
 
   case ID:
@@ -719,12 +766,6 @@ num_common:
 
       /* C++ keywords */
       if (cparse_cplusplus) {
-	if (strcmp(yytext, "and") == 0)
-	  return (LAND);
-	if (strcmp(yytext, "or") == 0)
-	  return (LOR);
-	if (strcmp(yytext, "not") == 0)
-	  return (LNOT);
 	if (strcmp(yytext, "class") == 0)
 	  return (CLASS);
 	if (strcmp(yytext, "private") == 0)
@@ -802,9 +843,12 @@ num_common:
 	    yylval.str = s;
 	    return OPERATOR;
 	  } else if (nexttok == SWIG_TOKEN_ID) {
-	    /* We have an identifier.  This could be any number of things. It could be a named version of
-               an operator (e.g., 'and_eq') or it could be a conversion operator.   To deal with this, we're
-               going to read tokens until we encounter a ( or ;.  Some care is needed for formatting. */
+	    /* We have an identifier.  It could be "new" or "delete",
+	     * potentially followed by "[]", or it could be a conversion
+	     * operator (it can't be "and_eq" or similar as those are returned
+	     * as SWIG_TOKEN_ANDEQUAL, etc by Scanner_token()).  To deal with
+	     * this we read tokens until we encounter a suitable terminating
+	     * token.  Some care is needed for formatting. */
 	    int needspace = 1;
 	    int termtoken = 0;
 	    const char *termvalue = 0;
@@ -856,17 +900,6 @@ num_common:
 		    || (strcmp(t, "delete") == 0)
 		    || (strcmp(t, "new[]") == 0)
 		    || (strcmp(t, "delete[]") == 0)
-		    || (strcmp(t, "and") == 0)
-		    || (strcmp(t, "and_eq") == 0)
-		    || (strcmp(t, "bitand") == 0)
-		    || (strcmp(t, "bitor") == 0)
-		    || (strcmp(t, "compl") == 0)
-		    || (strcmp(t, "not") == 0)
-		    || (strcmp(t, "not_eq") == 0)
-		    || (strcmp(t, "or") == 0)
-		    || (strcmp(t, "or_eq") == 0)
-		    || (strcmp(t, "xor") == 0)
-		    || (strcmp(t, "xor_eq") == 0)
 		    )) {
 		/*              retract(strlen(t)); */
 
@@ -919,6 +952,8 @@ num_common:
 	  return (USING);
 	if (strcmp(yytext, "namespace") == 0)
 	  return (NAMESPACE);
+	if (strcmp(yytext, "alignof") == 0)
+	  return (ALIGNOF);
 	if (strcmp(yytext, "override") == 0) {
 	  last_id = 1;
 	  return (OVERRIDE);
@@ -930,6 +965,11 @@ num_common:
       } else {
 	if (strcmp(yytext, "class") == 0) {
 	  Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");
+	}
+	if (strcmp(yytext, "_Bool") == 0) {
+	  /* C99 boolean type. */
+	  yylval.type = NewSwigType(T_BOOL);
+	  return (TYPE_BOOL);
 	}
 	if (strcmp(yytext, "_Complex") == 0) {
 	  yylval.type = NewSwigType(T_COMPLEX);
@@ -957,7 +997,6 @@ num_common:
 	return (SIZEOF);
 
       if (strcmp(yytext, "typedef") == 0) {
-	yylval.intvalue = 0;
 	return (TYPEDEF);
       }
 
@@ -994,7 +1033,6 @@ num_common:
       if (strcmp(yytext, "%constant") == 0)
 	return (CONSTANT);
       if (strcmp(yytext, "%typedef") == 0) {
-	yylval.intvalue = 1;
 	return (TYPEDEF);
       }
       if (strcmp(yytext, "%native") == 0)
@@ -1060,8 +1098,6 @@ num_common:
     last_id = 1;
     return (ID);
   case POUND:
-    return yylex();
-  case SWIG_TOKEN_COMMENT:
     return yylex();
   default:
     return (l);

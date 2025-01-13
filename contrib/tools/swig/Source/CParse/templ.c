@@ -223,6 +223,8 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 	cn = nextSibling(cn);
       }
     }
+  } else if (Equal(nodeType, "classforward")) {
+    /* Nothing to expand */
   } else if (Equal(nodeType, "constructor")) {
     if (!(Getattr(n, "templatetype"))) {
       String *symname = Getattr(n, "sym:name");
@@ -1172,12 +1174,10 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
 
   if (n) {
     String *nodeType = nodeType(n);
-    int isclass = 0;
     assert(Equal(nodeType, "template"));
-    (void)nodeType;
-    isclass = (Equal(Getattr(n, "templatetype"), "class"));
+    String *templatetype = Getattr(n, "templatetype");
 
-    if (isclass) {
+    if (Equal(templatetype, "class") || Equal(templatetype, "classforward")) {
       Node *primary = Getattr(n, "primarytemplate");
       Parm *tparmsfound = Getattr(primary ? primary : n, "templateparms");
       int specialized = !tparmsfound; /* fully specialized (an explicit specialization) */
@@ -1361,8 +1361,9 @@ static void expand_defaults(ParmList *expanded_templateparms) {
 
 ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parms, Node *primary, Node *templ) {
   ParmList *expanded_templateparms = CopyParmList(instantiated_parms);
+  String *templatetype = Getattr(primary, "templatetype");
 
-  if (Equal(Getattr(primary, "templatetype"), "class")) {
+  if (Equal(templatetype, "class") || Equal(templatetype, "classforward")) {
     /* Class template */
     ParmList *templateparms = Getattr(primary, "templateparms");
     int variadic = merge_parameters(expanded_templateparms, templateparms);
@@ -1399,8 +1400,9 @@ ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parms, Node *
 
 ParmList *Swig_cparse_template_partialargs_expand(ParmList *partially_specialized_parms, Node *primary, ParmList *templateparms) {
   ParmList *expanded_templateparms = CopyParmList(partially_specialized_parms);
+  String *templatetype = Getattr(primary, "templatetype");
 
-  if (Equal(Getattr(primary, "templatetype"), "class")) {
+  if (Equal(templatetype, "class") || Equal(templatetype, "classforward")) {
     /* Class template */
     int variadic = ParmList_variadic_parm(templateparms) ? 1 : 0;
     /* Add default arguments from primary template */

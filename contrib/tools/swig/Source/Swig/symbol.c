@@ -993,7 +993,7 @@ void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int incl
   if (redefined) {
     Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
     Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
-  } else if (!Checkattr(n, "storage", "friend") && !Checkattr(c, "storage", "friend")) {
+  } else if (!Strstr(Getattr(n, "storage"), "friend") && !Strstr(Getattr(c, "storage"), "friend")) {
     Swig_warning(WARN_PARSE_REDUNDANT, Getfile(n), Getline(n), "%s\n", en);
     Swig_warning(WARN_PARSE_REDUNDANT, Getfile(c), Getline(c), "%s\n", ec);
   }
@@ -2222,4 +2222,22 @@ SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab) {
     break;
   }
   return value;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_isvalid()
+ *
+ * Checks that s is a valid C symbol
+ * ----------------------------------------------------------------------------- */
+
+int Swig_symbol_isvalid(const String *s) {
+  int valid = 0;
+  const char *c = Char(s);
+  if (c) {
+    valid = isalpha((int)*c) || (*c == '_');
+    while (valid && *++c) {
+      valid = isalnum((int)*c) || (*c == '_');
+    }
+  }
+  return valid;
 }

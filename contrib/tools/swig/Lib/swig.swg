@@ -115,11 +115,6 @@
 #define %nocallback     %feature("callback","0")
 #define %clearcallback  %feature("callback","")
 
-/* the %nestedworkaround directive (deprecated) */
-#define %nestedworkaround       %feature("nestedworkaround")
-#define %nonestedworkaround     %feature("nestedworkaround","0")
-#define %clearnestedworkaround  %feature("nestedworkaround","")
-
 /* the %flatnested directive */
 #define %flatnested       %feature("flatnested")
 #define %noflatnested     %feature("flatnested","0")
@@ -144,6 +139,7 @@
 #define %nspace      %feature("nspace")
 #define %nonspace    %feature("nspace","0")
 #define %clearnspace %feature("nspace","")
+#define %nspacemove(NAMESPACE) %feature("nspace", #NAMESPACE)
 
 /* valuewrapper directives */
 #define %valuewrapper        %feature("valuewrapper")

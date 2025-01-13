@@ -160,7 +160,7 @@ String *Swig_wrapped_var_type(SwigType *t, int varcref) {
   return ty;
 }
 
-String *Swig_wrapped_member_var_type(SwigType *t, int varcref) {
+static String *Swig_wrapped_member_var_type(SwigType *t, int varcref) {
   SwigType *ty;
 
   if (!Strstr(t, "enum $unnamed")) {
@@ -532,7 +532,10 @@ static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms,
       String *rcaststr = SwigType_rcaststr(pt, pname);
       if (comma)
 	Append(func, ",");
-      Append(func, rcaststr);
+      if (cparse_cplusplus && SwigType_type(pt) == T_USER)
+	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
+      else
+	Printv(func, rcaststr, NIL);
       Delete(rcaststr);
       Delete(pname);
       comma = 1;
@@ -572,7 +575,7 @@ String *Swig_cconstructor_call(const_String_or_char_ptr name) {
  *
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, ParmList *parms, int skip_self) {
+static String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, ParmList *parms, int skip_self) {
   String *func;
   String *nname;
   int i = 0;
@@ -605,7 +608,10 @@ String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, ParmList *p
 	  pname = Copy(Getattr(p, "name"));
       }
       rcaststr = SwigType_rcaststr(pt, pname);
-      Append(func, rcaststr);
+      if (cparse_cplusplus && SwigType_type(pt) == T_USER)
+	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
+      else
+	Printv(func, rcaststr, NIL);
       Delete(rcaststr);
       comma = 1;
       Delete(pname);
@@ -621,11 +627,11 @@ String *Swig_cppconstructor_call(const_String_or_char_ptr name, ParmList *parms)
   return Swig_cppconstructor_base_call(name, parms, 0);
 }
 
-String *Swig_cppconstructor_nodirector_call(const_String_or_char_ptr name, ParmList *parms) {
+static String *Swig_cppconstructor_nodirector_call(const_String_or_char_ptr name, ParmList *parms) {
   return Swig_cppconstructor_base_call(name, parms, 1);
 }
 
-String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmList *parms) {
+static String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmList *parms) {
   return Swig_cppconstructor_base_call(name, parms, 0);
 }
 
@@ -1639,9 +1645,7 @@ int Swig_VargetToFunction(Node *n, int flags) {
   } else {
     String *nname = 0;
     if (Equal(nodeType(n), "constant")) {
-      String *rawval = Getattr(n, "rawval");
-      String *value = rawval ? rawval : Getattr(n, "value");
-      nname = NewStringf("(%s)", value);
+      nname = NewStringf("(%s)", Getattr(n, "value"));
     } else {
       nname = SwigType_namestr(name);
     }

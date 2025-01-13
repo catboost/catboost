@@ -282,7 +282,8 @@ class TypePass:private Dispatcher {
 	  }
 	} else {
 	  if (GetFlag(bclass, "smart"))
-	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
+	    if (!GetFlag(first, "feature:ignore"))
+	      Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
 	}
       }
       if (!importmode) {
@@ -339,6 +340,75 @@ class TypePass:private Dispatcher {
       Setattr(cls, "allbases", allbases);
     }
     Delete(allbases);
+  }
+
+  /* ------------------------------------------------------------
+   * nspace_setting()
+   *
+   * Configures "sym:nspace" on the node and returns an overridden
+   * nspace value when %nspacemove is used.
+   * outer should point to parent class.
+   * ------------------------------------------------------------ */
+
+  String *nspace_setting(Node *n, Node *outer) {
+    String *nssymname_new = nssymname;
+    String *feature_nspace = GetFlagAttr(n, "feature:nspace");
+    String *nspace = Copy(feature_nspace);
+
+    // Check validity - single colons not allowed
+    const char *c = Char(feature_nspace);
+    int valid = 1;
+    while(c && *c) {
+      if (*(c++) == ':' && *(c++) != ':') {
+	valid = 0;
+	break;
+      }
+    }
+
+    // Remove whitespace
+    Replaceall(nspace, " ", "");
+    Replaceall(nspace, "\t", "");
+
+    valid = valid && (feature_nspace ? Equal(feature_nspace, "1") || Swig_scopename_isvalid(nspace) : 1);
+    Replaceall(nspace, "::", ".");
+    if (valid) {
+      if (outer) {
+	// Nested class or enum in a class
+	String *outer_nspace = Getattr(outer, "sym:nspace");
+	String *nspace_attribute = Getattr(n, "feature:nspace");
+	bool warn = false;
+	if (outer_nspace) {
+	  if (Equal(nspace_attribute, "0")) {
+	    warn = true;
+	  } else if (nspace && !(Equal(nspace, "1") || Equal(nspace, outer_nspace))) {
+	    warn = true;
+	  }
+	} else if (nspace) {
+	  warn = true;
+	}
+	if (warn) {
+	  String *outer_nspace_feature = Copy(outer_nspace);
+	  Replaceall(outer_nspace_feature, ".", "::");
+	  Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(n), Getline(n), "Ignoring nspace setting (%s) for '%s',\n", nspace_attribute, Swig_name_decl(n));
+	  Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(outer), Getline(outer), "as it conflicts with the nspace setting (%s) for outer class '%s'.\n", outer_nspace_feature, Swig_name_decl(outer));
+	}
+	Setattr(n, "sym:nspace", outer_nspace);
+      } else {
+	if (nspace) {
+	  if (Equal(nspace, "1")) {
+	    if (nssymname)
+	      Setattr(n, "sym:nspace", nssymname);
+	  } else {
+	    Setattr(n, "sym:nspace", nspace);
+	    nssymname_new = nspace;
+	  }
+	}
+      }
+    } else {
+      Swig_error(Getfile(n), Getline(n), "'%s' is not a valid identifier for nspace.\n", feature_nspace);
+    }
+    Delete(nspace);
+    return nssymname_new;
   }
 
   /* ------------------------------------------------------------
@@ -493,10 +563,10 @@ class TypePass:private Dispatcher {
 	Setattr(n, "tdname", tdname);
       }
     }
-    if (nssymname) {
-      if (GetFlag(n, "feature:nspace"))
-	Setattr(n, "sym:nspace", nssymname);
-    }
+
+    String *oldnssymname = nssymname;
+    nssymname = nspace_setting(n, Getattr(n, "nested:outer"));
+
     SwigType_new_scope(scopename);
     SwigType_attach_symtab(Getattr(n, "symtab"));
 
@@ -532,6 +602,8 @@ class TypePass:private Dispatcher {
       Swig_symbol_alias(template_default_expanded, Getattr(n, "symtab"));
       SwigType_scope_alias(template_default_expanded, Getattr(n, "typescope"));
     }
+
+    nssymname = oldnssymname;
 
     /* Normalize deferred types */
     {
@@ -831,10 +903,9 @@ class TypePass:private Dispatcher {
     }
     Setattr(n, "enumtype", enumtype);
 
-    if (nssymname) {
-      if (GetFlag(n, "feature:nspace"))
-	Setattr(n, "sym:nspace", nssymname);
-    }
+    String *oldnssymname = nssymname;
+    Node *parent = parentNode(n);
+    nssymname = nspace_setting(n, parent && Equal(nodeType(parent), "class") ? parent : NULL);
 
     // This block of code is for dealing with %ignore on an enum item where the target language
     // attempts to use the C enum value in the target language itself and expects the previous enum value
@@ -880,6 +951,8 @@ class TypePass:private Dispatcher {
     }
 
     emit_children(n);
+
+    nssymname = oldnssymname;
     return SWIG_OK;
   }
 

@@ -119,7 +119,7 @@ Hash *Contracts::ContractSplit(Node *n) {
 }
 
 /* This function looks in base classes and collects contracts found */
-void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages) {
+static void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages) {
 
   Node *b, *temp;
   String *name, *type, *local_decl, *base_decl;

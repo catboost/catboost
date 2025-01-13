@@ -562,10 +562,10 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 	if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
 	  /* we emit a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
 	  Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
-		       "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'\n",
+		       "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'.\n",
 		       Swig_name_decl(n), j, SwigType_str(Getattr(pj, "type"), 0));
 	  Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
-		      "Dispatching calls to this method may not work correctly, see the 'Typemaps and Overloading' section in Typemaps chapter of the documentation\n");
+		      "Dispatching calls to this method may not work correctly, see the 'Typemaps and Overloading' section in the Typemaps chapter of the SWIG documentation.\n");
 	}
 	Parm *pj1 = Getattr(pj, "tmap:in:next");
 	if (pj1)
@@ -739,10 +739,10 @@ static String *overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int
 	if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
 	  /* we emit a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
 	  Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
-		       "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'\n",
+		       "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'.\n",
 		       Swig_name_decl(n), j, SwigType_str(Getattr(pj, "type"), 0));
 	  Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
-		       "Dispatching calls to this method may not work correctly, see: https://www.swig.org/Doc4.1/Typemaps.html#Typemaps_overloading\n");
+		       "Dispatching calls to this method may not work correctly, see the 'Typemaps and Overloading' section in the Typemaps chapter of the SWIG documentation.\n");
 	}
 	Parm *pj1 = Getattr(pj, "tmap:in:next");
 	if (pj1)
@@ -838,10 +838,10 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
       if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
 	/* we emit a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
 	Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
-		     "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'\n",
+		     "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'.\n",
 		     Swig_name_decl(n), j, SwigType_str(Getattr(pj, "type"), 0));
 	Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
-		     "Dispatching calls to this method may not work correctly, see the 'Typemaps and Overloading' section in Typemaps chapter of the documentation\n");
+		     "Dispatching calls to this method may not work correctly, see the 'Typemaps and Overloading' section in the Typemaps chapter of the SWIG documentation.\n");
       }
       Parm *pk = Getattr(pj, "tmap:in:next");
       if (pk)
