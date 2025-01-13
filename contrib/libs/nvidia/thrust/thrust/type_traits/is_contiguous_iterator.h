@@ -139,7 +139,7 @@ struct is_libcxx_wrap_iter : false_type {};
 #if defined(_LIBCPP_VERSION)
 template <typename Iterator>
 struct is_libcxx_wrap_iter<
-  _VSTD::__wrap_iter<Iterator>
+  std::__wrap_iter<Iterator>
 > : true_type {};
 #endif
 
