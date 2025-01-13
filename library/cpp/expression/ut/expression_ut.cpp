@@ -22,6 +22,7 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         m["mv"] = 32768;
         m["big"] = 68719476736;
         m["small"] = 1;
+        m["neg"] = -1000.;
 
         UNIT_ASSERT_EQUAL(CalcExpression("1 == 1", m), 1);
         UNIT_ASSERT_EQUAL(CalcExpression("1 == 0", m), 0);
@@ -29,6 +30,14 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
         UNIT_ASSERT_EQUAL(CalcExpression("(2 - 1) > 0", m), 1);
         UNIT_ASSERT_EQUAL(CalcExpression("(2 - 1) > 1", m), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("2 - 2 - 2", m), -2);
+        UNIT_ASSERT_VALUES_EQUAL(CalcExpression("0*neg", m), 0);
+        UNIT_ASSERT_VALUES_EQUAL(CalcExpression("1 * -1000", m), -1000);
+        UNIT_ASSERT_VALUES_EQUAL(CalcExpression("1 * +1000", m), 1000);
+        UNIT_ASSERT_VALUES_EQUAL(CalcExpression("small * +1000", m), 1000);
+        UNIT_ASSERT_VALUES_EQUAL(CalcExpression("small * -1000", m), -1000);
+        UNIT_ASSERT_VALUES_EQUAL(CalcExpression("small * -small", m), -1);
+        UNIT_ASSERT_VALUES_EQUAL(CalcExpression("(small + small) * -small", m), -2);
+        UNIT_ASSERT_VALUES_EQUAL(CalcExpression("0*-1000", m), 0);
 
         UNIT_ASSERT_EQUAL(CalcExpression("-2 + 2", m), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("mv&32768==32768", m), 1);

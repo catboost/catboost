@@ -490,6 +490,23 @@ size_t TExpressionImpl::FindOperation(const TStringBuf& exp, std::array<TStringB
                     if (!FastHasPrefix(suffix, EOperationsStrings[o])) {
                         continue;
                     }
+                    if (EqualToOneOf(o, O_SUBSTRACT, O_ADD)) { // check if it is unary operations
+                        bool isUnary = false;
+                        for (size_t j = 1; j < i - 1; ++j) {
+                            if (EqualToOneOf(exp[i - 1 - j], ' ', '\n')) {
+                                continue;
+                            }
+                            if (EqualToOneOf(exp[i - 1 - j], '?', ':', '(', '*', '/', '=', '&', '>', '<', '|')) {
+                                isUnary = true;
+                                break;
+                            }
+                            isUnary = false;
+                            break;
+                        }
+                        if (isUnary) {
+                            continue;
+                        }
+                    }
 
                     args[0] = exp.substr(0, i - 1);
                     args[1] = exp.substr(i + EOperationsStrings[o].size() - 1);
@@ -531,7 +548,8 @@ size_t TExpressionImpl::BuildExpression(TStringBuf str) {
     std::array<TStringBuf, MaxOperands> args;
     EOperation oper;
     size_t order = Operations.size();
-    if (size_t numArgs = FindOperation(str, args, oper)) {
+    size_t numArgs = FindOperation(str, args, oper);
+    if (numArgs) {
         Operations.push_back(TOperator(oper));
         for (size_t i = 0; i < numArgs; ++i) {
             Operations[order].Input.push_back(BuildExpression(args[i]));
