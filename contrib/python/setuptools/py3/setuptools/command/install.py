@@ -1,9 +1,12 @@
+from __future__ import annotations
+
+from collections.abc import Callable
 from distutils.errors import DistutilsArgError
 import inspect
 import glob
 import platform
 import distutils.command.install as orig
-from typing import cast
+from typing import Any, ClassVar, cast
 
 import setuptools
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
@@ -29,7 +32,9 @@ class install(orig.install):
         'old-and-unmanageable',
         'single-version-externally-managed',
     ]
-    new_commands = [
+    # Type the same as distutils.command.install.install.sub_commands
+    # Must keep the second tuple item potentially None due to invariance
+    new_commands: ClassVar[list[tuple[str, Callable[[Any], bool] | None]]] = [
         ('install_egg_info', lambda self: True),
         ('install_scripts', lambda self: True),
     ]

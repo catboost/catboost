@@ -27,7 +27,7 @@ from setuptools.command import bdist_egg
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
-from setuptools.extern import packaging
+import packaging
 from ..warnings import SetuptoolsDeprecationWarning
 
 
@@ -249,17 +249,6 @@ class egg_info(InfoCommon, Command):
         # (e.g. sdist, bdist_wininst, etc.)
         #
         self.distribution.metadata.version = self.egg_version
-
-        # If we bootstrapped around the lack of a PKG-INFO, as might be the
-        # case in a fresh checkout, make sure that any special tags get added
-        # to the version info
-        #
-        pd = self.distribution._patched_dist
-        key = getattr(pd, "key", None) or getattr(pd, "name", None)
-        if pd is not None and key == self.egg_name.lower():
-            pd._version = self.egg_version
-            pd._parsed_version = packaging.version.Version(self.egg_version)
-            self.distribution._patched_dist = None
 
     def _get_egg_basename(self, py_version=PY_MAJOR, platform=None):
         """Compute filename of the output egg. Private API."""

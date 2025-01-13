@@ -16,10 +16,10 @@ from tempfile import NamedTemporaryFile
 from distutils.util import rfc822_escape
 
 from . import _normalization, _reqs
-from .extern.packaging.markers import Marker
-from .extern.packaging.requirements import Requirement
-from .extern.packaging.utils import canonicalize_name, canonicalize_version
-from .extern.packaging.version import Version
+from packaging.markers import Marker
+from packaging.requirements import Requirement
+from packaging.utils import canonicalize_name, canonicalize_version
+from packaging.version import Version
 from .warnings import SetuptoolsDeprecationWarning
 
 

@@ -23,10 +23,10 @@ from typing import TYPE_CHECKING, Callable, Iterable, Literal, Sequence, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from .. import Command, __version__
-from ..extern.wheel.metadata import pkginfo_to_metadata
-from ..extern.packaging import tags
-from ..extern.packaging import version as _packaging_version
-from ..extern.wheel.wheelfile import WheelFile
+from wheel.metadata import pkginfo_to_metadata
+from packaging import tags
+from packaging import version as _packaging_version
+from wheel.wheelfile import WheelFile
 
 if TYPE_CHECKING:
     import types
@@ -67,8 +67,8 @@ def python_tag() -> str:
 def get_platform(archive_root: str | None) -> str:
     """Return our platform name 'win32', 'linux_x86_64'"""
     result = sysconfig.get_platform()
-    if result.startswith("macosx") and archive_root is not None:
-        from ..extern.wheel.macosx_libfile import calculate_macosx_platform_tag
+    if result.startswith("macosx") and archive_root is not None:  # pragma: no cover
+        from wheel.macosx_libfile import calculate_macosx_platform_tag
 
         result = calculate_macosx_platform_tag(archive_root, result)
     elif _is_32bit_interpreter():
@@ -451,7 +451,7 @@ class bdist_wheel(Command):
 
     def write_wheelfile(
         self, wheelfile_base: str, generator: str = f"setuptools ({__version__})"
-    ):
+    ) -> None:
         from email.message import Message
 
         msg = Message()
@@ -525,7 +525,7 @@ class bdist_wheel(Command):
 
         return files
 
-    def egg2dist(self, egginfo_path: str, distinfo_path: str):
+    def egg2dist(self, egginfo_path: str, distinfo_path: str) -> None:
         """Convert an .egg-info directory into a .dist-info directory"""
 
         def adios(p: str) -> None:
