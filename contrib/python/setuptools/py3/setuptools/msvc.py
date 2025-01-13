@@ -23,7 +23,8 @@ import itertools
 import subprocess
 import distutils.errors
 from typing import TYPE_CHECKING
-from setuptools.extern.more_itertools import unique_everseen
+
+from more_itertools import unique_everseen
 
 # https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':

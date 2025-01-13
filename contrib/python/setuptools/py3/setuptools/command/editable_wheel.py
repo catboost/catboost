@@ -299,7 +299,7 @@ class editable_wheel(Command):
         build = self.get_finalized_command("build")
         for name in build.get_sub_commands():
             cmd = self.get_finalized_command(name)
-            if name == "build_py" and type(cmd) != build_py_cls:
+            if name == "build_py" and type(cmd) is not build_py_cls:
                 self._safely_run(name)
             else:
                 self.run_command(name)
@@ -333,7 +333,7 @@ class editable_wheel(Command):
             )
 
     def _create_wheel_file(self, bdist_wheel):
-        from ..extern.wheel.wheelfile import WheelFile
+        from wheel.wheelfile import WheelFile
 
         dist_info = self.get_finalized_command("dist_info")
         dist_name = dist_info.name
@@ -443,8 +443,7 @@ class _LinkTree(_StaticPth):
     ):
         self.auxiliary_dir = Path(auxiliary_dir)
         self.build_lib = Path(build_lib).resolve()
-        # TODO: Update typeshed distutils stubs to overload non-None return type by default
-        self._file = dist.get_command_obj("build_py").copy_file  # type: ignore[union-attr]
+        self._file = dist.get_command_obj("build_py").copy_file
         super().__init__(dist, name, [self.auxiliary_dir])
 
     def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
@@ -462,9 +461,7 @@ class _LinkTree(_StaticPth):
         dest = self.auxiliary_dir / relative_output
         if not dest.parent.is_dir():
             dest.parent.mkdir(parents=True)
-        # TODO: Update typeshed distutils stubs so distutils.cmd.Command.copy_file, accepts PathLike
-        # same with methods used by copy_file
-        self._file(src_file, dest, link=link)  # type: ignore[arg-type]
+        self._file(src_file, dest, link=link)
 
     def _create_links(self, outputs, output_mapping):
         self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
@@ -805,7 +802,7 @@ PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 
 class _EditableFinder:  # MetaPathFinder
     @classmethod
-    def find_spec(cls, fullname: str, _path=None, _target=None) -> ModuleSpec | None:
+    def find_spec(cls, fullname: str, path=None, target=None) -> ModuleSpec | None:  # type: ignore
         # Top-level packages and modules (we know these exist in the FS)
         if fullname in MAPPING:
             pkg_path = MAPPING[fullname]
@@ -851,7 +848,7 @@ class _EditableNamespaceFinder:  # PathEntryFinder
         return [*paths, PATH_PLACEHOLDER]
 
     @classmethod
-    def find_spec(cls, fullname: str, _target=None) -> ModuleSpec | None:
+    def find_spec(cls, fullname: str, target=None) -> ModuleSpec | None:  # type: ignore
         if fullname in NAMESPACES:
             spec = ModuleSpec(fullname, None, is_package=True)
             spec.submodule_search_locations = cls._paths(fullname)

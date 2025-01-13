@@ -76,7 +76,7 @@ from pkg_resources import (
 import pkg_resources
 from ..compat import py39, py311
 from .._path import ensure_directory
-from ..extern.jaraco.text import yield_lines
+from jaraco.text import yield_lines
 
 
 # Turn on PEP440Warnings

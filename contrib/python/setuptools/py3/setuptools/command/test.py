@@ -19,8 +19,8 @@ from pkg_resources import (
 )
 from .._importlib import metadata
 from setuptools import Command
-from setuptools.extern.more_itertools import unique_everseen
-from setuptools.extern.jaraco.functools import pass_none
+from more_itertools import unique_everseen
+from jaraco.functools import pass_none
 
 
 class ScanningLoader(TestLoader):

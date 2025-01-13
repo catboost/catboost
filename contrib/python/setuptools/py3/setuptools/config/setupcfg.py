@@ -24,6 +24,7 @@ from typing import (
     Dict,
     Generic,
     Iterable,
+    Iterator,
     Tuple,
     TypeVar,
     Union,
@@ -31,10 +32,10 @@ from typing import (
 
 from .._path import StrPath
 from ..errors import FileError, OptionError
-from ..extern.packaging.markers import default_environment as marker_env
-from ..extern.packaging.requirements import InvalidRequirement, Requirement
-from ..extern.packaging.specifiers import SpecifierSet
-from ..extern.packaging.version import InvalidVersion, Version
+from packaging.markers import default_environment as marker_env
+from packaging.requirements import InvalidRequirement, Requirement
+from packaging.specifiers import SpecifierSet
+from packaging.version import InvalidVersion, Version
 from ..warnings import SetuptoolsDeprecationWarning
 from . import expand
 
@@ -260,7 +261,9 @@ class ConfigHandler(Generic[Target]):
         """
 
     @classmethod
-    def _section_options(cls, options: AllCommandOptions):
+    def _section_options(
+        cls, options: AllCommandOptions
+    ) -> Iterator[tuple[str, SingleCommandOptions]]:
         for full_name, value in options.items():
             pre, sep, name = full_name.partition(cls.section_prefix)
             if pre:

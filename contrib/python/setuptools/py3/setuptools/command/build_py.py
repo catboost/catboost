@@ -13,7 +13,7 @@ import stat
 from pathlib import Path
 from typing import Iterable, Iterator
 
-from ..extern.more_itertools import unique_everseen
+from more_itertools import unique_everseen
 from ..warnings import SetuptoolsDeprecationWarning
 
 

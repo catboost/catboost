@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 70.3.0
+Version: 71.1.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Author-email: Python Packaging Authority <distutils-sig@python.org>
 Project-URL: Source, https://github.com/pypa/setuptools
@@ -20,6 +20,16 @@ Requires-Python: >=3.8
 Description-Content-Type: text/x-rst
 License-File: LICENSE
 Provides-Extra: certs
+Provides-Extra: core
+Requires-Dist: packaging >=24 ; extra == 'core'
+Requires-Dist: ordered-set >=3.1.1 ; extra == 'core'
+Requires-Dist: more-itertools >=8.8 ; extra == 'core'
+Requires-Dist: jaraco.text >=3.7 ; extra == 'core'
+Requires-Dist: wheel >=0.43.0 ; extra == 'core'
+Requires-Dist: platformdirs >=2.6.2 ; extra == 'core'
+Requires-Dist: importlib-metadata >=6 ; (python_version < "3.10") and extra == 'core'
+Requires-Dist: tomli >=2.0.1 ; (python_version < "3.11") and extra == 'core'
+Requires-Dist: importlib-resources >=5.10.2 ; (python_version < "3.9") and extra == 'core'
 Provides-Extra: doc
 Requires-Dist: sphinx >=3.5 ; extra == 'doc'
 Requires-Dist: jaraco.packaging >=9.3 ; extra == 'doc'
@@ -54,15 +64,17 @@ Requires-Dist: ini2toml[lite] >=0.14 ; extra == 'test'
 Requires-Dist: tomli-w >=1.0.0 ; extra == 'test'
 Requires-Dist: pytest-timeout ; extra == 'test'
 Requires-Dist: pytest-home >=0.5 ; extra == 'test'
-Requires-Dist: mypy ==1.10.0 ; extra == 'test'
+Requires-Dist: mypy ==1.11.* ; extra == 'test'
 Requires-Dist: tomli ; extra == 'test'
 Requires-Dist: importlib-metadata ; extra == 'test'
 Requires-Dist: pytest-subprocess ; extra == 'test'
 Requires-Dist: pyproject-hooks !=1.1 ; extra == 'test'
 Requires-Dist: jaraco.test ; extra == 'test'
+Requires-Dist: pytest-ruff <0.4 ; (platform_system == "Windows") and extra == 'test'
 Requires-Dist: jaraco.develop >=7.21 ; (python_version >= "3.9" and sys_platform != "cygwin") and extra == 'test'
-Requires-Dist: pytest-ruff >=0.3.2 ; (sys_platform != "cygwin") and extra == 'test'
+Requires-Dist: pytest-ruff >=0.2.1 ; (sys_platform != "cygwin") and extra == 'test'
 Requires-Dist: pytest-perf ; (sys_platform != "cygwin") and extra == 'test'
+Requires-Dist: pytest-ruff >=0.3.2 ; (sys_platform != "cygwin") and extra == 'test'
 
 .. |pypi-version| image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: https://pypi.org/project/setuptools

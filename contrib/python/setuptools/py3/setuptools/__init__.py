@@ -3,7 +3,12 @@
 import functools
 import os
 import re
+import sys
 from typing import TYPE_CHECKING
+
+sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
+# workaround for #4476
+sys.modules.pop('backports', None)
 
 import _distutils_hack.override  # noqa: F401
 import distutils.core

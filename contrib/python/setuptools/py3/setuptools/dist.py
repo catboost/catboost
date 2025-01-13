@@ -6,7 +6,6 @@ import numbers
 import os
 import re
 import sys
-from contextlib import suppress
 from glob import iglob
 from pathlib import Path
 from typing import TYPE_CHECKING, MutableMapping
@@ -21,14 +20,13 @@ from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
 
-from .extern.more_itertools import partition, unique_everseen
-from .extern.ordered_set import OrderedSet
-from .extern.packaging.markers import InvalidMarker, Marker
-from .extern.packaging.specifiers import InvalidSpecifier, SpecifierSet
-from .extern.packaging.version import Version
+from more_itertools import partition, unique_everseen
+from ordered_set import OrderedSet
+from packaging.markers import InvalidMarker, Marker
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.version import Version
 
 from . import _entry_points
-from . import _normalization
 from . import _reqs
 from . import command as _  # noqa  -- imported for side-effects
 from ._importlib import metadata
@@ -269,23 +267,8 @@ class Distribution(_Distribution):
         'extras_require': dict,
     }
 
-    _patched_dist = None
     # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
     namespace_packages: list[str]  #: :meta private: DEPRECATED
-
-    def patch_missing_pkg_info(self, attrs):
-        # Fake up a replacement for the data that would normally come from
-        # PKG-INFO, but which might not yet be built if this is a fresh
-        # checkout.
-        #
-        if not attrs or 'name' not in attrs or 'version' not in attrs:
-            return
-        name = _normalization.safe_name(str(attrs['name'])).lower()
-        with suppress(metadata.PackageNotFoundError):
-            dist = metadata.distribution(name)
-            if dist is not None and not dist.read_text('PKG-INFO'):
-                dist._version = _normalization.safe_version(str(attrs['version']))
-                self._patched_dist = dist
 
     def __init__(self, attrs: MutableMapping | None = None) -> None:
         have_package_data = hasattr(self, "package_data")
@@ -295,7 +278,6 @@ class Distribution(_Distribution):
         self.dist_files: list[tuple[str, str, str]] = []
         # Filter-out setuptools' specific options.
         self.src_root = attrs.pop("src_root", None)
-        self.patch_missing_pkg_info(attrs)
         self.dependency_links = attrs.pop('dependency_links', [])
         self.setup_requires = attrs.pop('setup_requires', [])
         for ep in metadata.entry_points(group='distutils.setup_keywords'):

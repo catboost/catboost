@@ -15,8 +15,8 @@ from itertools import filterfalse
 from typing import Dict, Mapping, TypeVar
 
 from .. import _reqs
-from ..extern.jaraco.text import yield_lines
-from ..extern.packaging.requirements import Requirement
+from jaraco.text import yield_lines
+from packaging.requirements import Requirement
 
 
 # dict can work as an ordered set
