@@ -121,7 +121,6 @@ public:
     Preprocessor_define("SWIGTCL 1", 0);
     // SWIGTCL8 is deprecated, and no longer documented.
     Preprocessor_define("SWIGTCL8 1", 0);
-    SWIG_typemap_lang("tcl8");
     SWIG_config_file("tcl8.swg");
     allow_overloading();
   }
@@ -261,7 +260,7 @@ public:
   virtual int functionWrapper(Node *n) {
     String *name = Getattr(n, "name");	/* Like to get rid of this */
     String *iname = Getattr(n, "sym:name");
-    SwigType *type = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *parms = Getattr(n, "parms");
     String *overname = 0;
 
@@ -390,7 +389,7 @@ public:
       }
     }
 
-    Printf(argstr, "%s\"", usage_string(Char(iname), type, parms));
+    Printf(argstr, "%s\"", usage_string(Char(iname), returntype, parms));
 
     Printv(f->code, "if (SWIG_GetArgs(interp, objc, objv,", argstr, args, ") == TCL_ERROR) SWIG_fail;\n", NIL);
 
@@ -455,9 +454,9 @@ public:
       }
       Printf(f->code, "%s\n", tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), name);
     }
-    emit_return_variable(n, type, f);
+    emit_return_variable(n, returntype, f);
 
     /* Dump output argument code */
     Printv(f->code, outarg, NIL);
@@ -484,6 +483,10 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+
     Replaceall(f->code, "$symname", iname);
 
     /* Dump out the function */
@@ -657,8 +660,7 @@ public:
     String *iname = Getattr(n, "sym:name");
     String *nsname = !namespace_option ? Copy(iname) : NewStringf("%s::%s", ns_name, iname);
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     String *tm;
 
     if (!addSymbol(iname, n))

@@ -638,9 +638,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   // Add a symbol to the parser for conditional compilation
   Preprocessor_define("SWIGJAVASCRIPT 1", 0);
 
-  // Add typemap definitions
-  SWIG_typemap_lang("javascript");
-
   // Set configuration file
   SWIG_config_file("javascript.swg");
 
@@ -927,7 +924,10 @@ int JSEmitter::emitCtor(Node *n) {
 
   Template t_ctor(getTemplate("js_ctor"));
 
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  // prepare the function wrapper name
+  String *iname = Getattr(n, "sym:name");
+  SwigType *returntype = Getattr(n, "type");
+  String *wrap_name = Swig_name_wrapper(iname);
   if (is_overloaded) {
     t_ctor = getTemplate("js_overloaded_ctor");
     Append(wrap_name, Getattr(n, "sym:overname"));
@@ -948,6 +948,11 @@ int JSEmitter::emitCtor(Node *n) {
   Printv(wrapper->code, action, "\n", 0);
 
   emitCleanupCode(n, wrapper, params);
+
+  bool isvoid = !Cmp(returntype, "void");
+  Replaceall(wrapper->code, "$isvoid", isvoid ? "1" : "0");
+
+  Replaceall(wrapper->code, "$symname", iname);
 
   t_ctor.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
@@ -1199,8 +1204,7 @@ int JSEmitter::emitConstant(Node *n) {
   SwigType *type = Getattr(n, "type");
   String *iname = Getattr(n, "sym:name");
   String *wname = Swig_name_get(Getattr(current_namespace, NAME_MANGLED), iname);
-  String *rawval = Getattr(n, "rawval");
-  String *value = rawval ? rawval : Getattr(n, "value");
+  String *value = Getattr(n, "value");
 
   // HACK: forcing usage of cppvalue for v8 (which turned out to fix typedef_struct.i, et. al)
   if (State::IsSet(state.globals(FORCE_CPP)) && Getattr(n, "cppvalue") != NULL) {
@@ -1257,6 +1261,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
   // prepare the function wrapper name
   String *iname = Getattr(n, "sym:name");
+  SwigType *returntype = Getattr(n, "type");
   String *wrap_name = Swig_name_wrapper(iname);
   if (is_overloaded) {
     t_function = getTemplate(getOverloadedFunctionTemplate(is_member));
@@ -1274,6 +1279,10 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   String *action = emit_action(n);
   marshalOutput(n, params, wrapper, action);
   emitCleanupCode(n, wrapper, params);
+
+  bool isvoid = !Cmp(returntype, "void");
+  Replaceall(wrapper->code, "$isvoid", isvoid ? "1" : "0");
+
   Replaceall(wrapper->code, "$symname", iname);
 
   t_function.replace("$jsmangledname", state.clazz(NAME_MANGLED))

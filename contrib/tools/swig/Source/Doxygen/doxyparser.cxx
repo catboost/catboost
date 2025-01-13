@@ -15,7 +15,6 @@
 #include "swigwarn.h"
 
 #include <iostream>
-#include <algorithm>
 #include <vector>
 
 using std::string;

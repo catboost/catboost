@@ -116,9 +116,6 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
   int precval = 0;
   int maxwidth;
   char *w = 0;
-  int ivalue;
-  double dvalue;
-  void *pvalue;
   char *stemp;
   int nbytes = 0;
   char encoder[128], *ec = 0;
@@ -382,22 +379,36 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
 	case 'u':
 	case 'x':
 	case 'X':
-	case 'c':
-	  ivalue = va_arg(ap, int);
+	  if (p[-1] == 'l') {
+	    if (p[-2] == 'l') {
+	      long long llvalue = va_arg(ap, long long);
+	      nbytes += sprintf(stemp, newformat, llvalue);
+	      break;
+	    }
+	    long lvalue = va_arg(ap, long);
+	    nbytes += sprintf(stemp, newformat, lvalue);
+	    break;
+	  }
+	  /* FALLTHRU */
+	case 'c': {
+	  int ivalue = va_arg(ap, int);
 	  nbytes += sprintf(stemp, newformat, ivalue);
 	  break;
+	}
 	case 'f':
 	case 'g':
 	case 'e':
 	case 'E':
-	case 'G':
-	  dvalue = va_arg(ap, double);
+	case 'G': {
+	  double dvalue = va_arg(ap, double);
 	  nbytes += sprintf(stemp, newformat, dvalue);
 	  break;
-	case 'p':
-	  pvalue = va_arg(ap, void *);
+	}
+	case 'p': {
+	  void *pvalue = va_arg(ap, void *);
 	  nbytes += sprintf(stemp, newformat, pvalue);
 	  break;
+	}
 	default:
 	  break;
 	}

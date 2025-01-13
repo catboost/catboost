@@ -1230,7 +1230,7 @@ DOHString *DohNewStringWithSize(const DOHString_or_char *so, int len) {
   str->str = (char *) DohMalloc(max);
   str->maxsize = max;
   if (s) {
-    strncpy(str->str, s, len);
+    memcpy(str->str, s, len);
     str->str[l] = 0;
     str->len = l;
     str->sp = l;
