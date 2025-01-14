@@ -35,7 +35,7 @@ def canonicalize_name(name: str) -> NormalizedName:
     return cast(NormalizedName, value)
 
 
-def canonicalize_version(version: Union[Version, str]) -> str:
+def canonicalize_version(version: Union[Version, str], strip_trailing_zero: bool = False) -> str:
     """
     This is very similar to Version.__str__, but has one subtle difference
     with the way it handles the release segment.
