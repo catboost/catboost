@@ -20,7 +20,9 @@ target_compile_options(libs-cxxsupp-libcxxabi-parts PUBLIC
 )
 
 target_compile_options(libs-cxxsupp-libcxxabi-parts PRIVATE
+  -D_LIBCPP_BUILDING_LIBRARY
   -D_LIBCXXABI_BUILDING_LIBRARY
+  -DHAVE___CXA_THREAD_ATEXIT_IMPL
   $<IF:$<CXX_COMPILER_ID:MSVC>,,-Wno-everything>
 )
 
@@ -31,18 +33,8 @@ target_include_directories(libs-cxxsupp-libcxxabi-parts PRIVATE
 )
 
 target_sources(libs-cxxsupp-libcxxabi-parts PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_thread_atexit.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/abort_message.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_demangle.cpp
-)
-
-
-set_property(
-  SOURCE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/src/cxa_thread_atexit.cpp
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-  -fPIC
-  -fno-lto
 )
+
