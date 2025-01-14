@@ -5,6 +5,8 @@
 
 #include <util/generic/string.h>
 
+#include <iterator>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +100,63 @@ TFormattableView<TRange, TFormatter> MakeShrunkFormattableView(
     const TRange& range,
     TFormatter&& formatter,
     size_t limit);
+
+////////////////////////////////////////////////////////////////////////////////
+
+template <class TRange, class TValueGetter, class TIntervalFormatter>
+struct TCompactIntervalView
+{
+    using TBegin = std::decay_t<decltype(std::declval<const TRange>().begin())>;
+    using TEnd = std::decay_t<decltype(std::declval<const TRange>().end())>;
+
+    TBegin RangeBegin;
+    TEnd RangeEnd;
+
+    TValueGetter ValueGetter;
+    TIntervalFormatter IntervalFormatter;
+
+    TBegin begin() const;
+    TEnd end() const;
+};
+
+template <class TRange>
+struct TDefaultValueGetter
+{
+    using TIterator = std::decay_t<decltype(std::declval<const TRange>().begin())>;
+
+    auto operator()(const TIterator& iterator) const
+        -> typename std::iterator_traits<TIterator>::value_type;
+};
+
+template <class TRange, class TValueGetter>
+struct TDefaultIntervalFormatter
+{
+    using TIterator = std::decay_t<decltype(std::declval<const TRange>().begin())>;
+
+    void operator()(
+        TStringBuilderBase* builder,
+        const TIterator& first,
+        const TIterator& last,
+        const TValueGetter& valueGetter,
+        bool firstInterval) const;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! Writes a given integral #range as a sequence of intervals.
+//! Example:
+// MakeCompactIntervalView(std::vector {1, 2, 3, 5, 7, 8})
+// => [1-3,5,7-8]
+
+template <
+    class TRange,
+    class TValueGetter = TDefaultValueGetter<TRange>,
+    class TIntervalFormatter = TDefaultIntervalFormatter<TRange, TValueGetter>
+>
+TCompactIntervalView<TRange, TValueGetter, TIntervalFormatter> MakeCompactIntervalView(
+    const TRange& range,
+    TValueGetter&& valueGetter = {},
+    TIntervalFormatter&& intervalFormatter = {});
 
 ////////////////////////////////////////////////////////////////////////////////
 
