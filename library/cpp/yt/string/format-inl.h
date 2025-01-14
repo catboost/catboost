@@ -232,6 +232,43 @@ void FormatKeyValueRange(TStringBuilderBase* builder, const TRange& range, const
 
 ////////////////////////////////////////////////////////////////////////////////
 
+template <class TRange, class TValueGetter, class TIntervalFormatter>
+void FormatCompactIntervalRange(
+    TStringBuilderBase* builder,
+    const TRange& range,
+    const TValueGetter& valueGetter,
+    const TIntervalFormatter& intervalFormatter)
+{
+    if (range.begin() == range.end()) {
+        builder->AppendString("[]");
+        return;
+    }
+
+    builder->AppendChar('[');
+
+    auto first = range.begin();
+    auto last = first;
+    auto current = first + 1;
+
+    while (current != range.end()) {
+        if (valueGetter(current) != valueGetter(last) + 1) {
+            bool firstInterval = first == range.begin();
+            intervalFormatter(builder, first, last, valueGetter, firstInterval);
+            first = current;
+        }
+
+        last = current;
+        ++current;
+    }
+
+    bool firstInterval = first == range.begin();
+    intervalFormatter(builder, first, last, valueGetter, firstInterval);
+
+    builder->AppendChar(']');
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 template <class R>
 concept CFormattableRange =
     NDetail::CKnownRange<R> &&
@@ -301,6 +338,59 @@ TFormatterWrapper<TFormatter> MakeFormatterWrapper(
     return TFormatterWrapper<TFormatter>{
         .Formatter = std::move(formatter)
     };
+}
+
+template <class TRange, class TValueGetter, class TIntervalFormatter>
+auto TCompactIntervalView<TRange, TValueGetter, TIntervalFormatter>::begin() const
+    -> TBegin
+{
+    return RangeBegin;
+}
+
+template <class TRange, class TValueGetter, class TIntervalFormatter>
+auto TCompactIntervalView<TRange, TValueGetter, TIntervalFormatter>::end() const
+    -> TEnd
+{
+    return RangeEnd;
+}
+
+template <class TRange>
+auto TDefaultValueGetter<TRange>::operator()(const TIterator& iterator) const
+    -> typename std::iterator_traits<TIterator>::value_type
+{
+    return *iterator;
+}
+
+template <class TRange, class TValueGetter>
+void TDefaultIntervalFormatter<TRange, TValueGetter>::operator()(
+    TStringBuilderBase* builder,
+    const TIterator& first,
+    const TIterator& last,
+    const TValueGetter& valueGetter,
+    bool firstInterval) const
+{
+    if (!firstInterval) {
+        builder->AppendString(DefaultJoinToStringDelimiter);
+    }
+
+    if (first == last) {
+        builder->AppendFormat("%v", valueGetter(first));
+    } else {
+        builder->AppendFormat("%v-%v", valueGetter(first), valueGetter(last));
+    }
+}
+
+template <class TRange, class TValueGetter, class TIntervalFormatter>
+TCompactIntervalView<TRange, TValueGetter, TIntervalFormatter> MakeCompactIntervalView(
+    const TRange& range,
+    TValueGetter&& valueGetter,
+    TIntervalFormatter&& intervalFormatter)
+{
+    return TCompactIntervalView<TRange, TValueGetter, TIntervalFormatter>{
+        range.begin(),
+        range.end(),
+        std::forward<TValueGetter>(valueGetter),
+        std::forward<TIntervalFormatter>(intervalFormatter)};
 }
 
 template <class... TArgs>
@@ -671,6 +761,27 @@ void FormatValue(
     const TFormatterWrapper<TFormatter>& wrapper,
     TStringBuf spec);
 
+// TCompactIntervalView
+
+template <class TRange, class TValueGetter, class TIntervalFormatter>
+concept CCompactIntervalView = requires (
+    TRange range,
+    TValueGetter valueGetter,
+    TIntervalFormatter intervalFormatter)
+{
+    { valueGetter(range.begin()) } -> std::integral;
+    {
+        intervalFormatter(nullptr, range.begin(), range.begin(), valueGetter, true)
+    } -> std::same_as<void>;
+};
+
+template <class TRange, class TValueGetter, class TIntervalFormatter>
+    requires CCompactIntervalView<TRange, TValueGetter, TIntervalFormatter>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TCompactIntervalView<TRange, TValueGetter, TIntervalFormatter>& compactIntervalView,
+    TStringBuf spec);
+
 // TLazyMultiValueFormatter
 template <class... TArgs>
 void FormatValue(
@@ -771,6 +882,21 @@ void FormatValue(
     TStringBuf /*spec*/)
 {
     NYT::FormatRange(builder, formattableView, formattableView.Formatter, formattableView.Limit);
+}
+
+// TCompactIntervalView
+template <class TRange, class TValueGetter, class TIntervalFormatter>
+    requires CCompactIntervalView<TRange, TValueGetter, TIntervalFormatter>
+void FormatValue(
+    TStringBuilderBase* builder,
+    const TCompactIntervalView<TRange, TValueGetter, TIntervalFormatter>& compactIntervalView,
+    TStringBuf /*spec*/)
+{
+    NYT::FormatCompactIntervalRange(
+        builder,
+        compactIntervalView,
+        compactIntervalView.ValueGetter,
+        compactIntervalView.IntervalFormatter);
 }
 
 // TFormatterWrapper
