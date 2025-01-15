@@ -215,12 +215,7 @@ _single_arg_builtins = {
 _generatorType = types.GeneratorType
 ParseImplReturnType = tuple[int, Any]
 PostParseReturnType = Union[ParseResults, Sequence[ParseResults]]
-ParseAction = Union[
-    Callable[[], Any],
-    Callable[[ParseResults], Any],
-    Callable[[int, ParseResults], Any],
-    Callable[[str, int, ParseResults], Any],
-]
+
 ParseCondition = Union[
     Callable[[], bool],
     Callable[[ParseResults], bool],
@@ -486,6 +481,7 @@ class ParserElement(ABC):
         self.callPreparse = True
         self.callDuringTry = False
         self.suppress_warnings_: list[Diagnostics] = []
+        self.show_in_diagram = True
 
     def suppress_warning(self, warning_type: Diagnostics) -> ParserElement:
         """
@@ -5558,7 +5554,8 @@ class Forward(ParseElementEnhance):
             not in self.suppress_warnings_
         ):
             warnings.warn(
-                "using '<<' operator with '|' is probably an error, use '<<='",
+                "warn_on_match_first_with_lshift_operator:"
+                " using '<<' operator with '|' is probably an error, use '<<='",
                 stacklevel=2,
             )
         ret = super().__or__(other)
@@ -5572,7 +5569,8 @@ class Forward(ParseElementEnhance):
             and Diagnostics.warn_on_assignment_to_Forward not in self.suppress_warnings_
         ):
             warnings.warn_explicit(
-                "Forward defined here but no expression attached later using '<<=' or '<<'",
+                "warn_on_assignment_to_Forward:"
+                " Forward defined here but no expression attached later using '<<=' or '<<'",
                 UserWarning,
                 filename=self.caller_frame.filename,
                 lineno=self.caller_frame.lineno,
@@ -5600,7 +5598,8 @@ class Forward(ParseElementEnhance):
             else:
                 stacklevel = 2
             warnings.warn(
-                "Forward expression was never assigned a value, will not parse any input",
+                "warn_on_parse_using_empty_Forward:"
+                " Forward expression was never assigned a value, will not parse any input",
                 stacklevel=stacklevel,
             )
         if not ParserElement._left_recursion_enabled:
@@ -6157,7 +6156,7 @@ def autoname_elements() -> None:
     Utility to simplify mass-naming of parser elements, for
     generating railroad diagram with named subdiagrams.
     """
-    calling_frame = sys._getframe().f_back
+    calling_frame = sys._getframe(1)
     if calling_frame is None:
         return
     calling_frame = typing.cast(types.FrameType, calling_frame)

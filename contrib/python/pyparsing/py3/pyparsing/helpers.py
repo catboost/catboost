@@ -199,7 +199,8 @@ def one_of(
         and __diag__.warn_on_multiple_string_args_to_oneof
     ):
         warnings.warn(
-            "More than one string argument passed to one_of, pass"
+            "warn_on_multiple_string_args_to_oneof:"
+            " More than one string argument passed to one_of, pass"
             " choices as a list or space-delimited string",
             stacklevel=2,
         )
@@ -779,25 +780,27 @@ def infix_notation(
     _FB.__name__ = "FollowedBy>"
 
     ret = Forward()
+    ret.set_name(f"{base_expr.name}_expression")
     if isinstance(lpar, str):
         lpar = Suppress(lpar)
     if isinstance(rpar, str):
         rpar = Suppress(rpar)
 
+    nested_expr = (lpar + ret + rpar).set_name(f"nested_{base_expr.name}")
+
     # if lpar and rpar are not suppressed, wrap in group
     if not (isinstance(lpar, Suppress) and isinstance(rpar, Suppress)):
-        lastExpr = base_expr | Group(lpar + ret + rpar).set_name(
-            f"nested_{base_expr.name}"
-        )
+        lastExpr = base_expr | Group(nested_expr)
     else:
-        lastExpr = base_expr | (lpar + ret + rpar).set_name(f"nested_{base_expr.name}")
-    root_expr = lastExpr
+        lastExpr = base_expr | nested_expr
 
     arity: int
     rightLeftAssoc: opAssoc
     pa: typing.Optional[ParseAction]
     opExpr1: ParserElement
     opExpr2: ParserElement
+    matchExpr: ParserElement
+    match_lookahead: ParserElement
     for operDef in op_list:
         opExpr, arity, rightLeftAssoc, pa = (operDef + (None,))[:4]  # type: ignore[assignment]
         if isinstance(opExpr, str_type):
@@ -809,9 +812,9 @@ def infix_notation(
                     "if numterms=3, opExpr must be a tuple or list of two expressions"
                 )
             opExpr1, opExpr2 = opExpr
-            term_name = f"{opExpr1}{opExpr2} term"
+            term_name = f"{opExpr1}{opExpr2} operations"
         else:
-            term_name = f"{opExpr} term"
+            term_name = f"{opExpr} operations"
 
         if not 1 <= arity <= 3:
             raise ValueError("operator must be unary (1), binary (2), or ternary (3)")
@@ -821,48 +824,62 @@ def infix_notation(
 
         thisExpr: ParserElement = Forward().set_name(term_name)
         thisExpr = typing.cast(Forward, thisExpr)
+        match_lookahead = And([])
         if rightLeftAssoc is OpAssoc.LEFT:
             if arity == 1:
-                matchExpr = _FB(lastExpr + opExpr) + Group(lastExpr + opExpr[1, ...])
+                match_lookahead = _FB(lastExpr + opExpr)
+                matchExpr = Group(lastExpr + opExpr[1, ...])
             elif arity == 2:
                 if opExpr is not None:
-                    matchExpr = _FB(lastExpr + opExpr + lastExpr) + Group(
-                        lastExpr + (opExpr + lastExpr)[1, ...]
-                    )
+                    match_lookahead = _FB(lastExpr + opExpr + lastExpr)
+                    matchExpr = Group(lastExpr + (opExpr + lastExpr)[1, ...])
                 else:
-                    matchExpr = _FB(lastExpr + lastExpr) + Group(lastExpr[2, ...])
+                    match_lookahead = _FB(lastExpr + lastExpr)
+                    matchExpr = Group(lastExpr[2, ...])
             elif arity == 3:
-                matchExpr = _FB(
+                match_lookahead = _FB(
                     lastExpr + opExpr1 + lastExpr + opExpr2 + lastExpr
-                ) + Group(lastExpr + OneOrMore(opExpr1 + lastExpr + opExpr2 + lastExpr))
+                )
+                matchExpr = Group(
+                    lastExpr + (opExpr1 + lastExpr + opExpr2 + lastExpr)[1, ...]
+                )
         elif rightLeftAssoc is OpAssoc.RIGHT:
             if arity == 1:
                 # try to avoid LR with this extra test
                 if not isinstance(opExpr, Opt):
                     opExpr = Opt(opExpr)
-                matchExpr = _FB(opExpr.expr + thisExpr) + Group(opExpr + thisExpr)
+                match_lookahead = _FB(opExpr.expr + thisExpr)
+                matchExpr = Group(opExpr + thisExpr)
             elif arity == 2:
                 if opExpr is not None:
-                    matchExpr = _FB(lastExpr + opExpr + thisExpr) + Group(
-                        lastExpr + (opExpr + thisExpr)[1, ...]
-                    )
+                    match_lookahead = _FB(lastExpr + opExpr + thisExpr)
+                    matchExpr = Group(lastExpr + (opExpr + thisExpr)[1, ...])
                 else:
-                    matchExpr = _FB(lastExpr + thisExpr) + Group(
-                        lastExpr + thisExpr[1, ...]
-                    )
+                    match_lookahead = _FB(lastExpr + thisExpr)
+                    matchExpr = Group(lastExpr + thisExpr[1, ...])
             elif arity == 3:
-                matchExpr = _FB(
+                match_lookahead = _FB(
                     lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr
-                ) + Group(lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr)
+                )
+                matchExpr = Group(lastExpr + opExpr1 + thisExpr + opExpr2 + thisExpr)
+
+        # suppress lookahead expr from railroad diagrams
+        match_lookahead.show_in_diagram = False
+
+        # TODO - determine why this statement can't be included in the following
+        #  if pa block
+        matchExpr = match_lookahead + matchExpr
+
         if pa:
             if isinstance(pa, (tuple, list)):
                 matchExpr.set_parse_action(*pa)
             else:
                 matchExpr.set_parse_action(pa)
+
         thisExpr <<= (matchExpr | lastExpr).setName(term_name)
         lastExpr = thisExpr
+
     ret <<= lastExpr
-    root_expr.set_name("base_expr")
     return ret
 
 
@@ -1009,10 +1026,9 @@ def indentedBlock(blockStatementExpr, indentStack, indent=True, backup_stacks=[]
     return smExpr.set_name("indented block")
 
 
-# it's easy to get these comment structures wrong - they're very common, so may as well make them available
-c_style_comment = Combine(Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/").set_name(
-    "C style comment"
-)
+# it's easy to get these comment structures wrong - they're very common,
+# so may as well make them available
+c_style_comment = Regex(r"/\*(?:[^*]|\*(?!/))*\*\/").set_name("C style comment")
 "Comment of the form ``/* ... */``"
 
 html_comment = Regex(r"<!--[\s\S]*?-->").set_name("HTML comment")
@@ -1022,8 +1038,8 @@ rest_of_line = Regex(r".*").leave_whitespace().set_name("rest of line")
 dbl_slash_comment = Regex(r"//(?:\\\n|[^\n])*").set_name("// comment")
 "Comment of the form ``// ... (to end of line)``"
 
-cpp_style_comment = Combine(
-    Regex(r"/\*(?:[^*]|\*(?!/))*") + "*/" | dbl_slash_comment
+cpp_style_comment = Regex(
+    r"(?:/\*(?:[^*]|\*(?!/))*\*\/)|(?://(?:\\\n|[^\n])*)"
 ).set_name("C++ style comment")
 "Comment of either form :class:`c_style_comment` or :class:`dbl_slash_comment`"
 
