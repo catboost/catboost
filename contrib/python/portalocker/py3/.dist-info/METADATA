@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: portalocker
-Version: 3.0.0
+Version: 3.1.1
 Summary: Wraps the portalocker recipe for easy usage
 Author-email: Rick van Hattem <wolph@wol.ph>
 License: BSD-3-Clause
@@ -43,22 +43,24 @@ Classifier: Topic :: Other/Nonlisted Topic
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: System :: Monitoring
-Requires-Python: >=3.8
+Classifier: Typing :: Typed
+Requires-Python: >=3.9
 Description-Content-Type: text/x-rst
 License-File: LICENSE
-Requires-Dist: pywin32 >=226 ; platform_system == "Windows"
+Requires-Dist: pywin32>=226; platform_system == "Windows"
 Provides-Extra: docs
-Requires-Dist: sphinx >=1.7.1 ; extra == 'docs'
-Provides-Extra: redis
-Requires-Dist: redis ; extra == 'redis'
+Requires-Dist: sphinx>=1.7.1; extra == "docs"
 Provides-Extra: tests
-Requires-Dist: pytest >=5.4.1 ; extra == 'tests'
-Requires-Dist: pytest-cov >=2.8.1 ; extra == 'tests'
-Requires-Dist: pytest-timeout >=2.1.0 ; extra == 'tests'
-Requires-Dist: sphinx >=6.0.0 ; extra == 'tests'
-Requires-Dist: pytest-mypy >=0.8.0 ; extra == 'tests'
-Requires-Dist: types-redis ; extra == 'tests'
-Requires-Dist: redis ; extra == 'tests'
+Requires-Dist: pytest>=5.4.1; extra == "tests"
+Requires-Dist: pytest-cov>=2.8.1; extra == "tests"
+Requires-Dist: pytest-timeout>=2.1.0; extra == "tests"
+Requires-Dist: sphinx>=6.0.0; extra == "tests"
+Requires-Dist: pytest-mypy>=0.8.0; extra == "tests"
+Requires-Dist: types-redis; extra == "tests"
+Requires-Dist: redis; extra == "tests"
+Requires-Dist: pytest-rerunfailures>=15.0; extra == "tests"
+Provides-Extra: redis
+Requires-Dist: redis; extra == "redis"
 
 ############################################
 portalocker - Cross-platform locking library

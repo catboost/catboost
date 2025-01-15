@@ -95,7 +95,7 @@ def open_atomic(
     path.parent.mkdir(parents=True, exist_ok=True)
 
     with tempfile.NamedTemporaryFile(
-        mode=binary and 'wb' or 'w',
+        mode=(binary and 'wb') or 'w',
         dir=str(path.parent),
         delete=False,
     ) as temp_fh:
@@ -123,7 +123,7 @@ class LockBase(abc.ABC):  # pragma: no cover
         timeout: float | None = None,
         check_interval: float | None = None,
         fail_when_locked: bool | None = None,
-    ):
+    ) -> None:
         self.timeout = coalesce(timeout, DEFAULT_TIMEOUT)
         self.check_interval = coalesce(check_interval, DEFAULT_CHECK_INTERVAL)
         self.fail_when_locked = coalesce(
@@ -160,7 +160,7 @@ class LockBase(abc.ABC):  # pragma: no cover
             time.sleep(max(0.001, (i * f_check_interval) - since_start_time))
 
     @abc.abstractmethod
-    def release(self): ...
+    def release(self) -> None: ...
 
     def __enter__(self) -> typing.IO[typing.AnyStr]:
         return self.acquire()
@@ -174,7 +174,7 @@ class LockBase(abc.ABC):  # pragma: no cover
         self.release()
         return None
 
-    def __delete__(self, instance: LockBase):
+    def __delete__(self, instance: LockBase) -> None:
         instance.release()
 
 
@@ -218,7 +218,7 @@ class Lock(LockBase):
         fail_when_locked: bool = DEFAULT_FAIL_WHEN_LOCKED,
         flags: constants.LockFlags = LOCK_METHOD,
         **file_open_kwargs: typing.Any,
-    ):
+    ) -> None:
         if 'w' in mode:
             truncate = True
             mode = typing.cast(Mode, mode.replace('w', 'a'))
@@ -247,7 +247,7 @@ class Lock(LockBase):
         check_interval: float | None = None,
         fail_when_locked: bool | None = None,
     ) -> typing.IO[typing.AnyStr]:
-        '''Acquire the locked filehandle'''
+        """Acquire the locked filehandle"""
 
         fail_when_locked = coalesce(fail_when_locked, self.fail_when_locked)
 
@@ -269,7 +269,7 @@ class Lock(LockBase):
         # Get a new filehandler
         fh = self._get_fh()
 
-        def try_close():  # pragma: no cover
+        def try_close() -> None:  # pragma: no cover
             # Silently try to close the handle if possible, ignore all issues
             if fh is not None:
                 with contextlib.suppress(Exception):
@@ -315,15 +315,15 @@ class Lock(LockBase):
     def __enter__(self) -> typing.IO[typing.AnyStr]:
         return self.acquire()
 
-    def release(self):
-        '''Releases the currently locked file handle'''
+    def release(self) -> None:
+        """Releases the currently locked file handle"""
         if self.fh:
             portalocker.unlock(self.fh)
             self.fh.close()
             self.fh = None
 
     def _get_fh(self) -> types.IO:
-        '''Get a new filehandle'''
+        """Get a new filehandle"""
         return typing.cast(
             types.IO,
             open(  # noqa: SIM115
@@ -334,20 +334,20 @@ class Lock(LockBase):
         )
 
     def _get_lock(self, fh: types.IO) -> types.IO:
-        '''
+        """
         Try to lock the given filehandle
 
-        returns LockException if it fails'''
+        returns LockException if it fails"""
         portalocker.lock(fh, self.flags)
         return fh
 
     def _prepare_fh(self, fh: types.IO) -> types.IO:
-        '''
+        """
         Prepare the filehandle for usage
 
         If truncate is a number, the file will be truncated to that amount of
         bytes
-        '''
+        """
         if self.truncate:
             fh.seek(0)
             fh.truncate(0)
@@ -356,11 +356,11 @@ class Lock(LockBase):
 
 
 class RLock(Lock):
-    '''
+    """
     A reentrant lock, functions in a similar way to threading.RLock in that it
     can be acquired multiple times.  When the corresponding number of release()
     calls are made the lock will finally release the underlying file lock.
-    '''
+    """
 
     def __init__(
         self,
@@ -370,7 +370,7 @@ class RLock(Lock):
         check_interval: float = DEFAULT_CHECK_INTERVAL,
         fail_when_locked: bool = False,
         flags: constants.LockFlags = LOCK_METHOD,
-    ):
+    ) -> None:
         super().__init__(
             filename,
             mode,
@@ -393,10 +393,10 @@ class RLock(Lock):
         else:
             fh = super().acquire(timeout, check_interval, fail_when_locked)
         self._acquire_count += 1
-        assert fh
+        assert fh is not None
         return fh
 
-    def release(self):
+    def release(self) -> None:
         if self._acquire_count == 0:
             raise exceptions.LockException(
                 'Cannot release more times than acquired',
@@ -415,7 +415,7 @@ class TemporaryFileLock(Lock):
         check_interval: float = DEFAULT_CHECK_INTERVAL,
         fail_when_locked: bool = True,
         flags: constants.LockFlags = LOCK_METHOD,
-    ):
+    ) -> None:
         Lock.__init__(
             self,
             filename=filename,
@@ -427,7 +427,7 @@ class TemporaryFileLock(Lock):
         )
         atexit.register(self.release)
 
-    def release(self):
+    def release(self) -> None:
         Lock.release(self)
         if os.path.isfile(self.filename):  # pragma: no branch
             os.unlink(self.filename)
@@ -460,7 +460,7 @@ class BoundedSemaphore(LockBase):
         timeout: float | None = DEFAULT_TIMEOUT,
         check_interval: float | None = DEFAULT_CHECK_INTERVAL,
         fail_when_locked: bool | None = True,
-    ):
+    ) -> None:
         self.maximum = maximum
         self.name = name
         self.filename_pattern = filename_pattern
@@ -533,7 +533,7 @@ class BoundedSemaphore(LockBase):
 
         return False
 
-    def release(self):  # pragma: no cover
+    def release(self) -> None:  # pragma: no cover
         if self.lock is not None:
             self.lock.release()
             self.lock = None
@@ -573,9 +573,9 @@ class NamedBoundedSemaphore(BoundedSemaphore):
         timeout: float | None = DEFAULT_TIMEOUT,
         check_interval: float | None = DEFAULT_CHECK_INTERVAL,
         fail_when_locked: bool | None = True,
-    ):
+    ) -> None:
         if name is None:
-            name = 'bounded_semaphore.%d' % random.randint(0, 1000000)
+            name = f'bounded_semaphore.{random.randint(0, 1000000):d}'
         super().__init__(
             maximum,
             name,

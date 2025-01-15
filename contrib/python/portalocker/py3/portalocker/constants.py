@@ -1,4 +1,4 @@
-'''
+"""
 Locking constants
 
 Lock types:
@@ -13,7 +13,7 @@ Lock flags:
 Manually unlock, only needed internally
 
 - `UNBLOCK` unlock
-'''
+"""
 
 import enum
 import os
@@ -30,7 +30,7 @@ if os.name == 'nt':  # pragma: no cover
     #: non-blocking
     LOCK_NB = 0x4
     #: unlock
-    LOCK_UN = msvcrt.LK_UNLCK  # type: ignore
+    LOCK_UN = msvcrt.LK_UNLCK  # type: ignore[attr-defined]
 
 elif os.name == 'posix':  # pragma: no cover
     import fcntl
