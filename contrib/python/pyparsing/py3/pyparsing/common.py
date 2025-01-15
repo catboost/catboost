@@ -210,14 +210,14 @@ class pyparsing_common:
     """any numeric expression, returns the corresponding Python type"""
 
     fnumber = (
-        Regex(r"[+-]?\d+\.?\d*([eE][+-]?\d+)?")
+        Regex(r"[+-]?\d+\.?\d*(?:[eE][+-]?\d+)?")
         .set_name("fnumber")
         .set_parse_action(convert_to_float)
     )
     """any int or real number, returned as float"""
 
     ieee_float = (
-        Regex(r"(?i)[+-]?((\d+\.?\d*(e[+-]?\d+)?)|nan|inf(inity)?)")
+        Regex(r"(?i:[+-]?(?:(?:\d+\.?\d*(?:e[+-]?\d+)?)|nan|inf(?:inity)?))")
         .set_name("ieee_float")
         .set_parse_action(convert_to_float)
     )

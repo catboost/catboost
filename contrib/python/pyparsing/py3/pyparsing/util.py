@@ -192,6 +192,7 @@ class _GroupConsecutive:
             (2, iter(['m']))
             (3, iter(['p', 'q', 'r', 's']))
     """
+
     def __init__(self):
         self.prev = 0
         self.counter = itertools.count()

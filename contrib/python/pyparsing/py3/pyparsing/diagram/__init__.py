@@ -1,6 +1,7 @@
 # mypy: ignore-errors
 from __future__ import annotations
 
+import itertools
 import railroad
 import pyparsing
 import dataclasses
@@ -40,7 +41,7 @@ jinja2_template_source = """\
 {{ body | safe }}
 {% for diagram in diagrams %}
     <div class="railroad-group">
-        <h1 class="railroad-heading">{{ diagram.title }}</h1>
+        <h1 class="railroad-heading" id="{{ diagram.bookmark }}">{{ diagram.title }}</h1>
         <div class="railroad-description">{{ diagram.text }}</div>
         <div class="railroad-svg">
             {{ diagram.svg }}
@@ -56,8 +57,35 @@ jinja2_template_source = """\
 template = Template(jinja2_template_source)
 
 
+_bookmark_lookup = {}
+_bookmark_ids = itertools.count(start=1)
+
+def _make_bookmark(s: str) -> str:
+    """
+    Converts a string into a valid HTML bookmark (ID or anchor name).
+    """
+    if s in _bookmark_lookup:
+        return _bookmark_lookup[s]
+
+    # Replace invalid characters with hyphens and ensure only valid characters
+    bookmark = re.sub(r'[^a-zA-Z0-9-]+', '-', s)
+
+    # Ensure it starts with a letter by adding 'z' if necessary
+    if not bookmark[:1].isalpha():
+        bookmark = f"z{bookmark}"
+
+    # Convert to lowercase and strip hyphens
+    bookmark = bookmark.lower().strip('-')
+
+    _bookmark_lookup[s] = bookmark = f"{bookmark}-{next(_bookmark_ids):04d}"
+
+    return bookmark
+
+
 def _collapse_verbose_regex(regex_str: str) -> str:
-    collapsed = pyparsing.Regex(r"#.*").suppress().transform_string(regex_str)
+    if "\n" not in regex_str:
+        return regex_str
+    collapsed = pyparsing.Regex(r"#.*$").suppress().transform_string(regex_str)
     collapsed = re.sub(r"\s*\n\s*", "", collapsed)
     return collapsed
 
@@ -71,6 +99,11 @@ class NamedDiagram:
     name: str
     index: int
     diagram: railroad.DiagramItem = None
+
+    @property
+    def bookmark(self):
+        bookmark = _make_bookmark(self.name)
+        return bookmark
 
 
 T = TypeVar("T")
@@ -99,7 +132,7 @@ class AnnotatedItem(railroad.Group):
     """
 
     def __init__(self, label: str, item):
-        super().__init__(item=item, label=f"[{label}]")
+        super().__init__(item=item, label=f"[{label}]" if label else "")
 
 
 class EditablePartial(Generic[T]):
@@ -162,7 +195,11 @@ def railroad_to_html(diagrams: list[NamedDiagram], embed=False, **kwargs) -> str
         title = diagram.name
         if diagram.index == 0:
             title += " (root)"
-        data.append({"title": title, "text": "", "svg": io.getvalue()})
+        data.append(
+            {
+                "title": title, "text": "", "svg": io.getvalue(), "bookmark": diagram.bookmark
+            }
+        )
 
     return template.render(diagrams=data, embed=embed, **kwargs)
 
@@ -336,6 +373,12 @@ class ConverterState:
     def __contains__(self, key: int):
         return key in self._element_diagram_states
 
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
     def generate_unnamed(self) -> int:
         """
         Generate a number used in the name of an otherwise unnamed diagram
@@ -360,7 +403,8 @@ class ConverterState:
 
         # Replace the original definition of this element with a regular block
         if position.parent:
-            ret = EditablePartial.from_call(railroad.NonTerminal, text=position.name)
+            href = f"#{_make_bookmark(position.name)}"
+            ret = EditablePartial.from_call(railroad.NonTerminal, text=position.name, href=href)
             if "item" in position.parent.kwargs:
                 position.parent.kwargs["item"] = ret
             elif "items" in position.parent.kwargs:
@@ -447,7 +491,7 @@ def _visible_exprs(exprs: Iterable[pyparsing.ParserElement]):
     return [
         e
         for e in exprs
-        if not (e.customName or e.resultsName or isinstance(e, non_diagramming_exprs))
+        if not isinstance(e, non_diagramming_exprs)
     ]
 
 
@@ -461,6 +505,7 @@ def _to_diagram_element(
     name_hint: str = None,
     show_results_names: bool = False,
     show_groups: bool = False,
+    show_hidden: bool = False,
 ) -> typing.Optional[EditablePartial]:
     """
     Recursively converts a PyParsing Element to a railroad Element
@@ -472,8 +517,9 @@ def _to_diagram_element(
     do so
     :param name_hint: If provided, this will override the generated name
     :param show_results_names: bool flag indicating whether to add annotations for results names
-    :returns: The converted version of the input element, but as a Partial that hasn't yet been constructed
     :param show_groups: bool flag indicating whether to show groups using bounding box
+    :param show_hidden: bool flag indicating whether to show elements that are typically hidden
+    :returns: The converted version of the input element, but as a Partial that hasn't yet been constructed
     """
     exprs = element.recurse()
     name = name_hint or element.customName or type(element).__name__
@@ -489,7 +535,7 @@ def _to_diagram_element(
             element,
             (
                 # pyparsing.TokenConverter,
-                # pyparsing.Forward,
+                pyparsing.Forward,
                 pyparsing.Located,
             ),
         ):
@@ -513,25 +559,33 @@ def _to_diagram_element(
 
     # If the element isn't worth extracting, we always treat it as the first time we say it
     if _worth_extracting(element):
-        if el_id in lookup and lookup[el_id].name is not None:
+        looked_up = lookup.get(el_id)
+        if looked_up and looked_up.name is not None:
             # If we've seen this element exactly once before, we are only just now finding out that it's a duplicate,
             # so we have to extract it into a new diagram.
-            looked_up = lookup[el_id]
             looked_up.mark_for_extraction(el_id, lookup, name=name_hint)
-            ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name)
+            href = f"#{_make_bookmark(looked_up.name)}"
+            ret = EditablePartial.from_call(railroad.NonTerminal, text=looked_up.name, href=href)
             return ret
 
         elif el_id in lookup.diagrams:
             # If we have seen the element at least twice before, and have already extracted it into a subdiagram, we
             # just put in a marker element that refers to the sub-diagram
+            text = lookup.diagrams[el_id].kwargs["name"]
             ret = EditablePartial.from_call(
-                railroad.NonTerminal, text=lookup.diagrams[el_id].kwargs["name"]
+                railroad.NonTerminal, text=text, href=f"#{_make_bookmark(text)}"
             )
             return ret
 
     # Recursively convert child elements
     # Here we find the most relevant Railroad element for matching pyparsing Element
     # We use ``items=[]`` here to hold the place for where the child elements will go once created
+
+    # see if this element is normally hidden, and whether hidden elements are desired
+    # if not, just return None
+    if not element.show_in_diagram and not show_hidden:
+        return None
+
     if isinstance(element, pyparsing.And):
         # detect And's created with ``expr*N`` notation - for these use a OneOrMore with a repeat
         # (all will have the same name, and resultsName)
@@ -566,7 +620,9 @@ def _to_diagram_element(
         if show_groups:
             ret = EditablePartial.from_call(AnnotatedItem, label="", item="")
         else:
-            ret = EditablePartial.from_call(railroad.Sequence, items=[])
+            ret = EditablePartial.from_call(
+                railroad.Group, item=None, label=element_results_name
+            )
     elif isinstance(element, pyparsing.TokenConverter):
         label = type(element).__name__.lower()
         if label == "tokenconverter":
@@ -607,10 +663,6 @@ def _to_diagram_element(
                 *args,
             )
         ret = EditablePartial.from_call(railroad.ZeroOrMore, item="")
-    elif isinstance(element, pyparsing.Group):
-        ret = EditablePartial.from_call(
-            railroad.Group, item=None, label=element_results_name
-        )
     elif isinstance(element, pyparsing.Empty) and not element.customName:
         # Skip unnamed "Empty" elements
         ret = None
@@ -619,10 +671,8 @@ def _to_diagram_element(
     elif len(exprs) > 0 and not element_results_name:
         ret = EditablePartial.from_call(railroad.Group, item="", label=name)
     elif isinstance(element, pyparsing.Regex):
-        patt = _collapse_verbose_regex(element.pattern)
-        element.pattern = patt
-        element._defaultName = None
-        ret = EditablePartial.from_call(railroad.Terminal, element.defaultName)
+        collapsed_patt = _collapse_verbose_regex(element.pattern)
+        ret = EditablePartial.from_call(railroad.Terminal, collapsed_patt)
     elif len(exprs) > 0:
         ret = EditablePartial.from_call(railroad.Sequence, items=[])
     else:
@@ -685,8 +735,10 @@ def _to_diagram_element(
     if el_id in lookup and lookup[el_id].extract and lookup[el_id].complete:
         lookup.extract_into_diagram(el_id)
         if ret is not None:
+            text = lookup.diagrams[el_id].kwargs["name"]
+            href = f"#{_make_bookmark(text)}"
             ret = EditablePartial.from_call(
-                railroad.NonTerminal, text=lookup.diagrams[el_id].kwargs["name"]
+                railroad.NonTerminal, text=text, href=href
             )
 
     return ret

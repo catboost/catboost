@@ -523,6 +523,7 @@ class ParseResults:
             result_list = result.as_list()
             print(type(result_list), result_list) # -> <class 'list'> ['sldkj', 'lsdkj', 'sldkj']
         """
+
         def flattened(pr):
             to_visit = collections.deque([*self])
             while to_visit:
