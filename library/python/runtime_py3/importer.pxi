@@ -36,6 +36,8 @@ def _probe(environ_dict, key, default_value=None):
 py_prefix = b'py/'
 py_prefix_len = len(py_prefix)
 
+EXTERNAL_PY_FILES_MODE = __resource.find(b'py/conf/ENABLE_EXTERNAL_PY_FILES') in (b'1', b'yes')
+
 YA_IDE_VENV = __resource.find(res_ya_ide_venv)
 Y_PYTHON_EXTENDED_SOURCE_SEARCH = _probe(_os.environ, env_extended_source_search) or YA_IDE_VENV
 
@@ -78,12 +80,43 @@ def _init_venv():
     raise RuntimeError(f'{cfg_source_root} key not found in {virtual_conf}')
 
 
+def file_bytes(path):
+    # 'open' is not avaiable yet.
+    with FileIO(path, 'r') as f:
+        return f.read()
+
+
+def _guess_source_root():
+    path, tail = _os.getcwd(), 'start'
+
+    while tail:
+        guidence_file = _path_join(path, '.root.path')
+        if _path_isfile(guidence_file):
+            return file_bytes(guidence_file)
+
+        if _path_isfile(_path_join(path, '.arcadia.root')):
+            return _b(path)
+
+        path, tail = _path_split(path)
+
+
 def _get_source_root():
     env_value = _probe(_os.environ, env_source_root)
-    if env_value or not YA_IDE_VENV:
+    if env_value:
         return env_value
 
-    return _init_venv()
+    if EXTERNAL_PY_FILES_MODE:
+        path = _guess_source_root()
+        if path:
+            return path
+
+        raise RuntimeError(
+            "Cannot find source root: binary is built in external-py-files mode, but no env.var. Y_PYTHON_SOURCE_ROOT is specified. Current working directory: " + _os.getcwd()
+        )
+
+    if YA_IDE_VENV:
+        return _init_venv()
+    return None
 
 
 Y_PYTHON_SOURCE_ROOT = _get_source_root()
@@ -103,12 +136,6 @@ def _print(*xs):
     sys.stderr.write(' '.join(parts) + '\n')
 
 
-def file_bytes(path):
-    # 'open' is not avaiable yet.
-    with FileIO(path, 'r') as f:
-        return f.read()
-
-
 def iter_keys(prefix):
     l = len(prefix)
     for idx in range(__resource.count()):
@@ -118,7 +145,7 @@ def iter_keys(prefix):
 
 
 def iter_py_modules(with_keys=False):
-    for key, path in iter_keys(b'resfs/file/' + py_prefix):
+    for key, path in iter_keys(b'resfs/src/resfs/file/' + py_prefix):
         if path.endswith(b'.py'):  # It may also end with '.pyc'.
             mod = _s(path[:-3].replace(b'/', b'.'))
             if with_keys:
