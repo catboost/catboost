@@ -39,17 +39,10 @@ namespace __cxxabiv1 {
 extern "C"  {
 
 // 2.4.2 Allocating the Exception Object
-#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS void *
 __cxa_allocate_exception(size_t thrown_size) throw();
 extern _LIBCXXABI_FUNC_VIS void
 __cxa_free_exception(void *thrown_exception) throw();
-#else
-extern _LIBCXXABI_FUNC_VIS void *
-__cxa_allocate_exception(size_t thrown_size) _NOEXCEPT;
-extern _LIBCXXABI_FUNC_VIS void
-__cxa_free_exception(void *thrown_exception) _NOEXCEPT;
-#endif
 
 // 2.4.3 Throwing the Exception Object
 #ifdef __USING_WASM_EXCEPTIONS__
@@ -63,20 +56,10 @@ __cxa_throw(void *thrown_exception, std::type_info *tinfo,
 #endif
 
 // 2.5.3 Exception Handlers
-#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS void *
 __cxa_get_exception_ptr(void *exceptionObject) throw();
-#else
-extern _LIBCXXABI_FUNC_VIS void *
-__cxa_get_exception_ptr(void *exceptionObject) _NOEXCEPT;
-#endif
-#ifndef __EMSCRIPTEN__
 extern _LIBCXXABI_FUNC_VIS void *
 __cxa_begin_catch(void *exceptionObject) throw();
-#else
-extern _LIBCXXABI_FUNC_VIS void *
-__cxa_begin_catch(void *exceptionObject) _NOEXCEPT;
-#endif
 extern _LIBCXXABI_FUNC_VIS void __cxa_end_catch();
 #if defined(_LIBCXXABI_ARM_EHABI)
 extern _LIBCXXABI_FUNC_VIS bool

@@ -15,14 +15,10 @@
 #endif
 #endif
 
-#ifdef __EMSCRIPTEN__
 #include <__memory/aligned_alloc.h>
-#endif
-
 #include <assert.h>
 #include <stdlib.h> // for malloc, calloc, free
 #include <string.h> // for memset
-#include <new> // for std::__libcpp_aligned_{alloc,free}
 
 //  A small, simple heap manager based (loosely) on
 //  the startup heap manager from FreeBSD, optimized for space.
