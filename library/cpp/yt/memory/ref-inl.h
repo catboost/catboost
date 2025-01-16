@@ -4,6 +4,8 @@
 #include "ref.h"
 #endif
 
+#include <library/cpp/yt/misc/concepts.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,7 +136,7 @@ Y_FORCE_INLINE TSharedRef::operator TRef() const
 template <class TTag>
 Y_FORCE_INLINE TSharedRef TSharedRef::FromString(TString str)
 {
-    static_assert(sizeof(TTag) <= 1);
+    static_assert(IsEmptyClass<TTag>());
     return FromString(std::move(str), GetRefCountedTypeCookie<TTag>());
 }
 
@@ -146,7 +148,7 @@ Y_FORCE_INLINE TSharedRef TSharedRef::FromString(TString str)
 template <class TTag>
 Y_FORCE_INLINE TSharedRef TSharedRef::FromString(std::string str)
 {
-    static_assert(sizeof(TTag) <= 1);
+    static_assert(IsEmptyClass<TTag>());
     return FromString(std::move(str), GetRefCountedTypeCookie<TTag>());
 }
 
@@ -163,7 +165,7 @@ Y_FORCE_INLINE TStringBuf TSharedRef::ToStringBuf() const
 template <class TTag>
 Y_FORCE_INLINE TSharedRef TSharedRef::MakeCopy(TRef ref)
 {
-    static_assert(sizeof(TTag) <= 1);
+    static_assert(IsEmptyClass<TTag>());
     return MakeCopy(ref, GetRefCountedTypeCookie<TTag>());
 }
 
@@ -227,7 +229,7 @@ Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t s
 template <class TTag>
 Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::MakeCopy(TRef ref)
 {
-    static_assert(sizeof(TTag) <= 1);
+    static_assert(IsEmptyClass<TTag>());
     return MakeCopy(ref, GetRefCountedTypeCookie<TTag>());
 }
 
@@ -247,14 +249,14 @@ Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::Slice(void* begin, void* end
 template <class TTag>
 Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::Allocate(size_t size, TSharedMutableRefAllocateOptions options)
 {
-    static_assert(sizeof(TTag) <= 1);
+    static_assert(IsEmptyClass<TTag>());
     return Allocate(size, options, GetRefCountedTypeCookie<TTag>());
 }
 
 template <class TTag>
 Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options)
 {
-    static_assert(sizeof(TTag) <= 1);
+    static_assert(IsEmptyClass<TTag>());
     return AllocatePageAligned(size, options, GetRefCountedTypeCookie<TTag>());
 }
 
