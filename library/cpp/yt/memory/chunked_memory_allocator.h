@@ -32,7 +32,7 @@ public:
             maxSmallBlockSizeRatio,
             GetRefCountedTypeCookie<TTag>())
     {
-        static_assert(sizeof(TTag) <= 1);
+        static_assert(IsEmptyClass<TTag>());
     }
 
     //! Allocates #sizes bytes without any alignment.
