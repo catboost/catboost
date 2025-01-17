@@ -15,18 +15,19 @@ import logging
 import os
 from contextlib import contextmanager
 from functools import partial
+from types import TracebackType
 from typing import TYPE_CHECKING, Any, Callable, Mapping
 
 from .._path import StrPath
 from ..errors import FileError, InvalidConfigError
 from ..warnings import SetuptoolsWarning
 from . import expand as _expand
-from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _MissingDynamic
-from ._apply_pyprojecttoml import apply as _apply
+from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _MissingDynamic, apply as _apply
 
 if TYPE_CHECKING:
-    from setuptools.dist import Distribution
     from typing_extensions import Self
+
+    from setuptools.dist import Distribution
 
 _logger = logging.getLogger(__name__)
 
@@ -121,13 +122,16 @@ def read_configuration(
     # the default would be an improvement.
     # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
     # therefore setting a default here is backwards compatible.
-    if dist and getattr(dist, "include_package_data", None) is not None:
+    if dist and dist.include_package_data is not None:
         setuptools_table.setdefault("include-package-data", dist.include_package_data)
     else:
         setuptools_table.setdefault("include-package-data", True)
     # Persist changes:
     asdict["tool"] = tool_table
     tool_table["setuptools"] = setuptools_table
+
+    if "ext-modules" in setuptools_table:
+        _ExperimentalConfiguration.emit(subject="[tool.setuptools.ext-modules]")
 
     with _ignore_errors(ignore_option_errors):
         # Don't complain about unrelated errors (e.g. tools not using the "tool" table)
@@ -303,7 +307,10 @@ class _ConfigExpander:
     def _obtain_version(self, dist: Distribution, package_dir: Mapping[str, str]):
         # Since plugins can set version, let's silently skip if it cannot be obtained
         if "version" in self.dynamic and "version" in self.dynamic_cfg:
-            return _expand.version(self._obtain(dist, "version", package_dir))
+            return _expand.version(
+                # We already do an early check for the presence of "version"
+                self._obtain(dist, "version", package_dir)  # pyright: ignore[reportArgumentType]
+            )
         return None
 
     def _obtain_readme(self, dist: Distribution) -> dict[str, str] | None:
@@ -313,9 +320,10 @@ class _ConfigExpander:
         dynamic_cfg = self.dynamic_cfg
         if "readme" in dynamic_cfg:
             return {
+                # We already do an early check for the presence of "readme"
                 "text": self._obtain(dist, "readme", {}),
                 "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst"),
-            }
+            }  # pyright: ignore[reportReturnType]
 
         self._ensure_previously_set(dist, "readme")
         return None
@@ -430,7 +438,12 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
 
         return super().__enter__()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         """When exiting the context, if values of ``packages``, ``py_modules`` and
         ``package_dir`` are missing in ``setuptools_cfg``, copy from ``dist``.
         """

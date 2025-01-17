@@ -1,10 +1,11 @@
-from distutils import log, dir_util
 import os
 
-from setuptools import Command
-from setuptools import namespaces
+from setuptools import Command, namespaces
 from setuptools.archive_util import unpack_archive
+
 from .._path import ensure_directory
+
+from distutils import dir_util, log
 
 
 class install_egg_info(namespaces.Installer, Command):

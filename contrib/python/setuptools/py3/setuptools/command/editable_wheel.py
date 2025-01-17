@@ -12,8 +12,8 @@ Create a wheel that, when installed, will make the source package 'editable'
 
 from __future__ import annotations
 
-import logging
 import io
+import logging
 import os
 import shutil
 import traceback
@@ -23,32 +23,15 @@ from inspect import cleandoc
 from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import (
-    TYPE_CHECKING,
-    Iterable,
-    Iterator,
-    Mapping,
-    Protocol,
-    TypeVar,
-    cast,
-)
+from types import TracebackType
+from typing import TYPE_CHECKING, Iterable, Iterator, Mapping, Protocol, TypeVar, cast
 
-from .. import (
-    Command,
-    _normalization,
-    _path,
-    errors,
-    namespaces,
-)
+from .. import Command, _normalization, _path, errors, namespaces
 from .._path import StrPath
-from ..compat import py39
+from ..compat import py312
 from ..discovery import find_package_path
 from ..dist import Distribution
-from ..warnings import (
-    InformationOnly,
-    SetuptoolsDeprecationWarning,
-    SetuptoolsWarning,
-)
+from ..warnings import InformationOnly, SetuptoolsDeprecationWarning, SetuptoolsWarning
 from .build import build as build_cls
 from .build_py import build_py as build_py_cls
 from .dist_info import dist_info as dist_info_cls
@@ -57,6 +40,8 @@ from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
+
     from .._vendor.wheel.wheelfile import WheelFile
 
 _P = TypeVar("_P", bound=StrPath)
@@ -153,6 +138,7 @@ class editable_wheel(Command):
             self._create_wheel_file(bdist_wheel)
         except Exception:
             traceback.print_exc()
+            # TODO: Fix false-positive [attr-defined] in typeshed
             project = self.distribution.name or self.distribution.get_name()
             _DebuggingTips.emit(project=project)
             raise
@@ -396,9 +382,15 @@ class editable_wheel(Command):
 class EditableStrategy(Protocol):
     def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]): ...
 
-    def __enter__(self): ...
+    def __enter__(self) -> Self: ...
 
-    def __exit__(self, _exc_type, _exc_value, _traceback): ...
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+        /,
+    ) -> object: ...
 
 
 class _StaticPth:
@@ -412,7 +404,7 @@ class _StaticPth:
         contents = _encode_pth(f"{entries}\n")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         msg = f"""
         Editable install will be performed using .pth file to extend `sys.path` with:
         {list(map(os.fspath, self.path_entries))!r}
@@ -420,7 +412,13 @@ class _StaticPth:
         _logger.warning(msg + _LENIENT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback): ...
+    def __exit__(
+        self,
+        _exc_type: object,
+        _exc_value: object,
+        _traceback: object,
+    ) -> None:
+        pass
 
 
 class _LinkTree(_StaticPth):
@@ -466,8 +464,9 @@ class _LinkTree(_StaticPth):
     def _create_links(self, outputs, output_mapping):
         self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
         link_type = "sym" if _can_symlink_files(self.auxiliary_dir) else "hard"
-        mappings = {self._normalize_output(k): v for k, v in output_mapping.items()}
-        mappings.pop(None, None)  # remove files that are not relative to build_lib
+        normalised = ((self._normalize_output(k), v) for k, v in output_mapping.items())
+        # remove files that are not relative to build_lib
+        mappings = {k: v for k, v in normalised if k is not None}
 
         for output in outputs:
             relative = self._normalize_output(output)
@@ -477,12 +476,17 @@ class _LinkTree(_StaticPth):
         for relative, src in mappings.items():
             self._create_file(relative, src, link=link_type)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         msg = "Strict editable install will be performed using a link tree.\n"
         _logger.warning(msg + _STRICT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback):
+    def __exit__(
+        self,
+        _exc_type: object,
+        _exc_value: object,
+        _traceback: object,
+    ) -> None:
         msg = f"""\n
         Strict editable installation performed using the auxiliary directory:
             {self.auxiliary_dir}
@@ -538,12 +542,17 @@ class _TopLevelFinder:
         for file, content in self.get_implementation():
             wheel.writestr(file, content)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         msg = "Editable install will be performed using a meta path finder.\n"
         _logger.warning(msg + _LENIENT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback):
+    def __exit__(
+        self,
+        _exc_type: object,
+        _exc_value: object,
+        _traceback: object,
+    ) -> None:
         msg = """\n
         Please be careful with folders in your working directory with the same
         name as your package as they may take precedence during imports.
@@ -552,7 +561,9 @@ class _TopLevelFinder:
 
 
 def _encode_pth(content: str) -> bytes:
-    """.pth files are always read with 'locale' encoding, the recommendation
+    """
+    Prior to Python 3.13 (see https://github.com/python/cpython/issues/77102),
+    .pth files are always read with 'locale' encoding, the recommendation
     from the cpython core developers is to write them as ``open(path, "w")``
     and ignore warnings (see python/cpython#77102, pypa/setuptools#3937).
     This function tries to simulate this behaviour without having to create an
@@ -562,7 +573,8 @@ def _encode_pth(content: str) -> bytes:
     or ``locale.getencoding()``).
     """
     with io.BytesIO() as buffer:
-        wrapper = io.TextIOWrapper(buffer, encoding=py39.LOCALE_ENCODING)
+        wrapper = io.TextIOWrapper(buffer, encoding=py312.PTH_ENCODING)
+        # TODO: Python 3.13 replace the whole function with `bytes(content, "utf-8")`
         wrapper.write(content)
         wrapper.flush()
         buffer.seek(0)

@@ -28,25 +28,30 @@ Again, this is not a formal definition! Just a "taste" of the module.
 
 from __future__ import annotations
 
+import contextlib
 import io
 import os
 import shlex
-import sys
-import tokenize
 import shutil
-import contextlib
+import sys
 import tempfile
+import tokenize
 import warnings
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Union, Iterable
+from typing import TYPE_CHECKING, Dict, Iterable, Iterator, List, Union
 
 import setuptools
-import distutils
+
 from . import errors
-from ._path import same_path, StrPath
+from ._path import StrPath, same_path
 from ._reqs import parse_strings
 from .warnings import SetuptoolsDeprecationWarning
+
+import distutils
 from distutils.util import strtobool
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 
 __all__ = [
@@ -142,7 +147,7 @@ def suppress_known_deprecation():
         yield
 
 
-_ConfigSettings = Optional[Dict[str, Union[str, List[str], None]]]
+_ConfigSettings: TypeAlias = Union[Dict[str, Union[str, List[str], None]], None]
 """
 Currently the user can run::
 
@@ -382,9 +387,10 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
         # Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
-        temp_opts = {"prefix": ".tmp-", "dir": result_directory}
 
-        with tempfile.TemporaryDirectory(**temp_opts) as tmp_dist_dir:
+        with tempfile.TemporaryDirectory(
+            prefix=".tmp-", dir=result_directory
+        ) as tmp_dist_dir:
             sys.argv = [
                 *sys.argv[:1],
                 *self._global_args(config_settings),

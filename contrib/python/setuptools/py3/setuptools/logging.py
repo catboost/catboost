@@ -1,8 +1,10 @@
-import sys
 import inspect
 import logging
-import distutils.log
+import sys
+
 from . import monkey
+
+import distutils.log
 
 
 def _not_warning(record):

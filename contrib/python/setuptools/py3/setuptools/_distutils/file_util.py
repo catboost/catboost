@@ -140,12 +140,13 @@ def copy_file(  # noqa: C901
         if not (os.path.exists(dst) and os.path.samefile(src, dst)):
             try:
                 os.link(src, dst)
-                return (dst, 1)
             except OSError:
                 # If hard linking fails, fall back on copying file
                 # (some special filesystems don't support hard linking
                 #  even under Unix, see issue #8876).
                 pass
+            else:
+                return (dst, 1)
     elif link == 'sym':
         if not (os.path.exists(dst) and os.path.samefile(src, dst)):
             os.symlink(src, dst)

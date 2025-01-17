@@ -680,7 +680,7 @@ class install(Command):
         if not self.user:
             return
         home = convert_path(os.path.expanduser("~"))
-        for _name, path in self.config_vars.items():
+        for path in self.config_vars.values():
             if str(path).startswith(home) and not os.path.isdir(path):
                 self.debug_print(f"os.makedirs('{path}', 0o700)")
                 os.makedirs(path, 0o700)

@@ -6,7 +6,7 @@ import re
 import typing
 from contextlib import contextmanager
 from textwrap import indent, wrap
-from typing import Any, Dict, Generator, Iterator, List, Optional, Sequence, Union, cast
+from typing import Any, Dict, Generator, Iterator, List, Optional, Sequence, Union
 
 from .fastjsonschema_exceptions import JsonSchemaValueException
 
@@ -316,9 +316,7 @@ class _SummaryWriter:
     def _value(self, value: Any, path: Sequence[str]) -> str:
         if path[-1] == "type" and not self._is_property(path):
             type_ = self._jargon(value)
-            return (
-                f"[{', '.join(type_)}]" if isinstance(value, list) else cast(str, type_)
-            )
+            return f"[{', '.join(type_)}]" if isinstance(type_, list) else type_
         return repr(value)
 
     def _inline_attrs(self, schema: dict, path: Sequence[str]) -> Iterator[str]:

@@ -10,6 +10,22 @@ from glob import iglob
 from pathlib import Path
 from typing import TYPE_CHECKING, MutableMapping
 
+from more_itertools import partition, unique_everseen
+from packaging.markers import InvalidMarker, Marker
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.version import Version
+
+from . import (
+    _entry_points,
+    _reqs,
+    command as _,  # noqa: F401 # imported for side-effects
+)
+from ._importlib import metadata
+from .config import pyprojecttoml, setupcfg
+from .discovery import ConfigDiscovery
+from .monkey import get_unpatched
+from .warnings import InformationOnly, SetuptoolsDeprecationWarning
+
 import distutils.cmd
 import distutils.command
 import distutils.core
@@ -19,21 +35,6 @@ from distutils.debug import DEBUG
 from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
-
-from more_itertools import partition, unique_everseen
-from ordered_set import OrderedSet
-from packaging.markers import InvalidMarker, Marker
-from packaging.specifiers import InvalidSpecifier, SpecifierSet
-from packaging.version import Version
-
-from . import _entry_points
-from . import _reqs
-from . import command as _  # noqa  -- imported for side-effects
-from ._importlib import metadata
-from .config import setupcfg, pyprojecttoml
-from .discovery import ConfigDiscovery
-from .monkey import get_unpatched
-from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
 __all__ = ['Distribution']
 
@@ -55,7 +56,7 @@ def assert_string_list(dist, attr, value):
     try:
         # verify that value is a list or tuple to exclude unordered
         # or single-use iterables
-        assert isinstance(value, (list, tuple))
+        assert isinstance(value, sequence)
         # verify that elements of value are strings
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
@@ -168,11 +169,6 @@ def check_entry_points(dist, attr, value):
         raise DistutilsSetupError(e) from e
 
 
-def check_test_suite(dist, attr, value):
-    if not isinstance(value, str):
-        raise DistutilsSetupError("test_suite must be a string")
-
-
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
     if not isinstance(value, dict):
@@ -199,8 +195,10 @@ def check_packages(dist, attr, value):
 
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
-    _Distribution = distutils.core.Distribution
+    _Distribution: TypeAlias = distutils.core.Distribution
 else:
     _Distribution = get_unpatched(distutils.core.Distribution)
 
@@ -233,12 +231,6 @@ class Distribution(_Distribution):
         EasyInstall and requests one of your extras, the corresponding
         additional requirements will be installed if needed.
 
-     'test_suite' -- the name of a test suite to run for the 'test' command.
-        If the user runs 'python setup.py test', the package will be installed,
-        and the named test suite will be run.  The format is the same as
-        would be used on a 'unittest.py' command line.  That is, it is the
-        dotted name of an object to import and call to generate a test suite.
-
      'package_data' -- a dictionary mapping package names to lists of filenames
         or globs to use to find data files contained in the named packages.
         If the dictionary has filenames or globs listed under '""' (the empty
@@ -260,7 +252,7 @@ class Distribution(_Distribution):
     _DISTUTILS_UNSUPPORTED_METADATA = {
         'long_description_content_type': lambda: None,
         'project_urls': dict,
-        'provides_extras': OrderedSet,
+        'provides_extras': dict,  # behaves like an ordered set
         'license_file': lambda: None,
         'license_files': lambda: None,
         'install_requires': list,
@@ -276,6 +268,8 @@ class Distribution(_Distribution):
             self.package_data: dict[str, list[str]] = {}
         attrs = attrs or {}
         self.dist_files: list[tuple[str, str, str]] = []
+        self.include_package_data: bool | None = None
+        self.exclude_package_data: dict[str, list[str]] | None = None
         # Filter-out setuptools' specific options.
         self.src_root = attrs.pop("src_root", None)
         self.dependency_links = attrs.pop('dependency_links', [])
@@ -356,7 +350,7 @@ class Distribution(_Distribution):
                 # Setuptools allows a weird "<name>:<env markers> syntax for extras
                 extra = extra.split(':')[0]
                 if extra:
-                    self.metadata.provides_extras.add(extra)
+                    self.metadata.provides_extras.setdefault(extra)
 
     def _normalize_requires(self):
         """Make sure requirement-related attributes exist and are normalized"""

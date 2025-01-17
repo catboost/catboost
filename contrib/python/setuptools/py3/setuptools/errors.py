@@ -3,30 +3,36 @@
 Provides exceptions used by setuptools modules.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from distutils import errors as _distutils_errors
 
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 # Re-export errors from distutils to facilitate the migration to PEP632
 
-ByteCompileError = _distutils_errors.DistutilsByteCompileError
-CCompilerError = _distutils_errors.CCompilerError
-ClassError = _distutils_errors.DistutilsClassError
-CompileError = _distutils_errors.CompileError
-ExecError = _distutils_errors.DistutilsExecError
-FileError = _distutils_errors.DistutilsFileError
-InternalError = _distutils_errors.DistutilsInternalError
-LibError = _distutils_errors.LibError
-LinkError = _distutils_errors.LinkError
-ModuleError = _distutils_errors.DistutilsModuleError
-OptionError = _distutils_errors.DistutilsOptionError
-PlatformError = _distutils_errors.DistutilsPlatformError
-PreprocessError = _distutils_errors.PreprocessError
-SetupError = _distutils_errors.DistutilsSetupError
-TemplateError = _distutils_errors.DistutilsTemplateError
-UnknownFileError = _distutils_errors.UnknownFileError
+ByteCompileError: TypeAlias = _distutils_errors.DistutilsByteCompileError
+CCompilerError: TypeAlias = _distutils_errors.CCompilerError
+ClassError: TypeAlias = _distutils_errors.DistutilsClassError
+CompileError: TypeAlias = _distutils_errors.CompileError
+ExecError: TypeAlias = _distutils_errors.DistutilsExecError
+FileError: TypeAlias = _distutils_errors.DistutilsFileError
+InternalError: TypeAlias = _distutils_errors.DistutilsInternalError
+LibError: TypeAlias = _distutils_errors.LibError
+LinkError: TypeAlias = _distutils_errors.LinkError
+ModuleError: TypeAlias = _distutils_errors.DistutilsModuleError
+OptionError: TypeAlias = _distutils_errors.DistutilsOptionError
+PlatformError: TypeAlias = _distutils_errors.DistutilsPlatformError
+PreprocessError: TypeAlias = _distutils_errors.PreprocessError
+SetupError: TypeAlias = _distutils_errors.DistutilsSetupError
+TemplateError: TypeAlias = _distutils_errors.DistutilsTemplateError
+UnknownFileError: TypeAlias = _distutils_errors.UnknownFileError
 
 # The root error class in the hierarchy
-BaseError = _distutils_errors.DistutilsError
+BaseError: TypeAlias = _distutils_errors.DistutilsError
 
 
 class InvalidConfigError(OptionError):

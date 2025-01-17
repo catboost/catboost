@@ -2,20 +2,21 @@
 
 Build .egg distributions"""
 
-from distutils.dir_util import remove_tree, mkpath
-from distutils import log
-from types import CodeType
-import sys
+import marshal
 import os
 import re
+import sys
 import textwrap
-import marshal
+from sysconfig import get_path, get_python_version
+from types import CodeType
 
-from setuptools.extension import Library
 from setuptools import Command
+from setuptools.extension import Library
+
 from .._path import ensure_directory
 
-from sysconfig import get_path, get_python_version
+from distutils import log
+from distutils.dir_util import mkpath, remove_tree
 
 
 def _get_purelib():

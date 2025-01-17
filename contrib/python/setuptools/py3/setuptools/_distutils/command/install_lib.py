@@ -81,9 +81,9 @@ class install_lib(Command):
         if not isinstance(self.optimize, int):
             try:
                 self.optimize = int(self.optimize)
-                if self.optimize not in (0, 1, 2):
-                    raise AssertionError
-            except (ValueError, AssertionError):
+            except ValueError:
+                pass
+            if self.optimize not in (0, 1, 2):
                 raise DistutilsOptionError("optimize must be 0, 1, or 2")
 
     def run(self):
@@ -161,9 +161,7 @@ class install_lib(Command):
         build_dir = getattr(build_cmd, cmd_option)
 
         prefix_len = len(build_dir) + len(os.sep)
-        outputs = []
-        for file in build_files:
-            outputs.append(os.path.join(output_dir, file[prefix_len:]))
+        outputs = [os.path.join(output_dir, file[prefix_len:]) for file in build_files]
 
         return outputs
 

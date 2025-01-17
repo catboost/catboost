@@ -44,16 +44,12 @@ import os
 from fnmatch import fnmatchcase
 from glob import glob
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Iterable,
-    Iterator,
-    Mapping,
-)
+from typing import TYPE_CHECKING, Iterable, Iterator, Mapping
 
 import _distutils_hack.override  # noqa: F401
 
 from ._path import StrPath
+
 from distutils import log
 from distutils.util import convert_path
 

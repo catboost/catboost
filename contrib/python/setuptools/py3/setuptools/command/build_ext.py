@@ -1,36 +1,40 @@
 from __future__ import annotations
 
+import itertools
 import os
 import sys
-import itertools
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
-from typing import Iterator
 from pathlib import Path
+from typing import TYPE_CHECKING, Iterator
 
-from distutils.command.build_ext import build_ext as _du_build_ext
-from distutils.ccompiler import new_compiler
-from distutils.sysconfig import customize_compiler, get_config_var
-from distutils import log
-
+from setuptools.dist import Distribution
 from setuptools.errors import BaseError
 from setuptools.extension import Extension, Library
 
-try:
-    # Attempt to use Cython for building extensions, if available
-    from Cython.Distutils.build_ext import build_ext as _build_ext  # type: ignore[import-not-found] # Cython not installed on CI tests
+from distutils import log
+from distutils.ccompiler import new_compiler
+from distutils.sysconfig import customize_compiler, get_config_var
 
-    # Additionally, assert that the compiler module will load
-    # also. Ref #1229.
-    __import__('Cython.Compiler.Main')
-except ImportError:
-    _build_ext = _du_build_ext
+if TYPE_CHECKING:
+    # Cython not installed on CI tests, causing _build_ext to be `Any`
+    from distutils.command.build_ext import build_ext as _build_ext
+else:
+    try:
+        # Attempt to use Cython for building extensions, if available
+        from Cython.Distutils.build_ext import build_ext as _build_ext
+
+        # Additionally, assert that the compiler module will load
+        # also. Ref #1229.
+        __import__('Cython.Compiler.Main')
+    except ImportError:
+        from distutils.command.build_ext import build_ext as _build_ext
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")
 # Not publicly exposed in typeshed distutils stubs, but this is done on purpose
 # See https://github.com/pypa/setuptools/pull/4228#issuecomment-1959856400
-from distutils.sysconfig import _config_vars as _CONFIG_VARS  # type: ignore # noqa
+from distutils.sysconfig import _config_vars as _CONFIG_VARS  # noqa: E402
 
 
 def _customize_compiler_for_shlib(compiler):
@@ -84,6 +88,7 @@ def get_abi3_suffix():
 
 
 class build_ext(_build_ext):
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
     editable_mode: bool = False
     inplace: bool = False
 
@@ -152,21 +157,25 @@ class build_ext(_build_ext):
                 output_cache = _compiled_file_name(regular_stub, optimization=opt)
                 yield (output_cache, inplace_cache)
 
-    def get_ext_filename(self, fullname):
+    def get_ext_filename(self, fullname: str) -> str:
         so_ext = os.getenv('SETUPTOOLS_EXT_SUFFIX')
         if so_ext:
             filename = os.path.join(*fullname.split('.')) + so_ext
         else:
             filename = _build_ext.get_ext_filename(self, fullname)
-            so_ext = get_config_var('EXT_SUFFIX')
+            ext_suffix = get_config_var('EXT_SUFFIX')
+            if not isinstance(ext_suffix, str):
+                raise OSError(
+                    "Configuration variable EXT_SUFFIX not found for this platform "
+                    + "and environment variable SETUPTOOLS_EXT_SUFFIX is missing"
+                )
+            so_ext = ext_suffix
 
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
-            use_abi3 = ext.py_limited_api and get_abi3_suffix()
-            if use_abi3:
-                filename = filename[: -len(so_ext)]
-                so_ext = get_abi3_suffix()
-                filename = filename + so_ext
+            abi3_suffix = get_abi3_suffix()
+            if ext.py_limited_api and abi3_suffix:  # Use abi3
+                filename = filename[: -len(so_ext)] + abi3_suffix
             if isinstance(ext, Library):
                 fn, ext = os.path.splitext(filename)
                 return self.shlib_compiler.library_filename(fn, libtype)

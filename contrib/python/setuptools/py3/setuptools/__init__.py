@@ -1,26 +1,36 @@
 """Extensions to the 'distutils' for large or complex distributions"""
+# mypy: disable_error_code=override
+# Command.reinitialize_command has an extra **kw param that distutils doesn't have
+# Can't disable on the exact line because distutils doesn't exists on Python 3.12
+# and mypy isn't aware of distutils_hack, causing distutils.core.Command to be Any,
+# and a [unused-ignore] to be raised on 3.12+
+
+from __future__ import annotations
 
 import functools
 import os
 import re
 import sys
-from typing import TYPE_CHECKING
+from abc import abstractmethod
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, TypeVar, overload
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 # workaround for #4476
 sys.modules.pop('backports', None)
 
 import _distutils_hack.override  # noqa: F401
-import distutils.core
-from distutils.errors import DistutilsOptionError
 
 from . import logging, monkey
-from . import version as _version_module
 from .depends import Require
 from .discovery import PackageFinder, PEP420PackageFinder
 from .dist import Distribution
 from .extension import Extension
+from .version import __version__ as __version__
 from .warnings import SetuptoolsDeprecationWarning
+
+import distutils.core
+from distutils.errors import DistutilsOptionError
 
 __all__ = [
     'setup',
@@ -33,10 +43,9 @@ __all__ = [
     'find_namespace_packages',
 ]
 
-__version__ = _version_module.__version__
+_CommandT = TypeVar("_CommandT", bound="_Command")
 
 bootstrap_install_from = None
-
 
 find_packages = PackageFinder.find
 find_namespace_packages = PEP420PackageFinder.find
@@ -51,7 +60,7 @@ def _install_setup_requires(attrs):
         fetch_build_eggs interface.
         """
 
-        def __init__(self, attrs):
+        def __init__(self, attrs: Mapping[str, object]):
             _incl = 'dependency_links', 'setup_requires'
             filtered = {k: attrs[k] for k in set(_incl) & set(attrs)}
             super().__init__(filtered)
@@ -111,8 +120,10 @@ def setup(**attrs):
 setup.__doc__ = distutils.core.setup.__doc__
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
-    _Command = distutils.core.Command
+    _Command: TypeAlias = distutils.core.Command
 else:
     _Command = monkey.get_unpatched(distutils.core.Command)
 
@@ -130,42 +141,25 @@ class Command(_Command):
     When creating a new command from scratch, custom defined classes **SHOULD** inherit
     from ``setuptools.Command`` and implement a few mandatory methods.
     Between these mandatory methods, are listed:
-
-    .. method:: initialize_options(self)
-
-        Set or (reset) all options/attributes/caches used by the command
-        to their default values. Note that these values may be overwritten during
-        the build.
-
-    .. method:: finalize_options(self)
-
-        Set final values for all options/attributes used by the command.
-        Most of the time, each option/attribute/cache should only be set if it does not
-        have any value yet (e.g. ``if self.attr is None: self.attr = val``).
-
-    .. method:: run(self)
-
-        Execute the actions intended by the command.
-        (Side effects **SHOULD** only take place when ``run`` is executed,
-        for example, creating new files or writing to the terminal output).
+    :meth:`initialize_options`, :meth:`finalize_options` and :meth:`run`.
 
     A useful analogy for command classes is to think of them as subroutines with local
-    variables called "options".  The options are "declared" in ``initialize_options()``
-    and "defined" (given their final values, aka "finalized") in ``finalize_options()``,
+    variables called "options".  The options are "declared" in :meth:`initialize_options`
+    and "defined" (given their final values, aka "finalized") in :meth:`finalize_options`,
     both of which must be defined by every command class. The "body" of the subroutine,
-    (where it does all the work) is the ``run()`` method.
-    Between ``initialize_options()`` and ``finalize_options()``, ``setuptools`` may set
+    (where it does all the work) is the :meth:`run` method.
+    Between :meth:`initialize_options` and :meth:`finalize_options`, ``setuptools`` may set
     the values for options/attributes based on user's input (or circumstance),
     which means that the implementation should be careful to not overwrite values in
-    ``finalize_options`` unless necessary.
+    :meth:`finalize_options` unless necessary.
 
     Please note that other commands (or other parts of setuptools) may also overwrite
     the values of the command's options/attributes multiple times during the build
     process.
-    Therefore it is important to consistently implement ``initialize_options()`` and
-    ``finalize_options()``. For example, all derived attributes (or attributes that
+    Therefore it is important to consistently implement :meth:`initialize_options` and
+    :meth:`finalize_options`. For example, all derived attributes (or attributes that
     depend on the value of other attributes) **SHOULD** be recomputed in
-    ``finalize_options``.
+    :meth:`finalize_options`.
 
     When overwriting existing commands, custom defined classes **MUST** abide by the
     same APIs implemented by the original class. They also **SHOULD** inherit from the
@@ -221,10 +215,47 @@ class Command(_Command):
                     "'%s' must be a list of strings (got %r)" % (option, val)
                 )
 
-    def reinitialize_command(self, command, reinit_subcommands=False, **kw):
+    @overload
+    def reinitialize_command(
+        self, command: str, reinit_subcommands: bool = False, **kw
+    ) -> _Command: ...
+    @overload
+    def reinitialize_command(
+        self, command: _CommandT, reinit_subcommands: bool = False, **kw
+    ) -> _CommandT: ...
+    def reinitialize_command(
+        self, command: str | _Command, reinit_subcommands: bool = False, **kw
+    ) -> _Command:
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
         return cmd
+
+    @abstractmethod
+    def initialize_options(self) -> None:
+        """
+        Set or (reset) all options/attributes/caches used by the command
+        to their default values. Note that these values may be overwritten during
+        the build.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def finalize_options(self) -> None:
+        """
+        Set final values for all options/attributes used by the command.
+        Most of the time, each option/attribute/cache should only be set if it does not
+        have any value yet (e.g. ``if self.attr is None: self.attr = val``).
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def run(self) -> None:
+        """
+        Execute the actions intended by the command.
+        (Side effects **SHOULD** only take place when :meth:`run` is executed,
+        for example, creating new files or writing to the terminal output).
+        """
+        raise NotImplementedError
 
 
 def _find_all_simple(path):

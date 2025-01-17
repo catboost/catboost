@@ -1,13 +1,14 @@
 import functools
-import operator
 import itertools
+import operator
 
-from .errors import OptionError
-from jaraco.text import yield_lines
 from jaraco.functools import pass_none
+from jaraco.text import yield_lines
+from more_itertools import consume
+
 from ._importlib import metadata
 from ._itertools import ensure_unique
-from more_itertools import consume
+from .errors import OptionError
 
 
 def ensure_valid(ep):

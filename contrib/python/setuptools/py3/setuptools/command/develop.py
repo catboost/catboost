@@ -1,16 +1,15 @@
-from distutils.util import convert_path
-from distutils import log
-from distutils.errors import DistutilsOptionError
-import os
 import glob
+import os
 
-from setuptools.command.easy_install import easy_install
-from setuptools import _normalization
-from setuptools import _path
-from setuptools import namespaces
 import setuptools
+from setuptools import _normalization, _path, namespaces
+from setuptools.command.easy_install import easy_install
 
 from ..unicode_utils import _read_utf8_with_fallback
+
+from distutils import log
+from distutils.errors import DistutilsOptionError
+from distutils.util import convert_path
 
 
 class develop(namespaces.DevelopInstaller, easy_install):
@@ -189,7 +188,7 @@ class VersionlessRequirement:
     def __init__(self, dist):
         self.__dist = dist
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         return getattr(self.__dist, name)
 
     def as_requirement(self):

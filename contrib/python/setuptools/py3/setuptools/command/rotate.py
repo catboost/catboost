@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from distutils.util import convert_path
-from distutils import log
-from distutils.errors import DistutilsOptionError
 import os
 import shutil
 
 from setuptools import Command
+
+from distutils import log
+from distutils.errors import DistutilsOptionError
+from distutils.util import convert_path
 
 
 class rotate(Command):

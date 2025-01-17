@@ -1,6 +1,5 @@
 import sys
 
-
 __all__ = ['tomllib']
 
 

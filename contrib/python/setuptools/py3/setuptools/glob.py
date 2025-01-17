@@ -6,9 +6,9 @@ Changes include:
  * Hidden files are not ignored.
 """
 
+import fnmatch
 import os
 import re
-import fnmatch
 
 __all__ = ["glob", "iglob", "escape"]
 

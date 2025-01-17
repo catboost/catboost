@@ -1,7 +1,7 @@
 from ._distutils._modified import (
     newer,
-    newer_pairwise,
     newer_group,
+    newer_pairwise,
     newer_pairwise_group,
 )
 

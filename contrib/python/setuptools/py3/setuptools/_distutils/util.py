@@ -4,9 +4,12 @@ Miscellaneous utility functions -- anything that doesn't fit into
 one of the other *util.py modules.
 """
 
+from __future__ import annotations
+
 import functools
 import importlib.util
 import os
+import pathlib
 import re
 import string
 import subprocess
@@ -14,6 +17,7 @@ import sys
 import sysconfig
 import tempfile
 
+from ._functools import pass_none
 from ._log import log
 from ._modified import newer
 from .errors import DistutilsByteCompileError, DistutilsPlatformError
@@ -116,33 +120,23 @@ def split_version(s):
     return [int(n) for n in s.split('.')]
 
 
-def convert_path(pathname):
-    """Return 'pathname' as a name that will work on the native filesystem,
-    i.e. split it on '/' and put it back together again using the current
-    directory separator.  Needed because filenames in the setup script are
-    always supplied in Unix style, and have to be converted to the local
-    convention before we can actually use them in the filesystem.  Raises
-    ValueError on non-Unix-ish systems if 'pathname' either starts or
-    ends with a slash.
+@pass_none
+def convert_path(pathname: str | os.PathLike) -> str:
+    r"""
+    Allow for pathlib.Path inputs, coax to a native path string.
+
+    If None is passed, will just pass it through as
+    Setuptools relies on this behavior.
+
+    >>> convert_path(None) is None
+    True
+
+    Removes empty paths.
+
+    >>> convert_path('foo/./bar').replace('\\', '/')
+    'foo/bar'
     """
-    if os.sep == '/':
-        return pathname
-    if not pathname:
-        return pathname
-    if pathname[0] == '/':
-        raise ValueError(f"path '{pathname}' cannot be absolute")
-    if pathname[-1] == '/':
-        raise ValueError(f"path '{pathname}' cannot end with '/'")
-
-    paths = pathname.split('/')
-    while '.' in paths:
-        paths.remove('.')
-    if not paths:
-        return os.curdir
-    return os.path.join(*paths)
-
-
-# convert_path ()
+    return os.fspath(pathlib.PurePath(pathname))
 
 
 def change_root(new_root, pathname):

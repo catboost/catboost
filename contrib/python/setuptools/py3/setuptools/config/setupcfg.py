@@ -15,34 +15,36 @@ import contextlib
 import functools
 import os
 from collections import defaultdict
-from functools import partial
-from functools import wraps
+from functools import partial, wraps
 from typing import (
     TYPE_CHECKING,
-    Callable,
     Any,
+    Callable,
     Dict,
     Generic,
     Iterable,
     Iterator,
+    List,
     Tuple,
     TypeVar,
     Union,
+    cast,
 )
 
-from .._path import StrPath
-from ..errors import FileError, OptionError
 from packaging.markers import default_environment as marker_env
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
+
+from .._path import StrPath
+from ..errors import FileError, OptionError
 from ..warnings import SetuptoolsDeprecationWarning
 from . import expand
 
 if TYPE_CHECKING:
-    from distutils.dist import DistributionMetadata
-
     from setuptools.dist import Distribution
+
+    from distutils.dist import DistributionMetadata
 
 SingleCommandOptions = Dict["str", Tuple["str", Any]]
 """Dict that associate the name of the options of a particular command to a
@@ -108,7 +110,8 @@ def _apply(
     filenames = [*other_files, filepath]
 
     try:
-        _Distribution.parse_config_files(dist, filenames=filenames)  # type: ignore[arg-type] # TODO: fix in distutils stubs
+        # TODO: Temporary cast until mypy 1.12 is released with upstream fixes from typeshed
+        _Distribution.parse_config_files(dist, filenames=cast(List[str], filenames))
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )
@@ -277,7 +280,7 @@ class ConfigHandler(Generic[Target]):
             '%s must provide .parsers property' % self.__class__.__name__
         )
 
-    def __setitem__(self, option_name, value):
+    def __setitem__(self, option_name, value) -> None:
         target_obj = self.target_obj
 
         # Translate alias into real name.
@@ -649,7 +652,6 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
                 self._parse_requirements_list, "install_requires"
             ),
             'setup_requires': self._parse_list_semicolon,
-            'tests_require': self._parse_list_semicolon,
             'packages': self._parse_packages,
             'entry_points': self._parse_file_in_root,
             'py_modules': parse_list,

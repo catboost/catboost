@@ -22,7 +22,7 @@ from .errors import (
 )
 from .file_util import move_file
 from .spawn import spawn
-from .util import execute, split_quoted, is_mingw
+from .util import execute, is_mingw, split_quoted
 
 
 class CCompiler:
@@ -1124,10 +1124,10 @@ def show_compilers():
     # commands that use it.
     from distutils.fancy_getopt import FancyGetopt
 
-    compilers = []
-    for compiler in compiler_class.keys():
-        compilers.append(("compiler=" + compiler, None, compiler_class[compiler][2]))
-    compilers.sort()
+    compilers = sorted(
+        ("compiler=" + compiler, None, compiler_class[compiler][2])
+        for compiler in compiler_class.keys()
+    )
     pretty_printer = FancyGetopt(compilers)
     pretty_printer.print_help("List of available compilers:")
 
@@ -1218,8 +1218,7 @@ def gen_preprocess_options(macros, include_dirs):
                 # shell at all costs when we spawn the command!
                 pp_opts.append("-D{}={}".format(*macro))
 
-    for dir in include_dirs:
-        pp_opts.append(f"-I{dir}")
+    pp_opts.extend(f"-I{dir}" for dir in include_dirs)
     return pp_opts
 
 
@@ -1230,10 +1229,7 @@ def gen_lib_options(compiler, library_dirs, runtime_library_dirs, libraries):
     directories.  Returns a list of command-line options suitable for use
     with some compiler (depending on the two format strings passed in).
     """
-    lib_opts = []
-
-    for dir in library_dirs:
-        lib_opts.append(compiler.library_dir_option(dir))
+    lib_opts = [compiler.library_dir_option(dir) for dir in library_dirs]
 
     for dir in runtime_library_dirs:
         lib_opts.extend(always_iterable(compiler.runtime_library_dir_option(dir)))
