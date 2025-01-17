@@ -1,13 +1,19 @@
 from __future__ import annotations
+
 import os
 import sys
 from itertools import product, starmap
-import distutils.command.install_lib as orig
+
 from .._path import StrPath
+from ..dist import Distribution
+
+import distutils.command.install_lib as orig
 
 
 class install_lib(orig.install_lib):
     """Don't add compiled flags to filenames of non-Python files"""
+
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
     def run(self):
         self.build()
@@ -103,6 +109,7 @@ class install_lib(orig.install_lib):
         # Exclude namespace package __init__.py* files from the output
 
         from setuptools.archive_util import unpack_directory
+
         from distutils import log
 
         outfiles: list[str] = []

@@ -1,5 +1,6 @@
-from distutils.command.bdist import bdist
 import sys
+
+from distutils.command.bdist import bdist
 
 if 'egg' not in bdist.format_commands:
     try:

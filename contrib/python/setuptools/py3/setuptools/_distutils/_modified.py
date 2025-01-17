@@ -63,7 +63,7 @@ def newer_group(sources, target, missing='error'):
         return missing == 'newer' and not os.path.exists(source)
 
     ignored = os.path.exists if missing == 'ignore' else None
-    return any(
+    return not os.path.exists(target) or any(
         missing_as_newer(source) or _newer(source, target)
         for source in filter(ignored, sources)
     )

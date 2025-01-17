@@ -24,10 +24,10 @@ def show_formats():
     from ..archive_util import ARCHIVE_FORMATS
     from ..fancy_getopt import FancyGetopt
 
-    formats = []
-    for format in ARCHIVE_FORMATS.keys():
-        formats.append(("formats=" + format, None, ARCHIVE_FORMATS[format][2]))
-    formats.sort()
+    formats = sorted(
+        ("formats=" + format, None, ARCHIVE_FORMATS[format][2])
+        for format in ARCHIVE_FORMATS.keys()
+    )
     FancyGetopt(formats).print_help("List of available source distribution formats:")
 
 
@@ -391,7 +391,7 @@ class sdist(Command):
         build = self.get_finalized_command('build')
         base_dir = self.distribution.get_fullname()
 
-        self.filelist.exclude_pattern(None, prefix=build.build_base)
+        self.filelist.exclude_pattern(None, prefix=os.fspath(build.build_base))
         self.filelist.exclude_pattern(None, prefix=base_dir)
 
         if sys.platform == 'win32':

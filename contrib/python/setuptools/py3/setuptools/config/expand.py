@@ -25,29 +25,23 @@ import importlib
 import os
 import pathlib
 import sys
-from glob import iglob
 from configparser import ConfigParser
+from glob import iglob
 from importlib.machinery import ModuleSpec, all_suffixes
 from itertools import chain
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Iterable,
-    Iterator,
-    Mapping,
-    TypeVar,
-)
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, TracebackType
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, Mapping, TypeVar
 
-from distutils.errors import DistutilsOptionError
-
-from .._path import same_path as _same_path, StrPath
+from .._path import StrPath, same_path as _same_path
 from ..discovery import find_package_path
 from ..warnings import SetuptoolsWarning
 
+from distutils.errors import DistutilsOptionError
+
 if TYPE_CHECKING:
+    from typing_extensions import Self
+
     from setuptools.dist import Distribution
 
 _K = TypeVar("_K")
@@ -69,7 +63,7 @@ class StaticModule:
             elif isinstance(statement, ast.AnnAssign) and statement.value:
                 yield (statement.target, statement.value)
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str):
         """Attempt to load an attribute "statically", via :func:`ast.literal_eval`."""
         try:
             return next(
@@ -287,8 +281,9 @@ def find_packages(
 
     :rtype: list
     """
+    from more_itertools import always_iterable, unique_everseen
+
     from setuptools.discovery import construct_package_dir
-    from more_itertools import unique_everseen, always_iterable
 
     if namespaces:
         from setuptools.discovery import PEP420PackageFinder as PackageFinder
@@ -392,10 +387,15 @@ class EnsurePackagesDiscovered:
             self._called = True
             self._dist.set_defaults(name=False)  # Skip name, we can still be parsing
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         if self._called:
             self._dist.set_defaults.analyse_name()  # Now we can set a default name
 

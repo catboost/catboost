@@ -15,9 +15,10 @@ def show_formats():
     """Print list of available formats (arguments to "--format" option)."""
     from ..fancy_getopt import FancyGetopt
 
-    formats = []
-    for format in bdist.format_commands:
-        formats.append(("formats=" + format, None, bdist.format_commands[format][1]))
+    formats = [
+        ("formats=" + format, None, bdist.format_commands[format][1])
+        for format in bdist.format_commands
+    ]
     pretty_printer = FancyGetopt(formats)
     pretty_printer.print_help("List of available distribution formats:")
 

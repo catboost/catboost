@@ -266,8 +266,7 @@ def make_archive(
         raise ValueError(f"unknown archive format '{format}'")
 
     func = format_info[0]
-    for arg, val in format_info[1]:
-        kwargs[arg] = val
+    kwargs.update(format_info[1])
 
     if format != 'zip':
         kwargs['owner'] = owner

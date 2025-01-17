@@ -1,13 +1,12 @@
-import sys
-import marshal
 import contextlib
 import dis
+import marshal
+import sys
 
-
-from . import _imp
-from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
 from packaging.version import Version
 
+from . import _imp
+from ._imp import PY_COMPILED, PY_FROZEN, PY_SOURCE, find_module
 
 __all__ = ['Require', 'find_module']
 

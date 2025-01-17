@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 71.1.0
+Version: 74.1.3
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Author-email: Python Packaging Authority <distutils-sig@python.org>
 Project-URL: Source, https://github.com/pypa/setuptools
@@ -20,9 +20,12 @@ Requires-Python: >=3.8
 Description-Content-Type: text/x-rst
 License-File: LICENSE
 Provides-Extra: certs
+Provides-Extra: check
+Requires-Dist: pytest-checkdocs >=2.4 ; extra == 'check'
+Requires-Dist: pytest-ruff >=0.2.1 ; (sys_platform != "cygwin") and extra == 'check'
+Requires-Dist: ruff >=0.5.2 ; (sys_platform != "cygwin") and extra == 'check'
 Provides-Extra: core
 Requires-Dist: packaging >=24 ; extra == 'core'
-Requires-Dist: ordered-set >=3.1.1 ; extra == 'core'
 Requires-Dist: more-itertools >=8.8 ; extra == 'core'
 Requires-Dist: jaraco.text >=3.7 ; extra == 'core'
 Requires-Dist: wheel >=0.43.0 ; extra == 'core'
@@ -30,6 +33,8 @@ Requires-Dist: platformdirs >=2.6.2 ; extra == 'core'
 Requires-Dist: importlib-metadata >=6 ; (python_version < "3.10") and extra == 'core'
 Requires-Dist: tomli >=2.0.1 ; (python_version < "3.11") and extra == 'core'
 Requires-Dist: importlib-resources >=5.10.2 ; (python_version < "3.9") and extra == 'core'
+Provides-Extra: cover
+Requires-Dist: pytest-cov ; extra == 'cover'
 Provides-Extra: doc
 Requires-Dist: sphinx >=3.5 ; extra == 'doc'
 Requires-Dist: jaraco.packaging >=9.3 ; extra == 'doc'
@@ -44,15 +49,14 @@ Requires-Dist: sphinx-reredirects ; extra == 'doc'
 Requires-Dist: sphinxcontrib-towncrier ; extra == 'doc'
 Requires-Dist: sphinx-notfound-page <2,>=1 ; extra == 'doc'
 Requires-Dist: pyproject-hooks !=1.1 ; extra == 'doc'
+Requires-Dist: towncrier <24.7 ; extra == 'doc'
+Provides-Extra: enabler
+Requires-Dist: pytest-enabler >=2.2 ; extra == 'enabler'
 Provides-Extra: ssl
 Provides-Extra: test
 Requires-Dist: pytest !=8.1.*,>=6 ; extra == 'test'
-Requires-Dist: pytest-checkdocs >=2.4 ; extra == 'test'
-Requires-Dist: pytest-cov ; extra == 'test'
-Requires-Dist: pytest-mypy ; extra == 'test'
-Requires-Dist: pytest-enabler >=2.2 ; extra == 'test'
 Requires-Dist: virtualenv >=13.0.0 ; extra == 'test'
-Requires-Dist: wheel ; extra == 'test'
+Requires-Dist: wheel >=0.44.0 ; extra == 'test'
 Requires-Dist: pip >=19.1 ; extra == 'test'
 Requires-Dist: packaging >=23.2 ; extra == 'test'
 Requires-Dist: jaraco.envs >=2.2 ; extra == 'test'
@@ -64,17 +68,16 @@ Requires-Dist: ini2toml[lite] >=0.14 ; extra == 'test'
 Requires-Dist: tomli-w >=1.0.0 ; extra == 'test'
 Requires-Dist: pytest-timeout ; extra == 'test'
 Requires-Dist: pytest-home >=0.5 ; extra == 'test'
-Requires-Dist: mypy ==1.11.* ; extra == 'test'
-Requires-Dist: tomli ; extra == 'test'
-Requires-Dist: importlib-metadata ; extra == 'test'
 Requires-Dist: pytest-subprocess ; extra == 'test'
 Requires-Dist: pyproject-hooks !=1.1 ; extra == 'test'
 Requires-Dist: jaraco.test ; extra == 'test'
-Requires-Dist: pytest-ruff <0.4 ; (platform_system == "Windows") and extra == 'test'
 Requires-Dist: jaraco.develop >=7.21 ; (python_version >= "3.9" and sys_platform != "cygwin") and extra == 'test'
-Requires-Dist: pytest-ruff >=0.2.1 ; (sys_platform != "cygwin") and extra == 'test'
 Requires-Dist: pytest-perf ; (sys_platform != "cygwin") and extra == 'test'
-Requires-Dist: pytest-ruff >=0.3.2 ; (sys_platform != "cygwin") and extra == 'test'
+Provides-Extra: type
+Requires-Dist: pytest-mypy ; extra == 'type'
+Requires-Dist: mypy ==1.11.* ; extra == 'type'
+Requires-Dist: importlib-metadata >=7.0.2 ; (python_version < "3.10") and extra == 'type'
+Requires-Dist: jaraco.develop >=7.21 ; (sys_platform != "cygwin") and extra == 'type'
 
 .. |pypi-version| image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: https://pypi.org/project/setuptools

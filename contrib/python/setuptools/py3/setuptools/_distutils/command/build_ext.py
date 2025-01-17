@@ -465,10 +465,7 @@ class build_ext(Command):
         # And build the list of output (built) filenames.  Note that this
         # ignores the 'inplace' flag, and assumes everything goes in the
         # "build" tree.
-        outputs = []
-        for ext in self.extensions:
-            outputs.append(self.get_ext_fullpath(ext.name))
-        return outputs
+        return [self.get_ext_fullpath(ext.name) for ext in self.extensions]
 
     def build_extensions(self):
         # First, sanity-check the 'extensions' list
@@ -641,8 +638,7 @@ class build_ext(Command):
 
         # Do not override commandline arguments
         if not self.swig_opts:
-            for o in extension.swig_opts:
-                swig_cmd.append(o)
+            swig_cmd.extend(extension.swig_opts)
 
         for source in swig_sources:
             target = swig_targets[source]

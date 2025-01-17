@@ -12,72 +12,72 @@ __ https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
 from __future__ import annotations
 
-from glob import glob
-from distutils.util import get_platform
-from distutils.util import convert_path, subst_vars
-from distutils.errors import (
-    DistutilsArgError,
-    DistutilsOptionError,
-    DistutilsError,
-    DistutilsPlatformError,
-)
-from distutils import log, dir_util
-from distutils.command.build_scripts import first_line_re
-from distutils.command import install
-import sys
+import configparser
+import contextlib
+import io
 import os
-import zipimport
-import shutil
-import tempfile
-import zipfile
-import re
-import stat
 import random
+import re
+import shlex
+import shutil
+import site
+import stat
+import struct
+import subprocess
+import sys
+import sysconfig
+import tempfile
 import textwrap
 import warnings
-import site
-import struct
-import contextlib
-import subprocess
-import shlex
-import io
-import configparser
-import sysconfig
-
+import zipfile
+import zipimport
+from collections.abc import Iterable
+from glob import glob
 from sysconfig import get_path
+from typing import TYPE_CHECKING, Callable, TypeVar
 
-from setuptools import Command
-from setuptools.sandbox import run_setup
-from setuptools.command import setopt
-from setuptools.archive_util import unpack_archive
-from setuptools.package_index import (
-    PackageIndex,
-    parse_requirement_arg,
-    URL_SCHEME,
-)
-from setuptools.command import bdist_egg, egg_info
-from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
-from setuptools.wheel import Wheel
-from pkg_resources import (
-    normalize_path,
-    resource_string,
-    get_distribution,
-    find_distributions,
-    Environment,
-    Requirement,
-    Distribution,
-    PathMetadata,
-    EggMetadata,
-    WorkingSet,
-    DistributionNotFound,
-    VersionConflict,
-    DEVELOP_DIST,
-)
-import pkg_resources
-from ..compat import py39, py311
-from .._path import ensure_directory
 from jaraco.text import yield_lines
 
+import pkg_resources
+from pkg_resources import (
+    DEVELOP_DIST,
+    Distribution,
+    DistributionNotFound,
+    EggMetadata,
+    Environment,
+    PathMetadata,
+    Requirement,
+    VersionConflict,
+    WorkingSet,
+    find_distributions,
+    get_distribution,
+    normalize_path,
+    resource_string,
+)
+from setuptools import Command
+from setuptools.archive_util import unpack_archive
+from setuptools.command import bdist_egg, egg_info, setopt
+from setuptools.package_index import URL_SCHEME, PackageIndex, parse_requirement_arg
+from setuptools.sandbox import run_setup
+from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
+from setuptools.wheel import Wheel
+
+from .._path import ensure_directory
+from ..compat import py39, py311, py312
+
+from distutils import dir_util, log
+from distutils.command import install
+from distutils.command.build_scripts import first_line_re
+from distutils.errors import (
+    DistutilsArgError,
+    DistutilsError,
+    DistutilsOptionError,
+    DistutilsPlatformError,
+)
+from distutils.util import convert_path, get_platform, subst_vars
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
@@ -88,6 +88,8 @@ __all__ = [
     'extract_wininst_cfg',
     'get_exe_prefixes',
 ]
+
+_T = TypeVar("_T")
 
 
 def is_64bit():
@@ -588,8 +590,9 @@ class easy_install(Command):
                 os.unlink(ok_file)
             dirname = os.path.dirname(ok_file)
             os.makedirs(dirname, exist_ok=True)
-            f = open(pth_file, 'w', encoding=py39.LOCALE_ENCODING)
-            # ^-- Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
+            f = open(pth_file, 'w', encoding=py312.PTH_ENCODING)
+            # ^-- Python<3.13 require encoding="locale" instead of "utf-8",
+            #     see python/cpython#77102.
         except OSError:
             self.cant_write_to_target()
         else:
@@ -1280,8 +1283,9 @@ class easy_install(Command):
         if os.path.islink(filename):
             os.unlink(filename)
 
-        with open(filename, 'wt', encoding=py39.LOCALE_ENCODING) as f:
-            # Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
+        with open(filename, 'wt', encoding=py312.PTH_ENCODING) as f:
+            # ^-- Python<3.13 require encoding="locale" instead of "utf-8",
+            #     see python/cpython#77102.
             f.write(self.pth_file.make_relative(dist.location) + '\n')
 
     def unpack_progress(self, src, dst):
@@ -1507,9 +1511,8 @@ def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
                 continue
 
             # Read the .pth file
-            with open(os.path.join(dirname, name), encoding=py39.LOCALE_ENCODING) as f:
-                # Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
-                lines = list(yield_lines(f))
+            content = _read_pth(os.path.join(dirname, name))
+            lines = list(yield_lines(content))
 
             # Yield existing non-dupe, non-import directory lines from it
             for line in lines:
@@ -1623,9 +1626,8 @@ class PthDistributions(Environment):
         paths = []
         dirty = saw_import = False
         seen = set(self.sitedirs)
-        f = open(self.filename, 'rt', encoding=py39.LOCALE_ENCODING)
-        # ^-- Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
-        for line in f:
+        content = _read_pth(self.filename)
+        for line in content.splitlines():
             path = line.rstrip()
             # still keep imports and empty/commented lines for formatting
             paths.append(path)
@@ -1644,7 +1646,6 @@ class PthDistributions(Environment):
                 paths.pop()
                 continue
             seen.add(normalized_path)
-        f.close()
         # remove any trailing empty/blank line
         while paths and not paths[-1].strip():
             paths.pop()
@@ -1695,8 +1696,9 @@ class PthDistributions(Environment):
             data = '\n'.join(lines) + '\n'
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
-            with open(self.filename, 'wt', encoding=py39.LOCALE_ENCODING) as f:
-                # Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
+            with open(self.filename, 'wt', encoding=py312.PTH_ENCODING) as f:
+                # ^-- Python<3.13 require encoding="locale" instead of "utf-8",
+                #     see python/cpython#77102.
                 f.write(data)
         elif os.path.exists(self.filename):
             log.debug("Deleting empty %s", self.filename)
@@ -1786,13 +1788,14 @@ def _first_line_re():
     return re.compile(first_line_re.pattern.decode())
 
 
-def auto_chmod(func, arg, exc):
+# Must match shutil._OnExcCallback
+def auto_chmod(func: Callable[..., _T], arg: str, exc: BaseException) -> _T:
+    """shutils onexc callback to automatically call chmod for certain functions."""
+    # Only retry for scenarios known to have an issue
     if func in [os.unlink, os.remove] and os.name == 'nt':
         chmod(arg, stat.S_IWRITE)
         return func(arg)
-    et, ev, _ = sys.exc_info()
-    # TODO: This code doesn't make sense. What is it trying to do?
-    raise (ev[0], ev[1] + (" %s %s" % (func, arg)))
+    raise exc
 
 
 def update_dist_caches(dist_path, fix_zipimporter_caches):
@@ -2018,7 +2021,9 @@ def is_python_script(script_text, filename):
 
 
 try:
-    from os import chmod as _chmod
+    from os import (
+        chmod as _chmod,  # pyright: ignore[reportAssignmentType] # Loosing type-safety w/ pyright, but that's ok
+    )
 except ImportError:
     # Jython compatibility
     def _chmod(*args: object, **kwargs: object) -> None:  # type: ignore[misc] # Mypy re-uses the imported definition anyway
@@ -2055,19 +2060,20 @@ class CommandSpec(list):
         return os.environ.get('__PYVENV_LAUNCHER__', _default)
 
     @classmethod
-    def from_param(cls, param):
+    def from_param(cls, param: Self | str | Iterable[str] | None) -> Self:
         """
         Construct a CommandSpec from a parameter to build_scripts, which may
         be None.
         """
         if isinstance(param, cls):
             return param
-        if isinstance(param, list):
+        if isinstance(param, str):
+            return cls.from_string(param)
+        if isinstance(param, Iterable):
             return cls(param)
         if param is None:
             return cls.from_environment()
-        # otherwise, assume it's a string.
-        return cls.from_string(param)
+        raise TypeError(f"Argument has an unsupported type {type(param)}")
 
     @classmethod
     def from_environment(cls):
@@ -2349,6 +2355,26 @@ def only_strs(values):
     Exclude non-str values. Ref #3063.
     """
     return filter(lambda val: isinstance(val, str), values)
+
+
+def _read_pth(fullname: str) -> str:
+    # Python<3.13 require encoding="locale" instead of "utf-8", see python/cpython#77102
+    # In the case old versions of setuptools are producing `pth` files with
+    # different encodings that might be problematic... So we fallback to "locale".
+
+    try:
+        with open(fullname, encoding=py312.PTH_ENCODING) as f:
+            return f.read()
+    except UnicodeDecodeError:  # pragma: no cover
+        # This error may only happen for Python >= 3.13
+        # TODO: Possible deprecation warnings to be added in the future:
+        #       ``.pth file {fullname!r} is not UTF-8.``
+        #       Your environment contain {fullname!r} that cannot be read as UTF-8.
+        #       This is likely to have been produced with an old version of setuptools.
+        #       Please be mindful that this is deprecated and in the future, non-utf8
+        #       .pth files may cause setuptools to fail.
+        with open(fullname, encoding=py39.LOCALE_ENCODING) as f:
+            return f.read()
 
 
 class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):

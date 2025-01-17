@@ -1,49 +1,50 @@
 """PyPI and direct package downloading."""
 
-import sys
-import subprocess
-import os
-import re
-import io
-import shutil
-import socket
 import base64
-import hashlib
-import itertools
 import configparser
+import hashlib
 import html
 import http.client
+import io
+import itertools
+import os
+import re
+import shutil
+import socket
+import subprocess
+import sys
+import urllib.error
 import urllib.parse
 import urllib.request
-import urllib.error
-from functools import wraps
-
-import setuptools
-from pkg_resources import (
-    CHECKOUT_DIST,
-    Distribution,
-    BINARY_DIST,
-    normalize_path,
-    SOURCE_DIST,
-    Environment,
-    find_distributions,
-    safe_name,
-    safe_version,
-    to_filename,
-    Requirement,
-    DEVELOP_DIST,
-    EGG_DIST,
-    parse_version,
-)
-from distutils import log
-from distutils.errors import DistutilsError
 from fnmatch import translate
-from setuptools.wheel import Wheel
+from functools import wraps
+from typing import NamedTuple
 
 from more_itertools import unique_everseen
 
-from .unicode_utils import _read_utf8_with_fallback, _cfg_read_utf8_with_fallback
+import setuptools
+from pkg_resources import (
+    BINARY_DIST,
+    CHECKOUT_DIST,
+    DEVELOP_DIST,
+    EGG_DIST,
+    SOURCE_DIST,
+    Distribution,
+    Environment,
+    Requirement,
+    find_distributions,
+    normalize_path,
+    parse_version,
+    safe_name,
+    safe_version,
+    to_filename,
+)
+from setuptools.wheel import Wheel
 
+from .unicode_utils import _cfg_read_utf8_with_fallback, _read_utf8_with_fallback
+
+from distutils import log
+from distutils.errors import DistutilsError
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -1001,21 +1002,20 @@ def _encode_auth(auth):
     return encoded.replace('\n', '')
 
 
-class Credential:
+class Credential(NamedTuple):
     """
-    A username/password pair. Use like a namedtuple.
+    A username/password pair.
+
+    Displayed separated by `:`.
+    >>> str(Credential('username', 'password'))
+    'username:password'
     """
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    username: str
+    password: str
 
-    def __iter__(self):
-        yield self.username
-        yield self.password
-
-    def __str__(self):
-        return '%(username)s:%(password)s' % vars(self)
+    def __str__(self) -> str:
+        return f'{self.username}:{self.password}'
 
 
 class PyPIConfig(configparser.RawConfigParser):
@@ -1072,7 +1072,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
     if scheme in ('http', 'https'):
         auth, address = _splituser(netloc)
     else:
-        auth = None
+        auth, address = (None, None)
 
     if not auth:
         cred = PyPIConfig().find_credential(url)

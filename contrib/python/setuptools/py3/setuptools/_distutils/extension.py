@@ -26,7 +26,7 @@ class Extension:
       name : string
         the full name of the extension, including any packages -- ie.
         *not* a filename or pathname, but Python dotted name
-      sources : [string]
+      sources : [string | os.PathLike]
         list of source filenames, relative to the distribution root
         (where the setup script lives), in Unix form (slash-separated)
         for portability.  Source files may be C, C++, SWIG (.i),
@@ -105,12 +105,17 @@ class Extension:
         **kw,  # To catch unknown keywords
     ):
         if not isinstance(name, str):
-            raise AssertionError("'name' must be a string")
-        if not (isinstance(sources, list) and all(isinstance(v, str) for v in sources)):
-            raise AssertionError("'sources' must be a list of strings")
+            raise AssertionError("'name' must be a string")  # noqa: TRY004
+        if not (
+            isinstance(sources, list)
+            and all(isinstance(v, (str, os.PathLike)) for v in sources)
+        ):
+            raise AssertionError(
+                "'sources' must be a list of strings or PathLike objects."
+            )
 
         self.name = name
-        self.sources = sources
+        self.sources = list(map(os.fspath, sources))
         self.include_dirs = include_dirs or []
         self.define_macros = define_macros or []
         self.undef_macros = undef_macros or []

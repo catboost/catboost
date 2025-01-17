@@ -4,18 +4,17 @@ Monkey patching of distutils.
 
 from __future__ import annotations
 
-import functools
 import inspect
 import platform
 import sys
 import types
-from importlib import import_module
-from typing import TypeVar
+from typing import Type, TypeVar, cast, overload
 
 import distutils.filelist
 
-
 _T = TypeVar("_T")
+_UnpatchT = TypeVar("_UnpatchT", type, types.FunctionType)
+
 
 __all__: list[str] = []
 """
@@ -38,25 +37,30 @@ def _get_mro(cls):
     return inspect.getmro(cls)
 
 
-def get_unpatched(item: _T) -> _T:
-    lookup = (
-        get_unpatched_class
-        if isinstance(item, type)
-        else get_unpatched_function
-        if isinstance(item, types.FunctionType)
-        else lambda item: None
-    )
-    return lookup(item)
+@overload
+def get_unpatched(item: _UnpatchT) -> _UnpatchT: ...
+@overload
+def get_unpatched(item: object) -> None: ...
+def get_unpatched(
+    item: type | types.FunctionType | object,
+) -> type | types.FunctionType | None:
+    if isinstance(item, type):
+        return get_unpatched_class(item)
+    if isinstance(item, types.FunctionType):
+        return get_unpatched_function(item)
+    return None
 
 
-def get_unpatched_class(cls):
+def get_unpatched_class(cls: type[_T]) -> type[_T]:
     """Protect against re-patching the distutils if reloaded
 
     Also ensures that no other distutils extension monkeypatched the distutils
     first.
     """
     external_bases = (
-        cls for cls in _get_mro(cls) if not cls.__module__.startswith('setuptools')
+        cast(Type[_T], cls)
+        for cls in _get_mro(cls)
+        if not cls.__module__.startswith('setuptools')
     )
     base = next(external_bases)
     if not base.__module__.startswith('distutils'):
@@ -84,8 +88,6 @@ def patch_all():
         sys.modules[
             'distutils.command.build_ext'
         ].Extension = setuptools.extension.Extension
-
-    patch_for_msvc_specialized_compiler()
 
 
 def _patch_distribution_metadata():
@@ -122,36 +124,3 @@ def patch_func(replacement, target_mod, func_name):
 
 def get_unpatched_function(candidate):
     return candidate.unpatched
-
-
-def patch_for_msvc_specialized_compiler():
-    """
-    Patch functions in distutils to use standalone Microsoft Visual C++
-    compilers.
-    """
-    from . import msvc
-
-    if platform.system() != 'Windows':
-        # Compilers only available on Microsoft Windows
-        return
-
-    def patch_params(mod_name, func_name):
-        """
-        Prepare the parameters for patch_func to patch indicated function.
-        """
-        repl_prefix = 'msvc14_'
-        repl_name = repl_prefix + func_name.lstrip('_')
-        repl = getattr(msvc, repl_name)
-        mod = import_module(mod_name)
-        if not hasattr(mod, func_name):
-            raise ImportError(func_name)
-        return repl, mod, func_name
-
-    # Python 3.5+
-    msvc14 = functools.partial(patch_params, 'distutils._msvccompiler')
-
-    try:
-        # Patch distutils._msvccompiler._get_vc_env
-        patch_func(*msvc14('_get_vc_env'))
-    except ImportError:
-        pass

@@ -1,11 +1,14 @@
-import re
+from __future__ import annotations
+
 import functools
-import distutils.core
-import distutils.errors
-import distutils.extension
+import re
 from typing import TYPE_CHECKING
 
 from .monkey import get_unpatched
+
+import distutils.core
+import distutils.errors
+import distutils.extension
 
 
 def _have_cython():
@@ -24,8 +27,10 @@ def _have_cython():
 # for compatibility
 have_pyrex = _have_cython
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
-    _Extension = distutils.core.Extension
+    _Extension: TypeAlias = distutils.core.Extension
 else:
     _Extension = get_unpatched(distutils.core.Extension)
 
@@ -122,14 +127,23 @@ class Extension(_Extension):
     :keyword bool py_limited_api:
       opt-in flag for the usage of :doc:`Python's limited API <python:c-api/stable>`.
 
-    :raises setuptools.errors.PlatformError: if 'runtime_library_dirs' is
+    :raises setuptools.errors.PlatformError: if ``runtime_library_dirs`` is
       specified on Windows. (since v63)
     """
 
-    def __init__(self, name, sources, *args, **kw):
+    # These 4 are set and used in setuptools/command/build_ext.py
+    # The lack of a default value and risk of `AttributeError` is purposeful
+    # to avoid people forgetting to call finalize_options if they modify the extension list.
+    # See example/rationale in https://github.com/pypa/setuptools/issues/4529.
+    _full_name: str  #: Private API, internal use only.
+    _links_to_dynamic: bool  #: Private API, internal use only.
+    _needs_stub: bool  #: Private API, internal use only.
+    _file_name: str  #: Private API, internal use only.
+
+    def __init__(self, name: str, sources, *args, py_limited_api: bool = False, **kw):
         # The *args is needed for compatibility as calls may use positional
         # arguments. py_limited_api may be set only via keyword.
-        self.py_limited_api = kw.pop("py_limited_api", False)
+        self.py_limited_api = py_limited_api
         super().__init__(name, sources, *args, **kw)
 
     def _convert_pyx_sources_to_lang(self):

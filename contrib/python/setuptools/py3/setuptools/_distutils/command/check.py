@@ -100,10 +100,9 @@ class check(Command):
         """
         metadata = self.distribution.metadata
 
-        missing = []
-        for attr in 'name', 'version':
-            if not getattr(metadata, attr, None):
-                missing.append(attr)
+        missing = [
+            attr for attr in ('name', 'version') if not getattr(metadata, attr, None)
+        ]
 
         if missing:
             self.warn("missing required meta-data: {}".format(', '.join(missing)))

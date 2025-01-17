@@ -16,20 +16,22 @@ import sysconfig
 import warnings
 from email.generator import BytesGenerator, Generator
 from email.policy import EmailPolicy
-from distutils import log
 from glob import iglob
 from shutil import rmtree
 from typing import TYPE_CHECKING, Callable, Iterable, Literal, Sequence, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
-from .. import Command, __version__
+from packaging import tags, version as _packaging_version
 from wheel.metadata import pkginfo_to_metadata
-from packaging import tags
-from packaging import version as _packaging_version
 from wheel.wheelfile import WheelFile
 
+from .. import Command, __version__
+from .egg_info import egg_info as egg_info_cls
+
+from distutils import log
+
 if TYPE_CHECKING:
-    import types
+    from _typeshed import ExcInfo
 
 
 def safe_name(name: str) -> str:
@@ -152,12 +154,14 @@ def safer_version(version: str) -> str:
 def remove_readonly(
     func: Callable[..., object],
     path: str,
-    excinfo: tuple[type[Exception], Exception, types.TracebackType],
+    excinfo: ExcInfo,
 ) -> None:
     remove_readonly_exc(func, path, excinfo[1])
 
 
-def remove_readonly_exc(func: Callable[..., object], path: str, exc: Exception) -> None:
+def remove_readonly_exc(
+    func: Callable[..., object], path: str, exc: BaseException
+) -> None:
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
@@ -232,40 +236,35 @@ class bdist_wheel(Command):
 
     def initialize_options(self) -> None:
         self.bdist_dir: str | None = None
-        self.data_dir = None
+        self.data_dir: str | None = None
         self.plat_name: str | None = None
-        self.plat_tag = None
+        self.plat_tag: str | None = None
         self.format = "zip"
         self.keep_temp = False
         self.dist_dir: str | None = None
-        self.egginfo_dir = None
+        self.egginfo_dir: str | None = None
         self.root_is_pure: bool | None = None
-        self.skip_build = None
+        self.skip_build = False
         self.relative = False
         self.owner = None
         self.group = None
         self.universal: bool = False
-        self.compression: str | int = "deflated"
+        self.compression: int | str = "deflated"
         self.python_tag: str = python_tag()
         self.build_number: str | None = None
         self.py_limited_api: str | Literal[False] = False
         self.plat_name_supplied = False
 
-    def finalize_options(self):
-        if self.bdist_dir is None:
+    def finalize_options(self) -> None:
+        if not self.bdist_dir:
             bdist_base = self.get_finalized_command("bdist").bdist_base
             self.bdist_dir = os.path.join(bdist_base, "wheel")
 
-        egg_info = self.distribution.get_command_obj("egg_info")
+        egg_info = cast(egg_info_cls, self.distribution.get_command_obj("egg_info"))
         egg_info.ensure_finalized()  # needed for correct `wheel_dist_name`
 
         self.data_dir = self.wheel_dist_name + ".data"
-        self.plat_name_supplied = self.plat_name is not None
-
-        try:
-            self.compression = self.supported_compressions[self.compression]
-        except KeyError:
-            raise ValueError(f"Unsupported compression: {self.compression}") from None
+        self.plat_name_supplied = bool(self.plat_name)
 
         need_options = ("dist_dir", "plat_name", "skip_build")
 
@@ -275,10 +274,7 @@ class bdist_wheel(Command):
             self.distribution.has_ext_modules() or self.distribution.has_c_libraries()
         )
 
-        if self.py_limited_api and not re.match(
-            PY_LIMITED_API_PATTERN, self.py_limited_api
-        ):
-            raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
+        self._validate_py_limited_api()
 
         # Support legacy [wheel] section for setting universal
         wheel = self.distribution.get_option_dict("wheel")
@@ -292,22 +288,37 @@ class bdist_wheel(Command):
         if self.build_number is not None and not self.build_number[:1].isdigit():
             raise ValueError("Build tag (build-number) must start with a digit.")
 
+    def _validate_py_limited_api(self) -> None:
+        if not self.py_limited_api:
+            return
+
+        if not re.match(PY_LIMITED_API_PATTERN, self.py_limited_api):
+            raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
+
+        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+            raise ValueError(
+                f"`py_limited_api={self.py_limited_api!r}` not supported. "
+                "`Py_LIMITED_API` is currently incompatible with "
+                f"`Py_GIL_DISABLED` ({sys.abiflags=!r}). "
+                "See https://github.com/python/cpython/issues/111506."
+            )
+
     @property
-    def wheel_dist_name(self):
+    def wheel_dist_name(self) -> str:
         """Return distribution full name with - replaced with _"""
-        components = (
+        components = [
             safer_name(self.distribution.get_name()),
             safer_version(self.distribution.get_version()),
-        )
+        ]
         if self.build_number:
-            components += (self.build_number,)
+            components.append(self.build_number)
         return "-".join(components)
 
     def get_tag(self) -> tuple[str, str, str]:
         # bdist sets self.plat_name if unset, we should only use it for purepy
         # wheels if the user supplied it.
-        if self.plat_name_supplied:
-            plat_name = cast(str, self.plat_name)
+        if self.plat_name_supplied and self.plat_name:
+            plat_name = self.plat_name
         elif self.root_is_pure:
             plat_name = "any"
         else:
@@ -431,7 +442,7 @@ class bdist_wheel(Command):
             os.makedirs(self.dist_dir)
 
         wheel_path = os.path.join(self.dist_dir, archive_basename + ".whl")
-        with WheelFile(wheel_path, "w", self.compression) as wf:
+        with WheelFile(wheel_path, "w", self._zip_compression()) as wf:
             wf.write_files(archive_root)
 
         # Add to 'Distribution.dist_files' so that the "upload" command works
@@ -595,3 +606,16 @@ class bdist_wheel(Command):
             shutil.copy(license_path, os.path.join(distinfo_path, filename))
 
         adios(egginfo_path)
+
+    def _zip_compression(self) -> int:
+        if (
+            isinstance(self.compression, int)
+            and self.compression in self.supported_compressions.values()
+        ):
+            return self.compression
+
+        compression = self.supported_compressions.get(str(self.compression))
+        if compression is not None:
+            return compression
+
+        raise ValueError(f"Unsupported compression: {self.compression!r}")

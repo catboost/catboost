@@ -3,13 +3,11 @@ Re-implementation of find_module and get_frozen_object
 from the deprecated imp module.
 """
 
-import os
-import importlib.util
 import importlib.machinery
+import importlib.util
+import os
 import tokenize
-
 from importlib.util import module_from_spec
-
 
 PY_SOURCE = 1
 PY_COMPILED = 2

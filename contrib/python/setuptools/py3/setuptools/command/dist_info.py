@@ -6,13 +6,14 @@ As defined in the wheel specification
 import os
 import shutil
 from contextlib import contextmanager
-from distutils import log
-from distutils.core import Command
 from pathlib import Path
 from typing import cast
 
 from .. import _normalization
 from .egg_info import egg_info as egg_info_cls
+
+from distutils import log
+from distutils.core import Command
 
 
 class dist_info(Command):

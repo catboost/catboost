@@ -1,11 +1,16 @@
-from distutils import log
-import distutils.command.sdist as orig
-import os
+from __future__ import annotations
+
 import contextlib
+import os
+import re
 from itertools import chain
 
 from .._importlib import metadata
+from ..dist import Distribution
 from .build import _ORIGINAL_SUBCOMMANDS
+
+import distutils.command.sdist as orig
+from distutils import log
 
 _default_revctrl = list
 
@@ -43,7 +48,8 @@ class sdist(orig.sdist):
         ),
     ]
 
-    negative_opt = {}
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
+    negative_opt: dict[str, str] = {}
 
     README_EXTENSIONS = ['', '.rst', '.txt', '.md']
     READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
@@ -150,6 +156,12 @@ class sdist(orig.sdist):
             super()._add_defaults_data_files()
         except TypeError:
             log.warn("data_files contains unexpected objects")
+
+    def prune_file_list(self):
+        super().prune_file_list()
+        # Prevent accidental inclusion of test-related cache dirs at the project root
+        sep = re.escape(os.sep)
+        self.filelist.exclude_pattern(r"^(\.tox|\.nox|\.venv)" + sep, is_regex=True)
 
     def check_readme(self):
         for f in self.READMES:
