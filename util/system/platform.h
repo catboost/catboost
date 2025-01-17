@@ -115,7 +115,11 @@
     #define _wasm64_
 #endif
 
-#if !defined(sparc) && !defined(__sparc) && !defined(__hpux__) && !defined(__alpha__) && !defined(_ia64_) && !defined(_x86_64_) && !defined(_arm_) && !defined(_i386_) && !defined(_ppc_) && !defined(_ppc64_) && !defined(_wasm64_)
+#if defined(__wasm32__)
+    #define _wasm32_
+#endif
+
+#if !defined(sparc) && !defined(__sparc) && !defined(__hpux__) && !defined(__alpha__) && !defined(_ia64_) && !defined(_x86_64_) && !defined(_arm_) && !defined(_i386_) && !defined(_ppc_) && !defined(_ppc64_) && !defined(_wasm64_) && !defined(_wasm32_)
     #error "platform not defined, please, define one"
 #endif
 
