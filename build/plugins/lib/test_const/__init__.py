@@ -369,16 +369,20 @@ class TestSize(Enum):
 
 
 class ModuleLang(Enum):
-    ABSENT = "absent"
-    NUMEROUS = "numerous"
-    UNKNOWN = "unknown"
     CPP = "cpp"
     DOCS = "docs"
     GO = "go"
     JAVA = "java"
     KOTLIN = "kotlin"
+    LANG_AGNOSTIC = "agnostic"  # This module (or node) is not language specific
     PY = "py"
     TS = "ts"
+    UNKNOWN = "unknown"
+
+
+class AggregateLang(Enum):
+    ABSENT = "absent"
+    NUMEROUS = "numerous"
 
 
 class NodeType(Enum):
