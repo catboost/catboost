@@ -180,12 +180,7 @@ extern "C" {
 //  object. Zero-fill the object. If memory can't be allocated, call
 //  std::terminate. Return a pointer to the memory to be used for the
 //  user's exception object.
-#ifndef __EMSCRIPTEN__
-void *__cxa_allocate_exception(size_t thrown_size) throw()
-#else
-void *__cxa_allocate_exception(size_t thrown_size) _NOEXCEPT
-#endif
-{
+void *__cxa_allocate_exception(size_t thrown_size) throw() {
     size_t actual_size = cxa_exception_size_from_exception_thrown_size(thrown_size);
 
     // Allocate extra space before the __cxa_exception header to ensure the
@@ -203,12 +198,7 @@ void *__cxa_allocate_exception(size_t thrown_size) _NOEXCEPT
 
 
 //  Free a __cxa_exception object allocated with __cxa_allocate_exception.
-#ifndef __EMSCRIPTEN__
-void __cxa_free_exception(void *thrown_object) throw()
-#else
-void __cxa_free_exception(void *thrown_object) _NOEXCEPT
-#endif
-{
+void __cxa_free_exception(void *thrown_object) throw() {
     // Compute the size of the padding before the header.
     size_t header_offset = get_cxa_exception_offset();
     char *raw_buffer =
@@ -331,12 +321,7 @@ The adjusted pointer is computed by the personality routine during phase 1
 
   Requires:  exception is native
 */
-#ifndef __EMSCRIPTEN__
-void *__cxa_get_exception_ptr(void *unwind_exception) throw()
-#else
-void *__cxa_get_exception_ptr(void *unwind_exception) _NOEXCEPT
-#endif
-{
+void *__cxa_get_exception_ptr(void *unwind_exception) throw() {
 #if defined(_LIBCXXABI_ARM_EHABI)
     return reinterpret_cast<void*>(
         static_cast<_Unwind_Control_Block*>(unwind_exception)->barrier_cache.bitpattern[0]);
@@ -351,12 +336,7 @@ void *__cxa_get_exception_ptr(void *unwind_exception) _NOEXCEPT
 The routine to be called before the cleanup.  This will save __cxa_exception in
 __cxa_eh_globals, so that __cxa_end_cleanup() can recover later.
 */
-#ifndef __EMSCRIPTEN__
-bool __cxa_begin_cleanup(void *unwind_arg) throw()
-#else
-bool __cxa_begin_cleanup(void *unwind_arg) _NOEXCEPT
-#endif
-{
+bool __cxa_begin_cleanup(void *unwind_arg) throw() {
     _Unwind_Exception* unwind_exception = static_cast<_Unwind_Exception*>(unwind_arg);
     __cxa_eh_globals* globals = __cxa_get_globals();
     __cxa_exception* exception_header =
@@ -479,13 +459,8 @@ to terminate or unexpected during unwinding.
 * If we haven't terminated, assume the exception object is just past the
   _Unwind_Exception and return a pointer to that.
 */
-#ifndef __EMSCRIPTEN__
 void*
 __cxa_begin_catch(void* unwind_arg) throw()
-#else
-void*
-__cxa_begin_catch(void* unwind_arg) _NOEXCEPT
-#endif
 {
     _Unwind_Exception* unwind_exception = static_cast<_Unwind_Exception*>(unwind_arg);
     bool native_exception = __isOurExceptionClass(unwind_exception);
@@ -700,14 +675,8 @@ void __cxa_rethrow() {
 
     Requires:  If thrown_object is not NULL, it is a native exception.
 */
-#ifndef __EMSCRIPTEN__
 void
-__cxa_increment_exception_refcount(void *thrown_object) throw()
-#else
-void
-__cxa_increment_exception_refcount(void *thrown_object) _NOEXCEPT
-#endif
-{
+__cxa_increment_exception_refcount(void *thrown_object) throw() {
     if (thrown_object != NULL )
     {
         __cxa_exception* exception_header = cxa_exception_from_thrown_object(thrown_object);
@@ -723,14 +692,8 @@ __cxa_increment_exception_refcount(void *thrown_object) _NOEXCEPT
 
     Requires:  If thrown_object is not NULL, it is a native exception.
 */
-#ifndef __EMSCRIPTEN__
 _LIBCXXABI_NO_CFI
-void __cxa_decrement_exception_refcount(void *thrown_object) throw()
-#else
-_LIBCXXABI_NO_CFI
-void __cxa_decrement_exception_refcount(void *thrown_object) _NOEXCEPT
-#endif
-{
+void __cxa_decrement_exception_refcount(void *thrown_object) throw() {
     if (thrown_object != NULL )
     {
         __cxa_exception* exception_header = cxa_exception_from_thrown_object(thrown_object);
@@ -753,12 +716,7 @@ void __cxa_decrement_exception_refcount(void *thrown_object) _NOEXCEPT
     been no exceptions thrown, ever, on this thread, we can return NULL without
     the need to allocate the exception-handling globals.
 */
-#ifndef __EMSCRIPTEN__
-void *__cxa_current_primary_exception() throw()
-#else
-void *__cxa_current_primary_exception() _NOEXCEPT
-#endif
-{
+void *__cxa_current_primary_exception() throw() {
 //  get the current exception
     __cxa_eh_globals* globals = __cxa_get_globals_fast();
     if (NULL == globals)
@@ -829,21 +787,11 @@ __cxa_rethrow_primary_exception(void* thrown_object)
     // If we return client will call terminate()
 }
 
-#ifndef __EMSCRIPTEN__
 bool
 __cxa_uncaught_exception() throw() { return __cxa_uncaught_exceptions() != 0; }
-#else
-bool
-__cxa_uncaught_exception() _NOEXCEPT { return __cxa_uncaught_exceptions() != 0; }
-#endif
 
-#ifndef __EMSCRIPTEN__
 unsigned int
 __cxa_uncaught_exceptions() throw()
-#else
-unsigned int
-__cxa_uncaught_exceptions() _NOEXCEPT
-#endif
 {
     // This does not report foreign exceptions in flight
     __cxa_eh_globals* globals = __cxa_get_globals_fast();
