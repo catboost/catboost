@@ -4,8 +4,6 @@ Utility functions for creating archive files (tarballs, zip files,
 that sort of thing)."""
 
 import os
-import sys
-from warnings import warn
 
 try:
     import zipfile
@@ -67,8 +65,7 @@ def make_tarball(
     """Create a (possibly compressed) tar file from all the files under
     'base_dir'.
 
-    'compress' must be "gzip" (the default), "bzip2", "xz", "compress", or
-    None.  ("compress" will be deprecated in Python 3.2)
+    'compress' must be "gzip" (the default), "bzip2", "xz", or None.
 
     'owner' and 'group' can be used to define an owner and a group for the
     archive that is being built. If not provided, the current owner and group
@@ -84,20 +81,17 @@ def make_tarball(
         'bzip2': 'bz2',
         'xz': 'xz',
         None: '',
-        'compress': '',
     }
-    compress_ext = {'gzip': '.gz', 'bzip2': '.bz2', 'xz': '.xz', 'compress': '.Z'}
+    compress_ext = {'gzip': '.gz', 'bzip2': '.bz2', 'xz': '.xz'}
 
     # flags for compression program, each element of list will be an argument
     if compress is not None and compress not in compress_ext.keys():
         raise ValueError(
-            "bad value for 'compress': must be None, 'gzip', 'bzip2', "
-            "'xz' or 'compress'"
+            "bad value for 'compress': must be None, 'gzip', 'bzip2', 'xz'"
         )
 
     archive_name = base_name + '.tar'
-    if compress != 'compress':
-        archive_name += compress_ext.get(compress, '')
+    archive_name += compress_ext.get(compress, '')
 
     mkpath(os.path.dirname(archive_name), dry_run=dry_run)
 
@@ -124,18 +118,6 @@ def make_tarball(
             tar.add(base_dir, filter=_set_uid_gid)
         finally:
             tar.close()
-
-    # compression using `compress`
-    if compress == 'compress':
-        warn("'compress' is deprecated.", DeprecationWarning)
-        # the option varies depending on the platform
-        compressed_name = archive_name + compress_ext[compress]
-        if sys.platform == 'win32':
-            cmd = [compress, archive_name, compressed_name]
-        else:
-            cmd = [compress, '-f', archive_name]
-        spawn(cmd, dry_run=dry_run)
-        return compressed_name
 
     return archive_name
 

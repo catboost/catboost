@@ -15,7 +15,7 @@ class install_scripts(orig.install_scripts):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def initialize_options(self):
+    def initialize_options(self) -> None:
         orig.install_scripts.initialize_options(self)
         self.no_ep = False
 
@@ -56,7 +56,7 @@ class install_scripts(orig.install_scripts):
         for args in writer.get_args(dist, cmd.as_header()):
             self.write_script(*args)
 
-    def write_script(self, script_name, contents, mode="t", *ignored):
+    def write_script(self, script_name, contents, mode: str = "t", *ignored) -> None:
         """Write an executable file to the scripts directory"""
         from setuptools.command.easy_install import chmod, current_umask
 

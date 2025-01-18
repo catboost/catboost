@@ -30,15 +30,14 @@ class alias(option_base):
         self.args = None
         self.remove = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         option_base.finalize_options(self)
         if self.remove and len(self.args) != 1:
             raise DistutilsOptionError(
-                "Must specify exactly one argument (the alias name) when "
-                "using --remove"
+                "Must specify exactly one argument (the alias name) when using --remove"
             )
 
-    def run(self):
+    def run(self) -> None:
         aliases = self.distribution.get_option_dict('aliases')
 
         if not self.args:

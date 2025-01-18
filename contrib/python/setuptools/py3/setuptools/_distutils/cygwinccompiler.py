@@ -21,6 +21,7 @@ from .errors import (
     DistutilsPlatformError,
 )
 from .file_util import write_file
+from .sysconfig import get_config_vars
 from .unixccompiler import UnixCCompiler
 from .version import LooseVersion, suppress_known_deprecation
 
@@ -61,8 +62,12 @@ class CygwinCCompiler(UnixCCompiler):
                 "Compiling may fail because of undefined preprocessor macros."
             )
 
-        self.cc = os.environ.get('CC', 'gcc')
-        self.cxx = os.environ.get('CXX', 'g++')
+        self.cc, self.cxx = get_config_vars('CC', 'CXX')
+
+        # Override 'CC' and 'CXX' environment variables for
+        # building using MINGW compiler for MSVC python.
+        self.cc = os.environ.get('CC', self.cc or 'gcc')
+        self.cxx = os.environ.get('CXX', self.cxx or 'g++')
 
         self.linker_dll = self.cc
         self.linker_dll_cxx = self.cxx

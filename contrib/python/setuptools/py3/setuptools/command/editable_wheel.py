@@ -17,6 +17,7 @@ import logging
 import os
 import shutil
 import traceback
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import suppress
 from enum import Enum
 from inspect import cleandoc
@@ -24,9 +25,9 @@ from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import TracebackType
-from typing import TYPE_CHECKING, Iterable, Iterator, Mapping, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Protocol, TypeVar, cast
 
-from .. import Command, _normalization, _path, errors, namespaces
+from .. import Command, _normalization, _path, _shutil, errors, namespaces
 from .._path import StrPath
 from ..compat import py312
 from ..discovery import find_package_path
@@ -119,13 +120,13 @@ class editable_wheel(Command):
         self.project_dir = None
         self.mode = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         dist = self.distribution
         self.project_dir = dist.src_root or os.curdir
         self.package_dir = dist.package_dir or {}
         self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
 
-    def run(self):
+    def run(self) -> None:
         try:
             self.dist_dir.mkdir(exist_ok=True)
             self._ensure_dist_info()
@@ -138,7 +139,6 @@ class editable_wheel(Command):
             self._create_wheel_file(bdist_wheel)
         except Exception:
             traceback.print_exc()
-            # TODO: Fix false-positive [attr-defined] in typeshed
             project = self.distribution.name or self.distribution.get_name()
             _DebuggingTips.emit(project=project)
             raise
@@ -231,7 +231,6 @@ class editable_wheel(Command):
         """Set the ``editable_mode`` flag in the build sub-commands"""
         dist = self.distribution
         build = dist.get_command_obj("build")
-        # TODO: Update typeshed distutils stubs to overload non-None return type by default
         for cmd_name in build.get_sub_commands():
             cmd = dist.get_command_obj(cmd_name)
             if hasattr(cmd, "editable_mode"):
@@ -380,26 +379,25 @@ class editable_wheel(Command):
 
 
 class EditableStrategy(Protocol):
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]): ...
-
+    def __call__(
+        self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]
+    ) -> object: ...
     def __enter__(self) -> Self: ...
-
     def __exit__(
         self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-        /,
+        _exc_type: type[BaseException] | None,
+        _exc_value: BaseException | None,
+        _traceback: TracebackType | None,
     ) -> object: ...
 
 
 class _StaticPth:
-    def __init__(self, dist: Distribution, name: str, path_entries: list[Path]):
+    def __init__(self, dist: Distribution, name: str, path_entries: list[Path]) -> None:
         self.dist = dist
         self.name = name
         self.path_entries = path_entries
 
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]):
         entries = "\n".join(str(p.resolve()) for p in self.path_entries)
         contents = _encode_pth(f"{entries}\n")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
@@ -438,13 +436,13 @@ class _LinkTree(_StaticPth):
         name: str,
         auxiliary_dir: StrPath,
         build_lib: StrPath,
-    ):
+    ) -> None:
         self.auxiliary_dir = Path(auxiliary_dir)
         self.build_lib = Path(build_lib).resolve()
         self._file = dist.get_command_obj("build_py").copy_file
         super().__init__(dist, name, [self.auxiliary_dir])
 
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]):
         self._create_links(files, mapping)
         super().__call__(wheel, files, mapping)
 
@@ -461,7 +459,7 @@ class _LinkTree(_StaticPth):
             dest.parent.mkdir(parents=True)
         self._file(src_file, dest, link=link)
 
-    def _create_links(self, outputs, output_mapping):
+    def _create_links(self, outputs, output_mapping: Mapping[str, str]):
         self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
         link_type = "sym" if _can_symlink_files(self.auxiliary_dir) else "hard"
         normalised = ((self._normalize_output(k), v) for k, v in output_mapping.items())
@@ -498,7 +496,7 @@ class _LinkTree(_StaticPth):
 
 
 class _TopLevelFinder:
-    def __init__(self, dist: Distribution, name: str):
+    def __init__(self, dist: Distribution, name: str) -> None:
         self.dist = dist
         self.name = name
 
@@ -538,7 +536,7 @@ class _TopLevelFinder:
         content = _encode_pth(f"import {finder}; {finder}.install()")
         yield (f"__editable__.{self.name}.pth", content)
 
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]):
         for file, content in self.get_implementation():
             wheel.writestr(file, content)
 
@@ -775,18 +773,18 @@ def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
 
 def _empty_dir(dir_: _P) -> _P:
     """Create a directory ensured to be empty. Existing files may be removed."""
-    shutil.rmtree(dir_, ignore_errors=True)
+    _shutil.rmtree(dir_, ignore_errors=True)
     os.makedirs(dir_)
     return dir_
 
 
 class _NamespaceInstaller(namespaces.Installer):
-    def __init__(self, distribution, installation_dir, editable_name, src_root):
+    def __init__(self, distribution, installation_dir, editable_name, src_root) -> None:
         self.distribution = distribution
         self.src_root = src_root
         self.installation_dir = installation_dir
         self.editable_name = editable_name
-        self.outputs = []
+        self.outputs: list[str] = []
         self.dry_run = False
 
     def _get_nspkg_file(self):

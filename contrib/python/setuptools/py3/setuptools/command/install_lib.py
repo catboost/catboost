@@ -15,7 +15,7 @@ class install_lib(orig.install_lib):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def run(self):
+    def run(self) -> None:
         self.build()
         outfiles = self.install()
         if outfiles is not None:
@@ -52,7 +52,7 @@ class install_lib(orig.install_lib):
         """
         while pkg_name:
             yield pkg_name
-            pkg_name, sep, child = pkg_name.rpartition('.')
+            pkg_name, _sep, _child = pkg_name.rpartition('.')
 
     def _get_SVEM_NSPs(self):
         """
@@ -95,12 +95,15 @@ class install_lib(orig.install_lib):
         self,
         infile: StrPath,
         outfile: str,
-        preserve_mode=True,
-        preserve_times=True,
-        preserve_symlinks=False,
-        level=1,
+        # override: Using actual booleans
+        preserve_mode: bool = True,  # type: ignore[override]
+        preserve_times: bool = True,  # type: ignore[override]
+        preserve_symlinks: bool = False,  # type: ignore[override]
+        level: object = 1,
     ) -> list[str]:
-        assert preserve_mode and preserve_times and not preserve_symlinks
+        assert preserve_mode
+        assert preserve_times
+        assert not preserve_symlinks
         exclude = self.get_exclusions()
 
         if not exclude:

@@ -8,7 +8,6 @@ from distutils import archive_util, dir_util, file_util
 from distutils._log import log
 from glob import glob
 from itertools import filterfalse
-from warnings import warn
 
 from ..core import Command
 from ..errors import DistutilsOptionError, DistutilsTemplateError
@@ -176,17 +175,6 @@ class sdist(Command):
         # Otherwise, go ahead and create the source distribution tarball,
         # or zipfile, or whatever.
         self.make_distribution()
-
-    def check_metadata(self):
-        """Deprecated API."""
-        warn(
-            "distutils.command.sdist.check_metadata is deprecated, \
-              use the check command instead",
-            PendingDeprecationWarning,
-        )
-        check = self.distribution.get_command_obj('check')
-        check.ensure_finalized()
-        check.run()
 
     def get_file_list(self):
         """Figure out the list of files to include in the source

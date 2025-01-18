@@ -8,7 +8,7 @@ import inspect
 import platform
 import sys
 import types
-from typing import Type, TypeVar, cast, overload
+from typing import TypeVar, cast, overload
 
 import distutils.filelist
 
@@ -58,7 +58,7 @@ def get_unpatched_class(cls: type[_T]) -> type[_T]:
     first.
     """
     external_bases = (
-        cast(Type[_T], cls)
+        cast(type[_T], cls)
         for cls in _get_mro(cls)
         if not cls.__module__.startswith('setuptools')
     )
@@ -73,7 +73,7 @@ def patch_all():
     import setuptools
 
     # we can't patch distutils.cmd, alas
-    distutils.core.Command = setuptools.Command
+    distutils.core.Command = setuptools.Command  # type: ignore[misc,assignment] # monkeypatching
 
     _patch_distribution_metadata()
 
@@ -82,8 +82,8 @@ def patch_all():
         module.Distribution = setuptools.dist.Distribution
 
     # Install the patched Extension
-    distutils.core.Extension = setuptools.extension.Extension
-    distutils.extension.Extension = setuptools.extension.Extension
+    distutils.core.Extension = setuptools.extension.Extension  # type: ignore[misc,assignment] # monkeypatching
+    distutils.extension.Extension = setuptools.extension.Extension  # type: ignore[misc,assignment] # monkeypatching
     if 'distutils.command.build_ext' in sys.modules:
         sys.modules[
             'distutils.command.build_ext'

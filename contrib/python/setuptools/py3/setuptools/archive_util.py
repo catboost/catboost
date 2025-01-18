@@ -31,7 +31,9 @@ def default_filter(src, dst):
     return dst
 
 
-def unpack_archive(filename, extract_dir, progress_filter=default_filter, drivers=None):
+def unpack_archive(
+    filename, extract_dir, progress_filter=default_filter, drivers=None
+) -> None:
     """Unpack `filename` to `extract_dir`, or raise ``UnrecognizedFormat``
 
     `progress_filter` is a function taking two arguments: a source path
@@ -63,7 +65,7 @@ def unpack_archive(filename, extract_dir, progress_filter=default_filter, driver
         raise UnrecognizedFormat("Not a recognized archive type: %s" % filename)
 
 
-def unpack_directory(filename, extract_dir, progress_filter=default_filter):
+def unpack_directory(filename, extract_dir, progress_filter=default_filter) -> None:
     """ "Unpack" a directory, using the same interface as for archives
 
     Raises ``UnrecognizedFormat`` if `filename` is not a directory
@@ -90,7 +92,7 @@ def unpack_directory(filename, extract_dir, progress_filter=default_filter):
             shutil.copystat(f, target)
 
 
-def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
+def unpack_zipfile(filename, extract_dir, progress_filter=default_filter) -> None:
     """Unpack zip `filename` to `extract_dir`
 
     Raises ``UnrecognizedFormat`` if `filename` is not a zipfile (as determined
@@ -185,7 +187,7 @@ def _iter_open_tar(tar_obj, extract_dir, progress_filter):
             yield member, final_dst
 
 
-def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
+def unpack_tarfile(filename, extract_dir, progress_filter=default_filter) -> bool:
     """Unpack tar/tar.gz/tar.bz2 `filename` to `extract_dir`
 
     Raises ``UnrecognizedFormat`` if `filename` is not a tarfile (as determined

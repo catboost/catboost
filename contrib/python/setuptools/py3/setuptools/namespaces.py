@@ -11,7 +11,7 @@ flatten = itertools.chain.from_iterable
 class Installer:
     nspkg_ext = '-nspkg.pth'
 
-    def install_namespaces(self):
+    def install_namespaces(self) -> None:
         nsp = self._get_all_ns_packages()
         if not nsp:
             return
@@ -30,7 +30,7 @@ class Installer:
             # See: python/cpython#77102
             f.writelines(lines)
 
-    def uninstall_namespaces(self):
+    def uninstall_namespaces(self) -> None:
         filename = self._get_nspkg_file()
         if not os.path.exists(filename):
             return

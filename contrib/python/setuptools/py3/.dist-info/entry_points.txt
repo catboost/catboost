@@ -20,7 +20,6 @@ rotate = setuptools.command.rotate:rotate
 saveopts = setuptools.command.saveopts:saveopts
 sdist = setuptools.command.sdist:sdist
 setopt = setuptools.command.setopt:setopt
-upload_docs = setuptools.command.upload_docs:upload_docs
 
 [distutils.setup_keywords]
 dependency_links = setuptools.dist:assert_string_list

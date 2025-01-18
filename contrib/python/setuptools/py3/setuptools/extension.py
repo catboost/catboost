@@ -4,6 +4,8 @@ import functools
 import re
 from typing import TYPE_CHECKING
 
+from setuptools._path import StrPath
+
 from .monkey import get_unpatched
 
 import distutils.core
@@ -27,10 +29,8 @@ def _have_cython():
 # for compatibility
 have_pyrex = _have_cython
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
-
     # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
-    _Extension: TypeAlias = distutils.core.Extension
+    from distutils.core import Extension as _Extension
 else:
     _Extension = get_unpatched(distutils.core.Extension)
 
@@ -52,7 +52,7 @@ class Extension(_Extension):
       the full name of the extension, including any packages -- ie.
       *not* a filename or pathname, but Python dotted name
 
-    :arg list[str] sources:
+    :arg list[str|os.PathLike[str]] sources:
       list of source filenames, relative to the distribution root
       (where the setup script lives), in Unix form (slash-separated)
       for portability.  Source files may be C, C++, SWIG (.i),
@@ -140,11 +140,23 @@ class Extension(_Extension):
     _needs_stub: bool  #: Private API, internal use only.
     _file_name: str  #: Private API, internal use only.
 
-    def __init__(self, name: str, sources, *args, py_limited_api: bool = False, **kw):
+    def __init__(
+        self,
+        name: str,
+        sources: list[StrPath],
+        *args,
+        py_limited_api: bool = False,
+        **kw,
+    ) -> None:
         # The *args is needed for compatibility as calls may use positional
         # arguments. py_limited_api may be set only via keyword.
         self.py_limited_api = py_limited_api
-        super().__init__(name, sources, *args, **kw)
+        super().__init__(
+            name,
+            sources,  # type: ignore[arg-type] # Vendored version of setuptools supports PathLike
+            *args,
+            **kw,
+        )
 
     def _convert_pyx_sources_to_lang(self):
         """

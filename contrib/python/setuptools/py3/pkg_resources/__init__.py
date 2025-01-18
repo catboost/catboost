@@ -21,8 +21,8 @@ from __future__ import annotations
 
 import sys
 
-if sys.version_info < (3, 8):  # noqa: UP036 # Check for unsupported versions
-    raise RuntimeError("Python 3.8 or later is required")
+if sys.version_info < (3, 9):  # noqa: UP036 # Check for unsupported versions
+    raise RuntimeError("Python 3.9 or later is required")
 
 import _imp
 import collections
@@ -50,22 +50,17 @@ import types
 import warnings
 import zipfile
 import zipimport
+from collections.abc import Iterable, Iterator, Mapping, MutableSequence
 from pkgutil import get_importer
 from typing import (
     TYPE_CHECKING,
     Any,
     BinaryIO,
     Callable,
-    Dict,
-    Iterable,
-    Iterator,
     Literal,
-    Mapping,
-    MutableSequence,
     NamedTuple,
     NoReturn,
     Protocol,
-    Tuple,
     TypeVar,
     Union,
     overload,
@@ -172,7 +167,7 @@ def _sget_dict(val):
     return val.copy()
 
 
-def _sset_dict(key, ob, state):
+def _sset_dict(key, ob, state) -> None:
     ob.clear()
     ob.update(state)
 
@@ -181,7 +176,7 @@ def _sget_object(val):
     return val.__getstate__()
 
 
-def _sset_object(key, ob, state):
+def _sset_object(key, ob, state) -> None:
     ob.__setstate__(state)
 
 
@@ -387,7 +382,7 @@ class UnknownExtra(ResolutionError):
 
 _provider_factories: dict[type[_ModuleLike], _ProviderFactoryType] = {}
 
-PY_MAJOR = '{}.{}'.format(*sys.version_info)
+PY_MAJOR = f'{sys.version_info.major}.{sys.version_info.minor}'
 EGG_DIST = 3
 BINARY_DIST = 2
 SOURCE_DIST = 1
@@ -424,7 +419,7 @@ def get_provider(moduleOrReq: str | Requirement) -> IResourceProvider | Distribu
     return _find_adapter(_provider_factories, loader)(module)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _macos_vers():
     version = platform.mac_ver()[0]
     # fallback for MacPorts
@@ -1090,7 +1085,7 @@ class WorkingSet:
         for dist in self:
             callback(dist)
 
-    def _added_new(self, dist):
+    def _added_new(self, dist) -> None:
         for callback in self.callbacks:
             callback(dist)
 
@@ -1120,7 +1115,7 @@ class WorkingSet:
         self.callbacks = callbacks[:]
 
 
-class _ReqExtras(Dict["Requirement", Tuple[str, ...]]):
+class _ReqExtras(dict["Requirement", tuple[str, ...]]):
     """
     Map each requirement to the extras that demanded it.
     """
@@ -1463,7 +1458,7 @@ class ResourceManager:
         return target_path
 
     @staticmethod
-    def _warn_unsafe_extraction_path(path):
+    def _warn_unsafe_extraction_path(path) -> None:
         """
         If the default extraction path is overridden and set to an insecure
         location, such as /tmp, it opens up an opportunity for an attacker to
@@ -1577,7 +1572,7 @@ def safe_version(version: str) -> str:
         return re.sub('[^A-Za-z0-9.]+', '-', version)
 
 
-def _forgiving_version(version):
+def _forgiving_version(version) -> str:
     """Fallback when ``safe_version`` is not safe enough
     >>> parse_version(_forgiving_version('0.23ubuntu1'))
     <Version('0.23.dev0+sanitized.ubuntu1')>
@@ -1779,7 +1774,7 @@ class NullProvider:
         return base
 
     @staticmethod
-    def _validate_resource_path(path):
+    def _validate_resource_path(path) -> None:
         """
         Validate the resource paths according to the docs.
         https://setuptools.pypa.io/en/latest/pkg_resources.html#basic-resource-access
@@ -1890,7 +1885,7 @@ class EggProvider(NullProvider):
         egg = next(eggs, None)
         egg and self._set_egg(egg)
 
-    def _set_egg(self, path: str):
+    def _set_egg(self, path: str) -> None:
         self.egg_name = os.path.basename(path)
         self.egg_info = os.path.join(path, 'EGG-INFO')
         self.egg_root = path
@@ -1918,7 +1913,7 @@ class DefaultProvider(EggProvider):
             return stream.read()
 
     @classmethod
-    def _register(cls):
+    def _register(cls) -> None:
         loader_names = (
             'SourceFileLoader',
             'SourcelessFileLoader',
@@ -1952,7 +1947,7 @@ class EmptyProvider(NullProvider):
 empty_provider = EmptyProvider()
 
 
-class ZipManifests(Dict[str, "MemoizedZipManifests.manifest_mod"]):
+class ZipManifests(dict[str, "MemoizedZipManifests.manifest_mod"]):
     """
     zip manifest builder
     """
@@ -2069,7 +2064,7 @@ class ZipProvider(EggProvider):
             # return the extracted directory name
             return os.path.dirname(last)
 
-        timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
+        timestamp, _size = self._get_date_and_size(self.zipinfo[zip_path])
 
         if not WRITE_SUPPORT:
             raise OSError(
@@ -2208,7 +2203,7 @@ class FileMetadata(EmptyProvider):
         self._warn_on_replacement(metadata)
         return metadata
 
-    def _warn_on_replacement(self, metadata):
+    def _warn_on_replacement(self, metadata) -> None:
         replacement_char = '�'
         if replacement_char in metadata:
             tmpl = "{self.path} could not be properly decoded in UTF-8"
@@ -2505,7 +2500,7 @@ def _handle_ns(packageName, path_item):
     return subpath
 
 
-def _rebuild_mod_path(orig_path, package_name, module: types.ModuleType):
+def _rebuild_mod_path(orig_path, package_name, module: types.ModuleType) -> None:
     """
     Rebuild module.__path__ ensuring that all entries are ordered
     corresponding to their sys.path order
@@ -2624,7 +2619,7 @@ def null_ns_handler(
     path_item: str | None,
     packageName: str | None,
     module: _ModuleLike | None,
-):
+) -> None:
     return None
 
 
@@ -2635,7 +2630,7 @@ register_namespace_handler(object, null_ns_handler)
 def normalize_path(filename: StrPath) -> str: ...
 @overload
 def normalize_path(filename: BytesPath) -> bytes: ...
-def normalize_path(filename: StrOrBytesPath):
+def normalize_path(filename: StrOrBytesPath) -> str | bytes:
     """Normalize a file/dir name for comparison purposes"""
     return os.path.normcase(os.path.realpath(os.path.normpath(_cygwin_patch(filename))))
 
@@ -2662,7 +2657,7 @@ if TYPE_CHECKING:
 
 else:
 
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def _normalize_cached(filename):
         return normalize_path(filename)
 
@@ -2691,7 +2686,7 @@ def _is_unpacked_egg(path):
     )
 
 
-def _set_parent_ns(packageName):
+def _set_parent_ns(packageName) -> None:
     parts = packageName.split('.')
     name = parts.pop()
     if parts:
@@ -2777,7 +2772,7 @@ class EntryPoint:
         if require:
             # We could pass `env` and `installer` directly,
             # but keeping `*args` and `**kwargs` for backwards compatibility
-            self.require(*args, **kwargs)  # type: ignore
+            self.require(*args, **kwargs)  # type: ignore[arg-type]
         return self.resolve()
 
     def resolve(self) -> _ResolvedEntryPoint:
@@ -3336,7 +3331,7 @@ class Distribution:
                 " to sys.path" % (modname, fn, self.location),
             )
 
-    def has_version(self):
+    def has_version(self) -> bool:
         try:
             self.version
         except ValueError:
@@ -3552,7 +3547,7 @@ def ensure_directory(path: StrOrBytesPath) -> None:
     os.makedirs(dirname, exist_ok=True)
 
 
-def _bypass_ensure_directory(path):
+def _bypass_ensure_directory(path) -> None:
     """Sandbox-bypassing version of ensure_directory()"""
     if not WRITE_SUPPORT:
         raise OSError('"os.mkdir" not supported on this platform.')
@@ -3784,7 +3779,7 @@ def _call_aside(f, *args, **kwargs):
 
 
 @_call_aside
-def _initialize(g=globals()):
+def _initialize(g=globals()) -> None:
     "Set up global resource manager (deliberately not state-saved)"
     manager = ResourceManager()
     g['_manager'] = manager
@@ -3796,7 +3791,7 @@ def _initialize(g=globals()):
 
 
 @_call_aside
-def _initialize_master_working_set():
+def _initialize_master_working_set() -> None:
     """
     Prepare the master working set and make the ``require()``
     API available.

@@ -3,18 +3,15 @@ from __future__ import annotations
 import contextlib
 import os
 import sys
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, TypeVar, Union
+
+from more_itertools import unique_everseen
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
-
-from more_itertools import unique_everseen
-
-if sys.version_info >= (3, 9):
-    StrPath: TypeAlias = Union[str, os.PathLike[str]]  #  Same as _typeshed.StrPath
-else:
-    StrPath: TypeAlias = Union[str, os.PathLike]
+StrPath: TypeAlias = Union[str, os.PathLike[str]]  #  Same as _typeshed.StrPath
+StrPathT = TypeVar("StrPathT", bound=Union[str, os.PathLike[str]])
 
 
 def ensure_directory(path):

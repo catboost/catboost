@@ -5,13 +5,14 @@ import itertools
 import os
 import stat
 import textwrap
+from collections.abc import Iterable, Iterator
 from functools import partial
 from glob import glob
 from pathlib import Path
-from typing import Iterable, Iterator
 
 from more_itertools import unique_everseen
 
+from .._path import StrPath, StrPathT
 from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning
 
@@ -22,7 +23,7 @@ from distutils.util import convert_path
 _IMPLICIT_DATA_FILES = ('*.pyi', 'py.typed')
 
 
-def make_writable(target):
+def make_writable(target) -> None:
     os.chmod(target, os.stat(target).st_mode | stat.S_IWRITE)
 
 
@@ -38,7 +39,7 @@ class build_py(orig.build_py):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
     editable_mode: bool = False
-    existing_egg_info_dir: str | None = None  #: Private API, internal use only.
+    existing_egg_info_dir: StrPath | None = None  #: Private API, internal use only.
 
     def finalize_options(self):
         orig.build_py.finalize_options(self)
@@ -46,26 +47,25 @@ class build_py(orig.build_py):
         self.exclude_package_data = self.distribution.exclude_package_data or {}
         if 'data_files' in self.__dict__:
             del self.__dict__['data_files']
-        self.__updated_files = []
 
-    def copy_file(
+    def copy_file(  # type: ignore[override] # No overload, no bytes support
         self,
-        infile,
-        outfile,
-        preserve_mode=True,
-        preserve_times=True,
-        link=None,
-        level=1,
-    ):
+        infile: StrPath,
+        outfile: StrPathT,
+        preserve_mode: bool = True,
+        preserve_times: bool = True,
+        link: str | None = None,
+        level: object = 1,
+    ) -> tuple[StrPathT | str, bool]:
         # Overwrite base class to allow using links
         if link:
             infile = str(Path(infile).resolve())
-            outfile = str(Path(outfile).resolve())
-        return super().copy_file(
+            outfile = str(Path(outfile).resolve())  # type: ignore[assignment] # Re-assigning a str when outfile is StrPath is ok
+        return super().copy_file(  # pyright: ignore[reportReturnType] # pypa/distutils#309
             infile, outfile, preserve_mode, preserve_times, link, level
         )
 
-    def run(self):
+    def run(self) -> None:
         """Build modules, packages, and copy data files to build directory"""
         if not (self.py_modules or self.packages) or self.editable_mode:
             return
@@ -87,12 +87,6 @@ class build_py(orig.build_py):
             self.data_files = self._get_data_files()
             return self.data_files
         return orig.build_py.__getattr__(self, attr)
-
-    def build_module(self, module, module_file, package):
-        outfile, copied = orig.build_py.build_module(self, module, module_file, package)
-        if copied:
-            self.__updated_files.append(outfile)
-        return outfile, copied
 
     def _get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
@@ -141,7 +135,7 @@ class build_py(orig.build_py):
         )
         return self.exclude_data_files(package, src_dir, files)
 
-    def get_outputs(self, include_bytecode=True) -> list[str]:
+    def get_outputs(self, include_bytecode: bool = True) -> list[str]:  # type: ignore[override] # Using a real boolean instead of 0|1
         """See :class:`setuptools.commands.build.SubCommand`"""
         if self.editable_mode:
             return list(self.get_output_mapping().keys())
@@ -170,24 +164,24 @@ class build_py(orig.build_py):
                 srcfile = os.path.join(src_dir, filename)
                 yield (target, srcfile)
 
-    def build_package_data(self):
+    def build_package_data(self) -> None:
         """Copy data files into build directory"""
         for target, srcfile in self._get_package_data_output_mapping():
             self.mkpath(os.path.dirname(target))
             _outf, _copied = self.copy_file(srcfile, target)
             make_writable(target)
 
-    def analyze_manifest(self):
-        self.manifest_files = mf = {}
+    def analyze_manifest(self) -> None:
+        self.manifest_files: dict[str, list[str]] = {}
         if not self.distribution.include_package_data:
             return
-        src_dirs = {}
+        src_dirs: dict[str, str] = {}
         for package in self.packages or ():
             # Locate package source directory
             src_dirs[assert_relative(self.get_package_dir(package))] = package
 
         if (
-            getattr(self, 'existing_egg_info_dir', None)
+            self.existing_egg_info_dir
             and Path(self.existing_egg_info_dir, "SOURCES.txt").exists()
         ):
             egg_info_dir = self.existing_egg_info_dir
@@ -216,9 +210,11 @@ class build_py(orig.build_py):
                     importable = check.importable_subpackage(src_dirs[d], f)
                     if importable:
                         check.warn(importable)
-                mf.setdefault(src_dirs[d], []).append(path)
+                self.manifest_files.setdefault(src_dirs[d], []).append(path)
 
-    def _filter_build_files(self, files: Iterable[str], egg_info: str) -> Iterator[str]:
+    def _filter_build_files(
+        self, files: Iterable[str], egg_info: StrPath
+    ) -> Iterator[str]:
         """
         ``build_meta`` may try to create egg_info outside of the project directory,
         and this can be problematic for certain plugins (reported in issue #3500).
@@ -237,7 +233,7 @@ class build_py(orig.build_py):
             if not os.path.isabs(file) or all(d not in norm_path for d in norm_dirs):
                 yield file
 
-    def get_data_files(self):
+    def get_data_files(self) -> None:
         pass  # Lazily compute data files in _get_data_files() function.
 
     def check_package(self, package, package_dir):
