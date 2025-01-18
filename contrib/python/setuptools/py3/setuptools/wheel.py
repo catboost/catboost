@@ -31,7 +31,7 @@ WHEEL_NAME = re.compile(
 NAMESPACE_PACKAGE_INIT = "__import__('pkg_resources').declare_namespace(__name__)\n"
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _get_supported_tags():
     # We calculate the supported tags only once, otherwise calling
     # this method on thousands of wheels takes seconds instead of
@@ -39,7 +39,7 @@ def _get_supported_tags():
     return {(t.interpreter, t.abi, t.platform) for t in sys_tags()}
 
 
-def unpack(src_dir, dst_dir):
+def unpack(src_dir, dst_dir) -> None:
     """Move everything under `src_dir` to `dst_dir`, and delete the former."""
     for dirpath, dirnames, filenames in os.walk(src_dir):
         subdir = os.path.relpath(dirpath, src_dir)
@@ -76,7 +76,7 @@ def disable_info_traces():
 
 
 class Wheel:
-    def __init__(self, filename):
+    def __init__(self, filename) -> None:
         match = WHEEL_NAME(os.path.basename(filename))
         if match is None:
             raise ValueError('invalid wheel name: %r' % filename)
@@ -116,7 +116,7 @@ class Wheel:
                 return dirname
         raise ValueError("unsupported wheel format. .dist-info not found")
 
-    def install_as_egg(self, destination_eggdir):
+    def install_as_egg(self, destination_eggdir) -> None:
         """Install wheel as an egg directory."""
         with zipfile.ZipFile(self.filename) as zf:
             self._install_as_egg(destination_eggdir, zf)

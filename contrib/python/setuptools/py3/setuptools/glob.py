@@ -6,14 +6,21 @@ Changes include:
  * Hidden files are not ignored.
 """
 
+from __future__ import annotations
+
 import fnmatch
 import os
 import re
+from collections.abc import Iterable, Iterator
+from typing import TYPE_CHECKING, AnyStr, overload
+
+if TYPE_CHECKING:
+    from _typeshed import BytesPath, StrOrBytesPath, StrPath
 
 __all__ = ["glob", "iglob", "escape"]
 
 
-def glob(pathname, recursive=False):
+def glob(pathname: AnyStr, recursive: bool = False) -> list[AnyStr]:
     """Return a list of paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la
@@ -27,7 +34,7 @@ def glob(pathname, recursive=False):
     return list(iglob(pathname, recursive=recursive))
 
 
-def iglob(pathname, recursive=False):
+def iglob(pathname: AnyStr, recursive: bool = False) -> Iterator[AnyStr]:
     """Return an iterator which yields the paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la
@@ -45,7 +52,7 @@ def iglob(pathname, recursive=False):
     return it
 
 
-def _iglob(pathname, recursive):
+def _iglob(pathname: AnyStr, recursive: bool) -> Iterator[AnyStr]:
     dirname, basename = os.path.split(pathname)
     glob_in_dir = glob2 if recursive and _isrecursive(basename) else glob1
 
@@ -66,7 +73,7 @@ def _iglob(pathname, recursive):
     # drive or UNC path.  Prevent an infinite recursion if a drive or UNC path
     # contains magic characters (i.e. r'\\?\C:').
     if dirname != pathname and has_magic(dirname):
-        dirs = _iglob(dirname, recursive)
+        dirs: Iterable[AnyStr] = _iglob(dirname, recursive)
     else:
         dirs = [dirname]
     if not has_magic(basename):
@@ -81,7 +88,11 @@ def _iglob(pathname, recursive):
 # takes a literal basename (so it only has to check for its existence).
 
 
-def glob1(dirname, pattern):
+@overload
+def glob1(dirname: StrPath, pattern: str) -> list[str]: ...
+@overload
+def glob1(dirname: BytesPath, pattern: bytes) -> list[bytes]: ...
+def glob1(dirname: StrOrBytesPath, pattern: str | bytes) -> list[str] | list[bytes]:
     if not dirname:
         if isinstance(pattern, bytes):
             dirname = os.curdir.encode('ASCII')
@@ -91,7 +102,8 @@ def glob1(dirname, pattern):
         names = os.listdir(dirname)
     except OSError:
         return []
-    return fnmatch.filter(names, pattern)
+    # mypy false-positives: str or bytes type possibility is always kept in sync
+    return fnmatch.filter(names, pattern)  # type: ignore[type-var, return-value]
 
 
 def glob0(dirname, basename):
@@ -110,14 +122,22 @@ def glob0(dirname, basename):
 # directory.
 
 
-def glob2(dirname, pattern):
+@overload
+def glob2(dirname: StrPath, pattern: str) -> Iterator[str]: ...
+@overload
+def glob2(dirname: BytesPath, pattern: bytes) -> Iterator[bytes]: ...
+def glob2(dirname: StrOrBytesPath, pattern: str | bytes) -> Iterator[str | bytes]:
     assert _isrecursive(pattern)
     yield pattern[:0]
     yield from _rlistdir(dirname)
 
 
 # Recursively yields relative pathnames inside a literal directory.
-def _rlistdir(dirname):
+@overload
+def _rlistdir(dirname: StrPath) -> Iterator[str]: ...
+@overload
+def _rlistdir(dirname: BytesPath) -> Iterator[bytes]: ...
+def _rlistdir(dirname: StrOrBytesPath) -> Iterator[str | bytes]:
     if not dirname:
         if isinstance(dirname, bytes):
             dirname = os.curdir.encode('ASCII')
@@ -129,24 +149,24 @@ def _rlistdir(dirname):
         return
     for x in names:
         yield x
-        path = os.path.join(dirname, x) if dirname else x
+        # mypy false-positives: str or bytes type possibility is always kept in sync
+        path = os.path.join(dirname, x) if dirname else x  # type: ignore[arg-type]
         for y in _rlistdir(path):
-            yield os.path.join(x, y)
+            yield os.path.join(x, y)  # type: ignore[arg-type]
 
 
 magic_check = re.compile('([*?[])')
 magic_check_bytes = re.compile(b'([*?[])')
 
 
-def has_magic(s):
+def has_magic(s: str | bytes) -> bool:
     if isinstance(s, bytes):
-        match = magic_check_bytes.search(s)
+        return magic_check_bytes.search(s) is not None
     else:
-        match = magic_check.search(s)
-    return match is not None
+        return magic_check.search(s) is not None
 
 
-def _isrecursive(pattern):
+def _isrecursive(pattern: str | bytes) -> bool:
     if isinstance(pattern, bytes):
         return pattern == b'**'
     else:

@@ -9,7 +9,8 @@ import sys
 import types
 import warnings
 
-from ._itertools import always_iterable
+from more_itertools import always_iterable
+
 from ._log import log
 from ._modified import newer_group
 from .dir_util import mkpath

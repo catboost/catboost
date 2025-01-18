@@ -15,7 +15,7 @@ class bdist_rpm(orig.bdist_rpm):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def run(self):
+    def run(self) -> None:
         SetuptoolsDeprecationWarning.emit(
             "Deprecated command",
             """

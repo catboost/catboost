@@ -10,7 +10,8 @@ import sysconfig
 from distutils._log import log
 from site import USER_BASE, USER_SITE
 
-from .. import _collections
+import jaraco.collections
+
 from ..core import Command
 from ..debug import DEBUG
 from ..errors import DistutilsOptionError, DistutilsPlatformError
@@ -428,7 +429,7 @@ class install(Command):
             local_vars['userbase'] = self.install_userbase
             local_vars['usersite'] = self.install_usersite
 
-        self.config_vars = _collections.DictStack([
+        self.config_vars = jaraco.collections.DictStack([
             fw.vars(),
             compat_vars,
             sysconfig.get_config_vars(),

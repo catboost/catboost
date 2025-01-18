@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import cast
 
 from .. import _normalization
+from .._shutil import rmdir as _rm
 from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
@@ -48,7 +49,7 @@ class dist_info(Command):
         self.tag_build = None
         self.keep_egg_info = False
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         dist = self.distribution
         project_dir = dist.src_root or os.curdir
         self.output_dir = Path(self.output_dir or project_dir)
@@ -88,7 +89,7 @@ class dist_info(Command):
         else:
             yield
 
-    def run(self):
+    def run(self) -> None:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.egg_info.run()
         egg_info_dir = self.egg_info.egg_info
@@ -100,8 +101,3 @@ class dist_info(Command):
         # TODO: if bdist_wheel if merged into setuptools, just add "keep_egg_info" there
         with self._maybe_bkp_dir(egg_info_dir, self.keep_egg_info):
             bdist_wheel.egg2dist(egg_info_dir, self.dist_info_dir)
-
-
-def _rm(dir_name, **opts):
-    if os.path.isdir(dir_name):
-        shutil.rmtree(dir_name, **opts)

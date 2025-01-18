@@ -41,10 +41,11 @@ from __future__ import annotations
 
 import itertools
 import os
+from collections.abc import Iterable, Iterator, Mapping
 from fnmatch import fnmatchcase
 from glob import glob
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, Iterator, Mapping
+from typing import TYPE_CHECKING, ClassVar
 
 import _distutils_hack.override  # noqa: F401
 
@@ -53,12 +54,10 @@ from ._path import StrPath
 from distutils import log
 from distutils.util import convert_path
 
-StrIter = Iterator[str]
-
-chain_iter = itertools.chain.from_iterable
-
 if TYPE_CHECKING:
     from setuptools import Distribution
+
+chain_iter = itertools.chain.from_iterable
 
 
 def _valid_name(path: StrPath) -> bool:
@@ -72,7 +71,7 @@ class _Filter:
     the input matches at least one of the patterns.
     """
 
-    def __init__(self, *patterns: str):
+    def __init__(self, *patterns: str) -> None:
         self._patterns = dict.fromkeys(patterns)
 
     def __call__(self, item: str) -> bool:
@@ -85,8 +84,8 @@ class _Filter:
 class _Finder:
     """Base class that exposes functionality for module/package finders"""
 
-    ALWAYS_EXCLUDE: tuple[str, ...] = ()
-    DEFAULT_EXCLUDE: tuple[str, ...] = ()
+    ALWAYS_EXCLUDE: ClassVar[tuple[str, ...]] = ()
+    DEFAULT_EXCLUDE: ClassVar[tuple[str, ...]] = ()
 
     @classmethod
     def find(
@@ -124,7 +123,9 @@ class _Finder:
         )
 
     @classmethod
-    def _find_iter(cls, where: StrPath, exclude: _Filter, include: _Filter) -> StrIter:
+    def _find_iter(
+        cls, where: StrPath, exclude: _Filter, include: _Filter
+    ) -> Iterator[str]:
         raise NotImplementedError
 
 
@@ -136,7 +137,9 @@ class PackageFinder(_Finder):
     ALWAYS_EXCLUDE = ("ez_setup", "*__pycache__")
 
     @classmethod
-    def _find_iter(cls, where: StrPath, exclude: _Filter, include: _Filter) -> StrIter:
+    def _find_iter(
+        cls, where: StrPath, exclude: _Filter, include: _Filter
+    ) -> Iterator[str]:
         """
         All the packages found in 'where' that pass the 'include' filter, but
         not the 'exclude' filter.
@@ -185,7 +188,9 @@ class ModuleFinder(_Finder):
     """
 
     @classmethod
-    def _find_iter(cls, where: StrPath, exclude: _Filter, include: _Filter) -> StrIter:
+    def _find_iter(
+        cls, where: StrPath, exclude: _Filter, include: _Filter
+    ) -> Iterator[str]:
         for file in glob(os.path.join(where, "*.py")):
             module, _ext = os.path.splitext(os.path.basename(file))
 
@@ -295,7 +300,7 @@ class ConfigDiscovery:
     (from other metadata/options, the file system or conventions)
     """
 
-    def __init__(self, distribution: Distribution):
+    def __init__(self, distribution: Distribution) -> None:
         self.dist = distribution
         self._called = False
         self._disabled = False
@@ -328,7 +333,9 @@ class ConfigDiscovery:
             return {}
         return self.dist.package_dir
 
-    def __call__(self, force=False, name=True, ignore_ext_modules=False):
+    def __call__(
+        self, force: bool = False, name: bool = True, ignore_ext_modules: bool = False
+    ):
         """Automatically discover missing configuration fields
         and modifies the given ``distribution`` object in-place.
 
@@ -472,7 +479,7 @@ class ConfigDiscovery:
             """
             raise PackageDiscoveryError(cleandoc(msg))
 
-    def analyse_name(self):
+    def analyse_name(self) -> None:
         """The packages/modules are the essential contribution of the author.
         Therefore the name of the distribution can be derived from them.
         """

@@ -3,7 +3,8 @@
 import functools
 import os.path
 
-from ._functools import splat
+from jaraco.functools import splat
+
 from .compat.py39 import zip_strict
 from .errors import DistutilsFileError
 

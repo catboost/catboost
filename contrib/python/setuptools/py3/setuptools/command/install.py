@@ -4,7 +4,7 @@ import glob
 import inspect
 import platform
 from collections.abc import Callable
-from typing import Any, ClassVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 import setuptools
 
@@ -15,9 +15,22 @@ from .bdist_egg import bdist_egg as bdist_egg_cls
 import distutils.command.install as orig
 from distutils.errors import DistutilsArgError
 
-# Prior to numpy 1.9, NumPy relies on the '_install' name, so provide it for
-# now. See https://github.com/pypa/setuptools/issues/199/
-_install = orig.install
+if TYPE_CHECKING:
+    # This is only used for a type-cast, don't import at runtime or it'll cause deprecation warnings
+    from .easy_install import easy_install as easy_install_cls
+else:
+    easy_install_cls = None
+
+
+def __getattr__(name: str):  # pragma: no cover
+    if name == "_install":
+        SetuptoolsDeprecationWarning.emit(
+            "`setuptools.command._install` was an internal implementation detail "
+            + "that was left in for numpy<1.9 support.",
+            due_date=(2025, 5, 2),  # Originally added on 2024-11-01
+        )
+        return orig.install
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class install(orig.install):
@@ -63,15 +76,14 @@ class install(orig.install):
         self.old_and_unmanageable = None
         self.single_version_externally_managed = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         super().finalize_options()
         if self.root:
             self.single_version_externally_managed = True
         elif self.single_version_externally_managed:
             if not self.root and not self.record:
                 raise DistutilsArgError(
-                    "You must specify --record or --root when building system"
-                    " packages"
+                    "You must specify --record or --root when building system packages"
                 )
 
     def handle_extra_path(self):
@@ -131,14 +143,20 @@ class install(orig.install):
 
         return False
 
-    def do_egg_install(self):
+    def do_egg_install(self) -> None:
         easy_install = self.distribution.get_command_class('easy_install')
 
-        cmd = easy_install(
-            self.distribution,
-            args="x",
-            root=self.root,
-            record=self.record,
+        cmd = cast(
+            # We'd want to cast easy_install as type[easy_install_cls] but a bug in
+            # mypy makes it think easy_install() returns a Command on Python 3.12+
+            # https://github.com/python/mypy/issues/18088
+            easy_install_cls,
+            easy_install(  # type: ignore[call-arg]
+                self.distribution,
+                args="x",
+                root=self.root,
+                record=self.record,
+            ),
         )
         cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
         cmd.always_copy_from = '.'  # make sure local-dir eggs get installed

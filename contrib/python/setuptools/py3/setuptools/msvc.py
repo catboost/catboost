@@ -13,11 +13,14 @@ import json
 import os
 import os.path
 import platform
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 from more_itertools import unique_everseen
 
 import distutils.errors
+
+if TYPE_CHECKING:
+    from typing_extensions import LiteralString, NotRequired
 
 # https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':
@@ -47,7 +50,7 @@ class PlatformInfo:
 
     current_cpu = environ.get('processor_architecture', '').lower()
 
-    def __init__(self, arch):
+    def __init__(self, arch) -> None:
         self.arch = arch.lower().replace('x64', 'amd64')
 
     @property
@@ -84,7 +87,7 @@ class PlatformInfo:
         """
         return self.current_cpu == 'x86'
 
-    def current_dir(self, hidex86=False, x64=False):
+    def current_dir(self, hidex86=False, x64=False) -> str:
         """
         Current platform specific subfolder.
 
@@ -108,7 +111,7 @@ class PlatformInfo:
             else r'\%s' % self.current_cpu
         )
 
-    def target_dir(self, hidex86=False, x64=False):
+    def target_dir(self, hidex86=False, x64=False) -> str:
         r"""
         Target platform specific subfolder.
 
@@ -173,11 +176,11 @@ class RegistryInfo:
         winreg.HKEY_CLASSES_ROOT,
     )
 
-    def __init__(self, platform_info):
+    def __init__(self, platform_info) -> None:
         self.pi = platform_info
 
     @property
-    def visualstudio(self):
+    def visualstudio(self) -> str:
         """
         Microsoft Visual Studio root registry key.
 
@@ -225,7 +228,7 @@ class RegistryInfo:
         return os.path.join(self.sxs, 'VS7')
 
     @property
-    def vc_for_python(self):
+    def vc_for_python(self) -> str:
         """
         Microsoft Visual C++ for Python registry key.
 
@@ -237,7 +240,7 @@ class RegistryInfo:
         return r'DevDiv\VCForPython'
 
     @property
-    def microsoft_sdk(self):
+    def microsoft_sdk(self) -> str:
         """
         Microsoft SDK registry key.
 
@@ -273,7 +276,7 @@ class RegistryInfo:
         return os.path.join(self.microsoft_sdk, 'NETFXSDK')
 
     @property
-    def windows_kits_roots(self):
+    def windows_kits_roots(self) -> str:
         """
         Microsoft Windows Kits Roots registry key.
 
@@ -363,7 +366,7 @@ class SystemInfo:
     ProgramFiles = environ.get('ProgramFiles', '')
     ProgramFilesx86 = environ.get('ProgramFiles(x86)', ProgramFiles)
 
-    def __init__(self, registry_info, vc_ver=None):
+    def __init__(self, registry_info, vc_ver=None) -> None:
         self.ri = registry_info
         self.pi = self.ri.pi
 
@@ -423,7 +426,7 @@ class SystemInfo:
                             vs_vers.append(ver)
         return sorted(vs_vers)
 
-    def find_programdata_vs_vers(self):
+    def find_programdata_vs_vers(self) -> dict[float, str]:
         r"""
         Find Visual studio 2017+ versions from information in
         "C:\ProgramData\Microsoft\VisualStudio\Packages\_Instances".
@@ -433,7 +436,7 @@ class SystemInfo:
         dict
             float version as key, path as value.
         """
-        vs_versions = {}
+        vs_versions: dict[float, str] = {}
         instances_dir = r'C:\ProgramData\Microsoft\VisualStudio\Packages\_Instances'
 
         try:
@@ -570,7 +573,7 @@ class SystemInfo:
         return self.ri.lookup(self.ri.vc, '%0.1f' % self.vs_ver) or default_vc
 
     @property
-    def WindowsSdkVersion(self):
+    def WindowsSdkVersion(self) -> tuple[LiteralString, ...]:
         """
         Microsoft Windows SDK versions for specified MSVC++ version.
 
@@ -589,7 +592,7 @@ class SystemInfo:
             return '8.1', '8.1a'
         elif self.vs_ver >= 14.0:
             return '10.0', '8.1'
-        return None
+        return ()
 
     @property
     def WindowsSdkLastVersion(self):
@@ -604,7 +607,7 @@ class SystemInfo:
         return self._use_last_dir_name(os.path.join(self.WindowsSdkDir, 'lib'))
 
     @property
-    def WindowsSdkDir(self):  # noqa: C901  # is too complex (12)  # FIXME
+    def WindowsSdkDir(self) -> str | None:  # noqa: C901  # is too complex (12)  # FIXME
         """
         Microsoft Windows SDK directory.
 
@@ -613,7 +616,7 @@ class SystemInfo:
         str
             path
         """
-        sdkdir = ''
+        sdkdir: str | None = ''
         for ver in self.WindowsSdkVersion:
             # Try to get it from registry
             loc = os.path.join(self.ri.windows_sdk, 'v%s' % ver)
@@ -797,7 +800,7 @@ class SystemInfo:
         return self.ri.lookup(self.ri.vc, 'frameworkdir64') or guess_fw
 
     @property
-    def FrameworkVersion32(self):
+    def FrameworkVersion32(self) -> tuple[str, ...]:
         """
         Microsoft .NET Framework 32bit versions.
 
@@ -809,7 +812,7 @@ class SystemInfo:
         return self._find_dot_net_versions(32)
 
     @property
-    def FrameworkVersion64(self):
+    def FrameworkVersion64(self) -> tuple[str, ...]:
         """
         Microsoft .NET Framework 64bit versions.
 
@@ -820,7 +823,7 @@ class SystemInfo:
         """
         return self._find_dot_net_versions(64)
 
-    def _find_dot_net_versions(self, bits):
+    def _find_dot_net_versions(self, bits) -> tuple[str, ...]:
         """
         Find Microsoft .NET Framework versions.
 
@@ -848,7 +851,7 @@ class SystemInfo:
             return 'v3.5', 'v2.0.50727'
         elif self.vs_ver == 8.0:
             return 'v3.0', 'v2.0.50727'
-        return None
+        return ()
 
     @staticmethod
     def _use_last_dir_name(path, prefix=''):
@@ -876,6 +879,14 @@ class SystemInfo:
         return next(matching_dirs, None) or ''
 
 
+class _EnvironmentDict(TypedDict):
+    include: str
+    lib: str
+    libpath: str
+    path: str
+    py_vcruntime_redist: NotRequired[str | None]
+
+
 class EnvironmentInfo:
     """
     Return environment variables for specified Microsoft Visual C++ version
@@ -900,7 +911,7 @@ class EnvironmentInfo:
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparison.
 
-    def __init__(self, arch, vc_ver=None, vc_min_ver=0):
+    def __init__(self, arch, vc_ver=None, vc_min_ver=0) -> None:
         self.pi = PlatformInfo(arch)
         self.ri = RegistryInfo(self.pi)
         self.si = SystemInfo(self.ri, vc_ver)
@@ -1418,9 +1429,9 @@ class EnvironmentInfo:
             os.path.join(prefix, arch_subdir, crt_dir, vcruntime)
             for (prefix, crt_dir) in itertools.product(prefixes, crt_dirs)
         )
-        return next(filter(os.path.isfile, candidate_paths), None)
+        return next(filter(os.path.isfile, candidate_paths), None)  # type: ignore[arg-type] #python/mypy#12682
 
-    def return_env(self, exists=True):
+    def return_env(self, exists: bool = True) -> _EnvironmentDict:
         """
         Return environment dict.
 
@@ -1434,7 +1445,7 @@ class EnvironmentInfo:
         dict
             environment
         """
-        env = dict(
+        env = _EnvironmentDict(
             include=self._build_paths(
                 'include',
                 [
