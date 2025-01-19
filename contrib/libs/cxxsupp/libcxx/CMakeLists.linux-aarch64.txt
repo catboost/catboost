@@ -60,6 +60,7 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/filesystem_error.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/operations.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/path.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/fstream.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/functional.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/future.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/hash.cpp
@@ -73,6 +74,7 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/mutex.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/mutex_destructor.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/optional.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/ostream.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/print.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/random.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/random_shuffle.cpp
@@ -94,7 +96,8 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/new.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/new_handler.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/new_helpers.cpp
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/tz.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/time_zone.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/tzdb.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/tzdb_list.cpp
 )
 
