@@ -17,7 +17,6 @@
 #include <__concepts/derived_from.h>
 #include <__concepts/different_from.h>
 #include <__config>
-#include <__fwd/get.h>
 #include <__fwd/subrange.h>
 #include <__iterator/advance.h>
 #include <__iterator/concepts.h>
@@ -101,8 +100,8 @@ public:
     requires(_Kind == subrange_kind::sized)
       : __begin_(std::move(__iter)), __end_(std::move(__sent)), __size_(__n) {
     if constexpr (sized_sentinel_for<_Sent, _Iter>)
-      _LIBCPP_ASSERT_UNCATEGORIZED((__end_ - __begin_) == static_cast<iter_difference_t<_Iter>>(__n),
-                                   "std::ranges::subrange was passed an invalid size hint");
+      _LIBCPP_ASSERT_VALID_ELEMENT_ACCESS((__end_ - __begin_) == static_cast<iter_difference_t<_Iter>>(__n),
+                                          "std::ranges::subrange was passed an invalid size hint");
   }
 
   template <__different_from<subrange> _Range>
