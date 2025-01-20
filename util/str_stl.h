@@ -160,7 +160,7 @@ struct THash: public ::hash<T> {
 };
 
 namespace NHashPrivate {
-    template <class TFirst, class TSecond, bool IsEmpty = std::is_empty<THash<TFirst>>::value&& std::is_empty<THash<TSecond>>::value>
+    template <class TFirst, class TSecond, bool IsEmpty = std::is_empty<THash<TFirst>>::value && std::is_empty<THash<TSecond>>::value>
     struct TPairHash {
     private:
         THash<TFirst> FirstHash;

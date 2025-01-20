@@ -37,7 +37,7 @@
 #undef GRANULARITY
 
 #ifdef _win_
-    #define MAP_FAILED ((void*)(LONG_PTR)-1)
+    #define MAP_FAILED ((void*)(LONG_PTR) - 1)
 #endif
 
 namespace {
