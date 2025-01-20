@@ -185,7 +185,7 @@ class _ConfigExpander:
         self.dynamic_cfg = self.setuptools_cfg.get("dynamic", {})
         self.ignore_option_errors = ignore_option_errors
         self._dist = dist
-        self._referenced_files: set[str] = set()
+        self._referenced_files = set[str]()
 
     def _ensure_dist(self) -> Distribution:
         from setuptools.dist import Distribution

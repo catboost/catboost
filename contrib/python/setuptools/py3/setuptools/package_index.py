@@ -74,7 +74,7 @@ def parse_requirement_arg(spec):
         return Requirement.parse(spec)
     except ValueError as e:
         raise DistutilsError(
-            "Not a URL, existing file, or requirement spec: %r" % (spec,)
+            f"Not a URL, existing file, or requirement spec: {spec!r}"
         ) from e
 
 
@@ -357,7 +357,7 @@ class PackageIndex(Environment):
         if f is None:
             return
         if isinstance(f, urllib.error.HTTPError) and f.code == 401:
-            self.info("Authentication error: %s" % f.msg)
+            self.info(f"Authentication error: {f.msg}")
         self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()  # not html, we can't process it
@@ -474,13 +474,13 @@ class PackageIndex(Environment):
             base, frag = egg_info_for_url(new_url)
             if base.endswith('.py') and not frag:
                 if ver:
-                    new_url += '#egg=%s-%s' % (pkg, ver)
+                    new_url += f'#egg={pkg}-{ver}'
                 else:
                     self.need_version_info(url)
             self.scan_url(new_url)
 
         return PYPI_MD5.sub(
-            lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1, 3, 2), page
+            lambda m: '<a href="{}#md5={}">{}</a>'.format(*m.group(1, 3, 2)), page
         )
 
     def need_version_info(self, url) -> None:
@@ -525,14 +525,13 @@ class PackageIndex(Environment):
         """
         checker is a ContentChecker
         """
-        checker.report(self.debug, "Validating %%s checksum for %s" % filename)
+        checker.report(self.debug, f"Validating %s checksum for {filename}")
         if not checker.is_valid():
             tfp.close()
             os.unlink(filename)
             raise DistutilsError(
-                "%s validation failed for %s; "
+                f"{checker.hash.name} validation failed for {os.path.basename(filename)}; "
                 "possible download problem?"
-                % (checker.hash.name, os.path.basename(filename))
             )
 
     def add_find_links(self, urls) -> None:
@@ -720,20 +719,15 @@ class PackageIndex(Environment):
             with open(os.path.join(tmpdir, 'setup.py'), 'w', encoding="utf-8") as file:
                 file.write(
                     "from setuptools import setup\n"
-                    "setup(name=%r, version=%r, py_modules=[%r])\n"
-                    % (
-                        dists[0].project_name,
-                        dists[0].version,
-                        os.path.splitext(basename)[0],
-                    )
+                    f"setup(name={dists[0].project_name!r}, version={dists[0].version!r}, py_modules=[{os.path.splitext(basename)[0]!r}])\n"
                 )
             return filename
 
         elif match:
             raise DistutilsError(
-                "Can't unambiguously interpret project/version identifier %r; "
+                f"Can't unambiguously interpret project/version identifier {fragment!r}; "
                 "any dashes in the name or version should be escaped using "
-                "underscores. %r" % (fragment, dists)
+                f"underscores. {dists!r}"
             )
         else:
             raise DistutilsError(
@@ -751,9 +745,7 @@ class PackageIndex(Environment):
             checker = HashChecker.from_url(url)
             fp = self.open_url(url)
             if isinstance(fp, urllib.error.HTTPError):
-                raise DistutilsError(
-                    "Can't download %s: %s %s" % (url, fp.code, fp.msg)
-                )
+                raise DistutilsError(f"Can't download {url}: {fp.code} {fp.msg}")
             headers = fp.info()
             blocknum = 0
             bs = self.dl_blocksize
@@ -793,29 +785,27 @@ class PackageIndex(Environment):
             if warning:
                 self.warn(warning, msg)
             else:
-                raise DistutilsError('%s %s' % (url, msg)) from v
+                raise DistutilsError(f'{url} {msg}') from v
         except urllib.error.HTTPError as v:
             return v
         except urllib.error.URLError as v:
             if warning:
                 self.warn(warning, v.reason)
             else:
-                raise DistutilsError(
-                    "Download error for %s: %s" % (url, v.reason)
-                ) from v
+                raise DistutilsError(f"Download error for {url}: {v.reason}") from v
         except http.client.BadStatusLine as v:
             if warning:
                 self.warn(warning, v.line)
             else:
                 raise DistutilsError(
-                    '%s returned a bad status line. The server might be '
-                    'down, %s' % (url, v.line)
+                    f'{url} returned a bad status line. The server might be '
+                    f'down, {v.line}'
                 ) from v
         except (http.client.HTTPException, OSError) as v:
             if warning:
                 self.warn(warning, v)
             else:
-                raise DistutilsError("Download error for %s: %s" % (url, v)) from v
+                raise DistutilsError(f"Download error for {url}: {v}") from v
 
     def _download_url(self, url, tmpdir):
         # Determine download filename
@@ -1134,7 +1124,7 @@ def local_open(url):
                 break
             elif os.path.isdir(filepath):
                 f += '/'
-            files.append('<a href="{name}">{name}</a>'.format(name=f))
+            files.append(f'<a href="{f}">{f}</a>')
         else:
             tmpl = "<html><head><title>{url}</title></head><body>{files}</body></html>"
             body = tmpl.format(url=url, files='\n'.join(files))

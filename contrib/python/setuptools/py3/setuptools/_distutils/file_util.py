@@ -118,7 +118,7 @@ def copy_file(  # noqa: C901
     if update and not newer(src, dst):
         if verbose >= 1:
             log.debug("not copying %s (output up-to-date)", src)
-        return (dst, 0)
+        return (dst, False)
 
     try:
         action = _copy_action[link]
@@ -132,7 +132,7 @@ def copy_file(  # noqa: C901
             log.info("%s %s -> %s", action, src, dst)
 
     if dry_run:
-        return (dst, 1)
+        return (dst, True)
 
     # If linking (hard or symbolic), use the appropriate system call
     # (Unix only, of course, but that's the caller's responsibility)
@@ -146,11 +146,11 @@ def copy_file(  # noqa: C901
                 #  even under Unix, see issue #8876).
                 pass
             else:
-                return (dst, 1)
+                return (dst, True)
     elif link == 'sym':
         if not (os.path.exists(dst) and os.path.samefile(src, dst)):
             os.symlink(src, dst)
-            return (dst, 1)
+            return (dst, True)
 
     # Otherwise (non-Mac, not linking), copy the file contents and
     # (optionally) copy the times and mode.
@@ -165,7 +165,7 @@ def copy_file(  # noqa: C901
         if preserve_mode:
             os.chmod(dst, S_IMODE(st[ST_MODE]))
 
-    return (dst, 1)
+    return (dst, True)
 
 
 # XXX I suspect this is Unix-specific -- need porting help!

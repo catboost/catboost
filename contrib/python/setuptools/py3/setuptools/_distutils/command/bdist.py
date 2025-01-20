@@ -5,6 +5,7 @@ distribution)."""
 
 import os
 import warnings
+from typing import ClassVar
 
 from ..core import Command
 from ..errors import DistutilsOptionError, DistutilsPlatformError
@@ -23,7 +24,7 @@ def show_formats():
     pretty_printer.print_help("List of available distribution formats:")
 
 
-class ListCompat(dict):
+class ListCompat(dict[str, tuple[str, str]]):
     # adapter to allow for Setuptools compatibility in format_commands
     def append(self, item):
         warnings.warn(
@@ -70,7 +71,7 @@ class bdist(Command):
     ]
 
     # The following commands do not take a format option from bdist
-    no_format_option = ('bdist_rpm',)
+    no_format_option: ClassVar[tuple[str, ...]] = ('bdist_rpm',)
 
     # This won't do in reality: will need to distinguish RPM-ish Linux,
     # Debian-ish Linux, Solaris, FreeBSD, ..., Windows, Mac OS.

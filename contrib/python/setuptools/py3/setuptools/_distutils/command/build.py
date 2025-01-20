@@ -113,7 +113,8 @@ class build(Command):
             self.build_temp = os.path.join(self.build_base, 'temp' + plat_specifier)
         if self.build_scripts is None:
             self.build_scripts = os.path.join(
-                self.build_base, 'scripts-%d.%d' % sys.version_info[:2]
+                self.build_base,
+                f'scripts-{sys.version_info.major}.{sys.version_info.minor}',
             )
 
         if self.executable is None and sys.executable:

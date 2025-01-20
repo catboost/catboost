@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 75.6.0
+Version: 75.7.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Author-email: Python Packaging Authority <distutils-sig@python.org>
 Project-URL: Source, https://github.com/pypa/setuptools
@@ -27,7 +27,7 @@ Requires-Dist: pip>=19.1; extra == "test"
 Requires-Dist: packaging>=24.2; extra == "test"
 Requires-Dist: jaraco.envs>=2.2; extra == "test"
 Requires-Dist: pytest-xdist>=3; extra == "test"
-Requires-Dist: jaraco.path>=3.2.0; extra == "test"
+Requires-Dist: jaraco.path>=3.7.2; extra == "test"
 Requires-Dist: build[virtualenv]>=1.0.3; extra == "test"
 Requires-Dist: filelock>=3.4.0; extra == "test"
 Requires-Dist: ini2toml[lite]>=0.14; extra == "test"
@@ -71,14 +71,14 @@ Requires-Dist: more_itertools; extra == "core"
 Provides-Extra: check
 Requires-Dist: pytest-checkdocs>=2.4; extra == "check"
 Requires-Dist: pytest-ruff>=0.2.1; sys_platform != "cygwin" and extra == "check"
-Requires-Dist: ruff>=0.7.0; sys_platform != "cygwin" and extra == "check"
+Requires-Dist: ruff>=0.8.0; sys_platform != "cygwin" and extra == "check"
 Provides-Extra: cover
 Requires-Dist: pytest-cov; extra == "cover"
 Provides-Extra: enabler
 Requires-Dist: pytest-enabler>=2.2; extra == "enabler"
 Provides-Extra: type
 Requires-Dist: pytest-mypy; extra == "type"
-Requires-Dist: mypy<1.14,>=1.12; extra == "type"
+Requires-Dist: mypy==1.14.*; extra == "type"
 Requires-Dist: importlib_metadata>=7.0.2; python_version < "3.10" and extra == "type"
 Requires-Dist: jaraco.develop>=7.21; sys_platform != "cygwin" and extra == "type"
 

@@ -259,10 +259,10 @@ class build_py(orig.build_py):
             contents = f.read()
         if b'declare_namespace' not in contents:
             raise distutils.errors.DistutilsError(
-                "Namespace package problem: %s is a namespace package, but "
+                f"Namespace package problem: {package} is a namespace package, but "
                 "its\n__init__.py does not call declare_namespace()! Please "
                 'fix it.\n(See the setuptools manual under '
-                '"Namespace Packages" for details.)\n"' % (package,)
+                '"Namespace Packages" for details.)\n"'
             )
         return init_py
 

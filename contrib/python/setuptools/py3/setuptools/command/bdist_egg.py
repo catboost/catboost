@@ -69,7 +69,7 @@ def write_stub(resource, pyfile) -> None:
 
 
 class bdist_egg(Command):
-    description = "create an \"egg\" distribution"
+    description = 'create an "egg" distribution'
 
     user_options = [
         ('bdist-dir=', 'b', "temporary directory for creating the distribution"),
@@ -263,7 +263,7 @@ class bdist_egg(Command):
                     pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\.pyc'
                     m = re.match(pattern, name)
                     path_new = os.path.join(base, os.pardir, m.group('name') + '.pyc')
-                    log.info("Renaming file from [%s] to [%s]" % (path_old, path_new))
+                    log.info(f"Renaming file from [{path_old}] to [{path_new}]")
                     try:
                         os.remove(path_new)
                     except OSError:

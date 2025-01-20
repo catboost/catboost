@@ -329,7 +329,7 @@ def version(value: Callable | Iterable[str | int] | str) -> str:
         return _value
     if hasattr(_value, '__iter__'):
         return '.'.join(map(str, _value))
-    return '%s' % _value
+    return f'{_value}'
 
 
 def canonic_package_data(package_data: dict) -> dict:
