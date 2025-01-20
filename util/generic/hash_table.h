@@ -348,7 +348,7 @@ private:
  * Note that there are no specializations for the case when only one or two
  * of the functors are empty as this is a case that's just way too rare.
  */
-template <class HashFcn, class ExtractKey, class EqualKey, class Alloc, bool IsEmpty = std::is_empty<HashFcn>::value&& std::is_empty<ExtractKey>::value&& std::is_empty<EqualKey>::value>
+template <class HashFcn, class ExtractKey, class EqualKey, class Alloc, bool IsEmpty = std::is_empty<HashFcn>::value && std::is_empty<ExtractKey>::value && std::is_empty<EqualKey>::value>
 class _yhashtable_base: public _allocator_base<Alloc> {
     using base_type = _allocator_base<Alloc>;
 

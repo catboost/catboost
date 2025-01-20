@@ -152,4 +152,4 @@ constexpr bool Y_IS_DEBUG_BUILD = true;
     #define Y_GENERATE_UNIQUE_ID(N) Y_CAT(N, __LINE__)
 #endif
 
-#define NPOS ((size_t)-1)
+#define NPOS ((size_t) - 1)
