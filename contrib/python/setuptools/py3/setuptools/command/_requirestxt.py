@@ -38,13 +38,13 @@ def _prepare(
 
 def _convert_extras_requirements(
     extras_require: Mapping[str, _StrOrIter],
-) -> Mapping[str, _Ordered[Requirement]]:
+) -> defaultdict[str, _Ordered[Requirement]]:
     """
     Convert requirements in `extras_require` of the form
     `"extra": ["barbazquux; {marker}"]` to
     `"extra:{marker}": ["barbazquux"]`.
     """
-    output: Mapping[str, _Ordered[Requirement]] = defaultdict(dict)
+    output = defaultdict[str, _Ordered[Requirement]](dict)
     for section, v in extras_require.items():
         # Do not strip empty sections.
         output[section]

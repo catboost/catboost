@@ -127,10 +127,7 @@ class FileList:
             for pattern in patterns:
                 if not self.exclude_pattern(pattern, anchor=True):
                     log.warning(
-                        (
-                            "warning: no previously-included files "
-                            "found matching '%s'"
-                        ),
+                        "warning: no previously-included files found matching '%s'",
                         pattern,
                     )
 

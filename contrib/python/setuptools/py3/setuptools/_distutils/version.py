@@ -53,8 +53,7 @@ class Version:
         if vstring:
             self.parse(vstring)
         warnings.warn(
-            "distutils Version classes are deprecated. "
-            "Use packaging.version instead.",
+            "distutils Version classes are deprecated. Use packaging.version instead.",
             DeprecationWarning,
             stacklevel=2,
         )

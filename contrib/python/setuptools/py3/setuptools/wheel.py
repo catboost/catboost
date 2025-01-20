@@ -79,7 +79,7 @@ class Wheel:
     def __init__(self, filename) -> None:
         match = WHEEL_NAME(os.path.basename(filename))
         if match is None:
-            raise ValueError('invalid wheel name: %r' % filename)
+            raise ValueError(f'invalid wheel name: {filename!r}')
         self.filename = filename
         for k, v in match.groupdict().items():
             setattr(self, k, v)
@@ -122,9 +122,9 @@ class Wheel:
             self._install_as_egg(destination_eggdir, zf)
 
     def _install_as_egg(self, destination_eggdir, zf):
-        dist_basename = '%s-%s' % (self.project_name, self.version)
+        dist_basename = f'{self.project_name}-{self.version}'
         dist_info = self.get_dist_info(zf)
-        dist_data = '%s.data' % dist_basename
+        dist_data = f'{dist_basename}.data'
         egg_info = os.path.join(destination_eggdir, 'EGG-INFO')
 
         self._convert_metadata(zf, destination_eggdir, dist_info, egg_info)
@@ -145,7 +145,7 @@ class Wheel:
         wheel_version = parse_version(wheel_metadata.get('Wheel-Version'))
         wheel_v1 = parse_version('1.0') <= wheel_version < parse_version('2.0dev0')
         if not wheel_v1:
-            raise ValueError('unsupported wheel format version: %s' % wheel_version)
+            raise ValueError(f'unsupported wheel format version: {wheel_version}')
         # Extract to target directory.
         _unpack_zipfile_obj(zf, destination_eggdir)
         # Convert metadata.

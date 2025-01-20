@@ -43,7 +43,7 @@ class Require:
     def full_name(self):
         """Return full package/distribution name, w/version"""
         if self.requested_version is not None:
-            return '%s-%s' % (self.name, self.requested_version)
+            return f'{self.name}-{self.requested_version}'
         return self.name
 
     def version_ok(self, version):

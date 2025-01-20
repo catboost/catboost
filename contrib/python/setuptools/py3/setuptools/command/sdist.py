@@ -53,7 +53,7 @@ class sdist(orig.sdist):
     negative_opt: ClassVar[dict[str, str]] = {}
 
     README_EXTENSIONS = ['', '.rst', '.txt', '.md']
-    READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
+    READMES = tuple(f'README{ext}' for ext in README_EXTENSIONS)
 
     def run(self) -> None:
         self.run_command('egg_info')
@@ -207,7 +207,7 @@ class sdist(orig.sdist):
             try:
                 line = bytes_line.decode('UTF-8')
             except UnicodeDecodeError:
-                log.warn("%r not UTF-8 decodable -- skipping" % line)
+                log.warn(f"{line!r} not UTF-8 decodable -- skipping")
                 continue
             # ignore comments and blank lines
             line = line.strip()

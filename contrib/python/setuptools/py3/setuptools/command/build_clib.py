@@ -29,9 +29,9 @@ class build_clib(orig.build_clib):
             sources = build_info.get('sources')
             if sources is None or not isinstance(sources, (list, tuple)):
                 raise DistutilsSetupError(
-                    "in 'libraries' option (library '%s'), "
+                    f"in 'libraries' option (library '{lib_name}'), "
                     "'sources' must be present and must be "
-                    "a list of source filenames" % lib_name
+                    "a list of source filenames"
                 )
             sources = sorted(list(sources))
 
@@ -43,9 +43,9 @@ class build_clib(orig.build_clib):
             obj_deps = build_info.get('obj_deps', dict())
             if not isinstance(obj_deps, dict):
                 raise DistutilsSetupError(
-                    "in 'libraries' option (library '%s'), "
+                    f"in 'libraries' option (library '{lib_name}'), "
                     "'obj_deps' must be a dictionary of "
-                    "type 'source: list'" % lib_name
+                    "type 'source: list'"
                 )
             dependencies = []
 
@@ -54,9 +54,9 @@ class build_clib(orig.build_clib):
             global_deps = obj_deps.get('', list())
             if not isinstance(global_deps, (list, tuple)):
                 raise DistutilsSetupError(
-                    "in 'libraries' option (library '%s'), "
+                    f"in 'libraries' option (library '{lib_name}'), "
                     "'obj_deps' must be a dictionary of "
-                    "type 'source: list'" % lib_name
+                    "type 'source: list'"
                 )
 
             # Build the list to be used by newer_pairwise_group
@@ -67,9 +67,9 @@ class build_clib(orig.build_clib):
                 extra_deps = obj_deps.get(source, list())
                 if not isinstance(extra_deps, (list, tuple)):
                     raise DistutilsSetupError(
-                        "in 'libraries' option (library '%s'), "
+                        f"in 'libraries' option (library '{lib_name}'), "
                         "'obj_deps' must be a dictionary of "
-                        "type 'source: list'" % lib_name
+                        "type 'source: list'"
                     )
                 src_deps.extend(extra_deps)
                 dependencies.append(src_deps)

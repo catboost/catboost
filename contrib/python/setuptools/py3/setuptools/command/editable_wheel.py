@@ -506,7 +506,7 @@ class _TopLevelFinder:
         package_dir = self.dist.package_dir or {}
         roots = _find_package_roots(top_level, package_dir, src_root)
 
-        namespaces_: dict[str, list[str]] = dict(
+        namespaces_ = dict(
             chain(
                 _find_namespaces(self.dist.packages or [], roots),
                 ((ns, []) for ns in _find_virtual_namespaces(roots)),

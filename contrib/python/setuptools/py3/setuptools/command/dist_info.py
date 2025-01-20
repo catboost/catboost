@@ -95,7 +95,7 @@ class dist_info(Command):
         egg_info_dir = self.egg_info.egg_info
         assert os.path.isdir(egg_info_dir), ".egg-info dir should have been created"
 
-        log.info("creating '{}'".format(os.path.abspath(self.dist_info_dir)))
+        log.info(f"creating '{os.path.abspath(self.dist_info_dir)}'")
         bdist_wheel = self.get_finalized_command('bdist_wheel')
 
         # TODO: if bdist_wheel if merged into setuptools, just add "keep_egg_info" there

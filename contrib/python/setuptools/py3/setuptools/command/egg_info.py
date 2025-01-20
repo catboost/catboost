@@ -48,7 +48,7 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
     chunks = glob.split(os.path.sep)
 
     sep = re.escape(os.sep)
-    valid_char = '[^%s]' % (sep,)
+    valid_char = f'[^{sep}]'
 
     for c, chunk in enumerate(chunks):
         last_chunk = c == len(chunks) - 1
@@ -60,7 +60,7 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
                 pat += '.*'
             else:
                 # Match '(name/)*'
-                pat += '(?:%s+%s)*' % (valid_char, sep)
+                pat += f'(?:{valid_char}+{sep})*'
             continue  # Break here as the whole path component has been handled
 
         # Find any special characters in the remainder
@@ -102,7 +102,7 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
                         inner = inner[1:]
 
                     char_class += re.escape(inner)
-                    pat += '[%s]' % (char_class,)
+                    pat += f'[{char_class}]'
 
                     # Skip to the end ]
                     i = inner_i
@@ -231,8 +231,7 @@ class egg_info(InfoCommon, Command):
             packaging.requirements.Requirement(spec % (self.egg_name, self.egg_version))
         except ValueError as e:
             raise distutils.errors.DistutilsOptionError(
-                "Invalid distribution name or version syntax: %s-%s"
-                % (self.egg_name, self.egg_version)
+                f"Invalid distribution name or version syntax: {self.egg_name}-{self.egg_version}"
             ) from e
 
         if self.egg_base is None:
@@ -502,7 +501,7 @@ class FileList(_FileList):
         # To avoid accidental trans-codings errors, first to unicode
         u_path = unicode_utils.filesys_decode(path)
         if u_path is None:
-            log.warn("'%s' in unexpected encoding -- skipping" % path)
+            log.warn(f"'{path}' in unexpected encoding -- skipping")
             return False
 
         # Must ensure utf-8 encodability
@@ -564,7 +563,7 @@ class manifest_maker(sdist):
 
         # Now _repairs should encodability, but not unicode
         files = [self._manifest_normalize(f) for f in self.filelist.files]
-        msg = "writing manifest file '%s'" % self.manifest
+        msg = f"writing manifest file '{self.manifest}'"
         self.execute(write_file, (self.manifest, files), msg)
 
     def warn(self, msg) -> None:

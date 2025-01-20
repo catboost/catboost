@@ -168,7 +168,7 @@ class build_ext(_build_ext):
             if not isinstance(ext_suffix, str):
                 raise OSError(
                     "Configuration variable EXT_SUFFIX not found for this platform "
-                    + "and environment variable SETUPTOOLS_EXT_SUFFIX is missing"
+                    "and environment variable SETUPTOOLS_EXT_SUFFIX is missing"
                 )
             so_ext = ext_suffix
 
@@ -360,7 +360,7 @@ class build_ext(_build_ext):
                     "   global __bootstrap__, __file__, __loader__",
                     "   import sys, os, pkg_resources, importlib.util" + if_dl(", dl"),
                     "   __file__ = pkg_resources.resource_filename"
-                    "(__name__,%r)" % os.path.basename(ext._file_name),
+                    f"(__name__,{os.path.basename(ext._file_name)!r})",
                     "   del __bootstrap__",
                     "   if '__loader__' in globals():",
                     "       del __loader__",

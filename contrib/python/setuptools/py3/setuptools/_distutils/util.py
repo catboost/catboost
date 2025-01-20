@@ -25,7 +25,7 @@ from .errors import DistutilsByteCompileError, DistutilsPlatformError
 from .spawn import spawn
 
 
-def get_host_platform():
+def get_host_platform() -> str:
     """
     Return a string that identifies the current platform. Use this
     function to distinguish platform-specific build directories and
@@ -34,15 +34,7 @@ def get_host_platform():
 
     # This function initially exposed platforms as defined in Python 3.9
     # even with older Python versions when distutils was split out.
-    # Now it delegates to stdlib sysconfig, but maintains compatibility.
-
-    if sys.version_info < (3, 9):
-        if os.name == "posix" and hasattr(os, 'uname'):
-            osname, host, release, version, machine = os.uname()
-            if osname[:3] == "aix":
-                from .compat.py38 import aix_platform
-
-                return aix_platform(osname, version, release)
+    # Now it delegates to stdlib sysconfig.
 
     return sysconfig.get_platform()
 
@@ -288,7 +280,7 @@ def split_quoted(s):
             elif s[end] == '"':  # slurp doubly-quoted string
                 m = _dquote_re.match(s, end)
             else:
-                raise RuntimeError("this can't happen (bad char '%c')" % s[end])
+                raise RuntimeError(f"this can't happen (bad char '{s[end]}')")
 
             if m is None:
                 raise ValueError(f"bad string (mismatched {s[end]} quotes?)")
@@ -503,3 +495,8 @@ def is_mingw():
     get_platform() starts with 'mingw'.
     """
     return sys.platform == 'win32' and get_platform().startswith('mingw')
+
+
+def is_freethreaded():
+    """Return True if the Python interpreter is built with free threading support."""
+    return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
