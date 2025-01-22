@@ -6218,6 +6218,17 @@ Version 1.6.44 [September 12, 2024]
     (Contributed by Ben Wagner)
   Fixed and improved the config files for AppVeyor CI and Travis CI.
 
+Version 1.6.45 [January 7, 2025]
+  Added support for the cICP chunk.
+    (Contributed by Lucas Chollet and John Bowler)
+  Adjusted and improved various checks in colorspace calculations.
+    (Contributed by John Bowler)
+  Rearranged the write order of colorspace chunks for better conformance
+    with the PNG v3 draft specification.
+    (Contributed by John Bowler)
+  Raised the minimum required CMake version from 3.6 to 3.14.
+  Forked off a development branch for libpng version 1.8.
+
 Send comments/corrections/commendations to png-mng-implement at lists.sf.net.
 Subscription is required; visit
 https://lists.sourceforge.net/lists/listinfo/png-mng-implement

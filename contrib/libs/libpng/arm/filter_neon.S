@@ -1,4 +1,3 @@
-
 /* filter_neon.S - placeholder file
  *
  * Copyright (c) 2024 Cosmin Truta

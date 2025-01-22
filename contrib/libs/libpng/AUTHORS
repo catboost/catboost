@@ -17,6 +17,7 @@ Authors, for copyright and licensing purposes.
  * James Yu
  * John Bowler
  * Kevin Bracey
+ * Lucas Chollet
  * Magnus Holmgren
  * Mandar Sahastrabuddhe
  * Mans Rullgard
