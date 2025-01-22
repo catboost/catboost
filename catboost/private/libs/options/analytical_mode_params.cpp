@@ -31,6 +31,11 @@ void NCB::TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser
 
     parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
         .StoreResult(&ThreadCount);
+
+    parser.AddLongOption("yt-annotations", "annotations to attach to all YT operations, must be a valid JSON string")
+        .Optional()
+        .DefaultValue("{}")
+        .StoreResult(&AnnotationsJson);
 }
 
 void NCB::BindModelFileParams(NLastGetopt::TOpts* parser, TVector<TString>* modelFileName, EModelType* modelFormat) {
