@@ -1497,8 +1497,7 @@ inline typename deque<_Tp, _Allocator>::reference deque<_Tp, _Allocator>::operat
 template <class _Tp, class _Allocator>
 inline typename deque<_Tp, _Allocator>::const_reference
 deque<_Tp, _Allocator>::operator[](size_type __i) const _NOEXCEPT {
-  // temporary disable this check for infra
-  // _LIBCPP_ASSERT_VALID_ELEMENT_ACCESS(__i < size(), "deque::operator[] index out of bounds");
+  _LIBCPP_ASSERT_VALID_ELEMENT_ACCESS(__i < size(), "deque::operator[] index out of bounds");
   size_type __p = __start_ + __i;
   return *(*(__map_.begin() + __p / __block_size) + __p % __block_size);
 }
