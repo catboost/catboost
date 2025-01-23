@@ -21,9 +21,9 @@ from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, TypeVar, cas
 
 from packaging.markers import default_environment as marker_env
 from packaging.requirements import InvalidRequirement, Requirement
-from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
 
+from .. import _static
 from .._path import StrPath
 from ..errors import FileError, OptionError
 from ..warnings import SetuptoolsDeprecationWarning
@@ -367,7 +367,7 @@ class ConfigHandler(Generic[Target]):
                     f'Only strings are accepted for the {key} field, '
                     'files are not accepted'
                 )
-            return value
+            return _static.Str(value)
 
         return parser
 
@@ -390,12 +390,13 @@ class ConfigHandler(Generic[Target]):
             return value
 
         if not value.startswith(include_directive):
-            return value
+            return _static.Str(value)
 
         spec = value[len(include_directive) :]
         filepaths = [path.strip() for path in spec.split(',')]
         self._referenced_files.update(filepaths)
-        return expand.read_files(filepaths, root_dir)
+        # XXX: Is marking as static contents coming from files too optimistic?
+        return _static.Str(expand.read_files(filepaths, root_dir))
 
     def _parse_attr(self, value, package_dir, root_dir: StrPath):
         """Represents value as a module attribute.
@@ -409,7 +410,7 @@ class ConfigHandler(Generic[Target]):
         """
         attr_directive = 'attr:'
         if not value.startswith(attr_directive):
-            return value
+            return _static.Str(value)
 
         attr_desc = value.replace(attr_directive, '')
 
@@ -548,23 +549,29 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
     @property
     def parsers(self):
         """Metadata item name to parser function mapping."""
-        parse_list = self._parse_list
+        parse_list_static = self._get_parser_compound(self._parse_list, _static.List)
+        parse_dict_static = self._get_parser_compound(self._parse_dict, _static.Dict)
         parse_file = partial(self._parse_file, root_dir=self.root_dir)
-        parse_dict = self._parse_dict
         exclude_files_parser = self._exclude_files_parser
 
         return {
-            'platforms': parse_list,
-            'keywords': parse_list,
-            'provides': parse_list,
-            'obsoletes': parse_list,
-            'classifiers': self._get_parser_compound(parse_file, parse_list),
+            'author': _static.Str,
+            'author_email': _static.Str,
+            'maintainer': _static.Str,
+            'maintainer_email': _static.Str,
+            'platforms': parse_list_static,
+            'keywords': parse_list_static,
+            'provides': parse_list_static,
+            'obsoletes': parse_list_static,
+            'classifiers': self._get_parser_compound(parse_file, parse_list_static),
             'license': exclude_files_parser('license'),
-            'license_files': parse_list,
+            'license_files': parse_list_static,
             'description': parse_file,
             'long_description': parse_file,
-            'version': self._parse_version,
-            'project_urls': parse_dict,
+            'long_description_content_type': _static.Str,
+            'version': self._parse_version,  # Cannot be marked as dynamic
+            'url': _static.Str,
+            'project_urls': parse_dict_static,
         }
 
     def _parse_version(self, value):
@@ -620,20 +627,20 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         _warn_accidental_env_marker_misconfig(label, value, parsed)
         # Filter it to only include lines that are not comments. `parse_list`
         # will have stripped each line and filtered out empties.
-        return [line for line in parsed if not line.startswith("#")]
+        return _static.List(line for line in parsed if not line.startswith("#"))
+        # ^-- Use `_static.List` to mark a non-`Dynamic` Core Metadata
 
     @property
     def parsers(self):
         """Metadata item name to parser function mapping."""
         parse_list = self._parse_list
         parse_bool = self._parse_bool
-        parse_dict = self._parse_dict
         parse_cmdclass = self._parse_cmdclass
 
         return {
             'zip_safe': parse_bool,
             'include_package_data': parse_bool,
-            'package_dir': parse_dict,
+            'package_dir': self._parse_dict,
             'scripts': parse_list,
             'eager_resources': parse_list,
             'dependency_links': parse_list,
@@ -643,14 +650,14 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
                 "consider using implicit namespaces instead (PEP 420).",
                 # TODO: define due date, see setuptools.dist:check_nsp.
             ),
-            'install_requires': partial(
+            'install_requires': partial(  # Core Metadata
                 self._parse_requirements_list, "install_requires"
             ),
             'setup_requires': self._parse_list_semicolon,
             'packages': self._parse_packages,
             'entry_points': self._parse_file_in_root,
             'py_modules': parse_list,
-            'python_requires': SpecifierSet,
+            'python_requires': _static.SpecifierSet,  # Core Metadata
             'cmdclass': parse_cmdclass,
         }
 
@@ -727,7 +734,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         """
         self['exclude_package_data'] = self._parse_package_data(section_options)
 
-    def parse_section_extras_require(self, section_options) -> None:
+    def parse_section_extras_require(self, section_options) -> None:  # Core Metadata
         """Parses `extras_require` configuration file section.
 
         :param dict section_options:
@@ -737,7 +744,8 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
             lambda k, v: self._parse_requirements_list(f"extras_require[{k}]", v),
         )
 
-        self['extras_require'] = parsed
+        self['extras_require'] = _static.Dict(parsed)
+        # ^-- Use `_static.Dict` to mark a non-`Dynamic` Core Metadata
 
     def parse_section_data_files(self, section_options) -> None:
         """Parses `data_files` configuration file section.

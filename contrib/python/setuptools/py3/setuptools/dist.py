@@ -19,6 +19,7 @@ from packaging.version import Version
 from . import (
     _entry_points,
     _reqs,
+    _static,
     command as _,  # noqa: F401 # imported for side-effects
 )
 from ._importlib import metadata
@@ -391,10 +392,15 @@ class Distribution(_Distribution):
         """Make sure requirement-related attributes exist and are normalized"""
         install_requires = getattr(self, "install_requires", None) or []
         extras_require = getattr(self, "extras_require", None) or {}
-        self.install_requires = list(map(str, _reqs.parse(install_requires)))
-        self.extras_require = {
-            k: list(map(str, _reqs.parse(v or []))) for k, v in extras_require.items()
-        }
+
+        # Preserve the "static"-ness of values parsed from config files
+        list_ = _static.List if _static.is_static(install_requires) else list
+        self.install_requires = list_(map(str, _reqs.parse(install_requires)))
+
+        dict_ = _static.Dict if _static.is_static(extras_require) else dict
+        self.extras_require = dict_(
+            (k, list(map(str, _reqs.parse(v or [])))) for k, v in extras_require.items()
+        )
 
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
