@@ -114,7 +114,7 @@ def _guess_source_root():
 def _get_source_root():
     env_value = _probe(_os.environ, env_source_root)
     if env_value:
-        return env_value
+        return _s(env_value)
 
     if EXTERNAL_PY_FILES_MODE:
         path = _guess_source_root()
@@ -130,6 +130,21 @@ def _get_source_root():
     return None
 
 
+def _guess_pycache_prefix():
+    env_val = _probe(_os.environ, 'PYTHONPYCACHEPREFIX')
+    if env_val:
+        return _s(env_val)
+
+    path, tail = _os.getcwd(), 'start'
+
+    while tail:
+        guidence_file = _path_join(path, '.pycache.path')
+        if _path_isfile(guidence_file):
+            return _s(file_bytes(guidence_file))
+
+        path, tail = _path_split(path)
+
+
 Y_PYTHON_SOURCE_ROOT = _get_source_root()
 
 if EXTERNAL_PY_FILES_MODE:
@@ -142,6 +157,10 @@ if EXTERNAL_PY_FILES_MODE:
         return cache_from_source(_s(filename))
 
     setattr(_frozen_importlib_external, 'cache_from_source', patched_cache_from_source)
+
+    pycache_prefix = _guess_pycache_prefix()
+    if pycache_prefix:
+        sys.pycache_prefix = pycache_prefix
 
 
 def _print(*xs):
@@ -359,11 +378,20 @@ class ResourceImporter(SourceFileLoader):
 
     # PEP-302 extension 1 of 3: data loader.
     def get_data(self, path):
+        # XXX
+        # Python machinery operates on absolute paths and uses this method to load bytecode.
+        # That's why we don't try to resolve the path, but try to read it right away.
+        # For more info see get_code() in this file and
+        # data flow in SourceLoader.get_data in contrib/tools/python3/Lib/importlib/_bootstrap_external.py
+        if EXTERNAL_PY_FILES_MODE and path.endswith('.pyc'):
+            return file_bytes(_b(path))
+
         path = _b(path)
         abspath = resfs_resolve(path)
 
         if abspath:
             return file_bytes(abspath)
+
         path = path.replace(_b('\\'), _b('/'))
         data = resfs_read(path, builtin=True)
         if data is None:
