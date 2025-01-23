@@ -33,6 +33,8 @@ namespace NTesting {
         inline TTest* _This() noexcept {
             return this;
         }
+
+        virtual ~TTest() = default;
     };
 }
 

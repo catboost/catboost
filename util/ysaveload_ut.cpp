@@ -672,6 +672,7 @@ private:
         struct IInterface {
             virtual void Save(IOutputStream* out) const = 0;
             virtual void Load(IInputStream* in) = 0;
+            virtual ~IInterface() = default;
         };
         struct TBaseVirtual: IInterface {
             TString Str1;
