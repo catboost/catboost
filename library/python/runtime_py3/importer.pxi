@@ -114,7 +114,7 @@ def _guess_source_root():
 def _get_source_root():
     env_value = _probe(_os.environ, env_source_root)
     if env_value:
-        return _s(env_value)
+        return env_value
 
     if EXTERNAL_PY_FILES_MODE:
         path = _guess_source_root()
