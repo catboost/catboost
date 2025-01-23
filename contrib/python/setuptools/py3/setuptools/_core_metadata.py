@@ -19,6 +19,7 @@ from packaging.utils import canonicalize_name, canonicalize_version
 from packaging.version import Version
 
 from . import _normalization, _reqs
+from ._static import is_static
 from .warnings import SetuptoolsDeprecationWarning
 
 from distutils.util import rfc822_escape
@@ -27,7 +28,7 @@ from distutils.util import rfc822_escape
 def get_metadata_version(self):
     mv = getattr(self, 'metadata_version', None)
     if mv is None:
-        mv = Version('2.1')
+        mv = Version('2.2')
         self.metadata_version = mv
     return mv
 
@@ -207,6 +208,10 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     self._write_list(file, 'License-File', self.license_files or [])
     _write_requirements(self, file)
 
+    for field, attr in _POSSIBLE_DYNAMIC_FIELDS.items():
+        if (val := getattr(self, attr, None)) and not is_static(val):
+            write_field('Dynamic', field)
+
     long_description = self.get_long_description()
     if long_description:
         file.write(f"\n{long_description}")
@@ -284,3 +289,33 @@ def _distribution_fullname(name: str, version: str) -> str:
         canonicalize_name(name).replace('-', '_'),
         canonicalize_version(version, strip_trailing_zero=False),
     )
+
+
+_POSSIBLE_DYNAMIC_FIELDS = {
+    # Core Metadata Field x related Distribution attribute
+    "author": "author",
+    "author-email": "author_email",
+    "classifier": "classifiers",
+    "description": "long_description",
+    "description-content-type": "long_description_content_type",
+    "download-url": "download_url",
+    "home-page": "url",
+    "keywords": "keywords",
+    "license": "license",
+    # "license-file": "license_files", # XXX: does PEP 639 exempt Dynamic ??
+    "maintainer": "maintainer",
+    "maintainer-email": "maintainer_email",
+    "obsoletes": "obsoletes",
+    # "obsoletes-dist": "obsoletes_dist",  # NOT USED
+    "platform": "platforms",
+    "project-url": "project_urls",
+    "provides": "provides",
+    # "provides-dist": "provides_dist",  # NOT USED
+    "provides-extra": "extras_require",
+    "requires": "requires",
+    "requires-dist": "install_requires",
+    # "requires-external": "requires_external",  # NOT USED
+    "requires-python": "python_requires",
+    "summary": "description",
+    # "supported-platform": "supported_platforms",  # NOT USED
+}
