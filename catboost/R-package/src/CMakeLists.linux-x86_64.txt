@@ -49,7 +49,6 @@ target_link_options(catboostr PRIVATE
   -fPIC
   -Wl,-z,notext
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

@@ -55,7 +55,6 @@ target_link_options(catboost_train_interface PRIVATE
   -fPIC
   -Wl,-z,notext
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

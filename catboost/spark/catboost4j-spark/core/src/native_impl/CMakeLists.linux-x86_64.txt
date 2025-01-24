@@ -80,7 +80,6 @@ target_link_options(catboost4j-spark-impl-cpp PRIVATE
   -Wl,--exclude-libs,ALL
   -Wl,-z,notext
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

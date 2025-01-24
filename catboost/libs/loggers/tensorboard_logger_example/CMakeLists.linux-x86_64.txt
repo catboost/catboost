@@ -34,7 +34,6 @@ target_link_options(tensorboard_logger_example PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

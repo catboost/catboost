@@ -32,7 +32,6 @@ target_link_options(util-digest-ut PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

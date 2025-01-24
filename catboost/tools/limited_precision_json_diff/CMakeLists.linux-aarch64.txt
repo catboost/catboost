@@ -33,7 +33,6 @@ target_link_options(limited_precision_json_diff PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

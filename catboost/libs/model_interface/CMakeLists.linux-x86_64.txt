@@ -34,7 +34,6 @@ target_link_options(catboostmodel PRIVATE
   -fPIC
   -Wl,-z,notext
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

@@ -73,7 +73,6 @@ target_link_options(_catboost PRIVATE
   -Wl,-z,notext
   -Wl,-Bsymbolic
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )
