@@ -32,7 +32,6 @@ target_link_options(resort_dsv_by_numeric_group_id PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

@@ -33,7 +33,6 @@ target_link_options(gmtime_r PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )

@@ -42,7 +42,6 @@ target_link_options(flatc PRIVATE
   -Wl,--no-as-needed
   -fPIC
   -fPIC
-  -lpthread
 )
 
 target_sources(flatc PRIVATE

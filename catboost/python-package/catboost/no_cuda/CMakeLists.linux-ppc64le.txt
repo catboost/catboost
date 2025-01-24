@@ -75,7 +75,6 @@ target_link_options(_catboost_no_cuda PRIVATE
   -Wl,-z,notext
   -Wl,-Bsymbolic
   -fPIC
-  -lpthread
   -lrt
   -ldl
 )
