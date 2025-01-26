@@ -1,5 +1,7 @@
 # Build a wheel package
 
+{% include [supported-versions](../_includes/work_src/reusage-installation/python__supported-versions.md) %}
+
 {% if audience == "internal" %}
 
 {% include [internal-note__use-outside-arcadia](../yandex_specific/_includes/note__use-outside-arcadia.md) %}
