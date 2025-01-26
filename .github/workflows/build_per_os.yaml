@@ -104,8 +104,9 @@ jobs:
           ln -s $RUNNER_TOOL_CACHE/Python/3.10.*/x64 ./3.10
           ln -s $RUNNER_TOOL_CACHE/Python/3.11.*/x64 ./3.11
           ln -s $RUNNER_TOOL_CACHE/Python/3.12.*/x64 ./3.12
+          ln -s $RUNNER_TOOL_CACHE/Python/3.13.*/x64 ./3.13
 
-          for PY_VER in 3.8 3.9 3.10 3.11 3.12
+          for PY_VER in 3.8 3.9 3.10 3.11 3.12 3.13
           do
               $CMAKE_BUILD_ENV_ROOT/darwin-x86_64/Python/$PY_VER/bin/python -m pip install --upgrade pip setuptools wheel
           done
@@ -125,6 +126,14 @@ jobs:
           mkdir -p Python
           cd Python
           unzip ${{ github.workspace }}/python_versions_macos_arm64
+
+      # Python 3.13 is not included in the standard 'windows-2022' image yet.
+      # Should be available soon: https://github.com/actions/runner-images/pull/11438
+      - if: inputs.runs-on_value == 'windows-2022'
+        name: Install python3.13 on Windows
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
 
       - if: inputs.runs-on_value == 'windows-2022'
         name: Install CUDA on Windows
@@ -160,8 +169,9 @@ jobs:
           New-Item -Path .\3.10 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.10.*\x64"
           New-Item -Path .\3.11 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.11.*\x64"
           New-Item -Path .\3.12 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.12.*\x64"
+          New-Item -Path .\3.13 -ItemType SymbolicLink -Value "$Env:RUNNER_TOOL_CACHE\Python\3.13.*\x64"
 
-          foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12') {
+          foreach($PY_VER in '3.8','3.9','3.10','3.11','3.12','3.13') {
             & "$CMAKE_BUILD_ENV_ROOT\windows-x86_64\Python\$PY_VER\python.exe" -m pip install --upgrade pip setuptools wheel
           }
 

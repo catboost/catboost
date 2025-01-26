@@ -22,6 +22,8 @@ jobs:
           cd $HOME/.pyenv/versions/ && ln -s 3.11.9 ./3.11
           pyenv install 3.12.3
           cd $HOME/.pyenv/versions/ && ln -s 3.12.3 ./3.12
+          pyenv install 3.13.1
+          cd $HOME/.pyenv/versions/ && ln -s 3.13.1 ./3.13
           cd $HOME/.pyenv/versions/ && zip -r -y ${{ github.workspace }}/python_versions_macos_arm64.zip *
 
       - name: Save to cache
