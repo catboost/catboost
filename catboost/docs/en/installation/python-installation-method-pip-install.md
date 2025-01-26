@@ -1,5 +1,7 @@
 # pip install
 
+{% include [supported-versions](../_includes/work_src/reusage-installation/python__supported-versions.md) %}
+
 To install {{ product }} from pip:
 
 1. Run the following command:
