@@ -54,3 +54,4 @@ BugReports: https://github.com/catboost/catboost/issues
 Suggests: caret, testthat, tibble, e1071
 Biarch: FALSE
 Encoding: UTF-8
+StagedInstall: FALSE
