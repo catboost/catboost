@@ -80,6 +80,12 @@ The resulting wheel distribution will be created in `dist/catboost-<version>-<..
 
 ### Build the source distribution (sdist)
 
+{% note info %}
+
+Python package `build` has to be installed
+
+{% endnote %}
+
 ```
 python -m build --sdist
 ```
