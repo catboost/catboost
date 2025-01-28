@@ -201,8 +201,10 @@ def emph(s):
 
 def get_catboost_version():
     version_py = os.path.join('catboost', 'version.py')
-    exec(compile(open(version_py).read(), version_py, 'exec'))
-    return locals()['VERSION']
+    d = {}
+    with open(version_py) as f:
+        exec(compile(f.read(), version_py, "exec"), globals(), d)
+    return d['VERSION']
 
 
 class OptionsHelper(object):
