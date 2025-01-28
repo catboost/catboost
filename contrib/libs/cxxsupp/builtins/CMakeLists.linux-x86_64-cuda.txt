@@ -24,6 +24,9 @@ target_link_libraries(libs-cxxsupp-builtins PUBLIC
 )
 
 target_sources(libs-cxxsupp-builtins PRIVATE
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendbfsf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfbf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfbf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvti2.c
@@ -39,12 +42,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ashrdi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/ashrti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_flag_clear.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_flag_clear_explicit.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_flag_test_and_set.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_flag_test_and_set_explicit.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_signal_fence.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_thread_fence.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/bswapdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/bswapsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/clear_cache.c
@@ -75,7 +72,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/emutls.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/enable_execute_stack.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/eprintf.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendbfsf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extenddftf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhfsf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhftf2.c
@@ -162,10 +158,8 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subvsi3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/subvti3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trampoline_setup.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfbf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfhf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfsf2.c
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfbf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfhf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfdf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfhf2.c
