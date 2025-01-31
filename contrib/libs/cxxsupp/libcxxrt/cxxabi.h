@@ -41,7 +41,7 @@ namespace std
 
 #ifdef __cplusplus
 #if __cplusplus < 201103L
-#define _LIBCXXRT_NOEXCEPT noexcept
+#define _LIBCXXRT_NOEXCEPT throw()
 #else
 #define _LIBCXXRT_NOEXCEPT noexcept
 #endif

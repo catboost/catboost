@@ -40,7 +40,7 @@ namespace std
 		exception() _LIBCXXRT_NOEXCEPT;
 		exception(const exception&) _LIBCXXRT_NOEXCEPT;
 		exception& operator=(const exception&) _LIBCXXRT_NOEXCEPT;
-		virtual ~exception() _LIBCXXRT_NOEXCEPT;
+		virtual ~exception();
 		virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};
 
@@ -54,7 +54,7 @@ namespace std
 		bad_alloc() _LIBCXXRT_NOEXCEPT;
 		bad_alloc(const bad_alloc&) _LIBCXXRT_NOEXCEPT;
 		bad_alloc& operator=(const bad_alloc&) _LIBCXXRT_NOEXCEPT;
-		~bad_alloc() _LIBCXXRT_NOEXCEPT;
+		~bad_alloc();
 		virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};
 
@@ -66,7 +66,7 @@ namespace std
 		bad_cast() _LIBCXXRT_NOEXCEPT;
 		bad_cast(const bad_cast&) _LIBCXXRT_NOEXCEPT;
 		bad_cast& operator=(const bad_cast&) _LIBCXXRT_NOEXCEPT;
-		virtual ~bad_cast() _LIBCXXRT_NOEXCEPT;
+		virtual ~bad_cast();
 		virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};
 
@@ -78,7 +78,7 @@ namespace std
 	public:
 		bad_typeid() _LIBCXXRT_NOEXCEPT;
 		bad_typeid(const bad_typeid &__rhs) _LIBCXXRT_NOEXCEPT;
-		virtual ~bad_typeid() _LIBCXXRT_NOEXCEPT;
+		virtual ~bad_typeid();
 		bad_typeid& operator=(const bad_typeid &__rhs) _LIBCXXRT_NOEXCEPT;
 		virtual const char* what() const _LIBCXXRT_NOEXCEPT;
 	};

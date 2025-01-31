@@ -35,7 +35,7 @@
 #include "dwarf_eh.h"
 #include "atomic.h"
 #include "cxxabi.h"
-#include "msan.h"
+#include <sanitizer/msan_interface.h>
 
 using namespace ABI_NAMESPACE;
 

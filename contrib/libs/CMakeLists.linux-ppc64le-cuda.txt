@@ -14,6 +14,7 @@
 
 add_subdirectory(linux-headers)
 add_subdirectory(cxxsupp)
+add_subdirectory(libunwind)
 add_subdirectory(zlib)
 add_subdirectory(double-conversion)
 add_subdirectory(libc_compat)
@@ -48,5 +49,4 @@ add_subdirectory(nvidia)
 add_subdirectory(gamma_function_apache_math_port)
 add_subdirectory(jdk)
 add_subdirectory(tcmalloc)
-add_subdirectory(libunwind)
 add_subdirectory(pugixml)

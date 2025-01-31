@@ -32,7 +32,7 @@
 namespace std {
 
 exception::exception() _LIBCXXRT_NOEXCEPT {}
-exception::~exception() _LIBCXXRT_NOEXCEPT {}
+exception::~exception() {}
 exception::exception(const exception&) _LIBCXXRT_NOEXCEPT {}
 exception& exception::operator=(const exception&) _LIBCXXRT_NOEXCEPT
 {
@@ -44,7 +44,7 @@ const char* exception::what() const _LIBCXXRT_NOEXCEPT
 }
 
 bad_alloc::bad_alloc() _LIBCXXRT_NOEXCEPT {}
-bad_alloc::~bad_alloc() _LIBCXXRT_NOEXCEPT {}
+bad_alloc::~bad_alloc() {}
 bad_alloc::bad_alloc(const bad_alloc&) _LIBCXXRT_NOEXCEPT {}
 bad_alloc& bad_alloc::operator=(const bad_alloc&) _LIBCXXRT_NOEXCEPT
 {
@@ -58,7 +58,7 @@ const char* bad_alloc::what() const _LIBCXXRT_NOEXCEPT
 
 
 bad_cast::bad_cast() _LIBCXXRT_NOEXCEPT {}
-bad_cast::~bad_cast() _LIBCXXRT_NOEXCEPT {}
+bad_cast::~bad_cast() {}
 bad_cast::bad_cast(const bad_cast&) _LIBCXXRT_NOEXCEPT {}
 bad_cast& bad_cast::operator=(const bad_cast&) _LIBCXXRT_NOEXCEPT
 {
@@ -70,7 +70,7 @@ const char* bad_cast::what() const _LIBCXXRT_NOEXCEPT
 }
 
 bad_typeid::bad_typeid() _LIBCXXRT_NOEXCEPT {}
-bad_typeid::~bad_typeid() _LIBCXXRT_NOEXCEPT {}
+bad_typeid::~bad_typeid() {}
 bad_typeid::bad_typeid(const bad_typeid &__rhs) _LIBCXXRT_NOEXCEPT {}
 bad_typeid& bad_typeid::operator=(const bad_typeid &__rhs) _LIBCXXRT_NOEXCEPT
 {
@@ -96,3 +96,4 @@ const char* bad_array_new_length::what() const _LIBCXXRT_NOEXCEPT
 }
 
 } // namespace std
+
