@@ -3836,7 +3836,7 @@ class _FrozenMultiset(Set):
         return hash(self._collection)
 
     def __repr__(self):
-        return "FrozenSet([{}]".format(", ".join(repr(x) for x in iter(self)))
+        return f'FrozenSet([{", ".join(repr(x) for x in iter(self))}]'
 
 
 class SetPartitionsTests(TestCase):
@@ -4321,6 +4321,33 @@ class SampleTests(TestCase):
         # The observed largest difference in 10,000 simulations was 4.337999
         self.assertTrue(difference_in_means < 4.4)
 
+    def test_error_cases(self):
+
+        # weights and counts are mutally exclusive
+        with self.assertRaises(TypeError):
+            mi.sample(
+                'abcde', 3, weights=[1, 2, 3, 4, 5], counts=[1, 2, 3, 4, 5]
+            )
+
+        # Weighted sample larger than population
+        with self.assertRaises(ValueError):
+            mi.sample('abcde', 10, weights=[1, 2, 3, 4, 5], strict=True)
+
+        # Counted sample larger than population
+        with self.assertRaises(ValueError):
+            mi.sample('abcde', 10, counts=[1, 1, 1, 1, 1], strict=True)
+
+
+class BarelySortable:
+    def __init__(self, value):
+        self.value = value
+
+    def __lt__(self, other):
+        return self.value < other.value
+
+    def __int__(self):
+        return int(self.value)
+
 
 class IsSortedTests(TestCase):
     def test_basic(self):
@@ -4330,7 +4357,6 @@ class IsSortedTests(TestCase):
             ([1, 2, 3], {}, True),
             ([1, 1, 2, 3], {}, True),
             ([1, 10, 2, 3], {}, False),
-            ([3, float('nan'), 1, 2], {}, True),
             (['1', '10', '2', '3'], {}, True),
             (['1', '10', '2', '3'], {'key': int}, False),
             ([1, 2, 3], {'reverse': True}, False),
@@ -4362,17 +4388,6 @@ class IsSortedTests(TestCase):
                 {'strict': True, 'key': int, 'reverse': True},
                 False,
             ),
-            # We'll do the same weird thing as Python here
-            (['nan', 0, 'nan', 0], {'key': float}, True),
-            ([0, 'nan', 0, 'nan'], {'key': float}, True),
-            (['nan', 0, 'nan', 0], {'key': float, 'reverse': True}, True),
-            ([0, 'nan', 0, 'nan'], {'key': float, 'reverse': True}, True),
-            ([0, 'nan', 0, 'nan'], {'strict': True, 'key': float}, True),
-            (
-                ['nan', 0, 'nan', 0],
-                {'strict': True, 'key': float, 'reverse': True},
-                True,
-            ),
         ]:
             key = kwargs.get('key', None)
             reverse = kwargs.get('reverse', False)
@@ -4382,7 +4397,10 @@ class IsSortedTests(TestCase):
                 iterable=iterable, key=key, reverse=reverse, strict=strict
             ):
                 mi_result = mi.is_sorted(
-                    iter(iterable), key=key, reverse=reverse, strict=strict
+                    map(BarelySortable, iterable),
+                    key=key,
+                    reverse=reverse,
+                    strict=strict,
                 )
 
                 sorted_iterable = sorted(iterable, key=key, reverse=reverse)
