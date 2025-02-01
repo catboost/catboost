@@ -26,6 +26,8 @@
 
 #ifndef _LIBCPP_ABI_MICROSOFT
 
+#  if _LIBCPP_AVAILABILITY_HAS_INIT_PRIMARY_EXCEPTION
+
 namespace __cxxabiv1 {
 
 extern "C" {
@@ -36,17 +38,19 @@ struct __cxa_exception;
 _LIBCPP_OVERRIDABLE_FUNC_VIS __cxa_exception* __cxa_init_primary_exception(
     void*,
     std::type_info*,
-#  if defined(_WIN32)
+#    if defined(_WIN32)
     void(__thiscall*)(void*)) throw();
-#  elif defined(__wasm__)
+#    elif defined(__wasm__)
     // In Wasm, a destructor returns its argument
     void* (*)(void*)) throw();
-#  else
+#    else
     void (*)(void*)) throw();
-#  endif
+#    endif
 }
 
 } // namespace __cxxabiv1
+
+#  endif
 
 #endif
 
