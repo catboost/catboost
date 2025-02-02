@@ -93,10 +93,12 @@ FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
 ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
 
+# TODO: remove import to line 104
+from pathlib import Path
+
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
 elif sys.version_info >= (3, 4):
-    from pathlib import Path
     PATH_TYPES = STRING_TYPES + (Path,)
 else:
     PATH_TYPES = STRING_TYPES
@@ -2217,7 +2219,149 @@ def _process_feature_indices(feature_indices, pool, params, param_name):
     return feature_indices
 
 
-class CatBoost(_CatBoostBase):
+class CatBoostEstimator(_CatBoostBase):
+    def __init__(self, params=None):
+        """
+        Initialize the CatBoostEstimator.
+
+        Parameters
+        ----------
+        params : dict
+            Parameters for CatBoost.
+            If  None, all params are set to their defaults.
+            If  dict, overriding parameters present in dict.
+        """
+        params_that_can_be_None = [
+        "iterations",
+        "learning_rate",
+        "depth",
+        "l2_leaf_reg",
+        "model_size_reg",
+        "rsm",
+        "loss_function",
+        "border_count",
+        "feature_border_type",
+        "per_float_feature_quantization",
+        "input_borders",
+        "output_borders",
+        "fold_permutation_block",
+        "od_pval",
+        "od_wait",
+        "od_type",
+        "nan_mode",
+        "counter_calc_method",
+        "leaf_estimation_iterations",
+        "leaf_estimation_method",
+        "thread_count",
+        "random_seed",
+        "use_best_model",
+        "best_model_min_trees",
+        "verbose",
+        "silent",
+        "logging_level",
+        "metric_period",
+        "ctr_leaf_count_limit",
+        "store_all_simple_ctr",
+        "max_ctr_complexity",
+        "has_time",
+        "allow_const_label",
+        "target_border",
+        "classes_count",
+        "class_weights",
+        "auto_class_weights",
+        "class_names",
+        "one_hot_max_size",
+        "random_strength",
+        "random_score_type",
+        "name",
+        "ignored_features",
+        "train_dir",
+        "custom_loss",
+        "custom_metric",
+        "eval_metric",
+        "bagging_temperature",
+        "save_snapshot",
+        "snapshot_file",
+        "snapshot_interval",
+        "fold_len_multiplier",
+        "used_ram_limit",
+        "gpu_ram_part",
+        "pinned_memory_size",
+        "allow_writing_files",
+        "final_ctr_computation_mode",
+        "approx_on_full_history",
+        "boosting_type",
+        "simple_ctr",
+        "combinations_ctr",
+        "per_feature_ctr",
+        "ctr_description",
+        "ctr_target_border_count",
+        "task_type",
+        "device_config",
+        "devices",
+        "bootstrap_type",
+        "subsample",
+        "mvs_reg",
+        "sampling_unit",
+        "sampling_frequency",
+        "dev_score_calc_obj_block_size",
+        "dev_efb_max_buckets",
+        "sparse_features_conflict_fraction",
+        "max_depth",
+        "n_estimators",
+        "num_boost_round",
+        "num_trees",
+        "colsample_bylevel",
+        "random_state",
+        "reg_lambda",
+        "objective",
+        "eta",
+        "max_bin",
+        "scale_pos_weight",
+        "gpu_cat_features_storage",
+        "data_partition",
+        "metadata",
+        "early_stopping_rounds",
+        "cat_features",
+        "grow_policy",
+        "min_data_in_leaf",
+        "min_child_samples",
+        "max_leaves",
+        "num_leaves",
+        "score_function",
+        "leaf_estimation_backtracking",
+        "ctr_history_unit",
+        "monotone_constraints",
+        "feature_weights",
+        "penalties_coefficient",
+        "first_feature_use_penalties",
+        "per_object_feature_penalties",
+        "model_shrink_rate",
+        "model_shrink_mode",
+        "langevin",
+        "diffusion_temperature",
+        "posterior_sampling",
+        "boost_from_average",
+        "text_features",
+        "tokenizers",
+        "dictionaries",
+        "feature_calcers",
+        "text_processing",
+        "embedding_features",
+        "callback",
+        "eval_fraction",
+        "fixed_binary_splits"
+        ]
+
+        new_params = {}
+        for key, value in iteritems(params):
+            if key in params_that_can_be_None or value is not None:
+                new_params[key] = value
+
+        super(CatBoostEstimator, self).__init__(new_params)
+
+
+class CatBoost(CatBoostEstimator):
     """
     CatBoost model. Contains training, prediction and evaluation methods.
     """
@@ -5124,7 +5268,7 @@ class CatBoostClassifier(CatBoost):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
         for key, value in iteritems(locals().copy()):
-            if key not in not_params and value is not None:
+            if key not in not_params:
                 params[key] = value
 
         super(CatBoostClassifier, self).__init__(params)
