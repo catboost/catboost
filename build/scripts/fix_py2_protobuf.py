@@ -22,6 +22,17 @@ def gen_renames_1(d):
 
 def gen_renames_2(p, d):
     for s in gen_renames_1(d):
+        """
+        Since clang-17, the option -fsanitize-address-globals-dead-stripping
+        has been enabled by default. Due to this, we have broken optimization
+        that merges calls to the `asan.module_ctor` function, as we are renaming
+        symbols with a prefix of 'py2_'. When this flag is enabled, and
+        the functions are not merged, false-positive ODR (One Definition Rule)
+        violations occur on objects such as `typeinfo std::exception`, because
+        the runtime is trying to handle global objects that have already been handled.
+        """
+        if 'asan_globals' in s:
+            continue
         yield s + ' ' + p + s
 
 
