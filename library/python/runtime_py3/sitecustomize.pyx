@@ -42,6 +42,9 @@ class ArcadiaTraversable(Traversable):
     def suffix(self):
         return self._path.suffix
 
+    @property
+    def stem(self):
+        return self._path.stem
 
 
 class ArcadiaResource(ArcadiaTraversable):
