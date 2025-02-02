@@ -141,3 +141,13 @@ IStore* NResource::CommonStore() {
 NResource::TRegHelper::TRegHelper(const TStringBuf key, const TStringBuf data) {
     CommonStore()->Store(key, data);
 }
+
+int NResource::LightRegisterI(const char* key, const char* data, const char* data_end) {
+    CommonStore()->Store(TStringBuf(key), TStringBuf(data, data_end));
+    return 0;
+
+}
+int NResource::LightRegisterS(const char* key, const char* data, unsigned long data_len) {
+    CommonStore()->Store(TStringBuf(key), TStringBuf(data, data_len));
+    return 0;
+}

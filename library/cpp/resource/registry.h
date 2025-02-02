@@ -31,4 +31,7 @@ namespace NResource {
     struct TRegHelper {
         TRegHelper(const TStringBuf key, const TStringBuf data);
     };
+
+    int LightRegisterS(const char* key, const char* data, unsigned long data_len);
+    int LightRegisterI(const char* key, const char* data, const char* data_end);
 }
