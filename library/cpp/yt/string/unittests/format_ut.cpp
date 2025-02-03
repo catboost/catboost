@@ -70,6 +70,7 @@ static_assert(CFormattable<std::multimap<int, int>>);
 static_assert(CFormattable<THashSet<int>>);
 static_assert(CFormattable<THashMap<int, int>>);
 static_assert(CFormattable<THashMultiSet<int>>);
+static_assert(CFormattable<TCompactFlatMap<int, int, 2>>);
 static_assert(CFormattable<std::pair<int, int>>);
 static_assert(CFormattable<std::optional<int>>);
 static_assert(CFormattable<TDuration>);

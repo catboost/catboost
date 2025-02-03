@@ -20,7 +20,7 @@ concept CComparisonAllowed = std::same_as<T, U> || CHasIsTransparentFlag<TCompar
 
 ///////////////////////////////////////////////////////////////////////////////
 
-//! A flat map implementation over TCompactTValueector that tries to keep data inline.
+//! A flat map implementation over TCompactVector that tries to keep data inline.
 /*!
  *  Similarly to SmallSet, this is implemented via binary search over a sorted
  *  vector. Unlike SmallSet, however, this one never falls back to std::map (or
