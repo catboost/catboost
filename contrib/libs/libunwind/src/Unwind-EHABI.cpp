@@ -261,7 +261,7 @@ _Unwind_VRS_Interpret(_Unwind_Context *context, const uint32_t *data,
                       size_t offset, size_t len) {
   bool wrotePC = false;
   bool finish = false;
-  bool hasReturnAddrAuthCode [[maybe_unused]] = false;
+  bool hasReturnAddrAuthCode = false;
   while (offset < len && !finish) {
     uint8_t byte = getByte(data, offset++);
     if ((byte & 0x80) == 0) {
