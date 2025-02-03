@@ -186,12 +186,10 @@ def java_bin():
 @default_arg0
 def data_path(path=None):
     """
-    Get path inside arcadia_tests_data directory
-    :param path: path relative to the arcadia_tests_data directory, e.g. yatest.common.data_path("pers/rerank_service")
-    :return: absolute path inside arcadia_tests_data
+    Get path inside atd_ro_snapshot directory
+    :param path: path relative to the atd_ro_snaphot directory, e.g. yatest.common.data_path("pers/rerank_service")
+    :return: absolute path in arcadia
     """
-    if "USE_ATD_FROM_ATD" in os.environ:
-        return _join_path(_get_ya_plugin_instance().data_root, path)
     return _join_path(source_path("atd_ro_snapshot"), path)
 
 
