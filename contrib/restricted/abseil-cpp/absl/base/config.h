@@ -968,7 +968,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 #error ABSL_INTERNAL_EMSCRIPTEN_VERSION cannot be directly set
 #endif
 #ifdef __EMSCRIPTEN__
-#error #include <emscripten/version.h>
+#include <emscripten/version.h>
 #ifdef __EMSCRIPTEN_major__
 #if __EMSCRIPTEN_minor__ >= 1000
 #error __EMSCRIPTEN_minor__ is too big to fit in ABSL_INTERNAL_EMSCRIPTEN_VERSION

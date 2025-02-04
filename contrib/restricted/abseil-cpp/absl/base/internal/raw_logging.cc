@@ -22,7 +22,7 @@
 #include <string>
 
 #ifdef __EMSCRIPTEN__
-#error #include <emscripten/console.h>
+#include <emscripten/console.h>
 #endif
 
 #include "absl/base/attributes.h"
