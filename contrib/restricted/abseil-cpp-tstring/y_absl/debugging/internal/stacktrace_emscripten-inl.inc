@@ -20,7 +20,7 @@
 #ifndef Y_ABSL_DEBUGGING_INTERNAL_STACKTRACE_EMSCRIPTEN_INL_H_
 #define Y_ABSL_DEBUGGING_INTERNAL_STACKTRACE_EMSCRIPTEN_INL_H_
 
-#error #include <emscripten.h>
+#include <emscripten.h>
 
 #include <atomic>
 #include <cstring>

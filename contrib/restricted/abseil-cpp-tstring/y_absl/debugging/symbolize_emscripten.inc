@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <cxxabi.h>
-#error #include <emscripten.h>
+#include <emscripten.h>
 
 #include <algorithm>
 #include <cstring>
