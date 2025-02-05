@@ -48,6 +48,10 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
 
     dependencies = ["ltag"]
 
+    def __init__(self, tag=None):
+        super().__init__(tag)
+        self.names = []
+
     def decompile(self, data, ttFont):
         format, n, stringOffset = struct.unpack(b">HHH", data[:6])
         expectedStringOffset = 6 + n * nameRecordSize
@@ -78,10 +82,6 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
             self.names.append(name)
 
     def compile(self, ttFont):
-        if not hasattr(self, "names"):
-            # only happens when there are NO name table entries read
-            # from the TTX file
-            self.names = []
         names = self.names
         names.sort()  # sort according to the spec; see NameRecord.__lt__()
         stringData = b""
@@ -108,8 +108,6 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
     def fromXML(self, name, attrs, content, ttFont):
         if name != "namerecord":
             return  # ignore unknown tags
-        if not hasattr(self, "names"):
-            self.names = []
         name = NameRecord()
         self.names.append(name)
         name.fromXML(name, attrs, content, ttFont)
@@ -194,8 +192,6 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
         identified by the (platformID, platEncID, langID) triplet. A warning is issued
         to prevent unexpected results.
         """
-        if not hasattr(self, "names"):
-            self.names = []
         if not isinstance(string, str):
             if isinstance(string, bytes):
                 log.warning(
@@ -262,7 +258,7 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
         The nameID is assigned in the range between 'minNameID' and 32767 (inclusive),
         following the last nameID in the name table.
         """
-        names = getattr(self, "names", [])
+        names = self.names
         nameID = 1 + max([n.nameID for n in names] + [minNameID - 1])
         if nameID > 32767:
             raise ValueError("nameID must be less than 32768")
@@ -359,8 +355,6 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
         If the 'nameID' argument is None, the created nameID will not
         be less than the 'minNameID' argument.
         """
-        if not hasattr(self, "names"):
-            self.names = []
         if nameID is None:
             # Reuse nameID if possible
             nameID = self.findMultilingualName(
@@ -404,8 +398,6 @@ class table__n_a_m_e(DefaultTable.DefaultTable):
         assert (
             len(platforms) > 0
         ), "'platforms' must contain at least one (platformID, platEncID, langID) tuple"
-        if not hasattr(self, "names"):
-            self.names = []
         if not isinstance(string, str):
             raise TypeError(
                 "expected str, found %s: %r" % (type(string).__name__, string)

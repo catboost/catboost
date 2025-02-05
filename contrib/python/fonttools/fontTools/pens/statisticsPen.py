@@ -106,6 +106,7 @@ class StatisticsControlPen(StatisticsBase, BasePen):
 
     def _moveTo(self, pt):
         self._nodes.append(complex(*pt))
+        self._startPoint = pt
 
     def _lineTo(self, pt):
         self._nodes.append(complex(*pt))
@@ -119,12 +120,16 @@ class StatisticsControlPen(StatisticsBase, BasePen):
             self._nodes.append(complex(*pt))
 
     def _closePath(self):
+        p0 = self._getCurrentPoint()
+        if p0 != self._startPoint:
+            self._lineTo(self._startPoint)
         self._update()
 
     def _endPath(self):
         p0 = self._getCurrentPoint()
         if p0 != self._startPoint:
             raise OpenContourError("Glyph statistics not defined on open contours.")
+        self._update()
 
     def _update(self):
         nodes = self._nodes

@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.2
 Name: fonttools
-Version: 4.55.3
+Version: 4.55.4
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -72,6 +72,18 @@ Requires-Dist: sympy; extra == "all"
 Requires-Dist: xattr; sys_platform == "darwin" and extra == "all"
 Requires-Dist: skia-pathops>=0.5.0; extra == "all"
 Requires-Dist: uharfbuzz>=0.23.0; extra == "all"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: home-page
+Dynamic: license
+Dynamic: maintainer
+Dynamic: maintainer-email
+Dynamic: platform
+Dynamic: provides-extra
+Dynamic: requires-python
+Dynamic: summary
 
 |CI Build Status| |Coverage Status| |PyPI| |Gitter Chat|
 
@@ -377,9 +389,15 @@ Have fun!
 Changelog
 ~~~~~~~~~
 
-4.55.3 (released 2024-12-10)
+4.55.4 (released 2025-01-21)
 ----------------------------
 
+- [bezierTools] Fixed ``splitCubicAtT`` sometimes not returning identical start/end points as result of numerical precision (#3742, #3743).
+- [feaLib/ast] Fixed docstring of ``AlternateSubstStatement`` (#3735).
+- [transform] Typing fixes (#3734).
+
+4.55.3 (released 2024-12-10)
+----------------------------
 
 - [Docs] fill out ttLib table section [#3716]
 - [feaLib] More efficient inline format 4 lookups [#3726]
@@ -402,7 +420,6 @@ Changelog
 
 4.55.0 (released 2024-11-14)
 ----------------------------
-
 
 - [cffLib.specializer] Adjust stack use calculation (#3689)
 - [varLib] Lets not add mac names if the rest of name doesn't have them (#3688)
