@@ -1,10 +1,10 @@
 [settings]
 arch=x86_64
-build_type=Release
+build_type={{ os.getenv("CMAKE_BUILD_TYPE", "Release") }}
 compiler=msvc
 compiler.cppstd=20
 compiler.runtime=static
-compiler.runtime_type=Release
+compiler.runtime_type={{ os.getenv("CMAKE_BUILD_TYPE", "Release") }}
 compiler.version=192
 os=Windows
 [conf]
