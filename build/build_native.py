@@ -284,7 +284,7 @@ def get_default_cross_build_toolchain(source_root_dir, opts):
     else:
         raise RuntimeError(f'Cross-compilation from {build_system_name} is not supported')
 
-def get_default_conan_host_profile(source_root_dir, target_platform):
+def get_default_cross_build_conan_host_profile(source_root_dir, target_platform):
     target_system_name, target_system_arch = target_platform.split('-')
 
     # a bit of name mismatch
@@ -334,7 +334,7 @@ def cross_build(opts: Opts, cmd_runner=None):
         cmake_target_toolchain = opts.cmake_target_toolchain
 
     if opts.conan_host_profile is None:
-        conan_host_profile = get_default_conan_host_profile(source_root_dir, opts.target_platform)
+        conan_host_profile = get_default_cross_build_conan_host_profile(source_root_dir, opts.target_platform)
     else:
         conan_host_profile = opts.conan_host_profile
 
@@ -386,13 +386,17 @@ def get_msvs_dir(msvs_installation_path, msvs_version):
 
     return msvs_dir
 
+def get_msvc_toolset(msvs_version, msvc_toolset):
+    if msvc_toolset:
+        return msvc_toolset
+
+    if msvs_version not in MSVS_TO_DEFAULT_MSVC_TOOLSET:
+        raise RuntimeError(f'No default C++ toolset for Microsoft Visual Studio {msvs_version}')
+    return MSVS_TO_DEFAULT_MSVC_TOOLSET[msvs_version]
 
 def get_msvc_environ(msvs_installation_path, msvs_version, msvc_toolset, cmd_runner, dry_run):
     msvs_dir = get_msvs_dir(msvs_installation_path, msvs_version)
-    if msvc_toolset is None:
-        if msvs_version not in MSVS_TO_DEFAULT_MSVC_TOOLSET:
-            raise RuntimeError(f'No default C++ toolset for Microsoft Visual Studio {msvs_version}')
-        msvc_toolset = MSVS_TO_DEFAULT_MSVC_TOOLSET[msvs_version]
+    msvc_toolset = get_msvc_toolset(msvs_version, msvc_toolset)
 
     env_vars = {}
 
@@ -465,7 +469,30 @@ def get_build_environ(opts, target_platform, cmd_runner):
         # CMake requires nvcc to be available in $PATH
         add_cuda_bin_path_to_system_path(build_environ, cuda_root_dir)
 
+    # this environment variable can be used in conan profiles to avoid profile duplication
+    build_environ['CMAKE_BUILD_TYPE'] = opts.build_type
+
     return build_environ
+
+def get_default_windows_conan_host_profile(
+    source_root_dir,
+    target_platform,
+    msvs_version,
+    msvc_toolset):
+
+    target_system_name, target_system_arch = target_platform.split('-')
+    assert target_system_name == 'windows'
+    if msvs_version == '2022':
+        msvc_toolset = get_msvc_toolset(msvs_version, msvc_toolset)
+        if msvc_toolset.startswith('14.28.') or msvc_toolset.startswith('14.29.'):
+            return os.path.join(
+                source_root_dir,
+                'cmake',
+                'conan-profiles',
+                f'windows.msvs2022.{target_system_arch}.profile'
+            )
+
+    return None
 
 def build(
     opts=None,
@@ -531,21 +558,34 @@ def build(
         f'-DCMAKE_TOOLCHAIN_FILE={cmake_target_toolchain}',
         f'-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES={source_root_dir}/cmake/conan_provider.cmake'
     ]
+
+    conan_host_profile = opts.conan_host_profile
+    if platform.system().lower() == 'windows':
+        if not conan_host_profile:
+            # TODO: support proper passing of mavc_toolset in conan_provider.cmake
+            conan_host_profile = get_default_windows_conan_host_profile(
+                source_root_dir,
+                target_platform,
+                opts.msvs_version,
+                opts.msvc_toolset
+            )
+
+        if not opts.have_cuda:
+            msvs_dir = get_msvs_dir(opts.msvs_installation_path, opts.msvs_version)
+
+            # Use clang-cl for the build without CUDA and standard Microsoft toolchain for the build with CUDA
+            # (as clang-cl is not supported by CUDA yet)
+            cmake_cmd += [
+                f'-DCMAKE_CXX_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
+                f'-DCMAKE_C_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
+                f'-DCMAKE_RC_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\llvm-rc.exe'
+            ]
+
     if opts.conan_build_profile:
         cmake_cmd += [f'-DCONAN_BUILD_PROFILE={opts.conan_build_profile}']
-    if opts.conan_host_profile:
-        cmake_cmd += [f'-DCONAN_HOST_PROFILE={opts.conan_host_profile}']
+    if conan_host_profile:
+        cmake_cmd += [f'-DCONAN_HOST_PROFILE={conan_host_profile}']
 
-    if (platform.system().lower() == 'windows') and (not opts.have_cuda):
-        msvs_dir = get_msvs_dir(opts.msvs_installation_path, opts.msvs_version)
-
-        # Use clang-cl for the build without CUDA and standard Microsoft toolchain for the build with CUDA
-        # (as clang-cl is not supported by CUDA yet)
-        cmake_cmd += [
-            f'-DCMAKE_CXX_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
-            f'-DCMAKE_C_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe',
-            f'-DCMAKE_RC_COMPILER:FILEPATH={msvs_dir}\\VC\\Tools\\Llvm\\x64\\bin\\llvm-rc.exe'
-        ]
     if opts.verbose:
         cmake_cmd += ['--log-level=VERBOSE']
     if require_pic:
