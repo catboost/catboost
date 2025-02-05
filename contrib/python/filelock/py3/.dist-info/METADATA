@@ -1,6 +1,6 @@
-Metadata-Version: 2.3
+Metadata-Version: 2.4
 Name: filelock
-Version: 3.16.1
+Version: 3.17.0
 Summary: A platform independent file lock.
 Project-URL: Documentation, https://py-filelock.readthedocs.io
 Project-URL: Homepage, https://github.com/tox-dev/py-filelock
@@ -16,7 +16,6 @@ Classifier: License :: OSI Approved :: The Unlicense (Unlicense)
 Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
@@ -25,21 +24,21 @@ Classifier: Programming Language :: Python :: 3.13
 Classifier: Topic :: Internet
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: System
-Requires-Python: >=3.8
+Requires-Python: >=3.9
 Provides-Extra: docs
 Requires-Dist: furo>=2024.8.6; extra == 'docs'
-Requires-Dist: sphinx-autodoc-typehints>=2.4.1; extra == 'docs'
-Requires-Dist: sphinx>=8.0.2; extra == 'docs'
+Requires-Dist: sphinx-autodoc-typehints>=3; extra == 'docs'
+Requires-Dist: sphinx>=8.1.3; extra == 'docs'
 Provides-Extra: testing
 Requires-Dist: covdefaults>=2.3; extra == 'testing'
-Requires-Dist: coverage>=7.6.1; extra == 'testing'
-Requires-Dist: diff-cover>=9.2; extra == 'testing'
-Requires-Dist: pytest-asyncio>=0.24; extra == 'testing'
-Requires-Dist: pytest-cov>=5; extra == 'testing'
+Requires-Dist: coverage>=7.6.10; extra == 'testing'
+Requires-Dist: diff-cover>=9.2.1; extra == 'testing'
+Requires-Dist: pytest-asyncio>=0.25.2; extra == 'testing'
+Requires-Dist: pytest-cov>=6; extra == 'testing'
 Requires-Dist: pytest-mock>=3.14; extra == 'testing'
 Requires-Dist: pytest-timeout>=2.3.1; extra == 'testing'
-Requires-Dist: pytest>=8.3.3; extra == 'testing'
-Requires-Dist: virtualenv>=20.26.4; extra == 'testing'
+Requires-Dist: pytest>=8.3.4; extra == 'testing'
+Requires-Dist: virtualenv>=20.28.1; extra == 'testing'
 Provides-Extra: typing
 Requires-Dist: typing-extensions>=4.12.2; (python_version < '3.11') and extra == 'typing'
 Description-Content-Type: text/markdown
@@ -54,6 +53,6 @@ status](https://readthedocs.org/projects/py-filelock/badge/?version=latest)](htt
 [![Code style:
 black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Downloads](https://static.pepy.tech/badge/filelock/month)](https://pepy.tech/project/filelock)
-[![check](https://github.com/tox-dev/py-filelock/actions/workflows/check.yml/badge.svg)](https://github.com/tox-dev/py-filelock/actions/workflows/check.yml)
+[![check](https://github.com/tox-dev/py-filelock/actions/workflows/check.yaml/badge.svg)](https://github.com/tox-dev/py-filelock/actions/workflows/check.yaml)
 
 For more information checkout the [official documentation](https://py-filelock.readthedocs.io/en/latest/index.html).

@@ -40,7 +40,7 @@ if sys.platform == "win32":  # pragma: win32 cover
                     self._context.lock_file_fd = fd
 
         def _release(self) -> None:
-            fd = cast(int, self._context.lock_file_fd)
+            fd = cast("int", self._context.lock_file_fd)
             self._context.lock_file_fd = None
             msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
             os.close(fd)
