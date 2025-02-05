@@ -40,6 +40,18 @@
 /* Define to 1 if you have the `getopt' function. */
 #define HAVE_GETOPT 1
 
+/* Define to 1 if you have the <GLUT/glut.h> header file. */
+/* #undef HAVE_GLUT_GLUT_H */
+
+/* Define to 1 if you have the <GL/glut.h> header file. */
+/* #undef HAVE_GL_GLUT_H */
+
+/* Define to 1 if you have the <GL/glu.h> header file. */
+/* #undef HAVE_GL_GLU_H */
+
+/* Define to 1 if you have the <GL/gl.h> header file. */
+/* #undef HAVE_GL_GL_H */
+
 /* Define to 1 if you have the <io.h> header file. */
 /* #undef HAVE_IO_H */
 
@@ -48,6 +60,12 @@
 
 /* Define to 1 if you have the `mmap' function. */
 #define HAVE_MMAP 1
+
+/* Define to 1 if you have the <OpenGL/glu.h> header file. */
+/* #undef HAVE_OPENGL_GLU_H */
+
+/* Define to 1 if you have the <OpenGL/gl.h> header file. */
+/* #undef HAVE_OPENGL_GL_H */
 
 /* Define to 1 if you have the `setmode' function. */
 /* #undef HAVE_SETMODE */
