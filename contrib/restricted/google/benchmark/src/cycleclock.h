@@ -48,7 +48,7 @@ extern "C" uint64_t __rdtsc();
 #endif
 
 #ifdef BENCHMARK_OS_EMSCRIPTEN
-#error #include <emscripten.h>
+#include <emscripten.h>
 #endif
 
 namespace benchmark {

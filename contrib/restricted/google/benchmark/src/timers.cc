@@ -44,7 +44,7 @@
 #endif
 
 #ifdef BENCHMARK_OS_EMSCRIPTEN
-#error #include <emscripten.h>
+#include <emscripten.h>
 #endif
 
 #include <cerrno>
