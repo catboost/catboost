@@ -4,6 +4,8 @@
 
 #include <library/cpp/yt/malloc/malloc.h>
 
+#include <library/cpp/yt/system/exit.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -147,9 +149,17 @@ void TBlob::Reset()
 
 char* TBlob::DoAllocate(size_t size)
 {
-    return static_cast<char*>(PageAligned_
+    auto* allocated = static_cast<char*>(PageAligned_
         ? ::aligned_malloc(size, GetPageSize())
         : ::malloc(size));
+
+    if (Y_UNLIKELY(!allocated)) {
+        AbortProcessDramatically(
+            EProcessExitCode::OutOfMemory,
+            "Out-of-memory during TBlob allocation");
+    }
+
+    return allocated;
 }
 
 void TBlob::Allocate(size_t newCapacity)
