@@ -52,6 +52,68 @@ def get_opts(args):
     return Opts(args)
 
 
+def run(*args):
+    return subprocess.check_output(list(args), shell=False).strip()
+
+
+def gen_renames_1(d):
+    for l in d.split('\n'):
+        l = l.strip()
+
+        if ' ' in l:
+            yield l.split(' ')[-1]
+
+
+def have_prefix(l, p):
+    for x in l:
+        if not x.startswith(p):
+            return False
+
+    return True
+
+
+def gen_renames_2(p, d):
+    l = list(gen_renames_1(d))
+    a = have_prefix(l, '_')
+
+    for s in l:
+        if 'asan_globals' in s:
+            continue
+
+        if s in ['HMAC', 'SHA1', 'SHA256', 'SHA256', 'SHA512', 'RC4', 'MD5', 'SHA384']:
+            continue
+
+        if a and s[1:] in ['HMAC', 'SHA1', 'SHA256', 'SHA256', 'SHA512', 'RC4', 'MD5', 'SHA384']:
+            continue
+
+        if a:
+            yield s + ' _' + p + s[1:]
+        else:
+            yield s + ' ' + p + s
+
+
+def gen_renames(p, d):
+    return '\n'.join(gen_renames_2(p, d)).strip() + '\n'
+
+
+def rename_syms(where, ret):
+    p = 'v1_'
+
+    # find symbols to rename
+    syms = run(where + 'llvm-nm', '--extern-only', '--defined-only', '-A', ret)
+
+    # prepare rename plan
+    renames = gen_renames(p, syms)
+    tmp = ret + '.syms'
+
+    with open(tmp, 'w') as f:
+        f.write(renames)
+
+    # rename symbols
+    run(where + 'llvm-objcopy', '--redefine-syms=' + tmp, ret)
+    os.unlink(tmp)
+
+
 if __name__ == "__main__":
     opts = get_opts(sys.argv[1:])
 
@@ -99,3 +161,6 @@ if __name__ == "__main__":
 
     if exit_code != 0:
         raise Exception('{0} returned non-zero exit code {1}. Stop.'.format(' '.join(cmd), exit_code))
+
+    if os.path.basename(opts.output) in ['libcontrib-libs-openssl.a', 'liblibs-openssl-crypto.a']:
+        rename_syms(os.path.dirname(opts.archiver) + '/', opts.output)
