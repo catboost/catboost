@@ -1,3 +1,4 @@
+#include <contrib/libs/openssl/redef.h>
 /*
  * Copyright 2006-2018 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright (c) 2017, Oracle and/or its affiliates.  All rights reserved.
