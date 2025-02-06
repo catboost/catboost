@@ -78,7 +78,7 @@ inline TChunkedMemoryPool::TChunkedMemoryPool(
 inline char* TChunkedMemoryPool::AllocateUnaligned(size_t size)
 {
     // Fast path.
-    if (FreeZoneEnd_ >= FreeZoneBegin_ + size) {
+    if (FreeZoneBegin_ && FreeZoneEnd_ >= FreeZoneBegin_ + size) {
         FreeZoneEnd_ -= size;
         Size_ += size;
         return FreeZoneEnd_;
@@ -90,15 +90,17 @@ inline char* TChunkedMemoryPool::AllocateUnaligned(size_t size)
 
 inline char* TChunkedMemoryPool::AllocateAligned(size_t size, int align)
 {
-    // NB: This can lead to FreeZoneBegin_ >= FreeZoneEnd_ in which case the chunk is full.
-    FreeZoneBegin_ = AlignUp(FreeZoneBegin_, align);
+    if (FreeZoneBegin_) {
+        // NB: This can lead to FreeZoneBegin_ >= FreeZoneEnd_ in which case the chunk is full.
+        FreeZoneBegin_ = AlignUp(FreeZoneBegin_, align);
 
-    // Fast path.
-    if (FreeZoneBegin_ + size <= FreeZoneEnd_) {
-        char* result = FreeZoneBegin_;
-        Size_ += size;
-        FreeZoneBegin_ += size;
-        return result;
+        // Fast path.
+        if (FreeZoneBegin_ + size <= FreeZoneEnd_) {
+            char* result = FreeZoneBegin_;
+            Size_ += size;
+            FreeZoneBegin_ += size;
+            return result;
+        }
     }
 
     // Slow path.
