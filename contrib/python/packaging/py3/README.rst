@@ -34,6 +34,8 @@ Use ``pip`` to install these utilities::
 
     pip install packaging
 
+The ``packaging`` library uses calendar-based versioning (``YY.N``).
+
 Discussion
 ----------
 
