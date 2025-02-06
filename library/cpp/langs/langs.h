@@ -141,6 +141,7 @@ enum ELanguage: unsigned {
     LANG_TYV = 124,         // Tuvan
     LANG_CHE = 125,         // Chechen
     LANG_MNS = 126,         // Mansi
+    LANG_ARZ = 127,         // Egyptian Arabic
     LANG_MAX
 };
 
