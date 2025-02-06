@@ -13,7 +13,7 @@ This mini-package lets you get information about what a frame is currently doing
 * [How does it work?](#how-does-it-work)
 * [Is it reliable?](#is-it-reliable)
 * [Which nodes can it identify?](#which-nodes-can-it-identify)
-* [Libraries that use this](#libraries-that-use-this)
+* [Projects that use this](#projects-that-use-this)
 
 ## Usage
 

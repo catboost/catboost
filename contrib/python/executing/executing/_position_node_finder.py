@@ -242,6 +242,66 @@ class PositionNodeFinder(object):
             # keeping the old behaviour makes it possible to distinguish both cases.
 
             return node.parent
+
+        if (
+            sys.version_info >= (3, 12, 6)
+            and instruction.opname in ("GET_ITER", "FOR_ITER")
+            and isinstance(
+                node.parent.parent,
+                (ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp),
+            )
+            and isinstance(node.parent,ast.comprehension)
+            and node is node.parent.iter
+        ):
+            # same as above but only for comprehensions, see:
+            # https://github.com/python/cpython/issues/123142
+
+            return node.parent.parent
+
+        if sys.version_info >= (3, 12,6) and instruction.opname == "CALL":
+            before = self.instruction_before(instruction)
+            if (
+                before is not None
+                and before.opname == "LOAD_CONST"
+                and before.positions == instruction.positions
+                and isinstance(node.parent, ast.withitem)
+                and node is node.parent.context_expr
+            ):
+                # node positions for with-statements have change
+                # and is now equal to the expression which created the context-manager
+                # https://github.com/python/cpython/pull/120763
+
+                # with context_manager:
+                #     ...
+
+                # but there is one problem to distinguish call-expressions from __exit__()
+
+                # with context_manager():
+                #     ...
+
+                # the call for __exit__
+
+                # 20  1:5    1:22  LOAD_CONST(None)
+                # 22  1:5    1:22  LOAD_CONST(None)
+                # 24  1:5    1:22  LOAD_CONST(None)
+                # 26  1:5    1:22  CALL()         # <-- same source range as context_manager()
+
+                # but we can use the fact that the previous load for None
+                # has the same source range as the call, wich can not happen for normal calls
+
+                # we return the same ast.With statement at the and to preserve backward compatibility
+
+                return node.parent.parent
+
+        if (
+            sys.version_info >= (3, 12,6)
+            and instruction.opname == "BEFORE_WITH"
+            and isinstance(node.parent, ast.withitem)
+            and node is node.parent.context_expr
+        ):
+            # handle positions changes for __enter__
+            return node.parent.parent
+
         return node
 
     def known_issues(self, node: EnhancedAST, instruction: dis.Instruction) -> None:
@@ -879,6 +939,11 @@ class PositionNodeFinder(object):
 
     def instruction(self, index: int) -> Optional[dis.Instruction]:
         return self.bc_dict.get(index,None)
+
+    def instruction_before(
+        self, instruction: dis.Instruction
+    ) -> Optional[dis.Instruction]:
+        return self.bc_dict.get(instruction.offset - 2, None)
 
     def opname(self, index: int) -> str:
         i=self.instruction(index)
