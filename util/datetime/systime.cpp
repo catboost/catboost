@@ -104,7 +104,6 @@ namespace {
 
     template <ui8 DaysInFeb>
     constexpr int DayOfYearToMonth(ui64& day) {
-        Y_ASSERT(day >= 0);
         Y_ASSERT(day < 366);
 
         constexpr ui8 JanDays = 31;
@@ -173,29 +172,39 @@ namespace {
     }
 
     class TDayNoToYearLookupTable {
-    private:
         static constexpr int TableSize = 128;
         // lookup table for years in [1970, 1970 + 128 = 2098] range
         ui16 DaysSinceEpoch[TableSize] = {};
 
     public:
         constexpr TDayNoToYearLookupTable() {
-            DaysSinceEpoch[0] = YearSize(UNIX_TIME_BASE_YEAR);
+            ui16 daysAccumulated = 0;
 
-            for (int year = UNIX_TIME_BASE_YEAR + 1; year < UNIX_TIME_BASE_YEAR + TableSize; ++year) {
-                DaysSinceEpoch[year - UNIX_TIME_BASE_YEAR] = DaysSinceEpoch[year - UNIX_TIME_BASE_YEAR - 1] + YearSize(year);
+            for (int year = UNIX_TIME_BASE_YEAR; year < UNIX_TIME_BASE_YEAR + TableSize; ++year) {
+                daysAccumulated += YearSize(year);
+                DaysSinceEpoch[year - UNIX_TIME_BASE_YEAR] = daysAccumulated;
             }
         }
 
         // lookup year by days since epoch, decrement day counter to the corresponding amount of days.
         // The method returns the last year in the table, if year is too big
-        int GetYear(ui64& days) const {
-            size_t year = std::upper_bound(DaysSinceEpoch, Y_ARRAY_END(DaysSinceEpoch), days) - Y_ARRAY_BEGIN(DaysSinceEpoch);
-            if (year > 0) {
-                days -= DaysSinceEpoch[year - 1];
+        int FindYear(ui64& days) const {
+            if (days >= DaysSinceEpoch[TableSize - 1]) {
+                days -= DaysSinceEpoch[TableSize - 1];
+                return TableSize + UNIX_TIME_BASE_YEAR;
+            }
+            ui64 yearIndex = days / DAYS_IN_YEAR;
+
+            // we can miss by at most 1 year
+            if (yearIndex > 0 && DaysSinceEpoch[yearIndex - 1] >= days) {
+                --yearIndex;
             }
 
-            return year + UNIX_TIME_BASE_YEAR;
+            if (yearIndex > 0) {
+                days -= DaysSinceEpoch[yearIndex - 1];
+            }
+
+            return static_cast<int>(yearIndex + UNIX_TIME_BASE_YEAR);
         }
     };
 
@@ -259,21 +268,23 @@ struct tm* GmTimeR(const time_t* timer, struct tm* tmbuf) {
     tmbuf->tm_wday = (dayno + 4) % 7; // Day 0 was a thursday
 
     if (Y_LIKELY(year == UNIX_TIME_BASE_YEAR)) {
-        year = DAYS_TO_YEAR_LOOKUP.GetYear(dayno);
+        year = DAYS_TO_YEAR_LOOKUP.FindYear(dayno);
     }
 
+    bool isLeapYear = IsLeapYear(year);
     for (;;) {
-        const ui16 yearSize = YearSize(year);
+        const ui16 yearSize = isLeapYear ? DAYS_IN_LEAP_YEAR : DAYS_IN_YEAR;
         if (dayno < yearSize) {
             break;
         }
         dayno -= yearSize;
         ++year;
+        isLeapYear = IsLeapYear(year);
     }
 
     tmbuf->tm_year = year - STRUCT_TM_BASE_YEAR;
     tmbuf->tm_yday = dayno;
-    tmbuf->tm_mon = IsLeapYear(year)
+    tmbuf->tm_mon = isLeapYear
                         ? DayOfYearToMonth<29>(dayno)
                         : DayOfYearToMonth<28>(dayno);
     tmbuf->tm_mday = dayno + 1;
