@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined(OPENSSL_BUILD) && !defined(_MSC_VER)
+#if !defined(OPENSSL_BUILD) && !defined(_MSC_VER) && !defined(OPENSSL_DONT_ADD_VERSION_PREFIX)
 #define a2d_ASN1_OBJECT v1_a2d_ASN1_OBJECT
 #define a2i_ASN1_ENUMERATED v1_a2i_ASN1_ENUMERATED
 #define a2i_ASN1_INTEGER v1_a2i_ASN1_INTEGER
