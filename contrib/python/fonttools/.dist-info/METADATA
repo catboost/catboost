@@ -1,6 +1,6 @@
 Metadata-Version: 2.2
 Name: fonttools
-Version: 4.55.4
+Version: 4.55.6
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -388,6 +388,17 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.55.6 (released 2025-01-24)
+----------------------------
+
+- [glyf] Fixed regression introduced in 4.55.5 when computing bounds of nested composite glyphs  with transformed components (#3752).
+
+4.55.5 (released 2025-01-23)
+----------------------------
+
+- [glyf] Fixed recalcBounds of transformed components with unrounded coordinates (#3750).
+- [feaLib] Allow duplicate script/language statements (#3749).
 
 4.55.4 (released 2025-01-21)
 ----------------------------

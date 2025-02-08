@@ -1106,7 +1106,13 @@ class Builder(object):
         if (language == "dflt" or include_default) and lookups:
             self.features_[key] = lookups[:]
         else:
-            self.features_[key] = []
+            # if we aren't including default we need to manually remove the
+            # default lookups, which were added to all declared langsystems
+            # as they were encountered (we don't remove all lookups because
+            # we want to allow duplicate script/lang statements;
+            # see https://github.com/fonttools/fonttools/issues/3748
+            cur_lookups = self.features_.get(key, [])
+            self.features_[key] = [x for x in cur_lookups if x not in lookups]
         self.language_systems = frozenset([(self.script_, language)])
 
         if required:
