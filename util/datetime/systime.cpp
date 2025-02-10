@@ -102,73 +102,36 @@ namespace {
     constexpr ui16 MONTH_TO_DAYS_LEAP[12] = {
         0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335};
 
-    template <ui8 DaysInFeb>
-    constexpr int DayOfYearToMonth(ui64& day) {
-        Y_ASSERT(day < 366);
+    struct TMonth32LUT {
+        char LastMonthDay32[12];
+        char FirstMonthDay32[12];
+    };
 
-        constexpr ui8 JanDays = 31;
-        constexpr ui8 FebDays = JanDays + DaysInFeb;
-        constexpr ui8 MarDays = FebDays + 31;
-        constexpr ui8 AprDays = MarDays + 30;
-        constexpr ui8 MayDays = AprDays + 31;
-        constexpr ui8 JunDays = MayDays + 30;
-        constexpr ui8 JulDays = JunDays + 31;
-        constexpr ui16 AugDays = JulDays + 31;
-        constexpr ui16 SepDays = AugDays + 30;
-        constexpr ui16 OctDays = SepDays + 31;
-        constexpr ui16 NovDays = OctDays + 30;
+    constexpr TMonth32LUT MONTH_32_LUT[2] = {
+        {
+            // common year
+            .LastMonthDay32 = {31, 27, 26, 24, 23, 21, 20, 19, 17, 16, 14, 13},
+            .FirstMonthDay32 = {0, 1, 5, 6, 8, 9, 11, 12, 13, 15, 16, 18},
+        },
+        {
+            // leap year
+            .LastMonthDay32 = {31, 28, 27, 25, 24, 22, 21, 20, 18, 17, 15, 14},
+            .FirstMonthDay32 = {0, 1, 4, 5, 7, 8, 10, 11, 12, 14, 15, 17},
+        },
+    };
 
-        // hard-coded binary search
-        // this approach is faster that lookup in array using std::lower_bound()
-        // GmTimeR takes ~40 cycles vs ~60 cycles using std::lower_bound version
-        if (day < JunDays) {
-            if (day < MarDays) {
-                if (day < JanDays) {
-                    return 0;
-                } else if (day < FebDays) {
-                    day -= JanDays;
-                    return 1;
-                } else {
-                    day -= FebDays;
-                    return 2;
-                }
-            } else {
-                if (day < AprDays) {
-                    day -= MarDays;
-                    return 3;
-                } else if (day < MayDays) {
-                    day -= AprDays;
-                    return 4;
-                } else {
-                    day -= MayDays;
-                    return 5;
-                }
-            }
-        } else {
-            if (day < SepDays) {
-                if (day < JulDays) {
-                    day -= JunDays;
-                    return 6;
-                } else if (day < AugDays) {
-                    day -= JulDays;
-                    return 7;
-                } else {
-                    day -= AugDays;
-                    return 8;
-                }
-            } else {
-                if (day < OctDays) {
-                    day -= SepDays;
-                    return 9;
-                } else if (day < NovDays) {
-                    day -= OctDays;
-                    return 10;
-                } else {
-                    day -= NovDays;
-                    return 11;
-                }
-            }
-        }
+    constexpr int DayOfYearToMonth(ui64& yearDay, bool leapYear) {
+        Y_ASSERT(yearDay < 366);
+        int approxMonth = yearDay / 32;
+        int approxMDay = yearDay % 32;
+        int dayThreshold = MONTH_32_LUT[leapYear].LastMonthDay32[approxMonth];
+        int currentMonthMDayOffset = MONTH_32_LUT[leapYear].FirstMonthDay32[approxMonth];
+        bool nextMonth = (approxMDay >= dayThreshold);
+        int dayCorrection = nextMonth ? -dayThreshold : currentMonthMDayOffset;
+        int day = approxMDay + dayCorrection;
+        int month = approxMonth + nextMonth;
+        yearDay = day;
+        return month;
     }
 
     class TDayNoToYearLookupTable {
@@ -286,9 +249,7 @@ struct tm* GmTimeR(const time_t* timer, struct tm* tmbuf) {
 
     tmbuf->tm_year = year - STRUCT_TM_BASE_YEAR;
     tmbuf->tm_yday = dayno;
-    tmbuf->tm_mon = isLeapYear
-                        ? DayOfYearToMonth<29>(dayno)
-                        : DayOfYearToMonth<28>(dayno);
+    tmbuf->tm_mon = DayOfYearToMonth(dayno, isLeapYear);
     tmbuf->tm_mday = dayno + 1;
     tmbuf->tm_isdst = 0;
 #ifndef _win_
