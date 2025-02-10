@@ -115,6 +115,24 @@ struct png_info_def
    png_uint_32 iccp_proflen;  /* ICC profile data length */
 #endif
 
+#ifdef PNG_cLLI_SUPPORTED
+   png_uint_32 maxCLL;  /* cd/m2 (nits) * 10,000 */
+   png_uint_32 maxFALL;
+#endif
+
+#ifdef PNG_mDCV_SUPPORTED
+   png_uint_16 mastering_red_x;  /* CIE (xy) x * 50,000 */
+   png_uint_16 mastering_red_y;
+   png_uint_16 mastering_green_x;
+   png_uint_16 mastering_green_y;
+   png_uint_16 mastering_blue_x;
+   png_uint_16 mastering_blue_y;
+   png_uint_16 mastering_white_x;
+   png_uint_16 mastering_white_y;
+   png_uint_32 mastering_maxDL; /* cd/m2 (nits) * 10,000 */
+   png_uint_32 mastering_minDL;
+#endif
+
 #ifdef PNG_TEXT_SUPPORTED
    /* The tEXt, and zTXt chunks contain human-readable textual data in
     * uncompressed, compressed, and optionally compressed forms, respectively.

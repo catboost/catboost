@@ -1536,6 +1536,50 @@ png_write_cICP(png_structrp png_ptr,
 }
 #endif
 
+#ifdef PNG_WRITE_cLLI_SUPPORTED
+void /* PRIVATE */
+png_write_cLLI_fixed(png_structrp png_ptr, png_uint_32 maxCLL,
+   png_uint_32 maxFALL)
+{
+   png_byte buf[8];
+
+   png_debug(1, "in png_write_cLLI_fixed");
+
+   png_save_uint_32(buf, maxCLL);
+   png_save_uint_32(buf + 4, maxFALL);
+
+   png_write_complete_chunk(png_ptr, png_cLLI, buf, 8);
+}
+#endif
+
+#ifdef PNG_WRITE_mDCV_SUPPORTED
+void /* PRIVATE */
+png_write_mDCV_fixed(png_structrp png_ptr,
+   png_uint_16 red_x, png_uint_16 red_y,
+   png_uint_16 green_x, png_uint_16 green_y,
+   png_uint_16 blue_x, png_uint_16 blue_y,
+   png_uint_16 white_x, png_uint_16 white_y,
+   png_uint_32 maxDL, png_uint_32 minDL)
+{
+   png_byte buf[24];
+
+   png_debug(1, "in png_write_mDCV_fixed");
+
+   png_save_uint_16(buf +  0, red_x);
+   png_save_uint_16(buf +  2, red_y);
+   png_save_uint_16(buf +  4, green_x);
+   png_save_uint_16(buf +  6, green_y);
+   png_save_uint_16(buf +  8, blue_x);
+   png_save_uint_16(buf + 10, blue_y);
+   png_save_uint_16(buf + 12, white_x);
+   png_save_uint_16(buf + 14, white_y);
+   png_save_uint_32(buf + 16, maxDL);
+   png_save_uint_32(buf + 20, minDL);
+
+   png_write_complete_chunk(png_ptr, png_mDCV, buf, 24);
+}
+#endif
+
 #ifdef PNG_WRITE_eXIf_SUPPORTED
 /* Write the Exif data */
 void /* PRIVATE */

@@ -159,6 +159,158 @@ png_set_cICP(png_const_structrp png_ptr, png_inforp info_ptr,
 }
 #endif /* cICP */
 
+#ifdef PNG_cLLI_SUPPORTED
+void PNGFAPI
+png_set_cLLI_fixed(png_const_structrp png_ptr, png_inforp info_ptr,
+    /* The values below are in cd/m2 (nits) and are scaled by 10,000; not
+     * 100,000 as in the case of png_fixed_point.
+     */
+    png_uint_32 maxCLL, png_uint_32 maxFALL)
+{
+   png_debug1(1, "in %s storage function", "cLLI");
+
+   if (png_ptr == NULL || info_ptr == NULL)
+      return;
+
+   /* Check the light level range: */
+   if (maxCLL > 0x7FFFFFFFU || maxFALL > 0x7FFFFFFFU)
+   {
+      /* The limit is 200kcd/m2; somewhat bright but not inconceivable because
+       * human vision is said to run up to 100Mcd/m2.  The sun is about 2Gcd/m2.
+       *
+       * The reference sRGB monitor is 80cd/m2 and the limit of PQ encoding is
+       * 2kcd/m2.
+       */
+      png_chunk_report(png_ptr, "cLLI light level exceeds PNG limit",
+            PNG_CHUNK_WRITE_ERROR);
+      return;
+   }
+
+   info_ptr->maxCLL = maxCLL;
+   info_ptr->maxFALL = maxFALL;
+   info_ptr->valid |= PNG_INFO_cLLI;
+}
+
+#  ifdef PNG_FLOATING_POINT_SUPPORTED
+void PNGAPI
+png_set_cLLI(png_const_structrp png_ptr, png_inforp info_ptr,
+   double maxCLL, double maxFALL)
+{
+   png_set_cLLI_fixed(png_ptr, info_ptr,
+       png_fixed_ITU(png_ptr, maxCLL, "png_set_cLLI(maxCLL)"),
+       png_fixed_ITU(png_ptr, maxFALL, "png_set_cLLI(maxFALL)"));
+}
+#  endif /* FLOATING_POINT */
+#endif /* cLLI */
+
+#ifdef PNG_mDCV_SUPPORTED
+static png_uint_16
+png_ITU_fixed_16(png_const_structrp png_ptr, png_fixed_point v,
+   png_const_charp text)
+{
+   /* Return a safe uint16_t value scaled according to the ITU H273 rules for
+    * 16-bit display chromaticities.  Functions like the corresponding
+    * png_fixed() internal function with regard to errors: it's an error on
+    * write, a chunk_benign_error on read: See the definition of
+    * png_chunk_report in pngpriv.h.
+    */
+   v /= 2; /* rounds to 0 in C: avoids insignificant arithmetic errors */
+   if (v > 65535 || v < 0)
+      png_fixed_error(png_ptr, text);
+
+#  ifndef PNG_ERROR_TEXT_SUPPORTED
+   PNG_UNUSED(text)
+#  endif
+
+   return (png_uint_16)/*SAFE*/v;
+}
+
+void PNGAPI
+png_set_mDCV_fixed(png_const_structrp png_ptr, png_inforp info_ptr,
+    png_fixed_point white_x, png_fixed_point white_y,
+    png_fixed_point red_x, png_fixed_point red_y,
+    png_fixed_point green_x, png_fixed_point green_y,
+    png_fixed_point blue_x, png_fixed_point blue_y,
+    png_uint_32 maxDL,
+    png_uint_32 minDL)
+{
+   png_uint_16 rx, ry, gx, gy, bx, by, wx, wy;
+
+   png_debug1(1, "in %s storage function", "mDCV");
+
+   if (png_ptr == NULL || info_ptr == NULL)
+      return;
+
+   /* Check the input values to ensure they are in the expected range: */
+   rx = png_ITU_fixed_16(png_ptr, red_x, "png_set_mDCV(red(x))");
+   ry = png_ITU_fixed_16(png_ptr, red_y, "png_set_mDCV(red(y))");
+   gx = png_ITU_fixed_16(png_ptr, green_x, "png_set_mDCV(green(x))");
+   gy = png_ITU_fixed_16(png_ptr, green_y, "png_set_mDCV(green(y))");
+   bx = png_ITU_fixed_16(png_ptr, blue_x, "png_set_mDCV(blue(x))");
+   by = png_ITU_fixed_16(png_ptr, blue_y, "png_set_mDCV(blue(y))");
+   wx = png_ITU_fixed_16(png_ptr, white_x, "png_set_mDCV(white(x))");
+   wy = png_ITU_fixed_16(png_ptr, white_y, "png_set_mDCV(white(y))");
+
+   /* Check the light level range: */
+   if (maxDL > 0x7FFFFFFFU || minDL > 0x7FFFFFFFU)
+   {
+      /* The limit is 200kcd/m2; somewhat bright but not inconceivable because
+       * human vision is said to run up to 100Mcd/m2.  The sun is about 2Gcd/m2.
+       *
+       * The reference sRGB monitor is 80cd/m2 and the limit of PQ encoding is
+       * 2kcd/m2.
+       */
+      png_chunk_report(png_ptr, "mDCV display light level exceeds PNG limit",
+            PNG_CHUNK_WRITE_ERROR);
+      return;
+   }
+
+   /* All values are safe, the settings are accepted.
+    *
+    * IMPLEMENTATION NOTE: in practice the values can be checked and assigned
+    * but the result is confusing if a writing app calls png_set_mDCV more than
+    * once, the second time with an invalid value.  This approach is more
+    * obviously correct at the cost of typing and a very slight machine
+    * overhead.
+    */
+   info_ptr->mastering_red_x = rx;
+   info_ptr->mastering_red_y = ry;
+   info_ptr->mastering_green_x = gx;
+   info_ptr->mastering_green_y = gy;
+   info_ptr->mastering_blue_x = bx;
+   info_ptr->mastering_blue_y = by;
+   info_ptr->mastering_white_x = wx;
+   info_ptr->mastering_white_y = wy;
+   info_ptr->mastering_maxDL = maxDL;
+   info_ptr->mastering_minDL = minDL;
+   info_ptr->valid |= PNG_INFO_mDCV;
+}
+
+#  ifdef PNG_FLOATING_POINT_SUPPORTED
+void PNGAPI
+png_set_mDCV(png_const_structrp png_ptr, png_inforp info_ptr,
+    double white_x, double white_y, double red_x, double red_y, double green_x,
+    double green_y, double blue_x, double blue_y,
+    double maxDL, double minDL)
+{
+   png_set_mDCV_fixed(png_ptr, info_ptr,
+      /* The ITU approach is to scale by 50,000, not 100,000 so just divide
+       * the input values by 2 and use png_fixed:
+       */
+      png_fixed(png_ptr, white_x / 2, "png_set_mDCV(white(x))"),
+      png_fixed(png_ptr, white_y / 2, "png_set_mDCV(white(y))"),
+      png_fixed(png_ptr, red_x / 2, "png_set_mDCV(red(x))"),
+      png_fixed(png_ptr, red_y / 2, "png_set_mDCV(red(y))"),
+      png_fixed(png_ptr, green_x / 2, "png_set_mDCV(green(x))"),
+      png_fixed(png_ptr, green_y / 2, "png_set_mDCV(green(y))"),
+      png_fixed(png_ptr, blue_x / 2, "png_set_mDCV(blue(x))"),
+      png_fixed(png_ptr, blue_y / 2, "png_set_mDCV(blue(y))"),
+      png_fixed_ITU(png_ptr, maxDL, "png_set_mDCV(maxDL)"),
+      png_fixed_ITU(png_ptr, minDL, "png_set_mDCV(minDL)"));
+}
+#  endif /* FLOATING_POINT */
+#endif /* mDCV */
+
 #ifdef PNG_eXIf_SUPPORTED
 void PNGAPI
 png_set_eXIf(png_const_structrp png_ptr, png_inforp info_ptr,
@@ -1566,11 +1718,13 @@ png_set_keep_unknown_chunks(png_structrp png_ptr, int keep,
          98,  75,  71,  68, '\0',  /* bKGD */
          99,  72,  82,  77, '\0',  /* cHRM */
          99,  73,  67,  80, '\0',  /* cICP */
+         99,  76,  76,  73, '\0',  /* cLLI */
         101,  88,  73, 102, '\0',  /* eXIf */
         103,  65,  77,  65, '\0',  /* gAMA */
         104,  73,  83,  84, '\0',  /* hIST */
         105,  67,  67,  80, '\0',  /* iCCP */
         105,  84,  88, 116, '\0',  /* iTXt */
+        109,  68,  67,  86, '\0',  /* mDCV */
         111,  70,  70, 115, '\0',  /* oFFs */
         112,  67,  65,  76, '\0',  /* pCAL */
         112,  72,  89, 115, '\0',  /* pHYs */

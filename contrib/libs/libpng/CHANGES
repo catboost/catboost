@@ -6229,6 +6229,16 @@ Version 1.6.45 [January 7, 2025]
   Raised the minimum required CMake version from 3.6 to 3.14.
   Forked off a development branch for libpng version 1.8.
 
+Version 1.6.46 [January 23, 2025]
+  Added support for the mDCV and cLLI chunks.
+    (Contributed by John Bowler)
+  Fixed a build issue affecting C89 compilers.
+    This was a regression introduced in libpng-1.6.45.
+    (Contributed by John Bowler)
+  Added makefile.c89, specifically for testing C89 compilers.
+  Cleaned up contrib/pngminus: corrected an old typo, removed an old
+    workaround, and updated the CMake file.
+
 Send comments/corrections/commendations to png-mng-implement at lists.sf.net.
 Subscription is required; visit
 https://lists.sourceforge.net/lists/listinfo/png-mng-implement

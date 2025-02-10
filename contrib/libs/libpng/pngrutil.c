@@ -2092,6 +2092,111 @@ png_handle_cICP(png_structrp png_ptr, png_inforp info_ptr, png_uint_32 length)
 }
 #endif
 
+#ifdef PNG_READ_cLLI_SUPPORTED
+void /* PRIVATE */
+png_handle_cLLI(png_structrp png_ptr, png_inforp info_ptr, png_uint_32 length)
+{
+   png_byte buf[8];
+
+   png_debug(1, "in png_handle_cLLI");
+
+   if ((png_ptr->mode & PNG_HAVE_IHDR) == 0)
+      png_chunk_error(png_ptr, "missing IHDR");
+
+   else if ((png_ptr->mode & (PNG_HAVE_IDAT|PNG_HAVE_PLTE)) != 0)
+   {
+      png_crc_finish(png_ptr, length);
+      png_chunk_benign_error(png_ptr, "out of place");
+      return;
+   }
+
+   else if (info_ptr != NULL && (info_ptr->valid & PNG_INFO_cLLI) != 0)
+   {
+      png_crc_finish(png_ptr, length);
+      png_chunk_benign_error(png_ptr, "duplicate");
+      return;
+   }
+
+   else if (length != 8)
+   {
+      png_crc_finish(png_ptr, length);
+      png_chunk_benign_error(png_ptr, "invalid");
+      return;
+   }
+
+   png_crc_read(png_ptr, buf, 8);
+
+   if (png_crc_finish(png_ptr, 0) != 0)
+      return;
+
+   /* The error checking happens here, this puts it in just one place: */
+   png_set_cLLI_fixed(png_ptr, info_ptr, png_get_uint_32(buf),
+         png_get_uint_32(buf+4));
+}
+#endif
+
+#ifdef PNG_READ_mDCV_SUPPORTED
+void /* PRIVATE */
+png_handle_mDCV(png_structrp png_ptr, png_inforp info_ptr, png_uint_32 length)
+{
+   png_byte buf[24];
+
+   png_debug(1, "in png_handle_mDCV");
+
+   if ((png_ptr->mode & PNG_HAVE_IHDR) == 0)
+      png_chunk_error(png_ptr, "missing IHDR");
+
+   else if ((png_ptr->mode & (PNG_HAVE_IDAT|PNG_HAVE_PLTE)) != 0)
+   {
+      png_crc_finish(png_ptr, length);
+      png_chunk_benign_error(png_ptr, "out of place");
+      return;
+   }
+
+   else if (info_ptr != NULL && (info_ptr->valid & PNG_INFO_mDCV) != 0)
+   {
+      png_crc_finish(png_ptr, length);
+      png_chunk_benign_error(png_ptr, "duplicate");
+      return;
+   }
+
+   else if (length != 24)
+   {
+      png_crc_finish(png_ptr, length);
+      png_chunk_benign_error(png_ptr, "invalid");
+      return;
+   }
+
+   png_crc_read(png_ptr, buf, 24);
+
+   if (png_crc_finish(png_ptr, 0) != 0)
+      return;
+
+   /* The error checking happens here, this puts it in just one place.  The
+    * odd /50000 scaling factor makes it more difficult but the (x.y) values are
+    * only two bytes so a <<1 is safe.
+    *
+    * WARNING: the PNG specification defines the cHRM chunk to **start** with
+    * the white point (x,y).  The W3C PNG v3 specification puts the white point
+    * **after* R,G,B.  The x,y values in mDCV are also scaled by 50,000 and
+    * stored in just two bytes, whereas those in cHRM are scaled by 100,000 and
+    * stored in four bytes.  This is very, very confusing.  These APIs remove
+    * the confusion by copying the existing, well established, API.
+    */
+   png_set_mDCV_fixed(png_ptr, info_ptr,
+         png_get_uint_16(buf+12U) << 1U, /* white x */
+         png_get_uint_16(buf+14U) << 1U, /* white y */
+         png_get_uint_16(buf+ 0U) << 1U, /* red x */
+         png_get_uint_16(buf+ 2U) << 1U, /* red y */
+         png_get_uint_16(buf+ 4U) << 1U, /* green x */
+         png_get_uint_16(buf+ 6U) << 1U, /* green y */
+         png_get_uint_16(buf+ 8U) << 1U, /* blue x */
+         png_get_uint_16(buf+10U) << 1U, /* blue y */
+         png_get_uint_32(buf+16U), /* peak luminance */
+         png_get_uint_32(buf+20U));/* minimum perceivable luminance */
+}
+#endif
+
 #ifdef PNG_READ_eXIf_SUPPORTED
 void /* PRIVATE */
 png_handle_eXIf(png_structrp png_ptr, png_inforp info_ptr, png_uint_32 length)

@@ -13,7 +13,7 @@
 #include "pngpriv.h"
 
 /* Generate a compiler error if there is an old png.h in the search path. */
-typedef png_libpng_version_1_6_45 Your_png_h_is_not_version_1_6_45;
+typedef png_libpng_version_1_6_46 Your_png_h_is_not_version_1_6_46;
 
 /* Tells libpng that we have already handled the first "num_bytes" bytes
  * of the PNG file signature.  If the PNG data is embedded into another
@@ -793,7 +793,7 @@ png_get_copyright(png_const_structrp png_ptr)
    return PNG_STRING_COPYRIGHT
 #else
    return PNG_STRING_NEWLINE \
-      "libpng version 1.6.45" PNG_STRING_NEWLINE \
+      "libpng version 1.6.46" PNG_STRING_NEWLINE \
       "Copyright (c) 2018-2025 Cosmin Truta" PNG_STRING_NEWLINE \
       "Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson" \
       PNG_STRING_NEWLINE \
@@ -1544,56 +1544,59 @@ png_XYZ_from_xy(png_XYZ *XYZ, const png_xy *xy)
     *  Adobe Wide Gamut RGB
     *    0.258728243040113 0.724682314948566 0.016589442011321
     */
-   int error = 0;
+   {
+      int error = 0;
 
-   /* By the argument above overflow should be impossible here, however the
-    * code now simply returns a failure code.  The xy subtracts in the arguments
-    * to png_muldiv are *not* checked for overflow because the checks at the
-    * start guarantee they are in the range 0..110000 and png_fixed_point is a
-    * 32-bit signed number.
-    */
-   if (png_muldiv(&left, xy->greenx-xy->bluex, xy->redy - xy->bluey, 8) == 0)
-      return 1;
-   if (png_muldiv(&right, xy->greeny-xy->bluey, xy->redx - xy->bluex, 8) == 0)
-      return 1;
-   denominator = png_fp_sub(left, right, &error);
-   if (error) return 1;
+      /* By the argument above overflow should be impossible here, however the
+       * code now simply returns a failure code.  The xy subtracts in the
+       * arguments to png_muldiv are *not* checked for overflow because the
+       * checks at the start guarantee they are in the range 0..110000 and
+       * png_fixed_point is a 32-bit signed number.
+       */
+      if (png_muldiv(&left, xy->greenx-xy->bluex, xy->redy - xy->bluey, 8) == 0)
+         return 1;
+      if (png_muldiv(&right, xy->greeny-xy->bluey, xy->redx - xy->bluex, 8) ==
+            0)
+         return 1;
+      denominator = png_fp_sub(left, right, &error);
+      if (error) return 1;
 
-   /* Now find the red numerator. */
-   if (png_muldiv(&left, xy->greenx-xy->bluex, xy->whitey-xy->bluey, 8) == 0)
-      return 1;
-   if (png_muldiv(&right, xy->greeny-xy->bluey, xy->whitex-xy->bluex, 8) == 0)
-      return 1;
+      /* Now find the red numerator. */
+      if (png_muldiv(&left, xy->greenx-xy->bluex, xy->whitey-xy->bluey, 8) == 0)
+         return 1;
+      if (png_muldiv(&right, xy->greeny-xy->bluey, xy->whitex-xy->bluex, 8) ==
+            0)
+         return 1;
 
-   /* Overflow is possible here and it indicates an extreme set of PNG cHRM
-    * chunk values.  This calculation actually returns the reciprocal of the
-    * scale value because this allows us to delay the multiplication of white-y
-    * into the denominator, which tends to produce a small number.
-    */
-   if (png_muldiv(&red_inverse, xy->whitey, denominator,
-                  png_fp_sub(left, right, &error)) == 0 || error ||
-       red_inverse <= xy->whitey /* r+g+b scales = white scale */)
-      return 1;
+      /* Overflow is possible here and it indicates an extreme set of PNG cHRM
+       * chunk values.  This calculation actually returns the reciprocal of the
+       * scale value because this allows us to delay the multiplication of
+       * white-y into the denominator, which tends to produce a small number.
+       */
+      if (png_muldiv(&red_inverse, xy->whitey, denominator,
+                     png_fp_sub(left, right, &error)) == 0 || error ||
+          red_inverse <= xy->whitey /* r+g+b scales = white scale */)
+         return 1;
 
-   /* Similarly for green_inverse: */
-   if (png_muldiv(&left, xy->redy-xy->bluey, xy->whitex-xy->bluex, 8) == 0)
-      return 1;
-   if (png_muldiv(&right, xy->redx-xy->bluex, xy->whitey-xy->bluey, 8) == 0)
-      return 1;
-   if (png_muldiv(&green_inverse, xy->whitey, denominator,
-                  png_fp_sub(left, right, &error)) == 0 || error ||
-       green_inverse <= xy->whitey)
-      return 1;
+      /* Similarly for green_inverse: */
+      if (png_muldiv(&left, xy->redy-xy->bluey, xy->whitex-xy->bluex, 8) == 0)
+         return 1;
+      if (png_muldiv(&right, xy->redx-xy->bluex, xy->whitey-xy->bluey, 8) == 0)
+         return 1;
+      if (png_muldiv(&green_inverse, xy->whitey, denominator,
+                     png_fp_sub(left, right, &error)) == 0 || error ||
+          green_inverse <= xy->whitey)
+         return 1;
 
-   /* And the blue scale, the checks above guarantee this can't overflow but it
-    * can still produce 0 for extreme cHRM values.
-    */
-   blue_scale = png_fp_sub(png_fp_sub(png_reciprocal(xy->whitey),
-                                      png_reciprocal(red_inverse), &error),
-                           png_reciprocal(green_inverse), &error);
-   if (error || blue_scale <= 0)
-      return 1;
-
+      /* And the blue scale, the checks above guarantee this can't overflow but
+       * it can still produce 0 for extreme cHRM values.
+       */
+      blue_scale = png_fp_sub(png_fp_sub(png_reciprocal(xy->whitey),
+                                         png_reciprocal(red_inverse), &error),
+                              png_reciprocal(green_inverse), &error);
+      if (error || blue_scale <= 0)
+         return 1;
+   }
 
    /* And fill in the png_XYZ.  Again the subtracts are safe because of the
     * checks on the xy values at the start (the subtracts just calculate the
@@ -3389,6 +3392,26 @@ png_fixed(png_const_structrp png_ptr, double fp, png_const_charp text)
    return (png_fixed_point)r;
 }
 #endif
+
+#if defined(PNG_FLOATING_POINT_SUPPORTED) && \
+   !defined(PNG_FIXED_POINT_MACRO_SUPPORTED) && \
+   (defined(PNG_cLLI_SUPPORTED) || defined(PNG_mDCV_SUPPORTED))
+png_uint_32
+png_fixed_ITU(png_const_structrp png_ptr, double fp, png_const_charp text)
+{
+   double r = floor(10000 * fp + .5);
+
+   if (r > 2147483647. || r < 0)
+      png_fixed_error(png_ptr, text);
+
+#  ifndef PNG_ERROR_TEXT_SUPPORTED
+   PNG_UNUSED(text)
+#  endif
+
+   return (png_uint_32)r;
+}
+#endif
+
 
 #if defined(PNG_GAMMA_SUPPORTED) || defined(PNG_COLORSPACE_SUPPORTED) ||\
     defined(PNG_INCH_CONVERSIONS_SUPPORTED) || defined(PNG_READ_pHYs_SUPPORTED)

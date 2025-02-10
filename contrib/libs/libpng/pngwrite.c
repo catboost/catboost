@@ -161,7 +161,30 @@ png_write_info_before_PLTE(png_structrp png_ptr, png_const_inforp info_ptr)
     * space priority.  As above it therefore behooves libpng to write the colour
     * space chunks in the priority order so that a streaming app need not buffer
     * them.
+    *
+    * PNG v3: Chunks mDCV and cLLI provide ancillary information for the
+    * interpretation of the colourspace chunkgs but do not require support for
+    * those chunks so are outside the "COLORSPACE" check but before the write of
+    * the colourspace chunks themselves.
     */
+#ifdef PNG_WRITE_cLLI_SUPPORTED
+   if ((info_ptr->valid & PNG_INFO_cLLI) != 0)
+   {
+      png_write_cLLI_fixed(png_ptr, info_ptr->maxCLL, info_ptr->maxFALL);
+   }
+#endif
+#ifdef PNG_WRITE_mDCV_SUPPORTED
+   if ((info_ptr->valid & PNG_INFO_mDCV) != 0)
+   {
+      png_write_mDCV_fixed(png_ptr,
+         info_ptr->mastering_red_x, info_ptr->mastering_red_y,
+         info_ptr->mastering_green_x, info_ptr->mastering_green_y,
+         info_ptr->mastering_blue_x, info_ptr->mastering_blue_y,
+         info_ptr->mastering_white_x, info_ptr->mastering_white_y,
+         info_ptr->mastering_maxDL, info_ptr->mastering_minDL);
+   }
+#endif
+
 #ifdef PNG_COLORSPACE_SUPPORTED
 #  ifdef PNG_WRITE_cICP_SUPPORTED /* Priority 4 */
    if ((info_ptr->valid & PNG_INFO_cICP) != 0)

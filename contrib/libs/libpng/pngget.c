@@ -787,7 +787,7 @@ png_get_sPLT(png_const_structrp png_ptr, png_inforp info_ptr,
 #ifdef PNG_cICP_SUPPORTED
 png_uint_32 PNGAPI
 png_get_cICP(png_const_structrp png_ptr,
-             png_inforp info_ptr, png_bytep colour_primaries,
+             png_const_inforp info_ptr, png_bytep colour_primaries,
              png_bytep transfer_function, png_bytep matrix_coefficients,
              png_bytep video_full_range_flag)
 {
@@ -805,9 +805,114 @@ png_get_cICP(png_const_structrp png_ptr,
         return (PNG_INFO_cICP);
     }
 
-    return (0);
+    return 0;
 }
 #endif
+
+#ifdef PNG_cLLI_SUPPORTED
+#  ifdef PNG_FIXED_POINT_SUPPORTED
+png_uint_32 PNGAPI
+png_get_cLLI_fixed(png_const_structrp png_ptr, png_const_inforp info_ptr,
+    png_uint_32p maxCLL,
+    png_uint_32p maxFALL)
+{
+   png_debug1(1, "in %s retrieval function", "cLLI");
+
+   if (png_ptr != NULL && info_ptr != NULL &&
+       (info_ptr->valid & PNG_INFO_cLLI) != 0)
+   {
+      if (maxCLL != NULL) *maxCLL = info_ptr->maxCLL;
+      if (maxFALL != NULL) *maxFALL = info_ptr->maxFALL;
+      return PNG_INFO_cLLI;
+   }
+
+   return 0;
+}
+#  endif
+
+#  ifdef PNG_FLOATING_POINT_SUPPORTED
+png_uint_32 PNGAPI
+png_get_cLLI(png_const_structrp png_ptr, png_const_inforp info_ptr,
+      double *maxCLL, double *maxFALL)
+{
+   png_debug1(1, "in %s retrieval function", "cLLI(float)");
+
+   if (png_ptr != NULL && info_ptr != NULL &&
+       (info_ptr->valid & PNG_INFO_cLLI) != 0)
+   {
+      if (maxCLL != NULL) *maxCLL = info_ptr->maxCLL * .0001;
+      if (maxFALL != NULL) *maxFALL = info_ptr->maxFALL * .0001;
+      return PNG_INFO_cLLI;
+   }
+
+   return 0;
+}
+#  endif
+#endif /* cLLI */
+
+#ifdef PNG_mDCV_SUPPORTED
+#  ifdef PNG_FIXED_POINT_SUPPORTED
+png_uint_32 PNGAPI
+png_get_mDCV_fixed(png_const_structrp png_ptr, png_const_inforp info_ptr,
+    png_fixed_point *white_x, png_fixed_point *white_y,
+    png_fixed_point *red_x, png_fixed_point *red_y,
+    png_fixed_point *green_x, png_fixed_point *green_y,
+    png_fixed_point *blue_x, png_fixed_point *blue_y,
+    png_uint_32p mastering_maxDL, png_uint_32p mastering_minDL)
+{
+   png_debug1(1, "in %s retrieval function", "mDCV");
+
+   if (png_ptr != NULL && info_ptr != NULL &&
+       (info_ptr->valid & PNG_INFO_mDCV) != 0)
+   {
+      if (white_x != NULL) *white_x = info_ptr->mastering_white_x * 2;
+      if (white_y != NULL) *white_y = info_ptr->mastering_white_y * 2;
+      if (red_x != NULL) *red_x = info_ptr->mastering_red_x * 2;
+      if (red_y != NULL) *red_y = info_ptr->mastering_red_y * 2;
+      if (green_x != NULL) *green_x = info_ptr->mastering_green_x * 2;
+      if (green_y != NULL) *green_y = info_ptr->mastering_green_y * 2;
+      if (blue_x != NULL) *blue_x = info_ptr->mastering_blue_x * 2;
+      if (blue_y != NULL) *blue_y = info_ptr->mastering_blue_y * 2;
+      if (mastering_maxDL != NULL) *mastering_maxDL = info_ptr->mastering_maxDL;
+      if (mastering_minDL != NULL) *mastering_minDL = info_ptr->mastering_minDL;
+      return PNG_INFO_mDCV;
+   }
+
+   return 0;
+}
+#  endif
+
+#  ifdef PNG_FLOATING_POINT_SUPPORTED
+png_uint_32 PNGAPI
+png_get_mDCV(png_const_structrp png_ptr, png_const_inforp info_ptr,
+    double *white_x, double *white_y, double *red_x, double *red_y,
+    double *green_x, double *green_y, double *blue_x, double *blue_y,
+    double *mastering_maxDL, double *mastering_minDL)
+{
+   png_debug1(1, "in %s retrieval function", "mDCV(float)");
+
+   if (png_ptr != NULL && info_ptr != NULL &&
+       (info_ptr->valid & PNG_INFO_mDCV) != 0)
+   {
+      if (white_x != NULL) *white_x = info_ptr->mastering_white_x * .00002;
+      if (white_y != NULL) *white_y = info_ptr->mastering_white_y * .00002;
+      if (red_x != NULL) *red_x = info_ptr->mastering_red_x * .00002;
+      if (red_y != NULL) *red_y = info_ptr->mastering_red_y * .00002;
+      if (green_x != NULL) *green_x = info_ptr->mastering_green_x * .00002;
+      if (green_y != NULL) *green_y = info_ptr->mastering_green_y * .00002;
+      if (blue_x != NULL) *blue_x = info_ptr->mastering_blue_x * .00002;
+      if (blue_y != NULL) *blue_y = info_ptr->mastering_blue_y * .00002;
+      if (mastering_maxDL != NULL)
+         *mastering_maxDL = info_ptr->mastering_maxDL * .0001;
+      if (mastering_minDL != NULL)
+         *mastering_minDL = info_ptr->mastering_minDL * .0001;
+      return PNG_INFO_mDCV;
+   }
+
+   return 0;
+}
+#  endif /* FLOATING_POINT */
+#endif /* mDCV */
 
 #ifdef PNG_eXIf_SUPPORTED
 png_uint_32 PNGAPI
