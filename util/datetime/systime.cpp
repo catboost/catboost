@@ -193,11 +193,13 @@ namespace {
                 days -= DaysSinceEpoch[TableSize - 1];
                 return TableSize + UNIX_TIME_BASE_YEAR;
             }
-            ui64 yearIndex = days / DAYS_IN_YEAR;
+            const ui64 yearIndex = days / DAYS_IN_LEAP_YEAR;
 
             // we can miss by at most 1 year
-            if (yearIndex > 0 && DaysSinceEpoch[yearIndex - 1] >= days) {
-                --yearIndex;
+            Y_ASSERT(yearIndex < TableSize);
+            if (const auto diff = DaysSinceEpoch[yearIndex]; diff <= days) {
+                days -= diff;
+                return static_cast<int>(yearIndex + UNIX_TIME_BASE_YEAR + 1);
             }
 
             if (yearIndex > 0) {
