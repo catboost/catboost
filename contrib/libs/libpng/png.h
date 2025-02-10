@@ -1,6 +1,6 @@
 /* png.h - header file for PNG reference library
  *
- * libpng version 1.6.45
+ * libpng version 1.6.46
  *
  * Copyright (c) 2018-2025 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
@@ -14,7 +14,7 @@
  *   libpng versions 0.89, June 1996, through 0.96, May 1997: Andreas Dilger
  *   libpng versions 0.97, January 1998, through 1.6.35, July 2018:
  *     Glenn Randers-Pehrson
- *   libpng versions 1.6.36, December 2018, through 1.6.45, January 2025:
+ *   libpng versions 1.6.36, December 2018, through 1.6.46, January 2025:
  *     Cosmin Truta
  *   See also "Contributing Authors", below.
  */
@@ -244,7 +244,7 @@
  *    ...
  *    1.5.30                  15    10530  15.so.15.30[.0]
  *    ...
- *    1.6.45                  16    10645  16.so.16.45[.0]
+ *    1.6.46                  16    10646  16.so.16.46[.0]
  *
  *    Henceforth the source version will match the shared-library major and
  *    minor numbers; the shared-library major version number will be used for
@@ -280,7 +280,7 @@
  */
 
 /* Version information for png.h - this should match the version in png.c */
-#define PNG_LIBPNG_VER_STRING "1.6.45"
+#define PNG_LIBPNG_VER_STRING "1.6.46"
 #define PNG_HEADER_VERSION_STRING " libpng version " PNG_LIBPNG_VER_STRING "\n"
 
 /* The versions of shared library builds should stay in sync, going forward */
@@ -291,7 +291,7 @@
 /* These should match the first 3 components of PNG_LIBPNG_VER_STRING: */
 #define PNG_LIBPNG_VER_MAJOR   1
 #define PNG_LIBPNG_VER_MINOR   6
-#define PNG_LIBPNG_VER_RELEASE 45
+#define PNG_LIBPNG_VER_RELEASE 46
 
 /* This should be zero for a public release, or non-zero for a
  * development version.
@@ -322,7 +322,7 @@
  * From version 1.0.1 it is:
  * XXYYZZ, where XX=major, YY=minor, ZZ=release
  */
-#define PNG_LIBPNG_VER 10645 /* 1.6.45 */
+#define PNG_LIBPNG_VER 10646 /* 1.6.46 */
 
 /* Library configuration: these options cannot be changed after
  * the library has been built.
@@ -447,7 +447,7 @@ extern "C" {
 /* This triggers a compiler error in png.c, if png.c and png.h
  * do not agree upon the version number.
  */
-typedef char* png_libpng_version_1_6_45;
+typedef char* png_libpng_version_1_6_46;
 
 /* Basic control structions.  Read libpng-manual.txt or libpng.3 for more info.
  *
@@ -765,11 +765,21 @@ typedef png_unknown_chunk * * png_unknown_chunkpp;
 #define PNG_INFO_sCAL 0x4000U  /* ESR, 1.0.6 */
 #define PNG_INFO_IDAT 0x8000U  /* ESR, 1.0.6 */
 #define PNG_INFO_eXIf 0x10000U /* GR-P, 1.6.31 */
-#define PNG_INFO_cICP 0x20000U
-#ifdef PNG_APNG_SUPPORTED
-#define PNG_INFO_acTL 0x40000U
-#define PNG_INFO_fcTL 0x80000U
-#endif
+#define PNG_INFO_cICP 0x20000U /* PNGv3: 1.6.45 */
+#define PNG_INFO_cLLI 0x40000U /* PNGv3: 1.6.45 */
+#define PNG_INFO_mDCV 0x80000U /* PNGv3: 1.6.45 */
+/* APNG: these chunks are stored as unknown, these flags are never set
+ * however they are provided as a convenience for implementors of APNG and
+ * avoids any merge conflicts.
+ *
+ * Private chunks: these chunk names violate the chunk name recommendations
+ * because the chunk definitions have no signature and because the private
+ * chunks with these names have been reserved.  Private definitions should
+ * avoid them.
+ */
+#define PNG_INFO_acTL 0x100000U /* PNGv3: 1.6.45: unknown */
+#define PNG_INFO_fcTL 0x200000U /* PNGv3: 1.6.45: unknown */
+#define PNG_INFO_fdAT 0x400000U /* PNGv3: 1.6.45: unknown */
 
 /* This is used for the transformation routines, as some of them
  * change these values for the row.  It also should enable using
@@ -2005,13 +2015,42 @@ PNG_FIXED_EXPORT(233, void, png_set_cHRM_XYZ_fixed, (png_const_structrp png_ptr,
 
 #ifdef PNG_cICP_SUPPORTED
 PNG_EXPORT(250, png_uint_32, png_get_cICP, (png_const_structrp png_ptr,
-    png_inforp info_ptr, png_bytep colour_primaries,
+    png_const_inforp info_ptr, png_bytep colour_primaries,
     png_bytep transfer_function, png_bytep matrix_coefficients,
     png_bytep video_full_range_flag));
+#endif
+
+#ifdef PNG_cICP_SUPPORTED
 PNG_EXPORT(251, void, png_set_cICP, (png_const_structrp png_ptr,
     png_inforp info_ptr, png_byte colour_primaries,
     png_byte transfer_function, png_byte matrix_coefficients,
     png_byte video_full_range_flag));
+#endif
+
+#ifdef PNG_cLLI_SUPPORTED
+PNG_FP_EXPORT(252, png_uint_32, png_get_cLLI, (png_const_structrp png_ptr,
+         png_const_inforp info_ptr, double *maximum_content_light_level,
+         double *maximum_frame_average_light_level))
+PNG_FIXED_EXPORT(253, png_uint_32, png_get_cLLI_fixed,
+    (png_const_structrp png_ptr, png_const_inforp info_ptr,
+    /* The values below are in cd/m2 (nits) and are scaled by 10,000; not
+     * 100,000 as in the case of png_fixed_point.
+     */
+    png_uint_32p maximum_content_light_level_scaled_by_10000,
+    png_uint_32p maximum_frame_average_light_level_scaled_by_10000))
+#endif
+
+#ifdef PNG_cLLI_SUPPORTED
+PNG_FP_EXPORT(254, void, png_set_cLLI, (png_const_structrp png_ptr,
+         png_inforp info_ptr, double maximum_content_light_level,
+         double maximum_frame_average_light_level))
+PNG_FIXED_EXPORT(255, void, png_set_cLLI_fixed, (png_const_structrp png_ptr,
+    png_inforp info_ptr,
+    /* The values below are in cd/m2 (nits) and are scaled by 10,000; not
+     * 100,000 as in the case of png_fixed_point.
+     */
+    png_uint_32 maximum_content_light_level_scaled_by_10000,
+    png_uint_32 maximum_frame_average_light_level_scaled_by_10000))
 #endif
 
 #ifdef PNG_eXIf_SUPPORTED
@@ -2057,6 +2096,60 @@ PNG_EXPORT(144, void, png_set_IHDR, (png_const_structrp png_ptr,
     png_inforp info_ptr, png_uint_32 width, png_uint_32 height, int bit_depth,
     int color_type, int interlace_method, int compression_method,
     int filter_method));
+
+#ifdef PNG_mDCV_SUPPORTED
+PNG_FP_EXPORT(256, png_uint_32, png_get_mDCV, (png_const_structrp png_ptr,
+    png_const_inforp info_ptr,
+    /* The chromaticities of the mastering display.  As cHRM, but independent of
+     * the encoding endpoints in cHRM, or cICP, or iCCP.  These values will
+     * always be in the range 0 to 1.3107.
+     */
+    double *white_x, double *white_y, double *red_x, double *red_y,
+    double *green_x, double *green_y, double *blue_x, double *blue_y,
+    /* Mastering display luminance in cd/m2 (nits). */
+    double *mastering_display_maximum_luminance,
+    double *mastering_display_minimum_luminance))
+
+PNG_FIXED_EXPORT(257, png_uint_32, png_get_mDCV_fixed,
+    (png_const_structrp png_ptr, png_const_inforp info_ptr,
+    png_fixed_point *int_white_x, png_fixed_point *int_white_y,
+    png_fixed_point *int_red_x, png_fixed_point *int_red_y,
+    png_fixed_point *int_green_x, png_fixed_point *int_green_y,
+    png_fixed_point *int_blue_x, png_fixed_point *int_blue_y,
+    /* Mastering display luminance in cd/m2 (nits) multiplied (scaled) by
+     * 10,000.
+     */
+    png_uint_32p mastering_display_maximum_luminance_scaled_by_10000,
+    png_uint_32p mastering_display_minimum_luminance_scaled_by_10000))
+#endif
+
+#ifdef PNG_mDCV_SUPPORTED
+PNG_FP_EXPORT(258, void, png_set_mDCV, (png_const_structrp png_ptr,
+    png_inforp info_ptr,
+    /* The chromaticities of the mastering display.  As cHRM, but independent of
+     * the encoding endpoints in cHRM, or cICP, or iCCP.
+     */
+    double white_x, double white_y, double red_x, double red_y, double green_x,
+    double green_y, double blue_x, double blue_y,
+    /* Mastering display luminance in cd/m2 (nits). */
+    double mastering_display_maximum_luminance,
+    double mastering_display_minimum_luminance))
+
+PNG_FIXED_EXPORT(259, void, png_set_mDCV_fixed, (png_const_structrp png_ptr,
+    png_inforp info_ptr,
+    /* The admissible range of these values is not the full range of a PNG
+     * fixed point value.  Negative values cannot be encoded and the maximum
+     * value is about 1.3 */
+    png_fixed_point int_white_x, png_fixed_point int_white_y,
+    png_fixed_point int_red_x, png_fixed_point int_red_y,
+    png_fixed_point int_green_x, png_fixed_point int_green_y,
+    png_fixed_point int_blue_x, png_fixed_point int_blue_y,
+    /* These are PNG unsigned 4 byte values: 31-bit unsigned values.  The MSB
+     * must be zero.
+     */
+    png_uint_32 mastering_display_maximum_luminance_scaled_by_10000,
+    png_uint_32 mastering_display_minimum_luminance_scaled_by_10000))
+#endif
 
 #ifdef PNG_oFFs_SUPPORTED
 PNG_EXPORT(145, png_uint_32, png_get_oFFs, (png_const_structrp png_ptr,
@@ -3271,70 +3364,70 @@ PNG_EXPORT(244, int, png_set_option, (png_structrp png_ptr, int option,
  ******************************************************************************/
 
 #ifdef PNG_APNG_SUPPORTED
-PNG_EXPORT(252, png_uint_32, png_get_acTL, (png_structp png_ptr,
+PNG_EXPORT(260, png_uint_32, png_get_acTL, (png_structp png_ptr,
    png_infop info_ptr, png_uint_32 *num_frames, png_uint_32 *num_plays));
 
-PNG_EXPORT(253, png_uint_32, png_set_acTL, (png_structp png_ptr,
+PNG_EXPORT(261, png_uint_32, png_set_acTL, (png_structp png_ptr,
    png_infop info_ptr, png_uint_32 num_frames, png_uint_32 num_plays));
 
-PNG_EXPORT(254, png_uint_32, png_get_num_frames, (png_structp png_ptr,
+PNG_EXPORT(262, png_uint_32, png_get_num_frames, (png_structp png_ptr,
    png_infop info_ptr));
 
-PNG_EXPORT(255, png_uint_32, png_get_num_plays, (png_structp png_ptr,
+PNG_EXPORT(263, png_uint_32, png_get_num_plays, (png_structp png_ptr,
    png_infop info_ptr));
 
-PNG_EXPORT(256, png_uint_32, png_get_next_frame_fcTL,
+PNG_EXPORT(264, png_uint_32, png_get_next_frame_fcTL,
    (png_structp png_ptr, png_infop info_ptr, png_uint_32 *width,
    png_uint_32 *height, png_uint_32 *x_offset, png_uint_32 *y_offset,
    png_uint_16 *delay_num, png_uint_16 *delay_den, png_byte *dispose_op,
    png_byte *blend_op));
 
-PNG_EXPORT(257, png_uint_32, png_set_next_frame_fcTL,
+PNG_EXPORT(265, png_uint_32, png_set_next_frame_fcTL,
    (png_structp png_ptr, png_infop info_ptr, png_uint_32 width,
    png_uint_32 height, png_uint_32 x_offset, png_uint_32 y_offset,
    png_uint_16 delay_num, png_uint_16 delay_den, png_byte dispose_op,
    png_byte blend_op));
 
-PNG_EXPORT(258, png_uint_32, png_get_next_frame_width,
+PNG_EXPORT(266, png_uint_32, png_get_next_frame_width,
    (png_structp png_ptr, png_infop info_ptr));
-PNG_EXPORT(259, png_uint_32, png_get_next_frame_height,
+PNG_EXPORT(267, png_uint_32, png_get_next_frame_height,
    (png_structp png_ptr, png_infop info_ptr));
-PNG_EXPORT(260, png_uint_32, png_get_next_frame_x_offset,
+PNG_EXPORT(268, png_uint_32, png_get_next_frame_x_offset,
    (png_structp png_ptr, png_infop info_ptr));
-PNG_EXPORT(261, png_uint_32, png_get_next_frame_y_offset,
+PNG_EXPORT(269, png_uint_32, png_get_next_frame_y_offset,
    (png_structp png_ptr, png_infop info_ptr));
-PNG_EXPORT(262, png_uint_16, png_get_next_frame_delay_num,
+PNG_EXPORT(270, png_uint_16, png_get_next_frame_delay_num,
    (png_structp png_ptr, png_infop info_ptr));
-PNG_EXPORT(263, png_uint_16, png_get_next_frame_delay_den,
+PNG_EXPORT(271, png_uint_16, png_get_next_frame_delay_den,
    (png_structp png_ptr, png_infop info_ptr));
-PNG_EXPORT(264, png_byte, png_get_next_frame_dispose_op,
+PNG_EXPORT(272, png_byte, png_get_next_frame_dispose_op,
    (png_structp png_ptr, png_infop info_ptr));
-PNG_EXPORT(265, png_byte, png_get_next_frame_blend_op,
+PNG_EXPORT(273, png_byte, png_get_next_frame_blend_op,
    (png_structp png_ptr, png_infop info_ptr));
-PNG_EXPORT(266, png_byte, png_get_first_frame_is_hidden,
+PNG_EXPORT(274, png_byte, png_get_first_frame_is_hidden,
    (png_structp png_ptr, png_infop info_ptr));
-PNG_EXPORT(267, png_uint_32, png_set_first_frame_is_hidden,
+PNG_EXPORT(275, png_uint_32, png_set_first_frame_is_hidden,
    (png_structp png_ptr, png_infop info_ptr, png_byte is_hidden));
 
 #ifdef PNG_READ_APNG_SUPPORTED
-PNG_EXPORT(268, void, png_read_frame_head, (png_structp png_ptr,
+PNG_EXPORT(276, void, png_read_frame_head, (png_structp png_ptr,
    png_infop info_ptr));
 #ifdef PNG_PROGRESSIVE_READ_SUPPORTED
-PNG_EXPORT(269, void, png_set_progressive_frame_fn, (png_structp png_ptr,
+PNG_EXPORT(277, void, png_set_progressive_frame_fn, (png_structp png_ptr,
    png_progressive_frame_ptr frame_info_fn,
    png_progressive_frame_ptr frame_end_fn));
 #endif /* PROGRESSIVE_READ */
 #endif /* READ_APNG */
 
 #ifdef PNG_WRITE_APNG_SUPPORTED
-PNG_EXPORT(270, void, png_write_frame_head, (png_structp png_ptr,
+PNG_EXPORT(278, void, png_write_frame_head, (png_structp png_ptr,
    png_infop info_ptr, png_bytepp row_pointers,
    png_uint_32 width, png_uint_32 height,
    png_uint_32 x_offset, png_uint_32 y_offset,
    png_uint_16 delay_num, png_uint_16 delay_den, png_byte dispose_op,
    png_byte blend_op));
 
-PNG_EXPORT(271, void, png_write_frame_tail, (png_structp png_ptr,
+PNG_EXPORT(279, void, png_write_frame_tail, (png_structp png_ptr,
    png_infop info_ptr));
 #endif /* WRITE_APNG */
 #endif /* APNG */
@@ -3348,9 +3441,9 @@ PNG_EXPORT(271, void, png_write_frame_tail, (png_structp png_ptr,
  */
 #ifdef PNG_EXPORT_LAST_ORDINAL
 #ifdef PNG_APNG_SUPPORTED
-  PNG_EXPORT_LAST_ORDINAL(271);
+  PNG_EXPORT_LAST_ORDINAL(279);
 #else
-  PNG_EXPORT_LAST_ORDINAL(251);
+  PNG_EXPORT_LAST_ORDINAL(259);
 #endif /* APNG */
 #endif
 

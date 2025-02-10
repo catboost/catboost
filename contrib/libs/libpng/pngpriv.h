@@ -786,6 +786,8 @@
 #ifdef PNG_FIXED_POINT_MACRO_SUPPORTED
 #define png_fixed(png_ptr, fp, s) ((fp) <= 21474 && (fp) >= -21474 ?\
     ((png_fixed_point)(100000 * (fp))) : (png_fixed_error(png_ptr, s),0))
+#define png_fixed_ITU(png_ptr, fp, s) ((fp) <= 214748 && (fp) >= 0 ?\
+    ((png_uint_32)(10000 * (fp))) : (png_fixed_error(png_ptr, s),0))
 #endif
 /* else the corresponding function is defined below, inside the scope of the
  * cplusplus test.
@@ -838,7 +840,8 @@
 #define png_PLTE PNG_U32( 80,  76,  84,  69)
 #define png_bKGD PNG_U32( 98,  75,  71,  68)
 #define png_cHRM PNG_U32( 99,  72,  82,  77)
-#define png_cICP PNG_U32( 99,  73,  67,  80)
+#define png_cICP PNG_U32( 99,  73,  67,  80) /* PNGv3 */
+#define png_cLLI PNG_U32( 99,  76,  76,  73) /* PNGv3 */
 #define png_eXIf PNG_U32(101,  88,  73, 102) /* registered July 2017 */
 #define png_fRAc PNG_U32(102,  82,  65,  99) /* registered, not defined */
 #define png_gAMA PNG_U32(103,  65,  77,  65)
@@ -848,6 +851,7 @@
 #define png_hIST PNG_U32(104,  73,  83,  84)
 #define png_iCCP PNG_U32(105,  67,  67,  80)
 #define png_iTXt PNG_U32(105,  84,  88, 116)
+#define png_mDCV PNG_U32(109,  68,  67,  86) /* PNGv3 */
 #define png_oFFs PNG_U32(111,  70,  70, 115)
 #define png_pCAL PNG_U32(112,  67,  65,  76)
 #define png_pHYs PNG_U32(112,  72,  89, 115)
@@ -985,10 +989,18 @@ PNG_INTERNAL_FUNCTION(void,png_free_buffer_list,(png_structrp png_ptr,
    !defined(PNG_FIXED_POINT_MACRO_SUPPORTED) && \
    (defined(PNG_gAMA_SUPPORTED) || defined(PNG_cHRM_SUPPORTED) || \
    defined(PNG_sCAL_SUPPORTED) || defined(PNG_READ_BACKGROUND_SUPPORTED) || \
+   defined(PNG_mDCV_SUPPORTED) || \
    defined(PNG_READ_RGB_TO_GRAY_SUPPORTED)) || \
    (defined(PNG_sCAL_SUPPORTED) && \
    defined(PNG_FLOATING_ARITHMETIC_SUPPORTED))
 PNG_INTERNAL_FUNCTION(png_fixed_point,png_fixed,(png_const_structrp png_ptr,
+   double fp, png_const_charp text),PNG_EMPTY);
+#endif
+
+#if defined(PNG_FLOATING_POINT_SUPPORTED) && \
+   !defined(PNG_FIXED_POINT_MACRO_SUPPORTED) && \
+   (defined(PNG_cLLI_SUPPORTED) || defined(PNG_mDCV_SUPPORTED))
+PNG_INTERNAL_FUNCTION(png_uint_32,png_fixed_ITU,(png_const_structrp png_ptr,
    double fp, png_const_charp text),PNG_EMPTY);
 #endif
 
@@ -1149,6 +1161,20 @@ PNG_INTERNAL_FUNCTION(void,png_write_cHRM_fixed,(png_structrp png_ptr,
 PNG_INTERNAL_FUNCTION(void,png_write_cICP,(png_structrp png_ptr,
     png_byte colour_primaries, png_byte transfer_function,
     png_byte matrix_coefficients, png_byte video_full_range_flag), PNG_EMPTY);
+#endif
+
+#ifdef PNG_WRITE_cLLI_SUPPORTED
+PNG_INTERNAL_FUNCTION(void,png_write_cLLI_fixed,(png_structrp png_ptr,
+   png_uint_32 maxCLL, png_uint_32 maxFALL), PNG_EMPTY);
+#endif
+
+#ifdef PNG_WRITE_mDCV_SUPPORTED
+PNG_INTERNAL_FUNCTION(void,png_write_mDCV_fixed,(png_structrp png_ptr,
+   png_uint_16 red_x, png_uint_16 red_y,
+   png_uint_16 green_x, png_uint_16 green_y,
+   png_uint_16 blue_x, png_uint_16 blue_y,
+   png_uint_16 white_x, png_uint_16 white_y,
+   png_uint_32 maxDL, png_uint_32 minDL), PNG_EMPTY);
 #endif
 
 #ifdef PNG_WRITE_sRGB_SUPPORTED
@@ -1499,6 +1525,11 @@ PNG_INTERNAL_FUNCTION(void,png_handle_cICP,(png_structrp png_ptr,
         png_inforp info_ptr, png_uint_32 length),PNG_EMPTY);
 #endif
 
+#ifdef PNG_READ_cLLI_SUPPORTED
+PNG_INTERNAL_FUNCTION(void,png_handle_cLLI,(png_structrp png_ptr,
+        png_inforp info_ptr, png_uint_32 length),PNG_EMPTY);
+#endif
+
 #ifdef PNG_READ_eXIf_SUPPORTED
 PNG_INTERNAL_FUNCTION(void,png_handle_eXIf,(png_structrp png_ptr,
     png_inforp info_ptr, png_uint_32 length),PNG_EMPTY);
@@ -1522,6 +1553,11 @@ PNG_INTERNAL_FUNCTION(void,png_handle_iCCP,(png_structrp png_ptr,
 #ifdef PNG_READ_iTXt_SUPPORTED
 PNG_INTERNAL_FUNCTION(void,png_handle_iTXt,(png_structrp png_ptr,
     png_inforp info_ptr, png_uint_32 length),PNG_EMPTY);
+#endif
+
+#ifdef PNG_READ_mDCV_SUPPORTED
+PNG_INTERNAL_FUNCTION(void,png_handle_mDCV,(png_structrp png_ptr,
+        png_inforp info_ptr, png_uint_32 length),PNG_EMPTY);
 #endif
 
 #ifdef PNG_READ_oFFs_SUPPORTED

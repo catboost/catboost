@@ -403,6 +403,22 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
    }
 
 #endif
+#ifdef PNG_READ_cLLI_SUPPORTED
+   else if (png_ptr->chunk_name == png_cLLI)
+   {
+      PNG_PUSH_SAVE_BUFFER_IF_FULL
+      png_handle_cLLI(png_ptr, info_ptr, png_ptr->push_length);
+   }
+
+#endif
+#ifdef PNG_READ_mDCV_SUPPORTED
+   else if (png_ptr->chunk_name == png_mDCV)
+   {
+      PNG_PUSH_SAVE_BUFFER_IF_FULL
+      png_handle_mDCV(png_ptr, info_ptr, png_ptr->push_length);
+   }
+
+#endif
 #ifdef PNG_READ_eXIf_SUPPORTED
    else if (png_ptr->chunk_name == png_eXIf)
    {
