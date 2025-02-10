@@ -317,6 +317,10 @@ parse_lzma12_preset(const char **const str, const char *str_end,
 		uint32_t *preset)
 {
 	assert(*str < str_end);
+
+	if (!(**str >= '0' && **str <= '9'))
+		return "Unsupported preset";
+
 	*preset = (uint32_t)(**str - '0');
 
 	// NOTE: Remember to update LZMA12_PRESET_STR if this is modified!
