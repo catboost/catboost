@@ -59,5 +59,7 @@ BENCHMARK_CAPTURE(BM_GmTimeRRandom, last_year, TDuration::Days(365));
 BENCHMARK_CAPTURE(BM_gmtime_r_Random, last_year, TDuration::Days(365));
 BENCHMARK_CAPTURE(BM_GmTimeRRandom, last_decade, TDuration::Days(3653));
 BENCHMARK_CAPTURE(BM_gmtime_r_Random, last_decade, TDuration::Days(3653));
-BENCHMARK_CAPTURE(BM_GmTimeRRandom, last_half_centry, TDuration::Days(18262));
+BENCHMARK_CAPTURE(BM_GmTimeRRandom, last_half_century, TDuration::Days(18262));
 BENCHMARK_CAPTURE(BM_gmtime_r_Random, last_half_century, TDuration::Days(18262));
+BENCHMARK_CAPTURE(BM_GmTimeRRandom, last_century, TDuration::Days(36525));
+BENCHMARK_CAPTURE(BM_gmtime_r_Random, last_century, TDuration::Days(36525));
