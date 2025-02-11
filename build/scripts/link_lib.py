@@ -12,8 +12,9 @@ class Opts(object):
         self.llvm_ar_format = args[2]
         self.build_root = args[3]
         self.plugin = args[4]
-        self.output = args[5]
-        auto_input = args[6:]
+        self.enable_openssl3 = args[5]
+        self.output = args[6]
+        auto_input = args[7:]
 
         self.need_modify = False
         self.extra_args = []
@@ -162,5 +163,5 @@ if __name__ == "__main__":
     if exit_code != 0:
         raise Exception('{0} returned non-zero exit code {1}. Stop.'.format(' '.join(cmd), exit_code))
 
-    if os.path.basename(opts.output) in ['libcontrib-libs-openssl.a', 'liblibs-openssl-crypto.a']:
+    if opts.enable_openssl3 != 'no-openssl3' and os.path.basename(opts.output) in ['libcontrib-libs-openssl.a', 'liblibs-openssl-crypto.a']:
         rename_syms(os.path.dirname(opts.archiver) + '/', opts.output)
