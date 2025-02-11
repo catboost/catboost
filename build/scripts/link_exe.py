@@ -2,6 +2,7 @@ import itertools
 import os
 import os.path
 import sys
+import json
 import subprocess
 import optparse
 import textwrap
@@ -321,7 +322,7 @@ def fix_blas_resolving(cmd):
     return cmd
 
 
-def parse_args():
+def parse_args(args):
     parser = optparse.OptionParser()
     parser.disable_interspersed_args()
     parser.add_option('--musl', action='store_true')
@@ -341,11 +342,23 @@ def parse_args():
     parser.add_option('--whole-archive-libs', action='append')
     parser.add_option('--exclude-libs', action='append')
     thinlto_cache.add_options(parser)
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 if __name__ == '__main__':
-    opts, args = parse_args()
+    args = sys.argv[1:]
+    ib = args.index('--start-plugins')
+    ie = args.index('--end-plugins')
+    plugins = args[ib + 1:ie]
+    args = args[:ib] + args[ie + 1:]
+
+    for p in plugins:
+        res = subprocess.check_output([sys.executable, p] + args).decode().strip()
+
+        if res:
+            args = json.loads(res)
+
+    opts, args = parse_args(args)
     args = pcf.skip_markers(args)
 
     cmd = fix_blas_resolving(args)
