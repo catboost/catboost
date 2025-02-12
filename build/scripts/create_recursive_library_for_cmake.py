@@ -145,7 +145,6 @@ class FilesCombiner(object):
             'gnu',  # llvm_ar_format, used only if arch_type == 'LLVM_AR'
             opts.parsed_args.project_binary_dir,
             'None',  # plugin. Unused for now
-            'no-openssl3',  # enable_openssl3. Unused for now
             '--',  # for plugins. Unused for now
             '--',
         ]
