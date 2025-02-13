@@ -32,9 +32,10 @@
 #
 # @missing: 0000..10FFFF; <script>
 
-
 RANGES = [
-    0x0000,  # .. 0x02BB ; None
+    0x0000,  # .. 0x00B6 ; None
+    0x00B7,  # .. 0x00B7 ; {'Avst', 'Cari', 'Copt', 'Dupl', 'Elba', 'Geor', 'Glag', 'Gong', 'Goth', 'Grek', 'Hani', 'Latn', 'Lydi', 'Mahj', 'Perm', 'Shaw'}
+    0x00B8,  # .. 0x02BB ; None
     0x02BC,  # .. 0x02BC ; {'Beng', 'Cyrl', 'Deva', 'Latn', 'Lisu', 'Thai', 'Toto'}
     0x02BD,  # .. 0x02C6 ; None
     0x02C7,  # .. 0x02C7 ; {'Bopo', 'Latn'}
@@ -316,7 +317,26 @@ RANGES = [
 ]
 
 VALUES = [
-    None,  # 0000..02BB
+    None,  # 0000..00B6
+    {
+        "Avst",
+        "Cari",
+        "Copt",
+        "Dupl",
+        "Elba",
+        "Geor",
+        "Glag",
+        "Gong",
+        "Goth",
+        "Grek",
+        "Hani",
+        "Latn",
+        "Lydi",
+        "Mahj",
+        "Perm",
+        "Shaw",
+    },  # 00B7..00B7
+    None,  # 00B8..02BB
     {"Beng", "Cyrl", "Deva", "Latn", "Lisu", "Thai", "Toto"},  # 02BC..02BC
     None,  # 02BD..02C6
     {"Bopo", "Latn"},  # 02C7..02C7

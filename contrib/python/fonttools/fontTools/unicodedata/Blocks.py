@@ -16,7 +16,6 @@
 # Format:
 # Start Code..End Code; Block Name
 
-
 RANGES = [
     0x0000,  # .. 0x007F ; Basic Latin
     0x0080,  # .. 0x00FF ; Latin-1 Supplement
