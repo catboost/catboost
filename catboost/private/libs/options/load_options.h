@@ -28,6 +28,7 @@ namespace NCatboostOptions {
     };
 
     struct TPoolLoadParams {
+        NCB::TPathWithScheme InitModelPath;
         TCvDataPartitionParams CvParams;
 
         TColumnarPoolFormatParams ColumnarPoolFormatParams;
