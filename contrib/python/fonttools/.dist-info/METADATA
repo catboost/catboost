@@ -1,6 +1,6 @@
 Metadata-Version: 2.2
 Name: fonttools
-Version: 4.55.7
+Version: 4.55.8
 Summary: Tools to manipulate font files
 Home-page: http://github.com/fonttools/fonttools
 Author: Just van Rossum
@@ -390,6 +390,11 @@ Have fun!
 
 Changelog
 ~~~~~~~~~
+
+4.55.8 (released 2025-01-29)
+----------------------------
+
+- [MetaTools] Fixed bug in buildUCD.py script whereby the first non-header line of some UCD text file was being skipped. This affected in particular the U+00B7 (MIDDLE DOT) entry of ScriptExtensions.txt (#3756).
 
 4.55.7 (released 2025-01-28)
 ----------------------------
