@@ -103,8 +103,11 @@ Y_UNIT_TEST_SUITE(TCalcExpressionTest) {
 
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# max.int.feature%, 99", histogramDataMap), 2 * 1.1);
 
+        // (-inf, 0]
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# first.zero.feature%, 5", histogramDataMap), 0);
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# first.zero.feature%, 20", histogramDataMap), 0);
+        // (0, 2]
+        UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# first.zero.feature%, 30", histogramDataMap), 2 * (1.0 - (200 - 400 * 0.3) / 100));
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# first.zero.feature%, 50", histogramDataMap), 2);
 
         UNIT_ASSERT_EQUAL(CalcExpression("#HISTOGRAM_PERCENTILE# equal.parts.feature%, 5", histogramDataMap), 0 + 1.0 - (100 - 400 * 0.05) / 100);
