@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 import os
+import json
 import subprocess
 import tempfile
 import collections
@@ -129,8 +130,6 @@ def fix_windows_param(ex):
         return ['/DEF:{}'.format(def_file.name)]
 
 
-MUSL_LIBS = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
-
 CUDA_LIBRARIES = {
     '-lcublas_static': '-lcublas',
     '-lcublasLt_static': '-lcublasLt',
@@ -179,14 +178,6 @@ def fix_cmd(arch, c):
     return sum((do_fix(x) for x in c), [])
 
 
-def fix_cmd_for_musl(cmd):
-    flags = []
-    for flag in cmd:
-        if flag not in MUSL_LIBS:
-            flags.append(flag)
-    return flags
-
-
 def fix_cmd_for_dynamic_cuda(cmd):
     flags = []
     for flag in cmd:
@@ -208,7 +199,7 @@ def fix_blas_resolving(cmd):
     return cmd
 
 
-def parse_args():
+def parse_args(args):
     parser = optparse.OptionParser()
     parser.disable_interspersed_args()
     parser.add_option('--arch')
@@ -218,7 +209,6 @@ def parse_args():
     parser.add_option('--build-root')
     parser.add_option('--fix-elf')
     parser.add_option('--linker-output')
-    parser.add_option('--musl', action='store_true')
     parser.add_option('--dynamic-cuda', action='store_true')
     parser.add_option('--cuda-architectures',
                       help='List of supported CUDA architectures, separated by ":" (e.g. "sm_52:compute_70:lto_90a"')
@@ -229,11 +219,26 @@ def parse_args():
     parser.add_option('--custom-step')
     parser.add_option('--python')
     thinlto_cache.add_options(parser)
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 if __name__ == '__main__':
-    opts, args = parse_args()
+    args = sys.argv[1:]
+    plugins = []
+
+    if '--start-plugins' in args:
+        ib = args.index('--start-plugins')
+        ie = args.index('--end-plugins')
+        plugins = args[ib + 1:ie]
+        args = args[:ib] + args[ie + 1:]
+
+    for p in plugins:
+        res = subprocess.check_output([sys.executable, p] + args).decode().strip()
+
+        if res:
+            args = json.loads(res)
+
+    opts, args = parse_args(args)
 
     assert opts.arch
     assert opts.target
@@ -242,8 +247,6 @@ if __name__ == '__main__':
     cmd = fix_cmd(opts.arch, cmd)
     cmd = fix_py2(cmd)
 
-    if opts.musl:
-        cmd = fix_cmd_for_musl(cmd)
     if opts.dynamic_cuda:
         cmd = fix_cmd_for_dynamic_cuda(cmd)
     else:

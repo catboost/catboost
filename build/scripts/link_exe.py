@@ -335,10 +335,13 @@ def parse_args(args):
 
 if __name__ == '__main__':
     args = sys.argv[1:]
-    ib = args.index('--start-plugins')
-    ie = args.index('--end-plugins')
-    plugins = args[ib + 1:ie]
-    args = args[:ib] + args[ie + 1:]
+    plugins = []
+
+    if '--start-plugins' in args:
+        ib = args.index('--start-plugins')
+        ie = args.index('--end-plugins')
+        plugins = args[ib + 1:ie]
+        args = args[:ib] + args[ie + 1:]
 
     for p in plugins:
         res = subprocess.check_output([sys.executable, p] + args).decode().strip()
