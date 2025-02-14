@@ -156,7 +156,11 @@ namespace {
         {LANG_TYV, SCRIPT_CYRILLIC, "Tuvan", "tyv", "tyv", nullptr},
         {LANG_CHE, SCRIPT_CYRILLIC, "Chechen", "che", "ce", nullptr},
         {LANG_MNS, SCRIPT_CYRILLIC, "Mansi", "mns", "mns", nullptr},
-        {LANG_ARZ, SCRIPT_ARABIC, "Egyptian Arabic", "arz", "arz", "ar-EG"}
+        {LANG_ARZ, SCRIPT_ARABIC, "Egyptian Arabic", "arz", "arz", "ar-EG"},
+        {LANG_KRC, SCRIPT_CYRILLIC, "Karachay–Balkar", "krc", "krc", nullptr},
+        {LANG_KBD, SCRIPT_CYRILLIC, "Kabardino-Cherkess", "kbd", "kbd", nullptr},
+        {LANG_NOG, SCRIPT_CYRILLIC, "Nogai", "nog", "nog", nullptr},
+        {LANG_ABQ, SCRIPT_CYRILLIC, "Abaza", "abq", "abq", nullptr},
     };
 
     static_assert(static_cast<size_t>(LANG_MAX) == Y_ARRAY_SIZE(LanguageNameAndEnum), "Size doesn't match");
