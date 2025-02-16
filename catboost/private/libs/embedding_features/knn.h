@@ -112,6 +112,11 @@ namespace NCB {
 
         void Compute(const TEmbeddingsArray& embed, TOutputFloatIterator outputFeaturesIterator) const override;
 
+        TVector<std::pair<float, float>> GetNearestNeighborsAndDistances(const TEmbeddingsArray& embed) const;
+
+        void CompareAndCompute(TVector<std::pair<float, float>>& neighbors, 
+                               TOutputFloatIterator outputFeaturesIterator) const;
+
         ui32 FeatureCount() const override {
             return FeatureCount_;
         }

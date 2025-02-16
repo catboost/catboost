@@ -211,7 +211,8 @@ namespace NCB {
         TConstArrayRef<ui32> learnPermutation,
         TCalculatedFeatureVisitor learnVisitor,
         TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-        NPar::ILocalExecutor* localExecutor) const {
+        NPar::ILocalExecutor* localExecutor
+    ) const {
         ui64 numThreads = localExecutor->GetThreadCount();
         TVector<TKNNCalcer> featureCalcers;
         TVector<TKNNCalcerVisitor> calcerVisitors;
@@ -228,7 +229,8 @@ namespace NCB {
             const auto& target = GetTarget();
             const ui64 samplesCount = learnDataset.SamplesCount();
             TVector<float> learnFeatures(featuresCount * samplesCount);
-
+            TVector<TVector<std::pair<float, float>>> vectorsNeighbors(samplesCount);
+    
             NPar::ILocalExecutor::TExecRangeParams params{0, numThreads};
             localExecutor->ExecRange([&](int id) {
                 int linesPerThread = samplesCount / numThreads;
@@ -237,12 +239,40 @@ namespace NCB {
                 if (id == numThreads - 1) {
                     end = samplesCount;
                 }
-    
+
                 for (int i = begin; i < end; ++i) {
                     auto line = learnPermutation[i];
                     const TEmbeddingsArray& vector = learnDataset.GetVector(line);
-                    Compute(featureCalcers[id], vector, line, samplesCount, learnFeatures);
+                    vectorsNeighbors[line] = featureCalcers[id].GetNearestNeighborsAndDistances(vector);
                     calcerVisitors[id].Update(target[line], vector, &featureCalcers[id]);
+                }
+            }, params, NPar::TLocalExecutor::WAIT_COMPLETE);
+
+            localExecutor->ExecRange([&](int id) {
+                int linesPerThread = samplesCount / numThreads;
+                int calcersCount = 0;
+
+                for (int i = id; i < samplesCount; i += numThreads) {
+                    auto line = learnPermutation[i];
+                    const TEmbeddingsArray& vector = learnDataset.GetVector(line);
+                    auto& neighbors = vectorsNeighbors[line];
+                    
+                    if (i / linesPerThread > calcersCount) {
+                        calcersCount++;
+                    }
+
+                    for (int j = 0; j < calcersCount && j < featureCalcers.size(); ++j) {
+                        auto newNeighbors = featureCalcers[j].GetNearestNeighborsAndDistances(vector);
+                        neighbors.insert(neighbors.end(), newNeighbors.begin(), newNeighbors.end());
+                    }
+
+                    auto outputFeaturesIterator = TOutputFloatIterator(
+                        learnFeatures.data() + line,
+                        samplesCount,
+                        learnFeatures.size()
+                    );
+
+                    featureCalcers[0].CompareAndCompute(neighbors, outputFeaturesIterator);
                 }
             }, params, NPar::TLocalExecutor::WAIT_COMPLETE);
 
@@ -254,7 +284,7 @@ namespace NCB {
                         learnFeatures.data() + (f + 1) * samplesCount
                     )
                 );
-            }
+            }            
         }
 
         if (!testVisitors.empty()) {
