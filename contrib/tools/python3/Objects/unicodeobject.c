@@ -1472,10 +1472,13 @@ _copy_characters(PyObject *to, Py_ssize_t to_start,
     assert(PyUnicode_Check(from));
     assert(from_start + how_many <= PyUnicode_GET_LENGTH(from));
 
-    if (how_many == 0)
-        return 0;
+    assert(to == NULL || PyUnicode_Check(to));
 
-    assert(PyUnicode_Check(to));
+    if (how_many == 0) {
+        return 0;
+    }
+
+    assert(to != NULL);
     assert(to_start + how_many <= PyUnicode_GET_LENGTH(to));
 
     from_kind = PyUnicode_KIND(from);
