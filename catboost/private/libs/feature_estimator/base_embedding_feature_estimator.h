@@ -213,23 +213,22 @@ namespace NCB {
         TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
         NPar::ILocalExecutor* localExecutor
     ) const {
-        ui64 numThreads = localExecutor->GetThreadCount();
-        TVector<TKNNCalcer> featureCalcers;
-        TVector<TKNNCalcerVisitor> calcerVisitors;
-        featureCalcers.reserve(numThreads);
-        calcerVisitors.reserve(numThreads);
+        int numThreads = localExecutor->GetThreadCount();
+        TVector<TKNNCalcer> featureCalcers(numThreads);;
+        TVector<TKNNCalcerVisitor> calcerVisitors(numThreads);
+
         for (ui32 id = 0; id < numThreads; ++id) {
-            featureCalcers.emplace_back(CreateFeatureCalcer());
-            calcerVisitors.emplace_back(CreateCalcerVisitor());
+            featureCalcers[id] = CreateFeatureCalcer();
+            calcerVisitors[id] = CreateCalcerVisitor();
         }
-        const ui32 featuresCount = featureCalcers[0].FeatureCount();
 
         {
+            const ui32 featuresCount = featureCalcers[0].FeatureCount();
             const auto& learnDataset = GetLearnDataset();
             const auto& target = GetTarget();
             const ui64 samplesCount = learnDataset.SamplesCount();
             TVector<float> learnFeatures(featuresCount * samplesCount);
-            TVector<TVector<std::pair<float, float>>> vectorsNeighbors(samplesCount);
+            TVector<TVector<TKNNCalcer::TNeighbor>> vectorsNeighbors(samplesCount);
     
             NPar::ILocalExecutor::TExecRangeParams params{0, numThreads};
             localExecutor->ExecRange([&](int id) {
@@ -250,18 +249,13 @@ namespace NCB {
 
             localExecutor->ExecRange([&](int id) {
                 int linesPerThread = samplesCount / numThreads;
-                int calcersCount = 0;
 
                 for (int i = id; i < samplesCount; i += numThreads) {
                     auto line = learnPermutation[i];
                     const TEmbeddingsArray& vector = learnDataset.GetVector(line);
                     auto& neighbors = vectorsNeighbors[line];
-                    
-                    if (i / linesPerThread > calcersCount) {
-                        calcersCount++;
-                    }
 
-                    for (int j = 0; j < calcersCount && j < featureCalcers.size(); ++j) {
+                    for (int j = 0; j < i / linesPerThread && j < featureCalcers.size(); ++j) {
                         auto newNeighbors = featureCalcers[j].GetNearestNeighborsAndDistances(vector);
                         neighbors.insert(neighbors.end(), newNeighbors.begin(), newNeighbors.end());
                     }

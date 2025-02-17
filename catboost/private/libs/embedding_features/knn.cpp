@@ -5,8 +5,6 @@
 #include <util/stream/length.h>
 #include <util/system/yassert.h>
 
-#include <algorithm>
-
 namespace NCB {
 
     TVector<ui32> TKNNUpdatableCloud::GetNearestNeighbors(const float* embed, ui32 knum) const  {
@@ -53,51 +51,50 @@ namespace NCB {
         );
     }
 
-    TVector<std::pair<float, float>> TKNNCalcer::GetNearestNeighborsAndDistances(
-        const TEmbeddingsArray& embed
-    ) const {
-        TVector<std::pair<float, float>> result;
+    TVector<TKNNCalcer::TNeighbor> TKNNCalcer::GetNearestNeighborsAndDistances(
+        const TEmbeddingsArray& embed) const {
+        TVector<TNeighbor> result;
         auto neighbors = Cloud->GetNearestNeighbors(embed.data(), CloseNum);
         auto cloudPtr = dynamic_cast<TKNNUpdatableCloud*>(Cloud.Get());
         auto& cloud = cloudPtr->GetCloud();
         TL2Distance dist(TotalDimension);
 
-        for (size_t pos = 0; pos < neighbors.size(); ++pos) {
-            float distValue = dist(embed.data(), cloud.GetItem(neighbors[pos]));
+        for (auto neighbor: neighbors) {
+            float distValue = dist(embed.data(), cloud.GetItem(neighbor));
             if (IsClassification) {
-                result.emplace_back(TargetClasses.at(neighbors[pos]), distValue);
+                result.emplace_back(TargetClasses.at(neighbor), distValue);
             } else {
-                result.emplace_back(Targets.at(neighbors[pos]), distValue);
+                result.emplace_back(Targets.at(neighbor), distValue);
             }
         }
 
         return result;
     }
 
-    void TKNNCalcer::CompareAndCompute(TVector<std::pair<float, float>>& neighbors, 
+    void TKNNCalcer::CompareAndCompute(TVector<TNeighbor>& neighbors, 
                                        TOutputFloatIterator iterator) const {
         TVector<float> result(FeatureCount_, 0);
 
         if (neighbors.size() > CloseNum) {
-            std::sort(neighbors.begin(), neighbors.end(), [](const auto& lhs, const auto& rhs){
-                return lhs.second < rhs.second;
+            Sort(neighbors.begin(), neighbors.end(), [](const auto& lhs, const auto& rhs){
+                return lhs.Distance < rhs.Distance;
             });
             neighbors.resize(CloseNum);
         }
-
+    
         if (IsClassification) {
-            for (size_t pos = 0; pos < neighbors.size(); ++pos) {
-                ++result[(ui32)neighbors[pos].first];
+            for (const auto& neighbor: neighbors) {
+                ++result[neighbor.Target];
             }
         } else {
             if (neighbors.size()) {
-                for (size_t pos = 0; pos < neighbors.size(); ++pos) {
-                    result[0] += neighbors[pos].first;
+                for (const auto& neighbor: neighbors) {
+                    result[0] += neighbor.Target;
                 }
                 result[0] /= (float)neighbors.size();
             }
         }
-
+    
         ForEachActiveFeature(
             [&result, &iterator](ui32 featureId){
                 *iterator = result[featureId];
