@@ -180,10 +180,6 @@ jobs:
           New-Item -Path CUDA -ItemType Directory
           New-Item -Path .\CUDA\v11.8 -ItemType SymbolicLink -Value "${{steps.cuda-toolkit.outputs.CUDA_PATH}}"
 
-          # MSVC toolset
-          $VS_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "$VS_DIR" --channelId VisualStudio.16.Release --add Microsoft.VisualStudio.Component.VC.14.28.16.9.x86.x64 --downloadThenInstall --quiet --norestart --nocache
-
 
       - name: Checkout
         uses: actions/checkout@v4
