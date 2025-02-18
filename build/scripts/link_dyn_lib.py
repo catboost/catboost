@@ -15,7 +15,6 @@ import thinlto_cache
 import link_exe
 
 from process_whole_archive_option import ProcessWholeArchiveOption
-from fix_py2_protobuf import fix_py2
 
 
 def shlex_join(cmd):
@@ -245,7 +244,6 @@ if __name__ == '__main__':
 
     cmd = fix_blas_resolving(args)
     cmd = fix_cmd(opts.arch, cmd)
-    cmd = fix_py2(cmd)
 
     if opts.dynamic_cuda:
         cmd = fix_cmd_for_dynamic_cuda(cmd)

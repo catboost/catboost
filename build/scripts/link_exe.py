@@ -14,7 +14,6 @@ import process_command_files as pcf
 import thinlto_cache
 
 from process_whole_archive_option import ProcessWholeArchiveOption
-from fix_py2_protobuf import fix_py2
 
 
 def get_leaks_suppressions(cmd):
@@ -353,7 +352,6 @@ if __name__ == '__main__':
     args = pcf.skip_markers(args)
 
     cmd = fix_blas_resolving(args)
-    cmd = fix_py2(cmd)
     cmd = remove_excessive_flags(cmd)
     cmd = fix_sanitize_flag(cmd, opts)
 
