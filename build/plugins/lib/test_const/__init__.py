@@ -173,10 +173,6 @@ SANDBOX_RUN_TEST_YT_TOKEN_VALUE_NAME = 'YA_MAKE_SANDBOX_RUN_TEST_YT_TOKEN'
 # global resources
 ANDROID_AVD_ROOT = 'ANDROID_AVD_RESOURCE_GLOBAL'
 ANDROID_SDK_ROOT = 'ANDROID_SDK_RESOURCE_GLOBAL'
-COVERAGE_PUSH_TOOL_LOCAL = 'USE_SYSTEM_COVERAGE_PUSH_TOOL'
-COVERAGE_PUSH_TOOL_RESOURCE = 'COVERAGE_PUSH_TOOL_RESOURCE_GLOBAL'
-COVERAGE_PUSH_TOOL_LB_LOCAL = 'USE_SYSTEM_COVERAGE_PUSH_TOOL_LB'
-COVERAGE_PUSH_TOOL_LB_RESOURCE = 'COVERAGE_PUSH_TOOL_LB_RESOURCE_GLOBAL'
 FLAKE8_PY2_RESOURCE = 'FLAKE8_PY2_RESOURCE_GLOBAL'
 FLAKE8_PY3_RESOURCE = 'FLAKE8_PY3_RESOURCE_GLOBAL'
 GO_TOOLS_RESOURCE = 'GO_TOOLS_RESOURCE_GLOBAL'
@@ -373,16 +369,20 @@ class TestSize(Enum):
 
 
 class ModuleLang(Enum):
-    ABSENT = "absent"
-    NUMEROUS = "numerous"
-    UNKNOWN = "unknown"
     CPP = "cpp"
     DOCS = "docs"
     GO = "go"
     JAVA = "java"
     KOTLIN = "kotlin"
+    LANG_AGNOSTIC = "agnostic"  # This module (or node) is not language specific
     PY = "py"
     TS = "ts"
+    UNKNOWN = "unknown"
+
+
+class AggregateLang(Enum):
+    ABSENT = "absent"
+    NUMEROUS = "numerous"
 
 
 class NodeType(Enum):
@@ -437,11 +437,13 @@ class ServiceTags(Enum):
     AnyTag = "ya:anytag"
 
 
+# Linter names must match `NAME` set in `_ADD_*_LINTER_CHECK`
 class PythonLinterName(Enum):
-    Flake8 = "flake8"
-    Py2Flake8 = "py2_flake8"
     Black = "black"
     DummyLinter = "dummy_linter"
+    Flake8 = "flake8"
+    Py2Flake8 = "py2_flake8"
+    Ruff = "ruff"
 
 
 class CppLinterName(Enum):
@@ -449,8 +451,20 @@ class CppLinterName(Enum):
 
 
 class DefaultLinterConfig(Enum):
-    Python = "build/config/tests/py_style/default_configs.json"
     Cpp = "build/config/tests/cpp_style/default_configs.json"
+    Python = "build/config/tests/py_style/default_configs.json"
+
+
+LINTER_CONFIG_TYPES = {
+    CppLinterName.ClangFormat: (".clang-format",),
+    PythonLinterName.Black: ("pyproject.toml",),
+    PythonLinterName.Ruff: ("pyproject.toml", "ruff.toml"),
+}
+
+AUTOINCLUDE_PATHS = (
+    'build/conf/autoincludes.json',
+    'build/internal/conf/autoincludes.json',
+)
 
 
 class Status(object):

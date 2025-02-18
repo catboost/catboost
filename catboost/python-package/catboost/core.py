@@ -2231,132 +2231,63 @@ class CatBoostEstimator(_CatBoostBase):
             If  None, all params are set to their defaults.
             If  dict, overriding parameters present in dict.
         """
-        params_that_can_be_None = [
-        "iterations",
-        "learning_rate",
-        "depth",
-        "l2_leaf_reg",
-        "model_size_reg",
-        "rsm",
-        "loss_function",
-        "border_count",
-        "feature_border_type",
-        "per_float_feature_quantization",
-        "input_borders",
-        "output_borders",
-        "fold_permutation_block",
-        "od_pval",
-        "od_wait",
-        "od_type",
-        "nan_mode",
-        "counter_calc_method",
-        "leaf_estimation_iterations",
-        "leaf_estimation_method",
-        "thread_count",
-        "random_seed",
-        "use_best_model",
-        "best_model_min_trees",
-        "verbose",
-        "silent",
-        "logging_level",
-        "metric_period",
-        "ctr_leaf_count_limit",
-        "store_all_simple_ctr",
-        "max_ctr_complexity",
-        "has_time",
-        "allow_const_label",
-        "target_border",
-        "classes_count",
-        "class_weights",
-        "auto_class_weights",
-        "class_names",
-        "one_hot_max_size",
-        "random_strength",
-        "random_score_type",
-        "name",
-        "ignored_features",
-        "train_dir",
-        "custom_loss",
-        "custom_metric",
-        "eval_metric",
-        "bagging_temperature",
-        "save_snapshot",
-        "snapshot_file",
-        "snapshot_interval",
-        "fold_len_multiplier",
-        "used_ram_limit",
-        "gpu_ram_part",
-        "pinned_memory_size",
-        "allow_writing_files",
-        "final_ctr_computation_mode",
-        "approx_on_full_history",
-        "boosting_type",
-        "simple_ctr",
-        "combinations_ctr",
-        "per_feature_ctr",
-        "ctr_description",
-        "ctr_target_border_count",
-        "task_type",
-        "device_config",
-        "devices",
-        "bootstrap_type",
-        "subsample",
-        "mvs_reg",
-        "sampling_unit",
-        "sampling_frequency",
-        "dev_score_calc_obj_block_size",
-        "dev_efb_max_buckets",
-        "sparse_features_conflict_fraction",
-        "max_depth",
-        "n_estimators",
-        "num_boost_round",
-        "num_trees",
-        "colsample_bylevel",
-        "random_state",
-        "reg_lambda",
-        "objective",
-        "eta",
-        "max_bin",
-        "scale_pos_weight",
-        "gpu_cat_features_storage",
-        "data_partition",
-        "metadata",
-        "early_stopping_rounds",
-        "cat_features",
-        "grow_policy",
-        "min_data_in_leaf",
-        "min_child_samples",
-        "max_leaves",
-        "num_leaves",
-        "score_function",
-        "leaf_estimation_backtracking",
-        "ctr_history_unit",
-        "monotone_constraints",
-        "feature_weights",
-        "penalties_coefficient",
-        "first_feature_use_penalties",
-        "per_object_feature_penalties",
-        "model_shrink_rate",
-        "model_shrink_mode",
-        "langevin",
-        "diffusion_temperature",
-        "posterior_sampling",
-        "boost_from_average",
-        "text_features",
-        "tokenizers",
-        "dictionaries",
-        "feature_calcers",
-        "text_processing",
-        "embedding_features",
-        "callback",
-        "eval_fraction",
-        "fixed_binary_splits"
-        ]
+        params_that_can_be_None = {
+            "iterations": 1000,
+            "learning_rate": 0.03,
+            "depth": 6,
+            "l2_leaf_reg": 3.0,
+            "loss_function": "Logloss",
+            "border_count": 254,
+            "feature_border_type": "GreedyLogSum",
+            "input_borders": None,
+            "output_borders": None,
+            "fold_permutation_block": 1,
+            "target_border" : None,
+            "nan_mode": "Min",
+            "counter_calc_method": "Full",
+            "leaf_estimation_iterations": 1,
+            "leaf_estimation_method": "Newton",
+            "thread_count": -1,
+            "random_seed": 0,
+            "use_best_model": False,
+            "verbose": 1,
+            "logging_level": "Verbose",
+            "metric_period": 1,
+            "store_all_simple_ctr": False,
+            "max_ctr_complexity": 4,
+            "has_time": False,
+            "allow_const_label": False,
+            "random_strength": 1.0,
+            "random_score_type": "PerTree",
+            "bagging_temperature": 1.0,
+            "save_snapshot": False,
+            "snapshot_interval": 600,
+            "fold_len_multiplier": 2.0,
+            "gpu_ram_part": 0.95,
+            "allow_writing_files": True,
+            "final_ctr_computation_mode": "Default",
+            "boosting_type": "Ordered",
+            "task_type": "CPU",
+            "bootstrap_type": "Bayesian",
+            "sampling_unit": "Object",
+            "sampling_frequency": "PerTree",
+            "grow_policy": "SymmetricTree",
+            "min_data_in_leaf": 1,
+            "score_function": "Cosine",
+            "leaf_estimation_backtracking": "AnyImprovement",
+            "penalties_coefficient": 1.0,
+        }
 
         new_params = {}
         for key, value in iteritems(params):
-            if key in params_that_can_be_None or value is not None:
+            if value is not None:
                 new_params[key] = value
+            elif key in params_that_can_be_None.keys():
+                if key ==  "loss_function":
+                    if params_that_can_be_None["target_border"] is None:
+                        new_params[key] = "RMSE"
+                        continue
+                new_params[key] = params_that_can_be_None[key]
 
         super(CatBoostEstimator, self).__init__(new_params)
 
@@ -4677,7 +4608,7 @@ class CatBoost(CatBoostEstimator):
         self._object._convert_oblivious_to_asymmetric()
 
 
-class CatBoostClassifier(CatBoost):
+class CatBoostClassifier(CatBoostEstimator):
     """
     Implementation of the scikit-learn API for CatBoost classification.
 
@@ -5759,7 +5690,7 @@ class CatBoostClassifier(CatBoost):
                                 "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
 
-class CatBoostRegressor(CatBoost):
+class CatBoostRegressor(CatBoostEstimator):
     """
     Implementation of the scikit-learn API for CatBoost regression.
 
@@ -6169,7 +6100,7 @@ class CatBoostRegressor(CatBoost):
         return 'RawFormulaVal'
 
 
-class CatBoostRanker(CatBoost):
+class CatBoostRanker(CatBoostEstimator):
     """
     Implementation of the scikit-learn API for CatBoost ranking.
     Parameters

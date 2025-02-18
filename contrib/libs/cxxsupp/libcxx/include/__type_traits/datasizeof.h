@@ -13,6 +13,7 @@
 #include <__type_traits/is_class.h>
 #include <__type_traits/is_final.h>
 #include <cstddef>
+#include <stddef.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #  pragma GCC system_header
@@ -45,6 +46,12 @@ struct __libcpp_datasizeof {
     _Tp __v_;
     char __first_padding_byte_;
   };
+#endif
+
+#ifndef offsetof
+// #error "NO offsetof!"
+// #define offsetof(type__, member__) (reinterpret_cast<size_t>((&reinterpret_cast<const char&>(reinterpret_cast<const type__*>(1)->member__))) - 1)
+#define offsetof(type__, member__) __builtin_offsetof(type__, member__)
 #endif
 
   // _FirstPaddingByte<> is sometimes non-standard layout. Using `offsetof` is UB in that case, but GCC and Clang allow

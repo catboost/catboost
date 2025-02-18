@@ -61,7 +61,30 @@ using ::ptrdiff_t _LIBCPP_USING_IF_EXISTS;
 using ::size_t _LIBCPP_USING_IF_EXISTS;
 
 #if !defined(_LIBCPP_CXX03_LANG)
-using ::max_align_t _LIBCPP_USING_IF_EXISTS;
+// using ::max_align_t _LIBCPP_USING_IF_EXISTS;
+class alignment_dummy___;
+typedef void (*function_ptr___)();
+typedef int (alignment_dummy___::*member_ptr___);
+
+struct alignment_struct___ { long double dummy___[4]; };
+
+union max_align___ {
+    char char___;
+    short short___;
+    int int___;
+    long long___;
+    long long long_long___;
+    float float___;
+    double double___;
+    long double long_double___;
+    alignment_dummy___ *unknown_class_ptr___;
+    function_ptr___ function_ptr_____;
+    alignment_struct___ alignment_struct_____;
+};
+
+// typedef union max_align___ max_align_t;
+typedef long double max_align_t;
+
 #endif
 
 _LIBCPP_END_NAMESPACE_STD
