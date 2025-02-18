@@ -75,7 +75,7 @@ char* ctime_r(const time_t* clock, char* buf) {
 namespace {
     constexpr int STRUCT_TM_BASE_YEAR = 1900;
     constexpr int UNIX_TIME_BASE_YEAR = 1970;
-    constexpr long SECONDS_PER_DAY = (24L * 60L * 60L);
+    constexpr ui64 SECONDS_PER_DAY = (24L * 60L * 60L);
 
     constexpr bool IsLeapYear(int year) {
         if (year % 4 != 0) {
@@ -94,7 +94,29 @@ namespace {
         return IsLeapYear(year) ? DAYS_IN_LEAP_YEAR : DAYS_IN_YEAR;
     }
 
-    constexpr ui64 FOUR_CENTURIES = (400 * 365 + 100 - 3);
+    constexpr ui32 FOUR_CENTURY_YEARS = 400;
+
+    constexpr ui32 LeapYearCount(ui32 years) {
+        return years / 4 - years / 100 + years / 400;
+    }
+
+    constexpr ui32 FOUR_CENTURY_DAYS = FOUR_CENTURY_YEARS * DAYS_IN_YEAR + LeapYearCount(FOUR_CENTURY_YEARS);
+
+    constexpr int FindYearWithin4Centuries(ui32& dayno) {
+        Y_ASSERT(dayno < FOUR_CENTURY_DAYS);
+        ui32 years = dayno / DAYS_IN_YEAR;
+
+        const ui32 diff = years * DAYS_IN_YEAR + LeapYearCount(years);
+
+        if (diff <= dayno) {
+            dayno -= diff;
+        } else {
+            dayno -= diff - YearSize(static_cast<int>(years));
+            --years;
+        }
+
+        return static_cast<int>(years);
+    }
 
     constexpr ui16 MONTH_TO_DAYS[12] = {
         0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
@@ -103,73 +125,73 @@ namespace {
         0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335};
 
     struct TMonth32LUT {
-        char LastMonthDay32[12];
-        char FirstMonthDay32[12];
+        ui8 LastMonthDay32[12];
+        ui8 FirstMonthDay32[12];
     };
 
-    constexpr TMonth32LUT MONTH_32_LUT[2] = {
-        {
-            // common year
-            .LastMonthDay32 = {31, 27, 26, 24, 23, 21, 20, 19, 17, 16, 14, 13},
-            .FirstMonthDay32 = {0, 1, 5, 6, 8, 9, 11, 12, 13, 15, 16, 18},
-        },
-        {
-            // leap year
-            .LastMonthDay32 = {31, 28, 27, 25, 24, 22, 21, 20, 18, 17, 15, 14},
-            .FirstMonthDay32 = {0, 1, 4, 5, 7, 8, 10, 11, 12, 14, 15, 17},
-        },
+    constexpr TMonth32LUT COMMON_YEAR = {
+        .LastMonthDay32 = {31, 27, 26, 24, 23, 21, 20, 19, 17, 16, 14, 13},
+        .FirstMonthDay32 = {0, 1, 5, 6, 8, 9, 11, 12, 13, 15, 16, 18},
     };
 
-    constexpr int DayOfYearToMonth(ui64& yearDay, bool leapYear) {
-        Y_ASSERT(yearDay < 366);
-        int approxMonth = yearDay / 32;
-        int approxMDay = yearDay % 32;
-        int dayThreshold = MONTH_32_LUT[leapYear].LastMonthDay32[approxMonth];
-        int currentMonthMDayOffset = MONTH_32_LUT[leapYear].FirstMonthDay32[approxMonth];
-        bool nextMonth = (approxMDay >= dayThreshold);
-        int dayCorrection = nextMonth ? -dayThreshold : currentMonthMDayOffset;
-        int day = approxMDay + dayCorrection;
-        int month = approxMonth + nextMonth;
-        yearDay = day;
+    constexpr int DayOfYearToMonth(ui32& yearDay, const bool leapYear) {
+        Y_ASSERT(yearDay < DAYS_IN_YEAR + leapYear);
+        if (leapYear) {
+            if (yearDay > 59) {
+                --yearDay;
+            } else if (yearDay == 59) {
+                // February, 29th
+                yearDay = 28;
+                return 1;
+            }
+        }
+        const int approxMonth = static_cast<int>(yearDay / 32);
+        const int approxMDay = static_cast<int>(yearDay % 32);
+        const int dayThreshold = COMMON_YEAR.LastMonthDay32[approxMonth];
+        const int currentMonthMDayOffset = COMMON_YEAR.FirstMonthDay32[approxMonth];
+        const bool nextMonth = (approxMDay >= dayThreshold);
+        const int dayCorrection = nextMonth ? -dayThreshold : currentMonthMDayOffset;
+        yearDay = approxMDay + dayCorrection;
+        const int month = approxMonth + nextMonth;
         return month;
     }
 
     class TDayNoToYearLookupTable {
         static constexpr int TableSize = 128;
-        // lookup table for years in [1970, 1970 + 128 = 2098] range
+        // lookup table for years in [StartYear, StartYear + TableSize] range
         ui16 DaysSinceEpoch[TableSize] = {};
 
     public:
+        static constexpr int StartYear = 1970;
+        static constexpr int StartDays = (StartYear - UNIX_TIME_BASE_YEAR) * DAYS_IN_YEAR + LeapYearCount(StartYear - 1) - LeapYearCount(UNIX_TIME_BASE_YEAR - 1);
+        static constexpr i64 MinTimestamp = StartDays * static_cast<i64>(SECONDS_PER_DAY);
+        static constexpr i64 MaxTimestamp = MinTimestamp + static_cast<i64>(TableSize) * DAYS_IN_LEAP_YEAR * SECONDS_PER_DAY - 1;
         constexpr TDayNoToYearLookupTable() {
             ui16 daysAccumulated = 0;
 
-            for (int year = UNIX_TIME_BASE_YEAR; year < UNIX_TIME_BASE_YEAR + TableSize; ++year) {
+            for (int year = StartYear; year < StartYear + TableSize; ++year) {
                 daysAccumulated += YearSize(year);
-                DaysSinceEpoch[year - UNIX_TIME_BASE_YEAR] = daysAccumulated;
+                DaysSinceEpoch[year - StartYear] = daysAccumulated;
             }
         }
 
         // lookup year by days since epoch, decrement day counter to the corresponding amount of days.
         // The method returns the last year in the table, if year is too big
-        int FindYear(ui64& days) const {
-            if (days >= DaysSinceEpoch[TableSize - 1]) {
-                days -= DaysSinceEpoch[TableSize - 1];
-                return TableSize + UNIX_TIME_BASE_YEAR;
-            }
-            const ui64 yearIndex = days / DAYS_IN_LEAP_YEAR;
+        int FindYear(ui32& days) const {
+            const ui32 yearIndex = days / DAYS_IN_LEAP_YEAR;
 
             // we can miss by at most 1 year
             Y_ASSERT(yearIndex < TableSize);
             if (const auto diff = DaysSinceEpoch[yearIndex]; diff <= days) {
                 days -= diff;
-                return static_cast<int>(yearIndex + UNIX_TIME_BASE_YEAR + 1);
+                return static_cast<int>(yearIndex + StartYear + 1);
             }
 
             if (yearIndex > 0) {
                 days -= DaysSinceEpoch[yearIndex - 1];
             }
 
-            return static_cast<int>(yearIndex + UNIX_TIME_BASE_YEAR);
+            return static_cast<int>(yearIndex + StartYear);
         }
     };
 
@@ -209,55 +231,72 @@ time_t TimeGM(const struct tm* t) {
 
 struct tm* GmTimeR(const time_t* timer, struct tm* tmbuf) {
     i64 time = static_cast<i64>(*timer);
+    tm* resut = tmbuf;
+    int dayClock;
+    ui32 daysRemaining;
+    bool isLeapYear;
 
-    ui64 dayclock, dayno;
-    int year = UNIX_TIME_BASE_YEAR;
-
-    if (Y_UNLIKELY(time < 0)) {
-        ui64 shift = (ui64)(-time - 1) / (FOUR_CENTURIES * SECONDS_PER_DAY) + 1;
-        time += shift * (FOUR_CENTURIES * SECONDS_PER_DAY);
-        year -= shift * 400;
-    }
-
-    dayclock = (ui64)time % SECONDS_PER_DAY;
-    dayno = (ui64)time / SECONDS_PER_DAY;
-
-    if (Y_UNLIKELY(dayno >= FOUR_CENTURIES)) {
-        year += 400 * (dayno / FOUR_CENTURIES);
-        dayno = dayno % FOUR_CENTURIES;
-    }
-
-    tmbuf->tm_sec = dayclock % 60;
-    tmbuf->tm_min = (dayclock % 3600) / 60;
-    tmbuf->tm_hour = dayclock / 3600;
-    tmbuf->tm_wday = (dayno + 4) % 7; // Day 0 was a thursday
-
-    if (Y_LIKELY(year == UNIX_TIME_BASE_YEAR)) {
-        year = DAYS_TO_YEAR_LOOKUP.FindYear(dayno);
-    }
-
-    bool isLeapYear = IsLeapYear(year);
-    for (;;) {
-        const ui16 yearSize = isLeapYear ? DAYS_IN_LEAP_YEAR : DAYS_IN_YEAR;
-        if (dayno < yearSize) {
-            break;
-        }
-        dayno -= yearSize;
-        ++year;
+    if (time >= TDayNoToYearLookupTable::MinTimestamp && time <= TDayNoToYearLookupTable::MaxTimestamp)
+    {
+        dayClock = static_cast<int>(time % SECONDS_PER_DAY);
+        daysRemaining = time / SECONDS_PER_DAY;
+        tmbuf->tm_wday = static_cast<int>((daysRemaining + 4) % 7); // Day 0 was a thursday
+        daysRemaining -= TDayNoToYearLookupTable::StartDays;
+        const int year = DAYS_TO_YEAR_LOOKUP.FindYear(daysRemaining);
         isLeapYear = IsLeapYear(year);
+        tmbuf->tm_year = year - STRUCT_TM_BASE_YEAR;
+    } else {
+        i64 year = UNIX_TIME_BASE_YEAR;
+
+        if (Y_UNLIKELY(time < 0)) {
+            const ui64 shift = (ui64)(-time - 1) / (static_cast<ui64>(FOUR_CENTURY_DAYS) * SECONDS_PER_DAY) + 1;
+            time += static_cast<i64>(shift * FOUR_CENTURY_DAYS * SECONDS_PER_DAY);
+            year -= static_cast<i64>(shift * FOUR_CENTURY_YEARS);
+        }
+
+        dayClock = static_cast<int>(time % SECONDS_PER_DAY);
+        ui64 dayNo = (ui64)time / SECONDS_PER_DAY;
+        tmbuf->tm_wday = (dayNo + 4) % 7; // Day 0 was a thursday
+
+        if (int shiftYears = (year - 1) % FOUR_CENTURY_YEARS; shiftYears != 0) {
+            if (shiftYears < 0) {
+                shiftYears += FOUR_CENTURY_YEARS;
+            }
+            year -= shiftYears;
+            dayNo += shiftYears * DAYS_IN_YEAR + LeapYearCount(shiftYears);
+        }
+
+        if (Y_UNLIKELY(dayNo >= FOUR_CENTURY_DAYS)) {
+            year += FOUR_CENTURY_YEARS * (dayNo / FOUR_CENTURY_DAYS);
+            dayNo = dayNo % FOUR_CENTURY_DAYS;
+        }
+
+        daysRemaining = dayNo;
+        const int yearDiff = FindYearWithin4Centuries(daysRemaining);
+        year += yearDiff;
+        isLeapYear = IsLeapYear(yearDiff + 1);
+        tmbuf->tm_year = static_cast<int>(year - STRUCT_TM_BASE_YEAR);
+
+        // check year overflow
+        if (Y_UNLIKELY(year - STRUCT_TM_BASE_YEAR != tmbuf->tm_year)) {
+            resut = nullptr;
+        }
     }
 
-    tmbuf->tm_year = year - STRUCT_TM_BASE_YEAR;
-    tmbuf->tm_yday = dayno;
-    tmbuf->tm_mon = DayOfYearToMonth(dayno, isLeapYear);
-    tmbuf->tm_mday = dayno + 1;
+    tmbuf->tm_sec = dayClock % 60;
+    tmbuf->tm_min = (dayClock % 3600) / 60;
+    tmbuf->tm_hour = dayClock / 3600;
+
+    tmbuf->tm_yday = static_cast<int>(daysRemaining);
+    tmbuf->tm_mon = DayOfYearToMonth(daysRemaining, isLeapYear);
+    tmbuf->tm_mday = static_cast<int>(daysRemaining + 1);
     tmbuf->tm_isdst = 0;
 #ifndef _win_
     tmbuf->tm_gmtoff = 0;
     tmbuf->tm_zone = (char*)"UTC";
 #endif
 
-    return tmbuf;
+    return resut;
 }
 
 TString CTimeR(const time_t* timer) {

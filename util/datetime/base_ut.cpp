@@ -310,10 +310,8 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
                && true;
     }
 
-    Y_UNIT_TEST(TestGmTimeR) {
-        time_t starttime = static_cast<time_t>(Max<i64>(-12244089600LL, Min<time_t>())); // 1-Jan-1582
-        time_t finishtime = static_cast<time_t>(Min<i64>(0xFFFFFFFF * 20, Max<time_t>()));
-        time_t step = (finishtime - starttime) / 25;
+    void TestGmTimeR(time_t starttime, time_t finishtime, int steps) {
+        time_t step = (finishtime - starttime) / steps;
         struct tm tms0, tms1;
         struct tm* ptm0 = nullptr;
         struct tm* ptm1 = nullptr;
@@ -335,6 +333,18 @@ Y_UNIT_TEST_SUITE(TDateTimeTest) {
             UNIT_ASSERT_EQUAL(ptm1, &tms1);
             UNIT_ASSERT(CompareTMFull(ptm0, ptm1));
         }
+    }
+
+    Y_UNIT_TEST(TestGmTimeRLongRange) {
+        time_t starttime = static_cast<time_t>(-86397839500LL); // 29-Jan-2668 B.C.
+        time_t finishtime = static_cast<time_t>(0xFFFFFFFF * 20);
+        TestGmTimeR(starttime, finishtime, 101);
+    }
+
+    Y_UNIT_TEST(TestGmTimeRNowdays) {
+        time_t starttime = static_cast<time_t>(0);             // 1970
+        time_t finishtime = static_cast<time_t>(6307200000LL); // 2170
+        TestGmTimeR(starttime, finishtime, 303);
     }
 } // Y_UNIT_TEST_SUITE(TDateTimeTest)
 
