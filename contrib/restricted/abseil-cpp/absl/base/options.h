@@ -226,7 +226,7 @@
 // allowed.
 
 #define ABSL_OPTION_USE_INLINE_NAMESPACE 1
-#define ABSL_OPTION_INLINE_NAMESPACE_NAME lts_20240722
+#define ABSL_OPTION_INLINE_NAMESPACE_NAME lts_20250127
 
 // ABSL_OPTION_HARDENED
 //
@@ -235,7 +235,10 @@
 //
 // A value of 0 means that "hardened" mode is not enabled.
 //
-// A value of 1 means that "hardened" mode is enabled.
+// A value of 1 means that "hardened" mode is enabled with all checks.
+//
+// A value of 2 means that "hardened" mode is partially enabled, with
+// only a subset of checks chosen to minimize performance impact.
 //
 // Hardened builds have additional security checks enabled when `NDEBUG` is
 // defined. Defining `NDEBUG` is normally used to turn `assert()` macro into a

@@ -31,6 +31,8 @@
 // `__has_attribute()` first. If the check fails, we check if we are on GCC and
 // assume the attribute exists on GCC (which is verified on GCC 4.7).
 
+// SKIP_ABSL_INLINE_NAMESPACE_CHECK
+
 #ifndef ABSL_BASE_ATTRIBUTES_H_
 #define ABSL_BASE_ATTRIBUTES_H_
 
@@ -133,12 +135,14 @@
 // Tags a function as weak for the purposes of compilation and linking.
 // Weak attributes did not work properly in LLVM's Windows backend before
 // 9.0.0, so disable them there. See https://bugs.llvm.org/show_bug.cgi?id=37598
-// for further information.
+// for further information. Weak attributes do not work across DLL boundary.
 // The MinGW compiler doesn't complain about the weak attribute until the link
 // step, presumably because Windows doesn't use ELF binaries.
-#if (ABSL_HAVE_ATTRIBUTE(weak) ||                                         \
-     (defined(__GNUC__) && !defined(__clang__))) &&                       \
-    (!defined(_WIN32) || (defined(__clang__) && __clang_major__ >= 9)) && \
+#if (ABSL_HAVE_ATTRIBUTE(weak) ||                                 \
+     (defined(__GNUC__) && !defined(__clang__))) &&               \
+    (!defined(_WIN32) ||                                          \
+     (defined(__clang__) && __clang_major__ >= 9 &&               \
+      !defined(ABSL_BUILD_DLL) && !defined(ABSL_CONSUME_DLL))) && \
     !defined(__MINGW32__)
 #undef ABSL_ATTRIBUTE_WEAK
 #define ABSL_ATTRIBUTE_WEAK __attribute__((weak))
@@ -827,30 +831,76 @@
 #define ABSL_ATTRIBUTE_LIFETIME_BOUND
 #endif
 
-// ABSL_INTERNAL_ATTRIBUTE_VIEW indicates that a type acts like a view i.e. a
-// raw (non-owning) pointer. This enables diagnoses similar to those enabled by
-// ABSL_ATTRIBUTE_LIFETIME_BOUND.
+// Internal attribute; name and documentation TBD.
 //
-// See the following links for details:
-// https://reviews.llvm.org/D64448
-// https://lists.llvm.org/pipermail/cfe-dev/2018-November/060355.html
-#if ABSL_HAVE_CPP_ATTRIBUTE(gsl::Pointer)
-#define ABSL_INTERNAL_ATTRIBUTE_VIEW [[gsl::Pointer]]
+// See the upstream documentation:
+// https://clang.llvm.org/docs/AttributeReference.html#lifetime_capture_by
+#if ABSL_HAVE_CPP_ATTRIBUTE(clang::lifetime_capture_by)
+#define ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(Owner) \
+  [[clang::lifetime_capture_by(Owner)]]
 #else
-#define ABSL_INTERNAL_ATTRIBUTE_VIEW
+#define ABSL_INTERNAL_ATTRIBUTE_CAPTURED_BY(Owner)
 #endif
 
-// ABSL_INTERNAL_ATTRIBUTE_OWNER indicates that a type acts like a smart
-// (owning) pointer. This enables diagnoses similar to those enabled by
-// ABSL_ATTRIBUTE_LIFETIME_BOUND.
+// ABSL_ATTRIBUTE_VIEW indicates that a type is solely a "view" of data that it
+// points to, similarly to a span, string_view, or other non-owning reference
+// type.
+// This enables diagnosing certain lifetime issues similar to those enabled by
+// ABSL_ATTRIBUTE_LIFETIME_BOUND, such as:
+//
+//   struct ABSL_ATTRIBUTE_VIEW StringView {
+//     template<class R>
+//     StringView(const R&);
+//   };
+//
+//   StringView f(std::string s) {
+//     return s;  // warning: address of stack memory returned
+//   }
+//
+// We disable this on Clang versions < 13 because of the following
+// false-positive:
+//
+//   absl::string_view f(absl::optional<absl::string_view> sv) { return *sv; }
 //
 // See the following links for details:
 // https://reviews.llvm.org/D64448
 // https://lists.llvm.org/pipermail/cfe-dev/2018-November/060355.html
-#if ABSL_HAVE_CPP_ATTRIBUTE(gsl::Owner)
-#define ABSL_INTERNAL_ATTRIBUTE_OWNER [[gsl::Owner]]
+#if ABSL_HAVE_CPP_ATTRIBUTE(gsl::Pointer) && \
+    (!defined(__clang_major__) || __clang_major__ >= 13)
+#define ABSL_ATTRIBUTE_VIEW [[gsl::Pointer]]
 #else
-#define ABSL_INTERNAL_ATTRIBUTE_OWNER
+#define ABSL_ATTRIBUTE_VIEW
+#endif
+
+// ABSL_ATTRIBUTE_OWNER indicates that a type is a container, smart pointer, or
+// similar class that owns all the data that it points to.
+// This enables diagnosing certain lifetime issues similar to those enabled by
+// ABSL_ATTRIBUTE_LIFETIME_BOUND, such as:
+//
+//   struct ABSL_ATTRIBUTE_VIEW StringView {
+//     template<class R>
+//     StringView(const R&);
+//   };
+//
+//   struct ABSL_ATTRIBUTE_OWNER String {};
+//
+//   StringView f(String s) {
+//     return s;  // warning: address of stack memory returned
+//   }
+//
+// We disable this on Clang versions < 13 because of the following
+// false-positive:
+//
+//   absl::string_view f(absl::optional<absl::string_view> sv) { return *sv; }
+//
+// See the following links for details:
+// https://reviews.llvm.org/D64448
+// https://lists.llvm.org/pipermail/cfe-dev/2018-November/060355.html
+#if ABSL_HAVE_CPP_ATTRIBUTE(gsl::Owner) && \
+    (!defined(__clang_major__) || __clang_major__ >= 13)
+#define ABSL_ATTRIBUTE_OWNER [[gsl::Owner]]
+#else
+#define ABSL_ATTRIBUTE_OWNER
 #endif
 
 // ABSL_ATTRIBUTE_TRIVIAL_ABI

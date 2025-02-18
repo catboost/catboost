@@ -117,8 +117,8 @@
 //
 // LTS releases can be obtained from
 // https://github.com/abseil/abseil-cpp/releases.
-#define ABSL_LTS_RELEASE_VERSION 20240722
-#define ABSL_LTS_RELEASE_PATCH_LEVEL 1
+#define ABSL_LTS_RELEASE_VERSION 20250127
+#define ABSL_LTS_RELEASE_PATCH_LEVEL 0
 
 // Helper macro to convert a CPP variable to a string literal.
 #define ABSL_INTERNAL_DO_TOKEN_STR(x) #x
@@ -380,7 +380,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
     defined(__asmjs__) || defined(__EMSCRIPTEN__) || defined(__Fuchsia__) || \
     defined(__sun) || defined(__myriad2__) || defined(__HAIKU__) ||          \
     defined(__OpenBSD__) || defined(__NetBSD__) || defined(__QNX__) ||       \
-    defined(__VXWORKS__) || defined(__hexagon__)
+    defined(__VXWORKS__) || defined(__hexagon__) || defined(__XTENSA__)
 #define ABSL_HAVE_MMAP 1
 #endif
 
@@ -926,7 +926,7 @@ static_assert(ABSL_INTERNAL_INLINE_NAMESPACE_STR[0] != 'h' ||
 // https://llvm.org/docs/CompileCudaWithLLVM.html#detecting-clang-vs-nvcc-from-code
 #ifdef ABSL_INTERNAL_HAVE_ARM_NEON
 #error ABSL_INTERNAL_HAVE_ARM_NEON cannot be directly set
-#elif defined(__ARM_NEON) && !defined(__CUDA_ARCH__)
+#elif defined(__ARM_NEON) && !(defined(__NVCC__) && defined(__CUDACC__))
 #define ABSL_INTERNAL_HAVE_ARM_NEON 1
 #endif
 
