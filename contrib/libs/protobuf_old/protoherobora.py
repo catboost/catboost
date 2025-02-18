@@ -1,14 +1,58 @@
-import subprocess
-import os, sys
+#!/usr/bin/env python3
 
-# Explicitly enable local imports
-# Don't forget to add imported scripts to inputs of the calling command!
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import process_command_files as pcf
+import subprocess
+import os
+import sys
+import json
+
+
+# TODO: dedup
+def is_cmdfile_arg(arg):
+    # type: (str) -> bool
+    return arg.startswith('@')
+
+
+def cmdfile_path(arg):
+    # type: (str) -> str
+    return arg[1:]
+
+
+def read_from_command_file(arg):
+    # type: (str) -> list[str]
+    with open(arg) as afile:
+        return afile.read().splitlines()
+
+
+def skip_markers(args):
+    # type: (list[str]) -> list[str]
+    res = []
+    for arg in args:
+        if arg == '--ya-start-command-file' or arg == '--ya-end-command-file':
+            continue
+        res.append(arg)
+    return res
+
+
+def iter_args(
+        args,  # type: list[str]
+        ):
+    for arg in args:
+        if not is_cmdfile_arg(arg):
+            if arg == '--ya-start-command-file' or arg == '--ya-end-command-file':
+                continue
+            yield arg
+        else:
+            for cmdfile_arg in read_from_command_file(cmdfile_path(arg)):
+                yield cmdfile_arg
+
+
+def get_args(args):
+    # type: (list[str]) -> list[str]
+    return list(iter_args(args))
+# end TODO
 
 
 def run(*args):
-    # print >>sys.stderr, args
     return subprocess.check_output(list(args), shell=False).strip()
 
 
@@ -80,10 +124,20 @@ def rename_syms(where, ret, libs):
     return ret
 
 
+def find_lld(args):
+    for x in args:
+        if 'lld-link' in x:
+            return x
+
+    raise IndexError()
+
+
 def fix_py2(cmd, have_comand_files=False, prefix='lib', suffix='a'):
     args = cmd
+
     if have_comand_files:
-        args = pcf.get_args(cmd)
+        args = get_args(cmd)
+
     if 'protobuf_old' not in str(args):
         return cmd
 
@@ -99,7 +153,10 @@ def fix_py2(cmd, have_comand_files=False, prefix='lib', suffix='a'):
     old = []
     lib = []
 
-    where = os.path.dirname(cmd[0]) + '/'
+    try:
+        where = os.path.dirname(cmd[cmd.index('--objcopy-exe') + 1]) + '/'
+    except ValueError:
+        where = os.path.dirname(find_lld(cmd)) + '/'
 
     for x in args:
         if need_rename(x):
@@ -113,9 +170,9 @@ def fix_py2(cmd, have_comand_files=False, prefix='lib', suffix='a'):
         return old + [name]
 
     for file in cmd:
-        if pcf.is_cmdfile_arg(file):
-            cmd_file_path = pcf.cmdfile_path(file)
-            args = pcf.read_from_command_file(cmd_file_path)
+        if is_cmdfile_arg(file):
+            cmd_file_path = cmdfile_path(file)
+            args = read_from_command_file(cmd_file_path)
             if not 'protobuf_old' in str(args):
                 continue
             with open(cmd_file_path, 'w') as afile:
@@ -125,3 +182,14 @@ def fix_py2(cmd, have_comand_files=False, prefix='lib', suffix='a'):
                 afile.write(name)
 
     return cmd
+
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+
+    if 'lld-link' in str(args):
+        cmd = fix_py2(args, have_comand_files=True, prefix='', suffix='lib')
+    else:
+        cmd = fix_py2(args)
+
+    sys.stdout.write(json.dumps(cmd))
