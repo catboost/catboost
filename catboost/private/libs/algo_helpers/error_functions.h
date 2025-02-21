@@ -629,6 +629,31 @@ private:
     }
 };
 
+class TRMSPError final : public IDerCalcer {
+public:
+    static constexpr double RMSPE_DER3 = 0.0;
+
+public:
+    explicit TRMSPError(bool isExpApprox)
+        : IDerCalcer(isExpApprox)
+    {
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override {
+        return (target - approx) / (target * target);
+    }
+
+    double CalcDer2(double approx, float target) const override {
+        return - 1 / (target * target);
+    }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const override {
+        return RMSPE_DER3;
+    }
+};
+
 class TPoissonError final : public IDerCalcer {
 public:
     explicit TPoissonError(bool isExpApprox)

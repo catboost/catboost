@@ -112,6 +112,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         }
         case ELossFunction::MAE:
         case ELossFunction::MAPE:
+        case ELossFunction::RMSPE:
         case ELossFunction::Quantile:
         case ELossFunction::GroupQuantile:
         case ELossFunction::MultiQuantile:
@@ -336,7 +337,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
 
     if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Exact) {
         auto loss = lossFunctionConfig.GetLossFunction();
-        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::GroupQuantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::LogCosh, ELossFunction::MultiQuantile),
+        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::GroupQuantile, ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::RMSPE, ELossFunction::LogCosh, ELossFunction::MultiQuantile),
             "Exact method is only available for Quantile, GroupQuantile, MultiQuantile, MAE, MAPE and LogCosh loss functions.");
         CB_ENSURE(
             BoostingOptions->BoostingType == EBoostingType::Plain || TaskType == ETaskType::CPU,
@@ -698,7 +699,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         // we may adjust non-set BoostFromAverage in data dependant tuning
         CB_ENSURE(EqualToOneOf(lossFunction, ELossFunction::RMSE, ELossFunction::Logloss,
             ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::MultiQuantile, ELossFunction::MAE, ELossFunction::MAPE,
-            ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues),
+            ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues, ELossFunction::RMSPE),
             "You can use boost_from_average only for these loss functions now: " <<
             "RMSE, Logloss, CrossEntropy, Quantile, MultiQuantile, MAE, MAPE, MultiRMSE or MultiRMSEWithMissingValues.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");

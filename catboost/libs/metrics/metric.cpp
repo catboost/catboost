@@ -1441,6 +1441,79 @@ TVector<TParamSet> TMAPEMetric::ValidParamSets() {
     return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
 };
 
+/* RMSPE */
+
+namespace {
+    struct TRMSPEMetric final: public TAdditiveSingleTargetMetric {
+        explicit TRMSPEMetric(const TLossParams& params)
+        : TAdditiveSingleTargetMetric(ELossFunction::RMSPE, params)
+        {}
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
+
+        TMetricHolder EvalSingleThread(
+                TConstArrayRef<TConstArrayRef<double>> approx,
+                TConstArrayRef<TConstArrayRef<double>> approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end
+        ) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    };
+}
+
+// static.
+TVector<THolder<IMetric>> TRMSPEMetric::Create(const TMetricConfig& config) {
+    return AsVector(MakeHolder<TRMSPEMetric>(config.Params));
+}
+TMetricHolder TRMSPEMetric::EvalSingleThread(
+    TConstArrayRef<TConstArrayRef<double>> approxRef,
+    TConstArrayRef<TConstArrayRef<double>> approxDeltaRef,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end
+) const {
+    Y_ASSERT(!isExpApprox);
+    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+        TConstArrayRef<double> approx = approxRef[0];
+        TConstArrayRef<double> approxDelta = GetRowRef(approxDeltaRef, /*rowIdx*/0);
+        TMetricHolder error(2);
+        for (int k : xrange(begin, end)) {
+            const float w = hasWeight ? weight[k] : 1;
+            const double delta = hasDelta ? approxDelta[k] : 0;
+            // clip to [-inf,-1]∪[1,+inf] for stability, otherwise it will blow up
+            const double targetAdjusted = target[k] < 0 ? Min(-1.f, target[k]) : Max(1.f, target[k]);
+            error.Stats[0] += Sqr((target[k] - (approx[k] + delta)) / targetAdjusted) * w;
+            error.Stats[1] += w;
+        }
+        return error;
+    };
+    return DispatchGenericLambda(impl, !approxDeltaRef.empty(), !weight.empty());
+}
+
+double TRMSPEMetric::GetFinalError(const TMetricHolder& error) const {
+    return sqrt(error.Stats[0] / (error.Stats[1] + 1e-38));
+}
+
+void TRMSPEMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
+    *valueType = EMetricBestValue::Min;
+    if (bestValue) {
+        *bestValue = 0;
+    }
+}
+
+TVector<TParamSet> TRMSPEMetric::ValidParamSets() {
+    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
+};
+
 /* Greater K */
 
 namespace {
@@ -6309,6 +6382,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::MAPE:
             AppendTemporaryMetricsVector(TMAPEMetric::Create(config), &result);
             break;
+        case ELossFunction::RMSPE:
+            AppendTemporaryMetricsVector(TRMSPEMetric::Create(config), &result);
+            break;
         case ELossFunction::Poisson:
             AppendTemporaryMetricsVector(TPoissonMetric::Create(config), &result);
             break;
@@ -6561,6 +6637,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
             return TAverageGain::ValidParamSets();
         case ELossFunction::MAPE:
             return TMAPEMetric::ValidParamSets();
+        case ELossFunction::RMSPE:
+            return TRMSPEMetric::ValidParamSets();
         case ELossFunction::Poisson:
             return TPoissonMetric::ValidParamSets();
         case ELossFunction::Tweedie:
