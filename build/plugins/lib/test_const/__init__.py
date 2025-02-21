@@ -466,6 +466,8 @@ AUTOINCLUDE_PATHS = (
     'build/internal/conf/autoincludes.json',
 )
 
+CUSTOM_CLANG_FORMAT_YT_ALLOWED_PATHS = ('ads', 'bigrt', 'grut')
+
 
 class Status(object):
     GOOD, XFAIL, FAIL, XPASS, MISSING, CRASHED, TIMEOUT = range(1, 8)
