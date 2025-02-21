@@ -12,8 +12,6 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-find_package(CUDAToolkit REQUIRED)
-
 add_subdirectory(ut)
 add_subdirectory(bin)
 
@@ -32,7 +30,7 @@ target_link_libraries(catboost-cuda-targets PUBLIC
   catboost-libs-metrics
   private-libs-options
   cpp-threading-local_executor
-  CUDA::toolkit
+  build-platform-cuda
 )
 
 target_sources(catboost-cuda-targets PRIVATE
@@ -100,7 +98,7 @@ target_link_libraries(catboost-cuda-targets.global PUBLIC
   catboost-libs-metrics
   private-libs-options
   cpp-threading-local_executor
-  CUDA::toolkit
+  build-platform-cuda
 )
 
 target_sources(catboost-cuda-targets.global PRIVATE

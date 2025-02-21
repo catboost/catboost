@@ -12,9 +12,13 @@
 # Please refer to the build instructions in the repository for more information about manual
 # changes in this file.
 
-add_subdirectory(util)
-add_subdirectory(contrib)
-add_subdirectory(library)
-add_subdirectory(tools)
-add_subdirectory(catboost)
-add_subdirectory(build)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND HAVE_CUDA)
+  include(CMakeLists.linux-x86_64-cuda.txt)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND HAVE_CUDA)
+  include(CMakeLists.linux-aarch64-cuda.txt)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le" AND HAVE_CUDA)
+  include(CMakeLists.linux-ppc64le-cuda.txt)
+elseif (WIN32 AND CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" AND HAVE_CUDA)
+  include(CMakeLists.windows-x86_64-cuda.txt)
+endif()
+
