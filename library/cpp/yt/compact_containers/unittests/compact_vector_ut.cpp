@@ -273,7 +273,7 @@ TYPED_TEST(CompactVectorTest, InsertEnd)
 {
     SCOPED_TRACE("InsertEnd");
 
-    TCompactVector<TString, 5> vector;
+    TCompactVector<std::string, 5> vector;
     for (int index = 0; index < 10; ++index) {
         vector.insert(vector.end(), ToString(index));
     }
@@ -286,7 +286,7 @@ TYPED_TEST(CompactVectorTest, ShrinkToSmall)
 {
     SCOPED_TRACE("ShrinkToSmall");
 
-    TCompactVector<TString, 5> vector;
+    TCompactVector<std::string, 5> vector;
     for (int index = 0; index < 10; ++index) {
         vector.shrink_to_small();
         vector.push_back(ToString(index));
@@ -1061,8 +1061,8 @@ TEST(CompactVectorTest, InitializerList) {
 }
 
 TEST(CompactVectorTest, AssignToShorter) {
-  TCompactVector<TString, 4> lhs;
-  TCompactVector<TString, 4> rhs;
+  TCompactVector<std::string, 4> lhs;
+  TCompactVector<std::string, 4> rhs;
   rhs.emplace_back("foo");
   lhs = rhs;
   EXPECT_EQ(1U, lhs.size());
@@ -1070,10 +1070,10 @@ TEST(CompactVectorTest, AssignToShorter) {
 }
 
 TEST(CompactVectorTest, AssignToLonger) {
-  TCompactVector<TString, 4> lhs;
+  TCompactVector<std::string, 4> lhs;
   lhs.emplace_back("bar");
   lhs.emplace_back("baz");
-  TCompactVector<TString, 4> rhs;
+  TCompactVector<std::string, 4> rhs;
   rhs.emplace_back("foo");
   lhs = rhs;
   EXPECT_EQ(1U, lhs.size());
