@@ -359,7 +359,7 @@ TStringBuf FormatBool(bool value)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void TruncateStringInplace(TString* string, int lengthLimit, TStringBuf truncatedSuffix)
+void TruncateStringInplace(std::string* string, int lengthLimit, TStringBuf truncatedSuffix)
 {
     if (std::ssize(*string) > lengthLimit) {
         string->resize(lengthLimit);
@@ -367,7 +367,7 @@ void TruncateStringInplace(TString* string, int lengthLimit, TStringBuf truncate
     }
 }
 
-TString TruncateString(TString string, int lengthLimit, TStringBuf truncatedSuffix)
+std::string TruncateString(std::string string, int lengthLimit, TStringBuf truncatedSuffix)
 {
     TruncateStringInplace(&string, lengthLimit, truncatedSuffix);
     return string;

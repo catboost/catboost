@@ -10,9 +10,9 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-std::optional<TString> TryDecodeEnumValue(TStringBuf value);
-TString DecodeEnumValue(TStringBuf value);
-TString EncodeEnumValue(TStringBuf value);
+std::optional<std::string> TryDecodeEnumValue(TStringBuf value);
+std::string DecodeEnumValue(TStringBuf value);
+std::string EncodeEnumValue(TStringBuf value);
 
 template <class T>
 std::optional<T> TryParseEnum(TStringBuf str, bool enableUnknown = false);
@@ -24,7 +24,7 @@ template <class T>
 void FormatEnum(TStringBuilderBase* builder, T value, bool lowerCase);
 
 template <class T>
-TString FormatEnum(T value);
+std::string FormatEnum(T value);
 
 ////////////////////////////////////////////////////////////////////////////////
 

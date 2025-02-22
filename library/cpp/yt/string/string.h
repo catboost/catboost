@@ -183,9 +183,8 @@ TStringBuf FormatBool(bool value);
 
 inline constexpr TStringBuf DefaultTruncatedMessage = "...<truncated>";
 
-void TruncateStringInplace(TString* string, int lengthLimit, TStringBuf truncatedSuffix = DefaultTruncatedMessage);
-
-TString TruncateString(TString string, int lengthLimit, TStringBuf truncatedSuffix = DefaultTruncatedMessage);
+void TruncateStringInplace(std::string* string, int lengthLimit, TStringBuf truncatedSuffix = DefaultTruncatedMessage);
+std::string TruncateString(std::string string, int lengthLimit, TStringBuf truncatedSuffix = DefaultTruncatedMessage);
 
 ////////////////////////////////////////////////////////////////////////////////
 

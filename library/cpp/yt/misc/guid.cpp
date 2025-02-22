@@ -49,7 +49,7 @@ TGuid TGuid::FromString(TStringBuf str)
     TGuid guid;
     if (!FromString(str, &guid)) {
         throw TSimpleException(Sprintf("Error parsing GUID \"%s\"",
-            TString(str).c_str()));
+            std::string(str).c_str()));
     }
     return guid;
 }
@@ -106,7 +106,7 @@ TGuid TGuid::FromStringHex32(TStringBuf str)
     TGuid guid;
     if (!FromStringHex32(str, &guid)) {
         throw TSimpleException(Sprintf("Error parsing Hex32 GUID \"%s\"",
-            TString(str).c_str()));
+            str.data()));
     }
     return guid;
 }

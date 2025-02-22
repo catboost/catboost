@@ -20,7 +20,7 @@ TStringBuf TThreadName::ToStringBuf() const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TThreadName::TThreadName(const TString& name)
+TThreadName::TThreadName(TStringBuf name)
 {
     Length = std::min<int>(TThreadName::BufferCapacity - 1, name.length());
     ::memcpy(Buffer.data(), name.data(), Length);

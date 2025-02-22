@@ -11,7 +11,7 @@ namespace NYT {
 struct TThreadName
 {
     TThreadName() = default;
-    TThreadName(const TString& name);
+    TThreadName(TStringBuf name);
 
     TStringBuf ToStringBuf() const;
 

@@ -16,7 +16,7 @@ void ThrowMalformedEnumValueException(TStringBuf typeName, TStringBuf value)
 }
 
 template <bool ThrowOnError>
-std::optional<TString> DecodeEnumValueImpl(TStringBuf value)
+std::optional<std::string> DecodeEnumValueImpl(TStringBuf value)
 {
     auto camelValue = UnderscoreCaseToCamelCase(value);
     auto underscoreValue = CamelCaseToUnderscoreCase(camelValue);
@@ -34,19 +34,19 @@ std::optional<TString> DecodeEnumValueImpl(TStringBuf value)
 
 } // namespace NDetail
 
-std::optional<TString> TryDecodeEnumValue(TStringBuf value)
+std::optional<std::string> TryDecodeEnumValue(TStringBuf value)
 {
     return NDetail::DecodeEnumValueImpl<false>(value);
 }
 
-TString DecodeEnumValue(TStringBuf value)
+std::string DecodeEnumValue(TStringBuf value)
 {
     auto decodedValue = NDetail::DecodeEnumValueImpl<true>(value);
     YT_VERIFY(decodedValue);
     return *decodedValue;
 }
 
-TString EncodeEnumValue(TStringBuf value)
+std::string EncodeEnumValue(TStringBuf value)
 {
     return CamelCaseToUnderscoreCase(value);
 }

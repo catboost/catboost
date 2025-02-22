@@ -25,15 +25,15 @@ public:
         { ex <<= std::forward<TValue>(operand) } -> std::same_as<TSimpleException&>;
     };
 
-    explicit TSimpleException(TString message);
+    explicit TSimpleException(std::string message);
     TSimpleException(
         const std::exception& exception,
-        TString message);
+        std::string message);
 
     const std::exception_ptr& GetInnerException() const;
     const char* what() const noexcept override;
 
-    const TString& GetMessage() const;
+    const std::string& GetMessage() const;
 
     const TAttributes& GetAttributes() const &;
     TAttributes&& GetAttributes() &&;
@@ -65,8 +65,8 @@ public:
 
 private:
     const std::exception_ptr InnerException_;
-    const TString Message_;
-    const TString What_;
+    const std::string Message_;
+    const std::string What_;
 
     TAttributes Attributes_;
 };

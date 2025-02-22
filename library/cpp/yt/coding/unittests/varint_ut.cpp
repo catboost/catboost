@@ -15,13 +15,14 @@ using ::testing::Values;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class TWriteVarIntTest: public ::testing::TestWithParam<std::tuple<ui64, TString> >
+class TWriteVarIntTest
+    : public ::testing::TestWithParam<std::tuple<ui64, std::string>>
 { };
 
 TEST_P(TWriteVarIntTest, Serialization)
 {
     ui64 value = std::get<0>(GetParam());
-    TString rightAnswer = std::get<1>(GetParam());
+    std::string rightAnswer = std::get<1>(GetParam());
 
     TStringStream outputStream;
     WriteVarUint64(&outputStream, value);
@@ -30,13 +31,13 @@ TEST_P(TWriteVarIntTest, Serialization)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class TReadVarIntTest: public ::testing::TestWithParam<std::tuple<ui64, TString> >
+class TReadVarIntTest: public ::testing::TestWithParam<std::tuple<ui64, std::string> >
 { };
 
 TEST_P(TReadVarIntTest, Serialization)
 {
     ui64 rightAnswer = std::get<0>(GetParam());
-    TString input = std::get<1>(GetParam());
+    auto input = TString(std::get<1>(GetParam()));
 
     TStringInput inputStream(input);
     ui64 value;
@@ -56,34 +57,34 @@ TEST(TReadVarIntTest, Overflow)
 
 auto ValuesForVarIntTests = Values(
     // Simple cases.
-    std::make_tuple(0x0ull,                TString("\x00", 1)),
-    std::make_tuple(0x1ull,                TString("\x01", 1)),
-    std::make_tuple(0x2ull,                TString("\x02", 1)),
-    std::make_tuple(0x3ull,                TString("\x03", 1)),
-    std::make_tuple(0x4ull,                TString("\x04", 1)),
+    std::make_tuple(0x0ull,                std::string("\x00", 1)),
+    std::make_tuple(0x1ull,                std::string("\x01", 1)),
+    std::make_tuple(0x2ull,                std::string("\x02", 1)),
+    std::make_tuple(0x3ull,                std::string("\x03", 1)),
+    std::make_tuple(0x4ull,                std::string("\x04", 1)),
 
     // The following "magic numbers" are critical points for varint encoding.
-    std::make_tuple((1ull << 7) - 1,       TString("\x7f", 1)),
-    std::make_tuple((1ull << 7),           TString("\x80\x01", 2)),
-    std::make_tuple((1ull << 14) - 1,      TString("\xff\x7f", 2)),
-    std::make_tuple((1ull << 14),          TString("\x80\x80\x01", 3)),
-    std::make_tuple((1ull << 21) - 1,      TString("\xff\xff\x7f", 3)),
-    std::make_tuple((1ull << 21),          TString("\x80\x80\x80\x01", 4)),
-    std::make_tuple((1ull << 28) - 1,      TString("\xff\xff\xff\x7f", 4)),
-    std::make_tuple((1ull << 28),          TString("\x80\x80\x80\x80\x01", 5)),
-    std::make_tuple((1ull << 35) - 1,      TString("\xff\xff\xff\xff\x7f", 5)),
-    std::make_tuple((1ull << 35),          TString("\x80\x80\x80\x80\x80\x01", 6)),
-    std::make_tuple((1ull << 42) - 1,      TString("\xff\xff\xff\xff\xff\x7f", 6)),
-    std::make_tuple((1ull << 42),          TString("\x80\x80\x80\x80\x80\x80\x01", 7)),
-    std::make_tuple((1ull << 49) - 1,      TString("\xff\xff\xff\xff\xff\xff\x7f", 7)),
-    std::make_tuple((1ull << 49),          TString("\x80\x80\x80\x80\x80\x80\x80\x01", 8)),
-    std::make_tuple((1ull << 56) - 1,      TString("\xff\xff\xff\xff\xff\xff\xff\x7f", 8)),
-    std::make_tuple((1ull << 56),          TString("\x80\x80\x80\x80\x80\x80\x80\x80\x01", 9)),
-    std::make_tuple((1ull << 63) - 1,      TString("\xff\xff\xff\xff\xff\xff\xff\xff\x7f", 9)),
-    std::make_tuple((1ull << 63),          TString("\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01", 10)),
+    std::make_tuple((1ull << 7) - 1,       std::string("\x7f", 1)),
+    std::make_tuple((1ull << 7),           std::string("\x80\x01", 2)),
+    std::make_tuple((1ull << 14) - 1,      std::string("\xff\x7f", 2)),
+    std::make_tuple((1ull << 14),          std::string("\x80\x80\x01", 3)),
+    std::make_tuple((1ull << 21) - 1,      std::string("\xff\xff\x7f", 3)),
+    std::make_tuple((1ull << 21),          std::string("\x80\x80\x80\x01", 4)),
+    std::make_tuple((1ull << 28) - 1,      std::string("\xff\xff\xff\x7f", 4)),
+    std::make_tuple((1ull << 28),          std::string("\x80\x80\x80\x80\x01", 5)),
+    std::make_tuple((1ull << 35) - 1,      std::string("\xff\xff\xff\xff\x7f", 5)),
+    std::make_tuple((1ull << 35),          std::string("\x80\x80\x80\x80\x80\x01", 6)),
+    std::make_tuple((1ull << 42) - 1,      std::string("\xff\xff\xff\xff\xff\x7f", 6)),
+    std::make_tuple((1ull << 42),          std::string("\x80\x80\x80\x80\x80\x80\x01", 7)),
+    std::make_tuple((1ull << 49) - 1,      std::string("\xff\xff\xff\xff\xff\xff\x7f", 7)),
+    std::make_tuple((1ull << 49),          std::string("\x80\x80\x80\x80\x80\x80\x80\x01", 8)),
+    std::make_tuple((1ull << 56) - 1,      std::string("\xff\xff\xff\xff\xff\xff\xff\x7f", 8)),
+    std::make_tuple((1ull << 56),          std::string("\x80\x80\x80\x80\x80\x80\x80\x80\x01", 9)),
+    std::make_tuple((1ull << 63) - 1,      std::string("\xff\xff\xff\xff\xff\xff\xff\xff\x7f", 9)),
+    std::make_tuple((1ull << 63),          std::string("\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01", 10)),
 
     // Boundary case.
-    std::make_tuple(static_cast<ui64>(-1), TString("\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01", 10))
+    std::make_tuple(static_cast<ui64>(-1), std::string("\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01", 10))
 );
 
 INSTANTIATE_TEST_SUITE_P(ValueParametrized, TWriteVarIntTest,

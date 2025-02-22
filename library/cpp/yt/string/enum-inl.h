@@ -129,7 +129,7 @@ void FormatEnum(TStringBuilderBase* builder, T value, bool lowerCase)
 }
 
 template <class T>
-TString FormatEnum(T value)
+std::string FormatEnum(T value)
 {
     TStringBuilder builder;
     FormatEnum(&builder, value, /*lowerCase*/ true);
