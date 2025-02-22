@@ -1,5 +1,5 @@
 class FeatureLibError(Exception):
-    def __init__(self, message, location):
+    def __init__(self, message, location=None):
         Exception.__init__(self, message)
         self.location = location
 
