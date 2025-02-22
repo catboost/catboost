@@ -385,7 +385,7 @@ otData = [
             (
                 "DeltaValue",
                 "DeltaValue",
-                "",
+                None,
                 "DeltaFormat in (1,2,3)",
                 "Array of compressed data",
             ),

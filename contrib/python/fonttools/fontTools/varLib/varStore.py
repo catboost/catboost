@@ -412,25 +412,6 @@ class _Encoding(object):
     def extend(self, lst):
         self.items.update(lst)
 
-    def get_room(self):
-        """Maximum number of bytes that can be added to characteristic
-        while still being beneficial to merge it into another one."""
-        count = len(self.items)
-        return max(0, (self.overhead - 1) // count - self.width)
-
-    room = property(get_room)
-
-    def get_gain(self):
-        """Maximum possible byte gain from merging this into another
-        characteristic."""
-        count = len(self.items)
-        return max(0, self.overhead - count)
-
-    gain = property(get_gain)
-
-    def gain_sort_key(self):
-        return self.gain, self.chars
-
     def width_sort_key(self):
         return self.width, self.chars
 
@@ -534,13 +515,9 @@ def VarStore_optimize(self, use_NO_VARIATION_INDEX=True, quantization=1):
     # of the old encoding is completely eliminated. However, each row
     # now would require more bytes to encode, to the tune of one byte
     # per characteristic bit that is active in the new encoding but not
-    # in the old one. The number of bits that can be added to an encoding
-    # while still beneficial to merge it into another encoding is called
-    # the "room" for that encoding.
+    # in the old one.
     #
-    # The "gain" of an encodings is the maximum number of bytes we can
-    # save by merging it into another encoding. The "gain" of merging
-    # two encodings is how many bytes we save by doing so.
+    # The "gain" of merging two encodings is how many bytes we save by doing so.
     #
     # High-level algorithm:
     #
@@ -554,7 +531,11 @@ def VarStore_optimize(self, use_NO_VARIATION_INDEX=True, quantization=1):
     #
     # - Put all encodings into a "todo" list.
     #
-    # - Sort todo list by decreasing gain (for stability).
+    # - Sort todo list (for stability) by width_sort_key(), which is a tuple
+    #   of the following items:
+    #   * The "width" of the encoding.
+    #   * The characteristic bitmap of the encoding, with higher-numbered
+    #     columns compared first.
     #
     # - Make a priority-queue of the gain from combining each two
     #   encodings in the todo list. The priority queue is sorted by
@@ -575,16 +556,7 @@ def VarStore_optimize(self, use_NO_VARIATION_INDEX=True, quantization=1):
     #
     # The output is then sorted for stability, in the following way:
     # - The VarRegionList of the input is kept intact.
-    # - All encodings are sorted before the main algorithm, by
-    #   gain_key_sort(), which is a tuple of the following items:
-    #   * The gain of the encoding.
-    #   * The characteristic bitmap of the encoding, with higher-numbered
-    #     columns compared first.
-    # - The VarData is sorted by width_sort_key(), which is a tuple
-    #   of the following items:
-    #   * The "width" of the encoding.
-    #   * The characteristic bitmap of the encoding, with higher-numbered
-    #     columns compared first.
+    # - The VarData is sorted by the same width_sort_key() used at the beginning.
     # - Within each VarData, the items are sorted as vectors of numbers.
     #
     # Finally, each VarData is optimized to remove the empty columns and
@@ -626,7 +598,7 @@ def VarStore_optimize(self, use_NO_VARIATION_INDEX=True, quantization=1):
             front_mapping[(major << 16) + minor] = row
 
     # Prepare for the main algorithm.
-    todo = sorted(encodings.values(), key=_Encoding.gain_sort_key)
+    todo = sorted(encodings.values(), key=_Encoding.width_sort_key)
     del encodings
 
     # Repeatedly pick two best encodings to combine, and combine them.

@@ -58,6 +58,9 @@ class FakeFont:
         self.tables = {}
         self.cfg = Config()
 
+    def __contains__(self, tag):
+        return tag in self.tables
+
     def __getitem__(self, tag):
         return self.tables[tag]
 
