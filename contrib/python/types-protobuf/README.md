@@ -25,8 +25,8 @@ for more details. The source for this package can be found in the
 directory.
 
 This package was tested with
-mypy 1.13.0,
+mypy 1.15.0,
 pyright 1.1.389,
 and pytype 2024.10.11.
 It was generated from typeshed commit
-[`0e9c9e1362959512a880abbf1275471b0d76924f`](https://github.com/python/typeshed/commit/0e9c9e1362959512a880abbf1275471b0d76924f).
+[`73ebb9dfd7dfce93c5becde4dcdd51d5626853b8`](https://github.com/python/typeshed/commit/73ebb9dfd7dfce93c5becde4dcdd51d5626853b8).
