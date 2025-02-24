@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------
 //
 //  Little Color Management System
-//  Copyright (c) 1998-2023 Marti Maria Saguer
+//  Copyright (c) 1998-2024 Marti Maria Saguer
 //
 // Permission is hereby granted, free of charge, to any person obtaining 
 // a copy of this software and associated documentation files (the "Software"), 
@@ -640,8 +640,9 @@ void GetLine(char* Buffer, const char* frm, ...)
         if (xisatty(stdin)) 
             vfprintf(stderr, frm, args);
 
-        res = scanf("%4095s", Buffer);
-
+        res = scanf("%4095s", Buffer);        
+        // Reported codeQL bug: 'The result of scanf is only checked against 0, but it can also return EOF.'
+        // It is not obviously "only checked against 0", but it happens that C99 requires EOF to be negative
         if (res < 0 || toupper(Buffer[0]) == 'Q') { // Quit?
 
             CloseTransforms();
@@ -1254,7 +1255,7 @@ int main(int argc, char *argv[])
     int nPatch = 0;
 
     fprintf(stderr, "LittleCMS ColorSpace conversion calculator - 5.1 [LittleCMS %2.2f]\n", cmsGetEncodedCMMversion() / 1000.0);
-    fprintf(stderr, "Copyright (c) 1998-2023 Marti Maria Saguer. See COPYING file for details.\n");
+    fprintf(stderr, "Copyright (c) 1998-2024 Marti Maria Saguer. See COPYING file for details.\n");
     fflush(stderr);
 
     InitUtils("transicc");
