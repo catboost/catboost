@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------------
 //
 //  Little Color Management System
-//  Copyright (c) 1998-2023 Marti Maria Saguer
+//  Copyright (c) 1998-2024 Marti Maria Saguer
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -414,11 +414,12 @@ string* StringAlloc(cmsIT8* it8, int max)
 static
 void StringClear(string* s)
 {
-    s->len = 0;
+    s->len = 0;    
+    s->begin[0] = 0;
 }
 
 static
-void StringAppend(string* s, char c)
+cmsBool StringAppend(string* s, char c)
 {
     if (s->len + 1 >= s->max)
     {
@@ -426,6 +427,8 @@ void StringAppend(string* s, char c)
 
         s->max *= 10;
         new_ptr = (char*) AllocChunk(s->it8, s->max);
+        if (new_ptr == NULL) return FALSE;
+
         if (new_ptr != NULL && s->begin != NULL)
             memcpy(new_ptr, s->begin, s->len);
 
@@ -437,6 +440,8 @@ void StringAppend(string* s, char c)
         s->begin[s->len++] = c;
         s->begin[s->len] = 0;
     }
+
+    return TRUE;
 }
 
 static
@@ -446,13 +451,15 @@ char* StringPtr(string* s)
 }
 
 static
-void StringCat(string* s, const char* c)
+cmsBool StringCat(string* s, const char* c)
 {
     while (*c)
     {
-        StringAppend(s, *c);
+        if (!StringAppend(s, *c)) return FALSE;
         c++;
     }
+
+    return TRUE;
 }
 
 
@@ -801,7 +808,12 @@ void InStringSymbol(cmsIT8* it8)
 
             if (it8->ch == '\n' || it8->ch == '\r' || it8->ch == 0) break;
             else {
-                StringAppend(it8->str, (char)it8->ch);
+                if (!StringAppend(it8->str, (char)it8->ch)) {
+
+                    SynError(it8, "Out of memory");                    
+                    return;
+                }
+
                 NextCh(it8);
             }
         }
@@ -831,7 +843,11 @@ void InSymbol(cmsIT8* it8)
 
             do {
 
-                StringAppend(it8->id, (char) it8->ch);
+                if (!StringAppend(it8->id, (char)it8->ch)) {
+
+                    SynError(it8, "Out of memory");                    
+                    return;
+                }
 
                 NextCh(it8);
 
@@ -875,7 +891,6 @@ void InSymbol(cmsIT8* it8)
                             if ((cmsFloat64Number) it8->inum * 16.0 + (cmsFloat64Number) j > (cmsFloat64Number)+2147483647.0)
                             {
                                 SynError(it8, "Invalid hexadecimal number");
-                                it8->sy = SEOF;
                                 return;
                             }
 
@@ -896,8 +911,7 @@ void InSymbol(cmsIT8* it8)
 
                             if ((cmsFloat64Number) it8->inum * 2.0 + j > (cmsFloat64Number)+2147483647.0)
                             {
-                                SynError(it8, "Invalid binary number");
-                                it8->sy = SEOF;
+                                SynError(it8, "Invalid binary number");                                
                                 return;
                             }
 
@@ -950,11 +964,19 @@ void InSymbol(cmsIT8* it8)
                     }
 
                     StringClear(it8->id);
-                    StringCat(it8->id, buffer);
+                    if (!StringCat(it8->id, buffer)) {
+
+                        SynError(it8, "Out of memory");                        
+                        return;
+                    }
 
                     do {
 
-                        StringAppend(it8->id, (char) it8->ch);
+                        if (!StringAppend(it8->id, (char)it8->ch)) {
+
+                            SynError(it8, "Out of memory");                            
+                            return;
+                        }
 
                         NextCh(it8);
 
@@ -1008,8 +1030,7 @@ void InSymbol(cmsIT8* it8)
 
 
         default:
-            SynError(it8, "Unrecognized character: 0x%x", it8 ->ch);
-            it8->sy = SEOF;
+            SynError(it8, "Unrecognized character: 0x%x", it8 ->ch);            
             return;
             }
 
@@ -1023,25 +1044,22 @@ void InSymbol(cmsIT8* it8)
 
                 if(it8 -> IncludeSP >= (MAXINCLUDE-1)) {
 
-                    SynError(it8, "Too many recursion levels");
-                    it8->sy = SEOF;
+                    SynError(it8, "Too many recursion levels");                    
                     return;
                 }
 
                 InStringSymbol(it8);
-                if (!Check(it8, SSTRING, "Filename expected"))
-                {
-                    it8->sy = SEOF;
+                if (!Check(it8, SSTRING, "Filename expected"))                                    
                     return;
-                }
+                
 
                 FileNest = it8 -> FileStack[it8 -> IncludeSP + 1];
                 if(FileNest == NULL) {
 
                     FileNest = it8 ->FileStack[it8 -> IncludeSP + 1] = (FILECTX*)AllocChunk(it8, sizeof(FILECTX));
                     if (FileNest == NULL) {
-                        SynError(it8, "Out of memory");
-                        it8->sy = SEOF;
+
+                        SynError(it8, "Out of memory");                        
                         return;
                     }
                 }
@@ -1049,16 +1067,15 @@ void InSymbol(cmsIT8* it8)
                 if (BuildAbsolutePath(StringPtr(it8->str),
                                       it8->FileStack[it8->IncludeSP]->FileName,
                                       FileNest->FileName, cmsMAX_PATH-1) == FALSE) {
-                    SynError(it8, "File path too long");
-                    it8->sy = SEOF;
+
+                    SynError(it8, "File path too long");                    
                     return;
                 }
 
                 FileNest->Stream = fopen(FileNest->FileName, "rt");
                 if (FileNest->Stream == NULL) {
 
-                        SynError(it8, "File %s not found", FileNest->FileName);
-                        it8->sy = SEOF;
+                        SynError(it8, "File %s not found", FileNest->FileName);                        
                         return;
                 }
                 it8->IncludeSP++;
@@ -1073,10 +1090,10 @@ void InSymbol(cmsIT8* it8)
 static
 cmsBool CheckEOLN(cmsIT8* it8)
 {
-        if (!Check(it8, SEOLN, "Expected separator")) return FALSE;
-        while (it8 -> sy == SEOLN)
-                        InSymbol(it8);
-        return TRUE;
+    if (!Check(it8, SEOLN, "Expected separator")) return FALSE;
+    while (it8->sy == SEOLN)
+        InSymbol(it8);
+    return TRUE;
 
 }
 
@@ -1085,8 +1102,8 @@ cmsBool CheckEOLN(cmsIT8* it8)
 static
 void Skip(cmsIT8* it8, SYMBOL sy)
 {
-        if (it8->sy == sy && it8->sy != SEOF)
-                        InSymbol(it8);
+    if (it8->sy == sy && it8->sy != SEOF && it8->sy != SSYNERROR)
+        InSymbol(it8);
 }
 
 
@@ -1095,7 +1112,7 @@ static
 void SkipEOLN(cmsIT8* it8)
 {
     while (it8->sy == SEOLN) {
-             InSymbol(it8);
+        InSymbol(it8);
     }
 }
 
@@ -1206,8 +1223,11 @@ void* AllocChunk(cmsIT8* it8, cmsUInt32Number size)
     cmsUInt8Number* ptr;
 
     size = _cmsALIGNMEM(size);
+    if (size == 0) return NULL;
 
     if (size > Free) {
+
+        cmsUInt8Number* new_block;
 
         if (it8 -> Allocator.BlockSize == 0)
 
@@ -1219,7 +1239,11 @@ void* AllocChunk(cmsIT8* it8, cmsUInt32Number size)
                 it8 ->Allocator.BlockSize = size;
 
         it8 ->Allocator.Used = 0;
-        it8 ->Allocator.Block = (cmsUInt8Number*) AllocBigBlock(it8, it8 ->Allocator.BlockSize);       
+        new_block = (cmsUInt8Number*)AllocBigBlock(it8, it8->Allocator.BlockSize);
+        if (new_block == NULL) 
+            return NULL;
+
+        it8->Allocator.Block = new_block;
     }
 
     if (it8->Allocator.Block == NULL)
@@ -1229,7 +1253,6 @@ void* AllocChunk(cmsIT8* it8, cmsUInt32Number size)
     it8 ->Allocator.Used += size;
 
     return (void*) ptr;
-
 }
 
 
@@ -1237,9 +1260,12 @@ void* AllocChunk(cmsIT8* it8, cmsUInt32Number size)
 static
 char *AllocString(cmsIT8* it8, const char* str)
 {
-    cmsUInt32Number Size = (cmsUInt32Number) strlen(str)+1;
+    cmsUInt32Number Size;
     char *ptr;
 
+    if (str == NULL) return NULL;
+
+    Size = (cmsUInt32Number)strlen(str) + 1;
 
     ptr = (char *) AllocChunk(it8, Size);
     if (ptr) memcpy(ptr, str, Size-1);
@@ -1375,9 +1401,12 @@ KEYVALUE* AddAvailableSampleID(cmsIT8* it8, const char* Key)
 
 
 static
-void AllocTable(cmsIT8* it8)
+cmsBool AllocTable(cmsIT8* it8)
 {
     TABLE* t;
+
+    if (it8->TablesCount >= (MAXTABLES-1)) 
+        return FALSE;
 
     t = it8 ->Tab + it8 ->TablesCount;
 
@@ -1386,6 +1415,7 @@ void AllocTable(cmsIT8* it8)
     t->Data       = NULL;
 
     it8 ->TablesCount++;
+    return TRUE;
 }
 
 
@@ -1397,7 +1427,10 @@ cmsInt32Number CMSEXPORT cmsIT8SetTable(cmsHANDLE  IT8, cmsUInt32Number nTable)
 
          if (nTable == it8 ->TablesCount) {
 
-             AllocTable(it8);
+             if (!AllocTable(it8)) {
+                 SynError(it8, "Too many tables");
+                 return -1;
+             }
          }
          else {
              SynError(it8, "Table %d is out of sequence", nTable);
@@ -1581,8 +1614,8 @@ cmsInt32Number satoi(const char* b)
     if (b == NULL) return 0;
 
     n = atoi(b);
-    if (n > 0x7fffffffL) return 0x7fffffffL;
-    if (n < -0x7ffffffeL) return -0x7ffffffeL;
+    if (n > 0x7ffffff0L) return 0x7ffffff0L;
+    if (n < -0x7ffffff0L) return -0x7ffffff0L;
 
     return (cmsInt32Number)n;
 }
@@ -1591,22 +1624,26 @@ cmsInt32Number satoi(const char* b)
 static
 cmsBool AllocateDataFormat(cmsIT8* it8)
 {
+    cmsUInt32Number size;
+
     TABLE* t = GetTable(it8);
 
-    if (t -> DataFormat) return TRUE;    // Already allocated
+    if (t->DataFormat) return TRUE;    // Already allocated
 
-    t -> nSamples  = satoi(cmsIT8GetProperty(it8, "NUMBER_OF_FIELDS"));
+    t->nSamples = satoi(cmsIT8GetProperty(it8, "NUMBER_OF_FIELDS"));
 
-    if (t -> nSamples <= 0) {
+    if (t->nSamples <= 0 || t->nSamples > 0x7ffe) {
 
-        SynError(it8, "AllocateDataFormat: Unknown NUMBER_OF_FIELDS");
-        return FALSE;        
-        }
+        SynError(it8, "Wrong NUMBER_OF_FIELDS");
+        return FALSE;
+    }
 
-    t -> DataFormat = (char**) AllocChunk (it8, ((cmsUInt32Number) t->nSamples + 1) * sizeof(char *));
+    size = ((cmsUInt32Number)t->nSamples + 1) * sizeof(char*);
+
+    t->DataFormat = (char**)AllocChunk(it8, size);
     if (t->DataFormat == NULL) {
 
-        SynError(it8, "AllocateDataFormat: Unable to allocate dataFormat array");
+        SynError(it8, "Unable to allocate dataFormat array");
         return FALSE;
     }
 
@@ -1635,7 +1672,7 @@ cmsBool SetDataFormat(cmsIT8* it8, int n, const char *label)
             return FALSE;
     }
 
-    if (n > t -> nSamples) {
+    if (n >= t -> nSamples) {
         SynError(it8, "More than NUMBER_OF_FIELDS fields.");
         return FALSE;
     }
@@ -1684,13 +1721,14 @@ cmsBool AllocateDataSet(cmsIT8* it8)
     t-> nSamples   = satoi(cmsIT8GetProperty(it8, "NUMBER_OF_FIELDS"));
     t-> nPatches   = satoi(cmsIT8GetProperty(it8, "NUMBER_OF_SETS"));
 
-    if (t -> nSamples < 0 || t->nSamples > 0x7ffe || t->nPatches < 0 || t->nPatches > 0x7ffe)
+    if (t -> nSamples < 0 || t->nSamples > 0x7ffe || t->nPatches < 0 || t->nPatches > 0x7ffe || 
+        (t->nPatches * t->nSamples) > 200000)
     {
         SynError(it8, "AllocateDataSet: too much data");
         return FALSE;
     }
     else {
-        // Some dumb analizers warns of possible overflow here, just take a look couple of lines above.
+        // Some dumb analyzers warns of possible overflow here, just take a look couple of lines above.
         t->Data = (char**)AllocChunk(it8, ((cmsUInt32Number)t->nSamples + 1) * ((cmsUInt32Number)t->nPatches + 1) * sizeof(char*));
         if (t->Data == NULL) {
 
@@ -1719,7 +1757,10 @@ char* GetData(cmsIT8* it8, int nSet, int nField)
 static
 cmsBool SetData(cmsIT8* it8, int nSet, int nField, const char *Val)
 {
+    char* ptr;
+
     TABLE* t = GetTable(it8);
+    
 
     if (!t->Data) {
         if (!AllocateDataSet(it8)) return FALSE;
@@ -1737,7 +1778,11 @@ cmsBool SetData(cmsIT8* it8, int nSet, int nField, const char *Val)
 
     }
 
-    t->Data [nSet * t -> nSamples + nField] = AllocString(it8, Val);
+    ptr = AllocString(it8, Val);
+    if (ptr == NULL)
+        return FALSE;
+
+    t->Data [nSet * t -> nSamples + nField] = ptr;
     return TRUE;
 }
 
@@ -2092,7 +2137,7 @@ cmsBool DataSection (cmsIT8* it8)
         if (!AllocateDataSet(it8)) return FALSE;
     }
 
-    while (it8->sy != SEND_DATA && it8->sy != SEOF)
+    while (it8->sy != SEND_DATA && it8->sy != SEOF && it8->sy != SSYNERROR)
     {
         if (iField >= t -> nSamples) {
             iField = 0;
@@ -2100,7 +2145,7 @@ cmsBool DataSection (cmsIT8* it8)
 
         }
 
-        if (it8->sy != SEND_DATA && it8->sy != SEOF) {
+        if (it8->sy != SEND_DATA && it8->sy != SEOF && it8->sy != SSYNERROR) {
 
             switch (it8->sy)
             {
@@ -2196,8 +2241,8 @@ cmsBool HeaderSection(cmsIT8* it8)
             if (!GetVal(it8, Buffer, MAXSTR - 1, "Property data expected")) return FALSE;
 
             if (Key->WriteAs != WRITE_PAIR) {
-                AddToList(it8, &GetTable(it8)->HeaderList, VarName, NULL, Buffer,
-                    (it8->sy == SSTRING) ? WRITE_STRINGIFY : WRITE_UNCOOKED);
+                if (AddToList(it8, &GetTable(it8)->HeaderList, VarName, NULL, Buffer,
+                    (it8->sy == SSTRING) ? WRITE_STRINGIFY : WRITE_UNCOOKED) == NULL) return FALSE;
             }
             else {
                 const char *Subkey;
@@ -2303,9 +2348,10 @@ cmsBool ParseIT8(cmsIT8* it8, cmsBool nosheet)
 
                     if (!DataSection(it8)) return FALSE;
 
-                    if (it8 -> sy != SEOF) {
+                    if (it8 -> sy != SEOF && it8->sy != SSYNERROR) {
 
-                            AllocTable(it8);
+                            if (!AllocTable(it8)) return FALSE;                        
+
                             it8 ->nTable = it8 ->TablesCount - 1;
 
                             // Read sheet type if present. We only support identifier and string.
@@ -3035,7 +3081,8 @@ cmsBool ParseCube(cmsIT8* cube, cmsStage** Shaper, cmsStage** CLUT, char title[]
 
     InSymbol(cube);
 
-    while (cube->sy != SEOF) {
+    while (cube->sy != SEOF && cube->sy != SSYNERROR) {
+
         switch (cube->sy)
         {
         // Set profile description
