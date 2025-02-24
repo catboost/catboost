@@ -256,7 +256,6 @@ int DoMain(int argc, char** argv) {
     for(size_t blockId = 0; blockId < blockCount; ++blockId) {
         const size_t blockStart = options.BlockSize * blockId;
         const size_t docsInCurrBlock = Min<size_t>(options.BlockSize, docsCount - options.BlockSize * blockId);
-        CB_ENSURE(docsInCurrBlock >= 0);
         transpFactorsRef[blockId].resize(factorsCount);
         for (size_t i = 0; i < factorsCount; ++i) {
             if (featureUsedInModel[i]) {
