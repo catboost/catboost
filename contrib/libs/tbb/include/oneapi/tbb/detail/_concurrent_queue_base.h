@@ -123,7 +123,7 @@ public:
             page_allocator_traits::construct(page_allocator, p);
         }
 
-        if (tail_counter.load(std::memory_order_relaxed) != k) spin_wait_until_my_turn(tail_counter, k, base);
+        spin_wait_until_my_turn(tail_counter, k, base);
         d1::call_itt_notify(d1::acquired, &tail_counter);
 
         if (p) {
@@ -134,9 +134,9 @@ public:
             } else {
                 head_page.store(p, std::memory_order_relaxed);
             }
-            tail_page.store(p, std::memory_order_release);
+            tail_page.store(p, std::memory_order_relaxed);
         } else {
-            p = tail_page.load(std::memory_order_acquire); // TODO may be relaxed ?
+            p = tail_page.load(std::memory_order_relaxed);
         }
         return index;
     }
@@ -179,7 +179,7 @@ public:
         d1::call_itt_notify(d1::acquired, &head_counter);
         spin_wait_while_eq(tail_counter, k);
         d1::call_itt_notify(d1::acquired, &tail_counter);
-        padded_page *p = head_page.load(std::memory_order_acquire);
+        padded_page *p = head_page.load(std::memory_order_relaxed);
         __TBB_ASSERT( p, nullptr );
         size_type index = modulo_power_of_two( k/queue_rep_type::n_queue, items_per_page );
         bool success = false;
@@ -338,8 +338,8 @@ private:
     }
 
     void spin_wait_until_my_turn( std::atomic<ticket_type>& counter, ticket_type k, queue_rep_type& rb ) const {
-        for (atomic_backoff b(true);; b.pause()) {
-            ticket_type c = counter;
+        for (atomic_backoff b{};; b.pause()) {
+            ticket_type c = counter.load(std::memory_order_acquire);
             if (c == k) return;
             else if (c & 1) {
                 ++rb.n_invalid_entries;
@@ -380,9 +380,9 @@ public:
         if( is_valid_page(p) ) {
             spin_mutex::scoped_lock lock( my_queue.page_mutex );
             padded_page* q = p->next;
-            my_queue.head_page.store(q, std::memory_order_release);
+            my_queue.head_page.store(q, std::memory_order_relaxed);
             if( !is_valid_page(q) ) {
-                my_queue.tail_page.store(nullptr, std::memory_order_release);
+                my_queue.tail_page.store(nullptr, std::memory_order_relaxed);
             }
         }
         my_queue.head_counter.store(my_ticket_type, std::memory_order_release);
