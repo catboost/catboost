@@ -20,6 +20,8 @@ Refer to oneTBB [examples](examples) and [samples](https://github.com/oneapi-src
 
 oneTBB is a part of [oneAPI](https://oneapi.io). The current branch implements version 1.1 of oneAPI Specification.
 
+> **_NOTE:_** Threading Building Blocks (TBB) is now called oneAPI Threading Building Blocks (oneTBB) to highlight that the tool is a part of the oneAPI ecosystem.
+
 ## Release Information
 Here are [Release Notes](RELEASE_NOTES.md) and [System Requirements](SYSTEM_REQUIREMENTS.md).
 
@@ -31,6 +33,7 @@ Here are [Release Notes](RELEASE_NOTES.md) and [System Requirements](SYSTEM_REQU
 * [oneTBB Testing Approach](https://oneapi-src.github.io/oneTBB/main/intro/testing_approach.html)
 * [Basic support for the Bazel build system](Bazel.md)
 * [oneTBB Discussions](https://github.com/oneapi-src/oneTBB/discussions)
+* [WASM Support](WASM_Support.md)
 
 ## Installation 
 See [Installation from Sources](INSTALL.md) to learn how to install oneTBB. 
