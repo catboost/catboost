@@ -132,6 +132,14 @@ def find_lld(args):
     raise IndexError()
 
 
+def find_clang(args):
+    for x in args:
+        if 'clang++' in x:
+            return x
+
+    raise IndexError()
+
+
 def fix_py2(cmd, have_comand_files=False, prefix='lib', suffix='a'):
     args = cmd
 
@@ -156,7 +164,10 @@ def fix_py2(cmd, have_comand_files=False, prefix='lib', suffix='a'):
     try:
         where = os.path.dirname(cmd[cmd.index('--objcopy-exe') + 1]) + '/'
     except ValueError:
-        where = os.path.dirname(find_lld(cmd)) + '/'
+        try:
+            where = os.path.dirname(find_lld(cmd)) + '/'
+        except IndexError:
+            where = os.path.dirname(find_clang(cmd)) + '/'
 
     for x in args:
         if need_rename(x):
