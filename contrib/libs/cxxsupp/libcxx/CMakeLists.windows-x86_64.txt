@@ -33,10 +33,11 @@ target_link_libraries(libs-cxxsupp-libcxx PUBLIC
 )
 
 target_sources(libs-cxxsupp-libcxx PRIVATE
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/locale_win32.cpp
-  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/support.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/atomic_win32.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/compiler_rt_shims.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/locale_win32.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/new_win32.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/support.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/support/win32/thread_win32.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/algorithm.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/any.cpp
@@ -50,6 +51,7 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/condition_variable_destructor.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/error_category.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/exception.cpp
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/expected.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/directory_entry.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/directory_iterator.cpp
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/filesystem_clock.cpp
