@@ -24,6 +24,14 @@
 #include "detail/_containers_helpers.h"
 #include "cache_aligned_allocator.h"
 
+#include <algorithm>
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <initializer_list>
+#include <type_traits>
+#include <utility>
+
 namespace tbb {
 namespace detail {
 namespace d2 {
