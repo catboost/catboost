@@ -5,24 +5,22 @@ import re
 import sys
 import tokenize
 import traceback
+from collections.abc import (
+    Collection,
+    Generator,
+    Iterator,
+    MutableMapping,
+    Sequence,
+    Sized,
+)
 from contextlib import contextmanager
 from dataclasses import replace
 from datetime import datetime, timezone
 from enum import Enum
 from json.decoder import JSONDecodeError
 from pathlib import Path
-from typing import (
-    Any,
-    Collection,
-    Generator,
-    Iterator,
-    MutableMapping,
-    Optional,
-    Pattern,
-    Sequence,
-    Sized,
-    Union,
-)
+from re import Pattern
+from typing import Any, Optional, Union
 
 import click
 from click.core import ParameterSource
@@ -751,6 +749,12 @@ def get_sources(
     for s in src:
         if s == "-" and stdin_filename:
             path = Path(stdin_filename)
+            if path_is_excluded(stdin_filename, force_exclude):
+                report.path_ignored(
+                    path,
+                    "--stdin-filename matches the --force-exclude regular expression",
+                )
+                continue
             is_stdin = True
         else:
             path = Path(s)

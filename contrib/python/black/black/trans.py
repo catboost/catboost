@@ -5,27 +5,15 @@ String transformers that can split and merge strings.
 import re
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from collections.abc import Callable, Collection, Iterable, Iterator, Sequence
 from dataclasses import dataclass
-from typing import (
-    Any,
-    Callable,
-    ClassVar,
-    Collection,
-    Final,
-    Iterable,
-    Iterator,
-    Literal,
-    Optional,
-    Sequence,
-    TypeVar,
-    Union,
-)
+from typing import Any, ClassVar, Final, Literal, Optional, TypeVar, Union
 
 from mypy_extensions import trait
 
 from black.comments import contains_pragma_comment
 from black.lines import Line, append_leaves
-from black.mode import Feature, Mode, Preview
+from black.mode import Feature, Mode
 from black.nodes import (
     CLOSING_BRACKETS,
     OPENING_BRACKETS,
@@ -94,18 +82,12 @@ def hug_power_op(
         # Brackets and parentheses indicate calls, subscripts, etc. ...
         # basically stuff that doesn't count as "simple". Only a NAME lookup
         # or dotted lookup (eg. NAME.NAME) is OK.
-        if Preview.is_simple_lookup_for_doublestar_expression not in mode:
-            return original_is_simple_lookup_func(line, index, kind)
-
+        if kind == -1:
+            return handle_is_simple_look_up_prev(line, index, {token.RPAR, token.RSQB})
         else:
-            if kind == -1:
-                return handle_is_simple_look_up_prev(
-                    line, index, {token.RPAR, token.RSQB}
-                )
-            else:
-                return handle_is_simple_lookup_forward(
-                    line, index, {token.LPAR, token.LSQB}
-                )
+            return handle_is_simple_lookup_forward(
+                line, index, {token.LPAR, token.LSQB}
+            )
 
     def is_simple_operand(index: int, kind: Literal[1, -1]) -> bool:
         # An operand is considered "simple" if's a NAME, a numeric CONSTANT, a simple
@@ -149,30 +131,6 @@ def hug_power_op(
             new_line.append(comment_leaf, preformatted=True)
 
     yield new_line
-
-
-def original_is_simple_lookup_func(
-    line: Line, index: int, step: Literal[1, -1]
-) -> bool:
-    if step == -1:
-        disallowed = {token.RPAR, token.RSQB}
-    else:
-        disallowed = {token.LPAR, token.LSQB}
-
-    while 0 <= index < len(line.leaves):
-        current = line.leaves[index]
-        if current.type in disallowed:
-            return False
-        if current.type not in {token.NAME, token.DOT} or current.value == "for":
-            # If the current token isn't disallowed, we'll assume this is
-            # simple as only the disallowed tokens are semantically
-            # attached to this lookup expression we're checking. Also,
-            # stop early if we hit the 'for' bit of a comprehension.
-            return True
-
-        index += step
-
-    return True
 
 
 def handle_is_simple_look_up_prev(line: Line, index: int, disallowed: set[int]) -> bool:
@@ -672,10 +630,10 @@ class StringMerger(StringTransformer, CustomSplitMapMixin):
             """
             assert_is_leaf_string(string)
             if "f" in string_prefix:
-                f_expressions = (
+                f_expressions = [
                     string[span[0] + 1 : span[1] - 1]  # +-1 to get rid of curly braces
                     for span in iter_fexpr_spans(string)
-                )
+                ]
                 debug_expressions_contain_visible_quotes = any(
                     re.search(r".*[\'\"].*(?<![!:=])={1}(?!=)(?![^\s:])", expression)
                     for expression in f_expressions
@@ -806,6 +764,8 @@ class StringMerger(StringTransformer, CustomSplitMapMixin):
                 - The set of all string prefixes in the string group is of
                   length greater than one and is not equal to {"", "f"}.
                 - The string group consists of raw strings.
+                - The string group would merge f-strings with different quote types
+                  and internal quotes.
                 - The string group is stringified type annotations. We don't want to
                   process stringified type annotations since pyright doesn't support
                   them spanning multiple string values. (NOTE: mypy, pytype, pyre do
@@ -832,6 +792,8 @@ class StringMerger(StringTransformer, CustomSplitMapMixin):
 
                 i += inc
 
+        QUOTE = line.leaves[string_idx].value[-1]
+
         num_of_inline_string_comments = 0
         set_of_prefixes = set()
         num_of_strings = 0
@@ -853,6 +815,19 @@ class StringMerger(StringTransformer, CustomSplitMapMixin):
                 return TErr("StringMerger does NOT merge raw strings.")
 
             set_of_prefixes.add(prefix)
+
+            if (
+                "f" in prefix
+                and leaf.value[-1] != QUOTE
+                and (
+                    "'" in leaf.value[len(prefix) + 1 : -1]
+                    or '"' in leaf.value[len(prefix) + 1 : -1]
+                )
+            ):
+                return TErr(
+                    "StringMerger does NOT merge f-strings with different quote types"
+                    " and internal quotes."
+                )
 
             if id(leaf) in line.comments:
                 num_of_inline_string_comments += 1
@@ -882,6 +857,7 @@ class StringParenStripper(StringTransformer):
         The line contains a string which is surrounded by parentheses and:
             - The target string is NOT the only argument to a function call.
             - The target string is NOT a "pointless" string.
+            - The target string is NOT a dictionary value.
             - If the target string contains a PERCENT, the brackets are not
               preceded or followed by an operator with higher precedence than
               PERCENT.
@@ -929,11 +905,14 @@ class StringParenStripper(StringTransformer):
             ):
                 continue
 
-            # That LPAR should NOT be preceded by a function name or a closing
-            # bracket (which could be a function which returns a function or a
-            # list/dictionary that contains a function)...
+            # That LPAR should NOT be preceded by a colon (which could be a
+            # dictionary value), function name, or a closing bracket (which
+            # could be a function returning a function or a list/dictionary
+            # containing a function)...
             if is_valid_index(idx - 2) and (
-                LL[idx - 2].type == token.NAME or LL[idx - 2].type in CLOSING_BRACKETS
+                LL[idx - 2].type == token.COLON
+                or LL[idx - 2].type == token.NAME
+                or LL[idx - 2].type in CLOSING_BRACKETS
             ):
                 continue
 
@@ -2259,12 +2238,12 @@ class StringParenWrapper(BaseStringSplitter, CustomSplitMapMixin):
             elif right_leaves and right_leaves[-1].type == token.RPAR:
                 # Special case for lambda expressions as dict's value, e.g.:
                 #     my_dict = {
-                #        "key": lambda x: f"formatted: {x},
+                #        "key": lambda x: f"formatted: {x}",
                 #     }
                 # After wrapping the dict's value with parentheses, the string is
                 # followed by a RPAR but its opening bracket is lambda's, not
                 # the string's:
-                #        "key": (lambda x: f"formatted: {x}),
+                #        "key": (lambda x: f"formatted: {x}"),
                 opening_bracket = right_leaves[-1].opening_bracket
                 if opening_bracket is not None and opening_bracket in left_leaves:
                     index = left_leaves.index(opening_bracket)
