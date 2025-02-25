@@ -11732,3 +11732,35 @@ def test_graph_features_quantization(task_type):
 
     pred2 = model.predict(test_pool)
     assert np.all(pred == pred2)
+
+
+def test_fit_fit_quantized_cat_features_type():
+    Xy = DataFrame(
+        data=np.random.randint(0, 100, size=(100, 5)),
+        columns=['t', 'f0', 'f1', 'f2', 'f3']
+    )
+
+    model = CatBoostClassifier(iterations=2,
+                               depth=2,
+                               learning_rate=1,
+                               target_border=50,
+                               loss_function='Logloss',
+                               logging_level='Silent')
+
+    train_pool = Pool(
+        data=Xy[['f0', 'f1', 'f2', 'f3']],
+        label=Xy['t'],
+        cat_features=['f1']
+    )
+    train_pool.quantize()
+
+    model.fit(train_pool)
+    model.fit(train_pool)
+
+    quantized_pool = test_output_path('pool.bin')
+    train_pool.save(quantized_pool)
+    del train_pool
+
+    train_pool = Pool("quantized://" + quantized_pool)  # not path join to keep //
+    model.fit(train_pool)
+    model.fit(train_pool)

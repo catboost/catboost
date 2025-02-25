@@ -212,6 +212,9 @@ namespace NCB {
         }
 
         void FreeRam(const TString& tmpDir) const {
+            if (!HasHashInRam) {
+                return;
+            }
             if (!StorageTempFile) {
                 StorageTempFile = MakeHolder<TTempFileHandle>(
                     JoinFsPaths(tmpDir, TString::Join("cat_feature_index.", CreateGuidAsString(), ".tmp"))
