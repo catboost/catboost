@@ -2,7 +2,8 @@
 # Licensed to PSF under a Contributor Agreement.
 
 import os
-from typing import IO, Any, Iterator, NoReturn, Optional, Sequence, Union
+from collections.abc import Iterator, Sequence
+from typing import IO, Any, NoReturn, Optional, Union
 
 from blib2to3.pgen2 import grammar, token, tokenize
 from blib2to3.pgen2.tokenize import GoodTokenInfo
@@ -363,7 +364,9 @@ class ParserGenerator:
                 msg = msg % args
             except Exception:
                 msg = " ".join([msg] + list(map(str, args)))
-        raise SyntaxError(msg, (self.filename, self.end[0], self.end[1], self.line))
+        raise SyntaxError(
+            msg, (str(self.filename), self.end[0], self.end[1], self.line)
+        )
 
 
 class NFAState:

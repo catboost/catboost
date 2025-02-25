@@ -5,7 +5,8 @@ Simple formatting on strings. Further string formatting code is in trans.py.
 import re
 import sys
 from functools import lru_cache
-from typing import Final, Match, Pattern
+from re import Match, Pattern
+from typing import Final
 
 from black._width_table import WIDTH_TABLE
 from blib2to3.pytree import Leaf
@@ -62,10 +63,9 @@ def lines_with_leading_tabs_expanded(s: str) -> list[str]:
     return lines
 
 
-def fix_docstring(docstring: str, prefix: str) -> str:
+def fix_multiline_docstring(docstring: str, prefix: str) -> str:
     # https://www.python.org/dev/peps/pep-0257/#handling-docstring-indentation
-    if not docstring:
-        return ""
+    assert docstring, "INTERNAL ERROR: Multiline docstrings cannot be empty"
     lines = lines_with_leading_tabs_expanded(docstring)
     # Determine minimum indentation (first line doesn't count):
     indent = sys.maxsize
@@ -185,8 +185,7 @@ def normalize_string_quotes(s: str) -> str:
         orig_quote = "'"
         new_quote = '"'
     first_quote_pos = s.find(orig_quote)
-    if first_quote_pos == -1:
-        return s  # There's an internal error
+    assert first_quote_pos != -1, f"INTERNAL ERROR: Malformed string {s!r}"
 
     prefix = s[:first_quote_pos]
     unescaped_new_quote = _cached_compile(rf"(([^\\]|^)(\\\\)*){new_quote}")
