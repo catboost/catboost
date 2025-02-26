@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2021 Intel Corporation
+    Copyright (c) 2021-2023 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
     limitations under the License.
 */
 
-#ifndef __TBB_market_concurrent_monitor_H
-#define __TBB_market_concurrent_monitor_H
+#ifndef __TBB_thread_control_monitor_H
+#define __TBB_thread_control_monitor_H
 
 #include "concurrent_monitor.h"
 #include "scheduler_common.h"
@@ -93,12 +93,12 @@ private:
 };
 #endif // __TBB_RESUMABLE_TASKS
 
-class market_concurrent_monitor : public concurrent_monitor_base<market_context> {
+class thread_control_monitor : public concurrent_monitor_base<market_context> {
     using base_type = concurrent_monitor_base<market_context>;
 public:
     using base_type::base_type;
 
-    ~market_concurrent_monitor() {
+    ~thread_control_monitor() {
         destroy();
     }
 
@@ -113,4 +113,4 @@ public:
 } // namespace detail
 } // namespace tbb
 
-#endif // __TBB_market_concurrent_monitor_H
+#endif // __TBB_thread_control_monitor_H
