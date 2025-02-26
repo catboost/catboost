@@ -316,35 +316,33 @@ static void bt_terminate_handler() {
     __cxa_eh_globals* globals = __cxa_get_globals();
     __cxa_exception* thrown_exception = globals->caughtExceptions;
 
-    if (!thrown_exception) {
-        abort();
-    }
+    if (thrown_exception) {
+		fprintf(stderr, "uncaught exception:\n    address -> %p\n", (void*)thrown_exception);
+		thrown_exception = realExceptionFromException(thrown_exception);
 
-    fprintf(stderr, "uncaught exception:\n    address -> %p\n", (void*)thrown_exception);
-    thrown_exception = realExceptionFromException(thrown_exception);
+		const __class_type_info *e_ti = static_cast<const __class_type_info*>(&typeid(std::exception));
+		const __class_type_info *throw_ti = dynamic_cast<const __class_type_info*>(thrown_exception->exceptionType);
 
-    const __class_type_info *e_ti = static_cast<const __class_type_info*>(&typeid(std::exception));
-    const __class_type_info *throw_ti = dynamic_cast<const __class_type_info*>(thrown_exception->exceptionType);
+		if (throw_ti) {
+			void* ptr = thrown_exception + 1;
 
-    if (throw_ti) {
-        void* ptr = thrown_exception + 1;
+			if (throw_ti->__do_upcast(e_ti, &ptr)) {
+				std::exception* e = static_cast<std::exception*>(ptr);
 
-        if (throw_ti->__do_upcast(e_ti, &ptr)) {
-            std::exception* e = static_cast<std::exception*>(ptr);
+				if (e) {
+					fprintf(stderr, "    what() -> \"%s\"\n", e->what());
+				}
+			}
+		}
 
-            if (e) {
-                fprintf(stderr, "    what() -> \"%s\"\n", e->what());
-            }
-        }
-    }
-
-    size_t bufferSize = 128;
-    char *demangled = static_cast<char*>(malloc(bufferSize));
-    const char *mangled = thrown_exception->exceptionType->name();
-    int status;
-    demangled = __cxa_demangle(mangled, demangled, &bufferSize, &status);
-    fprintf(stderr, "    type -> %s\n", status == 0 ? demangled : mangled);
-    if (status == 0) { free(demangled); }
+		size_t bufferSize = 128;
+		char *demangled = static_cast<char*>(malloc(bufferSize));
+		const char *mangled = thrown_exception->exceptionType->name();
+		int status;
+		demangled = __cxa_demangle(mangled, demangled, &bufferSize, &status);
+		fprintf(stderr, "    type -> %s\n", status == 0 ? demangled : mangled);
+		if (status == 0) { free(demangled); }
+	}
     abort();
 }
 
