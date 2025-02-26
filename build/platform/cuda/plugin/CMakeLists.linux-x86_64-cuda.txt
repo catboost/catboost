@@ -19,3 +19,8 @@ target_link_libraries(platform-cuda-plugin INTERFACE
   contrib-libs-linux-headers
 )
 
+target_link_options(platform-cuda-plugin INTERFACE
+  -L/CUDA:ARCH=
+  -L/CUDA:NVPRUNE=/bin/nvprune
+)
+

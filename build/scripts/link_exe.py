@@ -47,9 +47,6 @@ def parse_args(args):
     parser.add_option('--build-root')
     parser.add_option('--clang-ver')
     parser.add_option('--dynamic-cuda', action='store_true')
-    parser.add_option('--cuda-architectures',
-                      help='List of supported CUDA architectures, separated by ":" (e.g. "sm_52:compute_70:lto_90a"')
-    parser.add_option('--nvprune-exe')
     parser.add_option('--objcopy-exe')
     parser.add_option('--arch')
     parser.add_option('--linker-output')
