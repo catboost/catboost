@@ -287,6 +287,31 @@ namespace std
 
 using namespace ABI_NAMESPACE;
 
+/**
+ * Callback function used with _Unwind_Backtrace().
+ *
+ * Prints a stack trace.  Used only for debugging help.
+ *
+ * Note: As of FreeBSD 8.1, dladd() still doesn't work properly, so this only
+ * correctly prints function names from public, relocatable, symbols.
+ */
+static _Unwind_Reason_Code trace(struct _Unwind_Context *context, void *c)
+{
+	Dl_info myinfo;
+	int mylookup =
+		dladdr(reinterpret_cast<void *>(__cxa_current_exception_type), &myinfo);
+	void *ip = reinterpret_cast<void*>(_Unwind_GetIP(context));
+	Dl_info info;
+	if (dladdr(ip, &info) != 0)
+	{
+		if (mylookup == 0 || strcmp(info.dli_fname, myinfo.dli_fname) != 0)
+		{
+			printf("%p:%s() in %s\n", ip, info.dli_sname, info.dli_fname);
+		}
+	}
+	return _URC_CONTINUE_UNWIND;
+}
+
 static void bt_terminate_handler() {
     __cxa_eh_globals* globals = __cxa_get_globals();
     __cxa_exception* thrown_exception = globals->caughtExceptions;
@@ -757,31 +782,6 @@ void __cxa_free_dependent_exception(void *thrown_exception)
 		releaseException(realExceptionFromException(reinterpret_cast<__cxa_exception*>(ex)));
 	}
 	free_exception(reinterpret_cast<char*>(thrown_exception) - dependent_exception_size - backtrace_buffer_size);
-}
-
-/**
- * Callback function used with _Unwind_Backtrace().
- *
- * Prints a stack trace.  Used only for debugging help.
- *
- * Note: As of FreeBSD 8.1, dladd() still doesn't work properly, so this only
- * correctly prints function names from public, relocatable, symbols.
- */
-static _Unwind_Reason_Code trace(struct _Unwind_Context *context, void *c)
-{
-	Dl_info myinfo;
-	int mylookup =
-		dladdr(reinterpret_cast<void *>(__cxa_current_exception_type), &myinfo);
-	void *ip = reinterpret_cast<void*>(_Unwind_GetIP(context));
-	Dl_info info;
-	if (dladdr(ip, &info) != 0)
-	{
-		if (mylookup == 0 || strcmp(info.dli_fname, myinfo.dli_fname) != 0)
-		{
-			printf("%p:%s() in %s\n", ip, info.dli_sname, info.dli_fname);
-		}
-	}
-	return _URC_CONTINUE_UNWIND;
 }
 
 /**
