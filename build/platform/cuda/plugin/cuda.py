@@ -205,14 +205,28 @@ def get_flag_def(f, default=None):
         return default
 
 
+def parse_kv(args, prefix):
+    rest = []
+    kv = {}
+
+    for a in args:
+        if a.startswith(prefix) and '=' in a:
+            k, v = a[len(prefix):].split('=')
+            kv[k] = v
+        else:
+            rest.append(a)
+
+    return rest, kv
+
+
 if __name__ == '__main__':
-    cmd = sys.argv[1:]
+    cmd, kv = parse_kv(sys.argv[1:], '-L/CUDA:')
 
     if '--dynamic-cuda' in cmd:
         cmd = fix_cmd_for_dynamic_cuda(cmd)
     else:
-        ca = get_flag_def('--cuda-architectures')
-        nv = get_flag_def('--nvprune-exe')
+        ca = kv['ARCH']
+        nv = kv['NVPRUNE']
         oc = get_flag_def('--objcopy-exe')
 
         cuda_manager = CUDAManager(ca, nv)

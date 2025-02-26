@@ -165,9 +165,6 @@ def parse_args(args):
     parser.add_option('--fix-elf')
     parser.add_option('--linker-output')
     parser.add_option('--dynamic-cuda', action='store_true')
-    parser.add_option('--cuda-architectures',
-                      help='List of supported CUDA architectures, separated by ":" (e.g. "sm_52:compute_70:lto_90a"')
-    parser.add_option('--nvprune-exe')
     parser.add_option('--objcopy-exe')
     parser.add_option('--whole-archive-peers', action='append')
     parser.add_option('--whole-archive-libs', action='append')

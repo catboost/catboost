@@ -15,3 +15,8 @@
 add_library(platform-cuda-plugin INTERFACE)
 
 
+target_link_options(platform-cuda-plugin INTERFACE
+  -L/CUDA:ARCH=
+  -L/CUDA:NVPRUNE=/bin/nvprune
+)
+
