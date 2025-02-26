@@ -198,13 +198,6 @@ def get_flag(f):
     return sys.argv[sys.argv.index(f) + 1]
 
 
-def get_flag_def(f, default=None):
-    try:
-        return get_flag(f)
-    except ValueError:
-        return default
-
-
 def parse_kv(args, prefix):
     rest = []
     kv = {}
@@ -227,11 +220,16 @@ if __name__ == '__main__':
     else:
         ca = kv['ARCH']
         nv = kv['NVPRUNE']
-        oc = get_flag_def('--objcopy-exe')
+        oc = kv['OBJCOPY']
+
+        try:
+            br = get_flag('--build-root')
+        except ValueError:
+            br = os.getcwd()
 
         cuda_manager = CUDAManager(ca, nv)
 
-        cmd = process_cuda_libraries_by_nvprune(cmd, cuda_manager, get_flag('--build-root'))
-        cmd = process_cuda_libraries_by_objcopy(cmd, get_flag('--build-root'), oc)
+        cmd = process_cuda_libraries_by_nvprune(cmd, cuda_manager, br)
+        cmd = process_cuda_libraries_by_objcopy(cmd, br, oc)
 
     sys.stdout.write(json.dumps(list(cmd)))
