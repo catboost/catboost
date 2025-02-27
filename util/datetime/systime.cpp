@@ -124,36 +124,13 @@ namespace {
     constexpr ui16 MONTH_TO_DAYS_LEAP[12] = {
         0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335};
 
-    struct TMonth32LUT {
-        ui8 LastMonthDay32[12];
-        ui8 FirstMonthDay32[12];
-    };
-
-    constexpr TMonth32LUT COMMON_YEAR = {
-        .LastMonthDay32 = {31, 27, 26, 24, 23, 21, 20, 19, 17, 16, 14, 13},
-        .FirstMonthDay32 = {0, 1, 5, 6, 8, 9, 11, 12, 13, 15, 16, 18},
-    };
-
     constexpr int DayOfYearToMonth(ui32& yearDay, const bool leapYear) {
-        Y_ASSERT(yearDay < DAYS_IN_YEAR + leapYear);
-        if (leapYear) {
-            if (yearDay > 59) {
-                --yearDay;
-            } else if (yearDay == 59) {
-                // February, 29th
-                yearDay = 28;
-                return 1;
-            }
+        if (yearDay >= 31 + 28 + leapYear) {
+            yearDay += 2 - leapYear;
         }
-        const int approxMonth = static_cast<int>(yearDay / 32);
-        const int approxMDay = static_cast<int>(yearDay % 32);
-        const int dayThreshold = COMMON_YEAR.LastMonthDay32[approxMonth];
-        const int currentMonthMDayOffset = COMMON_YEAR.FirstMonthDay32[approxMonth];
-        const bool nextMonth = (approxMDay >= dayThreshold);
-        const int dayCorrection = nextMonth ? -dayThreshold : currentMonthMDayOffset;
-        yearDay = approxMDay + dayCorrection;
-        const int month = approxMonth + nextMonth;
-        return month;
+        const ui32 month = (yearDay * 67 + 35) >> 11;
+        yearDay -= (month * 489 + 8) >> 4;
+        return static_cast<int>(month);
     }
 
     class TDayNoToYearLookupTable {
