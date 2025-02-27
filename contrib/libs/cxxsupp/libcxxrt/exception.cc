@@ -312,19 +312,21 @@ static _Unwind_Reason_Code trace(struct _Unwind_Context *context, void *c)
 	return _URC_CONTINUE_UNWIND;
 }
 
-static void bt_terminate_handler() {
-    __cxa_eh_globals* globals = __cxa_get_globals();
-    __cxa_exception* thrown_exception = globals->caughtExceptions;
+static void terminate_with_diagnostics() {
+    __cxa_eh_globals *globals = __cxa_get_globals();
+    __cxa_exception *ex = globals->caughtExceptions;
 
-    if (thrown_exception) {
-		fprintf(stderr, "uncaught exception:\n    address -> %p\n", (void*)thrown_exception);
-		thrown_exception = realExceptionFromException(thrown_exception);
+    if (ex != nullptr) {
+		fprintf(stderr, "uncaught exception:\n    address -> %p\n", (void*)ex);
+		ex = realExceptionFromException(ex);
 
-		const __class_type_info *e_ti = static_cast<const __class_type_info*>(&typeid(std::exception));
-		const __class_type_info *throw_ti = dynamic_cast<const __class_type_info*>(thrown_exception->exceptionType);
+		const __class_type_info *e_ti = 
+			static_cast<const __class_type_info*>(&typeid(std::exception));
+		const __class_type_info *throw_ti = 
+			dynamic_cast<const __class_type_info*>(ex->exceptionType);
 
 		if (throw_ti) {
-			void* ptr = thrown_exception + 1;
+			void* ptr = ex + 1;
 
 			if (throw_ti->__do_upcast(e_ti, &ptr)) {
 				std::exception* e = static_cast<std::exception*>(ptr);
@@ -337,7 +339,7 @@ static void bt_terminate_handler() {
 
 		size_t bufferSize = 128;
 		char *demangled = static_cast<char*>(malloc(bufferSize));
-		const char *mangled = thrown_exception->exceptionType->name();
+		const char *mangled = ex->exceptionType->name();
 		int status;
 		demangled = __cxa_demangle(mangled, demangled, &bufferSize, &status);
 		fprintf(stderr, "    type -> %s\n", status == 0 ? demangled : mangled);
@@ -347,7 +349,7 @@ static void bt_terminate_handler() {
 }
 
 /** The global termination handler. */
-static atomic<terminate_handler> terminateHandler = bt_terminate_handler;
+static atomic<terminate_handler> terminateHandler = terminate_with_diagnostics;
 /** The global unexpected exception handler. */
 static atomic<unexpected_handler> unexpectedHandler = std::terminate;
 
