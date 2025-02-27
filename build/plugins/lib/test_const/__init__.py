@@ -456,13 +456,10 @@ class DefaultLinterConfig(Enum):
     Python = "build/config/tests/py_style/default_configs.json"
 
 
-# TODO Fill up like
-"""
-{
-    PythonLinterName.Ruff: "build/config/tests/ruff/rules.yaml",
-}
-"""
-LINTER_TO_VALIDATION_CONFIG = {}
+class LinterConfigsValidationRules(Enum):
+    Cpp = "build/config/tests/cpp_style/configs_validation_rules.json"
+    Python = "build/config/tests/py_style/configs_validation_rules.json"
+
 
 LINTER_CONFIG_TYPES = {
     CppLinterName.ClangFormat: (".clang-format",),
