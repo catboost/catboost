@@ -264,7 +264,7 @@ namespace NCB {
         TVector<TKNNCalcer> featureCalcers(numThreads);;
         TVector<TKNNCalcerVisitor> calcerVisitors(numThreads);
 
-        for (ui32 id = 0; id < numThreads; ++id) {
+        for (int id = 0; id < numThreads; ++id) {
             featureCalcers[id] = CreateFeatureCalcer();
             calcerVisitors[id] = CreateCalcerVisitor();
         }
