@@ -10,11 +10,11 @@ TExpressionVariable::TExpressionVariable()
 {
 }
 
-TExpressionVariable::TExpressionVariable(const TString& source)
+TExpressionVariable::TExpressionVariable(TString source)
     : HasStrValue(true)
     , HasDoubleValue(false)
     , HasHistogramPointsAndBinsValue(false)
-    , StringValue(source)
+    , StringValue(std::move(source))
 {
 }
 
@@ -58,11 +58,11 @@ TExpressionVariable::TExpressionVariable(bool source)
 {
 }
 
-TExpressionVariable& TExpressionVariable::operator=(const TString& source) {
+TExpressionVariable& TExpressionVariable::operator=(TString source) {
     HasStrValue = true;
     HasDoubleValue = false;
     HasHistogramPointsAndBinsValue = false;
-    StringValue = source;
+    StringValue = std::move(source);
     return *this;
 }
 
