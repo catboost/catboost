@@ -42,7 +42,6 @@ target_link_libraries(catboost-libs-model PUBLIC
   library-cpp-binsaver
   cpp-containers-dense_hash
   library-cpp-dbg_output
-  library-cpp-fast_exp
   library-cpp-json
   library-cpp-object_factory
   tools-enum_parser-enum_serialization_runtime
@@ -112,7 +111,6 @@ target_link_libraries(catboost-libs-model.global PUBLIC
   library-cpp-binsaver
   cpp-containers-dense_hash
   library-cpp-dbg_output
-  library-cpp-fast_exp
   library-cpp-json
   library-cpp-object_factory
   tools-enum_parser-enum_serialization_runtime

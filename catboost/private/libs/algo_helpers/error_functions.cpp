@@ -285,7 +285,7 @@ namespace {
                         ExpSrc[i - ViewBegin] = Src[i];
                     }
                 }
-                FastExpInplace(ExpSrc.data(), ViewEnd - ViewBegin);
+                NCB::FastExpWithInfInplace(ExpSrc.data(), ViewEnd - ViewBegin);
             }
             return ExpSrc[idx - ViewBegin];
         }
