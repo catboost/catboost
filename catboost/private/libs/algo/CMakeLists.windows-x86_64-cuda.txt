@@ -52,7 +52,6 @@ target_link_libraries(private-libs-algo PUBLIC
   cpp-digest-crc32c
   cpp-digest-md5
   library-cpp-dot_product
-  library-cpp-fast_exp
   library-cpp-fast_log
   library-cpp-grid_creator
   library-cpp-json

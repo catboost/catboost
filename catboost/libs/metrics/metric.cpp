@@ -16,6 +16,7 @@
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/short_vector_ops.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
@@ -45,6 +46,7 @@
 
 using NCB::AppendTemporaryMetricsVector;
 using NCB::AsVector;
+using NCB::FastExpWithInfInplace;
 
 /* TMetric */
 
@@ -654,7 +656,7 @@ TMetricHolder TRMSEWithUncertaintyMetric::EvalSingleThread(
         for (auto i : xrange(begin, end)) {
             double weight = realWeight(i);
             double expSum = -2 * realApprox(1, i);
-            FastExpInplace(&expSum, /*count*/ 1);
+            FastExpWithInfInplace(&expSum, /*count*/ 1);
             // np.log(2 * np.pi) / 2.0
             stats0 += weight * (0.9189385332046 + realApprox(1, i) + 0.5 * expSum * Sqr(realApprox(0, i) - target[i]));
             stats1 += weight;
@@ -1342,7 +1344,7 @@ TMetricHolder TLogLinQuantileMetric::EvalSingleThread(
                 if (hasDelta) {
                     expApprox += approxDelta[i];
                 }
-                FastExpInplace(&expApprox, 1);
+                FastExpWithInfInplace(&expApprox, 1);
             }
             const double val = target[i] - expApprox;
             const double multiplier = (val > 0) ? alpha : -(1 - alpha);
@@ -1583,7 +1585,7 @@ TMetricHolder TPoissonMetric::EvalSingleThread(
                     expApprox += approxDelta[i];
                 }
                 nonExpApprox = expApprox;
-                FastExpInplace(&expApprox, 1);
+                FastExpWithInfInplace(&expApprox, 1);
             }
             const float w = hasWeight ? weight[i] : 1;
             error.Stats[0] += (expApprox - target[i] * nonExpApprox) * w;
@@ -2166,7 +2168,7 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
             );
             const double targetClassApprox = approxRef[targetClass];
 
-            FastExpInplace(approxRef.data(), approxRef.size());
+            FastExpWithInfInplace(approxRef.data(), approxRef.size());
             const double sumExpApprox = Accumulate(approxRef, /*val*/0.0);
 
             const float w = weight.empty() ? 1 : weight[idx + unrollIdx];
@@ -2461,7 +2463,7 @@ TMetricHolder TPairLogitMetric::EvalSingleThread(
                 for (double& approxVal : approxExpShifted) {
                     approxVal -= maxQueryApprox;
                 }
-                FastExpInplace(approxExpShifted.data(), querySize);
+                FastExpWithInfInplace(approxExpShifted.data(), querySize);
                 for (double& approxVal : approxExpShifted) {
                     approxVal += 1e-38;
                 }
@@ -3191,7 +3193,7 @@ TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(
         for (int dim : xrange(count)) {
             softmax[dim] -= maxApprox;
         }
-        FastExpInplace(softmax.data(), count);
+        FastExpWithInfInplace(softmax.data(), count);
         double sumExpApprox = 0;
         for (int dim : xrange(count)) {
             const double weight = hasWeight ? weights[start + dim] : 1;
@@ -6204,7 +6206,7 @@ TMetricHolder TMultiCrossEntropyMetric::EvalSingleThread(
             for (int j = 0; j < count; ++j) {
                 expApprox[j] = approxRef[j] + approxDeltaRef[j];
             }
-            FastExpInplace(&expApprox[0], count);
+            FastExpWithInfInplace(&expApprox[0], count);
             for (int j = 0; j < count; ++j) {
                 const auto evaluatedApprox = approxRef[j] + approxDeltaRef[j];
                 const auto w = weightRef[j];

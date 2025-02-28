@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/private/libs/data_types/query.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/restrictions.h>
@@ -45,7 +46,7 @@ static inline double ExpApproxIf(bool storeExpApproxes, double approx) {
 
 static inline void ExpApproxIf(bool storeExpApproxes, TArrayRef<double> approx) {
     if (storeExpApproxes) {
-        FastExpInplace(approx.data(), approx.size());
+        NCB::FastExpWithInfInplace(approx.data(), approx.size());
     }
 }
 

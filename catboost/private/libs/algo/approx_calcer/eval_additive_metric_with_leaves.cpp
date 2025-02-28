@@ -1,10 +1,9 @@
 #include "eval_additive_metric_with_leaves.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
-
-#include <library/cpp/fast_exp/fast_exp.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
@@ -62,7 +61,7 @@ TMetricHolder EvalErrorsWithLeaves(
     AssignRank2(leafDelta, &localLeafDelta);
     if (isExpApprox) {
         for (auto& deltaDimension : localLeafDelta) {
-            FastExpInplace(deltaDimension.data(), deltaDimension.size());
+            NCB::FastExpWithInfInplace(deltaDimension.data(), deltaDimension.size());
         }
     }
 
