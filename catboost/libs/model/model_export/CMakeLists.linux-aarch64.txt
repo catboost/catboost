@@ -76,12 +76,12 @@ target_link_libraries(libs-model-model_export.global PUBLIC
 
 target_sources(libs-model-model_export.global PRIVATE
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/model_import.cpp
-  ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/2b84f55b17efb32d51134aed0b2b3bc3.cpp
 )
 
 
 resources(libs-model-model_export.global
-  ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/5748dd9eade087d63739008f8eb36dda.cpp
+  ${PROJECT_BINARY_DIR}/catboost/libs/model/model_export/2b84f55b17efb32d51134aed0b2b3bc3.cpp
   INPUTS
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/resources/apply_catboost_model.py
   ${PROJECT_SOURCE_DIR}/catboost/libs/model/model_export/resources/ctr_structs.py
