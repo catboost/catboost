@@ -41,7 +41,7 @@
 #include <bzlib.h>
 #endif
 #if HAVE_LZMA_H
-#error #include <lzma.h>
+#include <lzma.h>
 #endif
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
