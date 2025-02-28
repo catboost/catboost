@@ -231,5 +231,32 @@ namespace NNeh {
             return NeedGetRequestFor(scheme) || NeedPostRequestFor(scheme);
         }
     }
+
+    HttpCodes GetHttpCode(const IRequest::TResponseError& error) {
+        switch (error) {
+            case IRequest::TResponseError::BadRequest:
+                return HttpCodes::HTTP_BAD_REQUEST;
+            case IRequest::TResponseError::Forbidden:
+                return HttpCodes::HTTP_FORBIDDEN;
+            case IRequest::TResponseError::NotExistService:
+                return HttpCodes::HTTP_NOT_FOUND;
+            case IRequest::TResponseError::TooManyRequests:
+                return HttpCodes::HTTP_TOO_MANY_REQUESTS;
+            case IRequest::TResponseError::InternalError:
+                return HttpCodes::HTTP_INTERNAL_SERVER_ERROR;
+            case IRequest::TResponseError::NotImplemented:
+                return HttpCodes::HTTP_NOT_IMPLEMENTED;
+            case IRequest::TResponseError::BadGateway:
+                return HttpCodes::HTTP_BAD_GATEWAY;
+            case IRequest::TResponseError::ServiceUnavailable:
+                return HttpCodes::HTTP_SERVICE_UNAVAILABLE;
+            case IRequest::TResponseError::BandwidthLimitExceeded:
+                return HttpCodes::HTTP_BANDWIDTH_LIMIT_EXCEEDED;
+            case IRequest::TResponseError::MaxResponseError:
+                ythrow yexception() << TStringBuf("unknow type of error");
+
+            Y_UNREACHABLE();
+        }
+    }
 }
 

@@ -1394,37 +1394,7 @@ namespace NNeh {
                         return;
                     }
 
-                    switch (*error) {
-                        case IRequest::TResponseError::BadRequest:
-                            os << HttpCodeStrEx(HttpCodes::HTTP_BAD_REQUEST);
-                            break;
-                        case IRequest::TResponseError::Forbidden:
-                            os << HttpCodeStrEx(HttpCodes::HTTP_FORBIDDEN);
-                            break;
-                        case IRequest::TResponseError::NotExistService:
-                            os << HttpCodeStrEx(HttpCodes::HTTP_NOT_FOUND);
-                            break;
-                        case IRequest::TResponseError::TooManyRequests:
-                            os << HttpCodeStrEx(HttpCodes::HTTP_TOO_MANY_REQUESTS);
-                            break;
-                        case IRequest::TResponseError::InternalError:
-                            os << HttpCodeStrEx(HttpCodes::HTTP_INTERNAL_SERVER_ERROR);
-                            break;
-                        case IRequest::TResponseError::NotImplemented:
-                            os << HttpCodeStrEx(HttpCodes::HTTP_NOT_IMPLEMENTED);
-                            break;
-                        case IRequest::TResponseError::BadGateway:
-                            os << HttpCodeStrEx(HttpCodes::HTTP_BAD_GATEWAY);
-                            break;
-                        case IRequest::TResponseError::ServiceUnavailable:
-                            os << HttpCodeStrEx(HttpCodes::HTTP_SERVICE_UNAVAILABLE);
-                            break;
-                        case IRequest::TResponseError::BandwidthLimitExceeded:
-                            os << HttpCodeStrEx(HttpCodes::HTTP_BANDWIDTH_LIMIT_EXCEEDED);
-                            break;
-                        case IRequest::TResponseError::MaxResponseError:
-                            ythrow yexception() << TStringBuf("unknow type of error");
-                    }
+                    os << HttpCodeStrEx(GetHttpCode(*error));
                 }
 
             public:
