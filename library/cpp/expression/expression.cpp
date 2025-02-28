@@ -201,12 +201,13 @@ static TString CalcExpression(const char* expr, size_t a, size_t b, const IExpre
             isCheckVal = true;
             ++a;
         }
-        TString token(&expr[a], &expr[b]), val;
+        TString token(&expr[a], &expr[b]);
+        TExpressionVariable val;
         bool found = data.FindValue(token, val);
         if (isCheckVal) {
             return found ? "1.0" : "0.0";
         }
-        return found ? val : token;
+        return found ? val.ToStr() : token;
     }
 }
 
@@ -391,8 +392,6 @@ private:
 
     size_t FindOperation(const TStringBuf& exp, std::array<TStringBuf, MaxOperands>& args, EOperation& oper);
     size_t BuildExpression(TStringBuf str);
-    const TString& FindToken(const THashMap<TString, TString>& data, const TString& token) const;
-    double IsToken(const THashMap<TString, TString>& data, const TString& token) const;
     TExpressionVariable CalcVariantExpression(const IExpressionAdaptor& data) const;
 };
 
@@ -628,7 +627,7 @@ TExpressionImpl::TExpressionImpl(TStringBuf expr) {
 
 TExpressionVariable TExpressionImpl::CalcVariantExpression(const IExpressionAdaptor& data) const {
     TVector<TExpressionVariable> values(Operations.size());
-    TString v;
+    TExpressionVariable v;
     for (size_t i = Operations.size(); i > 0; --i) {
         switch (Operations[i - 1].Oper) {
             case O_CONST:
