@@ -104,7 +104,7 @@ public:
                     std::forward<Functor>(func), otherParams..., std::integral_constant<TInt, option>());
         } else {
             if constexpr (!std::is_same<TParent, TIntOption<TInt>>::value) {
-                return TParent::template ForwardSelfAsConst(
+                return TParent::ForwardSelfAsConst(
                         std::forward<Functor>(func), otherParams...);
             } else {
                 Y_UNREACHABLE();
