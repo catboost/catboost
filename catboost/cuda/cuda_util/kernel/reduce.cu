@@ -144,14 +144,14 @@ namespace NKernel {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
                                                  cub::Max(),
-                                                 T(),
+                                                 -std::numeric_limits<T>::infinity(),
                                                  stream);
             }
             case EOperatorType::Min: {
                 return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
                                                  input, output, size,
                                                  cub::Min(),
-                                                 T(),
+                                                 std::numeric_limits<T>::infinity(),
                                                  stream);
             }
             case EOperatorType::L1Sum: {
