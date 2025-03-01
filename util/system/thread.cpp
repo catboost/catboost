@@ -535,11 +535,11 @@ TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     : StackBegin(nullptr)
     , StackLength(0)
 {
-#if defined(_linux_) || defined(_cygwin_) || defined(_freebsd_)
+#if defined(_linux_) || defined(_cygwin_) || defined(_freebsd_) || defined(__EMSCRIPTEN__)
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
-    #if defined(_linux_) || defined(_cygwin_)
+    #if defined(_linux_) || defined(_cygwin_) || defined(__EMSCRIPTEN__)
     Y_ABORT_UNLESS(pthread_getattr_np(pthread_self(), &attr) == 0, "pthread_getattr failed");
     #else
     Y_ABORT_UNLESS(pthread_attr_get_np(pthread_self(), &attr) == 0, "pthread_attr_get_np failed");

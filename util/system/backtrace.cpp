@@ -32,7 +32,7 @@ extern "C" __stdcall unsigned short CaptureStackBackTrace(unsigned long FramesTo
         #define HAVE_BACKTRACE
     #endif
 
-    #if !defined(HAVE_BACKTRACE) && defined(__GNUC__)
+    #if !defined(HAVE_BACKTRACE) && defined(__GNUC__) && !defined(__EMSCRIPTEN__)
         #define USE_GCC_BACKTRACE
         #define HAVE_BACKTRACE
     #endif
