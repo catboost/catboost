@@ -182,6 +182,14 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N}\left(\displaystyle\frac{e^{a_{i}(2-\la
 
 $\lambda$ is the value of the {{ loss-functions__params__variance_power }} parameter.
 
+Labels $t_i$ should be non-negative.
+
+Large labels may cause numerical overflows and/or divergence when training a tweedie regression model.
+
+On CPU, it is recommended to scale labels to range $[0,1000]$.
+
+On GPU, it is recommended to scale lables to range $[0,1]$.
+
 **{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
