@@ -69,7 +69,9 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
   - macOS
 
-      - XCode command line tools (must contain `clang` with version 14+, so XCode version must be greater than 14.0 as well)
+      - XCode command line tools (must contain `clang` with version 15+, so XCode version must be greater than 15.0 as well)
+
+      For revisions before [1d5e677](https://github.com/catboost/catboost/commit/1d5e677b916a4ce3375b3200c4c2f95884d481de) the minimal supported `clang` version has been 14 (means XCode version must have been 14.0 as well)
 
       For revisions before [136f14f](https://github.com/catboost/catboost/commit/136f14f5d55119028a7bb1886814775cd1e2c649) the minimal supported `clang` version has been 12 (means XCode version must have been 12.0+ as well).
 
