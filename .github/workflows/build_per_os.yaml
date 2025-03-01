@@ -141,7 +141,8 @@ jobs:
         id: cuda-toolkit
         with:
           cuda: '11.8.0'
-          method: 'local'
+          method: 'network'
+          sub-packages: '["nvcc","cudart","thrust"]'
 
       - if: inputs.runs-on_value == 'windows-2022'
         name: Env setup on Windows
