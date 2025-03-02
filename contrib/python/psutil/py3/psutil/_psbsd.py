@@ -10,7 +10,7 @@ import functools
 import os
 from collections import defaultdict
 from collections import namedtuple
-from xml.etree import ElementTree  # noqa ICN001
+from xml.etree import ElementTree  # noqa: ICN001
 
 from . import _common
 from . import _psposix
@@ -28,10 +28,6 @@ from ._common import debug
 from ._common import memoize
 from ._common import memoize_when_activated
 from ._common import usage_percent
-from ._compat import FileNotFoundError
-from ._compat import PermissionError
-from ._compat import ProcessLookupError
-from ._compat import which
 
 
 __extra__all__ = []
@@ -196,8 +192,8 @@ def virtual_memory():
         # #2233), so zabbix seems to be wrong. Htop calculates it
         # differently, and the used value seem more realistic, so let's
         # match htop.
-        # https://github.com/htop-dev/htop/blob/e7f447b/netbsd/NetBSDProcessList.c#L162  # noqa
-        # https://github.com/zabbix/zabbix/blob/af5e0f8/src/libs/zbxsysinfo/netbsd/memory.c#L135  # noqa
+        # https://github.com/htop-dev/htop/blob/e7f447b/netbsd/NetBSDProcessList.c#L162
+        # https://github.com/zabbix/zabbix/blob/af5e0f8/src/libs/zbxsysinfo/netbsd/memory.c#L135
         used = active + wired
         avail = total - used
     else:
@@ -206,7 +202,7 @@ def virtual_memory():
         # * https://people.freebsd.org/~rse/dist/freebsd-memory
         # * https://www.cyberciti.biz/files/scripts/freebsd-memory.pl.txt
         # matches zabbix:
-        # * https://github.com/zabbix/zabbix/blob/af5e0f8/src/libs/zbxsysinfo/freebsd/memory.c#L143  # noqa
+        # * https://github.com/zabbix/zabbix/blob/af5e0f8/src/libs/zbxsysinfo/freebsd/memory.c#L143
         avail = inactive + cached + free
         used = active + wired + cached
 
@@ -439,14 +435,8 @@ def net_if_stats():
 
 def net_connections(kind):
     """System-wide network connections."""
-    if kind not in _common.conn_tmap:
-        raise ValueError(
-            "invalid %r kind argument; choose between %s"
-            % (kind, ', '.join([repr(x) for x in conn_tmap]))
-        )
     families, types = conn_tmap[kind]
     ret = set()
-
     if OPENBSD:
         rawlist = cext.net_connections(-1, families, types)
     elif NETBSD:
@@ -495,7 +485,7 @@ if FREEBSD:
                 current, high = cext.sensors_cpu_temperature(cpu)
                 if high <= 0:
                     high = None
-                name = "Core %s" % cpu
+                name = f"Core {cpu}"
                 ret["coretemp"].append(
                     _common.shwtemp(name, current, high, high)
                 )
@@ -600,21 +590,18 @@ def wrap_exceptions(fun):
 
     @functools.wraps(fun)
     def wrapper(self, *args, **kwargs):
+        pid, ppid, name = self.pid, self._ppid, self._name
         try:
             return fun(self, *args, **kwargs)
-        except ProcessLookupError:
-            if is_zombie(self.pid):
-                raise ZombieProcess(self.pid, self._name, self._ppid)
-            else:
-                raise NoSuchProcess(self.pid, self._name)
-        except PermissionError:
-            raise AccessDenied(self.pid, self._name)
-        except OSError:
-            if self.pid == 0:
-                if 0 in pids():
-                    raise AccessDenied(self.pid, self._name)
-                else:
-                    raise
+        except ProcessLookupError as err:
+            if is_zombie(pid):
+                raise ZombieProcess(pid, name, ppid) from err
+            raise NoSuchProcess(pid, name) from err
+        except PermissionError as err:
+            raise AccessDenied(pid, name) from err
+        except OSError as err:
+            if pid == 0 and 0 in pids():
+                raise AccessDenied(pid, name) from err
             raise
 
     return wrapper
@@ -623,18 +610,19 @@ def wrap_exceptions(fun):
 @contextlib.contextmanager
 def wrap_exceptions_procfs(inst):
     """Same as above, for routines relying on reading /proc fs."""
+    pid, name, ppid = inst.pid, inst._name, inst._ppid
     try:
         yield
-    except (ProcessLookupError, FileNotFoundError):
+    except (ProcessLookupError, FileNotFoundError) as err:
         # ENOENT (no such file or directory) gets raised on open().
         # ESRCH (no such process) can get raised on read() if
         # process is gone in meantime.
         if is_zombie(inst.pid):
-            raise ZombieProcess(inst.pid, inst._name, inst._ppid)
+            raise ZombieProcess(pid, name, ppid) from err
         else:
-            raise NoSuchProcess(inst.pid, inst._name)
-    except PermissionError:
-        raise AccessDenied(inst.pid, inst._name)
+            raise NoSuchProcess(pid, name) from err
+    except PermissionError as err:
+        raise AccessDenied(pid, name) from err
 
 
 class Process:
@@ -683,16 +671,18 @@ class Process:
                 # /proc/0 dir exists but /proc/0/exe doesn't
                 return ""
             with wrap_exceptions_procfs(self):
-                return os.readlink("/proc/%s/exe" % self.pid)
+                return os.readlink(f"/proc/{self.pid}/exe")
         else:
             # OpenBSD: exe cannot be determined; references:
             # https://chromium.googlesource.com/chromium/src/base/+/
             #     master/base_paths_posix.cc
             # We try our best guess by using which against the first
             # cmdline arg (may return None).
+            import shutil
+
             cmdline = self.cmdline()
             if cmdline:
-                return which(cmdline[0]) or ""
+                return shutil.which(cmdline[0]) or ""
             else:
                 return ""
 
@@ -709,15 +699,15 @@ class Process:
                 return cext.proc_cmdline(self.pid)
             except OSError as err:
                 if err.errno == errno.EINVAL:
+                    pid, name, ppid = self.pid, self._name, self._ppid
                     if is_zombie(self.pid):
-                        raise ZombieProcess(self.pid, self._name, self._ppid)
-                    elif not pid_exists(self.pid):
-                        raise NoSuchProcess(self.pid, self._name, self._ppid)
-                    else:
-                        # XXX: this happens with unicode tests. It means the C
-                        # routine is unable to decode invalid unicode chars.
-                        debug("ignoring %r and returning an empty list" % err)
-                        return []
+                        raise ZombieProcess(pid, name, ppid) from err
+                    if not pid_exists(self.pid):
+                        raise NoSuchProcess(pid, name, ppid) from err
+                    # XXX: this happens with unicode tests. It means the C
+                    # routine is unable to decode invalid unicode chars.
+                    debug(f"ignoring {err!r} and returning an empty list")
+                    return []
                 else:
                     raise
         else:
@@ -822,11 +812,6 @@ class Process:
 
     @wrap_exceptions
     def net_connections(self, kind='inet'):
-        if kind not in conn_tmap:
-            raise ValueError(
-                "invalid %r kind argument; choose between %s"
-                % (kind, ', '.join([repr(x) for x in conn_tmap]))
-            )
         families, types = conn_tmap[kind]
         ret = []
 
@@ -945,12 +930,11 @@ class Process:
             # Pre-emptively check if CPUs are valid because the C
             # function has a weird behavior in case of invalid CPUs,
             # see: https://github.com/giampaolo/psutil/issues/586
-            allcpus = tuple(range(len(per_cpu_times())))
+            allcpus = set(range(len(per_cpu_times())))
             for cpu in cpus:
                 if cpu not in allcpus:
-                    raise ValueError(
-                        "invalid CPU #%i (choose between %s)" % (cpu, allcpus)
-                    )
+                    msg = f"invalid CPU {cpu!r} (choose between {allcpus})"
+                    raise ValueError(msg)
             try:
                 cext.proc_cpu_affinity_set(self.pid, cpus)
             except OSError as err:
@@ -961,10 +945,11 @@ class Process:
                 if err.errno in {errno.EINVAL, errno.EDEADLK}:
                     for cpu in cpus:
                         if cpu not in allcpus:
-                            raise ValueError(
-                                "invalid CPU #%i (choose between %s)"
-                                % (cpu, allcpus)
+                            msg = (
+                                f"invalid CPU {cpu!r} (choose between"
+                                f" {allcpus})"
                             )
+                            raise ValueError(msg) from err
                 raise
 
         @wrap_exceptions
@@ -977,9 +962,10 @@ class Process:
                 return cext.proc_getrlimit(self.pid, resource)
             else:
                 if len(limits) != 2:
-                    raise ValueError(
-                        "second argument must be a (soft, hard) tuple, got %s"
-                        % repr(limits)
+                    msg = (
+                        "second argument must be a (soft, hard) tuple, got"
+                        f" {limits!r}"
                     )
+                    raise ValueError(msg)
                 soft, hard = limits
                 return cext.proc_setrlimit(self.pid, resource, soft, hard)
