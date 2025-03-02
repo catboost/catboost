@@ -15,6 +15,7 @@
   ".github/workflows/release_publish_node_package.yaml":"catboost/github_toplevel/.github/workflows/release_publish_node_package.yaml",
   ".github/workflows/test.yaml":"catboost/github_toplevel/.github/workflows/test.yaml",
   ".github/workflows/test_per_os.yaml":"catboost/github_toplevel/.github/workflows/test_per_os.yaml",
+  ".github/workflows/test_per_platform.yaml":"catboost/github_toplevel/.github/workflows/test_per_platform.yaml",
   ".gitignore":"catboost/github_toplevel/.gitignore",
   "AUTHORS":"catboost/github_toplevel/AUTHORS",
   "AWESOME.md":"catboost/github_toplevel/AWESOME.md",

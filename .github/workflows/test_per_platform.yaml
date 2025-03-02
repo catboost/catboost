@@ -1,0 +1,282 @@
+name: Test per Platform
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      machine:
+        required: true
+        type: string
+      runs-on_value:
+        required: true
+        type: string
+      artifacts_version:
+        required: true
+        type: string
+      artifacts_run_id:
+        required: false
+        type: string
+        default: ${{ github.run_id }}
+      artifacts_repository:
+        required: false
+        type: string
+        default: ${{ github.repository }}
+      catboost_package_name:
+        required: false
+        type: string
+        default: catboost_dev
+
+jobs:
+  test:
+    runs-on: ${{ inputs.runs-on_value }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: catboost
+
+      # TODO: running python package tests for all supported python versions
+
+      - name: Setup Python 3.12 for running tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pytest with plugins
+        shell: pwsh
+        run: |
+          python -m pip install pytest pytest-xdist pytest-randomly
+
+      - if: inputs.os != 'windows'
+        name: Generate CatBoost for Apache Spark projects
+        shell: pwsh
+        run: |
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark
+          python ./generate_projects/generate.py
+
+      # TODO: maybe test on other Java versions as well
+
+      - name: Setup JDK 11 for running tests
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          java-package: jdk
+          cache: 'maven'
+          cache-dependency-path: |
+            catboost/catboost/jvm-packages/common/pom.xml
+            catboost/catboost/jvm-packages/catboost4j-prediction/pom.xml
+            catboost/catboost/spark/catboost4j-spark/projects/**/pom.xml
+
+      - name: Env setup
+        shell: pwsh
+        run: |
+          New-Item -Path catboost_python_package_dist -ItemType Directory
+          New-Item -Path prebuilt/catboost4j-prediction_resources -ItemType Directory
+          New-Item -Path prebuilt/spark -ItemType Directory
+          New-Item -Path prebuilt/spark/catboost4j-spark_core_resources -ItemType Directory
+          New-Item -Path build_native_root/catboost -ItemType Directory
+          Set-Location -LiteralPath ${{ github.workspace }}/build_native_root/catboost
+          New-Item -Path app -ItemType Directory
+          New-Item -Path tools -ItemType Directory
+
+      - if: inputs.os != 'macos'
+        name: Download CLI
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost-cli-${{ inputs.os }}-${{ inputs.machine }}-${{ inputs.artifacts_version }}
+          path: build_native_root/catboost/app/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os == 'macos'
+        name: Download CLI
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost-cli-darwin-universal2-${{ inputs.artifacts_version }}
+          path: build_native_root/catboost/app/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os == 'linux'
+        name: Download python package for Ubuntu
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost-python-package-dist-cp312-cp312-manylinux2014_${{ inputs.machine }}-${{ inputs.artifacts_version }}
+          path: catboost_python_package_dist/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os == 'macos'
+        name: Download python package for macOS
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost-python-package-dist-cp312-cp312-macosx_11_0_universal2-${{ inputs.artifacts_version }}
+          path: catboost_python_package_dist/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os == 'windows'
+        name: Download python package for Windows
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost-python-package-dist-cp312-cp312-win_amd64-${{ inputs.artifacts_version }}
+          path: catboost_python_package_dist/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os != 'macos'
+        name: Download test tools
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost-test-tools-${{ inputs.os }}-${{ inputs.machine }}-${{ inputs.artifacts_version }}
+          path: build_native_root/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os == 'macos'
+        name: Download test tools
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost-test-tools-darwin-universal2-${{ inputs.artifacts_version }}
+          path: build_native_root/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os != 'macos'
+        name: Download catboost4j-prediction_resources
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-prediction_resources-${{ inputs.os }}-${{ inputs.artifacts_version }}
+          path: prebuilt/catboost4j-prediction_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os == 'macos'
+        name: Download catboost4j-prediction_resources
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-prediction_resources-darwin-${{ inputs.artifacts_version }}
+          path: prebuilt/catboost4j-prediction_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os != 'windows'
+        name: Download catboost4j-spark-impl-sources
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-spark-impl-sources-${{ inputs.artifacts_version }}
+          path: prebuilt/spark/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os != 'windows'
+        name: Download catboost4j-spark_core_resources_classes
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-spark_core_resources_classes-${{ inputs.artifacts_version }}
+          path: prebuilt/spark/catboost4j-spark_core_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os == 'linux'
+        name: Download catboost4j-spark_core_resources for Ubuntu
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-spark_core_resources-linux-${{ inputs.artifacts_version }}
+          path: prebuilt/spark/catboost4j-spark_core_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - if: inputs.os == 'macos'
+        name: Download catboost4j-spark_core_resources for macOS
+        uses: actions/download-artifact@v4
+        with:
+          name: catboost4j-spark_core_resources-darwin-${{ inputs.artifacts_version }}
+          path: prebuilt/spark/catboost4j-spark_core_resources/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.artifacts_repository }}
+          run-id: ${{ inputs.artifacts_run_id }}
+
+      - name: Prepare binaries from artifacts
+        shell: pwsh
+        run: |
+          if ("${{ inputs.os }}" -ne "windows") {
+            chmod a+x ${{ github.workspace }}/build_native_root/catboost/app/catboost
+          }
+          Set-Location -LiteralPath ${{ github.workspace }}/build_native_root/catboost/tools
+          foreach($tool in 'limited_precision_dsv_diff','limited_precision_json_diff','model_comparator') {
+            Move-Item ${{ github.workspace }}/build_native_root/${tool}
+            if ("${{ inputs.os }}" -ne "windows") {
+              chmod a+x $tool/$tool
+            }
+          }
+
+      # temporarily disable for Linux aarch64 because of hangs
+      - if: ${{ (inputs.os != 'linux') || (inputs.machine != 'aarch64') }}
+        name: Run pytest
+        shell: pwsh
+        run: |
+          python -m pip install testpath pytest 'numpy<2.0' pandas
+          python -m pip uninstall -y catboost
+          python -m pip install ${{ inputs.catboost_package_name }} --pre -f ${{ github.workspace }}/catboost_python_package_dist/
+          $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
+          $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
+          $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
+          $Env:PORT_SYNC_PATH = Join-Path ${{ github.workspace }} port_sync
+          $Env:HAVE_CUDA = 0
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/pytest
+          python -m pytest -n auto
+
+      - name: Run python package tests
+        shell: pwsh
+        run: |
+          python -m pip install testpath pytest 'numpy<2.0' pandas ipywidgets scikit-learn
+          python -m pip uninstall -y catboost
+          python -m pip install ${{ inputs.catboost_package_name }} --pre -f ${{ github.workspace }}/catboost_python_package_dist/
+          $Env:CMAKE_SOURCE_DIR = Join-Path ${{ github.workspace }} catboost
+          $Env:CMAKE_BINARY_DIR = Join-Path ${{ github.workspace }} build_native_root
+          $Env:TEST_OUTPUT_DIR = Join-Path ${{ github.workspace }} test_output_pytest
+          $Env:PORT_SYNC_PATH = Join-Path ${{ github.workspace }} port_sync
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/python-package/ut/medium
+          python -m pytest -n auto
+
+      - name: Run jvm-packages/common tests
+        shell: pwsh
+        run: |
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/common
+          mvn test
+
+      - name: Run catboost4j-prediction tests
+        shell: pwsh
+        run: |
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/common
+          mvn install -DskipTests -D"gpg.skip"
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/catboost4j-prediction
+          mvn -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/catboost4j-prediction_resources/ test
+
+      # TODO: maybe test on other Spark versions as well
+
+      # temporarily disabled until issues with tests diffs are resolved
+      - if: false #inputs.os != 'windows'
+        name: Run catboost4j-spark tests
+        shell: pwsh
+        run: |
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/jvm-packages/common
+          mvn install -DskipTests -D"gpg.skip"
+          Set-Location -LiteralPath ${{ github.workspace }}/catboost/catboost/spark/catboost4j-spark/projects/spark_3.5_2.12
+          mvn -D"prebuilt.native.resources.dir"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark_core_resources/ -D"prebuilt.native.sources.jar"=${{ github.workspace }}/prebuilt/spark/catboost4j-spark-impl-sources.jar test
