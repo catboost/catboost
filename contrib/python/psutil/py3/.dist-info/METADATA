@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: psutil
-Version: 6.1.1
-Summary: Cross-platform lib for process and system monitoring in Python.
+Version: 7.0.0
+Summary: Cross-platform lib for process and system monitoring in Python.  NOTE: the syntax of this script MUST be kept compatible with Python 2.7.
 Home-page: https://github.com/giampaolo/psutil
 Author: Giampaolo Rodola
 Author-email: g.rodola@gmail.com
@@ -34,8 +34,6 @@ Classifier: Operating System :: POSIX :: Linux
 Classifier: Operating System :: POSIX :: SunOS/Solaris
 Classifier: Operating System :: POSIX
 Classifier: Programming Language :: C
-Classifier: Programming Language :: Python :: 2
-Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
@@ -52,12 +50,15 @@ Classifier: Topic :: System :: Networking
 Classifier: Topic :: System :: Operating System
 Classifier: Topic :: System :: Systems Administration
 Classifier: Topic :: Utilities
-Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*
+Requires-Python: >=3.6
 Description-Content-Type: text/x-rst
 License-File: LICENSE
 Provides-Extra: dev
+Requires-Dist: pytest ; extra == 'dev'
+Requires-Dist: pytest-xdist ; extra == 'dev'
+Requires-Dist: setuptools ; extra == 'dev'
 Requires-Dist: abi3audit ; extra == 'dev'
-Requires-Dist: black ; extra == 'dev'
+Requires-Dist: black (==24.10.0) ; extra == 'dev'
 Requires-Dist: check-manifest ; extra == 'dev'
 Requires-Dist: coverage ; extra == 'dev'
 Requires-Dist: packaging ; extra == 'dev'
@@ -82,7 +83,7 @@ Requires-Dist: setuptools ; extra == 'test'
 
 |  |downloads| |stars| |forks| |contributors| |coverage|
 |  |version| |py-versions| |packages| |license|
-|  |github-actions-wheels|  |github-actions-bsd| |appveyor| |doc| |twitter| |tidelift|
+|  |github-actions-wheels|  |github-actions-bsd| |doc| |twitter| |tidelift|
 
 .. |downloads| image:: https://img.shields.io/pypi/dm/psutil.svg
     :target: https://pepy.tech/project/psutil
@@ -107,10 +108,6 @@ Requires-Dist: setuptools ; extra == 'test'
 .. |github-actions-bsd| image:: https://img.shields.io/github/actions/workflow/status/giampaolo/psutil/.github/workflows/bsd.yml.svg?label=FreeBSD,%20NetBSD,%20OpenBSD
     :target: https://github.com/giampaolo/psutil/actions?query=workflow%3Absd-tests
     :alt: FreeBSD, NetBSD, OpenBSD
-
-.. |appveyor| image:: https://img.shields.io/appveyor/build/giampaolo/psutil/master.svg?maxAge=3600&label=Windows%20(py2)
-    :target: https://ci.appveyor.com/project/giampaolo/psutil
-    :alt: Windows (Appveyor)
 
 .. |coverage| image:: https://coveralls.io/repos/github/giampaolo/psutil/badge.svg?branch=master
     :target: https://coveralls.io/github/giampaolo/psutil?branch=master
@@ -177,8 +174,9 @@ psutil currently supports the following platforms:
 - **Sun Solaris**
 - **AIX**
 
-Supported Python versions are **2.7**, **3.6+** and
-`PyPy <http://pypy.org/>`__.
+Supported Python versions are cPython 3.6+ and `PyPy <https://pypy.org/>`__.
+Latest psutil version supporting Python 2.7 is
+`psutil 6.1.1 <https://pypi.org/project/psutil/6.1.1/>`__.
 
 Funding
 =======

@@ -7,6 +7,7 @@
  */
 
 #include <Python.h>
+#include <sys/time.h>  // needed for old macOS versions
 #include <sys/proc.h>
 #include <netinet/tcp_fsm.h>
 
@@ -19,6 +20,8 @@
 #include "arch/osx/sensors.h"
 #include "arch/osx/sys.h"
 
+
+#define INITERR return NULL
 
 static PyMethodDef mod_methods[] = {
     // --- per-process functions
@@ -61,33 +64,22 @@ static PyMethodDef mod_methods[] = {
 };
 
 
-#if PY_MAJOR_VERSION >= 3
-    #define INITERR return NULL
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_psutil_osx",
+    NULL,
+    -1,
+    mod_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
 
-    static struct PyModuleDef moduledef = {
-        PyModuleDef_HEAD_INIT,
-        "_psutil_osx",
-        NULL,
-        -1,
-        mod_methods,
-        NULL,
-        NULL,
-        NULL,
-        NULL
-    };
 
-    PyObject *PyInit__psutil_osx(void)
-#else  /* PY_MAJOR_VERSION */
-    #define INITERR return
-
-    void init_psutil_osx(void)
-#endif  /* PY_MAJOR_VERSION */
-{
-#if PY_MAJOR_VERSION >= 3
+PyObject *
+PyInit__psutil_osx(void) {
     PyObject *mod = PyModule_Create(&moduledef);
-#else
-    PyObject *mod = Py_InitModule("_psutil_osx", mod_methods);
-#endif
     if (mod == NULL)
         INITERR;
 
@@ -140,7 +132,5 @@ static PyMethodDef mod_methods[] = {
 
     if (mod == NULL)
         INITERR;
-#if PY_MAJOR_VERSION >= 3
     return mod;
-#endif
 }
