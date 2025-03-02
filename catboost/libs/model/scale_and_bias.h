@@ -23,12 +23,12 @@ public:
     {
     }
 
-    auto AsTie() const {
+    auto AsTuple() const {
         return std::tie(Scale, Bias);
     }
 
     bool operator==(const TScaleAndBias& other) const {
-        return AsTie() == other.AsTie();
+        return AsTuple() == other.AsTuple();
     }
 
     bool operator!=(const TScaleAndBias& other) const {
