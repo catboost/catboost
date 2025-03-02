@@ -3,7 +3,7 @@ name: Check build and tests per OS
 on:
   workflow_call:
     inputs:
-      runs-on_value:
+      os:
         required: true
         type: string
       revision:
@@ -27,12 +27,28 @@ on:
         type: number
         default: 3
 
+env:
+  os_to_runner_map: '{ "linux": "ubuntu-22.04", "macos": "macos-13", "windows": "windows-2022"}'
+
+
 jobs:
+  # Workaround because passing env variables to reusable workflows is not supported
+  # https://github.com/orgs/community/discussions/26671
+  env_vars:
+    name: Expose env variables
+    runs-on: ubuntu-latest
+    outputs:
+      os_to_runner_map: ${{ env.os_to_runner_map }}
+    steps:
+      - run: echo "Exposing env vars to reusable workflows"
+
   build:
     name: Build
     uses: ./.github/workflows/build_per_os.yaml
+    needs: [env_vars]
     with:
-      runs-on_value: ${{ inputs.runs-on_value }}
+      os: ${{ inputs.os }}
+      runs-on_value: ${{ fromJSON(needs.env_vars.outputs.os_to_runner_map)[inputs.os] }}
       revision: ${{ inputs.revision }}
       catboost_package_name: ${{ inputs.catboost_package_name }}
       catboost_package_version: ${{ inputs.catboost_package_version }}
@@ -45,6 +61,6 @@ jobs:
     needs:
       - build
     with:
-      runs-on_value: ${{ inputs.runs-on_value }}
+      os: ${{ inputs.os }}
       artifacts_version: ${{ inputs.artifacts_version }}
       catboost_package_name: ${{ inputs.catboost_package_name }}
