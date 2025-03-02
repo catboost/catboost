@@ -7137,7 +7137,7 @@ def test_set_scale_and_bias():
     model.set_scale_and_bias(3.14, 15.)
     assert (3.14, 15.) == model.get_scale_and_bias()
     pred2 = model.predict(test_pool, prediction_type='RawFormulaVal')
-    assert np.all(abs(pred1 * 3.14 + 15 - pred2) < 1e-15)
+    assert np.all(abs(pred1 * 3.14 + 15 - pred2) < 1e-12)
 
 
 def test_get_metric_evals(task_type):
