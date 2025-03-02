@@ -59,6 +59,8 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
       For compilation with CUDA support the default CMake toolchain assumes that `clang-14` is available from the command line.
 
+      For revisions before [8698718](https://github.com/catboost/catboost/commit/86987189bd2d016ea1241a98d78319c0e900b99c) supported `clang` versions for `x86_64` architecture have been 14 - 18
+
       For revisions before [4602574](https://github.com/catboost/catboost/commit/4602574d7e5cbfd8bb1ea0f7f68a45561c844414) the minimal supported `clang` version for `aarch64` architecture has been 14.
 
       For revisions before [2347554](https://github.com/catboost/catboost/commit/2347554c1dfe6a044a2532f77ab7befb0f0c1960) the minimal supported `clang` as a CUDA host compiler version has been 12.
@@ -84,6 +86,8 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
       - for builds with CUDA support:
         - Microsoft Visual Studio 2019 or 2022 with MSVC v142 -  C++ x64/x86 build tools version v14.28 - 16.x or v14.29 - 16.x (can be selected in `Individual components` pane of the Visual Studio Installer for a paricular Visual Studio version)
+
+      For revisions before [8698718](https://github.com/catboost/catboost/commit/86987189bd2d016ea1241a98d78319c0e900b99c) builds without CUDA required Microsoft Visual Studio 2022 with `clang-cl` compiler with versions 14 - 18.
 
       For revisions before [d5ac776](https://github.com/catboost/catboost/commit/d5ac776e0dd4eeb2ffd99d3fabaaee3e86b8dba1) builds without CUDA have also been using MSVC v142 - Visual Studio 2019 C++ x64/x86 build tools version v14.28 - 16.8 or v14.28 - 16.9.
 
