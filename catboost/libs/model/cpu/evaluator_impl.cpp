@@ -29,7 +29,7 @@ namespace NCB::NModelEvaluation {
             const auto featureId = treeSplitsCurPtr[depth].FeatureIndex;
             const ui8* __restrict binFeaturePtr = &binFeatures[featureId * docCountInBlock];
             const ui8 xorMask = treeSplitsCurPtr[depth].XorMask;
-            if (NeedXorMask) {
+            if constexpr (NeedXorMask) {
                 Y_PREFETCH_READ(binFeaturePtr, 3);
                 Y_PREFETCH_WRITE(indexesVec, 3);
                 #if defined(__clang__) && !defined(_ubsan_enabled_)
@@ -59,7 +59,7 @@ namespace NCB::NModelEvaluation {
             size_t docCountInBlock,
             ui8* __restrict indexesVec,
             const TRepackedBin* __restrict treeSplitsCurPtr) {
-        if (SSEBlockCount == 0) {
+        if constexpr (SSEBlockCount == 0) {
             CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
             return;
         }
@@ -80,7 +80,7 @@ namespace NCB::NModelEvaluation {
             for (int depth = 0; depth < curTreeSize; ++depth) {
                 const ui8 *__restrict binFeaturePtr = binFeatures + treeSplitsCurPtr[depth].FeatureIndex * docCountInBlock + SSE_BLOCK_SIZE * regId;
                 const __m128i borderValVec = _mm_set1_epi8(treeSplitsCurPtr[depth].SplitIdx);
-                if (!NeedXorMask) {
+                if constexpr (!NeedXorMask) {
                     LOAD_16_DOC_HISTS(v0, binFeaturePtr);
                     if (regId + 1 < SSEBlockCount) {
                         LOAD_16_DOC_HISTS(v1, binFeaturePtr + SSE_BLOCK_SIZE);
@@ -101,7 +101,7 @@ namespace NCB::NModelEvaluation {
                 _mm_storeu_si128((__m128i *)(indexesVec + SSE_BLOCK_SIZE * regId + SSE_BLOCK_SIZE), v1);
             }
         }
-        if (SSEBlockCount != 8) {
+        if constexpr (SSEBlockCount != 8) {
             CalcIndexesBasic<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
         }
     #undef _mm_cmpge_epu8
@@ -218,14 +218,14 @@ namespace NCB::NModelEvaluation {
         double* __restrict writePtr)
     {
         const auto docCountInBlock16 = SSEBlockCount * 16;
-        if (SSEBlockCount > 0) {
+        if constexpr (SSEBlockCount > 0) {
             _mm_prefetch((const char*)(writePtr), _MM_HINT_T2);
             GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr0, indexesPtr0, (__m128d*)writePtr);
             GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr1, indexesPtr1, (__m128d*)writePtr);
             GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr2, indexesPtr2, (__m128d*)writePtr);
             GatherAddLeafSSE<SSEBlockCount>(treeLeafPtr3, indexesPtr3, (__m128d*)writePtr);
         }
-        if (SSEBlockCount != 8) {
+        if constexpr (SSEBlockCount != 8) {
             indexesPtr0 += SSE_BLOCK_SIZE * SSEBlockCount;
             indexesPtr1 += SSE_BLOCK_SIZE * SSEBlockCount;
             indexesPtr2 += SSE_BLOCK_SIZE * SSEBlockCount;
@@ -331,7 +331,7 @@ namespace NCB::NModelEvaluation {
             if (!CalcLeafIndexesOnly && curTreeSize <= 8) {
                 CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr,
                                                            curTreeSize);
-                if (IsSingleClassModel) { // single class model
+                if constexpr (IsSingleClassModel) { // single class model
                     CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec, resultsPtr);
                 } else { // multiclass model
                     CalculateLeafValuesMulti(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec,
@@ -347,7 +347,7 @@ namespace NCB::NModelEvaluation {
                     indexesVecUI32 += docCountInBlock;
                     indexesVec += sizeof(ui32) * docCountInBlock;
                 } else {
-                    if (IsSingleClassModel) { // single class model
+                    if constexpr (IsSingleClassModel) { // single class model
                         CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId],
                                             indexesVecUI32, resultsPtr);
                     } else { // multiclass model
