@@ -246,7 +246,7 @@ namespace NCB::NModelEvaluation {
     template <typename TIndexType>
     Y_FORCE_INLINE void CalculateLeafValuesMulti(const size_t docCountInBlock, const double* __restrict leafPtr, const TIndexType* __restrict indexesVec, const int approxDimension, double* __restrict writePtr) {
         for (size_t docId = 0; docId < docCountInBlock; ++docId) {
-            auto leafValuePtr = leafPtr + indexesVec[docId] * approxDimension;
+            const double* __restrict leafValuePtr = leafPtr + indexesVec[docId] * approxDimension;
             for (int classId = 0; classId < approxDimension; ++classId) {
                 writePtr[classId] += leafValuePtr[classId];
             }
@@ -264,12 +264,12 @@ namespace NCB::NModelEvaluation {
         size_t treeStart,
         const size_t treeEnd,
         double* __restrict resultsPtr) {
-        const TRepackedBin* treeSplitsCurPtr =
+        const TRepackedBin* __restrict treeSplitsCurPtr =
             trees.GetRepackedBins().data() + trees.GetModelTreeData()->GetTreeStartOffsets()[treeStart];
 
         ui8* __restrict indexesVec = (ui8*)indexesVecUI32;
-        const auto treeLeafPtr = trees.GetModelTreeData()->GetLeafValues().data();
-        auto firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
+        const double* __restrict treeLeafPtr = trees.GetModelTreeData()->GetLeafValues().data();
+        const size_t* __restrict firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
     #ifdef _sse3_
         bool allTreesAreShallow = AllOf(
             trees.GetModelTreeData()->GetTreeSizes().begin() + treeStart,
@@ -426,9 +426,9 @@ namespace NCB::NModelEvaluation {
         const ui8* __restrict binFeatures = quantizedData->QuantizedData.data();
         Y_ASSERT(calcIndexesOnly || (results && AllOf(results, results + trees.GetDimensionsCount(),
                                                       [](double value) { return value == 0.0; })));
-        const TRepackedBin* treeSplitsCurPtr =
+        const TRepackedBin* __restrict treeSplitsCurPtr =
             trees.GetRepackedBins().data() + trees.GetModelTreeData()->GetTreeStartOffsets()[treeStart];
-        const double* treeLeafPtr = trees.GetFirstLeafPtrForTree(treeStart);
+        const double* __restrict treeLeafPtr = trees.GetFirstLeafPtrForTree(treeStart);
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
             const auto curTreeSize = trees.GetModelTreeData()->GetTreeSizes()[treeId];
             TCalcerIndexType index = 0;
@@ -448,7 +448,7 @@ namespace NCB::NModelEvaluation {
                 if constexpr (IsSingleClassModel) { // single class model
                     results[0] += treeLeafPtr[index];
                 } else { // multiclass model
-                    auto leafValuePtr = treeLeafPtr + index * trees.GetDimensionsCount();
+                    const double* __restrict leafValuePtr = treeLeafPtr + index * trees.GetDimensionsCount();
                     for (int classId = 0; classId < (int)trees.GetDimensionsCount(); ++classId) {
                         results[classId] += leafValuePtr[classId];
                     }
@@ -468,8 +468,8 @@ namespace NCB::NModelEvaluation {
         const size_t treeId,
         TCalcerIndexType* __restrict indexesVec
     ) {
-        const TRepackedBin* treeSplitsPtr = trees.GetRepackedBins().data();
-        const TNonSymmetricTreeStepNode* treeStepNodes = trees.GetModelTreeData()->GetNonSymmetricStepNodes().data();
+        const TRepackedBin* __restrict treeSplitsPtr = trees.GetRepackedBins().data();
+        const TNonSymmetricTreeStepNode* __restrict treeStepNodes = trees.GetModelTreeData()->GetNonSymmetricStepNodes().data();
         std::fill(indexesVec + firstDocId, indexesVec + docCountInBlock, trees.GetModelTreeData()->GetTreeStartOffsets()[treeId]);
         if (binFeatures == nullptr) {
             return;
@@ -478,7 +478,7 @@ namespace NCB::NModelEvaluation {
         while (countStopped != docCountInBlock - firstDocId) {
             countStopped = 0;
             for (size_t docId = firstDocId; docId < docCountInBlock; ++docId) {
-                const auto* stepNode = treeStepNodes + indexesVec[docId];
+                const TNonSymmetricTreeStepNode* __restrict stepNode = treeStepNodes + indexesVec[docId];
                 const TRepackedBin split = treeSplitsPtr[indexesVec[docId]];
                 ui8 featureValue = binFeatures[split.FeatureIndex * docCountInBlock + docId];
                 if constexpr (NeedXorMask) {
@@ -504,8 +504,8 @@ namespace NCB::NModelEvaluation {
         double* __restrict resultsPtr
     ) {
         const ui8* __restrict binFeaturesI = quantizedData->QuantizedData.data();
-        const TRepackedBin* treeSplitsPtr = trees.GetRepackedBins().data();
-        const i32* treeStepNodes = reinterpret_cast<const i32*>(trees.GetModelTreeData()->GetNonSymmetricStepNodes().data());
+        const TRepackedBin* __restrict treeSplitsPtr = trees.GetRepackedBins().data();
+        const i32* __restrict treeStepNodes = reinterpret_cast<const i32*>(trees.GetModelTreeData()->GetNonSymmetricStepNodes().data());
         const ui32* __restrict nonSymmetricNodeIdToLeafIdPtr = trees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId().data();
         const double* __restrict leafValuesPtr = trees.GetModelTreeData()->GetLeafValues().data();
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
@@ -624,7 +624,7 @@ namespace NCB::NModelEvaluation {
                 CalcIndexesNonSymmetric<NeedXorMask>(trees, binFeaturesI, docId, docCountInBlock, treeId, indexes);
             }
             if constexpr (CalcLeafIndexesOnly) {
-                const auto firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
+                const auto* __restrict firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
                 const auto approxDimension = trees.GetDimensionsCount();
                 for (docId = 0; docId < docCountInBlock; ++docId) {
                     Y_ASSERT((nonSymmetricNodeIdToLeafIdPtr[indexes[docId]] - firstLeafOffsetsPtr[treeId]) % approxDimension == 0);
@@ -647,7 +647,7 @@ namespace NCB::NModelEvaluation {
                 }
             } else {
                 const auto approxDim = trees.GetDimensionsCount();
-                auto resultWritePtr = resultsPtr;
+                auto* __restrict resultWritePtr = resultsPtr;
                 for (docId = 0; docId < docCountInBlock; ++docId) {
                     const ui32 firstValueIdx = nonSymmetricNodeIdToLeafIdPtr[indexes[docId]];
                     for (int classId = 0; classId < (int)approxDim; ++classId, ++resultWritePtr) {
@@ -677,7 +677,7 @@ namespace NCB::NModelEvaluation {
                 indexesVec[docId] = trees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[indexesVec[docId]];
             }
             if constexpr (CalcLeafIndexesOnly) {
-                const auto firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
+                const auto* __restrict firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
                 const auto approxDimension = trees.GetDimensionsCount();
                 for (size_t docId = 0; docId < docCountInBlock; ++docId) {
                     Y_ASSERT((indexesVec[docId] - firstLeafOffsetsPtr[treeId]) % approxDimension == 0);
@@ -690,7 +690,7 @@ namespace NCB::NModelEvaluation {
                         resultsPtr[docId] += trees.GetModelTreeData()->GetLeafValues()[indexesVec[docId]];
                     }
                 } else {
-                    auto resultWritePtr = resultsPtr;
+                    auto* __restrict resultWritePtr = resultsPtr;
                     for (size_t docId = 0; docId < docCountInBlock; ++docId) {
                         const ui32 firstValueIdx = indexesVec[docId];
                         for (int classId = 0;
@@ -718,15 +718,15 @@ namespace NCB::NModelEvaluation {
     ) {
         const ui8* __restrict binFeatures = quantizedData->QuantizedData.data();
         TCalcerIndexType index;
-        const TRepackedBin* treeSplitsPtr = trees.GetRepackedBins().data();
-        const TNonSymmetricTreeStepNode* treeStepNodes = trees.GetModelTreeData()->GetNonSymmetricStepNodes().data();
-        const auto firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
+        const TRepackedBin* __restrict treeSplitsPtr = trees.GetRepackedBins().data();
+        const TNonSymmetricTreeStepNode* __restrict treeStepNodes = trees.GetModelTreeData()->GetNonSymmetricStepNodes().data();
+        const auto* __restrict firstLeafOffsetsPtr = applyData.TreeFirstLeafOffsets.data();
         // handle special empty-model case when there is no any splits at all
         const bool skipWork = quantizedData->QuantizedData.GetSize() == 0;
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
             index = trees.GetModelTreeData()->GetTreeStartOffsets()[treeId];
             while (!skipWork) {
-                const auto* stepNode = treeStepNodes + index;
+                const auto* __restrict stepNode = treeStepNodes + index;
                 const TRepackedBin split = treeSplitsPtr[index];
                 ui8 featureValue = binFeatures[split.FeatureIndex];
                 if constexpr (NeedXorMask) {
