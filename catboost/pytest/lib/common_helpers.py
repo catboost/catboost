@@ -446,8 +446,8 @@ def compare_with_limited_precision(lhs, rhs, rtol=1e-6, atol=1e-8):
             if not compare_with_limited_precision(lhs[k], rhs[k], rtol, atol):
                 return False
         return True
-    elif isinstance(lhs, list):
-        if not isinstance(rhs, list):
+    elif isinstance(lhs, (list, tuple)):
+        if not isinstance(rhs, (list, tuple)):
             return False
         if len(lhs) != len(rhs):
             return False
