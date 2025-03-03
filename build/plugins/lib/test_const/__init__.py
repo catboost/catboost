@@ -231,6 +231,7 @@ class TestRequirements(Enum):
     Dns = 'dns'
     Kvm = 'kvm'
     Network = 'network'
+    PortoLayers = 'porto_layers'
     Ram = 'ram'
     RamDisk = 'ram_disk'
     SbVault = 'sb_vault'
