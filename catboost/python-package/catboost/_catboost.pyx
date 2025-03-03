@@ -5375,7 +5375,7 @@ cdef class _CatBoost:
     cpdef _base_drop_unused_features(self):
         self.__model.ModelTrees.GetMutable().DropUnusedFeatures()
 
-    cpdef _load_from_stream(self, stream) except +ProcessException:
+    cpdef _load_from_stream(self, stream):
         cdef THolder[TPythonStreamWrapper] wrapper = MakeHolder[TPythonStreamWrapper](python_stream_read_func, <PyObject*>stream)
         cdef TFullModel tmp_model
         tmp_model.Load(wrapper.Get())
