@@ -7141,7 +7141,7 @@ def test_set_scale_and_bias():
     model.set_scale_and_bias(3.14, 15.)
     assert (3.14, 15.) == model.get_scale_and_bias()
     pred2 = model.predict(test_pool, prediction_type='RawFormulaVal')
-    assert np.all(abs(pred1 * 3.14 + 15 - pred2) < 1e-12)
+    assert np.all(abs(pred1 * 3.14 + 15 - pred2) < 1e-15)
 
 
 def test_get_metric_evals(task_type):
@@ -11741,6 +11741,38 @@ def test_no_throwable_for_pipeline():
     pp = Pipeline([('ML', CatBoostClassifier()),])
     pp.set_params(**{'ML__class_names': None})
     assert clone(pp) is not None
+
+
+def test_fit_fit_quantized_cat_features_type():
+    Xy = DataFrame(
+        data=np.random.randint(0, 100, size=(100, 5)),
+        columns=['t', 'f0', 'f1', 'f2', 'f3']
+    )
+
+    model = CatBoostClassifier(iterations=2,
+                               depth=2,
+                               learning_rate=1,
+                               target_border=50,
+                               loss_function='Logloss',
+                               logging_level='Silent')
+
+    train_pool = Pool(
+        data=Xy[['f0', 'f1', 'f2', 'f3']],
+        label=Xy['t'],
+        cat_features=['f1']
+    )
+    train_pool.quantize()
+
+    model.fit(train_pool)
+    model.fit(train_pool)
+
+    quantized_pool = test_output_path('pool.bin')
+    train_pool.save(quantized_pool)
+    del train_pool
+
+    train_pool = Pool("quantized://" + quantized_pool)  # not path join to keep //
+    model.fit(train_pool)
+    model.fit(train_pool)
 
 
 def test_fit_fit_quantized_cat_features_type():
