@@ -25,6 +25,7 @@ load_adult_pool <- function(name) {
 }
 
 test_that("test caret train and parameter tuning on adult pool", {
+  skip_if_not_installed("caret")
   data_train <- load_adult_pool("train")
   X_train <- data_train$X
   y_train <- data_train$y
