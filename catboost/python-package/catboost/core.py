@@ -2326,6 +2326,7 @@ class CatBoost(CatBoostEstimator):
             save_eval_pool
         )
 
+
     def _prepare_train_params(self, X=None, y=None, cat_features=None, text_features=None, embedding_features=None,
                               pairs=None, graph=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None,
                               pairs_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
