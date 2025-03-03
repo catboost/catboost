@@ -226,9 +226,7 @@ jobs:
             }
           }
 
-      # temporarily disable for Linux aarch64 because of hangs
-      - if: ${{ (inputs.os != 'linux') || (inputs.machine != 'aarch64') }}
-        name: Run pytest
+      - name: Run pytest
         shell: pwsh
         run: |
           python -m pip install testpath pytest 'numpy<2.0' pandas
