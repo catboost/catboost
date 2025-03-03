@@ -93,10 +93,12 @@ FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
 ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
 
+# TODO: remove import to line 104
+from pathlib import Path
+
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
 elif sys.version_info >= (3, 4):
-    from pathlib import Path
     PATH_TYPES = STRING_TYPES + (Path,)
 else:
     PATH_TYPES = STRING_TYPES
@@ -2217,7 +2219,80 @@ def _process_feature_indices(feature_indices, pool, params, param_name):
     return feature_indices
 
 
-class CatBoost(_CatBoostBase):
+class CatBoostEstimator(_CatBoostBase):
+    def __init__(self, params=None):
+        """
+        Initialize the CatBoostEstimator.
+
+        Parameters
+        ----------
+        params : dict
+            Parameters for CatBoost.
+            If  None, all params are set to their defaults.
+            If  dict, overriding parameters present in dict.
+        """
+        params_that_can_be_None = {
+            "iterations": 1000,
+            "learning_rate": 0.03,
+            "depth": 6,
+            "l2_leaf_reg": 3.0,
+            "loss_function": "Logloss",
+            "border_count": 254,
+            "feature_border_type": "GreedyLogSum",
+            "input_borders": None,
+            "output_borders": None,
+            "fold_permutation_block": 1,
+            "target_border" : None,
+            "nan_mode": "Min",
+            "counter_calc_method": "Full",
+            "leaf_estimation_iterations": 1,
+            "leaf_estimation_method": "Newton",
+            "thread_count": -1,
+            "random_seed": 0,
+            "use_best_model": False,
+            "verbose": 1,
+            "logging_level": "Verbose",
+            "metric_period": 1,
+            "store_all_simple_ctr": False,
+            "max_ctr_complexity": 4,
+            "has_time": False,
+            "allow_const_label": False,
+            "random_strength": 1.0,
+            "random_score_type": "PerTree",
+            "bagging_temperature": 1.0,
+            "save_snapshot": False,
+            "snapshot_interval": 600,
+            "fold_len_multiplier": 2.0,
+            "gpu_ram_part": 0.95,
+            "allow_writing_files": True,
+            "final_ctr_computation_mode": "Default",
+            "boosting_type": "Ordered",
+            "task_type": "CPU",
+            "bootstrap_type": "Bayesian",
+            "sampling_unit": "Object",
+            "sampling_frequency": "PerTree",
+            "grow_policy": "SymmetricTree",
+            "min_data_in_leaf": 1,
+            "score_function": "Cosine",
+            "leaf_estimation_backtracking": "AnyImprovement",
+            "penalties_coefficient": 1.0,
+        }
+
+        new_params = {}
+        for key, value in iteritems(params):
+            if value is not None:
+                new_params[key] = value
+            elif key in params_that_can_be_None.keys():
+                if key ==  "loss_function":
+                    if params_that_can_be_None["target_border"] is None:
+                        new_params[key] = "RMSE"
+                        continue
+                new_params[key] = params_that_can_be_None[key]
+
+        super(CatBoostEstimator, self).__init__(new_params)
+
+
+class CatBoost(CatBoostEstimator):
     """
     CatBoost model. Contains training, prediction and evaluation methods.
     """
@@ -4533,7 +4608,7 @@ class CatBoost(_CatBoostBase):
         self._object._convert_oblivious_to_asymmetric()
 
 
-class CatBoostClassifier(CatBoost):
+class CatBoostClassifier(CatBoostEstimator):
     """
     Implementation of the scikit-learn API for CatBoost classification.
 
@@ -5124,7 +5199,7 @@ class CatBoostClassifier(CatBoost):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
         for key, value in iteritems(locals().copy()):
-            if key not in not_params and value is not None:
+            if key not in not_params:
                 params[key] = value
 
         super(CatBoostClassifier, self).__init__(params)
@@ -5615,7 +5690,7 @@ class CatBoostClassifier(CatBoost):
                                 "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
 
-class CatBoostRegressor(CatBoost):
+class CatBoostRegressor(CatBoostEstimator):
     """
     Implementation of the scikit-learn API for CatBoost regression.
 
@@ -6025,7 +6100,7 @@ class CatBoostRegressor(CatBoost):
         return 'RawFormulaVal'
 
 
-class CatBoostRanker(CatBoost):
+class CatBoostRanker(CatBoostEstimator):
     """
     Implementation of the scikit-learn API for CatBoost ranking.
     Parameters
