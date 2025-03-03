@@ -1,0 +1,12 @@
+# CMake generated Testfile for 
+# Source directory: /Users/makar/Documents/Course work/Repository/catboost/library/cpp/testing
+# Build directory: /Users/makar/Documents/Course work/Repository/catboost/build_artifacts/library/cpp/testing
+# 
+# This file includes the relevant testing commands required for 
+# testing this directory and lists subdirectories to be tested as well.
+subdirs("unittest_main")
+subdirs("unittest")
+subdirs("common")
+subdirs("hook")
+subdirs("benchmark")
+subdirs("gbenchmark")

@@ -1,0 +1,1 @@
+. "/Users/makar/Documents/Course work/Repository/catboost/build_artifacts/conan/build/Release/generators/conanrunenv-release-armv8.sh"

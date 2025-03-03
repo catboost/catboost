@@ -1,0 +1,1 @@
+%insert(initbeforefunc) "swiginit.swg"

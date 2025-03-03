@@ -1,0 +1,2 @@
+%include <typemaps/swigmacros.swg>
+

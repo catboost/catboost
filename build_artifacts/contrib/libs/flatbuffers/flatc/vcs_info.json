@@ -1,0 +1,19 @@
+{
+    "ARCADIA_PATCH_NUMBER": 47960,
+    "ARCADIA_SOURCE_HG_HASH": "e736fa8da89925cb98ba85d7d6369626a59ea55f",
+    "ARCADIA_SOURCE_LAST_AUTHOR": "makar <kulishenko.m@mail.ru>",
+    "ARCADIA_SOURCE_LAST_CHANGE": 9293085,
+    "ARCADIA_SOURCE_PATH": "/Users/makar/Documents/Course work/Repository/catboost",
+    "ARCADIA_SOURCE_REVISION": -1,
+    "ARCADIA_SOURCE_URL": "",
+    "ARCADIA_TAG": "",
+    "BRANCH": "heads/develop",
+    "BUILD_DATE": "2025-02-18T18:10:37.000000Z",
+    "BUILD_TIMESTAMP": 1739902237,
+    "BUILD_USER": "makar",
+    "CUSTOM_VERSION": "",
+    "DIRTY": "",
+    "PROGRAM_VERSION": "Git info:\n    Commit: e736fa8da89925cb98ba85d7d6369626a59ea55f\n    Branch: heads/develop\n    Author: makar <kulishenko.m@mail.ru>\n    Summary: fix CatBoostEstimator class\n    git-svn info:\n    Last Changed Rev: 9293085\n\nOther info:\n    Build by: makar\n    Top src dir: /Users/makar/Documents/Course work/Repository/catboost\n",
+    "SCM_DATA": "Git info:\n    Commit: e736fa8da89925cb98ba85d7d6369626a59ea55f\n    Branch: heads/develop\n    Author: makar <kulishenko.m@mail.ru>\n    Summary: fix CatBoostEstimator class\n    git-svn info:\n    Last Changed Rev: 9293085\n",
+    "VCS": "git"
+}

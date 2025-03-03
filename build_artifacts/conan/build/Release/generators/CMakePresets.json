@@ -1,0 +1,44 @@
+{
+    "version": 3,
+    "vendor": {
+        "conan": {}
+    },
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 15,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "conan-release",
+            "displayName": "'conan-release' config",
+            "description": "'conan-release' configure using 'Ninja' generator",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_POLICY_DEFAULT_CMP0091": "NEW",
+                "CMAKE_BUILD_TYPE": "Release"
+            },
+            "environment": {
+                "PATH": "/Users/makar/.conan2/p/yasmf5f5a1edf2bac/p/bin:/Users/makar/.conan2/p/swig730af938a1133/p/bin:/Users/makar/.conan2/p/ragel4086a4d35af21/p/bin:$penv{PATH}",
+                "SWIG_LIB": "/Users/makar/.conan2/p/swig730af938a1133/p/bin/swiglib",
+                "LD_LIBRARY_PATH": "/Users/makar/.conan2/p/swig730af938a1133/p/lib:$penv{LD_LIBRARY_PATH}",
+                "DYLD_LIBRARY_PATH": "/Users/makar/.conan2/p/swig730af938a1133/p/lib:$penv{DYLD_LIBRARY_PATH}"
+            },
+            "toolchainFile": "generators/conan_toolchain.cmake",
+            "binaryDir": "/Users/makar/Documents/Course work/Repository/catboost/build_artifacts/conan/build/Release"
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "conan-release",
+            "configurePreset": "conan-release",
+            "jobs": 11
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "conan-release",
+            "configurePreset": "conan-release"
+        }
+    ]
+}

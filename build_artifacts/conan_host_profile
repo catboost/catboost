@@ -1,0 +1,12 @@
+[settings]
+arch=armv8
+os=Macos
+os.version=11.0
+compiler=clang
+compiler.version=19
+compiler.cppstd=20
+compiler.libcxx=libc++
+build_type=Release
+[conf]
+tools.cmake.cmaketoolchain:generator=Ninja
+tools.build:compiler_executables={"c":"\"/opt/homebrew/opt/llvm/bin/clang\"","cpp":"\"/opt/homebrew/opt/llvm/bin/clang++\""}

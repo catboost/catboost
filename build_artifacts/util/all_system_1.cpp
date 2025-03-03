@@ -1,0 +1,32 @@
+#if defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#if defined(__clang__)
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
+#endif
+#pragma GCC diagnostic ignored "-Wsubobject-linkage"
+#endif
+
+#include "util/system/atexit.cpp"
+#include "util/system/backtrace.cpp"
+#include "util/system/compat.cpp"
+#include "util/system/condvar.cpp"
+#include "util/system/daemon.cpp"
+#include "util/system/datetime.cpp"
+#include "util/system/defaults.c"
+#include "util/system/direct_io.cpp"
+#include "util/system/dynlib.cpp"
+#include "util/system/env.cpp"
+#include "util/system/error.cpp"
+#include "util/system/event.cpp"
+#include "util/system/fasttime.cpp"
+#include "util/system/file.cpp"
+#include "util/system/file_lock.cpp"
+#include "util/system/filemap.cpp"
+#include "util/system/flock.cpp"
+#include "util/system/fs.cpp"
+#include "util/system/fstat.cpp"
+#include "util/system/getpid.cpp"
+#include "util/system/hi_lo.cpp"
+#include "util/system/hostname.cpp"
+#include "util/system/hp_timer.cpp"
+#include "util/system/info.cpp"

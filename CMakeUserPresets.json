@@ -1,0 +1,11 @@
+{
+    "version": 4,
+    "vendor": {
+        "conan": {}
+    },
+    "include": [
+        "../../../../build_no_cuda/conan/build/Release/generators/CMakePresets.json",
+        "build_artifacts/conan/build/Release/generators/CMakePresets.json",
+        "../../../../build_applier/darwin-arm64/conan/build/Release/generators/CMakePresets.json"
+    ]
+}

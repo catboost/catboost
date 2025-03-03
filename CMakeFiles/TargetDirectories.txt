@@ -1,0 +1,2 @@
+/Users/makar/Documents/Course work/Repository/catboost/CMakeFiles/edit_cache.dir
+/Users/makar/Documents/Course work/Repository/catboost/CMakeFiles/rebuild_cache.dir
