@@ -93,6 +93,8 @@ FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
 ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
 
+from pathlib import Path
+
 if sys.version_info >= (3, 6):
     PATH_TYPES = STRING_TYPES + (os.PathLike,)
 elif sys.version_info >= (3, 4):
