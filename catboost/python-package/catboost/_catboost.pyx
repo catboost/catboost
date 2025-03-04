@@ -5594,7 +5594,6 @@ cdef class _CatBoost:
                 ResetPythonInterruptHandler()
         cv_results = defaultdict(list)
         result_metrics = set()
-        cdef THashMap[TString, double] metric_result
         if choose_by_train_test_split:
             self.__metrics_history = trainTestResults
         for metric_idx in xrange(results.CvResult.size()):
