@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
@@ -14,6 +15,9 @@ from typing import TypeVar
 from typing import overload
 from warnings import warn
 
+from narwhals._expression_parsing import ExprKind
+from narwhals._expression_parsing import all_exprs_are_aggs_or_literals
+from narwhals._expression_parsing import check_expressions_transform
 from narwhals.dependencies import get_polars
 from narwhals.dependencies import is_numpy_array
 from narwhals.dependencies import is_numpy_array_1d
@@ -21,7 +25,6 @@ from narwhals.exceptions import ColumnNotFoundError
 from narwhals.exceptions import InvalidIntoExprError
 from narwhals.exceptions import LengthChangingExprError
 from narwhals.exceptions import OrderDependentExprError
-from narwhals.exceptions import ShapeError
 from narwhals.schema import Schema
 from narwhals.translate import to_native
 from narwhals.utils import Implementation
@@ -78,20 +81,14 @@ class BaseFrame(Generic[_FrameT]):
 
     def _flatten_and_extract(
         self, *exprs: IntoExpr | Iterable[IntoExpr], **named_exprs: IntoExpr
-    ) -> tuple[tuple[IntoCompliantExpr[Any]], dict[str, IntoCompliantExpr[Any]]]:
+    ) -> tuple[IntoCompliantExpr[Any]]:
         """Process `args` and `kwargs`, extracting underlying objects as we go, interpreting strings as column names."""
-        plx = self.__narwhals_namespace__()
-        compliant_exprs = tuple(
-            plx.col(expr) if isinstance(expr, str) else self._extract_compliant(expr)
-            for expr in flatten(exprs)
-        )
-        compliant_named_exprs = {
-            key: plx.col(value)
-            if isinstance(value, str)
-            else self._extract_compliant(value)
+        compliant_exprs = (self._extract_compliant(expr) for expr in flatten(exprs))
+        compliant_named_exprs = (
+            self._extract_compliant(value).alias(key)
             for key, value in named_exprs.items()
-        }
-        return compliant_exprs, compliant_named_exprs
+        )
+        return tuple(chain(compliant_exprs, compliant_named_exprs))
 
     @abstractmethod
     def _extract_compliant(self: Self, arg: Any) -> Any:
@@ -132,11 +129,9 @@ class BaseFrame(Generic[_FrameT]):
     def with_columns(
         self: Self, *exprs: IntoExpr | Iterable[IntoExpr], **named_exprs: IntoExpr
     ) -> Self:
-        compliant_exprs, compliant_named_exprs = self._flatten_and_extract(
-            *exprs, **named_exprs
-        )
+        compliant_exprs = self._flatten_and_extract(*exprs, **named_exprs)
         return self._from_compliant_dataframe(
-            self._compliant_frame.with_columns(*compliant_exprs, **compliant_named_exprs),
+            self._compliant_frame.with_columns(*compliant_exprs),
         )
 
     def select(
@@ -158,12 +153,16 @@ class BaseFrame(Generic[_FrameT]):
                 raise ColumnNotFoundError.from_missing_and_available_column_names(
                     missing_columns, available_columns
                 ) from e
-
-        compliant_exprs, compliant_named_exprs = self._flatten_and_extract(
+        compliant_exprs = self._flatten_and_extract(*flat_exprs, **named_exprs)
+        if (flat_exprs or named_exprs) and all_exprs_are_aggs_or_literals(
             *flat_exprs, **named_exprs
-        )
+        ):
+            return self._from_compliant_dataframe(
+                self._compliant_frame.aggregate(*compliant_exprs),
+            )
+
         return self._from_compliant_dataframe(
-            self._compliant_frame.select(*compliant_exprs, **compliant_named_exprs),
+            self._compliant_frame.select(*compliant_exprs),
         )
 
     def rename(self: Self, mapping: dict[str, str]) -> Self:
@@ -185,21 +184,25 @@ class BaseFrame(Generic[_FrameT]):
         *predicates: IntoExpr | Iterable[IntoExpr] | list[bool],
         **constraints: Any,
     ) -> Self:
-        flat_predicates = flatten(predicates)
-        if any(
-            getattr(x, "_aggregates", False) or getattr(x, "_changes_length", False)
-            for x in flat_predicates
-        ):
-            msg = "Expressions which aggregate or change length cannot be passed to `filter`."
-            raise ShapeError(msg)
         if not (
             len(predicates) == 1
             and isinstance(predicates[0], list)
             and all(isinstance(x, bool) for x in predicates[0])
         ):
-            predicates = [self._extract_compliant(v) for v in flat_predicates]  # type: ignore[assignment]
+            flat_predicates = flatten(predicates)
+            check_expressions_transform(*flat_predicates, function_name="filter")
+            compliant_predicates = self._flatten_and_extract(*flat_predicates)
+            plx = self.__narwhals_namespace__()
+            predicate = plx.all_horizontal(
+                *chain(
+                    compliant_predicates,
+                    (plx.col(name) == v for name, v in constraints.items()),
+                )
+            )
+        else:
+            predicate = predicates[0]
         return self._from_compliant_dataframe(
-            self._compliant_frame.filter(*predicates, **constraints),
+            self._compliant_frame.filter(predicate),
         )
 
     def sort(
@@ -224,12 +227,11 @@ class BaseFrame(Generic[_FrameT]):
         right_on: str | list[str] | None = None,
         suffix: str = "_right",
     ) -> Self:
-        _supported_joins = ("inner", "left", "cross", "anti", "semi")
         on = [on] if isinstance(on, str) else on
         left_on = [left_on] if isinstance(left_on, str) else left_on
         right_on = [right_on] if isinstance(right_on, str) else right_on
 
-        if how not in _supported_joins:
+        if how not in (_supported_joins := ("inner", "left", "cross", "anti", "semi")):
             msg = f"Only the following join strategies are supported: {_supported_joins}; found '{how}'."
             raise NotImplementedError(msg)
 
@@ -409,12 +411,15 @@ class DataFrame(BaseFrame[DataFrameT]):
         from narwhals.expr import Expr
         from narwhals.series import Series
 
+        plx = self.__narwhals_namespace__()
         if isinstance(arg, BaseFrame):
             return arg._compliant_frame
         if isinstance(arg, Series):
-            return arg._compliant_series
+            return plx._create_expr_from_series(arg._compliant_series)
         if isinstance(arg, Expr):
             return arg._to_compliant_expr(self.__narwhals_namespace__())
+        if isinstance(arg, str):
+            return plx.col(arg)
         if get_polars() is not None and "polars" in str(type(arg)):  # pragma: no cover
             msg = (
                 f"Expected Narwhals object, got: {type(arg)}.\n\n"
@@ -424,7 +429,7 @@ class DataFrame(BaseFrame[DataFrameT]):
             )
             raise TypeError(msg)
         if is_numpy_array(arg):
-            return arg
+            return plx._create_expr_from_series(plx._create_compliant_series(arg))
         raise InvalidIntoExprError.from_invalid_type(type(arg))
 
     @property
@@ -2180,8 +2185,11 @@ class LazyFrame(BaseFrame[FrameT]):
         if isinstance(arg, Series):  # pragma: no cover
             msg = "Binary operations between Series and LazyFrame are not supported."
             raise TypeError(msg)
+        if isinstance(arg, str):  # pragma: no cover
+            plx = self.__narwhals_namespace__()
+            return plx.col(arg)
         if isinstance(arg, Expr):
-            if arg._is_order_dependent:
+            if arg._metadata["is_order_dependent"]:
                 msg = (
                     "Order-dependent expressions are not supported for use in LazyFrame.\n\n"
                     "Hints:\n"
@@ -2192,7 +2200,7 @@ class LazyFrame(BaseFrame[FrameT]):
                     "  they will be supported."
                 )
                 raise OrderDependentExprError(msg)
-            if arg._changes_length:
+            if arg._metadata["kind"] is ExprKind.CHANGES_LENGTH:
                 msg = (
                     "Length-changing expressions are not supported for use in LazyFrame, unless\n"
                     "followed by an aggregation.\n\n"

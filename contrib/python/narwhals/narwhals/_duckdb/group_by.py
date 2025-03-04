@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from duckdb import Expression
     from typing_extensions import Self
 
     from narwhals._duckdb.dataframe import DuckDBLazyFrame
@@ -23,7 +24,7 @@ class DuckDBGroupBy:
         self._keys = keys
 
     def agg(self: Self, *exprs: DuckDBExpr) -> DuckDBLazyFrame:
-        agg_columns = self._keys.copy()
+        agg_columns: list[str | Expression] = list(self._keys)
         df = self._compliant_frame
         for expr in exprs:
             output_names = expr._evaluate_output_names(df)
@@ -49,5 +50,5 @@ class DuckDBGroupBy:
             )
 
         return self._compliant_frame._from_native_frame(
-            self._compliant_frame._native_frame.aggregate(agg_columns)
+            self._compliant_frame._native_frame.aggregate(agg_columns)  # type: ignore[arg-type]
         )

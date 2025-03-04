@@ -74,7 +74,5 @@ class ExprListNamespace(Generic[ExprT]):
         """
         return self._expr.__class__(
             lambda plx: self._expr._to_compliant_expr(plx).list.len(),
-            self._expr._is_order_dependent,
-            changes_length=self._expr._changes_length,
-            aggregates=self._expr._aggregates,
+            self._expr._metadata,
         )

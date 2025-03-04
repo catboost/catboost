@@ -44,6 +44,7 @@ if TYPE_CHECKING:
     import polars as pl
     import pyarrow as pa
 
+    from narwhals._arrow.typing import ArrowChunkedArray
     from narwhals.dataframe import DataFrame
     from narwhals.dataframe import LazyFrame
     from narwhals.series import Series
@@ -386,32 +387,8 @@ def _from_native_impl(  # noqa: PLR0915
         msg = "Invalid parameter combination: `eager_only=True` and `eager_or_interchange_only=True`"
         raise ValueError(msg)
 
-    # SQLFrame
-    # This one needs checking before extensions as `hasattr` always returns `True`.
-    if is_sqlframe_dataframe(native_object):  # pragma: no cover
-        from narwhals._spark_like.dataframe import SparkLikeLazyFrame
-
-        if series_only:
-            msg = "Cannot only use `series_only` with SQLFrame DataFrame"
-            raise TypeError(msg)
-        if eager_only or eager_or_interchange_only:
-            msg = "Cannot only use `eager_only` or `eager_or_interchange_only` with SQLFrame DataFrame"
-            raise TypeError(msg)
-        import sqlframe._version
-
-        backend_version = parse_version(sqlframe._version)
-        return LazyFrame(
-            SparkLikeLazyFrame(
-                native_object,
-                backend_version=backend_version,
-                version=version,
-                implementation=Implementation.SQLFRAME,
-            ),
-            level="lazy",
-        )
-
     # Extensions
-    elif is_compliant_dataframe(native_object):
+    if is_compliant_dataframe(native_object):
         if series_only:
             if not pass_through:
                 msg = "Cannot only use `series_only` with dataframe"
@@ -765,6 +742,28 @@ def _from_native_impl(  # noqa: PLR0915
             level="lazy",
         )
 
+    elif is_sqlframe_dataframe(native_object):  # pragma: no cover
+        from narwhals._spark_like.dataframe import SparkLikeLazyFrame
+
+        if series_only:
+            msg = "Cannot only use `series_only` with SQLFrame DataFrame"
+            raise TypeError(msg)
+        if eager_only or eager_or_interchange_only:
+            msg = "Cannot only use `eager_only` or `eager_or_interchange_only` with SQLFrame DataFrame"
+            raise TypeError(msg)
+        import sqlframe._version
+
+        backend_version = parse_version(sqlframe._version)
+        return LazyFrame(
+            SparkLikeLazyFrame(
+                native_object,
+                backend_version=backend_version,
+                version=version,
+                implementation=Implementation.SQLFRAME,
+            ),
+            level="lazy",
+        )
+
     # Interchange protocol
     elif _supports_dataframe_interchange(native_object):
         from narwhals._interchange.dataframe import InterchangeFrame
@@ -798,7 +797,7 @@ def get_native_namespace(
     | pl.LazyFrame
     | pl.Series
     | pa.Table
-    | pa.ChunkedArray,
+    | ArrowChunkedArray,
 ) -> Any:
     """Get native namespace from object.
 

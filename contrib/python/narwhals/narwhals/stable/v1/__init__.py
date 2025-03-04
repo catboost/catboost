@@ -15,6 +15,8 @@ import narwhals as nw
 from narwhals import dependencies
 from narwhals import exceptions
 from narwhals import selectors
+from narwhals._expression_parsing import ExprKind
+from narwhals._expression_parsing import ExprMetadata
 from narwhals.dataframe import DataFrame as NwDataFrame
 from narwhals.dataframe import LazyFrame as NwLazyFrame
 from narwhals.dependencies import get_polars
@@ -82,6 +84,7 @@ from narwhals.utils import validate_strict_and_pass_though
 
 if TYPE_CHECKING:
     from types import ModuleType
+    from typing import Mapping
 
     from typing_extensions import Self
 
@@ -268,6 +271,9 @@ class LazyFrame(NwLazyFrame[IntoFrameT]):
         if isinstance(arg, Expr):
             # After stable.v1, we raise if arg._is_order_dependent or arg._changes_length
             return arg._to_compliant_expr(self.__narwhals_namespace__())
+        if isinstance(arg, str):
+            plx = self.__narwhals_namespace__()
+            return plx.col(arg)
         if get_polars() is not None and "polars" in str(type(arg)):  # pragma: no cover
             msg = (
                 f"Expected Narwhals object, got: {type(arg)}.\n\n"
@@ -963,9 +969,7 @@ class Expr(NwExpr):
         """
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).head(n),
-            is_order_dependent=True,
-            changes_length=True,
-            aggregates=self._aggregates,
+            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
         )
 
     def tail(self: Self, n: int = 10) -> Self:
@@ -979,9 +983,7 @@ class Expr(NwExpr):
         """
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).tail(n),
-            is_order_dependent=True,
-            changes_length=True,
-            aggregates=self._aggregates,
+            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
         )
 
     def gather_every(self: Self, n: int, offset: int = 0) -> Self:
@@ -996,9 +998,7 @@ class Expr(NwExpr):
         """
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).gather_every(n=n, offset=offset),
-            is_order_dependent=True,
-            changes_length=True,
-            aggregates=self._aggregates,
+            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
         )
 
     def unique(self: Self, *, maintain_order: bool | None = None) -> Self:
@@ -1020,9 +1020,10 @@ class Expr(NwExpr):
             warn(message=msg, category=UserWarning, stacklevel=find_stacklevel())
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).unique(),
-            self._is_order_dependent,
-            changes_length=True,
-            aggregates=self._aggregates,
+            ExprMetadata(
+                kind=ExprKind.CHANGES_LENGTH,
+                is_order_dependent=self._metadata["is_order_dependent"],
+            ),
         )
 
     def sort(self: Self, *, descending: bool = False, nulls_last: bool = False) -> Self:
@@ -1039,9 +1040,7 @@ class Expr(NwExpr):
             lambda plx: self._to_compliant_expr(plx).sort(
                 descending=descending, nulls_last=nulls_last
             ),
-            is_order_dependent=True,
-            changes_length=self._changes_length,
-            aggregates=self._aggregates,
+            ExprMetadata(kind=self._metadata["kind"], is_order_dependent=True),
         )
 
     def arg_true(self: Self) -> Self:
@@ -1052,9 +1051,7 @@ class Expr(NwExpr):
         """
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).arg_true(),
-            is_order_dependent=True,
-            changes_length=True,
-            aggregates=self._aggregates,
+            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
         )
 
     def sample(
@@ -1088,9 +1085,7 @@ class Expr(NwExpr):
             lambda plx: self._to_compliant_expr(plx).sample(
                 n, fraction=fraction, with_replacement=with_replacement, seed=seed
             ),
-            is_order_dependent=True,
-            changes_length=True,
-            aggregates=self._aggregates,
+            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
         )
 
 
@@ -1137,12 +1132,7 @@ def _stableify(
             level=obj._level,
         )
     if isinstance(obj, NwExpr):
-        return Expr(
-            obj._to_compliant_expr,
-            is_order_dependent=obj._is_order_dependent,
-            changes_length=obj._changes_length,
-            aggregates=obj._aggregates,
-        )
+        return Expr(obj._to_compliant_expr, obj._metadata)
     return obj
 
 
@@ -2091,7 +2081,7 @@ def concat_str(
 class When(NwWhen):
     @classmethod
     def from_when(cls: type, when: NwWhen) -> When:
-        return cls(*when._predicates)  # type: ignore[no-any-return]
+        return cls(when._predicate)  # type: ignore[no-any-return]
 
     def then(self: Self, value: Any) -> Then:
         return Then.from_then(super().then(value))
@@ -2101,10 +2091,7 @@ class Then(NwThen, Expr):
     @classmethod
     def from_then(cls: type, then: NwThen) -> Then:
         return cls(  # type: ignore[no-any-return]
-            then._to_compliant_expr,
-            is_order_dependent=then._is_order_dependent,
-            changes_length=then._changes_length,
-            aggregates=then._aggregates,
+            then._to_compliant_expr, then._metadata
         )
 
     def otherwise(self: Self, value: Any) -> Expr:
@@ -2183,8 +2170,8 @@ def from_arrow(
 
 
 def from_dict(
-    data: dict[str, Any],
-    schema: dict[str, DType] | Schema | None = None,
+    data: Mapping[str, Any],
+    schema: Mapping[str, DType] | Schema | None = None,
     *,
     backend: ModuleType | Implementation | str | None = None,
     native_namespace: ModuleType | None = None,
@@ -2230,7 +2217,7 @@ def from_dict(
 
 def from_numpy(
     data: _2DArray,
-    schema: dict[str, DType] | Schema | list[str] | None = None,
+    schema: Mapping[str, DType] | Schema | Sequence[str] | None = None,
     *,
     native_namespace: ModuleType,
 ) -> DataFrame[Any]:
@@ -2244,20 +2231,13 @@ def from_numpy(
 
     Arguments:
         data: Two-dimensional data represented as a NumPy ndarray.
-        schema: The DataFrame schema as Schema, dict of {name: type}, or a list of str.
+        schema: The DataFrame schema as Schema, dict of {name: type}, or a sequence of str.
         native_namespace: The native library to use for DataFrame creation.
 
     Returns:
         A new DataFrame.
     """
-    return _stableify(  # type: ignore[no-any-return]
-        _from_numpy_impl(
-            data,
-            schema,
-            native_namespace=native_namespace,
-            version=Version.V1,
-        )
-    )
+    return _stableify(_from_numpy_impl(data, schema, native_namespace=native_namespace))
 
 
 def read_csv(

@@ -325,15 +325,9 @@ class SparkLikeNamespace(CompliantNamespace["Column"]):
             implementation=self._implementation,
         )
 
-    def when(self: Self, *predicates: SparkLikeExpr) -> SparkLikeWhen:
-        plx = self.__class__(
-            backend_version=self._backend_version,
-            version=self._version,
-            implementation=self._implementation,
-        )
-        condition = plx.all_horizontal(*predicates)
+    def when(self: Self, predicate: SparkLikeExpr) -> SparkLikeWhen:
         return SparkLikeWhen(
-            condition,
+            predicate,
             self._backend_version,
             expr_kind=ExprKind.TRANSFORM,
             version=self._version,

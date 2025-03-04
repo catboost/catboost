@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
@@ -10,7 +9,7 @@ import dask.dataframe as dd
 import pandas as pd
 
 from narwhals._dask.utils import add_row_index
-from narwhals._dask.utils import parse_exprs_and_named_exprs
+from narwhals._dask.utils import parse_exprs
 from narwhals._pandas_like.utils import check_column_names_are_unique
 from narwhals._pandas_like.utils import native_to_narwhals_dtype
 from narwhals._pandas_like.utils import select_columns_by_name
@@ -85,9 +84,9 @@ class DaskLazyFrame(CompliantLazyFrame):
             validate_column_names=validate_column_names,
         )
 
-    def with_columns(self: Self, *exprs: DaskExpr, **named_exprs: DaskExpr) -> Self:
+    def with_columns(self: Self, *exprs: DaskExpr) -> Self:
         df = self._native_frame
-        new_series = parse_exprs_and_named_exprs(self, *exprs, **named_exprs)
+        new_series = parse_exprs(self, *exprs)
         df = df.assign(**new_series)
         return self._from_native_frame(df)
 
@@ -141,13 +140,9 @@ class DaskLazyFrame(CompliantLazyFrame):
     def columns(self: Self) -> list[str]:
         return self._native_frame.columns.tolist()  # type: ignore[no-any-return]
 
-    def filter(self: Self, *predicates: DaskExpr, **constraints: Any) -> Self:
-        plx = self.__narwhals_namespace__()
-        expr = plx.all_horizontal(
-            *chain(predicates, (plx.col(name) == v for name, v in constraints.items()))
-        )
-        # `[0]` is safe as all_horizontal's expression only returns a single column
-        mask = expr._call(self)[0]
+    def filter(self: Self, predicate: DaskExpr) -> Self:
+        # `[0]` is safe as the predicate's expression only returns a single column
+        mask = predicate._call(self)[0]
 
         return self._from_native_frame(
             self._native_frame.loc[mask], validate_column_names=False
@@ -164,8 +159,15 @@ class DaskLazyFrame(CompliantLazyFrame):
             validate_column_names=False,
         )
 
-    def select(self: Self, *exprs: DaskExpr, **named_exprs: DaskExpr) -> Self:
-        new_series = parse_exprs_and_named_exprs(self, *exprs, **named_exprs)
+    def aggregate(self: Self, *exprs: DaskExpr) -> Self:
+        new_series = parse_exprs(self, *exprs)
+        df = dd.concat(
+            [val.to_series().rename(name) for name, val in new_series.items()], axis=1
+        )
+        return self._from_native_frame(df, validate_column_names=False)
+
+    def select(self: Self, *exprs: DaskExpr) -> Self:
+        new_series = parse_exprs(self, *exprs)
 
         if not new_series:
             # return empty dataframe, like Polars does
@@ -175,14 +177,6 @@ class DaskLazyFrame(CompliantLazyFrame):
                 ),
                 validate_column_names=False,
             )
-
-        if all(getattr(expr, "_returns_scalar", False) for expr in exprs) and all(
-            getattr(val, "_returns_scalar", False) for val in named_exprs.values()
-        ):
-            df = dd.concat(
-                [val.to_series().rename(name) for name, val in new_series.items()], axis=1
-            )
-            return self._from_native_frame(df, validate_column_names=False)
 
         df = select_columns_by_name(
             self._native_frame.assign(**new_series),
@@ -430,12 +424,12 @@ class DaskLazyFrame(CompliantLazyFrame):
 
     def gather_every(self: Self, n: int, offset: int) -> Self:
         row_index_token = generate_temporary_column_name(n_bytes=8, columns=self.columns)
-        pln = self.__narwhals_namespace__()
+        plx = self.__narwhals_namespace__()
         return (
-            self.with_row_index(name=row_index_token)
+            self.with_row_index(row_index_token)
             .filter(
-                pln.col(row_index_token) >= offset,  # type: ignore[operator]
-                (pln.col(row_index_token) - offset) % n == 0,  # type: ignore[arg-type]
+                (plx.col(row_index_token) >= offset)  # type: ignore[operator]
+                & ((plx.col(row_index_token) - offset) % n == 0)
             )
             .drop([row_index_token], strict=False)
         )

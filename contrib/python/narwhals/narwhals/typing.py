@@ -49,19 +49,25 @@ class CompliantSeries(Protocol):
 
 
 class CompliantDataFrame(Protocol):
-    def __narwhals_dataframe__(self) -> CompliantDataFrame: ...
+    def __narwhals_dataframe__(self) -> Self: ...
     def __narwhals_namespace__(self) -> Any: ...
     def simple_select(
         self, *column_names: str
-    ) -> CompliantDataFrame: ...  # `select` where all args are column names
+    ) -> Self: ...  # `select` where all args are column names.
+    def aggregate(self, *exprs: Any) -> Self:
+        ...  # `select` where all args are aggregations or literals
+        # (so, no broadcasting is necessary).
 
 
 class CompliantLazyFrame(Protocol):
-    def __narwhals_lazyframe__(self) -> CompliantLazyFrame: ...
+    def __narwhals_lazyframe__(self) -> Self: ...
     def __narwhals_namespace__(self) -> Any: ...
     def simple_select(
         self, *column_names: str
-    ) -> CompliantLazyFrame: ...  # `select` where all args are column names
+    ) -> Self: ...  # `select` where all args are column names.
+    def aggregate(self, *exprs: Any) -> Self:
+        ...  # `select` where all args are aggregations or literals
+        # (so, no broadcasting is necessary).
 
 
 CompliantSeriesT_co = TypeVar(

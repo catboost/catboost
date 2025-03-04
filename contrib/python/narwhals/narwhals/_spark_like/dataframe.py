@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from itertools import chain
+import warnings
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Literal
@@ -8,12 +8,13 @@ from typing import Sequence
 
 from narwhals._spark_like.utils import ExprKind
 from narwhals._spark_like.utils import native_to_narwhals_dtype
-from narwhals._spark_like.utils import parse_exprs_and_named_exprs
+from narwhals._spark_like.utils import parse_exprs
 from narwhals.exceptions import InvalidOperationError
 from narwhals.typing import CompliantDataFrame
 from narwhals.typing import CompliantLazyFrame
 from narwhals.utils import Implementation
 from narwhals.utils import check_column_exists
+from narwhals.utils import find_stacklevel
 from narwhals.utils import import_dtypes_module
 from narwhals.utils import parse_columns_to_drop
 from narwhals.utils import parse_version
@@ -22,6 +23,7 @@ from narwhals.utils import validate_backend_version
 if TYPE_CHECKING:
     from types import ModuleType
 
+    import pyarrow as pa
     from pyspark.sql import DataFrame
     from typing_extensions import Self
 
@@ -108,6 +110,52 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
             implementation=self._implementation,
         )
 
+    def _collect_to_arrow(self) -> pa.Table:
+        if self._implementation is Implementation.PYSPARK and self._backend_version < (
+            4,
+        ):
+            import pyarrow as pa  # ignore-banned-import
+
+            try:
+                native_pyarrow_frame = pa.Table.from_batches(
+                    self._native_frame._collect_as_arrow()
+                )
+            except ValueError as exc:
+                if "at least one RecordBatch" in str(exc):
+                    # Empty dataframe
+                    from narwhals._arrow.utils import narwhals_to_native_dtype
+
+                    data: dict[str, list[Any]] = {}
+                    schema: list[tuple[str, pa.DataType]] = []
+                    current_schema = self.collect_schema()
+                    for key, value in current_schema.items():
+                        data[key] = []
+                        try:
+                            native_dtype = narwhals_to_native_dtype(value, self._version)
+                        except Exception as exc:  # noqa: BLE001
+                            native_spark_dtype = self._native_frame.schema[key].dataType
+                            # If we can't convert the type, just set it to `pa.null`, and warn.
+                            # Avoid the warning if we're starting from PySpark's void type.
+                            # We can avoid the check when we introduce `nw.Null` dtype.
+                            if not isinstance(
+                                native_spark_dtype, self._native_dtypes.NullType
+                            ):
+                                warnings.warn(
+                                    f"Could not convert dtype {native_spark_dtype} to PyArrow dtype, {exc!r}",
+                                    stacklevel=find_stacklevel(),
+                                )
+                            schema.append((key, pa.null()))
+                        else:
+                            schema.append((key, native_dtype))
+                    native_pyarrow_frame = pa.Table.from_pydict(
+                        data, schema=pa.schema(schema)
+                    )
+                else:  # pragma: no cover
+                    raise
+        else:
+            native_pyarrow_frame = self._native_frame.toArrow()
+        return native_pyarrow_frame
+
     @property
     def columns(self: Self) -> list[str]:
         return self._native_frame.columns  # type: ignore[no-any-return]
@@ -135,30 +183,8 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
 
             from narwhals._arrow.dataframe import ArrowDataFrame
 
-            try:
-                native_pyarrow_frame = pa.Table.from_batches(
-                    self._native_frame._collect_as_arrow()
-                )
-            except ValueError as exc:
-                if "at least one RecordBatch" in str(exc):
-                    # Empty dataframe
-                    from narwhals._arrow.utils import narwhals_to_native_dtype
-
-                    data: dict[str, list[Any]] = {}
-                    schema = []
-                    current_schema = self.collect_schema()
-                    for key, value in current_schema.items():
-                        data[key] = []
-                        schema.append(
-                            (key, narwhals_to_native_dtype(value, self._version))
-                        )
-                    native_pyarrow_frame = pa.Table.from_pydict(
-                        data, schema=pa.schema(schema)
-                    )
-                else:  # pragma: no cover
-                    raise
             return ArrowDataFrame(
-                native_pyarrow_frame,
+                self._collect_to_arrow(),
                 backend_version=parse_version(pa),
                 version=self._version,
                 validate_column_names=False,
@@ -171,9 +197,7 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
             from narwhals._polars.dataframe import PolarsDataFrame
 
             return PolarsDataFrame(
-                df=pl.from_arrow(  # type: ignore[arg-type]
-                    pa.Table.from_batches(self._native_frame._collect_as_arrow())
-                ),
+                df=pl.from_arrow(self._collect_to_arrow()),  # type: ignore[arg-type]
                 backend_version=parse_version(pl),
                 version=self._version,
             )
@@ -184,12 +208,20 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
     def simple_select(self: Self, *column_names: str) -> Self:
         return self._from_native_frame(self._native_frame.select(*column_names))
 
+    def aggregate(
+        self: Self,
+        *exprs: SparkLikeExpr,
+    ) -> Self:
+        new_columns, expr_kinds = parse_exprs(self, *exprs)
+
+        new_columns_list = [col.alias(col_name) for col_name, col in new_columns.items()]
+        return self._from_native_frame(self._native_frame.agg(*new_columns_list))
+
     def select(
         self: Self,
         *exprs: SparkLikeExpr,
-        **named_exprs: SparkLikeExpr,
     ) -> Self:
-        new_columns, expr_kinds = parse_exprs_and_named_exprs(self, *exprs, **named_exprs)
+        new_columns, expr_kinds = parse_exprs(self, *exprs)
 
         if not new_columns:
             # return empty dataframe, like Polars does
@@ -200,26 +232,16 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
 
             return self._from_native_frame(spark_df)
 
-        if not any(expr_kind is ExprKind.TRANSFORM for expr_kind in expr_kinds):
-            new_columns_list = [
-                col.alias(col_name) for col_name, col in new_columns.items()
-            ]
-            return self._from_native_frame(self._native_frame.agg(*new_columns_list))
-        else:
-            new_columns_list = [
-                col.over(self._Window().partitionBy(self._F.lit(1))).alias(col_name)
-                if expr_kind is ExprKind.AGGREGATION
-                else col.alias(col_name)
-                for (col_name, col), expr_kind in zip(new_columns.items(), expr_kinds)
-            ]
-            return self._from_native_frame(self._native_frame.select(*new_columns_list))
+        new_columns_list = [
+            col.over(self._Window().partitionBy(self._F.lit(1))).alias(col_name)
+            if expr_kind is ExprKind.AGGREGATION
+            else col.alias(col_name)
+            for (col_name, col), expr_kind in zip(new_columns.items(), expr_kinds)
+        ]
+        return self._from_native_frame(self._native_frame.select(*new_columns_list))
 
-    def with_columns(
-        self: Self,
-        *exprs: SparkLikeExpr,
-        **named_exprs: SparkLikeExpr,
-    ) -> Self:
-        new_columns, expr_kinds = parse_exprs_and_named_exprs(self, *exprs, **named_exprs)
+    def with_columns(self: Self, *exprs: SparkLikeExpr) -> Self:
+        new_columns, expr_kinds = parse_exprs(self, *exprs)
 
         new_columns_map = {
             col_name: col.over(self._Window().partitionBy(self._F.lit(1)))
@@ -229,13 +251,9 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
         }
         return self._from_native_frame(self._native_frame.withColumns(new_columns_map))
 
-    def filter(self: Self, *predicates: SparkLikeExpr, **constraints: Any) -> Self:
-        plx = self.__narwhals_namespace__()
-        expr = plx.all_horizontal(
-            *chain(predicates, (plx.col(name) == v for name, v in constraints.items()))
-        )
-        # `[0]` is safe as all_horizontal's expression only returns a single column
-        condition = expr._call(self)[0]
+    def filter(self: Self, predicate: SparkLikeExpr) -> Self:
+        # `[0]` is safe as the predicate's expression only returns a single column
+        condition = predicate._call(self)[0]
         spark_df = self._native_frame.where(condition)
         return self._from_native_frame(spark_df)
 
@@ -367,7 +385,6 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
                     if colname not in (right_on or [])
                 ]
             )
-
         return self._from_native_frame(
             self_native.join(other, on=left_on, how=how).select(col_order)
         )

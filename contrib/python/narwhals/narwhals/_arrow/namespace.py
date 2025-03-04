@@ -19,10 +19,10 @@ from narwhals._arrow.series import ArrowSeries
 from narwhals._arrow.utils import broadcast_series
 from narwhals._arrow.utils import diagonal_concat
 from narwhals._arrow.utils import horizontal_concat
+from narwhals._arrow.utils import nulls_like
 from narwhals._arrow.utils import vertical_concat
 from narwhals._expression_parsing import combine_alias_output_names
 from narwhals._expression_parsing import combine_evaluate_output_names
-from narwhals._expression_parsing import parse_into_exprs
 from narwhals.typing import CompliantNamespace
 from narwhals.utils import Implementation
 from narwhals.utils import import_dtypes_module
@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
     from typing_extensions import Self
 
+    from narwhals._arrow.typing import Incomplete
     from narwhals._arrow.typing import IntoArrowExpr
     from narwhals.dtypes import DType
     from narwhals.utils import Version
@@ -188,96 +189,83 @@ class ArrowNamespace(CompliantNamespace[ArrowSeries]):
             kwargs={},
         )
 
-    def all_horizontal(self: Self, *exprs: IntoArrowExpr) -> ArrowExpr:
-        parsed_exprs = parse_into_exprs(*exprs, namespace=self)
-
+    def all_horizontal(self: Self, *exprs: ArrowExpr) -> ArrowExpr:
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:
-            series = (s for _expr in parsed_exprs for s in _expr(df))
+            series = (s for _expr in exprs for s in _expr(df))
             return [reduce(operator.and_, series)]
 
         return self._create_expr_from_callable(
             func=func,
-            depth=max(x._depth for x in parsed_exprs) + 1,
+            depth=max(x._depth for x in exprs) + 1,
             function_name="all_horizontal",
-            evaluate_output_names=combine_evaluate_output_names(*parsed_exprs),
-            alias_output_names=combine_alias_output_names(*parsed_exprs),
+            evaluate_output_names=combine_evaluate_output_names(*exprs),
+            alias_output_names=combine_alias_output_names(*exprs),
             kwargs={"exprs": exprs},
         )
 
-    def any_horizontal(self: Self, *exprs: IntoArrowExpr) -> ArrowExpr:
-        parsed_exprs = parse_into_exprs(*exprs, namespace=self)
-
+    def any_horizontal(self: Self, *exprs: ArrowExpr) -> ArrowExpr:
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:
-            series = (s for _expr in parsed_exprs for s in _expr(df))
+            series = (s for _expr in exprs for s in _expr(df))
             return [reduce(operator.or_, series)]
 
         return self._create_expr_from_callable(
             func=func,
-            depth=max(x._depth for x in parsed_exprs) + 1,
+            depth=max(x._depth for x in exprs) + 1,
             function_name="any_horizontal",
-            evaluate_output_names=combine_evaluate_output_names(*parsed_exprs),
-            alias_output_names=combine_alias_output_names(*parsed_exprs),
+            evaluate_output_names=combine_evaluate_output_names(*exprs),
+            alias_output_names=combine_alias_output_names(*exprs),
             kwargs={"exprs": exprs},
         )
 
-    def sum_horizontal(self: Self, *exprs: IntoArrowExpr) -> ArrowExpr:
-        parsed_exprs = parse_into_exprs(*exprs, namespace=self)
-
+    def sum_horizontal(self: Self, *exprs: ArrowExpr) -> ArrowExpr:
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:
             series = (
                 s.fill_null(0, strategy=None, limit=None)
-                for _expr in parsed_exprs
+                for _expr in exprs
                 for s in _expr(df)
             )
             return [reduce(operator.add, series)]
 
         return self._create_expr_from_callable(
             func=func,
-            depth=max(x._depth for x in parsed_exprs) + 1,
+            depth=max(x._depth for x in exprs) + 1,
             function_name="sum_horizontal",
-            evaluate_output_names=combine_evaluate_output_names(*parsed_exprs),
-            alias_output_names=combine_alias_output_names(*parsed_exprs),
+            evaluate_output_names=combine_evaluate_output_names(*exprs),
+            alias_output_names=combine_alias_output_names(*exprs),
             kwargs={"exprs": exprs},
         )
 
-    def mean_horizontal(self: Self, *exprs: IntoArrowExpr) -> IntoArrowExpr:
-        parsed_exprs = parse_into_exprs(*exprs, namespace=self)
+    def mean_horizontal(self: Self, *exprs: ArrowExpr) -> IntoArrowExpr:
         dtypes = import_dtypes_module(self._version)
 
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:
-            series = (
-                s.fill_null(0, strategy=None, limit=None)
-                for _expr in parsed_exprs
-                for s in _expr(df)
-            )
-            non_na = (
-                1 - s.is_null().cast(dtypes.Int64())
-                for _expr in parsed_exprs
-                for s in _expr(df)
-            )
+            expr_results = [s for _expr in exprs for s in _expr(df)]
+            series = (s.fill_null(0, strategy=None, limit=None) for s in expr_results)
+            non_na = (1 - s.is_null().cast(dtypes.Int64()) for s in expr_results)
             return [reduce(operator.add, series) / reduce(operator.add, non_na)]
 
         return self._create_expr_from_callable(
             func=func,
-            depth=max(x._depth for x in parsed_exprs) + 1,
+            depth=max(x._depth for x in exprs) + 1,
             function_name="mean_horizontal",
-            evaluate_output_names=combine_evaluate_output_names(*parsed_exprs),
-            alias_output_names=combine_alias_output_names(*parsed_exprs),
+            evaluate_output_names=combine_evaluate_output_names(*exprs),
+            alias_output_names=combine_alias_output_names(*exprs),
             kwargs={"exprs": exprs},
         )
 
-    def min_horizontal(self: Self, *exprs: IntoArrowExpr) -> ArrowExpr:
-        parsed_exprs = parse_into_exprs(*exprs, namespace=self)
-
+    def min_horizontal(self: Self, *exprs: ArrowExpr) -> ArrowExpr:
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:
-            init_series, *series = [s for _expr in parsed_exprs for s in _expr(df)]
+            init_series, *series = [s for _expr in exprs for s in _expr(df)]
+            # NOTE: Stubs copy the wrong signature https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L963
+            min_element_wise: Incomplete = pc.min_element_wise
+            native_series = reduce(
+                min_element_wise,
+                [s._native_series for s in series],
+                init_series._native_series,
+            )
             return [
                 ArrowSeries(
-                    native_series=reduce(
-                        pc.min_element_wise,
-                        [s._native_series for s in series],
-                        init_series._native_series,
-                    ),
+                    native_series,
                     name=init_series.name,
                     backend_version=self._backend_version,
                     version=self._version,
@@ -286,25 +274,27 @@ class ArrowNamespace(CompliantNamespace[ArrowSeries]):
 
         return self._create_expr_from_callable(
             func=func,
-            depth=max(x._depth for x in parsed_exprs) + 1,
+            depth=max(x._depth for x in exprs) + 1,
             function_name="min_horizontal",
-            evaluate_output_names=combine_evaluate_output_names(*parsed_exprs),
-            alias_output_names=combine_alias_output_names(*parsed_exprs),
+            evaluate_output_names=combine_evaluate_output_names(*exprs),
+            alias_output_names=combine_alias_output_names(*exprs),
             kwargs={"exprs": exprs},
         )
 
-    def max_horizontal(self: Self, *exprs: IntoArrowExpr) -> ArrowExpr:
-        parsed_exprs = parse_into_exprs(*exprs, namespace=self)
-
+    def max_horizontal(self: Self, *exprs: ArrowExpr) -> ArrowExpr:
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:
-            init_series, *series = [s for _expr in parsed_exprs for s in _expr(df)]
+            init_series, *series = [s for _expr in exprs for s in _expr(df)]
+            # NOTE: stubs are missing `ChunkedArray` support
+            # https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L948-L954
+            max_element_wise: Incomplete = pc.max_element_wise
+            native_series = reduce(
+                max_element_wise,
+                [s._native_series for s in series],
+                init_series._native_series,
+            )
             return [
                 ArrowSeries(
-                    native_series=reduce(
-                        pc.max_element_wise,
-                        [s._native_series for s in series],
-                        init_series._native_series,
-                    ),
+                    native_series,
                     name=init_series.name,
                     backend_version=self._backend_version,
                     version=self._version,
@@ -313,10 +303,10 @@ class ArrowNamespace(CompliantNamespace[ArrowSeries]):
 
         return self._create_expr_from_callable(
             func=func,
-            depth=max(x._depth for x in parsed_exprs) + 1,
+            depth=max(x._depth for x in exprs) + 1,
             function_name="max_horizontal",
-            evaluate_output_names=combine_evaluate_output_names(*parsed_exprs),
-            alias_output_names=combine_alias_output_names(*parsed_exprs),
+            evaluate_output_names=combine_evaluate_output_names(*exprs),
+            alias_output_names=combine_alias_output_names(*exprs),
             kwargs={"exprs": exprs},
         )
 
@@ -354,36 +344,31 @@ class ArrowNamespace(CompliantNamespace[ArrowSeries]):
             backend_version=self._backend_version, version=self._version
         )
 
-    def when(
-        self: Self,
-        *predicates: IntoArrowExpr,
-    ) -> ArrowWhen:
-        plx = self.__class__(backend_version=self._backend_version, version=self._version)
-        condition = plx.all_horizontal(*predicates)
-        return ArrowWhen(condition, self._backend_version, version=self._version)
+    def when(self: Self, predicate: ArrowExpr) -> ArrowWhen:
+        return ArrowWhen(predicate, self._backend_version, version=self._version)
 
     def concat_str(
         self: Self,
-        *exprs: IntoArrowExpr,
+        *exprs: ArrowExpr,
         separator: str,
         ignore_nulls: bool,
     ) -> ArrowExpr:
-        parsed_exprs = parse_into_exprs(*exprs, namespace=self)
         dtypes = import_dtypes_module(self._version)
 
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:
-            compliant_series_list = [
-                s for _expr in parsed_exprs for s in _expr.cast(dtypes.String())(df)
+            compliant_series_list: list[ArrowSeries] = [
+                s for _expr in exprs for s in _expr.cast(dtypes.String())(df)
             ]
-            null_handling = "skip" if ignore_nulls else "emit_null"
-            result_series = pc.binary_join_element_wise(
-                *(s._native_series for s in compliant_series_list),
-                separator,
-                null_handling=null_handling,
+            null_handling: Literal["skip", "emit_null"] = (
+                "skip" if ignore_nulls else "emit_null"
             )
+            it = (s._native_series for s in compliant_series_list)
+            # NOTE: stubs indicate `separator` must also be a `ChunkedArray`
+            # Reality: `str` is fine
+            concat_str: Incomplete = pc.binary_join_element_wise
             return [
                 ArrowSeries(
-                    native_series=result_series,
+                    native_series=concat_str(*it, separator, null_handling=null_handling),
                     name=compliant_series_list[0].name,
                     backend_version=self._backend_version,
                     version=self._version,
@@ -392,10 +377,10 @@ class ArrowNamespace(CompliantNamespace[ArrowSeries]):
 
         return self._create_expr_from_callable(
             func=func,
-            depth=max(x._depth for x in parsed_exprs) + 1,
+            depth=max(x._depth for x in exprs) + 1,
             function_name="concat_str",
-            evaluate_output_names=combine_evaluate_output_names(*parsed_exprs),
-            alias_output_names=combine_alias_output_names(*parsed_exprs),
+            evaluate_output_names=combine_evaluate_output_names(*exprs),
+            alias_output_names=combine_alias_output_names(*exprs),
             kwargs={
                 "exprs": exprs,
                 "separator": separator,
@@ -421,15 +406,13 @@ class ArrowWhen:
         self._version = version
 
     def __call__(self: Self, df: ArrowDataFrame) -> Sequence[ArrowSeries]:
-        from narwhals._expression_parsing import parse_into_expr
-
         plx = df.__narwhals_namespace__()
-        condition = parse_into_expr(self._condition, namespace=plx)(df)[0]
+        condition = self._condition(df)[0]
 
-        try:
-            value_series = parse_into_expr(self._then_value, namespace=plx)(df)[0]
-        except TypeError:
-            # `self._then_value` is a scalar and can't be converted to an expression
+        if isinstance(self._then_value, ArrowExpr):
+            value_series = self._then_value(df)[0]
+        else:
+            # `self._then_value` is a scalar
             value_series = plx._create_series_from_scalar(
                 self._then_value, reference_series=condition.alias("literal")
             )
@@ -437,21 +420,17 @@ class ArrowWhen:
         condition_native, value_series_native = broadcast_series(
             [condition, value_series]
         )
-
         if self._otherwise_value is None:
-            otherwise_native = pa.repeat(
-                pa.scalar(None, type=value_series_native.type), len(condition_native)
-            )
+            otherwise_null = nulls_like(len(condition_native), value_series)
             return [
                 value_series._from_native_series(
-                    pc.if_else(condition_native, value_series_native, otherwise_native)
+                    pc.if_else(condition_native, value_series_native, otherwise_null)
                 )
             ]
-        try:
-            otherwise_expr = parse_into_expr(self._otherwise_value, namespace=plx)
-        except TypeError:
-            # `self._otherwise_value` is a scalar and can't be converted to an expression.
-            # Remark that string values _are_ converted into expressions!
+        if isinstance(self._otherwise_value, ArrowExpr):
+            otherwise_expr = self._otherwise_value
+        else:
+            # `self._otherwise_value` is a scalar
             return [
                 value_series._from_native_series(
                     pc.if_else(
@@ -459,14 +438,13 @@ class ArrowWhen:
                     )
                 )
             ]
-        else:
-            otherwise_series = otherwise_expr(df)[0]
-            _, otherwise_native = broadcast_series([condition, otherwise_series])
-            return [
-                value_series._from_native_series(
-                    pc.if_else(condition_native, value_series_native, otherwise_native)
-                )
-            ]
+        otherwise_series = otherwise_expr(df)[0]
+        _, otherwise_native = broadcast_series([condition, otherwise_series])
+        return [
+            value_series._from_native_series(
+                pc.if_else(condition_native, value_series_native, otherwise_native)
+            )
+        ]
 
     def then(self: Self, value: ArrowExpr | ArrowSeries | Any) -> ArrowThen:
         self._then_value = value
@@ -503,7 +481,7 @@ class ArrowThen(ArrowExpr):
         self._call = call
         self._depth = depth
         self._function_name = function_name
-        self._evaluate_output_names = evaluate_output_names
+        self._evaluate_output_names = evaluate_output_names  # pyright: ignore[reportAttributeAccessIssue]
         self._alias_output_names = alias_output_names
         self._kwargs = kwargs
 

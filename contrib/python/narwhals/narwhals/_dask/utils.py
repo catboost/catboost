@@ -44,9 +44,7 @@ def maybe_evaluate(df: DaskLazyFrame, obj: Any) -> Any:
     return obj
 
 
-def parse_exprs_and_named_exprs(
-    df: DaskLazyFrame, /, *exprs: DaskExpr, **named_exprs: DaskExpr
-) -> dict[str, dx.Series]:
+def parse_exprs(df: DaskLazyFrame, /, *exprs: DaskExpr) -> dict[str, dx.Series]:
     native_results: dict[str, dx.Series] = {}
     for expr in exprs:
         native_series_list = expr._call(df)
@@ -57,15 +55,6 @@ def parse_exprs_and_named_exprs(
             raise AssertionError(msg)
         for native_series, alias in zip(native_series_list, aliases):
             native_results[alias] = native_series[0] if return_scalar else native_series
-    for name, value in named_exprs.items():
-        native_series_list = value._call(df)
-        if len(native_series_list) != 1:  # pragma: no cover
-            msg = "Named expressions must return a single column"
-            raise AssertionError(msg)
-        return_scalar = getattr(value, "_returns_scalar", False)
-        native_results[name] = (
-            native_series_list[0][0] if return_scalar else native_series_list[0]
-        )
     return native_results
 
 

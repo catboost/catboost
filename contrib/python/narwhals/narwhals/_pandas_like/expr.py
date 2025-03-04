@@ -27,7 +27,6 @@ if TYPE_CHECKING:
 
     from narwhals._pandas_like.dataframe import PandasLikeDataFrame
     from narwhals._pandas_like.namespace import PandasLikeNamespace
-    from narwhals._pandas_like.typing import IntoPandasLikeExpr
     from narwhals.dtypes import DType
     from narwhals.utils import Implementation
     from narwhals.utils import Version
@@ -306,7 +305,7 @@ class PandasLikeExpr(CompliantExpr[PandasLikeSeries]):
             ignore_nulls=ignore_nulls,
         )
 
-    def filter(self: Self, *predicates: IntoPandasLikeExpr) -> Self:
+    def filter(self: Self, *predicates: PandasLikeExpr) -> Self:
         plx = self.__narwhals_namespace__()
         other = plx.all_horizontal(*predicates)
         return reuse_series_implementation(self, "filter", other=other)

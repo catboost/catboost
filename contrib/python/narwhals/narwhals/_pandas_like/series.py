@@ -6,6 +6,7 @@ from typing import Iterable
 from typing import Iterator
 from typing import Literal
 from typing import Sequence
+from typing import cast
 from typing import overload
 
 from narwhals._pandas_like.series_cat import PandasLikeSeriesCatNamespace
@@ -30,15 +31,17 @@ from narwhals.utils import validate_backend_version
 
 if TYPE_CHECKING:
     from types import ModuleType
+    from typing import Hashable
 
     import pandas as pd
     import polars as pl
-    import pyarrow as pa
     from typing_extensions import Self
 
+    from narwhals._arrow.typing import ArrowArray
     from narwhals._pandas_like.dataframe import PandasLikeDataFrame
     from narwhals.dtypes import DType
     from narwhals.typing import _1DArray
+    from narwhals.typing import _AnyDArray
     from narwhals.utils import Version
 
 PANDAS_TO_NUMPY_DTYPE_NO_MISSING = {
@@ -297,10 +300,6 @@ class PandasLikeSeries(CompliantSeries):
 
     def is_in(self: Self, other: Any) -> PandasLikeSeries:
         ser = self._native_series
-        if isinstance(other, self.__class__):
-            # We can't use `broadcast_and_align` because we don't want to align here.
-            # `other` is just a sequence that all rows from `self` are checked against.
-            other = other._native_series
         res = ser.isin(other)
         return self._from_native_series(res)
 
@@ -654,7 +653,7 @@ class PandasLikeSeries(CompliantSeries):
             )
         ).alias(self.name)
 
-    def alias(self: Self, name: str) -> Self:
+    def alias(self: Self, name: str | Hashable) -> Self:
         if name != self.name:
             return self._from_native_series(
                 rename(
@@ -862,7 +861,7 @@ class PandasLikeSeries(CompliantSeries):
             self._native_series.clip(lower_bound, upper_bound, **kwargs)
         )
 
-    def to_arrow(self: Self) -> pa.Array:
+    def to_arrow(self: Self) -> ArrowArray:
         if self._implementation is Implementation.CUDF:
             return self._native_series.to_arrow()
 
@@ -1039,7 +1038,7 @@ class PandasLikeSeries(CompliantSeries):
         from narwhals._pandas_like.dataframe import PandasLikeDataFrame
 
         ns = self.__native_namespace__()
-        data: dict[str, Sequence[int | float | str]]
+        data: dict[str, Sequence[int | float | str] | _AnyDArray]
 
         if bin_count == 0 or (bins is not None and len(bins) <= 1):
             data = {}
@@ -1056,15 +1055,10 @@ class PandasLikeSeries(CompliantSeries):
             )
         elif self._native_series.count() < 1:
             if bins is not None:
-                data = {
-                    "breakpoint": bins[1:],
-                    "count": zeros(shape=len(bins) - 1),
-                }
+                data = {"breakpoint": bins[1:], "count": zeros(shape=len(bins) - 1)}
             else:
-                data = {
-                    "breakpoint": linspace(0, 1, bin_count),
-                    "count": zeros(shape=bin_count),
-                }
+                count = cast("int", bin_count)
+                data = {"breakpoint": linspace(0, 1, count), "count": zeros(shape=count)}
 
             if not include_breakpoint:
                 del data["breakpoint"]

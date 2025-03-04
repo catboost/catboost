@@ -138,7 +138,7 @@ class DuckDBSelectorNamespace:
                 )
             ]
 
-        def evalute_output_names(df: DuckDBLazyFrame) -> Sequence[str]:
+        def evaluate_output_names(df: DuckDBLazyFrame) -> Sequence[str]:
             return [
                 col
                 for col in df.columns
@@ -153,7 +153,7 @@ class DuckDBSelectorNamespace:
         return DuckDBSelector(
             func,
             function_name="selector",
-            evaluate_output_names=evalute_output_names,
+            evaluate_output_names=evaluate_output_names,
             alias_output_names=None,
             backend_version=self._backend_version,
             expr_kind=ExprKind.TRANSFORM,

@@ -6,6 +6,7 @@ from typing import Iterable
 from typing import Iterator
 from typing import Literal
 from typing import Sequence
+from typing import cast
 from typing import overload
 
 import pyarrow as pa
@@ -17,9 +18,12 @@ from narwhals._arrow.series_list import ArrowSeriesListNamespace
 from narwhals._arrow.series_str import ArrowSeriesStringNamespace
 from narwhals._arrow.utils import broadcast_and_extract_native
 from narwhals._arrow.utils import cast_for_truediv
+from narwhals._arrow.utils import chunked_array
 from narwhals._arrow.utils import floordiv_compat
+from narwhals._arrow.utils import lit
 from narwhals._arrow.utils import narwhals_to_native_dtype
 from narwhals._arrow.utils import native_to_narwhals_dtype
+from narwhals._arrow.utils import nulls_like
 from narwhals._arrow.utils import pad_series
 from narwhals.exceptions import InvalidOperationError
 from narwhals.typing import CompliantSeries
@@ -37,12 +41,52 @@ if TYPE_CHECKING:
 
     from narwhals._arrow.dataframe import ArrowDataFrame
     from narwhals._arrow.namespace import ArrowNamespace
+    from narwhals._arrow.typing import ArrowArray
+    from narwhals._arrow.typing import ArrowChunkedArray
+    from narwhals._arrow.typing import Incomplete
+    from narwhals._arrow.typing import Indices
+    from narwhals._arrow.typing import NullPlacement
+    from narwhals._arrow.typing import Order
+    from narwhals._arrow.typing import TieBreaker
+    from narwhals._arrow.typing import _AsPyType
+    from narwhals._arrow.typing import _BasicDataType
     from narwhals.dtypes import DType
     from narwhals.typing import _1DArray
+    from narwhals.typing import _2DArray
     from narwhals.utils import Version
 
 
+@overload
+def maybe_extract_py_scalar(
+    value: pa.Scalar[_BasicDataType[_AsPyType]],
+    return_py_scalar: bool,  # noqa: FBT001
+) -> _AsPyType: ...
+
+
+@overload
+def maybe_extract_py_scalar(
+    value: pa.Scalar[pa.StructType],
+    return_py_scalar: bool,  # noqa: FBT001
+) -> list[dict[str, Any]]: ...
+
+
+@overload
+def maybe_extract_py_scalar(
+    value: pa.Scalar[pa.ListType[_BasicDataType[_AsPyType]]],
+    return_py_scalar: bool,  # noqa: FBT001
+) -> list[_AsPyType]: ...
+
+
+@overload
+def maybe_extract_py_scalar(
+    value: pa.Scalar[Any] | Any,
+    return_py_scalar: bool,  # noqa: FBT001
+) -> Any: ...
+
+
 def maybe_extract_py_scalar(value: Any, return_py_scalar: bool) -> Any:  # noqa: FBT001
+    if TYPE_CHECKING:
+        return value.as_py()
     if return_py_scalar:
         return getattr(value, "as_py", lambda: value)()
     return value
@@ -51,14 +95,14 @@ def maybe_extract_py_scalar(value: Any, return_py_scalar: bool) -> Any:  # noqa:
 class ArrowSeries(CompliantSeries):
     def __init__(
         self: Self,
-        native_series: pa.ChunkedArray,
+        native_series: ArrowChunkedArray,
         *,
         name: str,
         backend_version: tuple[int, ...],
         version: Version,
     ) -> None:
         self._name = name
-        self._native_series = native_series
+        self._native_series: ArrowChunkedArray = native_series
         self._implementation = Implementation.PYARROW
         self._backend_version = backend_version
         self._version = version
@@ -72,11 +116,12 @@ class ArrowSeries(CompliantSeries):
             version=version,
         )
 
-    def _from_native_series(self: Self, series: pa.ChunkedArray | pa.Array) -> Self:
-        if isinstance(series, pa.Array):
-            series = pa.chunked_array([series])
+    def _from_native_series(
+        self: Self,
+        series: ArrowArray | ArrowChunkedArray,
+    ) -> Self:
         return self.__class__(
-            series,
+            chunked_array(series),
             name=self._name,
             backend_version=self._backend_version,
             version=self._version,
@@ -92,7 +137,7 @@ class ArrowSeries(CompliantSeries):
         version: Version,
     ) -> Self:
         return cls(
-            pa.chunked_array([data]),
+            chunked_array([data]),
             name=name,
             backend_version=backend_version,
             version=version,
@@ -109,12 +154,12 @@ class ArrowSeries(CompliantSeries):
         return len(self._native_series)
 
     def __eq__(self: Self, other: object) -> Self:  # type: ignore[override]
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
-        return self._from_native_series(pc.equal(ser, other))
+        ser, right = broadcast_and_extract_native(self, other, self._backend_version)
+        return self._from_native_series(pc.equal(ser, right))
 
     def __ne__(self: Self, other: object) -> Self:  # type: ignore[override]
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
-        return self._from_native_series(pc.not_equal(ser, other))
+        ser, right = broadcast_and_extract_native(self, other, self._backend_version)
+        return self._from_native_series(pc.not_equal(ser, right))
 
     def __ge__(self: Self, other: Any) -> Self:
         ser, other = broadcast_and_extract_native(self, other, self._backend_version)
@@ -189,15 +234,15 @@ class ArrowSeries(CompliantSeries):
         ser, other = broadcast_and_extract_native(self, other, self._backend_version)
         if not isinstance(other, (pa.Array, pa.ChunkedArray)):
             # scalar
-            other = pa.scalar(other)
+            other = lit(other)
         return self._from_native_series(pc.divide(*cast_for_truediv(ser, other)))
 
     def __rtruediv__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
-        if not isinstance(other, (pa.Array, pa.ChunkedArray)):
+        ser, right = broadcast_and_extract_native(self, other, self._backend_version)
+        if not isinstance(right, (pa.Array, pa.ChunkedArray)):
             # scalar
-            other = pa.scalar(other)
-        return self._from_native_series(pc.divide(*cast_for_truediv(other, ser)))
+            right = lit(right) if not isinstance(right, pa.Scalar) else right
+        return self._from_native_series(pc.divide(*cast_for_truediv(right, ser)))
 
     def __mod__(self: Self, other: Any) -> Self:
         floor_div = (self // other)._native_series
@@ -212,10 +257,16 @@ class ArrowSeries(CompliantSeries):
         return self._from_native_series(res)
 
     def __invert__(self: Self) -> Self:
-        return self._from_native_series(pc.invert(self._native_series))
+        return self._from_native_series(
+            pc.invert(self._native_series)  # type: ignore[call-overload]
+        )
+
+    @property
+    def _type(self: Self) -> pa.DataType:
+        return self._native_series.type
 
     def len(self: Self, *, _return_py_scalar: bool = True) -> int:
-        return maybe_extract_py_scalar(len(self._native_series), _return_py_scalar)  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(len(self._native_series), _return_py_scalar)
 
     def filter(self: Self, other: Any) -> Self:
         if not (isinstance(other, list) and all(isinstance(x, bool) for x in other)):
@@ -224,17 +275,20 @@ class ArrowSeries(CompliantSeries):
             ser = self._native_series
         return self._from_native_series(ser.filter(other))
 
-    def mean(self: Self, *, _return_py_scalar: bool = True) -> int:
-        return maybe_extract_py_scalar(pc.mean(self._native_series), _return_py_scalar)  # type: ignore[no-any-return]
+    def mean(self: Self, *, _return_py_scalar: bool = True) -> float:
+        # NOTE: stub overly strict https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L274-L307
+        # docs say numeric https://arrow.apache.org/docs/python/generated/pyarrow.compute.mean.html
+        mean: Incomplete = pc.mean
+        return maybe_extract_py_scalar(mean(self._native_series), _return_py_scalar)
 
-    def median(self: Self, *, _return_py_scalar: bool = True) -> int:
+    def median(self: Self, *, _return_py_scalar: bool = True) -> float:
         from narwhals.exceptions import InvalidOperationError
 
         if not self.dtype.is_numeric():
             msg = "`median` operation not supported for non-numeric input type."
             raise InvalidOperationError(msg)
 
-        return maybe_extract_py_scalar(  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(
             pc.approximate_median(self._native_series), _return_py_scalar
         )
 
@@ -246,44 +300,44 @@ class ArrowSeries(CompliantSeries):
 
     def arg_min(self: Self, *, _return_py_scalar: bool = True) -> int:
         index_min = pc.index(self._native_series, pc.min(self._native_series))
-        return maybe_extract_py_scalar(index_min, _return_py_scalar)  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(index_min, _return_py_scalar)
 
     def arg_max(self: Self, *, _return_py_scalar: bool = True) -> int:
         index_max = pc.index(self._native_series, pc.max(self._native_series))
-        return maybe_extract_py_scalar(index_max, _return_py_scalar)  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(index_max, _return_py_scalar)
 
-    def sum(self: Self, *, _return_py_scalar: bool = True) -> int:
-        return maybe_extract_py_scalar(  # type: ignore[no-any-return]
+    def sum(self: Self, *, _return_py_scalar: bool = True) -> float:
+        return maybe_extract_py_scalar(
             pc.sum(self._native_series, min_count=0), _return_py_scalar
         )
 
-    def drop_nulls(self: Self) -> ArrowSeries:
-        return self._from_native_series(pc.drop_null(self._native_series))
+    def drop_nulls(self: Self) -> Self:
+        return self._from_native_series(self._native_series.drop_null())
 
     def shift(self: Self, n: int) -> Self:
         ca = self._native_series
-
         if n > 0:
-            result = pa.concat_arrays([pa.nulls(n, ca.type), *ca[:-n].chunks])
+            arrays = [nulls_like(n, self), *ca[:-n].chunks]
         elif n < 0:
-            result = pa.concat_arrays([*ca[-n:].chunks, pa.nulls(-n, ca.type)])
+            arrays = [*ca[-n:].chunks, nulls_like(-n, self)]
         else:
-            result = ca
-        return self._from_native_series(result)
+            return self._from_native_series(ca)
+        return self._from_native_series(pa.concat_arrays(arrays))
 
     def std(self: Self, ddof: int, *, _return_py_scalar: bool = True) -> float:
-        return maybe_extract_py_scalar(  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(
             pc.stddev(self._native_series, ddof=ddof), _return_py_scalar
         )
 
     def var(self: Self, ddof: int, *, _return_py_scalar: bool = True) -> float:
-        return maybe_extract_py_scalar(  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(
             pc.variance(self._native_series, ddof=ddof), _return_py_scalar
         )
 
     def skew(self: Self, *, _return_py_scalar: bool = True) -> float | None:
         ser = self._native_series
-        ser_not_null = pc.drop_null(ser)
+        # NOTE: stub issue with `pc.subtract`, `pc.mean` and `pa.ChunkedArray`
+        ser_not_null: Incomplete = ser.drop_null()
         if len(ser_not_null) == 0:
             return None
         elif len(ser_not_null) == 1:
@@ -291,20 +345,20 @@ class ArrowSeries(CompliantSeries):
         elif len(ser_not_null) == 2:
             return 0.0
         else:
-            m = pc.subtract(ser_not_null, pc.mean(ser_not_null))
-            m2 = pc.mean(pc.power(m, 2))
-            m3 = pc.mean(pc.power(m, 3))
-            # Biased population skewness
-            return maybe_extract_py_scalar(  # type: ignore[no-any-return]
-                pc.divide(m3, pc.power(m2, 1.5)), _return_py_scalar
+            m = cast(
+                "pc.NumericArray[Any]", pc.subtract(ser_not_null, pc.mean(ser_not_null))
             )
+            m2 = pc.mean(pc.power(m, lit(2)))
+            m3 = pc.mean(pc.power(m, lit(3)))
+            biased_population_skewness = pc.divide(m3, pc.power(m2, lit(1.5)))
+            return maybe_extract_py_scalar(biased_population_skewness, _return_py_scalar)
 
     def count(self: Self, *, _return_py_scalar: bool = True) -> int:
-        return maybe_extract_py_scalar(pc.count(self._native_series), _return_py_scalar)  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(pc.count(self._native_series), _return_py_scalar)
 
     def n_unique(self: Self, *, _return_py_scalar: bool = True) -> int:
-        unique_values = pc.unique(self._native_series)
-        return maybe_extract_py_scalar(  # type: ignore[no-any-return]
+        unique_values = self._native_series.unique()
+        return maybe_extract_py_scalar(
             pc.count(unique_values, mode="all"), _return_py_scalar
         )
 
@@ -326,21 +380,25 @@ class ArrowSeries(CompliantSeries):
     def __getitem__(self: Self, idx: int) -> Any: ...
 
     @overload
-    def __getitem__(self: Self, idx: slice | Sequence[int]) -> Self: ...
+    def __getitem__(self: Self, idx: slice | Sequence[int] | pa.ChunkedArray) -> Self: ...
 
-    def __getitem__(self: Self, idx: int | slice | Sequence[int]) -> Any | Self:
+    def __getitem__(
+        self: Self, idx: int | slice | Sequence[int] | pa.ChunkedArray
+    ) -> Any | Self:
         if isinstance(idx, int):
             return maybe_extract_py_scalar(
                 self._native_series[idx], return_py_scalar=True
             )
-        if isinstance(idx, Sequence):
-            return self._from_native_series(self._native_series.take(idx))
+        if isinstance(idx, (Sequence, pa.ChunkedArray)):
+            return self._from_native_series(
+                self._native_series.take(cast("Indices", idx))
+            )
         return self._from_native_series(self._native_series[idx])
 
     def scatter(self: Self, indices: int | Sequence[int], values: Any) -> Self:
         import numpy as np  # ignore-banned-import
 
-        mask = np.zeros(self.len(), dtype=bool)
+        mask: _1DArray = np.zeros(self.len(), dtype=bool)
         mask[indices] = True
         if isinstance(values, self.__class__):
             ser, values = broadcast_and_extract_native(
@@ -352,11 +410,13 @@ class ArrowSeries(CompliantSeries):
             values = values.combine_chunks()
         if not isinstance(values, pa.Array):
             values = pa.array(values)
-        result = pc.replace_with_mask(ser, mask, values.take(indices))
+        result = pc.replace_with_mask(
+            ser, cast("list[bool]", mask), values.take(cast("Indices", indices))
+        )
         return self._from_native_series(result)
 
     def to_list(self: Self) -> list[Any]:
-        return self._native_series.to_pylist()  # type: ignore[no-any-return]
+        return self._native_series.to_pylist()
 
     def __array__(self: Self, dtype: Any = None, copy: bool | None = None) -> _1DArray:
         return self._native_series.__array__(dtype=dtype, copy=copy)
@@ -381,31 +441,43 @@ class ArrowSeries(CompliantSeries):
 
     def cum_sum(self: Self, *, reverse: bool) -> Self:
         native_series = self._native_series
+        # NOTE: stub only permits `NumericArray`
+        # https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L140
+        cum_sum: Incomplete = pc.cumulative_sum
         result = (
-            pc.cumulative_sum(native_series, skip_nulls=True)
+            cum_sum(native_series, skip_nulls=True)
             if not reverse
-            else pc.cumulative_sum(native_series[::-1], skip_nulls=True)[::-1]
+            else cum_sum(native_series[::-1], skip_nulls=True)[::-1]
         )
         return self._from_native_series(result)
 
     def round(self: Self, decimals: int) -> Self:
+        # NOTE: stub only permits `NumericArray`
+        # https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L140
+        pc_round: Incomplete = pc.round
         return self._from_native_series(
-            pc.round(self._native_series, decimals, round_mode="half_towards_infinity")
+            pc_round(self._native_series, decimals, round_mode="half_towards_infinity")
         )
 
     def diff(self: Self) -> Self:
-        return self._from_native_series(
-            pc.pairwise_diff(self._native_series.combine_chunks())
-        )
+        # NOTE: stub only permits `ChunkedArray[TemporalScalar]`
+        # (https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L145-L148)
+        diff: Incomplete = pc.pairwise_diff
+        return self._from_native_series(diff(self._native_series.combine_chunks()))
 
     def any(self: Self, *, _return_py_scalar: bool = True) -> bool:
-        return maybe_extract_py_scalar(  # type: ignore[no-any-return]
-            pc.any(self._native_series, min_count=0), _return_py_scalar
+        # NOTE: stub restricts to `BooleanArray`, should be based on truthiness
+        # Copies `pc.all`
+        pc_any: Incomplete = pc.any
+        return maybe_extract_py_scalar(
+            pc_any(self._native_series, min_count=0), _return_py_scalar
         )
 
     def all(self: Self, *, _return_py_scalar: bool = True) -> bool:
-        return maybe_extract_py_scalar(  # type: ignore[no-any-return]
-            pc.all(self._native_series, min_count=0), _return_py_scalar
+        # NOTE: stub restricts to `BooleanArray`, should be based on truthiness
+        pc_all: Incomplete = pc.all
+        return maybe_extract_py_scalar(
+            pc_all(self._native_series, min_count=0), _return_py_scalar
         )
 
     def is_between(
@@ -450,11 +522,11 @@ class ArrowSeries(CompliantSeries):
 
     def cast(self: Self, dtype: DType) -> Self:
         ser = self._native_series
-        dtype = narwhals_to_native_dtype(dtype, self._version)
-        return self._from_native_series(pc.cast(ser, dtype))
+        data_type = narwhals_to_native_dtype(dtype, self._version)
+        return self._from_native_series(pc.cast(ser, data_type))
 
     def null_count(self: Self, *, _return_py_scalar: bool = True) -> int:
-        return maybe_extract_py_scalar(self._native_series.null_count, _return_py_scalar)  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(self._native_series.null_count, _return_py_scalar)
 
     def head(self: Self, n: int) -> Self:
         ser = self._native_series
@@ -473,7 +545,10 @@ class ArrowSeries(CompliantSeries):
             return self._from_native_series(ser.slice(abs(n)))
 
     def is_in(self: Self, other: Any) -> Self:
-        value_set = pa.array(other)
+        if isinstance(other, pa.ChunkedArray):
+            value_set: ArrowChunkedArray | ArrowArray = other
+        else:
+            value_set = pa.array(other)
         ser = self._native_series
         return self._from_native_series(pc.is_in(ser, value_set=value_set))
 
@@ -514,16 +589,16 @@ class ArrowSeries(CompliantSeries):
         index_name_ = "index" if self._name is None else self._name
         value_name_ = name or ("proportion" if normalize else "count")
 
-        val_count = pc.value_counts(self._native_series)
-        values = val_count.field("values")
-        counts = val_count.field("counts")
+        val_counts = pc.value_counts(self._native_series)
+        values = val_counts.field("values")
+        counts = cast("ArrowChunkedArray", val_counts.field("counts"))
 
         if normalize:
-            counts = pc.divide(*cast_for_truediv(counts, pc.sum(counts)))
+            arrays = [values, pc.divide(*cast_for_truediv(counts, pc.sum(counts)))]
+        else:
+            arrays = [values, counts]
 
-        val_count = pa.Table.from_arrays(
-            [values, counts], names=[index_name_, value_name_]
-        )
+        val_count = pa.Table.from_arrays(arrays, names=[index_name_, value_name_])
 
         if sort:
             val_count = val_count.sort_by([(value_name_, "descending")])
@@ -536,13 +611,9 @@ class ArrowSeries(CompliantSeries):
         )
 
     def zip_with(self: Self, mask: Self, other: Self) -> Self:
-        mask = mask._native_series.combine_chunks()
+        cond = mask._native_series.combine_chunks()
         return self._from_native_series(
-            pc.if_else(
-                mask,
-                self._native_series,
-                other._native_series,
-            )
+            pc.if_else(cond, self._native_series, other._native_series)
         )
 
     def sample(
@@ -564,8 +635,7 @@ class ArrowSeries(CompliantSeries):
         rng = np.random.default_rng(seed=seed)
         idx = np.arange(0, num_rows)
         mask = rng.choice(idx, size=n, replace=with_replacement)
-
-        return self._from_native_series(pc.take(ser, mask))
+        return self._from_native_series(ser.take(mask))
 
     def fill_null(
         self: Self,
@@ -576,10 +646,10 @@ class ArrowSeries(CompliantSeries):
         import numpy as np  # ignore-banned-import
 
         def fill_aux(
-            arr: pa.Array,
+            arr: ArrowArray | ArrowChunkedArray,
             limit: int,
             direction: Literal["forward", "backward"] | None = None,
-        ) -> pa.Array:
+        ) -> ArrowArray:
             # this algorithm first finds the indices of the valid values to fill all the null value positions
             # then it calculates the distance of each new index and the original index
             # if the distance is equal to or less than the limit and the original value is null, it is replaced
@@ -594,10 +664,7 @@ class ArrowSeries(CompliantSeries):
                 )[::-1]
                 distance = valid_index - indices
             return pc.if_else(
-                pc.and_(
-                    pc.is_null(arr),
-                    pc.less_equal(distance, pa.scalar(limit)),
-                ),
+                pc.and_(pc.is_null(arr), pc.less_equal(distance, lit(limit))),
                 arr.take(valid_index),
                 arr,
             )
@@ -606,7 +673,7 @@ class ArrowSeries(CompliantSeries):
         dtype = ser.type
 
         if value is not None:
-            res_ser = self._from_native_series(pc.fill_null(ser, pa.scalar(value, dtype)))
+            res_ser = self._from_native_series(pc.fill_null(ser, lit(value, dtype)))  # type: ignore[attr-defined]
         elif limit is None:
             fill_func = (
                 pc.fill_null_forward if strategy == "forward" else pc.fill_null_backward
@@ -631,15 +698,15 @@ class ArrowSeries(CompliantSeries):
     def to_pandas(self: Self) -> pd.Series:
         import pandas as pd  # ignore-banned-import()
 
-        return pd.Series(self._native_series, name=self.name)
+        return pd.Series(self._native_series, name=self.name)  # pyright: ignore[reportArgumentType, reportCallIssue]
 
     def to_polars(self: Self) -> pl.Series:
         import polars as pl  # ignore-banned-import
 
         return pl.from_arrow(self._native_series)  # type: ignore[return-value]
 
-    def is_unique(self: Self) -> ArrowSeries:
-        return self.to_frame().is_unique().alias(self.name)
+    def is_unique(self: Self) -> Self:
+        return self.to_frame().is_unique().alias(self.name)  # type: ignore[return-value]
 
     def is_first_distinct(self: Self) -> Self:
         import numpy as np  # ignore-banned-import
@@ -681,15 +748,15 @@ class ArrowSeries(CompliantSeries):
             result = pc.all(pc.greater_equal(ser[:-1], ser[1:]))
         else:
             result = pc.all(pc.less_equal(ser[:-1], ser[1:]))
-        return maybe_extract_py_scalar(result, return_py_scalar=True)  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(result, return_py_scalar=True)
 
-    def unique(self: Self, *, maintain_order: bool) -> ArrowSeries:
+    def unique(self: Self, *, maintain_order: bool) -> Self:
         # TODO(marco): `pc.unique` seems to always maintain order, is that guaranteed?
-        return self._from_native_series(pc.unique(self._native_series))
+        return self._from_native_series(self._native_series.unique())
 
     def replace_strict(
         self: Self, old: Sequence[Any], new: Sequence[Any], *, return_dtype: DType | None
-    ) -> ArrowSeries:
+    ) -> Self:
         # https://stackoverflow.com/a/79111029/4451315
         idxs = pc.index_in(self._native_series, pa.array(old))
         result_native = pc.take(pa.array(new), idxs)
@@ -705,15 +772,14 @@ class ArrowSeries(CompliantSeries):
             raise ValueError(msg)
         return result
 
-    def sort(self: Self, *, descending: bool, nulls_last: bool) -> ArrowSeries:
+    def sort(self: Self, *, descending: bool, nulls_last: bool) -> Self:
         series = self._native_series
-        order = "descending" if descending else "ascending"
-        null_placement = "at_end" if nulls_last else "at_start"
+        order: Order = "descending" if descending else "ascending"
+        null_placement: NullPlacement = "at_end" if nulls_last else "at_start"
         sorted_indices = pc.array_sort_indices(
             series, order=order, null_placement=null_placement
         )
-
-        return self._from_native_series(pc.take(series, sorted_indices))
+        return self._from_native_series(series.take(sorted_indices))
 
     def to_dummies(self: Self, *, separator: str, drop_first: bool) -> ArrowDataFrame:
         import numpy as np  # ignore-banned-import
@@ -722,9 +788,10 @@ class ArrowSeries(CompliantSeries):
 
         series = self._native_series
         name = self._name
-        da = series.dictionary_encode(null_encoding="encode").combine_chunks()
+        # NOTE: stub is missing attributes (https://arrow.apache.org/docs/python/generated/pyarrow.DictionaryArray.html)
+        da: Incomplete = series.combine_chunks().dictionary_encode(null_encoding="encode")
 
-        columns = np.zeros((len(da.dictionary), len(da)), np.int8)
+        columns: _2DArray = np.zeros((len(da.dictionary), len(da)), np.int8)
         columns[da.indices, np.arange(len(da))] = 1
         null_col_pa, null_col_pl = f"{name}{separator}None", f"{name}{separator}null"
         cols = [
@@ -756,7 +823,7 @@ class ArrowSeries(CompliantSeries):
         *,
         _return_py_scalar: bool = True,
     ) -> float:
-        return maybe_extract_py_scalar(  # type: ignore[no-any-return]
+        return maybe_extract_py_scalar(
             pc.quantile(self._native_series, q=quantile, interpolation=interpolation)[0],
             _return_py_scalar,
         )
@@ -774,18 +841,21 @@ class ArrowSeries(CompliantSeries):
         _, upper_bound = broadcast_and_extract_native(
             self, upper_bound, self._backend_version
         )
-        arr = pc.max_element_wise(arr, lower_bound)
-        arr = pc.min_element_wise(arr, upper_bound)
+        # NOTE: stubs are missing `ChunkedArray` support
+        # https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L948-L954
+        max_element_wise: Incomplete = pc.max_element_wise
+        arr = max_element_wise(arr, lower_bound)
+        arr = cast("ArrowChunkedArray", pc.min_element_wise(arr, upper_bound))
 
         return self._from_native_series(arr)
 
-    def to_arrow(self: Self) -> pa.Array:
+    def to_arrow(self: Self) -> ArrowArray:
         return self._native_series.combine_chunks()
 
-    def mode(self: Self) -> ArrowSeries:
+    def mode(self: Self) -> Self:
         plx = self.__narwhals_namespace__()
         col_token = generate_temporary_column_name(n_bytes=8, columns=[self.name])
-        return self.value_counts(
+        return self.value_counts(  # type: ignore[return-value]
             name=col_token,
             normalize=False,
             sort=False,
@@ -804,7 +874,7 @@ class ArrowSeries(CompliantSeries):
             msg = "cum_min method is not supported for pyarrow < 13.0.0"
             raise NotImplementedError(msg)
 
-        native_series = self._native_series
+        native_series = cast("Any", self._native_series)
 
         result = (
             pc.cumulative_min(native_series, skip_nulls=True)
@@ -818,7 +888,7 @@ class ArrowSeries(CompliantSeries):
             msg = "cum_max method is not supported for pyarrow < 13.0.0"
             raise NotImplementedError(msg)
 
-        native_series = self._native_series
+        native_series = cast("Any", self._native_series)
 
         result = (
             pc.cumulative_max(native_series, skip_nulls=True)
@@ -832,7 +902,7 @@ class ArrowSeries(CompliantSeries):
             msg = "cum_max method is not supported for pyarrow < 13.0.0"
             raise NotImplementedError(msg)
 
-        native_series = self._native_series
+        native_series = cast("Any", self._native_series)
 
         result = (
             pc.cumulative_prod(native_series, skip_nulls=True)
@@ -949,6 +1019,9 @@ class ArrowSeries(CompliantSeries):
         count_in_window = valid_count - valid_count.shift(window_size).fill_null(
             value=0, strategy=None, limit=None
         )
+        # NOTE: stubs are missing `ChunkedArray` support
+        # https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L948-L954
+        max_element_wise: Incomplete = pc.max_element_wise
 
         result = self._from_native_series(
             pc.if_else(
@@ -957,7 +1030,7 @@ class ArrowSeries(CompliantSeries):
                 None,
             )
         ) / self._from_native_series(
-            pc.max_element_wise((count_in_window - ddof)._native_series, 0)
+            max_element_wise((count_in_window - ddof)._native_series, 0)
         )
 
         return result[offset:]
@@ -992,18 +1065,20 @@ class ArrowSeries(CompliantSeries):
 
         # ignore-banned-import
 
-        sort_keys = "descending" if descending else "ascending"
-        tiebreaker = "first" if method == "ordinal" else method
+        sort_keys: Order = "descending" if descending else "ascending"
+        tiebreaker: TieBreaker = "first" if method == "ordinal" else method
 
-        native_series = self._native_series
+        native_series: ArrowChunkedArray | ArrowArray
         if self._backend_version < (14, 0, 0):  # pragma: no cover
-            native_series = native_series.combine_chunks()
+            native_series = self._native_series.combine_chunks()
+        else:
+            native_series = self._native_series
 
         null_mask = pc.is_null(native_series)
 
         rank = pc.rank(native_series, sort_keys=sort_keys, tiebreaker=tiebreaker)
 
-        result = pc.if_else(null_mask, pa.scalar(None), rank)
+        result = pc.if_else(null_mask, lit(None, native_series.type), rank)
         return self._from_native_series(result)
 
     def hist(  # noqa: PLR0915
@@ -1020,32 +1095,46 @@ class ArrowSeries(CompliantSeries):
 
         from narwhals._arrow.dataframe import ArrowDataFrame
 
-        def _hist_from_bin_count(
-            bin_count: int,
-        ) -> tuple[Sequence[int], Sequence[int | float], Sequence[int | float]]:
+        def _hist_from_bin_count(bin_count: int):  # type: ignore[no-untyped-def] # noqa: ANN202
             d = pc.min_max(self._native_series)
             lower, upper = d["min"], d["max"]
             pad_lowest_bin = False
+            pa_float = pa.type_for_alias("float")
             if lower == upper:
-                range_ = pa.scalar(1.0)
-                width = pc.divide(range_, bin_count)
-                lower = pc.subtract(lower, 0.5)
-                upper = pc.add(upper, 0.5)
+                range_ = lit(1.0)
+                mid = lit(0.5)
+                width = pc.divide(range_, lit(bin_count))
+                lower = pc.subtract(lower, mid)
+                upper = pc.add(upper, mid)
             else:
                 pad_lowest_bin = True
                 range_ = pc.subtract(upper, lower)
-                width = pc.divide(range_.cast("float"), float(bin_count))
+                width = pc.divide(pc.cast(range_, pa_float), lit(float(bin_count)))
 
-            bin_proportions = pc.divide(pc.subtract(self._native_series, lower), width)
-            bin_indices = pc.floor(bin_proportions)
+            bin_proportions = pc.divide(
+                pc.subtract(
+                    cast("pc.NumericOrTemporalArray", self._native_series), lower
+                ),
+                width,
+            )
+            bin_indices: ArrowChunkedArray = cast(
+                "ArrowChunkedArray", pc.floor(bin_proportions)
+            )
 
-            bin_indices = pc.if_else(  # shift bins so they are right-closed
+            # NOTE: stubs leave unannotated
+            if_else: Incomplete = pc.if_else
+
+            # shift bins so they are right-closed
+            bin_indices = if_else(
                 pc.and_(
                     pc.equal(bin_indices, bin_proportions),
                     pc.greater(bin_indices, 0),
                 ),
                 pc.subtract(bin_indices, 1),
                 bin_indices,
+            )
+            possible = pa.Table.from_arrays(
+                [pa.Array.from_pandas(np.arange(bin_count, dtype="int64"))], ["values"]
             )
             counts = (  # count bin id occurrences
                 pa.Table.from_arrays(
@@ -1055,38 +1144,31 @@ class ArrowSeries(CompliantSeries):
                 # nan values are implicitly dropped in value_counts
                 .filter(~pc.field("values").is_nan())
                 .cast(pa.schema([("values", pa.int64()), ("counts", pa.int64())]))
-                .join(  # align bin ids to all possible bin ids (populate in missing bins)
-                    pa.Table.from_arrays(
-                        [np.arange(bin_count, dtype="int64")], ["values"]
-                    ),
-                    keys="values",
-                    join_type="right outer",
-                )
+                # align bin ids to all possible bin ids (populate in missing bins)
+                .join(possible, keys="values", join_type="right outer")
                 .sort_by("values")
             )
-            counts = counts.set_column(  # empty bin intervals should have a 0 count
-                0, "counts", pc.coalesce(counts.column("counts"), 0)
+            # empty bin intervals should have a 0 count
+            counts_coalesce = cast(
+                "ArrowArray",
+                pc.coalesce(cast("ArrowArray", counts.column("counts")), lit(0)),
             )
+            counts = counts.set_column(0, "counts", counts_coalesce)
 
             # extract left/right side of the intervals
             bin_left = pc.add(lower, pc.multiply(counts.column("values"), width))
             bin_right = pc.add(bin_left, width)
             if pad_lowest_bin:
-                bin_left = pa.chunked_array(
-                    [  # pad lowest bin by 1% of range
-                        [
-                            pc.subtract(
-                                bin_left[0], pc.multiply(range_.cast("float"), 0.001)
-                            )
-                        ],
-                        bin_left[1:],  # pyarrow==11.0 needs to infer
-                    ]
-                )
+                # pad lowest bin by 1% of range
+                lowest_padded = [
+                    pc.subtract(
+                        bin_left[0], pc.multiply(pc.cast(range_, pa_float), lit(0.001))
+                    )
+                ]
+                bin_left = chunked_array([lowest_padded, cast("Any", bin_left[1:])])
             return counts.column("counts"), bin_left, bin_right
 
-        def _hist_from_bins(
-            bins: Sequence[int | float],
-        ) -> tuple[Sequence[int], Sequence[int | float], Sequence[int | float]]:
+        def _hist_from_bins(bins: Sequence[int | float]):  # type: ignore[no-untyped-def] # noqa: ANN202
             bin_indices = np.searchsorted(bins, self._native_series, side="left")
             obs_cats, obs_counts = np.unique(bin_indices, return_counts=True)
             obj_cats = np.arange(1, len(bins))
@@ -1097,9 +1179,6 @@ class ArrowSeries(CompliantSeries):
             bin_left = bins[:-1]
             return counts, bin_left, bin_right
 
-        counts: Sequence[int]
-        bin_left: Sequence[int | float]
-        bin_right: Sequence[int | float]
         if bins is not None:
             if len(bins) < 2:
                 counts, bin_left, bin_right = [], [], []
@@ -1117,7 +1196,7 @@ class ArrowSeries(CompliantSeries):
             msg = "must provide one of `bin_count` or `bins`"
             raise InvalidOperationError(msg)
 
-        data: dict[str, Sequence[int | float | str]] = {}
+        data: dict[str, Any] = {}
         if include_breakpoint:
             data["breakpoint"] = bin_right
         data["count"] = counts
@@ -1143,13 +1222,10 @@ class ArrowSeries(CompliantSeries):
         try:
             native_series = self._native_series
             other_ = (
-                pa.scalar(other)
-                if other is not None
-                else pa.scalar(None, type=native_series.type)
+                lit(other) if other is not None else lit(None, type=native_series.type)
             )
-            return maybe_extract_py_scalar(  # type: ignore[no-any-return]
-                pc.is_in(other_, native_series),
-                return_py_scalar=True,
+            return maybe_extract_py_scalar(
+                pc.is_in(other_, native_series), return_py_scalar=True
             )
         except (ArrowInvalid, ArrowNotImplementedError, ArrowTypeError) as exc:
             from narwhals.exceptions import InvalidOperationError

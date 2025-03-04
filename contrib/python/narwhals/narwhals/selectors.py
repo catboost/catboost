@@ -5,6 +5,8 @@ from typing import Any
 from typing import Iterable
 from typing import NoReturn
 
+from narwhals._expression_parsing import ExprKind
+from narwhals._expression_parsing import ExprMetadata
 from narwhals.expr import Expr
 from narwhals.utils import flatten
 
@@ -19,12 +21,7 @@ if TYPE_CHECKING:
 
 class Selector(Expr):
     def _to_expr(self: Self) -> Expr:
-        return Expr(
-            to_compliant_expr=self._to_compliant_expr,
-            is_order_dependent=self._is_order_dependent,
-            changes_length=self._changes_length,
-            aggregates=self._aggregates,
-        )
+        return Expr(self._to_compliant_expr, self._metadata)
 
     def __add__(self: Self, other: Any) -> Expr:  # type: ignore[override]
         if isinstance(other, Selector):
@@ -100,9 +97,7 @@ def by_dtype(*dtypes: DType | type[DType] | Iterable[DType | type[DType]]) -> Se
     """
     return Selector(
         lambda plx: plx.selectors.by_dtype(flatten(dtypes)),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        ExprMetadata(kind=ExprKind.TRANSFORM, is_order_dependent=False),
     )
 
 
@@ -169,9 +164,7 @@ def matches(pattern: str) -> Selector:
     """
     return Selector(
         lambda plx: plx.selectors.matches(pattern),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        ExprMetadata(kind=ExprKind.TRANSFORM, is_order_dependent=False),
     )
 
 
@@ -230,9 +223,7 @@ def numeric() -> Selector:
     """
     return Selector(
         lambda plx: plx.selectors.numeric(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        ExprMetadata(kind=ExprKind.TRANSFORM, is_order_dependent=False),
     )
 
 
@@ -288,9 +279,7 @@ def boolean() -> Selector:
     """
     return Selector(
         lambda plx: plx.selectors.boolean(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        ExprMetadata(kind=ExprKind.TRANSFORM, is_order_dependent=False),
     )
 
 
@@ -346,9 +335,7 @@ def string() -> Selector:
     """
     return Selector(
         lambda plx: plx.selectors.string(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        ExprMetadata(kind=ExprKind.TRANSFORM, is_order_dependent=False),
     )
 
 
@@ -409,9 +396,7 @@ def categorical() -> Selector:
     """
     return Selector(
         lambda plx: plx.selectors.categorical(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        ExprMetadata(kind=ExprKind.TRANSFORM, is_order_dependent=False),
     )
 
 
@@ -471,9 +456,7 @@ def all() -> Selector:
     """
     return Selector(
         lambda plx: plx.selectors.all(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        ExprMetadata(kind=ExprKind.TRANSFORM, is_order_dependent=False),
     )
 
 
@@ -534,9 +517,7 @@ def datetime(
     """
     return Selector(
         lambda plx: plx.selectors.datetime(time_unit=time_unit, time_zone=time_zone),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        ExprMetadata(kind=ExprKind.TRANSFORM, is_order_dependent=False),
     )
 
 

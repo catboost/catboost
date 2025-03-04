@@ -3,20 +3,22 @@
 # and pandas or PyArrow.
 from __future__ import annotations
 
+from enum import Enum
+from enum import auto
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import Sequence
+from typing import TypedDict
 from typing import TypeVar
 from typing import Union
 from typing import overload
 
 from narwhals.dependencies import is_numpy_array
-from narwhals.exceptions import InvalidIntoExprError
 from narwhals.exceptions import LengthChangingExprError
+from narwhals.exceptions import ShapeError
 from narwhals.utils import Implementation
 from narwhals.utils import is_compliant_expr
-from narwhals.utils import is_compliant_series
 
 if TYPE_CHECKING:
     from narwhals._arrow.expr import ArrowExpr
@@ -27,7 +29,6 @@ if TYPE_CHECKING:
     from narwhals.typing import CompliantNamespace
     from narwhals.typing import CompliantSeries
     from narwhals.typing import CompliantSeriesT_co
-    from narwhals.typing import IntoCompliantExpr
     from narwhals.typing import IntoExpr
 
     ArrowOrPandasLikeExpr = TypeVar(
@@ -41,7 +42,7 @@ if TYPE_CHECKING:
 
 def evaluate_into_expr(
     df: CompliantDataFrame | CompliantLazyFrame,
-    into_expr: IntoCompliantExpr[CompliantSeriesT_co],
+    expr: CompliantExpr[CompliantSeriesT_co],
 ) -> Sequence[CompliantSeriesT_co]:
     """Return list of raw columns.
 
@@ -52,7 +53,6 @@ def evaluate_into_expr(
     calls. Note that for PySpark / DuckDB, we are less free to liberally
     set aliases whenever we want.
     """
-    expr = parse_into_expr(into_expr, namespace=df.__narwhals_namespace__())
     _, aliases = evaluate_output_names_and_aliases(expr, df, [])
     result = expr(df)
     if list(aliases) != [s.name for s in result]:  # pragma: no cover
@@ -62,25 +62,14 @@ def evaluate_into_expr(
 
 
 def evaluate_into_exprs(
-    df: CompliantDataFrame,
-    /,
-    *exprs: IntoCompliantExpr[CompliantSeriesT_co],
-    **named_exprs: IntoCompliantExpr[CompliantSeriesT_co],
+    df: CompliantDataFrame, /, *exprs: CompliantExpr[CompliantSeriesT_co]
 ) -> list[CompliantSeriesT_co]:
     """Evaluate each expr into Series."""
-    series = [
+    return [
         item
         for sublist in (evaluate_into_expr(df, into_expr) for into_expr in exprs)
         for item in sublist
     ]
-    for name, expr in named_exprs.items():
-        evaluated_expr = evaluate_into_expr(df, expr)
-        if len(evaluated_expr) > 1:
-            msg = "Named expressions must return a single column"  # pragma: no cover
-            raise AssertionError(msg)
-        to_append = evaluated_expr[0].alias(name)
-        series.append(to_append)
-    return series
 
 
 @overload
@@ -98,47 +87,6 @@ def maybe_evaluate_expr(
 ) -> Sequence[CompliantSeriesT_co] | T:
     """Evaluate `expr` if it's an expression, otherwise return it as is."""
     return expr(df) if is_compliant_expr(expr) else expr
-
-
-def parse_into_exprs(
-    *exprs: IntoCompliantExpr[CompliantSeriesT_co],
-    namespace: CompliantNamespace[CompliantSeriesT_co],
-    **named_exprs: IntoCompliantExpr[CompliantSeriesT_co],
-) -> Sequence[CompliantExpr[CompliantSeriesT_co]]:
-    """Parse each input as an expression (if it's not already one).
-
-    See `parse_into_expr` for more details.
-    """
-    return [parse_into_expr(into_expr, namespace=namespace) for into_expr in exprs] + [
-        parse_into_expr(expr, namespace=namespace).alias(name)
-        for name, expr in named_exprs.items()
-    ]
-
-
-def parse_into_expr(
-    into_expr: IntoCompliantExpr[CompliantSeriesT_co],
-    *,
-    namespace: CompliantNamespace[CompliantSeriesT_co],
-) -> CompliantExpr[CompliantSeriesT_co]:
-    """Parse `into_expr` as an expression.
-
-    For example, in Polars, we can do both `df.select('a')` and `df.select(pl.col('a'))`.
-    We do the same in Narwhals:
-
-    - if `into_expr` is already an expression, just return it
-    - if it's a Series, then convert it to an expression
-    - if it's a numpy array, then convert it to a Series and then to an expression
-    - if it's a string, then convert it to an expression
-    - else, raise
-    """
-    if is_compliant_expr(into_expr):
-        return into_expr
-    if is_compliant_series(into_expr):
-        return namespace._create_expr_from_series(into_expr)  # type: ignore[no-any-return, attr-defined]
-    if is_numpy_array(into_expr):
-        series = namespace._create_compliant_series(into_expr)
-        return namespace._create_expr_from_series(series)
-    raise InvalidIntoExprError.from_invalid_type(type(into_expr))
 
 
 @overload
@@ -318,65 +266,21 @@ def extract_compliant(
     plx: CompliantNamespace[CompliantSeriesT_co],
     other: Any,
     *,
-    parse_column_name_as_expr: bool,
+    strings_are_column_names: bool,
 ) -> CompliantExpr[CompliantSeriesT_co] | CompliantSeriesT_co | Any:
     from narwhals.expr import Expr
     from narwhals.series import Series
 
     if isinstance(other, Expr):
         return other._to_compliant_expr(plx)
-    if parse_column_name_as_expr and isinstance(other, str):
+    if strings_are_column_names and isinstance(other, str):
         return plx.col(other)
     if isinstance(other, Series):
-        return other._compliant_series
+        return plx._create_expr_from_series(other._compliant_series)  # type: ignore[attr-defined]
+    if is_numpy_array(other):
+        series = plx._create_compliant_series(other)  # type: ignore[attr-defined]
+        return plx._create_expr_from_series(series)  # type: ignore[attr-defined]
     return other
-
-
-def operation_is_order_dependent(*args: IntoExpr | Any) -> bool:
-    # If an arg is an Expr, we look at `_is_order_dependent`. If it isn't,
-    # it means that it was a scalar (e.g. nw.col('a') + 1) or a column name,
-    # neither of which is order-dependent, so we default to `False`.
-    return any(getattr(x, "_is_order_dependent", False) for x in args)
-
-
-def operation_changes_length(*args: IntoExpr | Any) -> bool:
-    """Track whether operation changes length.
-
-    n-ary operations between expressions which change length are not
-    allowed. This is because the output might be non-relational. For
-    example:
-        df = pl.LazyFrame({'a': [1,2,None], 'b': [4,None,6]})
-        df.select(pl.col('a', 'b').drop_nulls())
-    Polars does allow this, but in the result we end up with the
-    tuple (2, 6) which wasn't part of the original data.
-
-    Rules are:
-        - in an n-ary operation, if any one of them changes length, then
-          it must be the only expression present
-        - in a comparison between a changes-length expression and a
-          scalar, the output changes length
-    """
-    from narwhals.expr import Expr
-
-    n_exprs = len([x for x in args if isinstance(x, Expr)])
-    changes_length = any(isinstance(x, Expr) and x._changes_length for x in args)
-    if n_exprs > 1 and changes_length:
-        msg = (
-            "Found multiple expressions at least one of which changes length.\n"
-            "Any length-changing expression can only be used in isolation, unless\n"
-            "it is followed by an aggregation."
-        )
-        raise LengthChangingExprError(msg)
-    return changes_length
-
-
-def operation_aggregates(*args: IntoExpr | Any) -> bool:
-    # If an arg is an Expr, we look at `_aggregates`. If it isn't,
-    # it means that it was a scalar (e.g. nw.col('a').sum() + 1),
-    # which is already length-1, so we default to `True`. If any
-    # expression does not aggregate, then broadcasting will take
-    # place and the result will not be an aggregate.
-    return all(getattr(x, "_aggregates", True) for x in args)
 
 
 def evaluate_output_names_and_aliases(
@@ -399,3 +303,115 @@ def evaluate_output_names_and_aliases(
             *[(x, alias) for x, alias in zip(output_names, aliases) if x not in exclude]
         )
     return output_names, aliases
+
+
+def operation_is_order_dependent(*args: IntoExpr | Any) -> bool:
+    from narwhals.expr import Expr
+
+    return any(isinstance(x, Expr) and x._metadata["is_order_dependent"] for x in args)
+
+
+class ExprKind(Enum):
+    """Describe which kind of expression we are dealing with.
+
+    Commutative composition rules are:
+    - LITERAL vs LITERAL -> LITERAL
+    - CHANGES_LENGTH vs (LITERAL | AGGREGATION) -> CHANGES_LENGTH
+    - CHANGES_LENGTH vs (CHANGES_LENGTH | TRANSFORM) -> raise
+    - TRANSFORM vs (LITERAL | AGGREGATION) -> TRANSFORM
+    - AGGREGATION vs (LITERAL | AGGREGATION) -> AGGREGATION
+    """
+
+    LITERAL = auto()  # e.g. nw.lit(1)
+    AGGREGATION = auto()  # e.g. nw.col('a').mean()
+    TRANSFORM = auto()  # length-preserving, e.g. nw.col('a').round()
+    CHANGES_LENGTH = auto()  # e.g. nw.col('a').drop_nulls()
+
+
+class ExprMetadata(TypedDict):
+    kind: ExprKind
+    is_order_dependent: bool
+
+
+def combine_metadata(*args: IntoExpr, strings_are_column_names: bool) -> ExprMetadata:
+    # Combine metadata from `args`.
+    from narwhals.expr import Expr
+
+    n_changes_length = 0
+    has_transforms = False
+    has_aggregations = False
+    has_literals = False
+    result_is_order_dependent = False
+
+    for arg in args:
+        if isinstance(arg, str) and strings_are_column_names:
+            has_transforms = True
+        elif isinstance(arg, Expr):
+            if arg._metadata["is_order_dependent"]:
+                result_is_order_dependent = True
+            kind = arg._metadata["kind"]
+            if kind is ExprKind.AGGREGATION:
+                has_aggregations = True
+            elif kind is ExprKind.LITERAL:
+                has_literals = True
+            elif kind is ExprKind.CHANGES_LENGTH:
+                n_changes_length += 1
+            elif kind is ExprKind.TRANSFORM:
+                has_transforms = True
+            else:  # pragma: no cover
+                msg = "unreachable code"
+                raise AssertionError(msg)
+    if (
+        has_literals
+        and not has_aggregations
+        and not has_transforms
+        and not n_changes_length
+    ):
+        result_kind = ExprKind.LITERAL
+    elif n_changes_length > 1:
+        msg = "Length-changing expressions can only be used in isolation, or followed by an aggregation"
+        raise LengthChangingExprError(msg)
+    elif n_changes_length and has_transforms:
+        msg = "Cannot combine length-changing expressions with length-preserving ones"
+        raise ShapeError(msg)
+    elif n_changes_length:
+        result_kind = ExprKind.CHANGES_LENGTH
+    elif has_transforms:
+        result_kind = ExprKind.TRANSFORM
+    else:
+        result_kind = ExprKind.AGGREGATION
+
+    return ExprMetadata(kind=result_kind, is_order_dependent=result_is_order_dependent)
+
+
+def check_expressions_transform(*args: IntoExpr, function_name: str) -> None:
+    # Raise if any argument in `args` isn't length-preserving.
+    # For Series input, we don't raise (yet), we let such checks happen later,
+    # as this function works lazily and so can't evaluate lengths.
+    from narwhals.expr import Expr
+    from narwhals.series import Series
+
+    if not all(
+        (isinstance(x, Expr) and x._metadata["kind"] is ExprKind.TRANSFORM)
+        or isinstance(x, (str, Series))
+        for x in args
+    ):
+        msg = f"Expressions which aggregate or change length cannot be passed to '{function_name}'."
+        raise ShapeError(msg)
+
+
+def all_exprs_are_aggs_or_literals(*args: IntoExpr, **kwargs: IntoExpr) -> bool:
+    # Raise if any argument in `args` isn't an aggregation or literal.
+    # For Series input, we don't raise (yet), we let such checks happen later,
+    # as this function works lazily and so can't evaluate lengths.
+    from narwhals import Expr
+
+    return all(
+        isinstance(x, Expr)
+        and x._metadata["kind"] in (ExprKind.AGGREGATION, ExprKind.LITERAL)
+        for x in args
+    ) and all(
+        isinstance(x, Expr)
+        and x._metadata["kind"] in (ExprKind.AGGREGATION, ExprKind.LITERAL)
+        for x in kwargs.values()
+    )

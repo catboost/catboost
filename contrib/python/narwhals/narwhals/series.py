@@ -17,6 +17,7 @@ from narwhals.series_cat import SeriesCatNamespace
 from narwhals.series_dt import SeriesDateTimeNamespace
 from narwhals.series_list import SeriesListNamespace
 from narwhals.series_str import SeriesStringNamespace
+from narwhals.translate import to_native
 from narwhals.typing import IntoSeriesT
 from narwhals.utils import _validate_rolling_arguments
 from narwhals.utils import generate_repr
@@ -27,9 +28,9 @@ if TYPE_CHECKING:
 
     import pandas as pd
     import polars as pl
-    import pyarrow as pa
     from typing_extensions import Self
 
+    from narwhals._arrow.typing import ArrowArray
     from narwhals.dataframe import DataFrame
     from narwhals.dtypes import DType
     from narwhals.typing import _1DArray
@@ -118,17 +119,17 @@ class Series(Generic[IntoSeriesT]):
     def __getitem__(self: Self, idx: int) -> Any: ...
 
     @overload
-    def __getitem__(self: Self, idx: slice | Sequence[int]) -> Self: ...
+    def __getitem__(self: Self, idx: slice | Sequence[int] | Self) -> Self: ...
 
-    def __getitem__(self: Self, idx: int | slice | Sequence[int]) -> Any | Self:
+    def __getitem__(self: Self, idx: int | slice | Sequence[int] | Self) -> Any | Self:
         """Retrieve elements from the object using integer indexing or slicing.
 
         Arguments:
             idx: The index, slice, or sequence of indices to retrieve.
 
                 - If `idx` is an integer, a single element is returned.
-                - If `idx` is a slice or a sequence of integers,
-                  a subset of the Series is returned.
+                - If `idx` is a slice, a sequence of integers, or another Series
+                    (with integer values) a subset of the Series is returned.
 
         Returns:
             A single element if `idx` is an integer, else a subset of the Series.
@@ -156,7 +157,9 @@ class Series(Generic[IntoSeriesT]):
             is_numpy_scalar(idx) and idx.dtype.kind in ("i", "u")
         ):
             return self._compliant_series[idx]
-        return self._from_compliant_series(self._compliant_series[idx])
+        return self._from_compliant_series(
+            self._compliant_series[to_native(idx, pass_through=True)]
+        )
 
     def __native_namespace__(self: Self) -> ModuleType:
         return self._compliant_series.__native_namespace__()  # type: ignore[no-any-return]
@@ -183,7 +186,9 @@ class Series(Generic[IntoSeriesT]):
         if parse_version(pa) < (16, 0):  # pragma: no cover
             msg = f"PyArrow>=16.0.0 is required for `Series.__arrow_c_stream__` for object of type {type(native_series)}"
             raise ModuleNotFoundError(msg)
-        ca = pa.chunked_array([self.to_arrow()])  # type: ignore[call-overload, unused-ignore]
+        from narwhals._arrow.utils import chunked_array
+
+        ca = chunked_array(self.to_arrow())
         return ca.__arrow_c_stream__(requested_schema=requested_schema)
 
     def to_native(self: Self) -> IntoSeriesT:
@@ -800,7 +805,7 @@ class Series(Generic[IntoSeriesT]):
             ]
         """
         return self._from_compliant_series(
-            self._compliant_series.is_in(self._extract_native(other))
+            self._compliant_series.is_in(to_native(other, pass_through=True))
         )
 
     def arg_true(self: Self) -> Self:
@@ -2044,7 +2049,7 @@ class Series(Generic[IntoSeriesT]):
             self._compliant_series.gather_every(n=n, offset=offset)
         )
 
-    def to_arrow(self: Self) -> pa.Array:
+    def to_arrow(self: Self) -> ArrowArray:
         r"""Convert to arrow.
 
         Returns:

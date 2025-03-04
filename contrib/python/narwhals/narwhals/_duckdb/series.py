@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from typing import NoReturn
 
 from narwhals._duckdb.utils import native_to_narwhals_dtype
 from narwhals.dependencies import get_duckdb
@@ -10,6 +9,7 @@ if TYPE_CHECKING:
     from types import ModuleType
 
     import duckdb
+    from typing_extensions import Never
     from typing_extensions import Self
 
     from narwhals.dtypes import DType
@@ -31,7 +31,7 @@ class DuckDBInterchangeSeries:
     def dtype(self: Self) -> DType:
         return native_to_narwhals_dtype(str(self._native_series.types[0]), self._version)
 
-    def __getattr__(self: Self, attr: str) -> NoReturn:
+    def __getattr__(self: Self, attr: str) -> Never:
         msg = (  # pragma: no cover
             f"Attribute {attr} is not supported for metadata-only dataframes.\n\n"
             "If you would like to see this kind of object better supported in "

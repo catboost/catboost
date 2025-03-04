@@ -125,7 +125,9 @@ class InterchangeFrame:
             raise NotImplementedError(msg)
 
     def to_arrow(self: Self) -> pa.Table:
-        from pyarrow.interchange import from_dataframe  # ignore-banned-import()
+        from pyarrow.interchange.from_dataframe import (  # ignore-banned-import()
+            from_dataframe,
+        )
 
         return from_dataframe(self._interchange_frame)
 
@@ -166,7 +168,6 @@ class InterchangeFrame:
     def select(
         self: Self,
         *exprs: str,
-        **named_exprs: str,
     ) -> Self:  # pragma: no cover
         msg = (
             "`select`-ing not by name is not supported for interchange-only level.\n\n"

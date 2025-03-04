@@ -8,28 +8,28 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 if TYPE_CHECKING:
-    import numpy as np
-    import sqlframe
-
-    if sys.version_info >= (3, 10):
-        from typing import TypeGuard
-    else:
-        from typing_extensions import TypeGuard
     import cudf
     import dask.dataframe as dd
     import duckdb
     import ibis
     import modin.pandas as mpd
+    import numpy as np
     import pandas as pd
     import polars as pl
     import pyarrow as pa
     import pyspark.sql as pyspark_sql
+    import sqlframe
+    from typing_extensions import TypeGuard
     from typing_extensions import TypeIs
 
+    from narwhals._arrow.typing import ArrowChunkedArray
     from narwhals.dataframe import DataFrame
     from narwhals.dataframe import LazyFrame
     from narwhals.series import Series
-    from narwhals.typing import IntoSeries
+    from narwhals.typing import DataFrameT
+    from narwhals.typing import FrameT
+    from narwhals.typing import IntoDataFrameT
+    from narwhals.typing import IntoSeriesT
     from narwhals.typing import _1DArray
     from narwhals.typing import _2DArray
     from narwhals.typing import _NDArray
@@ -118,7 +118,7 @@ def get_sqlframe() -> Any:
     return sys.modules.get("sqlframe", None)
 
 
-def is_pandas_dataframe(df: Any) -> TypeGuard[pd.DataFrame]:
+def is_pandas_dataframe(df: Any) -> TypeIs[pd.DataFrame]:
     """Check whether `df` is a pandas DataFrame without importing pandas."""
     return ((pd := get_pandas()) is not None and isinstance(df, pd.DataFrame)) or any(
         (mod := sys.modules.get(module_name, None)) is not None
@@ -127,7 +127,7 @@ def is_pandas_dataframe(df: Any) -> TypeGuard[pd.DataFrame]:
     )
 
 
-def is_pandas_series(ser: Any) -> TypeGuard[pd.Series[Any]]:
+def is_pandas_series(ser: Any) -> TypeIs[pd.Series[Any]]:
     """Check whether `ser` is a pandas Series without importing pandas."""
     return ((pd := get_pandas()) is not None and isinstance(ser, pd.Series)) or any(
         (mod := sys.modules.get(module_name, None)) is not None
@@ -136,7 +136,7 @@ def is_pandas_series(ser: Any) -> TypeGuard[pd.Series[Any]]:
     )
 
 
-def is_pandas_index(index: Any) -> TypeGuard[pd.Index]:
+def is_pandas_index(index: Any) -> TypeIs[pd.Index]:
     """Check whether `index` is a pandas Index without importing pandas."""
     return ((pd := get_pandas()) is not None and isinstance(index, pd.Index)) or any(
         (mod := sys.modules.get(module_name, None)) is not None
@@ -145,83 +145,85 @@ def is_pandas_index(index: Any) -> TypeGuard[pd.Index]:
     )
 
 
-def is_modin_dataframe(df: Any) -> TypeGuard[mpd.DataFrame]:
+def is_modin_dataframe(df: Any) -> TypeIs[mpd.DataFrame]:
     """Check whether `df` is a modin DataFrame without importing modin."""
     return (mpd := get_modin()) is not None and isinstance(df, mpd.DataFrame)
 
 
-def is_modin_series(ser: Any) -> TypeGuard[mpd.Series]:
+def is_modin_series(ser: Any) -> TypeIs[mpd.Series]:
     """Check whether `ser` is a modin Series without importing modin."""
     return (mpd := get_modin()) is not None and isinstance(ser, mpd.Series)
 
 
-def is_modin_index(index: Any) -> TypeGuard[mpd.Index]:
+def is_modin_index(index: Any) -> TypeIs[mpd.Index]:
     """Check whether `index` is a modin Index without importing modin."""
     return (mpd := get_modin()) is not None and isinstance(
         index, mpd.Index
     )  # pragma: no cover
 
 
-def is_cudf_dataframe(df: Any) -> TypeGuard[cudf.DataFrame]:
+def is_cudf_dataframe(df: Any) -> TypeIs[cudf.DataFrame]:
     """Check whether `df` is a cudf DataFrame without importing cudf."""
     return (cudf := get_cudf()) is not None and isinstance(df, cudf.DataFrame)
 
 
-def is_cudf_series(ser: Any) -> TypeGuard[cudf.Series[Any]]:
+def is_cudf_series(ser: Any) -> TypeIs[cudf.Series[Any]]:
     """Check whether `ser` is a cudf Series without importing cudf."""
     return (cudf := get_cudf()) is not None and isinstance(ser, cudf.Series)
 
 
-def is_cudf_index(index: Any) -> TypeGuard[cudf.Index]:
+def is_cudf_index(index: Any) -> TypeIs[cudf.Index]:
     """Check whether `index` is a cudf Index without importing cudf."""
     return (cudf := get_cudf()) is not None and isinstance(
         index, cudf.Index
     )  # pragma: no cover
 
 
-def is_dask_dataframe(df: Any) -> TypeGuard[dd.DataFrame]:
+def is_dask_dataframe(df: Any) -> TypeIs[dd.DataFrame]:
     """Check whether `df` is a Dask DataFrame without importing Dask."""
     return (dd := get_dask_dataframe()) is not None and isinstance(df, dd.DataFrame)
 
 
-def is_duckdb_relation(df: Any) -> TypeGuard[duckdb.DuckDBPyRelation]:
+def is_duckdb_relation(df: Any) -> TypeIs[duckdb.DuckDBPyRelation]:
     """Check whether `df` is a DuckDB Relation without importing DuckDB."""
     return (duckdb := get_duckdb()) is not None and isinstance(
         df, duckdb.DuckDBPyRelation
     )
 
 
-def is_ibis_table(df: Any) -> TypeGuard[ibis.Table]:
+def is_ibis_table(df: Any) -> TypeIs[ibis.Table]:
     """Check whether `df` is a Ibis Table without importing Ibis."""
     return (ibis := get_ibis()) is not None and isinstance(df, ibis.expr.types.Table)
 
 
-def is_polars_dataframe(df: Any) -> TypeGuard[pl.DataFrame]:
+def is_polars_dataframe(df: Any) -> TypeIs[pl.DataFrame]:
     """Check whether `df` is a Polars DataFrame without importing Polars."""
     return (pl := get_polars()) is not None and isinstance(df, pl.DataFrame)
 
 
-def is_polars_lazyframe(df: Any) -> TypeGuard[pl.LazyFrame]:
+def is_polars_lazyframe(df: Any) -> TypeIs[pl.LazyFrame]:
     """Check whether `df` is a Polars LazyFrame without importing Polars."""
     return (pl := get_polars()) is not None and isinstance(df, pl.LazyFrame)
 
 
-def is_polars_series(ser: Any) -> TypeGuard[pl.Series]:
+def is_polars_series(ser: Any) -> TypeIs[pl.Series]:
     """Check whether `ser` is a Polars Series without importing Polars."""
     return (pl := get_polars()) is not None and isinstance(ser, pl.Series)
 
 
-def is_pyarrow_chunked_array(ser: Any) -> TypeGuard[pa.ChunkedArray]:
+def is_pyarrow_chunked_array(
+    ser: Any | ArrowChunkedArray,
+) -> TypeIs[ArrowChunkedArray]:
     """Check whether `ser` is a PyArrow ChunkedArray without importing PyArrow."""
     return (pa := get_pyarrow()) is not None and isinstance(ser, pa.ChunkedArray)
 
 
-def is_pyarrow_table(df: Any) -> TypeGuard[pa.Table]:
+def is_pyarrow_table(df: Any) -> TypeIs[pa.Table]:
     """Check whether `df` is a PyArrow Table without importing PyArrow."""
     return (pa := get_pyarrow()) is not None and isinstance(df, pa.Table)
 
 
-def is_pyspark_dataframe(df: Any) -> TypeGuard[pyspark_sql.DataFrame]:
+def is_pyspark_dataframe(df: Any) -> TypeIs[pyspark_sql.DataFrame]:
     """Check whether `df` is a PySpark DataFrame without importing PySpark."""
     return bool(
         (pyspark_sql := get_pyspark_sql()) is not None
@@ -229,7 +231,7 @@ def is_pyspark_dataframe(df: Any) -> TypeGuard[pyspark_sql.DataFrame]:
     )
 
 
-def is_sqlframe_dataframe(df: Any) -> TypeGuard[sqlframe.base.dataframe.BaseDataFrame]:
+def is_sqlframe_dataframe(df: Any) -> TypeIs[sqlframe.base.dataframe.BaseDataFrame]:
     """Check whether `df` is a SQLFrame DataFrame without importing SQLFrame."""
     return bool(
         (sqlframe := get_sqlframe()) is not None
@@ -254,6 +256,9 @@ def is_numpy_array_2d(arr: Any) -> TypeIs[_2DArray]:
 
 def is_numpy_scalar(scalar: Any) -> TypeGuard[np.generic]:
     """Check whether `scalar` is a NumPy Scalar without importing NumPy."""
+    # NOTE: Needs to stay as `TypeGuard`
+    # - Used in `Series.__getitem__`, but not annotated
+    # - `TypeGuard` is *hiding* that the check introduces an intersection
     return (np := get_numpy()) is not None and np.isscalar(scalar)
 
 
@@ -283,7 +288,7 @@ def is_pandas_like_index(index: Any) -> bool:
     )  # pragma: no cover
 
 
-def is_into_series(native_series: IntoSeries) -> bool:
+def is_into_series(native_series: Any | IntoSeriesT) -> TypeIs[IntoSeriesT]:
     """Check whether `native_series` can be converted to a Narwhals Series.
 
     Arguments:
@@ -320,7 +325,7 @@ def is_into_series(native_series: IntoSeries) -> bool:
     )
 
 
-def is_into_dataframe(native_dataframe: Any) -> bool:
+def is_into_dataframe(native_dataframe: Any | IntoDataFrameT) -> TypeIs[IntoDataFrameT]:
     """Check whether `native_dataframe` can be converted to a Narwhals DataFrame.
 
     Arguments:
@@ -357,7 +362,9 @@ def is_into_dataframe(native_dataframe: Any) -> bool:
     )
 
 
-def is_narwhals_dataframe(df: Any) -> TypeGuard[DataFrame[Any]]:
+def is_narwhals_dataframe(
+    df: Any | DataFrame[DataFrameT],
+) -> TypeIs[DataFrame[DataFrameT]]:
     """Check whether `df` is a Narwhals DataFrame.
 
     This is useful if you expect a user to pass in a Narwhals
@@ -369,7 +376,7 @@ def is_narwhals_dataframe(df: Any) -> TypeGuard[DataFrame[Any]]:
     return isinstance(df, DataFrame)
 
 
-def is_narwhals_lazyframe(lf: Any) -> TypeGuard[LazyFrame[Any]]:
+def is_narwhals_lazyframe(lf: Any | LazyFrame[FrameT]) -> TypeIs[LazyFrame[FrameT]]:
     """Check whether `lf` is a Narwhals LazyFrame.
 
     This is useful if you expect a user to pass in a Narwhals
@@ -381,7 +388,7 @@ def is_narwhals_lazyframe(lf: Any) -> TypeGuard[LazyFrame[Any]]:
     return isinstance(lf, LazyFrame)
 
 
-def is_narwhals_series(ser: Any) -> TypeGuard[Series[Any]]:
+def is_narwhals_series(ser: Any | Series[IntoSeriesT]) -> TypeIs[Series[IntoSeriesT]]:
     """Check whether `ser` is a Narwhals Series.
 
     This is useful if you expect a user to pass in a Narwhals

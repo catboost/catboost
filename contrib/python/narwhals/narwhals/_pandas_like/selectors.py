@@ -143,7 +143,7 @@ class PandasSelectorNamespace:
                 )
             ]
 
-        def evalute_output_names(df: PandasLikeDataFrame) -> Sequence[str]:
+        def evaluate_output_names(df: PandasLikeDataFrame) -> Sequence[str]:
             return [
                 col
                 for col in df.columns
@@ -159,7 +159,7 @@ class PandasSelectorNamespace:
             func,
             depth=0,
             function_name="selector",
-            evaluate_output_names=evalute_output_names,
+            evaluate_output_names=evaluate_output_names,
             alias_output_names=None,
             implementation=self._implementation,
             backend_version=self._backend_version,

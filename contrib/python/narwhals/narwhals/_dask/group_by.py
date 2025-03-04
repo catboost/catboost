@@ -26,10 +26,10 @@ if TYPE_CHECKING:
 
 
 def n_unique() -> dd.Aggregation:
-    def chunk(s: pd.core.groupby.generic.SeriesGroupBy) -> int:
+    def chunk(s: pd.core.groupby.generic.SeriesGroupBy) -> pd.Series[Any]:
         return s.nunique(dropna=False)  # type: ignore[no-any-return]
 
-    def agg(s0: pd.core.groupby.generic.SeriesGroupBy) -> int:
+    def agg(s0: pd.core.groupby.generic.SeriesGroupBy) -> pd.Series[Any]:
         return s0.sum()  # type: ignore[no-any-return]
 
     return dd.Aggregation(

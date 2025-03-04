@@ -13,12 +13,14 @@ from typing import cast
 from duckdb import CaseExpression
 from duckdb import CoalesceOperator
 from duckdb import ColumnExpression
-from duckdb import ConstantExpression
 from duckdb import FunctionExpression
+from duckdb.typing import BIGINT
+from duckdb.typing import VARCHAR
 
 from narwhals._duckdb.expr import DuckDBExpr
 from narwhals._duckdb.selectors import DuckDBSelectorNamespace
 from narwhals._duckdb.utils import ExprKind
+from narwhals._duckdb.utils import lit
 from narwhals._duckdb.utils import n_ary_operation_expr_kind
 from narwhals._duckdb.utils import narwhals_to_native_dtype
 from narwhals._expression_parsing import combine_alias_output_names
@@ -34,7 +36,7 @@ if TYPE_CHECKING:
     from narwhals.utils import Version
 
 
-class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):
+class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[type-var]
     def __init__(
         self: Self, *, backend_version: tuple[int, ...], version: Version
     ) -> None:
@@ -98,9 +100,9 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):
                 cols_separated = [
                     y
                     for x in [
-                        (col.cast("string"),)
+                        (col.cast(VARCHAR),)
                         if i == len(cols) - 1
-                        else (col.cast("string"), ConstantExpression(separator))
+                        else (col.cast(VARCHAR), lit(separator))
                         for i, col in enumerate(cols)
                     ]
                     for y in x
@@ -111,15 +113,11 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):
                 )
             else:
                 init_value, *values = [
-                    CaseExpression(~nm, col.cast("string")).otherwise(
-                        ConstantExpression("")
-                    )
+                    CaseExpression(~nm, col.cast(VARCHAR)).otherwise(lit(""))
                     for col, nm in zip(cols, null_mask)
                 ]
                 separators = (
-                    CaseExpression(nm, ConstantExpression("")).otherwise(
-                        ConstantExpression(separator)
-                    )
+                    CaseExpression(nm, lit("")).otherwise(lit(separator))
                     for nm in null_mask[:-1]
                 )
                 result = reduce(
@@ -205,11 +203,7 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):
 
     def sum_horizontal(self: Self, *exprs: DuckDBExpr) -> DuckDBExpr:
         def func(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
-            cols = (
-                CoalesceOperator(col, ConstantExpression(0))
-                for _expr in exprs
-                for col in _expr(df)
-            )
+            cols = (CoalesceOperator(col, lit(0)) for _expr in exprs for col in _expr(df))
             return [reduce(operator.add, cols)]
 
         return DuckDBExpr(
@@ -227,11 +221,8 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):
             cols = [c for _expr in exprs for c in _expr(df)]
             return [
                 (
-                    reduce(
-                        operator.add,
-                        (CoalesceOperator(col, ConstantExpression(0)) for col in cols),
-                    )
-                    / reduce(operator.add, (col.isnotnull().cast("int") for col in cols))
+                    reduce(operator.add, (CoalesceOperator(col, lit(0)) for col in cols))
+                    / reduce(operator.add, (col.isnotnull().cast(BIGINT) for col in cols))
                 )
             ]
 
@@ -245,14 +236,9 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):
             version=self._version,
         )
 
-    def when(
-        self: Self,
-        *predicates: DuckDBExpr,
-    ) -> DuckDBWhen:
-        plx = self.__class__(backend_version=self._backend_version, version=self._version)
-        condition = plx.all_horizontal(*predicates)
+    def when(self: Self, predicate: DuckDBExpr) -> DuckDBWhen:
         return DuckDBWhen(
-            condition,
+            predicate,
             self._backend_version,
             expr_kind=ExprKind.TRANSFORM,
             version=self._version,
@@ -272,11 +258,11 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):
         def func(_df: DuckDBLazyFrame) -> list[duckdb.Expression]:
             if dtype is not None:
                 return [
-                    ConstantExpression(value).cast(
-                        narwhals_to_native_dtype(dtype, version=self._version)
+                    lit(value).cast(
+                        narwhals_to_native_dtype(dtype, version=self._version)  # type: ignore[arg-type]
                     )
                 ]
-            return [ConstantExpression(value)]
+            return [lit(value)]
 
         return DuckDBExpr(
             func,
@@ -329,7 +315,7 @@ class DuckDBWhen:
             value = self._then_value(df)[0]
         else:
             # `self._otherwise_value` is a scalar
-            value = ConstantExpression(self._then_value)
+            value = lit(self._then_value)
         value = cast("duckdb.Expression", value)
 
         if self._otherwise_value is None:
@@ -338,7 +324,7 @@ class DuckDBWhen:
             # `self._otherwise_value` is a scalar
             return [
                 CaseExpression(condition=condition, value=value).otherwise(
-                    ConstantExpression(self._otherwise_value)
+                    lit(self._otherwise_value)
                 )
             ]
         otherwise = self._otherwise_value(df)[0]
