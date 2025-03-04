@@ -73,7 +73,7 @@ cdef extern from "library/python/hnsw/hnsw/helpers.h" namespace "NHnsw::PythonHe
                        void* resultNeighDist) except +
 
     TBlob BuildDenseVectorIndex[T](const TString& jsonOptions, const TDenseVectorStorage[T]* storage,
-                                             EDistance distance) nogil except +
+                                             EDistance distance) except + nogil
     void SaveIndex(const TBlob& indexBlob, const TString& path) except +
     TBlob LoadIndex(const TString &path) except +
 

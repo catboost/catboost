@@ -522,7 +522,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         bool_t verbose,
         bool_t loadSampleIds,
         bool_t forceUnitAutoPAirweights
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 
 cdef extern from "catboost/libs/data/load_and_quantize_data.h" namespace "NCB":
@@ -544,7 +544,7 @@ cdef extern from "catboost/libs/data/load_and_quantize_data.h" namespace "NCB":
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         int threadCount,
         bool_t verbose
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 
 cdef extern from "catboost/libs/model/ctr_provider.h":
@@ -555,7 +555,7 @@ cdef extern from "catboost/libs/model/ctr_provider.h":
 ctypedef const TFullModel* TFullModel_const_ptr
 
 cdef extern from "catboost/libs/model/model.h":
-    cdef TFullModel SumModels(TVector[TFullModel_const_ptr], const TVector[double]&, const TVector[TString]&, ECtrTableMergePolicy) nogil except +ProcessException
+    cdef TFullModel SumModels(TVector[TFullModel_const_ptr], const TVector[double]&, const TVector[TString]&, ECtrTableMergePolicy) except +ProcessException nogil
 
 cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "NCB":
     cdef void ExportModel(
@@ -566,14 +566,14 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
         bool_t addFileFormatExtension,
         const TVector[TString]* featureId,
         const THashMap[ui32, TString]* catFeaturesHashToString
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef TString ConvertTreeToOnnxProto(
         const TFullModel& model,
-        const TString& userParametersJson) nogil except +ProcessException
+        const TString& userParametersJson) except +ProcessException nogil
 
 cdef extern from "catboost/libs/model/utils.h":
-    cdef TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model) nogil except +ProcessException
+    cdef TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model) except +ProcessException nogil
 
 
 cdef extern from "util/system/info.h" namespace "NSystemInfo":
@@ -608,22 +608,22 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
         const TFullModel& model,
         size_t treeIdx,
         const TDataProviderPtr pool
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     TVector[TString] GetTreeLeafValuesDescriptions(
         const TFullModel& model,
         size_t treeIdx
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     TConstArrayRef[TNonSymmetricTreeStepNode] GetTreeStepNodes(
         const TFullModel& model,
         size_t treeIdx
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     TVector[ui32] GetTreeNodeToLeaf(
         const TFullModel& model,
         size_t treeIdx
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 
 cdef extern from "catboost/libs/metrics/metric.h":
@@ -663,8 +663,8 @@ cdef extern from "catboost/libs/metrics/metric.h":
         bool_t (*IsMaxOptimalFunc)(void *customData) with gil
         bool_t (*IsAdditiveFunc)(void *customData) with gil
         double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) with gil
-    cdef bool_t IsMaxOptimal(const TString& metricName) nogil except +ProcessException
-    cdef bool_t IsMinOptimal(const TString& metricName) nogil except +ProcessException
+    cdef bool_t IsMaxOptimal(const TString& metricName) except +ProcessException nogil
+    cdef bool_t IsMinOptimal(const TString& metricName) except +ProcessException nogil
 
 
 cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor.h":
@@ -739,10 +739,10 @@ cdef extern from "catboost/private/libs/options/check_train_options.h":
         const TJsonValue& tree,
         const TCustomObjectiveDescriptor* objectiveDescriptor,
         const TCustomMetricDescriptor* evalMetricDescriptor
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 cdef extern from "catboost/private/libs/options/json_helper.h":
-    cdef TJsonValue ReadTJsonValue(const TString& paramsJson) nogil except +ProcessException
+    cdef TJsonValue ReadTJsonValue(const TString& paramsJson) except +ProcessException nogil
 
 cdef extern from "catboost/libs/loggers/catboost_logger_helpers.h":
     cdef cppclass TMetricsAndTimeLeftHistory:
@@ -767,7 +767,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         const TVector[TEvalResult*]& testApproxes,
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         THolder[TLearnProgress]* dstLearnProgress
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef cppclass TCustomCallbackDescriptor:
         void* CustomData
@@ -782,7 +782,7 @@ cdef extern from "catboost/libs/data/quantization.h"  namespace "NCB":
         TDataProviderPtr pool,
         TJsonValue plainJsonParams,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
     cdef cppclass TCVResult:
@@ -802,7 +802,7 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
         TDataProviderPtr data,
         const TCrossValidationParams& cvParams,
         TVector[TCVResult]* results
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 cdef extern from "catboost/private/libs/algo/apply.h":
     cdef cppclass TModelCalcerOnPool:
@@ -810,14 +810,14 @@ cdef extern from "catboost/private/libs/algo/apply.h":
             const TFullModel& model,
             TIntrusivePtr[TObjectsDataProvider] objectsData,
             ILocalExecutor* executor
-        ) nogil except +ProcessException
+        ) except +ProcessException nogil
         void ApplyModelMulti(
             const EPredictionType predictionType,
             int begin,
             int end,
             TVector[double]* flatApprox,
             TVector[TVector[double]]* approx
-        ) nogil except +ProcessException
+        ) except +ProcessException nogil
 
     cdef cppclass TLeafIndexCalcerOnPool:
         TLeafIndexCalcerOnPool(
@@ -825,11 +825,11 @@ cdef extern from "catboost/private/libs/algo/apply.h":
             TIntrusivePtr[TObjectsDataProvider] objectsData,
             int treeStart,
             int treeEnd
-        ) nogil except +ProcessException
+        ) except +ProcessException nogil
 
-        bool_t Next() nogil except +ProcessException;
-        bool_t CanGet() nogil except +ProcessException;
-        TVector[ui32] Get() nogil except +ProcessException;
+        bool_t Next() except +ProcessException nogil;
+        bool_t CanGet() except +ProcessException nogil;
+        TVector[ui32] Get() except +ProcessException nogil;
 
     cdef TVector[TVector[double]] ApplyModelMulti(
         const TFullModel& calcer,
@@ -839,7 +839,7 @@ cdef extern from "catboost/private/libs/algo/apply.h":
         int begin,
         int end,
         int threadCount
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef TVector[TVector[double]] ApplyUncertaintyPredictions(
         const TFullModel& calcer,
@@ -849,7 +849,7 @@ cdef extern from "catboost/private/libs/algo/apply.h":
         int end,
         int virtualEnsemblesCount,
         int threadCount
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef TVector[ui32] CalcLeafIndexesMulti(
         const TFullModel& model,
@@ -858,7 +858,7 @@ cdef extern from "catboost/private/libs/algo/apply.h":
         int treeStart,
         int treeEnd,
         int threadCount
-    )  nogil except +ProcessException
+    )  except +ProcessException nogil
 
 cdef extern from "catboost/private/libs/algo/helpers.h":
     cdef void ConfigureMalloc() except +ProcessException nogil
@@ -868,7 +868,7 @@ cdef extern from "catboost/private/libs/algo/confusion_matrix.h":
         const TFullModel &model,
         const TDataProviderPtr datasets,
         int threadCount
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 cdef extern from "catboost/private/libs/algo/roc_curve.h":
     cdef cppclass TRocPoint:
@@ -887,21 +887,21 @@ cdef extern from "catboost/private/libs/algo/roc_curve.h":
             const TFullModel& model,
             const TVector[TDataProviderPtr]& datasets,
             int threadCount
-        ) nogil  except +ProcessException
+        ) except +ProcessException nogil
 
-        TRocCurve(const TVector[TRocPoint]& points) nogil except +ProcessException
+        TRocCurve(const TVector[TRocPoint]& points) except +ProcessException nogil
 
         double SelectDecisionBoundaryByFalsePositiveRate(
             double falsePositiveRate
-        ) nogil except +ProcessException
+        ) except +ProcessException nogil
 
         double SelectDecisionBoundaryByFalseNegativeRate(
             double falseNegativeRate
-        ) nogil except +ProcessException
+        ) except +ProcessException nogil
 
-        double SelectDecisionBoundaryByIntersection() nogil except +ProcessException
+        double SelectDecisionBoundaryByIntersection() except +ProcessException nogil
 
-        TVector[TRocPoint] GetCurvePoints() nogil except +ProcessException
+        TVector[TRocPoint] GetCurvePoints() except +ProcessException nogil
 
         void Output(const TString& outputPath) except +ProcessException
 
@@ -911,7 +911,7 @@ cdef extern from "catboost/libs/eval_result/eval_helpers.h" namespace "NCB":
         const TFullModel& model,
         const TVector[TVector[double]]& approx,
         int threadCount
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 cdef extern from "catboost/libs/eval_result/eval_result.h" namespace "NCB":
     cdef cppclass TEvalResult:
@@ -927,7 +927,7 @@ cdef extern from "catboost/libs/fstr/partial_dependence.h":
         TVector[int] features,
         const TDataProviderPtr dataset,
         int threadCount
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
     cdef TVector[TVector[double]] GetFeatureImportances(
@@ -943,7 +943,7 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         size_t sageNSamples,
         size_t sageBatchSize,
         bool_t sageDetectConvergence
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
         const EFstrType type,
@@ -955,7 +955,7 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         int logPeriod,
         ECalcTypeShapValues calcType,
         EExplainableModelOutput modelOutputType
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef TVector[TVector[TVector[TVector[double]]]] CalcShapFeatureInteractionMulti(
         const EFstrType type,
@@ -966,18 +966,18 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         EPreCalcShapValues mode,
         int logPeriod,
         ECalcTypeShapValues calcType
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     TVector[TString] GetMaybeGeneratedModelFeatureIds(
         const TFullModel& model,
         const TDataProviderPtr dataset
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 cdef extern from "catboost/libs/fstr/util.h":
     cdef bool_t NeedDatasetForLeavesWeights(
         const TFullModel& model,
         bool_t fstrOnTrainPool
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 cdef extern from "catboost/private/libs/documents_importance/docs_importance.h":
     cdef cppclass TDStrResult:
@@ -993,7 +993,7 @@ cdef extern from "catboost/private/libs/documents_importance/docs_importance.h":
         const TString& importanceValuesSign,
         int threadCount,
         int logPeriod
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 
 cdef float _FLOAT_NAN = float('nan')
@@ -1039,7 +1039,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TConstArrayRef[bool_t] isCatFeature,  # can be empty, it means no categorical data
         IRawObjectsOrderDataVisitor* builderVisitor,
         ILocalExecutor* localExecutor,
-        future[void]* result) nogil except +ProcessException
+        future[void]* result) except +ProcessException nogil
     cdef void SetDataFromScipyCsrSparse[TFloatOrUi64](
         TConstArrayRef[ui32] rowMarkup,
         TConstArrayRef[TFloatOrUi64] values,
@@ -1048,7 +1048,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TConstArrayRef[ui32] mainDataFeatureIdxToDstFeatureIdx,
         TConstArrayRef[bool_t] catFeaturesMask,
         IRawObjectsOrderDataVisitor* builderVisitor,
-        ILocalExecutor* localExecutor) nogil except +ProcessException
+        ILocalExecutor* localExecutor) except +ProcessException nogil
     cdef size_t GetNumPairs(const TDataProvider& dataProvider)
     cdef TConstArrayRef[TPair] GetUngroupedPairs(const TDataProvider& dataProvider) except +ProcessException
     cdef void TrainEvalSplit(
@@ -1084,12 +1084,12 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         int threadCount,
         const TString& resultDir,
         const TString& tmpDir
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef TVector[TString] GetMetricNames(
         const TFullModel& model,
         const TVector[TString]& metricsDescription
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef TVector[double] EvalMetricsForUtils(
         TConstArrayRef[TVector[float]] label,
@@ -1101,7 +1101,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TVector[TSubgroupId]& subgroup_id,
         const TVector[TPair]& pairs,
         int threadCount
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef cppclass TMetricsPlotCalcerPythonWrapper:
         TMetricsPlotCalcerPythonWrapper(TVector[TString]& metrics, TFullModel& model, int ntree_start, int ntree_end,
@@ -1115,7 +1115,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TJsonValue& plainOptions,
         const TDataMetaInfo& trainDataMetaInfo,
         const TMaybe[TDataMetaInfo]& trainDataMetaInfo
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
     cdef cppclass TPythonStreamWrapper(IInputStream):
         ctypedef size_t (*TReadCallback)(char* target, size_t len, PyObject* stream, TString*)
@@ -1141,20 +1141,20 @@ cdef extern from "catboost/private/libs/quantized_pool_analysis/quantized_pool_a
         const TVector[size_t]& catFeaturesNums,
         const TVector[size_t]& floatFeaturesNums,
         const EPredictionType predictionType,
-        const int threadCount) nogil except +ProcessException
+        const int threadCount) except +ProcessException nogil
 
     cdef ui32 GetCatFeaturePerfectHash(
         const TFullModel& model,
         const TStringBuf& value,
-        const size_t featureNum) nogil except +ProcessException
+        const size_t featureNum) except +ProcessException nogil
 
     cdef TFeatureTypeAndInternalIndex GetFeatureTypeAndInternalIndex(
         const TFullModel& model,
-        const int flatFeatureIndex) nogil except +ProcessException
+        const int flatFeatureIndex) except +ProcessException nogil
 
     cdef TVector[TString] GetCatFeatureValues(
         const TDataProvider& dataset,
-        const int flatFeatureIndex) nogil except +ProcessException
+        const int flatFeatureIndex) except +ProcessException nogil
 
 cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.h" namespace "NCB":
     cdef cppclass TCustomRandomDistributionGenerator:
@@ -1177,7 +1177,7 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         TMetricsAndTimeLeftHistory* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
-        int verbose) nogil except +ProcessException
+        int verbose) except +ProcessException nogil
 
     cdef void RandomizedSearch(
         ui32 numberOfTries,
@@ -1193,7 +1193,7 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         TMetricsAndTimeLeftHistory* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
-        int verbose) nogil except +ProcessException
+        int verbose) except +ProcessException nogil
 
 
 cdef extern from "catboost/libs/features_selection/select_features.h" namespace "NCB":
@@ -1204,7 +1204,7 @@ cdef extern from "catboost/libs/features_selection/select_features.h" namespace 
         TFullModel* dstModel,
         const TVector[TEvalResult*]& testApproxes,
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory
-    ) nogil except +ProcessException
+    ) except +ProcessException nogil
 
 
 cpdef run_atexit_finalizers():

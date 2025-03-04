@@ -16,7 +16,7 @@ cdef extern from "catboost/libs/helpers/wx_test.h" nogil:
         double WPlus
         double WMinus
         double PValue
-    cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) nogil except +ProcessException
+    cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) except +ProcessException nogil
 
 
 cdef extern from "catboost/libs/helpers/resource_holder.h" namespace "NCB":
