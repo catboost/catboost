@@ -1711,7 +1711,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
                 &leafBestSplitCandidate,
                 &leafBestSplit);
 
-        counter2++;
         auto leafStatsPtr = std::make_shared<TVector<TBucketStats>>(std::move(leafStats));
 
         if (leafBestSplitCandidate != nullptr && leafGain >= 1e-9) {
@@ -1778,7 +1777,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
                     &rightLeafBestSplitCandidate,
                     &rightLeafBestSplit,
                     *parent);
-            counter++;
 
         } else if ((leftLeafBoundsSize > rightLeafBoundsSize) && isSubtractTrickAllowed && needSplitLeftLeaf && needSplitRightLeaf) {
             rightLeafStats = CalculateStats(
@@ -1796,7 +1794,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
                     &leftLeafBestSplit,
                     *parent);
 
-            counter++;
         } else {
             if(needSplitLeftLeaf) {
                 leftLeafStats = CalculateStats(
@@ -1815,7 +1812,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
                         &rightLeafBestSplitCandidate,
                         &rightLeafBestSplit);
             }
-            counter2++;
         }
 
         auto leftLeafStatsPtr = std::make_shared<TVector<TBucketStats>>(std::move(leftLeafStats));
@@ -1844,6 +1840,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
          * splits in the queue should be recalculated without penalty for that feature.
          * However, we don't do it for performance and code simplicity.
          */
+
         const TSplitLeafCandidate &curSplitLeaf = queue.top();
 
         const TSplit bestSplit = curSplitLeaf.BestCandidate.GetBestSplit(
@@ -1877,7 +1874,10 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         );
 
         Y_ASSERT(leftChildIdx == splittedNodeIdx);
-        SplitDocsSubset(subsetsForLeafs[splittedNodeIdx], indicesRef, leftChildIdx, &subsetsForLeafs[leftChildIdx], &subsetsForLeafs[rightChildIdx]);
+        TIndexedSubset<ui32> leftChildSubset, rightChildSubset;
+        SplitDocsSubset(subsetsForLeafs[splittedNodeIdx], indicesRef, leftChildIdx, &leftChildSubset, &rightChildSubset);
+        subsetsForLeafs[leftChildIdx] = std::move(leftChildSubset);
+        subsetsForLeafs[rightChildIdx] = std::move(rightChildSubset);
 
         ctx->SampledDocs.UpdateIndicesInLeafwiseSortedFoldForSingleLeaf(
                 splittedNodeIdx,
