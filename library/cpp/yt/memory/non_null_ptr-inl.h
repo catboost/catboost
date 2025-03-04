@@ -1,6 +1,6 @@
 #pragma once
 #ifndef NON_NULL_PTR_H_
-#error "Direct inclusion of this file is not allowed, include helpers.h"
+#error "Direct inclusion of this file is not allowed, include non_null_ptr.h"
 // For the sake of sane code completion.
 #include "non_null_ptr.h"
 #endif

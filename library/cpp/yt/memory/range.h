@@ -354,11 +354,22 @@ public:
         : TRange<T>(elements)
     { }
 
+    using TRange<T>::Data;
     using TRange<T>::Begin;
     using TRange<T>::End;
     using TRange<T>::Front;
     using TRange<T>::Back;
     using TRange<T>::operator[];
+
+    T* Data() const
+    {
+        return const_cast<T*>(this->Data_);
+    }
+
+    T* data() const
+    {
+        return Data();
+    }
 
     iterator Begin() const
     {
