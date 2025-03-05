@@ -6,15 +6,32 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//! In release builds, does nothing.
-//! In checked builds, clobbers memory with garbage pattern.
-//! In sanitized builds, invokes sanitizer poisoning.
-void PoisonMemory(TMutableRef ref);
+//! Poisons an uninitialized slice of memory.
+/*
+ * In release builds, does nothing.
+ * In checked builds, clobbers memory with a garbage pattern.
+ * In ASAN builds, does nothing.
+ * In MSAN builds, invokes sanitizer poisoning to catch uninit-read.
+ */
+void PoisonUninitializedMemory(TMutableRef ref);
 
-//! In release builds, does nothing.
-//! In checked builds, clobbers memory with (another) garbage pattern.
-//! In sanitized builds, invokes sanitizer unpoisoning.
-void UnpoisonMemory(TMutableRef ref);
+//! Poisons a freed slice of memory.
+/*
+ * In release builds, does nothing.
+ * In checked builds, clobbers memory with a garbage pattern.
+ * In ASAN and MSAN builds, invokes sanitizer poisoning to catch use-after-free.
+ */
+void PoisonFreedMemory(TMutableRef ref);
+
+//! Indicates that a slice of memory that was previously given to #PoisonFreedMemory
+//! has been recycled and can be reused.
+/*!
+ * In release builds, does nothing.
+ * In checked builds, clobbers memory with a garbage pattern.
+ * In ASAN builds, invokes sanitizer unpoisoning.
+ * In MSAN builds, does nothing (the memory remains poisoned to catch uninit-read).
+ */
+void RecycleFreedMemory(TMutableRef ref);
 
 ////////////////////////////////////////////////////////////////////////////////
 
