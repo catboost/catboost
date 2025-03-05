@@ -113,6 +113,14 @@ public:
         return *this;
     }
 
+    bool operator==(const TCompactVector<T>& other) const {
+        return size() == other.size() && std::equal(begin(), end(), other.begin());
+    }
+
+    explicit operator bool() const {
+        return !empty();
+    }
+
     TIterator Begin() {
         return Ptr;
     }
@@ -218,13 +226,23 @@ public:
     }
 
     void PushBack(const T& elem) {
-        Reserve(Size() + 1);
-        new (Ptr + Size()) T(elem);
-        ++(Header()->Size);
+        EmplaceBack(elem);
     }
 
     void push_back(const T& elem) {
         PushBack(elem);
+    }
+
+    template <class... Args>
+    void EmplaceBack(Args&&... args) {
+        Reserve(Size() + 1);
+        new (Ptr + Size()) T(std::forward<Args>(args)...);
+        ++(Header()->Size);
+    }
+
+    template <class... Args>
+    void emplace_back(Args&&... args) {
+        EmplaceBack(std::forward<Args>(args)...);
     }
 
     T& Back() {
