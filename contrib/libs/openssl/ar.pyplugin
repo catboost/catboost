@@ -8,7 +8,7 @@ import subprocess
 
 
 def run(*args):
-    return subprocess.check_output(list(args), shell=False).strip()
+    return subprocess.check_output(list(args), shell=False).decode().strip()
 
 
 def gen_renames_1(d):
