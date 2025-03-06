@@ -232,6 +232,16 @@ TResolvedSymbol ResolveSymbol(void* sym, char*, size_t) {
 }
 #endif
 
+TBackTraceFn BackTraceFn = BackTrace;
+
+void SetBackTraceFn(TBackTraceFn f) {
+    BackTraceFn = f;
+}
+
+TBackTraceFn GetBackTraceFn() {
+    return BackTraceFn;
+}
+
 void FormatBackTrace(IOutputStream* out, void* const* backtrace, size_t backtraceSize) {
     char tmpBuf[1024];
 
@@ -270,7 +280,9 @@ TBackTrace::TBackTrace()
 }
 
 void TBackTrace::Capture() {
-    Size = BackTrace(Data, CAPACITY);
+    if (BackTraceFn) {
+        Size = BackTraceFn(Data, CAPACITY);
+    }
 }
 
 void TBackTrace::PrintTo(IOutputStream& out) const {
