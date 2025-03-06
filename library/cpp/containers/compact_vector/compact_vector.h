@@ -234,15 +234,16 @@ public:
     }
 
     template <class... Args>
-    void EmplaceBack(Args&&... args) {
+    T& EmplaceBack(Args&&... args) {
         Reserve(Size() + 1);
-        new (Ptr + Size()) T(std::forward<Args>(args)...);
+        auto* t = new (Ptr + Size()) T(std::forward<Args>(args)...);
         ++(Header()->Size);
+        return *t;
     }
 
     template <class... Args>
-    void emplace_back(Args&&... args) {
-        EmplaceBack(std::forward<Args>(args)...);
+    T& emplace_back(Args&&... args) {
+        return EmplaceBack(std::forward<Args>(args)...);
     }
 
     T& Back() {

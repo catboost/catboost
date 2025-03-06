@@ -62,7 +62,8 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
         };
 
         TCompactVector<TFoo> vector;
-        vector.emplace_back(123);
+        auto& x = vector.emplace_back(123);
+        UNIT_ASSERT_VALUES_EQUAL(&x, &vector.back());
         UNIT_ASSERT_VALUES_EQUAL(vector.back().ConstructedFrom, "int");
         vector.emplace_back('c');
         UNIT_ASSERT_VALUES_EQUAL(vector.back().ConstructedFrom, "char");
