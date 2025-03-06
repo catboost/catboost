@@ -182,6 +182,8 @@ namespace NCB {
             }
             case ELossFunction::MAPE:
                 return CalculateOptimalConstApproxForMAPE(target, weights);
+            case ELossFunction::RMSPE:
+                return CalculateWeightedTargetAverage(target, weights);
             case ELossFunction::LogCosh: {
                 return CalculateOptimalConstApproxForLogCosh(target, weights);
             }

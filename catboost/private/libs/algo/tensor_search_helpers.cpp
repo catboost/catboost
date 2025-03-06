@@ -225,6 +225,8 @@ THolder<IDerCalcer> BuildError(
         }
         case ELossFunction::MAPE:
             return MakeHolder<TMAPError>(isStoreExpApprox);
+        case ELossFunction::RMSPE:
+            return MakeHolder<TRMSPError>(isStoreExpApprox);
         case ELossFunction::Poisson:
             return MakeHolder<TPoissonError>(isStoreExpApprox);
         case ELossFunction::MultiClass:
