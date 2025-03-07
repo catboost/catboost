@@ -13,6 +13,10 @@ import sys
 import tempfile
 import json
 import io
+
+from sklearn import clone
+from sklearn.pipeline import Pipeline
+
 from catboost import (
     CatBoost,
     CatBoostClassifier,
@@ -7137,7 +7141,7 @@ def test_set_scale_and_bias():
     model.set_scale_and_bias(3.14, 15.)
     assert (3.14, 15.) == model.get_scale_and_bias()
     pred2 = model.predict(test_pool, prediction_type='RawFormulaVal')
-    assert np.all(abs(pred1 * 3.14 + 15 - pred2) < 1e-12)
+    assert np.all(abs(pred1 * 3.14 + 15 - pred2) < 1e-15)
 
 
 def test_get_metric_evals(task_type):
@@ -11733,6 +11737,10 @@ def test_graph_features_quantization(task_type):
     pred2 = model.predict(test_pool)
     assert np.all(pred == pred2)
 
+def test_no_throwable_for_pipeline():
+    pp = Pipeline([('ML', CatBoostClassifier()),])
+    pp.set_params(**{'ML__class_names': None})
+    assert clone(pp) is not None
 
 def test_fit_fit_quantized_cat_features_type():
     Xy = DataFrame(
