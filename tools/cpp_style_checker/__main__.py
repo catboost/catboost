@@ -6,7 +6,7 @@ import time
 import yaml
 from pathlib import PurePath
 
-from build.plugins.lib.test_const import CLANG_FORMAT_RESOURCE, CLANG_FORMAT_15_RESOURCE
+from build.plugins.lib.test_const import CLANG_FORMAT_RESOURCE
 from library.python.testing.custom_linter_util import linter_params, reporter
 from library.python.testing.style import rules
 
@@ -32,8 +32,6 @@ def main():
         else:
             # dep_result is a clang-format binary
             clang_format_binary = str(dep_result)
-    elif 'use_clang_format_15' in params.extra_params:
-        clang_format_binary = os.path.join(params.global_resources[CLANG_FORMAT_15_RESOURCE], 'clang-format-15')
     else:
         clang_format_binary = os.path.join(params.global_resources[CLANG_FORMAT_RESOURCE], 'clang-format')
 
