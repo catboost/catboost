@@ -4,6 +4,7 @@ import os
 import subprocess
 import time
 import yaml
+from pathlib import PurePath
 
 from build.plugins.lib.test_const import CLANG_FORMAT_RESOURCE, CLANG_FORMAT_15_RESOURCE
 from library.python.testing.custom_linter_util import linter_params, reporter
@@ -13,9 +14,24 @@ from library.python.testing.style import rules
 def main():
     params = linter_params.get_params()
 
-    if 'clang_format_bin' in params.extra_params:
-        # custom clang-format
-        clang_format_binary = params.depends[params.extra_params['clang_format_bin']]
+    if 'custom_clang_format' in params.extra_params:
+        dep_result = next(
+            (
+                PurePath(params.depends[dep])
+                for dep in params.depends
+                if str(PurePath(dep).parent) == params.extra_params['custom_clang_format']
+            ),
+            None,
+        )
+        if dep_result is None:
+            raise Exception('Could not find clang-format binary')
+
+        if 'custom_clang_format_bin' in params.extra_params:
+            # dep_result is not a clang-format binary (package etc)
+            clang_format_binary = str(dep_result.parent / params.extra_params['custom_clang_format_bin'])
+        else:
+            # dep_result is a clang-format binary
+            clang_format_binary = str(dep_result)
     elif 'use_clang_format_15' in params.extra_params:
         clang_format_binary = os.path.join(params.global_resources[CLANG_FORMAT_15_RESOURCE], 'clang-format-15')
     else:
