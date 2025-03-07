@@ -452,6 +452,7 @@ class CppLinterName(Enum):
     ClangFormat = "clang_format"
     ClangFormatYT = "clang_format_yt"
     ClangFormat15 = "clang_format_15"
+    ClangFormat18Vanilla = "clang_format_18_vanilla"
 
 
 class DefaultLinterConfig(Enum):
@@ -467,6 +468,7 @@ class LinterConfigsValidationRules(Enum):
 LINTER_CONFIG_TYPES = {
     CppLinterName.ClangFormat: (".clang-format",),
     CppLinterName.ClangFormat15: (".clang-format",),
+    CppLinterName.ClangFormat18Vanilla: (".clang-format",),
     CppLinterName.ClangFormatYT: (".clang-format",),
     PythonLinterName.Black: ("pyproject.toml",),
     PythonLinterName.Ruff: ("pyproject.toml", "ruff.toml"),
