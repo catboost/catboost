@@ -601,7 +601,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
     cdef TJsonValue ExportAllMetricsParamsToJson() except +ProcessException
 
 def AllMetricsParams():
-    return loads(to_native_str(WriteTJsonValue(ExportAllMetricsParamsToJson())))
+    return json_value_to_dict(ExportAllMetricsParamsToJson())
 
 cdef extern from "catboost/private/libs/algo/tree_print.h":
     TVector[TString] GetTreeSplitsDescriptions(
@@ -1232,6 +1232,15 @@ cdef inline float _FloatOrNan(object obj) except *:
 
 cpdef _float_or_nan(obj):
     return _FloatOrNan(obj)
+
+cdef inline to_native_str(binary):
+    if PY_MAJOR_VERSION >= 3 and hasattr(binary, 'decode'):
+        return binary.decode()
+    return binary
+
+cdef json_value_to_dict(const TJsonValue& jsonValue):
+    cdef TString jsonString = WriteTJsonValue(jsonValue)
+    return loads(to_native_str(jsonString))
 
 
 cdef TString _MetricGetDescription(void* customData) with gil:
@@ -2046,10 +2055,6 @@ cdef inline TString to_arcadia_string(s) except *:
         bytes_s = s
     return TString(<const char*>&bytes_s[0], len(bytes_s))
 
-cdef inline to_native_str(binary):
-    if PY_MAJOR_VERSION >= 3 and hasattr(binary, 'decode'):
-        return binary.decode()
-    return binary
 
 cdef all_string_types_plus_bytes = string_types + (bytes,)
 
@@ -5436,7 +5441,7 @@ cdef class _CatBoost:
             return {}
 
     cpdef _get_plain_params(self):
-        return loads(to_native_str(WriteTJsonValue(GetPlainJsonWithAllOptions(dereference(self.__model)))))
+        return json_value_to_dict(GetPlainJsonWithAllOptions(dereference(self.__model)))
 
     def _get_tree_count(self):
         return self.__model.GetTreeCount()
@@ -5611,7 +5616,7 @@ cdef class _CatBoost:
             )
             result_metrics.add(name)
 
-        best_params = loads(to_native_str(WriteTJsonValue(results.BestParams)))
+        best_params = json_value_to_dict(results.BestParams)
         search_result = {}
         search_result["params"] = best_params
         if return_cv_results:
@@ -5642,7 +5647,7 @@ cdef class _CatBoost:
                 )
             finally:
                 ResetPythonInterruptHandler()
-        return loads(to_native_str(WriteTJsonValue(summary_json)))
+        return json_value_to_dict(summary_json)
 
     cpdef _get_binarized_statistics(self, _PoolBase pool, catFeaturesNums, floatFeaturesNums, predictionType, int thread_count):
         thread_count = UpdateThreadCount(thread_count)
@@ -6484,7 +6489,7 @@ cpdef convert_features_to_indices(indices_or_names, cd_path, feature_names_path,
         pool_metainfo_path_with_scheme,
         &indices_or_names_as_json
     )
-    return loads(to_native_str(WriteTJsonValue(indices_or_names_as_json)))
+    return json_value_to_dict(indices_or_names_as_json)
 
 
 cdef inline TArrayRef[float] get_array_ref(np.float32_t[::1] src) noexcept:
@@ -6654,7 +6659,7 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
         train_meta_info.DataMetaInfo,
         testMetaInfo
     )
-    return loads(to_native_str(WriteTJsonValue(trainingOptions)))
+    return json_value_to_dict(trainingOptions)
 
 
 cpdef _get_onnx_model(model, export_parameters):
