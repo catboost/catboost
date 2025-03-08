@@ -210,6 +210,7 @@ test_that("pool: nan", {
 })
 
 test_that("pool: data.frame vs tibble::tbl_df vs pool", {
+  skip_if_not_installed("tibble")
   pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
   column_description_path <- system.file("extdata", "adult.cd", package = "catboost")
 
