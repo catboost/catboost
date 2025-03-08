@@ -1243,14 +1243,14 @@ cdef json_value_to_dict(const TJsonValue& jsonValue):
     return loads(to_native_str(jsonString))
 
 
-cdef TString _MetricGetDescription(void* customData) with gil:
+cdef TString _MetricGetDescription(void* customData) noexcept with gil:
     cdef metricObject = <object>customData
     name = metricObject.__class__.__name__
     if PY_MAJOR_VERSION >= 3:
         name = name.encode()
     return TString(<const char*>name)
 
-cdef bool_t _MetricIsMaxOptimal(void* customData) with gil:
+cdef bool_t _MetricIsMaxOptimal(void* customData) noexcept with gil:
     cdef metricObject = <object>customData
     try:
         return metricObject.is_max_optimal()
@@ -1259,11 +1259,11 @@ cdef bool_t _MetricIsMaxOptimal(void* customData) with gil:
         with nogil:
             ThrowCppExceptionWithMessage(errorMessage)
 
-cdef bool_t _MetricIsAdditive(void* customData) with gil:
+cdef bool_t _MetricIsAdditive(void* customData) noexcept with gil:
     cdef metricObject = <object>customData
     return hasattr(metricObject, 'is_additive') and metricObject.is_additive()
 
-cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) with gil:
+cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) noexcept with gil:
     # TODO(nikitxskv): use error.Stats for custom metrics.
     cdef metricObject = <object>customData
     try:
@@ -1276,7 +1276,7 @@ cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) w
 cdef bool_t _CallbackAfterIteration(
         const TMetricsAndTimeLeftHistory& history,
         void* customData
-    ) with gil:
+    ) noexcept with gil:
     cdef callbackObject = <object>customData
     if PY_MAJOR_VERSION >= 3:
         info = types.SimpleNamespace()
@@ -1481,7 +1481,7 @@ cdef void _GpuObjectiveCalcDersRange(
     void* cudaStream,
     size_t blockSize,
     size_t numBlocks
-) with gil:
+) noexcept with gil:
     from numba import cuda as numba_cuda
     approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
     target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
@@ -1509,7 +1509,7 @@ cdef void _GpuMetricEval(
     void* cudaStream,
     size_t blockSize,
     size_t numBlocks
-) with gil:
+) noexcept with gil:
     from numba import cuda as numba_cuda
     approx_gpu = _ToPythonObjArrayRefOnGpu(approx.size(), <uint64_t>approx.data())
     target_gpu = _ToPythonObjArrayRefOnGpu(target.size(), <uint64_t>target.data())
@@ -1528,7 +1528,7 @@ cdef TMetricHolder _MetricEval(
     int begin,
     int end,
     void* customData
-) with gil:
+) noexcept with gil:
     cdef metricObject = <object>customData
     cdef TString errorMessage
     cdef TMetricHolder holder
@@ -1560,7 +1560,7 @@ cdef TMetricHolder _MultiTargetMetricEval(
     int begin,
     int end,
     void* customData
-) with gil:
+) noexcept with gil:
     cdef metricObject = <object>customData
     cdef TString errorMessage
     cdef TMetricHolder holder
@@ -1587,7 +1587,7 @@ cdef TMetricHolder _MultiTargetMetricEval(
 
 cdef double _RandomDistGen(
     void* customFunction
-) with gil:
+) noexcept with gil:
     cdef randomDistGenerator = <object>customFunction
     cdef TString errorMessage
     try:
@@ -1605,7 +1605,7 @@ cdef void _ObjectiveCalcDersRange(
     const float* weights,
     TDers* ders,
     void* customData
-) with gil:
+) noexcept with gil:
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
     cdef Py_ssize_t index
@@ -1656,7 +1656,7 @@ cdef void _ObjectiveCalcDersMultiClass(
     TVector[double]* ders,
     THessianInfo* der2,
     void* customData
-) with gil:
+) noexcept with gil:
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
 
@@ -1686,7 +1686,7 @@ cdef void _ObjectiveCalcDersMultiTarget(
     TVector[double]* ders,
     THessianInfo* der2,
     void* customData
-) with gil:
+) noexcept with gil:
     cdef objectiveObject = <object>(customData)
     cdef TString errorMessage
 
@@ -6342,7 +6342,7 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
     return rocCurve.SelectDecisionBoundaryByIntersection()
 
 
-cdef void _WriteLog(const char* str, size_t len, void* targetObject) with gil:
+cdef void _WriteLog(const char* str, size_t len, void* targetObject) noexcept with gil:
     cdef streamLikeObject = <object> targetObject
     cdef bytes bytes_str = str[:len]
     streamLikeObject.write(to_native_str(bytes_str))
