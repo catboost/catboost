@@ -4,7 +4,7 @@
 #include "feature_estimator.h"
 
 #include <catboost/private/libs/embeddings/embedding_dataset.h>
-
+#include <catboost/private/libs/embedding_features/knn.h>
 
 namespace NCB {
 
@@ -131,6 +131,53 @@ namespace NCB {
             }
         }
 
+        void CalcForParallelKNN(
+            const TVector<TKNNCalcer>& featureCalcers,
+            TConstArrayRef<TEmbeddingDataSetPtr> datasets,
+            TConstArrayRef<TCalculatedFeatureVisitor> visitors,
+            NPar::ILocalExecutor* localExecutor) const {
+
+            const ui32 numThreads = localExecutor->GetThreadCount();
+            const ui32 featuresCount = featureCalcers[0].FeatureCount();
+            NPar::ILocalExecutor::TExecRangeParams params{0, numThreads};
+
+            for (ui32 i = 0; i < datasets.size(); ++i) {
+                const auto& currentDataset = *datasets[i];
+                const ui64 samplesCount = currentDataset.SamplesCount();
+                TVector<float> features(featuresCount * samplesCount);
+
+                localExecutor->ExecRange([&](int id) {
+                    for (ui64 line = id; line < samplesCount; line += numThreads) {
+                        TVector<TKNNCalcer::TNeighbor> neighbors;
+                        for (const auto& calcer: featureCalcers) {
+                            auto newNeighbors = calcer.GetNearestNeighborsAndDistances(
+                                currentDataset.GetVector(line)
+                            );
+                            neighbors.insert(neighbors.end(), newNeighbors.begin(), newNeighbors.end());
+                        }
+
+                        auto outputFeaturesIterator = TOutputFloatIterator(
+                            features.data() + line,
+                            samplesCount,
+                            features.size()
+                        );
+
+                        featureCalcers[0].CompareAndCompute(neighbors, outputFeaturesIterator);
+                    }
+                }, params, NPar::TLocalExecutor::WAIT_COMPLETE);
+
+                for (ui32 f = 0; f < featuresCount; ++f) {
+                    visitors[i](
+                        f,
+                        TConstArrayRef<float>(
+                            features.data() + f * samplesCount,
+                            features.data() + (f + 1) * samplesCount
+                        )
+                    );
+                }
+            }
+        }
+
         virtual TFeatureCalcer CreateFeatureCalcer() const = 0;
         virtual TCalcerVisitor CreateCalcerVisitor() const = 0;
 
@@ -205,4 +252,86 @@ namespace NCB {
         TVector<TEmbeddingDataSetPtr> TestArrays;
         const TGuid Guid;
     };
+
+    template <>
+    void TEmbeddingBaseEstimator<TKNNCalcer, TKNNCalcerVisitor>::ComputeOnlineFeatures (
+        TConstArrayRef<ui32> learnPermutation,
+        TCalculatedFeatureVisitor learnVisitor,
+        TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
+        NPar::ILocalExecutor* localExecutor
+    ) const {
+        int numThreads = localExecutor->GetThreadCount();
+        TVector<TKNNCalcer> featureCalcers(numThreads);;
+        TVector<TKNNCalcerVisitor> calcerVisitors(numThreads);
+
+        for (int id = 0; id < numThreads; ++id) {
+            featureCalcers[id] = CreateFeatureCalcer();
+            calcerVisitors[id] = CreateCalcerVisitor();
+        }
+
+        {
+            const ui32 featuresCount = featureCalcers[0].FeatureCount();
+            const auto& learnDataset = GetLearnDataset();
+            const auto& target = GetTarget();
+            const ui64 samplesCount = learnDataset.SamplesCount();
+            TVector<float> learnFeatures(featuresCount * samplesCount);
+            TVector<TVector<TKNNCalcer::TNeighbor>> vectorsNeighbors(samplesCount);
+    
+            NPar::ILocalExecutor::TExecRangeParams params{0, numThreads};
+            localExecutor->ExecRange([&](int id) {
+                int linesPerThread = samplesCount / numThreads;
+                int begin = id * linesPerThread;
+                int end = (id + 1) * linesPerThread;
+                if (id == numThreads - 1) {
+                    end = samplesCount;
+                }
+
+                for (int i = begin; i < end; ++i) {
+                    auto line = learnPermutation[i];
+                    const TEmbeddingsArray& vector = learnDataset.GetVector(line);
+                    vectorsNeighbors[line] = featureCalcers[id].GetNearestNeighborsAndDistances(vector);
+                    calcerVisitors[id].Update(target[line], vector, &featureCalcers[id]);
+                }
+            }, params, NPar::TLocalExecutor::WAIT_COMPLETE);
+
+            localExecutor->ExecRange([&](int id) {
+                int linesPerThread = samplesCount / numThreads;
+
+                for (int i = id; i < samplesCount; i += numThreads) {
+                    auto line = learnPermutation[i];
+                    const TEmbeddingsArray& vector = learnDataset.GetVector(line);
+                    auto& neighbors = vectorsNeighbors[line];
+
+                    for (int j = 0; j < i / linesPerThread && j < featureCalcers.size(); ++j) {
+                        auto newNeighbors = featureCalcers[j].GetNearestNeighborsAndDistances(vector);
+                        neighbors.insert(neighbors.end(), newNeighbors.begin(), newNeighbors.end());
+                    }
+
+                    auto outputFeaturesIterator = TOutputFloatIterator(
+                        learnFeatures.data() + line,
+                        samplesCount,
+                        learnFeatures.size()
+                    );
+
+                    featureCalcers[0].CompareAndCompute(neighbors, outputFeaturesIterator);
+                }
+            }, params, NPar::TLocalExecutor::WAIT_COMPLETE);
+
+            for (ui32 f = 0; f < featuresCount; ++f) {
+                learnVisitor(
+                    f,
+                    TConstArrayRef<float>(
+                        learnFeatures.data() + f * samplesCount,
+                        learnFeatures.data() + (f + 1) * samplesCount
+                    )
+                );
+            }            
+        }
+
+        if (!testVisitors.empty()) {
+            CB_ENSURE(testVisitors.size() == NumberOfTestDatasets(),
+                      "If specified, testVisitors should be the same number as test sets");
+            CalcForParallelKNN(featureCalcers, GetTestDatasets(), testVisitors, localExecutor);
+        }
+    }
 };
