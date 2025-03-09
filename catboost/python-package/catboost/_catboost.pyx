@@ -3546,9 +3546,9 @@ cdef _set_objects_order_data_scipy_sparse_matrix(
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
     cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
     cdef TVector[bool_t] is_embedding_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Embedding)
-    if np.any(is_text_feature_mask):
+    if features_layout.GetTextFeatureCount():
         raise CatBoostError('Text features reading is not supported in sparse matrix format')
-    if (not has_separate_embedding_features_data) and np.any(is_embedding_feature_mask):
+    if (not has_separate_embedding_features_data) and features_layout.GetEmbeddingFeatureCount():
         raise CatBoostError('Embedding features reading is not supported in sparse matrix format')
 
     if isinstance(data, scipy.sparse.bsr_matrix):
