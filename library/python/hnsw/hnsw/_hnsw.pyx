@@ -1,6 +1,7 @@
 # distutils: language = c++
 # coding: utf-8
 # cython: wraparound=False, boundscheck=False
+# cython: language_level=2
 
 from cpython.ref cimport PyObject, Py_DECREF
 

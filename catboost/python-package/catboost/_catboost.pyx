@@ -1,6 +1,7 @@
 # distutils: language = c++
 # coding: utf-8
 # cython: wraparound=False, boundscheck=False, initializedcheck=False
+# cython: language_level=2
 
 from catboost.base_defs cimport *
 from catboost.libs.model.cython cimport *
