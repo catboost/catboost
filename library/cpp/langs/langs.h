@@ -146,6 +146,8 @@ enum ELanguage: unsigned {
     LANG_KBD = 129,         // Kabardino-Cherkess
     LANG_NOG = 130,         // Nogai
     LANG_ABQ = 131,         // Abaza
+    LANG_MYV = 132,         // Erzya
+    LANG_MDF = 133,         // Moksha
     LANG_MAX
 };
 
