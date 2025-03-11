@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: narwhals
-Version: 1.27.1
+Version: 1.28.0
 Summary: Extremely lightweight compatibility layer between dataframe libraries
 Project-URL: Homepage, https://github.com/narwhals-dev/narwhals
 Project-URL: Documentation, https://narwhals-dev.github.io/narwhals/
@@ -30,6 +30,7 @@ Requires-Dist: hypothesis; extra == 'dev'
 Requires-Dist: mypy~=1.15.0; extra == 'dev'
 Requires-Dist: pandas-stubs; extra == 'dev'
 Requires-Dist: pre-commit; extra == 'dev'
+Requires-Dist: pyright; extra == 'dev'
 Requires-Dist: pytest; extra == 'dev'
 Requires-Dist: pytest-cov; extra == 'dev'
 Requires-Dist: pytest-env; extra == 'dev'
@@ -43,6 +44,7 @@ Requires-Dist: markdown-exec[ansi]; extra == 'docs'
 Requires-Dist: mkdocs; extra == 'docs'
 Requires-Dist: mkdocs-autorefs; extra == 'docs'
 Requires-Dist: mkdocs-material; extra == 'docs'
+Requires-Dist: mkdocstrings-python>=1.16; extra == 'docs'
 Requires-Dist: mkdocstrings[python]; extra == 'docs'
 Requires-Dist: pandas; extra == 'docs'
 Requires-Dist: polars>=1.0.0; extra == 'docs'
@@ -77,6 +79,7 @@ Requires-Dist: typing-extensions; extra == 'tests'
 Provides-Extra: typing
 Requires-Dist: mypy~=1.15.0; extra == 'typing'
 Requires-Dist: pandas-stubs; extra == 'typing'
+Requires-Dist: pyright; extra == 'typing'
 Requires-Dist: typing-extensions; extra == 'typing'
 Description-Content-Type: text/markdown
 

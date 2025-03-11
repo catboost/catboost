@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from enum import Enum
-from enum import auto
 from functools import lru_cache
 from typing import TYPE_CHECKING
 from typing import Any
@@ -20,21 +18,6 @@ if TYPE_CHECKING:
     from narwhals._spark_like.expr import SparkLikeExpr
     from narwhals.dtypes import DType
     from narwhals.utils import Version
-
-
-class ExprKind(Enum):
-    """Describe which kind of expression we are dealing with.
-
-    Composition rule is:
-    - LITERAL vs LITERAL -> LITERAL
-    - TRANSFORM vs anything -> TRANSFORM
-    - anything vs TRANSFORM -> TRANSFORM
-    - all remaining cases -> AGGREGATION
-    """
-
-    LITERAL = auto()  # e.g. nw.lit(1)
-    AGGREGATION = auto()  # e.g. nw.col('a').mean()
-    TRANSFORM = auto()  # e.g. nw.col('a').round()
 
 
 @lru_cache(maxsize=16)
@@ -81,12 +64,12 @@ def native_to_narwhals_dtype(
         return dtypes.Struct(
             fields=[
                 dtypes.Field(
-                    name=name,
+                    name=field.name,
                     dtype=native_to_narwhals_dtype(
-                        dtype[name], version=version, spark_types=spark_types
+                        field.dataType, version=version, spark_types=spark_types
                     ),
                 )
-                for name in dtype.fieldNames()
+                for field in dtype
             ]
         )
     return dtypes.Unknown()
@@ -116,7 +99,7 @@ def narwhals_to_native_dtype(
     if isinstance_or_issubclass(dtype, dtypes.Date):
         return spark_types.DateType()
     if isinstance_or_issubclass(dtype, dtypes.Datetime):
-        dt_time_zone = getattr(dtype, "time_zone", None)
+        dt_time_zone = dtype.time_zone
         if dt_time_zone is None:
             return spark_types.TimestampNTZType()
         if dt_time_zone != "UTC":  # pragma: no cover
@@ -126,9 +109,7 @@ def narwhals_to_native_dtype(
     if isinstance_or_issubclass(dtype, (dtypes.List, dtypes.Array)):
         return spark_types.ArrayType(
             elementType=narwhals_to_native_dtype(
-                dtype.inner,  # type: ignore[union-attr]
-                version=version,
-                spark_types=spark_types,
+                dtype.inner, version=version, spark_types=spark_types
             )
         )
     if isinstance_or_issubclass(dtype, dtypes.Struct):  # pragma: no cover
@@ -142,7 +123,7 @@ def narwhals_to_native_dtype(
                         spark_types=spark_types,
                     ),
                 )
-                for field in dtype.fields  # type: ignore[union-attr]
+                for field in dtype.fields
             ]
         )
 
@@ -164,12 +145,9 @@ def narwhals_to_native_dtype(
     raise AssertionError(msg)
 
 
-def parse_exprs(
-    df: SparkLikeLazyFrame, /, *exprs: SparkLikeExpr
-) -> tuple[dict[str, Column], list[ExprKind]]:
+def parse_exprs(df: SparkLikeLazyFrame, /, *exprs: SparkLikeExpr) -> dict[str, Column]:
     native_results: dict[str, list[Column]] = {}
 
-    expr_kinds: list[ExprKind] = []
     for expr in exprs:
         native_series_list = expr._call(df)
         output_names = expr._evaluate_output_names(df)
@@ -179,25 +157,19 @@ def parse_exprs(
             msg = f"Internal error: got output names {output_names}, but only got {len(native_series_list)} results"
             raise AssertionError(msg)
         native_results.update(zip(output_names, native_series_list))
-        expr_kinds.extend([expr._expr_kind] * len(output_names))
 
-    return native_results, expr_kinds
+    return native_results
 
 
-def maybe_evaluate(df: SparkLikeLazyFrame, obj: Any, *, expr_kind: ExprKind) -> Column:
+def maybe_evaluate_expr(df: SparkLikeLazyFrame, obj: SparkLikeExpr | object) -> Column:
     from narwhals._spark_like.expr import SparkLikeExpr
 
     if isinstance(obj, SparkLikeExpr):
         column_results = obj._call(df)
-        if len(column_results) != 1:  # pragma: no cover
+        if len(column_results) != 1:
             msg = "Multi-output expressions (e.g. `nw.all()` or `nw.col('a', 'b')`) not supported in this context"
-            raise NotImplementedError(msg)
-        column_result = column_results[0]
-        if obj._expr_kind is ExprKind.AGGREGATION and expr_kind is ExprKind.TRANSFORM:
-            # Returns scalar, but overall expression doesn't.
-            # Let PySpark do its broadcasting
-            return column_result.over(df._Window().partitionBy(df._F.lit(1)))
-        return column_result
+            raise ValueError(msg)
+        return column_results[0]
     return df._F.lit(obj)
 
 
@@ -207,6 +179,8 @@ def _std(
     if np_version > (2, 0):
         if ddof == 1:
             return functions.stddev_samp(_input)
+        if ddof == 0:
+            return functions.stddev_pop(_input)
 
         n_rows = functions.count(_input)
         return functions.stddev_samp(_input) * functions.sqrt(
@@ -233,15 +207,3 @@ def _var(
 
     input_col = functions.col(_input) if isinstance(_input, str) else _input
     return var(input_col, ddof=ddof)
-
-
-def n_ary_operation_expr_kind(*args: SparkLikeExpr | Any) -> ExprKind:
-    if all(
-        getattr(arg, "_expr_kind", ExprKind.LITERAL) is ExprKind.LITERAL for arg in args
-    ):
-        return ExprKind.LITERAL
-    if any(
-        getattr(arg, "_expr_kind", ExprKind.LITERAL) is ExprKind.TRANSFORM for arg in args
-    ):
-        return ExprKind.TRANSFORM
-    return ExprKind.AGGREGATION

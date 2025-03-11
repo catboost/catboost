@@ -93,7 +93,7 @@ class ArrowGroupBy:
 
             function_name = re.sub(r"(\w+->)", "", expr._function_name)
             if function_name in {"std", "var"}:
-                option: Any = pc.VarianceOptions(ddof=expr._kwargs["ddof"])
+                option: Any = pc.VarianceOptions(ddof=expr._call_kwargs["ddof"])
             elif function_name in {"len", "n_unique"}:
                 option = pc.CountOptions(mode="all")
             elif function_name == "count":

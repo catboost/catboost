@@ -8,7 +8,6 @@ from typing import Any
 from typing import Callable
 from typing import Literal
 from typing import Sequence
-from typing import cast
 
 from duckdb import CaseExpression
 from duckdb import CoalesceOperator
@@ -19,9 +18,8 @@ from duckdb.typing import VARCHAR
 
 from narwhals._duckdb.expr import DuckDBExpr
 from narwhals._duckdb.selectors import DuckDBSelectorNamespace
-from narwhals._duckdb.utils import ExprKind
 from narwhals._duckdb.utils import lit
-from narwhals._duckdb.utils import n_ary_operation_expr_kind
+from narwhals._duckdb.utils import maybe_evaluate_expr
 from narwhals._duckdb.utils import narwhals_to_native_dtype
 from narwhals._expression_parsing import combine_alias_output_names
 from narwhals._expression_parsing import combine_evaluate_output_names
@@ -36,7 +34,7 @@ if TYPE_CHECKING:
     from narwhals.utils import Version
 
 
-class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[type-var]
+class DuckDBNamespace(CompliantNamespace["DuckDBLazyFrame", "duckdb.Expression"]):  # type: ignore[type-var]
     def __init__(
         self: Self, *, backend_version: tuple[int, ...], version: Version
     ) -> None:
@@ -45,9 +43,7 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
 
     @property
     def selectors(self: Self) -> DuckDBSelectorNamespace:
-        return DuckDBSelectorNamespace(
-            backend_version=self._backend_version, version=self._version
-        )
+        return DuckDBSelectorNamespace(self)
 
     def all(self: Self) -> DuckDBExpr:
         def _all(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
@@ -58,7 +54,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="all",
             evaluate_output_names=lambda df: df.columns,
             alias_output_names=None,
-            expr_kind=ExprKind.TRANSFORM,
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -93,7 +88,7 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
     ) -> DuckDBExpr:
         def func(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
             cols = [s for _expr in exprs for s in _expr(df)]
-            null_mask = [s.isnull() for _expr in exprs for s in _expr(df)]
+            null_mask = [s.isnull() for s in cols]
 
             if not ignore_nulls:
                 null_mask_result = reduce(operator.or_, null_mask)
@@ -136,7 +131,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="concat_str",
             evaluate_output_names=combine_evaluate_output_names(*exprs),
             alias_output_names=combine_alias_output_names(*exprs),
-            expr_kind=n_ary_operation_expr_kind(*exprs),
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -151,7 +145,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="all_horizontal",
             evaluate_output_names=combine_evaluate_output_names(*exprs),
             alias_output_names=combine_alias_output_names(*exprs),
-            expr_kind=n_ary_operation_expr_kind(*exprs),
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -166,7 +159,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="or_horizontal",
             evaluate_output_names=combine_evaluate_output_names(*exprs),
             alias_output_names=combine_alias_output_names(*exprs),
-            expr_kind=n_ary_operation_expr_kind(*exprs),
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -181,7 +173,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="max_horizontal",
             evaluate_output_names=combine_evaluate_output_names(*exprs),
             alias_output_names=combine_alias_output_names(*exprs),
-            expr_kind=n_ary_operation_expr_kind(*exprs),
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -196,7 +187,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="min_horizontal",
             evaluate_output_names=combine_evaluate_output_names(*exprs),
             alias_output_names=combine_alias_output_names(*exprs),
-            expr_kind=n_ary_operation_expr_kind(*exprs),
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -211,7 +201,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="sum_horizontal",
             evaluate_output_names=combine_evaluate_output_names(*exprs),
             alias_output_names=combine_alias_output_names(*exprs),
-            expr_kind=n_ary_operation_expr_kind(*exprs),
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -231,7 +220,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="mean_horizontal",
             evaluate_output_names=combine_evaluate_output_names(*exprs),
             alias_output_names=combine_alias_output_names(*exprs),
-            expr_kind=n_ary_operation_expr_kind(*exprs),
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -240,7 +228,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
         return DuckDBWhen(
             predicate,
             self._backend_version,
-            expr_kind=ExprKind.TRANSFORM,
             version=self._version,
         )
 
@@ -269,7 +256,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="lit",
             evaluate_output_names=lambda _df: ["literal"],
             alias_output_names=None,
-            expr_kind=ExprKind.LITERAL,
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -283,7 +269,6 @@ class DuckDBNamespace(CompliantNamespace["duckdb.Expression"]):  # type: ignore[
             function_name="len",
             evaluate_output_names=lambda _df: ["len"],
             alias_output_names=None,
-            expr_kind=ExprKind.AGGREGATION,
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -297,38 +282,25 @@ class DuckDBWhen:
         then_value: Any = None,
         otherwise_value: Any = None,
         *,
-        expr_kind: ExprKind,
         version: Version,
     ) -> None:
         self._backend_version = backend_version
         self._condition = condition
         self._then_value = then_value
         self._otherwise_value = otherwise_value
-        self._expr_kind = expr_kind
         self._version = version
 
     def __call__(self: Self, df: DuckDBLazyFrame) -> Sequence[duckdb.Expression]:
-        condition = self._condition(df)[0]
-        condition = cast("duckdb.Expression", condition)
-
-        if isinstance(self._then_value, DuckDBExpr):
-            value = self._then_value(df)[0]
-        else:
-            # `self._otherwise_value` is a scalar
-            value = lit(self._then_value)
-        value = cast("duckdb.Expression", value)
-
+        condition = maybe_evaluate_expr(df, self._condition)
+        then_value = maybe_evaluate_expr(df, self._then_value)
         if self._otherwise_value is None:
-            return [CaseExpression(condition=condition, value=value)]
-        if not isinstance(self._otherwise_value, DuckDBExpr):
-            # `self._otherwise_value` is a scalar
-            return [
-                CaseExpression(condition=condition, value=value).otherwise(
-                    lit(self._otherwise_value)
-                )
-            ]
-        otherwise = self._otherwise_value(df)[0]
-        return [CaseExpression(condition=condition, value=value).otherwise(otherwise)]
+            return [CaseExpression(condition=condition, value=then_value)]
+        otherwise_value = maybe_evaluate_expr(df, self._otherwise_value)
+        return [
+            CaseExpression(condition=condition, value=then_value).otherwise(
+                otherwise_value
+            )
+        ]
 
     def then(self: Self, value: DuckDBExpr | Any) -> DuckDBThen:
         self._then_value = value
@@ -340,7 +312,6 @@ class DuckDBWhen:
                 value, "_evaluate_output_names", lambda _df: ["literal"]
             ),
             alias_output_names=getattr(value, "_alias_output_names", None),
-            expr_kind=self._expr_kind,
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -354,7 +325,6 @@ class DuckDBThen(DuckDBExpr):
         function_name: str,
         evaluate_output_names: Callable[[DuckDBLazyFrame], Sequence[str]],
         alias_output_names: Callable[[Sequence[str]], Sequence[str]] | None,
-        expr_kind: ExprKind,
         backend_version: tuple[int, ...],
         version: Version,
     ) -> None:
@@ -364,7 +334,6 @@ class DuckDBThen(DuckDBExpr):
         self._function_name = function_name
         self._evaluate_output_names = evaluate_output_names
         self._alias_output_names = alias_output_names
-        self._expr_kind = expr_kind
 
     def otherwise(self: Self, value: DuckDBExpr | Any) -> DuckDBExpr:
         # type ignore because we are setting the `_call` attribute to a

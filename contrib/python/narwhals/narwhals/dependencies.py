@@ -136,7 +136,7 @@ def is_pandas_series(ser: Any) -> TypeIs[pd.Series[Any]]:
     )
 
 
-def is_pandas_index(index: Any) -> TypeIs[pd.Index]:
+def is_pandas_index(index: Any) -> TypeIs[pd.Index[Any]]:
     """Check whether `index` is a pandas Index without importing pandas."""
     return ((pd := get_pandas()) is not None and isinstance(index, pd.Index)) or any(
         (mod := sys.modules.get(module_name, None)) is not None

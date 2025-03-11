@@ -18,12 +18,14 @@ if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
     from narwhals import dtypes
+    from narwhals._expression_parsing import ExprKind
     from narwhals.dataframe import DataFrame
     from narwhals.dataframe import LazyFrame
     from narwhals.dtypes import DType
     from narwhals.expr import Expr
     from narwhals.series import Series
     from narwhals.utils import Implementation
+    from narwhals.utils import Version
 
     # All dataframes supported by Narwhals have a
     # `columns` property. Their similarities don't extend
@@ -42,6 +44,8 @@ if TYPE_CHECKING:
 
 
 class CompliantSeries(Protocol):
+    @property
+    def dtype(self) -> DType: ...
     @property
     def name(self) -> str: ...
     def __narwhals_series__(self) -> CompliantSeries: ...
@@ -70,24 +74,30 @@ class CompliantLazyFrame(Protocol):
         # (so, no broadcasting is necessary).
 
 
+CompliantFrameT_contra = TypeVar(
+    "CompliantFrameT_contra",
+    bound="CompliantDataFrame | CompliantLazyFrame",
+    contravariant=True,
+)
 CompliantSeriesT_co = TypeVar(
     "CompliantSeriesT_co", bound=CompliantSeries, covariant=True
 )
 
 
-class CompliantExpr(Protocol, Generic[CompliantSeriesT_co]):
+class CompliantExpr(Protocol, Generic[CompliantFrameT_contra, CompliantSeriesT_co]):
     _implementation: Implementation
     _backend_version: tuple[int, ...]
-    _evaluate_output_names: Callable[
-        [CompliantDataFrame | CompliantLazyFrame], Sequence[str]
-    ]
+    _version: Version
+    _evaluate_output_names: Callable[[CompliantFrameT_contra], Sequence[str]]
     _alias_output_names: Callable[[Sequence[str]], Sequence[str]] | None
     _depth: int
     _function_name: str
 
     def __call__(self, df: Any) -> Sequence[CompliantSeriesT_co]: ...
     def __narwhals_expr__(self) -> None: ...
-    def __narwhals_namespace__(self) -> CompliantNamespace[CompliantSeriesT_co]: ...
+    def __narwhals_namespace__(
+        self,
+    ) -> CompliantNamespace[CompliantFrameT_contra, CompliantSeriesT_co]: ...
     def is_null(self) -> Self: ...
     def alias(self, name: str) -> Self: ...
     def cast(self, dtype: DType) -> Self: ...
@@ -100,13 +110,22 @@ class CompliantExpr(Protocol, Generic[CompliantSeriesT_co]):
     def __truediv__(self, other: Any) -> Self: ...
     def __mod__(self, other: Any) -> Self: ...
     def __pow__(self, other: Any) -> Self: ...
+    def __gt__(self, other: Any) -> Self: ...
+    def __ge__(self, other: Any) -> Self: ...
+    def __lt__(self, other: Any) -> Self: ...
+    def __le__(self, other: Any) -> Self: ...
+    def broadcast(
+        self, kind: Literal[ExprKind.AGGREGATION, ExprKind.LITERAL]
+    ) -> Self: ...
 
 
-class CompliantNamespace(Protocol, Generic[CompliantSeriesT_co]):
-    def col(self, *column_names: str) -> CompliantExpr[CompliantSeriesT_co]: ...
+class CompliantNamespace(Protocol, Generic[CompliantFrameT_contra, CompliantSeriesT_co]):
+    def col(
+        self, *column_names: str
+    ) -> CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co]: ...
     def lit(
         self, value: Any, dtype: DType | None
-    ) -> CompliantExpr[CompliantSeriesT_co]: ...
+    ) -> CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co]: ...
 
 
 class SupportsNativeNamespace(Protocol):
@@ -306,7 +325,7 @@ if TYPE_CHECKING:
     # This one needs to be in TYPE_CHECKING to pass on 3.9,
     # and can only be defined after CompliantExpr has been defined
     IntoCompliantExpr: TypeAlias = (
-        CompliantExpr[CompliantSeriesT_co] | CompliantSeriesT_co
+        CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co] | CompliantSeriesT_co
     )
 
 

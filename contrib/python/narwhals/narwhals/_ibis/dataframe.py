@@ -94,7 +94,7 @@ class IbisLazyFrame:
         return self
 
     def __native_namespace__(self: Self) -> ModuleType:
-        return get_ibis()  # type: ignore[no-any-return]
+        return get_ibis()
 
     def __getitem__(self, item: str) -> IbisInterchangeSeries:
         from narwhals._ibis.series import IbisInterchangeSeries

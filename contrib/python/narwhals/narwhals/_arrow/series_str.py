@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import string
 from typing import TYPE_CHECKING
+from typing import Any
 
 import pyarrow.compute as pc
 
@@ -75,7 +76,7 @@ class ArrowSeriesStringNamespace:
         native = self._compliant_series._native_series
         format = parse_datetime_format(native) if format is None else format
         strptime: Incomplete = pc.strptime
-        timestamp_array: pa.Array[pa.TimestampScalar] = strptime(
+        timestamp_array: pa.Array[pa.TimestampScalar[Any, Any]] = strptime(
             native, format=format, unit="us"
         )
         return self._compliant_series._from_native_series(timestamp_array)

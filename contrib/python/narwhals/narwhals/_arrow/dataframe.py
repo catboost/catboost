@@ -12,11 +12,12 @@ from typing import overload
 import pyarrow as pa
 import pyarrow.compute as pc
 
-from narwhals._arrow.utils import broadcast_and_extract_dataframe_comparand
-from narwhals._arrow.utils import broadcast_series
+from narwhals._arrow.utils import align_series_full_broadcast
 from narwhals._arrow.utils import convert_str_slice_to_int_slice
+from narwhals._arrow.utils import extract_dataframe_comparand
 from narwhals._arrow.utils import native_to_narwhals_dtype
 from narwhals._arrow.utils import select_rows
+from narwhals._expression_parsing import ExprKind
 from narwhals._expression_parsing import evaluate_into_exprs
 from narwhals.dependencies import is_numpy_array_1d
 from narwhals.utils import Implementation
@@ -45,9 +46,9 @@ if TYPE_CHECKING:
     from narwhals._arrow.namespace import ArrowNamespace
     from narwhals._arrow.series import ArrowSeries
     from narwhals._arrow.typing import ArrowChunkedArray
-    from narwhals._arrow.typing import Indices
-    from narwhals._arrow.typing import Mask
-    from narwhals._arrow.typing import Order
+    from narwhals._arrow.typing import Indices  # type: ignore[attr-defined]
+    from narwhals._arrow.typing import Mask  # type: ignore[attr-defined]
+    from narwhals._arrow.typing import Order  # type: ignore[attr-defined]
     from narwhals.dtypes import DType
     from narwhals.typing import SizeUnit
     from narwhals.typing import _1DArray
@@ -346,14 +347,15 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
         return self.select(*exprs)
 
     def select(self: Self, *exprs: ArrowExpr) -> Self:
-        new_series: list[ArrowSeries] = evaluate_into_exprs(self, *exprs)
+        new_series: Sequence[ArrowSeries] = evaluate_into_exprs(self, *exprs)
         if not new_series:
             # return empty dataframe, like Polars does
             return self._from_native_frame(
                 self._native_frame.__class__.from_arrays([]), validate_column_names=False
             )
         names = [s.name for s in new_series]
-        df = pa.Table.from_arrays(broadcast_series(new_series), names=names)
+        new_series = align_series_full_broadcast(*new_series)
+        df = pa.Table.from_arrays([s._native_series for s in new_series], names=names)
         return self._from_native_frame(df, validate_column_names=False)
 
     def with_columns(self: Self, *exprs: ArrowExpr) -> Self:
@@ -366,10 +368,9 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
         for col_value in new_columns:
             col_name = col_value.name
 
-            column = broadcast_and_extract_dataframe_comparand(
+            column = extract_dataframe_comparand(
                 length=length, other=col_value, backend_version=self._backend_version
             )
-
             native_frame = (
                 native_frame.set_column(
                     columns.index(col_name),
@@ -410,9 +411,13 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
             )
 
             return self._from_native_frame(
-                self.with_columns(plx.lit(0, None).alias(key_token))
+                self.with_columns(
+                    plx.lit(0, None).alias(key_token).broadcast(ExprKind.LITERAL)
+                )
                 ._native_frame.join(
-                    other.with_columns(plx.lit(0, None).alias(key_token))._native_frame,
+                    other.with_columns(
+                        plx.lit(0, None).alias(key_token).broadcast(ExprKind.LITERAL)
+                    )._native_frame,
                     keys=key_token,
                     right_keys=key_token,
                     join_type="inner",
@@ -540,10 +545,7 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
             mask_native: Mask | ArrowChunkedArray = predicate
         else:
             # `[0]` is safe as the predicate's expression only returns a single column
-            mask = evaluate_into_exprs(self, predicate)[0]
-            mask_native = broadcast_and_extract_dataframe_comparand(
-                length=len(self), other=mask, backend_version=self._backend_version
-            )
+            mask_native = evaluate_into_exprs(self, predicate)[0]._native_series
         return self._from_native_frame(
             self._native_frame.filter(mask_native),  # pyright: ignore[reportArgumentType]
             validate_column_names=False,

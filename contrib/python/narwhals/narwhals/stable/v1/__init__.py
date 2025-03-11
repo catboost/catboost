@@ -16,7 +16,6 @@ from narwhals import dependencies
 from narwhals import exceptions
 from narwhals import selectors
 from narwhals._expression_parsing import ExprKind
-from narwhals._expression_parsing import ExprMetadata
 from narwhals.dataframe import DataFrame as NwDataFrame
 from narwhals.dataframe import LazyFrame as NwLazyFrame
 from narwhals.dependencies import get_polars
@@ -969,7 +968,7 @@ class Expr(NwExpr):
         """
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).head(n),
-            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
+            self._metadata.with_kind_and_order_dependence(ExprKind.CHANGES_LENGTH),
         )
 
     def tail(self: Self, n: int = 10) -> Self:
@@ -983,7 +982,7 @@ class Expr(NwExpr):
         """
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).tail(n),
-            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
+            self._metadata.with_kind_and_order_dependence(ExprKind.CHANGES_LENGTH),
         )
 
     def gather_every(self: Self, n: int, offset: int = 0) -> Self:
@@ -998,7 +997,7 @@ class Expr(NwExpr):
         """
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).gather_every(n=n, offset=offset),
-            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
+            self._metadata.with_kind_and_order_dependence(ExprKind.CHANGES_LENGTH),
         )
 
     def unique(self: Self, *, maintain_order: bool | None = None) -> Self:
@@ -1020,10 +1019,7 @@ class Expr(NwExpr):
             warn(message=msg, category=UserWarning, stacklevel=find_stacklevel())
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).unique(),
-            ExprMetadata(
-                kind=ExprKind.CHANGES_LENGTH,
-                is_order_dependent=self._metadata["is_order_dependent"],
-            ),
+            self._metadata.with_kind(ExprKind.CHANGES_LENGTH),
         )
 
     def sort(self: Self, *, descending: bool = False, nulls_last: bool = False) -> Self:
@@ -1040,7 +1036,7 @@ class Expr(NwExpr):
             lambda plx: self._to_compliant_expr(plx).sort(
                 descending=descending, nulls_last=nulls_last
             ),
-            ExprMetadata(kind=self._metadata["kind"], is_order_dependent=True),
+            self._metadata.with_order_dependence(),
         )
 
     def arg_true(self: Self) -> Self:
@@ -1051,7 +1047,7 @@ class Expr(NwExpr):
         """
         return self.__class__(
             lambda plx: self._to_compliant_expr(plx).arg_true(),
-            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
+            self._metadata.with_kind_and_order_dependence(ExprKind.CHANGES_LENGTH),
         )
 
     def sample(
@@ -1085,7 +1081,7 @@ class Expr(NwExpr):
             lambda plx: self._to_compliant_expr(plx).sample(
                 n, fraction=fraction, with_replacement=with_replacement, seed=seed
             ),
-            ExprMetadata(kind=ExprKind.CHANGES_LENGTH, is_order_dependent=True),
+            self._metadata.with_kind_and_order_dependence(ExprKind.CHANGES_LENGTH),
         )
 
 
@@ -2191,12 +2187,12 @@ def from_dict(
         backend: specifies which eager backend instantiate to. Only
             necessary if inputs are not Narwhals Series.
 
-                `backend` can be specified in various ways:
+            `backend` can be specified in various ways:
 
-                - As `Implementation.<BACKEND>` with `BACKEND` being `PANDAS`, `PYARROW`,
-                    `POLARS`, `MODIN` or `CUDF`.
-                - As a string: `"pandas"`, `"pyarrow"`, `"polars"`, `"modin"` or `"cudf"`.
-                - Directly as a module `pandas`, `pyarrow`, `polars`, `modin` or `cudf`.
+            - As `Implementation.<BACKEND>` with `BACKEND` being `PANDAS`, `PYARROW`,
+                `POLARS`, `MODIN` or `CUDF`.
+            - As a string: `"pandas"`, `"pyarrow"`, `"polars"`, `"modin"` or `"cudf"`.
+            - Directly as a module `pandas`, `pyarrow`, `polars`, `modin` or `cudf`.
         native_namespace: The native library to use for DataFrame creation.
 
             **Deprecated** (v1.26.0):
@@ -2237,26 +2233,47 @@ def from_numpy(
     Returns:
         A new DataFrame.
     """
-    return _stableify(_from_numpy_impl(data, schema, native_namespace=native_namespace))
+    return _stableify(_from_numpy_impl(data, schema, native_namespace=native_namespace))  # type: ignore[no-any-return]
 
 
 def read_csv(
-    source: str, *, native_namespace: ModuleType, **kwargs: Any
+    source: str,
+    *,
+    backend: ModuleType | Implementation | str | None = None,
+    native_namespace: ModuleType | None = None,
+    **kwargs: Any,
 ) -> DataFrame[Any]:
     """Read a CSV file into a DataFrame.
 
     Arguments:
         source: Path to a file.
+        backend: The eager backend for DataFrame creation.
+            `backend` can be specified in various ways:
+
+            - As `Implementation.<BACKEND>` with `BACKEND` being `PANDAS`, `PYARROW`,
+                `POLARS`, `MODIN` or `CUDF`.
+            - As a string: `"pandas"`, `"pyarrow"`, `"polars"`, `"modin"` or `"cudf"`.
+            - Directly as a module `pandas`, `pyarrow`, `polars`, `modin` or `cudf`.
         native_namespace: The native library to use for DataFrame creation.
+
+            **Deprecated** (v1.27.2):
+                Please use `backend` instead. Note that `native_namespace` is still available
+                (and won't emit a deprecation warning) if you use `narwhals.stable.v1`,
+                see [perfect backwards compatibility policy](../backcompat.md/).
         kwargs: Extra keyword arguments which are passed to the native CSV reader.
             For example, you could use
-            `nw.read_csv('file.csv', native_namespace=pd, engine='pyarrow')`.
+            `nw.read_csv('file.csv', backend='pandas', engine='pyarrow')`.
 
     Returns:
         DataFrame.
     """
+    backend = validate_native_namespace_and_backend(
+        backend, native_namespace, emit_deprecation_warning=True
+    )
+    if backend is None:  # pragma: no cover
+        raise AssertionError
     return _stableify(  # type: ignore[no-any-return]
-        _read_csv_impl(source, native_namespace=native_namespace, **kwargs)
+        _read_csv_impl(source, backend=backend, **kwargs)
     )
 
 

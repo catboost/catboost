@@ -16,11 +16,10 @@ from narwhals._duckdb.expr_dt import DuckDBExprDateTimeNamespace
 from narwhals._duckdb.expr_list import DuckDBExprListNamespace
 from narwhals._duckdb.expr_name import DuckDBExprNameNamespace
 from narwhals._duckdb.expr_str import DuckDBExprStringNamespace
-from narwhals._duckdb.utils import ExprKind
 from narwhals._duckdb.utils import lit
-from narwhals._duckdb.utils import maybe_evaluate
-from narwhals._duckdb.utils import n_ary_operation_expr_kind
+from narwhals._duckdb.utils import maybe_evaluate_expr
 from narwhals._duckdb.utils import narwhals_to_native_dtype
+from narwhals._expression_parsing import ExprKind
 from narwhals.typing import CompliantExpr
 from narwhals.utils import Implementation
 
@@ -34,7 +33,7 @@ if TYPE_CHECKING:
     from narwhals.utils import Version
 
 
-class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
+class DuckDBExpr(CompliantExpr["DuckDBLazyFrame", "duckdb.Expression"]):  # type: ignore[type-var]
     _implementation = Implementation.DUCKDB
     _depth = 0  # Unused, just for compatibility with CompliantExpr
 
@@ -45,7 +44,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
         function_name: str,
         evaluate_output_names: Callable[[DuckDBLazyFrame], Sequence[str]],
         alias_output_names: Callable[[Sequence[str]], Sequence[str]] | None,
-        expr_kind: ExprKind,
         backend_version: tuple[int, ...],
         version: Version,
     ) -> None:
@@ -53,7 +51,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
         self._function_name = function_name
         self._evaluate_output_names = evaluate_output_names
         self._alias_output_names = alias_output_names
-        self._expr_kind = expr_kind
         self._backend_version = backend_version
         self._version = version
 
@@ -70,6 +67,13 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             backend_version=self._backend_version, version=self._version
         )
 
+    def broadcast(self, kind: Literal[ExprKind.AGGREGATION, ExprKind.LITERAL]) -> Self:
+        if kind is ExprKind.AGGREGATION:
+            msg = "Broadcasting aggregations is not yet supported for DuckDB."
+            raise NotImplementedError(msg)
+        # For literals, DuckDB does its own broadcasting.
+        return self
+
     @classmethod
     def from_column_names(
         cls: type[Self],
@@ -83,9 +87,8 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
         return cls(
             func,
             function_name="col",
-            evaluate_output_names=lambda _df: list(column_names),
+            evaluate_output_names=lambda _df: column_names,
             alias_output_names=None,
-            expr_kind=ExprKind.TRANSFORM,
             backend_version=backend_version,
             version=version,
         )
@@ -107,7 +110,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             function_name="nth",
             evaluate_output_names=lambda df: [df.columns[i] for i in column_indices],
             alias_output_names=None,
-            expr_kind=ExprKind.TRANSFORM,
             backend_version=backend_version,
             version=version,
         )
@@ -116,8 +118,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
         self: Self,
         call: Callable[..., duckdb.Expression],
         expr_name: str,
-        *,
-        expr_kind: ExprKind,
         **expressifiable_args: Self | Any,
     ) -> Self:
         """Create expression from callable.
@@ -125,7 +125,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
         Arguments:
             call: Callable from compliant DataFrame to native Expression
             expr_name: Expression name
-            expr_kind: kind of output expression
             expressifiable_args: arguments pass to expression which should be parsed
                 as expressions (e.g. in `nw.col('a').is_between('b', 'c')`)
         """
@@ -133,7 +132,7 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
         def func(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
             native_series_list = self._call(df)
             other_native_series = {
-                key: maybe_evaluate(df, value, expr_kind=expr_kind)
+                key: maybe_evaluate_expr(df, value)
                 for key, value in expressifiable_args.items()
             }
             return [
@@ -146,7 +145,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             function_name=f"{self._function_name}->{expr_name}",
             evaluate_output_names=self._evaluate_output_names,
             alias_output_names=self._alias_output_names,
-            expr_kind=expr_kind,
             backend_version=self._backend_version,
             version=self._version,
         )
@@ -156,7 +154,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input & other,
             "__and__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __or__(self: Self, other: DuckDBExpr) -> Self:
@@ -164,7 +161,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input | other,
             "__or__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __add__(self: Self, other: DuckDBExpr) -> Self:
@@ -172,7 +168,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input + other,
             "__add__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __truediv__(self: Self, other: DuckDBExpr) -> Self:
@@ -180,39 +175,54 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input / other,
             "__truediv__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
+
+    def __rtruediv__(self: Self, other: DuckDBExpr) -> Self:
+        return self._from_call(
+            lambda _input, other: other.__truediv__(_input), "__rtruediv__", other=other
+        ).alias("literal")
 
     def __floordiv__(self: Self, other: DuckDBExpr) -> Self:
         return self._from_call(
             lambda _input, other: _input.__floordiv__(other),
             "__floordiv__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
+
+    def __rfloordiv__(self: Self, other: DuckDBExpr) -> Self:
+        return self._from_call(
+            lambda _input, other: other.__floordiv__(_input), "__rfloordiv__", other=other
+        ).alias("literal")
 
     def __mod__(self: Self, other: DuckDBExpr) -> Self:
         return self._from_call(
             lambda _input, other: _input.__mod__(other),
             "__mod__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
+
+    def __rmod__(self: Self, other: DuckDBExpr) -> Self:
+        return self._from_call(
+            lambda _input, other: other.__mod__(_input), "__rmod__", other=other
+        ).alias("literal")
 
     def __sub__(self: Self, other: DuckDBExpr) -> Self:
         return self._from_call(
             lambda _input, other: _input - other,
             "__sub__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
+
+    def __rsub__(self: Self, other: DuckDBExpr) -> Self:
+        return self._from_call(
+            lambda _input, other: other.__sub__(_input), "__rsub__", other=other
+        ).alias("literal")
 
     def __mul__(self: Self, other: DuckDBExpr) -> Self:
         return self._from_call(
             lambda _input, other: _input * other,
             "__mul__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __pow__(self: Self, other: DuckDBExpr) -> Self:
@@ -220,15 +230,18 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input**other,
             "__pow__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
+
+    def __rpow__(self: Self, other: DuckDBExpr) -> Self:
+        return self._from_call(
+            lambda _input, other: other.__pow__(_input), "__rpow__", other=other
+        ).alias("literal")
 
     def __lt__(self: Self, other: DuckDBExpr) -> Self:
         return self._from_call(
             lambda _input, other: _input < other,
             "__lt__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __gt__(self: Self, other: DuckDBExpr) -> Self:
@@ -236,7 +249,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input > other,
             "__gt__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __le__(self: Self, other: DuckDBExpr) -> Self:
@@ -244,7 +256,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input <= other,
             "__le__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __ge__(self: Self, other: DuckDBExpr) -> Self:
@@ -252,7 +263,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input >= other,
             "__ge__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __eq__(self: Self, other: DuckDBExpr) -> Self:  # type: ignore[override]
@@ -260,7 +270,6 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input == other,
             "__eq__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __ne__(self: Self, other: DuckDBExpr) -> Self:  # type: ignore[override]
@@ -268,15 +277,10 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             lambda _input, other: _input != other,
             "__ne__",
             other=other,
-            expr_kind=n_ary_operation_expr_kind(self, other),
         )
 
     def __invert__(self: Self) -> Self:
-        return self._from_call(
-            lambda _input: ~_input,
-            "__invert__",
-            expr_kind=self._expr_kind,
-        )
+        return self._from_call(lambda _input: ~_input, "__invert__")
 
     def alias(self: Self, name: str) -> Self:
         def alias_output_names(names: Sequence[str]) -> Sequence[str]:
@@ -290,24 +294,15 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             function_name=self._function_name,
             evaluate_output_names=self._evaluate_output_names,
             alias_output_names=alias_output_names,
-            expr_kind=self._expr_kind,
             backend_version=self._backend_version,
             version=self._version,
         )
 
     def abs(self: Self) -> Self:
-        return self._from_call(
-            lambda _input: FunctionExpression("abs", _input),
-            "abs",
-            expr_kind=self._expr_kind,
-        )
+        return self._from_call(lambda _input: FunctionExpression("abs", _input), "abs")
 
     def mean(self: Self) -> Self:
-        return self._from_call(
-            lambda _input: FunctionExpression("mean", _input),
-            "mean",
-            expr_kind=ExprKind.AGGREGATION,
-        )
+        return self._from_call(lambda _input: FunctionExpression("mean", _input), "mean")
 
     def skew(self: Self) -> Self:
         def func(_input: duckdb.Expression) -> duckdb.Expression:
@@ -325,27 +320,21 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
                 )
             )
 
-        return self._from_call(func, "skew", expr_kind=ExprKind.AGGREGATION)
+        return self._from_call(func, "skew")
 
     def median(self: Self) -> Self:
         return self._from_call(
-            lambda _input: FunctionExpression("median", _input),
-            "median",
-            expr_kind=ExprKind.AGGREGATION,
+            lambda _input: FunctionExpression("median", _input), "median"
         )
 
     def all(self: Self) -> Self:
         return self._from_call(
-            lambda _input: FunctionExpression("bool_and", _input),
-            "all",
-            expr_kind=ExprKind.AGGREGATION,
+            lambda _input: FunctionExpression("bool_and", _input), "all"
         )
 
     def any(self: Self) -> Self:
         return self._from_call(
-            lambda _input: FunctionExpression("bool_or", _input),
-            "any",
-            expr_kind=ExprKind.AGGREGATION,
+            lambda _input: FunctionExpression("bool_or", _input), "any"
         )
 
     def quantile(
@@ -359,11 +348,7 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             msg = "Only linear interpolation methods are supported for DuckDB quantile."
             raise NotImplementedError(msg)
 
-        return self._from_call(
-            func,
-            "quantile",
-            expr_kind=ExprKind.AGGREGATION,
-        )
+        return self._from_call(func, "quantile")
 
     def clip(self: Self, lower_bound: Any, upper_bound: Any) -> Self:
         def func(
@@ -374,19 +359,11 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             )
 
         return self._from_call(
-            func,
-            "clip",
-            lower_bound=lower_bound,
-            upper_bound=upper_bound,
-            expr_kind=self._expr_kind,
+            func, "clip", lower_bound=lower_bound, upper_bound=upper_bound
         )
 
     def sum(self: Self) -> Self:
-        return self._from_call(
-            lambda _input: FunctionExpression("sum", _input),
-            "sum",
-            expr_kind=ExprKind.AGGREGATION,
-        )
+        return self._from_call(lambda _input: FunctionExpression("sum", _input), "sum")
 
     def n_unique(self: Self) -> Self:
         def func(_input: duckdb.Expression) -> duckdb.Expression:
@@ -400,28 +377,18 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
                 ),
             )
 
-        return self._from_call(
-            func,
-            "n_unique",
-            expr_kind=ExprKind.AGGREGATION,
-        )
+        return self._from_call(func, "n_unique")
 
     def count(self: Self) -> Self:
         return self._from_call(
-            lambda _input: FunctionExpression("count", _input),
-            "count",
-            expr_kind=ExprKind.AGGREGATION,
+            lambda _input: FunctionExpression("count", _input), "count"
         )
 
     def len(self: Self) -> Self:
-        return self._from_call(
-            lambda _input: FunctionExpression("count"),
-            "len",
-            expr_kind=ExprKind.AGGREGATION,
-        )
+        return self._from_call(lambda _input: FunctionExpression("count"), "len")
 
     def std(self: Self, ddof: int) -> Self:
-        def _std(_input: duckdb.Expression, ddof: int) -> duckdb.Expression:
+        def _std(_input: duckdb.Expression) -> duckdb.Expression:
             n_samples = FunctionExpression("count", _input)
             # NOTE: Not implemented Error: Unable to transform python value of type '<class 'duckdb.duckdb.Expression'>' to DuckDB LogicalType
             return (
@@ -430,80 +397,49 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
                 / (FunctionExpression("sqrt", (n_samples - ddof)))  # type: ignore[operator]
             )
 
-        return self._from_call(
-            _std,
-            "std",
-            ddof=ddof,
-            expr_kind=ExprKind.AGGREGATION,
-        )
+        return self._from_call(_std, "std")
 
     def var(self: Self, ddof: int) -> Self:
-        def _var(_input: duckdb.Expression, ddof: int) -> duckdb.Expression:
+        def _var(_input: duckdb.Expression) -> duckdb.Expression:
             n_samples = FunctionExpression("count", _input)
             # NOTE: Not implemented Error: Unable to transform python value of type '<class 'duckdb.duckdb.Expression'>' to DuckDB LogicalType
-            return FunctionExpression("var_pop", _input) * n_samples / (n_samples - ddof)  # type: ignore[operator]
+            return FunctionExpression("var_pop", _input) * n_samples / (n_samples - ddof)  # type: ignore[operator, no-any-return]
 
-        return self._from_call(
-            _var,
-            "var",
-            ddof=ddof,
-            expr_kind=ExprKind.AGGREGATION,
-        )
+        return self._from_call(_var, "var")
 
     def max(self: Self) -> Self:
-        return self._from_call(
-            lambda _input: FunctionExpression("max", _input),
-            "max",
-            expr_kind=ExprKind.AGGREGATION,
-        )
+        return self._from_call(lambda _input: FunctionExpression("max", _input), "max")
 
     def min(self: Self) -> Self:
-        return self._from_call(
-            lambda _input: FunctionExpression("min", _input),
-            "min",
-            expr_kind=ExprKind.AGGREGATION,
-        )
+        return self._from_call(lambda _input: FunctionExpression("min", _input), "min")
 
     def null_count(self: Self) -> Self:
         return self._from_call(
             lambda _input: FunctionExpression("sum", _input.isnull().cast("int")),
             "null_count",
-            expr_kind=ExprKind.AGGREGATION,
         )
 
     def is_null(self: Self) -> Self:
-        return self._from_call(
-            lambda _input: _input.isnull(),
-            "is_null",
-            expr_kind=self._expr_kind,
-        )
+        return self._from_call(lambda _input: _input.isnull(), "is_null")
 
     def is_nan(self: Self) -> Self:
         return self._from_call(
-            lambda _input: FunctionExpression("isnan", _input),
-            "is_nan",
-            expr_kind=self._expr_kind,
+            lambda _input: FunctionExpression("isnan", _input), "is_nan"
         )
 
     def is_finite(self: Self) -> Self:
         return self._from_call(
-            lambda _input: FunctionExpression("isfinite", _input),
-            "is_finite",
-            expr_kind=self._expr_kind,
+            lambda _input: FunctionExpression("isfinite", _input), "is_finite"
         )
 
     def is_in(self: Self, other: Sequence[Any]) -> Self:
         return self._from_call(
-            lambda _input: FunctionExpression("contains", lit(other), _input),
-            "is_in",
-            expr_kind=self._expr_kind,
+            lambda _input: FunctionExpression("contains", lit(other), _input), "is_in"
         )
 
     def round(self: Self, decimals: int) -> Self:
         return self._from_call(
-            lambda _input: FunctionExpression("round", _input, lit(decimals)),
-            "round",
-            expr_kind=self._expr_kind,
+            lambda _input: FunctionExpression("round", _input, lit(decimals)), "round"
         )
 
     def fill_null(self: Self, value: Any, strategy: Any, limit: int | None) -> Self:
@@ -512,9 +448,7 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             raise NotImplementedError(msg)
 
         return self._from_call(
-            lambda _input: CoalesceOperator(_input, lit(value)),
-            "fill_null",
-            expr_kind=self._expr_kind,
+            lambda _input: CoalesceOperator(_input, lit(value)), "fill_null"
         )
 
     def cast(self: Self, dtype: DType | type[DType]) -> Self:
@@ -522,11 +456,7 @@ class DuckDBExpr(CompliantExpr["duckdb.Expression"]):  # type: ignore[type-var]
             native_dtype = narwhals_to_native_dtype(dtype, self._version)
             return _input.cast(DuckDBPyType(native_dtype))
 
-        return self._from_call(
-            func,
-            "cast",
-            expr_kind=self._expr_kind,
-        )
+        return self._from_call(func, "cast")
 
     @property
     def str(self: Self) -> DuckDBExprStringNamespace:

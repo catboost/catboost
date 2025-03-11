@@ -13,8 +13,6 @@ import pyarrow as pa
 import pyarrow.compute as pc
 
 from narwhals.utils import import_dtypes_module
-from narwhals.utils import is_compliant_expr
-from narwhals.utils import is_compliant_series
 from narwhals.utils import isinstance_or_issubclass
 
 if TYPE_CHECKING:
@@ -29,7 +27,6 @@ if TYPE_CHECKING:
     from narwhals._arrow.typing import Incomplete
     from narwhals._arrow.typing import StringArray
     from narwhals.dtypes import DType
-    from narwhals.typing import TimeUnit
     from narwhals.typing import _AnyDArray
     from narwhals.utils import Version
 
@@ -182,12 +179,9 @@ def narwhals_to_native_dtype(dtype: DType | type[DType], version: Version) -> pa
     if isinstance_or_issubclass(dtype, dtypes.Categorical):
         return pa.dictionary(pa.uint32(), pa.string())
     if isinstance_or_issubclass(dtype, dtypes.Datetime):
-        time_unit: TimeUnit = getattr(dtype, "time_unit", "us")
-        time_zone = getattr(dtype, "time_zone", None)
-        return pa.timestamp(time_unit, tz=time_zone)
+        return pa.timestamp(dtype.time_unit, tz=dtype.time_zone)  # pyright: ignore[reportArgumentType]
     if isinstance_or_issubclass(dtype, dtypes.Duration):
-        time_unit = getattr(dtype, "time_unit", "us")
-        return pa.duration(time_unit)
+        return pa.duration(dtype.time_unit)
     if isinstance_or_issubclass(dtype, dtypes.Date):
         return pa.date32()
     if isinstance_or_issubclass(dtype, dtypes.List):
@@ -208,102 +202,84 @@ def narwhals_to_native_dtype(dtype: DType | type[DType], version: Version) -> pa
     raise AssertionError(msg)
 
 
-@overload
-def broadcast_and_extract_native(
-    lhs: ArrowSeries, rhs: None, backend_version: tuple[int, ...]
-) -> tuple[ArrowChunkedArray, pa.Scalar[Any]]: ...
-
-
-@overload
-def broadcast_and_extract_native(
-    lhs: ArrowSeries,
-    rhs: ArrowSeries | list[ArrowSeries] | Any,
-    backend_version: tuple[int, ...],
-) -> tuple[ArrowChunkedArray, pa.Scalar[Any] | ArrowChunkedArray]: ...
-
-
-def broadcast_and_extract_native(
-    lhs: ArrowSeries, rhs: Any, backend_version: tuple[int, ...]
-) -> tuple[ArrowChunkedArray, Any]:
-    """Validate RHS of binary operation.
+def extract_native(
+    lhs: ArrowSeries, rhs: ArrowSeries | object
+) -> tuple[
+    ArrowChunkedArray | pa.Scalar[Any], ArrowChunkedArray | pa.Scalar[Any] | object
+]:
+    """Extract native objects in binary  operation.
 
     If the comparison isn't supported, return `NotImplemented` so that the
     "right-hand-side" operation (e.g. `__radd__`) can be tried.
 
-    If RHS is length 1, return the scalar value, so that the underlying
-    library can broadcast it.
+    If one of the two sides has a `_broadcast` flag, then extract the scalar
+    underneath it so that PyArrow can do its own broadcasting.
     """
     from narwhals._arrow.dataframe import ArrowDataFrame
     from narwhals._arrow.series import ArrowSeries
 
-    if rhs is None:  # DONE
+    if rhs is None:
         return lhs._native_series, lit(None, type=lhs._native_series.type)
 
-    # If `rhs` is the output of an expression evaluation, then it is
-    # a list of Series. So, we verify that that list is of length-1,
-    # and take the first (and only) element.
-    if isinstance(rhs, list):
-        if len(rhs) > 1:
-            if is_compliant_expr(rhs[0]) or is_compliant_series(rhs[0]):
-                # e.g. `plx.all() + plx.all()`
-                msg = "Multi-output expressions (e.g. `nw.all()` or `nw.col('a', 'b')`) are not supported in this context"
-                raise ValueError(msg)
-            msg = f"Expected scalar value, Series, or Expr, got list of : {type(rhs[0])}"
-            raise ValueError(msg)
-        rhs = rhs[0]
-
     if isinstance(rhs, ArrowDataFrame):
-        return NotImplemented  # type: ignore[no-any-return]
+        return NotImplemented
 
     if isinstance(rhs, ArrowSeries):
-        if len(rhs) == 1:
-            # broadcast
-            return lhs._native_series, rhs[0]
-        if len(lhs) == 1:
-            # broadcast
-            import numpy as np  # ignore-banned-import
-
-            fill_value = lhs[0]
-            if backend_version < (13,) and hasattr(fill_value, "as_py"):
-                fill_value = fill_value.as_py()
-            arr = pa.array(
-                np.full(shape=rhs.len(), fill_value=fill_value),
-                type=lhs._native_series.type,
-            )
-            return chunked_array(arr), rhs._native_series
+        if lhs._broadcast and not rhs._broadcast:
+            return lhs._native_series[0], rhs._native_series
+        if rhs._broadcast:
+            return lhs._native_series, rhs._native_series[0]
         return lhs._native_series, rhs._native_series
+
+    if isinstance(rhs, list):
+        msg = "Expected Series or scalar, got list."
+        raise TypeError(msg)
     return lhs._native_series, rhs
 
 
-def broadcast_and_extract_dataframe_comparand(
-    length: int, other: ArrowSeries, backend_version: tuple[int, ...]
-) -> ArrowChunkedArray:
-    """Validate RHS of binary operation.
+def align_series_full_broadcast(*series: ArrowSeries) -> Sequence[ArrowSeries]:
+    # Ensure all of `series` are of the same length.
+    lengths = [len(s) for s in series]
+    max_length = max(lengths)
+    fast_path = all(_len == max_length for _len in lengths)
 
-    If the comparison isn't supported, return `NotImplemented` so that the
-    "right-hand-side" operation (e.g. `__radd__`) can be tried.
-    """
-    from narwhals._arrow.series import ArrowSeries
+    if fast_path:
+        return series
 
-    if isinstance(other, ArrowSeries):
-        len_other = len(other)
-        if len_other == 1 and length != 1:
-            import numpy as np  # ignore-banned-import
-
-            value = other._native_series[0]
-            if backend_version < (13,) and hasattr(value, "as_py"):
+    is_max_length_gt_1 = max_length > 1
+    reshaped = []
+    for s, length in zip(series, lengths):
+        s_native = s._native_series
+        if is_max_length_gt_1 and length == 1:
+            value = s_native[0]
+            if s._backend_version < (13,) and hasattr(value, "as_py"):
                 value = value.as_py()
-            return pa.chunked_array([np.full(shape=length, fill_value=value)])
+            reshaped.append(
+                s._from_native_series(pa.array([value] * max_length, type=s_native.type))
+            )
+        else:
+            reshaped.append(s)
 
-        return other._native_series
+    return reshaped
 
-    from narwhals._arrow.dataframe import ArrowDataFrame  # pragma: no cover
 
-    if isinstance(other, ArrowDataFrame):  # pragma: no cover
-        return NotImplemented
+def extract_dataframe_comparand(
+    length: int,
+    other: ArrowSeries,
+    backend_version: tuple[int, ...],
+) -> ArrowChunkedArray:
+    """Extract native Series, broadcasting to `length` if necessary."""
+    import numpy as np  # ignore-banned-import
 
-    msg = "Please report a bug"  # pragma: no cover
-    raise AssertionError(msg)
+    if other._broadcast:
+        import numpy as np  # ignore-banned-import
+
+        value = other._native_series[0]
+        if backend_version < (13,) and hasattr(value, "as_py"):
+            value = value.as_py()
+        return pa.chunked_array([np.full(shape=length, fill_value=value)])
+
+    return other._native_series
 
 
 def horizontal_concat(dfs: list[pa.Table]) -> pa.Table:
@@ -403,35 +379,6 @@ def cast_for_truediv(
         )
 
     return arrow_array, pa_object
-
-
-def broadcast_series(
-    series: Sequence[ArrowSeries],
-) -> Sequence[ArrowChunkedArray]:
-    lengths = [len(s) for s in series]
-    max_length = max(lengths)
-    fast_path = all(_len == max_length for _len in lengths)
-
-    if fast_path:
-        return [s._native_series for s in series]
-
-    is_max_length_gt_1 = max_length > 1
-    reshaped = []
-    for s, length in zip(series, lengths):
-        s_native = s._native_series
-        if is_max_length_gt_1 and length == 1:
-            value = s_native[0]
-            if s._backend_version < (13,) and hasattr(value, "as_py"):
-                value = value.as_py()
-            arr = cast(
-                "ArrowChunkedArray",
-                pa.array([value] * max_length, type=s_native.type),
-            )
-            reshaped.append(arr)
-        else:
-            reshaped.append(s_native)
-
-    return reshaped
 
 
 @overload

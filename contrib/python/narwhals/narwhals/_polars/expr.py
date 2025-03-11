@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
+from typing import Literal
 from typing import Sequence
 
 import polars as pl
@@ -15,6 +16,7 @@ from narwhals.utils import Implementation
 if TYPE_CHECKING:
     from typing_extensions import Self
 
+    from narwhals._expression_parsing import ExprKind
     from narwhals.dtypes import DType
     from narwhals.utils import Version
 
@@ -35,6 +37,10 @@ class PolarsExpr:
         return self.__class__(
             expr, version=self._version, backend_version=self._backend_version
         )
+
+    def broadcast(self, kind: Literal[ExprKind.AGGREGATION, ExprKind.LITERAL]) -> Self:
+        # Let Polars do its thing.
+        return self
 
     def __getattr__(self: Self, attr: str) -> Any:
         def func(*args: Any, **kwargs: Any) -> Any:
@@ -90,6 +96,9 @@ class PolarsExpr:
                 pl.when(self._native_expr.is_not_null()).then(self._native_expr.is_nan())
             )
         return self._from_native_expr(self._native_expr.is_nan())
+
+    def over(self: Self, keys: list[str], kind: ExprKind) -> Self:
+        return self._from_native_expr(self._native_expr.over(keys))
 
     def rolling_var(
         self: Self,
@@ -251,6 +260,19 @@ class PolarsExpr:
 
     def __pow__(self: Self, other: Any) -> Self:
         return self._from_native_expr(self._native_expr.__pow__(extract_native(other)))
+
+    def __truediv__(self: Self, other: Any) -> Self:
+        return self._from_native_expr(
+            self._native_expr.__truediv__(extract_native(other))
+        )
+
+    def __floordiv__(self: Self, other: Any) -> Self:
+        return self._from_native_expr(
+            self._native_expr.__floordiv__(extract_native(other))
+        )
+
+    def __mod__(self: Self, other: Any) -> Self:
+        return self._from_native_expr(self._native_expr.__mod__(extract_native(other)))
 
     def __invert__(self: Self) -> Self:
         return self._from_native_expr(self._native_expr.__invert__())

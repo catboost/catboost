@@ -448,7 +448,17 @@ class Unknown(DType):
     """
 
 
-class Datetime(TemporalType):
+class _DatetimeMeta(type):
+    @property
+    def time_unit(cls) -> TimeUnit:
+        return "us"
+
+    @property
+    def time_zone(cls) -> str | None:
+        return None
+
+
+class Datetime(TemporalType, metaclass=_DatetimeMeta):
     """Data type representing a calendar date and time of day.
 
     Arguments:
@@ -505,11 +515,11 @@ class Datetime(TemporalType):
             time_zone = str(time_zone)
 
         self.time_unit: TimeUnit = time_unit
-        self.time_zone = time_zone
+        self.time_zone: str | None = time_zone
 
     def __eq__(self: Self, other: object) -> bool:
         # allow comparing object instances to class
-        if type(other) is type and issubclass(other, self.__class__):
+        if type(other) is _DatetimeMeta:
             return True
         elif isinstance(other, self.__class__):
             return self.time_unit == other.time_unit and self.time_zone == other.time_zone
@@ -524,7 +534,13 @@ class Datetime(TemporalType):
         return f"{class_name}(time_unit={self.time_unit!r}, time_zone={self.time_zone!r})"
 
 
-class Duration(TemporalType):
+class _DurationMeta(type):
+    @property
+    def time_unit(cls) -> TimeUnit:
+        return "us"
+
+
+class Duration(TemporalType, metaclass=_DurationMeta):
     """Data type representing a time duration.
 
     Arguments:
@@ -552,10 +568,7 @@ class Duration(TemporalType):
         Duration(time_unit='ms')
     """
 
-    def __init__(
-        self: Self,
-        time_unit: TimeUnit = "us",
-    ) -> None:
+    def __init__(self: Self, time_unit: TimeUnit = "us") -> None:
         if time_unit not in ("s", "ms", "us", "ns"):
             msg = (
                 "invalid `time_unit`"
@@ -563,11 +576,11 @@ class Duration(TemporalType):
             )
             raise ValueError(msg)
 
-        self.time_unit = time_unit
+        self.time_unit: TimeUnit = time_unit
 
     def __eq__(self: Self, other: object) -> bool:
         # allow comparing object instances to class
-        if type(other) is type and issubclass(other, self.__class__):
+        if type(other) is _DurationMeta:
             return True
         elif isinstance(other, self.__class__):
             return self.time_unit == other.time_unit

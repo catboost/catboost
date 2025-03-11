@@ -7,7 +7,6 @@ from functools import lru_cache
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterable
-from typing import Sequence
 from typing import TypeVar
 from typing import cast
 
@@ -88,101 +87,64 @@ $"""
 PATTERN_PA_DURATION = re.compile(PA_DURATION_RGX, re.VERBOSE)
 
 
-def broadcast_align_and_extract_native(
-    lhs: PandasLikeSeries, rhs: Any
-) -> tuple[pd.Series, Any]:
+def align_and_extract_native(
+    lhs: PandasLikeSeries, rhs: PandasLikeSeries | object
+) -> tuple[pd.Series[Any] | object, pd.Series[Any] | object]:
     """Validate RHS of binary operation.
 
     If the comparison isn't supported, return `NotImplemented` so that the
     "right-hand-side" operation (e.g. `__radd__`) can be tried.
-
-    If RHS is length 1, return the scalar value, so that the underlying
-    library can broadcast it.
     """
     from narwhals._pandas_like.dataframe import PandasLikeDataFrame
     from narwhals._pandas_like.series import PandasLikeSeries
 
-    # If `rhs` is the output of an expression evaluation, then it is
-    # a list of Series. So, we verify that that list is of length-1,
-    # and take the first (and only) element.
-    if isinstance(rhs, list):
-        if len(rhs) > 1:
-            if hasattr(rhs[0], "__narwhals_expr__") or hasattr(
-                rhs[0], "__narwhals_series__"
-            ):
-                # e.g. `plx.all() + plx.all()`
-                msg = "Multi-output expressions (e.g. `nw.all()` or `nw.col('a', 'b')`) are not supported in this context"
-                raise ValueError(msg)
-            msg = f"Expected scalar value, Series, or Expr, got list of : {type(rhs[0])}"
-            raise ValueError(msg)
-        rhs = rhs[0]
-
     lhs_index = lhs._native_series.index
 
     if isinstance(rhs, PandasLikeDataFrame):
-        return NotImplemented  # type: ignore[no-any-return]
+        return NotImplemented
 
+    if lhs._broadcast and isinstance(rhs, PandasLikeSeries) and not rhs._broadcast:
+        return lhs._native_series.iloc[0], rhs._native_series
+
+    lhs_native = lhs._native_series
     if isinstance(rhs, PandasLikeSeries):
-        rhs_index = rhs._native_series.index
-        if rhs.len() == 1:
-            # broadcast
-            s = rhs._native_series
+        if rhs._broadcast:
+            return (lhs_native, rhs._native_series.iloc[0])
+        rhs_native = rhs._native_series
+        if rhs_native.index is not lhs_index:
             return (
-                lhs._native_series,
-                s.__class__(s.iloc[0], index=lhs_index, dtype=s.dtype, name=rhs.name),
-            )
-        if lhs.len() == 1:
-            # broadcast
-            s = lhs._native_series
-            return (
-                s.__class__(s.iloc[0], index=rhs_index, dtype=s.dtype, name=s.name),
-                rhs._native_series,
-            )
-        if rhs._native_series.index is not lhs_index:
-            return (
-                lhs._native_series,
+                lhs_native,
                 set_index(
-                    rhs._native_series,
+                    rhs_native,
                     lhs_index,
                     implementation=rhs._implementation,
                     backend_version=rhs._backend_version,
                 ),
             )
-        return (lhs._native_series, rhs._native_series)
+        return (lhs_native, rhs_native)
 
+    if isinstance(rhs, list):
+        msg = "Expected Series or scalar, got list."
+        raise TypeError(msg)
     # `rhs` must be scalar, so just leave it as-is
-    return lhs._native_series, rhs
+    return lhs_native, rhs
 
 
-def broadcast_and_extract_dataframe_comparand(index: Any, other: Any) -> Any:
-    """Validate RHS of binary operation.
-
-    If the comparison isn't supported, return `NotImplemented` so that the
-    "right-hand-side" operation (e.g. `__radd__`) can be tried.
-    """
-    from narwhals._pandas_like.dataframe import PandasLikeDataFrame
-    from narwhals._pandas_like.series import PandasLikeSeries
-
-    if isinstance(other, PandasLikeDataFrame):
-        return NotImplemented
-    if isinstance(other, PandasLikeSeries):
-        len_other = other.len()
-
-        if len_other == 1 and len(index) != 1:
-            # broadcast
-            s = other._native_series
-            return s.__class__(s.iloc[0], index=index, dtype=s.dtype, name=s.name)
-
-        if other._native_series.index is not index:
-            return set_index(
-                other._native_series,
-                index,
-                implementation=other._implementation,
-                backend_version=other._backend_version,
-            )
-        return other._native_series
-    msg = "Please report a bug"  # pragma: no cover
-    raise AssertionError(msg)
+def extract_dataframe_comparand(
+    index: pd.Index[Any], other: PandasLikeSeries
+) -> pd.Series[Any]:
+    """Extract native Series, broadcasting to `length` if necessary."""
+    if other._broadcast:
+        s = other._native_series
+        return s.__class__(s.iloc[0], index=index, dtype=s.dtype, name=s.name)
+    if other._native_series.index is not index:
+        return set_index(
+            other._native_series,
+            index,
+            implementation=other._implementation,
+            backend_version=other._backend_version,
+        )
+    return other._native_series
 
 
 def create_compliant_series(
@@ -346,7 +308,7 @@ def set_index(
         kwargs["copy"] = False
     else:  # pragma: no cover
         pass
-    return obj.set_axis(index, axis=0, **kwargs)  # type: ignore[attr-defined, no-any-return]
+    return obj.set_axis(index, axis=0, **kwargs)  # type: ignore[attr-defined]
 
 
 def set_columns(
@@ -376,7 +338,7 @@ def set_columns(
         kwargs["copy"] = False
     else:  # pragma: no cover
         pass
-    return obj.set_axis(columns, axis=1, **kwargs)  # type: ignore[attr-defined, no-any-return]
+    return obj.set_axis(columns, axis=1, **kwargs)  # type: ignore[attr-defined]
 
 
 def rename(
@@ -390,8 +352,8 @@ def rename(
     if implementation is Implementation.PANDAS and (
         backend_version >= (3,)
     ):  # pragma: no cover
-        return obj.rename(*args, **kwargs)  # type: ignore[attr-defined, no-any-return]
-    return obj.rename(*args, **kwargs, copy=False)  # type: ignore[attr-defined, no-any-return]
+        return obj.rename(*args, **kwargs)  # type: ignore[attr-defined]
+    return obj.rename(*args, **kwargs, copy=False)  # type: ignore[attr-defined]
 
 
 @lru_cache(maxsize=16)
@@ -613,28 +575,27 @@ def narwhals_to_native_dtype(  # noqa: PLR0915
         # convert to it?
         return "category"
     if isinstance_or_issubclass(dtype, dtypes.Datetime):
-        dt_time_unit = getattr(dtype, "time_unit", "us")
-        dt_time_zone = getattr(dtype, "time_zone", None)
-
         # Pandas does not support "ms" or "us" time units before version 2.0
-        # Let's overwrite with "ns"
         if implementation is Implementation.PANDAS and backend_version < (
             2,
         ):  # pragma: no cover
             dt_time_unit = "ns"
+        else:
+            dt_time_unit = dtype.time_unit
 
         if dtype_backend == "pyarrow":
-            tz_part = f", tz={dt_time_zone}" if dt_time_zone else ""
+            tz_part = f", tz={tz}" if (tz := dtype.time_zone) else ""
             return f"timestamp[{dt_time_unit}{tz_part}][pyarrow]"
         else:
-            tz_part = f", {dt_time_zone}" if dt_time_zone else ""
+            tz_part = f", {tz}" if (tz := dtype.time_zone) else ""
             return f"datetime64[{dt_time_unit}{tz_part}]"
     if isinstance_or_issubclass(dtype, dtypes.Duration):
-        du_time_unit = getattr(dtype, "time_unit", "us")
         if implementation is Implementation.PANDAS and backend_version < (
             2,
         ):  # pragma: no cover
-            dt_time_unit = "ns"
+            du_time_unit = "ns"
+        else:
+            du_time_unit = dtype.time_unit
         return (
             f"duration[{du_time_unit}][pyarrow]"
             if dtype_backend == "pyarrow"
@@ -672,7 +633,14 @@ def narwhals_to_native_dtype(  # noqa: PLR0915
     raise AssertionError(msg)
 
 
-def broadcast_series(series: Sequence[PandasLikeSeries]) -> list[Any]:
+def align_series_full_broadcast(
+    *series: PandasLikeSeries,
+) -> list[PandasLikeSeries]:
+    # Ensure all of `series` have the same length and index. Scalars get broadcasted to
+    # the full length of the longest Series. This is useful when you need to construct a
+    # full Series anyway (e.g. `DataFrame.select`). It should not be used in binary operations,
+    # such as `nw.col('a') - nw.col('a').mean()`, because then it's more efficient to extract
+    # the right-hand-side's single element as a scalar.
     native_namespace = series[0].__native_namespace__()
 
     lengths = [len(s) for s in series]
@@ -685,25 +653,29 @@ def broadcast_series(series: Sequence[PandasLikeSeries]) -> list[Any]:
         s_native = s._native_series
         if max_length_gt_1 and length == 1:
             reindexed.append(
-                native_namespace.Series(
-                    [s_native.iloc[0]] * max_length,
-                    index=idx,
-                    name=s_native.name,
-                    dtype=s_native.dtype,
+                s._from_native_series(
+                    native_namespace.Series(
+                        [s_native.iloc[0]] * max_length,
+                        index=idx,
+                        name=s_native.name,
+                        dtype=s_native.dtype,
+                    )
                 )
             )
 
         elif s_native.index is not idx:
             reindexed.append(
-                set_index(
-                    s_native,
-                    idx,
-                    implementation=s._implementation,
-                    backend_version=s._backend_version,
+                s._from_native_series(
+                    set_index(
+                        s_native,
+                        idx,
+                        implementation=s._implementation,
+                        backend_version=s._backend_version,
+                    )
                 )
             )
         else:
-            reindexed.append(s_native)
+            reindexed.append(s)
     return reindexed
 
 
@@ -725,7 +697,7 @@ def int_dtype_mapper(dtype: Any) -> str:
 
 
 def convert_str_slice_to_int_slice(
-    str_slice: slice, columns: pd.Index
+    str_slice: slice, columns: pd.Index[str]
 ) -> tuple[int | None, int | None, int | None]:
     # We can safely cast to int because we know that `columns` doesn't contain duplicates.
     start = (
@@ -743,8 +715,8 @@ def convert_str_slice_to_int_slice(
 
 
 def calculate_timestamp_datetime(
-    s: pd.Series, original_time_unit: str, time_unit: str
-) -> pd.Series:
+    s: pd.Series[int], original_time_unit: str, time_unit: str
+) -> pd.Series[int]:
     if original_time_unit == "ns":
         if time_unit == "ns":
             result = s
@@ -779,7 +751,7 @@ def calculate_timestamp_datetime(
     return result
 
 
-def calculate_timestamp_date(s: pd.Series, time_unit: str) -> pd.Series:
+def calculate_timestamp_date(s: pd.Series[int], time_unit: str) -> pd.Series[int]:
     s = s * 86_400  # number of seconds in a day
     if time_unit == "ns":
         result = s * 1_000_000_000
@@ -792,7 +764,7 @@ def calculate_timestamp_date(s: pd.Series, time_unit: str) -> pd.Series:
 
 def select_columns_by_name(
     df: T,
-    column_names: Sequence[str] | _1DArray,
+    column_names: list[str] | _1DArray,  # NOTE: Cannot be a tuple!
     backend_version: tuple[int, ...],
     implementation: Implementation,
 ) -> T:
@@ -814,9 +786,9 @@ def select_columns_by_name(
             raise ColumnNotFoundError.from_missing_and_available_column_names(
                 missing_columns, available_columns
             )
-        return df.loc[:, column_names]  # type: ignore[no-any-return, attr-defined]
+        return df.loc[:, column_names]  # type: ignore[attr-defined]
     try:
-        return df[column_names]  # type: ignore[no-any-return, index]
+        return df[column_names]  # type: ignore[index]
     except KeyError as e:
         available_columns = df.columns.tolist()  # type: ignore[attr-defined]
         missing_columns = [x for x in column_names if x not in available_columns]
@@ -860,7 +832,7 @@ def pivot_table(
     return result
 
 
-def check_column_names_are_unique(columns: pd.Index) -> None:
+def check_column_names_are_unique(columns: pd.Index[str]) -> None:
     try:
         len_unique_columns = len(columns.drop_duplicates())
     except Exception:  # noqa: BLE001  # pragma: no cover

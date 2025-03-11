@@ -792,7 +792,7 @@ def get_native_namespace(
     | LazyFrame[Any]
     | Series[Any]
     | pd.DataFrame
-    | pd.Series
+    | pd.Series[Any]
     | pl.DataFrame
     | pl.LazyFrame
     | pl.Series

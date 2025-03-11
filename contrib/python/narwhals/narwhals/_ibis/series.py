@@ -25,7 +25,7 @@ class IbisInterchangeSeries:
         return self
 
     def __native_namespace__(self: Self) -> ModuleType:
-        return get_ibis()  # type: ignore[no-any-return]
+        return get_ibis()
 
     @property
     def dtype(self: Self) -> DType:

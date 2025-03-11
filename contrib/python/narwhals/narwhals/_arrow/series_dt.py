@@ -9,7 +9,6 @@ import pyarrow.compute as pc
 from narwhals._arrow.utils import floordiv_compat
 from narwhals._arrow.utils import lit
 from narwhals.utils import import_dtypes_module
-from narwhals.utils import isinstance_or_issubclass
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -52,7 +51,7 @@ class ArrowSeriesDateTimeNamespace:
     def timestamp(self: Self, time_unit: TimeUnit) -> ArrowSeries:
         ser: ArrowSeries = self._compliant_series
         dtypes = import_dtypes_module(ser._version)
-        if isinstance_or_issubclass(ser.dtype, dtypes.Datetime):
+        if isinstance(ser.dtype, dtypes.Datetime):
             unit = ser.dtype.time_unit
             s_cast = ser._native_series.cast(pa.int64())
             if unit == "ns":
@@ -86,7 +85,7 @@ class ArrowSeriesDateTimeNamespace:
             else:  # pragma: no cover
                 msg = f"unexpected time unit {unit}, please report an issue at https://github.com/narwhals-dev/narwhals"
                 raise AssertionError(msg)
-        elif isinstance_or_issubclass(ser.dtype, dtypes.Date):
+        elif isinstance(ser.dtype, dtypes.Date):
             time_s = pc.multiply(ser._native_series.cast(pa.int32()), 86400)
             if time_unit == "ns":
                 result = cast("ArrowChunkedArray", pc.multiply(time_s, 1_000_000_000))

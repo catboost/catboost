@@ -80,5 +80,5 @@ class PandasLikeExprNameNamespace:
             backend_version=self._compliant_expr._backend_version,
             implementation=self._compliant_expr._implementation,
             version=self._compliant_expr._version,
-            kwargs=self._compliant_expr._kwargs,
+            call_kwargs=self._compliant_expr._call_kwargs,
         )

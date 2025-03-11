@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
 from typing import Iterable
 from typing import Sequence
 
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
     from narwhals._dask.dataframe import DaskLazyFrame
     from narwhals.dtypes import DType
     from narwhals.typing import TimeUnit
-    from narwhals.utils import Version
+    from narwhals.utils import _LimitedContext
 
     try:
         import dask.dataframe.dask_expr as dx
@@ -33,11 +34,9 @@ if TYPE_CHECKING:
 
 
 class DaskSelectorNamespace:
-    def __init__(
-        self: Self, *, backend_version: tuple[int, ...], version: Version
-    ) -> None:
-        self._backend_version = backend_version
-        self._version = version
+    def __init__(self: Self, context: _LimitedContext, /) -> None:
+        self._backend_version = context._backend_version
+        self._version = context._version
 
     def by_dtype(self: Self, dtypes: Iterable[DType | type[DType]]) -> DaskSelector:
         def func(df: DaskLazyFrame) -> list[dx.Series]:
@@ -48,17 +47,7 @@ class DaskSelectorNamespace:
         def evaluate_output_names(df: DaskLazyFrame) -> Sequence[str]:
             return [col for col in df.columns if df.schema[col] in dtypes]
 
-        return DaskSelector(
-            func,
-            depth=0,
-            function_name="selector",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
-            backend_version=self._backend_version,
-            returns_scalar=False,
-            version=self._version,
-            kwargs={},
-        )
+        return selector(self, func, evaluate_output_names)
 
     def matches(self: Self, pattern: str) -> DaskSelector:
         def func(df: DaskLazyFrame) -> list[dx.Series]:
@@ -69,17 +58,7 @@ class DaskSelectorNamespace:
         def evaluate_output_names(df: DaskLazyFrame) -> Sequence[str]:
             return [col for col in df.columns if re.search(pattern, col)]
 
-        return DaskSelector(
-            func,
-            depth=0,
-            function_name="selector",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
-            backend_version=self._backend_version,
-            returns_scalar=False,
-            version=self._version,
-            kwargs={},
-        )
+        return selector(self, func, evaluate_output_names)
 
     def numeric(self: Self) -> DaskSelector:
         dtypes = import_dtypes_module(self._version)
@@ -116,17 +95,7 @@ class DaskSelectorNamespace:
         def func(df: DaskLazyFrame) -> list[dx.Series]:
             return [df._native_frame[col] for col in df.columns]
 
-        return DaskSelector(
-            func,
-            depth=0,
-            function_name="selector",
-            evaluate_output_names=lambda df: df.columns,
-            alias_output_names=None,
-            backend_version=self._backend_version,
-            returns_scalar=False,
-            version=self._version,
-            kwargs={},
-        )
+        return selector(self, func, lambda df: df.columns)
 
     def datetime(
         self: Self,
@@ -162,17 +131,7 @@ class DaskSelectorNamespace:
                 )
             ]
 
-        return DaskSelector(
-            func,
-            depth=0,
-            function_name="selector",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
-            backend_version=self._backend_version,
-            returns_scalar=False,
-            version=self._version,
-            kwargs={},
-        )
+        return selector(self, func, evaluate_output_names)
 
 
 class DaskSelector(DaskExpr):
@@ -187,9 +146,7 @@ class DaskSelector(DaskExpr):
             evaluate_output_names=self._evaluate_output_names,
             alias_output_names=self._alias_output_names,
             backend_version=self._backend_version,
-            returns_scalar=self._returns_scalar,
             version=self._version,
-            kwargs={},
         )
 
     def __sub__(self: Self, other: DaskSelector | Any) -> DaskSelector | Any:
@@ -206,17 +163,7 @@ class DaskSelector(DaskExpr):
                 rhs_names = other._evaluate_output_names(df)
                 return [x for x in lhs_names if x not in rhs_names]
 
-            return DaskSelector(
-                call,
-                depth=0,
-                function_name="selector",
-                evaluate_output_names=evaluate_output_names,
-                alias_output_names=None,
-                backend_version=self._backend_version,
-                returns_scalar=self._returns_scalar,
-                version=self._version,
-                kwargs={},
-            )
+            return selector(self, call, evaluate_output_names)
         else:
             return self._to_expr() - other
 
@@ -238,17 +185,7 @@ class DaskSelector(DaskExpr):
                 rhs_names = other._evaluate_output_names(df)
                 return [*(x for x in lhs_names if x not in rhs_names), *rhs_names]
 
-            return DaskSelector(
-                call,
-                depth=0,
-                function_name="selector",
-                evaluate_output_names=evaluate_output_names,
-                alias_output_names=None,
-                backend_version=self._backend_version,
-                returns_scalar=self._returns_scalar,
-                version=self._version,
-                kwargs={},
-            )
+            return selector(self, call, evaluate_output_names)
         else:
             return self._to_expr() | other
 
@@ -266,24 +203,26 @@ class DaskSelector(DaskExpr):
                 rhs_names = other._evaluate_output_names(df)
                 return [x for x in lhs_names if x in rhs_names]
 
-            return DaskSelector(
-                call,
-                depth=0,
-                function_name="selector",
-                evaluate_output_names=evaluate_output_names,
-                alias_output_names=None,
-                backend_version=self._backend_version,
-                returns_scalar=self._returns_scalar,
-                version=self._version,
-                kwargs={},
-            )
+            return selector(self, call, evaluate_output_names)
         else:
             return self._to_expr() & other
 
     def __invert__(self: Self) -> DaskSelector:
-        return (
-            DaskSelectorNamespace(
-                backend_version=self._backend_version, version=self._version
-            ).all()
-            - self
-        )
+        return DaskSelectorNamespace(self).all() - self
+
+
+def selector(
+    context: _LimitedContext,
+    call: Callable[[DaskLazyFrame], Sequence[dx.Series]],
+    evaluate_output_names: Callable[[DaskLazyFrame], Sequence[str]],
+    /,
+) -> DaskSelector:
+    return DaskSelector(
+        call,
+        depth=0,
+        function_name="selector",
+        evaluate_output_names=evaluate_output_names,
+        alias_output_names=None,
+        backend_version=context._backend_version,
+        version=context._version,
+    )

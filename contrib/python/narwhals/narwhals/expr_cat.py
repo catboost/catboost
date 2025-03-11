@@ -5,7 +5,6 @@ from typing import Generic
 from typing import TypeVar
 
 from narwhals._expression_parsing import ExprKind
-from narwhals._expression_parsing import ExprMetadata
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -66,8 +65,5 @@ class ExprCatNamespace(Generic[ExprT]):
         """
         return self._expr.__class__(
             lambda plx: self._expr._to_compliant_expr(plx).cat.get_categories(),
-            ExprMetadata(
-                kind=ExprKind.CHANGES_LENGTH,
-                is_order_dependent=self._expr._metadata["is_order_dependent"],
-            ),
+            self._expr._metadata.with_kind(ExprKind.CHANGES_LENGTH),
         )

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import re
+from functools import partial
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
+from typing import Mapping
 from typing import Sequence
 
 import dask.dataframe as dd
@@ -18,48 +20,42 @@ except ModuleNotFoundError:  # pragma: no cover
 
 if TYPE_CHECKING:
     import pandas as pd
+    from pandas.core.groupby import SeriesGroupBy as _PandasSeriesGroupBy
     from typing_extensions import Self
+    from typing_extensions import TypeAlias
 
     from narwhals._dask.dataframe import DaskLazyFrame
     from narwhals._dask.expr import DaskExpr
     from narwhals.typing import CompliantExpr
 
+    PandasSeriesGroupBy: TypeAlias = "_PandasSeriesGroupBy[Any, Any]"
+    _AggFn: TypeAlias = Callable[..., Any]
+    Aggregation: TypeAlias = "str | _AggFn"
+
+    from dask_expr._groupby import GroupBy as _DaskGroupBy
+else:
+    _DaskGroupBy = dx._groupby.GroupBy
+
 
 def n_unique() -> dd.Aggregation:
-    def chunk(s: pd.core.groupby.generic.SeriesGroupBy) -> pd.Series[Any]:
-        return s.nunique(dropna=False)  # type: ignore[no-any-return]
+    def chunk(s: PandasSeriesGroupBy) -> pd.Series[Any]:
+        return s.nunique(dropna=False)
 
-    def agg(s0: pd.core.groupby.generic.SeriesGroupBy) -> pd.Series[Any]:
-        return s0.sum()  # type: ignore[no-any-return]
+    def agg(s0: PandasSeriesGroupBy) -> pd.Series[Any]:
+        return s0.sum()
 
-    return dd.Aggregation(
-        name="nunique",
-        chunk=chunk,
-        agg=agg,
-    )
+    return dd.Aggregation(name="nunique", chunk=chunk, agg=agg)
 
 
-def var(
-    ddof: int = 1,
-) -> Callable[
-    [pd.core.groupby.generic.SeriesGroupBy], pd.core.groupby.generic.SeriesGroupBy
-]:
-    from functools import partial
-
-    return partial(dx._groupby.GroupBy.var, ddof=ddof)
+def var(ddof: int) -> _AggFn:
+    return partial(_DaskGroupBy.var, ddof=ddof)
 
 
-def std(
-    ddof: int = 1,
-) -> Callable[
-    [pd.core.groupby.generic.SeriesGroupBy], pd.core.groupby.generic.SeriesGroupBy
-]:
-    from functools import partial
-
-    return partial(dx._groupby.GroupBy.std, ddof=ddof)
+def std(ddof: int) -> _AggFn:
+    return partial(_DaskGroupBy.std, ddof=ddof)
 
 
-POLARS_TO_DASK_AGGREGATIONS = {
+POLARS_TO_DASK_AGGREGATIONS: Mapping[str, Aggregation] = {
     "sum": "sum",
     "mean": "mean",
     "median": "median",
@@ -101,7 +97,7 @@ class DaskLazyGroupBy:
         from narwhals._dask.dataframe import DaskLazyFrame
 
         return DaskLazyFrame(
-            df,
+            df,  # pyright: ignore[reportArgumentType]
             backend_version=self._df._backend_version,
             version=self._df._version,
             validate_column_names=True,
@@ -111,7 +107,7 @@ class DaskLazyGroupBy:
 def agg_dask(
     df: DaskLazyFrame,
     grouped: Any,
-    exprs: Sequence[CompliantExpr[dx.Series]],
+    exprs: Sequence[CompliantExpr[DaskLazyFrame, dx.Series]],
     keys: list[str],
     from_dataframe: Callable[[Any], DaskLazyFrame],
 ) -> DaskLazyFrame:
@@ -134,7 +130,7 @@ def agg_dask(
             break
 
     if all_simple_aggs:
-        simple_aggregations: dict[str, tuple[str, str | dd.Aggregation]] = {}
+        simple_aggregations: dict[str, tuple[str, Aggregation]] = {}
         for expr in exprs:
             output_names, aliases = evaluate_output_names_and_aliases(expr, df, keys)
             if expr._depth == 0:
@@ -149,14 +145,12 @@ def agg_dask(
 
             # e.g. agg(nw.mean('a')) # noqa: ERA001
             function_name = re.sub(r"(\w+->)", "", expr._function_name)
-            kwargs = (
-                {"ddof": expr._kwargs["ddof"]} if function_name in {"std", "var"} else {}  # type: ignore[attr-defined]
-            )
-
             agg_function = POLARS_TO_DASK_AGGREGATIONS.get(function_name, function_name)
             # deal with n_unique case in a "lazy" mode to not depend on dask globally
             agg_function = (
-                agg_function(**kwargs) if callable(agg_function) else agg_function
+                agg_function(**expr._call_kwargs)  # type: ignore[attr-defined]
+                if callable(agg_function)
+                else agg_function
             )
 
             simple_aggregations.update(

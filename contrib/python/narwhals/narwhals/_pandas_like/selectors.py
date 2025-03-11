@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
 from typing import Iterable
 from typing import Sequence
 
@@ -20,21 +21,14 @@ if TYPE_CHECKING:
     from narwhals._pandas_like.series import PandasLikeSeries
     from narwhals.dtypes import DType
     from narwhals.typing import TimeUnit
-    from narwhals.utils import Implementation
-    from narwhals.utils import Version
+    from narwhals.utils import _FullContext
 
 
 class PandasSelectorNamespace:
-    def __init__(
-        self: Self,
-        *,
-        implementation: Implementation,
-        backend_version: tuple[int, ...],
-        version: Version,
-    ) -> None:
-        self._implementation = implementation
-        self._backend_version = backend_version
-        self._version = version
+    def __init__(self: Self, context: _FullContext, /) -> None:
+        self._implementation = context._implementation
+        self._backend_version = context._backend_version
+        self._version = context._version
 
     def by_dtype(self: Self, dtypes: Iterable[DType | type[DType]]) -> PandasSelector:
         def func(df: PandasLikeDataFrame) -> list[PandasLikeSeries]:
@@ -43,17 +37,7 @@ class PandasSelectorNamespace:
         def evaluate_output_names(df: PandasLikeDataFrame) -> Sequence[str]:
             return [col for col in df.columns if df.schema[col] in dtypes]
 
-        return PandasSelector(
-            func,
-            depth=0,
-            function_name="selector",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
-            implementation=self._implementation,
-            backend_version=self._backend_version,
-            version=self._version,
-            kwargs={"dtypes": dtypes},
-        )
+        return selector(self, func, evaluate_output_names)
 
     def matches(self: Self, pattern: str) -> PandasSelector:
         def func(df: PandasLikeDataFrame) -> list[PandasLikeSeries]:
@@ -62,17 +46,7 @@ class PandasSelectorNamespace:
         def evaluate_output_names(df: PandasLikeDataFrame) -> Sequence[str]:
             return [col for col in df.columns if re.search(pattern, col)]
 
-        return PandasSelector(
-            func,
-            depth=0,
-            function_name="selector",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
-            implementation=self._implementation,
-            backend_version=self._backend_version,
-            version=self._version,
-            kwargs={"pattern": pattern},
-        )
+        return selector(self, func, evaluate_output_names)
 
     def numeric(self: Self) -> PandasSelector:
         dtypes = import_dtypes_module(self._version)
@@ -109,17 +83,7 @@ class PandasSelectorNamespace:
         def func(df: PandasLikeDataFrame) -> list[PandasLikeSeries]:
             return [df[col] for col in df.columns]
 
-        return PandasSelector(
-            func,
-            depth=0,
-            function_name="selector",
-            evaluate_output_names=lambda df: df.columns,
-            alias_output_names=None,
-            implementation=self._implementation,
-            backend_version=self._backend_version,
-            version=self._version,
-            kwargs={},
-        )
+        return selector(self, func, lambda df: df.columns)
 
     def datetime(
         self: Self,
@@ -155,17 +119,7 @@ class PandasSelectorNamespace:
                 )
             ]
 
-        return PandasSelector(
-            func,
-            depth=0,
-            function_name="selector",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
-            implementation=self._implementation,
-            backend_version=self._backend_version,
-            version=self._version,
-            kwargs={},
-        )
+        return selector(self, func, evaluate_output_names)
 
 
 class PandasSelector(PandasLikeExpr):
@@ -184,7 +138,7 @@ class PandasSelector(PandasLikeExpr):
             implementation=self._implementation,
             backend_version=self._backend_version,
             version=self._version,
-            kwargs=self._kwargs,
+            call_kwargs=self._call_kwargs,
         )
 
     def __sub__(self: Self, other: PandasSelector | Any) -> PandasSelector | Any:
@@ -201,17 +155,7 @@ class PandasSelector(PandasLikeExpr):
                 rhs_names = other._evaluate_output_names(df)
                 return [x for x in lhs_names if x not in rhs_names]
 
-            return PandasSelector(
-                call,
-                depth=0,
-                function_name="selector",
-                evaluate_output_names=evaluate_output_names,
-                alias_output_names=None,
-                implementation=self._implementation,
-                backend_version=self._backend_version,
-                version=self._version,
-                kwargs={**self._kwargs, "other": other},
-            )
+            return selector(self, call, evaluate_output_names)
         else:
             return self._to_expr() - other
 
@@ -233,17 +177,7 @@ class PandasSelector(PandasLikeExpr):
                 rhs_names = other._evaluate_output_names(df)
                 return [*(x for x in lhs_names if x not in rhs_names), *rhs_names]
 
-            return PandasSelector(
-                call,
-                depth=0,
-                function_name="selector",
-                evaluate_output_names=evaluate_output_names,
-                alias_output_names=None,
-                implementation=self._implementation,
-                backend_version=self._backend_version,
-                version=self._version,
-                kwargs={**self._kwargs, "other": other},
-            )
+            return selector(self, call, evaluate_output_names)
         else:
             return self._to_expr() | other
 
@@ -261,26 +195,27 @@ class PandasSelector(PandasLikeExpr):
                 rhs_names = other._evaluate_output_names(df)
                 return [x for x in lhs_names if x in rhs_names]
 
-            return PandasSelector(
-                call,
-                depth=0,
-                function_name="selector",
-                evaluate_output_names=evaluate_output_names,
-                alias_output_names=None,
-                implementation=self._implementation,
-                backend_version=self._backend_version,
-                version=self._version,
-                kwargs={**self._kwargs, "other": other},
-            )
+            return selector(self, call, evaluate_output_names)
         else:
             return self._to_expr() & other
 
     def __invert__(self: Self) -> PandasSelector:
-        return (
-            PandasSelectorNamespace(
-                implementation=self._implementation,
-                backend_version=self._backend_version,
-                version=self._version,
-            ).all()
-            - self
-        )
+        return PandasSelectorNamespace(self).all() - self
+
+
+def selector(
+    context: _FullContext,
+    call: Callable[[PandasLikeDataFrame], Sequence[PandasLikeSeries]],
+    evaluate_output_names: Callable[[PandasLikeDataFrame], Sequence[str]],
+    /,
+) -> PandasSelector:
+    return PandasSelector(
+        call,
+        depth=0,
+        function_name="selector",
+        evaluate_output_names=evaluate_output_names,
+        alias_output_names=None,
+        implementation=context._implementation,
+        backend_version=context._backend_version,
+        version=context._version,
+    )

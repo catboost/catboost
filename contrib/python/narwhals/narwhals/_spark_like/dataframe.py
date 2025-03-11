@@ -6,7 +6,6 @@ from typing import Any
 from typing import Literal
 from typing import Sequence
 
-from narwhals._spark_like.utils import ExprKind
 from narwhals._spark_like.utils import native_to_narwhals_dtype
 from narwhals._spark_like.utils import parse_exprs
 from narwhals.exceptions import InvalidOperationError
@@ -212,7 +211,7 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
         self: Self,
         *exprs: SparkLikeExpr,
     ) -> Self:
-        new_columns, expr_kinds = parse_exprs(self, *exprs)
+        new_columns = parse_exprs(self, *exprs)
 
         new_columns_list = [col.alias(col_name) for col_name, col in new_columns.items()]
         return self._from_native_frame(self._native_frame.agg(*new_columns_list))
@@ -221,7 +220,7 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
         self: Self,
         *exprs: SparkLikeExpr,
     ) -> Self:
-        new_columns, expr_kinds = parse_exprs(self, *exprs)
+        new_columns = parse_exprs(self, *exprs)
 
         if not new_columns:
             # return empty dataframe, like Polars does
@@ -233,23 +232,13 @@ class SparkLikeLazyFrame(CompliantLazyFrame):
             return self._from_native_frame(spark_df)
 
         new_columns_list = [
-            col.over(self._Window().partitionBy(self._F.lit(1))).alias(col_name)
-            if expr_kind is ExprKind.AGGREGATION
-            else col.alias(col_name)
-            for (col_name, col), expr_kind in zip(new_columns.items(), expr_kinds)
+            col.alias(col_name) for (col_name, col) in new_columns.items()
         ]
         return self._from_native_frame(self._native_frame.select(*new_columns_list))
 
     def with_columns(self: Self, *exprs: SparkLikeExpr) -> Self:
-        new_columns, expr_kinds = parse_exprs(self, *exprs)
-
-        new_columns_map = {
-            col_name: col.over(self._Window().partitionBy(self._F.lit(1)))
-            if expr_kind is ExprKind.AGGREGATION
-            else col
-            for (col_name, col), expr_kind in zip(new_columns.items(), expr_kinds)
-        }
-        return self._from_native_frame(self._native_frame.withColumns(new_columns_map))
+        new_columns = parse_exprs(self, *exprs)
+        return self._from_native_frame(self._native_frame.withColumns(new_columns))
 
     def filter(self: Self, predicate: SparkLikeExpr) -> Self:
         # `[0]` is safe as the predicate's expression only returns a single column

@@ -5,15 +5,15 @@ from __future__ import annotations
 
 from enum import Enum
 from enum import auto
+from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import Sequence
-from typing import TypedDict
 from typing import TypeVar
-from typing import Union
 from typing import overload
 
+from narwhals.dependencies import is_narwhals_series
 from narwhals.dependencies import is_numpy_array
 from narwhals.exceptions import LengthChangingExprError
 from narwhals.exceptions import ShapeError
@@ -21,28 +21,38 @@ from narwhals.utils import Implementation
 from narwhals.utils import is_compliant_expr
 
 if TYPE_CHECKING:
+    from typing_extensions import Never
+    from typing_extensions import TypeIs
+
     from narwhals._arrow.expr import ArrowExpr
     from narwhals._pandas_like.expr import PandasLikeExpr
+    from narwhals.expr import Expr
     from narwhals.typing import CompliantDataFrame
     from narwhals.typing import CompliantExpr
+    from narwhals.typing import CompliantFrameT_contra
     from narwhals.typing import CompliantLazyFrame
     from narwhals.typing import CompliantNamespace
     from narwhals.typing import CompliantSeries
     from narwhals.typing import CompliantSeriesT_co
     from narwhals.typing import IntoExpr
+    from narwhals.typing import _1DArray
 
-    ArrowOrPandasLikeExpr = TypeVar(
-        "ArrowOrPandasLikeExpr", bound=Union[ArrowExpr, PandasLikeExpr]
-    )
     PandasLikeExprT = TypeVar("PandasLikeExprT", bound=PandasLikeExpr)
     ArrowExprT = TypeVar("ArrowExprT", bound=ArrowExpr)
 
     T = TypeVar("T")
 
 
+def is_expr(obj: Any) -> TypeIs[Expr]:
+    """Check whether `obj` is a Narwhals Expr."""
+    from narwhals.expr import Expr
+
+    return isinstance(obj, Expr)
+
+
 def evaluate_into_expr(
-    df: CompliantDataFrame | CompliantLazyFrame,
-    expr: CompliantExpr[CompliantSeriesT_co],
+    df: CompliantFrameT_contra,
+    expr: CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co],
 ) -> Sequence[CompliantSeriesT_co]:
     """Return list of raw columns.
 
@@ -62,7 +72,9 @@ def evaluate_into_expr(
 
 
 def evaluate_into_exprs(
-    df: CompliantDataFrame, /, *exprs: CompliantExpr[CompliantSeriesT_co]
+    df: CompliantFrameT_contra,
+    /,
+    *exprs: CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co],
 ) -> list[CompliantSeriesT_co]:
     """Evaluate each expr into Series."""
     return [
@@ -74,8 +86,9 @@ def evaluate_into_exprs(
 
 @overload
 def maybe_evaluate_expr(
-    df: CompliantDataFrame, expr: CompliantExpr[CompliantSeriesT_co]
-) -> Sequence[CompliantSeriesT_co]: ...
+    df: CompliantFrameT_contra,
+    expr: CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co],
+) -> CompliantSeriesT_co: ...
 
 
 @overload
@@ -83,10 +96,16 @@ def maybe_evaluate_expr(df: CompliantDataFrame, expr: T) -> T: ...
 
 
 def maybe_evaluate_expr(
-    df: CompliantDataFrame, expr: CompliantExpr[CompliantSeriesT_co] | T
-) -> Sequence[CompliantSeriesT_co] | T:
+    df: Any, expr: CompliantExpr[Any, CompliantSeriesT_co] | T
+) -> CompliantSeriesT_co | T:
     """Evaluate `expr` if it's an expression, otherwise return it as is."""
-    return expr(df) if is_compliant_expr(expr) else expr
+    if is_compliant_expr(expr):
+        result: Sequence[CompliantSeriesT_co] = expr(df)
+        if len(result) > 1:
+            msg = "Multi-output expressions (e.g. `nw.all()` or `nw.col('a', 'b')`) are not supported in this context"
+            raise ValueError(msg)
+        return result[0]
+    return expr
 
 
 @overload
@@ -114,6 +133,7 @@ def reuse_series_implementation(
     attr: str,
     *,
     returns_scalar: bool = False,
+    call_kwargs: dict[str, Any] | None = None,
     **expressifiable_args: Any,
 ) -> ArrowExprT | PandasLikeExprT:
     """Reuse Series implementation for expression.
@@ -127,6 +147,8 @@ def reuse_series_implementation(
         returns_scalar: whether the Series version returns a scalar. In this case,
             the expression version should return a 1-row Series.
         args: arguments to pass to function.
+        call_kwargs: non-expressifiable args which we may need to reuse in `agg` or `over`,
+            such as `ddof` for `std` and `var`.
         expressifiable_args: keyword arguments to pass to function, which may
             be expressifiable (e.g. `nw.col('a').is_between(3, nw.col('b')))`).
     """
@@ -134,8 +156,11 @@ def reuse_series_implementation(
 
     def func(df: CompliantDataFrame) -> Sequence[CompliantSeries]:
         _kwargs = {
-            arg_name: maybe_evaluate_expr(df, arg_value)
-            for arg_name, arg_value in expressifiable_args.items()
+            **(call_kwargs or {}),
+            **{
+                arg_name: maybe_evaluate_expr(df, arg_value)
+                for arg_name, arg_value in expressifiable_args.items()
+            },
         }
 
         # For PyArrow.Series, we return Python Scalars (like Polars does) instead of PyArrow Scalars.
@@ -171,7 +196,7 @@ def reuse_series_implementation(
         function_name=f"{expr._function_name}->{attr}",
         evaluate_output_names=expr._evaluate_output_names,  # type: ignore[arg-type]
         alias_output_names=expr._alias_output_names,
-        kwargs={**expr._kwargs, **expressifiable_args},
+        call_kwargs=call_kwargs,
     )
 
 
@@ -211,11 +236,10 @@ def reuse_series_namespace_implementation(
         function_name=f"{expr._function_name}->{series_namespace}.{attr}",
         evaluate_output_names=expr._evaluate_output_names,  # type: ignore[arg-type]
         alias_output_names=expr._alias_output_names,
-        kwargs={**expr._kwargs, **kwargs},
     )
 
 
-def is_simple_aggregation(expr: CompliantExpr[Any]) -> bool:
+def is_simple_aggregation(expr: CompliantExpr[Any, Any]) -> bool:
     """Check if expr is a very simple one.
 
     Examples:
@@ -233,23 +257,22 @@ def is_simple_aggregation(expr: CompliantExpr[Any]) -> bool:
 
 
 def combine_evaluate_output_names(
-    *exprs: CompliantExpr[Any],
-) -> Callable[[CompliantDataFrame | CompliantLazyFrame], Sequence[str]]:
+    *exprs: CompliantExpr[CompliantFrameT_contra, Any],
+) -> Callable[[CompliantFrameT_contra], Sequence[str]]:
     # Follow left-hand-rule for naming. E.g. `nw.sum_horizontal(expr1, expr2)` takes the
     # first name of `expr1`.
-    def evaluate_output_names(
-        df: CompliantDataFrame | CompliantLazyFrame,
-    ) -> Sequence[str]:
-        if not is_compliant_expr(exprs[0]):  # pragma: no cover
-            msg = f"Safety assertion failed, expected expression, got: {type(exprs[0])}. Please report a bug."
-            raise AssertionError(msg)
+    if not is_compliant_expr(exprs[0]):  # pragma: no cover
+        msg = f"Safety assertion failed, expected expression, got: {type(exprs[0])}. Please report a bug."
+        raise AssertionError(msg)
+
+    def evaluate_output_names(df: CompliantFrameT_contra) -> Sequence[str]:
         return exprs[0]._evaluate_output_names(df)[:1]
 
     return evaluate_output_names
 
 
 def combine_alias_output_names(
-    *exprs: CompliantExpr[Any],
+    *exprs: CompliantExpr[Any, Any],
 ) -> Callable[[Sequence[str]], Sequence[str]] | None:
     # Follow left-hand-rule for naming. E.g. `nw.sum_horizontal(expr1.alias(alias), expr2)` takes the
     # aliasing function of `expr1` and apply it to the first output name of `expr1`.
@@ -263,19 +286,16 @@ def combine_alias_output_names(
 
 
 def extract_compliant(
-    plx: CompliantNamespace[CompliantSeriesT_co],
+    plx: CompliantNamespace[CompliantFrameT_contra, CompliantSeriesT_co],
     other: Any,
     *,
-    strings_are_column_names: bool,
-) -> CompliantExpr[CompliantSeriesT_co] | CompliantSeriesT_co | Any:
-    from narwhals.expr import Expr
-    from narwhals.series import Series
-
-    if isinstance(other, Expr):
+    str_as_lit: bool,
+) -> CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co] | object:
+    if is_expr(other):
         return other._to_compliant_expr(plx)
-    if strings_are_column_names and isinstance(other, str):
+    if isinstance(other, str) and not str_as_lit:
         return plx.col(other)
-    if isinstance(other, Series):
+    if is_narwhals_series(other):
         return plx._create_expr_from_series(other._compliant_series)  # type: ignore[attr-defined]
     if is_numpy_array(other):
         series = plx._create_compliant_series(other)  # type: ignore[attr-defined]
@@ -284,7 +304,7 @@ def extract_compliant(
 
 
 def evaluate_output_names_and_aliases(
-    expr: CompliantExpr[Any],
+    expr: CompliantExpr[Any, Any],
     df: CompliantDataFrame | CompliantLazyFrame,
     exclude: Sequence[str],
 ) -> tuple[Sequence[str], Sequence[str]]:
@@ -305,12 +325,6 @@ def evaluate_output_names_and_aliases(
     return output_names, aliases
 
 
-def operation_is_order_dependent(*args: IntoExpr | Any) -> bool:
-    from narwhals.expr import Expr
-
-    return any(isinstance(x, Expr) and x._metadata["is_order_dependent"] for x in args)
-
-
 class ExprKind(Enum):
     """Describe which kind of expression we are dealing with.
 
@@ -322,20 +336,65 @@ class ExprKind(Enum):
     - AGGREGATION vs (LITERAL | AGGREGATION) -> AGGREGATION
     """
 
-    LITERAL = auto()  # e.g. nw.lit(1)
-    AGGREGATION = auto()  # e.g. nw.col('a').mean()
-    TRANSFORM = auto()  # length-preserving, e.g. nw.col('a').round()
-    CHANGES_LENGTH = auto()  # e.g. nw.col('a').drop_nulls()
+    LITERAL = auto()
+    """e.g. `nw.lit(1)`"""
+
+    AGGREGATION = auto()
+    """e.g. `nw.col('a').mean()`"""
+
+    TRANSFORM = auto()
+    """length-preserving, e.g. `nw.col('a').round()`"""
+
+    CHANGES_LENGTH = auto()
+    """e.g. `nw.col('a').drop_nulls()`"""
 
 
-class ExprMetadata(TypedDict):
-    kind: ExprKind
-    is_order_dependent: bool
+class ExprMetadata:
+    __slots__ = ("_kind", "_order_dependent")
+
+    def __init__(self, kind: ExprKind, /, *, order_dependent: bool) -> None:
+        self._kind: ExprKind = kind
+        self._order_dependent: bool = order_dependent
+
+    def __init_subclass__(cls, /, *args: Any, **kwds: Any) -> Never:  # pragma: no cover
+        msg = f"Cannot subclass {cls.__name__!r}"
+        raise TypeError(msg)
+
+    @property
+    def kind(self) -> ExprKind:
+        return self._kind
+
+    def is_order_dependent(self) -> bool:
+        return self._order_dependent
+
+    def is_transform(self) -> bool:
+        return self.kind is ExprKind.TRANSFORM
+
+    def is_aggregation_or_literal(self) -> bool:
+        return self.kind in {ExprKind.AGGREGATION, ExprKind.LITERAL}
+
+    def is_changes_length(self) -> bool:
+        return self.kind is ExprKind.CHANGES_LENGTH
+
+    def with_kind(self, kind: ExprKind, /) -> ExprMetadata:
+        """Change metadata kind, leaving all other attributes the same."""
+        return ExprMetadata(kind, order_dependent=self.is_order_dependent())
+
+    def with_order_dependence(self) -> ExprMetadata:
+        """Set `order_dependent` to True, leaving all other attributes the same."""
+        return ExprMetadata(self.kind, order_dependent=True)
+
+    def with_kind_and_order_dependence(self, kind: ExprKind, /) -> ExprMetadata:
+        """Change kind and set `order_dependent` to True."""
+        return ExprMetadata(kind, order_dependent=True)
+
+    @staticmethod
+    def selector() -> ExprMetadata:
+        return ExprMetadata(ExprKind.TRANSFORM, order_dependent=False)
 
 
-def combine_metadata(*args: IntoExpr, strings_are_column_names: bool) -> ExprMetadata:
+def combine_metadata(*args: IntoExpr | object | None, str_as_lit: bool) -> ExprMetadata:
     # Combine metadata from `args`.
-    from narwhals.expr import Expr
 
     n_changes_length = 0
     has_transforms = False
@@ -344,12 +403,12 @@ def combine_metadata(*args: IntoExpr, strings_are_column_names: bool) -> ExprMet
     result_is_order_dependent = False
 
     for arg in args:
-        if isinstance(arg, str) and strings_are_column_names:
+        if isinstance(arg, str) and not str_as_lit:
             has_transforms = True
-        elif isinstance(arg, Expr):
-            if arg._metadata["is_order_dependent"]:
+        elif is_expr(arg):
+            if arg._metadata.is_order_dependent():
                 result_is_order_dependent = True
-            kind = arg._metadata["kind"]
+            kind = arg._metadata.kind
             if kind is ExprKind.AGGREGATION:
                 has_aggregations = True
             elif kind is ExprKind.LITERAL:
@@ -372,7 +431,7 @@ def combine_metadata(*args: IntoExpr, strings_are_column_names: bool) -> ExprMet
         msg = "Length-changing expressions can only be used in isolation, or followed by an aggregation"
         raise LengthChangingExprError(msg)
     elif n_changes_length and has_transforms:
-        msg = "Cannot combine length-changing expressions with length-preserving ones"
+        msg = "Cannot combine length-changing expressions with length-preserving ones or aggregations"
         raise ShapeError(msg)
     elif n_changes_length:
         result_kind = ExprKind.CHANGES_LENGTH
@@ -381,19 +440,17 @@ def combine_metadata(*args: IntoExpr, strings_are_column_names: bool) -> ExprMet
     else:
         result_kind = ExprKind.AGGREGATION
 
-    return ExprMetadata(kind=result_kind, is_order_dependent=result_is_order_dependent)
+    return ExprMetadata(result_kind, order_dependent=result_is_order_dependent)
 
 
 def check_expressions_transform(*args: IntoExpr, function_name: str) -> None:
     # Raise if any argument in `args` isn't length-preserving.
     # For Series input, we don't raise (yet), we let such checks happen later,
     # as this function works lazily and so can't evaluate lengths.
-    from narwhals.expr import Expr
     from narwhals.series import Series
 
     if not all(
-        (isinstance(x, Expr) and x._metadata["kind"] is ExprKind.TRANSFORM)
-        or isinstance(x, (str, Series))
+        (is_expr(x) and x._metadata.is_transform()) or isinstance(x, (str, Series))
         for x in args
     ):
         msg = f"Expressions which aggregate or change length cannot be passed to '{function_name}'."
@@ -404,14 +461,41 @@ def all_exprs_are_aggs_or_literals(*args: IntoExpr, **kwargs: IntoExpr) -> bool:
     # Raise if any argument in `args` isn't an aggregation or literal.
     # For Series input, we don't raise (yet), we let such checks happen later,
     # as this function works lazily and so can't evaluate lengths.
-    from narwhals import Expr
+    exprs = chain(args, kwargs.values())
+    return all(is_expr(x) and x._metadata.is_aggregation_or_literal() for x in exprs)
 
-    return all(
-        isinstance(x, Expr)
-        and x._metadata["kind"] in (ExprKind.AGGREGATION, ExprKind.LITERAL)
-        for x in args
-    ) and all(
-        isinstance(x, Expr)
-        and x._metadata["kind"] in (ExprKind.AGGREGATION, ExprKind.LITERAL)
-        for x in kwargs.values()
+
+def infer_kind(obj: IntoExpr | _1DArray | object, *, str_as_lit: bool) -> ExprKind:
+    if is_expr(obj):
+        return obj._metadata.kind
+    if (
+        is_narwhals_series(obj)
+        or is_numpy_array(obj)
+        or (isinstance(obj, str) and not str_as_lit)
+    ):
+        return ExprKind.TRANSFORM
+    return ExprKind.LITERAL
+
+
+def apply_n_ary_operation(
+    plx: CompliantNamespace[Any, Any],
+    function: Any,
+    *comparands: IntoExpr,
+    str_as_lit: bool,
+) -> CompliantExpr[Any, Any]:
+    compliant_exprs = (
+        extract_compliant(plx, comparand, str_as_lit=str_as_lit)
+        for comparand in comparands
     )
+    kinds = [infer_kind(comparand, str_as_lit=str_as_lit) for comparand in comparands]
+
+    broadcast = any(kind is ExprKind.TRANSFORM for kind in kinds)
+    compliant_exprs = (
+        compliant_expr.broadcast(kind)
+        if broadcast
+        and (kind is ExprKind.LITERAL or kind is ExprKind.AGGREGATION)
+        and is_compliant_expr(compliant_expr)
+        else compliant_expr
+        for compliant_expr, kind in zip(compliant_exprs, kinds)
+    )
+    return function(*compliant_exprs)

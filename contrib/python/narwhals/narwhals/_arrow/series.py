@@ -16,9 +16,9 @@ from narwhals._arrow.series_cat import ArrowSeriesCatNamespace
 from narwhals._arrow.series_dt import ArrowSeriesDateTimeNamespace
 from narwhals._arrow.series_list import ArrowSeriesListNamespace
 from narwhals._arrow.series_str import ArrowSeriesStringNamespace
-from narwhals._arrow.utils import broadcast_and_extract_native
 from narwhals._arrow.utils import cast_for_truediv
 from narwhals._arrow.utils import chunked_array
+from narwhals._arrow.utils import extract_native
 from narwhals._arrow.utils import floordiv_compat
 from narwhals._arrow.utils import lit
 from narwhals._arrow.utils import narwhals_to_native_dtype
@@ -44,9 +44,9 @@ if TYPE_CHECKING:
     from narwhals._arrow.typing import ArrowArray
     from narwhals._arrow.typing import ArrowChunkedArray
     from narwhals._arrow.typing import Incomplete
-    from narwhals._arrow.typing import Indices
+    from narwhals._arrow.typing import Indices  # type: ignore[attr-defined]
     from narwhals._arrow.typing import NullPlacement
-    from narwhals._arrow.typing import Order
+    from narwhals._arrow.typing import Order  # type: ignore[attr-defined]
     from narwhals._arrow.typing import TieBreaker
     from narwhals._arrow.typing import _AsPyType
     from narwhals._arrow.typing import _BasicDataType
@@ -107,6 +107,7 @@ class ArrowSeries(CompliantSeries):
         self._backend_version = backend_version
         self._version = version
         validate_backend_version(self._implementation, self._backend_version)
+        self._broadcast = False
 
     def _change_version(self: Self, version: Version) -> Self:
         return self.__class__(
@@ -154,105 +155,105 @@ class ArrowSeries(CompliantSeries):
         return len(self._native_series)
 
     def __eq__(self: Self, other: object) -> Self:  # type: ignore[override]
-        ser, right = broadcast_and_extract_native(self, other, self._backend_version)
-        return self._from_native_series(pc.equal(ser, right))
+        ser, other = extract_native(self, other)
+        return self._from_native_series(pc.equal(ser, other))  # type: ignore[arg-type]
 
     def __ne__(self: Self, other: object) -> Self:  # type: ignore[override]
-        ser, right = broadcast_and_extract_native(self, other, self._backend_version)
-        return self._from_native_series(pc.not_equal(ser, right))
+        ser, other = extract_native(self, other)
+        return self._from_native_series(pc.not_equal(ser, other))  # type: ignore[arg-type]
 
     def __ge__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(pc.greater_equal(ser, other))
 
     def __gt__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(pc.greater(ser, other))
 
     def __le__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(pc.less_equal(ser, other))
 
     def __lt__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(pc.less(ser, other))
 
     def __and__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
-        return self._from_native_series(pc.and_kleene(ser, other))
+        ser, other = extract_native(self, other)
+        return self._from_native_series(pc.and_kleene(ser, other))  # type: ignore[arg-type]
 
     def __rand__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
-        return self._from_native_series(pc.and_kleene(other, ser))
+        ser, other = extract_native(self, other)
+        return self._from_native_series(pc.and_kleene(other, ser))  # type: ignore[arg-type]
 
     def __or__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
-        return self._from_native_series(pc.or_kleene(ser, other))
+        ser, other = extract_native(self, other)
+        return self._from_native_series(pc.or_kleene(ser, other))  # type: ignore[arg-type]
 
     def __ror__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
-        return self._from_native_series(pc.or_kleene(other, ser))
+        ser, other = extract_native(self, other)
+        return self._from_native_series(pc.or_kleene(other, ser))  # type: ignore[arg-type]
 
     def __add__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(pc.add(ser, other))
 
     def __radd__(self: Self, other: Any) -> Self:
-        return self + other  # type: ignore[no-any-return]
+        return self + other
 
     def __sub__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(pc.subtract(ser, other))
 
     def __rsub__(self: Self, other: Any) -> Self:
-        return (self - other) * (-1)  # type: ignore[no-any-return]
+        return (self - other) * (-1)
 
     def __mul__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(pc.multiply(ser, other))
 
     def __rmul__(self: Self, other: Any) -> Self:
-        return self * other  # type: ignore[no-any-return]
+        return self * other
 
     def __pow__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(pc.power(ser, other))
 
     def __rpow__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(pc.power(other, ser))
 
     def __floordiv__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(floordiv_compat(ser, other))
 
     def __rfloordiv__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         return self._from_native_series(floordiv_compat(other, ser))
 
     def __truediv__(self: Self, other: Any) -> Self:
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         if not isinstance(other, (pa.Array, pa.ChunkedArray)):
             # scalar
             other = lit(other)
         return self._from_native_series(pc.divide(*cast_for_truediv(ser, other)))
 
     def __rtruediv__(self: Self, other: Any) -> Self:
-        ser, right = broadcast_and_extract_native(self, other, self._backend_version)
-        if not isinstance(right, (pa.Array, pa.ChunkedArray)):
+        ser, other = extract_native(self, other)
+        if not isinstance(other, (pa.Array, pa.ChunkedArray)):
             # scalar
-            right = lit(right) if not isinstance(right, pa.Scalar) else right
-        return self._from_native_series(pc.divide(*cast_for_truediv(right, ser)))
+            other = lit(other) if not isinstance(other, pa.Scalar) else other
+        return self._from_native_series(pc.divide(*cast_for_truediv(other, ser)))  # pyright: ignore[reportArgumentType]
 
     def __mod__(self: Self, other: Any) -> Self:
         floor_div = (self // other)._native_series
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         res = pc.subtract(ser, pc.multiply(floor_div, other))
         return self._from_native_series(res)
 
     def __rmod__(self: Self, other: Any) -> Self:
         floor_div = (other // self)._native_series
-        ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+        ser, other = extract_native(self, other)
         res = pc.subtract(other, pc.multiply(floor_div, ser))
         return self._from_native_series(res)
 
@@ -268,12 +269,12 @@ class ArrowSeries(CompliantSeries):
     def len(self: Self, *, _return_py_scalar: bool = True) -> int:
         return maybe_extract_py_scalar(len(self._native_series), _return_py_scalar)
 
-    def filter(self: Self, other: Any) -> Self:
+    def filter(self: Self, other: ArrowSeries | list[bool | None]) -> Self:
         if not (isinstance(other, list) and all(isinstance(x, bool) for x in other)):
-            ser, other = broadcast_and_extract_native(self, other, self._backend_version)
+            _, other_native = extract_native(self, other)
         else:
-            ser = self._native_series
-        return self._from_native_series(ser.filter(other))
+            other_native = other
+        return self._from_native_series(self._native_series.filter(other_native))  # pyright: ignore[reportArgumentType]
 
     def mean(self: Self, *, _return_py_scalar: bool = True) -> float:
         # NOTE: stub overly strict https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L274-L307
@@ -380,10 +381,12 @@ class ArrowSeries(CompliantSeries):
     def __getitem__(self: Self, idx: int) -> Any: ...
 
     @overload
-    def __getitem__(self: Self, idx: slice | Sequence[int] | pa.ChunkedArray) -> Self: ...
+    def __getitem__(
+        self: Self, idx: slice | Sequence[int] | ArrowChunkedArray
+    ) -> Self: ...
 
     def __getitem__(
-        self: Self, idx: int | slice | Sequence[int] | pa.ChunkedArray
+        self: Self, idx: int | slice | Sequence[int] | ArrowChunkedArray
     ) -> Any | Self:
         if isinstance(idx, int):
             return maybe_extract_py_scalar(
@@ -401,9 +404,7 @@ class ArrowSeries(CompliantSeries):
         mask: _1DArray = np.zeros(self.len(), dtype=bool)
         mask[indices] = True
         if isinstance(values, self.__class__):
-            ser, values = broadcast_and_extract_native(
-                self, values, self._backend_version
-            )
+            ser, values = extract_native(self, values)
         else:
             ser = self._native_series
         if isinstance(values, pa.ChunkedArray):
@@ -487,12 +488,8 @@ class ArrowSeries(CompliantSeries):
         closed: Literal["left", "right", "none", "both"],
     ) -> Self:
         ser = self._native_series
-        _, lower_bound = broadcast_and_extract_native(
-            self, lower_bound, self._backend_version
-        )
-        _, upper_bound = broadcast_and_extract_native(
-            self, upper_bound, self._backend_version
-        )
+        _, lower_bound = extract_native(self, lower_bound)
+        _, upper_bound = extract_native(self, upper_bound)
         if closed == "left":
             ge = pc.greater_equal(ser, lower_bound)
             lt = pc.less(ser, upper_bound)
@@ -635,7 +632,7 @@ class ArrowSeries(CompliantSeries):
         rng = np.random.default_rng(seed=seed)
         idx = np.arange(0, num_rows)
         mask = rng.choice(idx, size=n, replace=with_replacement)
-        return self._from_native_series(ser.take(mask))
+        return self._from_native_series(ser.take(mask))  # pyright: ignore[reportArgumentType]
 
     def fill_null(
         self: Self,
@@ -695,7 +692,7 @@ class ArrowSeries(CompliantSeries):
             validate_column_names=False,
         )
 
-    def to_pandas(self: Self) -> pd.Series:
+    def to_pandas(self: Self) -> pd.Series[Any]:
         import pandas as pd  # ignore-banned-import()
 
         return pd.Series(self._native_series, name=self.name)  # pyright: ignore[reportArgumentType, reportCallIssue]
@@ -835,12 +832,8 @@ class ArrowSeries(CompliantSeries):
         self: Self, lower_bound: Self | Any | None, upper_bound: Self | Any | None
     ) -> Self:
         arr = self._native_series
-        _, lower_bound = broadcast_and_extract_native(
-            self, lower_bound, self._backend_version
-        )
-        _, upper_bound = broadcast_and_extract_native(
-            self, upper_bound, self._backend_version
-        )
+        _, lower_bound = extract_native(self, lower_bound)
+        _, upper_bound = extract_native(self, upper_bound)
         # NOTE: stubs are missing `ChunkedArray` support
         # https://github.com/zen-xu/pyarrow-stubs/blob/d97063876720e6a5edda7eb15f4efe07c31b8296/pyarrow-stubs/compute.pyi#L948-L954
         max_element_wise: Incomplete = pc.max_element_wise

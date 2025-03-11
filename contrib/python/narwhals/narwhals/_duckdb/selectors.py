@@ -3,13 +3,13 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
 from typing import Iterable
 from typing import Sequence
 
 from duckdb import ColumnExpression
 
 from narwhals._duckdb.expr import DuckDBExpr
-from narwhals._duckdb.utils import ExprKind
 from narwhals.utils import _parse_time_unit_and_time_zone
 from narwhals.utils import dtype_matches_time_unit_and_time_zone
 from narwhals.utils import import_dtypes_module
@@ -23,15 +23,13 @@ if TYPE_CHECKING:
     from narwhals._duckdb.dataframe import DuckDBLazyFrame
     from narwhals.dtypes import DType
     from narwhals.typing import TimeUnit
-    from narwhals.utils import Version
+    from narwhals.utils import _LimitedContext
 
 
 class DuckDBSelectorNamespace:
-    def __init__(
-        self: Self, *, backend_version: tuple[int, ...], version: Version
-    ) -> None:
-        self._backend_version = backend_version
-        self._version = version
+    def __init__(self: Self, context: _LimitedContext, /) -> None:
+        self._backend_version = context._backend_version
+        self._version = context._version
 
     def by_dtype(self: Self, dtypes: Iterable[DType | type[DType]]) -> DuckDBSelector:
         def func(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
@@ -42,15 +40,7 @@ class DuckDBSelectorNamespace:
         def evaluate_output_names(df: DuckDBLazyFrame) -> Sequence[str]:
             return [col for col in df.columns if df.schema[col] in dtypes]
 
-        return DuckDBSelector(
-            func,
-            function_name="selector",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
-            backend_version=self._backend_version,
-            expr_kind=ExprKind.TRANSFORM,
-            version=self._version,
-        )
+        return selector(self, func, evaluate_output_names)
 
     def matches(self: Self, pattern: str) -> DuckDBSelector:
         def func(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
@@ -61,15 +51,7 @@ class DuckDBSelectorNamespace:
         def evaluate_output_names(df: DuckDBLazyFrame) -> Sequence[str]:
             return [col for col in df.columns if re.search(pattern, col)]
 
-        return DuckDBSelector(
-            func,
-            function_name="selector",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
-            backend_version=self._backend_version,
-            expr_kind=ExprKind.TRANSFORM,
-            version=self._version,
-        )
+        return selector(self, func, evaluate_output_names)
 
     def numeric(self: Self) -> DuckDBSelector:
         dtypes = import_dtypes_module(self._version)
@@ -106,15 +88,7 @@ class DuckDBSelectorNamespace:
         def func(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
             return [ColumnExpression(col) for col in df.columns]
 
-        return DuckDBSelector(
-            func,
-            function_name="selector",
-            evaluate_output_names=lambda df: df.columns,
-            alias_output_names=None,
-            backend_version=self._backend_version,
-            expr_kind=ExprKind.TRANSFORM,
-            version=self._version,
-        )
+        return selector(self, func, lambda df: df.columns)
 
     def datetime(
         self: Self,
@@ -150,15 +124,7 @@ class DuckDBSelectorNamespace:
                 )
             ]
 
-        return DuckDBSelector(
-            func,
-            function_name="selector",
-            evaluate_output_names=evaluate_output_names,
-            alias_output_names=None,
-            backend_version=self._backend_version,
-            expr_kind=ExprKind.TRANSFORM,
-            version=self._version,
-        )
+        return selector(self, func, evaluate_output_names)
 
 
 class DuckDBSelector(DuckDBExpr):
@@ -172,7 +138,6 @@ class DuckDBSelector(DuckDBExpr):
             evaluate_output_names=self._evaluate_output_names,
             alias_output_names=self._alias_output_names,
             backend_version=self._backend_version,
-            expr_kind=self._expr_kind,
             version=self._version,
         )
 
@@ -190,15 +155,7 @@ class DuckDBSelector(DuckDBExpr):
                 rhs_names = other._evaluate_output_names(df)
                 return [x for x in lhs_names if x not in rhs_names]
 
-            return DuckDBSelector(
-                call,
-                function_name="selector",
-                evaluate_output_names=evaluate_output_names,
-                alias_output_names=None,
-                backend_version=self._backend_version,
-                expr_kind=self._expr_kind,
-                version=self._version,
-            )
+            return selector(self, call, evaluate_output_names)
         else:
             return self._to_expr() - other
 
@@ -220,15 +177,7 @@ class DuckDBSelector(DuckDBExpr):
                 rhs_names = other._evaluate_output_names(df)
                 return [*(x for x in lhs_names if x not in rhs_names), *rhs_names]
 
-            return DuckDBSelector(
-                call,
-                function_name="selector",
-                evaluate_output_names=evaluate_output_names,
-                alias_output_names=None,
-                backend_version=self._backend_version,
-                expr_kind=self._expr_kind,
-                version=self._version,
-            )
+            return selector(self, call, evaluate_output_names)
         else:
             return self._to_expr() | other
 
@@ -246,22 +195,25 @@ class DuckDBSelector(DuckDBExpr):
                 rhs_names = other._evaluate_output_names(df)
                 return [x for x in lhs_names if x in rhs_names]
 
-            return DuckDBSelector(
-                call,
-                function_name="selector",
-                evaluate_output_names=evaluate_output_names,
-                alias_output_names=None,
-                backend_version=self._backend_version,
-                expr_kind=self._expr_kind,
-                version=self._version,
-            )
+            return selector(self, call, evaluate_output_names)
         else:
             return self._to_expr() & other
 
     def __invert__(self: Self) -> DuckDBSelector:
-        return (
-            DuckDBSelectorNamespace(
-                backend_version=self._backend_version, version=self._version
-            ).all()
-            - self
-        )
+        return DuckDBSelectorNamespace(self).all() - self
+
+
+def selector(
+    context: _LimitedContext,
+    call: Callable[[DuckDBLazyFrame], Sequence[duckdb.Expression]],
+    evaluate_output_names: Callable[[DuckDBLazyFrame], Sequence[str]],
+    /,
+) -> DuckDBSelector:
+    return DuckDBSelector(
+        call,
+        function_name="selector",
+        evaluate_output_names=evaluate_output_names,
+        alias_output_names=None,
+        backend_version=context._backend_version,
+        version=context._version,
+    )

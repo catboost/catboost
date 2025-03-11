@@ -151,8 +151,6 @@ class LazyGroupBy(Generic[LazyFrameT]):
     def agg(self: Self, *aggs: Expr | Iterable[Expr], **named_aggs: Expr) -> LazyFrameT:
         """Compute aggregations for each group of a group by operation.
 
-        If a library does not support lazy execution, then this is a no-op.
-
         Arguments:
             aggs: Aggregations to compute for each group of the group by operation,
                 specified as positional arguments.

@@ -113,7 +113,7 @@ class Series(Generic[IntoSeriesT]):
         return self._compliant_series._implementation  # type: ignore[no-any-return]
 
     def __array__(self: Self, dtype: Any = None, copy: bool | None = None) -> _1DArray:
-        return self._compliant_series.__array__(dtype=dtype, copy=copy)
+        return self._compliant_series.__array__(dtype=dtype, copy=copy)  # type: ignore[no-any-return]
 
     @overload
     def __getitem__(self: Self, idx: int) -> Any: ...
@@ -1407,9 +1407,9 @@ class Series(Generic[IntoSeriesT]):
             >>> nw.from_native(s_native, series_only=True).to_numpy()
             array([1, 2, 3]...)
         """
-        return self._compliant_series.to_numpy()
+        return self._compliant_series.to_numpy()  # type: ignore[no-any-return]
 
-    def to_pandas(self: Self) -> pd.Series:
+    def to_pandas(self: Self) -> pd.Series[Any]:
         """Convert to pandas Series.
 
         Returns:
@@ -1426,7 +1426,7 @@ class Series(Generic[IntoSeriesT]):
             2    3
             Name: a, dtype: int64
         """
-        return self._compliant_series.to_pandas()
+        return self._compliant_series.to_pandas()  # type: ignore[no-any-return]
 
     def to_polars(self: Self) -> pl.Series:
         """Convert to polars Series.
@@ -2071,7 +2071,7 @@ class Series(Generic[IntoSeriesT]):
                 4
             ]
         """
-        return self._compliant_series.to_arrow()
+        return self._compliant_series.to_arrow()  # type: ignore[no-any-return]
 
     def mode(self: Self) -> Self:
         r"""Compute the most occurring value(s).

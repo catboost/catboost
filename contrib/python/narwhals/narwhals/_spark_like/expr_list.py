@@ -13,8 +13,4 @@ class SparkLikeExprListNamespace:
         self._compliant_expr = expr
 
     def len(self: Self) -> SparkLikeExpr:
-        return self._compliant_expr._from_call(
-            self._compliant_expr._F.array_size,
-            "len",
-            expr_kind=self._compliant_expr._expr_kind,
-        )
+        return self._compliant_expr._from_call(self._compliant_expr._F.array_size, "len")

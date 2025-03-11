@@ -90,7 +90,7 @@ class PandasLikeSeriesDateTimeNamespace:
         )
 
     def nanosecond(self: Self) -> PandasLikeSeries:
-        return (  # type: ignore[no-any-return]
+        return (
             self.microsecond() * 1_000
             + self._compliant_series._native_series.dt.nanosecond
         )
@@ -218,8 +218,8 @@ class PandasLikeSeriesDateTimeNamespace:
             # Date is only supported in pandas dtypes if pyarrow-backed
             s_cast = s.astype("Int32[pyarrow]")
             result = calculate_timestamp_date(s_cast, time_unit)
-        elif dtype == dtypes.Datetime:
-            original_time_unit = dtype.time_unit  # type: ignore[attr-defined]
+        elif isinstance(dtype, dtypes.Datetime):
+            original_time_unit = dtype.time_unit
             if (
                 self._compliant_series._implementation is Implementation.PANDAS
                 and self._compliant_series._backend_version < (2,)

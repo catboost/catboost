@@ -18,6 +18,7 @@ from warnings import warn
 from narwhals._expression_parsing import ExprKind
 from narwhals._expression_parsing import all_exprs_are_aggs_or_literals
 from narwhals._expression_parsing import check_expressions_transform
+from narwhals._expression_parsing import infer_kind
 from narwhals.dependencies import get_polars
 from narwhals.dependencies import is_numpy_array
 from narwhals.dependencies import is_numpy_array_1d
@@ -81,14 +82,19 @@ class BaseFrame(Generic[_FrameT]):
 
     def _flatten_and_extract(
         self, *exprs: IntoExpr | Iterable[IntoExpr], **named_exprs: IntoExpr
-    ) -> tuple[IntoCompliantExpr[Any]]:
+    ) -> tuple[list[IntoCompliantExpr[Any, Any]], list[ExprKind]]:
         """Process `args` and `kwargs`, extracting underlying objects as we go, interpreting strings as column names."""
-        compliant_exprs = (self._extract_compliant(expr) for expr in flatten(exprs))
-        compliant_named_exprs = (
-            self._extract_compliant(value).alias(key)
-            for key, value in named_exprs.items()
-        )
-        return tuple(chain(compliant_exprs, compliant_named_exprs))
+        out_exprs = []
+        out_kinds = []
+        for expr in flatten(exprs):
+            compliant_expr = self._extract_compliant(expr)
+            out_exprs.append(compliant_expr)
+            out_kinds.append(infer_kind(expr, str_as_lit=False))
+        for alias, expr in named_exprs.items():
+            compliant_expr = self._extract_compliant(expr).alias(alias)
+            out_exprs.append(compliant_expr)
+            out_kinds.append(infer_kind(expr, str_as_lit=False))
+        return out_exprs, out_kinds
 
     @abstractmethod
     def _extract_compliant(self: Self, arg: Any) -> Any:
@@ -129,7 +135,13 @@ class BaseFrame(Generic[_FrameT]):
     def with_columns(
         self: Self, *exprs: IntoExpr | Iterable[IntoExpr], **named_exprs: IntoExpr
     ) -> Self:
-        compliant_exprs = self._flatten_and_extract(*exprs, **named_exprs)
+        compliant_exprs, kinds = self._flatten_and_extract(*exprs, **named_exprs)
+        compliant_exprs = [
+            compliant_expr.broadcast(kind)
+            if (kind is ExprKind.LITERAL or kind is ExprKind.AGGREGATION)
+            else compliant_expr
+            for compliant_expr, kind in zip(compliant_exprs, kinds)
+        ]
         return self._from_compliant_dataframe(
             self._compliant_frame.with_columns(*compliant_exprs),
         )
@@ -153,14 +165,17 @@ class BaseFrame(Generic[_FrameT]):
                 raise ColumnNotFoundError.from_missing_and_available_column_names(
                     missing_columns, available_columns
                 ) from e
-        compliant_exprs = self._flatten_and_extract(*flat_exprs, **named_exprs)
-        if (flat_exprs or named_exprs) and all_exprs_are_aggs_or_literals(
-            *flat_exprs, **named_exprs
-        ):
+        compliant_exprs, kinds = self._flatten_and_extract(*flat_exprs, **named_exprs)
+        if compliant_exprs and all_exprs_are_aggs_or_literals(*flat_exprs, **named_exprs):
             return self._from_compliant_dataframe(
                 self._compliant_frame.aggregate(*compliant_exprs),
             )
-
+        compliant_exprs = [
+            compliant_expr.broadcast(kind)
+            if (kind is ExprKind.LITERAL or kind is ExprKind.AGGREGATION)
+            else compliant_expr
+            for compliant_expr, kind in zip(compliant_exprs, kinds)
+        ]
         return self._from_compliant_dataframe(
             self._compliant_frame.select(*compliant_exprs),
         )
@@ -191,7 +206,7 @@ class BaseFrame(Generic[_FrameT]):
         ):
             flat_predicates = flatten(predicates)
             check_expressions_transform(*flat_predicates, function_name="filter")
-            compliant_predicates = self._flatten_and_extract(*flat_predicates)
+            compliant_predicates, _kinds = self._flatten_and_extract(*flat_predicates)
             plx = self.__narwhals_namespace__()
             predicate = plx.all_horizontal(
                 *chain(
@@ -485,7 +500,7 @@ class DataFrame(BaseFrame[DataFrameT]):
         return self._compliant_frame.__len__()  # type: ignore[no-any-return]
 
     def __array__(self: Self, dtype: Any = None, copy: bool | None = None) -> _2DArray:
-        return self._compliant_frame.__array__(dtype, copy=copy)
+        return self._compliant_frame.__array__(dtype, copy=copy)  # type: ignore[no-any-return]
 
     def __repr__(self: Self) -> str:  # pragma: no cover
         return generate_repr("Narwhals DataFrame", self.to_native().__repr__())
@@ -511,7 +526,7 @@ class DataFrame(BaseFrame[DataFrameT]):
             msg = f"PyArrow>=14.0.0 is required for `DataFrame.__arrow_c_stream__` for object of type {type(native_frame)}"
             raise ModuleNotFoundError(msg) from None
         pa_table = self.to_arrow()
-        return pa_table.__arrow_c_stream__(requested_schema=requested_schema)
+        return pa_table.__arrow_c_stream__(requested_schema=requested_schema)  # type: ignore[no-untyped-call]
 
     def lazy(
         self: Self,
@@ -683,7 +698,7 @@ class DataFrame(BaseFrame[DataFrameT]):
             1    2  7.0   b
             2    3  8.0   c
         """
-        return self._compliant_frame.to_pandas()
+        return self._compliant_frame.to_pandas()  # type: ignore[no-any-return]
 
     def to_polars(self: Self) -> pl.DataFrame:
         """Convert this DataFrame to a polars DataFrame.
@@ -792,7 +807,7 @@ class DataFrame(BaseFrame[DataFrameT]):
             array([[1. , 6.5],
                    [2. , 7. ]])
         """
-        return self._compliant_frame.to_numpy()
+        return self._compliant_frame.to_numpy()  # type: ignore[no-any-return]
 
     @property
     def shape(self: Self) -> tuple[int, int]:
@@ -2027,7 +2042,7 @@ class DataFrame(BaseFrame[DataFrameT]):
             foo: [[1,null]]
             bar: [[2,3]]
         """
-        return self._compliant_frame.to_arrow()
+        return self._compliant_frame.to_arrow()  # type: ignore[no-any-return]
 
     def sample(
         self: Self,
@@ -2189,7 +2204,7 @@ class LazyFrame(BaseFrame[FrameT]):
             plx = self.__narwhals_namespace__()
             return plx.col(arg)
         if isinstance(arg, Expr):
-            if arg._metadata["is_order_dependent"]:
+            if arg._metadata.is_order_dependent():
                 msg = (
                     "Order-dependent expressions are not supported for use in LazyFrame.\n\n"
                     "Hints:\n"
@@ -2200,7 +2215,7 @@ class LazyFrame(BaseFrame[FrameT]):
                     "  they will be supported."
                 )
                 raise OrderDependentExprError(msg)
-            if arg._metadata["kind"] is ExprKind.CHANGES_LENGTH:
+            if arg._metadata.is_changes_length():
                 msg = (
                     "Length-changing expressions are not supported for use in LazyFrame, unless\n"
                     "followed by an aggregation.\n\n"

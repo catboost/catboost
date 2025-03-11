@@ -9,7 +9,7 @@ import dask.dataframe as dd
 import pandas as pd
 
 from narwhals._dask.utils import add_row_index
-from narwhals._dask.utils import parse_exprs
+from narwhals._dask.utils import evaluate_exprs
 from narwhals._pandas_like.utils import check_column_names_are_unique
 from narwhals._pandas_like.utils import native_to_narwhals_dtype
 from narwhals._pandas_like.utils import select_columns_by_name
@@ -86,7 +86,7 @@ class DaskLazyFrame(CompliantLazyFrame):
 
     def with_columns(self: Self, *exprs: DaskExpr) -> Self:
         df = self._native_frame
-        new_series = parse_exprs(self, *exprs)
+        new_series = evaluate_exprs(self, *exprs)
         df = df.assign(**new_series)
         return self._from_native_frame(df)
 
@@ -160,14 +160,12 @@ class DaskLazyFrame(CompliantLazyFrame):
         )
 
     def aggregate(self: Self, *exprs: DaskExpr) -> Self:
-        new_series = parse_exprs(self, *exprs)
-        df = dd.concat(
-            [val.to_series().rename(name) for name, val in new_series.items()], axis=1
-        )
+        new_series = evaluate_exprs(self, *exprs)
+        df = dd.concat([val.rename(name) for name, val in new_series.items()], axis=1)
         return self._from_native_frame(df, validate_column_names=False)
 
     def select(self: Self, *exprs: DaskExpr) -> Self:
-        new_series = parse_exprs(self, *exprs)
+        new_series = evaluate_exprs(self, *exprs)
 
         if not new_series:
             # return empty dataframe, like Polars does
@@ -320,7 +318,7 @@ class DaskLazyFrame(CompliantLazyFrame):
             df = self._native_frame.merge(
                 other_native,
                 how="outer",
-                indicator=indicator_token,
+                indicator=indicator_token,  # pyright: ignore[reportArgumentType]
                 left_on=left_on,
                 right_on=left_on,
             )
