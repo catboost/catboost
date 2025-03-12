@@ -948,6 +948,7 @@ static void SelectBestCandidate(
     for (const auto& candidatesContext : candidatesContexts) {
         for (const auto& subList : candidatesContext.CandidateList) {
             for (const auto& candidate : subList.Candidates) {
+                Cout<<candidate.BestScore.Val<<" "<<candidate.BestScore.StDev<<Endl;
                 double score = candidate.BestScore.GetInstance(ctx.LearnProgress->Rand);
                 Cout<<"score: "<<score<<Endl;
 
@@ -1738,23 +1739,13 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if (!needSplitLeftLeaf && !needSplitRightLeaf) {
             return;
         }
-        auto candidatesContextsLeftLeaf = SelectFeaturesForScoring(data, {}, fold, ctx);
-        auto candidatesContextsRightLeaf = SelectFeaturesForScoring(data, {}, fold, ctx);
+        auto candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
 
         TQueue<TVector<TBucketStats>> parentsQueue;
 
-        TSubtractTrickInfo subTrickInfoLeftLeaf(
+        TSubtractTrickInfo subTrickInfo(
                 &data,
-                &candidatesContextsLeftLeaf,
-                fold,
-                ctx,
-                &parentsQueue,
-                scoreStDev
-        );
-
-        TSubtractTrickInfo subTrickInfoRightLeaf(
-                &data,
-                &candidatesContextsRightLeaf,
+                &candidatesContexts,
                 fold,
                 ctx,
                 &parentsQueue,
@@ -1775,14 +1766,14 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if ((leftLeafBoundsSize <= rightLeafBoundsSize) && isSubtractTrickAllowed && needSplitLeftLeaf && needSplitRightLeaf) {
 
             leftLeafStats = CalculateStats(
-                    subTrickInfoLeftLeaf,
+                    subTrickInfo,
                     leftLeaf,
                     &leftLeafGain,
                     &leftLeafBestSplitCandidate,
                     &leftLeafBestSplit);
 
             rightLeafStats = CalculateWithSubtractTrickNoParentQueue(
-                    subTrickInfoRightLeaf,
+                    subTrickInfo,
                     rightLeaf,
                     leftLeafStats,
                     &rightLeafGain,
@@ -1792,13 +1783,13 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 
         } else if ((leftLeafBoundsSize > rightLeafBoundsSize) && isSubtractTrickAllowed && needSplitLeftLeaf && needSplitRightLeaf) {
             rightLeafStats = CalculateStats(
-                    subTrickInfoRightLeaf,
+                    subTrickInfo,
                     rightLeaf,
                     &rightLeafGain,
                     &rightLeafBestSplitCandidate,
                     &rightLeafBestSplit);
             leftLeafStats = CalculateWithSubtractTrickNoParentQueue(
-                    subTrickInfoLeftLeaf,
+                    subTrickInfo,
                     leftLeaf,
                     rightLeafStats,
                     &leftLeafGain,
@@ -1809,7 +1800,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         } else {
             if(needSplitLeftLeaf) {
                 leftLeafStats = CalculateStats(
-                        subTrickInfoLeftLeaf,
+                        subTrickInfo,
                         leftLeaf,
                         &leftLeafGain,
                         &leftLeafBestSplitCandidate,
@@ -1818,7 +1809,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 
             if(needSplitRightLeaf) {
                 rightLeafStats = CalculateStats(
-                        subTrickInfoRightLeaf,
+                        subTrickInfo,
                         rightLeaf,
                         &rightLeafGain,
                         &rightLeafBestSplitCandidate,
