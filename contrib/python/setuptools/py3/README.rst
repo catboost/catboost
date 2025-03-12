@@ -14,7 +14,7 @@
 .. |docs-badge| image:: https://img.shields.io/readthedocs/setuptools/latest.svg
    :target: https://setuptools.pypa.io
 
-.. |skeleton-badge| image:: https://img.shields.io/badge/skeleton-2024-informational
+.. |skeleton-badge| image:: https://img.shields.io/badge/skeleton-2025-informational
    :target: https://blog.jaraco.com/skeleton
 
 .. |codecov-badge| image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg?logo=codecov&logoColor=white
