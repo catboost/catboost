@@ -1126,7 +1126,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
 cdef extern from "catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
     cdef cppclass TBinarizedFeatureStatistics:
         TVector[float] Borders
-        TVector[int] BinarizedFeature
+        TVector[ui32] BinarizedFeature
         TVector[float] MeanTarget
         TVector[float] MeanWeightedTarget
         TVector[float] MeanPrediction
@@ -1384,16 +1384,6 @@ cdef np.ndarray _reorder_axes_for_python_4d_shap_values(TVector[TVector[TVector[
 cdef np.ndarray _vector_of_uints_to_np_array(const TVector[ui32]& vec):
     cdef np.ndarray[np.uint32_t, ndim=1] result = np.empty(vec.size(), dtype=np.uint32)
     cdef np.uint32_t[::1] result_view = result
-
-    cdef size_t i
-    for i in xrange(vec.size()):
-        result_view[i] = vec[i]
-    return result
-
-
-cdef np.ndarray _vector_of_ints_to_np_array(const TVector[int]& vec):
-    cdef np.ndarray[np.int_t, ndim=1] result = np.empty(vec.size(), dtype=np.int_)
-    cdef np.int_t[::1] result_view = result
 
     cdef size_t i
     for i in xrange(vec.size()):
@@ -5659,7 +5649,7 @@ cdef class _CatBoost:
             statistics_list.append(
                 {
                     'borders': _vector_of_floats_to_np_array(stat.Borders),
-                    'binarized_feature': _vector_of_ints_to_np_array(stat.BinarizedFeature),
+                    'binarized_feature': _vector_of_uints_to_np_array(stat.BinarizedFeature),
                     'mean_target': _vector_of_floats_to_np_array(stat.MeanTarget),
                     'mean_weighted_target': _vector_of_floats_to_np_array(stat.MeanWeightedTarget),
                     'mean_prediction': _vector_of_floats_to_np_array(stat.MeanPrediction),
