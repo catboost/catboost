@@ -51,7 +51,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
         For `aarch64` CPU archirecture the minimum version is 18.1
 
-        For other CPU architectures the minimum version is 14
+        For other CPU architectures the minimum version is 16
 
       - [`lld` linker](https://lld.llvm.org/), version 7+
 
