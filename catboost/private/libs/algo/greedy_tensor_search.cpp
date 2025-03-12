@@ -949,6 +949,8 @@ static void SelectBestCandidate(
         for (const auto& subList : candidatesContext.CandidateList) {
             for (const auto& candidate : subList.Candidates) {
                 double score = candidate.BestScore.GetInstance(ctx.LearnProgress->Rand);
+                Cout<<"score: "<<score<<Endl;
+
                 score *= GetCatFeatureWeight(candidate, ctx, fold, maxFeatureValueCount);
 
                 double gain = score - scoreBeforeSplit;
@@ -1396,6 +1398,7 @@ inline static void CalcBestScoreAndCandidate (
                 *subTrickInfo.Fold,
                 subTrickInfo.Ctx->Params.CatFeatureParams->OneHotMaxSize);
     }
+    Cout<<"best score: "<<bestScoreLocal<<"  best before: "<<scoreBeforeSplitLocal<<Endl;
     *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
 }
 
@@ -1727,7 +1730,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 
         const ui32 leftLeafBoundsSize = leftLeafBounds.GetSize();
         const ui32 rightLeafBoundsSize = rightLeafBounds.GetSize();
-        const bool isNextLeafConsidered = rightLeafBoundsSize >= ctx->Params.ObliviousTreeOptions->MinDataInLeaf;
 
         const bool needSplitLeftLeaf = leafDepth[leftLeaf] < ctx->Params.ObliviousTreeOptions->MaxDepth
                                        && leftLeafBoundsSize >= ctx->Params.ObliviousTreeOptions->MinDataInLeaf;
@@ -1736,13 +1738,23 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if (!needSplitLeftLeaf && !needSplitRightLeaf) {
             return;
         }
-        auto candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
+        auto candidatesContextsLeftLeaf = SelectFeaturesForScoring(data, {}, fold, ctx);
+        auto candidatesContextsRightLeaf = SelectFeaturesForScoring(data, {}, fold, ctx);
 
         TQueue<TVector<TBucketStats>> parentsQueue;
 
-        TSubtractTrickInfo subTrickInfo(
+        TSubtractTrickInfo subTrickInfoLeftLeaf(
                 &data,
-                &candidatesContexts,
+                &candidatesContextsLeftLeaf,
+                fold,
+                ctx,
+                &parentsQueue,
+                scoreStDev
+        );
+
+        TSubtractTrickInfo subTrickInfoRightLeaf(
+                &data,
+                &candidatesContextsRightLeaf,
                 fold,
                 ctx,
                 &parentsQueue,
@@ -1763,14 +1775,14 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if ((leftLeafBoundsSize <= rightLeafBoundsSize) && isSubtractTrickAllowed && needSplitLeftLeaf && needSplitRightLeaf) {
 
             leftLeafStats = CalculateStats(
-                    subTrickInfo,
+                    subTrickInfoLeftLeaf,
                     leftLeaf,
                     &leftLeafGain,
                     &leftLeafBestSplitCandidate,
                     &leftLeafBestSplit);
 
             rightLeafStats = CalculateWithSubtractTrickNoParentQueue(
-                    subTrickInfo,
+                    subTrickInfoRightLeaf,
                     rightLeaf,
                     leftLeafStats,
                     &rightLeafGain,
@@ -1780,13 +1792,13 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 
         } else if ((leftLeafBoundsSize > rightLeafBoundsSize) && isSubtractTrickAllowed && needSplitLeftLeaf && needSplitRightLeaf) {
             rightLeafStats = CalculateStats(
-                    subTrickInfo,
+                    subTrickInfoRightLeaf,
                     rightLeaf,
                     &rightLeafGain,
                     &rightLeafBestSplitCandidate,
                     &rightLeafBestSplit);
             leftLeafStats = CalculateWithSubtractTrickNoParentQueue(
-                    subTrickInfo,
+                    subTrickInfoLeftLeaf,
                     leftLeaf,
                     rightLeafStats,
                     &leftLeafGain,
@@ -1797,7 +1809,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         } else {
             if(needSplitLeftLeaf) {
                 leftLeafStats = CalculateStats(
-                        subTrickInfo,
+                        subTrickInfoLeftLeaf,
                         leftLeaf,
                         &leftLeafGain,
                         &leftLeafBestSplitCandidate,
@@ -1806,7 +1818,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 
             if(needSplitRightLeaf) {
                 rightLeafStats = CalculateStats(
-                        subTrickInfo,
+                        subTrickInfoRightLeaf,
                         rightLeaf,
                         &rightLeafGain,
                         &rightLeafBestSplitCandidate,
@@ -1841,7 +1853,8 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
          * However, we don't do it for performance and code simplicity.
          */
 
-        const TSplitLeafCandidate &curSplitLeaf = queue.top();
+        const TSplitLeafCandidate curSplitLeaf = queue.top();
+        queue.pop();
 
         const TSplit bestSplit = curSplitLeaf.BestCandidate.GetBestSplit(
                 data,
@@ -1891,7 +1904,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         CATBOOST_DEBUG_LOG << "For node #" << splittedNodeIdx << " built childs: " << leftChildIdx << " and " << rightChildIdx
                            << "with split: " << BuildDescription(*ctx->Layout, bestSplit) << " and score = " << curSplitLeaf.Gain << Endl;
         findBestCandidate(leftChildIdx, rightChildIdx, curSplitLeaf.Stats);
-        queue.pop();
     }
 
     return currentStructure;
