@@ -822,6 +822,12 @@ def search_include_directories(dirs, qualified_name, suffix, pos, include=False)
         module_filename = module_name + suffix
         package_filename = "__init__" + suffix
 
+        # Fix from https://github.com/cython/cython/pull/2738
+        if pos:
+            path = os.path.join(os.path.dirname(pos[0].filename), module_filename)
+            if os.path.exists(path):
+                return path
+
     for dirname in dirs:
         path = os.path.join(dirname, dotted_filename)
         if os.path.exists(path):
