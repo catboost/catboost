@@ -948,9 +948,9 @@ static void SelectBestCandidate(
     for (const auto& candidatesContext : candidatesContexts) {
         for (const auto& subList : candidatesContext.CandidateList) {
             for (const auto& candidate : subList.Candidates) {
-                Cout<<candidate.BestScore.Val<<" "<<candidate.BestScore.StDev<<Endl;
+                //Cout<<candidate.BestScore.Val<<" "<<candidate.BestScore.StDev<<Endl;
                 double score = candidate.BestScore.GetInstance(ctx.LearnProgress->Rand);
-                Cout<<"score: "<<score<<Endl;
+                //Cout<<"score: "<<score<<Endl;
 
                 score *= GetCatFeatureWeight(candidate, ctx, fold, maxFeatureValueCount);
 
@@ -1373,6 +1373,17 @@ inline static void CalcBestScoreAndCandidate (
         const TCandidateInfo** bestSplitCandidateLocal,
         TSplit* bestSplitLocal) {
 
+    Cout<<"!!!!"<<Endl;
+    for (const auto& candidatesContext : *subTrickInfo.CandidatesContexts) {
+        for (const auto& subList : candidatesContext.CandidateList) {
+            for (const auto& candidate : subList.Candidates) {
+                Cout << candidate.BestScore.Val << "  " << candidate.BestScore.StDev << " ! ";
+            }
+        }
+    }
+    Cout<<"!!!!"<<Endl;
+    Cout<<Endl;
+
     CalcBestScoreLeafwise(
             *subTrickInfo.Data,
             {id},
@@ -1382,6 +1393,18 @@ inline static void CalcBestScoreAndCandidate (
             subTrickInfo.CandidatesContexts,
             subTrickInfo.Fold,
             subTrickInfo.Ctx);
+
+    Cout<<"???????"<<Endl;
+    for (const auto& candidatesContext : *subTrickInfo.CandidatesContexts) {
+        for (const auto& subList : candidatesContext.CandidateList) {
+            for (const auto& candidate : subList.Candidates) {
+                Cout << candidate.BestScore.Val << "  " << candidate.BestScore.StDev << " ! ";
+            }
+        }
+    }
+    Cout<<"??????"<<Endl;
+    Cout<<Endl;
+
     double bestScoreLocal = MINIMAL_SCORE;
     double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *subTrickInfo.Fold, *subTrickInfo.Ctx);
     SelectBestCandidate(
@@ -1740,6 +1763,15 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
             return;
         }
         auto candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
+
+        /*for (const auto& candidatesContext : candidatesContexts) {
+            for (const auto& subList : candidatesContext.CandidateList) {
+                for (const auto& candidate : subList.Candidates) {
+                    Cout << candidate.BestScore.Val << "  " << candidate.BestScore.StDev << " ! ";
+                }
+            }
+        }
+        Cout<<Endl;*/
 
         TQueue<TVector<TBucketStats>> parentsQueue;
 
