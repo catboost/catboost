@@ -260,11 +260,11 @@ namespace NCB {
         TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
         NPar::ILocalExecutor* localExecutor
     ) const {
-        int numThreads = localExecutor->GetThreadCount();
-        TVector<TKNNCalcer> featureCalcers(numThreads);;
+        const ui32 numThreads = localExecutor->GetThreadCount();
+        TVector<TKNNCalcer> featureCalcers(numThreads);
         TVector<TKNNCalcerVisitor> calcerVisitors(numThreads);
 
-        for (int id = 0; id < numThreads; ++id) {
+        for (ui32 id = 0; id < numThreads; ++id) {
             featureCalcers[id] = CreateFeatureCalcer();
             calcerVisitors[id] = CreateCalcerVisitor();
         }
@@ -279,14 +279,14 @@ namespace NCB {
     
             NPar::ILocalExecutor::TExecRangeParams params{0, numThreads};
             localExecutor->ExecRange([&](int id) {
-                int linesPerThread = samplesCount / numThreads;
-                int begin = id * linesPerThread;
-                int end = (id + 1) * linesPerThread;
+                ui64 linesPerThread = samplesCount / numThreads;
+                ui64 begin = id * linesPerThread;
+                ui64 end = (id + 1) * linesPerThread;
                 if (id == numThreads - 1) {
                     end = samplesCount;
                 }
 
-                for (int i = begin; i < end; ++i) {
+                for (ui64 i = begin; i < end; ++i) {
                     auto line = learnPermutation[i];
                     const TEmbeddingsArray& vector = learnDataset.GetVector(line);
                     vectorsNeighbors[line] = featureCalcers[id].GetNearestNeighborsAndDistances(vector);
@@ -295,14 +295,14 @@ namespace NCB {
             }, params, NPar::TLocalExecutor::WAIT_COMPLETE);
 
             localExecutor->ExecRange([&](int id) {
-                int linesPerThread = samplesCount / numThreads;
+                ui64 linesPerThread = samplesCount / numThreads;
 
-                for (int i = id; i < samplesCount; i += numThreads) {
+                for (ui64 i = id; i < samplesCount; i += numThreads) {
                     auto line = learnPermutation[i];
                     const TEmbeddingsArray& vector = learnDataset.GetVector(line);
                     auto& neighbors = vectorsNeighbors[line];
 
-                    for (int j = 0; j < i / linesPerThread && j < featureCalcers.size(); ++j) {
+                    for (ui64 j = 0; j < i / linesPerThread && j < featureCalcers.size(); ++j) {
                         auto newNeighbors = featureCalcers[j].GetNearestNeighborsAndDistances(vector);
                         neighbors.insert(neighbors.end(), newNeighbors.begin(), newNeighbors.end());
                     }
@@ -325,7 +325,7 @@ namespace NCB {
                         learnFeatures.data() + (f + 1) * samplesCount
                     )
                 );
-            }            
+            }
         }
 
         if (!testVisitors.empty()) {
