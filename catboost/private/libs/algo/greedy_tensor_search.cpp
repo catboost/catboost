@@ -821,6 +821,16 @@ static void CalcBestScoreLeafwise(
                         statsForSubtractionTrick.MakeSlice(taskIdx, statsSize),
                         ctx);
 
+                /*Cout<<"1111111"<<Endl;
+                for (const auto& candidatesContext : *candidatesContexts) {
+                    for (const auto& subList : candidatesContext.CandidateList) {
+                        for (const auto& candidate : subList.Candidates) {
+                            Cout << candidate.BestScore.Val << "  1! ";
+                        }
+                    }
+                }
+                Cout<<"1111111"<<Endl;*/
+
                 SetBestScore(
                         randSeed + taskIdx,
                         candidateScores,
@@ -828,6 +838,16 @@ static void CalcBestScoreLeafwise(
                         scoreStDev,
                         candidatesContext,
                         &candidate.Candidates);
+
+                /*Cout<<"222222"<<Endl;
+                for (const auto& candidatesContext : *candidatesContexts) {
+                    for (const auto& subList : candidatesContext.CandidateList) {
+                        for (const auto& candidate : subList.Candidates) {
+                            Cout << candidate.BestScore.Val << "  2! ";
+                        }
+                    }
+                }
+                Cout<<"22222"<<Endl;*/
 
                 PenalizeBestSplits(
                         leafs,
@@ -838,6 +858,15 @@ static void CalcBestScoreLeafwise(
                         &candidate.Candidates
                 );
 
+                /*Cout<<"33333"<<Endl;
+                for (const auto& candidatesContext : *candidatesContexts) {
+                    for (const auto& subList : candidatesContext.CandidateList) {
+                        for (const auto& candidate : subList.Candidates) {
+                            Cout << candidate.BestScore.Val << "  3! ";
+                        }
+                    }
+                }
+                Cout<<"3333333"<<Endl;*/
                 if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {
                     fold->ClearCtrDataForProjectionIfOwned(splitEnsemble.SplitCandidate.Ctr.Projection);
                 }
@@ -1762,7 +1791,8 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if (!needSplitLeftLeaf && !needSplitRightLeaf) {
             return;
         }
-        auto candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
+        auto candidatesContextsLeftLeaf = SelectFeaturesForScoring(data, {}, fold, ctx);
+        auto candidatesContextsRightLeaf = SelectFeaturesForScoring(data, {}, fold, ctx);
 
         /*for (const auto& candidatesContext : candidatesContexts) {
             for (const auto& subList : candidatesContext.CandidateList) {
@@ -1775,9 +1805,17 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 
         TQueue<TVector<TBucketStats>> parentsQueue;
 
-        TSubtractTrickInfo subTrickInfo(
+        TSubtractTrickInfo subTrickInfoLeftLeaf(
                 &data,
-                &candidatesContexts,
+                &candidatesContextsLeftLeaf,
+                fold,
+                ctx,
+                &parentsQueue,
+                scoreStDev
+        );
+        TSubtractTrickInfo subTrickInfoRightLeaf(
+                &data,
+                &candidatesContextsRightLeaf,
                 fold,
                 ctx,
                 &parentsQueue,
@@ -1798,14 +1836,14 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if ((leftLeafBoundsSize <= rightLeafBoundsSize) && isSubtractTrickAllowed && needSplitLeftLeaf && needSplitRightLeaf) {
 
             leftLeafStats = CalculateStats(
-                    subTrickInfo,
+                    subTrickInfoLeftLeaf,
                     leftLeaf,
                     &leftLeafGain,
                     &leftLeafBestSplitCandidate,
                     &leftLeafBestSplit);
 
             rightLeafStats = CalculateWithSubtractTrickNoParentQueue(
-                    subTrickInfo,
+                    subTrickInfoRightLeaf,
                     rightLeaf,
                     leftLeafStats,
                     &rightLeafGain,
@@ -1815,13 +1853,13 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 
         } else if ((leftLeafBoundsSize > rightLeafBoundsSize) && isSubtractTrickAllowed && needSplitLeftLeaf && needSplitRightLeaf) {
             rightLeafStats = CalculateStats(
-                    subTrickInfo,
+                    subTrickInfoRightLeaf,
                     rightLeaf,
                     &rightLeafGain,
                     &rightLeafBestSplitCandidate,
                     &rightLeafBestSplit);
             leftLeafStats = CalculateWithSubtractTrickNoParentQueue(
-                    subTrickInfo,
+                    subTrickInfoLeftLeaf,
                     leftLeaf,
                     rightLeafStats,
                     &leftLeafGain,
@@ -1832,7 +1870,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         } else {
             if(needSplitLeftLeaf) {
                 leftLeafStats = CalculateStats(
-                        subTrickInfo,
+                        subTrickInfoLeftLeaf,
                         leftLeaf,
                         &leftLeafGain,
                         &leftLeafBestSplitCandidate,
@@ -1841,7 +1879,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 
             if(needSplitRightLeaf) {
                 rightLeafStats = CalculateStats(
-                        subTrickInfo,
+                        subTrickInfoRightLeaf,
                         rightLeaf,
                         &rightLeafGain,
                         &rightLeafBestSplitCandidate,
@@ -1859,6 +1897,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if (needSplitRightLeaf && rightLeafBestSplitCandidate != nullptr && rightLeafGain >= 1e-9) {
             queue.emplace(rightLeaf, rightLeafGain, *rightLeafBestSplitCandidate, rightLeafStatsPtr);
         }
+        exit(0);
     };
 
     findBestCandidateRoot(0);
