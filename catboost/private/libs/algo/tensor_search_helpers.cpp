@@ -734,7 +734,7 @@ void SetBestScore(
 
         auto scoreUpdateFunction = [&] (auto binFeatureIdx) {
             const double scoreWoNoise = scores[binFeatureIdx];
-            Cout<<"   scoreWoNoise: "<<scoreWoNoise<<"  binFeatureIdx:  "<<binFeatureIdx<<Endl;
+            //Cout<<"   scoreWoNoise: "<<scoreWoNoise<<"  binFeatureIdx:  "<<binFeatureIdx<<Endl;
             TRandomScore randomScore(scoreDistribution, scoreWoNoise, scoreStDev);
             const double scoreInstance = randomScore.GetInstance(rand);
             if (scoreInstance > bestScoreInstance) {

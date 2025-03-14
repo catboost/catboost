@@ -821,6 +821,16 @@ static void CalcBestScoreLeafwise(
                         statsForSubtractionTrick.MakeSlice(taskIdx, statsSize),
                         ctx);
 
+                /*for(int i=0;i<candidateScores.size();i++) {
+                    for(int j=0;j<candidateScores[i].size();j++) {
+                        Cout<<candidateScores[i][j]<<" !! "<<taskIdx<<"   ";
+                    }
+                }
+                Cout<<Endl;
+                Cout<<Endl;*/
+
+                Cout<<candidateScores.size()<<" "<<candidateScores[0].size()<<Endl;
+
                 /*Cout<<"1111111"<<Endl;
                 for (const auto& candidatesContext : *candidatesContexts) {
                     for (const auto& subList : candidatesContext.CandidateList) {
