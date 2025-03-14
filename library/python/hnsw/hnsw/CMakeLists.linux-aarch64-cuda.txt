@@ -75,7 +75,6 @@ target_cython_options(_hnsw
 target_cython_include_directories(_hnsw
   ${PROJECT_BINARY_DIR}
   ${PROJECT_SOURCE_DIR}
-  ${PROJECT_SOURCE_DIR}/contrib/tools/cython/Cython/Includes
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
   ${PROJECT_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
 )
