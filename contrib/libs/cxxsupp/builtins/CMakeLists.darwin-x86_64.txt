@@ -28,7 +28,9 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/atomic_thread_fence.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendbfsf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncdfbf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncxfbf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncsfbf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfbf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvdi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvsi2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/absvti2.c
@@ -185,6 +187,7 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatundixf.S
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/x86_64/floatdixf.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/divxc3.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendhfxf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/extendxftf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfdi.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/fixunsxfsi.c
@@ -196,5 +199,6 @@ target_sources(libs-cxxsupp-builtins PRIVATE
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/mulxc3.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/powixf2.c
   ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/trunctfxf2.c
+  ${PROJECT_SOURCE_DIR}/contrib/libs/cxxsupp/builtins/truncxfhf2.c
 )
 
