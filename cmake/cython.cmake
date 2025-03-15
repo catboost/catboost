@@ -1,3 +1,8 @@
+if (NOT USE_INTERNAL_CYTHON)
+  include(FindCython)
+endif()
+
+
 function(target_cython_include_directories Tgt)
   set_property(TARGET ${Tgt} APPEND PROPERTY
     CYTHON_INCLUDE_DIRS ${ARGN}
@@ -25,12 +30,19 @@ macro(set_python_type_for_cython Tgt Type)
 endmacro()
 
 function(target_cython_sources Tgt Scope)
+  if (USE_INTERNAL_CYTHON)
+    set(CYTHON_CMD_PREFIX $<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_PYTHON_INTERPRETER>> ${PROJECT_SOURCE_DIR}/contrib/tools/cython/cython.py)
+  else()
+    find_package(Cython REQUIRED)
+    set(CYTHON_CMD_PREFIX ${CYTHON_EXE})
+  endif()
+
   foreach(Input ${ARGN})
     get_filename_component(OutputBase ${Input} NAME)
     set(CppCythonOutput ${CMAKE_CURRENT_BINARY_DIR}/${OutputBase}.cpp)
     add_custom_command(
       OUTPUT ${CppCythonOutput}
-      COMMAND $<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_PYTHON_INTERPRETER>> ${PROJECT_SOURCE_DIR}/contrib/tools/cython/cython.py ${Input} -o ${CppCythonOutput}
+      COMMAND ${CYTHON_CMD_PREFIX} ${Input} -o ${CppCythonOutput}
         "$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_OPTIONS>>,$<SEMICOLON>>"
         "-I$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},CYTHON_INCLUDE_DIRS>>,$<SEMICOLON>-I>"
       COMMAND_EXPAND_LISTS

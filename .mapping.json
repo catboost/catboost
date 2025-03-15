@@ -1451,6 +1451,7 @@
   "ci/toolchains/clangs.toolchain":"catboost/github_toplevel/ci/toolchains/clangs.toolchain",
   "ci/toolchains/dockcross.manylinux2014_aarch64.clangs.toolchain":"catboost/github_toplevel/ci/toolchains/dockcross.manylinux2014_aarch64.clangs.toolchain",
   "ci/webdav_upload.py":"catboost/github_toplevel/ci/webdav_upload.py",
+  "cmake/FindCython.cmake":"",
   "cmake/archive.cmake":"",
   "cmake/common.cmake":"",
   "cmake/conan-profiles/android.arm64.profile":"",
