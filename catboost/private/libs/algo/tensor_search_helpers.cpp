@@ -741,6 +741,7 @@ void SetBestScore(
                 bestScoreInstance = scoreInstance;
                 subcandidateInfo.BestScore = std::move(randomScore);
                 subcandidateInfo.BestBinId = binFeatureIdx;
+                Cout<<"BestScore: "<<subcandidateInfo.BestScore.Val<<"  binFeatureIdx: "<<binFeatureIdx<<"  randSeed: "<<randSeed<<Endl;
             }
         };
         switch (subcandidateInfo.SplitEnsemble.Type) {
