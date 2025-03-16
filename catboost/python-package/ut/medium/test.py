@@ -11737,10 +11737,24 @@ def test_graph_features_quantization(task_type):
     pred2 = model.predict(test_pool)
     assert np.all(pred == pred2)
 
-def test_no_throwable_for_pipeline():
+
+def test_no_throwable_for_pipeline_classifier():
     pp = Pipeline([('ML', CatBoostClassifier()),])
     pp.set_params(**{'ML__class_names': None})
     assert clone(pp) is not None
+
+
+def test_no_throwable_for_pipeline_regressor():
+    pp = Pipeline([('ML', CatBoostRegressor()),])
+    pp.set_params(**{'ML__class_names': None})
+    assert clone(pp) is not None
+
+
+def test_no_throwable_for_pipeline_ranker():
+    pp = Pipeline([('ML', CatBoostRanker()),])
+    pp.set_params(**{'ML__class_names': None})
+    assert clone(pp) is not None
+
 
 def test_fit_fit_quantized_cat_features_type():
     Xy = DataFrame(
