@@ -156,3 +156,15 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
   Note that they are specific to [CPython Python implementation](https://en.wikipedia.org/wiki/CPython). {{ product }} does not currently support other Python implementations like PyPy, Jython or IronPython.
 
   One convenient way to install different Python versions with development artifacts in one step is to use [pyenv](https://github.com/pyenv/pyenv) (and its variant for Windows - [pyenv-win](https://github.com/pyenv-win/pyenv-win))
+
+### Cython (only for Python package)
+
+  [Cython](https://cython.org/) is required to build the python package.
+
+  `cython` command should be available from the command line.
+
+  {% cut "Previous requirements" %}
+
+  Before revision [7b76b2c](https://github.com/catboost/catboost/commit/7b76b2cbece906fbc87d1187410d60fde8747d57) an additional installation of Cython had not been needed because [internal Cython from contrib](https://github.com/catboost/catboost/tree/30a96912bf8c0976a3450132e79d7dfa71dfda26/contrib/tools/cython) had been used.
+
+  {% endcut %}
