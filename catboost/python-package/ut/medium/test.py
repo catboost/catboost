@@ -11756,6 +11756,12 @@ def test_no_throwable_for_pipeline_ranker():
     assert clone(pp) is not None
 
 
+def test_no_throwable_for_pipeline_catboost():
+    pp = Pipeline([('ML', CatBoost()),])
+    pp.set_params(**{'ML__class_names': None})
+    assert clone(pp) is not None
+
+
 def test_fit_fit_quantized_cat_features_type():
     Xy = DataFrame(
         data=np.random.randint(0, 100, size=(100, 5)),
