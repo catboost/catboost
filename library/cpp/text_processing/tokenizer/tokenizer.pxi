@@ -192,8 +192,8 @@ cdef class Tokenizer:
 
         def get_result(i):
             if types:
-                return to_native_str(tokens[i]), to_native_str(ToString(tokenTypes[i]))
+                return to_str(tokens[i]), to_str(ToString(tokenTypes[i]))
             else:
-                return to_native_str(tokens[i])
+                return to_str(tokens[i])
 
         return [get_result(i) for i in xrange(tokens.size())]

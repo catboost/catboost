@@ -23,10 +23,6 @@ cdef extern from "library/cpp/threading/local_executor/tbb_local_executor.h" nam
         TTbbLocalExecutor(int nThreads) except +ProcessException nogil
 
 
-cdef extern from "catboost/private/libs/options/json_helper.h":
-    cdef TString WriteTJsonValue(const TJsonValue& jsonValue) except +ProcessException nogil
-
-
 cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
     cdef enum EJsonValueType:
         JSON_UNDEFINED,

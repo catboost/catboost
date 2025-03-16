@@ -93,7 +93,7 @@ cdef extern from "catboost/libs/model/model.h":
 
         void Load(IInputStream* stream) except +ProcessException
         void Swap(TFullModel& other) except +ProcessException
-        size_t GetTreeCount() nogil except +ProcessException
+        size_t GetTreeCount() except +ProcessException nogil
         size_t GetDimensionsCount() noexcept nogil
         void Truncate(size_t begin, size_t end) except +ProcessException
         bool_t IsOblivious() except +ProcessException
@@ -108,11 +108,11 @@ cdef extern from "catboost/libs/model/model.h":
     cdef cppclass EModelType:
         pass
 
-    cdef TFullModel ReadModel(const TString& modelFile, EModelType format) nogil except +ProcessException
-    cdef TFullModel ReadZeroCopyModel(const void* binaryBuffer, size_t binaryBufferSize) nogil except +ProcessException
+    cdef TFullModel ReadModel(const TString& modelFile, EModelType format) except +ProcessException nogil
+    cdef TFullModel ReadZeroCopyModel(const void* binaryBuffer, size_t binaryBufferSize) except +ProcessException nogil
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
-    cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
+    cdef TFullModel DeserializeModel(const TString& serializeModelString) except +ProcessException nogil
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
-    void SetModelExternalFeatureNames(const TVector[TString]& featureNames, TFullModel* model) nogil except +ProcessException
-    cdef void SaveModelBorders(const TString& file, const TFullModel& model) nogil except +ProcessException
-    cdef THashMap[int, ENanValueTreatment] GetNanTreatments(const TFullModel& model) nogil except +ProcessException
+    void SetModelExternalFeatureNames(const TVector[TString]& featureNames, TFullModel* model) except +ProcessException nogil
+    cdef void SaveModelBorders(const TString& file, const TFullModel& model) except +ProcessException nogil
+    cdef THashMap[int, ENanValueTreatment] GetNanTreatments(const TFullModel& model) except +ProcessException nogil

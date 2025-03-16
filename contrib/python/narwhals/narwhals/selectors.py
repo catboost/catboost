@@ -5,6 +5,7 @@ from typing import Any
 from typing import Iterable
 from typing import NoReturn
 
+from narwhals._expression_parsing import ExprMetadata
 from narwhals.expr import Expr
 from narwhals.utils import flatten
 
@@ -19,12 +20,7 @@ if TYPE_CHECKING:
 
 class Selector(Expr):
     def _to_expr(self: Self) -> Expr:
-        return Expr(
-            to_compliant_expr=self._to_compliant_expr,
-            is_order_dependent=self._is_order_dependent,
-            changes_length=self._changes_length,
-            aggregates=self._aggregates,
-        )
+        return Expr(self._to_compliant_expr, self._metadata)
 
     def __add__(self: Self, other: Any) -> Expr:  # type: ignore[override]
         if isinstance(other, Selector):
@@ -98,11 +94,9 @@ def by_dtype(*dtypes: DType | type[DType] | Iterable[DType | type[DType]]) -> Se
         a: [[2,4]]
         c: [[8.2,4.6]]
     """
+    flattened = flatten(dtypes)
     return Selector(
-        lambda plx: plx.selectors.by_dtype(flatten(dtypes)),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        lambda plx: plx.selectors.by_dtype(flattened), ExprMetadata.selector()
     )
 
 
@@ -167,12 +161,7 @@ def matches(pattern: str) -> Selector:
         bar: [[123,456]]
         baz: [[2,5.5]]
     """
-    return Selector(
-        lambda plx: plx.selectors.matches(pattern),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
-    )
+    return Selector(lambda plx: plx.selectors.matches(pattern), ExprMetadata.selector())
 
 
 def numeric() -> Selector:
@@ -228,12 +217,7 @@ def numeric() -> Selector:
         a: [[2,4]]
         c: [[8.2,4.6]]
     """
-    return Selector(
-        lambda plx: plx.selectors.numeric(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
-    )
+    return Selector(lambda plx: plx.selectors.numeric(), ExprMetadata.selector())
 
 
 def boolean() -> Selector:
@@ -286,12 +270,7 @@ def boolean() -> Selector:
         ----
         c: [[false,true]]
     """
-    return Selector(
-        lambda plx: plx.selectors.boolean(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
-    )
+    return Selector(lambda plx: plx.selectors.boolean(), ExprMetadata.selector())
 
 
 def string() -> Selector:
@@ -344,12 +323,7 @@ def string() -> Selector:
         ----
         b: [["x","y"]]
     """
-    return Selector(
-        lambda plx: plx.selectors.string(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
-    )
+    return Selector(lambda plx: plx.selectors.string(), ExprMetadata.selector())
 
 
 def categorical() -> Selector:
@@ -407,12 +381,7 @@ def categorical() -> Selector:
         ["x","y"]  -- indices:
         [0,1]]
     """
-    return Selector(
-        lambda plx: plx.selectors.categorical(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
-    )
+    return Selector(lambda plx: plx.selectors.categorical(), ExprMetadata.selector())
 
 
 def all() -> Selector:
@@ -469,12 +438,7 @@ def all() -> Selector:
         b: [["x","y"]]
         c: [[false,true]]
     """
-    return Selector(
-        lambda plx: plx.selectors.all(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
-    )
+    return Selector(lambda plx: plx.selectors.all(), ExprMetadata.selector())
 
 
 def datetime(
@@ -534,9 +498,7 @@ def datetime(
     """
     return Selector(
         lambda plx: plx.selectors.datetime(time_unit=time_unit, time_zone=time_zone),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
+        ExprMetadata.selector(),
     )
 
 

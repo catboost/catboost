@@ -6,13 +6,14 @@ from typing import Iterable
 from typing import Iterator
 from typing import Literal
 from typing import Sequence
+from typing import cast
 from typing import overload
 
 from narwhals._pandas_like.series_cat import PandasLikeSeriesCatNamespace
 from narwhals._pandas_like.series_dt import PandasLikeSeriesDateTimeNamespace
 from narwhals._pandas_like.series_list import PandasLikeSeriesListNamespace
 from narwhals._pandas_like.series_str import PandasLikeSeriesStringNamespace
-from narwhals._pandas_like.utils import broadcast_align_and_extract_native
+from narwhals._pandas_like.utils import align_and_extract_native
 from narwhals._pandas_like.utils import get_dtype_backend
 from narwhals._pandas_like.utils import narwhals_to_native_dtype
 from narwhals._pandas_like.utils import native_series_from_iterable
@@ -30,15 +31,17 @@ from narwhals.utils import validate_backend_version
 
 if TYPE_CHECKING:
     from types import ModuleType
+    from typing import Hashable
 
     import pandas as pd
     import polars as pl
-    import pyarrow as pa
     from typing_extensions import Self
 
+    from narwhals._arrow.typing import ArrowArray
     from narwhals._pandas_like.dataframe import PandasLikeDataFrame
     from narwhals.dtypes import DType
     from narwhals.typing import _1DArray
+    from narwhals.typing import _AnyDArray
     from narwhals.utils import Version
 
 PANDAS_TO_NUMPY_DTYPE_NO_MISSING = {
@@ -102,6 +105,12 @@ class PandasLikeSeries(CompliantSeries):
         self._backend_version = backend_version
         self._version = version
         validate_backend_version(self._implementation, self._backend_version)
+        # Flag which indicates if, in the final step before applying an operation,
+        # the single value behind the PandasLikeSeries should be extract and treated
+        # as a Scalar. For example, in `nw.col('a') - nw.lit(3)`, the latter would
+        # become a Series of length 1. Rather that doing a full broadcast so it matches
+        # the length of the whole dataframe, we just extract the scalar.
+        self._broadcast = False
 
     def __native_namespace__(self: Self) -> ModuleType:
         if self._implementation in {
@@ -172,7 +181,7 @@ class PandasLikeSeries(CompliantSeries):
 
     @property
     def name(self: Self) -> str:
-        return self._name  # type: ignore[no-any-return]
+        return self._name
 
     @property
     def dtype(self: Self) -> DType:
@@ -220,7 +229,7 @@ class PandasLikeSeries(CompliantSeries):
         if isinstance(values, self.__class__):
             # .copy() is necessary in some pre-2.2 versions of pandas to avoid
             # `values` also getting modified (!)
-            _, values = broadcast_align_and_extract_native(self, values)
+            _, values = align_and_extract_native(self, values)
             values = set_index(
                 values.copy(),
                 self._native_series.index[indices],
@@ -271,8 +280,8 @@ class PandasLikeSeries(CompliantSeries):
 
     def to_list(self: Self) -> list[Any]:
         if self._implementation is Implementation.CUDF:
-            return self._native_series.to_arrow().to_pylist()  # type: ignore[no-any-return]
-        return self._native_series.to_list()  # type: ignore[no-any-return]
+            return self._native_series.to_arrow().to_pylist()
+        return self._native_series.to_list()
 
     def is_between(
         self: Self,
@@ -281,8 +290,8 @@ class PandasLikeSeries(CompliantSeries):
         closed: Literal["left", "right", "none", "both"],
     ) -> PandasLikeSeries:
         ser = self._native_series
-        _, lower_bound = broadcast_align_and_extract_native(self, lower_bound)
-        _, upper_bound = broadcast_align_and_extract_native(self, upper_bound)
+        _, lower_bound = align_and_extract_native(self, lower_bound)
+        _, upper_bound = align_and_extract_native(self, upper_bound)
         if closed == "left":
             res = ser.ge(lower_bound) & ser.lt(upper_bound)
         elif closed == "right":
@@ -297,10 +306,6 @@ class PandasLikeSeries(CompliantSeries):
 
     def is_in(self: Self, other: Any) -> PandasLikeSeries:
         ser = self._native_series
-        if isinstance(other, self.__class__):
-            # We can't use `broadcast_and_align` because we don't want to align here.
-            # `other` is just a sequence that all rows from `self` are checked against.
-            other = other._native_series
         res = ser.isin(other)
         return self._from_native_series(res)
 
@@ -312,167 +317,141 @@ class PandasLikeSeries(CompliantSeries):
     def arg_min(self: Self) -> int:
         ser = self._native_series
         if self._implementation is Implementation.PANDAS and self._backend_version < (1,):
-            return ser.to_numpy().argmin()  # type: ignore[no-any-return]
-        return ser.argmin()  # type: ignore[no-any-return]
+            return ser.to_numpy().argmin()
+        return ser.argmin()
 
     def arg_max(self: Self) -> int:
         ser = self._native_series
         if self._implementation is Implementation.PANDAS and self._backend_version < (1,):
-            return ser.to_numpy().argmax()  # type: ignore[no-any-return]
-        return ser.argmax()  # type: ignore[no-any-return]
+            return ser.to_numpy().argmax()
+        return ser.argmax()
 
     # Binary comparisons
 
     def filter(self: Self, other: Any) -> PandasLikeSeries:
         if not (isinstance(other, list) and all(isinstance(x, bool) for x in other)):
-            ser, other = broadcast_align_and_extract_native(self, other)
+            _, other_native = align_and_extract_native(self, other)
         else:
-            ser = self._native_series
-        return self._from_native_series(ser.loc[other]).alias(ser.name)
+            other_native = other
+        return self._from_native_series(self._native_series.loc[other_native]).alias(
+            self.name
+        )
 
     def __eq__(self: Self, other: object) -> PandasLikeSeries:  # type: ignore[override]
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__eq__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser == other).alias(self.name)
 
     def __ne__(self: Self, other: object) -> PandasLikeSeries:  # type: ignore[override]
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__ne__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser != other).alias(self.name)
 
     def __ge__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__ge__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser >= other).alias(self.name)
 
     def __gt__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__gt__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser > other).alias(self.name)
 
     def __le__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__le__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser <= other).alias(self.name)
 
     def __lt__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__lt__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser < other).alias(self.name)
 
     def __and__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__and__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser & other).alias(self.name)
 
     def __rand__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
+        ser, other = align_and_extract_native(self, other)
+        ser = cast("pd.Series[Any]", ser)
         return self._from_native_series(
             ser.__and__(other),
-        ).alias(ser.name)
+        ).alias(self.name)
 
     def __or__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__or__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser | other).alias(self.name)
 
     def __ror__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
+        ser, other = align_and_extract_native(self, other)
+        ser = cast("pd.Series[Any]", ser)
         return self._from_native_series(
             ser.__or__(other),
-        ).alias(ser.name)
+        ).alias(self.name)
 
     def __add__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__add__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser + other).alias(self.name)
 
     def __radd__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
+        _, other_native = align_and_extract_native(self, other)
         return self._from_native_series(
-            ser.__radd__(other),
-        ).alias(ser.name)
+            self._native_series.__radd__(other_native),
+        ).alias(self.name)
 
     def __sub__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__sub__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser - other).alias(self.name)
 
     def __rsub__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
+        _, other_native = align_and_extract_native(self, other)
         return self._from_native_series(
-            ser.__rsub__(other),
-        ).alias(ser.name)
+            self._native_series.__rsub__(other_native),
+        ).alias(self.name)
 
     def __mul__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__mul__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser * other).alias(self.name)
 
     def __rmul__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
+        _, other_native = align_and_extract_native(self, other)
         return self._from_native_series(
-            ser.__rmul__(other),
-        ).alias(ser.name)
+            self._native_series.__rmul__(other_native),
+        ).alias(self.name)
 
     def __truediv__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__truediv__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser / other).alias(self.name)
 
     def __rtruediv__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
+        _, other_native = align_and_extract_native(self, other)
         return self._from_native_series(
-            ser.__rtruediv__(other),
-        ).alias(ser.name)
+            self._native_series.__rtruediv__(other_native),
+        ).alias(self.name)
 
     def __floordiv__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__floordiv__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser // other).alias(self.name)
 
     def __rfloordiv__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
+        _, other_native = align_and_extract_native(self, other)
         return self._from_native_series(
-            ser.__rfloordiv__(other),
-        ).alias(ser.name)
+            self._native_series.__rfloordiv__(other_native),
+        ).alias(self.name)
 
     def __pow__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__pow__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser**other).alias(self.name)
 
     def __rpow__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
+        _, other_native = align_and_extract_native(self, other)
         return self._from_native_series(
-            ser.__rpow__(other),
-        ).alias(ser.name)
+            self._native_series.__rpow__(other_native),
+        ).alias(self.name)
 
     def __mod__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
-        return self._from_native_series(
-            ser.__mod__(other),
-        ).alias(ser.name)
+        ser, other = align_and_extract_native(self, other)
+        return self._from_native_series(ser % other).alias(self.name)
 
     def __rmod__(self: Self, other: Any) -> PandasLikeSeries:
-        ser, other = broadcast_align_and_extract_native(self, other)
+        _, other_native = align_and_extract_native(self, other)
         return self._from_native_series(
-            ser.__rmod__(other),
-        ).alias(ser.name)
+            self._native_series.__rmod__(other_native),
+        ).alias(self.name)
 
     # Unary
 
@@ -483,10 +462,10 @@ class PandasLikeSeries(CompliantSeries):
     # Reductions
 
     def any(self: Self) -> bool:
-        return self._native_series.any()  # type: ignore[no-any-return]
+        return self._native_series.any()
 
     def all(self: Self) -> bool:
-        return self._native_series.all()  # type: ignore[no-any-return]
+        return self._native_series.all()
 
     def min(self: Self) -> Any:
         return self._native_series.min()
@@ -495,25 +474,25 @@ class PandasLikeSeries(CompliantSeries):
         return self._native_series.max()
 
     def sum(self: Self) -> float:
-        return self._native_series.sum()  # type: ignore[no-any-return]
+        return self._native_series.sum()
 
     def count(self: Self) -> int:
-        return self._native_series.count()  # type: ignore[no-any-return]
+        return self._native_series.count()
 
     def mean(self: Self) -> float:
-        return self._native_series.mean()  # type: ignore[no-any-return]
+        return self._native_series.mean()
 
     def median(self: Self) -> float:
         if not self.dtype.is_numeric():
             msg = "`median` operation not supported for non-numeric input type."
             raise InvalidOperationError(msg)
-        return self._native_series.median()  # type: ignore[no-any-return]
+        return self._native_series.median()
 
     def std(self: Self, *, ddof: int) -> float:
-        return self._native_series.std(ddof=ddof)  # type: ignore[no-any-return]
+        return self._native_series.std(ddof=ddof)
 
     def var(self: Self, *, ddof: int) -> float:
-        return self._native_series.var(ddof=ddof)  # type: ignore[no-any-return]
+        return self._native_series.var(ddof=ddof)
 
     def skew(self: Self) -> float | None:
         ser_not_null = self._native_series.dropna()
@@ -566,7 +545,7 @@ class PandasLikeSeries(CompliantSeries):
         return self._from_native_series(self._native_series.dropna())
 
     def n_unique(self: Self) -> int:
-        return self._native_series.nunique(dropna=False)  # type: ignore[no-any-return]
+        return self._native_series.nunique(dropna=False)
 
     def sample(
         self: Self,
@@ -654,7 +633,7 @@ class PandasLikeSeries(CompliantSeries):
             )
         ).alias(self.name)
 
-    def alias(self: Self, name: str) -> Self:
+    def alias(self: Self, name: str | Hashable) -> Self:
         if name != self.name:
             return self._from_native_series(
                 rename(
@@ -677,7 +656,7 @@ class PandasLikeSeries(CompliantSeries):
         # https://numpy.org/doc/stable/reference/generated/numpy.ndarray.__array__.html
         copy = copy or self._implementation is Implementation.CUDF
         dtypes = import_dtypes_module(self._version)
-        if self.dtype == dtypes.Datetime and self.dtype.time_zone is not None:  # type: ignore[attr-defined]
+        if isinstance(self.dtype, dtypes.Datetime) and self.dtype.time_zone is not None:
             s = self.dt.convert_time_zone("UTC").dt.replace_time_zone(None)._native_series
         else:
             s = self._native_series
@@ -702,7 +681,7 @@ class PandasLikeSeries(CompliantSeries):
             )
         return s.to_numpy(dtype=dtype, copy=copy)
 
-    def to_pandas(self: Self) -> pd.Series:
+    def to_pandas(self: Self) -> pd.Series[Any]:
         if self._implementation is Implementation.PANDAS:
             return self._native_series
         elif self._implementation is Implementation.CUDF:  # pragma: no cover
@@ -731,7 +710,7 @@ class PandasLikeSeries(CompliantSeries):
         ).alias(self.name)
 
     def null_count(self: Self) -> int:
-        return self._native_series.isna().sum()  # type: ignore[no-any-return]
+        return self._native_series.isna().sum()
 
     def is_first_distinct(self: Self) -> Self:
         return self._from_native_series(
@@ -749,9 +728,9 @@ class PandasLikeSeries(CompliantSeries):
             raise TypeError(msg)
 
         if descending:
-            return self._native_series.is_monotonic_decreasing  # type: ignore[no-any-return]
+            return self._native_series.is_monotonic_decreasing
         else:
-            return self._native_series.is_monotonic_increasing  # type: ignore[no-any-return]
+            return self._native_series.is_monotonic_increasing
 
     def value_counts(
         self: Self,
@@ -791,11 +770,12 @@ class PandasLikeSeries(CompliantSeries):
         quantile: float,
         interpolation: Literal["nearest", "higher", "lower", "midpoint", "linear"],
     ) -> float:
-        return self._native_series.quantile(q=quantile, interpolation=interpolation)  # type: ignore[no-any-return]
+        return self._native_series.quantile(q=quantile, interpolation=interpolation)
 
     def zip_with(self: Self, mask: Any, other: Any) -> PandasLikeSeries:
-        ser, mask = broadcast_align_and_extract_native(self, mask)
-        _, other = broadcast_align_and_extract_native(self, other)
+        ser = self._native_series
+        _, mask = align_and_extract_native(self, mask)
+        _, other = align_and_extract_native(self, other)
         res = ser.where(mask, other)
         return self._from_native_series(res)
 
@@ -855,14 +835,14 @@ class PandasLikeSeries(CompliantSeries):
     def clip(
         self: Self, lower_bound: Self | Any | None, upper_bound: Self | Any | None
     ) -> Self:
-        _, lower_bound = broadcast_align_and_extract_native(self, lower_bound)
-        _, upper_bound = broadcast_align_and_extract_native(self, upper_bound)
+        _, lower_bound = align_and_extract_native(self, lower_bound)
+        _, upper_bound = align_and_extract_native(self, upper_bound)
         kwargs = {"axis": 0} if self._implementation is Implementation.MODIN else {}
         return self._from_native_series(
             self._native_series.clip(lower_bound, upper_bound, **kwargs)
         )
 
-    def to_arrow(self: Self) -> pa.Array:
+    def to_arrow(self: Self) -> ArrowArray:
         if self._implementation is Implementation.CUDF:
             return self._native_series.to_arrow()
 
@@ -966,7 +946,7 @@ class PandasLikeSeries(CompliantSeries):
         yield from self._native_series.__iter__()
 
     def __contains__(self: Self, other: Any) -> bool:
-        return (  # type: ignore[no-any-return]
+        return (
             self._native_series.isna().any()
             if other is None
             else (self._native_series == other).any()
@@ -1039,7 +1019,7 @@ class PandasLikeSeries(CompliantSeries):
         from narwhals._pandas_like.dataframe import PandasLikeDataFrame
 
         ns = self.__native_namespace__()
-        data: dict[str, Sequence[int | float | str]]
+        data: dict[str, Sequence[int | float | str] | _AnyDArray]
 
         if bin_count == 0 or (bins is not None and len(bins) <= 1):
             data = {}
@@ -1056,15 +1036,10 @@ class PandasLikeSeries(CompliantSeries):
             )
         elif self._native_series.count() < 1:
             if bins is not None:
-                data = {
-                    "breakpoint": bins[1:],
-                    "count": zeros(shape=len(bins) - 1),
-                }
+                data = {"breakpoint": bins[1:], "count": zeros(shape=len(bins) - 1)}
             else:
-                data = {
-                    "breakpoint": linspace(0, 1, bin_count),
-                    "count": zeros(shape=bin_count),
-                }
+                count = cast("int", bin_count)
+                data = {"breakpoint": linspace(0, 1, count), "count": zeros(shape=count)}
 
             if not include_breakpoint:
                 del data["breakpoint"]

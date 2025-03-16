@@ -51,7 +51,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
 
         For `aarch64` CPU archirecture the minimum version is 18.1
 
-        For other CPU architectures the minimum version is 14
+        For other CPU architectures the minimum version is 16
 
       - [`lld` linker](https://lld.llvm.org/), version 7+
 
@@ -85,7 +85,7 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
         - Microsoft Visual Studio 2022 with `clang-cl` compiler with version 14+ installed (can be selected in `Individual components` pane of the Visual Studio Installer for Visual Studio 2022). See details [here](https://learn.microsoft.com/en-us/cpp/build/clang-support-msbuild?view=msvc-170)
 
       - for builds with CUDA support:
-        - Microsoft Visual Studio 2019 or 2022 with MSVC v142 -  C++ x64/x86 build tools version v14.28 - 16.x or v14.29 - 16.x (can be selected in `Individual components` pane of the Visual Studio Installer for a paricular Visual Studio version)
+        - Microsoft Visual Studio 2019 or 2022 with MSVC v142 -  C++ x64/x86 build tools version v14.28 - 16.x or v14.29 - 16.x (can be selected in `Individual components` pane of the Visual Studio Installer for a particular Visual Studio version)
 
       For revisions before [8698718](https://github.com/catboost/catboost/commit/86987189bd2d016ea1241a98d78319c0e900b99c) builds without CUDA required Microsoft Visual Studio 2022 with `clang-cl` compiler with versions 14 - 18.
 
@@ -156,3 +156,15 @@ For building {{ product }} using Ya Make see [here](../concepts/build-from-sourc
   Note that they are specific to [CPython Python implementation](https://en.wikipedia.org/wiki/CPython). {{ product }} does not currently support other Python implementations like PyPy, Jython or IronPython.
 
   One convenient way to install different Python versions with development artifacts in one step is to use [pyenv](https://github.com/pyenv/pyenv) (and its variant for Windows - [pyenv-win](https://github.com/pyenv-win/pyenv-win))
+
+### Cython (only for Python package)
+
+  [Cython](https://cython.org/) is required to build the python package.
+
+  `cython` command should be available from the command line.
+
+  {% cut "Previous requirements" %}
+
+  Before revision [7b76b2c](https://github.com/catboost/catboost/commit/7b76b2cbece906fbc87d1187410d60fde8747d57) an additional installation of Cython had not been needed because [internal Cython from contrib](https://github.com/catboost/catboost/tree/30a96912bf8c0976a3450132e79d7dfa71dfda26/contrib/tools/cython) had been used.
+
+  {% endcut %}

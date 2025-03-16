@@ -94,7 +94,7 @@ class IbisLazyFrame:
         return self
 
     def __native_namespace__(self: Self) -> ModuleType:
-        return get_ibis()  # type: ignore[no-any-return]
+        return get_ibis()
 
     def __getitem__(self, item: str) -> IbisInterchangeSeries:
         from narwhals._ibis.series import IbisInterchangeSeries
@@ -110,10 +110,12 @@ class IbisLazyFrame:
     def simple_select(self, *column_names: str) -> Self:
         return self._from_native_frame(self._native_frame.select(s.cols(*column_names)))
 
+    def aggregate(self: Self, *exprs: Any) -> Self:
+        raise NotImplementedError
+
     def select(
         self: Self,
         *exprs: Any,
-        **named_exprs: Any,
     ) -> Self:
         msg = (
             "`select`-ing not by name is not supported for Ibis backend.\n\n"

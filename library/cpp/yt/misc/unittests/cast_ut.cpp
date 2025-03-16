@@ -87,8 +87,27 @@ TEST(TCastTest, CheckedEnumCast)
     EXPECT_EQ(CheckedEnumCast<ELangsWithUnknown>(0x41), ELangsWithUnknown::Unknown | ELangsWithUnknown::Cpp);
 }
 
+TEST(TCastTest, IntegralCasts)
+{
+    static_assert(CanFitSubtype<i64, i32>());
+    static_assert(CanFitSubtype<ui64, ui32>());
+    static_assert(CanFitSubtype<ui64, ui64>());
+    static_assert(!CanFitSubtype<ui64, i32>());
+    static_assert(!CanFitSubtype<i32, i64>());
+
+    static_assert(IsInIntegralRange<ui32>(0));
+    static_assert(IsInIntegralRange<ui32>(1ull));
+    static_assert(!IsInIntegralRange<ui32>(-1));
+    static_assert(!IsInIntegralRange<i32>(std::numeric_limits<i64>::max()));
+
+    static_assert(IsInIntegralRange<i32>(1ull));
+    static_assert(IsInIntegralRange<i32>(-1));
+    static_assert(!IsInIntegralRange<ui32>(-1));
+    static_assert(!IsInIntegralRange<ui32>(std::numeric_limits<i64>::max()));
+    static_assert(IsInIntegralRange<ui64>(std::numeric_limits<i64>::max()));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
 } // namespace NYT
-

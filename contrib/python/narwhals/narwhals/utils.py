@@ -5,6 +5,7 @@ import re
 from datetime import timezone
 from enum import Enum
 from enum import auto
+from inspect import getattr_static
 from secrets import token_hex
 from typing import TYPE_CHECKING
 from typing import Any
@@ -13,6 +14,7 @@ from typing import Sequence
 from typing import TypeVar
 from typing import Union
 from typing import cast
+from typing import overload
 from warnings import warn
 
 from narwhals.dependencies import get_cudf
@@ -38,6 +40,7 @@ from narwhals.exceptions import InvalidOperationError
 
 if TYPE_CHECKING:
     from types import ModuleType
+    from typing import AbstractSet as Set
     from typing import Protocol
 
     import pandas as pd
@@ -50,6 +53,7 @@ if TYPE_CHECKING:
     from narwhals.series import Series
     from narwhals.typing import CompliantDataFrame
     from narwhals.typing import CompliantExpr
+    from narwhals.typing import CompliantFrameT_contra
     from narwhals.typing import CompliantLazyFrame
     from narwhals.typing import CompliantSeries
     from narwhals.typing import CompliantSeriesT_co
@@ -64,9 +68,39 @@ if TYPE_CHECKING:
         "FrameOrSeriesT", bound=Union[LazyFrame[Any], DataFrame[Any], Series[Any]]
     )
     _T = TypeVar("_T")
+    _T1 = TypeVar("_T1")
+    _T2 = TypeVar("_T2")
+    _T3 = TypeVar("_T3")
 
     class _SupportsVersion(Protocol):
         __version__: str
+
+    class _StoresImplementation(Protocol):
+        _implementation: Implementation
+        """Implementation of native object (pandas, Polars, PyArrow, ...)."""
+
+    class _StoresBackendVersion(Protocol):
+        _backend_version: tuple[int, ...]
+        """Version tuple for a native package."""
+
+    class _StoresVersion(Protocol):
+        _version: Version
+        """Narwhals API version (V1 or MAIN)."""
+
+    class _LimitedContext(_StoresBackendVersion, _StoresVersion, Protocol):
+        """Provides 2 attributes.
+
+        - `_backend_version`
+        - `_version`
+        """
+
+    class _FullContext(_StoresImplementation, _LimitedContext, Protocol):  # noqa: PYI046
+        """Provides 3 attributes.
+
+        - `_implementation`
+        - `_backend_version`
+        - `_version`
+        """
 
 
 class Version(Enum):
@@ -180,23 +214,23 @@ class Implementation(Enum):
         if self is Implementation.PANDAS:
             import pandas as pd  # ignore-banned-import
 
-            return pd  # type: ignore[no-any-return]
+            return pd
         if self is Implementation.MODIN:
             import modin.pandas
 
-            return modin.pandas  # type: ignore[no-any-return]
+            return modin.pandas
         if self is Implementation.CUDF:  # pragma: no cover
             import cudf  # ignore-banned-import
 
-            return cudf  # type: ignore[no-any-return]
+            return cudf
         if self is Implementation.PYARROW:
             import pyarrow as pa  # ignore-banned-import
 
-            return pa  # type: ignore[no-any-return]
+            return pa
         if self is Implementation.PYSPARK:  # pragma: no cover
             import pyspark.sql
 
-            return pyspark.sql  # type: ignore[no-any-return]
+            return pyspark.sql
         if self is Implementation.POLARS:
             import polars as pl  # ignore-banned-import
 
@@ -204,12 +238,12 @@ class Implementation(Enum):
         if self is Implementation.DASK:
             import dask.dataframe  # ignore-banned-import
 
-            return dask.dataframe  # type: ignore[no-any-return]
+            return dask.dataframe
 
         if self is Implementation.DUCKDB:
             import duckdb  # ignore-banned-import
 
-            return duckdb  # type: ignore[no-any-return]
+            return duckdb
         msg = "Not supported Implementation"  # pragma: no cover
         raise AssertionError(msg)
 
@@ -474,7 +508,49 @@ def parse_version(version: str | ModuleType | _SupportsVersion) -> tuple[int, ..
     return tuple(int(re.sub(r"\D", "", v)) for v in version_str.split("."))
 
 
-def isinstance_or_issubclass(obj_or_cls: object | type, cls_or_tuple: Any) -> bool:
+@overload
+def isinstance_or_issubclass(
+    obj_or_cls: type, cls_or_tuple: type[_T]
+) -> TypeIs[type[_T]]: ...
+
+
+@overload
+def isinstance_or_issubclass(
+    obj_or_cls: object | type, cls_or_tuple: type[_T]
+) -> TypeIs[_T | type[_T]]: ...
+
+
+@overload
+def isinstance_or_issubclass(
+    obj_or_cls: type, cls_or_tuple: tuple[type[_T1], type[_T2]]
+) -> TypeIs[type[_T1 | _T2]]: ...
+
+
+@overload
+def isinstance_or_issubclass(
+    obj_or_cls: object | type, cls_or_tuple: tuple[type[_T1], type[_T2]]
+) -> TypeIs[_T1 | _T2 | type[_T1 | _T2]]: ...
+
+
+@overload
+def isinstance_or_issubclass(
+    obj_or_cls: type, cls_or_tuple: tuple[type[_T1], type[_T2], type[_T3]]
+) -> TypeIs[type[_T1 | _T2 | _T3]]: ...
+
+
+@overload
+def isinstance_or_issubclass(
+    obj_or_cls: object | type, cls_or_tuple: tuple[type[_T1], type[_T2], type[_T3]]
+) -> TypeIs[_T1 | _T2 | _T3 | type[_T1 | _T2 | _T3]]: ...
+
+
+@overload
+def isinstance_or_issubclass(
+    obj_or_cls: Any, cls_or_tuple: tuple[type, ...]
+) -> TypeIs[Any]: ...
+
+
+def isinstance_or_issubclass(obj_or_cls: Any, cls_or_tuple: Any) -> bool:
     from narwhals.dtypes import DType
 
     if isinstance(obj_or_cls, DType):
@@ -544,7 +620,7 @@ def maybe_align_index(
     ) and isinstance(getattr(rhs_any, "_compliant_frame", None), PandasLikeDataFrame):
         _validate_index(lhs_any._compliant_frame._native_frame.index)
         _validate_index(rhs_any._compliant_frame._native_frame.index)
-        return lhs_any._from_compliant_dataframe(  # type: ignore[no-any-return]
+        return lhs_any._from_compliant_dataframe(
             lhs_any._compliant_frame._from_native_frame(
                 lhs_any._compliant_frame._native_frame.loc[
                     rhs_any._compliant_frame._native_frame.index
@@ -556,7 +632,7 @@ def maybe_align_index(
     ) and isinstance(getattr(rhs_any, "_compliant_series", None), PandasLikeSeries):
         _validate_index(lhs_any._compliant_frame._native_frame.index)
         _validate_index(rhs_any._compliant_series._native_series.index)
-        return lhs_any._from_compliant_dataframe(  # type: ignore[no-any-return]
+        return lhs_any._from_compliant_dataframe(
             lhs_any._compliant_frame._from_native_frame(
                 lhs_any._compliant_frame._native_frame.loc[
                     rhs_any._compliant_series._native_series.index
@@ -568,7 +644,7 @@ def maybe_align_index(
     ) and isinstance(getattr(rhs_any, "_compliant_frame", None), PandasLikeDataFrame):
         _validate_index(lhs_any._compliant_series._native_series.index)
         _validate_index(rhs_any._compliant_frame._native_frame.index)
-        return lhs_any._from_compliant_series(  # type: ignore[no-any-return]
+        return lhs_any._from_compliant_series(
             lhs_any._compliant_series._from_native_series(
                 lhs_any._compliant_series._native_series.loc[
                     rhs_any._compliant_frame._native_frame.index
@@ -580,7 +656,7 @@ def maybe_align_index(
     ) and isinstance(getattr(rhs_any, "_compliant_series", None), PandasLikeSeries):
         _validate_index(lhs_any._compliant_series._native_series.index)
         _validate_index(rhs_any._compliant_series._native_series.index)
-        return lhs_any._from_compliant_series(  # type: ignore[no-any-return]
+        return lhs_any._from_compliant_series(
             lhs_any._compliant_series._from_native_series(
                 lhs_any._compliant_series._native_series.loc[
                     rhs_any._compliant_series._native_series.index
@@ -699,7 +775,7 @@ def maybe_set_index(
         keys = column_names
 
     if is_pandas_like_dataframe(native_obj):
-        return df_any._from_compliant_dataframe(  # type: ignore[no-any-return]
+        return df_any._from_compliant_dataframe(
             df_any._compliant_frame._from_native_frame(native_obj.set_index(keys))
         )
     elif is_pandas_like_series(native_obj):
@@ -715,11 +791,11 @@ def maybe_set_index(
             implementation=obj._compliant_series._implementation,  # type: ignore[union-attr]
             backend_version=obj._compliant_series._backend_version,  # type: ignore[union-attr]
         )
-        return df_any._from_compliant_series(  # type: ignore[no-any-return]
+        return df_any._from_compliant_series(
             df_any._compliant_series._from_native_series(native_obj)
         )
     else:
-        return df_any  # type: ignore[no-any-return]
+        return df_any
 
 
 def maybe_reset_index(obj: FrameOrSeriesT) -> FrameOrSeriesT:
@@ -758,35 +834,36 @@ def maybe_reset_index(obj: FrameOrSeriesT) -> FrameOrSeriesT:
     if is_pandas_like_dataframe(native_obj):
         native_namespace = obj_any.__native_namespace__()
         if _has_default_index(native_obj, native_namespace):
-            return obj_any  # type: ignore[no-any-return]
-        return obj_any._from_compliant_dataframe(  # type: ignore[no-any-return]
+            return obj_any
+        return obj_any._from_compliant_dataframe(
             obj_any._compliant_frame._from_native_frame(native_obj.reset_index(drop=True))
         )
     if is_pandas_like_series(native_obj):
         native_namespace = obj_any.__native_namespace__()
         if _has_default_index(native_obj, native_namespace):
-            return obj_any  # type: ignore[no-any-return]
-        return obj_any._from_compliant_series(  # type: ignore[no-any-return]
+            return obj_any
+        return obj_any._from_compliant_series(
             obj_any._compliant_series._from_native_series(
                 native_obj.reset_index(drop=True)
             )
         )
-    return obj_any  # type: ignore[no-any-return]
+    return obj_any
 
 
 def _is_range_index(obj: Any, native_namespace: Any) -> TypeIs[pd.RangeIndex]:
     return isinstance(obj, native_namespace.RangeIndex)
 
 
+# NOTE: Remove ignore(s) after release w/ (https://github.com/pandas-dev/pandas-stubs/pull/1115)
 def _has_default_index(
-    native_frame_or_series: pd.Series | pd.DataFrame, native_namespace: Any
+    native_frame_or_series: pd.Series[Any] | pd.DataFrame, native_namespace: Any
 ) -> bool:
     index = native_frame_or_series.index
     return (
         _is_range_index(index, native_namespace)
-        and index.start == 0
-        and index.stop == len(index)
-        and index.step == 1
+        and index.start == 0  # type: ignore[comparison-overlap]
+        and index.stop == len(index)  # type: ignore[comparison-overlap]
+        and index.step == 1  # type: ignore[comparison-overlap]
     )
 
 
@@ -829,18 +906,18 @@ def maybe_convert_dtypes(
     obj_any = cast(Any, obj)
     native_obj = obj_any.to_native()
     if is_pandas_like_dataframe(native_obj):
-        return obj_any._from_compliant_dataframe(  # type: ignore[no-any-return]
+        return obj_any._from_compliant_dataframe(
             obj_any._compliant_frame._from_native_frame(
                 native_obj.convert_dtypes(*args, **kwargs)
             )
         )
     if is_pandas_like_series(native_obj):
-        return obj_any._from_compliant_series(  # type: ignore[no-any-return]
+        return obj_any._from_compliant_series(
             obj_any._compliant_series._from_native_series(
                 native_obj.convert_dtypes(*args, **kwargs)
             )
         )
-    return obj_any  # type: ignore[no-any-return]
+    return obj_any
 
 
 def scale_bytes(sz: int, unit: SizeUnit) -> int | float:
@@ -918,24 +995,24 @@ def is_ordered_categorical(series: Series[Any]) -> bool:
         isinstance(series._compliant_series, InterchangeSeries)
         and series.dtype == dtypes.Categorical
     ):
-        return series._compliant_series._native_series.describe_categorical[  # type: ignore[no-any-return]
-            "is_ordered"
-        ]
+        return series._compliant_series._native_series.describe_categorical["is_ordered"]
     if series.dtype == dtypes.Enum:
         return True
     if series.dtype != dtypes.Categorical:
         return False
     native_series = series.to_native()
     if is_polars_series(native_series):
-        return native_series.dtype.ordering == "physical"  # type: ignore[attr-defined, no-any-return]
+        return native_series.dtype.ordering == "physical"  # type: ignore[attr-defined]
     if is_pandas_series(native_series):
-        return native_series.cat.ordered  # type: ignore[no-any-return]
+        return bool(native_series.cat.ordered)
     if is_modin_series(native_series):  # pragma: no cover
-        return native_series.cat.ordered  # type: ignore[no-any-return]
+        return native_series.cat.ordered
     if is_cudf_series(native_series):  # pragma: no cover
-        return native_series.cat.ordered  # type: ignore[no-any-return]
+        return native_series.cat.ordered
     if is_pyarrow_chunked_array(native_series):
-        return native_series.type.ordered  # type: ignore[no-any-return]
+        from narwhals._arrow.utils import is_dictionary
+
+        return is_dictionary(native_series.type) and native_series.type.ordered
     # If it doesn't match any of the above, let's just play it safe and return False.
     return False  # pragma: no cover
 
@@ -1195,15 +1272,15 @@ def check_column_names_are_unique(columns: list[str]) -> None:
 def _parse_time_unit_and_time_zone(
     time_unit: TimeUnit | Iterable[TimeUnit] | None,
     time_zone: str | timezone | Iterable[str | timezone | None] | None,
-) -> tuple[set[str], set[str | None]]:
-    time_units = (
+) -> tuple[Set[TimeUnit], Set[str | None]]:
+    time_units: Set[TimeUnit] = (
         {"ms", "us", "ns", "s"}
         if time_unit is None
         else {time_unit}
         if isinstance(time_unit, str)
         else set(time_unit)
     )
-    time_zones: set[str | None] = (
+    time_zones: Set[str | None] = (
         {None}
         if time_zone is None
         else {str(time_zone)}
@@ -1214,36 +1291,38 @@ def _parse_time_unit_and_time_zone(
 
 
 def dtype_matches_time_unit_and_time_zone(
-    dtype: DType,
-    dtypes: DTypes,
-    time_units: set[str],
-    time_zones: set[str | None],
+    dtype: DType, dtypes: DTypes, time_units: Set[TimeUnit], time_zones: Set[str | None]
 ) -> bool:
     return (
-        (dtype == dtypes.Datetime)
-        and (dtype.time_unit in time_units)  # type: ignore[attr-defined]
+        isinstance(dtype, dtypes.Datetime)
+        and (dtype.time_unit in time_units)
         and (
-            dtype.time_zone in time_zones  # type: ignore[attr-defined]
-            or ("*" in time_zones and dtype.time_zone is not None)  # type: ignore[attr-defined]
+            dtype.time_zone in time_zones
+            or ("*" in time_zones and dtype.time_zone is not None)
         )
     )
 
 
+def _hasattr_static(obj: Any, attr: str) -> bool:
+    sentinel = object()
+    return getattr_static(obj, attr, sentinel) is not sentinel
+
+
 def is_compliant_dataframe(obj: Any) -> TypeIs[CompliantDataFrame]:
-    return hasattr(obj, "__narwhals_dataframe__")
+    return _hasattr_static(obj, "__narwhals_dataframe__")
 
 
 def is_compliant_lazyframe(obj: Any) -> TypeIs[CompliantLazyFrame]:
-    return hasattr(obj, "__narwhals_lazyframe__")
+    return _hasattr_static(obj, "__narwhals_lazyframe__")
 
 
 def is_compliant_series(obj: Any) -> TypeIs[CompliantSeries]:
-    return hasattr(obj, "__narwhals_series__")
+    return _hasattr_static(obj, "__narwhals_series__")
 
 
 def is_compliant_expr(
-    obj: CompliantExpr[CompliantSeriesT_co] | Any,
-) -> TypeIs[CompliantExpr[CompliantSeriesT_co]]:
+    obj: CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co] | Any,
+) -> TypeIs[CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co]]:
     return hasattr(obj, "__narwhals_expr__")
 
 

@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import re
-from enum import Enum
-from enum import auto
 from functools import lru_cache
 from typing import TYPE_CHECKING
 from typing import Any
@@ -18,47 +16,26 @@ if TYPE_CHECKING:
     from narwhals.dtypes import DType
     from narwhals.utils import Version
 
-
-class ExprKind(Enum):
-    """Describe which kind of expression we are dealing with.
-
-    Composition rule is:
-    - LITERAL vs LITERAL -> LITERAL
-    - TRANSFORM vs anything -> TRANSFORM
-    - anything vs TRANSFORM -> TRANSFORM
-    - all remaining cases -> AGGREGATION
-    """
-
-    LITERAL = auto()  # e.g. nw.lit(1)
-    AGGREGATION = auto()  # e.g. nw.col('a').mean()
-    TRANSFORM = auto()  # e.g. nw.col('a').round()
+lit = duckdb.ConstantExpression
+"""Alias for `duckdb.ConstantExpression`."""
 
 
-def maybe_evaluate(df: DuckDBLazyFrame, obj: Any, *, expr_kind: ExprKind) -> Any:
+def maybe_evaluate_expr(
+    df: DuckDBLazyFrame, obj: DuckDBExpr | object
+) -> duckdb.Expression:
     from narwhals._duckdb.expr import DuckDBExpr
 
     if isinstance(obj, DuckDBExpr):
         column_results = obj._call(df)
-        if len(column_results) != 1:  # pragma: no cover
+        if len(column_results) != 1:
             msg = "Multi-output expressions (e.g. `nw.all()` or `nw.col('a', 'b')`) not supported in this context"
-            raise NotImplementedError(msg)
-        column_result = column_results[0]
-        if obj._expr_kind is ExprKind.AGGREGATION and expr_kind is ExprKind.TRANSFORM:
-            # Returns scalar, but overall expression doesn't.
-            # Not yet supported.
-            msg = (
-                "Mixing expressions which aggregate and expressions which don't\n"
-                "is not yet supported by the DuckDB backend. Once they introduce\n"
-                "duckdb.WindowExpression to their Python API, we'll be able to\n"
-                "support this."
-            )
-            raise NotImplementedError(msg)
-        return column_result
+            raise ValueError(msg)
+        return column_results[0]
     return duckdb.ConstantExpression(obj)
 
 
-def parse_exprs_and_named_exprs(
-    df: DuckDBLazyFrame, /, *exprs: DuckDBExpr, **named_exprs: DuckDBExpr
+def parse_exprs(
+    df: DuckDBLazyFrame, /, *exprs: DuckDBExpr
 ) -> dict[str, duckdb.Expression]:
     native_results: dict[str, duckdb.Expression] = {}
     for expr in exprs:
@@ -70,12 +47,6 @@ def parse_exprs_and_named_exprs(
             msg = f"Internal error: got output names {output_names}, but only got {len(native_series_list)} results"
             raise AssertionError(msg)
         native_results.update(zip(output_names, native_series_list))
-    for col_alias, expr in named_exprs.items():
-        native_series_list = expr._call(df)
-        if len(native_series_list) != 1:  # pragma: no cover
-            msg = "Named expressions must return a single column"
-            raise ValueError(msg)
-        native_results[col_alias] = native_series_list[0]
     return native_results
 
 
@@ -179,44 +150,32 @@ def narwhals_to_native_dtype(dtype: DType | type[DType], version: Version) -> st
         msg = "Categorical not supported by DuckDB"
         raise NotImplementedError(msg)
     if isinstance_or_issubclass(dtype, dtypes.Datetime):
-        _time_unit = getattr(dtype, "time_unit", "us")
-        _time_zone = getattr(dtype, "time_zone", None)
+        _time_unit = dtype.time_unit
+        _time_zone = dtype.time_zone
         msg = "todo"
         raise NotImplementedError(msg)
     if isinstance_or_issubclass(dtype, dtypes.Duration):  # pragma: no cover
-        _time_unit = getattr(dtype, "time_unit", "us")
+        _time_unit = dtype.time_unit
         msg = "todo"
         raise NotImplementedError(msg)
     if isinstance_or_issubclass(dtype, dtypes.Date):  # pragma: no cover
         return "DATE"
     if isinstance_or_issubclass(dtype, dtypes.List):
-        inner = narwhals_to_native_dtype(dtype.inner, version)  # type: ignore[union-attr]
+        inner = narwhals_to_native_dtype(dtype.inner, version)
         return f"{inner}[]"
     if isinstance_or_issubclass(dtype, dtypes.Struct):  # pragma: no cover
         inner = ", ".join(
             f'"{field.name}" {narwhals_to_native_dtype(field.dtype, version)}'
-            for field in dtype.fields  # type: ignore[union-attr]
+            for field in dtype.fields
         )
         return f"STRUCT({inner})"
     if isinstance_or_issubclass(dtype, dtypes.Array):  # pragma: no cover
-        shape: tuple[int] = dtype.shape  # type: ignore[union-attr]
+        shape = dtype.shape
         duckdb_shape_fmt = "".join(f"[{item}]" for item in shape)
-        inner_dtype = dtype
+        inner_dtype: Any = dtype
         for _ in shape:
-            inner_dtype = inner_dtype.inner  # type: ignore[union-attr]
+            inner_dtype = inner_dtype.inner
         duckdb_inner = narwhals_to_native_dtype(inner_dtype, version)
         return f"{duckdb_inner}{duckdb_shape_fmt}"
     msg = f"Unknown dtype: {dtype}"  # pragma: no cover
     raise AssertionError(msg)
-
-
-def n_ary_operation_expr_kind(*args: DuckDBExpr | Any) -> ExprKind:
-    if all(
-        getattr(arg, "_expr_kind", ExprKind.LITERAL) is ExprKind.LITERAL for arg in args
-    ):
-        return ExprKind.LITERAL
-    if any(
-        getattr(arg, "_expr_kind", ExprKind.LITERAL) is ExprKind.TRANSFORM for arg in args
-    ):
-        return ExprKind.TRANSFORM
-    return ExprKind.AGGREGATION

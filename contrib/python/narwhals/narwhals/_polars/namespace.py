@@ -6,12 +6,12 @@ from typing import Any
 from typing import Iterable
 from typing import Literal
 from typing import Sequence
-from typing import cast
 from typing import overload
 
 import polars as pl
 
-from narwhals._expression_parsing import parse_into_exprs
+from narwhals._polars.expr import PolarsExpr
+from narwhals._polars.series import PolarsSeries
 from narwhals._polars.utils import extract_args_kwargs
 from narwhals._polars.utils import narwhals_to_native_dtype
 from narwhals.dtypes import DType
@@ -24,8 +24,6 @@ if TYPE_CHECKING:
 
     from narwhals._polars.dataframe import PolarsDataFrame
     from narwhals._polars.dataframe import PolarsLazyFrame
-    from narwhals._polars.expr import PolarsExpr
-    from narwhals._polars.typing import IntoPolarsExpr
     from narwhals.typing import TimeUnit
     from narwhals.utils import Version
 
@@ -50,6 +48,19 @@ class PolarsNamespace:
             )
 
         return func
+
+    def _create_compliant_series(self, value: Any) -> PolarsSeries:
+        return PolarsSeries(
+            pl.Series(value), backend_version=self._backend_version, version=self._version
+        )
+
+    def _create_expr_from_series(self, value: Any) -> PolarsExpr:
+        # Let Polars do its own thing.
+        return PolarsExpr(
+            value._native_series,
+            version=self._version,
+            backend_version=self._backend_version,
+        )
 
     def nth(self: Self, *indices: int) -> PolarsExpr:
         from narwhals._polars.expr import PolarsExpr
@@ -129,37 +140,32 @@ class PolarsNamespace:
             pl.lit(value), version=self._version, backend_version=self._backend_version
         )
 
-    def mean_horizontal(self: Self, *exprs: IntoPolarsExpr) -> PolarsExpr:
+    def mean_horizontal(self: Self, *exprs: PolarsExpr) -> PolarsExpr:
         from narwhals._polars.expr import PolarsExpr
-
-        polars_exprs = cast("list[PolarsExpr]", parse_into_exprs(*exprs, namespace=self))
 
         if self._backend_version < (0, 20, 8):
             return PolarsExpr(
-                pl.sum_horizontal(e._native_expr for e in polars_exprs)
-                / pl.sum_horizontal(1 - e.is_null()._native_expr for e in polars_exprs),
+                pl.sum_horizontal(e._native_expr for e in exprs)
+                / pl.sum_horizontal(1 - e.is_null()._native_expr for e in exprs),
                 version=self._version,
                 backend_version=self._backend_version,
             )
 
         return PolarsExpr(
-            pl.mean_horizontal(e._native_expr for e in polars_exprs),
+            pl.mean_horizontal(e._native_expr for e in exprs),
             version=self._version,
             backend_version=self._backend_version,
         )
 
     def concat_str(
         self: Self,
-        *exprs: IntoPolarsExpr,
+        *exprs: PolarsExpr,
         separator: str,
         ignore_nulls: bool,
     ) -> PolarsExpr:
         from narwhals._polars.expr import PolarsExpr
 
-        pl_exprs: list[pl.Expr] = [
-            expr._native_expr  # type: ignore[attr-defined]
-            for expr in parse_into_exprs(*exprs, namespace=self)
-        ]
+        pl_exprs: list[pl.Expr] = [expr._native_expr for expr in exprs]
 
         if self._backend_version < (0, 20, 6):
             null_mask = [expr.is_null() for expr in pl_exprs]

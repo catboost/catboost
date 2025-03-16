@@ -220,6 +220,9 @@ class PolarsDataFrame:
     def simple_select(self, *column_names: str) -> Self:
         return self._from_native_frame(self._native_frame.select(*column_names))
 
+    def aggregate(self: Self, *exprs: Any) -> Self:
+        return self.select(*exprs)  # type: ignore[no-any-return]
+
     def get_column(self: Self, name: str) -> PolarsSeries:
         from narwhals._polars.series import PolarsSeries
 
@@ -544,3 +547,6 @@ class PolarsLazyFrame:
 
     def simple_select(self, *column_names: str) -> Self:
         return self._from_native_frame(self._native_frame.select(*column_names))
+
+    def aggregate(self: Self, *exprs: Any) -> Self:
+        return self.select(*exprs)  # type: ignore[no-any-return]

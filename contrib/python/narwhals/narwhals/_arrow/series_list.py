@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class ArrowSeriesListNamespace:
     def __init__(self: Self, series: ArrowSeries) -> None:
-        self._arrow_series = series
+        self._arrow_series: ArrowSeries = series
 
     def len(self: Self) -> ArrowSeries:
         return self._arrow_series._from_native_series(

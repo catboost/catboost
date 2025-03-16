@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 import sys
 import os
 import json
@@ -6,7 +7,16 @@ import subprocess
 import tempfile
 import collections
 import optparse
-import pipes
+
+try:
+    import shlex
+    shlex_join = shlex.join
+except AttributeError:
+    import pipes
+
+    def shlex_join(cmd):
+        # equivalent to shlex.join() in python 3
+        return ' '.join(pipes.quote(part) for part in cmd)
 
 # Explicitly enable local imports
 # Don't forget to add imported scripts to inputs of the calling command!
@@ -16,10 +26,6 @@ import link_exe
 
 from process_whole_archive_option import ProcessWholeArchiveOption
 
-
-def shlex_join(cmd):
-    # equivalent to shlex.join() in python 3
-    return ' '.join(pipes.quote(part) for part in cmd)
 
 
 def parse_export_file(p):

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterator
@@ -14,11 +13,11 @@ import numpy as np
 from narwhals._expression_parsing import evaluate_into_exprs
 from narwhals._pandas_like.series import PANDAS_TO_NUMPY_DTYPE_MISSING
 from narwhals._pandas_like.series import PandasLikeSeries
-from narwhals._pandas_like.utils import broadcast_and_extract_dataframe_comparand
-from narwhals._pandas_like.utils import broadcast_series
+from narwhals._pandas_like.utils import align_series_full_broadcast
 from narwhals._pandas_like.utils import check_column_names_are_unique
 from narwhals._pandas_like.utils import convert_str_slice_to_int_slice
 from narwhals._pandas_like.utils import create_compliant_series
+from narwhals._pandas_like.utils import extract_dataframe_comparand
 from narwhals._pandas_like.utils import horizontal_concat
 from narwhals._pandas_like.utils import native_to_narwhals_dtype
 from narwhals._pandas_like.utils import object_native_to_narwhals_dtype
@@ -46,9 +45,9 @@ if TYPE_CHECKING:
     import polars as pl
     from typing_extensions import Self
 
+    from narwhals._pandas_like.expr import PandasLikeExpr
     from narwhals._pandas_like.group_by import PandasLikeGroupBy
     from narwhals._pandas_like.namespace import PandasLikeNamespace
-    from narwhals._pandas_like.typing import IntoPandasLikeExpr
     from narwhals.dtypes import DType
     from narwhals.typing import SizeUnit
     from narwhals.typing import _1DArray
@@ -58,7 +57,7 @@ if TYPE_CHECKING:
 from narwhals.typing import CompliantDataFrame
 from narwhals.typing import CompliantLazyFrame
 
-CLASSICAL_NUMPY_DTYPES = frozenset(
+CLASSICAL_NUMPY_DTYPES: frozenset[np.dtype[Any]] = frozenset(
     [
         np.dtype("float64"),
         np.dtype("float32"),
@@ -258,8 +257,8 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
 
         elif isinstance(item, tuple) and len(item) == 2:
             if isinstance(item[1], str):
-                item = (item[0], self._native_frame.columns.get_loc(item[1]))  # pyright: ignore[reportAssignmentType]
-                native_series = self._native_frame.iloc[item]
+                index = (item[0], self._native_frame.columns.get_loc(item[1]))
+                native_series = self._native_frame.iloc[index]
             elif isinstance(item[1], int):
                 native_series = self._native_frame.iloc[item]
             else:  # pragma: no cover
@@ -278,7 +277,7 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
                 return self._from_native_frame(
                     select_columns_by_name(
                         self._native_frame,
-                        cast("Sequence[str] | _1DArray", item),
+                        cast("list[str] | _1DArray", item),
                         self._backend_version,
                         self._implementation,
                     ),
@@ -308,7 +307,7 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
     # --- properties ---
     @property
     def columns(self: Self) -> list[str]:
-        return self._native_frame.columns.tolist()  # type: ignore[no-any-return]
+        return self._native_frame.columns.tolist()
 
     @overload
     def rows(
@@ -340,7 +339,7 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
 
             return list(self._native_frame.itertuples(index=False, name=None))
 
-        return self._native_frame.to_dict(orient="records")  # type: ignore[no-any-return]
+        return self._native_frame.to_dict(orient="records")
 
     def iter_rows(
         self: Self,
@@ -388,22 +387,19 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
             validate_column_names=False,
         )
 
-    def select(
-        self: Self,
-        *exprs: IntoPandasLikeExpr,
-        **named_exprs: IntoPandasLikeExpr,
-    ) -> Self:
-        new_series: list[PandasLikeSeries] = evaluate_into_exprs(
-            self, *exprs, **named_exprs
-        )
+    def aggregate(self: Self, *exprs: PandasLikeExpr) -> Self:
+        return self.select(*exprs)
+
+    def select(self: Self, *exprs: PandasLikeExpr) -> Self:
+        new_series: list[PandasLikeSeries] = evaluate_into_exprs(self, *exprs)
         if not new_series:
             # return empty dataframe, like Polars does
             return self._from_native_frame(
                 self._native_frame.__class__(), validate_column_names=False
             )
-        new_series = broadcast_series(new_series)
+        new_series = align_series_full_broadcast(*new_series)
         df = horizontal_concat(
-            new_series,
+            [s._native_series for s in new_series],
             implementation=self._implementation,
             backend_version=self._backend_version,
         )
@@ -440,40 +436,21 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
     def row(self: Self, row: int) -> tuple[Any, ...]:
         return tuple(x for x in self._native_frame.iloc[row])
 
-    def filter(self: Self, *predicates: IntoPandasLikeExpr, **constraints: Any) -> Self:
-        plx = self.__narwhals_namespace__()
-        if (
-            len(predicates) == 1
-            and isinstance(predicates[0], list)
-            and all(isinstance(x, bool) for x in predicates[0])
-            and not constraints
-        ):
-            mask_native = predicates[0]
+    def filter(self: Self, predicate: PandasLikeExpr | list[bool]) -> Self:
+        if isinstance(predicate, list):
+            mask_native: pd.Series[Any] | list[bool] = predicate
         else:
-            expr = plx.all_horizontal(
-                *chain(
-                    predicates, (plx.col(name) == v for name, v in constraints.items())
-                )
-            )
-            # `[0]` is safe as all_horizontal's expression only returns a single column
-            mask = expr._call(self)[0]
-            mask_native = broadcast_and_extract_dataframe_comparand(
-                self._native_frame.index, mask
-            )
+            # `[0]` is safe as the predicate's expression only returns a single column
+            mask = evaluate_into_exprs(self, predicate)[0]
+            mask_native = extract_dataframe_comparand(self._native_frame.index, mask)
 
         return self._from_native_frame(
             self._native_frame.loc[mask_native], validate_column_names=False
         )
 
-    def with_columns(
-        self: Self,
-        *exprs: IntoPandasLikeExpr,
-        **named_exprs: IntoPandasLikeExpr,
-    ) -> Self:
+    def with_columns(self: Self, *exprs: PandasLikeExpr) -> Self:
         index = self._native_frame.index
-        new_columns: list[PandasLikeSeries] = evaluate_into_exprs(
-            self, *exprs, **named_exprs
-        )
+        new_columns: list[PandasLikeSeries] = evaluate_into_exprs(self, *exprs)
         if not new_columns and len(self) == 0:
             return self
 
@@ -483,16 +460,14 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
         for name in self._native_frame.columns:
             if name in new_column_name_to_new_column_map:
                 to_concat.append(
-                    broadcast_and_extract_dataframe_comparand(
+                    extract_dataframe_comparand(
                         index, new_column_name_to_new_column_map.pop(name)
                     )
                 )
             else:
                 to_concat.append(self._native_frame[name])
         to_concat.extend(
-            broadcast_and_extract_dataframe_comparand(
-                index, new_column_name_to_new_column_map[s]
-            )
+            extract_dataframe_comparand(index, new_column_name_to_new_column_map[s])
             for s in new_column_name_to_new_column_map
         )
 
@@ -835,7 +810,7 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
 
     @property
     def shape(self: Self) -> tuple[int, int]:
-        return self._native_frame.shape  # type: ignore[no-any-return]
+        return self._native_frame.shape
 
     def to_dict(self: Self, *, as_series: bool) -> dict[str, Any]:
         if as_series:
@@ -848,7 +823,7 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
                 )
                 for col in self.columns
             }
-        return self._native_frame.to_dict(orient="list")  # type: ignore[no-any-return]
+        return self._native_frame.to_dict(orient="list")
 
     def to_numpy(self: Self, dtype: Any = None, copy: bool | None = None) -> _2DArray:
         native_dtypes = self._native_frame.dtypes
@@ -932,7 +907,7 @@ class PandasLikeDataFrame(CompliantDataFrame, CompliantLazyFrame):
     def write_csv(self: Self, file: str | Path | BytesIO) -> None: ...
 
     def write_csv(self: Self, file: str | Path | BytesIO | None) -> str | None:
-        return self._native_frame.to_csv(file, index=False)  # type: ignore[no-any-return]
+        return self._native_frame.to_csv(file, index=False)
 
     # --- descriptive ---
     def is_unique(self: Self) -> PandasLikeSeries:

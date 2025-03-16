@@ -95,7 +95,7 @@ def setup_hnsw_submodule(argv, extensions):
 
 
 def get_setup_requires(argv):
-    setup_requires = ['wheel']
+    setup_requires = ['wheel', 'cython']
     if ('build_widget' in argv) or (not ('--no-widget' in argv)):
         setup_requires += ['jupyterlab (>=3.0.6, <3.6.0)']
     return setup_requires
@@ -152,7 +152,6 @@ def copy_catboost_sources(topdir, pkgdir, verbose, dry_run):
         os.path.join('contrib', 'libs'),
         os.path.join('contrib', 'python', 'numpy'),
         os.path.join('contrib', 'restricted'),
-        os.path.join('contrib', 'tools', 'cython'),
         os.path.join('contrib', 'tools', 'protoc'),
         os.path.join('contrib', 'tools', 'swig'),
         'tools',

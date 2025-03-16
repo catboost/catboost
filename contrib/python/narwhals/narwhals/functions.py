@@ -6,28 +6,34 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterable
 from typing import Literal
+from typing import Mapping
 from typing import Protocol
 from typing import Sequence
 from typing import TypeVar
 from typing import Union
 from typing import overload
 
+from narwhals._expression_parsing import ExprKind
+from narwhals._expression_parsing import ExprMetadata
+from narwhals._expression_parsing import apply_n_ary_operation
+from narwhals._expression_parsing import check_expressions_transform
+from narwhals._expression_parsing import combine_metadata
 from narwhals._expression_parsing import extract_compliant
-from narwhals._expression_parsing import operation_aggregates
-from narwhals._expression_parsing import operation_changes_length
-from narwhals._expression_parsing import operation_is_order_dependent
+from narwhals._expression_parsing import infer_kind
 from narwhals.dataframe import DataFrame
 from narwhals.dataframe import LazyFrame
 from narwhals.dependencies import is_numpy_array
 from narwhals.dependencies import is_numpy_array_2d
-from narwhals.exceptions import ShapeError
 from narwhals.expr import Expr
 from narwhals.schema import Schema
+from narwhals.series import Series
 from narwhals.translate import from_native
 from narwhals.translate import to_native
 from narwhals.utils import Implementation
 from narwhals.utils import Version
 from narwhals.utils import flatten
+from narwhals.utils import is_compliant_expr
+from narwhals.utils import is_sequence_but_not_str
 from narwhals.utils import parse_version
 from narwhals.utils import validate_laziness
 from narwhals.utils import validate_native_namespace_and_backend
@@ -41,11 +47,14 @@ FrameT = TypeVar("FrameT", bound=Union[DataFrame, LazyFrame])  # type: ignore[ty
 if TYPE_CHECKING:
     from types import ModuleType
 
+    import polars as pl
     import pyarrow as pa
     from typing_extensions import Self
 
     from narwhals.dtypes import DType
     from narwhals.series import Series
+    from narwhals.typing import CompliantExpr
+    from narwhals.typing import CompliantNamespace
     from narwhals.typing import DTypeBackend
     from narwhals.typing import IntoDataFrameT
     from narwhals.typing import IntoExpr
@@ -290,8 +299,8 @@ def _new_series_impl(
 
 
 def from_dict(
-    data: dict[str, Any],
-    schema: dict[str, DType] | Schema | None = None,
+    data: Mapping[str, Any],
+    schema: Mapping[str, DType] | Schema | None = None,
     *,
     backend: ModuleType | Implementation | str | None = None,
     native_namespace: ModuleType | None = None,
@@ -311,12 +320,12 @@ def from_dict(
         backend: specifies which eager backend instantiate to. Only
             necessary if inputs are not Narwhals Series.
 
-                `backend` can be specified in various ways:
+            `backend` can be specified in various ways:
 
-                - As `Implementation.<BACKEND>` with `BACKEND` being `PANDAS`, `PYARROW`,
-                    `POLARS`, `MODIN` or `CUDF`.
-                - As a string: `"pandas"`, `"pyarrow"`, `"polars"`, `"modin"` or `"cudf"`.
-                - Directly as a module `pandas`, `pyarrow`, `polars`, `modin` or `cudf`.
+            - As `Implementation.<BACKEND>` with `BACKEND` being `PANDAS`, `PYARROW`,
+                `POLARS`, `MODIN` or `CUDF`.
+            - As a string: `"pandas"`, `"pyarrow"`, `"polars"`, `"modin"` or `"cudf"`.
+            - Directly as a module `pandas`, `pyarrow`, `polars`, `modin` or `cudf`.
         native_namespace: The native library to use for DataFrame creation.
 
             **Deprecated** (v1.26.0):
@@ -347,8 +356,8 @@ def from_dict(
 
 
 def _from_dict_impl(
-    data: dict[str, Any],
-    schema: dict[str, DType] | Schema | None = None,
+    data: Mapping[str, Any],
+    schema: Mapping[str, DType] | Schema | None = None,
     *,
     backend: ModuleType | Implementation | str | None = None,
 ) -> DataFrame[Any]:
@@ -385,7 +394,7 @@ def _from_dict_impl(
         schema_pl = Schema(schema).to_polars() if schema else None
         native_frame = native_namespace.from_dict(data, schema=schema_pl)
     elif eager_backend.is_pandas_like():
-        from narwhals._pandas_like.utils import broadcast_align_and_extract_native
+        from narwhals._pandas_like.utils import align_and_extract_native
 
         aligned_data = {}
         left_most_series = None
@@ -398,7 +407,7 @@ def _from_dict_impl(
                     left_most_series = compliant_series
                     aligned_data[key] = native_series
                 else:
-                    aligned_data[key] = broadcast_align_and_extract_native(
+                    aligned_data[key] = align_and_extract_native(
                         left_most_series, compliant_series
                     )[1]
             else:
@@ -432,7 +441,7 @@ def _from_dict_impl(
 
 def from_numpy(
     data: _2DArray,
-    schema: dict[str, DType] | Schema | list[str] | None = None,
+    schema: Mapping[str, DType] | Schema | Sequence[str] | None = None,
     *,
     native_namespace: ModuleType,
 ) -> DataFrame[Any]:
@@ -446,7 +455,7 @@ def from_numpy(
 
     Arguments:
         data: Two-dimensional data represented as a NumPy ndarray.
-        schema: The DataFrame schema as Schema, dict of {name: type}, or a list of str.
+        schema: The DataFrame schema as Schema, dict of {name: type}, or a sequence of str.
         native_namespace: The native library to use for DataFrame creation.
 
     Returns:
@@ -473,20 +482,14 @@ def from_numpy(
         |  e: [[1,3]]      |
         └──────────────────┘
     """
-    return _from_numpy_impl(
-        data,
-        schema,
-        native_namespace=native_namespace,
-        version=Version.MAIN,
-    )
+    return _from_numpy_impl(data, schema, native_namespace=native_namespace)
 
 
 def _from_numpy_impl(
     data: _2DArray,
-    schema: dict[str, DType] | Schema | list[str] | None = None,
+    schema: Mapping[str, DType] | Schema | Sequence[str] | None = None,
     *,
     native_namespace: ModuleType,
-    version: Version,
 ) -> DataFrame[Any]:
     from narwhals.schema import Schema
 
@@ -496,90 +499,61 @@ def _from_numpy_impl(
     implementation = Implementation.from_native_namespace(native_namespace)
 
     if implementation is Implementation.POLARS:
-        if isinstance(schema, (dict, Schema)):
-            from narwhals._polars.utils import (
-                narwhals_to_native_dtype as polars_narwhals_to_native_dtype,
-            )
-
-            backend_version = parse_version(native_namespace.__version__)
-            schema = {
-                name: polars_narwhals_to_native_dtype(  # type: ignore[misc]
-                    dtype,
-                    version=version,
-                    backend_version=backend_version,
-                )
-                for name, dtype in schema.items()
-            }
-        elif schema is None:
-            native_frame = native_namespace.from_numpy(data)
-        elif not isinstance(schema, list):
+        if isinstance(schema, (Mapping, Schema)):
+            schema_pl: pl.Schema | Sequence[str] | None = Schema(schema).to_polars()
+        elif is_sequence_but_not_str(schema) or schema is None:
+            schema_pl = schema
+        else:
             msg = (
                 "`schema` is expected to be one of the following types: "
-                "dict[str, DType] | Schema | list[str]. "
+                "Mapping[str, DType] | Schema | Sequence[str]. "
                 f"Got {type(schema)}."
             )
             raise TypeError(msg)
-        native_frame = native_namespace.from_numpy(data, schema=schema)
+        native_frame = native_namespace.from_numpy(data, schema=schema_pl)
 
     elif implementation.is_pandas_like():
-        if isinstance(schema, (dict, Schema)):
+        if isinstance(schema, (Mapping, Schema)):
             from narwhals._pandas_like.utils import get_dtype_backend
-            from narwhals._pandas_like.utils import (
-                narwhals_to_native_dtype as pandas_like_narwhals_to_native_dtype,
-            )
 
-            backend_version = parse_version(native_namespace)
-            pd_schema = {
-                name: pandas_like_narwhals_to_native_dtype(
-                    dtype=schema[name],
-                    dtype_backend=get_dtype_backend(native_type, implementation),
-                    implementation=implementation,
-                    backend_version=backend_version,
-                    version=version,
-                )
-                for name, native_type in schema.items()
-            }
-            native_frame = native_namespace.DataFrame(data, columns=schema.keys()).astype(
-                pd_schema
+            it: Iterable[DTypeBackend] = (
+                get_dtype_backend(native_type, implementation)
+                for native_type in schema.values()
             )
-        elif isinstance(schema, list):
-            native_frame = native_namespace.DataFrame(data, columns=schema)
+            native_frame = native_namespace.DataFrame(data, columns=schema.keys()).astype(
+                Schema(schema).to_pandas(it)
+            )
+        elif is_sequence_but_not_str(schema):
+            native_frame = native_namespace.DataFrame(data, columns=list(schema))
         elif schema is None:
             native_frame = native_namespace.DataFrame(
-                data, columns=["column_" + str(x) for x in range(data.shape[1])]
+                data, columns=[f"column_{x}" for x in range(data.shape[1])]
             )
         else:
             msg = (
                 "`schema` is expected to be one of the following types: "
-                "dict[str, DType] | Schema | list[str]. "
+                "Mapping[str, DType] | Schema | Sequence[str]. "
                 f"Got {type(schema)}."
             )
             raise TypeError(msg)
 
     elif implementation is Implementation.PYARROW:
         pa_arrays = [native_namespace.array(val) for val in data.T]
-        if isinstance(schema, (dict, Schema)):
-            from narwhals._arrow.utils import (
-                narwhals_to_native_dtype as arrow_narwhals_to_native_dtype,
+        if isinstance(schema, (Mapping, Schema)):
+            schema_pa = Schema(schema).to_arrow()
+            native_frame = native_namespace.Table.from_arrays(pa_arrays, schema=schema_pa)
+        elif is_sequence_but_not_str(schema):
+            native_frame = native_namespace.Table.from_arrays(
+                pa_arrays, names=list(schema)
             )
-
-            schema = native_namespace.schema(
-                [
-                    (name, arrow_narwhals_to_native_dtype(dtype, version))
-                    for name, dtype in schema.items()
-                ]
-            )
-            native_frame = native_namespace.Table.from_arrays(pa_arrays, schema=schema)
-        elif isinstance(schema, list):
-            native_frame = native_namespace.Table.from_arrays(pa_arrays, names=schema)
         elif schema is None:
             native_frame = native_namespace.Table.from_arrays(
-                pa_arrays, names=["column_" + str(x) for x in range(data.shape[1])]
+                pa_arrays, names=[f"column_{x}" for x in range(data.shape[1])]
             )
         else:
             msg = (
                 "`schema` is expected to be one of the following types: "
-                "dict[str, DType] | Schema | list[str]. "
+                "Mapping[str, DType] | Schema | Sequence[str]. "
                 f"Got {type(schema)}."
             )
             raise TypeError(msg)
@@ -769,26 +743,37 @@ def get_level(
 def read_csv(
     source: str,
     *,
-    native_namespace: ModuleType,
+    backend: ModuleType | Implementation | str | None = None,
+    native_namespace: ModuleType | None = None,
     **kwargs: Any,
 ) -> DataFrame[Any]:
     """Read a CSV file into a DataFrame.
 
     Arguments:
         source: Path to a file.
+        backend: The eager backend for DataFrame creation.
+            `backend` can be specified in various ways:
+
+            - As `Implementation.<BACKEND>` with `BACKEND` being `PANDAS`, `PYARROW`,
+                `POLARS`, `MODIN` or `CUDF`.
+            - As a string: `"pandas"`, `"pyarrow"`, `"polars"`, `"modin"` or `"cudf"`.
+            - Directly as a module `pandas`, `pyarrow`, `polars`, `modin` or `cudf`.
         native_namespace: The native library to use for DataFrame creation.
+
+            **Deprecated** (v1.27.2):
+                Please use `backend` instead. Note that `native_namespace` is still available
+                (and won't emit a deprecation warning) if you use `narwhals.stable.v1`,
+                see [perfect backwards compatibility policy](../backcompat.md/).
         kwargs: Extra keyword arguments which are passed to the native CSV reader.
             For example, you could use
-            `nw.read_csv('file.csv', native_namespace=pd, engine='pyarrow')`.
+            `nw.read_csv('file.csv', backend='pandas', engine='pyarrow')`.
 
     Returns:
         DataFrame.
 
     Examples:
-        >>> import pandas as pd
         >>> import narwhals as nw
-        >>>
-        >>> nw.read_csv("file.csv", native_namespace=pd)  # doctest:+SKIP
+        >>> nw.read_csv("file.csv", backend="pandas")  # doctest:+SKIP
         ┌──────────────────┐
         |Narwhals DataFrame|
         |------------------|
@@ -797,21 +782,28 @@ def read_csv(
         |     1  2   5     |
         └──────────────────┘
     """
-    return _read_csv_impl(source, native_namespace=native_namespace, **kwargs)
+    backend = validate_native_namespace_and_backend(
+        backend, native_namespace, emit_deprecation_warning=True
+    )
+    if backend is None:  # pragma: no cover
+        msg = "`backend` must be specified in `read_csv`."
+        raise ValueError(msg)
+    return _read_csv_impl(source, backend=backend, **kwargs)
 
 
 def _read_csv_impl(
-    source: str, *, native_namespace: ModuleType, **kwargs: Any
+    source: str, *, backend: ModuleType | Implementation | str, **kwargs: Any
 ) -> DataFrame[Any]:
-    implementation = Implementation.from_native_namespace(native_namespace)
-    if implementation in (
+    eager_backend = Implementation.from_backend(backend)
+    native_namespace = eager_backend.to_native_namespace()
+    if eager_backend in (
         Implementation.POLARS,
         Implementation.PANDAS,
         Implementation.MODIN,
         Implementation.CUDF,
     ):
         native_frame = native_namespace.read_csv(source, **kwargs)
-    elif implementation is Implementation.PYARROW:
+    elif eager_backend is Implementation.PYARROW:
         from pyarrow import csv  # ignore-banned-import
 
         native_frame = csv.read_csv(source, **kwargs)
@@ -1052,7 +1044,7 @@ def col(*names: str | Iterable[str]) -> Expr:
     def func(plx: Any) -> Any:
         return plx.col(*flatten(names))
 
-    return Expr(func, is_order_dependent=False, changes_length=False, aggregates=False)
+    return Expr(func, ExprMetadata.selector())
 
 
 def nth(*indices: int | Sequence[int]) -> Expr:
@@ -1089,7 +1081,7 @@ def nth(*indices: int | Sequence[int]) -> Expr:
     def func(plx: Any) -> Any:
         return plx.nth(*flatten(indices))
 
-    return Expr(func, is_order_dependent=False, changes_length=False, aggregates=False)
+    return Expr(func, ExprMetadata.selector())
 
 
 # Add underscore so it doesn't conflict with builtin `all`
@@ -1113,12 +1105,7 @@ def all_() -> Expr:
         |   1  4  0.246    |
         └──────────────────┘
     """
-    return Expr(
-        lambda plx: plx.all(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=False,
-    )
+    return Expr(lambda plx: plx.all(), ExprMetadata.selector())
 
 
 # Add underscore so it doesn't conflict with builtin `len`
@@ -1151,7 +1138,7 @@ def len_() -> Expr:
     def func(plx: Any) -> Any:
         return plx.len()
 
-    return Expr(func, is_order_dependent=False, changes_length=False, aggregates=True)
+    return Expr(func, ExprMetadata(ExprKind.AGGREGATION, order_dependent=False))
 
 
 def sum(*columns: str) -> Expr:
@@ -1179,12 +1166,7 @@ def sum(*columns: str) -> Expr:
         |    0  3  4.8     |
         └──────────────────┘
     """
-    return Expr(
-        lambda plx: plx.col(*columns).sum(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=True,
-    )
+    return col(*columns).sum()
 
 
 def mean(*columns: str) -> Expr:
@@ -1216,12 +1198,7 @@ def mean(*columns: str) -> Expr:
         |b: [[17.173333333333336]]|
         └─────────────────────────┘
     """
-    return Expr(
-        lambda plx: plx.col(*columns).mean(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=True,
-    )
+    return col(*columns).mean()
 
 
 def median(*columns: str) -> Expr:
@@ -1257,12 +1234,7 @@ def median(*columns: str) -> Expr:
         |  └─────┘         |
         └──────────────────┘
     """
-    return Expr(
-        lambda plx: plx.col(*columns).median(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=True,
-    )
+    return col(*columns).median()
 
 
 def min(*columns: str) -> Expr:
@@ -1294,12 +1266,7 @@ def min(*columns: str) -> Expr:
         |  b: [[5]]        |
         └──────────────────┘
     """
-    return Expr(
-        lambda plx: plx.col(*columns).min(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=True,
-    )
+    return col(*columns).min()
 
 
 def max(*columns: str) -> Expr:
@@ -1327,12 +1294,7 @@ def max(*columns: str) -> Expr:
         |     0  2  10     |
         └──────────────────┘
     """
-    return Expr(
-        lambda plx: plx.col(*columns).max(),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=True,
-    )
+    return col(*columns).max()
 
 
 def sum_horizontal(*exprs: IntoExpr | Iterable[IntoExpr]) -> Expr:
@@ -1374,15 +1336,10 @@ def sum_horizontal(*exprs: IntoExpr | Iterable[IntoExpr]) -> Expr:
         raise ValueError(msg)
     flat_exprs = flatten(exprs)
     return Expr(
-        lambda plx: plx.sum_horizontal(
-            *(
-                extract_compliant(plx, v, parse_column_name_as_expr=True)
-                for v in flat_exprs
-            )
+        lambda plx: apply_n_ary_operation(
+            plx, plx.sum_horizontal, *flat_exprs, str_as_lit=False
         ),
-        is_order_dependent=operation_is_order_dependent(*flat_exprs),
-        changes_length=operation_changes_length(*flat_exprs),
-        aggregates=operation_aggregates(*flat_exprs),
+        combine_metadata(*flat_exprs, str_as_lit=False),
     )
 
 
@@ -1423,15 +1380,10 @@ def min_horizontal(*exprs: IntoExpr | Iterable[IntoExpr]) -> Expr:
         raise ValueError(msg)
     flat_exprs = flatten(exprs)
     return Expr(
-        lambda plx: plx.min_horizontal(
-            *(
-                extract_compliant(plx, v, parse_column_name_as_expr=True)
-                for v in flat_exprs
-            )
+        lambda plx: apply_n_ary_operation(
+            plx, plx.min_horizontal, *flat_exprs, str_as_lit=False
         ),
-        is_order_dependent=operation_is_order_dependent(*flat_exprs),
-        changes_length=operation_changes_length(*flat_exprs),
-        aggregates=operation_aggregates(*flat_exprs),
+        combine_metadata(*flat_exprs, str_as_lit=False),
     )
 
 
@@ -1474,57 +1426,47 @@ def max_horizontal(*exprs: IntoExpr | Iterable[IntoExpr]) -> Expr:
         raise ValueError(msg)
     flat_exprs = flatten(exprs)
     return Expr(
-        lambda plx: plx.max_horizontal(
-            *(
-                extract_compliant(plx, v, parse_column_name_as_expr=True)
-                for v in flat_exprs
-            )
+        lambda plx: apply_n_ary_operation(
+            plx, plx.max_horizontal, *flat_exprs, str_as_lit=False
         ),
-        is_order_dependent=operation_is_order_dependent(*flat_exprs),
-        changes_length=operation_changes_length(*flat_exprs),
-        aggregates=operation_aggregates(*flat_exprs),
+        combine_metadata(*flat_exprs, str_as_lit=False),
     )
 
 
 class When:
     def __init__(self: Self, *predicates: IntoExpr | Iterable[IntoExpr]) -> None:
-        self._predicates = flatten([predicates])
-        if not self._predicates:
-            msg = "At least one predicate needs to be provided to `narwhals.when`."
-            raise TypeError(msg)
-        if any(
-            getattr(x, "_aggregates", False) or getattr(x, "_changes_length", False)
-            for x in self._predicates
-        ):
-            msg = "Expressions which aggregate or change length cannot be passed to `filter`."
-            raise ShapeError(msg)
-
-    def _extract_predicates(self: Self, plx: Any) -> Any:
-        return [
-            extract_compliant(plx, v, parse_column_name_as_expr=True)
-            for v in self._predicates
-        ]
+        self._predicate = all_horizontal(*flatten(predicates))
+        check_expressions_transform(self._predicate, function_name="when")
 
     def then(self: Self, value: IntoExpr | Any) -> Then:
         return Then(
-            lambda plx: plx.when(*self._extract_predicates(plx)).then(
-                extract_compliant(plx, value, parse_column_name_as_expr=True)
+            lambda plx: apply_n_ary_operation(
+                plx,
+                lambda *args: plx.when(args[0]).then(args[1]),
+                self._predicate,
+                value,
+                str_as_lit=False,
             ),
-            is_order_dependent=operation_is_order_dependent(*self._predicates, value),
-            changes_length=operation_changes_length(*self._predicates, value),
-            aggregates=operation_aggregates(*self._predicates, value),
+            combine_metadata(self._predicate, value, str_as_lit=False),
         )
 
 
 class Then(Expr):
     def otherwise(self: Self, value: IntoExpr | Any) -> Expr:
+        kind = infer_kind(value, str_as_lit=False)
+
+        def func(plx: CompliantNamespace[Any, Any]) -> CompliantExpr[Any, Any]:
+            compliant_expr = self._to_compliant_expr(plx)
+            compliant_value = extract_compliant(plx, value, str_as_lit=False)
+            if (
+                kind is ExprKind.AGGREGATION or kind is ExprKind.LITERAL
+            ) and is_compliant_expr(compliant_value):
+                compliant_value = compliant_value.broadcast(kind)
+            return compliant_expr.otherwise(compliant_value)  # type: ignore[no-any-return]
+
         return Expr(
-            lambda plx: self._to_compliant_expr(plx).otherwise(
-                extract_compliant(plx, value, parse_column_name_as_expr=True)
-            ),
-            is_order_dependent=operation_is_order_dependent(self, value),
-            changes_length=operation_changes_length(self, value),
-            aggregates=operation_aggregates(self, value),
+            func,
+            combine_metadata(self, value, str_as_lit=False),
         )
 
 
@@ -1609,15 +1551,10 @@ def all_horizontal(*exprs: IntoExpr | Iterable[IntoExpr]) -> Expr:
         raise ValueError(msg)
     flat_exprs = flatten(exprs)
     return Expr(
-        lambda plx: plx.all_horizontal(
-            *(
-                extract_compliant(plx, v, parse_column_name_as_expr=True)
-                for v in flat_exprs
-            )
+        lambda plx: apply_n_ary_operation(
+            plx, plx.all_horizontal, *flat_exprs, str_as_lit=False
         ),
-        is_order_dependent=operation_is_order_dependent(*flat_exprs),
-        changes_length=operation_changes_length(*flat_exprs),
-        aggregates=operation_aggregates(*flat_exprs),
+        combine_metadata(*flat_exprs, str_as_lit=False),
     )
 
 
@@ -1659,9 +1596,7 @@ def lit(value: Any, dtype: DType | type[DType] | None = None) -> Expr:
 
     return Expr(
         lambda plx: plx.lit(value, dtype),
-        is_order_dependent=False,
-        changes_length=False,
-        aggregates=True,
+        ExprMetadata(ExprKind.LITERAL, order_dependent=False),
     )
 
 
@@ -1708,15 +1643,10 @@ def any_horizontal(*exprs: IntoExpr | Iterable[IntoExpr]) -> Expr:
         raise ValueError(msg)
     flat_exprs = flatten(exprs)
     return Expr(
-        lambda plx: plx.any_horizontal(
-            *(
-                extract_compliant(plx, v, parse_column_name_as_expr=True)
-                for v in flat_exprs
-            )
+        lambda plx: apply_n_ary_operation(
+            plx, plx.any_horizontal, *flat_exprs, str_as_lit=False
         ),
-        is_order_dependent=operation_is_order_dependent(*flat_exprs),
-        changes_length=operation_changes_length(*flat_exprs),
-        aggregates=operation_aggregates(*flat_exprs),
+        combine_metadata(*flat_exprs, str_as_lit=False),
     )
 
 
@@ -1759,15 +1689,10 @@ def mean_horizontal(*exprs: IntoExpr | Iterable[IntoExpr]) -> Expr:
         raise ValueError(msg)
     flat_exprs = flatten(exprs)
     return Expr(
-        lambda plx: plx.mean_horizontal(
-            *(
-                extract_compliant(plx, v, parse_column_name_as_expr=True)
-                for v in flat_exprs
-            )
+        lambda plx: apply_n_ary_operation(
+            plx, plx.mean_horizontal, *flat_exprs, str_as_lit=False
         ),
-        is_order_dependent=operation_is_order_dependent(*flat_exprs),
-        changes_length=operation_changes_length(*flat_exprs),
-        aggregates=operation_aggregates(*flat_exprs),
+        combine_metadata(*flat_exprs, str_as_lit=False),
     )
 
 
@@ -1824,14 +1749,15 @@ def concat_str(
         | 2          None  |
         └──────────────────┘
     """
-    exprs = flatten([*flatten([exprs]), *more_exprs])
+    flat_exprs = flatten([*flatten([exprs]), *more_exprs])
     return Expr(
-        lambda plx: plx.concat_str(
-            *(extract_compliant(plx, v, parse_column_name_as_expr=True) for v in exprs),
-            separator=separator,
-            ignore_nulls=ignore_nulls,
+        lambda plx: apply_n_ary_operation(
+            plx,
+            lambda *args: plx.concat_str(
+                *args, separator=separator, ignore_nulls=ignore_nulls
+            ),
+            *flat_exprs,
+            str_as_lit=False,
         ),
-        is_order_dependent=operation_is_order_dependent(*exprs),
-        changes_length=operation_changes_length(*exprs),
-        aggregates=operation_aggregates(*exprs),
+        combine_metadata(*flat_exprs, str_as_lit=False),
     )

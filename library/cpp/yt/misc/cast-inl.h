@@ -83,20 +83,20 @@ inline TString FormatInvalidCastValue(char8_t value)
 template <class T, class S>
 constexpr bool CanFitSubtype()
 {
-    return NDetail::IsInIntegralRange<T>(std::numeric_limits<S>::min()) &&
-        NDetail::IsInIntegralRange<T>(std::numeric_limits<S>::max());
+    return NYT::NDetail::IsInIntegralRange<T>(std::numeric_limits<S>::min()) &&
+        NYT::NDetail::IsInIntegralRange<T>(std::numeric_limits<S>::max());
 }
 
 template <class T, class S>
 constexpr bool IsInIntegralRange(S value)
 {
-    return NDetail::IsInIntegralRange<T>(value);
+    return NYT::NDetail::IsInIntegralRange<T>(value);
 }
 
 template <class T, class S>
 constexpr std::optional<T> TryCheckedIntegralCast(S value)
 {
-    [[unlikely]] if (!NDetail::IsInIntegralRange<T>(value)) {
+    [[unlikely]] if (!NYT::NDetail::IsInIntegralRange<T>(value)) {
         return std::nullopt;
     }
     return static_cast<T>(value);

@@ -361,7 +361,7 @@ cdef class Dictionary:
 
         cdef ui32 _token_id = token_id
         self.__check_dictionary_initialized()
-        return to_native_str(dereference(self.__dictionary_holder.Get()).GetToken(_token_id))
+        return to_str(dereference(self.__dictionary_holder.Get()).GetToken(_token_id))
 
     def get_tokens(self, token_ids):
         """
@@ -385,7 +385,7 @@ cdef class Dictionary:
 
         cdef TVector[TString] tokens
         dereference(self.__dictionary_holder.Get()).GetTokens(<TConstArrayRef[TTokenId]>tokenIds, &tokens)
-        return [to_native_str(token) for token in tokens]
+        return [to_str(token) for token in tokens]
 
     def get_top_tokens(self, top_size=None):
         """
@@ -406,7 +406,7 @@ cdef class Dictionary:
             top = dereference(self.__dictionary_holder.Get()).GetTopTokens()
         else:
             top = dereference(self.__dictionary_holder.Get()).GetTopTokens(top_size)
-        return [to_native_str(s) for s in top]
+        return [to_str(s) for s in top]
 
     @property
     def unknown_token_id(self):
