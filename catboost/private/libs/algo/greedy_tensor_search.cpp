@@ -1869,7 +1869,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if (needSplitRightLeaf && rightLeafBestSplitCandidate != nullptr && rightLeafGain >= 1e-9) {
             queue.emplace(rightLeaf, rightLeafGain, *rightLeafBestSplitCandidate, rightLeafStatsPtr);
         }
-        exit(0);
+        //exit(0);
     };
 
     findBestCandidateRoot(0);
