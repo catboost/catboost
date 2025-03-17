@@ -719,12 +719,6 @@ void SetBestScore(
     const TCandidatesContext& candidatesContext,
     TVector<TCandidateInfo>* subcandidates
 ) {
-    /*Cout<<"before"<<Endl;
-    for (const auto& candidate : *subcandidates) {
-        Cout << candidate.BestScore.Val << "  1! ";
-    }
-    Cout<<"Before"<<Endl;*/
-
     TRestorableFastRng64 rand(randSeed);
     rand.Advance(10); // reduce correlation between RNGs in different threads
     for (size_t subcandidateIdx = 0; subcandidateIdx < allScores.size(); ++subcandidateIdx) {
@@ -734,31 +728,19 @@ void SetBestScore(
 
         auto scoreUpdateFunction = [&] (auto binFeatureIdx) {
             const double scoreWoNoise = scores[binFeatureIdx];
-            //Cout<<"   scoreWoNoise: "<<scoreWoNoise<<"  binFeatureIdx:  "<<binFeatureIdx<<Endl;
             TRandomScore randomScore(scoreDistribution, scoreWoNoise, scoreStDev);
             const double scoreInstance = randomScore.GetInstance(rand);
             if (scoreInstance > bestScoreInstance) {
                 bestScoreInstance = scoreInstance;
                 subcandidateInfo.BestScore = std::move(randomScore);
                 subcandidateInfo.BestBinId = binFeatureIdx;
-                Cout<<"BestScore: "<<subcandidateInfo.BestScore.Val<<"  binFeatureIdx: "<<binFeatureIdx<<"  randSeed: "<<randSeed<<Endl;
             }
         };
         switch (subcandidateInfo.SplitEnsemble.Type) {
             case ESplitEnsembleType::OneFeature:
-                /*Cout<<"after"<<Endl;
-                for (const auto& candidate : *subcandidates) {
-                    Cout << candidate.BestScore.Val << "  11! ";
-                }
-                Cout<<"after"<<Endl;*/
                 for (auto binFeatureIdx : xrange(scores.ysize())) {
                     scoreUpdateFunction(binFeatureIdx);
                 }
-                /*Cout<<"after2"<<Endl;
-                for (const auto& candidate : *subcandidates) {
-                    Cout << candidate.BestScore.Val << "  111! ";
-                }
-                Cout<<"after2"<<Endl;*/
                 break;
             case ESplitEnsembleType::BinarySplits:
                 {

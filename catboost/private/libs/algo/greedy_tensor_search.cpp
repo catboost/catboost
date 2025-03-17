@@ -779,6 +779,7 @@ static void CalcBestScoreLeafwise(
         TVector<TCandidatesContext>* candidatesContexts, // [dataset]
         TFold* fold,
         TLearnContext* ctx) {
+    Cout<<"rand score: "<<randSeed<<Endl;
 
     auto scoreDistribution = GetScoreDistribution(ctx->Params.ObliviousTreeOptions->RandomScoreType);
 
@@ -821,26 +822,6 @@ static void CalcBestScoreLeafwise(
                         statsForSubtractionTrick.MakeSlice(taskIdx, statsSize),
                         ctx);
 
-                /*for(int i=0;i<candidateScores.size();i++) {
-                    for(int j=0;j<candidateScores[i].size();j++) {
-                        Cout<<candidateScores[i][j]<<" !! "<<taskIdx<<"   ";
-                    }
-                }
-                Cout<<Endl;
-                Cout<<Endl;*/
-
-                Cout<<candidateScores.size()<<" "<<candidateScores[0].size()<<Endl;
-
-                /*Cout<<"1111111"<<Endl;
-                for (const auto& candidatesContext : *candidatesContexts) {
-                    for (const auto& subList : candidatesContext.CandidateList) {
-                        for (const auto& candidate : subList.Candidates) {
-                            Cout << candidate.BestScore.Val << "  1! ";
-                        }
-                    }
-                }
-                Cout<<"1111111"<<Endl;*/
-
                 SetBestScore(
                         randSeed + taskIdx,
                         candidateScores,
@@ -848,16 +829,6 @@ static void CalcBestScoreLeafwise(
                         scoreStDev,
                         candidatesContext,
                         &candidate.Candidates);
-
-                /*Cout<<"222222"<<Endl;
-                for (const auto& candidatesContext : *candidatesContexts) {
-                    for (const auto& subList : candidatesContext.CandidateList) {
-                        for (const auto& candidate : subList.Candidates) {
-                            Cout << candidate.BestScore.Val << "  2! ";
-                        }
-                    }
-                }
-                Cout<<"22222"<<Endl;*/
 
                 PenalizeBestSplits(
                         leafs,
@@ -868,15 +839,6 @@ static void CalcBestScoreLeafwise(
                         &candidate.Candidates
                 );
 
-                /*Cout<<"33333"<<Endl;
-                for (const auto& candidatesContext : *candidatesContexts) {
-                    for (const auto& subList : candidatesContext.CandidateList) {
-                        for (const auto& candidate : subList.Candidates) {
-                            Cout << candidate.BestScore.Val << "  3! ";
-                        }
-                    }
-                }
-                Cout<<"3333333"<<Endl;*/
                 if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {
                     fold->ClearCtrDataForProjectionIfOwned(splitEnsemble.SplitCandidate.Ctr.Projection);
                 }
