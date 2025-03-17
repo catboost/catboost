@@ -779,7 +779,6 @@ static void CalcBestScoreLeafwise(
         TVector<TCandidatesContext>* candidatesContexts, // [dataset]
         TFold* fold,
         TLearnContext* ctx) {
-    Cout<<"rand score: "<<randSeed<<Endl;
 
     auto scoreDistribution = GetScoreDistribution(ctx->Params.ObliviousTreeOptions->RandomScoreType);
 
@@ -1374,17 +1373,6 @@ inline static void CalcBestScoreAndCandidate (
         const TCandidateInfo** bestSplitCandidateLocal,
         TSplit* bestSplitLocal) {
 
-    Cout<<"!!!!"<<Endl;
-    for (const auto& candidatesContext : *subTrickInfo.CandidatesContexts) {
-        for (const auto& subList : candidatesContext.CandidateList) {
-            for (const auto& candidate : subList.Candidates) {
-                Cout << candidate.BestScore.Val << "  " << candidate.BestScore.StDev << " ! ";
-            }
-        }
-    }
-    Cout<<"!!!!"<<Endl;
-    Cout<<Endl;
-
     CalcBestScoreLeafwise(
             *subTrickInfo.Data,
             {id},
@@ -1394,17 +1382,6 @@ inline static void CalcBestScoreAndCandidate (
             subTrickInfo.CandidatesContexts,
             subTrickInfo.Fold,
             subTrickInfo.Ctx);
-
-    Cout<<"???????"<<Endl;
-    for (const auto& candidatesContext : *subTrickInfo.CandidatesContexts) {
-        for (const auto& subList : candidatesContext.CandidateList) {
-            for (const auto& candidate : subList.Candidates) {
-                Cout << candidate.BestScore.Val << "  " << candidate.BestScore.StDev << " ! ";
-            }
-        }
-    }
-    Cout<<"??????"<<Endl;
-    Cout<<Endl;
 
     double bestScoreLocal = MINIMAL_SCORE;
     double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *subTrickInfo.Fold, *subTrickInfo.Ctx);
@@ -1423,7 +1400,6 @@ inline static void CalcBestScoreAndCandidate (
                 *subTrickInfo.Fold,
                 subTrickInfo.Ctx->Params.CatFeatureParams->OneHotMaxSize);
     }
-    Cout<<"best score: "<<bestScoreLocal<<"  best before: "<<scoreBeforeSplitLocal<<Endl;
     *gainLocal = bestScoreLocal - scoreBeforeSplitLocal;
 }
 
@@ -1766,15 +1742,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         auto candidatesContextsLeftLeaf = SelectFeaturesForScoring(data, {}, fold, ctx);
         auto candidatesContextsRightLeaf = SelectFeaturesForScoring(data, {}, fold, ctx);
 
-        /*for (const auto& candidatesContext : candidatesContexts) {
-            for (const auto& subList : candidatesContext.CandidateList) {
-                for (const auto& candidate : subList.Candidates) {
-                    Cout << candidate.BestScore.Val << "  " << candidate.BestScore.StDev << " ! ";
-                }
-            }
-        }
-        Cout<<Endl;*/
-
         TQueue<TVector<TBucketStats>> parentsQueue;
 
         TSubtractTrickInfo subTrickInfoLeftLeaf(
@@ -1869,7 +1836,6 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if (needSplitRightLeaf && rightLeafBestSplitCandidate != nullptr && rightLeafGain >= 1e-9) {
             queue.emplace(rightLeaf, rightLeafGain, *rightLeafBestSplitCandidate, rightLeafStatsPtr);
         }
-        //exit(0);
     };
 
     findBestCandidateRoot(0);
