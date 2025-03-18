@@ -1,8 +1,3 @@
-if (NOT USE_INTERNAL_CYTHON)
-  include(FindCython)
-endif()
-
-
 function(target_cython_include_directories Tgt)
   set_property(TARGET ${Tgt} APPEND PROPERTY
     CYTHON_INCLUDE_DIRS ${ARGN}
