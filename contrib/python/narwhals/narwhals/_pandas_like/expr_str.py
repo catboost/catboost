@@ -93,6 +93,11 @@ class PandasLikeExprStringNamespace:
             self._compliant_expr, "str", "slice", offset=offset, length=length
         )
 
+    def split(self: Self, by: str) -> PandasLikeExpr:
+        return reuse_series_namespace_implementation(
+            self._compliant_expr, "str", "split", by=by
+        )
+
     def to_datetime(self: Self, format: str | None) -> PandasLikeExpr:  # noqa: A002
         return reuse_series_namespace_implementation(
             self._compliant_expr,

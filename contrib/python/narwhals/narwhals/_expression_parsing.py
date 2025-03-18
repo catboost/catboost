@@ -9,6 +9,7 @@ from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
+from typing import Literal
 from typing import Sequence
 from typing import TypeVar
 from typing import overload
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
     from narwhals.expr import Expr
     from narwhals.typing import CompliantDataFrame
     from narwhals.typing import CompliantExpr
-    from narwhals.typing import CompliantFrameT_contra
+    from narwhals.typing import CompliantFrameT
     from narwhals.typing import CompliantLazyFrame
     from narwhals.typing import CompliantNamespace
     from narwhals.typing import CompliantSeries
@@ -51,8 +52,7 @@ def is_expr(obj: Any) -> TypeIs[Expr]:
 
 
 def evaluate_into_expr(
-    df: CompliantFrameT_contra,
-    expr: CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co],
+    df: CompliantFrameT, expr: CompliantExpr[CompliantFrameT, CompliantSeriesT_co]
 ) -> Sequence[CompliantSeriesT_co]:
     """Return list of raw columns.
 
@@ -72,9 +72,9 @@ def evaluate_into_expr(
 
 
 def evaluate_into_exprs(
-    df: CompliantFrameT_contra,
+    df: CompliantFrameT,
     /,
-    *exprs: CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co],
+    *exprs: CompliantExpr[CompliantFrameT, CompliantSeriesT_co],
 ) -> list[CompliantSeriesT_co]:
     """Evaluate each expr into Series."""
     return [
@@ -86,13 +86,12 @@ def evaluate_into_exprs(
 
 @overload
 def maybe_evaluate_expr(
-    df: CompliantFrameT_contra,
-    expr: CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co],
+    df: CompliantFrameT, expr: CompliantExpr[CompliantFrameT, CompliantSeriesT_co]
 ) -> CompliantSeriesT_co: ...
 
 
 @overload
-def maybe_evaluate_expr(df: CompliantDataFrame, expr: T) -> T: ...
+def maybe_evaluate_expr(df: CompliantDataFrame[Any], expr: T) -> T: ...
 
 
 def maybe_evaluate_expr(
@@ -154,7 +153,7 @@ def reuse_series_implementation(
     """
     plx = expr.__narwhals_namespace__()
 
-    def func(df: CompliantDataFrame) -> Sequence[CompliantSeries]:
+    def func(df: CompliantDataFrame[Any]) -> Sequence[CompliantSeries]:
         _kwargs = {
             **(call_kwargs or {}),
             **{
@@ -257,15 +256,15 @@ def is_simple_aggregation(expr: CompliantExpr[Any, Any]) -> bool:
 
 
 def combine_evaluate_output_names(
-    *exprs: CompliantExpr[CompliantFrameT_contra, Any],
-) -> Callable[[CompliantFrameT_contra], Sequence[str]]:
+    *exprs: CompliantExpr[CompliantFrameT, Any],
+) -> Callable[[CompliantFrameT], Sequence[str]]:
     # Follow left-hand-rule for naming. E.g. `nw.sum_horizontal(expr1, expr2)` takes the
     # first name of `expr1`.
     if not is_compliant_expr(exprs[0]):  # pragma: no cover
         msg = f"Safety assertion failed, expected expression, got: {type(exprs[0])}. Please report a bug."
         raise AssertionError(msg)
 
-    def evaluate_output_names(df: CompliantFrameT_contra) -> Sequence[str]:
+    def evaluate_output_names(df: CompliantFrameT) -> Sequence[str]:
         return exprs[0]._evaluate_output_names(df)[:1]
 
     return evaluate_output_names
@@ -286,11 +285,11 @@ def combine_alias_output_names(
 
 
 def extract_compliant(
-    plx: CompliantNamespace[CompliantFrameT_contra, CompliantSeriesT_co],
+    plx: CompliantNamespace[CompliantFrameT, CompliantSeriesT_co],
     other: Any,
     *,
     str_as_lit: bool,
-) -> CompliantExpr[CompliantFrameT_contra, CompliantSeriesT_co] | object:
+) -> CompliantExpr[CompliantFrameT, CompliantSeriesT_co] | object:
     if is_expr(other):
         return other._to_compliant_expr(plx)
     if isinstance(other, str) and not str_as_lit:
@@ -305,7 +304,7 @@ def extract_compliant(
 
 def evaluate_output_names_and_aliases(
     expr: CompliantExpr[Any, Any],
-    df: CompliantDataFrame | CompliantLazyFrame,
+    df: CompliantDataFrame[Any] | CompliantLazyFrame,
     exclude: Sequence[str],
 ) -> tuple[Sequence[str], Sequence[str]]:
     output_names = expr._evaluate_output_names(df)
@@ -330,9 +329,9 @@ class ExprKind(Enum):
 
     Commutative composition rules are:
     - LITERAL vs LITERAL -> LITERAL
-    - CHANGES_LENGTH vs (LITERAL | AGGREGATION) -> CHANGES_LENGTH
-    - CHANGES_LENGTH vs (CHANGES_LENGTH | TRANSFORM) -> raise
-    - TRANSFORM vs (LITERAL | AGGREGATION) -> TRANSFORM
+    - FILTRATION vs (LITERAL | AGGREGATION) -> FILTRATION
+    - FILTRATION vs (FILTRATION | TRANSFORM | WINDOW) -> raise
+    - (TRANSFORM | WINDOW) vs (LITERAL | AGGREGATION) -> TRANSFORM
     - AGGREGATION vs (LITERAL | AGGREGATION) -> AGGREGATION
     """
 
@@ -343,18 +342,49 @@ class ExprKind(Enum):
     """e.g. `nw.col('a').mean()`"""
 
     TRANSFORM = auto()
-    """length-preserving, e.g. `nw.col('a').round()`"""
+    """preserves length, e.g. `nw.col('a').round()`"""
 
-    CHANGES_LENGTH = auto()
+    WINDOW = auto()
+    """transform in which last node is order-dependent
+
+    examples:
+    - `nw.col('a').cum_sum()`
+    - `(nw.col('a')+1).cum_sum()`
+
+    non-examples:
+    - `nw.col('a').cum_sum()+1`
+    - `nw.col('a').cum_sum().mean()`
+    """
+
+    FILTRATION = auto()
     """e.g. `nw.col('a').drop_nulls()`"""
+
+    def preserves_length(self) -> bool:
+        return self in {ExprKind.TRANSFORM, ExprKind.WINDOW}
+
+    def is_window(self) -> bool:
+        return self is ExprKind.WINDOW
+
+    def is_filtration(self) -> bool:
+        return self is ExprKind.FILTRATION
+
+    def is_scalar_like(self) -> bool:
+        return is_scalar_like(self)
+
+
+def is_scalar_like(
+    kind: ExprKind,
+) -> TypeIs[Literal[ExprKind.AGGREGATION, ExprKind.LITERAL]]:
+    # Like ExprKind.is_scalar_like, but uses TypeIs for better type checking.
+    return kind in {ExprKind.AGGREGATION, ExprKind.LITERAL}
 
 
 class ExprMetadata:
-    __slots__ = ("_kind", "_order_dependent")
+    __slots__ = ("_kind", "_n_open_windows")
 
-    def __init__(self, kind: ExprKind, /, *, order_dependent: bool) -> None:
+    def __init__(self, kind: ExprKind, /, *, n_open_windows: int) -> None:
         self._kind: ExprKind = kind
-        self._order_dependent: bool = order_dependent
+        self._n_open_windows = n_open_windows
 
     def __init_subclass__(cls, /, *args: Any, **kwds: Any) -> Never:  # pragma: no cover
         msg = f"Cannot subclass {cls.__name__!r}"
@@ -364,105 +394,98 @@ class ExprMetadata:
     def kind(self) -> ExprKind:
         return self._kind
 
-    def is_order_dependent(self) -> bool:
-        return self._order_dependent
-
-    def is_transform(self) -> bool:
-        return self.kind is ExprKind.TRANSFORM
-
-    def is_aggregation_or_literal(self) -> bool:
-        return self.kind in {ExprKind.AGGREGATION, ExprKind.LITERAL}
-
-    def is_changes_length(self) -> bool:
-        return self.kind is ExprKind.CHANGES_LENGTH
+    @property
+    def n_open_windows(self) -> int:
+        return self._n_open_windows
 
     def with_kind(self, kind: ExprKind, /) -> ExprMetadata:
         """Change metadata kind, leaving all other attributes the same."""
-        return ExprMetadata(kind, order_dependent=self.is_order_dependent())
+        return ExprMetadata(kind, n_open_windows=self._n_open_windows)
 
-    def with_order_dependence(self) -> ExprMetadata:
-        """Set `order_dependent` to True, leaving all other attributes the same."""
-        return ExprMetadata(self.kind, order_dependent=True)
+    def with_extra_open_window(self) -> ExprMetadata:
+        """Increment `n_open_windows` leaving other attributes the same."""
+        return ExprMetadata(self.kind, n_open_windows=self._n_open_windows + 1)
 
-    def with_kind_and_order_dependence(self, kind: ExprKind, /) -> ExprMetadata:
-        """Change kind and set `order_dependent` to True."""
-        return ExprMetadata(kind, order_dependent=True)
+    def with_kind_and_extra_open_window(self, kind: ExprKind, /) -> ExprMetadata:
+        """Change metadata kind and increment `n_open_windows`."""
+        return ExprMetadata(kind, n_open_windows=self._n_open_windows + 1)
 
     @staticmethod
     def selector() -> ExprMetadata:
-        return ExprMetadata(ExprKind.TRANSFORM, order_dependent=False)
+        return ExprMetadata(ExprKind.TRANSFORM, n_open_windows=0)
 
 
 def combine_metadata(*args: IntoExpr | object | None, str_as_lit: bool) -> ExprMetadata:
     # Combine metadata from `args`.
 
-    n_changes_length = 0
-    has_transforms = False
+    n_filtrations = 0
+    has_transforms_or_windows = False
     has_aggregations = False
     has_literals = False
-    result_is_order_dependent = False
+    result_n_open_windows = 0
 
     for arg in args:
         if isinstance(arg, str) and not str_as_lit:
-            has_transforms = True
+            has_transforms_or_windows = True
         elif is_expr(arg):
-            if arg._metadata.is_order_dependent():
-                result_is_order_dependent = True
+            if arg._metadata.n_open_windows:
+                result_n_open_windows += 1
             kind = arg._metadata.kind
             if kind is ExprKind.AGGREGATION:
                 has_aggregations = True
             elif kind is ExprKind.LITERAL:
                 has_literals = True
-            elif kind is ExprKind.CHANGES_LENGTH:
-                n_changes_length += 1
-            elif kind is ExprKind.TRANSFORM:
-                has_transforms = True
+            elif kind is ExprKind.FILTRATION:
+                n_filtrations += 1
+            elif kind.preserves_length():
+                has_transforms_or_windows = True
             else:  # pragma: no cover
                 msg = "unreachable code"
                 raise AssertionError(msg)
     if (
         has_literals
         and not has_aggregations
-        and not has_transforms
-        and not n_changes_length
+        and not has_transforms_or_windows
+        and not n_filtrations
     ):
         result_kind = ExprKind.LITERAL
-    elif n_changes_length > 1:
+    elif n_filtrations > 1:
         msg = "Length-changing expressions can only be used in isolation, or followed by an aggregation"
         raise LengthChangingExprError(msg)
-    elif n_changes_length and has_transforms:
+    elif n_filtrations and has_transforms_or_windows:
         msg = "Cannot combine length-changing expressions with length-preserving ones or aggregations"
         raise ShapeError(msg)
-    elif n_changes_length:
-        result_kind = ExprKind.CHANGES_LENGTH
-    elif has_transforms:
+    elif n_filtrations:
+        result_kind = ExprKind.FILTRATION
+    elif has_transforms_or_windows:
         result_kind = ExprKind.TRANSFORM
     else:
         result_kind = ExprKind.AGGREGATION
 
-    return ExprMetadata(result_kind, order_dependent=result_is_order_dependent)
+    return ExprMetadata(result_kind, n_open_windows=result_n_open_windows)
 
 
-def check_expressions_transform(*args: IntoExpr, function_name: str) -> None:
+def check_expressions_preserve_length(*args: IntoExpr, function_name: str) -> None:
     # Raise if any argument in `args` isn't length-preserving.
     # For Series input, we don't raise (yet), we let such checks happen later,
     # as this function works lazily and so can't evaluate lengths.
     from narwhals.series import Series
 
     if not all(
-        (is_expr(x) and x._metadata.is_transform()) or isinstance(x, (str, Series))
+        (is_expr(x) and x._metadata.kind.preserves_length())
+        or isinstance(x, (str, Series))
         for x in args
     ):
         msg = f"Expressions which aggregate or change length cannot be passed to '{function_name}'."
         raise ShapeError(msg)
 
 
-def all_exprs_are_aggs_or_literals(*args: IntoExpr, **kwargs: IntoExpr) -> bool:
+def all_exprs_are_scalar_like(*args: IntoExpr, **kwargs: IntoExpr) -> bool:
     # Raise if any argument in `args` isn't an aggregation or literal.
     # For Series input, we don't raise (yet), we let such checks happen later,
     # as this function works lazily and so can't evaluate lengths.
     exprs = chain(args, kwargs.values())
-    return all(is_expr(x) and x._metadata.is_aggregation_or_literal() for x in exprs)
+    return all(is_expr(x) and x._metadata.kind.is_scalar_like() for x in exprs)
 
 
 def infer_kind(obj: IntoExpr | _1DArray | object, *, str_as_lit: bool) -> ExprKind:
@@ -489,7 +512,7 @@ def apply_n_ary_operation(
     )
     kinds = [infer_kind(comparand, str_as_lit=str_as_lit) for comparand in comparands]
 
-    broadcast = any(kind is ExprKind.TRANSFORM for kind in kinds)
+    broadcast = any(kind.preserves_length() for kind in kinds)
     compliant_exprs = (
         compliant_expr.broadcast(kind)
         if broadcast

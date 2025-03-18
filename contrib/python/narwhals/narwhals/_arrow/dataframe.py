@@ -71,7 +71,7 @@ from narwhals.typing import CompliantDataFrame
 from narwhals.typing import CompliantLazyFrame
 
 
-class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
+class ArrowDataFrame(CompliantDataFrame["ArrowSeries"], CompliantLazyFrame):
     # --- not in the spec ---
     def __init__(
         self: Self,
@@ -153,6 +153,19 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
             return list(self.iter_rows(named=False, buffer_size=512))  # type: ignore[return-value]
         return self._native_frame.to_pylist()
 
+    def iter_columns(self) -> Iterator[ArrowSeries]:
+        from narwhals._arrow.series import ArrowSeries
+
+        for name, series in zip(self.columns, self._native_frame.itercolumns()):
+            yield ArrowSeries(
+                series,
+                name=name,
+                backend_version=self._backend_version,
+                version=self._version,
+            )
+
+    _iter_columns = iter_columns
+
     def iter_rows(
         self: Self, *, named: bool, buffer_size: int
     ) -> Iterator[tuple[Any, ...]] | Iterator[dict[str, Any]]:
@@ -181,7 +194,7 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
             version=self._version,
         )
 
-    def __array__(self: Self, dtype: Any, copy: bool | None) -> _2DArray:
+    def __array__(self: Self, dtype: Any, *, copy: bool | None) -> _2DArray:
         return self._native_frame.__array__(dtype, copy=copy)
 
     @overload
@@ -343,24 +356,24 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
             self._native_frame.select(list(column_names)), validate_column_names=False
         )
 
-    def aggregate(self: Self, *exprs: ArrowExpr) -> Self:
+    def aggregate(self: ArrowDataFrame, *exprs: ArrowExpr) -> ArrowDataFrame:
         return self.select(*exprs)
 
-    def select(self: Self, *exprs: ArrowExpr) -> Self:
-        new_series: Sequence[ArrowSeries] = evaluate_into_exprs(self, *exprs)
+    def select(self: ArrowDataFrame, *exprs: ArrowExpr) -> ArrowDataFrame:
+        new_series = evaluate_into_exprs(self, *exprs)
         if not new_series:
             # return empty dataframe, like Polars does
             return self._from_native_frame(
                 self._native_frame.__class__.from_arrays([]), validate_column_names=False
             )
         names = [s.name for s in new_series]
-        new_series = align_series_full_broadcast(*new_series)
-        df = pa.Table.from_arrays([s._native_series for s in new_series], names=names)
-        return self._from_native_frame(df, validate_column_names=False)
+        reshaped = align_series_full_broadcast(*new_series)
+        df = pa.Table.from_arrays([s._native_series for s in reshaped], names=names)
+        return self._from_native_frame(df, validate_column_names=True)
 
-    def with_columns(self: Self, *exprs: ArrowExpr) -> Self:
+    def with_columns(self: ArrowDataFrame, *exprs: ArrowExpr) -> ArrowDataFrame:
         native_frame = self._native_frame
-        new_columns: list[ArrowSeries] = evaluate_into_exprs(self, *exprs)
+        new_columns = evaluate_into_exprs(self, *exprs)
 
         length = len(self)
         columns = self.columns
@@ -458,7 +471,7 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
             self._native_frame.drop(to_drop), validate_column_names=False
         )
 
-    def drop_nulls(self: Self, subset: list[str] | None) -> Self:
+    def drop_nulls(self: ArrowDataFrame, subset: list[str] | None) -> ArrowDataFrame:
         if subset is None:
             return self._from_native_frame(
                 self._native_frame.drop_null(), validate_column_names=False
@@ -540,7 +553,9 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
             df.append_column(name, row_indices).select([name, *cols])
         )
 
-    def filter(self: Self, predicate: ArrowExpr | list[bool | None]) -> Self:
+    def filter(
+        self: ArrowDataFrame, predicate: ArrowExpr | list[bool | None]
+    ) -> ArrowDataFrame:
         if isinstance(predicate, list):
             mask_native: Mask | ArrowChunkedArray = predicate
         else:
@@ -616,7 +631,7 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
         self: Self,
         backend: Implementation | None,
         **kwargs: Any,
-    ) -> CompliantDataFrame:
+    ) -> CompliantDataFrame[Any]:
         if backend is Implementation.PYARROW or backend is None:
             from narwhals._arrow.dataframe import ArrowDataFrame
 
@@ -732,12 +747,12 @@ class ArrowDataFrame(CompliantDataFrame, CompliantLazyFrame):
         )
 
     def unique(
-        self: Self,
+        self: ArrowDataFrame,
         subset: list[str] | None,
         *,
         keep: Literal["any", "first", "last", "none"],
         maintain_order: bool | None = None,
-    ) -> Self:
+    ) -> ArrowDataFrame:
         # The param `maintain_order` is only here for compatibility with the Polars API
         # and has no effect on the output.
         import numpy as np  # ignore-banned-import

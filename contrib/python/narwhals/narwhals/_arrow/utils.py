@@ -65,6 +65,12 @@ lit = pa.scalar
 """Alias for `pyarrow.scalar`."""
 
 
+def extract_py_scalar(value: Any, /) -> Any:
+    from narwhals._arrow.series import maybe_extract_py_scalar
+
+    return maybe_extract_py_scalar(value, return_py_scalar=True)
+
+
 def chunked_array(
     arr: ArrowArray | list[Iterable[pa.Scalar[Any]]] | ArrowChunkedArray,
 ) -> ArrowChunkedArray:

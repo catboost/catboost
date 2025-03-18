@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     TieBreaker: TypeAlias = Literal["min", "max", "first", "dense"]
     NullPlacement: TypeAlias = Literal["at_start", "at_end"]
 
-    StringArray: TypeAlias = "pc.StringArray"
+    StringArray: TypeAlias = pc.StringArray
     ArrowChunkedArray: TypeAlias = pa.ChunkedArray[Any]
     ArrowArray: TypeAlias = pa.Array[Any]
     _AsPyType = TypeVar("_AsPyType")

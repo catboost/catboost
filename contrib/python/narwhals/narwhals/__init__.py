@@ -40,6 +40,7 @@ from narwhals.functions import any_horizontal
 from narwhals.functions import col
 from narwhals.functions import concat
 from narwhals.functions import concat_str
+from narwhals.functions import exclude
 from narwhals.functions import from_arrow
 from narwhals.functions import from_dict
 from narwhals.functions import from_numpy
@@ -79,7 +80,7 @@ from narwhals.utils import maybe_get_index
 from narwhals.utils import maybe_reset_index
 from narwhals.utils import maybe_set_index
 
-__version__ = "1.28.0"
+__version__ = "1.29.0"
 
 __all__ = [
     "Array",
@@ -123,6 +124,7 @@ __all__ = [
     "dependencies",
     "dtypes",
     "exceptions",
+    "exclude",
     "from_arrow",
     "from_dict",
     "from_native",

@@ -6,6 +6,7 @@ from functools import reduce
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
+from typing import Container
 from typing import Literal
 from typing import Sequence
 
@@ -24,6 +25,8 @@ from narwhals._duckdb.utils import narwhals_to_native_dtype
 from narwhals._expression_parsing import combine_alias_output_names
 from narwhals._expression_parsing import combine_evaluate_output_names
 from narwhals.typing import CompliantNamespace
+from narwhals.utils import Implementation
+from narwhals.utils import get_column_names
 
 if TYPE_CHECKING:
     import duckdb
@@ -35,6 +38,8 @@ if TYPE_CHECKING:
 
 
 class DuckDBNamespace(CompliantNamespace["DuckDBLazyFrame", "duckdb.Expression"]):  # type: ignore[type-var]
+    _implementation: Implementation = Implementation.DUCKDB
+
     def __init__(
         self: Self, *, backend_version: tuple[int, ...], version: Version
     ) -> None:
@@ -52,7 +57,7 @@ class DuckDBNamespace(CompliantNamespace["DuckDBLazyFrame", "duckdb.Expression"]
         return DuckDBExpr(
             call=_all,
             function_name="all",
-            evaluate_output_names=lambda df: df.columns,
+            evaluate_output_names=get_column_names,
             alias_output_names=None,
             backend_version=self._backend_version,
             version=self._version,
@@ -234,6 +239,28 @@ class DuckDBNamespace(CompliantNamespace["DuckDBLazyFrame", "duckdb.Expression"]
     def col(self: Self, *column_names: str) -> DuckDBExpr:
         return DuckDBExpr.from_column_names(
             *column_names, backend_version=self._backend_version, version=self._version
+        )
+
+    def exclude(self: Self, excluded_names: Container[str]) -> DuckDBExpr:
+        def evaluate_output_names(df: DuckDBLazyFrame) -> Sequence[str]:
+            return [
+                column_name
+                for column_name in df.columns
+                if column_name not in excluded_names
+            ]
+
+        def func(df: DuckDBLazyFrame) -> list[duckdb.Expression]:
+            return [
+                ColumnExpression(column_name) for column_name in evaluate_output_names(df)
+            ]
+
+        return DuckDBExpr(
+            func,
+            function_name="exclude",
+            evaluate_output_names=evaluate_output_names,
+            alias_output_names=None,
+            backend_version=self._backend_version,
+            version=self._version,
         )
 
     def nth(self: Self, *column_indices: int) -> DuckDBExpr:

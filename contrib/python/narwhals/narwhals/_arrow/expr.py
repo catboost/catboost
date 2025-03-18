@@ -14,6 +14,7 @@ from narwhals._arrow.expr_str import ArrowExprStringNamespace
 from narwhals._arrow.series import ArrowSeries
 from narwhals._expression_parsing import ExprKind
 from narwhals._expression_parsing import evaluate_output_names_and_aliases
+from narwhals._expression_parsing import is_scalar_like
 from narwhals._expression_parsing import reuse_series_implementation
 from narwhals.dependencies import get_numpy
 from narwhals.dependencies import is_numpy_array
@@ -360,7 +361,7 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
 
     def fill_null(
         self: Self,
-        value: Any | None,
+        value: Self | Any | None,
         strategy: Literal["forward", "backward"] | None,
         limit: int | None,
     ) -> Self:
@@ -414,10 +415,8 @@ class ArrowExpr(CompliantExpr["ArrowDataFrame", ArrowSeries]):
         )
 
     def over(self: Self, keys: list[str], kind: ExprKind) -> Self:
-        if kind is ExprKind.TRANSFORM:
-            msg = (
-                "Elementwise operations in `over` context are not supported for PyArrow."
-            )
+        if not is_scalar_like(kind):
+            msg = "Only aggregation or literal operations are supported in `over` context for PyArrow."
             raise NotImplementedError(msg)
 
         def func(df: ArrowDataFrame) -> list[ArrowSeries]:

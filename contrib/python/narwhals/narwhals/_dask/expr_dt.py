@@ -96,9 +96,9 @@ class DaskExprDateTimeNamespace:
                 s.dtype, self._compliant_expr._version, Implementation.DASK
             )
             if dtype.time_zone is None:  # type: ignore[attr-defined]
-                return s.dt.tz_localize("UTC").dt.tz_convert(time_zone)
+                return s.dt.tz_localize("UTC").dt.tz_convert(time_zone)  # pyright: ignore[reportAttributeAccessIssue]
             else:
-                return s.dt.tz_convert(time_zone)
+                return s.dt.tz_convert(time_zone)  # pyright: ignore[reportAttributeAccessIssue]
 
         return self._compliant_expr._from_call(func, "tz_convert", time_zone=time_zone)
 
@@ -125,7 +125,7 @@ class DaskExprDateTimeNamespace:
             else:
                 msg = "Input should be either of Date or Datetime type"
                 raise TypeError(msg)
-            return result.where(~mask_na)
+            return result.where(~mask_na)  # pyright: ignore[reportReturnType]
 
         return self._compliant_expr._from_call(func, "datetime", time_unit=time_unit)
 

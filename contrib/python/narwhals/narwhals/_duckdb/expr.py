@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import operator
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import Literal
 from typing import Sequence
+from typing import cast
 
 from duckdb import CaseExpression
 from duckdb import CoalesceOperator
@@ -280,7 +282,8 @@ class DuckDBExpr(CompliantExpr["DuckDBLazyFrame", "duckdb.Expression"]):  # type
         )
 
     def __invert__(self: Self) -> Self:
-        return self._from_call(lambda _input: ~_input, "__invert__")
+        invert = cast("Callable[..., duckdb.Expression]", operator.invert)
+        return self._from_call(invert, "__invert__")
 
     def alias(self: Self, name: str) -> Self:
         def alias_output_names(names: Sequence[str]) -> Sequence[str]:
@@ -442,14 +445,17 @@ class DuckDBExpr(CompliantExpr["DuckDBLazyFrame", "duckdb.Expression"]):  # type
             lambda _input: FunctionExpression("round", _input, lit(decimals)), "round"
         )
 
-    def fill_null(self: Self, value: Any, strategy: Any, limit: int | None) -> Self:
+    def fill_null(
+        self: Self, value: Self | Any, strategy: Any, limit: int | None
+    ) -> Self:
         if strategy is not None:
             msg = "todo"
             raise NotImplementedError(msg)
 
-        return self._from_call(
-            lambda _input: CoalesceOperator(_input, lit(value)), "fill_null"
-        )
+        def func(_input: duckdb.Expression, value: Any) -> duckdb.Expression:
+            return CoalesceOperator(_input, value)
+
+        return self._from_call(func, "fill_null", value=value)
 
     def cast(self: Self, dtype: DType | type[DType]) -> Self:
         def func(_input: duckdb.Expression) -> duckdb.Expression:

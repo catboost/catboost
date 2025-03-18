@@ -36,7 +36,7 @@ if TYPE_CHECKING:
         def __dataframe__(self, *args: Any, **kwargs: Any) -> Any: ...
 
 
-IntoExpr: TypeAlias = Union["Expr", str, "Series"]
+IntoExpr: TypeAlias = Union["Expr", str, "Series[Any]"]
 """Anything which can be converted to an expression.
 
 Use this to mean "either a Narwhals expression, or something
@@ -89,7 +89,7 @@ Examples:
     ...     return df.columns
 """
 
-IntoSeries: TypeAlias = Union["Series", "NativeSeries"]
+IntoSeries: TypeAlias = Union["Series[Any]", "NativeSeries"]
 """Anything which can be converted to a Narwhals Series.
 
 Use this if your function can accept an object which can be converted to `nw.Series`
