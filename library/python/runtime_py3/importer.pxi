@@ -91,10 +91,13 @@ def _init_venv():
     raise RuntimeError(f'{cfg_source_root} key not found in {virtual_conf}')
 
 
-def file_bytes(path):
+def file_bytes(path, strip=False):
     # 'open' is not avaiable yet.
     with FileIO(path, 'r') as f:
-        return f.read()
+        data = f.read()
+    if strip:
+        return data.strip()
+    return data
 
 
 def _guess_source_root():
@@ -103,7 +106,7 @@ def _guess_source_root():
     while tail:
         guidence_file = _path_join(path, '.root.path')
         if _path_isfile(guidence_file):
-            return file_bytes(guidence_file)
+            return file_bytes(guidence_file, strip=True)
 
         if _path_isfile(_path_join(path, '.arcadia.root')):
             return _b(path)
