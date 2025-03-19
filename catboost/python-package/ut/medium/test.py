@@ -7903,10 +7903,10 @@ def test_feature_statistics(combination):
             bucket_value = np.mean(res['borders'][bucket_num-1:bucket_num+1])
         return np.hstack((X[:, :feature_num], np.tile(bucket_value, (n_samples, 1)), X[:, feature_num + 1:]))
 
-    assert (np.alltrue(np.array(res['binarized_feature']) == np.digitize(X[:, feature_num], res['borders'])))
+    assert (np.all(np.array(res['binarized_feature']) == np.digitize(X[:, feature_num], res['borders'])))
     assert (res['objects_per_bin'].sum() == X.shape[0])
     assert (
-        np.alltrue(
+        np.all(
             np.unique(np.digitize(X[:, feature_num], res['borders']), return_counts=True)[1] == res['objects_per_bin']
         )
     )

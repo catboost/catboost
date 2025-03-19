@@ -13,7 +13,7 @@ RANDOM_SEED = 0
 
 
 def argmin(fn, space):
-    best_score = np.NINF
+    best_score = -np.inf
     best_params = {}
 
     for params in ParameterGrid(space):
