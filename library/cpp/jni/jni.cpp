@@ -27,6 +27,9 @@ TObjectRef<TIntentionallyLeakedRefPolicy, jclass>::~TObjectRef() {
 template <typename TRefPolicy, typename TObject>
 TObjectRef<TRefPolicy, TObject>::~TObjectRef() {
     try {
+        if (!Object) {
+            return;
+        }
         auto* env = Env()->GetJniEnv();
         TRefPolicy::Unref(Object, env);
         Object = nullptr;
